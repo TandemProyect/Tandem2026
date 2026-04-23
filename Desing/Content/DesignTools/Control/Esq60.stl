@@ -1,0 +1,198 @@
+solid "Esq60"
+  facet normal 1 -0 0
+    outer loop
+      vertex 500.00012207 1048.90722656 -52.9782180786
+      vertex 500.00012207 10048.9072266 -52.9782180786
+      vertex 500.00012207 1048.90722656 9947.02148438
+    endloop
+  endfacet
+  facet normal 1 0 0
+    outer loop
+      vertex 500.00012207 1048.90722656 9947.02148438
+      vertex 500.00012207 10048.9072266 -52.9782180786
+      vertex 500.00012207 10048.9072266 9947.02148438
+    endloop
+  endfacet
+  facet normal 0 0 -1
+    outer loop
+      vertex 5000 1048.90722656 -52.9782180786
+      vertex 500.00012207 1048.90722656 -52.9782180786
+      vertex 5000 1048.90722656 9947.02148438
+    endloop
+  endfacet
+  facet normal -0 0 -1
+    outer loop
+      vertex 5000 1048.90722656 9947.02148438
+      vertex 500.00012207 1048.90722656 -52.9782180786
+      vertex 500.00012207 1048.90722656 9947.02148438
+    endloop
+  endfacet
+  facet normal 1 -0 0
+    outer loop
+      vertex 5000 48.9072799683 -52.9782180786
+      vertex 5000 1048.90722656 -52.9782180786
+      vertex 5000 48.9072799683 9947.02148438
+    endloop
+  endfacet
+  facet normal 1 0 0
+    outer loop
+      vertex 5000 48.9072799683 9947.02148438
+      vertex 5000 1048.90722656 -52.9782180786
+      vertex 5000 1048.90722656 9947.02148438
+    endloop
+  endfacet
+  facet normal 0 0 1
+    outer loop
+      vertex -5000 48.9072799683 -52.9782180786
+      vertex 5000 48.9072799683 -52.9782180786
+      vertex -5000 48.9072799683 9947.02148438
+    endloop
+  endfacet
+  facet normal -0 0 1
+    outer loop
+      vertex -5000 48.9072799683 9947.02148438
+      vertex 5000 48.9072799683 -52.9782180786
+      vertex 5000 48.9072799683 9947.02148438
+    endloop
+  endfacet
+  facet normal -1 0 0
+    outer loop
+      vertex -5000 1048.90722656 -52.9782180786
+      vertex -5000 48.9072799683 -52.9782180786
+      vertex -5000 1048.90722656 9947.02148438
+    endloop
+  endfacet
+  facet normal -1 0 0
+    outer loop
+      vertex -5000 1048.90722656 9947.02148438
+      vertex -5000 48.9072799683 -52.9782180786
+      vertex -5000 48.9072799683 9947.02148438
+    endloop
+  endfacet
+  facet normal 0 0 -1
+    outer loop
+      vertex -500.00012207 1048.90722656 -52.9782180786
+      vertex -5000 1048.90722656 -52.9782180786
+      vertex -500.00012207 1048.90722656 9947.02148438
+    endloop
+  endfacet
+  facet normal -0 0 -1
+    outer loop
+      vertex -500.00012207 1048.90722656 9947.02148438
+      vertex -5000 1048.90722656 -52.9782180786
+      vertex -5000 1048.90722656 9947.02148438
+    endloop
+  endfacet
+  facet normal -1 0 0
+    outer loop
+      vertex -500.00012207 10048.9072266 -52.9782180786
+      vertex -500.00012207 1048.90722656 -52.9782180786
+      vertex -500.00012207 10048.9072266 9947.02148438
+    endloop
+  endfacet
+  facet normal -1 0 0
+    outer loop
+      vertex -500.00012207 10048.9072266 9947.02148438
+      vertex -500.00012207 1048.90722656 -52.9782180786
+      vertex -500.00012207 1048.90722656 9947.02148438
+    endloop
+  endfacet
+  facet normal 0 0 -1
+    outer loop
+      vertex 500.00012207 10048.9072266 -52.9782180786
+      vertex -500.00012207 10048.9072266 -52.9782180786
+      vertex 500.00012207 10048.9072266 9947.02148438
+    endloop
+  endfacet
+  facet normal -0 0 -1
+    outer loop
+      vertex 500.00012207 10048.9072266 9947.02148438
+      vertex -500.00012207 10048.9072266 -52.9782180786
+      vertex -500.00012207 10048.9072266 9947.02148438
+    endloop
+  endfacet
+  facet normal 0 1 -0
+    outer loop
+      vertex 500.00012207 10048.9072266 9947.02148438
+      vertex -500.00012207 10048.9072266 9947.02148438
+      vertex 500.00012207 1048.90722656 9947.02148438
+    endloop
+  endfacet
+  facet normal 0 1 0
+    outer loop
+      vertex 500.00012207 1048.90722656 9947.02148438
+      vertex -500.00012207 10048.9072266 9947.02148438
+      vertex -500.00012207 1048.90722656 9947.02148438
+    endloop
+  endfacet
+  facet normal 0 1 -0
+    outer loop
+      vertex 500.00012207 1048.90722656 9947.02148438
+      vertex -500.00012207 1048.90722656 9947.02148438
+      vertex 5000 48.9072799683 9947.02148438
+    endloop
+  endfacet
+  facet normal 0 1 0
+    outer loop
+      vertex 5000 48.9072799683 9947.02148438
+      vertex -500.00012207 1048.90722656 9947.02148438
+      vertex -5000 48.9072799683 9947.02148438
+    endloop
+  endfacet
+  facet normal 0 1 0
+    outer loop
+      vertex -5000 48.9072799683 9947.02148438
+      vertex -500.00012207 1048.90722656 9947.02148438
+      vertex -5000 1048.90722656 9947.02148438
+    endloop
+  endfacet
+  facet normal 0 1 0
+    outer loop
+      vertex 5000 48.9072799683 9947.02148438
+      vertex 5000 1048.90722656 9947.02148438
+      vertex 500.00012207 1048.90722656 9947.02148438
+    endloop
+  endfacet
+  facet normal 0 -1 0
+    outer loop
+      vertex -500.00012207 10048.9072266 -52.9782180786
+      vertex 500.00012207 10048.9072266 -52.9782180786
+      vertex -500.00012207 1048.90722656 -52.9782180786
+    endloop
+  endfacet
+  facet normal 0 -1 0
+    outer loop
+      vertex -500.00012207 1048.90722656 -52.9782180786
+      vertex 500.00012207 10048.9072266 -52.9782180786
+      vertex 500.00012207 1048.90722656 -52.9782180786
+    endloop
+  endfacet
+  facet normal 0 -1 0
+    outer loop
+      vertex -500.00012207 1048.90722656 -52.9782180786
+      vertex 500.00012207 1048.90722656 -52.9782180786
+      vertex -5000 48.9072799683 -52.9782180786
+    endloop
+  endfacet
+  facet normal 0 -1 0
+    outer loop
+      vertex -5000 48.9072799683 -52.9782180786
+      vertex 500.00012207 1048.90722656 -52.9782180786
+      vertex 5000 48.9072799683 -52.9782180786
+    endloop
+  endfacet
+  facet normal 0 -1 -0
+    outer loop
+      vertex 5000 48.9072799683 -52.9782180786
+      vertex 500.00012207 1048.90722656 -52.9782180786
+      vertex 5000 1048.90722656 -52.9782180786
+    endloop
+  endfacet
+  facet normal 0 -1 0
+    outer loop
+      vertex -5000 48.9072799683 -52.9782180786
+      vertex -5000 1048.90722656 -52.9782180786
+      vertex -500.00012207 1048.90722656 -52.9782180786
+    endloop
+  endfacet
+endsolid "Esq60"

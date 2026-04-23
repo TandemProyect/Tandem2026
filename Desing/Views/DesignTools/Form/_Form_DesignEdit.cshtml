@@ -1,0 +1,918 @@
+﻿
+<div id="DivWallDimension" style="z-index: 250;position: absolute; top:200px; right:300px; width:100px; height:100px;visibility:hidden">
+    <input type="number" min="0" step="1" value="0" class="form-control" id="DataWallDimension" placeholder="Ancho">
+</div>
+
+<div id="EditDim" style="display: none; height:890px; position: absolute; top: 0px; left: 0px; z-index: 500; border-radius: 0.9rem; background-color: white; width:500px">
+    <label>&nbsp;&nbsp;&nbsp;&nbsp; Modificar muro</label> &nbsp;&nbsp;&nbsp;&nbsp;
+    <img id="ImgEditDim" src="~/Content/DesignTools/Form/EditWall/Wall_R000.png" />
+    <button type="button" id="BtnCloseDimension" class="close" data-dismiss="modal" aria-label="Close" style="padding:5px;margin:5px"><span aria-hidden="true">&times;</span>&nbsp;&nbsp;</button>
+    <hr style="color: #F88402; margin: 0px " />
+    <div class="col-md-12" style="margin:10px;padding:2px">
+        <div class="col-md-5">
+            <div class="form-group">
+                <label>Número de grupo </label>
+                <input type="number" min="0" step="1" value=0 class="form-control-mandatory" id="ÌdGrup" placeholder="Escribe aquí número del grupo" />
+            </div>
+        </div>
+    </div>
+    <ul id="WallBreadcrumb" class="nav nav-pills" role="tablist" style="margin:10px;padding:2px">
+        <li class="nav-item" role="presentation" id="TapMuro">
+            <a id="btnMuro" class="nav-link active" style="background: #F0F6F7; color: #FFFFFF" name="NameMuro">Muro</a>
+        </li>
+        <li class="nav-item" role="presentation" id="TapTape">
+            <a class="nav-link active" style="background: #F0F6F7; color:#787C7C" id="btnTape" name="NameTapes">Configurar Tapes</a>
+        </li>
+        <li class="nav-item" role="presentation" id="TapPuntal">
+            <a class="nav-link active" style="background: #F0F6F7; color:#787C7C" id="btnPuntal" name="NamePuntal">Configurar Puntales</a>
+        </li>
+    </ul>
+    <hr style="color: #F88402;margin:0px" />
+    <form>
+        <div class="col-md-12">
+            <div class="modal-body" id="Recto" style="width:450px;background-color: white">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label>Acotar Muro</label>
+                        <input class="form-check-input" type="checkbox" id="CHeckDimWall" checked>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Longitud del muro</label>
+                            <input type="number" class="form-control-mandatory" id="Datalong" placeholder="Longitud">
+                            <label class="text-danger" id="wallEditionNoticeLong" style="display:none; font-size:small">no se puede editar la longitud con ambas esquinas</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Espesor del muro</label>
+                            <input type="number" class="form-control-mandatory" id="DataWith" placeholder="Ancho">
+                            <label  class="text-danger" id="ValidationWith" style="display:none">El muro no debe ser inferior a 0,10 mts</label>
+                            <label class="text-danger" id="wallEditionNoticeWith" style="display:none; font-size:small">no se puede editar el espesor con ambas esquinas</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Altura del muro </label>
+                            <input type="number" class="form-control-mandatory" id="DataHeight" placeholder="Altura">
+                            <label style="display:none; font-size:small" class="text-danger" id="ValidationHeight">el muro no debe ser inferior a 0,10mts ni superior a 10mts</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Cambiar altura en todo el muro</label>
+                            <input class="form-check-input" type="checkbox" id="CHeckHeightAllWall" checked>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-6" >
+                        <div class="form-group">
+                            <label>Cordenada X</label>
+                            <input type="number" class="form-control-mandatory" id="DataCordenadX" placeholder="Cordenad X">
+                            <label class="text-danger" id="wallEditionNoticeCordX" style="display:none">El muro no puede cambiar de coordenada Y una vez tiene ambas esquinas</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6" >
+                        <div class="form-group">
+                            <label>Cordenada Y</label>
+                            <input type="number" class="form-control-mandatory" id="DataCordenadY" placeholder="Cordenad Y">
+                            <label class="text-danger" id="wallEditionNoticeCordY" style="display:none">El muro no puede cambiar de coordenada Y una vez tiene ambas esquinas</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Mensulas en cara interior</label>
+                            <input class="form-check-input" type="checkbox" id="CHeckBracketInside" checked>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Mensulas en cara exterior</label>
+                            <input class="form-check-input" type="checkbox" id="CHeckBracketOutside" checked>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Rigidizadores en cara interior</label>
+                            <input class="form-check-input" type="checkbox" id="CHeckRijiInside" checked>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Rigidizadores en cara exterior</label>
+                            <input class="form-check-input" type="checkbox" id="CHeckRijiOutside" checked>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Utilizar Paneles 0,75 Regulables</label>
+                                <input class="form-check-input" type="checkbox" id="CHeck750R" checked>
+                            </div>
+                            <div class="form-group">
+                                <label>Paneles Verticales</label>
+                                <input class="form-check-input" type="checkbox" id="CHeckTypeFormworkMode" checked>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+        <div class="modal-body" id="EditTape" style="background-color: white; display: none">
+            <hr style="color: #F88402; margin: 0px " />
+            <div style="display:none">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label>Solape al inicio uy tape al inicio en progresión .....</label>
+                        <input class="form-check-input" type="checkbox" id="ChekSolapeIni">
+                        <input style="display:none" type="number" class="form-control" id="DataSupInicial" placeholder="Sup. Inicial">
+                    </div>
+                </div>
+                @*<div class="col-md-12" id="DivInicialSinSolapeMenor030" style="display:none">
+                        <div class="col-md-12">
+                            <h6>El ancho de Muro es menor de 0,30 m y no tiene solape Inicial</h6>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <input class="form-check-input" type="checkbox" id="CHeckInicialMenorSolucion_01" checked>
+                                    <h6>Solución 1</h6>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <img src="~/Content/DesignTools/MenuIcon/Solucion00.png" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12" id="DivInicialConSolapeMenor030S1" style="display: none">
+                        <div class="col-md-12">
+                            <h6>El ancho de Muro es menor de 0,30 m y tiene solape</h6>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <input class="form-check-input" type="checkbox" id="CHeckInicialMayorSolucion_01" checked>
+                                    <h6>Solución 1</h6>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <img src="~/Content/DesignTools/MenuIcon/Solucion_01.png" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <input class="form-check-input" type="checkbox" id="CHeckInicialMayorSolucion_02">
+                                    <label>Solucion 2</label>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <img src="~/Content/DesignTools/MenuIcon/Solucion_02.png" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12" id="DivInicialSolapeMayor030Exacto" style="display: none">
+                        <div class="col-md-12">
+                            <h6>El ancho de Muro coincide con 0,30 m o 0,45 m o 0,60 m o 0,75 m o 0,90 m</h6>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <input class="form-check-input" type="checkbox" id="CHeckInicialMayorAncho_Exacto" checked>
+                                    <h6>Ancho exacto</h6>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <img src="~/Content/DesignTools/MenuIcon/Ancho_Exacto.png" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <input class="form-check-input" type="checkbox" id="CHeckInicialMayorAncho_ExactoUniversal">
+                                    <h6>Panel universal</h6>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <img src="~/Content/DesignTools/MenuIcon/Ancho_Regular.png" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12" id="DivInicialSolapeMayor030Multiplo" style="display: none">
+                        <div class="col-md-12">
+                            <h6>El ancho de Muro  es multiplo de 0.050 m, es superior a 0,30 m y su ancho no coincide con medida ATK-60</h6>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <input class="form-check-input" type="checkbox" id="CHeckInicialMayorAnchoNoExactoSolucion1">
+                                    <h6>Solución 1</h6>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <img src="~/Content/DesignTools/MenuIcon/Solución_1.png" />
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <input class="form-check-input" type="checkbox" id="CHeckInicialMayorAnchoNoExactoSolucion2">
+                                    <h6>Solución 2</h6>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <img src="~/Content/DesignTools/MenuIcon/Solucion_2.png" />
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <input class="form-check-input" type="checkbox" id="CHeckInicialMayorAncho_ExactoUniversal_2">
+                                    <h6>Panel Universal</h6>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <img src="~/Content/DesignTools/MenuIcon/Ancho_Regular.png" />
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="col-md-12" id="DivInicialSolapeMayor030NoExactoNoMultiplo" style="display: none">
+                        <div class="col-md-12">
+                            <h6>El ancho de Muro no es multiplo de 0.050 m y es superior a 0,30 m</h6>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <input class="form-check-input" type="checkbox" id="CHeckInicialMayorAnchoNoExactoSolucion1">
+                                    <h6>Solución 1</h6>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <img src="~/Content/DesignTools/MenuIcon/Solución_1.png" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <input class="form-check-input" type="checkbox" id="CHeckInicialMayorAnchoNoExactoSolucion2">
+                                    <h6>Solución 2</h6>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <img src="~/Content/DesignTools/MenuIcon/Solucion_2.png" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12" id="DivInicialSolapeMayor030Multiplo005" style="display: none">
+                        <div class="col-md-12">
+                            <h6>El ancho de Muro es multiplo de 0.050 m y es superior a 0,30 m</h6>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <input class="form-check-input" type="checkbox" id="CHeckInicialMayorMultiplo05Solucion1">
+                                    <h6>Solución 1</h6>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <img src="~/Content/DesignTools/MenuIcon/Solución_1.png" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <input class="form-check-input" type="checkbox" id="CHeckInicialMayorMultiplo05Solucion2">
+                                    <h6>Solución 2</h6>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <img src="~/Content/DesignTools/MenuIcon/Solucion_2.png" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <input class="form-check-input" type="checkbox" id="CHeckInicialMayorMultiplo05Universal">
+                                    <h6>Panel universal</h6>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <img src="~/Content/DesignTools/MenuIcon/Ancho_Regular.png" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+
+                            </div>
+                            <div class="col-md-2">
+                            </div>
+                        </div>
+                    </div>*@
+            </div>
+            <hr style="color: #F88402; margin: 0px " />
+            @*//Solape Final*@
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label>Solape al final</label>
+                    <input class="form-check-input" type="checkbox" id="ChekSolapeEnd">
+                    <input style="display:none" type="number" class="form-control" id="DataSupEnd" placeholder="Sup. Final">
+                </div>
+            </div>
+            @*//Con Solape*@
+            <div class="col-md-12" id="DivTape_End_01" style="display: none">
+                <div class="col-md-12">
+                    <h6>El ancho de Muro tiene solape final</h6>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <input class="form-check-input" type="checkbox" id="TapeS1">
+                            <h6>Solución 1</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <img src="~/Content/DesignTools/MenuIcon/TapeS1.png" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <input class="form-check-input" type="checkbox" id="TapeS2">
+                            <h6>Solucion 2</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <img src="~/Content/DesignTools/MenuIcon/TapeS2.png" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12" id="DivTape_End_02" style="display: none">
+                <div class="col-md-12">
+                    <h6>El ancho de Muro tiene solape final y es menor de 0,30</h6>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <input class="form-check-input" type="checkbox" id="TapeS3">
+                            <h6>Solución 1</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <img src="~/Content/DesignTools/MenuIcon/TapeS3.png" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12" id="DivTape_End_03" style="display: none">
+                <div class="col-md-12">
+                    <h6>El ancho de Muro no tiene solape, es mayor de 0,30 y multiplo de 0,15</h6>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <input class="form-check-input" type="checkbox" id="TapeS4">
+                            <h6>Solución 1</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <img src="~/Content/DesignTools/MenuIcon/TapeS4.png" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <input class="form-check-input" type="checkbox" id="TapeS5">
+                            <h6>Solucion 2</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <img src="~/Content/DesignTools/MenuIcon/TapeS5.png" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12" id="DivTape_End_04" style="display: none">
+                <div class="col-md-12">
+                    <h6>El ancho de Muro no tiene solape, es mayor de 0,30 no es multiplo de 0,15 y multiplo de 0,05</h6>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <input class="form-check-input" type="checkbox" id="TapeS6">
+                            <h6>Solución 1</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <img src="~/Content/DesignTools/MenuIcon/TapeS6.png" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <input class="form-check-input" type="checkbox" id="TapeS7">
+                            <h6>Solucion 2</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <img src="~/Content/DesignTools/MenuIcon/TapeS7.png" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12" id="DivTape_End_05" style="display: none">
+                <div class="col-md-12">
+                    <h6>El ancho de Muro no tiene solape, es mayor de 0,30 y menor de 0,60 y no es multiplo de 0,05</h6>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <input class="form-check-input" type="checkbox" id="TapeS8">
+                            <h6>Solución 1</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <img src="~/Content/DesignTools/MenuIcon/TapeS8.png" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12" id="DivTape_End_06" style="display: none">
+                <div class="col-md-12">
+                    <h6>El ancho de Muro no tiene solape, es mayor de 0,60 y es multiplo de 0,05</h6>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <input class="form-check-input" type="checkbox" id="TapeS9">
+                            <h6>Solución 1</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <img src="~/Content/DesignTools/MenuIcon/TapeS9.png" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <input class="form-check-input" type="checkbox" id="TapeS10">
+                        <h6>Solución 2</h6>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <img src="~/Content/DesignTools/MenuIcon/TapeS10.png" />
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <input class="form-check-input" type="checkbox" id="TapeS11">
+                        <h6>Solución 3</h6>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <img src="~/Content/DesignTools/MenuIcon/TapeS11.png" />
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12" id="DivTape_End_07" style="display: none">
+                <div class="col-md-12">
+                    <h6>El ancho de Muro no tiene solape, es mayor de 0,60 y no es multiplo de 0,05</h6>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <input class="form-check-input" type="checkbox" id="TapeS12">
+                            <h6>Solución 1</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <img src="~/Content/DesignTools/MenuIcon/TapeS12.png" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <input class="form-check-input" type="checkbox" id="TapeS13">
+                        <h6>Solución 2</h6>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <img src="~/Content/DesignTools/MenuIcon/TapeS13.png" />
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="modal-body" id="EditPuntal" style="background-color: white; display: none;padding:5px">
+            <div class="col-md-12" style="padding:15px">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Puntales superiores en cara interior</label>
+                        <input class="form-check-input" type="checkbox" id="CHeckPropInside" checked>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Puntales superiores en cara exterior</label>
+                        <input class="form-check-input" type="checkbox" id="CHeckPropOutside" checked>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-12" style="padding:15px">
+                <div class="col-md-6">
+                    <div class="form-group" id="PuntaInfInt">
+                        <label>Puntales Inferiores en cara interior</label>
+                        <input class="form-check-input" type="checkbox" id="CHeckPropInsideInf" checked>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group" id="PuntaInfExt">
+                        <label>Puntales Inferiores en cara exterior</label>
+                        <input class="form-check-input" type="checkbox" id="CHeckPropOutsideInf" checked>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <hr style="color: #F88402;" />
+        <div class="col-md-12">
+            <button type="button" id="btnDeleteDimension" class="btn btn-danger">Eliminar Muro</button>
+            <button type="button" id="btnChangeDimension" class="btn btn-warning">Aceptar</button>
+        </div>
+    </form>
+</div>
+<div id="EditPilar" style="display: none; height:650px; position: absolute; top: 0px; left: 0px; z-index: 500; border-radius: 0.9rem; background-color: white; width:500px">
+    <label>&nbsp;&nbsp;&nbsp;&nbsp; Modificar Pilar</label> &nbsp;&nbsp;&nbsp;&nbsp;
+    <img id="ImgEditDim" src="~/Content/DesignTools/Form/EditWall/Pilar.png" />
+    <button type="button" id="BtnClosePilar" class="close" data-dismiss="modal" aria-label="Close" style="padding:5px;margin:5px"><span aria-hidden="true">&times;</span>&nbsp;&nbsp;</button>
+    <hr style="color: #F88402; margin: 0px " />
+    <div class="col-md-12" style="margin-left:35px;padding:0px">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>Número de grupo </label>
+                <input type="number" min="0" step="1" value=0 class="form-control-mandatory" id="ÌdGrupPilar" placeholder="Escribe aquí número del grupo" />
+            </div>
+        </div>
+    </div>
+    <hr style="color: #F88402;margin:0px" />
+    <form>
+        <div class="col-md-12">
+            <div class="modal-body" id="RectoPilar" style="background-color: white; padding:10px;margin:0px">
+                <div class="col-md-12" style="margin:0px">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Longitud del Pilar</label>
+                            <input type="number" min="0.1" max="0.55" class="form-control-mandatory" id="DatalongPilar" placeholder="Longitud">
+                            <label class="text-danger" style="display:none" id="Id_Validate_Pilar_Long">La dimensión del pilar en su Longitud no puede exceder los 0,55 mts</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Espesor del Pilar</label>
+                            <input type="number" min="0.1" max="0.55" class="form-control-mandatory" id="DataWithPilar" placeholder="Ancho">
+                            <label class="text-danger" style="display:none" id="Id_Validate_Pilar_With">La dimensión del pilar en su Espesor no puede exceder los 0,55 mts</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12" style="margin:0px">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Altura del Pilar </label>
+                            <input type="number" class="form-control-mandatory" id="DataHeightPilar" placeholder="Antura">
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-md-12" style="margin:0px">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Cordenad X del Pilar</label>
+                            <input type="number" class="form-control-mandatory" id="DataCordenadXPilar" placeholder="Cordenad X">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Cordenad Y del Pilar</label>
+                            <input type="number" class="form-control-mandatory" id="DataCordenadYPilar" placeholder="Cordenad Y">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12" style="margin:0px">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Utilizar Paneles 0,75 Regulables</label>
+                                <input disabled class="form-check-input" type="checkbox" id="CHeck750RPilar" checked>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12" style="margin:0px">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Puntales superiores</label>
+                    <input class="form-check-input" type="checkbox" id="CHeckPropInsidepilar" checked>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Puntales Inferiores</label>
+                    <input class="form-check-input" type="checkbox" id="CHeckPropInsideInfPilar" checked>
+                </div>
+            </div>
+        </div>
+        <hr style="color: #F88402;" />
+        <div class="col-md-12" style="margin:0px">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label>Insertar Rigidizadores </label>
+                    <input class="form-check-input" type="checkbox" id="CHeckRijiOutside" checked>
+                </div>
+            </div>
+        </div>
+        <hr style="color: #F88402;" />
+        <div class="col-md-12">
+            <button type="button" id="btnDeletePilar" class="btn btn-danger">Eliminar Pilar</button>
+            <button type="button" id="btnChangePilar" class="btn btn-warning">Aceptar</button>
+        </div>
+    </form>
+</div>
+<div id="EdiCorner_50" style="display: none; height:600px; position: absolute; top: 0px; left: 0px; z-index: 500; border-radius: 0.9rem; background-color: white; width:450px">
+    <div class="modal-body" style="width:450px;background-color: white">
+        <label>Modificar Esquina</label> &nbsp;&nbsp;&nbsp;&nbsp; <img id="iMG_50" src="~/Content/DesignTools/Form/EditWall/Esq_50.png" />
+        <button type="button" id="BtnCloseCornerDimension_50" class="close" data-dismiss="modal" aria-label="Close" style="padding:5px;margin:5px"><span aria-hidden="true">&times;</span>&nbsp;&nbsp;</button>
+        <hr style="color: #F88402;" />
+        <form>
+            <div class="col-md-12">
+                <div class="col-md-2">&nbsp;&nbsp;</div>
+                <div class="col-md-8">
+                    <div class="form-group">
+                        <img style="width:200px;height:200px" id="TypeSolucion_Esq_50" src="~/Content/DesignTools/MenuIcon/Esq_50_S_1.png" />
+                    </div>
+                </div>
+                <div class="col-md-2">&nbsp;&nbsp;</div>
+            </div>
+            <div class="col-md-12">
+                <div class="col-md-12">
+                    <div class="row">
+                        <div class="form-horizontal">
+                            <div class="modal-body" style="width: 500px; background-color: white; display: inline" id="EsqLLeftDown">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="radio" id="IsSolutionCornerAgular50" checked>
+                                            <label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;Solución de Esquina con Angular</label>
+                                        </div>
+                                        <div id="CornerValidation50">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="IsSolutionCornerXUniversalPanelCorner" checked>
+                                                <label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;Solución de Esquina con P. Universal en Muro Vertical</label>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="IsSolutionCornerYUniversalPanelCorner">
+                                                <label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;Solución de Esquina con P. Universal en Muro Horizontal</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr style="color: #F88402;" />
+                <div class="col-md-12" style="margin:15px">
+                    <div class="row">
+                        <div class="col-md-3">&nbsp;&nbsp;</div>
+                        <div class="col-md-7">
+                            <button type="button" id="btnCornerDeleteDimensionCorner_50" class="btn btn-danger">Eliminar</button>
+                            <button type="button" id="btnCornerChangeDimensionCorner_50" class="btn btn-warning">Cambiar</button>
+
+                        </div>
+                    </div>
+                </div>
+                <hr style="color: #F88402;"/>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="EdiCorner_70" style="display: none; height:600px; position: absolute; top: 0px; left: 0px; z-index: 500; border-radius: 0.9rem; background-color: white; width:450px">
+    <div class="modal-body" style="width:450px;background-color: white">
+        <label>Modificar Esquina</label> &nbsp;&nbsp;&nbsp;&nbsp; <img id="iMG_70" src="~/Content/DesignTools/Form/EditWall/Esq_70.png" />
+        <button type="button" id="BtnCloseCornerDimension_70" class="close" data-dismiss="modal" aria-label="Close" style="padding:5px;margin:5px"><span aria-hidden="true">&times;</span>&nbsp;&nbsp;</button>
+        <hr style="color: #F88402;" />
+        <form>
+            <div class="col-md-12">
+                <div class="col-md-2">&nbsp;&nbsp;</div>
+                <div class="col-md-8">
+                    <div class="form-group">
+                        <img style="width:200px;height:200px" id="TypeSolucion_Esq_70" src="~/Content/DesignTools/MenuIcon/Esq_70_S_1.png" />
+                    </div>
+                </div>
+                <div class="col-md-2">&nbsp;&nbsp;</div>
+            </div>
+            <div class="col-md-12">
+                <div class="col-md-12">
+                    <div class="row">
+                        <div class="form-horizontal">
+                            <div class="modal-body" style="width: 500px; background-color: white; display: inline" id="EsqLLeftDown70">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="radio" id="IsSolutionCornerAgular70" checked>
+                                            <label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;Solución de Esquina con Angular</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="IsSolutionCornerYUniversalPanelCorner70" checked>
+                                            <label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;Solución de Esquina con P. Universal en Muro Vertical</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="IsSolutionCornerXUniversalPanelCorner70">
+                                            <label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;Solución de Esquina con P. Universal en Muro Horizontal</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr style="color: #F88402;" />
+                <div class="col-md-12" style="margin:15px">
+                    <div class="row">
+                        <div class="col-md-3">&nbsp;&nbsp;</div>
+                        <div class="col-md-7">
+                            <button type="button" id="btnCornerDeleteDimensionCorner_70" class="btn btn-danger">Eliminar</button>
+                            <button type="button" id="btnCornerChangeDimensionCorner_70" class="btn btn-warning">Cambiar</button>
+
+                        </div>
+                    </div>
+                </div>
+                <hr style="color: #F88402;" />
+            </div>
+        </form>
+    </div>
+</div>
+<div id="EdiCorner_10" style="display: none; height:600px; position: absolute; top: 0px; left: 0px; z-index: 500; border-radius: 0.9rem; background-color: white; width:450px">
+    <div class="modal-body" style="width:450px;background-color: white">
+        <label>Modificar Esquina</label> &nbsp;&nbsp;&nbsp;&nbsp; <img id="iMG_70" src="~/Content/DesignTools/Form/EditWall/Esq_10.png" />
+        <button type="button" id="BtnCloseCornerDimension_10" class="close" data-dismiss="modal" aria-label="Close" style="padding:5px;margin:5px"><span aria-hidden="true">&times;</span>&nbsp;&nbsp;</button>
+        <hr style="color: #F88402;" />
+        <form>
+            <div class="col-md-12">
+                <div class="col-md-2">&nbsp;&nbsp;</div>
+                <div class="col-md-8">
+                    <div class="form-group">
+                        <img style="width:200px;height:200px" id="TypeSolucion_Esq_10" src="~/Content/DesignTools/MenuIcon/Esq_10_S_1.png" />
+                    </div>
+                </div>
+                <div class="col-md-2">&nbsp;&nbsp;</div>
+            </div>
+            <div class="col-md-12">
+                <div class="col-md-12">
+                    <div class="row">
+                        <div class="form-horizontal">
+                            <div class="modal-body" style="width: 500px; background-color: white; display: inline" id="EsqLLeftDown10">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="radio" id="IsSolutionCornerAgular10" checked>
+                                            <label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;Solución de Esquina con Angular</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="IsSolutionCornerXUniversalPanelCorner10" checked>
+                                            <label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;Solución de Esquina con P. Universal en Muro Vertical</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="IsSolutionCornerYUniversalPanelCorner10">
+                                            <label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;Solución de Esquina con P. Universal en Muro Horizontal</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr style="color: #F88402;" />
+                <div class="col-md-12" style="margin:15px">
+                    <div class="row">
+                        <div class="col-md-3">&nbsp;&nbsp;</div>
+                        <div class="col-md-7">
+                            <button type="button" id="btnCornerDeleteDimensionCorner_10" class="btn btn-danger">Eliminar</button>
+                            <button type="button" id="btnCornerChangeDimensionCorner_10" class="btn btn-warning">Cambiar</button>
+                        </div>
+                    </div>
+                </div>
+                <hr style="color: #F88402;" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="EdiCorner_30" style="display: none; height:600px; position: absolute; top: 0px; left: 0px; z-index: 500; border-radius: 0.9rem; background-color: white; width:450px">
+    <div class="modal-body" style="width:450px;background-color: white">
+        <label>Modificar Esquina</label> &nbsp;&nbsp;&nbsp;&nbsp; <img id="iMG_30" src="~/Content/DesignTools/Form/EditWall/Esq_30.png" />
+        <button type="button" id="BtnCloseCornerDimension_30" class="close" data-dismiss="modal" aria-label="Close" style="padding:5px;margin:5px"><span aria-hidden="true">&times;</span>&nbsp;&nbsp;</button>
+        <hr style="color: #F88402;" />
+        <form>
+            <div class="col-md-12">
+                <div class="col-md-2">&nbsp;&nbsp;</div>
+                <div class="col-md-8">
+                    <div class="form-group">
+                        <img style="width:200px;height:200px" id="TypeSolucion_Esq_30" src="~/Content/DesignTools/MenuIcon/Esq_30_S_1.png" />
+                    </div>
+                </div>
+                <div class="col-md-2">&nbsp;&nbsp;</div>
+            </div>
+            <div class="col-md-12">
+                <div class="col-md-12">
+                    <div class="row">
+                        <div class="form-horizontal">
+                            <div class="modal-body" style="width: 500px; background-color: white; display: inline" id="EsqLLeftDown30">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="radio" id="IsSolutionCornerAgular30" checked>
+                                            <label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;Solución de Esquina con Angular</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="IsSolutionCornerXUniversalPanelCorner30" checked>
+                                            <label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;Solución de Esquina con P. Universal en Muro Vertical</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="IsSolutionCornerYUniversalPanelCorner30">
+                                            <label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;Solución de Esquina con P. Universal en Muro Horizontal</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr style="color: #F88402;" />
+                <div class="col-md-12" style="margin:15px">
+                    <div class="row">
+                        <div class="col-md-3">&nbsp;&nbsp;</div>
+                        <div class="col-md-7">
+                            <button type="button" id="btnCornerDeleteDimensionCorner_30" class="btn btn-danger">Eliminar</button>
+                            <button type="button" id="btnCornerChangeDimensionCorner_30" class="btn btn-warning">Cambiar</button>
+
+                        </div>
+                    </div>
+                </div>
+                <hr style="color: #F88402;" />
+            </div>
+        </form>
+    </div>
+</div>

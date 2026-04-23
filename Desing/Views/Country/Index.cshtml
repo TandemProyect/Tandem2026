@@ -1,0 +1,130 @@
+﻿@model DAL.TSql_Employee
+
+@*<link href="~/Content/app.min.css" rel="stylesheet" />*@
+<ul class="breadcrumb">
+    <li><a style="color:black" id="sidebarCollapse" href="#" class=""><i class="fas fa-align-justify"></i></a></li>
+    <li><a href="@Url.Action("Index", "Home")"><i class="fas fa-home"></i> Home</a></li>
+    <li><i class="fas fa-user-friends"></i> Employee</li>
+</ul>
+ 
+<div class="panel panel-default">
+    <div class="panel-body" style="padding:5px;margin:5px">
+        <table id="TableEmployee" class="table table-striped table-bordered table-hover" cellspacing="0" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th></th>
+                    <th>ID</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+
+@section scripts
+    {
+    <script type="text/javascript">
+        $(document).ready(function ()
+        {
+            var Employee = {
+                dt: null,
+                init: function () {
+                    dt = $('#TableEmployee').DataTable({
+                        dom: '<"dataTables-length-position">Bfrt<"dataTables-length-position"i>p',
+                        lengthMenu: [
+                            [10, 25, 50, -1],
+                            ['10 rows', '25 rows', '50 rows', 'Show all']
+                        ],
+                        buttons: [
+                            {
+                                extend: 'collection',
+                                text: "<i class='fas fa-bars'></i>",
+                                className: 'custom-html-collection',
+                                buttons: [
+                                    '<h5>Select Record</h5>',
+                                    'pageLength',
+                                    '<h5>Export</h5>',
+                                    'print',
+                                    'copy',
+                                    'pdf',
+                                    'csv',
+                                    'excel',
+                                    '<h5 class="not-top-heading">Column Visibility</h5>',
+                                    'colvis'
+                                ]
+                            }
+                        ],
+                        //buttons: [
+                        //    'copy', 'csv', 'excel', 'pdf', 'print'
+                        //],
+                        "serverSide": true,
+                        "processing": true,
+                        "stateSave": true,
+                        "stateDuration": 12,
+                        //stateSaveCallback: function(settings,data) {
+                        //    //Save personalized buttons data:
+                        //    var dataString = JSON.stringify(data);
+                        //    localStorage.setItem(LocalStorageKey, dataString)
+                        //},
+                        //stateLoadCallback: function(settings) {
+                        //    //Load Personalized buttons with selected options.
+                        //    var options = JSON.parse(localStorage.getItem(LocalStorageKey));
+                        //    return options;
+                        //},
+                        "ajax": {
+                            "url": "@Url.Content("~/Employee/ListEmployee/" + 1)",
+                            "type": "POST"
+                        },
+                        "columns": [
+                            { "data": "AttName" },
+                            { "data": "AttSurname" },
+                            { "data": "emptyColumn" },
+                            { "data": "SysObjectID" }
+                        ],
+                        "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]],
+                     /*   "iDisplayLength": parseInt(leerCookie("_rowsPerPage")),*/
+                        "fnRowCallback": function (nRow, data, iDisplayIndex)
+                        {
+                            $('td:eq(0)', nRow).html(data.AttName);
+
+                            if (data.allowEdit == true) {
+                                $('td:eq(2)', nRow).append(data.buttonEdit + '&nbsp;');
+                            }
+                            if (data.AttIsDeleted == false) {
+                                if ((data.Counter1 == 0) && (data.Counter2 == 0)) {
+                                    if (data.allowDelete == true) {
+                                        $('td:eq(2)', nRow).append(data.buttonDelete + '&nbsp;');
+                                    }
+                                }
+                            }
+                            return nRow;
+                        },
+                        "aaSorting": [[3, 'desc']],
+                        "aoColumnDefs": [
+                            { "bVisible": false, "aTargets": [3] },
+                            { "bSortable": false, "aTargets": [2] },
+                            { "width": "300px", "aTargets": [0] },
+                            { "width": "50px", "aTargets": [2] },
+                        ],
+                        drawCallback: function () {
+                            $('[data-toggle="tooltip"]').tooltip({
+                                delay: { "show": 100, "hide": 100 },
+                                placement: "auto right"
+                            }),
+                            $('[title]').tooltip({
+                                delay: { "show": 100, "hide": 100 },
+                                placement: "auto"
+                            })
+                        },
+
+                    });
+                }
+            }
+            Employee.init();
+        });
+            $('#sidebar').toggleClass('active');
+            $(this).toggleClass('active');
+    </script>
+}
+

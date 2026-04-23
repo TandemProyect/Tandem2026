@@ -1,0 +1,159 @@
+﻿ <link href="~/Scripts/datatables/datatables.css" rel="stylesheet" />
+ <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: 100%;height:100%">
+     <ul class="breadcrumb">
+         <li><i class="fa fa-id-card" aria-hidden="true"></i>&nbsp;&nbsp;Lista de Materia del Grupo @ViewBag.Grup&nbsp;&nbsp; </li>
+     </ul>
+ </div>
+ <div id="ContentMaterialListEmb" style="background-position: center;z-index:250">
+     <div class="ct-horizontal" id="MaterialListLoadEmb">
+         <div class="col-md-12" style="position: absolute; left:450px;top:200px">
+             <img src="~/Content/comunIcon/LoadingAtK.gif" style="width:150px;height:150px">
+         </div>
+         <div class="col-md-12" style="position: absolute; left:375px;top:280px">
+             <p>
+                 Cargando lista de materiales ..
+             </p>
+         </div>
+     </div>
+ </div>
+<div id="DivData" class="slimScrollDiv" style="position: relative; overflow: hidden; width:1100px;height:630px;display: none">
+    <div class="panel panel-default" style="height: 100%; width: 1100px ">
+        <div class="panel-body" style="padding: 5px; margin: 5px; height:100%; width: 1100px">
+            <table id="MaterialList" class="table table-striped table-bordered table-hover" cellspacing="0" style="width: 1100px;height:100%; overflow: scroll ">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Articulo</th>
+                        <th>Cantidad</th>
+                        <th>Peso</th>
+                        <th>Peso Total</th>
+                        <th>m2</th>
+                        <th>m2 Total </th>
+                        <th></th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+<div id="DivTotal" style="position: relative;bottom:10px;height:100px">
+    <table id="MaterialTotal" class="table table-striped table-bordered table-hover" cellspacing="0" style="width: 100%">
+        <thead>
+            <tr>
+                <th>Total Articulos</th>
+                <th>Total M2</th>
+                <th>Total Peso</th>
+            </tr>
+        </thead>
+            <tr>
+                <td><label id="IdTotalElement"></label></td>
+                <td><label id="IdTotalM2"></label></td>
+                <td><label id="IdTotalW"> </label></td>
+            </tr>
+    </table>
+</div>
+    <script src="~/Scripts/datatables/datatables.js"></script>
+    <script src="~/Scripts/datatables/Buttons-2.0.1/js/dataTables.buttons.min.js"></script>
+    <script src="~/Scripts/datatables/JSZip-2.5.0/jszip.min.js"></script>
+    <script src="~/Scripts/datatables/pdfmake-0.1.36/pdfmake.min.js"></script>
+    <script src="~/Scripts/datatables/pdfmake-0.1.36/vfs_fonts.js"></script>
+    <script src="~/Scripts/datatables/Buttons-2.0.1/js/buttons.html5.min.js"></script>
+    <script src="~/Scripts/datatables/Buttons-2.0.1/js/buttons.print.min.js"></script>
+    <script src="~/Scripts/datatables/DataTables-1.11.3/js/dataTables.autoFill.min.js"></script>
+    <script type="text/javascript">
+    $(document).ready(function () {
+            $("#TopMenu").show("slide", { direction: "left" }, 400);
+            $('#sidebar').toggleClass('active');
+            $(this).toggleClass('active');
+            $('#sidebar').load('/Menu/Index');
+        var ListMaterial =
+        {
+            dt: null,
+            init: function ()
+            {
+                dt = $('#MaterialList').DataTable({
+                    scrollX: true,
+                    scrollY: 400,
+                    dom: '<"dataTables-length-position">Bfrt<"dataTables-length-position"i>p',
+                    lengthMenu: [
+                        [10, 25, 50, -1],
+                        ['10 rows', '25 rows', '50 rows', 'Show all']
+                    ],
+                    buttons: [
+                        {
+                            extend: 'collection',
+                            text: "<i class='fas fa-bars'></i>",
+                            className: 'custom-html-collection',
+                            buttons: [
+                                'pdf',
+                                'excel',
+                            ]
+                        }
+                    ],
+                    "serverSide": true,
+                    "processing": true,
+                    "stateSave": true,
+                    "stateDuration": 12,
+                    "ajax": {
+                        "url": "@Url.Content("~/DesignTools/ListMaterialGrupJsomDetails/")",
+                        type: "POST"
+                    },
+                    "columns": [
+                        { "data": "TextCode" },
+                        { "data": "TextLabel" },
+                        { "data": "Quantity" },
+                        { "data": "NumberWeight" },
+                        { "data": "TotalWeight" },
+                        { "data": "NumberMts2" },
+                        { "data": "TotalNumberMts2" },
+                        { "data": "emptyColumn" }
+                    ],
+
+    "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]],
+    /*   "iDisplayLength": parseInt(leerCookie("_rowsPerPage")),*/
+                    "fnRowCallback": function (nRow, data, iDisplayIndex)
+                    {
+                        document.getElementById('IdTotalElement').innerHTML = data.TotalElement;
+                        document.getElementById('IdTotalM2').innerHTML = data.TotalMts2;
+                        document.getElementById('IdTotalW').innerHTML = data.TTotalWeight;
+                        
+
+
+    //                  
+
+        $('td:eq(0)', nRow).html(data.TextCode);
+              if (data.allowEdit == true) {
+        $('td:eq(7)', nRow).append(data.buttonEdit + '&nbsp;');
+        $('td:eq(7)', nRow).append(data.buttonView + '&nbsp;');
+              }
+              return nRow;
+          },
+    "aaSorting": [[1, 'desc']],
+    "aoColumnDefs": [
+    { "bSortable": false, "aTargets": [7] },
+    { "width": "300px", "aTargets": [2] },
+    { "width": "50px", "aTargets": [7] },
+    ],
+    drawCallback: function () {
+    $('[data-toggle="tooltip"]').tooltip({
+              delay: { "show": 100, "hide": 100 },
+    placement: "auto right"
+    }),
+    $('[title]').tooltip({
+              delay: { "show": 100, "hide": 100 },
+    placement: "auto"
+    })
+    },
+
+    });
+    }
+    }
+        ListMaterial.init();
+        $("#ContentMaterialListEmb").hide("slide", { direction: "right" }, 400);
+        $("#DivData").show("slide", { direction: "right" }, 400);
+
+    });
+
+    </script>
+
+

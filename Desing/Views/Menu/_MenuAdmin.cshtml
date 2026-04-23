@@ -1,0 +1,37 @@
+﻿<div id="Id_VS_Menu" class="sidebar-menu" style="height:100%">
+    <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto; top: 5px ">
+        <div class="sidebar-header">
+            <div class="header-brand">
+                <div class="brand-slogan">
+                    <div class="slogan-title" style="padding-left: 20px; color: #00428A "> Administrador</div>
+                </div>
+            </div>
+        </div>
+        <ul id="Id_Sub_VS_Menu" class="menu" style="overflow: hidden; width: auto;">
+            <li>
+                <a id="btDocument" href="@Url.Action("Index", "TSql_Company")"><i class="fas fa-user-friends"></i><span>&nbsp;&nbsp; Empresas</span></a>
+            </li>
+            <li>
+                <a id="btDocument" href="@Url.Action("Index", "Employee")"><i class="fas fa-user"></i><span>&nbsp;&nbsp; Empleados</span></a>
+            </li>
+            <li>
+                <a id="btDocument" href="@Url.Action("Index", "MasterArticles")"> <i class="fa fa-align-justify"></i><span>&nbsp;&nbsp;   Artículos</span></a>
+            </li>
+            <li>
+                <a id="btDocument" href="@Url.Action("Index", "DesignTools")"> <i class="fa fa-cube"></i><span> &nbsp;&nbsp; Diseños3</span></a>
+            </li>
+        </ul>
+
+    </div>
+
+
+</div>
+
+ 
+<script type="text/javascript">
+    $(document).ready(function () {
+        document.getElementById("Iduser").src = '@ViewBag.avatar';
+        document.getElementById("IdName").innerHTML = '@ViewBag.userName';
+    });
+</script>
+

@@ -1,0 +1,292 @@
+﻿using Desing.Controllers;
+using System.Collections.Generic;
+namespace Desing.Repositories.Atk60.Wall.WallCorner
+{
+    public class Corner50_00_1200 : BaseController
+    {
+        private static long PanelPerfil = 12;
+        private static bool Is2700 = false;
+        private static long LastPanel = 0;
+        private static string _codeName;
+        internal static List<ModelRenderElement> setdListElement(long type, DAL.TSql_DefaultDesign currentDefaultDisign, long DataHeight, long dataWith, long datalong, long dataCordenadX, long dataCordenadY, bool IsAngular)
+        {
+            List<ModelRenderElement> ListRenderElement = new List<ModelRenderElement>();
+            SedPanels(type, currentDefaultDisign, DataHeight, datalong, dataCordenadX, dataCordenadY, dataWith, ListRenderElement, IsAngular);
+            return ListRenderElement;
+        }
+        private static void SedPanels(long type, DAL.TSql_DefaultDesign currentDefaultDisign, long DataHeight, long datalong, long dataCordenadX, long dataCordenadY, long dataWith, List<ModelRenderElement> ListRenderElement, bool IsAngular)
+        {
+            Is2700 = false;
+            var Elevation = 0;
+            var ElevationDiwydag = 0;
+            int RestTypeHeight = 300;
+            int n = (int)((DataHeight + 149) / 2700);
+            var restHeight = (int)((DataHeight) - (2700 * n));
+            var nHeight = 0;
+            if (n >= 1)
+            {
+                Is2700 = true;
+                for (int i = 0; i < n; i++)
+                {
+                    if (i == 0)
+                    {
+                        Elevation = 45;
+                    }
+                    else
+                    {
+                        Elevation = Elevation + 270;
+                        CommonElement.UnionRiji(1, type, PanelPerfil, 0, dataCordenadX, 25, dataCordenadY, Elevation - 30, ListRenderElement, dataWith / 10, "");
+                        CommonElement.UnionRijiMirror(1, type, PanelPerfil, 0, dataCordenadX, 25, dataCordenadY, Elevation - 30, ListRenderElement, dataWith / 10, "");
+                        CommonElement.SedUnionHorizontal(type, PanelPerfil, 0, dataCordenadX, 40, dataCordenadY, nHeight, ListRenderElement, "90");
+                        CommonElement.SedUnionHorizontal(type, PanelPerfil, 0, dataCordenadX, 15, dataCordenadY, nHeight, ListRenderElement, "90");
+                        CommonElement.SedUnionHorizontal(type, PanelPerfil, 0, dataCordenadX, 130, dataCordenadY, nHeight, ListRenderElement, "90");
+                        CommonElement.SedUnionHorizontal(type, PanelPerfil, 0, dataCordenadX, 105, dataCordenadY, nHeight, ListRenderElement, "90");
+                    }
+                    CommonElement.SedUnionVertical(type, PanelPerfil, 0, dataCordenadX, 0, dataCordenadY, nHeight + 45, ListRenderElement, "");
+                    CommonElement.SedUnionVertical(type, PanelPerfil, 0, dataCordenadX, 0, dataCordenadY, nHeight + 135, ListRenderElement, "");
+                    CommonElement.SedUnionVertical(type, PanelPerfil, 0, dataCordenadX, 0, dataCordenadY, nHeight + 225, ListRenderElement, "");
+
+                    CommonElement.SedUnionVertical(type, PanelPerfil, 0, dataCordenadX + 90, 0, dataCordenadY, nHeight + 45, ListRenderElement, "");
+                    CommonElement.SedUnionVertical(type, PanelPerfil, 0, dataCordenadX + 90, 0, dataCordenadY, nHeight + 135, ListRenderElement, "");
+                    CommonElement.SedUnionVertical(type, PanelPerfil, 0, dataCordenadX + 90, 0, dataCordenadY, nHeight + 225, ListRenderElement, "");
+                    if (IsAngular == true)
+                    {
+                        CommonElement.SedUnionVertical(type, PanelPerfil, 0, dataCordenadX + 120, 0, dataCordenadY, nHeight + 45, ListRenderElement, "");
+                        CommonElement.SedUnionVertical(type, PanelPerfil, 0, dataCordenadX + 120, 0, dataCordenadY, nHeight + 135, ListRenderElement, "");
+                        CommonElement.SedUnionVertical(type, PanelPerfil, 0, dataCordenadX + 120, 0, dataCordenadY, nHeight + 225, ListRenderElement, "");
+                    }
+
+                    ModelRenderElement element = new ModelRenderElement();
+                    element.Element = Atk60Element.GetElement("Panel90270");
+                    element.ElementF = Atk60Element.GetElement("Panel90270F");
+                    element.CodeName = "27904209";
+                    element.LongDimTypeHorizontal = (long?)900;
+                    element.LongDimTypeVertical = (long?)2700;
+                    element.x = dataCordenadX;
+                    element.y = dataCordenadY;
+                    element.z = element.z + nHeight;
+                    element.XRotate = 0;
+                    ListRenderElement.Add(element);
+
+
+                    ModelRenderElement element30 = new ModelRenderElement();
+                    element30.Element = Atk60Element.GetElement("Panel30270");
+                    element30.ElementF = Atk60Element.GetElement("Panel30270F");
+                    element30.CodeName = "27304205";
+                    element30.LongDimTypeHorizontal = (long?)300;
+                    element30.LongDimTypeVertical = (long?)2700;
+                    element30.x = dataCordenadX + 90;
+                    element30.y = dataCordenadY;
+                    element30.z = element30.z + nHeight;
+                    element30.XRotate = 0;
+                    ListRenderElement.Add(element30);
+                    ElevationDiwydag = ElevationDiwydag + 270;
+
+
+                    nHeight = nHeight + 270;
+                }
+            }
+            if (restHeight > 0)
+            {
+                RestTypeHeight = getRestTypeHeight(restHeight);
+                if (RestTypeHeight == 2400)
+                {
+                    if (currentDefaultDisign.ExitingPanel2400 == true)
+                    {
+                        var IsRiji = 0;
+                        if (Is2700 == true)
+                        {
+                            IsRiji = 1;
+                        }
+                        Insert2400Element(IsRiji, currentDefaultDisign, ListRenderElement, dataCordenadX, dataCordenadY, nHeight, dataWith, type, datalong, IsAngular);
+                        LastPanel = 2400;
+                    }
+                    else
+                    {
+                        Insert1200Element(1, currentDefaultDisign, ListRenderElement, dataCordenadX, dataCordenadY, nHeight, dataWith, type, datalong, IsAngular);
+                        nHeight = nHeight + 120;
+                        var IsRiji = 0;
+                        if (Is2700 == true)
+                        {
+                            IsRiji = 1;
+                        }
+                        Insert1200Element(IsRiji, currentDefaultDisign, ListRenderElement, dataCordenadX, dataCordenadY, nHeight, dataWith, type, datalong, IsAngular);
+                        nHeight = nHeight + 120;
+                    }
+                }
+                if (RestTypeHeight == 1200)
+                {
+                    var IsRiji = 0;
+                    if (nHeight != 0)
+                    {
+                        IsRiji = 1;
+                    }
+                    Insert1200Element(IsRiji, currentDefaultDisign, ListRenderElement, dataCordenadX, dataCordenadY, nHeight, dataWith, type, datalong, IsAngular);
+                    LastPanel = 1200;
+                }
+                //if (RestTypeHeight == 2700)
+                //{
+                //    var IsRiji = 0;
+                //    if (nHeight != 0)
+                //    {
+                //        IsRiji = 1;
+                //    }
+                //    Insert2700Element(IsRiji, currentDefaultDisign, ListRenderElement, dataCordenadX, dataCordenadY, nHeight, dataWith, type, datalong);
+                //    LastPanel = 1200;
+                //}
+            }
+        }
+        //private static void Insert2700Element(long IsRiji, DAL.TSql_DefaultDesign currentDefaultDisign, List<ModelRenderElement> ListRenderElement, long dataCordenadX, long dataCordenadY, int nHeight, long dataWith, long type, long datalong)
+        //{
+        //    var SupNHeight = 270;
+        //    if (IsRiji == 1)
+        //    {
+        //        if (Is2700 == true)
+        //        {
+        //            SupNHeight = 0;
+        //        }
+        //        CommonElement.UnionRiji(1, type, PanelPerfil, 0, dataCordenadX, 25, dataCordenadY, nHeight + SupNHeight, ListRenderElement, dataWith / 10, "");
+        //        CommonElement.UnionRijiMirror(1, type, PanelPerfil, 0, dataCordenadX, 25, dataCordenadY, nHeight + SupNHeight, ListRenderElement, dataWith / 10, "");
+        //        CommonElement.SedUnionHorizontal(type, PanelPerfil, 0, dataCordenadX, 15, dataCordenadY, nHeight, ListRenderElement, "90");
+        //        CommonElement.SedUnionHorizontalMirror(type, PanelPerfil, 0, dataCordenadX, 15, dataCordenadY, nHeight, ListRenderElement, dataWith / 10, "90");
+        //        CommonElement.SedUnionHorizontal(type, PanelPerfil, 0, dataCordenadX, 40, dataCordenadY, nHeight, ListRenderElement, "90");
+        //        CommonElement.SedUnionHorizontalMirror(type, PanelPerfil, 0, dataCordenadX, 40, dataCordenadY, nHeight, ListRenderElement, dataWith / 10, "90");
+        //    }
+        //    ModelRenderElement element = new ModelRenderElement();
+        //    element.Element = Atk60Element.GetElement("Panel60270");
+        //    element.ElementF = Atk60Element.GetElement("Panel60270F");
+        //    element.LongDimTypeHorizontal = (long?)600;
+        //    element.LongDimTypeVertical = (long?)2700;
+        //    element.CodeName = "27604207";
+        //    element.z = element.z + nHeight;
+        //    element.x = dataCordenadX;
+        //    element.y = dataCordenadY;
+        //    element.XRotate = 0;
+        //    ListRenderElement.Add(element);
+        //}
+        private static void Insert1200Element(long IsRiji, DAL.TSql_DefaultDesign currentDefaultDisign, List<ModelRenderElement> ListRenderElement, long dataCordenadX, long dataCordenadY, int nHeight, long dataWith, long type, long datalong, bool IsAngular)
+        {
+            var SupNHeight = 120;
+            if (IsRiji == 1)
+            {
+                if (Is2700 == true)
+                {
+                    SupNHeight = 0;
+                }
+                CommonElement.UnionRiji(1, type, PanelPerfil, 0, dataCordenadX, 25, dataCordenadY, nHeight + SupNHeight, ListRenderElement, dataWith / 10, "");
+                CommonElement.SedUnionHorizontal(type, PanelPerfil, 0, dataCordenadX, 15, dataCordenadY, nHeight + SupNHeight, ListRenderElement, "90");
+                CommonElement.SedUnionHorizontal(type, PanelPerfil, 0, dataCordenadX, 40, dataCordenadY, nHeight + SupNHeight, ListRenderElement, "90");
+
+                CommonElement.SedUnionHorizontal(type, PanelPerfil, 0, dataCordenadX, 105, dataCordenadY, nHeight + SupNHeight, ListRenderElement, "90");
+                CommonElement.SedUnionHorizontal(type, PanelPerfil, 0, dataCordenadX, 130, dataCordenadY, nHeight + SupNHeight, ListRenderElement, "90");
+
+            }
+            CommonElement.SedUnionVertical(type, PanelPerfil, 0, dataCordenadX, 0, dataCordenadY, nHeight + 20, ListRenderElement, "");
+            CommonElement.SedUnionVertical(type, PanelPerfil, 0, dataCordenadX, 0, dataCordenadY, nHeight + 80, ListRenderElement, "");
+
+            CommonElement.SedUnionVertical(type, PanelPerfil, 0, dataCordenadX + 90, 0, dataCordenadY, nHeight + 20, ListRenderElement, "");
+            CommonElement.SedUnionVertical(type, PanelPerfil, 0, dataCordenadX + 90, 0, dataCordenadY, nHeight + 80, ListRenderElement, "");
+            if (IsAngular == true)
+            {
+                CommonElement.SedUnionVertical(type, PanelPerfil, 0, dataCordenadX + 120, 0, dataCordenadY, nHeight + 20, ListRenderElement, "");
+                CommonElement.SedUnionVertical(type, PanelPerfil, 0, dataCordenadX + 120, 0, dataCordenadY, nHeight + 80, ListRenderElement, "");
+            }
+
+            ModelRenderElement element = new ModelRenderElement();
+            element.Element = Atk60Element.GetElement("Panel90120");
+            element.ElementF = Atk60Element.GetElement("Panel90120F");
+            element.LongDimTypeHorizontal = (long?)900;
+            element.LongDimTypeVertical = (long?)1200;
+            element.CodeName = "12904215";
+            element.z = element.z + nHeight;
+            element.x = dataCordenadX;
+            element.y = dataCordenadY;
+            element.XRotate = 0;
+            ListRenderElement.Add(element);
+
+            ModelRenderElement element30 = new ModelRenderElement();
+            element30.Element = Atk60Element.GetElement("Panel30120");
+            element30.ElementF = Atk60Element.GetElement("Panel30120F");
+            element30.LongDimTypeHorizontal = (long?)300;
+            element30.LongDimTypeVertical = (long?)1200;
+            element30.CodeName = "12304211";
+            element30.z = element30.z + nHeight;
+            element30.x = dataCordenadX + 90;
+            element30.y = dataCordenadY;
+            element30.XRotate = 0;
+            ListRenderElement.Add(element30);
+        }
+        private static void Insert2400Element(long IsRiji, DAL.TSql_DefaultDesign currentDefaultDisign, List<ModelRenderElement> ListRenderElement, long dataCordenadX, long dataCordenadY, int nHeight, long dataWith, long type, long datalong, bool IsAngular)
+        {
+            var SupNHeight = 240;
+            if (IsRiji == 1)
+            {
+                if (Is2700 == true)
+                {
+                    SupNHeight = 0;
+                }
+                CommonElement.UnionRiji(1, type, PanelPerfil, 0, dataCordenadX, 25, dataCordenadY, nHeight + SupNHeight, ListRenderElement, dataWith / 10, "");
+                CommonElement.SedUnionHorizontal(type, PanelPerfil, 0, dataCordenadX, 20, dataCordenadY, nHeight, ListRenderElement, "90");
+                CommonElement.SedUnionHorizontal(type, PanelPerfil, 0, dataCordenadX, 60, dataCordenadY, nHeight, ListRenderElement, "90");
+
+                CommonElement.SedUnionHorizontal(type, PanelPerfil, 0, dataCordenadX + 90, 20, dataCordenadY, nHeight, ListRenderElement, "90");
+                CommonElement.SedUnionHorizontal(type, PanelPerfil, 0, dataCordenadX + 90, 60, dataCordenadY, nHeight, ListRenderElement, "90");
+            }
+            CommonElement.SedUnionVertical(type, PanelPerfil, 0, dataCordenadX, 0, dataCordenadY, nHeight + 40, ListRenderElement, "");
+            CommonElement.SedUnionVertical(type, PanelPerfil, 0, dataCordenadX, 0, dataCordenadY, nHeight + 200, ListRenderElement, "");
+            CommonElement.SedUnionVertical(type, PanelPerfil, 0, dataCordenadX + 90, 0, dataCordenadY, nHeight + 40, ListRenderElement, "");
+            CommonElement.SedUnionVertical(type, PanelPerfil, 0, dataCordenadX + 90, 0, dataCordenadY, nHeight + 200, ListRenderElement, "");
+            if (IsAngular == true)
+            {
+                CommonElement.SedUnionVertical(type, PanelPerfil, 0, dataCordenadX + 120, 0, dataCordenadY, nHeight + 40, ListRenderElement, "");
+                CommonElement.SedUnionVertical(type, PanelPerfil, 0, dataCordenadX + 120, 0, dataCordenadY, nHeight + 200, ListRenderElement, "");
+            }
+            ModelRenderElement element = new ModelRenderElement();
+            element.Element = Atk60Element.GetElement("Panel90240");
+            element.ElementF = Atk60Element.GetElement("Panel90240F");
+            element.LongDimTypeHorizontal = (long?)900;
+            element.LongDimTypeVertical = (long?)2400;
+            element.CodeName = "24904240";
+            element.z = element.z + nHeight;
+            element.x = dataCordenadX;
+            element.y = dataCordenadY;
+            element.XRotate = 0;
+            ListRenderElement.Add(element);
+
+            ModelRenderElement element30 = new ModelRenderElement();
+            element30.Element = Atk60Element.GetElement("Panel30240");
+            element30.ElementF = Atk60Element.GetElement("Panel30240F");
+            element30.LongDimTypeHorizontal = (long?)300;
+            element30.LongDimTypeVertical = (long?)2400;
+            element30.CodeName = "24304244";
+            element30.z = element30.z + nHeight;
+            element30.x = dataCordenadX + 90;
+            element30.y = dataCordenadY;
+            element30.XRotate = 0;
+            ListRenderElement.Add(element30);
+
+
+        }
+        private static int getRestTypeHeight(int restHeight)
+        {
+            if (restHeight > 0 && restHeight <= 1200)
+            {
+                return 1200;
+            }
+            if (restHeight > 1200 && restHeight <= 2400)
+            {
+                return 2400;
+            }
+            return 2700;
+        }
+        //Realizar Comun Dywidag
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+    }
+}

@@ -1,0 +1,257 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atenko Desing</title>
+    <link rel="SHORTCUT ICON" href="~/assets/client/images/Default/Ico/at.ico" />
+    @*<link rel="stylesheet" href="~/assets/css/app.min.css" type="text/css" id="link-app" />*@
+    <link rel="stylesheet" href="~/assets/css/animate.min.css" type="text/css" />
+    <link href="~/assets/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/assets/carousel.css" rel="stylesheet" />
+    <link href="~/Content/Site.css" rel="stylesheet" />
+    <link href="~/assets/Menu/ds-wb-Menu.css" rel="stylesheet" />
+    <link href="~/lib/font-awesome/css/all.css" rel="stylesheet" />
+    @*Data_table*@
+    <link href="~/Content/datatables/DataTables-1.11.3/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <link href="~/Content/datatables/Buttons-2.0.1/css/buttons.dataTables.css" rel="stylesheet" />
+    @*Template*@
+    @*<link rel="stylesheet" href="~/assets/css/demo.min.css" type="text/css" />*@
+    <link rel="stylesheet" href="~/assets/css/font-awesome.min.css" type="text/css" />
+    <link rel="stylesheet" href="~/assets/css/pe-icon-7-stroke.css" type="text/css" />
+    @*@Scripts.Render("~/bundles/javascript")
+        @Styles.Render("~/bundles/css")*@
+    <style type="text/css">
+        body {
+            overflow-y: hidden;
+        }
+    </style>
+</head>
+<body style="overflow:hidden">
+    <header>
+        <nav id="TopMenu" class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+            <div class="container-fluid" style="height:60px">
+                <a class="navbar-brand" href="#">
+                    <img src="~/Content/images/Login/at.png" style="height:25px"> &nbsp;&nbsp;<span style="color:gold">Atenko </span>Desing Staging
+                </a>
+
+            </div>
+
+
+        </nav>
+    </header>
+
+    <div id="Toas_General" abindex="-1" style="z-index: 250;position: absolute;display: none;">
+        <div class="toast-header" style="background-color: darkgray">
+            <img src="~/Content/images/Login/at.png" style="width:17px;height:17px" class="rounded mr-2" alt="...">
+            <h5 id="LableToasTileGeneral" style="color: white;margin:20px"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Label</h5>
+            <button id="Id_Clouse_Toas" type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                <span aria-hidden="true"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  &times;</span>
+            </button>
+        </div>
+        <div class="toast-body" style="background-color:white">
+            <h5 id="LableToasContentedeGeneral" style="color: black"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Atk-60 </h5>
+        </div>
+    </div>
+    <div id="Toas_General" abindex="-1" role="dialog" style="z-index: 250; background-color: #E4E5E3; position: absolute; top: 70px; left: 50px; width: 500px; display: none; border-radius: 2rem; box-shadow: 5px 10px #888888; padding: 0px; margin: 0px ">
+        <div class="col-md-12">
+            <div class="modal-body">
+                <div class="col-md-12">
+                    &nbsp;&nbsp;<i class="fa fa-info fa-2x" style="color: #4CBCF8; ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i>
+                    <label id="LableToasTileGeneral" style="color: #1A30E0">Label</label>
+                </div>
+            </div>
+            <hr style="color: #F88402; margin: 0px " />
+            <div class="col-md-12" style="padding: 10px; margin:10px">
+                <div class="col-md-12" style="height: 50px;">
+                    <label id="LableToasContentedeGeneral" style="color: black">Label Contented</label>
+                </div>
+
+            </div>
+            <hr style="color: #F88402; margin: 0px " />
+        </div>
+    </div>
+    <div class="wrapper" id="leftMenu">
+        <nav id="sidebar" style="height:1500px">
+            @*@Html.Action("Index", "Menu")*@
+        </nav>
+        <!-- Page Content Holder -->
+        <div id="MainContainer" style="width: 100%; height: 100%">
+            @RenderBody()
+        </div>
+    </div>
+
+    <div class="modal_background" id="IdDivmodal_background" style="position: absolute; bottom: 0px; width: 100%; background-color: #00428A">
+        <div id="menufooter" style="height: 35px; background: #00428A; width: 100%; border-top: 2px solid darkgray; background-color: #00428A">
+            <div style="margin-bottom:50px; padding-left: 20px; color:white">   @DateTime.Now.Year - Atenko Desing V 1.0 Entorno Develop  <span style="color:aliceblue">  Última publicación 20/01/2025</span></div>
+        </div>
+    </div>
+    <div style="width:100%" id="View">
+        <div class="modal fade" id="DesingModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        ...
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @*Angel aquí estas trabajando*@
+    @*<div id="IdLine" style="position: absolute; bottom:165px;left:0px;display:none;width:245px">
+            <hr style="background-color:#ffc107; height: 1.5px; margin: 1px; padding: 1px">
+        </div>*@
+    @*<div id="IdDivAvatar" style="position: absolute; bottom:105px;left:5px;display:none">
+            <div class="col-md-12" style="margin:2px,2px;">
+                <div>
+                    <img id="Iduser" src="" style="width:50px;height:50px">
+                </div>
+            </div>
+
+        </div>
+        <div id="IdLine_2" style="position: absolute; bottom:75px;left:0px;display:none;width:245px">
+            <hr style="background-color: #ffc107; height: 1.5px; margin: 1px; padding: 1px">
+        </div>
+
+        <div id="IdDivUserExit" style="position: absolute; bottom:45px;left:5px;display:none">
+            <div class="footer-links">
+                &nbsp;&nbsp;
+                <a href="@Url.Action("LogOff", "Account")" class="links-logout">
+                    <i class='fas fa-reply'></i>
+                    <span> &nbsp;&nbsp;&nbsp;&nbsp;Salir &nbsp;&nbsp;&nbsp;</span>
+                </a>
+                <a href="@Url.Action("MySapce", "Employee")" class="links-logout">
+                    <i class='fas fa-user-circle'></i>
+                    <span> &nbsp;Mi Espacio &nbsp; &nbsp;</span>
+                </a>
+            </div>
+        </div>
+        <div id="IdDivUser" style="position: absolute; bottom:95px;left:88px;display:none">
+            <div class="col-md-12" style="margin:2px,2px;">
+                <div>
+                    <label style="width:150px; " id="IdName"></label>
+                </div>
+            </div>
+
+        </div>*@
+    <div id="IdLine" style="position: absolute; bottom:165px; left:0px; display:none; width:245px">
+        <hr style="background-color:#ffc107; height: 1.5px; margin: 1px; padding: 1px">
+    </div>
+
+    <div id="IdDivAvatar" style="position: absolute; bottom:105px; left:5px; display:none; ">
+        <div class="col-md-12" style="display: flex; align-items: center; gap: 10px;">
+            <!-- Imagen del usuario -->
+            <img id="Iduser" src="" style="width:50px; height:50px; border-radius: 50%;">
+            <!-- Contenedor para el nombre y opciones -->
+            <div style="display: flex; flex-direction: column; justify-content: flex-start;">
+                <!-- Nombre del usuario -->
+                <label id="IdName" style="font-weight: bold; font-size: 14px; color:white;" class="mb-2 "></label>
+                <!-- Opciones debajo del nombre (alineadas horizontalmente) -->
+                <div class="footer-links" style="display: flex; gap: 10px; margin-top: 5px;">
+                    <a href="@Url.Action("MySapce", "Employee")" class="links-logout" style="text-decoration: none; color:white; font-size: 12px;">
+                        <i class='fas fa-user-circle'></i>
+                        <span>Mi Espacio</span>
+                    </a>
+                    <a href="@Url.Action("LogOff", "Account")" class="links-logout" style="text-decoration: none; color: #d9534f; font-size: 12px;">
+                        <i class='fas fa-reply'></i>
+                        <span>Salir</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="IdLine_2" style="position: absolute; bottom:50px; left:0px; display:none; width:245px">
+        <hr style="background-color: #ffc107; height: 1.5px; margin: 1px; padding: 1px">
+    </div>
+
+    
+
+   
+
+
+    <script src="~/Scripts/jquery-3.5.1.js"></script>
+    <script src="~/Scripts/datatables/DataTables-1.11.3/js/jquery.dataTables.min.js"></script>
+    <script src="~/Scripts/datatables/Buttons-2.0.1/js/dataTables.buttons.min.js"></script>
+    <script src="~/Scripts/datatables/JSZip-2.5.0/jszip.min.js"></script>
+    <script src="~/Scripts/datatables/pdfmake-0.1.36/pdfmake.min.js"></script>
+    <script src="~/Scripts/datatables/pdfmake-0.1.36/vfs_fonts.js"></script>
+    <script src="~/Scripts/datatables/Buttons-2.0.1/js/buttons.html5.min.js"></script>
+    <script src="~/Scripts/datatables/Buttons-2.0.1/js/buttons.print.min.js"></script>
+    <script src="~/Scripts/datatables/Buttons-2.0.1/js/buttons.colVis.min.js"></script>
+
+    <script src="~/assets/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/font-awesome/js/all.js"></script>
+    @*//Template Js*@
+    @*<script src="~/assets/js/jquery.min.js"></script>*@
+
+    <script src="~/assets/js/modernizr.custom.js"></script>
+
+    <script src="~/assets/js/lib/slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="~/assets/js/lib/animsition/animsition.min.js"></script>
+    <script src="~/assets/js/main.js"></script>
+    <script src="~/Scripts/Menu/popper.min.js"></script>
+    @*<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true"></script>*@
+    @*<script src="~/assets/js/pages/profile.js"></script>*@
+    <script type="text/javascript">
+        $(document).ready(function () {
+            /*$("#content").slideUp('fast', function () { $('#nav').css('overflow', 'hidden') });*/
+            document.getElementById("View").style.overflow = "hidden";
+            var screenWidth = screen.width;
+            var screenHeight = screen.height;
+
+            // Get the browser window size
+            var windowWidth = window.innerWidth;
+            var windowHeight = window.innerHeight;
+
+            // Get the size of the entire webpage
+            const pageWidth = document.documentElement.scrollWidth;
+            const pageHeight = document.documentElement.scrollHeight;
+
+            $('#content').height(window.innerHeight - 85)
+            $('#Id_Sub_VS_Menu').height(window.innerHeight - 160)
+            $('#Id_VS_Menu').height(window.innerHeight - 225)
+
+            $('#sidebarCollapse').on('click', function () {
+                if (document.getElementById("IdDivAvatar").style.display == "inline") {
+                    //document.getElementById("IdDivUser").style.display = "none";
+                    document.getElementById("IdDivAvatar").style.display = "none";
+                    //document.getElementById("IdDivUserExit").style.display = "none";
+                    document.getElementById("IdLine").style.display = "none";
+                    document.getElementById("IdLine_2").style.display = "none";
+
+                }
+                else {
+                    setTimeout(function () {
+                       // document.getElementById("IdDivUser").style.display = "inline";
+                        document.getElementById("IdDivAvatar").style.display = "inline";
+                      //  document.getElementById("IdDivUserExit").style.display = "inline";
+                        document.getElementById("IdLine").style.display = "inline";
+                        document.getElementById("IdLine_2").style.display = "inline";
+
+                    }, 400);
+                }
+                $('#sidebar').toggleClass('active');
+                $(this).toggleClass('active');
+
+            });
+            $('#CloseLoginBtn').on('click', function () {
+                $('.Login').toggleClass('collapsed');
+            });
+            $('#Iddiva').on('click', function () {
+                $('#MenuDesign').fadeIn();
+            });
+
+        });
+
+    </script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>

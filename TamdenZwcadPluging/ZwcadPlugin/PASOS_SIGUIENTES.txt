@@ -1,0 +1,11 @@
+﻿Por favor, sigue estos pasos para completar el proyecto:
+
+1. Abre Visual Studio 2019 o superior
+2. Abre la solucion ZwcadPlugin.slnx
+3. Agrega estos archivos nuevos al proyecto:
+   - MVCApiService.cs (servicio HTTP)
+   - FormPrincipal.cs (Windows Forms)
+   - ZwcadHelper.cs (funciones helper)
+   - Commands.cs (comandos principales)
+
+4. Consulta el archivo README_INSTALACION.md para el código completo

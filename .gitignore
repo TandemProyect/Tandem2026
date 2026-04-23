@@ -361,3 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Archivos de backup SQL
+*.bak
+*.bak.*
+
+# Archivos ZIP grandes
+Desing/Publis/Exporters-master.zip

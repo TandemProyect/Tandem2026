@@ -1,0 +1,94 @@
+﻿@model DAL.TSql_Help
+<link href="~/Scripts/datatables/datatables.css" rel="stylesheet" />
+<div class="panel panel-default">
+    <div class="panel-body" style="padding: 10px; margin: 10px; height: 500px; width: 450px; overflow-y: scroll; overflow-x: hidden ">
+        <table id="TableHelp" class="table table-striped table-bordered table-hover" cellspacing="0" style="width: 100%; font-size:16px">
+            <thead>
+                <tr style="background-color:white">
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th>ID</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+<script src="~/Scripts/jquery-3.5.1.js"></script>
+<script src="~/Scripts/jquery-ui.js.js"></script>
+<script src="~/Scripts/datatables/datatables.js"></script>
+<script type="text/javascript">
+        $(document).ready(function ()
+        {
+            var Help = {
+                Help: null,
+                init: function ()
+                {
+                    dt = $('#TableHelp').DataTable({
+                        language: {
+                            "decimal": "",
+                            "emptyTable": "No hay información",
+                            "info": "Mostrando _START_ a _END_ de _TOTAL_ Entradas",
+                            "infoEmpty": "Mostrando 0 to 0 of 0 Entradas",
+                            "infoFiltered": "(Filtrado de _MAX_ total entradas)",
+                            "infoPostFix": "",
+                            "thousands": ",",
+                            "lengthMenu": "Mostrar _MENU_ Entradas",
+                            "loadingRecords": "Cargando...",
+                            "processing": "Procesando...",
+                            "search": "Buscar:",
+                            "zeroRecords": "Sin resultados encontrados",
+                            "paginate": {
+                                "first": "Primero",
+                                "last": "Ultimo",
+                                "next": "Siguiente",
+                                "previous": "Anterior"
+                            },
+                        },
+                        dom: '<"dataTables-length-position">f<"dataTables-length-position">',
+                        //"paging": false,
+                        //"searching": true,
+                        "serverSide": true,
+                        "processing": true,
+                        "stateSave": true,
+                        "stateDuration": 12,
+                        "ajax": {
+                            "url": "@Url.Content("~/HelpDesing/ListHelp/")",
+                            "type": "POST"
+                        },
+                        "columns": [
+                            { "data": "emptyColumn" },
+                            { "data": "AddHelp" },
+                             { "data": "emptyColumn" },
+                            { "data": "SysObjectID" }
+                        ],
+                        "fnRowCallback": function (nRow, data, iDisplayIndex)
+                        {
+                            $('td:eq(0)', nRow).html('<img onclick=ShowVideo(' + data.TextCode +')  style="height:50px;max-width:100px" src="@Url.Content("~/")' + data.AddImage + '" alt="" />');
+                            if (data.LinkVideo == true) {
+                                $('td:eq(2)', nRow).append(data.buttonEdit + '&nbsp;');
+                            }
+                            return nRow;
+                        },
+                        "aaSorting": [[1, 'desc']],
+                        "aoColumnDefs": [
+                            { "bVisible": false, "aTargets": [3] },
+                            { "bSortable": false, "aTargets": [2] },
+                            { "width": "50px", "aTargets": [0] },
+                            { "height": "100px", "aTargets": [0] },
+                        ],
+                    });
+                }
+            }
+            Help.init();
+        });
+                function ShowVideo(id)
+                {
+                    videoElem = document.getElementById("Video_Principal");
+                    videoElem.src = "../../Files/Help/Video/Presentacion2025.mp4";
+                    videoElem.play();
+                    alert(id);
+        };
+
+</script>
+

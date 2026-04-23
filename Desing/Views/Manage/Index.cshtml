@@ -1,0 +1,44 @@
+﻿@model Desing.Models.IndexViewModel
+
+<ul class="breadcrumb">
+    <li><a style="color:black" id="sidebarCollapse" href="#" class=""><i class="fas fa-align-justify"></i></a></li>
+    <li><a href="@Url.Action("Index", "Home")"><i class="fas fa-home"></i> Administración</a></li>
+    <li><i class="pe-7s-id"></i> Mi Perfil</li>
+</ul>
+
+<ul class="Menu_Page">
+    <li><a href="@Url.Action("Data_Company", "Manage")">Datos de la Empresa</a></li>
+    <li><a href="@Url.Action("ChangePassword", "Manage")">Datos Personales</a></li>
+    <li><a href="@Url.Action("ChangePassword", "Manage")">Documentos</a></li>
+    <li><a href="@Url.Action("ChangePassword", "Manage")">Cambiar Password</a></li>
+    <li><a href="@Url.Action("Index", "Home")">Cambiar mi perfil</a></li>
+    <li><a href="@Url.Action("Index", "Home")">Cambiar Idioma</a></li>
+    <li><a href="@Url.Action("Data_Company", "Manage")">Fichar</a></li>
+</ul>
+<div class="col-12">
+    <div class="row">
+        <div class="col-3">
+            <img src="~/assets/img/profile/profile-cover.jpg" alt="Andrea LeFeave">
+        </div>
+        <div class="col-3">
+            <label>Hola1</label>
+        </div>
+        <div class="col-3">
+            <label>Hola2</label>
+        </div>
+         
+    </div>
+</div>
+
+
+@section scripts
+    {
+
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#sidebar').toggleClass('active');
+            $(this).toggleClass('active');
+        });
+    </script>
+}

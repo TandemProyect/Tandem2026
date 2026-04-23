@@ -1,0 +1,68 @@
+﻿@model DAL.TSql_Design
+<link href="~/Content/DesignTools/Design-tool.css" rel="stylesheet">
+<link href="~/assets/carousel.css" rel="stylesheet" />
+<link href="~/Content/Site.css" rel="stylesheet" />
+@{
+    ViewBag.Title = "Editar Diseño";
+}
+<div class="well" style="width:700px;z-index:2">
+    @using (Html.BeginForm("Edit", "DesignTools", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+    {
+        <fieldset style="margin:10px;padding:10px">
+            <legend> Editar diseño</legend>
+            <div class="row" style="margin:10px;padding:10px">
+                @Html.AntiForgeryToken()
+                <input type="hidden"  name="SysObjectID" value='@Model.SysObjectID' />
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.AttLabel, htmlAttributes: new { @class = "control-label col-md-9" })
+                        <div class="col-md-12">
+                            @Html.EditorFor(model => model.AttLabel, new { htmlAttributes = new { @class = "form-control-mandatory" } })
+                            @Html.ValidationMessageFor(model => model.AttLabel, "", new { @id = "LabelField", @class = "text-danger" })
+                        </div>
+                    </div>
+                    <br />
+                    <div class="col-md-12">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Compartir diseño</label>
+                                <input class="form-check-input" type="checkbox" id="CHeckRijiOutside" checked>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Compartir para mi organización</label>
+                                <input class="form-check-input" type="checkbox" id="CHeckRijiOutside" checked>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                    <h6>Observaciones</h6>
+                    <div class="col-md-12">
+                        <textarea class="form-control text-box multi-line" data-val="true" data-val-length="The field &quot;Description&quot; must be a string with maximum length of 2000." data-val-length-max="2000" id="AttDescription" name="AttDescription" rows="6"></textarea>
+                        <span class="field-validation-valid text-danger" data-valmsg-for="AttDescription" data-valmsg-replace="true"></span>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <hr style="background-color:#0d6efd; height:1px" />
+        <div class="row">
+            <div class="col-md-6"> &nbsp;&nbsp;&nbsp;&nbsp;</div>
+            <div class="col-md-5" style="margin:10px;padding:10px">
+                <button type="button" id="btnSalir" class="btn btn-danger">Salir</button>
+                <button type="submit" id="SubmitEditBtn" class="btn btn-warning">Editar</button>
+            </div>
+        </div>
+    }
+</div>
+
+<script src="~/Scripts/jquery.validate.js"></script>
+<script src="~/Scripts/jquery.validate.unobtrusive.js"></script>
+<script type="text/javascript">
+
+    $('#btnSalir').on('click', function () {
+        $("#CreateDesign").hide("slide", { direction: "right" }, 1000);
+        $("#Loading").hide("slide", { direction: "left" }, 700);
+    });
+</script>

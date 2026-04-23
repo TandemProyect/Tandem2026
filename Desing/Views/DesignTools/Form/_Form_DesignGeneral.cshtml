@@ -1,0 +1,519 @@
+﻿<div id="Loading" style="z-index:5; position: absolute; background-color:darkgrey; width: 100%; height: 100%; display: none; opacity: 0.8">
+</div>
+<div id="Preload" style="z-index: 5; position: absolute;width:150px; height:150px; display: none">
+    <div class="col-md-12" style="background-position:center">
+        <img src="~/Content/comunIcon/LoadingAtK.gif" style="background-position:center;width:150px;height:150px">
+    </div>
+    @*"~/Content/images/Loading.gif"*@
+</div>
+<div id="DivVideoHelp" abindex="-1" role="dialog" style="z-index: 250; background-color: white; position: absolute; top:200px; right:300px; width:800px; height:700px; display: none; border-radius: 0.9rem;display:none">
+</div>
+
+<div id="Toas" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="z-index: 1005; position: absolute;top:50px;left:0px">
+    <div class="toast-header" style="background-color: darkgray">
+        <img src="~/Content/images/Login/at.png" style="width:17px;height:17px" class="rounded mr-2" alt="...">
+        <h5 id="LableToasTile" style="color: white;margin:20px"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Label</h5>
+        <button id="Id_Clouse_Toas" type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+            <span aria-hidden="true"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  &times;</span>
+        </button>
+    </div>
+    <div class="toast-body">
+        <h5 id="LableToasContentede" style="color: black"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Atk-60 </h5>
+    </div>
+</div>
+
+
+<div id="ToasMesajeImg" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="z-index: 1005; position: absolute;bottom:0px;right:0px">
+    <div class="toast-header" style="background-color: darkgray">
+        <img src="~/Content/images/Login/at.png" style="width:17px;height:17px" class="rounded mr-2" alt="...">
+        <h5 id="LableToaMesajeTile" style="color: white;margin:20px">&nbsp;&nbsp; Conexión entre muros</h5>
+        <button id="Id_Clouse_ToasMesaje" type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+            <span aria-hidden="true"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  &times;</span>
+        </button>
+    </div>
+    <div class="toast-body">
+        <div class="col-md-4" style="width:300px;background-color: white">
+            <img src="~/Content/DesignTools/Help/Avatar_1.png" />
+        </div>
+        <div class="col-md-7" style="width:300px;background-color: white">
+            <label>Seleciona el primer muro</label>
+        </div>
+
+    </div>
+</div>
+
+
+<div id="ToasMesaje" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="z-index: 1005; position: absolute;bottom:0px;right:0px">
+    <div class="toast-header" style="background-color: darkgray">
+        <img src="~/Content/images/Login/at.png" style="width:17px;height:17px" class="rounded mr-2" alt="...">
+        <h5 id="LableToaMesajeTile" style="color: white;margin:20px">&nbsp;&nbsp; Conexión entre muros</h5>
+        <button id="Id_Clouse_ToasMesaje" type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+            <span aria-hidden="true"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  &times;</span>
+        </button>
+    </div>
+    <div class="toast-body">
+        <video controls="controls" id="Video_1_Conexion">
+            <source src="" type="video/mp4" />
+        </video>
+    </div>
+</div>
+
+
+<div id="DivWork" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="z-index: 1005; position: absolute;top:50px;left:0px">
+    <div class="toast-header" style="background-color: darkgray">
+        <img src="~/Content/images/Login/at.png" style="width:17px;height:17px" class="rounded mr-2" alt="...">
+        <h5 id="LableToasTile" style="color: white;margin:20px"> &nbsp; Atenko Design</h5>
+        <button id="Id_Clouse_DivWork" type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+            <span aria-hidden="true"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  &times;</span>
+        </button>
+    </div>
+    <div class="toast-body">
+        <h5 id="LableToasContentede" style="color: black"> &nbsp; Renderizando ..... </h5>
+    </div>
+</div>
+
+<div id="DivExport" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="z-index: 1005; position: absolute;top:50px;left:0px">
+    <div class="toast-header" style="background-color: darkgray">
+        <img src="~/Content/images/Login/at.png" style="width:17px;height:17px" class="rounded mr-2" alt="...">
+        <h5 id="LableToasTile" style="color: white;margin:20px"> &nbsp; Atenko Design</h5>
+        <button id="Id_Clouse_DivExport" type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+            <span aria-hidden="true"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  &times;</span>
+        </button>
+    </div>
+    <div class="toast-body">
+        <h5 id="LableToasContentede" style="color: black"> &nbsp;Exportando ..... </h5>
+    </div>
+</div>
+
+<div id="ViewTest" abindex="-1" role="dialog" style="z-index: 260; background-color: white; position: absolute; top:50px; left: -5px; width: 800px; height:700px; display: none; border-radius: 0.9rem;">
+    <div class="modal-header" style="width:800px; height: 55px; background-color: white; z-index: 197">
+        <div style="width:800px">&nbsp;Test </div>
+        <button type="button" id="BtnCloseTest" class="close" data-dismiss="modal" aria-label="Close" style="padding:5px;margin:5px;top:0px"><i class="fas fa-home"></i>&nbsp;&nbsp;</button>
+    </div>
+    <div class="col-md-12" style="width:800px;background-color: white">
+        <button class="btn-circle.btn-xl" title="Insertar Test" id="Eliminar_Test">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;Eliminar Test</button>
+    </div>
+    <div class="col-md-12" style="width:800px;background-color: white">
+        <ul class="breadcrumb" style="height:45px; background-color: #00428A;color:white">
+            <li><a style="color: gold" id="btnModulos"> &nbsp;&nbsp;Modulos &nbsp;&nbsp;</a></li>
+            <li><a style="color: white" id="btnModulosCombinados">&nbsp;&nbsp;Modulos Combinados</a>&nbsp;&nbsp; </li>
+            <li><a style="color: white" id="btnCorner">&nbsp;&nbsp;Esquinas&nbsp;&nbsp;</a></li>
+        </ul>
+    </div>
+    <div class="col-md-12" style="width: 800px;background-color: white" id="TapModulos">
+        <div class="col-md-3">
+            <h4>L. de 2,70</h4>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2701">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 0.3 a 1.05</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2702">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 1.2 a 2.10</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2703">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 2.25 a 3.00</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2704">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 3,15 a 5.25</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2705">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 5,25 a 6.00</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2706">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 6,15 a 7.05</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2707">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 7,20 a 8.10</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2708">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 8,25 a 9.00</button>
+        </div>
+        <div class="col-md-3">
+            <h4>L. de 2,40</h4>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2401">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 0.3 a 1.05</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2402">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 1.2 a 2.10</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2403">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 2.25 a 3.00</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2404">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 3,15 a 5.25</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2405">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 5,25 a 6.00</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2406">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 6,15 a 7.05</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2407">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 7,20 a 8.10</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2408">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 8,25 a 9.00</button>
+
+        </div>
+        <div class="col-md-3">
+            <h4>L. de 1,20</h4>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test1201">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 0.3 a 1.05</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test1202">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 1.2 a 2.10</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test1203">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 2.25 a 3.00</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test1204">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 3,15 a 5.25</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test1205">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 5,25 a 6.00</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test1206">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 6,15 a 7.05</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test1207">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 7,20 a 8.10</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test1208">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 8,25 a 9.00</button>
+        </div>
+        <h4>L. de 0,90</h4>
+        <div class="col-md-3">
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test0901">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp; H. 0.3 y 1.05 </button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test0902">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp; H. 1.2 y 2.10 </button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test0903">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp; H. 2.25 y 3.00 </button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test0904">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp; H. 3,15 y 5.25 </button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test0905">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp; H. 5,25 y 6.00 </button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test0906">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp; H. 6,15 y 7.05 </button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test0907">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp; H. 7,20 y 8.10 </button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test0908">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp; H. 8,25 y 9.00 </button>
+        </div>
+    </div>
+    <div class="col-md-12" style="width: 800px; background-color: white; display: none" id="TapCombinados">
+        <div class="col-md-3">
+            <h4>L. 2,70+2,70+2,70</h4>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2701c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 0.3 a 1.05</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2702c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 1.2 a 2.10</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2703c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 2.25 a 3.00</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2704c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 3,15 a 5.25</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2705c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 5,25 a 6.00</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2706c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 6,15 a 7.05</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2707c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 7,20 a 8.10</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2708c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 8,25 a 9.00</button>
+            <hr style="color: #0056b2;" />
+        </div>
+        <div class="col-md-3">
+            <h4>L. 2,70+2,70+2,40</h4>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2401c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 0.3 a 1.05</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2402c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 1.2 a 2.10</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2403c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 2.25 a 3.00</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2404c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 3,15 a 5.25</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2405c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 5,25 a 6.00</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2406c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 6,15 a 7.05</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2407c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 7,20 a 8.10</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test2408c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 8,25 a 9.00</button>
+        </div>
+        <div class="col-md-3">
+            <h4>L. 2,70+2,70+1,20</h4>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test1201c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 0.3 a 1.05</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test1202c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 1.2 a 2.10</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test1203c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 2.25 a 3.00</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test1204c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 3,15 a 5.25</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test1205c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 5,25 a 6.00</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test1206c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 6,15 a 7.05</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test1207c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 7,20 a 8.10</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test1208c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 8,25 a 9.00</button>
+        </div>
+        <div class="col-md-3">
+            <h4>L. 2,70+2,70+0,90</h4>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test0901c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 0.3 a 1.05</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test0902c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 1.2 a 2.10</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test0903c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 2.25 a 3.00</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test0904c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 3,15 a 5.25</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test0905c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 5,25 a 6.00</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test0906c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 6,15 a 7.05</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test0907c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 7,20 a 8.10</button>
+            <button class="btn-circle.btn-xl" title="Insertar Test" id="Insert_Test0908c">&nbsp;&nbsp;<i class="fa fa-check-square" aria-hidden="true"></i>&nbsp;&nbsp;H. 8,25 a 9.00</button>
+        </div>
+    </div>
+    <div class="col-md-12" style="width: 800px; background-color: white; display: none" id="TapCorner">
+        <div class="col-md-3">
+
+        </div>
+        <div class="col-md-3">
+
+        </div>
+        <div class="col-md-3">
+
+        </div>
+        <div class="col-md-3">
+        </div>
+    </div>
+    <div style="width: 800px;background-color: white">
+        <div style="height: 50px; margin-left: 700px; background-color: white">
+            <button type="button" id="btnClouseTest" class="btn btn-warning" style="padding: 5px; margin: 5px">Cerrar</button>
+        </div>
+    </div>
+</div>
+<div id="ViewMaterialList" abindex="-1" role="dialog" style="z-index: 1550; background-color:white; position: absolute; top:50px; left: -5px; width:1100px; height: 630px; display: none; border-radius: 0.9rem">
+    <button type="button" id="plussBtnRecuento" class="close" data-dismiss="modal" aria-label="Close" style="padding:5px;margin:5px;top:0px"><i class="fa fa-plus" aria-hidden="true"></i>&nbsp;&nbsp;</button>
+    <button type="button" id="lestBtnRecuento" class="close" data-dismiss="modal" aria-label="Close" style="display: none;padding: 5px; margin: 5px; top: 0px"><i class="fa fa-minus" aria-hidden="true"></i>&nbsp;&nbsp;</button>
+    <button type="button" id="CloseBtnRecuento" class="close" data-dismiss="modal" aria-label="Close" style="padding:5px;margin:5px;top:0px"><i class="fas fa-home"></i>&nbsp;&nbsp;</button>
+    <ul id="ListMaterialBreadcrumb" class="nav nav-pills" role="tablist" style="margin:2px;padding:2px">
+        <li class="nav-item" role="presentation" id="IdMaterial">
+            <a id="btnIdMaterial" class="nav-link active" style="background: #0d6efd; color: #FFFFFF " name="NameMuro">Lista de Materiales</a>
+        </li>
+        <li class="nav-item" role="presentation" id="IdGrup">
+            <a id="btnIdGrup" class="nav-link active" style="background: #F0F6F7; color:#787C7C" name="NamePuntal">Ver Grupos</a>
+        </li>
+    </ul>
+    <hr style="color: #787C7C; padding:0px; margin:0px;">
+    <ul id="s" class="nav nav-pills" role="tablist" style="margin:2px;padding:2px">
+        <li class="nav-item" role="presentation">
+            <a id="btnHiden" class="nav-link" data-dismiss="modal" aria-label="Close" style="padding:8px;margin:0px;top:0px;color:#787C7C">Reset</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a id="btnWallOpacity" class="nav-link" data-dismiss="modal" aria-label="Close" style="padding:8px;margin:0px;top:0px;color:#787C7C">Ver Muro Transparente</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a id="btnWallHide" class="nav-link" data-dismiss="modal" aria-label="Close" style="padding:8px;margin:0px;top:0px;color:#787C7C">Ocultar Muro</a>
+        </li>
+    </ul>
+    <hr style="color: #F88402; padding:0px; margin:0px; ">
+    <div id="ContentMaterialList" style="background-position: center">
+        <div class="ct-horizontal" id="MaterialListLoad">
+            <div class="col-md-12" style="position: absolute; left:450px;top:200px">
+                <img src="~/Content/comunIcon/LoadingAtK.gif" style="width:150px;height:150px">
+            </div>
+            <div class="col-md-12" style="position: absolute; left:375px;top:280px">
+                <p>
+                    Cargando lista de materiales ..
+                </p>
+            </div>
+        </div>
+        <div class="ct-horizontal" id="MaterialListError">
+            <div class="col-md-12" style="position: absolute; left:175px;top:200px">
+            </div>
+            <div class="col-md-12" style="position: absolute; left:75px;top:280px">
+                <p>
+                    Sin árticulos en tu diseño
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="ViewConfig" abindex="-1" role="dialog" style="z-index: 260; background-color: white; position: absolute; top: 200px; left: -5px; width: 670px; height: 500px; display: none; border-radius: 0.9rem;">
+    <div class="modal-header" style="width: 650px; height: 55px; background-color: white; z-index: 197">
+        <div style="width:570px">&nbsp;Mi Configuración</div>
+        <button type="button" id="BtnCloseConfig" class="close" data-dismiss="modal" aria-label="Close" style="padding:5px;margin:5px;top:0px"><i class="fas fa-home"></i>&nbsp;&nbsp;</button>
+    </div>
+    <div class="TopMenu">
+        <ul class="breadcrumb" style="height:45px; background-color: #00428A;color:white">
+            <li><a style="color: gold; cursor: pointer" id="btnConfigStop"><i class="fas fa-cubes">&nbsp;&nbsp;Stock &nbsp;&nbsp;</i></a></li>
+            <li><a style="color: white; cursor: pointer" id="btnConfigWall"><i class="fas fa-duotone"></i>&nbsp;&nbsp;Muro</a>&nbsp;&nbsp; </li>
+            <li><a style="color: white; cursor: pointer" id="btnConfigEnvironment"><i class="fas fa-home"></i>&nbsp;&nbsp;Entorno&nbsp;&nbsp;</a></li>
+        </ul>
+    </div>
+    <div id="DivConfigStok" class="panel panel-default" style="top:0;height:300px;width:650px;padding:20px;margin:20px">
+        <div class="row" id="TapStop" style="">
+            <div class="col-md-10">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="IdStocPanel2400" checked>
+                    <label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;Existen paneles 2,40</label>
+                </div>
+            </div>
+            <div class="col-md-10">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="IsSolutionCornerWithUniversalPanel" checked>
+                    <label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;Solución de Esquina con P. Universal</label>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div id="DivConfigWall" class="panel panel-default" style="top:0; height: 300px; width: 650px; padding: 20px; margin: 20px; display: none">
+        <div class="modal-header" style="width: 630px; height: 55px; background-color: white; z-index: 197">
+            <div style="width:570px">&nbsp;Cierre de Muro</div>
+            <button type="button" id="InfoCierreMuro" class="close" data-dismiss="modal" aria-label="Close" style="padding:5px;margin:5px;top:0px"><i style="color:blue" class="fas fa-info"></i>&nbsp;&nbsp;</button>
+        </div>
+        <div class="row" id="" style="">
+            <div class="col-md-10">
+                <div class="form-horizontal">
+                    <input class="form-check-input" type="checkbox" id="IDAddTapeWidthExactIfPossible" checked>
+                    <label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;Cerrar con Paneles si es posible</label>
+                </div>
+                <div class="form-check form-switch">
+                    <label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;Soluciones para muro inferior a 0,3 m</label>
+                </div>
+                <div class="form-check form-switch">
+                    <label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;Soluciones para muro Superior a 0,3 m</label>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div id="DivConfigEnvironment" class="panel panel-default" style="top:0; height: 300px; width: 650px; padding: 20px; margin: 20px; display: none">
+        <div class="form-group" style="width:570px">
+            <div>&nbsp;Seleccionar Entorno</div>
+            <select name="Environment" id="IdEnvironmentValue">
+                <option value="2">Real</option>
+                <option value="7">Claro Grill Azul</option>
+                <option value="8">Claro Grill Gris</option>
+                <option value="9">Oscuro</option>
+            </select>
+        </div>
+        <div class="form-group" style="width:570px">
+            <div>&nbsp;Seleccionar Comportamiento de la Orbita</div>
+            <select name="Environment" id="IdEnvironmentOrbitValue">
+                <option value="1">Botón Izquierdo "Orbita", Botón Derecho "Desplaza"</option>
+                <option value="2">Botón Izquierdo "Desplaza", Botón Derecho "Orbita"</option>
+            </select>
+        </div>
+
+    </div>
+
+    <div class="panel panel-default">
+        <div style="height: 50px; width: 100%;margin-left:300px">
+            <button type="button" id="btnChangeConfi" class="btn btn-warning" style="padding: 5px; margin: 5px">Salvar mi configuración</button>
+        </div>
+    </div>
+</div>
+
+@*<div id="containerDesignMenu" style="position: absolute;z-index:1500; width:500px; height: 500px; left: 20px; bottom: 50px; display: inline; visibility: visible;background-color:white"></div>*@
+<div id="containerDesign" style="position: absolute; overflow: hidden;"></div>
+<div id="viewCubeContainer" class="viewCubeContainer">
+    <div id="viewCube" class="viewCube" style="display:none">
+        <div class="viewCubeFace viewCubeFace-front">
+            <div name="viewCubeView" class="viewCubeFaceCorner top-left view-front-top-left" data-view="front-top-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner top-right view-front-top-right" data-view="front-top-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-left view-front-bottom-left" data-view="front-bottom-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-right view-front-bottom-right" data-view="front-bottom-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical top view-front-top" data-view="front-top"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical bottom view-front-bottom" data-view="front-bottom"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal left view-front-left" data-view="front-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal right view-front-right" data-view="front-right"></div>
+            <div id="viewCubeFront" class="viewCubeFaceInside">Frontal</div>
+        </div>
+        <div class="viewCubeFace viewCubeFace-back">
+            <div name="viewCubeView" class="viewCubeFaceCorner top-left view-top-back-right" data-view="top-back-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner top-right view-top-back-left" data-view="top-back-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-left view-bottom-back-right" data-view="bottom-back-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-right view-bottom-back-left" data-view="bottom-back-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical top view-top-back" data-view="top-back"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical bottom view-back-bottom" data-view="back-bottom"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal left view-back-right" data-view="back-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal right view-back-left" data-view="back-left"></div>
+            <div id="viewCubeBack" class="viewCubeFaceInside">Detrás</div>
+        </div>
+        <div class="viewCubeFace viewCubeFace-top">
+            <div name="viewCubeView" class="viewCubeFaceCorner top-left view-top-back-left" data-view="top-back-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner top-right view-top-back-right" data-view="top-back-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-left view-front-top-left" data-view="front-top-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-right view-front-top-right" data-view="front-top-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical bottom view-front-top" data-view="front-top"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical top view-top-back" data-view="top-back"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal left view-left-top" data-view="left-top"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal right view-right-top" data-view="right-top"></div>
+            <div id="viewCubeTop" class="viewCubeFaceInside">Superior</div>
+        </div>
+        <div class="viewCubeFace viewCubeFace-bottom">
+            <div name="viewCubeView" class="viewCubeFaceCorner top-left view-front-bottom-left" data-view="front-bottom-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner top-right view-front-bottom-right" data-view="front-bottom-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-left view-bottom-back-left" data-view="bottom-back-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-right view-bottom-back-right" data-view="bottom-back-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical top view-front-bottom" data-view="front-bottom"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical bottom view-back-bottom" data-view="back-bottom"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal left view-left-bottom" data-view="left-bottom"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal right view-right-bottom" data-view="right-bottom"></div>
+            <div id="viewCubeBottom" class="viewCubeFaceInside">Inferior</div>
+        </div>
+        <div class="viewCubeFace viewCubeFace-right">
+            <div name="viewCubeView" class="viewCubeFaceCorner top-left view-front-top-right" data-view="front-top-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner top-right view-top-back-right" data-view="top-back-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-left view-front-bottom-right" data-view="front-bottom-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-right view-bottom-back-right" data-view="bottom-back-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical top view-right-top" data-view="right-top"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical bottom view-right-bottom" data-view="right-bottom"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal left view-front-right" data-view="front-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal right view-back-right" data-view="back-right"></div>
+            <div id="viewCubeRight" class="viewCubeFaceInside">Derecha</div>
+        </div>
+        <div class="viewCubeFace viewCubeFace-left">
+            <div name="viewCubeView" class="viewCubeFaceCorner top-left view-top-back-left" data-view="top-back-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner top-right view-front-top-left" data-view="front-top-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-left view-bottom-back-left" data-view="bottom-back-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-right view-front-bottom-left" data-view="front-bottom-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical top view-left-top" data-view="left-top"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical bottom view-left-bottom" data-view="left-bottom"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal left view-back-left" data-view="back-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal right view-front-left" data-view="front-left"></div>
+            <div id="viewCubeLeft" class="viewCubeFaceInside">Izquierda</div>
+        </div>
+    </div>
+</div>
+<div id="DivNucleo" aria-live="assertive" aria-atomic="true" style="z-index: 1005; position: absolute; top: 150px; left: 0px; display: none; width: 700px; height: 500px;background-color: white;">
+    <button type="button" id="CloseDivNucleo" class="close" data-dismiss="modal" aria-label="Close" style="padding:5px;margin:5px"><i class="fas fa-home"></i>&nbsp;&nbsp;</button>
+    <hr style="color: #F88402; margin: 0px " />
+    <div class="toast-body">
+        <h5 id="LableToasContentede" style="color: black"> &nbsp; Insertar Datos del Nucleo ..... </h5>
+    </div>
+    <div class="col-md-12" style="background-color: white">
+        <div class="col-md-3">
+            <div class="col-md-12" style="width:200px">
+                <div class="form-group">
+                    <label>Ancho m</label>
+                    <input type="number" class="form-control-mandatory" id="NucleoW" placeholder="Insertar Valor" value="10.00">
+                    <label class="text-danger" style="display:none" id="Id_Validate_NucleoW_Long">El valor del Ancho del nucleo debe estar entre 3,00 a 50 mts.</label>
+                </div>
+                <div class="form-group">
+                    <label>Largo m</label>
+                    <input type="number" class="form-control-mandatory" id="NucleoL" placeholder="Insertar Valor" value="10.00">
+                    <label class="text-danger" style="display:none" id="Id_Validate_NucleoL_Long">El valor del largo del nucleo debe estar entre 3,00 a 50 mts.</label>
+                </div>
+                <div class="form-group">
+                    <label>Antura m </label>
+                    <input type="number" class="form-control-mandatory" id="NucleoH" placeholder="Insertar Valor" value="2.70">
+                    <label class="text-danger" style="display:none" id="Id_Validate_NucleoH_Long">El valor de la altura del nucleo debe estar entre 0,15 a 10.00 mts.</label>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6" style="width:300px">
+            <div class="col-md-12">
+                <img style="width:300px;height:300px" src="~/Content/DesignTools/Form/Nucleo.png" />
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="col-md-12" style="width:200px">
+                <div class="form-group">
+                    <label>Espesor "EWS"</label>
+                    <input type="number" class="form-control-mandatory" id="EWS" placeholder="Insertar Valor" value="0.3">
+                    <label class="text-danger" style="display:none" id="Id_Validate_NucleoEWS_Long">El valor del espesor del nucleo debe estar entre 0,10 a 1.00 mts.</label>
+                </div>
+                <div class="form-group">
+                    <label>Espesor "EWI"</label>
+                    <input type="number" class="form-control-mandatory" id="EWI" placeholder="Insertar Valor" value="0.3">
+                    <label class="text-danger" style="display:none" id="Id_Validate_NucleoEWI_Long">El valor del espesor del nucleo debe estar entre 0,10 a 1.00 mts.</label>
+                </div>
+                <div class="form-group">
+                    <label>Espesor "ELI"</label>
+                    <input type="number" class="form-control-mandatory" id="ELI" placeholder="Insertar Valor" value="0.3">
+                    <label class="text-danger" style="display:none" id="Id_Validate_NucleoELI_Long">El valor del espesor del nucleo debe estar entre 0,10 a 1.00 mts.</label>
+                </div>
+                <div class="form-group">
+                    <label>Espesor "ELD"</label>
+                    <input type="number" class="form-control-mandatory" id="ELD" placeholder="Insertar Valor" value="0.3">
+                    <label class="text-danger" style="display:none" id="Id_Validate_NucleoELD_Long">El valor del espesor del nucleo debe estar entre 0,10 a 1.00 mts.</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr style="color: #F88402; margin: 0px " />
+
+    <div class="col-md-12" style="padding:5px;margin:5px">
+        <div class="col-md-8">
+            &nbsp;&nbsp;
+        </div>
+        <div class="col-md-3">
+            <button type="button" id="btAddNucleo" class="btn btn-warning">Aceptar</button>
+        </div>
+    </div>
+</div>
+
+<div id="DivGrill" aria-live="assertive" aria-atomic="true" style="z-index: 1005; position: absolute; top: 150px; left: 0px; display: none; width: 600px; height: 350px;background-color: white;">
+    <button type="button" id="CloseDivDivGrill" class="close" data-dismiss="modal" aria-label="Close" style="padding:5px;margin:5px"><i class="fas fa-home"></i>&nbsp;&nbsp;</button>
+    <hr style="color: #F88402; margin: 0px " />
+    <div class="toast-body">
+        <h5 id="LableToasContentede" style="color: black"> &nbsp; Crear Linea de regilla </h5>
+    </div>
+    <div class="col-md-12" style="background-color: white">
+        <div class="col-md-5">
+            <div class="col-md-12">
+                <h6>Linea de Referencia Vertical</h6>
+                <div class="form-group">
+                    <label>Coordenada X (m.)</label>
+                    <input type="number" class="form-control-mandatory" id="GrilVertical" placeholder="Insertar Valor" value="0">
+                </div>
+            </div>
+
+            <div>
+                <button type="button" id="btAddGrillVertical" class="btn btn-warning">Crear Ref. Vertical</button>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="col-md-12">
+                <h6>Linea de Referencia horzontal</h6>
+                <div class="form-group">
+                    <h5>Coordenada Y (m.)</h5>
+                    <input type="number" class="form-control-mandatory" id="GrilHorizontal" placeholder="Insertar Valor" value="0">
+                </div>
+            </div>
+
+            <div>
+                <button type="button" id="btAddGrillHorizontal" class="btn btn-warning">Crear Ref. Horizontal</button>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+

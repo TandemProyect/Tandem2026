@@ -1,0 +1,38 @@
+﻿<link href="~/Content/DesignTools/Design-tool.css" rel="stylesheet">
+<link href="~/assets/carousel.css" rel="stylesheet" />
+<link href="~/Content/Site.css" rel="stylesheet" />
+@model DAL.TSql_Design
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <fieldset style="margin:10px;padding:10px">
+        <legend style="color:brown">
+            <i class="fa fa-trash" aria-hidden="true"></i>
+            &nbsp;&nbsp;¿ Deseas eliminar el diseño ?
+        </legend>
+        <div class="row" style="margin:10px;padding:10px">
+            <div class="form-horizontal">
+                <div class="form-group">
+
+                    <h4 style="color: darkgray">" @Model.AttLabel "</h4>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+    <hr style="background-color: gainsboro; height: 1px; margin: 1px; padding: 1px">
+    <div class="row">
+        <div class="col-md-6"> &nbsp;&nbsp;&nbsp;&nbsp;</div>
+        <div class="col-md-5" style="margin:10px;padding:10px">
+            <input type="hidden" name="id" value='@Model.SysObjectID'>
+            <button type="button" id="btnSalir" class="btn btn-danger">Salir</button>
+            <button type="submit" id="SubmitEditBtn" class="btn btn-warning">Eliminar</button>
+        </div>
+    </div>
+}
+<script type="text/javascript">
+    $('#btnSalir').on('click', function () {
+        $("#DivDesignPoup").hide("slide", { direction: "right" }, 1000);
+        $("#Loading").hide();
+    });
+</script>
+ 

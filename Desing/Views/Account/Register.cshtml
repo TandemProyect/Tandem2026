@@ -1,0 +1,58 @@
+﻿@model Desing.Models.RegisterViewModel
+
+<ul class="breadcrumb">
+    <li><a style="color:black" id="sidebarCollapse" href="#" class=""><i class="fas fa-align-justify"></i></a></li>
+    <li><a href="@Url.Action("Index", "Home")"><i class="fas fa-home"></i> Inicio</a></li>
+    <li><a href="@Url.Action("Index", "Employee")"><i class="fas fa-home"></i> Inicio</a></li>
+    <li><i class="fas fa-user-friends"></i> Crear nuevo Usuario en el Ateko desing</li>
+</ul>
+<link href="~/Content/DesignTools/Design-tool.css" rel="stylesheet">
+<link href="~/assets/carousel.css" rel="stylesheet" />
+<link href="~/Content/Site.css" rel="stylesheet" />
+<div class="well" style="margin:30px;padding:30px">
+    @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+    {
+        <fieldset style="margin:10px;padding:10px">
+            <legend> Crear nuevo Usuario</legend>
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary("", new { @class = "text-danger" })
+            <div class="form-horizontal">
+                <div class="form-group" style="margin:15px;margin:15px">
+                    @Html.LabelFor(m => m.Email, htmlAttributes: new { @class = "control-label col-md-9" })
+                    <div class="col-md-12">
+                        @Html.EditorFor(m => m.Email, new { htmlAttributes = new { @class = "form-control-mandatory" } })
+                        @Html.ValidationMessageFor(m => m.Email, "", new { @id = "LabelField", @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin:15px;margin:15px">
+                    @Html.LabelFor(m => m.Password, new { @class = "col-md-2 control-label" })
+                    <div class="col-md-10">
+                        @Html.PasswordFor(m => m.Password, new { @class = "form-control-mandatory" })
+                    </div>
+                </div>
+                <div class="form-group"style="margin:15px;margin:15px">
+                    @Html.LabelFor(m => m.ConfirmPassword, new { @class = "col-md-2 control-label" })
+                    <div class="col-md-10">
+                        @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control-mandatory" })
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-10">
+                        <input type="submit" class="btn btn-default" value="Register" />
+                    </div>
+                </div>
+
+            </div>
+        </fieldset>
+    }
+</div>
+    @section Scripts {
+        <script type="text/javascript">
+            $(document).ready(function () {
+                $('#sidebar').toggleClass('active');
+                $(this).toggleClass('active');
+            });
+        </script>
+        @Scripts.Render("~/bundles/jqueryval")
+    }

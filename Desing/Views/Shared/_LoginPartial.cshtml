@@ -1,0 +1,27 @@
+﻿@*@model DAL.TSql_Employee;*@
+@using Microsoft.AspNet.Identity
+@if (Request.IsAuthenticated)
+{
+    using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm", @class = "navbar-right" }))
+    {
+        @Html.AntiForgeryToken()
+        <div class="sidebar-footer" style="background-color: #212529; border-top: 2px solid #F4C53D">
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <div class="footer-avatar" style="margin-top: 10px">
+                        <img src="/assets/img/avatars/andy.jpg" style="width:50px;height:50px">
+                        @Html.ActionLink(User.Identity.GetUserName() + "!", "Index", "Manage", routeValues: null, htmlAttributes: new { title = "Manage" })
+                    </div>
+                </li>
+                <li><a href="javascript:document.getElementById('logoutForm').submit()">Salir</a></li>
+            </ul>
+        </div>
+    }
+}
+else
+{
+    <ul class="nav navbar-nav navbar-right">
+        <li>@Html.ActionLink("Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" })</li>
+        <li>@Html.ActionLink("Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })</li>
+    </ul>
+}

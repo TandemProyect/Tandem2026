@@ -1,0 +1,83 @@
+﻿@model Desing.Models.EmployeeViewMySpaceModel
+<ul class="breadcrumb">
+    <li><a style="color:black" id="sidebarCollapse" href="#" class=""><i class="fas fa-align-justify"></i></a></li>
+    <li><a href="@Url.Action("Index", "Home")"><i class="fas fa-home"></i> Inicio</a></li>
+    <li><i class="fas fa-user"></i> Mi Espacio</li>
+</ul>
+<h1 class="mt-1 text-center">Bienvenido @Model.FullName</h1>
+<div class="container d-flex justify-content-center mt-5">
+    <!-- Tarjeta centrada -->
+    <div class="card shadow-lg" style="max-width: 80%;">
+        <div class="row g-0">
+            <!-- Columna Izquierda: Imagen del Usuario -->
+            <div class="col-md-4 d-flex align-items-center justify-content-center bg-light">
+                <img src="@Model.AttPhoto" alt="Foto del Usuario" class="rounded-circle img-fluid m-3" style="width: 180px; height: 180px; object-fit: cover;">
+            </div>
+
+            <!-- Columna Derecha: Información del Usuario -->
+            <div class="col-md-8">
+                <div class="card-body">
+
+                    <h4 class="card-title text-center mb-4">Información del Usuario</h4>
+                    <ul class="list-unstyled">
+                        <li class="mb-3 d-flex align-items-center">
+                            <i class="fas fa-user fa-lg me-2 text-primary"></i>
+                            <strong>Nombre Completo:</strong>
+                            <span class="text-muted ms-2">@Model.FullName</span>
+                        </li>
+                        <li class="mb-4 d-flex align-items-center">
+                            <i class="fas fa-user-circle fa-lg me-2 text-primary"></i>
+                            <strong>Usuario:</strong>
+                            <span class="text-muted ms-2">@Model.UserName</span>
+                        </li>
+                        <li class="mb-3 d-flex align-items-center">
+                            <i class="fas fa-calendar-alt fa-lg me-2 text-warning"></i>
+                            <strong>Fecha primer inicio de sesión:</strong>
+                            <span class="text-muted ms-2">@Model.AccountCreationDate</span>
+                        </li>
+                        <li class="mb-3 d-flex align-items-center">
+                            <i class="fas fa-university fa-lg me-2 text-primary"></i>
+                            <strong>diseños creados:</strong>
+                            <span class="text-muted ms-2">@Model.TotalDesigns</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Columna Derecha: Formulario de Actualización -->
+@*<div class="col-md-6">
+            <h4>Actualizar Datos</h4>
+            <form method="post" action="">
+                <div class="mb-3">
+                    <label class="form-label">Nuevo Nombre de Usuario:</label>
+                    <input type="text" name="UserName" class="form-control" placeholder="Introduce tu nuevo nombre de usuario">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Contraseña Actual:</label>
+                    <input type="password" name="CurrentPassword" class="form-control" placeholder="Introduce tu contraseña actual">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Nueva Contraseña:</label>
+                    <input type="password" name="NewPassword" class="form-control" placeholder="Introduce tu nueva contraseña">
+                </div>
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>*@
+</div>
+@section scripts
+    {
+    <script src="~/Scripts/jquery-ui.js.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#TopMenu").show("slide", { direction: "left" }, 400);
+            $('#sidebar').toggleClass('active');
+            $(this).toggleClass('active');
+            $('#sidebar').load('/Menu/Index');
+        });
+    </script>
+}

@@ -1,0 +1,160 @@
+﻿
+<div id="MenuRightDesign" abindex="-1" role="dialog" style="z-index: 250; background-color: white; position: absolute; top:100px; right: -5px; width:100px; height:670px; display: none; border-radius: 0.9rem ">
+    <div style="height:600px">
+        <button type="button" id="CloseBtnMenu" class="close" data-dismiss="modal" aria-label="Close" style="padding:5px;margin:5px"><i class="fas fa-home"></i></button>
+        <hr style="color: #F88402; " />
+        <button class="btn-circle.btn-xl" title="Modo Vision Muro" id="View_Wall"><img src="~/Content/DesignTools/MenuIcon/VWALL.png" /> Muro </button>
+        <button class="btn-circle.btn-xl" title="Sistema ATK60" id="Insert_Atk60"><img src="~/Content/DesignTools/MenuIcon/ATK60.png" /> ATK60</button>
+        <button class="btn-circle.btn-xl" title="Sistema ATK45" id="Insert_Atk50"><img src="~/Content/DesignTools/MenuIcon/ATK50.png" /> ATK50</button>
+        <button class="btn-circle.btn-xl" title="Sistema ATK40" id="Insert_Atk40"><img src="~/Content/DesignTools/MenuIcon/ATK40.png" /> ATK40</button>
+        <button class="btn-circle.btn-xl" title="Sistema ATK30" id="Insert_Atk30"><img src="~/Content/DesignTools/MenuIcon/ATK40.png" /> NewSisten</button>
+        <hr style="color: #F88402;" />
+        <label>&nbsp;<span style="font-size:14px">Cotas(Selec.)</span> </label>
+        <div class="form-check form-switch">
+            <input style="margin-left:2px" class="form-check-input" type="checkbox" id="IdShowDim">
+            @*<label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;<span style="font-size:14px"> Ver Cotas</span> </label>*@
+        </div>
+        <label>&nbsp;<span style="font-size:14px">Cotas</span> </label>
+        <div class="form-check form-switch">
+            <input style="margin-left:2px" class="form-check-input" type="checkbox" id="IdShowDimAll">
+            @*<label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;<span style="font-size:14px"> Ver Cotas</span> </label>*@
+        </div>
+        <label>&nbsp;<span style="font-size:14px">Muros</span> </label>
+        <div class="form-check form-switch">
+            <input style="margin-left:2px" class="form-check-input" type="checkbox" id="IdShowMuros">
+            @*<label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;<span style="font-size:14px"> Ver Cotas</span> </label>*@
+        </div>
+    </div>
+</div>
+<div id="MenuLeftDesign" abindex="-1" role="dialog" style="z-index: 200; background-color: white; position: absolute; top:140px; left: -5px; width:125px; height: 700px; display: none; border-radius: 0.9rem ">
+    <div style="height:300px">
+        <button type="button" id="CloseBtnMenuLeft" class="close" data-dismiss="modal" aria-label="Close" style="padding:5px;margin:5px"><i class="fas fa-home"></i>&nbsp;&nbsp;</button>
+        <hr style="color: #F88402;" />
+        <button class="btn-circle.btn-xl" title="Lista de Material" id="ListMaterial"><img src="~/Content/DesignTools/MenuIcon/Lista.png" />&nbsp;&nbsp;Recuento &nbsp;&nbsp;</button>
+        <button class="btn-circle.btn-xl" title="Lista de Material" id="btnConfig"><img src="~/Content/DesignTools/MenuIcon/configuracion.png" />Configuración</button>
+        <button class="btn-circle.btn-xl" title="Open Test" id="Open_Test"><img src="~/Content/DesignTools/MenuIcon/test.png" />Testear Modulos</button>
+        <hr style="color: #F88402;" />
+        <div style="padding:10px">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="IdHelp" checked>
+                <label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;Ayuda</label>
+            </div>
+            <h6 id="LabelHelp" style="display:none">Tipo de ayuda</h6>
+            <div class="form-check form-switch" id="IdHelpVideoConten">
+
+                <input class="form-check-input" type="checkbox" id="IdHelpVideo" checked>
+                <label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;Animada</label>
+            </div>
+            <div class="form-check form-switch" id="IdHelpImgConten">
+                <input class="form-check-input" type="checkbox" id="IdHelpImg" checked>
+                <label class="form-check-label" for="flexSwitchCheckChecked">&nbsp;Imagen</label>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="MenubottomDesign" abindex="-1" role="dialog" style="z-index: 200; background-color: white; position: absolute; bottom:5px; left:10px; width:385px; height: 850px; display: none; border-radius: 0.9rem "> 
+        <button type="button" id="CloseMenubottom" class="close" data-dismiss="modal" aria-label="Close" style="padding:5px;margin:5px"><i class="fas fa-home"></i>&nbsp;&nbsp;</button>
+        <hr style="color: #F88402;margin:5px" />
+        <div class="col-md-12" style="padding:1px;margin:1px">
+            <h6> Valores por defecto</h6>
+            <div class="col-md-12" style="padding:1px;margin:1px">
+                <div class="col-md-5" style="padding:1px;margin:1px">
+                    <h5>Espesor</h5>
+                    <input style="width:150px;height:25px;padding:15px 15px" title="Inserta Espesor del muro por defecto" type="number" class="form-control-mandatory" value="0.30" id="IdWidthDefault" placeholder="Espesor">
+                    <label class="text-danger" style="display:none" id="Id_Validate_WidthDefault">El valor del Ancho del muro debe de ser superior a 0,1 mts y menor de 1 metro</label>
+                </div>
+                <div class="col-md-6" style="padding:1px;margin:1px">
+                    <h5>Altura</h5>
+                    <input style="width:150px;height:25px;padding:15px 15px" title="Inserta Altura del muro por defecto" type="number" class="form-control-mandatory" value="2.70" id="IdHeightDefault" placeholder="Altura">
+                    <label class="text-danger" style="display:none" id="Id_Validate_hightDefault">La altura del muro debe de ser superior a 0,1 mts y menor de 10 metros</label>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12" style="padding:1px;margin:1px">
+            <h6> Ayudas de diseño</h6>
+            <div class="col-md-12" style="padding:1px;margin:1px">
+                <div class="form-check form-switch">
+                    <button class="btn-circle.btn-xl" title="Insertar Muro Paralelo" id="Insert_Paralelas"><img src="~/Content/DesignTools/MenuIcon/Paralelas.png" /></button>
+                    <button class="btn-circle.btn-xl" title="Crear conexión entre Muro" id="Insert_Conexion"><img src="~/Content/DesignTools/MenuIcon/ConexionL.png" /></button>
+                </div>
+            </div>
+            <hr style="color: #F88402; margin: 5px" />
+            <div class="col-md-12" style="padding:1px;margin:1px">
+                <h6> Insertar Muro</h6>
+                <div class="form-check form-switch">
+                    <button class="btn-circle.btn-xl" title="Insertar Muro 0" id="Insert_Wall">    <img src="~/Content/DesignTools/MenuIcon/Recto.png" /></button>
+                    <button class="btn-circle.btn-xl" title="Insertar Muro 90" id="Insert_Wall_90"><img src="~/Content/DesignTools/MenuIcon/Recto_90.png" /></button>
+                </div>
+            </div>
+            <hr style="color: #F88402" />
+            <div class="col-md-12" style="padding:1px;margin:1px">
+                <div class="form-check form-switch">
+                    <button class="btn-circle.btn-xl" title="Insertar Esquina" id="Insert_Wall_m1"><img src="~/Content/DesignTools/MenuIcon/m1.png" /></button>
+                    <button class="btn-circle.btn-xl" title="Insertar Esquina" id="Insert_Wall_m20"><img src="~/Content/DesignTools/MenuIcon/m2.png" /></button>
+                    <button class="btn-circle.btn-xl" title="Insertar Esquina" id="Insert_Wall_m3"><img src="~/Content/DesignTools/MenuIcon/m3.png" /></button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12" style="padding:1px;margin:1px">
+
+            <div class="form-check form-switch">
+                <button class="btn-circle.btn-xl" title="Insertar Esquina" id="Insert_Wall_m80"><img src="~/Content/DesignTools/MenuIcon/m4.png" /></button>
+                <button class="btn-circle.btn-xl" title="Insertar Esquina" id="Insert_Wall_X"><img src="~/Content/DesignTools/MenuIcon/m5.png" /></button>
+                <button class="btn-circle.btn-xl" title="Insertar Esquina" id="Insert_Wall_m40"><img src="~/Content/DesignTools/MenuIcon/m6.png" /></button>
+            </div>
+        </div>
+        <div class="col-md-12" style="padding:1px;margin:1px">
+            <div class="form-check form-switch">
+                <button class="btn-circle.btn-xl" title="Insertar Esquina" id="Insert_Wall_m7"><img src="~/Content/DesignTools/MenuIcon/m7.png" /></button>
+                <button class="btn-circle.btn-xl" title="Insertar Esquina" id="Insert_Wall_m60"><img src="~/Content/DesignTools/MenuIcon/m8.png" /></button>
+                <button class="btn-circle.btn-xl" title="Insertar Esquina" id="Insert_Wall_m5"><img src="~/Content/DesignTools/MenuIcon/m9.png" /></button>
+            </div>
+        </div>
+        <hr style="color: #F88402; margin: 5px" />
+        <div class="col-md-12">
+            <h6> wizar</h6>
+            <div class="form-check form-switch">
+                <button class="btn-circle.btn-xl" title="Insertar Nuecleo" id="btWizarNucleo"><img src="~/Content/DesignTools/MenuIcon/wizarAccesor.png" /></button>
+                <button class="btn-circle.btn-xl" title="Insertar Pilar" id="Insert_Pilar"><img src="~/Content/DesignTools/MenuIcon/Pilar.png" /></button>
+                <button class="btn-circle.btn-xl" title="Insertar Trabajador" id="Insert_Worker"><img src="~/Content/DesignTools/MenuIcon/worker.png" /></button>
+                <button class="btn-circle.btn-xl" title="Insertar Regilla" id="Insert_Grill"><img src="~/Content/DesignTools/MenuIcon/Grill.png" /></button>
+            </div>
+        </div>
+        <div class="col-md-12" style="padding:1px;margin:1px">
+            <div class="form-check form-switch">
+                <button class="btn-circle.btn-xl" title="Eliminar Puntal" id="Insert_Puntal"><img src="~/Content/DesignTools/MenuIcon/Puntal.png" /></button>
+                <button class="btn-circle.btn-xl" title="Borrar todo" id="Delete_All"><img src="~/Content/DesignTools/MenuIcon/reset.png" /></button>
+            </div>
+        </div>
+
+        <hr style="color: #0056b2;margin: 5px" />
+</div>
+<div id="Menubottom" abindex="-1" role="dialog" style="z-index:100; background-color: white; position: absolute; bottom:0px; right: 0px; width:500px; height:35px;border-radius: 0.9rem ">
+    <div style="height:30px">
+        <button type="button" id="OpenBtnMenubottom" data-dismiss="modal" style="padding:5px;margin:5px"><i class="fa fa-eye" aria-hidden="true"></i></button>
+    </div>
+</div>
+<div id="MenuRight" abindex="-1" role="dialog" style="z-index:100; background-color: white; position: absolute; top:200px; right: -5px; width:35px; height:500px;border-radius: 0.9rem ">
+    <div style="height:500px">
+        <button type="button" id="CloseBtnMenuLeft" data-dismiss="modal" style="padding:5px;margin:5px"><i class="fa fa-eye" aria-hidden="true"></i></button>
+    </div>
+</div>
+<div id="MenuRightUndoRedo" abindex="-1" role="dialog" style="z-index: 250; background-color: white; position: absolute; top:775px; right: -5px; width:35px; height:100px; display:inline; border-radius: 0.9rem ">
+    <div style="height:100px">
+        <button type="button" id="IdUndo" data-dismiss="modal" style="padding:5px;margin:5px"><i class="fa fa-undo" aria-hidden="true"></i></button>
+        <button type="button" id="IdRedo" data-dismiss="modal" style="padding:5px;margin:5px"><i class="fa fa-redo" aria-hidden="true"></i></button>
+    </div>
+</div>
+<div id="MenuLeft" abindex="-1" role="dialog" style="z-index:100; background-color: white; position: absolute; top:200px; Left: -5px; width:45px; height:500px;border-radius: 0.9rem ">
+    <div style="height:500px">
+        <button type="button" id="CloseBtnMenuLeft" data-dismiss="modal" style="padding:5px;margin:5px">&nbsp;&nbsp;<i class="fa fa-eye" aria-hidden="true"></i></button>
+    </div>
+</div>
+<div id="MenuTopDesaign" class="TopMenu">
+    <ul class="breadcrumb" style="padding: 5px; background-color: #00428A;color:white">
+        <li><a href="@Url.Action("Index", "Home" )" style="color: white">  &nbsp;&nbsp;  &nbsp;&nbsp;<i class="fas fa-home"></i> Inicio</a></li>
+        <li id="btnMisDesign" style="color: white; cursor:pointer"> <i class="fa fa-id-card" aria-hidden="true"></i> Mis diseños</li>
+        <li><i class="fa fa-cube" aria-hidden="true"></i> &nbsp;<span style="color:gold">Test </span> <span style="color:white">Desing</span><span style="color: gainsboro">.net</span> <span style="color: chartreuse">Develop </span></li>
+    </ul>
+</div>

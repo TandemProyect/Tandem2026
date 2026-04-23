@@ -1,0 +1,243 @@
+﻿@model Desing.Models.ModelDesign3d
+<link href="~/Content/DesignTools/Design-tool.css" rel="stylesheet">
+
+<head>
+    <title>Atenko Desing</title>
+</head>
+<div class="modal-content" id="EditWall" style="height:670px; display:none; position: absolute; z-index: 100;left:10px;top:150px;border-style: solid;border-width: 1px;background-color: #FFFFFF;">
+    <div class="modal-header">
+        <button type="button" id="ButtonClouseFormWall" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h5 class="modal-title" id="myModalLabel">Wall</h5>
+    </div>
+    @*<div class="container" style="width:300px;margin:5px;padding:5px">
+        <iframe src="/DesignTools/Wall" scrolling="no" name="DivLefEdit" style="width:300px; height:540px;border:0px"></iframe>
+        </div>*@
+</div>
+<div id="container" style="position:absolute;"></div>
+<div id="topmenuDesaign" class="TopMenu">
+    <button id="b_a">Atoms</button>
+    <button id="b_b">Bonds</button>
+    <button id="b_ab">Atoms + Bonds</button>
+    <button id="area3d"><img style="width:20px;height:20px" src="~/Content/DesignTools/img/3d.png" /></button>
+    <button id="areaTop"><img style="width:20px;height:20px" src="~/Content/DesignTools/img/Top_3.png" /></button>
+    <button id="areaLeft"><img style="width:20px;height:20px" src="~/Content/DesignTools/img/Per_Lef.png" /></button>
+    <button id="areaFront"><img style="width:20px;height:20px" src="~/Content/DesignTools/img/From.png" /></button>
+    <button id="SaveCamara"><img style="width:20px;height:20px" src="~/Content/DesignTools/img/Camara_save.png" /></button>
+    <button title="Insert Wall by windows" id="Insert_Wall"><img style="width:20px;height:20px" src="~/Content/DesignTools/img/Wall.png" /></button>
+    <button title="Insert Panel" id="Insert_Panel"><img style="width:20px;height:20px" src="~/Content/DesignTools/img/Tower.png" /></button>
+</div>
+<div id="viewCubeContainer" class="viewCubeContainer">
+    <div id="viewCube" class="viewCube" style="display:inline">
+        <div class="viewCubeFace viewCubeFace-front">
+            <div name="viewCubeView" class="viewCubeFaceCorner top-left view-front-top-left" data-view="front-top-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner top-right view-front-top-right" data-view="front-top-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-left view-front-bottom-left" data-view="front-bottom-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-right view-front-bottom-right" data-view="front-bottom-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical top view-front-top" data-view="front-top"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical bottom view-front-bottom" data-view="front-bottom"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal left view-front-left" data-view="front-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal right view-front-right" data-view="front-right"></div>
+            <div id="viewCubeFront" class="viewCubeFaceInside">FRONT</div>
+        </div>
+        <div class="viewCubeFace viewCubeFace-back">
+            <div name="viewCubeView" class="viewCubeFaceCorner top-left view-top-back-right" data-view="top-back-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner top-right view-top-back-left" data-view="top-back-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-left view-bottom-back-right" data-view="bottom-back-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-right view-bottom-back-left" data-view="bottom-back-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical top view-top-back" data-view="top-back"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical bottom view-back-bottom" data-view="back-bottom"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal left view-back-right" data-view="back-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal right view-back-left" data-view="back-left"></div>
+            <div id="viewCubeBack" class="viewCubeFaceInside">BACK</div>
+        </div>
+        <div class="viewCubeFace viewCubeFace-top">
+            <div name="viewCubeView" class="viewCubeFaceCorner top-left view-top-back-left" data-view="top-back-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner top-right view-top-back-right" data-view="top-back-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-left view-front-top-left" data-view="front-top-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-right view-front-top-right" data-view="front-top-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical bottom view-front-top" data-view="front-top"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical top view-top-back" data-view="top-back"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal left view-left-top" data-view="left-top"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal right view-right-top" data-view="right-top"></div>
+            <div id="viewCubeTop" class="viewCubeFaceInside">TOP</div>
+        </div>
+        <div class="viewCubeFace viewCubeFace-bottom">
+            <div name="viewCubeView" class="viewCubeFaceCorner top-left view-front-bottom-left" data-view="front-bottom-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner top-right view-front-bottom-right" data-view="front-bottom-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-left view-bottom-back-left" data-view="bottom-back-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-right view-bottom-back-right" data-view="bottom-back-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical top view-front-bottom" data-view="front-bottom"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical bottom view-back-bottom" data-view="back-bottom"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal left view-left-bottom" data-view="left-bottom"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal right view-right-bottom" data-view="right-bottom"></div>
+            <div id="viewCubeBottom" class="viewCubeFaceInside">BOTTOM</div>
+        </div>
+        <div class="viewCubeFace viewCubeFace-right">
+            <div name="viewCubeView" class="viewCubeFaceCorner top-left view-front-top-right" data-view="front-top-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner top-right view-top-back-right" data-view="top-back-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-left view-front-bottom-right" data-view="front-bottom-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-right view-bottom-back-right" data-view="bottom-back-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical top view-right-top" data-view="right-top"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical bottom view-right-bottom" data-view="right-bottom"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal left view-front-right" data-view="front-right"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal right view-back-right" data-view="back-right"></div>
+            <div id="viewCubeRight" class="viewCubeFaceInside">RIGHT</div>
+        </div>
+        <div class="viewCubeFace viewCubeFace-left">
+            <div name="viewCubeView" class="viewCubeFaceCorner top-left view-top-back-left" data-view="top-back-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner top-right view-front-top-left" data-view="front-top-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-left view-bottom-back-left" data-view="bottom-back-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceCorner bottom-right view-front-bottom-left" data-view="front-bottom-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical top view-left-top" data-view="left-top"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeVertical bottom view-left-bottom" data-view="left-bottom"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal left view-back-left" data-view="back-left"></div>
+            <div name="viewCubeView" class="viewCubeFaceEdgeHorizontal right view-front-left" data-view="front-left"></div>
+            <div id="viewCubeLeft" class="viewCubeFaceInside">LEFT</div>
+        </div>
+    </div>
+</div>
+<script src="~/Scripts/jquery-3.5.1.js"></script>
+@Scripts.Render("~/bundles/DesignTools")
+<script src="~/Scripts/Design/3D/DragControls.js"></script>
+<script id="rendered-js">
+var screenWidth = screen.width;
+var screenHeight = screen.height;
+// Get the browser window size
+var windowWidth = window.innerWidth;
+var windowHeight = window.innerHeight - 160;
+// Get the size of the entire webpage
+const pageWidth = document.documentElement.scrollWidth;
+const pageHeight = document.documentElement.scrollHeight;
+ 
+//Cube
+    viewCube = document.querySelector('.viewCube');
+    //viewCubeMatrix = new THREE.Matrix4();
+
+var ExistWall = 0;
+var DesaingId = '@Model.DesignId';
+@foreach (var camera in Model.ListOfCameras)
+{
+<Text>
+setCameraValuesFromDatabase(
+@camera.AttCameraType,
+@camera.AttPositionX,
+@camera.AttPositionY,
+@camera.AttPositionZ,
+@camera.AttTargetX,
+@camera.AttTargetY,
+@camera.AttTargetZ,
+@camera.AttZoom
+);
+</Text>
+}
+
+var targetForDragging;
+targetForDragging = new THREE.Mesh(
+// new THREE.BoxGeometry(100000, 0.01, 100000),
+//new THREE.MeshBasicMaterial()
+);
+
+      // axesHelper
+    var arrowPos = new THREE.Vector3(0, 0, 0);
+    scene.add(new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), arrowPos, 60, 0xAEB6BF, 20, 10));
+    scene.add(new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), arrowPos, 60, 0xAEB6BF, 20, 10));
+    scene.add(new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), arrowPos, 60, 0xAEB6BF, 20, 10));
+
+    
+ 
+    
+
+
+  
+//Ray
+
+//Secction
+
+
+//Dibujar muro con ventana
+ 
+InertAxis();
+animate();
+function animate()
+{
+ 
+    planes = [
+        new THREE.Plane(new THREE.Vector3(- 1, 0, 0), 0),
+        new THREE.Plane(new THREE.Vector3(0, - 1, 0), 0),
+        new THREE.Plane(new THREE.Vector3(0, 0, - 1), 0)
+    ];
+
+    planeHelpers = planes.map(p => new THREE.PlaneHelper(p, 2, 0xffffff));
+    planeHelpers.forEach(ph => {
+
+        ph.visible = false;
+        scene.add(ph);
+
+    });
+
+    const geometry = new THREE.TorusKnotGeometry(0.4, 0.15, 220, 60);
+    let objectSecction = new THREE.Group();
+    scene.add(objectSecction);
+
+    // Set up clip plane rendering
+  ground = new THREE.Mesh(
+        new THREE.PlaneGeometry(9, 9, 1, 1),
+        new THREE.ShadowMaterial({ color: 0x000000, opacity: 0.25, side: THREE.DoubleSide })
+    );
+    ground.rotation.x = - Math.PI / 2; // rotates X/Y to X/Z
+    ground.position.y = - 1;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    // Stats
+ 
+    requestAnimationFrame(animate);
+/*      viewCubeMatrix.extractRotation(perspectiveCamera.camera.matrixWorldInverse);*/
+renderer.render(scene, camera);
+}
+function saveCameraOnDatabase()
+{
+currentPosition = new Position(
+x = camera.position.x,
+y = camera.position.y,
+z = camera.position.z);
+currentTarget = new Position(
+x = controls.target.x,
+y = controls.target.y,
+z = controls.target.z);
+zoom = 0;
+$.ajax({
+type: "POST",
+url: '@Url.Action("Save_Camara", "DesignTools")',
+data: {
+LinDesaing: Math.floor(DesaingId),
+type: 1,
+positionX: Math.floor(currentPosition.x),
+positionY: Math.floor(currentPosition.y),
+positionZ: Math.floor(currentPosition.z),
+targetX: Math.floor(currentTarget.x),
+targetY: Math.floor(currentTarget.y),
+targetZ: Math.floor(currentTarget.z),
+zoom: zoom
+},
+type: 'POST',
+cache: false
+}).success(function (result) {
+if (result.success) {
+alert("OK");
+//toastr.success(cameraTypeId === 1 ? searchTranslation("EstimationTool.CameraPerspectiveSaved") : searchTranslation("EstimationTool.CameraOrthographicSaved"), searchTranslation("EstimationTool.Cameras"), csdToastOptions);
+}
+else {
+alert("OOOH");
+//toastr.error(searchTranslation("EstimationTool.SavingCurrentCameraError"), searchTranslation("EstimationTool.CameraNotSaved"), csdToastOptions);
+}
+});
+};
+//});
+function onWindowResize() {
+camera.aspect = window.innerWidth / window.innerHeight;
+camera.updateProjectionMatrix();
+renderer.setSize(window.innerWidth, window.innerHeight-100);
+}
+
+</script>

@@ -1,0 +1,142 @@
+solid "Esq70"
+  facet normal 0 0 -1
+    outer loop
+      vertex 377.377868652 434.067260742 10000
+      vertex 4012.24560547 434.067260742 10000
+      vertex 377.377868652 434.067260742 -2.65789536783e-14
+    endloop
+  endfacet
+  facet normal 0 0 -1
+    outer loop
+      vertex 377.377868652 434.067260742 -2.65789536783e-14
+      vertex 4012.24560547 434.067260742 10000
+      vertex 4012.24560547 434.067260742 -2.65789536783e-14
+    endloop
+  endfacet
+  facet normal 1 -0 0
+    outer loop
+      vertex 4012.24560547 -42.6113586426 2.6091933027e-15
+      vertex 4012.24560547 434.067260742 -2.65789536783e-14
+      vertex 4012.24560547 -42.6113586426 10000
+    endloop
+  endfacet
+  facet normal 1 0 0
+    outer loop
+      vertex 4012.24560547 -42.6113586426 10000
+      vertex 4012.24560547 434.067260742 -2.65789536783e-14
+      vertex 4012.24560547 434.067260742 10000
+    endloop
+  endfacet
+  facet normal -1 -0 -0
+    outer loop
+      vertex -26.4960517883 -42.6113586426 10000
+      vertex -26.4960517883 4724.17871094 10000
+      vertex -26.4960517883 -42.6113586426 2.6091933027e-15
+    endloop
+  endfacet
+  facet normal -1 0 0
+    outer loop
+      vertex -26.4960517883 -42.6113586426 2.6091933027e-15
+      vertex -26.4960517883 4724.17871094 10000
+      vertex -26.4960517883 4724.17871094 -2.89272512194e-13
+    endloop
+  endfacet
+  facet normal 0 1 -0
+    outer loop
+      vertex 377.377868652 4724.17871094 10000
+      vertex -26.4960517883 4724.17871094 10000
+      vertex 377.377868652 434.067260742 10000
+    endloop
+  endfacet
+  facet normal 0 1 0
+    outer loop
+      vertex 377.377868652 434.067260742 10000
+      vertex -26.4960517883 4724.17871094 10000
+      vertex -26.4960517883 -42.6113586426 10000
+    endloop
+  endfacet
+  facet normal 0 1 -0
+    outer loop
+      vertex 377.377868652 434.067260742 10000
+      vertex -26.4960517883 -42.6113586426 10000
+      vertex 4012.24560547 -42.6113586426 10000
+    endloop
+  endfacet
+  facet normal 0 1 0
+    outer loop
+      vertex 4012.24560547 -42.6113586426 10000
+      vertex 4012.24560547 434.067260742 10000
+      vertex 377.377868652 434.067260742 10000
+    endloop
+  endfacet
+  facet normal 1 -0 0
+    outer loop
+      vertex 377.377868652 434.067260742 -2.65789536783e-14
+      vertex 377.377868652 4724.17871094 -2.89272512194e-13
+      vertex 377.377868652 434.067260742 10000
+    endloop
+  endfacet
+  facet normal 1 0 0
+    outer loop
+      vertex 377.377868652 434.067260742 10000
+      vertex 377.377868652 4724.17871094 -2.89272512194e-13
+      vertex 377.377868652 4724.17871094 10000
+    endloop
+  endfacet
+  facet normal 0 0 1
+    outer loop
+      vertex -26.4960517883 -42.6113586426 2.6091933027e-15
+      vertex 4012.24560547 -42.6113586426 2.6091933027e-15
+      vertex -26.4960517883 -42.6113586426 10000
+    endloop
+  endfacet
+  facet normal -0 0 1
+    outer loop
+      vertex -26.4960517883 -42.6113586426 10000
+      vertex 4012.24560547 -42.6113586426 2.6091933027e-15
+      vertex 4012.24560547 -42.6113586426 10000
+    endloop
+  endfacet
+  facet normal 0 0 -1
+    outer loop
+      vertex 377.377868652 4724.17871094 -2.89272512194e-13
+      vertex -26.4960517883 4724.17871094 -2.89272512194e-13
+      vertex 377.377868652 4724.17871094 10000
+    endloop
+  endfacet
+  facet normal -0 0 -1
+    outer loop
+      vertex 377.377868652 4724.17871094 10000
+      vertex -26.4960517883 4724.17871094 -2.89272512194e-13
+      vertex -26.4960517883 4724.17871094 10000
+    endloop
+  endfacet
+  facet normal -0 -1 0
+    outer loop
+      vertex 4012.24560547 -42.6113586426 2.6091933027e-15
+      vertex -26.4960517883 -42.6113586426 2.6091933027e-15
+      vertex 377.377868652 434.067260742 -2.65789536783e-14
+    endloop
+  endfacet
+  facet normal -0 -1 0
+    outer loop
+      vertex 377.377868652 434.067260742 -2.65789536783e-14
+      vertex -26.4960517883 -42.6113586426 2.6091933027e-15
+      vertex -26.4960517883 4724.17871094 -2.89272512194e-13
+    endloop
+  endfacet
+  facet normal 0 -1 -0
+    outer loop
+      vertex 377.377868652 434.067260742 -2.65789536783e-14
+      vertex -26.4960517883 4724.17871094 -2.89272512194e-13
+      vertex 377.377868652 4724.17871094 -2.89272512194e-13
+    endloop
+  endfacet
+  facet normal 0 -1 0
+    outer loop
+      vertex 377.377868652 434.067260742 -2.65789536783e-14
+      vertex 4012.24560547 434.067260742 -2.65789536783e-14
+      vertex 4012.24560547 -42.6113586426 2.6091933027e-15
+    endloop
+  endfacet
+endsolid "Esq70"

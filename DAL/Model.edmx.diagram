@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="372838cd3da94ab891750af082e86b2e" Name="Diagram1" ZoomLevel="83" >
+        <EntityTypeShape EntityType="DesingEntity.TSql_Countrys" Width="1.5" PointX="3" PointY="18.375" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_DesignCamera" Width="2.875" PointX="7" PointY="11.25" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_System" Width="1.5" PointX="10.5" PointY="11.75" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_App" Width="1.5" PointX="8.625" PointY="7.125" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_Register" Width="1.5" PointX="10.875" PointY="5" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Register_TSql_App" />
+        <EntityTypeShape EntityType="DesingEntity.Tsql_RemplaceArticleStok" Width="3.75" PointX="8.625" PointY="17.25" />
+        <EntityTypeShape EntityType="DesingEntity.Tsql_RemplaceArticleStokChildren" Width="4.875" PointX="12.875" PointY="15.875" />
+        <AssociationConnector Association="DesingEntity.FK_Tsql_RemplaceArticleStokChildren_Tsql_RemplaceArticleStok" />
+        <AssociationConnector Association="DesingEntity.FK_Tsql_RemplaceArticleStokChildren_Tsql_RemplaceArticleStok1" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_TapeInialEndWallIMoreThan300" Width="1.5" PointX="6.625" PointY="22.375" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_TapeInialEndWallIsLessThan300" Width="1.5" PointX="6.625" PointY="2.625" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_Roles" Width="1.5" PointX="6.625" PointY="27.25" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_Company" Width="1.5" PointX="14.625" PointY="20.625" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Company_TSql_Countrys" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_TemporalList" Width="3.75" PointX="9.5" PointY="0.5" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_Branch" Width="1.5" PointX="16.875" PointY="21.75" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Branch_TSql_Company" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_DefaultDesign" Width="1.5" PointX="13.875" PointY="2" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_DefaultDesign_TSql_TapeInialEndWallIMoreThan300" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_DefaultDesign_TSql_TapeInialEndWallIsLessThan300" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_DesignDetails" Width="1.5" PointX="8.875" PointY="26" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_Employee" Width="1.5" PointX="21.375" PointY="14.875" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Employee_TSql_Company" />
+        <EntityTypeShape EntityType="DesingEntity.AspNetUsers" Width="1.5" PointX="1.125" PointY="13.5" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_App_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Company_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Company_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Company_AspNetUsers2" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Company_AspNetUsers3" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Countrys_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Countrys_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_DefaultDesign_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_DefaultDesign_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_DefaultDisign_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_DefaultDisign_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_DefaultDisign_AspNetUsers2" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_DefaultDisign_AspNetUsers3" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_DesignCamera_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_DesignCamera_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_DesignDetails_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_DesignDetails_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Employee_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Employee_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Employee_AspNetUsers2" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Register_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Register_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_Tsql_RemplaceArticleStok_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_Tsql_RemplaceArticleStok_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_Tsql_RemplaceArticleStokChildren_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_Tsql_RemplaceArticleStokChildren_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Roles_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Roles_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_System_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_System_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_TapeInialEndWallIMoreThan300_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_TapeInialEndWallIMoreThan300_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_TapeInialEndWallIMoreThan300_AspNetUsers2" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_TapeInialEndWallIsLessThan300_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_TapeInialEndWallIsLessThan300_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_TemporalList_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_TemporalList_AspNetUsers1" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_Help" Width="1.5" PointX="11.625" PointY="26.25" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_HelpGrup" Width="1.5" PointX="3.375" PointY="23.5" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Help_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Help_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_HelpGrup_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_HelpGrup_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Help_TSql_HelpGrup" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_TotalListsDesing" Width="1.5" PointX="5.625" PointY="17.75" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_TotalListsDesing_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_TotalListsDesing_AspNetUsers1" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_ConfigDesingDefault" Width="1.5" PointX="22.125" PointY="27.75" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers1" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_ConfigDesing" Width="1.5" PointX="3.375" PointY="28.125" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_ConfigDesing_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_ConfigDesing_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_ConfigDesing_AspNetUsers2" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_Design" Width="1.5" PointX="3.375" PointY="12.125" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Design_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Design_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_DesignCamera_TSql_Design" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_DesignDetails_TSql_Design" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_TotalListsDesing_TSql_Design" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_RollGrupDesing" Width="1.5" PointX="24.875" PointY="6.625" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_RollGrupDesing_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_RollGrupDesing_AspNetUsers1" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_RollFunctionsUser" Width="1.5" PointX="27.125" PointY="16.75" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_User_Roles" Width="1.5" PointX="8.875" PointY="21.375" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_RollFunctionsUser_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_RollFunctionsUser_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_User_Roles_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_User_Roles_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_User_Roles_AspNetUsers2" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_RollFunctionsUser_TSql_Roles" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_User_Roles_TSql_Roles" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_RollFunctionsUser_TSql_RollGrupDesing" />
+        <EntityTypeShape EntityType="DesingEntity.Tsql_Master_Articles" Width="1.5" PointX="18.75" PointY="15.125" />
+        <AssociationConnector Association="DesingEntity.FK_Tsql_Master_Articles_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_Tsql_Master_Articles_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_Tsql_Master_Articles_TSql_System" />
+        </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>
