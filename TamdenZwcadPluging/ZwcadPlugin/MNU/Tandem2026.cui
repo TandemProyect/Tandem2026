@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<CustSection xml:lang="en-US">
+  <MenuGroup DisplayName="Tandem 2026" Name="TANDEM2026">
+    <MacroGroup Name="TD-Main">
+
+      <MenuMacro UID="td_panel">
+        <Macro>
+          <Name>Panel Principal</Name>
+          <Command>^c^cMVCCONEXION</Command>
+          <HelpString>Abre el panel principal de Tandem 2026</HelpString>
+        </Macro>
+      </MenuMacro>
+
+      <MenuMacro UID="td_detect">
+        <Macro>
+          <Name>Detectar Muros</Name>
+          <Command>^c^cDETECTARMUROS</Command>
+          <HelpString>Lee geometria 2D y construye el modelo topologico</HelpString>
+        </Macro>
+      </MenuMacro>
+
+      <MenuMacro UID="td_gen3d">
+        <Macro>
+          <Name>Generar 3D</Name>
+          <Command>^c^cGENERAR3D</Command>
+          <HelpString>Genera los solidos 3D a partir del modelo topologico</HelpString>
+        </Macro>
+      </MenuMacro>
+
+      <MenuMacro UID="td_regen">
+        <Macro>
+          <Name>Regenerar 3D</Name>
+          <Command>^c^cREGENERAR3D</Command>
+          <HelpString>Borra y regenera los solidos 3D</HelpString>
+        </Macro>
+      </MenuMacro>
+
+      <MenuMacro UID="td_cfg">
+        <Macro>
+          <Name>Configurar Encofrado</Name>
+          <Command>^c^cCONFIGENCOFRADO</Command>
+          <HelpString>Selecciona el sistema de encofrado y sus parametros</HelpString>
+        </Macro>
+      </MenuMacro>
+
+      <MenuMacro UID="td_leer">
+        <Macro>
+          <Name>Leer Diseno</Name>
+          <Command>^c^cLEERDISENOMVC</Command>
+          <HelpString>Lee un diseno desde el servidor MVC</HelpString>
+        </Macro>
+      </MenuMacro>
+
+      <MenuMacro UID="td_save">
+        <Macro>
+          <Name>Guardar Diseno</Name>
+          <Command>^c^cGUARDARDISENOMVC</Command>
+          <HelpString>Guarda el diseno actual en el servidor MVC</HelpString>
+        </Macro>
+      </MenuMacro>
+
+      <MenuMacro UID="td_ayuda">
+        <Macro>
+          <Name>Ayuda</Name>
+          <Command>^c^cTANDEM</Command>
+          <HelpString>Muestra los comandos disponibles de Tandem 2026</HelpString>
+        </Macro>
+      </MenuMacro>
+
+    </MacroGroup>
+    <MenuRoot>
+      <PopMenuRoot/>
+      <RibbonRoot>
+        <RibbonTabSourceCollection>
+          <RibbonTabSource Text="Tandem 2026" UID="td_ribbon_tab">
+            <Name>Tandem</Name>
+            <RibbonPanelSourceReference PanelId="td_ribbon_panel1"/>
+            <RibbonPanelSourceReference PanelId="td_ribbon_panel2"/>
+            <RibbonPanelSourceReference PanelId="td_ribbon_panel3"/>
+          </RibbonTabSource>
+        </RibbonTabSourceCollection>
+        <RibbonPanelSourceCollection>
+          <RibbonPanelSource Text="Principal" UID="td_ribbon_panel1">
+            <Name>Principal</Name>
+            <RibbonRow>
+              <RibbonCommandButton ButtonStyle="LargeWithText" MenuMacroID="td_panel" Text="Panel"/>
+            </RibbonRow>
+          </RibbonPanelSource>
+          <RibbonPanelSource Text="Modelo 3D" UID="td_ribbon_panel2">
+            <Name>Modelo 3D</Name>
+            <RibbonRow>
+              <RibbonCommandButton ButtonStyle="LargeWithText" MenuMacroID="td_detect" Text="Detectar"/>
+              <RibbonCommandButton ButtonStyle="LargeWithText" MenuMacroID="td_gen3d"  Text="Generar 3D"/>
+              <RibbonCommandButton ButtonStyle="LargeWithText" MenuMacroID="td_regen"  Text="Regenerar"/>
+              <RibbonCommandButton ButtonStyle="LargeWithText" MenuMacroID="td_cfg"    Text="Encofrado"/>
+            </RibbonRow>
+          </RibbonPanelSource>
+          <RibbonPanelSource Text="Datos MVC" UID="td_ribbon_panel3">
+            <Name>Datos MVC</Name>
+            <RibbonRow>
+              <RibbonCommandButton ButtonStyle="LargeWithText" MenuMacroID="td_leer" Text="Leer"/>
+              <RibbonCommandButton ButtonStyle="LargeWithText" MenuMacroID="td_save" Text="Guardar"/>
+            </RibbonRow>
+          </RibbonPanelSource>
+        </RibbonPanelSourceCollection>
+        <RibbonTabSelectors/>
+      </RibbonRoot>
+      <MouseButtonRoot/>
+      <DoubleClickRoot/>
+      <DigitizerButtonRoot/>
+      <TabletMenuRoot/>
+      <QuadRoot>
+        <QuadTabs/>
+      </QuadRoot>
+    </MenuRoot>
+  </MenuGroup>
+</CustSection>

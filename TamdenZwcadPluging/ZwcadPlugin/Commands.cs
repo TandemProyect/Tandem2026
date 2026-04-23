@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
-using WinForms = System.Windows.Forms;
+using System.Windows.Interop;
 using ZwSoft.ZwCAD.ApplicationServices;
 using ZwSoft.ZwCAD.DatabaseServices;
 using ZwSoft.ZwCAD.EditorInput;
 using ZwSoft.ZwCAD.Geometry;
 using ZwcadPlugin.Models;
+using ZwcadPlugin.UI.Views;
 using ZwSoft.ZwCAD.Runtime;
 using ZwcadApp = ZwSoft.ZwCAD.ApplicationServices.Application;
 
@@ -24,7 +25,7 @@ namespace ZwcadPlugin
         }
 
         /// <summary>
-        /// Comando principal que abre el formulario de conexiÃ³n MVC
+        /// Comando principal que abre el formulario de conexión MVC
         /// </summary>
         [CommandMethod("MVCCONEXION")]
         public void AbrirFormulario()
@@ -38,19 +39,17 @@ namespace ZwcadPlugin
                 if (doc == null) return;
 
                 ed = doc.Editor;
+                ed.WriteMessage("\n=== Plugin ZWCAD 2026 - Tandem Muros/Encofrado ===");
+                ed.WriteMessage("\nAbriendo ventana principal...\n");
 
-                ed.WriteMessage("\n=== Plugin ZWCAD 2026 - ConexiÃ³n MVC ===");
-                ed.WriteMessage("\nAbriendo formulario...\n");
-
-                FormPrincipal form = new FormPrincipal();
-                ZwcadApp.ShowModalDialog(form);
+                var window = new MainWindow();
+                window.SetOwnerHandle(ZwcadApp.MainWindow.Handle);
+                window.ShowDialog();
             }
             catch (System.Exception ex)
             {
                 if (ed != null)
-                {
-                    ed.WriteMessage($"\nError al abrir formulario: {ex.Message}\n");
-                }
+                    ed.WriteMessage($"\nError al abrir ventana: {ex.Message}\n");
             }
         }
 
@@ -69,19 +68,17 @@ namespace ZwcadPlugin
                 if (doc == null) return;
 
                 ed = doc.Editor;
-
                 ed.WriteMessage("\n=== Insertar Bloque desde Servidor ===");
-                ed.WriteMessage("\nAbriendo formulario de bloques...\n");
+                ed.WriteMessage("\nAbriendo ventana principal...\n");
 
-                FormPrincipal form = new FormPrincipal();
-                ZwcadApp.ShowModalDialog(form);
+                var window = new MainWindow();
+                window.SetOwnerHandle(ZwcadApp.MainWindow.Handle);
+                window.ShowDialog();
             }
             catch (System.Exception ex)
             {
                 if (ed != null)
-                {
                     ed.WriteMessage($"\nError: {ex.Message}\n");
-                }
             }
         }
 
