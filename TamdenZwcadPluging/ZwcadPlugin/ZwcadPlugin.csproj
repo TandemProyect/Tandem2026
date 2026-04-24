@@ -113,14 +113,10 @@
     <None Include="MNU\Tandem2026.cui">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="MNU\Tandem2026.mnu">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <!-- Copia la carpeta MNU al directorio de salida manteniendo la estructura -->
   <Target Name="CopiarMNU" AfterTargets="Build">
     <Copy SourceFiles="MNU\Tandem2026.cui" DestinationFolder="$(OutputPath)MNU\" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="MNU\Tandem2026.mnu" DestinationFolder="$(OutputPath)MNU\" SkipUnchangedFiles="true" />
   </Target>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
