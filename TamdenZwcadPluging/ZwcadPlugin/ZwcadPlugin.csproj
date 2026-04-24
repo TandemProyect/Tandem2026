@@ -113,6 +113,8 @@
     <None Include="MNU\Tandem2026.cui">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="README.md" />
+    <None Include="TECHNICAL_GUIDE.md" />
   </ItemGroup>
   <!-- Copia la carpeta MNU al directorio de salida manteniendo la estructura -->
   <Target Name="CopiarMNU" AfterTargets="Build">
