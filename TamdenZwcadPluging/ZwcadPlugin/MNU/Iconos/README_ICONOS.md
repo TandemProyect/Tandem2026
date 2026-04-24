@@ -4,6 +4,22 @@
 
 ---
 
+## 📁 Estructura de Carpetas
+
+```
+MNU\Iconos\
+├── Bootstrap-Icons\     # Biblioteca completa de Bootstrap Icons
+│   └── icons\           # Todos los SVG originales (2000+)
+├── png\                 # Iconos convertidos para ZWCAD
+│   ├── 16x16\          # Iconos pequeños
+│   └── 32x32\          # Iconos grandes (ribbon)
+├── README_ICONOS.md
+├── Organizar_Bootstrap_Icons.ps1
+└── Convertir_SVG_a_PNG.ps1
+```
+
+---
+
 ## 📋 Especificaciones de Iconos para ZWCAD
 
 ### Formatos Requeridos
@@ -59,6 +75,49 @@ ZWCAD soporta los siguientes formatos para iconos en el ribbon:
 **Sugerencia de colores:**
 - Leer: Verde (#4CAF50)
 - Guardar: Azul (#2196F3)
+
+---
+
+## 🚀 Flujo de Trabajo
+
+### 1. Descargar Bootstrap Icons (Una sola vez)
+
+1. Ve a: https://github.com/twbs/icons/releases/latest
+2. Descarga el archivo `bootstrap-icons-X.X.X.zip`
+3. No lo descomprimas manualmente
+
+### 2. Organizar la Biblioteca
+
+```powershell
+cd C:\00_Tandem2026\TamdenZwcadPluging\ZwcadPlugin\MNU\Iconos
+.\Organizar_Bootstrap_Icons.ps1
+```
+
+Este script:
+- Busca el ZIP descargado
+- Extrae todos los iconos a `Bootstrap-Icons\icons\`
+- Copia los 7 iconos necesarios para Tandem 2026
+- Crea un índice de todos los iconos disponibles
+
+### 3. Convertir SVG a PNG
+
+```powershell
+.\Convertir_SVG_a_PNG.ps1
+```
+
+Este script:
+- Requiere Inkscape instalado
+- Convierte los SVG seleccionados a PNG
+- Genera versiones 16x16 y 32x32
+- Guarda en las carpetas `png\16x16\` y `png\32x32\`
+
+### 4. Usar en ZWCAD
+
+En `Tandem2026.cui`, referencia los iconos:
+```
+MNU\Iconos\png\16x16\panel.png
+MNU\Iconos\png\32x32\panel.png
+```
 
 ---
 

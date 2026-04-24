@@ -1,0 +1,30 @@
+# Ignorar biblioteca completa de Bootstrap Icons (demasiado grande para Git)
+Bootstrap-Icons/icons/*
+
+# Mantener la estructura de carpetas
+!Bootstrap-Icons/icons/.gitkeep
+
+# Ignorar conversiones PNG temporales (se generan localmente)
+png/16x16/*
+png/32x32/*
+
+# Mantener la estructura de carpetas PNG
+!png/16x16/.gitkeep
+!png/32x32/.gitkeep
+
+# Mantener solo los iconos finales seleccionados para Tandem 2026
+# (Descomentar cuando estén listos)
+# !png/16x16/panel.png
+# !png/16x16/detectar.png
+# !png/16x16/generar3d.png
+# !png/16x16/regenerar.png
+# !png/16x16/encofrado.png
+# !png/16x16/leer.png
+# !png/16x16/guardar.png
+# !png/32x32/panel.png
+# !png/32x32/detectar.png
+# !png/32x32/generar3d.png
+# !png/32x32/regenerar.png
+# !png/32x32/encofrado.png
+# !png/32x32/leer.png
+# !png/32x32/guardar.png
