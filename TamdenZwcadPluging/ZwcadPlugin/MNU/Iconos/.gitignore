@@ -1,5 +1,6 @@
 # Ignorar biblioteca completa de Bootstrap Icons (demasiado grande para Git)
 Bootstrap-Icons/icons/*
+bootstrap-icons-*/
 
 # Mantener la estructura de carpetas
 !Bootstrap-Icons/icons/.gitkeep
