@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,9 +17,16 @@ namespace ZwcadPlugin
         public MVCApiService()
         {
             _httpClient = new HttpClient();
-            _baseUrl = "http://ccvallecano-002-site1.rtempurl.com/";
+            // Para testing local, usa localhost. Para producción, usa el servidor remoto.
+            _baseUrl = "https://localhost:44384/"; // ✅ Puerto IIS Express del proyecto Desing
+            // _baseUrl = "http://ccvallecano-002-site1.rtempurl.com/"; // Producción
             _httpClient.BaseAddress = new Uri(_baseUrl);
             _httpClient.Timeout = TimeSpan.FromSeconds(30);
+
+            // ⚠️ SOLO PARA DESARROLLO: Ignorar errores de certificado SSL en localhost
+            // Quitar en producción o cuando uses un certificado válido
+            ServicePointManager.ServerCertificateValidationCallback += 
+                (sender, certificate, chain, sslPolicyErrors) => true;
         }
 
         #region Diseños
