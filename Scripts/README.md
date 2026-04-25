@@ -4,6 +4,34 @@ Este directorio contiene scripts PowerShell para automatizar la gestión de User
 
 ---
 
+## ⚡ INICIO RÁPIDO
+
+### 🚀 Crear User Story con Story Points (< 20 segundos) - ⭐ RECOMENDADO
+```powershell
+.\Create-US-Fast.ps1 -Titulo "Tu título" -Descripcion "Descripción" -StoryPoints 8
+```
+
+**Ejemplos:**
+```powershell
+# US con 3 puntos
+.\Create-US-Fast.ps1 -Titulo "Agregar tooltips" -StoryPoints 3
+
+# US con 8 puntos y descripción completa
+.\Create-US-Fast.ps1 -Titulo "Detectar esquinas tipo L" -Descripcion "Algoritmo para detectar esquinas perpendiculares con 8 puntos de referencia" -StoryPoints 8
+```
+
+### ✏️ Editar US existente
+```powershell
+.\Edit-US.ps1 -ID 637 -Estado "Done"
+```
+
+### 📎 Adjuntar documentación
+```powershell
+.\Attach-Document.ps1 -WorkItemId 637 -FilePath "docs.md" -Comment "Documentación técnica"
+```
+
+---
+
 ## 📚 Documentación Completa
 
 **Antes de usar estos scripts, lee:**  
@@ -15,11 +43,44 @@ Incluye:
 - 🛠️ Troubleshooting detallado
 - 📋 Ejemplos completos
 
+**Documentación del script rápido:**  
+[⚡ Docs/Scripts/CREATE-US-FAST.md](../Docs/Scripts/CREATE-US-FAST.md)
+
 ---
 
 ## 🚀 Scripts Disponibles
 
-### 1. **Quick-US.ps1** ⚡ (Recomendado)
+### 1. **Create-US-Fast.ps1** ⚡⭐ (MÁS RECOMENDADO)
+
+**Propósito:** Crear User Story con Story Points en < 20 segundos. Encoding UTF-8 correcto.
+
+**Características:**
+- ✅ Ejecución en < 20 segundos
+- ✅ Soporte para Story Points (1-13)
+- ✅ Encoding UTF-8 correcto (no falla)
+- ✅ Abre automáticamente el navegador
+- ✅ Retorna ID para automatización
+
+**Uso:**
+```powershell
+.\Create-US-Fast.ps1 -Titulo "Título" [-Descripcion "Desc"] [-StoryPoints <número>]
+```
+
+**Ejemplo:**
+```powershell
+.\Create-US-Fast.ps1 -Titulo "Implementar API REST" -Descripcion "Endpoints CRUD para usuarios" -StoryPoints 8
+```
+
+**Salida:**
+```
+US #637 creada con 8 puntos
+https://dev.azure.com/VSCAD/.../edit/637
+637
+```
+
+---
+
+### 2. **Quick-US.ps1** ⚡
 
 **Propósito:** Crear User Story + 3 Tasks estándar (Develop, Test, CR) en un solo comando.
 
