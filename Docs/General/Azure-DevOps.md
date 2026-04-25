@@ -2,6 +2,9 @@
 
 Guía para crear y gestionar **User Stories** e **Issues** en Azure DevOps para Tandem 2026.
 
+> **⚠️ IMPORTANTE:** Para una guía completa, actualizada y con troubleshooting detallado, consulta:  
+> **[📘 GESTION-PANEL-AZURE-DEVOPS.md](GESTION-PANEL-AZURE-DEVOPS.md)**
+
 ---
 
 ## 📊 Panel de Trabajo

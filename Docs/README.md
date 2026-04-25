@@ -21,7 +21,8 @@ Contiene guías y prácticas que aplican a **todos los proyectos**:
 
 | Documento | Descripción | Cuándo consultar |
 |-----------|-------------|------------------|
-| [**Azure DevOps**](General/Azure-DevOps.md) | Crear User Stories, vincular commits, gestionar panel | Crear tareas, vincular código, gestionar trabajo |
+| [**🎯 GESTION-PANEL-AZURE-DEVOPS**](General/GESTION-PANEL-AZURE-DEVOPS.md) ⭐ | **Guía completa de Azure DevOps** - Crear US/Tasks, scripts, troubleshooting | **LEER PRIMERO** antes de crear US o Tasks |
+| [**Azure DevOps**](General/Azure-DevOps.md) | Documentación anterior (redirige a la nueva) | Referencia histórica |
 | [**Estructura del Repositorio**](General/Estructura-Repositorio.md) | Organización de carpetas y archivos | Navegar el proyecto, ubicar archivos |
 | [**Common - Código Compartido**](General/Common.md) | Usar y mantener código compartido | Crear/usar utilidades compartidas |
 | [**Convenciones de Código**](General/Convenciones.md) | Estándares de nomenclatura y estilo | Escribir código, revisiones |
