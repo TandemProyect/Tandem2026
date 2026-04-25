@@ -53,7 +53,26 @@ Este script te dirá en 30 segundos el estado completo del proyecto.
 - Modifica US existentes
 - ⚠️ Estados limitados a: `To Do`, `Doing`, `Done` (proceso Basic)
 
-### 3. Verificar Board ✅
+### 3. Crear Tasks (Subtareas) ✅
+```powershell
+# Crear una Task individual
+.\Scripts\Task.ps1 <US_ID> "Título de la Task" -Estado "To Do"
+
+# Crear 3 Tasks estándar (Develop, Test, CR) automáticamente
+.\Scripts\Create-StandardTasks.ps1 <US_ID> -Feature "nombre de la funcionalidad"
+```
+- Vincula Tasks a User Stories automáticamente
+- Permite establecer estado inicial
+- Script estándar crea Develop, Test y CR de una vez
+
+**Ejemplo:**
+```powershell
+# Crear Tasks para US #615
+.\Scripts\Create-StandardTasks.ps1 615 -Feature "comando TANDEM_SELECCIONAR_LINEAS"
+# Resultado: Task #616 (Develop), #617 (Test), #618 (CR)
+```
+
+### 4. Verificar Board ✅
 ```powershell
 .\Scripts\Verificar-Board.ps1
 ```

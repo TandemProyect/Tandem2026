@@ -61,6 +61,125 @@ cd C:\00_Tandem2026\Scripts
 
 ---
 
+## 📌 Crear Tasks (Tareas de User Stories)
+
+### **¿Cuándo crear Tasks?**
+
+Las **Tasks** son subtareas que descomponen una User Story en pasos ejecutables. Se recomienda crear Tasks para:
+
+- **Develop**: Implementación del código
+- **Test**: Pruebas funcionales
+- **CR (Code Review)**: Revisión de código
+- **Deploy**: Despliegue
+- **Docs**: Documentación
+
+---
+
+### **Método 1: PowerShell con API REST (Recomendado)**
+
+#### **Crear Task vinculada a una User Story:**
+
+```powershell
+# Configuración
+$PAT = "7iXv8E4C8xK90U3zPRV1GrpNyfTf0piLOt1I5xhxkoIWMtvZ0elmJQQJ99CDACAAAAAAAAAAAAASAZDO1BX0"
+$auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$PAT"))
+$headers = @{
+    Authorization = "Basic $auth"
+    "Content-Type" = "application/json-patch+json"
+}
+
+# Crear Task vinculada a US #615
+$payload = @(
+    @{op = "add"; path = "/fields/System.Title"; value = "Develop - Implementar funcionalidad X"},
+    @{op = "add"; path = "/fields/System.WorkItemType"; value = "Task"},
+    @{op = "add"; path = "/relations/-"; value = @{
+        rel = "System.LinkTypes.Hierarchy-Reverse"
+        url = "https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/615"
+    }}
+) | ConvertTo-Json -Depth 10
+
+$url = "https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/`$Task?api-version=7.0"
+$result = Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body $payload
+
+Write-Host "✓ Task creada: #$($result.id)" -ForegroundColor Green
+```
+
+**Cambiar el número `615` por el ID de tu User Story.**
+
+---
+
+#### **Actualizar estado de una Task:**
+
+```powershell
+# Configuración
+$PAT = "7iXv8E4C8xK90U3zPRV1GrpNyfTf0piLOt1I5xhxkoIWMtvZ0elmJQQJ99CDACAAAAAAAAAAAAASAZDO1BX0"
+$auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$PAT"))
+$headers = @{
+    Authorization = "Basic $auth"
+    "Content-Type" = "application/json-patch+json; charset=utf-8"
+}
+
+# Marcar Task #616 como Done
+$body = '[{"op":"replace","path":"/fields/System.State","value":"Done"}]'
+$url = "https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/616?api-version=7.0"
+$result = Invoke-RestMethod -Uri $url -Headers $headers -Method Patch -Body $body
+
+Write-Host "✓ Task #616 marcada como Done" -ForegroundColor Green
+```
+
+**Estados válidos para Tasks:**
+- `"To Do"` - Por hacer
+- `"Doing"` - En progreso
+- `"Done"` - Completada
+
+---
+
+#### **Script rápido para crear 3 Tasks estándar (Develop, Test, CR):**
+
+```powershell
+# Configuración
+$US_ID = 615  # ⚠️ CAMBIAR por el ID de tu User Story
+$PAT = "7iXv8E4C8xK90U3zPRV1GrpNyfTf0piLOot1I5xhxkoIWMtvZ0elmJQQJ99CDACAAAAAAAAAAAAASAZDO1BX0"
+$auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$PAT"))
+$headers = @{Authorization = "Basic $auth"; "Content-Type" = "application/json-patch+json"}
+
+# Tasks a crear
+$tasks = @(
+    "Develop - Implementar funcionalidad",
+    "Test - Probar funcionalidad",
+    "CR - Code Review"
+)
+
+foreach ($taskTitle in $tasks) {
+    $payload = @(
+        @{op = "add"; path = "/fields/System.Title"; value = $taskTitle},
+        @{op = "add"; path = "/fields/System.WorkItemType"; value = "Task"},
+        @{op = "add"; path = "/relations/-"; value = @{
+            rel = "System.LinkTypes.Hierarchy-Reverse"
+            url = "https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/$US_ID"
+        }}
+    ) | ConvertTo-Json -Depth 10
+
+    $url = "https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/`$Task?api-version=7.0"
+    $result = Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body $payload
+
+    Write-Host "✓ Task creada: #$($result.id) - $taskTitle" -ForegroundColor Green
+}
+```
+
+---
+
+### **Método 2: Interfaz Web**
+
+1. Abre la User Story en Azure DevOps
+2. En la pestaña **"Related Work"** o **"Links"**, haz clic en **"Add link"**
+3. Selecciona **"New item"**
+4. Tipo: **"Task"**
+5. Link type: **"Child"**
+6. Completa título y guarda
+
+---
+
 ## 📋 Columnas del Board
 
 | Columna | Propósito | WIP Limit |
