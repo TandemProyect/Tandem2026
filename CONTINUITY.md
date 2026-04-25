@@ -54,23 +54,67 @@ Este script te dirá en 30 segundos el estado completo del proyecto.
 - ⚠️ Estados limitados a: `To Do`, `Doing`, `Done` (proceso Basic)
 
 ### 3. Crear Tasks (Subtareas) ✅
-```powershell
-# Crear una Task individual
-.\Scripts\Task.ps1 <US_ID> "Título de la Task" -Estado "To Do"
 
-# Crear 3 Tasks estándar (Develop, Test, CR) automáticamente
-.\Scripts\Create-StandardTasks.ps1 <US_ID> -Feature "nombre de la funcionalidad"
-```
-- Vincula Tasks a User Stories automáticamente
-- Permite establecer estado inicial
-- Script estándar crea Develop, Test y CR de una vez
+**⚠️ IMPORTANTE:** El script `US.ps1` **ahora crea automáticamente** las 3 Tasks estándar (Develop, Test, CR) al crear una User Story.
 
-**Ejemplo:**
+#### Crear Tasks manualmente para una US existente:
+
 ```powershell
-# Crear Tasks para US #615
-.\Scripts\Create-StandardTasks.ps1 615 -Feature "comando TANDEM_SELECCIONAR_LINEAS"
-# Resultado: Task #616 (Develop), #617 (Test), #618 (CR)
+# Método recomendado: Script inline (sin problemas de permisos)
+$usId = 619  # ⚠️ Cambiar por el ID de tu User Story
+
+$PAT = "7iXv8E4C8xK90U3zPRV1GrpNyfTf0piLOt1I5xhxkoIWMtvZ0elmJQQJ99CDACAAAAAAAAAAAAASAZDO1BX0"
+$auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$PAT"))
+$headers = @{Authorization = "Basic $auth"; "Content-Type" = "application/json-patch+json"}
+
+$tasks = @("Develop", "Test", "CR")
+
+foreach ($taskType in $tasks) {
+    $payload = '[{"op":"add","path":"/fields/System.Title","value":"' + $taskType + '"},{"op":"add","path":"/fields/System.WorkItemType","value":"Task"},{"op":"add","path":"/relations/-","value":{"rel":"System.LinkTypes.Hierarchy-Reverse","url":"https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/' + $usId + '"}}]'
+
+    $url = "https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/`$Task?api-version=7.0"
+    $result = Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body $payload
+
+    Write-Host "✓ Task $taskType creada: #$($result.id)" -ForegroundColor Green
+}
 ```
+
+#### Verificar Tasks vinculadas:
+
+```powershell
+$usId = 619  # ⚠️ Cambiar por el ID de tu User Story
+
+$PAT = "7iXv8E4C8xK90U3zPRV1GrpNyfTf0piLOt1I5xhxkoIWMtvZ0elmJQQJ99CDACAAAAAAAAAAAAASAZDO1BX0"
+$auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$PAT"))
+$headers = @{Authorization = "Basic $auth"}
+
+$us = Invoke-RestMethod -Uri "https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/${usId}?`$expand=relations&api-version=7.0" -Headers $headers
+
+Write-Host "US #${usId}: $($us.fields.'System.Title')" -ForegroundColor Cyan
+
+if ($us.relations) {
+    $children = $us.relations | Where-Object { $_.attributes.name -eq "Child" }
+    if ($children) {
+        Write-Host "`n✓ Tasks vinculadas:" -ForegroundColor Green
+        foreach ($child in $children) {
+            $taskId = $child.url.Split('/')[-1]
+            $task = Invoke-RestMethod -Uri $child.url -Headers $headers
+            Write-Host "  #${taskId} - $($task.fields.'System.Title') [$($task.fields.'System.State')]" -ForegroundColor Yellow
+        }
+    }
+}
+```
+
+**Ejemplo de uso real:**
+```powershell
+# US #619: Insertar Img en Command Seleccionar Muro
+# Tasks creadas: #624 (Develop), #625 (Test), #626 (CR)
+
+# US #627: Ejemplo US con Tasks auto
+# Tasks creadas: #628 (Develop), #629 (Test), #630 (CR)
+```
+
+**Documentación completa:** `Docs/General/Azure-DevOps.md` (sección "Crear Tasks")
 
 ### 4. Verificar Board ✅
 ```powershell
@@ -141,12 +185,17 @@ Este script te dirá en 30 segundos el estado completo del proyecto.
 | Script | Función | Estado |
 |--------|---------|--------|
 | `Scripts/HealthCheck.ps1` | **Verificación completa del proyecto** | ✅ **EJECUTAR PRIMERO** |
-| `Scripts/US.ps1` | Crear User Stories | ✅ Funciona |
+| `Scripts/US.ps1` | Crear User Stories (con Tasks auto) | ✅ Funciona |
 | `Scripts/Edit-US.ps1` | Editar User Stories | ✅ Funciona |
+| `Scripts/Task.ps1` | Crear Task individual | ⚠️ Usar script inline (permisos) |
+| `Scripts/Create-StandardTasks.ps1` | Crear 3 Tasks estándar | ⚠️ Usar script inline (permisos) |
 | `Scripts/Verificar-Board.ps1` | Ver estado del board | ✅ Funciona |
 | `Scripts/Ver-Board.ps1` | Ver columnas actuales | ✅ Funciona |
 | `Scripts/Configurar-Board-Final.ps1` | Crear columnas (intento) | ❌ No funciona |
 | `Scripts/Crear-Columnas-*.ps1` | Varios intentos columnas | ❌ No funciona |
+
+**Nota:** Los scripts `Task.ps1` y `Create-StandardTasks.ps1` tienen problemas de permisos de ejecución.  
+**Solución:** Usar los comandos inline documentados en la sección "Crear Tasks" de este archivo y en `Docs/General/Azure-DevOps.md`.
 
 ### Script Recomendado para Iniciar
 ```powershell

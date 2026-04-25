@@ -77,10 +77,12 @@ Las **Tasks** son subtareas que descomponen una User Story en pasos ejecutables.
 
 ### **Método 1: PowerShell con API REST (Recomendado)**
 
-#### **Crear Task vinculada a una User Story:**
+> ⚠️ **IMPORTANTE**: Usa el PAT correcto que está en `Scripts/US.ps1` (línea 10)
+
+#### **Crear Task individual vinculada a una User Story:**
 
 ```powershell
-# Configuración
+# Configuración (usa el PAT de Scripts/US.ps1)
 $PAT = "7iXv8E4C8xK90U3zPRV1GrpNyfTf0piLOt1I5xhxkoIWMtvZ0elmJQQJ99CDACAAAAAAAAAAAAASAZDO1BX0"
 $auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$PAT"))
 $headers = @{
@@ -88,15 +90,11 @@ $headers = @{
     "Content-Type" = "application/json-patch+json"
 }
 
-# Crear Task vinculada a US #615
-$payload = @(
-    @{op = "add"; path = "/fields/System.Title"; value = "Develop - Implementar funcionalidad X"},
-    @{op = "add"; path = "/fields/System.WorkItemType"; value = "Task"},
-    @{op = "add"; path = "/relations/-"; value = @{
-        rel = "System.LinkTypes.Hierarchy-Reverse"
-        url = "https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/615"
-    }}
-) | ConvertTo-Json -Depth 10
+# Crear Task vinculada a US #619 (cambiar el número por tu US)
+$usId = 619
+$taskTitle = "Develop"
+
+$payload = '[{"op":"add","path":"/fields/System.Title","value":"' + $taskTitle + '"},{"op":"add","path":"/fields/System.WorkItemType","value":"Task"},{"op":"add","path":"/relations/-","value":{"rel":"System.LinkTypes.Hierarchy-Reverse","url":"https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/' + $usId + '"}}]'
 
 $url = "https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/`$Task?api-version=7.0"
 $result = Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body $payload
@@ -104,7 +102,7 @@ $result = Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body $payl
 Write-Host "✓ Task creada: #$($result.id)" -ForegroundColor Green
 ```
 
-**Cambiar el número `615` por el ID de tu User Story.**
+**Cambiar `$usId` por el ID de tu User Story.**
 
 ---
 
@@ -137,34 +135,86 @@ Write-Host "✓ Task #616 marcada como Done" -ForegroundColor Green
 #### **Script rápido para crear 3 Tasks estándar (Develop, Test, CR):**
 
 ```powershell
-# Configuración
-$US_ID = 615  # ⚠️ CAMBIAR por el ID de tu User Story
-$PAT = "7iXv8E4C8xK90U3zPRV1GrpNyfTf0piLOot1I5xhxkoIWMtvZ0elmJQQJ99CDACAAAAAAAAAAAAASAZDO1BX0"
+# ⚠️ CAMBIAR $usId por el ID de tu User Story
+$usId = 619
+
+# Configuración (PAT desde Scripts/US.ps1)
+$PAT = "7iXv8E4C8xK90U3zPRV1GrpNyfTf0piLOt1I5xhxkoIWMtvZ0elmJQQJ99CDACAAAAAAAAAAAAASAZDO1BX0"
 $auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$PAT"))
 $headers = @{Authorization = "Basic $auth"; "Content-Type" = "application/json-patch+json"}
 
-# Tasks a crear
-$tasks = @(
-    "Develop - Implementar funcionalidad",
-    "Test - Probar funcionalidad",
-    "CR - Code Review"
-)
+# Tasks estándar
+$tasks = @("Develop", "Test", "CR")
 
-foreach ($taskTitle in $tasks) {
-    $payload = @(
-        @{op = "add"; path = "/fields/System.Title"; value = $taskTitle},
-        @{op = "add"; path = "/fields/System.WorkItemType"; value = "Task"},
-        @{op = "add"; path = "/relations/-"; value = @{
-            rel = "System.LinkTypes.Hierarchy-Reverse"
-            url = "https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/$US_ID"
-        }}
-    ) | ConvertTo-Json -Depth 10
+foreach ($taskType in $tasks) {
+    $payload = '[{"op":"add","path":"/fields/System.Title","value":"' + $taskType + '"},{"op":"add","path":"/fields/System.WorkItemType","value":"Task"},{"op":"add","path":"/relations/-","value":{"rel":"System.LinkTypes.Hierarchy-Reverse","url":"https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/' + $usId + '"}}]'
 
     $url = "https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/`$Task?api-version=7.0"
     $result = Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body $payload
 
-    Write-Host "✓ Task creada: #$($result.id) - $taskTitle" -ForegroundColor Green
+    Write-Host "✓ Task $taskType creada: #$($result.id)" -ForegroundColor Green
 }
+```
+
+**Ejemplo de uso:**
+```powershell
+# Crear Tasks para US #619
+$usId = 619  # <-- Cambiar este número
+
+# ... copiar el resto del script y ejecutar
+```
+
+**Resultado esperado:**
+```
+✓ Task Develop creada: #624
+✓ Task Test creada: #625
+✓ Task CR creada: #626
+```
+
+---
+
+#### **Verificar Tasks vinculadas a una User Story:**
+
+```powershell
+# Configuración
+$usId = 619  # ⚠️ Cambiar por el ID de tu User Story
+$PAT = "7iXv8E4C8xK90U3zPRV1GrpNyfTf0piLOt1I5xhxkoIWMtvZ0elmJQQJ99CDACAAAAAAAAAAAAASAZDO1BX0"
+$auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$PAT"))
+$headers = @{Authorization = "Basic $auth"}
+
+# Obtener US con relaciones
+$us = Invoke-RestMethod -Uri "https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/${usId}?`$expand=relations&api-version=7.0" -Headers $headers
+
+Write-Host "US #${usId}: $($us.fields.'System.Title')" -ForegroundColor Cyan
+
+if ($us.relations) {
+    $children = $us.relations | Where-Object { $_.attributes.name -eq "Child" }
+
+    if ($children) {
+        Write-Host "`n✓ Tasks vinculadas:" -ForegroundColor Green
+
+        foreach ($child in $children) {
+            $taskId = $child.url.Split('/')[-1]
+            $task = Invoke-RestMethod -Uri $child.url -Headers $headers
+
+            Write-Host "  #${taskId} - $($task.fields.'System.Title') [$($task.fields.'System.State')]" -ForegroundColor Yellow
+        }
+    } else {
+        Write-Host "`n❌ No hay tasks vinculadas" -ForegroundColor Red
+    }
+} else {
+    Write-Host "`n❌ No hay relaciones en esta US" -ForegroundColor Red
+}
+```
+
+**Ejemplo de salida:**
+```
+US #619: Insertar Img en Command Seleccionar Muro
+
+✓ Tasks vinculadas:
+  #624 - Develop [To Do]
+  #625 - Test [To Do]
+  #626 - CR [To Do]
 ```
 
 ---
