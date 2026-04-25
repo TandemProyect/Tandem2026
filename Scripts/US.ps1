@@ -26,6 +26,18 @@ if ($Descripcion) {
 $url = "https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/`$Issue?api-version=7.0"
 $result = Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body $payload
 
-Write-Host "✓ #$($result.id) creada" -ForegroundColor Green
+Write-Host "✓ US #$($result.id) creada" -ForegroundColor Green
+
+# Crear Tasks automaticamente (Develop, Test, CR)
+Write-Host "Creando Tasks automaticas..." -ForegroundColor Cyan
+$tasks = @("Develop", "Test", "CR")
+foreach ($taskType in $tasks) {
+	$taskTitle = "$taskType - $Titulo"
+	$taskPayload = '[{"op":"add","path":"/fields/System.Title","value":"' + $taskTitle + '"},{"op":"add","path":"/fields/System.WorkItemType","value":"Task"},{"op":"add","path":"/relations/-","value":{"rel":"System.LinkTypes.Hierarchy-Reverse","url":"https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/' + $result.id + '"}}]'
+	$taskUrl = "https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/`$Task?api-version=7.0"
+	$taskResult = Invoke-RestMethod -Uri $taskUrl -Headers $headers -Method Post -Body $taskPayload
+	Write-Host "  ✓ Task $taskType creada: #$($taskResult.id)" -ForegroundColor Green
+}
+
 Start-Process $result._links.html.href
 return $result.id
