@@ -1,7 +1,7 @@
 # Script Final - Configurar Columnas Board Tandem 2026
 # Ejecutar: .\Scripts\Configurar-Board-Final.ps1
 
-$pat = "67o98k47CfFyq4EzruhfF7XSJ7nFIbMqHS5j4iIyDK067WSxo7JQJQQJ99CDACAAAAAAAAAAAAASAZDO2no4"
+$pat = "7iXv8E4C8xK90U3zPRV1GrpNyfTf0piLOt1I5xhxkoIWMtvZ0elmJQQJ99CDACAAAAAAAAAAAAASAZDO1BX0"
 $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f "",$pat)))
 $headers = @{
 	Authorization = ("Basic {0}" -f $base64AuthInfo)
