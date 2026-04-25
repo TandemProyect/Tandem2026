@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<CustSection xml:lang="en-US">
+  <MenuGroup DisplayName="Test Icono" Name="TESTICONO">
+	<MacroGroup Name="TestGroup">
+	  <MenuMacro UID="test_cmd">
+		<Macro>
+		  <Name>Test Comando</Name>
+		  <Command>^c^cLINE</Command>
+		  <HelpString>Comando de prueba con icono</HelpString>
+		  <LargeImage>C:\00_Tandem2026\test_icons\simple_square.png</LargeImage>
+		  <SmallImage>C:\00_Tandem2026\test_icons\simple_square.png</SmallImage>
+		</Macro>
+	  </MenuMacro>
+	</MacroGroup>
+	<MenuRoot>
+	  <RibbonRoot>
+		<RibbonTabSourceCollection>
+		  <RibbonTabSource Text="Test" UID="test_tab">
+			<Name>Test</Name>
+			<RibbonPanelSourceReference PanelId="test_panel"/>
+		  </RibbonTabSource>
+		</RibbonTabSourceCollection>
+		<RibbonPanelSourceCollection>
+		  <RibbonPanelSource Text="Iconos" UID="test_panel">
+			<Name>Test Panel</Name>
+			<RibbonRow>
+			  <RibbonCommandButton ButtonStyle="LargeWithText" MenuMacroID="test_cmd" Text="Test"/>
+			</RibbonRow>
+		  </RibbonPanelSource>
+		</RibbonPanelSourceCollection>
+		<RibbonTabSelectors/>
+	  </RibbonRoot>
+	  <PopMenuRoot/>
+	  <MouseButtonRoot/>
+	  <DoubleClickRoot/>
+	  <DigitizerButtonRoot/>
+	  <TabletMenuRoot/>
+	  <QuadRoot><QuadTabs/></QuadRoot>
+	</MenuRoot>
+  </MenuGroup>
+</CustSection>

@@ -109,6 +109,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="DIAGNOSTICO_COMPILACION.md" />
+    <None Include="INSTRUCCIONES_AGREGAR_ICONOS.md" />
+    <None Include="MNU\Tandem2026_NEW.cui" />
     <None Include="packages.config" />
     <None Include="MNU\Tandem2026.cui">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -117,6 +119,11 @@
     <None Include="TECHNICAL_GUIDE.md" />
   </ItemGroup>
   <!-- Copia la carpeta MNU al directorio de salida manteniendo la estructura -->
+  <ItemGroup>
+    <Content Include="MNU\img\SelectLines.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <Target Name="CopiarMNU" AfterTargets="Build">
     <Copy SourceFiles="MNU\Tandem2026.cui" DestinationFolder="$(OutputPath)MNU\" SkipUnchangedFiles="true" />
   </Target>

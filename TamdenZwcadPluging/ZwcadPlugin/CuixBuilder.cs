@@ -84,8 +84,8 @@ namespace ZwcadPlugin
           <Name>Seleccionar Lineas</Name>
           <Command>^c^cTANDEM_SELECCIONAR_LINEAS</Command>
           <HelpString>Permite seleccionar lineas y polilineas en el dibujo</HelpString>
-          <LargeImage>MNU\SelectLines.png</LargeImage>
-          <SmallImage>MNU\SelectLines.png</SmallImage>
+          <LargeImage>img\SelectLines.png</LargeImage>
+          <SmallImage>img\SelectLines.png</SmallImage>
         </Macro>
       </MenuMacro>
     </MacroGroup>
