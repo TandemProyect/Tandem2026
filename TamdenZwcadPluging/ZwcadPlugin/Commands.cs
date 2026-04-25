@@ -210,6 +210,21 @@ namespace ZwcadPlugin
         }
 
         /// <summary>
+        /// Comando para seleccionar líneas y polilíneas (estructura base)
+        /// </summary>
+        [CommandMethod("TANDEM_SELECCIONAR_LINEAS")]
+        public void SeleccionarLineas()
+        {
+            Document doc = ZwcadApp.DocumentManager.MdiActiveDocument;
+            if (doc == null) return;
+
+            Editor ed = doc.Editor;
+            ed.WriteMessage("\n=== Seleccionar Líneas y Polilíneas ===");
+            ed.WriteMessage("\n[Pendiente de implementación]");
+            ed.WriteMessage("\nEste comando permitirá seleccionar líneas y polilíneas del dibujo.\n");
+        }
+
+        /// <summary>
         /// Comando de ayuda que muestra informaciÃ³n bÃ¡sica
         /// </summary>
         [CommandMethod("HOLA")]
@@ -236,6 +251,9 @@ namespace ZwcadPlugin
             ed.WriteMessage("\n");
             ed.WriteMessage("\n  GUARDARDISENOMVC  - Guarda el diseÃ±o actual en el servidor");
             ed.WriteMessage("\n                      (Extrae todas las entidades del dibujo)");
+            ed.WriteMessage("\n");
+            ed.WriteMessage("\n  TANDEM_SELECCIONAR_LINEAS - Selecciona líneas y polilíneas");
+            ed.WriteMessage("\n                              (En desarrollo)");
             ed.WriteMessage("\n");
             ed.WriteMessage("\n  HOLA              - Muestra esta ayuda");
             ed.WriteMessage("\n");

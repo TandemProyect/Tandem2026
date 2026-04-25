@@ -79,6 +79,13 @@ namespace ZwcadPlugin
           <HelpString>Muestra los comandos disponibles de Tandem 2026</HelpString>
         </Macro>
       </MenuMacro>
+      <MenuMacro UID=""td_seleccionar"">
+        <Macro>
+          <Name>Seleccionar Lineas</Name>
+          <Command>^c^cTANDEM_SELECCIONAR_LINEAS</Command>
+          <HelpString>Permite seleccionar lineas y polilineas en el dibujo</HelpString>
+        </Macro>
+      </MenuMacro>
     </MacroGroup>
     <MenuRoot>
       <PopMenuRoot>
@@ -109,6 +116,10 @@ namespace ZwcadPlugin
             <MenuItem><MacroRef MenuMacroID=""td_save""/></MenuItem>
           </PopMenuItem>
           <PopMenuItem IsSeparator=""true"" UID=""td_sep4""/>
+          <PopMenuItem UID=""td_pmi_seleccionar"">
+            <MenuItem><MacroRef MenuMacroID=""td_seleccionar""/></MenuItem>
+          </PopMenuItem>
+          <PopMenuItem IsSeparator=""true"" UID=""td_sep5""/>
           <PopMenuItem UID=""td_pmi_ayuda"">
             <MenuItem><MacroRef MenuMacroID=""td_ayuda""/></MenuItem>
           </PopMenuItem>
@@ -121,6 +132,7 @@ namespace ZwcadPlugin
             <RibbonPanelSourceReference PanelId=""td_ribbon_panel1""/>
             <RibbonPanelSourceReference PanelId=""td_ribbon_panel2""/>
             <RibbonPanelSourceReference PanelId=""td_ribbon_panel3""/>
+            <RibbonPanelSourceReference PanelId=""td_ribbon_panel4""/>
           </RibbonTabSource>
         </RibbonTabSourceCollection>
         <RibbonPanelSourceCollection>
@@ -143,6 +155,12 @@ namespace ZwcadPlugin
             <RibbonRow>
               <RibbonCommandButton ButtonStyle=""LargeWithText"" MenuMacroID=""td_leer"" Text=""Leer""/>
               <RibbonCommandButton ButtonStyle=""LargeWithText"" MenuMacroID=""td_save"" Text=""Guardar""/>
+            </RibbonRow>
+          </RibbonPanelSource>
+          <RibbonPanelSource Text=""Seleccion"" UID=""td_ribbon_panel4"">
+            <Name>Herramientas</Name>
+            <RibbonRow>
+              <RibbonCommandButton ButtonStyle=""LargeWithText"" MenuMacroID=""td_seleccionar"" Text=""Seleccionar""/>
             </RibbonRow>
           </RibbonPanelSource>
         </RibbonPanelSourceCollection>

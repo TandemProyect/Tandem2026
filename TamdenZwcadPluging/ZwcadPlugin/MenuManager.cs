@@ -34,13 +34,14 @@ namespace ZwcadPlugin
             if (doc == null) return;
             Editor ed = doc.Editor;
             ed.WriteMessage("\n--- Tandem 2026 ---");
-            ed.WriteMessage("\n  MVCCONEXION      Panel principal");
-            ed.WriteMessage("\n  DETECTARMUROS    Detecta muros en la planta 2D");
-            ed.WriteMessage("\n  GENERAR3D        Genera solidos 3D");
-            ed.WriteMessage("\n  REGENERAR3D      Borra y regenera solidos 3D");
-            ed.WriteMessage("\n  CONFIGENCOFRADO  Configura el sistema de encofrado");
-            ed.WriteMessage("\n  LEERDISENOMVC    Lee un diseno desde el servidor");
-            ed.WriteMessage("\n  GUARDARDISENOMVC Guarda el diseno en el servidor\n");
+            ed.WriteMessage("\n  MVCCONEXION               Panel principal");
+            ed.WriteMessage("\n  DETECTARMUROS             Detecta muros en la planta 2D");
+            ed.WriteMessage("\n  GENERAR3D                 Genera solidos 3D");
+            ed.WriteMessage("\n  REGENERAR3D               Borra y regenera solidos 3D");
+            ed.WriteMessage("\n  CONFIGENCOFRADO           Configura el sistema de encofrado");
+            ed.WriteMessage("\n  LEERDISENOMVC             Lee un diseno desde el servidor");
+            ed.WriteMessage("\n  GUARDARDISENOMVC          Guarda el diseno en el servidor");
+            ed.WriteMessage("\n  TANDEM_SELECCIONAR_LINEAS Selecciona lineas y polilineas\n");
         }
     }
 }
