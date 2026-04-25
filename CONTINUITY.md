@@ -7,6 +7,12 @@
 
 ## ⚡ INICIO RÁPIDO - Lee Esto Primero
 
+### 🚀 PRIMER COMANDO A EJECUTAR
+```powershell
+.\Scripts\HealthCheck.ps1
+```
+Este script te dirá en 30 segundos el estado completo del proyecto.
+
 ### Estado del Proyecto
 - ✅ **Workspace funcionando** en `C:\00_Tandem2026\`
 - ✅ **Repositorio Git** activo: `https://github.com/JuanGodoyLopez/Tandem-2026`
@@ -23,6 +29,14 @@
 ---
 
 ## 🎯 LO QUE FUNCIONA - Automatización Disponible
+
+### 0. Health Check - Verificación Rápida ✅
+```powershell
+.\Scripts\HealthCheck.ps1
+```
+- Verifica Git, documentación, scripts, Azure DevOps, solución
+- Diagnóstico completo en 5 pasos
+- Te dice exactamente qué funciona y qué no
 
 ### 1. Crear User Stories Automáticamente ✅
 ```powershell
@@ -107,12 +121,19 @@
 
 | Script | Función | Estado |
 |--------|---------|--------|
+| `Scripts/HealthCheck.ps1` | **Verificación completa del proyecto** | ✅ **EJECUTAR PRIMERO** |
 | `Scripts/US.ps1` | Crear User Stories | ✅ Funciona |
 | `Scripts/Edit-US.ps1` | Editar User Stories | ✅ Funciona |
 | `Scripts/Verificar-Board.ps1` | Ver estado del board | ✅ Funciona |
 | `Scripts/Ver-Board.ps1` | Ver columnas actuales | ✅ Funciona |
 | `Scripts/Configurar-Board-Final.ps1` | Crear columnas (intento) | ❌ No funciona |
 | `Scripts/Crear-Columnas-*.ps1` | Varios intentos columnas | ❌ No funciona |
+
+### Script Recomendado para Iniciar
+```powershell
+.\Scripts\HealthCheck.ps1
+```
+Este script verifica en 5 pasos el estado completo del proyecto y te dice qué funciona y qué no.
 
 ---
 
