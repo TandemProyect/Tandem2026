@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Interop;
 using ZwSoft.ZwCAD.ApplicationServices;
@@ -210,7 +211,7 @@ namespace ZwcadPlugin
         }
 
         /// <summary>
-        /// Comando para seleccionar líneas y polilíneas (estructura base)
+        /// Comando para seleccionar líneas y polilíneas y enviarlas al servidor MVC
         /// </summary>
         [CommandMethod("TANDEM_SELECCIONAR_LINEAS")]
         public void SeleccionarLineas()
@@ -218,10 +219,156 @@ namespace ZwcadPlugin
             Document doc = ZwcadApp.DocumentManager.MdiActiveDocument;
             if (doc == null) return;
 
+            Database db = doc.Database;
             Editor ed = doc.Editor;
-            ed.WriteMessage("\n=== Seleccionar Líneas y Polilíneas ===");
-            ed.WriteMessage("\n[Pendiente de implementación]");
-            ed.WriteMessage("\nEste comando permitirá seleccionar líneas y polilíneas del dibujo.\n");
+
+            try
+            {
+                ed.WriteMessage("\n=== Seleccionar Líneas y Polilíneas ===");
+                ed.WriteMessage("\nSeleccione todos los objetos del dibujo y presione [INTRO]...\n");
+
+                // Solicitar selección de objetos al usuario
+                PromptSelectionOptions pso = new PromptSelectionOptions();
+                pso.MessageForAdding = "\nSeleccione objetos (líneas, polilíneas): ";
+                pso.AllowDuplicates = false;
+
+                PromptSelectionResult psr = ed.GetSelection(pso);
+
+                if (psr.Status != PromptStatus.OK)
+                {
+                    ed.WriteMessage("\nOperación cancelada.\n");
+                    return;
+                }
+
+                // Listas para almacenar líneas y polilíneas
+                List<LineaDTO> lineas = new List<LineaDTO>();
+                int totalLineas = 0;
+                int totalPolilineas = 0;
+
+                // Procesar selección
+                using (Transaction tr = db.TransactionManager.StartTransaction())
+                {
+                    SelectionSet ss = psr.Value;
+                    ed.WriteMessage($"\n{ss.Count} objetos seleccionados. Procesando...\n");
+
+                    foreach (SelectedObject so in ss)
+                    {
+                        if (so == null) continue;
+
+                        Entity ent = tr.GetObject(so.ObjectId, OpenMode.ForRead) as Entity;
+                        if (ent == null) continue;
+
+                        // Procesar Líneas
+                        if (ent is Line linea)
+                        {
+                            lineas.Add(new LineaDTO
+                            {
+                                Tipo = "Line",
+                                InicioX = linea.StartPoint.X,
+                                InicioY = linea.StartPoint.Y,
+                                InicioZ = linea.StartPoint.Z,
+                                FinX = linea.EndPoint.X,
+                                FinY = linea.EndPoint.Y,
+                                FinZ = linea.EndPoint.Z,
+                                Layer = linea.Layer,
+                                Color = linea.Color.ToString(),
+                                Longitud = linea.Length,
+                                Vertices = null
+                            });
+                            totalLineas++;
+                        }
+
+                        // Procesar Polilíneas
+                        else if (ent is Polyline pline)
+                        {
+                            List<PuntoDTO> vertices = new List<PuntoDTO>();
+
+                            // Extraer todos los vértices de la polilínea
+                            for (int i = 0; i < pline.NumberOfVertices; i++)
+                            {
+                                Point3d pt = pline.GetPoint3dAt(i);
+                                vertices.Add(new PuntoDTO
+                                {
+                                    X = pt.X,
+                                    Y = pt.Y,
+                                    Z = pt.Z
+                                });
+                            }
+
+                            // Para polilíneas, usar el primer y último vértice como inicio/fin
+                            Point3d inicio = pline.GetPoint3dAt(0);
+                            Point3d fin = pline.GetPoint3dAt(pline.NumberOfVertices - 1);
+
+                            lineas.Add(new LineaDTO
+                            {
+                                Tipo = "Polyline",
+                                InicioX = inicio.X,
+                                InicioY = inicio.Y,
+                                InicioZ = inicio.Z,
+                                FinX = fin.X,
+                                FinY = fin.Y,
+                                FinZ = fin.Z,
+                                Layer = pline.Layer,
+                                Color = pline.Color.ToString(),
+                                Longitud = pline.Length,
+                                Vertices = vertices
+                            });
+                            totalPolilineas++;
+                        }
+                    }
+
+                    tr.Commit();
+                }
+
+                // Mostrar resumen
+                ed.WriteMessage($"\n--- Resumen de Selección ---");
+                ed.WriteMessage($"\nLíneas encontradas: {totalLineas}");
+                ed.WriteMessage($"\nPolilíneas encontradas: {totalPolilineas}");
+                ed.WriteMessage($"\nTotal de geometría válida: {lineas.Count}");
+
+                if (lineas.Count == 0)
+                {
+                    ed.WriteMessage("\n❌ No se encontraron líneas ni polilíneas en la selección.\n");
+                    return;
+                }
+
+                // Preparar datos para enviar al servidor MVC
+                var seleccionDTO = new SeleccionLineasDTO
+                {
+                    Lineas = lineas,
+                    TotalSeleccionados = lineas.Count,
+                    TotalLineas = totalLineas,
+                    TotalPolilineas = totalPolilineas,
+                    FechaSeleccion = DateTime.Now,
+                    Usuario = Environment.UserName
+                };
+
+                ed.WriteMessage("\nEnviando datos al servidor MVC...\n");
+
+                // Enviar al servidor de forma asíncrona
+                Task<ApiResponse<string>> task = _apiService.EnviarLineasSeleccionadasAsync(seleccionDTO);
+                ApiResponse<string> respuesta = task.ConfigureAwait(false).GetAwaiter().GetResult();
+
+                if (respuesta.Exito)
+                {
+                    ed.WriteMessage($"\n✅ Éxito: {respuesta.Mensaje}");
+                    if (!string.IsNullOrEmpty(respuesta.Datos))
+                    {
+                        ed.WriteMessage($"\nRespuesta del servidor: {respuesta.Datos}");
+                    }
+                }
+                else
+                {
+                    ed.WriteMessage($"\n❌ Error: {respuesta.Mensaje}");
+                }
+
+                ed.WriteMessage("\n=== Proceso Completado ===\n");
+            }
+            catch (System.Exception ex)
+            {
+                ed.WriteMessage($"\n❌ Error: {ex.Message}");
+                ed.WriteMessage($"\nDetalles: {ex.StackTrace}\n");
+            }
         }
 
         /// <summary>

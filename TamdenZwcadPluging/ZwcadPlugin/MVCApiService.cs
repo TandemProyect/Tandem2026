@@ -158,5 +158,33 @@ namespace ZwcadPlugin
         }
 
         #endregion
+
+        #region Líneas y Polilíneas
+
+        /// <summary>
+        /// Envía una colección de líneas y polilíneas seleccionadas al servidor MVC
+        /// </summary>
+        public async Task<ApiResponse<string>> EnviarLineasSeleccionadasAsync(SeleccionLineasDTO seleccion)
+        {
+            try
+            {
+                var json = JsonConvert.SerializeObject(seleccion);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync("DesignToolsAutocad/ProcesarLineasZwcad", content);
+                response.EnsureSuccessStatusCode();
+
+                var responseJson = await response.Content.ReadAsStringAsync();
+                var resultado = JsonConvert.DeserializeObject<ApiResponse<string>>(responseJson);
+
+                return resultado;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error al enviar líneas: {ex.Message}", ex);
+            }
+        }
+
+        #endregion
     }
 }

@@ -9,6 +9,8 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Web.Mvc;
+using Desing.Models;
+using System.Linq;
 
 namespace Desing.Controllers
 {
@@ -136,6 +138,79 @@ namespace Desing.Controllers
             insert.Layer = new Layer("ATK_Panel");
             //insert.Layer.Color.Index = 4;
             doc.Entities.Add(insert);
+        }
+
+        /// <summary>
+        /// Procesa líneas y polilíneas enviadas desde ZWCAD
+        /// </summary>
+        /// <param name="seleccion">Datos de las líneas y polilíneas seleccionadas</param>
+        /// <returns>Respuesta JSON con el resultado del procesamiento</returns>
+        [HttpPost]
+        public ActionResult ProcesarLineasZwcad(SeleccionLineasDTO seleccion)
+        {
+            try
+            {
+                // Validar datos recibidos
+                if (seleccion == null || seleccion.Lineas == null || seleccion.Lineas.Count == 0)
+                {
+                    return Json(new ApiResponse<string>
+                    {
+                        Exito = false,
+                        Mensaje = "No se recibieron líneas para procesar",
+                        Datos = null
+                    });
+                }
+
+                // Log de información recibida
+                System.Diagnostics.Debug.WriteLine($"=== Procesando líneas desde ZWCAD ===");
+                System.Diagnostics.Debug.WriteLine($"Total líneas: {seleccion.TotalLineas}");
+                System.Diagnostics.Debug.WriteLine($"Total polilíneas: {seleccion.TotalPolilineas}");
+                System.Diagnostics.Debug.WriteLine($"Usuario: {seleccion.Usuario}");
+                System.Diagnostics.Debug.WriteLine($"Fecha: {seleccion.FechaSeleccion}");
+
+                // Procesar las líneas
+                var resultado = new
+                {
+                    TotalProcesadas = seleccion.Lineas.Count,
+                    Lineas = seleccion.Lineas.Where(l => l.Tipo == "Line").Count(),
+                    Polilineas = seleccion.Lineas.Where(l => l.Tipo == "Polyline").Count(),
+                    LongitudTotal = seleccion.Lineas.Sum(l => l.Longitud),
+                    Layers = seleccion.Lineas.Select(l => l.Layer).Distinct().ToList(),
+                    FechaProcesamiento = DateTime.Now
+                };
+
+                // Aquí puedes agregar lógica adicional:
+                // - Guardar en base de datos
+                // - Procesamiento de geometría
+                // - Detección de muros
+                // - Generación de reportes
+                // - etc.
+
+                // Ejemplo: Guardar en sesión para uso posterior
+                Session["UltimaSeleccionLineas"] = seleccion;
+                Session["ResultadoProcesamiento"] = resultado;
+
+                System.Diagnostics.Debug.WriteLine($"Procesamiento completado: {resultado.TotalProcesadas} geometrías");
+
+                return Json(new ApiResponse<string>
+                {
+                    Exito = true,
+                    Mensaje = $"Se procesaron exitosamente {resultado.TotalProcesadas} geometrías ({resultado.Lineas} líneas, {resultado.Polilineas} polilíneas)",
+                    Datos = $"Longitud total: {resultado.LongitudTotal:F2} unidades | Layers: {string.Join(", ", resultado.Layers)}"
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error procesando líneas: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"StackTrace: {ex.StackTrace}");
+
+                return Json(new ApiResponse<string>
+                {
+                    Exito = false,
+                    Mensaje = $"Error al procesar líneas: {ex.Message}",
+                    Datos = null
+                });
+            }
         }
     }
 }

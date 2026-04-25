@@ -233,6 +233,7 @@
     <Compile Include="Models\ModelBlock.cs" />
     <Compile Include="Models\ModelWalls.cs" />
     <Compile Include="Models\ToasterModel.cs" />
+    <Compile Include="Models\ZwcadModels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\Atk60\Atk60Element.cs" />
     <Compile Include="Repositories\Atk60\Wall\Bracket_0.cs" />
@@ -849,7 +850,7 @@
     <Content Include="Content\DesignTools\MenuIcon\Solucion_01.png" />
     <Content Include="Content\DesignTools\MenuIcon\Solucion_02.png" />
     <Content Include="Content\DesignTools\MenuIcon\Solucion_2.png" />
-    <Content Include="Content\DesignTools\MenuIcon\Solución_1.png" />
+    <Content Include="Content\DesignTools\MenuIcon\Soluciï¿½n_1.png" />
     <Content Include="Content\DesignTools\MenuIcon\TapeS1.png" />
     <Content Include="Content\DesignTools\MenuIcon\TapeS10.png" />
     <Content Include="Content\DesignTools\MenuIcon\TapeS11.png" />
@@ -3101,4 +3102,3 @@
   <Target Name="AfterBuild">
   </Target> -->
 </Project>
-

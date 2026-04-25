@@ -77,18 +77,39 @@ C:\00_Tandem2026\
 
 ## 🔧 Comandos ZWCAD Disponibles
 
-Todos los comandos están definidos en `MenuManager.cs` y registrados con el atributo `[CommandMethod]`:
+Todos los comandos están definidos en `Commands.cs` y `MenuManager.cs` y registrados con el atributo `[CommandMethod]`:
 
 | Comando | Descripción | Estado |
 |---------|-------------|--------|
 | `TANDEM` | Muestra lista de comandos disponibles | ✅ Implementado |
-| `MVCCONEXION` | Abre el panel principal WPF | ⚠️ Pendiente implementar |
+| `MVCCONEXION` | Abre el panel principal WPF | ✅ Implementado |
+| `TANDEM_SELECCIONAR_LINEAS` | Selecciona líneas/polilíneas y las envía al servidor MVC | ✅ **NUEVO - Implementado** |
 | `DETECTARMUROS` | Lee geometría 2D y construye modelo topológico | ⚠️ Pendiente implementar |
 | `GENERAR3D` | Genera sólidos 3D del modelo | ⚠️ Pendiente implementar |
 | `REGENERAR3D` | Borra y regenera sólidos 3D | ⚠️ Pendiente implementar |
 | `CONFIGENCOFRADO` | Configura sistema de encofrado | ⚠️ Pendiente implementar |
-| `LEERDISENOMVC` | Lee diseño desde servidor MVC | ⚠️ Pendiente implementar |
-| `GUARDARDISENOMVC` | Guarda diseño en servidor MVC | ⚠️ Pendiente implementar |
+| `LEERDISENOMVC` | Lee diseño desde servidor MVC | ✅ Implementado |
+| `GUARDARDISENOMVC` | Guarda diseño en servidor MVC | ✅ Implementado |
+
+### 🆕 Comando TANDEM_SELECCIONAR_LINEAS
+
+Este comando permite seleccionar objetos en ZWCAD y enviar automáticamente **solo las líneas y polilíneas** al servidor MVC para su procesamiento.
+
+**Flujo de trabajo:**
+1. Usuario ejecuta `TANDEM_SELECCIONAR_LINEAS` en ZWCAD
+2. Selecciona objetos del dibujo (puede seleccionar cualquier objeto)
+3. Presiona INTRO para confirmar
+4. El comando **filtra automáticamente** solo líneas y polilíneas
+5. Envía los datos al servidor MVC vía POST
+6. El servidor procesa y devuelve un resumen
+7. ZWCAD muestra el resultado en la línea de comandos
+
+**Información enviada por cada línea:**
+- Puntos inicial y final (X, Y, Z)
+- Layer, color, longitud
+- Para polilíneas: lista completa de vértices
+
+**Documentación completa:** `COMANDO_SELECCIONAR_LINEAS.md`
 
 ### Código Actual de MenuManager.cs
 
