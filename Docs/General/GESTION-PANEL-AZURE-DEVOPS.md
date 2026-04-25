@@ -41,6 +41,37 @@ $PAT = "7iXv8E4C8xK90U3zPRV1GrpNyfTf0piLOt1I5xhxkoIWMtvZ0elmJQQJ99CDACAAAAAAAAAA
 
 ---
 
+## ⚡ Comandos Rápidos Más Usados
+
+### 🚀 Crear US con Story Points (< 20 segundos)
+```powershell
+cd C:\00_Tandem2026\Scripts
+.\Create-US-Fast.ps1 -Titulo "Tu título aquí" -Descripcion "Descripción detallada" -StoryPoints 8
+```
+
+### ✅ Mover US a Done
+```powershell
+cd C:\00_Tandem2026\Scripts
+.\Edit-US.ps1 -ID 637 -Estado "Done"
+```
+
+### 📎 Adjuntar Documentación a US
+```powershell
+# 1. Subir archivo
+$PAT = $env:AZURE_DEVOPS_PAT
+$headers = @{Authorization = "Basic $([Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$PAT")))";}
+$uploadUrl = "https://dev.azure.com/VSCAD/tandem2026/_apis/wit/attachments?fileName=US-637-DOCS.md&api-version=7.0"
+$uploadResult = Invoke-RestMethod -Uri $uploadUrl -Headers $headers -Method Post -InFile "TuArchivo.md" -ContentType "application/octet-stream"
+
+# 2. Vincular a US
+$headers["Content-Type"] = "application/json-patch+json"
+$patchUrl = "https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/637?api-version=7.0"
+$body = @(@{op="add"; path="/relations/-"; value=@{rel="AttachedFile"; url=$uploadResult.url; attributes=@{comment="Documentación generada"}}}) | ConvertTo-Json -Depth 10
+Invoke-RestMethod -Uri $patchUrl -Headers $headers -Method Patch -Body $body
+```
+
+---
+
 ## 📚 Índice Rápido
 
 1. [Crear User Stories](#1-crear-user-stories)
@@ -56,7 +87,53 @@ $PAT = "7iXv8E4C8xK90U3zPRV1GrpNyfTf0piLOt1I5xhxkoIWMtvZ0elmJQQJ99CDACAAAAAAAAAA
 
 ## 1. 🎯 Crear User Stories
 
-### Método 1: Script PowerShell (Recomendado)
+### ⚡ Método 1: Script Rápido con Story Points (RECOMENDADO - <20 segundos)
+
+**Ubicación:** `C:\00_Tandem2026\Scripts\Create-US-Fast.ps1`
+
+Este script es la forma más rápida y confiable de crear User Stories con Story Points.
+
+#### Uso Básico:
+```powershell
+cd C:\00_Tandem2026\Scripts
+
+# US simple sin descripción ni puntos
+.\Create-US-Fast.ps1 -Titulo "Implementar validación de formularios"
+
+# US con descripción
+.\Create-US-Fast.ps1 -Titulo "Detectar esquinas tipo L" -Descripcion "Implementar algoritmo para detectar esquinas tipo L en geometrías seleccionadas"
+
+# US con descripción y Story Points (⭐ USO RECOMENDADO)
+.\Create-US-Fast.ps1 -Titulo "Detectar esquinas tipo L" -Descripcion "Implementar algoritmo para detectar esquinas tipo L en geometrías seleccionadas. El sistema debe identificar esquinas formadas por dos líneas perpendiculares y proporcionar 8 puntos de referencia." -StoryPoints 8
+```
+
+#### Ejemplos Rápidos:
+```powershell
+# US de 3 puntos
+.\Create-US-Fast.ps1 -Titulo "Agregar botón de exportar" -StoryPoints 3
+
+# US de 5 puntos con descripción
+.\Create-US-Fast.ps1 -Titulo "Implementar filtros avanzados" -Descripcion "Filtros por fecha, usuario y estado" -StoryPoints 5
+
+# US de 8 puntos (compleja)
+.\Create-US-Fast.ps1 -Titulo "Integración con API externa" -Descripcion "Conectar con API de terceros para sincronización" -StoryPoints 8
+```
+
+**Resultado esperado:**
+```
+US #637 creada con 8 puntos
+https://dev.azure.com/VSCAD/213253e7-f177-4e2d-bdf3-410b97f6883d/_workitems/edit/637
+```
+
+**✅ Ventajas:**
+- ⚡ Ejecución en menos de 20 segundos
+- 🎯 Soporte para Story Points
+- 🔧 Encoding UTF-8 correcto (resuelve errores de Azure DevOps)
+- 🌐 Abre automáticamente el navegador con la US creada
+
+---
+
+### Método 2: Script US.ps1 (Alternativo)
 
 **Ubicación del script:** `C:\00_Tandem2026\Scripts\US.ps1`
 
@@ -89,7 +166,7 @@ cd C:\00_Tandem2026\Scripts
 ✓ US #639 creada: Mejorar UI del dashboard
 ```
 
-### Método 2: API REST Directa
+### Método 3: API REST Directa
 
 ```powershell
 # Configuración
@@ -107,18 +184,18 @@ $descripcion = "Agregar soporte para login con Google y Microsoft"
 # Crear payload
 $payload = @(
 	@{op = "add"; path = "/fields/System.Title"; value = $titulo}
-	@{op = "add"; path = "/fields/System.WorkItemType"; value = "Issue"}
 	@{op = "add"; path = "/fields/System.Description"; value = $descripcion}
+	@{op = "add"; path = "/fields/Microsoft.VSTS.Scheduling.StoryPoints"; value = 5}
 ) | ConvertTo-Json -Depth 10
 
-# Crear User Story
+# Crear User Story con encoding UTF-8
 $url = "https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/`$Issue?api-version=7.0"
-$result = Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body $payload
+$result = Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body ([System.Text.Encoding]::UTF8.GetBytes($payload)) -ContentType "application/json-patch+json; charset=utf-8"
 
 Write-Host "✓ US #$($result.id) creada: $titulo" -ForegroundColor Green
 ```
 
-### Método 3: Interfaz Web
+### Método 4: Interfaz Web
 
 1. Ir al panel: https://dev.azure.com/VSCAD/tandem2026/_boards/board/t/tandem2026%20Team/Issues
 2. Clic en **"+ New Work Item"**
@@ -885,6 +962,7 @@ Antes de mover una US a "Done", verifica:
 
 | Fecha | Cambio |
 |-------|--------|
+| 2026-04-25 | ⚡ **Agregado Create-US-Fast.ps1**: Script rápido (<20 seg) con soporte Story Points y encoding UTF-8. Añadida sección "Comandos Rápidos Más Usados" al inicio |
 | 2026-04-25 | Agregada sección completa sobre adjuntar documentación a Work Items. Incluye script Attach-Document.ps1, ejemplos, checklist y mejores prácticas |
 | 2026-04-24 | Creación inicial con énfasis en configuración correcta y troubleshooting del error 404 |
 
