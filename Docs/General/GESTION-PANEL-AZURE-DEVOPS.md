@@ -727,11 +727,121 @@ cd C:\00_Tandem2026\Scripts
 # 2. Marcar US como Done
 .\Edit-US.ps1 640 -Estado "Done"
 
-# 3. Commit final
+# 3. **🆕 Adjuntar documentación** (si el agente generó documentación)
+.\Attach-Document.ps1 -WorkItemId 640 -FilePath "C:\ruta\al\documento.md" -Comment "Documentación completa de implementación"
+
+# 4. Commit final
 git add .
 git commit -m "feat: Completar funcionalidad Closes AB#640"
 git push origin master
 ```
+
+---
+
+## 📎 Adjuntar Documentación a Work Items
+
+### ⚠️ IMPORTANTE: Documentación del Agente
+
+**Cuando GitHub Copilot o cualquier agente de IA trabaja en una User Story y genera documentación técnica (instrucciones, soluciones, troubleshooting), SIEMPRE se debe adjuntar al Work Item antes de moverlo a "Done".**
+
+### ¿Por qué adjuntar documentación?
+
+1. **✅ Trazabilidad completa:** Toda la información del trabajo realizado queda vinculada al Work Item
+2. **✅ Facilita mantenimiento futuro:** Otros desarrolladores pueden entender qué se hizo y por qué
+3. **✅ Documentación del contexto:** Problemas encontrados, soluciones aplicadas, decisiones técnicas
+4. **✅ Base de conocimiento:** Construir una biblioteca de soluciones reutilizables
+
+### Script: Attach-Document.ps1
+
+**Ubicación:** `C:\00_Tandem2026\Scripts\Attach-Document.ps1`
+
+**Uso básico:**
+```powershell
+cd C:\00_Tandem2026\Scripts
+
+# Adjuntar un archivo a un Work Item
+.\Attach-Document.ps1 -WorkItemId 613 -FilePath "C:\00_Tandem2026\TamdenZwcadPluging\ZwcadPlugin\US-613-INSTRUCCIONES.md" -Comment "Documentación completa de implementación"
+```
+
+**Parámetros:**
+- `-WorkItemId`: ID del Work Item (US o Task)
+- `-FilePath`: Ruta completa al archivo a adjuntar
+- `-Comment`: Comentario descriptivo del archivo (opcional)
+
+**Tipos de documentos a adjuntar:**
+- 📘 Instrucciones de implementación (`US-XXX-INSTRUCCIONES.md`)
+- 🔍 Investigaciones técnicas (`INVESTIGACION-XXX.md`)
+- 📊 Resúmenes de cambios (`RESUMEN_CAMBIOS_XXX.md`)
+- ⚠️ Solución de problemas (`TROUBLESHOOTING-XXX.md`)
+- 📸 Capturas de pantalla de pruebas
+- 📄 Diagramas de arquitectura
+
+### Ejemplo completo: Flujo con documentación
+
+```powershell
+# Ejemplo real de US-613: Seleccionar líneas en ZWCAD
+
+# 1. Desarrollar la funcionalidad
+# (GitHub Copilot hace los cambios y genera US-613-INSTRUCCIONES.md)
+
+# 2. Hacer commit
+cd C:\00_Tandem2026
+git add .
+git commit -m "fix(US-613): Corregir error 404 en comunicación Plugin-Servidor MVC AB#613"
+git push origin master
+
+# 3. Mover US a Done
+cd Scripts
+.\Edit-US.ps1 613 -Estado "Done"
+
+# 4. ⭐ ADJUNTAR DOCUMENTACIÓN (PASO CRÍTICO)
+.\Attach-Document.ps1 `
+    -WorkItemId 613 `
+    -FilePath "C:\00_Tandem2026\TamdenZwcadPluging\ZwcadPlugin\US-613-INSTRUCCIONES.md" `
+    -Comment "Documentación completa US-613: Solución error 404, configuración de puertos, instrucciones de ejecución y troubleshooting"
+
+# 5. Verificar en Azure DevOps que el archivo esté adjunto
+# https://dev.azure.com/VSCAD/tandem2026/_workitems/edit/613
+```
+
+### Verificar archivos adjuntos
+
+```powershell
+# Script para ver archivos adjuntos de una US
+$PAT = '7iXv8E4C8xK90U3zPRV1GrpNyfTf0piLOt1I5xhxkoIWMtvZ0elmJQQJ99CDACAAAAAAAAAAAAASAZDO1BX0'
+$auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$PAT"))
+$headers = @{Authorization = "Basic $auth"}
+
+$workItemId = 613
+$url = "https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/$workItemId?`$expand=relations&api-version=7.0"
+$wi = Invoke-RestMethod -Uri $url -Headers $headers
+
+Write-Host "`nArchivos adjuntos en US #${workItemId}:" -ForegroundColor Cyan
+$attachments = $wi.relations | Where-Object { $_.rel -eq 'AttachedFile' }
+
+if ($attachments) {
+    $attachments | ForEach-Object {
+        Write-Host "  📎 $($_.attributes.name)" -ForegroundColor Green
+        Write-Host "     $($_.attributes.comment)" -ForegroundColor Gray
+    }
+} else {
+    Write-Host "  (ninguno)" -ForegroundColor Yellow
+}
+```
+
+### ✅ Checklist: Completar US con documentación
+
+Antes de mover una US a "Done", verifica:
+
+- [ ] Código implementado y funcionando
+- [ ] Tests pasando (si aplica)
+- [ ] Commit realizado con mensaje descriptivo
+- [ ] Push a GitHub completado
+- [ ] **📎 Documentación adjunta al Work Item** ⭐
+- [ ] Work Item movido a "Done"
+- [ ] Tasks hijas completadas
+
+**⚠️ NOTA:** El paso de adjuntar documentación NO es opcional cuando el agente generó documentación. Es parte del flujo estándar de completar una US.
 
 ---
 
@@ -744,6 +854,9 @@ git push origin master
 3. **Vincular commits desde el principio** con `AB#<ID>`
 4. **Crear las 3 tasks estándar** (Develop, Test, CR) para cada US
 5. **Actualizar estados regularmente** para reflejar el progreso real
+6. **⭐ Adjuntar documentación generada por agentes** al Work Item antes de moverlo a "Done"
+7. **Incluir contexto completo** en la documentación: problema, solución, troubleshooting
+8. **Usar nombres descriptivos** para archivos adjuntos (ej: `US-613-INSTRUCCIONES.md`)
 
 ### ❌ DON'T (No hacer):
 
@@ -752,6 +865,8 @@ git push origin master
 3. **No crear Tasks sin vincular** a una US
 4. **No olvidar el prefijo `AB#`** en los commits
 5. **No dejar Tasks en "Doing"** si el trabajo se pausó
+6. **⭐ NO mover a "Done" sin adjuntar documentación** si el agente generó documentos técnicos
+7. **No perder documentación valiosa** generada durante el desarrollo
 
 ---
 
@@ -770,6 +885,7 @@ git push origin master
 
 | Fecha | Cambio |
 |-------|--------|
+| 2026-04-25 | Agregada sección completa sobre adjuntar documentación a Work Items. Incluye script Attach-Document.ps1, ejemplos, checklist y mejores prácticas |
 | 2026-04-24 | Creación inicial con énfasis en configuración correcta y troubleshooting del error 404 |
 
 ---
