@@ -4,6 +4,22 @@ Sistema de gestión de proyectos integrado con ZWCAD 2026.
 
 ---
 
+## 🤖 PARA AGENTES IA / FUTUROS CHATS
+
+**👉 SI ERES UN AGENTE IA CONTINUANDO ESTE PROYECTO:**
+**LEE PRIMERO → [`CONTINUITY.md`](CONTINUITY.md) ← LEE PRIMERO**
+
+Este documento contiene:
+- ✅ Todo el contexto de sesiones anteriores
+- ✅ Qué funciona y qué no
+- ✅ Scripts disponibles y cómo usarlos
+- ✅ Limitaciones conocidas y soluciones
+- ✅ Próximos pasos sugeridos
+
+**NO pierdas tiempo re-investigando cosas ya resueltas.**
+
+---
+
 ## 📋 Descripción
 
 Tandem 2026 es un sistema completo que proporciona:
