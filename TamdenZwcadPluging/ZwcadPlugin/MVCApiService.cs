@@ -172,23 +172,36 @@ namespace ZwcadPlugin
         /// <summary>
         /// Envía una colección de líneas y polilíneas seleccionadas al servidor MVC
         /// </summary>
-        public async Task<ApiResponse<string>> EnviarLineasSeleccionadasAsync(SeleccionLineasDTO seleccion)
+        public async Task<ApiResponse<DeteccionEsquinasLDTO>> EnviarLineasSeleccionadasAsync(SeleccionLineasDTO seleccion)
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"🔴 [MVCApiService] Iniciando envío de {seleccion.Lineas.Count} líneas");
+                System.Diagnostics.Debug.WriteLine($"🔴 [MVCApiService] URL: {_baseUrl}DesignToolsAutocad/ProcesarLineasZwcad");
+
                 var json = JsonConvert.SerializeObject(seleccion);
+                System.Diagnostics.Debug.WriteLine($"🔴 [MVCApiService] JSON serializado: {json.Length} caracteres");
+
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
+                System.Diagnostics.Debug.WriteLine($"🔴 [MVCApiService] Enviando POST...");
                 var response = await _httpClient.PostAsync("DesignToolsAutocad/ProcesarLineasZwcad", content);
+                System.Diagnostics.Debug.WriteLine($"🔴 [MVCApiService] Status Code: {response.StatusCode}");
+
                 response.EnsureSuccessStatusCode();
 
                 var responseJson = await response.Content.ReadAsStringAsync();
-                var resultado = JsonConvert.DeserializeObject<ApiResponse<string>>(responseJson);
+                System.Diagnostics.Debug.WriteLine($"🔴 [MVCApiService] Respuesta recibida: {responseJson.Length} caracteres");
+
+                var resultado = JsonConvert.DeserializeObject<ApiResponse<DeteccionEsquinasLDTO>>(responseJson);
+                System.Diagnostics.Debug.WriteLine($"🔴 [MVCApiService] Deserializado. Éxito: {resultado.Exito}");
 
                 return resultado;
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"❌ [MVCApiService] ERROR: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ [MVCApiService] StackTrace: {ex.StackTrace}");
                 throw new Exception($"Error al enviar líneas: {ex.Message}", ex);
             }
         }

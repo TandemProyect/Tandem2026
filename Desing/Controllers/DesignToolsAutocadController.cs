@@ -11,6 +11,7 @@ using System.Text;
 using System.Web.Mvc;
 using Desing.Models;
 using System.Linq;
+using Desing.Services;
 
 namespace Desing.Controllers
 {
@@ -150,10 +151,19 @@ namespace Desing.Controllers
         {
             try
             {
+                // 🔴 LOG CRÍTICO: Verificar que el endpoint se está ejecutando
+                string logInicio = $"🔴🔴🔴 ENDPOINT LLAMADO: ProcesarLineasZwcad - {DateTime.Now:HH:mm:ss} 🔴🔴🔴";
+                System.Diagnostics.Debug.WriteLine(logInicio);
+                System.Console.WriteLine(logInicio);
+
                 // Validar datos recibidos
                 if (seleccion == null || seleccion.Lineas == null || seleccion.Lineas.Count == 0)
                 {
-                    return Json(new ApiResponse<string>
+                    string logError = "❌ ERROR: No se recibieron líneas para procesar";
+                    System.Diagnostics.Debug.WriteLine(logError);
+                    System.Console.WriteLine(logError);
+
+                    return Json(new ApiResponse<DeteccionEsquinasLDTO>
                     {
                         Exito = false,
                         Mensaje = "No se recibieron líneas para procesar",
@@ -168,8 +178,8 @@ namespace Desing.Controllers
                 System.Diagnostics.Debug.WriteLine($"Usuario: {seleccion.Usuario}");
                 System.Diagnostics.Debug.WriteLine($"Fecha: {seleccion.FechaSeleccion}");
 
-                // Procesar las líneas
-                var resultado = new
+                // Procesar las líneas (estadísticas básicas)
+                var estadisticas = new
                 {
                     TotalProcesadas = seleccion.Lineas.Count,
                     Lineas = seleccion.Lineas.Where(l => l.Tipo == "Line").Count(),
@@ -179,24 +189,34 @@ namespace Desing.Controllers
                     FechaProcesamiento = DateTime.Now
                 };
 
-                // Aquí puedes agregar lógica adicional:
-                // - Guardar en base de datos
-                // - Procesamiento de geometría
-                // - Detección de muros
-                // - Generación de reportes
-                // - etc.
+                // ⭐ DETECCIÓN DE ESQUINAS TIPO L ⭐
+                var detector = new LCornerDetector();
+                var deteccionEsquinas = detector.DetectarEsquinasL(seleccion.Lineas);
 
-                // Ejemplo: Guardar en sesión para uso posterior
+                System.Diagnostics.Debug.WriteLine($"=== Detección de Esquinas L ===");
+                System.Diagnostics.Debug.WriteLine($"Esquinas detectadas: {deteccionEsquinas.TotalEsquinasDetectadas}");
+                System.Diagnostics.Debug.WriteLine($"Puntos a dibujar: {deteccionEsquinas.PuntosADibujar.Count}");
+
+                // Agregar información detallada de cada esquina al log
+                for (int i = 0; i < deteccionEsquinas.Esquinas.Count; i++)
+                {
+                    var esquina = deteccionEsquinas.Esquinas[i];
+                    System.Diagnostics.Debug.WriteLine($"  Esquina {i + 1}: Vértice ({esquina.Vertice.X:F2}, {esquina.Vertice.Y:F2}) - Ángulo: {esquina.Angulo:F2}° - Líneas: [{esquina.IndiceLinea1}, {esquina.IndiceLinea2}]");
+                }
+
+                // Guardar en sesión para uso posterior
                 Session["UltimaSeleccionLineas"] = seleccion;
-                Session["ResultadoProcesamiento"] = resultado;
+                Session["ResultadoProcesamiento"] = estadisticas;
+                Session["EsquinasDetectadas"] = deteccionEsquinas;
 
-                System.Diagnostics.Debug.WriteLine($"Procesamiento completado: {resultado.TotalProcesadas} geometrías");
+                System.Diagnostics.Debug.WriteLine($"Procesamiento completado: {estadisticas.TotalProcesadas} geometrías");
 
-                return Json(new ApiResponse<string>
+                // Devolver respuesta con información de esquinas y puntos a dibujar
+                return Json(new ApiResponse<DeteccionEsquinasLDTO>
                 {
                     Exito = true,
-                    Mensaje = $"Se procesaron exitosamente {resultado.TotalProcesadas} geometrías ({resultado.Lineas} líneas, {resultado.Polilineas} polilíneas)",
-                    Datos = $"Longitud total: {resultado.LongitudTotal:F2} unidades | Layers: {string.Join(", ", resultado.Layers)}"
+                    Mensaje = $"Se procesaron {estadisticas.TotalProcesadas} geometrías ({estadisticas.Lineas} líneas, {estadisticas.Polilineas} polilíneas). {deteccionEsquinas.Mensaje}",
+                    Datos = deteccionEsquinas
                 });
             }
             catch (Exception ex)
@@ -204,7 +224,7 @@ namespace Desing.Controllers
                 System.Diagnostics.Debug.WriteLine($"Error procesando líneas: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"StackTrace: {ex.StackTrace}");
 
-                return Json(new ApiResponse<string>
+                return Json(new ApiResponse<DeteccionEsquinasLDTO>
                 {
                     Exito = false,
                     Mensaje = $"Error al procesar líneas: {ex.Message}",

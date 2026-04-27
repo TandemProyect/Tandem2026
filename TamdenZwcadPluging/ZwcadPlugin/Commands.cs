@@ -345,16 +345,76 @@ namespace ZwcadPlugin
 
                 ed.WriteMessage("\nEnviando datos al servidor MVC...\n");
 
+                // 🔴 LOG CRÍTICO antes de enviar
+                ed.WriteMessage($"\n🔴 DEBUG: Preparando envío de {lineas.Count} líneas al servidor...");
+                ed.WriteMessage($"\n🔴 DEBUG: Usuario: {seleccionDTO.Usuario}");
+                ed.WriteMessage($"\n🔴 DEBUG: Fecha: {seleccionDTO.FechaSeleccion}");
+
                 // Enviar al servidor de forma asíncrona
-                Task<ApiResponse<string>> task = _apiService.EnviarLineasSeleccionadasAsync(seleccionDTO);
-                ApiResponse<string> respuesta = task.ConfigureAwait(false).GetAwaiter().GetResult();
+                ed.WriteMessage($"\n🔴 DEBUG: Llamando a _apiService.EnviarLineasSeleccionadasAsync...\n");
+                Task<ApiResponse<DeteccionEsquinasLDTO>> task = _apiService.EnviarLineasSeleccionadasAsync(seleccionDTO);
+                ed.WriteMessage($"\n🔴 DEBUG: Esperando respuesta del servidor...\n");
+                ApiResponse<DeteccionEsquinasLDTO> respuesta = task.ConfigureAwait(false).GetAwaiter().GetResult();
+                ed.WriteMessage($"\n🔴 DEBUG: Respuesta recibida. Éxito: {respuesta.Exito}\n");
 
                 if (respuesta.Exito)
                 {
                     ed.WriteMessage($"\n✅ Éxito: {respuesta.Mensaje}");
-                    if (!string.IsNullOrEmpty(respuesta.Datos))
+
+                    // Procesar esquinas L detectadas
+                    if (respuesta.Datos != null && respuesta.Datos.PuntosADibujar != null && respuesta.Datos.PuntosADibujar.Count > 0)
                     {
-                        ed.WriteMessage($"\nRespuesta del servidor: {respuesta.Datos}");
+                        ed.WriteMessage($"\n\n=== Esquinas L Detectadas: {respuesta.Datos.TotalEsquinasDetectadas} ===");
+                        ed.WriteMessage($"\nDibujando {respuesta.Datos.PuntosADibujar.Count} puntos de referencia...\n");
+
+                        // Dibujar círculos en ZWCAD para marcar los puntos de conexión
+                        using (Transaction tr = db.TransactionManager.StartTransaction())
+                        {
+                            BlockTable bt = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
+                            BlockTableRecord btr = tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
+
+                            int puntosDibujados = 0;
+                            double radioCirculo = 50.0; // Radio del círculo (ajustar según escala del dibujo)
+
+                            foreach (var punto in respuesta.Datos.PuntosADibujar)
+                            {
+                                // Crear un círculo en ZWCAD
+                                Point3d center = new Point3d(punto.X, punto.Y, punto.Z);
+                                Circle circulo = new Circle(center, Vector3d.ZAxis, radioCirculo);
+
+                                // Configurar propiedades del círculo
+                                circulo.Layer = "0"; // Layer por defecto
+                                circulo.ColorIndex = 1; // Color rojo para destacar
+
+                                // Agregar el círculo al dibujo
+                                btr.AppendEntity(circulo);
+                                tr.AddNewlyCreatedDBObject(circulo, true);
+
+                                puntosDibujados++;
+                                ed.WriteMessage($"\n  Círculo {puntosDibujados}: Centro ({punto.X:F2}, {punto.Y:F2}, {punto.Z:F2}), Radio: {radioCirculo}");
+                            }
+
+                            tr.Commit();
+                            ed.WriteMessage($"\n\n✅ {puntosDibujados} círculos dibujados correctamente en el layer '0' (color rojo)");
+                        }
+
+                        // Mostrar información de cada esquina
+                        if (respuesta.Datos.Esquinas != null && respuesta.Datos.Esquinas.Count > 0)
+                        {
+                            ed.WriteMessage($"\n\n--- Detalles de Esquinas ---");
+                            for (int i = 0; i < respuesta.Datos.Esquinas.Count; i++)
+                            {
+                                var esquina = respuesta.Datos.Esquinas[i];
+                                ed.WriteMessage($"\nEsquina {i + 1}:");
+                                ed.WriteMessage($"\n  Vértice: ({esquina.Vertice.X:F2}, {esquina.Vertice.Y:F2})");
+                                ed.WriteMessage($"\n  Ángulo: {esquina.Angulo:F2}°");
+                                ed.WriteMessage($"\n  Líneas involucradas: [{esquina.IndiceLinea1}, {esquina.IndiceLinea2}]");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        ed.WriteMessage($"\n⚠️ No se detectaron esquinas tipo L en la selección.");
                     }
                 }
                 else

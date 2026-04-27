@@ -119,6 +119,7 @@
     <None Include="README.md" />
     <None Include="RESUMEN_CAMBIOS_SELECCIONAR_LINEAS.md" />
     <None Include="TECHNICAL_GUIDE.md" />
+    <None Include="US-613-INSTRUCCIONES.md" />
   </ItemGroup>
   <!-- Copia la carpeta MNU al directorio de salida manteniendo la estructura -->
   <ItemGroup>
