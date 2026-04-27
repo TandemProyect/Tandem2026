@@ -6,6 +6,9 @@
 **Base URL:** `https://dev.azure.com/VSCAD/tandem2026`
 **Estados válidos:** `To Do`, `Doing`, `Done`
 
+## ⚠️ OBLIGATORIO
+**Toda US debe tener:** ✅ Tarea Test + 🔍 Tarea Code Review
+
 ---
 
 ## 🚀 COMANDOS RÁPIDOS

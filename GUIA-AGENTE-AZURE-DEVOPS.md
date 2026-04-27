@@ -4,6 +4,14 @@
 
 Esta guía permite a cualquier agente gestionar User Stories y tareas en Azure DevOps de forma rápida y eficiente (< 2 minutos).
 
+## ⚠️ REGLA OBLIGATORIA
+
+**TODAS las User Stories DEBEN incluir estas 2 tareas:**
+1. ✅ **Tarea de Test** - "Realizar pruebas de [funcionalidad]"
+2. 🔍 **Tarea de Code Review** - "Code Review de [funcionalidad]"
+
+**Nunca crear una US sin estas tareas.**
+
 ---
 
 ## ⚡ QUICK START - 3 PASOS
