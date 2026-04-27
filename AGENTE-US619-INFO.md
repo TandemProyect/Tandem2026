@@ -1,16 +1,50 @@
-# 📋 INFORMACIÓN PARA AGENTE - US-619
+# 📋 INFORMACIÓN PARA AGENTE - US-619 (COMPLETADA)
 
 ## 🎯 Work Item Azure DevOps
 
 - **ID:** 619
 - **Título:** Insertar Img en Command Seleccionar Muro
-- **Estado:** Doing
+- **Estado:** Done ✅
 - **Tipo:** Issue
 - **Story Points:** 1
 - **URL:** https://dev.azure.com/VSCAD/213253e7-f177-4e2d-bdf3-410b97f6883d/_workitems/edit/619
 
 **Descripción:**
 > Agregar un icono/imagen visual al comando de seleccion de muros en el ribbon y menu de ZWCAD. El icono debe ser claro y representativo de la accion de seleccionar muros. Effort estimado: 1 punto.
+
+**Objetivo del Sistema:**
+> Este comando forma parte del sistema de detección de esquinas para el **Sistema ATK60**, un sistema de encofrado que requiere la identificación precisa de puntos en las esquinas de estructuras rectangulares para su posterior encofrado.
+
+---
+
+## 🏗️ Sistema ATK60
+
+### ¿Qué es el Sistema ATK60?
+El **ATK60** es un sistema de encofrado modular utilizado en construcción que requiere:
+- Detección precisa de esquinas en estructuras rectangulares
+- Identificación de puntos de conexión entre paredes perpendiculares
+- Validación de dimensiones y offsets entre elementos paralelos
+- Preparación de puntos de anclaje para el sistema de encofrado
+
+### Requisitos del Sistema ATK60
+1. **Detección de Esquinas en L**: Identificar intersecciones perpendiculares entre muros
+2. **Validación de Offset**: Las líneas paralelas deben tener una separación ≤ 1500mm (ancho máximo de panel)
+3. **Marcado Visual**: Dibujar círculos o marcas en los puntos críticos para instalación
+4. **Soporte Multi-orientación**: Detectar esquinas independientemente de la rotación del diseño
+
+### Implementación Actual
+La **US-619** (completada) implementó la **fase inicial** del sistema ATK60:
+- ✅ Detección automática de esquinas en L
+- ✅ Validación de offset máximo (1500 unidades)
+- ✅ Marcado visual con círculos rojos en puntos de conexión
+- ✅ Exportación de datos diagnósticos en JSON
+
+### Próxima Fase - US-638
+La **US-638** "Detectar puntos para sistema ATK 60" (8 story points) continuará el desarrollo:
+- 🎯 **Objetivo:** Implementar detección de puntos críticos de instalación para ATK60
+- 🔗 **URL:** https://dev.azure.com/VSCAD/tandem2026/_workitems/edit/638
+- 📋 **Tareas:** 8 tareas creadas (#639-#646)
+- 📚 **Documentación:** Ver `SISTEMA-ATK60.md` para detalles completos
 
 ---
 
