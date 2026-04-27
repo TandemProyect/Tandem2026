@@ -1,5 +1,15 @@
 # ✅ RESUMEN DE TRABAJO COMPLETADO
 
+## 🤖 PARA FUTUROS AGENTES
+
+**⚡ IMPORTANTE:** La gestión de Azure DevOps ahora es rápida (< 2 minutos)
+
+📚 **Documentación para agentes:**
+- **Guía completa:** `GUIA-AGENTE-AZURE-DEVOPS.md` (incluye ejemplos, troubleshooting, APIs)
+- **Cheatsheet rápido:** `CHEATSHEET-AZURE-DEVOPS.md` (comandos copy-paste, < 1 página)
+
+---
+
 ## 📋 Azure DevOps - Gestión de User Stories
 
 ### US-619: Insertar Img en Command Seleccionar Muro
