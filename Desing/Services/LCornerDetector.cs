@@ -356,6 +356,11 @@ namespace Desing.Services
                 // Recopilar todos los puntos únicos de todos los paneles válidos
                 var todosPuntosInterior = new List<PuntoDTO>();
                 var todosPuntosExterior = new List<PuntoDTO>();
+                var todosPuntosVerde    = new List<PuntoDTO>();
+
+                // Evitar procesar el mismo conjunto de 4 líneas dos veces
+                // (el algoritmo puede detectar el mismo panel con grupos intercambiados)
+                var panelesProcesados = new HashSet<string>();
 
                 int numeroPanelValido = 1;
                 foreach (dynamic panel in panelesValidos)
@@ -363,6 +368,13 @@ namespace Desing.Services
                     // Obtener las 4 líneas del panel
                     int[] lineasGrupo1 = panel.LineasGrupo1;
                     int[] lineasGrupo2 = panel.LineasGrupo2;
+
+                    // Clave canónica: los 4 índices ordenados
+                    var indices = new[] { lineasGrupo1[0], lineasGrupo1[1], lineasGrupo2[0], lineasGrupo2[1] };
+                    Array.Sort(indices);
+                    string clavePanel = string.Join("-", indices);
+                    if (panelesProcesados.Contains(clavePanel)) continue;
+                    panelesProcesados.Add(clavePanel);
 
                     var l1a = lineas[lineasGrupo1[0]];
                     var l1b = lineas[lineasGrupo1[1]];
@@ -375,7 +387,7 @@ namespace Desing.Services
                     // Calcular punto verde: 300u desde el interior, hacia el interior del muro (US-664)
                     var ptVerde = CalcularPuntoVerde(l1a, l1b, l2a, l2b);
                     if (ptVerde != null)
-                        resultado.PuntosADibujar.Add(ptVerde);
+                        todosPuntosVerde.Add(ptVerde);
 
                     // 🆕 Registrar detalle de conexiones interiores/exteriores de este panel
                     detalleConexionesPorPanel.Add(new
@@ -411,6 +423,11 @@ namespace Desing.Services
                 foreach (var punto in puntosExteriorUnicos)
                 {
                     punto.TipoPunto = "Exterior";
+                    resultado.PuntosADibujar.Add(punto);
+                }
+
+                foreach (var punto in EliminarPuntosDuplicados(todosPuntosVerde))
+                {
                     resultado.PuntosADibujar.Add(punto);
                 }
             }
