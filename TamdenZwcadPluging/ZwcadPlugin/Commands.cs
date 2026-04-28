@@ -384,7 +384,7 @@ namespace ZwcadPlugin
 
                                 // Configurar propiedades del círculo
                                 circulo.Layer = "0"; // Layer por defecto
-                                circulo.ColorIndex = 1; // Color rojo para destacar
+                                circulo.ColorIndex = 5; // Color azul para marcar esquinas interiores
 
                                 // Agregar el círculo al dibujo
                                 btr.AppendEntity(circulo);
@@ -395,7 +395,7 @@ namespace ZwcadPlugin
                             }
 
                             tr.Commit();
-                            ed.WriteMessage($"\n\n✅ {puntosDibujados} círculos dibujados correctamente en el layer '0' (color rojo)");
+                            ed.WriteMessage($"\n\n✅ {puntosDibujados} círculos dibujados correctamente en el layer '0' (color azul - esquinas interiores)");
                         }
 
                         // Mostrar información de cada esquina
