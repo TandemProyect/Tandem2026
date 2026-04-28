@@ -13,6 +13,7 @@ namespace Desing.Services
     public class LCornerDetector
     {
         private const double TOLERANCIA = 0.01; // Muy pequeña tolerancia para puntos "iguales"
+        private const double OFFSET_MINIMO_PANEL = 50.0;   // Distancia mínima entre líneas paralelas (rechaza colineales de distintas esquinas)
         private const double OFFSET_MAXIMO_PANEL = 1500.0; // Distancia máxima entre líneas paralelas para considerar un panel válido
 
         /// <summary>
@@ -302,9 +303,9 @@ namespace Desing.Services
                                             double distGrupo1 = CalcularDistanciaEntreLineasParalelas(l1a, l1b);
                                             double distGrupo2 = CalcularDistanciaEntreLineasParalelas(l2a, l2b);
 
-                                            // ⭐ VALIDACIÓN: El offset entre líneas paralelas no debe superar 1500 unidades
-                                            bool dist1Valida = distGrupo1 <= OFFSET_MAXIMO_PANEL;
-                                            bool dist2Valida = distGrupo2 <= OFFSET_MAXIMO_PANEL;
+                                            // ⭐ VALIDACIÓN: El offset entre líneas paralelas debe estar entre 50 y 1500 unidades
+                                            bool dist1Valida = distGrupo1 >= OFFSET_MINIMO_PANEL && distGrupo1 <= OFFSET_MAXIMO_PANEL;
+                                            bool dist2Valida = distGrupo2 >= OFFSET_MINIMO_PANEL && distGrupo2 <= OFFSET_MAXIMO_PANEL;
                                             bool esPanelValido = dist1Valida && dist2Valida;
 
                                             esquinasDetectadas.Add(new
@@ -361,6 +362,8 @@ namespace Desing.Services
                 // Evitar procesar el mismo conjunto de 4 líneas dos veces
                 // (el algoritmo puede detectar el mismo panel con grupos intercambiados)
                 var panelesProcesados = new HashSet<string>();
+                // Una vez pintada una esquina, sus líneas quedan consumidas
+                var lineasUsadas = new HashSet<int>();
 
                 int numeroPanelValido = 1;
                 foreach (dynamic panel in panelesValidos)
@@ -375,6 +378,10 @@ namespace Desing.Services
                     string clavePanel = string.Join("-", indices);
                     if (panelesProcesados.Contains(clavePanel)) continue;
                     panelesProcesados.Add(clavePanel);
+
+                    // Si alguna de las 4 líneas ya fue usada en otra esquina, descartamos este panel
+                    if (indices.Any(idx => lineasUsadas.Contains(idx))) continue;
+                    foreach (var idx in indices) lineasUsadas.Add(idx);
 
                     var l1a = lineas[lineasGrupo1[0]];
                     var l1b = lineas[lineasGrupo1[1]];
@@ -831,43 +838,41 @@ namespace Desing.Services
         {
             const double DISTANCIA_VERDE = 300.0;
 
-            double centroX_g2 = (l2a.InicioX + l2a.FinX + l2b.InicioX + l2b.FinX) / 4.0;
-            double centroY_g2 = (l2a.InicioY + l2a.FinY + l2b.InicioY + l2b.FinY) / 4.0;
-            double centroX_g1 = (l1a.InicioX + l1a.FinX + l1b.InicioX + l1b.FinX) / 4.0;
-            double centroY_g1 = (l1a.InicioY + l1a.FinY + l1b.InicioY + l1b.FinY) / 4.0;
+            // Centro de cada grupo para identificar la línea interior de cada par
+            double cxG2 = (l2a.InicioX + l2a.FinX + l2b.InicioX + l2b.FinX) / 4.0;
+            double cyG2 = (l2a.InicioY + l2a.FinY + l2b.InicioY + l2b.FinY) / 4.0;
+            double cxG1 = (l1a.InicioX + l1a.FinX + l1b.InicioX + l1b.FinX) / 4.0;
+            double cyG1 = (l1a.InicioY + l1a.FinY + l1b.InicioY + l1b.FinY) / 4.0;
 
-            double dist_l1a = DistanciaLineaPunto(l1a, centroX_g2, centroY_g2);
-            double dist_l1b = DistanciaLineaPunto(l1b, centroX_g2, centroY_g2);
-            LineaDTO innerG1 = dist_l1a <= dist_l1b ? l1a : l1b;
+            LineaDTO innerG1 = DistanciaLineaPunto(l1a, cxG2, cyG2) <= DistanciaLineaPunto(l1b, cxG2, cyG2) ? l1a : l1b;
+            LineaDTO innerG2 = DistanciaLineaPunto(l2a, cxG1, cyG1) <= DistanciaLineaPunto(l2b, cxG1, cyG1) ? l2a : l2b;
 
-            double dist_l2a = DistanciaLineaPunto(l2a, centroX_g1, centroY_g1);
-            double dist_l2b = DistanciaLineaPunto(l2b, centroX_g1, centroY_g1);
-            LineaDTO innerG2 = dist_l2a <= dist_l2b ? l2a : l2b;
-
-            // Punto azul = intersección de líneas interiores
+            // Punto azul = intersección de las dos líneas interiores
             var ptAzul = IntersectarLineas(innerG1, innerG2);
             if (!ptAzul.HasValue) return null;
 
-            // El punto verde va siempre por el muro VERTICAL (la línea que tiene más recorrido en Y)
-            bool g1EsVertical = Math.Abs(l1a.FinY - l1a.InicioY) > Math.Abs(l1a.FinX - l1a.InicioX);
-            LineaDTO innerVertical = g1EsVertical ? innerG1 : innerG2;
+            // Línea interior del muro con mayor recorrido vertical
+            LineaDTO innerVertical = Math.Abs(innerG1.FinY - innerG1.InicioY) >= Math.Abs(innerG1.FinX - innerG1.InicioX)
+                ? innerG1 : innerG2;
 
-            // Dirección: desde azul hacia el punto medio de la línea interior vertical
-            double midG2X = (innerVertical.InicioX + innerVertical.FinX) / 2.0;
-            double midG2Y = (innerVertical.InicioY + innerVertical.FinY) / 2.0;
+            // El extremo más alejado del azul indica la dirección hacia el interior del muro
+            double dIni2 = Math.Pow(innerVertical.InicioX - ptAzul.Value.X, 2) + Math.Pow(innerVertical.InicioY - ptAzul.Value.Y, 2);
+            double dFin2 = Math.Pow(innerVertical.FinX    - ptAzul.Value.X, 2) + Math.Pow(innerVertical.FinY    - ptAzul.Value.Y, 2);
+            double refX  = dFin2 >= dIni2 ? innerVertical.FinX : innerVertical.InicioX;
+            double refY  = dFin2 >= dIni2 ? innerVertical.FinY : innerVertical.InicioY;
 
-            double dx = midG2X - ptAzul.Value.X;
-            double dy = midG2Y - ptAzul.Value.Y;
+            // Punto polar: desde azul, ángulo de la línea interior, distancia 300
+            double dx   = refX - ptAzul.Value.X;
+            double dy   = refY - ptAzul.Value.Y;
             double dist = Math.Sqrt(dx * dx + dy * dy);
-
             if (dist < TOLERANCIA) return null;
 
             return new PuntoDTO
             {
-                X          = ptAzul.Value.X + (dx / dist) * DISTANCIA_VERDE,
-                Y          = ptAzul.Value.Y + (dy / dist) * DISTANCIA_VERDE,
-                Z          = 0,
-                TipoPunto  = "Verde"
+                X         = ptAzul.Value.X + (dx / dist) * DISTANCIA_VERDE,
+                Y         = ptAzul.Value.Y + (dy / dist) * DISTANCIA_VERDE,
+                Z         = 0,
+                TipoPunto = "Verde"
             };
         }
 
