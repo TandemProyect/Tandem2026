@@ -1,42 +1,52 @@
-# INSTRUCCIONES: Crear Columnas en el Panel de Azure DevOps
+# Columnas del Panel de Azure DevOps — Tandem 2026
 
-## Problema Encontrado
-La API de Azure DevOps (v7.1-preview.1) para actualizar columnas del board está devolviendo el error:
-`Value cannot be null. Parameter name: options`
+> **Estado:** ✅ RESUELTO (2026-04-28)  
+> **Script:** `C:\00_Tandem2026\Scripts\Restructurar-Panel.ps1`
 
-Esto parece ser una limitación o bug de la API preview.
+## Estructura Actual (9 columnas)
 
-## Solución Manual (Recomendada)
+| Columna | Tipo | WIP | Estado ADO |
+|---------|------|-----|------------|
+| **New** | incoming | 50 | To Do |
+| **Tareas a Analizar** | inProgress | 10 | To Do |
+| **Esperando documentacion** | inProgress | 10 | To Do |
+| **Preparado para Realizar** | inProgress | 10 | Doing |
+| **Realizando** | inProgress | 5 | Doing |
+| **Mal Testeo Volver a Realizar** | inProgress | 5 | Doing |
+| **Preparando a testear** | inProgress | 5 | Doing |
+| **Preparado para presentar** | inProgress | 10 | Doing |
+| **Closed** | outgoing | 300 | Done |
 
-1. Abre el panel en Azure DevOps:
-   https://dev.azure.com/VSCAD/tandem2026/_boards/board/t/tandem2026%20Team/Issues
+## Solución Correcta vía API
 
-2. Haz clic en el icono de configuración (⚙️) en la esquina superior derecha del board
+El error anterior (`Value cannot be null. Parameter name: options`) ocurría porque se usaba `PATCH` en lugar de `PUT` y no se incluían los IDs de las columnas fijas.
 
-3. Selecciona "Column options" o "Configurar columnas"
+**Reglas de la API:**
 
-4. Elimina las columnas actuales (To Do, Doing, Done) excepto la primera y la última
+1. Usar **`PUT`** (no PATCH) — reemplaza todas las columnas de una vez
+2. Obtener primero los **IDs actuales** de las columnas `incoming` y `outgoing` con un GET previo
+3. Incluir esos IDs en el payload — son columnas fijas que no se pueden eliminar
+4. Las columnas `inProgress` solo admiten estados `To Do` o `Doing` — **nunca `Done`**
+5. Solo la columna `outgoing` puede tener estado `Done`
 
-5. Agrega las siguientes columnas en orden con sus límites WIP:
-
-   - **New** (incoming) - WIP: 50 - Estado: To Do
-   - **Tareas a Analizar** (inProgress) - WIP: 10 - Estado: To Do
-   - **Esperando documentacion** (inProgress) - WIP: 10 - Estado: To Do
-   - **Preparado para Realizar** (inProgress) - WIP: 10 - Estado: Doing
-   - **Realizando** (inProgress) - WIP: 5 - Estado: Doing
-   - **Mal Testeo Volver a Realizar** (inProgress) - WIP: 5 - Estado: Doing
-   - **Preparando a testear** (inProgress) - WIP: 5 - Estado: Doing
-   - **Preparado para presentar** (inProgress) - WIP: 10 - Estado: Done
-   - **Closed** (outgoing) - WIP: 300 - Estado: Done
-
-6. Guarda los cambios
-
-## Alternativa: Azure CLI
-
-Si tienes Azure CLI instalado, puedes intentar:
-```bash
-az boards work-item update --id <work-item-id> --fields System.BoardColumn="Tareas a Analizar"
+**URL correcta:**
+```
+PUT https://dev.azure.com/VSCAD/tandem2026/tandem2026%20Team/_apis/work/boards/Issues/columns?api-version=7.0
 ```
 
-## Nota para Futuras Sesiones
-Este problema con la API debe ser reportado a Microsoft o esperarse una versión estable de la API de boards.
+**Para re-aplicar la estructura:**
+```powershell
+cd C:\00_Tandem2026\Scripts
+.\Restructurar-Panel.ps1
+```
+
+**Para verificar columnas actuales:**
+```powershell
+.\Verificar-Panel.ps1
+```
+
+## IDs de Referencia
+
+- **Board ID:** `892fa957-9c33-4237-a99f-2660bd9ec80d`
+- **Columna incoming (New):** `720e658c-5da2-4ddd-a741-3863cc36ae6c`
+- **Columna outgoing (Closed):** `bde86b62-6374-4bb3-8e65-0f5917ab8b20`

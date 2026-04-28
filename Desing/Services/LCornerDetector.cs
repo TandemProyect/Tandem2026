@@ -198,12 +198,6 @@ namespace Desing.Services
                 }
             }
 
-            // Agregar puntos a dibujar
-            foreach (var esquina in resultado.Esquinas)
-            {
-                resultado.PuntosADibujar.Add(esquina.Vertice);
-            }
-
             // 🆕 DETECTAR LÍNEAS PARALELAS Y ESQUINAS FORMADAS
             var paresParalelos = new List<object>();
             var esquinasDetectadas = new List<object>();
@@ -354,6 +348,77 @@ namespace Desing.Services
             var panelesValidos = esquinasDetectadas.Where(e => ((dynamic)e).EsPanelValido == true).ToList();
             var panelesInvalidos = esquinasDetectadas.Where(e => ((dynamic)e).EsPanelValido == false).ToList();
 
+            // 📍 Agregar puntos a dibujar - SOLO para conexiones individuales si NO hay paneles válidos
+            var detalleConexionesPorPanel = new List<object>(); // 🆕 Detalle interior/exterior por panel
+
+            if (panelesValidos != null && panelesValidos.Count > 0)
+            {
+                // Recopilar todos los puntos únicos de todos los paneles válidos
+                var todosPuntosInterior = new List<PuntoDTO>();
+                var todosPuntosExterior = new List<PuntoDTO>();
+
+                int numeroPanelValido = 1;
+                foreach (dynamic panel in panelesValidos)
+                {
+                    // Obtener las 4 líneas del panel
+                    int[] lineasGrupo1 = panel.LineasGrupo1;
+                    int[] lineasGrupo2 = panel.LineasGrupo2;
+
+                    var l1a = lineas[lineasGrupo1[0]];
+                    var l1b = lineas[lineasGrupo1[1]];
+                    var l2a = lineas[lineasGrupo2[0]];
+                    var l2b = lineas[lineasGrupo2[1]];
+
+                    // Calcular puntos de esquina L por intersección de líneas interiores/exteriores
+                    var (interior, exterior) = CalcularPuntosEsquinaL(l1a, l1b, l2a, l2b);
+
+                    // 🆕 Registrar detalle de conexiones interiores/exteriores de este panel
+                    detalleConexionesPorPanel.Add(new
+                    {
+                        NumeroPanel = numeroPanelValido,
+                        LineasInvolucradas = new
+                        {
+                            Grupo1 = lineasGrupo1,
+                            Grupo2 = lineasGrupo2
+                        },
+                        ConexionesInteriores = interior.Select(p => new { X = p.X, Y = p.Y, Z = p.Z }).ToList(),
+                        ConexionesExteriores = exterior.Select(p => new { X = p.X, Y = p.Y, Z = p.Z }).ToList(),
+                        TotalInteriores = interior.Count,
+                        TotalExteriores = exterior.Count
+                    });
+
+                    todosPuntosInterior.AddRange(interior);
+                    todosPuntosExterior.AddRange(exterior);
+                    numeroPanelValido++;
+                }
+
+                // Eliminar duplicados (puntos a menos de TOLERANCIA de distancia)
+                var puntosInteriorUnicos = EliminarPuntosDuplicados(todosPuntosInterior);
+                var puntosExteriorUnicos = EliminarPuntosDuplicados(todosPuntosExterior);
+
+                // Agregar puntos únicos a la lista de dibujo
+                foreach (var punto in puntosInteriorUnicos)
+                {
+                    punto.TipoPunto = "Interior";
+                    resultado.PuntosADibujar.Add(punto);
+                }
+
+                foreach (var punto in puntosExteriorUnicos)
+                {
+                    punto.TipoPunto = "Exterior";
+                    resultado.PuntosADibujar.Add(punto);
+                }
+            }
+            else
+            {
+                // Si no hay paneles válidos, usar conexiones individuales
+                foreach (var esquina in resultado.Esquinas)
+                {
+                    esquina.Vertice.TipoPunto = "Interior"; // Por defecto, las conexiones individuales son interiores
+                    resultado.PuntosADibujar.Add(esquina.Vertice);
+                }
+            }
+
             // 🔍 LÓGICA MEJORADA: Si hay paneles VÁLIDOS detectados, las conexiones individuales son parte del panel
             int esquinasEnLIndependientes = ((List<object>)infoCompleta.ConexionesDetectadas).Count;
             int esquinasEnLReales = panelesValidos.Count > 0 ? panelesValidos.Count : esquinasEnLIndependientes;
@@ -370,6 +435,9 @@ namespace Desing.Services
                 ConexionesDetectadas = infoCompleta.ConexionesDetectadas,
                 ParesLineasParalelas = paresParalelos,
                 EsquinasOPanelesDetectados = esquinasDetectadas,
+
+                // 🆕 DIFERENCIA ENTRE CONEXIONES INTERIORES Y EXTERIORES POR PANEL VÁLIDO
+                DetalleConexionesInteriorExteriorPorPanel = detalleConexionesPorPanel,
 
                 // 📊 RESUMEN EJECUTIVO
                 ResumenFinal = new
@@ -479,7 +547,19 @@ namespace Desing.Services
                         + (panelesInvalidos.Count > 0 ? $" Se rechazaron {panelesInvalidos.Count} panel(es) por exceder el offset máximo." : "")
                         : panelesInvalidos.Count > 0
                             ? $"❌ Se detectaron {panelesInvalidos.Count} panel(es) rectangular(es), pero TODOS fueron rechazados por exceder el offset máximo ({OFFSET_MAXIMO_PANEL} unidades). Las {esquinasEnLIndependientes} conexiones se cuentan como esquinas independientes."
-                            : $"✅ Se detectaron {esquinasEnLIndependientes} esquinas en L independientes (no forman paneles rectangulares completos)."
+                            : $"✅ Se detectaron {esquinasEnLIndependientes} esquinas en L independientes (no forman paneles rectangulares completos).",
+
+                    // 🆕 RESUMEN DE DIFERENCIAS INTERIORES/EXTERIORES
+                    ResumenConexionesInteriorExterior = panelesValidos.Count > 0
+                        ? new
+                        {
+                            TotalPuntosInterior = resultado.PuntosADibujar.Count(p => p.TipoPunto == "Interior"),
+                            TotalPuntosExterior = resultado.PuntosADibujar.Count(p => p.TipoPunto == "Exterior"),
+                            ListaPuntosInterior = resultado.PuntosADibujar.Where(p => p.TipoPunto == "Interior").Select(p => new { p.X, p.Y, p.Z }).ToList(),
+                            ListaPuntosExterior = resultado.PuntosADibujar.Where(p => p.TipoPunto == "Exterior").Select(p => new { p.X, p.Y, p.Z }).ToList(),
+                            Nota = "Los puntos interiores (azul) marcan las esquinas internas del panel. Los puntos exteriores (rojo) marcan el perímetro exterior."
+                        }
+                        : null
                 }
             };
 
@@ -602,6 +682,177 @@ namespace Desing.Services
                 System.Diagnostics.Debug.WriteLine($"❌ Error guardando JSON: {ex.Message}");
                 Console.WriteLine($"❌ Error guardando JSON: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Obtiene los 4 vértices únicos de un rectángulo formado por 4 líneas.
+        /// </summary>
+        private List<PuntoDTO> ObtenerVerticesRectangulo(LineaDTO l1a, LineaDTO l1b, LineaDTO l2a, LineaDTO l2b)
+        {
+            // Recopilar todos los puntos de las 4 líneas
+            var puntos = new List<(double X, double Y, double Z)>
+            {
+                (l1a.InicioX, l1a.InicioY, l1a.InicioZ),
+                (l1a.FinX, l1a.FinY, l1a.FinZ),
+                (l1b.InicioX, l1b.InicioY, l1b.InicioZ),
+                (l1b.FinX, l1b.FinY, l1b.FinZ),
+                (l2a.InicioX, l2a.InicioY, l2a.InicioZ),
+                (l2a.FinX, l2a.FinY, l2a.FinZ),
+                (l2b.InicioX, l2b.InicioY, l2b.InicioZ),
+                (l2b.FinX, l2b.FinY, l2b.FinZ)
+            };
+
+            // Eliminar duplicados
+            var puntosUnicos = new List<(double X, double Y, double Z)>();
+            foreach (var p in puntos)
+            {
+                bool esDuplicado = false;
+                foreach (var pu in puntosUnicos)
+                {
+                    if (Distancia(p.X, p.Y, pu.X, pu.Y) < TOLERANCIA)
+                    {
+                        esDuplicado = true;
+                        break;
+                    }
+                }
+                if (!esDuplicado)
+                {
+                    puntosUnicos.Add(p);
+                }
+            }
+
+            // Convertir a PuntoDTO
+            return puntosUnicos.Select(p => new PuntoDTO { X = p.X, Y = p.Y, Z = p.Z }).ToList();
+        }
+
+        /// <summary>
+        /// Clasifica los 4 vértices de un rectángulo en interiores (los 2 más cercanos al centro)
+        /// y exteriores (los 2 más lejanos al centro).
+        /// </summary>
+        private (List<PuntoDTO> Interior, List<PuntoDTO> Exterior) ClasificarVerticesInteriorExterior(List<PuntoDTO> vertices)
+        {
+            if (vertices.Count != 4)
+            {
+                // Fallback si no hay exactamente 4 vértices
+                return (new List<PuntoDTO>(), new List<PuntoDTO>());
+            }
+
+            // Calcular centro del rectángulo
+            double centroX = vertices.Average(v => v.X);
+            double centroY = vertices.Average(v => v.Y);
+
+            // Ordenar por distancia al centro
+            var verticesOrdenados = vertices
+                .Select(v => new { Punto = v, Distancia = Distancia(v.X, v.Y, centroX, centroY) })
+                .OrderBy(x => x.Distancia)
+                .ToList();
+
+            // Los 2 puntos más cercanos al centro son "interiores" (las 2 esquinas internas del marco)
+            // Los 2 puntos más lejanos al centro son "exteriores" (las 2 esquinas externas del marco)
+            var interior = new List<PuntoDTO> { verticesOrdenados[0].Punto, verticesOrdenados[1].Punto };
+            var exterior = new List<PuntoDTO> { verticesOrdenados[2].Punto, verticesOrdenados[3].Punto };
+
+            return (interior, exterior);
+        }
+
+        /// <summary>
+        /// Calcula el punto interior y exterior de una esquina L a partir de 2 pares de líneas paralelas perpendiculares.
+        /// El punto interior es la intersección de las dos líneas más cercanas entre sí (caras interiores del muro).
+        /// El punto exterior es la intersección de las dos líneas más alejadas entre sí (caras exteriores del muro).
+        /// </summary>
+        private (List<PuntoDTO> Interior, List<PuntoDTO> Exterior) CalcularPuntosEsquinaL(
+            LineaDTO l1a, LineaDTO l1b,
+            LineaDTO l2a, LineaDTO l2b)
+        {
+            // Centroide del grupo 2 para determinar qué línea del grupo 1 está más cerca
+            double centroX_g2 = (l2a.InicioX + l2a.FinX + l2b.InicioX + l2b.FinX) / 4.0;
+            double centroY_g2 = (l2a.InicioY + l2a.FinY + l2b.InicioY + l2b.FinY) / 4.0;
+
+            // Centroide del grupo 1 para determinar qué línea del grupo 2 está más cerca
+            double centroX_g1 = (l1a.InicioX + l1a.FinX + l1b.InicioX + l1b.FinX) / 4.0;
+            double centroY_g1 = (l1a.InicioY + l1a.FinY + l1b.InicioY + l1b.FinY) / 4.0;
+
+            // Línea interior del grupo 1 = la más cercana al grupo 2
+            double dist_l1a = DistanciaLineaPunto(l1a, centroX_g2, centroY_g2);
+            double dist_l1b = DistanciaLineaPunto(l1b, centroX_g2, centroY_g2);
+            LineaDTO innerG1 = dist_l1a <= dist_l1b ? l1a : l1b;
+            LineaDTO outerG1 = dist_l1a <= dist_l1b ? l1b : l1a;
+
+            // Línea interior del grupo 2 = la más cercana al grupo 1
+            double dist_l2a = DistanciaLineaPunto(l2a, centroX_g1, centroY_g1);
+            double dist_l2b = DistanciaLineaPunto(l2b, centroX_g1, centroY_g1);
+            LineaDTO innerG2 = dist_l2a <= dist_l2b ? l2a : l2b;
+            LineaDTO outerG2 = dist_l2a <= dist_l2b ? l2b : l2a;
+
+            var interiores = new List<PuntoDTO>();
+            var exteriores = new List<PuntoDTO>();
+
+            // Intersección de líneas interiores → punto interior de la esquina
+            var ptInterior = IntersectarLineas(innerG1, innerG2);
+            if (ptInterior.HasValue)
+                interiores.Add(new PuntoDTO { X = ptInterior.Value.X, Y = ptInterior.Value.Y, Z = 0 });
+
+            // Intersección de líneas exteriores → punto exterior de la esquina
+            var ptExterior = IntersectarLineas(outerG1, outerG2);
+            if (ptExterior.HasValue)
+                exteriores.Add(new PuntoDTO { X = ptExterior.Value.X, Y = ptExterior.Value.Y, Z = 0 });
+
+            return (interiores, exteriores);
+        }
+
+        /// <summary>
+        /// Calcula la intersección de dos líneas (extensión infinita). Devuelve null si son paralelas.
+        /// </summary>
+        private (double X, double Y)? IntersectarLineas(LineaDTO l1, LineaDTO l2)
+        {
+            double x1 = l1.InicioX, y1 = l1.InicioY, x2 = l1.FinX, y2 = l1.FinY;
+            double x3 = l2.InicioX, y3 = l2.InicioY, x4 = l2.FinX, y4 = l2.FinY;
+
+            double denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+            if (Math.Abs(denom) < 1e-10) return null;
+
+            double t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
+
+            return (x1 + t * (x2 - x1), y1 + t * (y2 - y1));
+        }
+
+        /// <summary>
+        /// Distancia perpendicular de un punto (px, py) a la línea definida por la LineaDTO.
+        /// </summary>
+        private double DistanciaLineaPunto(LineaDTO linea, double px, double py)
+        {
+            double x1 = linea.InicioX, y1 = linea.InicioY;
+            double x2 = linea.FinX,   y2 = linea.FinY;
+            double num = Math.Abs((y2 - y1) * px - (x2 - x1) * py + x2 * y1 - y2 * x1);
+            double den = Math.Sqrt(Math.Pow(y2 - y1, 2) + Math.Pow(x2 - x1, 2));
+            return den > 0 ? num / den : 0;
+        }
+
+        /// <summary>
+        /// Elimina puntos duplicados (a menos de TOLERANCIA de distancia).
+        /// </summary>
+        private List<PuntoDTO> EliminarPuntosDuplicados(List<PuntoDTO> puntos)
+        {
+            var puntosUnicos = new List<PuntoDTO>();
+
+            foreach (var p in puntos)
+            {
+                bool esDuplicado = false;
+                foreach (var pu in puntosUnicos)
+                {
+                    if (Distancia(p.X, p.Y, pu.X, pu.Y) < TOLERANCIA)
+                    {
+                        esDuplicado = true;
+                        break;
+                    }
+                }
+                if (!esDuplicado)
+                {
+                    puntosUnicos.Add(p);
+                }
+            }
+
+            return puntosUnicos;
         }
     }
 }

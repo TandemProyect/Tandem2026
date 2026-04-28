@@ -1,8 +1,8 @@
 # 🎯 Guía Completa: Gestión del Panel Azure DevOps
 
 > **Proyecto:** Tandem 2026  
-> **Última actualización:** 2026-04-24  
-> **Propósito:** Documentación centralizada para crear, editar y gestionar User Stories y Tasks en Azure DevOps
+> **Última actualización:** 2026-04-28  
+> **Propósito:** Documentación centralizada para crear, editar y gestionar User Stories, Bugs y Tasks en Azure DevOps
 
 ---
 
@@ -36,6 +36,9 @@ $PAT = "7iXv8E4C8xK90U3zPRV1GrpNyfTf0piLOt1I5xhxkoIWMtvZ0elmJQQJ99CDACAAAAAAAAAA
 | **PAT** | Ver en `Scripts/US.ps1` línea 10 |
 | **URL Base** | `https://dev.azure.com/VSCAD/tandem2026` |
 | **Panel** | https://dev.azure.com/VSCAD/tandem2026/_boards/board/t/tandem2026%20Team/Issues |
+| **Proceso** | `Tandem2026` (heredado de Basic) — ID: `c36c639d-de0d-456d-bc7e-fa8384e4f950` |
+| **Board ID** | `892fa957-9c33-4237-a99f-2660bd9ec80d` |
+| **Project GUID** | `213253e7-f177-4e2d-bdf3-410b97f6883d` |
 
 **⚠️ Si la API devuelve error 404, verifica primero estos valores.**
 
@@ -82,10 +85,129 @@ Invoke-RestMethod -Uri $patchUrl -Headers $headers -Method Patch -Body $body
 6. [Vincular Commits](#6-vincular-commits-a-user-stories)
 7. [Scripts de Referencia](#7-scripts-de-referencia-completos)
 8. [Troubleshooting](#8-troubleshooting)
+9. [Configuración del Panel (Proceso, Columnas, Colores)](#9-configuración-del-panel)
 
 ---
 
-## 1. 🎯 Crear User Stories
+---
+
+## 9. ⚙️ Configuración del Panel
+
+> **Última configuración:** 2026-04-28
+
+### 🗂️ Proceso del Proyecto
+
+El proyecto usa el proceso **Tandem2026**, un proceso heredado de Basic que añade el tipo **Bug**.
+
+| WIT | Color | Uso |
+|-----|-------|-----|
+| `Issue` | 🟢 `#339947` | User Stories / funcionalidades |
+| `Bug` | 🔴 `#CC293D` | Defectos y errores del sistema |
+| `Task` | 🟡 `#A4880A` | Tareas hijas de una US o Bug |
+| `Epic` | 🟠 `#E06C00` | Épicas (agrupación de US) |
+
+**⚠️ Para cambiar el proceso del proyecto (solo desde UI):**
+1. Ve a https://dev.azure.com/VSCAD/_settings/process
+2. Clic en **"Tandem2026"** → pestaña **"Projects"**
+3. Botón **"..."** junto a `tandem2026` → **"Change process"**
+
+---
+
+### 📋 Columnas del Board
+
+El board tiene 9 columnas. Configuradas con el script `Restructurar-Panel.ps1`.
+
+| Columna | Tipo | WIP | Estado ADO |
+|---------|------|-----|------------|
+| **New** | incoming | 50 | To Do |
+| **Tareas a Analizar** | inProgress | 10 | To Do |
+| **Esperando documentacion** | inProgress | 10 | To Do |
+| **Preparado para Realizar** | inProgress | 10 | Doing |
+| **Realizando** | inProgress | 5 | Doing |
+| **Mal Testeo Volver a Realizar** | inProgress | 5 | Doing |
+| **Preparando a testear** | inProgress | 5 | Doing |
+| **Preparado para presentar** | inProgress | 10 | Doing |
+| **Closed** | outgoing | 300 | Done |
+
+**Script para verificar columnas actuales:**
+```powershell
+.\Verificar-Panel.ps1
+```
+
+**Script para reestructurar columnas:**
+```powershell
+.\Restructurar-Panel.ps1
+```
+
+**⚠️ Regla clave de la API de columnas:**
+- Solo la columna `outgoing` puede tener estado `Done`
+- Las columnas `inProgress` solo admiten `To Do` o `Doing`
+- Usar `PUT` (no `PATCH`) para actualizar columnas
+- Conservar los IDs de las columnas `incoming` y `outgoing`
+
+---
+
+### � Colores de Tarjetas (Card Styles)
+
+> **⚠️ La API `cardstylesettings` devuelve 404 en este plan.** Los colores deben configurarse desde la UI del board.
+
+**Para configurar colores por tipo/proyecto:**
+1. Ve al panel: https://dev.azure.com/VSCAD/tandem2026/_boards/board/t/tandem2026%20Team/Issues
+2. Clic en **⚙️** (arriba derecha) → **"Styling"**
+3. Añadir estas reglas en orden:
+
+| Regla | Condición del filtro | Color fondo | Color texto |
+|-------|---------------------|-------------|-------------|
+| Bug | `[System.WorkItemType] = 'Bug'` | `#CC293D` | `#FFFFFF` |
+| ZwcadPlugin | `[System.Tags] Contains 'ZwcadPlugin'` | `#339933` | `#FFFFFF` |
+| Desing | `[System.Tags] Contains 'Desing'` | `#0078D4` | `#FFFFFF` |
+| DAL | `[System.Tags] Contains 'DAL'` | `#E17D00` | `#FFFFFF` |
+
+**Uso de tags para identificar proyecto:**
+Al crear una US o Bug, añade el tag del proyecto al que pertenece:
+```
+ZwcadPlugin   → plugin ZWCAD (TamdenZwcadPluging/)
+Desing        → servidor MVC (Desing/)
+DAL           → capa de datos (DAL/)
+```
+
+---
+
+### 🐛 Crear un Bug
+
+```powershell
+$PAT = "7iXv8E4C8xK90U3zPRV1GrpNyfTf0piLOt1I5xhxkoIWMtvZ0elmJQQJ99CDACAAAAAAAAAAAAASAZDO1BX0"
+$auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$PAT"))
+$headers = @{ Authorization = "Basic $auth"; "Content-Type" = "application/json-patch+json; charset=utf-8" }
+
+$payload = @(
+    @{op="add"; path="/fields/System.Title"; value="Título del bug"},
+    @{op="add"; path="/fields/System.WorkItemType"; value="Bug"},
+    @{op="add"; path="/fields/System.Description"; value="Descripción del problema"},
+    @{op="add"; path="/fields/System.Tags"; value="ZwcadPlugin"}   # tag de proyecto
+) | ConvertTo-Json -Depth 10
+
+$url = "https://dev.azure.com/VSCAD/tandem2026/_apis/wit/workitems/`$Bug?api-version=7.0"
+$result = Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body ([System.Text.Encoding]::UTF8.GetBytes($payload))
+Write-Host "Bug #$($result.id) creado" -ForegroundColor Green
+```
+
+**Desde la UI:** https://dev.azure.com/VSCAD/tandem2026/_workitems/create/Bug
+
+---
+
+### 📁 Scripts del Panel
+
+| Script | Descripción |
+|--------|-------------|
+| `Restructurar-Panel.ps1` | Aplica la estructura de 9 columnas al board |
+| `Verificar-Panel.ps1` | Lista las columnas actuales con tipo y WIP |
+| `Configurar-Proceso-Tandem.ps1` | Crea proceso Tandem2026 + WIT Bug (idempotente) |
+| `Completar-US638.ps1` | Ejemplo de completar US + tasks + adjuntar doc |
+
+---
+
+## 1. �🎯 Crear User Stories
 
 ### ⚡ Método 1: Script Rápido con Story Points (RECOMENDADO - <20 segundos)
 
@@ -962,6 +1084,9 @@ Antes de mover una US a "Done", verifica:
 
 | Fecha | Cambio |
 |-------|--------|
+| 2026-04-28 | ⚙️ **Sección 9 añadida**: Configuración del panel — proceso Tandem2026, WIT Bug, 9 columnas del board, card styles manuales, scripts del panel |
+| 2026-04-28 | 🏗️ **Proceso Tandem2026 creado** (heredado de Basic) + **WIT Bug** (rojo #CC293D) vía API. Migración final de proceso requiere UI |
+| 2026-04-28 | 📋 **Board reestructurado** con 9 columnas via `PUT`. Solución documentada: PUT vs PATCH, IDs fijos, regla de estados por tipo de columna |
 | 2026-04-25 | ⚡ **Agregado Create-US-Fast.ps1**: Script rápido (<20 seg) con soporte Story Points y encoding UTF-8. Añadida sección "Comandos Rápidos Más Usados" al inicio |
 | 2026-04-25 | Agregada sección completa sobre adjuntar documentación a Work Items. Incluye script Attach-Document.ps1, ejemplos, checklist y mejores prácticas |
 | 2026-04-24 | Creación inicial con énfasis en configuración correcta y troubleshooting del error 404 |

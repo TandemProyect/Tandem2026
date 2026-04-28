@@ -29,6 +29,11 @@ namespace Desing.Models
         public double X { get; set; }
         public double Y { get; set; }
         public double Z { get; set; }
+
+        /// <summary>
+        /// Tipo de punto: "Interior" (vértice de esquina) o "Exterior" (vértice opuesto)
+        /// </summary>
+        public string TipoPunto { get; set; }
     }
 
     /// <summary>

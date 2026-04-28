@@ -382,20 +382,33 @@ namespace ZwcadPlugin
                                 Point3d center = new Point3d(punto.X, punto.Y, punto.Z);
                                 Circle circulo = new Circle(center, Vector3d.ZAxis, radioCirculo);
 
-                                // Configurar propiedades del círculo
+                                // Configurar color según el tipo de punto
                                 circulo.Layer = "0"; // Layer por defecto
-                                circulo.ColorIndex = 5; // Color azul para marcar esquinas interiores
+
+                                if (punto.TipoPunto == "Interior")
+                                {
+                                    circulo.ColorIndex = 5; // Azul para esquinas interiores
+                                }
+                                else if (punto.TipoPunto == "Exterior")
+                                {
+                                    circulo.ColorIndex = 1; // Rojo para esquinas exteriores
+                                }
+                                else
+                                {
+                                    circulo.ColorIndex = 5; // Azul por defecto
+                                }
 
                                 // Agregar el círculo al dibujo
                                 btr.AppendEntity(circulo);
                                 tr.AddNewlyCreatedDBObject(circulo, true);
 
                                 puntosDibujados++;
-                                ed.WriteMessage($"\n  Círculo {puntosDibujados}: Centro ({punto.X:F2}, {punto.Y:F2}, {punto.Z:F2}), Radio: {radioCirculo}");
+                                string tipoColor = punto.TipoPunto == "Interior" ? "azul-interior" : punto.TipoPunto == "Exterior" ? "rojo-exterior" : "azul";
+                                ed.WriteMessage($"\n  Círculo {puntosDibujados} ({tipoColor}): Centro ({punto.X:F2}, {punto.Y:F2}, {punto.Z:F2}), Radio: {radioCirculo}");
                             }
 
                             tr.Commit();
-                            ed.WriteMessage($"\n\n✅ {puntosDibujados} círculos dibujados correctamente en el layer '0' (color azul - esquinas interiores)");
+                            ed.WriteMessage($"\n\n✅ {puntosDibujados} círculos dibujados correctamente (azul=interior, rojo=exterior)");
                         }
 
                         // Mostrar información de cada esquina
