@@ -372,6 +372,11 @@ namespace Desing.Services
                     // Calcular puntos de esquina L por intersección de líneas interiores/exteriores
                     var (interior, exterior) = CalcularPuntosEsquinaL(l1a, l1b, l2a, l2b);
 
+                    // Calcular punto verde: 300u desde el interior, hacia el interior del muro (US-664)
+                    var ptVerde = CalcularPuntoVerde(l1a, l1b, l2a, l2b);
+                    if (ptVerde != null)
+                        resultado.PuntosADibujar.Add(ptVerde);
+
                     // 🆕 Registrar detalle de conexiones interiores/exteriores de este panel
                     detalleConexionesPorPanel.Add(new
                     {
@@ -798,6 +803,53 @@ namespace Desing.Services
                 exteriores.Add(new PuntoDTO { X = ptExterior.Value.X, Y = ptExterior.Value.Y, Z = 0 });
 
             return (interiores, exteriores);
+        }
+
+        /// <summary>
+        /// Calcula el punto verde: 300 unidades desde el punto interior (azul)
+        /// en la dirección del interior del muro (a lo largo de innerG2).
+        /// Válido para cualquier orientación de la esquina L.
+        /// </summary>
+        private PuntoDTO CalcularPuntoVerde(LineaDTO l1a, LineaDTO l1b, LineaDTO l2a, LineaDTO l2b)
+        {
+            const double DISTANCIA_VERDE = 300.0;
+
+            double centroX_g2 = (l2a.InicioX + l2a.FinX + l2b.InicioX + l2b.FinX) / 4.0;
+            double centroY_g2 = (l2a.InicioY + l2a.FinY + l2b.InicioY + l2b.FinY) / 4.0;
+            double centroX_g1 = (l1a.InicioX + l1a.FinX + l1b.InicioX + l1b.FinX) / 4.0;
+            double centroY_g1 = (l1a.InicioY + l1a.FinY + l1b.InicioY + l1b.FinY) / 4.0;
+
+            double dist_l1a = DistanciaLineaPunto(l1a, centroX_g2, centroY_g2);
+            double dist_l1b = DistanciaLineaPunto(l1b, centroX_g2, centroY_g2);
+            LineaDTO innerG1 = dist_l1a <= dist_l1b ? l1a : l1b;
+
+            double dist_l2a = DistanciaLineaPunto(l2a, centroX_g1, centroY_g1);
+            double dist_l2b = DistanciaLineaPunto(l2b, centroX_g1, centroY_g1);
+            LineaDTO innerG2 = dist_l2a <= dist_l2b ? l2a : l2b;
+
+            // Punto azul = intersección de líneas interiores
+            var ptAzul = IntersectarLineas(innerG1, innerG2);
+            if (!ptAzul.HasValue) return null;
+
+            // Dirección: desde azul hacia el punto medio de innerG2
+            // El punto medio siempre apunta "hacia el interior del muro",
+            // independientemente de la orientación de la esquina
+            double midG2X = (innerG2.InicioX + innerG2.FinX) / 2.0;
+            double midG2Y = (innerG2.InicioY + innerG2.FinY) / 2.0;
+
+            double dx = midG2X - ptAzul.Value.X;
+            double dy = midG2Y - ptAzul.Value.Y;
+            double dist = Math.Sqrt(dx * dx + dy * dy);
+
+            if (dist < TOLERANCIA) return null;
+
+            return new PuntoDTO
+            {
+                X          = ptAzul.Value.X + (dx / dist) * DISTANCIA_VERDE,
+                Y          = ptAzul.Value.Y + (dy / dist) * DISTANCIA_VERDE,
+                Z          = 0,
+                TipoPunto  = "Verde"
+            };
         }
 
         /// <summary>

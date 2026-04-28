@@ -393,6 +393,10 @@ namespace ZwcadPlugin
                                 {
                                     circulo.ColorIndex = 1; // Rojo para esquinas exteriores
                                 }
+                                else if (punto.TipoPunto == "Verde")
+                                {
+                                    circulo.ColorIndex = 3; // Verde (US-664)
+                                }
                                 else
                                 {
                                     circulo.ColorIndex = 5; // Azul por defecto
@@ -403,7 +407,7 @@ namespace ZwcadPlugin
                                 tr.AddNewlyCreatedDBObject(circulo, true);
 
                                 puntosDibujados++;
-                                string tipoColor = punto.TipoPunto == "Interior" ? "azul-interior" : punto.TipoPunto == "Exterior" ? "rojo-exterior" : "azul";
+                                string tipoColor = punto.TipoPunto == "Interior" ? "azul-interior" : punto.TipoPunto == "Exterior" ? "rojo-exterior" : punto.TipoPunto == "Verde" ? "verde" : "azul";
                                 ed.WriteMessage($"\n  Círculo {puntosDibujados} ({tipoColor}): Centro ({punto.X:F2}, {punto.Y:F2}, {punto.Z:F2}), Radio: {radioCirculo}");
                             }
 
