@@ -831,11 +831,13 @@ namespace Desing.Services
             var ptAzul = IntersectarLineas(innerG1, innerG2);
             if (!ptAzul.HasValue) return null;
 
-            // Dirección: desde azul hacia el punto medio de innerG2
-            // El punto medio siempre apunta "hacia el interior del muro",
-            // independientemente de la orientación de la esquina
-            double midG2X = (innerG2.InicioX + innerG2.FinX) / 2.0;
-            double midG2Y = (innerG2.InicioY + innerG2.FinY) / 2.0;
+            // El punto verde va siempre por el muro VERTICAL (la línea que tiene más recorrido en Y)
+            bool g1EsVertical = Math.Abs(l1a.FinY - l1a.InicioY) > Math.Abs(l1a.FinX - l1a.InicioX);
+            LineaDTO innerVertical = g1EsVertical ? innerG1 : innerG2;
+
+            // Dirección: desde azul hacia el punto medio de la línea interior vertical
+            double midG2X = (innerVertical.InicioX + innerVertical.FinX) / 2.0;
+            double midG2Y = (innerVertical.InicioY + innerVertical.FinY) / 2.0;
 
             double dx = midG2X - ptAzul.Value.X;
             double dy = midG2Y - ptAzul.Value.Y;
