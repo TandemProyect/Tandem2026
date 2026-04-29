@@ -3,19 +3,21 @@
 > **Estado:** ✅ RESUELTO (2026-04-28)  
 > **Script:** `C:\00_Tandem2026\Scripts\Restructurar-Panel.ps1`
 
-## Estructura Actual (9 columnas)
+> **⚠️ NOTA PARA AGENTES:** Los nombres de columna están en **inglés** en el panel UI. Cuando el usuario los menciona entre comillas, usar el valor exacto en inglés. Ver convención completa en `GESTION-PANEL-AZURE-DEVOPS.md`.
 
-| Columna | Tipo | WIP | Estado ADO |
-|---------|------|-----|------------|
-| **New** | incoming | 50 | To Do |
-| **Tareas a Analizar** | inProgress | 10 | To Do |
-| **Esperando documentacion** | inProgress | 10 | To Do |
-| **Preparado para Realizar** | inProgress | 10 | Doing |
-| **Realizando** | inProgress | 5 | Doing |
-| **Mal Testeo Volver a Realizar** | inProgress | 5 | Doing |
-| **Preparando a testear** | inProgress | 5 | Doing |
-| **Preparado para presentar** | inProgress | 10 | Doing |
-| **Closed** | outgoing | 300 | Done |
+## Estructura Actual (9 columnas) — Proceso Agile
+
+| Columna (inglés — valor exacto UI) | Tipo | WIP | Estado ADO |
+|-------------------------------------|------|-----|------------|
+| **New** | incoming | 50 | New |
+| **Tasks to Analyze** | inProgress | 10 | Active |
+| **Waiting for Documentation** | inProgress | 10 | Active |
+| **Ready to Develop** | inProgress | 10 | Active |
+| **In Progress** | inProgress | 5 | Active |
+| **Failed Testing - Redo** | inProgress | 5 | Active |
+| **Preparing to Test** | inProgress | 5 | Active |
+| **Ready to Present** | inProgress | 10 | Resolved |
+| **Closed** | outgoing | 300 | Closed |
 
 ## Solución Correcta vía API
 

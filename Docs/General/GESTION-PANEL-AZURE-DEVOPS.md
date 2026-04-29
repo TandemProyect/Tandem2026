@@ -1,8 +1,21 @@
 # 🎯 Guía Completa: Gestión del Panel Azure DevOps
 
 > **Proyecto:** Tandem 2026  
-> **Última actualización:** 2026-04-28  
+> **Última actualización:** 2026-04-28 15:00  
 > **Propósito:** Documentación centralizada para crear, editar y gestionar User Stories, Bugs y Tasks en Azure DevOps
+
+---
+
+## 🗣️ Convención de Lenguaje para Agentes
+
+> **REGLA IMPORTANTE:** El usuario habla en **español**, pero los valores que escribe **entre comillas** son los valores exactos en **inglés** tal como aparecen en el panel de Azure DevOps.
+>
+> **Ejemplos:**
+> - El usuario dice `muévela a "Ready to Develop"` → usar exactamente `Ready to Develop` en la API
+> - El usuario dice `ponla en "In Progress"` → usar exactamente `In Progress`
+> - El usuario dice `ciérrala en "Closed"` → usar exactamente `Closed`
+>
+> **NUNCA traducir al español los valores entre comillas.** Son literales del panel UI.
 
 ---
 
@@ -35,8 +48,8 @@ $PAT = "7iXv8E4C8xK90U3zPRV1GrpNyfTf0piLOt1I5xhxkoIWMtvZ0elmJQQJ99CDACAAAAAAAAAA
 | **Proyecto** | `tandem2026` |
 | **PAT** | Ver en `Scripts/US.ps1` línea 10 |
 | **URL Base** | `https://dev.azure.com/VSCAD/tandem2026` |
-| **Panel** | https://dev.azure.com/VSCAD/tandem2026/_boards/board/t/tandem2026%20Team/Issues |
-| **Proceso** | `Tandem2026` (heredado de Basic) — ID: `c36c639d-de0d-456d-bc7e-fa8384e4f950` |
+| **Panel** | https://dev.azure.com/VSCAD/tandem2026/_boards/board/t/tandem2026%20Team/Stories |
+| **Proceso** | `Agile` (migrado el 2026-04-28) — Bug nativo incluido |
 | **Board ID** | `892fa957-9c33-4237-a99f-2660bd9ec80d` |
 | **Project GUID** | `213253e7-f177-4e2d-bdf3-410b97f6883d` |
 
@@ -97,37 +110,38 @@ Invoke-RestMethod -Uri $patchUrl -Headers $headers -Method Patch -Body $body
 
 ### 🗂️ Proceso del Proyecto
 
-El proyecto usa el proceso **Tandem2026**, un proceso heredado de Basic que añade el tipo **Bug**.
+El proyecto usa el proceso **Agile** (migrado el 2026-04-28). Bug está disponible de forma nativa.
 
-| WIT | Color | Uso |
-|-----|-------|-----|
-| `Issue` | 🟢 `#339947` | User Stories / funcionalidades |
-| `Bug` | 🔴 `#CC293D` | Defectos y errores del sistema |
-| `Task` | 🟡 `#A4880A` | Tareas hijas de una US o Bug |
-| `Epic` | 🟠 `#E06C00` | Épicas (agrupación de US) |
+| WIT | Uso | Crear vía API |
+|-----|-----|---------------|
+| `User Story` | Funcionalidades / US | `$User%20Story` |
+| `Bug` | Defectos y errores | `$Bug` |
+| `Task` | Tareas hijas | `$Task` |
+| `Feature` | Agrupación de US | `$Feature` |
+| `Epic` | Agrupación de Features | `$Epic` |
 
-**⚠️ Para cambiar el proceso del proyecto (solo desde UI):**
-1. Ve a https://dev.azure.com/VSCAD/_settings/process
-2. Clic en **"Tandem2026"** → pestaña **"Projects"**
-3. Botón **"..."** junto a `tandem2026` → **"Change process"**
+**Estados de User Story:** `New` → `Active` → `Resolved` → `Closed`  
+**Estados de Bug:** `New` → `Active` → `Resolved` → `Closed`
+
+**Bug en el board:** Activado en ⚙️ → General → *"Bugs are managed with requirements"*
 
 ---
 
 ### 📋 Columnas del Board
 
-El board tiene 9 columnas. Configuradas con el script `Restructurar-Panel.ps1`.
+Board: **Stories** (proceso Agile). 9 columnas configuradas con `Restructurar-Panel.ps1`.
 
 | Columna | Tipo | WIP | Estado ADO |
 |---------|------|-----|------------|
-| **New** | incoming | 50 | To Do |
-| **Tareas a Analizar** | inProgress | 10 | To Do |
-| **Esperando documentacion** | inProgress | 10 | To Do |
-| **Preparado para Realizar** | inProgress | 10 | Doing |
-| **Realizando** | inProgress | 5 | Doing |
-| **Mal Testeo Volver a Realizar** | inProgress | 5 | Doing |
-| **Preparando a testear** | inProgress | 5 | Doing |
-| **Preparado para presentar** | inProgress | 10 | Doing |
-| **Closed** | outgoing | 300 | Done |
+| **New** | incoming | 50 | New |
+| **Tasks to Analyze** | inProgress | 10 | Active |
+| **Waiting for Documentation** | inProgress | 10 | Active |
+| **Ready to Develop** | inProgress | 10 | Active |
+| **In Progress** | inProgress | 5 | Active |
+| **Failed Testing - Redo** | inProgress | 5 | Active |
+| **Preparing to Test** | inProgress | 5 | Active |
+| **Ready to Present** | inProgress | 10 | Resolved |
+| **Closed** | outgoing | 300 | Closed |
 
 **Script para verificar columnas actuales:**
 ```powershell
@@ -139,11 +153,13 @@ El board tiene 9 columnas. Configuradas con el script `Restructurar-Panel.ps1`.
 .\Restructurar-Panel.ps1
 ```
 
-**⚠️ Regla clave de la API de columnas:**
-- Solo la columna `outgoing` puede tener estado `Done`
-- Las columnas `inProgress` solo admiten `To Do` o `Doing`
-- Usar `PUT` (no `PATCH`) para actualizar columnas
+**⚠️ Regla clave de la API de columnas (proceso Agile):**
+- Solo la columna `outgoing` puede tener estado `Closed`
+- Las columnas `inProgress` usan `Active` o `Resolved`
+- La columna `incoming` usa `New`
+- Usar `PUT` (no `PATCH`) · stateMappings debe incluir **User Story Y Bug**
 - Conservar los IDs de las columnas `incoming` y `outgoing`
+- Board se llama `Stories` (no `Issues`)
 
 ---
 
@@ -152,7 +168,7 @@ El board tiene 9 columnas. Configuradas con el script `Restructurar-Panel.ps1`.
 > **⚠️ La API `cardstylesettings` devuelve 404 en este plan.** Los colores deben configurarse desde la UI del board.
 
 **Para configurar colores por tipo/proyecto:**
-1. Ve al panel: https://dev.azure.com/VSCAD/tandem2026/_boards/board/t/tandem2026%20Team/Issues
+1. Ve al panel: https://dev.azure.com/VSCAD/tandem2026/_boards/board/t/tandem2026%20Team/Stories
 2. Clic en **⚙️** (arriba derecha) → **"Styling"**
 3. Añadir estas reglas en orden:
 
@@ -200,10 +216,11 @@ Write-Host "Bug #$($result.id) creado" -ForegroundColor Green
 
 | Script | Descripción |
 |--------|-------------|
-| `Restructurar-Panel.ps1` | Aplica la estructura de 9 columnas al board |
+| `Restructurar-Panel.ps1` | Aplica la estructura de 9 columnas al board Stories |
 | `Verificar-Panel.ps1` | Lista las columnas actuales con tipo y WIP |
-| `Configurar-Proceso-Tandem.ps1` | Crea proceso Tandem2026 + WIT Bug (idempotente) |
-| `Completar-US638.ps1` | Ejemplo de completar US + tasks + adjuntar doc |
+| `Configurar-CardStyles.ps1` | Intenta card styles vía API (actualmente 404 en este plan) |
+| `ConsultarBacklog.ps1` | Muestra WITs del backlog y sus estados |
+| `DetectarBoards.ps1` | Lista boards disponibles y proceso actual |
 
 ---
 
@@ -319,9 +336,9 @@ Write-Host "✓ US #$($result.id) creada: $titulo" -ForegroundColor Green
 
 ### Método 4: Interfaz Web
 
-1. Ir al panel: https://dev.azure.com/VSCAD/tandem2026/_boards/board/t/tandem2026%20Team/Issues
+1. Ir al panel: https://dev.azure.com/VSCAD/tandem2026/_boards/board/t/tandem2026%20Team/Stories
 2. Clic en **"+ New Work Item"**
-3. Seleccionar **"Issue"**
+3. Seleccionar **"User Story"**
 4. Completar título y descripción
 5. Guardar (Ctrl+S)
 
@@ -1073,8 +1090,8 @@ Antes de mover una US a "Done", verifica:
 
 | Recurso | URL |
 |---------|-----|
-| **Panel del Proyecto** | https://dev.azure.com/VSCAD/tandem2026/_boards/board/t/tandem2026%20Team/Issues |
-| **Crear Work Item** | https://dev.azure.com/VSCAD/tandem2026/_workitems/create/Issue |
+| **Panel del Proyecto** | https://dev.azure.com/VSCAD/tandem2026/_boards/board/t/tandem2026%20Team/Stories |
+| **Crear Work Item** | https://dev.azure.com/VSCAD/tandem2026/_workitems/create/User%20Story |
 | **API Documentation** | https://learn.microsoft.com/rest/api/azure/devops/wit/ |
 | **GitHub Repo** | https://github.com/JuanGodoyLopez/Tandem-2026 |
 
@@ -1084,7 +1101,10 @@ Antes de mover una US a "Done", verifica:
 
 | Fecha | Cambio |
 |-------|--------|
-| 2026-04-28 | ⚙️ **Sección 9 añadida**: Configuración del panel — proceso Tandem2026, WIT Bug, 9 columnas del board, card styles manuales, scripts del panel |
+| 2026-04-29 | 🗣️ **Convención de comillas documentada**: valores entre comillas = inglés literal del panel UI |
+| 2026-04-29 | 🔗 **URLs corregidas**: `/Issues` → `/Stories` en todos los enlaces |
+| 2026-04-28 | 🔄 **Proceso migrado a Agile**: Board renombrado a 'Stories', columnas renombradas a inglés, Bug disponible nativamente, stateMappings actualizados |
+| 2026-04-28 | ⚙️ **Sección 9 añadida**: Configuración del panel — proceso, columnas, card styles manuales, scripts del panel |
 | 2026-04-28 | 🏗️ **Proceso Tandem2026 creado** (heredado de Basic) + **WIT Bug** (rojo #CC293D) vía API. Migración final de proceso requiere UI |
 | 2026-04-28 | 📋 **Board reestructurado** con 9 columnas via `PUT`. Solución documentada: PUT vs PATCH, IDs fijos, regla de estados por tipo de columna |
 | 2026-04-25 | ⚡ **Agregado Create-US-Fast.ps1**: Script rápido (<20 seg) con soporte Story Points y encoding UTF-8. Añadida sección "Comandos Rápidos Más Usados" al inicio |

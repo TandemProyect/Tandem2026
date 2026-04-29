@@ -29,63 +29,63 @@ $nuevasColumnas = @(
         id           = $idIncoming
         name         = "New"
         itemLimit    = 50
-        stateMappings = @{ "User Story" = "New" }
+        stateMappings = @{ "User Story" = "New"; "Bug" = "New" }
         isSplit      = $false
         description  = ""
         columnType   = "incoming"
     },
     @{
-        name         = "Tareas a Analizar"
+        name         = "Tasks to Analyze"
         itemLimit    = 10
-        stateMappings = @{ "User Story" = "Active" }
+        stateMappings = @{ "User Story" = "Active"; "Bug" = "Active" }
         isSplit      = $false
         description  = ""
         columnType   = "inProgress"
     },
     @{
-        name         = "Esperando documentacion"
+        name         = "Waiting for Documentation"
         itemLimit    = 10
-        stateMappings = @{ "User Story" = "Active" }
+        stateMappings = @{ "User Story" = "Active"; "Bug" = "Active" }
         isSplit      = $false
         description  = ""
         columnType   = "inProgress"
     },
     @{
-        name         = "Preparado para Realizar"
+        name         = "Ready to Develop"
         itemLimit    = 10
-        stateMappings = @{ "User Story" = "Active" }
+        stateMappings = @{ "User Story" = "Active"; "Bug" = "Active" }
         isSplit      = $false
         description  = ""
         columnType   = "inProgress"
     },
     @{
-        name         = "Realizando"
+        name         = "In Progress"
         itemLimit    = 5
-        stateMappings = @{ "User Story" = "Active" }
+        stateMappings = @{ "User Story" = "Active"; "Bug" = "Active" }
         isSplit      = $false
         description  = ""
         columnType   = "inProgress"
     },
     @{
-        name         = "Mal Testeo Volver a Realizar"
+        name         = "Failed Testing - Redo"
         itemLimit    = 5
-        stateMappings = @{ "User Story" = "Active" }
+        stateMappings = @{ "User Story" = "Active"; "Bug" = "Active" }
         isSplit      = $false
         description  = ""
         columnType   = "inProgress"
     },
     @{
-        name         = "Preparando a testear"
+        name         = "Preparing to Test"
         itemLimit    = 5
-        stateMappings = @{ "User Story" = "Active" }
+        stateMappings = @{ "User Story" = "Active"; "Bug" = "Active" }
         isSplit      = $false
         description  = ""
         columnType   = "inProgress"
     },
     @{
-        name         = "Preparado para presentar"
+        name         = "Ready to Present"
         itemLimit    = 10
-        stateMappings = @{ "User Story" = "Resolved" }
+        stateMappings = @{ "User Story" = "Resolved"; "Bug" = "Resolved" }
         isSplit      = $false
         description  = ""
         columnType   = "inProgress"
@@ -94,7 +94,7 @@ $nuevasColumnas = @(
         id           = $idOutgoing
         name         = "Closed"
         itemLimit    = 300
-        stateMappings = @{ "User Story" = "Closed" }
+        stateMappings = @{ "User Story" = "Closed"; "Bug" = "Closed" }
         isSplit      = $false
         description  = ""
         columnType   = "outgoing"
