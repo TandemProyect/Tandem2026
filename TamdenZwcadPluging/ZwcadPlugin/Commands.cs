@@ -409,12 +409,15 @@ namespace ZwcadPlugin
                                 BlockTableRecord btr = tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
                                 LayerTable lt = tr.GetObject(db.LayerTableId, OpenMode.ForWrite) as LayerTable;
 
-                                // Crear capa ObjetoDB2d si no existe
-                                if (!lt.Has("ObjetoDB2d"))
+                                // Crear capas si no existen
+                                foreach (var nombreCapa in new[] { "ObjetoDB2d", "ModelDesing" })
                                 {
-                                    var capa = new LayerTableRecord { Name = "ObjetoDB2d" };
-                                    lt.Add(capa);
-                                    tr.AddNewlyCreatedDBObject(capa, true);
+                                    if (!lt.Has(nombreCapa))
+                                    {
+                                        var capa = new LayerTableRecord { Name = nombreCapa };
+                                        lt.Add(capa);
+                                        tr.AddNewlyCreatedDBObject(capa, true);
+                                    }
                                 }
 
                                 int polysDibujadas = 0;
@@ -429,6 +432,8 @@ namespace ZwcadPlugin
                                         lwp.AddVertexAt(i, new Point2d(v.X, v.Y), 0, 0, 0);
                                     }
                                     lwp.Closed = poly.Cerrada;
+                                    if (poly.AlturaExtrusion > 0)
+                                        lwp.Thickness = poly.AlturaExtrusion;
                                     btr.AppendEntity(lwp);
                                     tr.AddNewlyCreatedDBObject(lwp, true);
                                     polysDibujadas++;

@@ -425,18 +425,32 @@ namespace Desing.Services
                     if (ptMagenta  != null) todosPuntosMagenta.Add(ptMagenta);
                     if (ptCriss    != null) todosPuntosCriss.Add(ptCriss);
 
-                    // US-675: polilínea ObjetoDB2d — orden 3→5→2→4→1→7 (cerrada)
+                    // US-675/679: polilíneas por esquina — orden 3→5→2→4→1→7 (cerrada)
                     var ptInterior = interior.FirstOrDefault();
                     var ptExterior = exterior.FirstOrDefault();
                     if (ptVerde != null && ptInterior != null && ptAmarillo != null &&
                         ptCian  != null && ptExterior != null && ptBlanco   != null)
                     {
+                        var verticesEsquina = new List<PuntoDTO> { ptVerde, ptInterior, ptAmarillo, ptCian, ptExterior, ptBlanco };
+
+                        // Polilínea original — capa ObjetoDB2d, sin extrusión
                         resultado.PolilineasADibujar.Add(new PolilineaDTO
                         {
-                            Cerrada    = true,
-                            Capa       = "ObjetoDB2d",
-                            ColorIndex = 256,
-                            Vertices   = new List<PuntoDTO> { ptVerde, ptInterior, ptAmarillo, ptCian, ptExterior, ptBlanco }
+                            Cerrada         = true,
+                            Capa            = "ObjetoDB2d",
+                            ColorIndex      = 256,
+                            AlturaExtrusion = 0,
+                            Vertices        = verticesEsquina
+                        });
+
+                        // Polilínea extruida — capa ModelDesing, 2700mm en Z
+                        resultado.PolilineasADibujar.Add(new PolilineaDTO
+                        {
+                            Cerrada         = true,
+                            Capa            = "ModelDesing",
+                            ColorIndex      = 256,
+                            AlturaExtrusion = 2700,
+                            Vertices        = verticesEsquina
                         });
                     }
 

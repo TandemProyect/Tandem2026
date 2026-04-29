@@ -151,6 +151,7 @@ namespace ZwcadPlugin.Models
         public bool Cerrada { get; set; }
         public string Capa { get; set; }
         public int ColorIndex { get; set; }
+        public double AlturaExtrusion { get; set; }  // 0 = sin extrusión
     }
 
     /// <summary>
