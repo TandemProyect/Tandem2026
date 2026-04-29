@@ -16,6 +16,22 @@ namespace Desing.Services
         private const double OFFSET_MINIMO_PANEL = 50.0;   // Distancia mínima entre líneas paralelas (rechaza colineales de distintas esquinas)
         private const double OFFSET_MAXIMO_PANEL = 1500.0; // Distancia máxima entre líneas paralelas para considerar un panel válido
 
+        private static readonly double[] MEDIDAS_PANEL = { 300, 450, 600, 750, 1050, 1200, 1350, 1500, 1650, 1800, 2100 };
+
+        private bool EsMedidaEstandar(double dist)
+        {
+            const double TOL = 1.0;
+            return MEDIDAS_PANEL.Any(m => Math.Abs(dist - m) <= TOL);
+        }
+
+        private double MayorEstandarMenorQue(double dist)
+        {
+            double resultado = -1;
+            foreach (var m in MEDIDAS_PANEL)
+                if (m < dist - 1.0) resultado = m;
+            return resultado;
+        }
+
         /// <summary>
         /// Detecta conexiones entre líneas (puntos donde se tocan)
         /// </summary>
@@ -364,6 +380,8 @@ namespace Desing.Services
                 var todosPuntosAmarillo = new List<PuntoDTO>();
                 var todosPuntosBlanco   = new List<PuntoDTO>();
                 var todosPuntosCian     = new List<PuntoDTO>();
+                var todosPuntosMagenta  = new List<PuntoDTO>();
+                var todosPuntosCriss    = new List<PuntoDTO>();
 
                 // Evitar procesar el mismo conjunto de 4 líneas dos veces
                 // (el algoritmo puede detectar el mismo panel con grupos intercambiados)
@@ -397,12 +415,14 @@ namespace Desing.Services
                     // Calcular puntos de esquina L por intersección de líneas interiores/exteriores
                     var (interior, exterior) = CalcularPuntosEsquinaL(l1a, l1b, l2a, l2b);
 
-                    // Calcular 4 puntos de panel (US-668)
-                    var (ptVerde, ptAmarillo, ptBlanco, ptCian) = CalcularPuntosPanel(l1a, l1b, l2a, l2b);
+                    // Calcular 6 puntos de panel (US-668 + US-671)
+                    var (ptVerde, ptAmarillo, ptBlanco, ptCian, ptMagenta, ptCriss) = CalcularPuntosPanel(l1a, l1b, l2a, l2b);
                     if (ptVerde    != null) todosPuntosVerde.Add(ptVerde);
                     if (ptAmarillo != null) todosPuntosAmarillo.Add(ptAmarillo);
                     if (ptBlanco   != null) todosPuntosBlanco.Add(ptBlanco);
                     if (ptCian     != null) todosPuntosCian.Add(ptCian);
+                    if (ptMagenta  != null) todosPuntosMagenta.Add(ptMagenta);
+                    if (ptCriss    != null) todosPuntosCriss.Add(ptCriss);
 
                     // 🆕 Registrar detalle de conexiones interiores/exteriores de este panel
                     detalleConexionesPorPanel.Add(new
@@ -445,6 +465,8 @@ namespace Desing.Services
                 foreach (var punto in EliminarPuntosDuplicados(todosPuntosAmarillo)) resultado.PuntosADibujar.Add(punto);
                 foreach (var punto in EliminarPuntosDuplicados(todosPuntosBlanco))   resultado.PuntosADibujar.Add(punto);
                 foreach (var punto in EliminarPuntosDuplicados(todosPuntosCian))     resultado.PuntosADibujar.Add(punto);
+                foreach (var punto in EliminarPuntosDuplicados(todosPuntosMagenta))  resultado.PuntosADibujar.Add(punto);
+                foreach (var punto in EliminarPuntosDuplicados(todosPuntosCriss))    resultado.PuntosADibujar.Add(punto);
             }
             else
             {
@@ -844,7 +866,7 @@ namespace Desing.Services
         ///   Blanco   = ptRojo + (espV + 300mm) cara exterior HORIZONTAL
         ///   Cian     = ptRojo + (espH + 300mm) cara exterior VERTICAL
         /// </summary>
-        private (PuntoDTO Verde, PuntoDTO Amarillo, PuntoDTO Blanco, PuntoDTO Cian) CalcularPuntosPanel(
+        private (PuntoDTO Verde, PuntoDTO Amarillo, PuntoDTO Blanco, PuntoDTO Cian, PuntoDTO Magenta, PuntoDTO Criss) CalcularPuntosPanel(
             LineaDTO l1a, LineaDTO l1b, LineaDTO l2a, LineaDTO l2b)
         {
             const double DIST = 300.0;
@@ -864,7 +886,7 @@ namespace Desing.Services
 
             var ptAzul = IntersectarLineas(innerG1, innerG2);
             var ptRojo = IntersectarLineas(outerG1, outerG2);
-            if (!ptAzul.HasValue || !ptRojo.HasValue) return (null, null, null, null);
+            if (!ptAzul.HasValue || !ptRojo.HasValue) return (null, null, null, null, null, null);
 
             bool g1EsH = Math.Abs(innerG1.FinX - innerG1.InicioX) >= Math.Abs(innerG1.FinY - innerG1.InicioY);
             LineaDTO innerH = g1EsH ? innerG1 : innerG2;
@@ -880,7 +902,24 @@ namespace Desing.Services
             var blanco   = PuntoPolar(ptRojo.Value, outerH, espV + DIST, "Blanco");
             var cian     = PuntoPolar(ptRojo.Value, outerV, espH + DIST, "Cian");
 
-            return (verde, amarillo, blanco, cian);
+            // US-671: puntos de remate — solo si espV+300 / espH+300 NO son medida estándar
+            PuntoDTO magenta = null, criss = null;
+
+            double distBlanco = espV + DIST;
+            if (!EsMedidaEstandar(distBlanco))
+            {
+                double dMagenta = MayorEstandarMenorQue(distBlanco);
+                if (dMagenta > 0) magenta = PuntoPolar(ptRojo.Value, outerH, dMagenta, "Magenta");
+            }
+
+            double distCian = espH + DIST;
+            if (!EsMedidaEstandar(distCian))
+            {
+                double dCriss = MayorEstandarMenorQue(distCian);
+                if (dCriss > 0) criss = PuntoPolar(ptRojo.Value, outerV, dCriss, "Criss");
+            }
+
+            return (verde, amarillo, blanco, cian, magenta, criss);
         }
 
         private PuntoDTO PuntoPolar((double X, double Y) ptBase, LineaDTO linea, double distancia, string tipo)

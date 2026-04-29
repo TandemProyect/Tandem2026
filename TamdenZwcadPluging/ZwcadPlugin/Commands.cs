@@ -409,6 +409,14 @@ namespace ZwcadPlugin
                                 {
                                     circulo.ColorIndex = 4; // Cian
                                 }
+                                else if (punto.TipoPunto == "Magenta")
+                                {
+                                    circulo.ColorIndex = 6; // Magenta (remate horizontal)
+                                }
+                                else if (punto.TipoPunto == "Criss")
+                                {
+                                    circulo.ColorIndex = 9; // Gris (remate vertical)
+                                }
                                 else
                                 {
                                     circulo.ColorIndex = 5; // Azul por defecto
@@ -425,6 +433,8 @@ namespace ZwcadPlugin
                                     : punto.TipoPunto == "Amarillo"  ? "amarillo"
                                     : punto.TipoPunto == "Blanco"    ? "blanco"
                                     : punto.TipoPunto == "Cian"      ? "cian"
+                                    : punto.TipoPunto == "Magenta"   ? "magenta"
+                                    : punto.TipoPunto == "Criss"     ? "criss"
                                     : "azul";
                                 ed.WriteMessage($"\n  Círculo {puntosDibujados} ({tipoColor}): Centro ({punto.X:F2}, {punto.Y:F2}, {punto.Z:F2}), Radio: {radioCirculo}");
                             }
