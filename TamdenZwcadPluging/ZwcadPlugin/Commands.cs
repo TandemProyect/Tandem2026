@@ -400,6 +400,45 @@ namespace ZwcadPlugin
                             ed.WriteMessage($"\n\n✅ {puntosDibujados} círculos dibujados correctamente (azul=interior, rojo=exterior)");
                         }
 
+                        // Dibujar polilíneas ObjetoDB2d
+                        if (respuesta.Datos.PolilineasADibujar != null && respuesta.Datos.PolilineasADibujar.Count > 0)
+                        {
+                            using (Transaction tr = db.TransactionManager.StartTransaction())
+                            {
+                                BlockTable bt = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
+                                BlockTableRecord btr = tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
+                                LayerTable lt = tr.GetObject(db.LayerTableId, OpenMode.ForWrite) as LayerTable;
+
+                                // Crear capa ObjetoDB2d si no existe
+                                if (!lt.Has("ObjetoDB2d"))
+                                {
+                                    var capa = new LayerTableRecord { Name = "ObjetoDB2d" };
+                                    lt.Add(capa);
+                                    tr.AddNewlyCreatedDBObject(capa, true);
+                                }
+
+                                int polysDibujadas = 0;
+                                foreach (var poly in respuesta.Datos.PolilineasADibujar)
+                                {
+                                    if (poly.Vertices == null || poly.Vertices.Count < 2) continue;
+                                    var lwp = new Polyline();
+                                    lwp.Layer = poly.Capa;
+                                    for (int i = 0; i < poly.Vertices.Count; i++)
+                                    {
+                                        var v = poly.Vertices[i];
+                                        lwp.AddVertexAt(i, new Point2d(v.X, v.Y), 0, 0, 0);
+                                    }
+                                    lwp.Closed = poly.Cerrada;
+                                    btr.AppendEntity(lwp);
+                                    tr.AddNewlyCreatedDBObject(lwp, true);
+                                    polysDibujadas++;
+                                }
+
+                                tr.Commit();
+                                ed.WriteMessage($"\n✅ {polysDibujadas} polilínea(s) ObjetoDB2d dibujadas correctamente");
+                            }
+                        }
+
                         // Mostrar información de cada esquina
                         if (respuesta.Datos.Esquinas != null && respuesta.Datos.Esquinas.Count > 0)
                         {

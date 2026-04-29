@@ -40,7 +40,8 @@ namespace Desing.Services
             var resultado = new DeteccionEsquinasLDTO
             {
                 Esquinas = new List<EsquinaLDTO>(),
-                PuntosADibujar = new List<PuntoDTO>()
+                PuntosADibujar = new List<PuntoDTO>(),
+                PolilineasADibujar = new List<PolilineaDTO>()
             };
 
             if (lineas == null || lineas.Count < 2)
@@ -423,6 +424,21 @@ namespace Desing.Services
                     if (ptCian     != null) todosPuntosCian.Add(ptCian);
                     if (ptMagenta  != null) todosPuntosMagenta.Add(ptMagenta);
                     if (ptCriss    != null) todosPuntosCriss.Add(ptCriss);
+
+                    // US-675: polilínea ObjetoDB2d — orden 3→5→2→4→1→7 (cerrada)
+                    var ptInterior = interior.FirstOrDefault();
+                    var ptExterior = exterior.FirstOrDefault();
+                    if (ptVerde != null && ptInterior != null && ptAmarillo != null &&
+                        ptCian  != null && ptExterior != null && ptBlanco   != null)
+                    {
+                        resultado.PolilineasADibujar.Add(new PolilineaDTO
+                        {
+                            Cerrada    = true,
+                            Capa       = "ObjetoDB2d",
+                            ColorIndex = 256,
+                            Vertices   = new List<PuntoDTO> { ptVerde, ptInterior, ptAmarillo, ptCian, ptExterior, ptBlanco }
+                        });
+                    }
 
                     // 🆕 Registrar detalle de conexiones interiores/exteriores de este panel
                     detalleConexionesPorPanel.Add(new

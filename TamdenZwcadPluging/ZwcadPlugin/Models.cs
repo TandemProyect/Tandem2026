@@ -143,6 +143,17 @@ namespace ZwcadPlugin.Models
     }
 
     /// <summary>
+    /// Polilínea a dibujar en ZWCAD (ObjetoDB2d)
+    /// </summary>
+    public class PolilineaDTO
+    {
+        public List<PuntoDTO> Vertices { get; set; }
+        public bool Cerrada { get; set; }
+        public string Capa { get; set; }
+        public int ColorIndex { get; set; }
+    }
+
+    /// <summary>
     /// Respuesta del servidor con esquinas L detectadas
     /// </summary>
     public class DeteccionEsquinasLDTO
@@ -161,6 +172,11 @@ namespace ZwcadPlugin.Models
         /// Puntos a dibujar en ZWCAD para visualización
         /// </summary>
         public List<PuntoDTO> PuntosADibujar { get; set; }
+
+        /// <summary>
+        /// Polilíneas a dibujar en capa ObjetoDB2d
+        /// </summary>
+        public List<PolilineaDTO> PolilineasADibujar { get; set; }
 
         /// <summary>
         /// Mensaje descriptivo del resultado
