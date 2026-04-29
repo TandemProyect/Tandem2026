@@ -367,3 +367,7 @@ FodyWeavers.xsd
 
 # Archivos ZIP grandes
 Desing/Publis/Exporters-master.zip
+
+# Carpetas excluidas del repositorio
+No_Publicar/
+IA/ejemplos/imagenes/
