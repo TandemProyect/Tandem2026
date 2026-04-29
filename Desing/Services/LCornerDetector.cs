@@ -34,6 +34,9 @@ namespace Desing.Services
                 return resultado;
             }
 
+            // Expandir polilíneas en segmentos individuales
+            lineas = ExpandirPolilineas(lineas);
+
             // Solo procesar líneas simples
             var lineasSimples = lineas.Where(l => l.Tipo == "Line").ToList();
 
@@ -358,6 +361,9 @@ namespace Desing.Services
                 var todosPuntosInterior = new List<PuntoDTO>();
                 var todosPuntosExterior = new List<PuntoDTO>();
                 var todosPuntosVerde    = new List<PuntoDTO>();
+                var todosPuntosAmarillo = new List<PuntoDTO>();
+                var todosPuntosBlanco   = new List<PuntoDTO>();
+                var todosPuntosCian     = new List<PuntoDTO>();
 
                 // Evitar procesar el mismo conjunto de 4 líneas dos veces
                 // (el algoritmo puede detectar el mismo panel con grupos intercambiados)
@@ -391,10 +397,12 @@ namespace Desing.Services
                     // Calcular puntos de esquina L por intersección de líneas interiores/exteriores
                     var (interior, exterior) = CalcularPuntosEsquinaL(l1a, l1b, l2a, l2b);
 
-                    // Calcular punto verde: 300u desde el interior, hacia el interior del muro (US-664)
-                    var ptVerde = CalcularPuntoVerde(l1a, l1b, l2a, l2b);
-                    if (ptVerde != null)
-                        todosPuntosVerde.Add(ptVerde);
+                    // Calcular 4 puntos de panel (US-668)
+                    var (ptVerde, ptAmarillo, ptBlanco, ptCian) = CalcularPuntosPanel(l1a, l1b, l2a, l2b);
+                    if (ptVerde    != null) todosPuntosVerde.Add(ptVerde);
+                    if (ptAmarillo != null) todosPuntosAmarillo.Add(ptAmarillo);
+                    if (ptBlanco   != null) todosPuntosBlanco.Add(ptBlanco);
+                    if (ptCian     != null) todosPuntosCian.Add(ptCian);
 
                     // 🆕 Registrar detalle de conexiones interiores/exteriores de este panel
                     detalleConexionesPorPanel.Add(new
@@ -433,10 +441,10 @@ namespace Desing.Services
                     resultado.PuntosADibujar.Add(punto);
                 }
 
-                foreach (var punto in EliminarPuntosDuplicados(todosPuntosVerde))
-                {
-                    resultado.PuntosADibujar.Add(punto);
-                }
+                foreach (var punto in EliminarPuntosDuplicados(todosPuntosVerde))    resultado.PuntosADibujar.Add(punto);
+                foreach (var punto in EliminarPuntosDuplicados(todosPuntosAmarillo)) resultado.PuntosADibujar.Add(punto);
+                foreach (var punto in EliminarPuntosDuplicados(todosPuntosBlanco))   resultado.PuntosADibujar.Add(punto);
+                foreach (var punto in EliminarPuntosDuplicados(todosPuntosCian))     resultado.PuntosADibujar.Add(punto);
             }
             else
             {
@@ -830,50 +838,91 @@ namespace Desing.Services
         }
 
         /// <summary>
-        /// Calcula el punto verde: 300 unidades desde el punto interior (azul)
-        /// en la dirección del interior del muro (a lo largo de innerG2).
-        /// Válido para cualquier orientación de la esquina L.
+        /// Calcula los 4 puntos de panel (US-668):
+        ///   Verde    = ptAzul + 300mm brazo interior HORIZONTAL
+        ///   Amarillo = ptAzul + 300mm brazo interior VERTICAL
+        ///   Blanco   = ptRojo + (espV + 300mm) cara exterior HORIZONTAL
+        ///   Cian     = ptRojo + (espH + 300mm) cara exterior VERTICAL
         /// </summary>
-        private PuntoDTO CalcularPuntoVerde(LineaDTO l1a, LineaDTO l1b, LineaDTO l2a, LineaDTO l2b)
+        private (PuntoDTO Verde, PuntoDTO Amarillo, PuntoDTO Blanco, PuntoDTO Cian) CalcularPuntosPanel(
+            LineaDTO l1a, LineaDTO l1b, LineaDTO l2a, LineaDTO l2b)
         {
-            const double DISTANCIA_VERDE = 300.0;
+            const double DIST = 300.0;
 
-            // Centro de cada grupo para identificar la línea interior de cada par
             double cxG2 = (l2a.InicioX + l2a.FinX + l2b.InicioX + l2b.FinX) / 4.0;
             double cyG2 = (l2a.InicioY + l2a.FinY + l2b.InicioY + l2b.FinY) / 4.0;
             double cxG1 = (l1a.InicioX + l1a.FinX + l1b.InicioX + l1b.FinX) / 4.0;
             double cyG1 = (l1a.InicioY + l1a.FinY + l1b.InicioY + l1b.FinY) / 4.0;
 
-            LineaDTO innerG1 = DistanciaLineaPunto(l1a, cxG2, cyG2) <= DistanciaLineaPunto(l1b, cxG2, cyG2) ? l1a : l1b;
-            LineaDTO innerG2 = DistanciaLineaPunto(l2a, cxG1, cyG1) <= DistanciaLineaPunto(l2b, cxG1, cyG1) ? l2a : l2b;
+            bool l1aEsInner = DistanciaLineaPunto(l1a, cxG2, cyG2) <= DistanciaLineaPunto(l1b, cxG2, cyG2);
+            LineaDTO innerG1 = l1aEsInner ? l1a : l1b;
+            LineaDTO outerG1 = l1aEsInner ? l1b : l1a;
 
-            // Punto azul = intersección de las dos líneas interiores
+            bool l2aEsInner = DistanciaLineaPunto(l2a, cxG1, cyG1) <= DistanciaLineaPunto(l2b, cxG1, cyG1);
+            LineaDTO innerG2 = l2aEsInner ? l2a : l2b;
+            LineaDTO outerG2 = l2aEsInner ? l2b : l2a;
+
             var ptAzul = IntersectarLineas(innerG1, innerG2);
-            if (!ptAzul.HasValue) return null;
+            var ptRojo = IntersectarLineas(outerG1, outerG2);
+            if (!ptAzul.HasValue || !ptRojo.HasValue) return (null, null, null, null);
 
-            // Línea interior del muro con mayor recorrido vertical
-            LineaDTO innerVertical = Math.Abs(innerG1.FinY - innerG1.InicioY) >= Math.Abs(innerG1.FinX - innerG1.InicioX)
-                ? innerG1 : innerG2;
+            bool g1EsH = Math.Abs(innerG1.FinX - innerG1.InicioX) >= Math.Abs(innerG1.FinY - innerG1.InicioY);
+            LineaDTO innerH = g1EsH ? innerG1 : innerG2;
+            LineaDTO innerV = g1EsH ? innerG2 : innerG1;
+            LineaDTO outerH = g1EsH ? outerG1 : outerG2;
+            LineaDTO outerV = g1EsH ? outerG2 : outerG1;
 
-            // El extremo más alejado del azul indica la dirección hacia el interior del muro
-            double dIni2 = Math.Pow(innerVertical.InicioX - ptAzul.Value.X, 2) + Math.Pow(innerVertical.InicioY - ptAzul.Value.Y, 2);
-            double dFin2 = Math.Pow(innerVertical.FinX    - ptAzul.Value.X, 2) + Math.Pow(innerVertical.FinY    - ptAzul.Value.Y, 2);
-            double refX  = dFin2 >= dIni2 ? innerVertical.FinX : innerVertical.InicioX;
-            double refY  = dFin2 >= dIni2 ? innerVertical.FinY : innerVertical.InicioY;
+            double espV = CalcularDistanciaEntreLineasParalelas(g1EsH ? l2a : l1a, g1EsH ? l2b : l1b);
+            double espH = CalcularDistanciaEntreLineasParalelas(g1EsH ? l1a : l2a, g1EsH ? l1b : l2b);
 
-            // Punto polar: desde azul, ángulo de la línea interior, distancia 300
-            double dx   = refX - ptAzul.Value.X;
-            double dy   = refY - ptAzul.Value.Y;
-            double dist = Math.Sqrt(dx * dx + dy * dy);
-            if (dist < TOLERANCIA) return null;
+            var verde    = PuntoPolar(ptAzul.Value, innerH, DIST,        "Verde");
+            var amarillo = PuntoPolar(ptAzul.Value, innerV, DIST,        "Amarillo");
+            var blanco   = PuntoPolar(ptRojo.Value, outerH, espV + DIST, "Blanco");
+            var cian     = PuntoPolar(ptRojo.Value, outerV, espH + DIST, "Cian");
 
-            return new PuntoDTO
+            return (verde, amarillo, blanco, cian);
+        }
+
+        private PuntoDTO PuntoPolar((double X, double Y) ptBase, LineaDTO linea, double distancia, string tipo)
+        {
+            double dIni2 = Math.Pow(linea.InicioX - ptBase.X, 2) + Math.Pow(linea.InicioY - ptBase.Y, 2);
+            double dFin2 = Math.Pow(linea.FinX    - ptBase.X, 2) + Math.Pow(linea.FinY    - ptBase.Y, 2);
+            double refX  = dFin2 >= dIni2 ? linea.FinX : linea.InicioX;
+            double refY  = dFin2 >= dIni2 ? linea.FinY : linea.InicioY;
+            double dx = refX - ptBase.X;
+            double dy = refY - ptBase.Y;
+            double d  = Math.Sqrt(dx * dx + dy * dy);
+            if (d < TOLERANCIA) return null;
+            return new PuntoDTO { X = ptBase.X + (dx / d) * distancia, Y = ptBase.Y + (dy / d) * distancia, Z = 0, TipoPunto = tipo };
+        }
+
+        private List<LineaDTO> ExpandirPolilineas(List<LineaDTO> lineas)
+        {
+            var resultado = new List<LineaDTO>();
+            foreach (var l in lineas)
             {
-                X         = ptAzul.Value.X + (dx / dist) * DISTANCIA_VERDE,
-                Y         = ptAzul.Value.Y + (dy / dist) * DISTANCIA_VERDE,
-                Z         = 0,
-                TipoPunto = "Verde"
-            };
+                if (l.Tipo != "Polyline" || l.Vertices == null || l.Vertices.Count < 2)
+                {
+                    resultado.Add(l);
+                    continue;
+                }
+                for (int i = 0; i < l.Vertices.Count - 1; i++)
+                {
+                    var v0 = l.Vertices[i];
+                    var v1 = l.Vertices[i + 1];
+                    double dx = v1.X - v0.X, dy = v1.Y - v0.Y;
+                    resultado.Add(new LineaDTO
+                    {
+                        Tipo     = "Line",
+                        InicioX  = v0.X, InicioY = v0.Y, InicioZ = v0.Z,
+                        FinX     = v1.X, FinY    = v1.Y, FinZ    = v1.Z,
+                        Layer    = l.Layer,
+                        Color    = l.Color,
+                        Longitud = Math.Sqrt(dx * dx + dy * dy)
+                    });
+                }
+            }
+            return resultado;
         }
 
         /// <summary>

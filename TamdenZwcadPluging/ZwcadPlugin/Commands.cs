@@ -395,7 +395,19 @@ namespace ZwcadPlugin
                                 }
                                 else if (punto.TipoPunto == "Verde")
                                 {
-                                    circulo.ColorIndex = 3; // Verde (US-664)
+                                    circulo.ColorIndex = 3; // Verde
+                                }
+                                else if (punto.TipoPunto == "Amarillo")
+                                {
+                                    circulo.ColorIndex = 2; // Amarillo
+                                }
+                                else if (punto.TipoPunto == "Blanco")
+                                {
+                                    circulo.ColorIndex = 7; // Blanco
+                                }
+                                else if (punto.TipoPunto == "Cian")
+                                {
+                                    circulo.ColorIndex = 4; // Cian
                                 }
                                 else
                                 {
@@ -407,7 +419,13 @@ namespace ZwcadPlugin
                                 tr.AddNewlyCreatedDBObject(circulo, true);
 
                                 puntosDibujados++;
-                                string tipoColor = punto.TipoPunto == "Interior" ? "azul-interior" : punto.TipoPunto == "Exterior" ? "rojo-exterior" : punto.TipoPunto == "Verde" ? "verde" : "azul";
+                                string tipoColor = punto.TipoPunto == "Interior"  ? "azul"
+                                    : punto.TipoPunto == "Exterior"  ? "rojo"
+                                    : punto.TipoPunto == "Verde"     ? "verde"
+                                    : punto.TipoPunto == "Amarillo"  ? "amarillo"
+                                    : punto.TipoPunto == "Blanco"    ? "blanco"
+                                    : punto.TipoPunto == "Cian"      ? "cian"
+                                    : "azul";
                                 ed.WriteMessage($"\n  Círculo {puntosDibujados} ({tipoColor}): Centro ({punto.X:F2}, {punto.Y:F2}, {punto.Z:F2}), Radio: {radioCirculo}");
                             }
 
