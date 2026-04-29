@@ -451,13 +451,15 @@ namespace Desing.Services
                 // Agregar puntos únicos a la lista de dibujo
                 foreach (var punto in puntosInteriorUnicos)
                 {
-                    punto.TipoPunto = "Interior";
+                    punto.TipoPunto  = "PtEInterior";
+                    punto.ColorIndex = (int)TipoPunto.PtEInterior;
                     resultado.PuntosADibujar.Add(punto);
                 }
 
                 foreach (var punto in puntosExteriorUnicos)
                 {
-                    punto.TipoPunto = "Exterior";
+                    punto.TipoPunto  = "PtEExteriro";
+                    punto.ColorIndex = (int)TipoPunto.PtEExteriro;
                     resultado.PuntosADibujar.Add(punto);
                 }
 
@@ -473,7 +475,8 @@ namespace Desing.Services
                 // Si no hay paneles válidos, usar conexiones individuales
                 foreach (var esquina in resultado.Esquinas)
                 {
-                    esquina.Vertice.TipoPunto = "Interior"; // Por defecto, las conexiones individuales son interiores
+                    esquina.Vertice.TipoPunto  = "PtEInterior";
+                    esquina.Vertice.ColorIndex = (int)TipoPunto.PtEInterior;
                     resultado.PuntosADibujar.Add(esquina.Vertice);
                 }
             }
@@ -897,10 +900,10 @@ namespace Desing.Services
             double espV = CalcularDistanciaEntreLineasParalelas(g1EsH ? l2a : l1a, g1EsH ? l2b : l1b);
             double espH = CalcularDistanciaEntreLineasParalelas(g1EsH ? l1a : l2a, g1EsH ? l1b : l2b);
 
-            var verde    = PuntoPolar(ptAzul.Value, innerH, DIST,        "Verde");
-            var amarillo = PuntoPolar(ptAzul.Value, innerV, DIST,        "Amarillo");
-            var blanco   = PuntoPolar(ptRojo.Value, outerH, espV + DIST, "Blanco");
-            var cian     = PuntoPolar(ptRojo.Value, outerV, espH + DIST, "Cian");
+            var verde    = PuntoPolar(ptAzul.Value, innerH, DIST,        "PtEInt300H");
+            var amarillo = PuntoPolar(ptAzul.Value, innerV, DIST,        "PtEInt300V");
+            var blanco   = PuntoPolar(ptRojo.Value, outerH, espV + DIST, "PtEExt300H");
+            var cian     = PuntoPolar(ptRojo.Value, outerV, espH + DIST, "PtEExt300V");
 
             // US-671: puntos de remate — solo si espV+300 / espH+300 NO son medida estándar
             PuntoDTO magenta = null, criss = null;
@@ -909,14 +912,14 @@ namespace Desing.Services
             if (!EsMedidaEstandar(distBlanco))
             {
                 double dMagenta = MayorEstandarMenorQue(distBlanco);
-                if (dMagenta > 0) magenta = PuntoPolar(ptRojo.Value, outerH, dMagenta, "Magenta");
+                if (dMagenta > 0) magenta = PuntoPolar(ptRojo.Value, outerH, dMagenta, "PtEExtPanelH");
             }
 
             double distCian = espH + DIST;
             if (!EsMedidaEstandar(distCian))
             {
                 double dCriss = MayorEstandarMenorQue(distCian);
-                if (dCriss > 0) criss = PuntoPolar(ptRojo.Value, outerV, dCriss, "Criss");
+                if (dCriss > 0) criss = PuntoPolar(ptRojo.Value, outerV, dCriss, "PtEExtPanelV");
             }
 
             return (verde, amarillo, blanco, cian, magenta, criss);
@@ -932,7 +935,8 @@ namespace Desing.Services
             double dy = refY - ptBase.Y;
             double d  = Math.Sqrt(dx * dx + dy * dy);
             if (d < TOLERANCIA) return null;
-            return new PuntoDTO { X = ptBase.X + (dx / d) * distancia, Y = ptBase.Y + (dy / d) * distancia, Z = 0, TipoPunto = tipo };
+            int colorIdx = System.Enum.TryParse<TipoPunto>(tipo, out var tipoPuntoEnum) ? (int)tipoPuntoEnum : (int)TipoPunto.PtEInterior;
+            return new PuntoDTO { X = ptBase.X + (dx / d) * distancia, Y = ptBase.Y + (dy / d) * distancia, Z = 0, TipoPunto = tipo, ColorIndex = colorIdx };
         }
 
         private List<LineaDTO> ExpandirPolilineas(List<LineaDTO> lineas)

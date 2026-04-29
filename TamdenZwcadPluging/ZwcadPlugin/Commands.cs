@@ -385,57 +385,14 @@ namespace ZwcadPlugin
                                 // Configurar color según el tipo de punto
                                 circulo.Layer = "0"; // Layer por defecto
 
-                                if (punto.TipoPunto == "Interior")
-                                {
-                                    circulo.ColorIndex = 5; // Azul para esquinas interiores
-                                }
-                                else if (punto.TipoPunto == "Exterior")
-                                {
-                                    circulo.ColorIndex = 1; // Rojo para esquinas exteriores
-                                }
-                                else if (punto.TipoPunto == "Verde")
-                                {
-                                    circulo.ColorIndex = 3; // Verde
-                                }
-                                else if (punto.TipoPunto == "Amarillo")
-                                {
-                                    circulo.ColorIndex = 2; // Amarillo
-                                }
-                                else if (punto.TipoPunto == "Blanco")
-                                {
-                                    circulo.ColorIndex = 7; // Blanco
-                                }
-                                else if (punto.TipoPunto == "Cian")
-                                {
-                                    circulo.ColorIndex = 4; // Cian
-                                }
-                                else if (punto.TipoPunto == "Magenta")
-                                {
-                                    circulo.ColorIndex = 6; // Magenta (remate horizontal)
-                                }
-                                else if (punto.TipoPunto == "Criss")
-                                {
-                                    circulo.ColorIndex = 9; // Gris (remate vertical)
-                                }
-                                else
-                                {
-                                    circulo.ColorIndex = 5; // Azul por defecto
-                                }
+                                circulo.ColorIndex = punto.ColorIndex;
 
                                 // Agregar el círculo al dibujo
                                 btr.AppendEntity(circulo);
                                 tr.AddNewlyCreatedDBObject(circulo, true);
 
                                 puntosDibujados++;
-                                string tipoColor = punto.TipoPunto == "Interior"  ? "azul"
-                                    : punto.TipoPunto == "Exterior"  ? "rojo"
-                                    : punto.TipoPunto == "Verde"     ? "verde"
-                                    : punto.TipoPunto == "Amarillo"  ? "amarillo"
-                                    : punto.TipoPunto == "Blanco"    ? "blanco"
-                                    : punto.TipoPunto == "Cian"      ? "cian"
-                                    : punto.TipoPunto == "Magenta"   ? "magenta"
-                                    : punto.TipoPunto == "Criss"     ? "criss"
-                                    : "azul";
+                                string tipoColor = punto.TipoPunto?.ToLower() ?? "azul";
                                 ed.WriteMessage($"\n  Círculo {puntosDibujados} ({tipoColor}): Centro ({punto.X:F2}, {punto.Y:F2}, {punto.Z:F2}), Radio: {radioCirculo}");
                             }
 

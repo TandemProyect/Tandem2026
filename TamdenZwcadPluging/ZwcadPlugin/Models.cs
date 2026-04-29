@@ -91,6 +91,11 @@ namespace ZwcadPlugin.Models
         /// Tipo de punto: "Interior" (vértice de esquina) o "Exterior" (vértice opuesto)
         /// </summary>
         public string TipoPunto { get; set; }
+
+        /// <summary>
+        /// ColorIndex ZWCAD calculado por el servidor según TipoPunto
+        /// </summary>
+        public int ColorIndex { get; set; }
     }
 
     /// <summary>

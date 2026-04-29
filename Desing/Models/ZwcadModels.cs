@@ -4,6 +4,21 @@ using System.Collections.Generic;
 namespace Desing.Models
 {
     /// <summary>
+    /// ColorIndex ZWCAD para cada tipo de punto de esquina L
+    /// </summary>
+     public enum TipoPunto
+    {
+        PtEInterior    = 5,  // Blue
+        PtEExteriro    = 1,  // Red
+        PtEInt300H     = 3,  // Green
+        PtEInt300V     = 2,  // Yellow
+        PtEExt300H     = 7,  // White
+        PtEExt300V     = 4,  // Cyan
+        PtEExtPanelH   = 6,  // Magenta
+        PtEExtPanelV   = 9   // Gray
+    }
+
+    /// <summary>
     /// DTO para recibir información de una línea desde ZWCAD
     /// </summary>
     public class LineaDTO
@@ -34,6 +49,11 @@ namespace Desing.Models
         /// Tipo de punto: "Interior" (vértice de esquina) o "Exterior" (vértice opuesto)
         /// </summary>
         public string TipoPunto { get; set; }
+
+        /// <summary>
+        /// ColorIndex ZWCAD calculado por el servidor según TipoPunto
+        /// </summary>
+        public int ColorIndex { get; set; }
     }
 
     /// <summary>
