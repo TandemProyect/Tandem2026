@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
-using System.Windows.Interop;
+using System.Windows.Forms;
+using ZwcadPlugin.Models;
+using ZwcadPlugin.UI.Views;
 using ZwSoft.ZwCAD.ApplicationServices;
 using ZwSoft.ZwCAD.DatabaseServices;
 using ZwSoft.ZwCAD.EditorInput;
 using ZwSoft.ZwCAD.Geometry;
-using ZwcadPlugin.Models;
-using ZwcadPlugin.UI.Views;
 using ZwSoft.ZwCAD.Runtime;
 using ZwcadApp = ZwSoft.ZwCAD.ApplicationServices.Application;
 
@@ -360,108 +361,7 @@ namespace ZwcadPlugin
                 if (respuesta.Exito)
                 {
                     ed.WriteMessage($"\n✅ Éxito: {respuesta.Mensaje}");
-
-                    // Procesar esquinas L detectadas
-                    if (respuesta.Datos != null && respuesta.Datos.PuntosADibujar != null && respuesta.Datos.PuntosADibujar.Count > 0)
-                    {
-                        ed.WriteMessage($"\n\n=== Esquinas L Detectadas: {respuesta.Datos.TotalEsquinasDetectadas} ===");
-                        ed.WriteMessage($"\nDibujando {respuesta.Datos.PuntosADibujar.Count} puntos de referencia...\n");
-
-                        // Dibujar círculos en ZWCAD para marcar los puntos de conexión
-                        using (Transaction tr = db.TransactionManager.StartTransaction())
-                        {
-                            BlockTable bt = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
-                            BlockTableRecord btr = tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
-
-                            int puntosDibujados = 0;
-                            double radioCirculo = 50.0; // Radio del círculo (ajustar según escala del dibujo)
-
-                            foreach (var punto in respuesta.Datos.PuntosADibujar)
-                            {
-                                // Crear un círculo en ZWCAD
-                                Point3d center = new Point3d(punto.X, punto.Y, punto.Z);
-                                Circle circulo = new Circle(center, Vector3d.ZAxis, radioCirculo);
-
-                                // Configurar color según el tipo de punto
-                                circulo.Layer = "0"; // Layer por defecto
-
-                                circulo.ColorIndex = punto.ColorIndex;
-
-                                // Agregar el círculo al dibujo
-                                btr.AppendEntity(circulo);
-                                tr.AddNewlyCreatedDBObject(circulo, true);
-
-                                puntosDibujados++;
-                                string tipoColor = punto.TipoPunto?.ToLower() ?? "azul";
-                                ed.WriteMessage($"\n  Círculo {puntosDibujados} ({tipoColor}): Centro ({punto.X:F2}, {punto.Y:F2}, {punto.Z:F2}), Radio: {radioCirculo}");
-                            }
-
-                            tr.Commit();
-                            ed.WriteMessage($"\n\n✅ {puntosDibujados} círculos dibujados correctamente (azul=interior, rojo=exterior)");
-                        }
-
-                        // Dibujar polilíneas ObjetoDB2d
-                        if (respuesta.Datos.PolilineasADibujar != null && respuesta.Datos.PolilineasADibujar.Count > 0)
-                        {
-                            using (Transaction tr = db.TransactionManager.StartTransaction())
-                            {
-                                BlockTable bt = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
-                                BlockTableRecord btr = tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
-                                LayerTable lt = tr.GetObject(db.LayerTableId, OpenMode.ForWrite) as LayerTable;
-
-                                // Crear capas si no existen
-                                foreach (var nombreCapa in new[] { "ObjetoDB2d", "ModelDesing" })
-                                {
-                                    if (!lt.Has(nombreCapa))
-                                    {
-                                        var capa = new LayerTableRecord { Name = nombreCapa };
-                                        lt.Add(capa);
-                                        tr.AddNewlyCreatedDBObject(capa, true);
-                                    }
-                                }
-
-                                int polysDibujadas = 0;
-                                foreach (var poly in respuesta.Datos.PolilineasADibujar)
-                                {
-                                    if (poly.Vertices == null || poly.Vertices.Count < 2) continue;
-                                    var lwp = new Polyline();
-                                    lwp.Layer = poly.Capa;
-                                    for (int i = 0; i < poly.Vertices.Count; i++)
-                                    {
-                                        var v = poly.Vertices[i];
-                                        lwp.AddVertexAt(i, new Point2d(v.X, v.Y), 0, 0, 0);
-                                    }
-                                    lwp.Closed = poly.Cerrada;
-                                    if (poly.AlturaExtrusion > 0)
-                                        lwp.Thickness = poly.AlturaExtrusion;
-                                    btr.AppendEntity(lwp);
-                                    tr.AddNewlyCreatedDBObject(lwp, true);
-                                    polysDibujadas++;
-                                }
-
-                                tr.Commit();
-                                ed.WriteMessage($"\n✅ {polysDibujadas} polilínea(s) ObjetoDB2d dibujadas correctamente");
-                            }
-                        }
-
-                        // Mostrar información de cada esquina
-                        if (respuesta.Datos.Esquinas != null && respuesta.Datos.Esquinas.Count > 0)
-                        {
-                            ed.WriteMessage($"\n\n--- Detalles de Esquinas ---");
-                            for (int i = 0; i < respuesta.Datos.Esquinas.Count; i++)
-                            {
-                                var esquina = respuesta.Datos.Esquinas[i];
-                                ed.WriteMessage($"\nEsquina {i + 1}:");
-                                ed.WriteMessage($"\n  Vértice: ({esquina.Vertice.X:F2}, {esquina.Vertice.Y:F2})");
-                                ed.WriteMessage($"\n  Ángulo: {esquina.Angulo:F2}°");
-                                ed.WriteMessage($"\n  Líneas involucradas: [{esquina.IndiceLinea1}, {esquina.IndiceLinea2}]");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        ed.WriteMessage($"\n⚠️ No se detectaron esquinas tipo L en la selección.");
-                    }
+                    DibujarResultado(doc, ed, respuesta.Datos);
                 }
                 else
                 {
@@ -475,6 +375,78 @@ namespace ZwcadPlugin
                 ed.WriteMessage($"\n❌ Error: {ex.Message}");
                 ed.WriteMessage($"\nDetalles: {ex.StackTrace}\n");
             }
+        }
+
+        private void DibujarResultado(Document doc, Editor ed, DeteccionEsquinasLDTO datos)
+        {
+            if (datos == null) return;
+            Database db = doc.Database;
+
+            if (datos.PuntosADibujar != null && datos.PuntosADibujar.Count > 0)
+            {
+                ed.WriteMessage($"\n\n=== Esquinas L Detectadas: {datos.TotalEsquinasDetectadas} ===");
+                ed.WriteMessage($"\nDibujando {datos.PuntosADibujar.Count} puntos...\n");
+
+                using (Transaction tr = db.TransactionManager.StartTransaction())
+                {
+                    BlockTable bt = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
+                    BlockTableRecord btr = tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
+                    int n = 0;
+                    double radio = 200.0;
+                    foreach (var punto in datos.PuntosADibujar)
+                    {
+                        var circulo = new Circle(new Point3d(punto.X, punto.Y, punto.Z), Vector3d.ZAxis, radio);
+                        circulo.Layer = "0";
+                        circulo.ColorIndex = punto.ColorIndex;
+                        btr.AppendEntity(circulo);
+                        tr.AddNewlyCreatedDBObject(circulo, true);
+                        n++;
+                    }
+                    tr.Commit();
+                    ed.WriteMessage($"\n✅ {n} círculos dibujados");
+                }
+            }
+
+            if (datos.PolilineasADibujar != null && datos.PolilineasADibujar.Count > 0)
+            {
+                using (Transaction tr = db.TransactionManager.StartTransaction())
+                {
+                    BlockTable bt = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
+                    BlockTableRecord btr = tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
+                    LayerTable lt = tr.GetObject(db.LayerTableId, OpenMode.ForWrite) as LayerTable;
+                    foreach (var nombreCapa in new[] { "ObjetoDB2d", "ModelDesing" })
+                    {
+                        if (!lt.Has(nombreCapa))
+                        {
+                            var capa = new LayerTableRecord { Name = nombreCapa };
+                            lt.Add(capa);
+                            tr.AddNewlyCreatedDBObject(capa, true);
+                        }
+                    }
+                    int n = 0;
+                    foreach (var poly in datos.PolilineasADibujar)
+                    {
+                        if (poly.Vertices == null || poly.Vertices.Count < 2) continue;
+                        var lwp = new Polyline();
+                        lwp.Layer = poly.Capa;
+                        for (int i = 0; i < poly.Vertices.Count; i++)
+                        {
+                            var v = poly.Vertices[i];
+                            lwp.AddVertexAt(i, new Point2d(v.X, v.Y), 0, 0, 0);
+                        }
+                        lwp.Closed = poly.Cerrada;
+                        if (poly.AlturaExtrusion > 0) lwp.Thickness = poly.AlturaExtrusion;
+                        btr.AppendEntity(lwp);
+                        tr.AddNewlyCreatedDBObject(lwp, true);
+                        n++;
+                    }
+                    tr.Commit();
+                    ed.WriteMessage($"\n✅ {n} polilínea(s) dibujadas");
+                }
+            }
+
+            if (datos.PuntosADibujar == null || datos.PuntosADibujar.Count == 0)
+                ed.WriteMessage("\n⚠️ No se detectaron esquinas tipo L.");
         }
 
         /// <summary>
@@ -518,6 +490,61 @@ namespace ZwcadPlugin
         /// <summary>
         /// Comando de inicializaciÃ³n que se ejecuta automÃ¡ticamente
         /// </summary>
+        /// <summary>
+        /// Comando para analizar una imagen de plano y detectar esquinas L via GPT-4o
+        /// </summary>
+        [CommandMethod("TANDEM_ANALIZAR_IMAGEN")]
+        public void AnalizarImagen()
+        {
+            Document doc = ZwcadApp.DocumentManager.MdiActiveDocument;
+            if (doc == null) return;
+            Editor ed = doc.Editor;
+
+            try
+            {
+                ed.WriteMessage("\n=== Tandem: Analizar Imagen de Plano ===");
+
+                string rutaImagen = null;
+                using (var dlg = new OpenFileDialog())
+                {
+                    dlg.Title = "Seleccionar imagen del plano";
+                    dlg.Filter = "Imágenes (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png";
+                    dlg.FilterIndex = 1;
+                    if (dlg.ShowDialog() == DialogResult.OK)
+                        rutaImagen = dlg.FileName;
+                }
+
+                if (string.IsNullOrEmpty(rutaImagen))
+                {
+                    ed.WriteMessage("\nOperación cancelada.\n");
+                    return;
+                }
+
+                ed.WriteMessage($"\nImagen seleccionada: {Path.GetFileName(rutaImagen)}");
+                ed.WriteMessage("\nEnviando al servidor MVC para análisis con GPT-4o...");
+
+                byte[] imagenBytes = File.ReadAllBytes(rutaImagen);
+                var respuesta = Task.Run(() =>
+                    _apiService.AnalizarImagenAsync(imagenBytes, Path.GetFileName(rutaImagen))
+                ).Result;
+
+                if (!respuesta.Exito)
+                {
+                    ed.WriteMessage($"\n❌ Error: {respuesta.Mensaje}\n");
+                    return;
+                }
+
+                ed.WriteMessage($"\n✅ {respuesta.Mensaje}");
+
+                // Reutilizar el mismo flujo de dibujo que TANDEM_SELECCIONAR_LINEAS
+                DibujarResultado(doc, ed, respuesta.Datos);
+            }
+            catch (System.Exception ex)
+            {
+                ed.WriteMessage($"\n❌ Error: {ex.Message}\n");
+            }
+        }
+
         [CommandMethod("MVCPLUGIN_INIT", CommandFlags.Session)]
         public void InicializarPlugin()
         {

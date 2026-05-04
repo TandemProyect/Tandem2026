@@ -11,6 +11,7 @@ using System.Text;
 using System.Web.Mvc;
 using Desing.Models;
 using System.Linq;
+using System.Threading.Tasks;
 using Desing.Services;
 
 namespace Desing.Controllers
@@ -228,6 +229,45 @@ namespace Desing.Controllers
                 {
                     Exito = false,
                     Mensaje = $"Error al procesar líneas: {ex.Message}",
+                    Datos = null
+                });
+            }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> DetectarEsquinasImagen()
+        {
+            try
+            {
+                if (Request.Files.Count == 0)
+                    return Json(new ApiResponse<DeteccionEsquinasLDTO> { Exito = false, Mensaje = "No se recibió ninguna imagen" });
+
+                var file = Request.Files[0];
+                var imagenBytes = new byte[file.ContentLength];
+                file.InputStream.Read(imagenBytes, 0, file.ContentLength);
+
+                var imageService = new ImageAnalysisService();
+                var lineas = await imageService.AnalizarImagenAsync(imagenBytes, file.ContentType);
+
+                System.Diagnostics.Debug.WriteLine($"[ImageAnalysis] {lineas.Count} líneas extraídas de la imagen");
+
+                var detector = new LCornerDetector();
+                var resultado = detector.DetectarEsquinasL(lineas);
+                resultado.Mensaje = $"Imagen analizada: {lineas.Count} líneas detectadas. {resultado.Mensaje}";
+
+                return Json(new ApiResponse<DeteccionEsquinasLDTO>
+                {
+                    Exito = true,
+                    Mensaje = resultado.Mensaje,
+                    Datos = resultado
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new ApiResponse<DeteccionEsquinasLDTO>
+                {
+                    Exito = false,
+                    Mensaje = $"Error al analizar imagen: {ex.Message}",
                     Datos = null
                 });
             }

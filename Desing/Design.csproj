@@ -326,6 +326,7 @@
     <Compile Include="Services\Implements\EmailService.cs" />
     <Compile Include="Services\Implements\EmailServiceBase.cs" />
     <Compile Include="Services\Implements\SendGridConfig.cs" />
+    <Compile Include="Services\ImageAnalysisService.cs" />
     <Compile Include="Services\LCornerDetector.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="System\Data\Common\NotificationHelper.cs" />

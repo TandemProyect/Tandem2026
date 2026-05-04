@@ -1,15 +1,12 @@
 using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using ZwcadPlugin.Models;
+using ZwSoft.ZwCAD.ApplicationServices;
 using ZwSoft.ZwCAD.DatabaseServices;
 using ZwSoft.ZwCAD.EditorInput;
 using ZwSoft.ZwCAD.Geometry;
-using ZwcadPlugin.Models;
 using ZwcadApp = ZwSoft.ZwCAD.ApplicationServices.Application;
-using ZwSoft.ZwCAD.ApplicationServices;
 
 namespace ZwcadPlugin
 {
@@ -147,12 +144,12 @@ namespace ZwcadPlugin
                 var bloques = await _apiService.ObtenerBloquesAsync();
                 lstBloques.DataSource = bloques;
 
-                MessageBox.Show($"Se cargaron {bloques.Count} bloques del servidor.", 
+                MessageBox.Show($"Se cargaron {bloques.Count} bloques del servidor.",
                     "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al cargar bloques:\n{ex.Message}", 
+                MessageBox.Show($"Error al cargar bloques:\n{ex.Message}",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
@@ -166,7 +163,7 @@ namespace ZwcadPlugin
         {
             if (lstBloques.SelectedItem == null)
             {
-                MessageBox.Show("Selecciona un bloque de la lista.", 
+                MessageBox.Show("Selecciona un bloque de la lista.",
                     "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -176,7 +173,7 @@ namespace ZwcadPlugin
             // Validar escala
             if (!double.TryParse(txtEscala.Text, out double escala))
             {
-                MessageBox.Show("La escala debe ser un número válido.", 
+                MessageBox.Show("La escala debe ser un número válido.",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
@@ -184,7 +181,7 @@ namespace ZwcadPlugin
             // Validar rotación
             if (!double.TryParse(txtRotacion.Text, out double rotacion))
             {
-                MessageBox.Show("La rotación debe ser un número válido.", 
+                MessageBox.Show("La rotación debe ser un número válido.",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
@@ -197,7 +194,7 @@ namespace ZwcadPlugin
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al insertar bloque:\n{ex.Message}", 
+                MessageBox.Show($"Error al insertar bloque:\n{ex.Message}",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
@@ -341,12 +338,12 @@ namespace ZwcadPlugin
                 var disenos = await _apiService.ObtenerDisenosAsync();
                 lstDisenos.DataSource = disenos;
 
-                MessageBox.Show($"Se cargaron {disenos.Count} diseños del servidor.", 
+                MessageBox.Show($"Se cargaron {disenos.Count} diseños del servidor.",
                     "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al cargar diseños:\n{ex.Message}", 
+                MessageBox.Show($"Error al cargar diseños:\n{ex.Message}",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
@@ -360,7 +357,7 @@ namespace ZwcadPlugin
         {
             if (lstDisenos.SelectedItem == null)
             {
-                MessageBox.Show("Selecciona un diseño de la lista.", 
+                MessageBox.Show("Selecciona un diseño de la lista.",
                     "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -385,12 +382,12 @@ namespace ZwcadPlugin
                 info += $"Bloques: {diseno.Bloques?.Count ?? 0}\n";
                 info += $"Layers: {diseno.Layers?.Count ?? 0}";
 
-                MessageBox.Show(info, "Información del Diseño", 
+                MessageBox.Show(info, "Información del Diseño",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al leer diseño:\n{ex.Message}", 
+                MessageBox.Show($"Error al leer diseño:\n{ex.Message}",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
@@ -404,7 +401,7 @@ namespace ZwcadPlugin
         {
             if (string.IsNullOrWhiteSpace(txtNombreDiseno.Text))
             {
-                MessageBox.Show("Ingresa un nombre para el diseño.", 
+                MessageBox.Show("Ingresa un nombre para el diseño.",
                     "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -433,12 +430,12 @@ namespace ZwcadPlugin
                 // Enviar al servidor
                 var disenoGuardado = await _apiService.CrearDisenoAsync(diseno);
 
-                MessageBox.Show($"Diseño guardado exitosamente.\nID: {disenoGuardado.Id}", 
+                MessageBox.Show($"Diseño guardado exitosamente.\nID: {disenoGuardado.Id}",
                     "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al guardar diseño:\n{ex.Message}", 
+                MessageBox.Show($"Error al guardar diseño:\n{ex.Message}",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally

@@ -387,8 +387,6 @@ namespace Desing.Services
                 // Evitar procesar el mismo conjunto de 4 líneas dos veces
                 // (el algoritmo puede detectar el mismo panel con grupos intercambiados)
                 var panelesProcesados = new HashSet<string>();
-                // Una vez pintada una esquina, sus líneas quedan consumidas
-                var lineasUsadas = new HashSet<int>();
 
                 int numeroPanelValido = 1;
                 foreach (dynamic panel in panelesValidos)
@@ -403,10 +401,6 @@ namespace Desing.Services
                     string clavePanel = string.Join("-", indices);
                     if (panelesProcesados.Contains(clavePanel)) continue;
                     panelesProcesados.Add(clavePanel);
-
-                    // Si alguna de las 4 líneas ya fue usada en otra esquina, descartamos este panel
-                    if (indices.Any(idx => lineasUsadas.Contains(idx))) continue;
-                    foreach (var idx in indices) lineasUsadas.Add(idx);
 
                     var l1a = lineas[lineasGrupo1[0]];
                     var l1b = lineas[lineasGrupo1[1]];
@@ -1052,5 +1046,6 @@ namespace Desing.Services
 
             return puntosUnicos;
         }
+
     }
 }

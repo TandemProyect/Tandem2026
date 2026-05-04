@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <CustSection xml:lang="en-US">
-  <MenuGroup DisplayName="Tandem 2026" Name="TANDEM2026">
+  <MenuGroup DisplayName="Tandem_2026" Name="TANDEM2026">
 	<MacroGroup Name="TD-Main">
 	  <MenuMacro UID="td_panel">
 		<Macro>
@@ -51,6 +51,13 @@
 		  <HelpString>Guarda el diseno actual en el servidor MVC</HelpString>
 		</Macro>
 	  </MenuMacro>
+	  <MenuMacro UID="td_imagen">
+		<Macro>
+		  <Name>Analizar Imagen</Name>
+		  <Command>^c^cTANDEM_ANALIZAR_IMAGEN</Command>
+		  <HelpString>Analiza una foto de plano dibujado a mano y detecta esquinas L via GPT-4o</HelpString>
+		</Macro>
+	  </MenuMacro>
 	  <MenuMacro UID="td_ayuda">
 		<Macro>
 		  <Name>Ayuda</Name>
@@ -71,7 +78,7 @@
 	<MenuRoot>
 	  <PopMenuRoot>
 		<PopMenu UID="td_popmenu">
-		  <Name>Tandem 2026</Name>
+		  <Name>Tandem_2026</Name>
 		  <PopMenuItem UID="td_pmi_panel">
 			<MenuItem><MacroRef MenuMacroID="td_panel"/></MenuItem>
 		  </PopMenuItem>
@@ -100,6 +107,9 @@
 		  <PopMenuItem UID="td_pmi_seleccionar">
 			<MenuItem><MacroRef MenuMacroID="td_seleccionar"/></MenuItem>
 		  </PopMenuItem>
+		  <PopMenuItem UID="td_pmi_imagen">
+			<MenuItem><MacroRef MenuMacroID="td_imagen"/></MenuItem>
+		  </PopMenuItem>
 		  <PopMenuItem IsSeparator="true" UID="td_sep5"/>
 		  <PopMenuItem UID="td_pmi_ayuda">
 			<MenuItem><MacroRef MenuMacroID="td_ayuda"/></MenuItem>
@@ -108,7 +118,7 @@
 	  </PopMenuRoot>
 	  <RibbonRoot>
 		<RibbonTabSourceCollection>
-		  <RibbonTabSource Text="Tandem 2026" UID="td_ribbon_tab">
+		  <RibbonTabSource Text="Tandem_2026" UID="td_ribbon_tab">
 			<Name>Tandem</Name>
 			<RibbonPanelSourceReference PanelId="td_ribbon_panel1"/>
 			<RibbonPanelSourceReference PanelId="td_ribbon_panel2"/>
@@ -142,6 +152,7 @@
 			<Name>Herramientas</Name>
 			<RibbonRow>
 			  <RibbonCommandButton ButtonStyle="LargeWithText" MenuMacroID="td_seleccionar" Text="Seleccionar"/>
+			  <RibbonCommandButton ButtonStyle="LargeWithText" MenuMacroID="td_imagen" Text="Analizar Img"/>
 			</RibbonRow>
 		  </RibbonPanelSource>
 		</RibbonPanelSourceCollection>

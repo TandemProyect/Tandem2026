@@ -10,13 +10,13 @@ namespace ZwcadPlugin.UI.ViewModels
 
         public RelayCommand(Action execute, Func<bool> canExecute = null)
         {
-            _execute    = execute ?? throw new ArgumentNullException(nameof(execute));
+            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
             _canExecute = canExecute;
         }
 
         public event EventHandler CanExecuteChanged
         {
-            add    { CommandManager.RequerySuggested += value; }
+            add { CommandManager.RequerySuggested += value; }
             remove { CommandManager.RequerySuggested -= value; }
         }
 

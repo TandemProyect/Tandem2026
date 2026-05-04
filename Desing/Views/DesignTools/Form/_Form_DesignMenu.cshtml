@@ -34,6 +34,12 @@
         <button class="btn-circle.btn-xl" title="Lista de Material" id="btnConfig"><img src="~/Content/DesignTools/MenuIcon/configuracion.png" />Configuración</button>
         <button class="btn-circle.btn-xl" title="Open Test" id="Open_Test"><img src="~/Content/DesignTools/MenuIcon/test.png" />Testear Modulos</button>
         <hr style="color: #F88402;" />
+        <input type="file" id="InputImagenEsquinas" accept="image/*" style="display:none" />
+        <button class="btn-circle.btn-xl" title="Analizar imagen de plano para detectar esquinas L" id="btnAnalizarImagen">
+            <i class="fa fa-camera" style="font-size:18px"></i> Analizar Img
+        </button>
+        <div id="lblAnalizarImagen" style="font-size:10px;color:#555;padding:2px 5px;display:none">Analizando...</div>
+        <hr style="color: #F88402;" />
         <div style="padding:10px">
             <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" id="IdHelp" checked>
@@ -151,6 +157,51 @@
         <button type="button" id="CloseBtnMenuLeft" data-dismiss="modal" style="padding:5px;margin:5px">&nbsp;&nbsp;<i class="fa fa-eye" aria-hidden="true"></i></button>
     </div>
 </div>
+<script>
+    $(document).ready(function () {
+        $('#btnAnalizarImagen').on('click', function () {
+            $('#InputImagenEsquinas').click();
+        });
+
+        $('#InputImagenEsquinas').on('change', function () {
+            var file = this.files[0];
+            if (!file) return;
+
+            var formData = new FormData();
+            formData.append('imagen', file);
+
+            $('#lblAnalizarImagen').text('Analizando...').show();
+            $('#btnAnalizarImagen').prop('disabled', true);
+
+            $.ajax({
+                url: '@Url.Action("DetectarEsquinasImagen", "DesignToolsAutocad")',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (resp) {
+                    $('#btnAnalizarImagen').prop('disabled', false);
+                    if (resp.Exito) {
+                        var pts = resp.Datos.PuntosADibujar ? resp.Datos.PuntosADibujar.length : 0;
+                        $('#lblAnalizarImagen').text('✅ ' + pts + ' puntos detectados');
+                        console.log('[AnalizarImagen] Resultado:', resp.Datos);
+                    } else {
+                        $('#lblAnalizarImagen').text('❌ ' + resp.Mensaje);
+                        console.error('[AnalizarImagen] Error:', resp.Mensaje);
+                    }
+                },
+                error: function (xhr) {
+                    $('#btnAnalizarImagen').prop('disabled', false);
+                    $('#lblAnalizarImagen').text('❌ Error de conexión');
+                    console.error('[AnalizarImagen] Error HTTP:', xhr.status, xhr.responseText);
+                }
+            });
+
+            this.value = '';
+        });
+    });
+</script>
+
 <div id="MenuTopDesaign" class="TopMenu">
     <ul class="breadcrumb" style="padding: 5px; background-color: #00428A;color:white">
         <li><a href="@Url.Action("Index", "Home" )" style="color: white">  &nbsp;&nbsp;  &nbsp;&nbsp;<i class="fas fa-home"></i> Inicio</a></li>

@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Text;
 
@@ -72,6 +71,13 @@ namespace ZwcadPlugin
           <HelpString>Guarda el diseno actual en el servidor MVC</HelpString>
         </Macro>
       </MenuMacro>
+      <MenuMacro UID=""td_imagen"">
+        <Macro>
+          <Name>Analizar Imagen</Name>
+          <Command>^c^cTANDEM_ANALIZAR_IMAGEN</Command>
+          <HelpString>Analiza una foto de plano dibujado a mano y detecta esquinas L via GPT-4o</HelpString>
+        </Macro>
+      </MenuMacro>
       <MenuMacro UID=""td_ayuda"">
         <Macro>
           <Name>Ayuda</Name>
@@ -121,6 +127,9 @@ namespace ZwcadPlugin
           <PopMenuItem UID=""td_pmi_seleccionar"">
             <MenuItem><MacroRef MenuMacroID=""td_seleccionar""/></MenuItem>
           </PopMenuItem>
+          <PopMenuItem UID=""td_pmi_imagen"">
+            <MenuItem><MacroRef MenuMacroID=""td_imagen""/></MenuItem>
+          </PopMenuItem>
           <PopMenuItem IsSeparator=""true"" UID=""td_sep5""/>
           <PopMenuItem UID=""td_pmi_ayuda"">
             <MenuItem><MacroRef MenuMacroID=""td_ayuda""/></MenuItem>
@@ -163,6 +172,7 @@ namespace ZwcadPlugin
             <Name>Herramientas</Name>
             <RibbonRow>
               <RibbonCommandButton ButtonStyle=""LargeWithText"" MenuMacroID=""td_seleccionar"" Text=""Seleccionar""/>
+              <RibbonCommandButton ButtonStyle=""LargeWithText"" MenuMacroID=""td_imagen"" Text=""Analizar Img""/>
             </RibbonRow>
           </RibbonPanelSource>
         </RibbonPanelSourceCollection>

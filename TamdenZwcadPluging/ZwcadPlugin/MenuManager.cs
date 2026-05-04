@@ -1,4 +1,3 @@
-using System;
 using ZwSoft.ZwCAD.ApplicationServices;
 using ZwSoft.ZwCAD.EditorInput;
 using ZwcadApp = ZwSoft.ZwCAD.ApplicationServices.Application;

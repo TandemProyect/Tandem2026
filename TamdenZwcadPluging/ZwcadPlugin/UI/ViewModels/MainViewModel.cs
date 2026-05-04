@@ -25,8 +25,8 @@ namespace ZwcadPlugin.UI.ViewModels
 
         public MainViewModel()
         {
-            DetectarMurosCommand  = new RelayCommand(DetectarMuros);
-            Generar3dCommand      = new RelayCommand(Generar3d, () => !string.IsNullOrEmpty(EstadoConexion));
+            DetectarMurosCommand = new RelayCommand(DetectarMuros);
+            Generar3dCommand = new RelayCommand(Generar3d, () => !string.IsNullOrEmpty(EstadoConexion));
             ConfigEncofradoCommand = new RelayCommand(ConfigEncofrado);
         }
 

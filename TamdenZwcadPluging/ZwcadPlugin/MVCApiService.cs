@@ -1,10 +1,10 @@
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using ZwcadPlugin.Models;
 
 namespace ZwcadPlugin
@@ -25,7 +25,7 @@ namespace ZwcadPlugin
 
             // ⚠️ SOLO PARA DESARROLLO: Ignorar errores de certificado SSL en localhost
             // Quitar en producción o cuando uses un certificado válido
-            ServicePointManager.ServerCertificateValidationCallback += 
+            ServicePointManager.ServerCertificateValidationCallback +=
                 (sender, certificate, chain, sslPolicyErrors) => true;
         }
 
@@ -203,6 +203,41 @@ namespace ZwcadPlugin
                 System.Diagnostics.Debug.WriteLine($"❌ [MVCApiService] ERROR: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"❌ [MVCApiService] StackTrace: {ex.StackTrace}");
                 throw new Exception($"Error al enviar líneas: {ex.Message}", ex);
+            }
+        }
+
+        #endregion
+
+        #region Imagen
+
+        /// <summary>
+        /// Envía una imagen al servidor MVC para analizar esquinas L con GPT-4o
+        /// </summary>
+        public async Task<ApiResponse<DeteccionEsquinasLDTO>> AnalizarImagenAsync(byte[] imagenBytes, string nombreArchivo)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"[MVCApiService] Enviando imagen: {nombreArchivo} ({imagenBytes.Length} bytes)");
+
+                var content = new MultipartFormDataContent();
+                var imageContent = new ByteArrayContent(imagenBytes);
+                imageContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
+                content.Add(imageContent, "imagen", nombreArchivo);
+
+                var response = await _httpClient.PostAsync("DesignToolsAutocad/DetectarEsquinasImagen", content);
+                System.Diagnostics.Debug.WriteLine($"[MVCApiService] Status: {response.StatusCode}");
+                response.EnsureSuccessStatusCode();
+
+                var responseJson = await response.Content.ReadAsStringAsync();
+                var resultado = JsonConvert.DeserializeObject<ApiResponse<DeteccionEsquinasLDTO>>(responseJson);
+                System.Diagnostics.Debug.WriteLine($"[MVCApiService] Imagen analizada. Éxito: {resultado.Exito}");
+
+                return resultado;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ [MVCApiService] ERROR imagen: {ex.Message}");
+                throw new Exception($"Error al enviar imagen: {ex.Message}", ex);
             }
         }
 
