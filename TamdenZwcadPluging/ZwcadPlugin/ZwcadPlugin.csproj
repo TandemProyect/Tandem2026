@@ -87,6 +87,9 @@
   <ItemGroup>
     <Compile Include="Commands.cs" />
     <Compile Include="CuixBuilder.cs" />
+    <Compile Include="FormularioConfigMuros.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="MenuManager.cs" />
     <Compile Include="Models.cs" />
     <Compile Include="MVCApiService.cs" />

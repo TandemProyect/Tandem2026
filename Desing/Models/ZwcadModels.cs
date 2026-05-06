@@ -79,6 +79,12 @@ namespace Desing.Models
         public int TotalPolilineas { get; set; }
         public DateTime FechaSeleccion { get; set; }
         public string Usuario { get; set; }
+
+        /// <summary>
+        /// US-697 — Altura del muro en mm para extruir en capa ModelDesing.
+        /// Default 2700 (2.70 m). El cliente puede sobrescribirlo desde el formulario.
+        /// </summary>
+        public double AlturaMuroMm { get; set; } = 2700;
     }
 
     /// <summary>
@@ -138,6 +144,11 @@ namespace Desing.Models
         /// Total de esquinas detectadas
         /// </summary>
         public int TotalEsquinasDetectadas { get; set; }
+
+        /// <summary>
+        /// US-697 — Total de muros rectos detectados (B/C entre esquinas, A/D con extremo libre, E/F aislados).
+        /// </summary>
+        public int TotalMurosRectos { get; set; }
 
         /// <summary>
         /// Puntos a dibujar en ZWCAD para visualización

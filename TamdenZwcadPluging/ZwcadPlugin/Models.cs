@@ -120,6 +120,11 @@ namespace ZwcadPlugin.Models
         public int TotalPolilineas { get; set; }
         public DateTime FechaSeleccion { get; set; }
         public string Usuario { get; set; }
+
+        /// <summary>
+        /// US-697 — Altura del muro en mm para extrusión en capa ModelDesing. Default 2700 (2.70 m).
+        /// </summary>
+        public double AlturaMuroMm { get; set; } = 2700;
     }
 
     /// <summary>
@@ -179,6 +184,11 @@ namespace ZwcadPlugin.Models
         /// Total de esquinas detectadas
         /// </summary>
         public int TotalEsquinasDetectadas { get; set; }
+
+        /// <summary>
+        /// US-697 — Total de muros rectos detectados (B/C, A/D, E/F).
+        /// </summary>
+        public int TotalMurosRectos { get; set; }
 
         /// <summary>
         /// Puntos a dibujar en ZWCAD para visualización

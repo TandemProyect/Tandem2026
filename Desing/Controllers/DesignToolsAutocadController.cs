@@ -191,8 +191,9 @@ namespace Desing.Controllers
                 };
 
                 // ⭐ DETECCIÓN DE ESQUINAS TIPO L ⭐
+                // US-697 — la altura del muro proviene del formulario del cliente (default 2700)
                 var detector = new LCornerDetector();
-                var deteccionEsquinas = detector.DetectarEsquinasL(seleccion.Lineas);
+                var deteccionEsquinas = detector.DetectarEsquinasL(seleccion.Lineas, seleccion.AlturaMuroMm);
 
                 System.Diagnostics.Debug.WriteLine($"=== Detección de Esquinas L ===");
                 System.Diagnostics.Debug.WriteLine($"Esquinas detectadas: {deteccionEsquinas.TotalEsquinasDetectadas}");

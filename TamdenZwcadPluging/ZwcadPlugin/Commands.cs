@@ -351,22 +351,61 @@ namespace ZwcadPlugin
                 ed.WriteMessage($"\n🔴 DEBUG: Usuario: {seleccionDTO.Usuario}");
                 ed.WriteMessage($"\n🔴 DEBUG: Fecha: {seleccionDTO.FechaSeleccion}");
 
-                // Enviar al servidor de forma asíncrona
-                ed.WriteMessage($"\n🔴 DEBUG: Llamando a _apiService.EnviarLineasSeleccionadasAsync...\n");
+                // ============================================================
+                // US-697 — FLUJO 2-PASOS:
+                //   1ª llamada: detección con altura por defecto (2700 mm).
+                //               Devuelve los conteos de esquinas L y muros rectos.
+                //   2ª llamada: si el usuario cambia la altura en el formulario,
+                //               se vuelve a llamar con la nueva altura para
+                //               recalcular las extrusiones de capa ModelDesing.
+                // ============================================================
+                ed.WriteMessage("\n🔴 DEBUG: 1ª llamada (altura default 2700mm) para obtener conteos...\n");
+                seleccionDTO.AlturaMuroMm = 2700;
+
                 Task<ApiResponse<DeteccionEsquinasLDTO>> task = _apiService.EnviarLineasSeleccionadasAsync(seleccionDTO);
-                ed.WriteMessage($"\n🔴 DEBUG: Esperando respuesta del servidor...\n");
                 ApiResponse<DeteccionEsquinasLDTO> respuesta = task.ConfigureAwait(false).GetAwaiter().GetResult();
                 ed.WriteMessage($"\n🔴 DEBUG: Respuesta recibida. Éxito: {respuesta.Exito}\n");
 
-                if (respuesta.Exito)
-                {
-                    ed.WriteMessage($"\n✅ Éxito: {respuesta.Mensaje}");
-                    DibujarResultado(doc, ed, respuesta.Datos);
-                }
-                else
+                if (!respuesta.Exito || respuesta.Datos == null)
                 {
                     ed.WriteMessage($"\n❌ Error: {respuesta.Mensaje}");
+                    return;
                 }
+
+                int totalEsquinas = respuesta.Datos.TotalEsquinasDetectadas;
+                int totalMuros    = respuesta.Datos.TotalMurosRectos;
+                ed.WriteMessage($"\n📊 Detectados: {totalEsquinas} esquina(s) L, {totalMuros} muro(s) recto(s).\n");
+
+                // Mostrar formulario con resumen + input de altura
+                using (var formCfg = new FormularioConfigMuros(totalEsquinas, totalMuros, 2.70m))
+                {
+                    if (formCfg.ShowDialog() != DialogResult.OK)
+                    {
+                        ed.WriteMessage("\n⚠️ Operación cancelada por el usuario.\n");
+                        return;
+                    }
+
+                    decimal alturaM = formCfg.AlturaMuroMetros;
+                    double  alturaMm = (double)(alturaM * 1000m);
+                    ed.WriteMessage($"\n📐 Altura confirmada: {alturaM:F2} m ({alturaMm} mm)\n");
+
+                    // Si la altura difiere de la del primer cálculo → reconsultar
+                    if (Math.Abs(alturaMm - 2700.0) > 0.01)
+                    {
+                        ed.WriteMessage("\n🔴 DEBUG: 2ª llamada con la altura del formulario...\n");
+                        seleccionDTO.AlturaMuroMm = alturaMm;
+                        Task<ApiResponse<DeteccionEsquinasLDTO>> task2 = _apiService.EnviarLineasSeleccionadasAsync(seleccionDTO);
+                        respuesta = task2.ConfigureAwait(false).GetAwaiter().GetResult();
+                        if (!respuesta.Exito || respuesta.Datos == null)
+                        {
+                            ed.WriteMessage($"\n❌ Error en 2ª llamada: {respuesta.Mensaje}");
+                            return;
+                        }
+                    }
+                }
+
+                ed.WriteMessage($"\n✅ {respuesta.Mensaje}");
+                DibujarResultado(doc, ed, respuesta.Datos);
 
                 ed.WriteMessage("\n=== Proceso Completado ===\n");
             }

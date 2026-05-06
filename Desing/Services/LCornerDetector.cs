@@ -32,6 +32,9 @@ namespace Desing.Services
             public double RojoY;
         }
 
+        // US-697 — altura para extrusión ModelDesing (mm). Sobrescrita en cada llamada a DetectarEsquinasL.
+        private double _alturaMuroMm = 2700;
+
         private const double TOLERANCIA = 0.01; // Muy pequeña tolerancia para puntos "iguales"
         private const double OFFSET_MINIMO_PANEL = 50.0;   // Distancia mínima entre líneas paralelas (rechaza colineales de distintas esquinas)
         private const double OFFSET_MAXIMO_PANEL = 1500.0; // Distancia máxima entre líneas paralelas para considerar un panel válido
@@ -55,8 +58,10 @@ namespace Desing.Services
         /// <summary>
         /// Detecta conexiones entre líneas (puntos donde se tocan)
         /// </summary>
-        public DeteccionEsquinasLDTO DetectarEsquinasL(List<LineaDTO> lineas)
+        public DeteccionEsquinasLDTO DetectarEsquinasL(List<LineaDTO> lineas, double alturaMuroMm = 2700)
         {
+            _alturaMuroMm = alturaMuroMm > 0 ? alturaMuroMm : 2700;
+
             var resultado = new DeteccionEsquinasLDTO
             {
                 Esquinas = new List<EsquinaLDTO>(),
@@ -461,13 +466,13 @@ namespace Desing.Services
                             Vertices        = verticesEsquina
                         });
 
-                        // Polilínea extruida — capa ModelDesing, 2700mm en Z
+                        // Polilínea extruida — capa ModelDesing, altura configurable (US-697)
                         resultado.PolilineasADibujar.Add(new PolilineaDTO
                         {
                             Cerrada         = true,
                             Capa            = "ModelDesing",
                             ColorIndex      = 256,
-                            AlturaExtrusion = 2700,
+                            AlturaExtrusion = _alturaMuroMm,
                             Vertices        = verticesEsquina
                         });
                     }
@@ -993,10 +998,12 @@ namespace Desing.Services
         }
 
         /// <summary>
-        /// Emite las 2 polilíneas de un muro recto (ObjetoDB2d + ModelDesing extruida 2700mm).
+        /// Emite las 2 polilíneas de un muro recto (ObjetoDB2d plana + ModelDesing extruida).
+        /// US-697 — la altura de extrusión procede de _alturaMuroMm e incrementa TotalMurosRectos.
         /// </summary>
         private void AgregarMuroRecto(DeteccionEsquinasLDTO resultado, List<PuntoDTO> vertices)
         {
+            resultado.TotalMurosRectos++;
             resultado.PolilineasADibujar.Add(new PolilineaDTO
             {
                 Cerrada         = true,
@@ -1011,7 +1018,7 @@ namespace Desing.Services
                 Cerrada         = true,
                 Capa            = "ModelDesing",
                 ColorIndex      = 256,
-                AlturaExtrusion = 2700,
+                AlturaExtrusion = _alturaMuroMm,
                 Vertices        = vertices
             });
         }
