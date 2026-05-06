@@ -392,18 +392,38 @@ namespace ZwcadPlugin
                     BlockTable bt = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
                     BlockTableRecord btr = tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
                     int n = 0;
-                    double radio = 200.0;
+                    const double RADIO_DEFAULT      = 200.0;
+                    const double LADO_SEMI_DEFAULT  = 100.0; // US-688 T1: cuadrados más pequeños (radio/2)
                     foreach (var punto in datos.PuntosADibujar)
                     {
-                        var circulo = new Circle(new Point3d(punto.X, punto.Y, punto.Z), Vector3d.ZAxis, radio);
-                        circulo.Layer = "0";
-                        circulo.ColorIndex = punto.ColorIndex;
-                        btr.AppendEntity(circulo);
-                        tr.AddNewlyCreatedDBObject(circulo, true);
+                        // US-688 T1: ramificar por Forma — "Cuadrado" o "Circulo" (default)
+                        if (punto.Forma == "Cuadrado")
+                        {
+                            double s = punto.Tamano > 0 ? punto.Tamano : LADO_SEMI_DEFAULT;
+                            var cuadrado = new Polyline();
+                            cuadrado.Layer = "0";
+                            cuadrado.ColorIndex = punto.ColorIndex;
+                            cuadrado.AddVertexAt(0, new Point2d(punto.X - s, punto.Y - s), 0, 0, 0);
+                            cuadrado.AddVertexAt(1, new Point2d(punto.X + s, punto.Y - s), 0, 0, 0);
+                            cuadrado.AddVertexAt(2, new Point2d(punto.X + s, punto.Y + s), 0, 0, 0);
+                            cuadrado.AddVertexAt(3, new Point2d(punto.X - s, punto.Y + s), 0, 0, 0);
+                            cuadrado.Closed = true;
+                            btr.AppendEntity(cuadrado);
+                            tr.AddNewlyCreatedDBObject(cuadrado, true);
+                        }
+                        else
+                        {
+                            double r = punto.Tamano > 0 ? punto.Tamano : RADIO_DEFAULT;
+                            var circulo = new Circle(new Point3d(punto.X, punto.Y, punto.Z), Vector3d.ZAxis, r);
+                            circulo.Layer = "0";
+                            circulo.ColorIndex = punto.ColorIndex;
+                            btr.AppendEntity(circulo);
+                            tr.AddNewlyCreatedDBObject(circulo, true);
+                        }
                         n++;
                     }
                     tr.Commit();
-                    ed.WriteMessage($"\n✅ {n} círculos dibujados");
+                    ed.WriteMessage($"\n✅ {n} marcadores dibujados (círculos + cuadrados)");
                 }
             }
 

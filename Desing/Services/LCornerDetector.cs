@@ -12,6 +12,26 @@ namespace Desing.Services
     /// </summary>
     public class LCornerDetector
     {
+        /// <summary>
+        /// US-688 T5 (#693) — info por panel L para construir muros rectos B/C
+        /// </summary>
+        private class PanelInfoMuro
+        {
+            public PuntoDTO Verde;
+            public PuntoDTO Amarillo;
+            public PuntoDTO Blanco;
+            public PuntoDTO Cian;
+            public LineaDTO InnerH;
+            public LineaDTO OuterH;
+            public LineaDTO InnerV;
+            public LineaDTO OuterV;
+            // US-688 T6 (#694) — vértices de la esquina L para localizar el extremo libre del muro
+            public double AzulX;
+            public double AzulY;
+            public double RojoX;
+            public double RojoY;
+        }
+
         private const double TOLERANCIA = 0.01; // Muy pequeña tolerancia para puntos "iguales"
         private const double OFFSET_MINIMO_PANEL = 50.0;   // Distancia mínima entre líneas paralelas (rechaza colineales de distintas esquinas)
         private const double OFFSET_MAXIMO_PANEL = 1500.0; // Distancia máxima entre líneas paralelas para considerar un panel válido
@@ -57,7 +77,7 @@ namespace Desing.Services
             // Solo procesar líneas simples
             var lineasSimples = lineas.Where(l => l.Tipo == "Line").ToList();
 
-            // 📋 Preparar toda la información para el JSON
+            // 📋 Preparar toda la informaciçón para el JSON
             var infoCompleta = new
             {
                 FechaAnalisis = DateTime.Now,
@@ -384,6 +404,9 @@ namespace Desing.Services
                 var todosPuntosMagenta  = new List<PuntoDTO>();
                 var todosPuntosCriss    = new List<PuntoDTO>();
 
+                // US-688 T5 (#693) — info de cada panel L para detectar muros rectos entre esquinas (B/C)
+                var panelesInfoMuro = new List<PanelInfoMuro>();
+
                 // Evitar procesar el mismo conjunto de 4 líneas dos veces
                 // (el algoritmo puede detectar el mismo panel con grupos intercambiados)
                 var panelesProcesados = new HashSet<string>();
@@ -410,8 +433,9 @@ namespace Desing.Services
                     // Calcular puntos de esquina L por intersección de líneas interiores/exteriores
                     var (interior, exterior) = CalcularPuntosEsquinaL(l1a, l1b, l2a, l2b);
 
-                    // Calcular 6 puntos de panel (US-668 + US-671)
-                    var (ptVerde, ptAmarillo, ptBlanco, ptCian, ptMagenta, ptCriss) = CalcularPuntosPanel(l1a, l1b, l2a, l2b);
+                    // Calcular 6 puntos de panel (US-668 + US-671) + info líneas (US-688 T5)
+                    var (ptVerde, ptAmarillo, ptBlanco, ptCian, ptMagenta, ptCriss, infoMuro) = CalcularPuntosPanelConLineas(l1a, l1b, l2a, l2b);
+                    if (infoMuro != null) panelesInfoMuro.Add(infoMuro);
                     if (ptVerde    != null) todosPuntosVerde.Add(ptVerde);
                     if (ptAmarillo != null) todosPuntosAmarillo.Add(ptAmarillo);
                     if (ptBlanco   != null) todosPuntosBlanco.Add(ptBlanco);
@@ -493,6 +517,12 @@ namespace Desing.Services
                 foreach (var punto in EliminarPuntosDuplicados(todosPuntosCian))     resultado.PuntosADibujar.Add(punto);
                 foreach (var punto in EliminarPuntosDuplicados(todosPuntosMagenta))  resultado.PuntosADibujar.Add(punto);
                 foreach (var punto in EliminarPuntosDuplicados(todosPuntosCriss))    resultado.PuntosADibujar.Add(punto);
+
+                // US-688 T5 (#693) — Muros rectos entre dos esquinas L adyacentes (muros B y C)
+                GenerarMurosRectosEntreEsquinas(panelesInfoMuro, resultado);
+
+                // US-688 T6 (#694) — Muros rectos con UNA esquina L y un extremo libre (A, CC, D, Cara E)
+                GenerarMurosLConExtremoLibre(panelesInfoMuro, lineas, resultado);
             }
             else
             {
@@ -875,15 +905,236 @@ namespace Desing.Services
 
             // Intersección de líneas interiores → punto interior de la esquina
             var ptInterior = IntersectarLineas(innerG1, innerG2);
-            if (ptInterior.HasValue)
+            if (ptInterior.HasValue && PuntoEnSegmento(ptInterior.Value.X, ptInterior.Value.Y, innerG1) && PuntoEnSegmento(ptInterior.Value.X, ptInterior.Value.Y, innerG2))
                 interiores.Add(new PuntoDTO { X = ptInterior.Value.X, Y = ptInterior.Value.Y, Z = 0 });
 
             // Intersección de líneas exteriores → punto exterior de la esquina
             var ptExterior = IntersectarLineas(outerG1, outerG2);
-            if (ptExterior.HasValue)
+            if (ptExterior.HasValue && PuntoEnSegmento(ptExterior.Value.X, ptExterior.Value.Y, outerG1) && PuntoEnSegmento(ptExterior.Value.X, ptExterior.Value.Y, outerG2))
                 exteriores.Add(new PuntoDTO { X = ptExterior.Value.X, Y = ptExterior.Value.Y, Z = 0 });
 
             return (interiores, exteriores);
+        }
+
+        /// <summary>
+        /// US-688 T5 (#693) — Detecta pares de paneles L que comparten exactamente la misma
+        /// pareja de líneas inner/outer en un eje (H o V). Cada par corresponde a un muro recto
+        /// entre dos esquinas (muros B y C en Muro_Recto3.png).
+        ///
+        /// Por cada par se emite 2 PolilineaDTO (patrón US-679):
+        ///   - Capa ObjetoDB2d,  AlturaExtrusion = 0
+        ///   - Capa ModelDesing, AlturaExtrusion = 2700
+        /// </summary>
+        private void GenerarMurosRectosEntreEsquinas(List<PanelInfoMuro> paneles, DeteccionEsquinasLDTO resultado)
+        {
+            if (paneles == null || paneles.Count < 2) return;
+
+            var paresUsados = new HashSet<string>();
+
+            for (int i = 0; i < paneles.Count; i++)
+            {
+                for (int j = i + 1; j < paneles.Count; j++)
+                {
+                    var pA = paneles[i];
+                    var pB = paneles[j];
+
+                    // --- Muro HORIZONTAL compartido: ambos paneles usan el MISMO innerH y MISMO outerH
+                    if (MismaLinea(pA.InnerH, pB.InnerH) && MismaLinea(pA.OuterH, pB.OuterH))
+                    {
+                        string clave = "H-" + Math.Min(i, j) + "-" + Math.Max(i, j);
+                        if (!paresUsados.Contains(clave) &&
+                            pA.Verde != null && pA.Blanco != null && pB.Verde != null && pB.Blanco != null)
+                        {
+                            paresUsados.Add(clave);
+                            var vertices = new List<PuntoDTO> { pA.Verde, pA.Blanco, pB.Blanco, pB.Verde };
+                            AgregarMuroRecto(resultado, vertices);
+                            AgregarMarcadoresVerticesMuro(resultado, vertices);
+                        }
+                    }
+
+                    // --- Muro VERTICAL compartido: ambos paneles usan el MISMO innerV y MISMO outerV
+                    if (MismaLinea(pA.InnerV, pB.InnerV) && MismaLinea(pA.OuterV, pB.OuterV))
+                    {
+                        string clave = "V-" + Math.Min(i, j) + "-" + Math.Max(i, j);
+                        if (!paresUsados.Contains(clave) &&
+                            pA.Amarillo != null && pA.Cian != null && pB.Amarillo != null && pB.Cian != null)
+                        {
+                            paresUsados.Add(clave);
+                            var vertices = new List<PuntoDTO> { pA.Amarillo, pA.Cian, pB.Cian, pB.Amarillo };
+                            AgregarMuroRecto(resultado, vertices);
+                            AgregarMarcadoresVerticesMuro(resultado, vertices);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Compara dos líneas por coordenadas de sus extremos (en cualquier orden).
+        /// Necesario porque el mismo segmento puede aparecer referenciado como objetos distintos.
+        /// </summary>
+        private bool MismaLinea(LineaDTO a, LineaDTO b)
+        {
+            if (a == null || b == null) return false;
+            if (ReferenceEquals(a, b)) return true;
+            bool sameDir =
+                Math.Abs(a.InicioX - b.InicioX) < TOLERANCIA && Math.Abs(a.InicioY - b.InicioY) < TOLERANCIA &&
+                Math.Abs(a.FinX    - b.FinX)    < TOLERANCIA && Math.Abs(a.FinY    - b.FinY)    < TOLERANCIA;
+            bool revDir =
+                Math.Abs(a.InicioX - b.FinX)    < TOLERANCIA && Math.Abs(a.InicioY - b.FinY)    < TOLERANCIA &&
+                Math.Abs(a.FinX    - b.InicioX) < TOLERANCIA && Math.Abs(a.FinY    - b.InicioY) < TOLERANCIA;
+            return sameDir || revDir;
+        }
+
+        /// <summary>
+        /// Emite las 2 polilíneas de un muro recto (ObjetoDB2d + ModelDesing extruida 2700mm).
+        /// </summary>
+        private void AgregarMuroRecto(DeteccionEsquinasLDTO resultado, List<PuntoDTO> vertices)
+        {
+            resultado.PolilineasADibujar.Add(new PolilineaDTO
+            {
+                Cerrada         = true,
+                Capa            = "ObjetoDB2d",
+                ColorIndex      = 256,
+                AlturaExtrusion = 0,
+                Vertices        = vertices
+            });
+
+            resultado.PolilineasADibujar.Add(new PolilineaDTO
+            {
+                Cerrada         = true,
+                Capa            = "ModelDesing",
+                ColorIndex      = 256,
+                AlturaExtrusion = 2700,
+                Vertices        = vertices
+            });
+        }
+
+        /// <summary>
+        /// US-688 T1 — Emite 4 marcadores tipo "Cuadrado" (uno por vértice del muro recto).
+        /// Tamaño = 100 mm (la mitad del radio del círculo por defecto = 200 mm).
+        /// Cada posición usa un ColorIndex distintivo que NO colisiona con los colores de los
+        /// puntos de esquina (5=azul, 1=rojo, 3=verde, 2=amarillo, 7=blanco, 4=cian, 6=magenta, 9=gris).
+        /// </summary>
+        private void AgregarMarcadoresVerticesMuro(DeteccionEsquinasLDTO resultado, List<PuntoDTO> verticesMuro)
+        {
+            // 4 colores distintivos por posición de vértice del muro (paleta ZWCAD)
+            int[] coloresVerticeMuro = { 30, 140, 210, 90 }; // naranja, púrpura, magenta-oscuro, turquesa
+            const double LADO_SEMI = 100.0; // semi-lado del cuadrado (radio circulo / 2)
+
+            for (int k = 0; k < verticesMuro.Count && k < 4; k++)
+            {
+                var v = verticesMuro[k];
+                if (v == null) continue;
+                resultado.PuntosADibujar.Add(new PuntoDTO
+                {
+                    X          = v.X,
+                    Y          = v.Y,
+                    Z          = v.Z,
+                    TipoPunto  = "VerticeMuro",
+                    ColorIndex = coloresVerticeMuro[k],
+                    Forma      = "Cuadrado",
+                    Tamano     = LADO_SEMI
+                });
+            }
+        }
+
+        /// <summary>
+        /// US-688 T6 (#694) — Detecta muros rectos donde UN extremo nace de una esquina L
+        /// y el OTRO extremo es libre (sin conexión con ningún otro segmento del input).
+        ///
+        /// Cubre los muros A, CC (espejo de A), D y Cara E (espejo de D) del documento
+        /// "Muro_Recto 1 esquina.png".
+        ///
+        /// Por cada panel y cada eje (H, V):
+        ///   1. Localiza extremo "L" (cerca de ptAzul/ptRojo) vs extremo "libre" (lejos)
+        ///   2. Verifica que ambos extremos libres (inner+outer) NO conectan con otros segmentos
+        ///   3. Verifica que el muro tiene longitud suficiente (descarta el simple brazo de la L)
+        ///   4. Construye el rectángulo con los 4 vértices y emite las 2 polilíneas + 4 cuadrados
+        /// </summary>
+        private void GenerarMurosLConExtremoLibre(
+            List<PanelInfoMuro> paneles, List<LineaDTO> lineas, DeteccionEsquinasLDTO resultado)
+        {
+            if (paneles == null || paneles.Count == 0) return;
+
+            const double LONG_MURO_MINIMA = 600.0; // mm, evita falsos positivos en brazos cortos de la L
+
+            foreach (var panel in paneles)
+            {
+                // --- Eje HORIZONTAL: innerH + outerH ---
+                if (panel.InnerH != null && panel.OuterH != null &&
+                    panel.Verde   != null && panel.Blanco   != null)
+                {
+                    var freeEndInner = ExtremoLejano(panel.InnerH, panel.AzulX, panel.AzulY);
+                    var freeEndOuter = ExtremoLejano(panel.OuterH, panel.RojoX, panel.RojoY);
+
+                    double longInner = Distancia(freeEndInner.X, freeEndInner.Y, panel.AzulX, panel.AzulY);
+                    double longOuter = Distancia(freeEndOuter.X, freeEndOuter.Y, panel.RojoX, panel.RojoY);
+
+                    if (longInner >= LONG_MURO_MINIMA && longOuter >= LONG_MURO_MINIMA &&
+                        EsExtremoLibre(freeEndInner.X, freeEndInner.Y, lineas, panel.InnerH) &&
+                        EsExtremoLibre(freeEndOuter.X, freeEndOuter.Y, lineas, panel.OuterH))
+                    {
+                        freeEndInner.TipoPunto = "VerticeMuroLibre";
+                        freeEndOuter.TipoPunto = "VerticeMuroLibre";
+
+                        var vertices = new List<PuntoDTO> { panel.Verde, freeEndInner, freeEndOuter, panel.Blanco };
+                        AgregarMuroRecto(resultado, vertices);
+                        AgregarMarcadoresVerticesMuro(resultado, vertices);
+                    }
+                }
+
+                // --- Eje VERTICAL: innerV + outerV ---
+                if (panel.InnerV != null && panel.OuterV != null &&
+                    panel.Amarillo != null && panel.Cian != null)
+                {
+                    var freeEndInner = ExtremoLejano(panel.InnerV, panel.AzulX, panel.AzulY);
+                    var freeEndOuter = ExtremoLejano(panel.OuterV, panel.RojoX, panel.RojoY);
+
+                    double longInner = Distancia(freeEndInner.X, freeEndInner.Y, panel.AzulX, panel.AzulY);
+                    double longOuter = Distancia(freeEndOuter.X, freeEndOuter.Y, panel.RojoX, panel.RojoY);
+
+                    if (longInner >= LONG_MURO_MINIMA && longOuter >= LONG_MURO_MINIMA &&
+                        EsExtremoLibre(freeEndInner.X, freeEndInner.Y, lineas, panel.InnerV) &&
+                        EsExtremoLibre(freeEndOuter.X, freeEndOuter.Y, lineas, panel.OuterV))
+                    {
+                        freeEndInner.TipoPunto = "VerticeMuroLibre";
+                        freeEndOuter.TipoPunto = "VerticeMuroLibre";
+
+                        var vertices = new List<PuntoDTO> { panel.Amarillo, freeEndInner, freeEndOuter, panel.Cian };
+                        AgregarMuroRecto(resultado, vertices);
+                        AgregarMarcadoresVerticesMuro(resultado, vertices);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Devuelve como PuntoDTO el extremo de una línea más LEJANO al punto de referencia.
+        /// </summary>
+        private PuntoDTO ExtremoLejano(LineaDTO linea, double refX, double refY)
+        {
+            double dIni = Distancia(linea.InicioX, linea.InicioY, refX, refY);
+            double dFin = Distancia(linea.FinX,    linea.FinY,    refX, refY);
+            return dFin >= dIni
+                ? new PuntoDTO { X = linea.FinX,    Y = linea.FinY,    Z = linea.FinZ    }
+                : new PuntoDTO { X = linea.InicioX, Y = linea.InicioY, Z = linea.InicioZ };
+        }
+
+        /// <summary>
+        /// True si el punto (x, y) NO coincide con el endpoint de ningún otro segmento del input.
+        /// Excluye <paramref name="excluir"/> (la propia línea cuyo extremo se está chequeando).
+        /// </summary>
+        private bool EsExtremoLibre(double x, double y, List<LineaDTO> lineas, LineaDTO excluir)
+        {
+            const double TOL_CONEXION = 1.0; // 1 mm — algo más laxo que TOLERANCIA para tolerar dibujo manual
+            foreach (var l in lineas)
+            {
+                if (ReferenceEquals(l, excluir)) continue;
+                if (Distancia(x, y, l.InicioX, l.InicioY) < TOL_CONEXION) return false;
+                if (Distancia(x, y, l.FinX,    l.FinY)    < TOL_CONEXION) return false;
+            }
+            return true;
         }
 
         /// <summary>
@@ -894,6 +1145,17 @@ namespace Desing.Services
         ///   Cian     = ptRojo + (espH + 300mm) cara exterior VERTICAL
         /// </summary>
         private (PuntoDTO Verde, PuntoDTO Amarillo, PuntoDTO Blanco, PuntoDTO Cian, PuntoDTO Magenta, PuntoDTO Criss) CalcularPuntosPanel(
+            LineaDTO l1a, LineaDTO l1b, LineaDTO l2a, LineaDTO l2b)
+        {
+            var (v, a, b, c, m, cr, _) = CalcularPuntosPanelConLineas(l1a, l1b, l2a, l2b);
+            return (v, a, b, c, m, cr);
+        }
+
+        /// <summary>
+        /// US-688 T5 (#693) — Variante de CalcularPuntosPanel que además devuelve las 4 líneas
+        /// inner/outer identificadas. Necesario para emparejar paneles L que comparten un muro recto.
+        /// </summary>
+        private (PuntoDTO Verde, PuntoDTO Amarillo, PuntoDTO Blanco, PuntoDTO Cian, PuntoDTO Magenta, PuntoDTO Criss, PanelInfoMuro Info) CalcularPuntosPanelConLineas(
             LineaDTO l1a, LineaDTO l1b, LineaDTO l2a, LineaDTO l2b)
         {
             const double DIST = 300.0;
@@ -913,7 +1175,9 @@ namespace Desing.Services
 
             var ptAzul = IntersectarLineas(innerG1, innerG2);
             var ptRojo = IntersectarLineas(outerG1, outerG2);
-            if (!ptAzul.HasValue || !ptRojo.HasValue) return (null, null, null, null, null, null);
+            if (!ptAzul.HasValue || !ptRojo.HasValue) return (null, null, null, null, null, null, null);
+            if (!PuntoEnSegmento(ptAzul.Value.X, ptAzul.Value.Y, innerG1) || !PuntoEnSegmento(ptAzul.Value.X, ptAzul.Value.Y, innerG2)) return (null, null, null, null, null, null, null);
+            if (!PuntoEnSegmento(ptRojo.Value.X, ptRojo.Value.Y, outerG1) || !PuntoEnSegmento(ptRojo.Value.X, ptRojo.Value.Y, outerG2)) return (null, null, null, null, null, null, null);
 
             bool g1EsH = Math.Abs(innerG1.FinX - innerG1.InicioX) >= Math.Abs(innerG1.FinY - innerG1.InicioY);
             LineaDTO innerH = g1EsH ? innerG1 : innerG2;
@@ -946,7 +1210,22 @@ namespace Desing.Services
                 if (dCriss > 0) criss = PuntoPolar(ptRojo.Value, outerV, dCriss, "PtEExtPanelV");
             }
 
-            return (verde, amarillo, blanco, cian, magenta, criss);
+            var info = new PanelInfoMuro
+            {
+                Verde    = verde,
+                Amarillo = amarillo,
+                Blanco   = blanco,
+                Cian     = cian,
+                InnerH   = innerH,
+                OuterH   = outerH,
+                InnerV   = innerV,
+                OuterV   = outerV,
+                AzulX    = ptAzul.Value.X,
+                AzulY    = ptAzul.Value.Y,
+                RojoX    = ptRojo.Value.X,
+                RojoY    = ptRojo.Value.Y
+            };
+            return (verde, amarillo, blanco, cian, magenta, criss, info);
         }
 
         private PuntoDTO PuntoPolar((double X, double Y) ptBase, LineaDTO linea, double distancia, string tipo)
@@ -1006,6 +1285,15 @@ namespace Desing.Services
             double t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
 
             return (x1 + t * (x2 - x1), y1 + t * (y2 - y1));
+        }
+
+        private bool PuntoEnSegmento(double px, double py, LineaDTO seg)
+        {
+            double minX = Math.Min(seg.InicioX, seg.FinX) - TOLERANCIA;
+            double maxX = Math.Max(seg.InicioX, seg.FinX) + TOLERANCIA;
+            double minY = Math.Min(seg.InicioY, seg.FinY) - TOLERANCIA;
+            double maxY = Math.Max(seg.InicioY, seg.FinY) + TOLERANCIA;
+            return px >= minX && px <= maxX && py >= minY && py <= maxY;
         }
 
         /// <summary>

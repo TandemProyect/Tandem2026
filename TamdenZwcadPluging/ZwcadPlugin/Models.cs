@@ -96,6 +96,17 @@ namespace ZwcadPlugin.Models
         /// ColorIndex ZWCAD calculado por el servidor según TipoPunto
         /// </summary>
         public int ColorIndex { get; set; }
+
+        /// <summary>
+        /// US-688 T1 — forma geométrica del marcador: "Circulo" (default) o "Cuadrado".
+        /// </summary>
+        public string Forma { get; set; } = "Circulo";
+
+        /// <summary>
+        /// US-688 T1 — tamaño del marcador en mm (radio para Circulo, semi-lado para Cuadrado).
+        /// Si es 0, el cliente usa su default.
+        /// </summary>
+        public double Tamano { get; set; } = 0;
     }
 
     /// <summary>

@@ -11,6 +11,7 @@ Esta carpeta contiene **documentación común** para todos los proyectos de la s
 3. [Código Compartido (Common)](./Common.md)
 4. [Convenciones de Código](./Convenciones.md)
 5. [Git y Commits](./Git-Workflow.md)
+6. [🏛️ Arquitectura Cliente-Servidor (Regla de Oro)](./Arquitectura-Cliente-Servidor.md)
 
 ---
 
