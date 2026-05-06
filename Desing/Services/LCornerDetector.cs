@@ -523,6 +523,9 @@ namespace Desing.Services
 
                 // US-688 T6 (#694) — Muros rectos con UNA esquina L y un extremo libre (A, CC, D, Cara E)
                 GenerarMurosLConExtremoLibre(panelesInfoMuro, lineas, resultado);
+
+                // US-688 T7 (#695) — Muros rectos sin ninguna esquina L (E, F) — pares paralelos aislados
+                GenerarMurosLibresAislados(panelesInfoMuro, lineas, resultado);
             }
             else
             {
@@ -533,6 +536,9 @@ namespace Desing.Services
                     esquina.Vertice.ColorIndex = (int)TipoPunto.PtEInterior;
                     resultado.PuntosADibujar.Add(esquina.Vertice);
                 }
+
+                // US-688 T7 (#695) — También buscar muros aislados aunque no haya paneles L
+                GenerarMurosLibresAislados(new List<PanelInfoMuro>(), lineas, resultado);
             }
 
             // 🔍 LÓGICA MEJORADA: Si hay paneles VÁLIDOS detectados, las conexiones individuales son parte del panel
@@ -1135,6 +1141,104 @@ namespace Desing.Services
                 if (Distancia(x, y, l.FinX,    l.FinY)    < TOL_CONEXION) return false;
             }
             return true;
+        }
+
+        /// <summary>
+        /// US-688 T7 (#695) — Detecta muros rectos formados por DOS LÍNEAS PARALELAS independientes,
+        /// sin ninguna esquina L conectada y con los 4 endpoints libres (muros E y F).
+        ///
+        /// Filtros aplicados a cada par (i, j) de líneas:
+        ///   1. Ninguna de las 2 líneas pertenece a un panel L ya procesado.
+        ///   2. Son paralelas (coseno del ángulo entre direcciones |·| ≥ 0.999).
+        ///   3. Distancia perpendicular entre OFFSET_MINIMO_PANEL y OFFSET_MAXIMO_PANEL.
+        ///   4. Se solapan longitudinalmente (>= 100 mm de proyección común).
+        ///   5. Los 4 endpoints son extremos libres (no conectan con ninguna otra línea).
+        ///
+        /// Si pasa todos los filtros, se construye el rectángulo emparejando endpoints por lado
+        /// (proyección sobre el eje del muro) y se emite con el patrón estándar.
+        /// </summary>
+        private void GenerarMurosLibresAislados(
+            List<PanelInfoMuro> paneles, List<LineaDTO> lineas, DeteccionEsquinasLDTO resultado)
+        {
+            if (lineas == null || lineas.Count < 2) return;
+
+            // Conjunto de líneas YA usadas como cara de panel L (las descartamos)
+            var lineasDePaneles = new HashSet<LineaDTO>();
+            if (paneles != null)
+            {
+                foreach (var p in paneles)
+                {
+                    if (p.InnerH != null) lineasDePaneles.Add(p.InnerH);
+                    if (p.OuterH != null) lineasDePaneles.Add(p.OuterH);
+                    if (p.InnerV != null) lineasDePaneles.Add(p.InnerV);
+                    if (p.OuterV != null) lineasDePaneles.Add(p.OuterV);
+                }
+            }
+
+            // Sólo consideramos líneas simples (no polilíneas)
+            var candidatas = lineas.Where(l => l.Tipo == "Line" && !lineasDePaneles.Contains(l)).ToList();
+
+            const double COS_PARALELO_MIN  = 0.999; // ~2.5° de tolerancia angular
+            const double SOLAPAMIENTO_MIN  = 100.0; // mm
+            var paresUsados = new HashSet<string>();
+
+            for (int i = 0; i < candidatas.Count; i++)
+            {
+                for (int j = i + 1; j < candidatas.Count; j++)
+                {
+                    var lA = candidatas[i];
+                    var lB = candidatas[j];
+
+                    // 2. Paralelismo
+                    double dxA = lA.FinX - lA.InicioX, dyA = lA.FinY - lA.InicioY;
+                    double dxB = lB.FinX - lB.InicioX, dyB = lB.FinY - lB.InicioY;
+                    double normA = Math.Sqrt(dxA * dxA + dyA * dyA);
+                    double normB = Math.Sqrt(dxB * dxB + dyB * dyB);
+                    if (normA < TOLERANCIA || normB < TOLERANCIA) continue;
+                    double cosAng = Math.Abs((dxA * dxB + dyA * dyB) / (normA * normB));
+                    if (cosAng < COS_PARALELO_MIN) continue;
+
+                    // 3. Distancia perpendicular dentro de rango de espesor de muro
+                    double dist = CalcularDistanciaEntreLineasParalelas(lA, lB);
+                    if (dist < OFFSET_MINIMO_PANEL || dist > OFFSET_MAXIMO_PANEL) continue;
+
+                    // 4. Solapamiento longitudinal: proyectamos los endpoints de B sobre la dirección de A
+                    double ux = dxA / normA, uy = dyA / normA;
+                    double a0 = 0, a1 = normA; // proyecciones de los extremos de A sobre su eje (medido desde su Inicio)
+                    double b0 = (lB.InicioX - lA.InicioX) * ux + (lB.InicioY - lA.InicioY) * uy;
+                    double b1 = (lB.FinX    - lA.InicioX) * ux + (lB.FinY    - lA.InicioY) * uy;
+                    double bMin = Math.Min(b0, b1), bMax = Math.Max(b0, b1);
+                    double overlap = Math.Min(a1, bMax) - Math.Max(a0, bMin);
+                    if (overlap < SOLAPAMIENTO_MIN) continue;
+
+                    // 5. Los 4 endpoints son libres
+                    if (!EsExtremoLibre(lA.InicioX, lA.InicioY, lineas, lA)) continue;
+                    if (!EsExtremoLibre(lA.FinX,    lA.FinY,    lineas, lA)) continue;
+                    if (!EsExtremoLibre(lB.InicioX, lB.InicioY, lineas, lB)) continue;
+                    if (!EsExtremoLibre(lB.FinX,    lB.FinY,    lineas, lB)) continue;
+
+                    // Evitar duplicados (mismo par procesado dos veces)
+                    string clave = i + "-" + j;
+                    if (paresUsados.Contains(clave)) continue;
+                    paresUsados.Add(clave);
+
+                    // Construir rectángulo emparejando endpoints "Inicio" de B con el extremo de A
+                    // que esté en el mismo lado (proyección menor o mayor sobre el eje).
+                    bool bInvertido = b0 > b1; // si Inicio de B está más lejos en el eje que Fin de B
+                    var pA0 = new PuntoDTO { X = lA.InicioX, Y = lA.InicioY, Z = lA.InicioZ };
+                    var pA1 = new PuntoDTO { X = lA.FinX,    Y = lA.FinY,    Z = lA.FinZ    };
+                    var pB0 = new PuntoDTO { X = lB.InicioX, Y = lB.InicioY, Z = lB.InicioZ };
+                    var pB1 = new PuntoDTO { X = lB.FinX,    Y = lB.FinY,    Z = lB.FinZ    };
+
+                    // Vértices: A0 → A1 → (extremo de B en mismo lado que A1) → (extremo de B en mismo lado que A0)
+                    var vertices = bInvertido
+                        ? new List<PuntoDTO> { pA0, pA1, pB0, pB1 }
+                        : new List<PuntoDTO> { pA0, pA1, pB1, pB0 };
+
+                    AgregarMuroRecto(resultado, vertices);
+                    AgregarMarcadoresVerticesMuro(resultado, vertices);
+                }
+            }
         }
 
         /// <summary>
