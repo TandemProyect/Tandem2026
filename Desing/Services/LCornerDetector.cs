@@ -1033,7 +1033,7 @@ namespace Desing.Services
         {
             // 4 colores distintivos por posición de vértice del muro (paleta ZWCAD)
             int[] coloresVerticeMuro = { 30, 140, 210, 90 }; // naranja, púrpura, magenta-oscuro, turquesa
-            const double LADO_SEMI = 100.0; // semi-lado del cuadrado (radio circulo / 2)
+            const double LADO_SEMI = 20.0; // 20% del original (100 mm) — coherente con cliente
 
             for (int k = 0; k < verticesMuro.Count && k < 4; k++)
             {

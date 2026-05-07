@@ -431,8 +431,8 @@ namespace ZwcadPlugin
                     BlockTable bt = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
                     BlockTableRecord btr = tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
                     int n = 0;
-                    const double RADIO_DEFAULT      = 200.0;
-                    const double LADO_SEMI_DEFAULT  = 100.0; // US-688 T1: cuadrados más pequeños (radio/2)
+                    const double RADIO_DEFAULT      = 40.0;  // 20% del original (200 mm)
+                    const double LADO_SEMI_DEFAULT  = 20.0;  // 20% del original (100 mm)
                     foreach (var punto in datos.PuntosADibujar)
                     {
                         // US-688 T1: ramificar por Forma — "Cuadrado" o "Circulo" (default)
