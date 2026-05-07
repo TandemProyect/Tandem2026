@@ -248,13 +248,23 @@ namespace Desing.Controllers
                 file.InputStream.Read(imagenBytes, 0, file.ContentLength);
 
                 var imageService = new ImageAnalysisService();
-                var lineas = await imageService.AnalizarImagenAsync(imagenBytes, file.ContentType);
+                var (lineasSimples, espesorMuro) = await imageService.AnalizarImagenAsync(imagenBytes, file.ContentType);
 
-                System.Diagnostics.Debug.WriteLine($"[ImageAnalysis] {lineas.Count} líneas extraídas de la imagen");
+                System.Diagnostics.Debug.WriteLine($"[ImageAnalysis] {lineasSimples.Count} líneas extraídas, espesor: {espesorMuro}");
+
+                if (espesorMuro == null)
+                {
+                    return Json(new ApiResponse<DeteccionEsquinasLDTO>
+                    {
+                        Exito = false,
+                        Mensaje = "No se detectó el espesor del muro en la imagen. Por favor, añade una cota de espesor en uno de los muros (ej: 0.30) y vuelve a intentarlo.",
+                        Datos = null
+                    });
+                }
 
                 var detector = new LCornerDetector();
-                var resultado = detector.DetectarEsquinasL(lineas);
-                resultado.Mensaje = $"Imagen analizada: {lineas.Count} líneas detectadas. {resultado.Mensaje}";
+                var resultado = detector.DetectarEsquinasL(lineasSimples);
+                resultado.Mensaje = $"Imagen analizada: {lineasSimples.Count} líneas, espesor {espesorMuro.Value * 1000}mm. {resultado.Mensaje}";
 
                 return Json(new ApiResponse<DeteccionEsquinasLDTO>
                 {
