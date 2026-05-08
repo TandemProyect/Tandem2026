@@ -3,6 +3,10 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# Carpeta de evaluacion de plantillas (Materio free, etc.) - no forma parte del proyecto
+_templates_eval/
+_templates/
+
 # User-specific files
 *.rsuser
 *.suo
