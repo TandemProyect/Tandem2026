@@ -1,4 +1,4 @@
-﻿@model DAL.TSql_Company
+@model DAL.TSql_Company
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="py-3 mb-0">
         <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> /</span> Empresas
@@ -7,9 +7,9 @@
         <i class="icon-base ri ri-add-line me-1"></i> Crear Nueva empresa
     </a>
 </div>
-<div class="panel panel-default">
-    <div class="panel-body" style="padding:5px;margin:5px">
-        <table id="ListTSql_Company" class="table table-striped table-bordered table-hover" cellspacing="0" style="width: 100%; overflow: scroll">
+<div class="card mb-4">
+    <div class="card-body" style="padding:5px;margin:5px">
+        <table id="ListTSql_Company" class="table table-hover" cellspacing="0" style="width: 100%; overflow: scroll">
             <thead>
                 <tr>
                     <th>Nombre</th>

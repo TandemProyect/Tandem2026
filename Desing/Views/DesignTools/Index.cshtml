@@ -1,4 +1,4 @@
-﻿@model DAL.TSql_Design
+@model DAL.TSql_Design
 <div class="btn-group mb-3" role="group" aria-label="Filtrar diseños">
     <a id="btnAllDesing" href="@Url.Action("Index", "DesignTools", new { OnlyUser = false })" class="btn btn-outline-primary">
         <i class="icon-base ri ri-list-check me-1"></i> Ver todos los diseños
@@ -63,9 +63,9 @@
 <div style="height:15px">
     <hr style="background-color:#0d6efd; height: 3px ">
 </div>
-<div class="panel panel-default" style="height: 100%; width: 100%;">
-    <div class="panel-body" style="padding:5px;margin:5px">
-        <table id="Design" class="table table-striped table-bordered table-hover" cellspacing="0" style="width: 100%; overflow: scroll">
+<div class="card mb-4" style="height: 100%; width: 100%;">
+    <div class="card-body" style="padding:5px;margin:5px">
+        <table id="Design" class="table table-hover" cellspacing="0" style="width: 100%; overflow: scroll">
             <thead>
                 <tr>
                     @*0*@<th style="background-color: #F4C53D; color: black;">Diseño</th>
