@@ -1,6 +1,6 @@
 @*
     Layout principal estilo Materio adaptado para ASP.NET MVC 5 / .NET Framework 4.8.
-    Reemplaza al _Layout.cshtml clasico de Atenko Desing.
+    Reemplaza al _Layout.cshtml clasico de Tandem Desing.
 *@
 <!DOCTYPE html>
 <html lang="es"
@@ -13,7 +13,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-    <title>@(ViewBag.Title ?? "Atenko Desing")</title>
+    <title>@(ViewBag.Title ?? "Tandem Desing")</title>
 
     <link rel="icon" type="image/x-icon" href="@Url.Content("~/assets/client/images/Default/Ico/at.ico")" />
 
@@ -39,9 +39,10 @@
     <!-- Site CSS -->
     <link rel="stylesheet" href="@Url.Content("~/assets/materio/css/site.css")" />
 
-    @* DataTables (mantenemos los que ya usa Atenko) *@
-    <link href="@Url.Content("~/Content/datatables/DataTables-1.11.3/css/jquery.dataTables.min.css")" rel="stylesheet" />
-    <link href="@Url.Content("~/Content/datatables/Buttons-2.0.1/css/buttons.dataTables.css")" rel="stylesheet" />
+    @* DataTables - estilo Bootstrap 5 (Materio) via CDN *@
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" />
 
     @* FontAwesome (compatibilidad con vistas existentes) *@
     <link href="@Url.Content("~/lib/font-awesome/css/all.css")" rel="stylesheet" />
@@ -90,15 +91,17 @@
     <!-- Main JS -->
     <script src="@Url.Content("~/assets/materio/js/main.js")"></script>
 
-    @* DataTables (usados ampliamente en Desing) *@
-    <script src="@Url.Content("~/Scripts/datatables/DataTables-1.11.3/js/jquery.dataTables.min.js")"></script>
-    <script src="@Url.Content("~/Scripts/datatables/Buttons-2.0.1/js/dataTables.buttons.min.js")"></script>
-    <script src="@Url.Content("~/Scripts/datatables/JSZip-2.5.0/jszip.min.js")"></script>
-    <script src="@Url.Content("~/Scripts/datatables/pdfmake-0.1.36/pdfmake.min.js")"></script>
-    <script src="@Url.Content("~/Scripts/datatables/pdfmake-0.1.36/vfs_fonts.js")"></script>
-    <script src="@Url.Content("~/Scripts/datatables/Buttons-2.0.1/js/buttons.html5.min.js")"></script>
-    <script src="@Url.Content("~/Scripts/datatables/Buttons-2.0.1/js/buttons.print.min.js")"></script>
-    <script src="@Url.Content("~/Scripts/datatables/Buttons-2.0.1/js/buttons.colVis.min.js")"></script>
+    @* DataTables - JS con bridge Bootstrap 5 *@
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.colVis.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
 
     @RenderSection("scripts", required: false)
 </body>

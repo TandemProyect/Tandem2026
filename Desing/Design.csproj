@@ -2975,6 +2975,7 @@
     <Content Include="Views\Shared\_NavbarMaterio.cshtml" />
     <Content Include="Views\Shared\_SidebarMaterio.cshtml" />
     <Content Include="Views\Shared\_FooterMaterio.cshtml" />
+    <Content Include="Views\Shared\_LayoutMaterioBlank.cshtml" />
     <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Contact.cshtml" />
     <Content Include="Views\Account\Logins.cshtml" />
