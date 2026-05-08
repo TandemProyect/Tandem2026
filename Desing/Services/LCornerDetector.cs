@@ -12,6 +12,24 @@ namespace Desing.Services
     /// </summary>
     public class LCornerDetector
     {
+        private class DebugMuroRectoRegistro
+        {
+            public string Metodo { get; set; }
+            public string Tipo { get; set; }
+            public string Estado { get; set; }
+            public string Motivo { get; set; }
+            public string ParLineas { get; set; }
+            public object Geometria { get; set; }
+        }
+
+        private enum TipoMuroRecto
+        {
+            Tipo1_AmbosExtremosConectados = 1, // nace y muere en esquina
+            Tipo2_InicioConectado_FinLibre = 2,
+            Tipo3_InicioLibre_FinConectado = 3,
+            Tipo4_AmbosExtremosLibres = 4
+        }
+
         /// <summary>
         /// US-688 T5 (#693) — info por panel L para construir muros rectos B/C
         /// </summary>
@@ -34,6 +52,7 @@ namespace Desing.Services
 
         // US-697 — altura para extrusión ModelDesing (mm). Sobrescrita en cada llamada a DetectarEsquinasL.
         private double _alturaMuroMm = 2700;
+        private readonly List<DebugMuroRectoRegistro> _debugMuros = new List<DebugMuroRectoRegistro>();
 
         private const double TOLERANCIA = 0.01; // Muy pequeña tolerancia para puntos "iguales"
         private const double OFFSET_MINIMO_PANEL = 50.0;   // Distancia mínima entre líneas paralelas (rechaza colineales de distintas esquinas)
@@ -61,6 +80,7 @@ namespace Desing.Services
         public DeteccionEsquinasLDTO DetectarEsquinasL(List<LineaDTO> lineas, double alturaMuroMm = 2700)
         {
             _alturaMuroMm = alturaMuroMm > 0 ? alturaMuroMm : 2700;
+            _debugMuros.Clear();
 
             var resultado = new DeteccionEsquinasLDTO
             {
@@ -141,11 +161,14 @@ namespace Desing.Services
                     double dist_p1F_p2I = Distancia(p1Fin.X, p1Fin.Y, p2Inicio.X, p2Inicio.Y);
                     double dist_p1F_p2F = Distancia(p1Fin.X, p1Fin.Y, p2Fin.X, p2Fin.Y);
 
+                    bool sonPerpendiculares = SonLineasPerpendiculares(linea1, linea2);
+
                     // Crear el objeto de comparación
                     var comparacion = new
                     {
                         Linea1_Indice = i,
                         Linea2_Indice = j,
+                        SonPerpendiculares = sonPerpendiculares,
                         Casos = new[]
                         {
                             new { Caso = "L1.Inicio <-> L2.Inicio", Distancia = dist_p1I_p2I, SeTocan = dist_p1I_p2I <= TOLERANCIA, 
@@ -162,7 +185,7 @@ namespace Desing.Services
                     ((List<object>)infoCompleta.Comparaciones).Add(comparacion);
 
                     // ✅ ¿Hay alguna conexión?
-                    if (dist_p1I_p2I <= TOLERANCIA)
+                    if (sonPerpendiculares && dist_p1I_p2I <= TOLERANCIA)
                     {
                         ((List<object>)infoCompleta.ConexionesDetectadas).Add(new
                         {
@@ -182,7 +205,7 @@ namespace Desing.Services
                         });
                     }
 
-                    if (dist_p1I_p2F <= TOLERANCIA)
+                    if (sonPerpendiculares && dist_p1I_p2F <= TOLERANCIA)
                     {
                         ((List<object>)infoCompleta.ConexionesDetectadas).Add(new
                         {
@@ -202,7 +225,7 @@ namespace Desing.Services
                         });
                     }
 
-                    if (dist_p1F_p2I <= TOLERANCIA)
+                    if (sonPerpendiculares && dist_p1F_p2I <= TOLERANCIA)
                     {
                         ((List<object>)infoCompleta.ConexionesDetectadas).Add(new
                         {
@@ -222,7 +245,7 @@ namespace Desing.Services
                         });
                     }
 
-                    if (dist_p1F_p2F <= TOLERANCIA)
+                    if (sonPerpendiculares && dist_p1F_p2F <= TOLERANCIA)
                     {
                         ((List<object>)infoCompleta.ConexionesDetectadas).Add(new
                         {
@@ -349,8 +372,12 @@ namespace Desing.Services
                                             double distGrupo2 = CalcularDistanciaEntreLineasParalelas(l2a, l2b);
 
                                             // ⭐ VALIDACIÓN: El offset entre líneas paralelas debe estar entre 50 y 1500 unidades
+                                            // y las 4 líneas deben cerrar un contorno rectangular real.
                                             bool dist1Valida = distGrupo1 >= OFFSET_MINIMO_PANEL && distGrupo1 <= OFFSET_MAXIMO_PANEL;
                                             bool dist2Valida = distGrupo2 >= OFFSET_MINIMO_PANEL && distGrupo2 <= OFFSET_MAXIMO_PANEL;
+                                            bool panelConectado = EsPanelRectangularConectado(l1a, l1b, l2a, l2b);
+                                            // IMPORTANTE: no bloquear flujo por conectividad estricta para no perder
+                                            // paneles/muros válidos en trazados abiertos de polilínea.
                                             bool esPanelValido = dist1Valida && dist2Valida;
 
                                             esquinasDetectadas.Add(new
@@ -364,12 +391,15 @@ namespace Desing.Services
                                                 DistanciaGrupo2 = distGrupo2,
                                                 Dist1Valida = dist1Valida,
                                                 Dist2Valida = dist2Valida,
+                                                PanelConectado = panelConectado,
                                                 EsPanelValido = esPanelValido,
                                                 OffsetMaximoPermitido = OFFSET_MAXIMO_PANEL,
                                                 MotivoRechazo = !esPanelValido
                                                     ? (!dist1Valida ? $"Distancia grupo 1 ({distGrupo1:F2}) > {OFFSET_MAXIMO_PANEL}" : "")
                                                     + (!dist1Valida && !dist2Valida ? " y " : "")
                                                     + (!dist2Valida ? $"Distancia grupo 2 ({distGrupo2:F2}) > {OFFSET_MAXIMO_PANEL}" : "")
+                                                    + ((!dist1Valida || !dist2Valida) && !panelConectado ? " y " : "")
+                                                    + (!panelConectado ? "Las 4 líneas no cierran un contorno rectangular conectado" : "")
                                                     : null,
                                                 Geometrias = new
                                                 {
@@ -523,11 +553,17 @@ namespace Desing.Services
                 foreach (var punto in EliminarPuntosDuplicados(todosPuntosMagenta))  resultado.PuntosADibujar.Add(punto);
                 foreach (var punto in EliminarPuntosDuplicados(todosPuntosCriss))    resultado.PuntosADibujar.Add(punto);
 
-                // US-688 T5 (#693) — Muros rectos entre dos esquinas L adyacentes (muros B y C)
-                GenerarMurosRectosEntreEsquinas(panelesInfoMuro, resultado);
+                // Tipo 1 primero: muros entre esquinas conectadas en ambos extremos.
+                // Se detectan por estaciones comunes sobre pares de líneas paralelas
+                // usando vértices de esquina + puntos de referencia ya calculados.
+                GenerarMurosTipo1DesdeEsquinas(lineas, resultado.Esquinas, resultado.PuntosADibujar, resultado);
 
                 // US-688 T6 (#694) — Muros rectos con UNA esquina L y un extremo libre (A, CC, D, Cara E)
                 GenerarMurosLConExtremoLibre(panelesInfoMuro, lineas, resultado);
+
+                // IMPORTANTE: cuando hay paneles/esquinas válidas, la geometría de muros rectos
+                // debe nacer/morir en los puntos derivados de esas esquinas. Evitamos fallback
+                // basado solo en líneas para no extender muros fuera de esquina.
 
                 // US-688 T7 (#695) — Muros rectos sin ninguna esquina L (E, F) — pares paralelos aislados
                 GenerarMurosLibresAislados(panelesInfoMuro, lineas, resultado);
@@ -542,7 +578,10 @@ namespace Desing.Services
                     resultado.PuntosADibujar.Add(esquina.Vertice);
                 }
 
-                // US-688 T7 (#695) — También buscar muros aislados aunque no haya paneles L
+                // Sin paneles L válidos: tipificar y resolver muros por conectividad de extremos.
+                // - Tipo 1/2/3: se intentan construir desde pares paralelos.
+                // - Tipo 4: se delega al generador de muros aislados.
+                GenerarMurosConUnExtremoLibreDesdeLineas(lineas, resultado, resultado.PuntosADibujar);
                 GenerarMurosLibresAislados(new List<PanelInfoMuro>(), lineas, resultado);
             }
 
@@ -688,6 +727,8 @@ namespace Desing.Services
                         }
                         : null
                 }
+                ,
+                DebugMurosRectos = _debugMuros
             };
 
             resultado.TotalEsquinasDetectadas = esquinasEnLReales;
@@ -695,6 +736,55 @@ namespace Desing.Services
 
             // 💾 GUARDAR JSON COMPLETO CON PARALELAS
             GuardarJSON(infoCompletaConParalelas);
+            GuardarJSONDiagnosticoMuros(new
+            {
+                FechaAnalisis = DateTime.Now,
+                AlturaMuroMm = _alturaMuroMm,
+                TotalLineas = lineas.Count,
+                TotalEsquinasL = resultado.TotalEsquinasDetectadas,
+                TotalMurosRectos = resultado.TotalMurosRectos,
+                TotalPolilineasSalida = resultado.PolilineasADibujar?.Count ?? 0,
+                TotalPuntosSalida = resultado.PuntosADibujar?.Count ?? 0,
+                DebugMurosRectos = _debugMuros,
+                LineasEntrada = lineas.Select((l, idx) => new
+                {
+                    Indice = idx,
+                    l.Tipo,
+                    Inicio = new { l.InicioX, l.InicioY, l.InicioZ },
+                    Fin = new { l.FinX, l.FinY, l.FinZ },
+                    l.Longitud,
+                    l.Layer,
+                    l.Color
+                }).ToList(),
+                EsquinasL = resultado.Esquinas.Select((e, idx) => new
+                {
+                    Indice = idx,
+                    Vertice = new { e.Vertice?.X, e.Vertice?.Y, e.Vertice?.Z },
+                    e.Angulo,
+                    e.IndiceLinea1,
+                    e.IndiceLinea2
+                }).ToList(),
+                PuntosDibujo = resultado.PuntosADibujar.Select((p, idx) => new
+                {
+                    Indice = idx,
+                    p.TipoPunto,
+                    p.Forma,
+                    p.ColorIndex,
+                    p.Tamano,
+                    p.X,
+                    p.Y,
+                    p.Z
+                }).ToList(),
+                PolilineasSalida = resultado.PolilineasADibujar.Select((pl, idx) => new
+                {
+                    Indice = idx,
+                    pl.Capa,
+                    pl.ColorIndex,
+                    pl.Cerrada,
+                    pl.AlturaExtrusion,
+                    Vertices = pl.Vertices?.Select(v => new { v.X, v.Y, v.Z }).ToList()
+                }).ToList()
+            });
 
             return resultado;
         }
@@ -950,7 +1040,7 @@ namespace Desing.Services
                     var pB = paneles[j];
 
                     // --- Muro HORIZONTAL compartido: ambos paneles usan el MISMO innerH y MISMO outerH
-                    if (MismaLinea(pA.InnerH, pB.InnerH) && MismaLinea(pA.OuterH, pB.OuterH))
+                    if (SonMismaRectaDeMuro(pA.InnerH, pB.InnerH) && SonMismaRectaDeMuro(pA.OuterH, pB.OuterH))
                     {
                         string clave = "H-" + Math.Min(i, j) + "-" + Math.Max(i, j);
                         if (!paresUsados.Contains(clave) &&
@@ -964,7 +1054,7 @@ namespace Desing.Services
                     }
 
                     // --- Muro VERTICAL compartido: ambos paneles usan el MISMO innerV y MISMO outerV
-                    if (MismaLinea(pA.InnerV, pB.InnerV) && MismaLinea(pA.OuterV, pB.OuterV))
+                    if (SonMismaRectaDeMuro(pA.InnerV, pB.InnerV) && SonMismaRectaDeMuro(pA.OuterV, pB.OuterV))
                     {
                         string clave = "V-" + Math.Min(i, j) + "-" + Math.Max(i, j);
                         if (!paresUsados.Contains(clave) &&
@@ -978,6 +1068,161 @@ namespace Desing.Services
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Tipo 1: detecta muros rectos delimitados por esquina en inicio y esquina en final.
+        /// Se construye por "estaciones" de esquina comunes sobre pares de líneas paralelas.
+        /// </summary>
+        private void GenerarMurosTipo1DesdeEsquinas(
+            List<LineaDTO> lineas,
+            List<EsquinaLDTO> esquinas,
+            List<PuntoDTO> puntosReferencia,
+            DeteccionEsquinasLDTO resultado)
+        {
+            if (lineas == null || lineas.Count < 2 || esquinas == null || esquinas.Count == 0) return;
+
+            const double COS_PARALELO_MIN = 0.999;
+            const double TOL_ESTACION = 5.0;   // mm
+            const double LONG_MURO_MINIMA = 600.0;
+
+            var claves = new HashSet<string>();
+            var candidatas = lineas.Where(l => l != null && l.Tipo == "Line").ToList();
+
+            for (int i = 0; i < candidatas.Count; i++)
+            {
+                for (int j = i + 1; j < candidatas.Count; j++)
+                {
+                    var lA = candidatas[i];
+                    var lB = candidatas[j];
+
+                    double dxA = lA.FinX - lA.InicioX, dyA = lA.FinY - lA.InicioY;
+                    double dxB = lB.FinX - lB.InicioX, dyB = lB.FinY - lB.InicioY;
+                    double normA = Math.Sqrt(dxA * dxA + dyA * dyA);
+                    double normB = Math.Sqrt(dxB * dxB + dyB * dyB);
+                    if (normA < TOLERANCIA || normB < TOLERANCIA)
+                    {
+                        RegistrarDebugMuro("Tipo1", "Tipo1_AmbosExtremosConectados", "Descartado",
+                            "Linea degenerada", lA, lB, null);
+                        continue;
+                    }
+
+                    double cosAng = Math.Abs((dxA * dxB + dyA * dyB) / (normA * normB));
+                    if (cosAng < COS_PARALELO_MIN)
+                    {
+                        RegistrarDebugMuro("Tipo1", "Tipo1_AmbosExtremosConectados", "Descartado",
+                            "No son paralelas", lA, lB, new { cosAng, COS_PARALELO_MIN });
+                        continue;
+                    }
+
+                    double dist = CalcularDistanciaEntreLineasParalelas(lA, lB);
+                    if (dist < OFFSET_MINIMO_PANEL || dist > OFFSET_MAXIMO_PANEL)
+                    {
+                        RegistrarDebugMuro("Tipo1", "Tipo1_AmbosExtremosConectados", "Descartado",
+                            "Distancia entre caras fuera de rango", lA, lB, new { dist, OFFSET_MINIMO_PANEL, OFFSET_MAXIMO_PANEL });
+                        continue;
+                    }
+
+                    double ux = dxA / normA, uy = dyA / normA;
+
+                    var estacionesA = new List<double>();
+                    var estacionesB = new List<double>();
+                    var fuentes = new List<PuntoDTO>();
+                    fuentes.AddRange(esquinas.Where(e => e?.Vertice != null).Select(e => e.Vertice));
+                    if (puntosReferencia != null && puntosReferencia.Count > 0)
+                        fuentes.AddRange(puntosReferencia.Where(p => p != null));
+
+                    foreach (var p in EliminarPuntosDuplicados(fuentes))
+                    {
+                        if (PuntoSobreSegmentoConTolerancia(p, lA))
+                        {
+                            double t = (p.X - lA.InicioX) * ux + (p.Y - lA.InicioY) * uy;
+                            estacionesA.Add(t);
+                        }
+                        if (PuntoSobreSegmentoConTolerancia(p, lB))
+                        {
+                            double t = (p.X - lA.InicioX) * ux + (p.Y - lA.InicioY) * uy;
+                            estacionesB.Add(t);
+                        }
+                    }
+
+                    if (estacionesA.Count < 2 || estacionesB.Count < 2)
+                    {
+                        RegistrarDebugMuro("Tipo1", "Tipo1_AmbosExtremosConectados", "Descartado",
+                            "Insuficientes estaciones por cara", lA, lB, new { estacionesA = estacionesA.Count, estacionesB = estacionesB.Count });
+                        continue;
+                    }
+
+                    // Estaciones válidas = existen en ambas líneas (misma sección transversal de esquina).
+                    var estacionesComunes = new List<double>();
+                    foreach (var ta in estacionesA)
+                    {
+                        bool existeEnB = estacionesB.Any(tb => Math.Abs(tb - ta) <= TOL_ESTACION);
+                        if (!existeEnB) continue;
+                        if (!estacionesComunes.Any(t => Math.Abs(t - ta) <= TOL_ESTACION))
+                            estacionesComunes.Add(ta);
+                    }
+
+                    if (estacionesComunes.Count < 2)
+                    {
+                        RegistrarDebugMuro("Tipo1", "Tipo1_AmbosExtremosConectados", "Descartado",
+                            "No hay estaciones comunes entre caras", lA, lB, new { estacionesA, estacionesB });
+                        continue;
+                    }
+                    estacionesComunes.Sort();
+
+                    for (int k = 0; k < estacionesComunes.Count - 1; k++)
+                    {
+                        double t0 = estacionesComunes[k];
+                        double t1 = estacionesComunes[k + 1];
+                        if ((t1 - t0) < LONG_MURO_MINIMA)
+                        {
+                            RegistrarDebugMuro("Tipo1", "Tipo1_AmbosExtremosConectados", "Descartado",
+                                "Longitud menor al mínimo", lA, lB, new { t0, t1, largo = t1 - t0, LONG_MURO_MINIMA });
+                            continue;
+                        }
+
+                        var a0 = new PuntoDTO { X = lA.InicioX + ux * t0, Y = lA.InicioY + uy * t0, Z = lA.InicioZ };
+                        var a1 = new PuntoDTO { X = lA.InicioX + ux * t1, Y = lA.InicioY + uy * t1, Z = lA.InicioZ };
+
+                        double bTIni = (lB.InicioX - lA.InicioX) * ux + (lB.InicioY - lA.InicioY) * uy;
+                        var b0 = new PuntoDTO { X = lB.InicioX + ux * (t0 - bTIni), Y = lB.InicioY + uy * (t0 - bTIni), Z = lB.InicioZ };
+                        var b1 = new PuntoDTO { X = lB.InicioX + ux * (t1 - bTIni), Y = lB.InicioY + uy * (t1 - bTIni), Z = lB.InicioZ };
+
+                        string clave = $"{ClaveParLineas(lA, lB)}|{Math.Round(t0, 2):F2}|{Math.Round(t1, 2):F2}";
+                        if (claves.Contains(clave))
+                        {
+                            RegistrarDebugMuro("Tipo1", "Tipo1_AmbosExtremosConectados", "Descartado",
+                                "Duplicado por clave", lA, lB, new { clave });
+                            continue;
+                        }
+                        claves.Add(clave);
+
+                        var vertices = new List<PuntoDTO> { a0, a1, b1, b0 };
+                        AgregarMuroRecto(resultado, vertices);
+                        AgregarMarcadoresVerticesMuro(resultado, vertices);
+                        RegistrarDebugMuro("Tipo1", "Tipo1_AmbosExtremosConectados", "Generado",
+                            "OK", lA, lB, new { clave, t0, t1, vertices = vertices.Select(v => new { v.X, v.Y, v.Z }).ToList() });
+                    }
+                }
+            }
+        }
+
+        private bool PuntoSobreSegmentoConTolerancia(PuntoDTO p, LineaDTO l)
+        {
+            if (p == null || l == null) return false;
+            const double TOL_PUNTO_LINEA = 2.0; // mm
+            const double TOL_RANGO = 2.0;       // mm
+
+            // Debe estar cerca de la recta.
+            if (DistanciaLineaPunto(l, p.X, p.Y) > TOL_PUNTO_LINEA) return false;
+
+            // Debe caer dentro del tramo del segmento (con holgura).
+            double minX = Math.Min(l.InicioX, l.FinX) - TOL_RANGO;
+            double maxX = Math.Max(l.InicioX, l.FinX) + TOL_RANGO;
+            double minY = Math.Min(l.InicioY, l.FinY) - TOL_RANGO;
+            double maxY = Math.Max(l.InicioY, l.FinY) + TOL_RANGO;
+            return p.X >= minX && p.X <= maxX && p.Y >= minY && p.Y <= maxY;
         }
 
         /// <summary>
@@ -995,6 +1240,34 @@ namespace Desing.Services
                 Math.Abs(a.InicioX - b.FinX)    < TOLERANCIA && Math.Abs(a.InicioY - b.FinY)    < TOLERANCIA &&
                 Math.Abs(a.FinX    - b.InicioX) < TOLERANCIA && Math.Abs(a.FinY    - b.InicioY) < TOLERANCIA;
             return sameDir || revDir;
+        }
+
+        /// <summary>
+        /// True si dos segmentos representan la misma recta de muro (colineales),
+        /// aunque no tengan exactamente los mismos endpoints.
+        /// </summary>
+        private bool SonMismaRectaDeMuro(LineaDTO a, LineaDTO b)
+        {
+            if (a == null || b == null) return false;
+            if (MismaLinea(a, b)) return true;
+
+            double dxA = a.FinX - a.InicioX, dyA = a.FinY - a.InicioY;
+            double dxB = b.FinX - b.InicioX, dyB = b.FinY - b.InicioY;
+            double normA = Math.Sqrt(dxA * dxA + dyA * dyA);
+            double normB = Math.Sqrt(dxB * dxB + dyB * dyB);
+            if (normA < TOLERANCIA || normB < TOLERANCIA) return false;
+
+            // Deben ser prácticamente paralelas.
+            double cosAng = Math.Abs((dxA * dxB + dyA * dyB) / (normA * normB));
+            if (cosAng < 0.9999) return false;
+
+            // Y estar sobre la misma recta (distancia casi cero).
+            const double TOL_COLINEAL = 2.0; // mm
+            double d1 = DistanciaLineaPunto(a, b.InicioX, b.InicioY);
+            double d2 = DistanciaLineaPunto(a, b.FinX, b.FinY);
+            double d3 = DistanciaLineaPunto(b, a.InicioX, a.InicioY);
+            double d4 = DistanciaLineaPunto(b, a.FinX, a.FinY);
+            return d1 <= TOL_COLINEAL && d2 <= TOL_COLINEAL && d3 <= TOL_COLINEAL && d4 <= TOL_COLINEAL;
         }
 
         /// <summary>
@@ -1249,6 +1522,238 @@ namespace Desing.Services
         }
 
         /// <summary>
+        /// Detecta pares de líneas paralelas que forman un muro con un único extremo libre.
+        /// Útil para trazados abiertos donde faltan muros A/D por emparejado de paneles.
+        /// </summary>
+        private void GenerarMurosConUnExtremoLibreDesdeLineas(List<LineaDTO> lineas, DeteccionEsquinasLDTO resultado, List<PuntoDTO> puntosReferencia)
+        {
+            if (lineas == null || lineas.Count < 2) return;
+
+            const double COS_PARALELO_MIN = 0.999;
+            const double SOLAPAMIENTO_MIN = 300.0;
+            const double LONG_MURO_MINIMA = 600.0;
+            var paresUsados = new HashSet<string>();
+            var candidatas = lineas.Where(l => l != null && l.Tipo == "Line").ToList();
+            var referencias = (puntosReferencia ?? new List<PuntoDTO>()).Where(p => p != null).ToList();
+
+            for (int i = 0; i < candidatas.Count; i++)
+            {
+                for (int j = i + 1; j < candidatas.Count; j++)
+                {
+                    var lA = candidatas[i];
+                    var lB = candidatas[j];
+
+                    double dxA = lA.FinX - lA.InicioX, dyA = lA.FinY - lA.InicioY;
+                    double dxB = lB.FinX - lB.InicioX, dyB = lB.FinY - lB.InicioY;
+                    double normA = Math.Sqrt(dxA * dxA + dyA * dyA);
+                    double normB = Math.Sqrt(dxB * dxB + dyB * dyB);
+                    if (normA < TOLERANCIA || normB < TOLERANCIA) continue;
+
+                    double cosAng = Math.Abs((dxA * dxB + dyA * dyB) / (normA * normB));
+                    if (cosAng < COS_PARALELO_MIN) continue;
+
+                    double dist = CalcularDistanciaEntreLineasParalelas(lA, lB);
+                    if (dist < OFFSET_MINIMO_PANEL || dist > OFFSET_MAXIMO_PANEL) continue;
+
+                    double ux = dxA / normA, uy = dyA / normA;
+                    var aIni = new PuntoDTO { X = lA.InicioX, Y = lA.InicioY, Z = lA.InicioZ };
+                    var aFin = new PuntoDTO { X = lA.FinX, Y = lA.FinY, Z = lA.FinZ };
+                    var bIni = new PuntoDTO { X = lB.InicioX, Y = lB.InicioY, Z = lB.InicioZ };
+                    var bFin = new PuntoDTO { X = lB.FinX, Y = lB.FinY, Z = lB.FinZ };
+
+                    double aTIni = 0.0;
+                    double aTFin = normA;
+                    double bTIni = (bIni.X - lA.InicioX) * ux + (bIni.Y - lA.InicioY) * uy;
+                    double bTFin = (bFin.X - lA.InicioX) * ux + (bFin.Y - lA.InicioY) * uy;
+
+                    double tMinA = Math.Min(aTIni, aTFin);
+                    double tMaxA = Math.Max(aTIni, aTFin);
+                    double tMinB = Math.Min(bTIni, bTFin);
+                    double tMaxB = Math.Max(bTIni, bTFin);
+                    double tStart = Math.Max(tMinA, tMinB);
+                    double tEnd = Math.Min(tMaxA, tMaxB);
+                    double overlap = tEnd - tStart;
+                    if (overlap < SOLAPAMIENTO_MIN) continue;
+
+                    // Endpoints reales de cada línea (para detectar conexión/libre correctamente).
+                    var aLowEnd = aTIni <= aTFin ? aIni : aFin;
+                    var aHighEnd = aTIni <= aTFin ? aFin : aIni;
+                    var bLowEnd = bTIni <= bTFin ? bIni : bFin;
+                    var bHighEnd = bTIni <= bTFin ? bFin : bIni;
+
+                    // Recortar al tramo de solape para que el muro nazca/muera en esquina.
+                    var aLow = new PuntoDTO
+                    {
+                        X = lA.InicioX + ux * tStart,
+                        Y = lA.InicioY + uy * tStart,
+                        Z = lA.InicioZ
+                    };
+                    var aHigh = new PuntoDTO
+                    {
+                        X = lA.InicioX + ux * tEnd,
+                        Y = lA.InicioY + uy * tEnd,
+                        Z = lA.InicioZ
+                    };
+                    var bLow = new PuntoDTO
+                    {
+                        X = bIni.X + ux * (tStart - bTIni),
+                        Y = bIni.Y + uy * (tStart - bTIni),
+                        Z = bIni.Z
+                    };
+                    var bHigh = new PuntoDTO
+                    {
+                        X = bIni.X + ux * (tEnd - bTIni),
+                        Y = bIni.Y + uy * (tEnd - bTIni),
+                        Z = bIni.Z
+                    };
+
+                    bool lowLibre = EsExtremoLibre(aLowEnd.X, aLowEnd.Y, lineas, lA) && EsExtremoLibre(bLowEnd.X, bLowEnd.Y, lineas, lB);
+                    bool highLibre = EsExtremoLibre(aHighEnd.X, aHighEnd.Y, lineas, lA) && EsExtremoLibre(bHighEnd.X, bHighEnd.Y, lineas, lB);
+                    bool lowConectado = !lowLibre;
+                    bool highConectado = !highLibre;
+
+                    // Tipificación explícita solicitada:
+                    // Tipo 1: conectado-conectado, Tipo 2: conectado-libre,
+                    // Tipo 3: libre-conectado, Tipo 4: libre-libre.
+                    TipoMuroRecto tipoMuro;
+                    if (lowConectado && highConectado) tipoMuro = TipoMuroRecto.Tipo1_AmbosExtremosConectados;
+                    else if (lowConectado && !highConectado) tipoMuro = TipoMuroRecto.Tipo2_InicioConectado_FinLibre;
+                    else if (!lowConectado && highConectado) tipoMuro = TipoMuroRecto.Tipo3_InicioLibre_FinConectado;
+                    else tipoMuro = TipoMuroRecto.Tipo4_AmbosExtremosLibres;
+
+                    // El tipo 4 se resuelve en GenerarMurosLibresAislados para evitar duplicados.
+                    if (tipoMuro == TipoMuroRecto.Tipo4_AmbosExtremosLibres)
+                    {
+                        RegistrarDebugMuro("TipificadoDesdeLineas", tipoMuro.ToString(), "Descartado",
+                            "Tipo 4 se delega a muros aislados", lA, lB, null);
+                        continue;
+                    }
+
+                    // Tipo 1/2/3: extremos conectados anclados a puntos de esquina detectados.
+                    if (lowConectado)
+                    {
+                        if (TrySnapExtremoConectadoConPuntos(aLowEnd, lA, referencias, out var aLowSnap)) aLow = aLowSnap;
+                        if (TrySnapExtremoConectadoConPuntos(bLowEnd, lB, referencias, out var bLowSnap)) bLow = bLowSnap;
+                    }
+                    if (highConectado)
+                    {
+                        if (TrySnapExtremoConectadoConPuntos(aHighEnd, lA, referencias, out var aHighSnap)) aHigh = aHighSnap;
+                        if (TrySnapExtremoConectadoConPuntos(bHighEnd, lB, referencias, out var bHighSnap)) bHigh = bHighSnap;
+                    }
+
+                    if (Distancia(aLow.X, aLow.Y, aHigh.X, aHigh.Y) < LONG_MURO_MINIMA ||
+                        Distancia(bLow.X, bLow.Y, bHigh.X, bHigh.Y) < LONG_MURO_MINIMA)
+                    {
+                        RegistrarDebugMuro("TipificadoDesdeLineas", tipoMuro.ToString(), "Descartado",
+                            "Longitud menor al mínimo", lA, lB, new { LONG_MURO_MINIMA });
+                        continue;
+                    }
+
+                    string clave = ClaveParLineas(lA, lB);
+                    if (paresUsados.Contains(clave))
+                    {
+                        RegistrarDebugMuro("TipificadoDesdeLineas", tipoMuro.ToString(), "Descartado",
+                            "Duplicado por clave", lA, lB, new { clave });
+                        continue;
+                    }
+                    paresUsados.Add(clave);
+
+                    var vertices = new List<PuntoDTO> { aLow, aHigh, bHigh, bLow };
+                    AgregarMuroRecto(resultado, vertices);
+                    AgregarMarcadoresVerticesMuro(resultado, vertices);
+                    RegistrarDebugMuro("TipificadoDesdeLineas", tipoMuro.ToString(), "Generado",
+                        "OK", lA, lB, new { clave, vertices = vertices.Select(v => new { v.X, v.Y, v.Z }).ToList() });
+                }
+            }
+        }
+
+        private void RegistrarDebugMuro(
+            string metodo,
+            string tipo,
+            string estado,
+            string motivo,
+            LineaDTO lA,
+            LineaDTO lB,
+            object extra)
+        {
+            _debugMuros.Add(new DebugMuroRectoRegistro
+            {
+                Metodo = metodo,
+                Tipo = tipo,
+                Estado = estado,
+                Motivo = motivo,
+                ParLineas = $"{ClaveLinea(lA)} | {ClaveLinea(lB)}",
+                Geometria = extra ?? new
+                {
+                    LineaA = new { lA?.InicioX, lA?.InicioY, lA?.FinX, lA?.FinY },
+                    LineaB = new { lB?.InicioX, lB?.InicioY, lB?.FinX, lB?.FinY }
+                }
+            });
+        }
+
+        private string ClaveLinea(LineaDTO l)
+        {
+            if (l == null) return "null";
+            return $"({l.InicioX:F3},{l.InicioY:F3})->({l.FinX:F3},{l.FinY:F3})";
+        }
+
+        private void GuardarJSONDiagnosticoMuros(object datos)
+        {
+            try
+            {
+                string carpeta = @"C:\temp";
+                if (!Directory.Exists(carpeta))
+                {
+                    Directory.CreateDirectory(carpeta);
+                }
+
+                string archivo = Path.Combine(carpeta, "diagnostico_muros_rectos.json");
+                string json = JsonConvert.SerializeObject(datos, Formatting.Indented);
+                File.WriteAllText(archivo, json);
+            }
+            catch
+            {
+                // No interrumpir el flujo principal por fallo de diagnóstico.
+            }
+        }
+
+        private string ClaveParLineas(LineaDTO a, LineaDTO b)
+        {
+            string ka = $"{Math.Min(a.InicioX, a.FinX):F3},{Math.Min(a.InicioY, a.FinY):F3}-{Math.Max(a.InicioX, a.FinX):F3},{Math.Max(a.InicioY, a.FinY):F3}";
+            string kb = $"{Math.Min(b.InicioX, b.FinX):F3},{Math.Min(b.InicioY, b.FinY):F3}-{Math.Max(b.InicioX, b.FinX):F3},{Math.Max(b.InicioY, b.FinY):F3}";
+            return string.CompareOrdinal(ka, kb) <= 0 ? $"{ka}|{kb}" : $"{kb}|{ka}";
+        }
+
+        private bool TrySnapExtremoConectadoConPuntos(PuntoDTO extremo, LineaDTO linea, List<PuntoDTO> referencias, out PuntoDTO snapped)
+        {
+            snapped = null;
+            if (extremo == null || linea == null || referencias == null || referencias.Count == 0) return false;
+
+            const double MAX_DIST_EXTREMO = 600.0;
+            const double MAX_DIST_A_LINEA = 2.0;
+
+            PuntoDTO mejor = null;
+            double mejorDist = double.MaxValue;
+            foreach (var p in referencias)
+            {
+                double dExt = Distancia(extremo.X, extremo.Y, p.X, p.Y);
+                if (dExt > MAX_DIST_EXTREMO) continue;
+                double dLinea = DistanciaLineaPunto(linea, p.X, p.Y);
+                if (dLinea > MAX_DIST_A_LINEA) continue;
+                if (!PuntoEnSegmento(p.X, p.Y, linea)) continue;
+                if (dExt < mejorDist)
+                {
+                    mejorDist = dExt;
+                    mejor = p;
+                }
+            }
+
+            if (mejor == null) return false;
+            snapped = new PuntoDTO { X = mejor.X, Y = mejor.Y, Z = mejor.Z };
+            return true;
+        }
+
+        /// <summary>
         /// Calcula los 4 puntos de panel (US-668):
         ///   Verde    = ptAzul + 300mm brazo interior HORIZONTAL
         ///   Amarillo = ptAzul + 300mm brazo interior VERTICAL
@@ -1396,6 +1901,45 @@ namespace Desing.Services
             double t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
 
             return (x1 + t * (x2 - x1), y1 + t * (y2 - y1));
+        }
+
+        /// <summary>
+        /// Verifica que 4 líneas (2 pares paralelos perpendiculares) formen realmente
+        /// un rectángulo conectado dentro de los segmentos, no solo por orientación.
+        /// </summary>
+        private bool EsPanelRectangularConectado(LineaDTO l1a, LineaDTO l1b, LineaDTO l2a, LineaDTO l2b)
+        {
+            int interseccionesValidas = 0;
+            var vistos = new List<(double X, double Y)>();
+            var combinaciones = new[]
+            {
+                (A: l1a, B: l2a),
+                (A: l1a, B: l2b),
+                (A: l1b, B: l2a),
+                (A: l1b, B: l2b)
+            };
+
+            foreach (var c in combinaciones)
+            {
+                var inter = IntersectarLineas(c.A, c.B);
+                if (!inter.HasValue)
+                    continue;
+
+                double x = inter.Value.X;
+                double y = inter.Value.Y;
+                if (!PuntoEnSegmento(x, y, c.A) || !PuntoEnSegmento(x, y, c.B))
+                    continue;
+
+                bool duplicado = vistos.Any(v => Distancia(v.X, v.Y, x, y) <= TOLERANCIA);
+                if (!duplicado)
+                {
+                    vistos.Add((x, y));
+                    interseccionesValidas++;
+                }
+            }
+
+            // Un rectángulo real debe producir 4 esquinas/intersecciones distintas.
+            return interseccionesValidas == 4;
         }
 
         private bool PuntoEnSegmento(double px, double py, LineaDTO seg)
