@@ -1,61 +1,28 @@
-﻿<main>
-    <ul class="breadcrumb">
-        <li><a style="color:black" id="sidebarCollapse" href="#" class=""><i class="fas fa-align-justify"></i></a></li>
-        <li><a href="@Url.Action("Index", "Home")"><i class="fas fa-home"></i> Inicio</a></li>
-    </ul>
-    <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: 100%;">
-        <div class="content-body" style="overflow: hidden; width: 100%">
-            <div class="card-footer">
-                <div class="footer-social">
-                    <div class="row">
-                        <div class="col-xs-3">
-                            <a id="btDesign" href="@Url.Action("Index", "DesignTools", new { OnlyUser = true})" class="btn btn-primary"> <i class="pe-7s-power"></i> Design</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="panel panel-white">
-                    <div class="col-lg-3" style="padding:30px;margin:30px">
-                        <div class="widget-container">
-                            <div class="widget">
-                                <div class="profile-card">
-                                    <div class="card-header">
-                                        <div class="header-avatar">
-                                            <img src="~/Content/images/Home/at4.jpg" alt="at4" />
-                                        </div>
-                                        <div class="header-name">
-                                            PANELES ATK60 / ATK40
-                                        </div>
-                                    </div>
-                                    <div class="card-body bg-warning">
-                                        <div class="body-description">
-                                            PANELES ATK60
-                                            Ideal para muros de contención, pilares, pantallas, núcleos de ascensor y cualquier tipo de estructura vertical.
-                                            PANELES ATK40
-                                            Un encofrado rápido y con buena terminación.
-                                            Un encofrado modular de paneles con variadas medidas y fácilmente manipulables por un solo hombre.
-                                        </div>
-                                    </div>
+﻿@{
+    Layout = "~/Views/Shared/_LayoutMaterio.cshtml";
+    ViewBag.Title = "Inicio - Atenko Desing";
+}
 
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-9">
-                </div>
+<h4 class="py-3 mb-4">
+    <span class="text-muted fw-light">Inicio /</span> Bienvenido
+</h4>
+
+<div class="row g-4">
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100">
+            <img src="~/Content/images/Home/at4.jpg" class="card-img-top" alt="ATK60 / ATK40" />
+            <div class="card-body">
+                <h5 class="card-title">PANELES ATK60 / ATK40</h5>
+                <p class="card-text">
+                    <strong>PANELES ATK60:</strong> Ideal para muros de contencion, pilares, pantallas, nucleos de ascensor y cualquier tipo de estructura vertical.
+                </p>
+                <p class="card-text">
+                    <strong>PANELES ATK40:</strong> Encofrado rapido, modular y con buena terminacion. Paneles de medidas variadas y facilmente manipulables por un solo hombre.
+                </p>
+                <a id="btDesign" href="@Url.Action("Index", "DesignTools", new { OnlyUser = true })" class="btn btn-primary">
+                    <i class="icon-base ri ri-shape-line me-1"></i> Abrir Disenador
+                </a>
             </div>
         </div>
     </div>
- 
-</main>
-<script src="~/Scripts/jquery-3.5.1.js"></script>
-<script type="text/javascript">
-    $(document).ready(function () {
-        $("#TopMenu").show("slide", { direction: "left" }, 400);
-        $('#sidebar').toggleClass('active');
-        $(this).toggleClass('active');
-        $('#sidebar').load('/Menu/Index');
-    });
-</script>
+</div>

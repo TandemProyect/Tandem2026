@@ -1,0 +1,91 @@
+@*
+    Sidebar vertical estilo Materio adaptado al menu de Atenko Desing.
+    Resalta el item activo segun la ruta actual.
+*@
+@{
+    string currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    string currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+
+    Func<string, string, string> activeClass = (ctrl, action) =>
+        currentController.Equals(ctrl, StringComparison.OrdinalIgnoreCase) ? " active" : "";
+}
+
+<aside id="layout-menu" class="layout-menu menu-vertical menu">
+
+    @* Brand Atenko *@
+    <div class="app-brand demo">
+        <a href="@Url.Action("Index", "Home")" class="app-brand-link gap-xl-0 gap-2">
+            <span class="app-brand-logo demo me-1">
+                <img src="~/Content/images/Login/at.png" alt="Atenko" style="height:28px" />
+            </span>
+            <span class="app-brand-text demo menu-text fw-semibold ms-2" style="color:gold">Atenko Desing</span>
+        </a>
+
+        <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+            <i class="menu-toggle-icon d-xl-inline-block align-middle"></i>
+        </a>
+    </div>
+
+    <div class="menu-inner-shadow"></div>
+
+    <ul class="menu-inner py-1">
+
+        @* Inicio *@
+        <li class="menu-item@(activeClass("Home", ""))">
+            <a href="@Url.Action("Index", "Home")" class="menu-link">
+                <i class="menu-icon icon-base ri ri-home-smile-line"></i>
+                <div>Inicio</div>
+            </a>
+        </li>
+
+        @* Diseno *@
+        <li class="menu-item@(activeClass("DesignTools", ""))">
+            <a href="@Url.Action("Index", "DesignTools", new { OnlyUser = true })" class="menu-link">
+                <i class="menu-icon icon-base ri ri-shape-line"></i>
+                <div>Diseno</div>
+            </a>
+        </li>
+
+        @* Header Administracion *@
+        <li class="menu-header small text-uppercase"><span class="menu-header-text">Administracion</span></li>
+
+        <li class="menu-item@(activeClass("TSql_Company", ""))">
+            <a href="@Url.Action("Index", "TSql_Company")" class="menu-link">
+                <i class="menu-icon icon-base ri ri-building-line"></i>
+                <div>Empresas</div>
+            </a>
+        </li>
+
+        <li class="menu-item@(activeClass("Employee", ""))">
+            <a href="@Url.Action("Index", "Employee")" class="menu-link">
+                <i class="menu-icon icon-base ri ri-user-line"></i>
+                <div>Empleados</div>
+            </a>
+        </li>
+
+        <li class="menu-item@(activeClass("MasterArticles", ""))">
+            <a href="@Url.Action("Index", "MasterArticles")" class="menu-link">
+                <i class="menu-icon icon-base ri ri-list-check-2"></i>
+                <div>Articulos</div>
+            </a>
+        </li>
+
+        <li class="menu-item@(activeClass("Country", ""))">
+            <a href="@Url.Action("Index", "Country")" class="menu-link">
+                <i class="menu-icon icon-base ri ri-earth-line"></i>
+                <div>Paises</div>
+            </a>
+        </li>
+
+        @* Header Soporte *@
+        <li class="menu-header small text-uppercase"><span class="menu-header-text">Soporte</span></li>
+
+        <li class="menu-item@(activeClass("HelpDesing", ""))">
+            <a href="@Url.Action("Index", "HelpDesing")" class="menu-link">
+                <i class="menu-icon icon-base ri ri-question-line"></i>
+                <div>Ayuda</div>
+            </a>
+        </li>
+
+    </ul>
+</aside>
