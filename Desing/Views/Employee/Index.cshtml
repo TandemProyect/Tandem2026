@@ -1,10 +1,10 @@
 ﻿@model DAL.TSql_Employee
 
-<div id="topmenuEmployeeRight" class="TopMenu" style="z-index:500;right:10px;top:10px;position:absolute;height:35px">
-    <ul class="breadcrumb" style="padding: 5px">
-        <li id="CallHelpEmployee"><a>&nbsp;?&nbsp;<i class="fas fa-film"></i></a></li>
-    </ul>
-</div>
+@*<div id="topmenuEmployeeRight" class="TopMenu" style="z-index:500;right:10px;top:10px;position:absolute;height:35px">
+    <button id="CallHelpEmployee" class="btn btn-sm btn-outline-secondary" title="Ayuda">
+        <i class="icon-base ri ri-question-line"></i>
+    </button>
+</div>*@
 
 <div id="HelpDesingEmployee" abindex="-1" style="z-index: 500; width: 1500px; height:650px; display: none; position: absolute; top: 90px; margin: 1px; padding: 1px;background-color:white;">
     <label>&nbsp;&nbsp;&nbsp;&nbsp;Tutorial</label> &nbsp;&nbsp;&nbsp;&nbsp;
@@ -23,14 +23,14 @@
     </div>
 </div>
 
-<ul class="breadcrumb">
-    <li><a style="color:black" id="sidebarCollapse" href="#" class=""><i class="fas fa-align-justify"></i></a></li>
-    <li><a href="@Url.Action("Index", "Home")"><i class="fas fa-home"></i> Inicio</a></li>
-    <li><i class="fas fa-user-friends"></i> Empleados</li>
-    <li>
-        <a style="color:white" class="btn btn-primary" href="@Url.Action("Register", "Account")"><i class="fa fa-plus"></i> &nbsp;&nbsp;  Crear Nuevo Empreado</a>
-    </li>
-</ul>
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> /</span> Empleados
+    </h4>
+    <a class="btn btn-primary" href="@Url.Action("Register", "Account")">
+        <i class="icon-base ri ri-add-line me-1"></i> Crear Nuevo Empleado
+    </a>
+</div>
 <div id="Loading" style="z-index:5; position: absolute; background-color:   darkgrey; width: 100%; height: 100%; display: none; opacity: 0.8">
     &nbsp;&nbsp;&nbsp;&nbsp;
 </div>

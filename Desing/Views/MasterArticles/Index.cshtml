@@ -1,10 +1,12 @@
 @model DAL.Tsql_Master_Articles
-<ul class="breadcrumb">
-    <li><a style="color:black" id="sidebarCollapse" href="#" class=""><i class="fas fa-align-justify"></i></a></li>
-    <li><a href="@Url.Action("Index", "Home" )"><i class="fas fa-home"></i> Inicio</a></li>
-    <li><i class="fa fa-align-justify"></i> Articulos Tandem</li>
-    <li><a class="success" href="@Url.Action("Create", "MasterArticles")"><i class="fa fa-plus"></i> &nbsp;&nbsp;  Crear Nuevo artículo</a> </li>
-</ul>
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> /</span> Artículos
+    </h4>
+    <a class="btn btn-primary" href="@Url.Action("Create", "MasterArticles")">
+        <i class="icon-base ri ri-add-line me-1"></i> Crear Nuevo artículo
+    </a>
+</div>
 <div class="panel panel-default">
     <div class="panel-body" style="padding:5px;margin:5px">
         <table id="Master_Articles" class="table table-striped table-bordered table-hover" cellspacing="0" style="width: 100%; overflow: scroll">

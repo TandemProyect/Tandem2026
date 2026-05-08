@@ -1,9 +1,11 @@
 ﻿@model DAL.TSql_Design
-<div id="topmenuIndex" class="form-check" style="z-index:500;right:20px;top:10px;position:absolute;height:35px">
-    <ul class="breadcrumb">
-        <li id="btnAllDesing"><a href="@Url.Action("Index", "DesignTools", new { OnlyUser = false})"><i class="fas fa-receipt"></i>&nbsp;&nbsp;Ver todos los diseños</a></li>
-        <li id="btnMyDesing"><a href="@Url.Action("Index", "DesignTools", new { OnlyUser = true})"><i class="fas fa-receipt"></i>&nbsp;&nbsp;Ver solo mis diseños</a></li>
-    </ul>
+<div class="btn-group mb-3" role="group" aria-label="Filtrar diseños">
+    <a id="btnAllDesing" href="@Url.Action("Index", "DesignTools", new { OnlyUser = false })" class="btn btn-outline-primary">
+        <i class="icon-base ri ri-list-check me-1"></i> Ver todos los diseños
+    </a>
+    <a id="btnMyDesing" href="@Url.Action("Index", "DesignTools", new { OnlyUser = true })" class="btn btn-outline-primary">
+        <i class="icon-base ri ri-user-line me-1"></i> Solo mis diseños
+    </a>
 </div>
 <div id="Loading" style="z-index:5; position: absolute; background-color:   darkgrey; width: 100%; height: 100%; display: none; opacity: 0.8">
     &nbsp;&nbsp;&nbsp;&nbsp;
@@ -48,14 +50,14 @@
     </form>
 </div>
 <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: 100%;height:100%">
-    <ul class="breadcrumb">
-        @*<li><a style="color:black" id="sidebarCollapse" href="#" class=""><i class="fas fa-align-justify"></i></a></li>*@
-        <li><a href="@Url.Action("Index", "Home" )"><i class="fas fa-home"></i>Inicio</a></li>
-        <li><i class="fa fa-id-card" aria-hidden="true"></i>&nbsp;&nbsp; Lista de Diseños &nbsp;&nbsp; </li>
-        <li id="CreateDesing">
-            <a id="btDesign" style="color:white" class="btn btn-primary"><i class="fa fa-plus"></i> &nbsp;&nbsp;Crear Nuevo Diseño</a>
-        </li>
-    </ul>
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h4 class="py-3 mb-0">
+            <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> /</span> Lista de Diseños
+        </h4>
+        <a id="btDesign" class="btn btn-primary" style="cursor:pointer">
+            <i class="icon-base ri ri-add-line me-1"></i> Crear Nuevo Diseño
+        </a>
+    </div>
 
 </div>
 <div style="height:15px">

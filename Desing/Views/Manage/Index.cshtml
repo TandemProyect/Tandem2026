@@ -1,10 +1,8 @@
 ﻿@model Desing.Models.IndexViewModel
 
-<ul class="breadcrumb">
-    <li><a style="color:black" id="sidebarCollapse" href="#" class=""><i class="fas fa-align-justify"></i></a></li>
-    <li><a href="@Url.Action("Index", "Home")"><i class="fas fa-home"></i> Administración</a></li>
-    <li><i class="pe-7s-id"></i> Mi Perfil</li>
-</ul>
+<h4 class="py-3 mb-4">
+    <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Administración</a> /</span> Mi Perfil
+</h4>
 
 <ul class="Menu_Page">
     <li><a href="@Url.Action("Data_Company", "Manage")">Datos de la Empresa</a></li>
