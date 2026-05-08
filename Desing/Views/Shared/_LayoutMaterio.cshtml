@@ -103,6 +103,30 @@
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
 
+    @* Toggle del sidebar en escritorio (Materio gestiona el mobile) *@
+    <script>
+        (function () {
+            var toggleBtn = document.getElementById('navbarMenuToggle');
+            if (!toggleBtn) return;
+            var html = document.documentElement;
+            var COLLAPSED_KEY = 'tandem-menu-collapsed';
+
+            // Restaurar estado guardado
+            if (localStorage.getItem(COLLAPSED_KEY) === '1') {
+                html.classList.add('layout-menu-collapsed');
+            }
+
+            toggleBtn.addEventListener('click', function (e) {
+                if (window.innerWidth >= 1200) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    html.classList.toggle('layout-menu-collapsed');
+                    localStorage.setItem(COLLAPSED_KEY, html.classList.contains('layout-menu-collapsed') ? '1' : '0');
+                }
+            }, true);
+        })();
+    </script>
+
     @RenderSection("scripts", required: false)
 </body>
 </html>
