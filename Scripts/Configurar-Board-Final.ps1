@@ -1,7 +1,8 @@
 # Script Final - Configurar Columnas Board Tandem 2026
 # Ejecutar: .\Scripts\Configurar-Board-Final.ps1
 
-$pat = "7iXv8E4C8xK90U3zPRV1GrpNyfTf0piLOt1I5xhxkoIWMtvZ0elmJQQJ99CDACAAAAAAAAAAAAASAZDO1BX0"
+$pat = $env:AZDO_PAT
+if (-not $pat) { throw "AZDO_PAT no configurado en variables de entorno." }
 $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f "",$pat)))
 $headers = @{
 	Authorization = ("Basic {0}" -f $base64AuthInfo)

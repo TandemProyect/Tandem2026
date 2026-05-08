@@ -10,9 +10,11 @@
         </ul>
     </div>
 
-    @using (Html.BeginForm("Create_Employee", "Employee", FormMethod.Post, new { @class = "form-horizontal", role = "form", @id = "frm", enctype = "multipart/form-data" }))
+    @using (Html.BeginForm(Model.IsEdit ? "Update_Employee" : "Create_Employee", "Employee", FormMethod.Post, new { @class = "form-horizontal", role = "form", @id = "frm", enctype = "multipart/form-data" }))
     {
         @Html.AntiForgeryToken()
+        <input type="hidden" name="EmployeeID" value="@Model.EmployeeID" />
+        <input type="hidden" name="IsEdit" value="@Model.IsEdit" />
         <input type="hidden" name="AttPhoto" value="@Model.AttPhoto" />
         <input type="hidden" name="LinBusiness" value="@Model.LinBusiness" />
         <input type="hidden" name="LinAspNetUsert" value="@Model.LinAspNetUsert" />
@@ -45,6 +47,30 @@
                             @Html.ValidationMessageFor(model => model.LinCompany, "", new { @class = "text-danger" })
                         </div>
                     </div>
+                    <hr />
+                    <h5 style="margin-left:15px">Autorización de equipo para plugin</h5>
+                    <div class="form-group" style="margin:15px;margin:15px">
+                        @Html.LabelFor(m => m.DeviceName, htmlAttributes: new { @class = "control-label col-md-9" })
+                        <div class="col-md-12">
+                            @Html.EditorFor(m => m.DeviceName, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ej: PC-OFICINA-01" } })
+                            @Html.ValidationMessageFor(m => m.DeviceName, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin:15px;margin:15px">
+                        @Html.LabelFor(m => m.DeviceId, htmlAttributes: new { @class = "control-label col-md-9" })
+                        <div class="col-md-12">
+                            @Html.EditorFor(m => m.DeviceId, new { htmlAttributes = new { @class = "form-control", @placeholder = "Hash DeviceId del plugin" } })
+                            @Html.ValidationMessageFor(m => m.DeviceId, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin:15px;margin:15px">
+                        <div class="col-md-12">
+                            <label>
+                                @Html.CheckBoxFor(m => m.DeviceAllowed)
+                                Autorizar plugin para este equipo
+                            </label>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <div>
@@ -67,7 +93,7 @@
                     <div class="col-md-6"> &nbsp;&nbsp;&nbsp;&nbsp;</div>
                     <div class="col-md-5" style="margin:10px;padding:10px">
                         <button type="button" id="btnSalir" class="btn btn-danger">Salir</button>
-                        <button type="submit" id="SubmitEditBtn" class="btn btn-warning">Crear</button>
+                        <button type="submit" id="SubmitEditBtn" class="btn btn-warning">@(Model.IsEdit ? "Guardar cambios" : "Crear")</button>
                     </div>
                 </div>
             </div>

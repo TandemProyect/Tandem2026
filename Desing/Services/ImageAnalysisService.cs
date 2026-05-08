@@ -55,9 +55,13 @@ Rules:
 
         public ImageAnalysisService()
         {
-            _apiKey = ConfigurationManager.AppSettings["OPENAI_APIKEY"];
-            if (string.IsNullOrEmpty(_apiKey) || _apiKey == "INSERTAR_API_KEY_AQUI")
-                throw new InvalidOperationException("OPENAI_APIKEY no configurada en Web.config");
+            // Seguridad: priorizar variable de entorno para evitar secretos en archivos versionados.
+            _apiKey = Environment.GetEnvironmentVariable("OPENAI_APIKEY");
+            if (string.IsNullOrWhiteSpace(_apiKey))
+                _apiKey = ConfigurationManager.AppSettings["OPENAI_APIKEY"];
+
+            if (string.IsNullOrWhiteSpace(_apiKey) || _apiKey == "INSERTAR_API_KEY_AQUI")
+                throw new InvalidOperationException("OPENAI_APIKEY no configurada en variable de entorno ni en Web.config");
         }
 
         public async Task<(List<LineaDTO> Lineas, double? EspesorMuro, double? AlturaMuro)> AnalizarImagenAsync(byte[] imagenBytes, string mimeType = "image/jpeg")

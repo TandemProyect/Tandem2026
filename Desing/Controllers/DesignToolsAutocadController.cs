@@ -13,6 +13,9 @@ using Desing.Models;
 using System.Linq;
 using System.Threading.Tasks;
 using Desing.Services;
+using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
 
 namespace Desing.Controllers
 {
@@ -309,6 +312,255 @@ namespace Desing.Controllers
                     Datos = null
                 });
             }
+        }
+
+        /// <summary>
+        /// Valida si un equipo puede ejecutar el plugin según la tabla de autorización de dispositivos.
+        /// Espera tabla dbo.TSql_PluginDeviceAuth con columna DeviceId y (opcionalmente) LinAspNetUsert.
+        /// </summary>
+        [HttpPost]
+        public ActionResult ValidarEquipoPlugin(PluginAuthRequestDTO request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.DeviceId))
+            {
+                return Json(new ApiResponse<PluginAuthResultDTO>
+                {
+                    Exito = false,
+                    Mensaje = "Solicitud inválida: DeviceId requerido.",
+                    Datos = new PluginAuthResultDTO
+                    {
+                        Permitido = false,
+                        Estado = "SolicitudInvalida",
+                        Motivo = "DeviceId requerido",
+                        DeviceId = request?.DeviceId
+                    }
+                });
+            }
+
+            try
+            {
+                var result = ValidarEquipoEnSql(request);
+                return Json(new ApiResponse<PluginAuthResultDTO>
+                {
+                    Exito = true,
+                    Mensaje = result.Permitido ? "Equipo autorizado." : "Equipo no autorizado.",
+                    Datos = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new ApiResponse<PluginAuthResultDTO>
+                {
+                    Exito = false,
+                    Mensaje = $"Error validando equipo: {ex.Message}",
+                    Datos = new PluginAuthResultDTO
+                    {
+                        Permitido = false,
+                        Estado = "Error",
+                        Motivo = ex.Message,
+                        DeviceId = request.DeviceId
+                    }
+                });
+            }
+        }
+
+        private PluginAuthResultDTO ValidarEquipoEnSql(PluginAuthRequestDTO request)
+        {
+            var cnn = ConfigurationManager.ConnectionStrings["IdentityConnection"]?.ConnectionString;
+            if (string.IsNullOrWhiteSpace(cnn))
+                throw new InvalidOperationException("ConnectionString IdentityConnection no configurada.");
+
+            using (var cn = new SqlConnection(cnn))
+            {
+                cn.Open();
+
+                if (!ExisteTabla(cn, "dbo", "TSql_PluginDeviceAuth"))
+                {
+                    return new PluginAuthResultDTO
+                    {
+                        Permitido = false,
+                        Estado = "TablaNoExiste",
+                        Motivo = "No existe dbo.TSql_PluginDeviceAuth. Ejecuta primero el script SQL.",
+                        DeviceId = request.DeviceId
+                    };
+                }
+
+                var columnas = ObtenerColumnas(cn, "dbo", "TSql_PluginDeviceAuth");
+                if (!columnas.Contains("DeviceId"))
+                {
+                    return new PluginAuthResultDTO
+                    {
+                        Permitido = false,
+                        Estado = "EsquemaInvalido",
+                        Motivo = "La tabla de autorización no tiene columna DeviceId.",
+                        DeviceId = request.DeviceId
+                    };
+                }
+
+                string userColumn = null;
+                foreach (var c in new[] { "LinAspNetUsert", "AspNetUserId", "UserId" })
+                {
+                    if (columnas.Contains(c))
+                    {
+                        userColumn = c;
+                        break;
+                    }
+                }
+
+                var sql = "SELECT TOP 1 * FROM dbo.TSql_PluginDeviceAuth WHERE DeviceId = @DeviceId";
+                if (!string.IsNullOrWhiteSpace(userColumn) && !string.IsNullOrWhiteSpace(request.AspNetUserId))
+                    sql += $" AND ({userColumn} = @AspNetUserId OR {userColumn} IS NULL OR {userColumn} = '')";
+
+                using (var cmd = new SqlCommand(sql, cn))
+                {
+                    cmd.Parameters.AddWithValue("@DeviceId", request.DeviceId);
+                    if (!string.IsNullOrWhiteSpace(userColumn) && !string.IsNullOrWhiteSpace(request.AspNetUserId))
+                        cmd.Parameters.AddWithValue("@AspNetUserId", request.AspNetUserId);
+
+                    using (var rd = cmd.ExecuteReader())
+                    {
+                        if (!rd.Read())
+                        {
+                            return new PluginAuthResultDTO
+                            {
+                                Permitido = false,
+                                Estado = "NoRegistrado",
+                                Motivo = "Equipo no registrado/autorizado.",
+                                DeviceId = request.DeviceId
+                            };
+                        }
+
+                        bool permitido = true;
+                        string estado = "Activo";
+                        string motivo = "OK";
+
+                        if (TieneColumna(rd, "Allowed") && rd["Allowed"] != DBNull.Value)
+                            permitido = Convert.ToBoolean(rd["Allowed"]);
+                        else if (TieneColumna(rd, "IsActive") && rd["IsActive"] != DBNull.Value)
+                            permitido = Convert.ToBoolean(rd["IsActive"]);
+
+                        if (TieneColumna(rd, "IsRevoked") && rd["IsRevoked"] != DBNull.Value && Convert.ToBoolean(rd["IsRevoked"]))
+                        {
+                            permitido = false;
+                            estado = "Revocado";
+                            motivo = "Equipo revocado por administración.";
+                        }
+
+                        if (TieneColumna(rd, "AttIsDeleted") && rd["AttIsDeleted"] != DBNull.Value && Convert.ToBoolean(rd["AttIsDeleted"]))
+                        {
+                            permitido = false;
+                            estado = "Eliminado";
+                            motivo = "Registro de equipo marcado como eliminado.";
+                        }
+
+                        if (TieneColumna(rd, "Estado") && rd["Estado"] != DBNull.Value)
+                        {
+                            var estadoRaw = rd["Estado"].ToString();
+                            if (!string.IsNullOrWhiteSpace(estadoRaw))
+                            {
+                                estado = estadoRaw;
+                                var s = estadoRaw.Trim().ToLowerInvariant();
+                                if (s == "2" || s == "3" || s.Contains("revoc") || s.Contains("bloq") || s.Contains("inactiv"))
+                                {
+                                    permitido = false;
+                                    motivo = "Estado de equipo bloqueado/revocado.";
+                                }
+                            }
+                        }
+
+                        if (!permitido && motivo == "OK")
+                            motivo = "Equipo deshabilitado por política.";
+
+                        rd.Close();
+                        ActualizarHeartbeat(cn, request, columnas, userColumn);
+
+                        return new PluginAuthResultDTO
+                        {
+                            Permitido = permitido,
+                            Estado = estado,
+                            Motivo = motivo,
+                            DeviceId = request.DeviceId
+                        };
+                    }
+                }
+            }
+        }
+
+        private static void ActualizarHeartbeat(SqlConnection cn, PluginAuthRequestDTO request, HashSet<string> columnas, string userColumn)
+        {
+            var setParts = new List<string>();
+            if (columnas.Contains("LastCheckUtc")) setParts.Add("LastCheckUtc = @NowUtc");
+            if (columnas.Contains("AttLastModification")) setParts.Add("AttLastModification = @NowUtc");
+            if (columnas.Contains("MachineName")) setParts.Add("MachineName = @MachineName");
+            if (columnas.Contains("UsuarioWindows")) setParts.Add("UsuarioWindows = @UsuarioWindows");
+            if (columnas.Contains("PluginVersion")) setParts.Add("PluginVersion = @PluginVersion");
+            if (setParts.Count == 0) return;
+
+            var sql = $"UPDATE dbo.TSql_PluginDeviceAuth SET {string.Join(", ", setParts)} WHERE DeviceId = @DeviceId";
+            if (!string.IsNullOrWhiteSpace(userColumn) && !string.IsNullOrWhiteSpace(request.AspNetUserId))
+                sql += $" AND ({userColumn} = @AspNetUserId OR {userColumn} IS NULL OR {userColumn} = '')";
+
+            using (var cmd = new SqlCommand(sql, cn))
+            {
+                cmd.Parameters.AddWithValue("@NowUtc", DateTime.UtcNow);
+                cmd.Parameters.AddWithValue("@DeviceId", request.DeviceId);
+                cmd.Parameters.AddWithValue("@MachineName", (object)(request.MachineName ?? string.Empty));
+                cmd.Parameters.AddWithValue("@UsuarioWindows", (object)(request.UsuarioWindows ?? string.Empty));
+                cmd.Parameters.AddWithValue("@PluginVersion", (object)(request.PluginVersion ?? string.Empty));
+                if (!string.IsNullOrWhiteSpace(userColumn) && !string.IsNullOrWhiteSpace(request.AspNetUserId))
+                    cmd.Parameters.AddWithValue("@AspNetUserId", request.AspNetUserId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        private static bool ExisteTabla(SqlConnection cn, string schema, string table)
+        {
+            const string sql = @"
+SELECT COUNT(1)
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = @Schema
+  AND TABLE_NAME = @Table
+  AND TABLE_TYPE = 'BASE TABLE'";
+
+            using (var cmd = new SqlCommand(sql, cn))
+            {
+                cmd.Parameters.AddWithValue("@Schema", schema);
+                cmd.Parameters.AddWithValue("@Table", table);
+                var n = Convert.ToInt32(cmd.ExecuteScalar());
+                return n > 0;
+            }
+        }
+
+        private static HashSet<string> ObtenerColumnas(SqlConnection cn, string schema, string table)
+        {
+            const string sql = @"
+SELECT COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = @Schema
+  AND TABLE_NAME = @Table";
+
+            var cols = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            using (var cmd = new SqlCommand(sql, cn))
+            {
+                cmd.Parameters.AddWithValue("@Schema", schema);
+                cmd.Parameters.AddWithValue("@Table", table);
+                using (var rd = cmd.ExecuteReader())
+                {
+                    while (rd.Read())
+                        cols.Add(rd.GetString(0));
+                }
+            }
+            return cols;
+        }
+
+        private static bool TieneColumna(SqlDataReader rd, string columnName)
+        {
+            for (int i = 0; i < rd.FieldCount; i++)
+            {
+                if (string.Equals(rd.GetName(i), columnName, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
         }
 
         private sealed class OffsetLineWork

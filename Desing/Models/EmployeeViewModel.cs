@@ -50,6 +50,18 @@ namespace Desing.Models
         public int TotalDesing { get; set; }
         [DisplayName("Usuario")]
         public string UserName { get; set; }
+
+        [DisplayName("ID del equipo (DeviceId)")]
+        public string DeviceId { get; set; }
+
+        [DisplayName("Nombre del equipo")]
+        public string DeviceName { get; set; }
+
+        [DisplayName("Autorizar plugin para este equipo")]
+        public bool DeviceAllowed { get; set; } = true;
+
+        public long EmployeeID { get; set; }
+        public bool IsEdit { get; set; }
     }
     public class EmployeeUserModel
     {

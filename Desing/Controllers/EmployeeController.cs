@@ -8,6 +8,8 @@ using System.IO;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Net.Mail;
+using System.Data.SqlClient;
+using System.Collections.Generic;
 using System.Web;
 using System.Web.Mvc;
 using static SendMail.Models;
@@ -360,8 +362,12 @@ namespace Desing.Controllers
         }
         public ActionResult Create_Employee()
         {
-            Session["EmployeeID"] = "";
-            var iTComeFrom = Session["ItComeFrom"];
+            var iTComeFrom = Session["ItComeFrom"] as string;
+            var isEdit = string.Equals(iTComeFrom, "Edit_Employee", StringComparison.OrdinalIgnoreCase);
+            if (!isEdit)
+            {
+                Session["EmployeeID"] = "";
+            }
 
             ViewBag.MessageHeat = "Crear Usuario";
             if (iTComeFrom == "Edit_Employee")
@@ -369,11 +375,22 @@ namespace Desing.Controllers
                 ViewBag.MessageHeat = "Editar Usuario";
             };
 
-            var userSystem = Session["userSystem"].ToString();
-            var userVscad = Session["userVscad"].ToString();
-            var passVscad = Session["passVscad"].ToString();
+            var userSystem = Session["userSystem"]?.ToString();
+            var userVscad = Session["userVscad"]?.ToString();
+            var passVscad = Session["passVscad"]?.ToString();
+            if (string.IsNullOrWhiteSpace(userSystem) || string.IsNullOrWhiteSpace(userVscad))
+            {
+                // Sin contexto de usuario en sesión no se puede crear/editar empleado.
+                return RedirectToAction("Index");
+            }
 
-            TSql_Employee EmployeeId = db.TSql_Employee.FirstOrDefault(x => x.LinAspNetUsert == userSystem);
+            long employeeIdSesion;
+            bool tieneEmployeeIdSesion = long.TryParse(Session["EmployeeID"]?.ToString(), out employeeIdSesion) && employeeIdSesion > 0;
+            TSql_Employee EmployeeId = null;
+            if (isEdit && tieneEmployeeIdSesion)
+                EmployeeId = db.TSql_Employee.FirstOrDefault(x => x.SysObjectID == employeeIdSesion);
+            if (EmployeeId == null)
+                EmployeeId = db.TSql_Employee.FirstOrDefault(x => x.LinAspNetUsert == userSystem);
             //Session["EmployeeID"] = EmployeeId.SysObjectID;
             var attName = "";
             var attSurname = "";
@@ -386,6 +403,7 @@ namespace Desing.Controllers
                 attPhotoMenu = EmployeeId.AttPhotoMenu;
                 linCompany = (int)EmployeeId.LinCompany;
             }
+            var authInfo = ObtenerPrimerEquipoAutorizado(userSystem);
 
             ViewBag.LinCompany = new SelectList(db.TSql_Company.Where(u => u.BitIsDeleted == false), "SysObjectID", "TextLabel");
             EmployeeViewModel Model = new EmployeeViewModel
@@ -397,12 +415,28 @@ namespace Desing.Controllers
                 AttPassAspNetUsert = passVscad,
                 LinCompany = linCompany,
                 AttPhotoMenu = attPhotoMenu,
+                DeviceId = authInfo.DeviceId,
+                DeviceName = authInfo.MachineName,
+                DeviceAllowed = authInfo.Allowed ?? true,
+                EmployeeID = EmployeeId?.SysObjectID ?? 0,
+                IsEdit = isEdit,
 
             };
             return View(Model);
         }
         [HttpPost]
-        public ActionResult Create_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem,")] EmployeeViewModel model, HttpPostedFileBase file1)
+        public ActionResult Create_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem, DeviceId, DeviceName, DeviceAllowed, EmployeeID, IsEdit")] EmployeeViewModel model, HttpPostedFileBase file1)
+        {
+            return SaveEmployee(model, file1, false);
+        }
+
+        [HttpPost]
+        public ActionResult Update_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem, DeviceId, DeviceName, DeviceAllowed, EmployeeID, IsEdit")] EmployeeViewModel model, HttpPostedFileBase file1)
+        {
+            return SaveEmployee(model, file1, true);
+        }
+
+        private ActionResult SaveEmployee(EmployeeViewModel model, HttpPostedFileBase file1, bool forceEdit)
         {
             try
             {
@@ -418,20 +452,17 @@ namespace Desing.Controllers
                 //    dir.Delete(true);
                 //}
 
-                var iTComeFrom = "";
+                var iTComeFrom = Session["ItComeFrom"] as string ?? "";
+                var isEdit = forceEdit || model.IsEdit || string.Equals(iTComeFrom, "Edit_Employee", StringComparison.OrdinalIgnoreCase);
                 var ChangeFoto = true;
                 long EmployeeID = 0;
 
-                if (Session["EmployeeID"] != "")
-                {
-                    EmployeeID = (long)Session["EmployeeID"];
-                }
+                if (model.EmployeeID > 0) EmployeeID = model.EmployeeID;
+                if (EmployeeID <= 0) long.TryParse(Session["EmployeeID"]?.ToString(), out EmployeeID);
                 var EmployeeId = db.TSql_Employee.FirstOrDefault(x => x.SysObjectID == EmployeeID);
                 if (EmployeeId != null)
                 {
-                    EmployeeID = (long)Session["EmployeeID"];
-                    iTComeFrom = (string)Session["ItComeFrom"];
-                    if (iTComeFrom == "Edit_Employee")
+                    if (isEdit)
                     {
                         var check = "";
                         if (EmployeeId.AttPhotoMenu != null)
@@ -533,10 +564,11 @@ namespace Desing.Controllers
                     AddLastDateChange = DateTime.UtcNow,
                     BitIsDeleted = false,
                 };
-                if (iTComeFrom != "Edit_Employee")
+                if (!isEdit)
                 {
                     db.TSql_DefaultDesign.Add(Config);
                     db.SaveChanges();
+                    var equipoRegistrado = UpsertPluginDeviceAuth(model, UserId);
 
                     MailModel Model = new MailModel();
                     Model.To = model.userSystem;
@@ -544,13 +576,31 @@ namespace Desing.Controllers
                     Model.Subject = "Alta en la aplicación Atenko.net";
                     //Model.Body = @"<html><body><p><strong> El usuario:  "" + model.userSystem + "" a sido creado en el sistema con la contraseña:  "" + model.AttPassAspNetUsert</strong></p><br></br><p> Time for bed </p></body></html>";
                     Model.Body = @"El usuario:  " + model.userSystem + " a sido creado en el sistema con la contraseña:  " + model.AttPassAspNetUsert;
-                    SendMail(Model);
+                    if (equipoRegistrado)
+                    {
+                        Model.Body += @" | Equipo autorizado: " + (model.DeviceName ?? "(sin nombre)") + @" | DeviceId: " + model.DeviceId;
+                    }
+                    // Envío de correo desactivado temporalmente.
+                    // Lo reactivaremos cuando se cierre la configuración SMTP/certificados.
+                    // bool mailOk = true;
+                    // string mailError = "";
+                    // try
+                    // {
+                    //     SendMail(Model);
+                    // }
+                    // catch (System.Exception mailEx)
+                    // {
+                    //     // No bloquear el alta de empleado/equipo por fallo de SMTP.
+                    //     mailOk = false;
+                    //     mailError = mailEx.Message;
+                    //     System.Diagnostics.Debug.WriteLine("Advertencia envío mail (no bloqueante): " + mailEx.Message);
+                    // }
                     TempData.Clear();
                     TempData["ToastType"] = "Act";
                     TempData["ToastTitle"] = "Crear diseño";
-                    //TempData["ToastMessage"] = "El diseño " + model.AttName + " a sido creado correctamente junto con su configuración";
+                    TempData["ToastMessage"] = "Usuario/equipo guardado correctamente.";
                 };
-                if (iTComeFrom == "Edit_Employee")
+                if (isEdit)
                 {
 
                     EmployeeId.AttName = newEmployee.AttName;
@@ -572,6 +622,7 @@ namespace Desing.Controllers
                     EmployeeId.LinModifiedBy = UserId;
                     EmployeeId.AttLastModification = DateTime.UtcNow;
                     db.SaveChanges();
+                    UpsertPluginDeviceAuth(model, UserId);
                     TempData.Clear();
                     TempData["ToastType"] = "Editar";
                     TempData["ToastTitle"] = "Editar Usuario";
@@ -583,6 +634,114 @@ namespace Desing.Controllers
             catch (Exception ex)
             {
                 return Json(ex.Message);
+            }
+        }
+
+        private sealed class PluginDeviceAuthInfo
+        {
+            public string DeviceId { get; set; }
+            public string MachineName { get; set; }
+            public bool? Allowed { get; set; }
+        }
+
+        private PluginDeviceAuthInfo ObtenerPrimerEquipoAutorizado(string aspNetUserId)
+        {
+            if (string.IsNullOrWhiteSpace(aspNetUserId)) return new PluginDeviceAuthInfo();
+            if (!ExisteTablaPluginAuth()) return new PluginDeviceAuthInfo();
+
+            const string sql = @"
+SELECT TOP 1 DeviceId, MachineName, Allowed
+FROM dbo.TSql_PluginDeviceAuth
+WHERE LinAspNetUsert = @UserId
+ORDER BY SysObjectID DESC";
+
+            try
+            {
+                var row = db.Database.SqlQuery<PluginDeviceAuthInfo>(sql, new SqlParameter("@UserId", aspNetUserId)).FirstOrDefault();
+                return row ?? new PluginDeviceAuthInfo();
+            }
+            catch
+            {
+                return new PluginDeviceAuthInfo();
+            }
+        }
+
+        private bool UpsertPluginDeviceAuth(EmployeeViewModel model, string actorUserId)
+        {
+            if (model == null) return false;
+            if (string.IsNullOrWhiteSpace(model.DeviceId)) return false;
+            if (string.IsNullOrWhiteSpace(model.LinAspNetUsert)) return false;
+            if (!ExisteTablaPluginAuth()) return false;
+
+            const string sql = @"
+IF EXISTS (SELECT 1 FROM dbo.TSql_PluginDeviceAuth WHERE DeviceId = @DeviceId)
+BEGIN
+    UPDATE dbo.TSql_PluginDeviceAuth
+       SET LinAspNetUsert = @LinAspNetUsert,
+           MachineName = @MachineName,
+           Allowed = @Allowed,
+           IsActive = @Allowed,
+           IsRevoked = CASE WHEN @Allowed = 1 THEN 0 ELSE IsRevoked END,
+           Estado = CASE WHEN @Allowed = 1 THEN 'Activo' ELSE 'Bloqueado' END,
+           AttIsDeleted = 0,
+           LinModifiedBy = @Actor,
+           AttLastModification = GETUTCDATE()
+     WHERE DeviceId = @DeviceId;
+END
+ELSE
+BEGIN
+    INSERT INTO dbo.TSql_PluginDeviceAuth
+    (
+        DeviceId, LinAspNetUsert, MachineName, UsuarioWindows, PluginVersion,
+        Allowed, IsActive, IsRevoked, Estado, AttIsDeleted,
+        LastCheckUtc, LinCreatedBy, AttCreated, LinModifiedBy, AttLastModification
+    )
+    VALUES
+    (
+        @DeviceId, @LinAspNetUsert, @MachineName, @UsuarioWindows, @PluginVersion,
+        @Allowed, @Allowed, 0, CASE WHEN @Allowed = 1 THEN 'Activo' ELSE 'Bloqueado' END, 0,
+        GETUTCDATE(), @Actor, GETUTCDATE(), @Actor, GETUTCDATE()
+    );
+END";
+
+            var parameters = new List<SqlParameter>
+            {
+                new SqlParameter("@DeviceId", model.DeviceId),
+                new SqlParameter("@LinAspNetUsert", model.LinAspNetUsert),
+                new SqlParameter("@MachineName", (object)(model.DeviceName ?? string.Empty)),
+                new SqlParameter("@UsuarioWindows", DBNull.Value),
+                new SqlParameter("@PluginVersion", DBNull.Value),
+                new SqlParameter("@Allowed", model.DeviceAllowed),
+                new SqlParameter("@Actor", (object)(actorUserId ?? string.Empty))
+            };
+
+            try
+            {
+                db.Database.ExecuteSqlCommand(sql, parameters.ToArray());
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private bool ExisteTablaPluginAuth()
+        {
+            const string sql = @"
+SELECT COUNT(1)
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = 'dbo'
+  AND TABLE_NAME = 'TSql_PluginDeviceAuth'
+  AND TABLE_TYPE = 'BASE TABLE'";
+
+            try
+            {
+                return db.Database.SqlQuery<int>(sql).FirstOrDefault() > 0;
+            }
+            catch
+            {
+                return false;
             }
         }
 

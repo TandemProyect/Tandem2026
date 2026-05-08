@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.Win32;
 using ZwcadPlugin.Models;
 using ZwcadPlugin.UI.Views;
 using ZwSoft.ZwCAD.ApplicationServices;
@@ -41,6 +45,7 @@ namespace ZwcadPlugin
                 if (doc == null) return;
 
                 ed = doc.Editor;
+                if (!ValidarAccesoPlugin(ed)) return;
                 ed.WriteMessage("\n=== Plugin ZWCAD 2026 - Tandem Muros/Encofrado ===");
                 ed.WriteMessage("\nAbriendo ventana principal...\n");
 
@@ -70,6 +75,7 @@ namespace ZwcadPlugin
                 if (doc == null) return;
 
                 ed = doc.Editor;
+                if (!ValidarAccesoPlugin(ed)) return;
                 ed.WriteMessage("\n=== Insertar Bloque desde Servidor ===");
                 ed.WriteMessage("\nAbriendo ventana principal...\n");
 
@@ -94,6 +100,7 @@ namespace ZwcadPlugin
             if (doc == null) return;
 
             Editor ed = doc.Editor;
+            if (!ValidarAccesoPlugin(ed)) return;
 
             try
             {
@@ -155,6 +162,7 @@ namespace ZwcadPlugin
 
             Database db = doc.Database;
             Editor ed = doc.Editor;
+            if (!ValidarAccesoPlugin(ed)) return;
 
             try
             {
@@ -222,6 +230,7 @@ namespace ZwcadPlugin
 
             Database db = doc.Database;
             Editor ed = doc.Editor;
+            if (!ValidarAccesoPlugin(ed)) return;
 
             try
             {
@@ -508,6 +517,70 @@ namespace ZwcadPlugin
                 ed.WriteMessage("\n⚠️ No se detectaron esquinas tipo L.");
         }
 
+        private bool ValidarAccesoPlugin(Editor ed)
+        {
+            try
+            {
+                var request = new PluginAuthRequestDTO
+                {
+                    DeviceId = ObtenerDeviceId(),
+                    MachineName = Environment.MachineName,
+                    UsuarioWindows = Environment.UserName,
+                    AspNetUserId = Environment.GetEnvironmentVariable("TANDEM_ASPNET_USER_ID"),
+                    PluginVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0"
+                };
+
+                var response = Task.Run(() => _apiService.ValidarEquipoPluginAsync(request)).Result;
+                if (response == null || !response.Exito || response.Datos == null)
+                {
+                    ed.WriteMessage("\n❌ No fue posible validar la licencia del equipo. Verifica conectividad/API.");
+                    return false;
+                }
+
+                if (!response.Datos.Permitido)
+                {
+                    ed.WriteMessage("\n⛔ Plugin bloqueado para este equipo.");
+                    ed.WriteMessage($"\nEstado: {response.Datos.Estado}");
+                    ed.WriteMessage($"\nMotivo: {response.Datos.Motivo}\n");
+                    return false;
+                }
+
+                return true;
+            }
+            catch (System.Exception ex)
+            {
+                ed.WriteMessage($"\n❌ Error de autorización de plugin: {ex.Message}\n");
+                return false;
+            }
+        }
+
+        private static string ObtenerDeviceId()
+        {
+            var seed = $"{Environment.MachineName}|{Environment.UserName}|{Environment.UserDomainName}|{Environment.OSVersion}|{ObtenerMachineGuid()}";
+            using (var sha = SHA256.Create())
+            {
+                var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(seed));
+                var sb = new StringBuilder(hash.Length * 2);
+                foreach (var b in hash) sb.Append(b.ToString("x2"));
+                return sb.ToString();
+            }
+        }
+
+        private static string ObtenerMachineGuid()
+        {
+            try
+            {
+                using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography"))
+                {
+                    return key?.GetValue("MachineGuid")?.ToString() ?? "NO_GUID";
+                }
+            }
+            catch
+            {
+                return "NO_GUID";
+            }
+        }
+
         /// <summary>
         /// Comando de ayuda que muestra informaciÃ³n bÃ¡sica
         /// </summary>
@@ -518,6 +591,7 @@ namespace ZwcadPlugin
             if (doc == null) return;
 
             Editor ed = doc.Editor;
+            if (!ValidarAccesoPlugin(ed)) return;
 
             ed.WriteMessage("\nâ•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—");
             ed.WriteMessage("\nâ•‘     Plugin ZWCAD 2026 - ConexiÃ³n MVC                      â•‘");
@@ -564,7 +638,7 @@ namespace ZwcadPlugin
                 ed.WriteMessage("\n=== Tandem: Analizar Imagen de Plano ===");
 
                 string rutaImagen = null;
-                using (var dlg = new OpenFileDialog())
+                using (var dlg = new System.Windows.Forms.OpenFileDialog())
                 {
                     dlg.Title = "Seleccionar imagen del plano";
                     dlg.Filter = "Imágenes (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png";
@@ -611,12 +685,30 @@ namespace ZwcadPlugin
             if (doc != null)
             {
                 Editor ed = doc.Editor;
+                if (!ValidarAccesoPlugin(ed))
+                {
+                    ed.WriteMessage("\nPlugin cargado en modo bloqueado por autorización de equipo.\n");
+                    return;
+                }
                 ed.WriteMessage("\nâ•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—");
                 ed.WriteMessage("\nâ•‘   Plugin ZWCAD 2026 - ConexiÃ³n MVC cargado exitosamente  â•‘");
                 ed.WriteMessage("\nâ•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•");
                 ed.WriteMessage("\n");
                 ed.WriteMessage("\nEscribe 'HOLA' para ver los comandos disponibles.\n");
             }
+        }
+
+        /// <summary>
+        /// Muestra el DeviceId actual para alta en administración.
+        /// </summary>
+        [CommandMethod("TANDEM_DEVICE_ID")]
+        public void MostrarDeviceId()
+        {
+            var doc = ZwcadApp.DocumentManager.MdiActiveDocument;
+            if (doc == null) return;
+            var ed = doc.Editor;
+            ed.WriteMessage($"\nDeviceId actual: {ObtenerDeviceId()}\n");
+            ed.WriteMessage($"\nMachineName: {Environment.MachineName}\n");
         }
     }
 }

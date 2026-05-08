@@ -51,6 +51,23 @@ namespace ZwcadPlugin.Models
         public T Datos { get; set; }
     }
 
+    public class PluginAuthRequestDTO
+    {
+        public string DeviceId { get; set; }
+        public string MachineName { get; set; }
+        public string UsuarioWindows { get; set; }
+        public string AspNetUserId { get; set; }
+        public string PluginVersion { get; set; }
+    }
+
+    public class PluginAuthResultDTO
+    {
+        public bool Permitido { get; set; }
+        public string Estado { get; set; }
+        public string Motivo { get; set; }
+        public string DeviceId { get; set; }
+    }
+
     public class DisenoResumenDTO
     {
         public int Id { get; set; }

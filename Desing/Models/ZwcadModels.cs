@@ -176,4 +176,27 @@ namespace Desing.Models
         public string Mensaje { get; set; }
         public T Datos { get; set; }
     }
+
+    /// <summary>
+    /// Solicitud de autorización del plugin por equipo.
+    /// </summary>
+    public class PluginAuthRequestDTO
+    {
+        public string DeviceId { get; set; }
+        public string MachineName { get; set; }
+        public string UsuarioWindows { get; set; }
+        public string AspNetUserId { get; set; }
+        public string PluginVersion { get; set; }
+    }
+
+    /// <summary>
+    /// Resultado de autorización del plugin.
+    /// </summary>
+    public class PluginAuthResultDTO
+    {
+        public bool Permitido { get; set; }
+        public string Estado { get; set; }
+        public string Motivo { get; set; }
+        public string DeviceId { get; set; }
+    }
 }
