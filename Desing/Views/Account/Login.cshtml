@@ -48,7 +48,7 @@
                         </div>
                         @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger small d-block mb-3" })
 
-                        @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage as string))
+                        if (!string.IsNullOrEmpty(ViewBag.ErrorMessage as string))
                         {
                             <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
                         }
