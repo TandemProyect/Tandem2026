@@ -1,175 +1,186 @@
-# Handover Tecnico - Flujo Imagen a Muros (ZWCAD)
+# Handover Tecnico - Imagen y Tipificacion de Muros (ZWCAD)
 
-## Objetivo funcional de la US
+## Objetivo funcional consolidado
 
-Partiendo de una imagen de esquema de muros:
+Partiendo de imagen o de lineas/polilineas CAD:
 
-1. Detectar lineas de muro.
-2. Leer anotaciones de espesor y altura (`E/e`, `H/h`).
-3. Transformar la geometria para alimentar el flujo comun de deteccion.
-4. Reutilizar el pipeline existente para esquinas/muros.
+1. Detectar esquinas L de forma estable.
+2. Generar muros rectos por tipo de conectividad.
+3. Mantener la regla de cotas: linea exterior como referencia y espesor hacia adentro.
+4. Evitar errores repetidos de endpoints, solapes y residuos decimales.
 
-> Regla de negocio acordada con usuario:
-> - La cota exterior es referencia de dimension principal (ej: `10000 x 5000`).
-> - El espesor (`E=0,30`) debe aplicarse hacia adentro para construir cara interior.
-
----
-
-## Archivos tocados en esta iteracion
-
-### Backend (servidor)
-
-- `Desing/Services/ImageAnalysisService.cs`
-- `Desing/Controllers/DesignToolsAutocadController.cs`
-
-### Cliente ZWCAD (sin cambio estructural fuerte en esta iteracion)
-
-- `TamdenZwcadPluging/ZwcadPlugin/Commands.cs` (usa flujo existente `TANDEM_ANALIZAR_IMAGEN`)
-- `TamdenZwcadPluging/ZwcadPlugin/MVCApiService.cs` (llamada a endpoint imagen)
+> Regla de negocio confirmada con usuario:
+> - El perimetro detectado representa cota exterior (ejemplo `10000 x 5000`).
+> - El espesor `E/e` se aplica hacia adentro.
+> - Para muros conectados, los extremos deben nacer/morir en puntos de esquina.
 
 ---
 
-## Cambios implementados
+## Archivos clave que concentran la logica
 
-## 1) Parsing de datos en imagen (E/H)
+### Servidor
+
+- `Desing/Services/LCornerDetector.cs` (nucleo de deteccion/tipificacion)
+- `Desing/Controllers/DesignToolsAutocadController.cs` (normalizacion, flujo CAD e imagen)
+- `Desing/Services/ImageAnalysisService.cs` (extraccion E/H desde imagen)
+
+### Cliente
+
+- `TamdenZwcadPluging/ZwcadPlugin/Commands.cs`
+- `TamdenZwcadPluging/ZwcadPlugin/MVCApiService.cs`
+
+---
+
+## Flujo correcto (orden obligatorio)
+
+1. Normalizar entrada (snap de coordenadas).
+2. Detectar esquinas L.
+3. Construir puntos de referencia de esquina.
+4. Generar muros rectos por tipificacion:
+   - Tipo 1 primero (conectado-conectado, corner-first).
+   - Tipo 2 y 3 (un extremo conectado, otro libre).
+   - Tipo 4 (ambos libres, aislados).
+5. Emitir polilineas y puntos al plugin.
+6. Registrar diagnostico para trazabilidad.
+
+No volver al enfoque anterior de "solo endpoints exactos" para tipo 1.
+
+---
+
+## Tipificacion de muros (definicion oficial)
+
+- `Tipo1_AmbosExtremosConectados`: nace y muere en esquina.
+- `Tipo2_InicioConectado_FinLibre`: inicio en esquina, final libre.
+- `Tipo3_InicioLibre_FinConectado`: inicio libre, final en esquina.
+- `Tipo4_AmbosExtremosLibres`: sin conexion en ambos extremos.
+
+Implementacion actual:
+
+- Tipo 1: `GenerarMurosTipo1DesdeEsquinas(...)`
+- Tipo 2/3 (+ tipo 1 fallback por lineas): `GenerarMurosConUnExtremoLibreDesdeLineas(...)`
+- Tipo 4: `GenerarMurosLibresAislados(...)`
+
+---
+
+## Cambios criticos que resolvieron el bug recurrente
+
+## 1) Tipo 1 ya no depende de endpoints exactos
+
+Problema historico:
+
+- se perdian muros tipo 1 porque la esquina podia caer sobre el segmento, pero no en `Inicio/Fin`.
+
+Correccion aplicada:
+
+- `PuntoEsEndpointDeLinea(...)` fue reemplazado por chequeo de punto sobre segmento con tolerancia (`PuntoSobreSegmentoConTolerancia(...)`).
+- estaciones de tipo 1 se alimentan con:
+  - vertices de esquinas detectadas
+  - puntos de referencia (`PuntosADibujar`)
+
+Resultado:
+
+- se recuperan muros tipo 1 faltantes en casos con polilinea expandida.
+
+## 2) Corner-first real para muros conectados
+
+- Tipo 1 se genera primero usando estaciones comunes entre caras paralelas.
+- En tipos 1/2/3, los extremos conectados se anclan/snapean a puntos de esquina (`TrySnapExtremoConectadoConPuntos`).
+
+## 3) Tipificacion explicita y separacion por metodo
+
+- Se elimino ambiguedad entre muros conectados y muros aislados.
+- Tipo 4 se descarta del metodo de conectados y se delega al aislado para evitar duplicados.
+
+## 4) Diagnostico persistente para no repetir errores
+
+Se agrego salida de diagnostico con trazabilidad de cada par de lineas:
+
+- Archivo: `C:\temp\diagnostico_muros_rectos.json`
+- Incluye:
+  - lineas de entrada
+  - esquinas detectadas
+  - puntos/polilineas de salida
+  - `DebugMurosRectos` por metodo/tipo
+  - estado `Generado`/`Descartado`
+  - motivo de descarte (`no paralelas`, `sin estaciones comunes`, `largo minimo`, `duplicado`, etc.)
+
+Tambien se mantiene:
+
+- `C:\temp\conexiones.json` (resumen amplio del detector)
+
+---
+
+## Flujo imagen (E/H) y normalizacion
 
 En `ImageAnalysisService.cs`:
 
-- Se amplio el prompt para extraer:
-  - `espesorMuro` desde `E/e` (ej: `E 0,30`, `e=0.30`).
-  - `alturaMuro` desde `H/h` (ej: `H 2,70`, `h=2.30`).
-- Se acepta separador decimal con coma o punto.
-- Se robustecio parseo con helper para extraer valor numerico cuando el modelo devuelva texto mixto.
+- prompt actualizado para extraer `espesorMuro` (`E/e`) y `alturaMuro` (`H/h`).
+- parse robusto aceptando coma o punto decimal.
 
-Resultado esperado del JSON de IA:
+En `DesignToolsAutocadController.cs`:
 
-- `escala`
-- `espesorMuro`
-- `alturaMuro`
-- `lineas[]`
-
----
-
-## 2) Validaciones funcionales en endpoint de imagen
-
-En `DesignToolsAutocadController.cs`, metodo `DetectarEsquinasImagen`:
-
-- Si no hay lineas detectadas: error guiado.
-- Si falta `espesorMuro`: error guiado (bloqueante).
-- Si falta `alturaMuro`: no bloquea, usa default 2.70m y agrega aviso.
+- validacion:
+  - sin lineas: error guiado
+  - sin espesor: error bloqueante
+  - sin altura: default 2.70m con aviso
+- normalizacion de entrada con snap para reducir ruido numerico.
+- conversion de lineas a caras interior/exterior para reutilizar detector comun.
 
 ---
 
-## 3) Transformacion geometrica para pipeline comun
+## Errores historicos y como evitarlos
 
-Se agrego logica para convertir las lineas detectadas en caras de muro:
+1. **Muro creado pero fuera de esquina**
+   - Causa: geometria no recortada a solape o sin anclaje a puntos de esquina.
+   - Prevencion: recorte por overlap + snap de extremos conectados.
 
-- Funcion principal: `ExpandirLineasCentroACaras(...)`.
-- Modelo de trabajo: `OffsetLineWork`.
-- Criterio actual:
-  - Cara exterior mantiene referencia.
-  - Cara interior se desplaza por espesor hacia el interior (segun centroide).
+2. **Muros tipo 1 faltantes**
+   - Causa: chequeo por endpoint exacto.
+   - Prevencion: usar punto sobre segmento con tolerancia.
 
-Para cierre en esquinas:
+3. **Deriva decimal en cotas**
+   - Causa: residuos de intersecciones y offsets.
+   - Prevencion: snap entero temprano y despues de ajustes geometricos.
 
-- `AjustarEncuentrosInteriores(...)`
-- matching de extremos cercanos con tolerancia.
-- interseccion de rectas para unir cara interior en encuentros.
-
----
-
-## 4) Control de residuos numericos
-
-Se incorporo `SnapLinea(...)` y `Snap(...)` para mitigar residuos de coma flotante.
-
-- Ajuste actual: snap de coordenadas a milimetro entero (`Math.Round(value, 0)`).
-
-Motivo: eliminar desviaciones tipo `9700.08`, `5300.06` derivadas de intersecciones.
+4. **Duplicados de muro**
+   - Causa: deteccion en metodos superpuestos.
+   - Prevencion: claves canonicas por par de lineas + delegacion tipo 4.
 
 ---
 
-## 5) Integracion con el flujo comun
+## Checklist minimo para siguiente agente
 
-Una vez armadas las caras de muro:
+Antes de tocar logica:
 
-- Se invoca `LCornerDetector.DetectarEsquinasL(...)`.
-- Se reutiliza el pipeline existente de puntos/polilineas a dibujar.
-- Se mantiene comportamiento de `DibujarResultado(...)` en plugin.
+1. Ejecutar caso base y revisar `diagnostico_muros_rectos.json`.
+2. Confirmar conteo por tipo (1/2/3/4) y motivos de descarte.
+3. Verificar que todo tipo 1 generado nace/muere en punto de esquina.
+4. Revisar que no se reintrodujo chequeo endpoint-only.
+5. Validar cotas finales sin residuos decimales.
 
----
+Si un muro no aparece:
 
-## Estado actual observado
-
-Se logro:
-
-- Detectar lineas desde imagen.
-- Leer `E/H`.
-- Dibujar geometria exterior/interior.
-- Ejecutar detector comun sobre resultado.
-
-Pendiente fino:
-
-- Asegurar consistencia dimensional en todos los casos (sin deriva en encuentros).
-- Validar de forma determinista que, para un caso nominal:
-  - exterior = `10000 x 5000`
-  - interior = `9700 x 4700` (con `E=300`).
+- buscar en `DebugMurosRectos` el par de lineas y leer `Motivo`.
+- ajustar solo la regla puntual; no reescribir flujo completo.
 
 ---
 
-## Criterio de aceptacion recomendado para cerrar definitivamente
+## Criterio de aceptacion operativo
 
-Caso base rectangular:
+Caso nominal rectangular con `E=0,30` y `H=2,70`:
 
-- Entrada:
-  - 4 lineas formando rectangulo.
-  - `E=0,30`
-  - `H=2,70`
-
-- Esperado:
-  1. Exterior preserva cota principal (`10000`, `5000`).
-  2. Interior respeta `-2E` por dimension global (`9700`, `4700`).
-  3. Esquinas cerradas sin chaflan no deseado.
-  4. Sin residuos decimales en cotas finales.
+1. Exterior conserva cota principal.
+2. Interior respeta `-2E` por dimension global.
+3. Esquinas cerradas, sin extensiones fuera de esquina.
+4. Conteo de muros consistente con tipificacion.
+5. Diagnostico JSON explica cada muro generado o descartado.
 
 ---
 
-## Riesgos tecnicos para siguiente agente
+## Nota de seguridad para scripts
 
-1. **Ambiguedad de referencia geometrica**
-   - El modelo de IA puede devolver eje o cara.
-   - Confirmar contrato explicito: "linea detectada representa cara exterior".
+No subir scripts con tokens/PAT embebidos.
 
-2. **Cierre por interseccion**
-   - La interseccion infinita puede desplazar extremos fuera de tolerancia visual.
-   - Si reaparece deriva, aplicar estrategia ortogonal determinista en casos H/V.
-
-3. **Tolerancias**
-   - `TOLERANCIA_ENCUENTRO_MM` influye en emparejamientos incorrectos.
-   - Ajustar con dataset real.
-
-4. **Dependencia del OCR semantico**
-   - Si no se detecta `E`, hoy el flujo bloquea (correcto por regla de negocio).
-   - Revisar UX de mensaje si se integra en UI de produccion.
-
----
-
-## Propuesta para siguiente iteracion (si hay tiempo)
-
-1. Agregar modo "determinista ortogonal":
-   - Si lineas son H/V (con tolerancia angular), resolver interior por caja exacta.
-2. Mantener modo geometrico general para rotaciones arbitrarias.
-3. Registrar en log:
-   - bbox exterior/interior,
-   - espesor calculado,
-   - diferencia contra cotas objetivo.
-4. Agregar test de regresion de dimensiones.
-
----
-
-## Resumen ejecutivo para continuidad
-
-- Ya existe flujo usable de imagen -> geometria -> detector comun.
-- La captura de `E/H` esta incorporada y operativa.
-- Queda una capa de estabilizacion dimensional para garantizar cotas exactas en todos los casos.
-- Base de codigo lista para que otro agente continúe sin reabrir decisiones de arquitectura.
+- Si se necesita automatizacion DevOps, usar variables de entorno o secreto seguro.
+- Cualquier token expuesto debe rotarse antes de commit.
 
