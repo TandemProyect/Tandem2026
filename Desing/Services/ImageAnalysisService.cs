@@ -22,12 +22,19 @@ Analyze this technical drawing and extract all straight line segments that form 
 
 For each thick line in the drawing, extract its center axis as a single line segment.
 
-IMPORTANT: Look for a dimension annotation on any wall that indicates wall thickness (e.g., 0.15, 0.20, 0.30). This is the thickness of ALL walls. Extract it as espesorMuro in METERS. If no thickness annotation is found, set espesorMuro to null.
+IMPORTANT: Look for dimension annotations written near walls:
+- Thickness can be written as E/e (examples: E 0,30 | e=0.30 | espesor 0.30).
+- Height can be written as H/h (examples: H 2,70 | h=2.30 | altura 2.70).
+Extract both in METERS:
+- espesorMuro
+- alturaMuro
+If one annotation is missing, set that value to null.
 
 Return ONLY a JSON object with this exact format, no markdown, no extra text:
 {
   ""escala"": ""brief scale note"",
   ""espesorMuro"": 0.30,
+  ""alturaMuro"": 2.70,
   ""lineas"": [
     { ""inicioX"": 0.0, ""inicioY"": 0.0, ""finX"": 5.0, ""finY"": 0.0 },
     { ""inicioX"": 5.0, ""inicioY"": 0.0, ""finX"": 5.0, ""finY"": 4.0 }
@@ -36,6 +43,7 @@ Return ONLY a JSON object with this exact format, no markdown, no extra text:
 
 Rules:
 - Unit: METERS. If annotation shows 5.00, coordinate is 5.0.
+- Accept comma or dot decimals in annotations (0,30 == 0.30).
 - Origin (0,0): bottom-left corner of the drawing boundary.
 - Extract only the main structural lines. Ignore annotations, numbers, text, furniture symbols.
 - Each thick line = ONE center axis line. Do not extract both edges.
@@ -52,7 +60,7 @@ Rules:
                 throw new InvalidOperationException("OPENAI_APIKEY no configurada en Web.config");
         }
 
-        public async Task<(List<LineaDTO> Lineas, double? EspesorMuro)> AnalizarImagenAsync(byte[] imagenBytes, string mimeType = "image/jpeg")
+        public async Task<(List<LineaDTO> Lineas, double? EspesorMuro, double? AlturaMuro)> AnalizarImagenAsync(byte[] imagenBytes, string mimeType = "image/jpeg")
         {
             string base64 = Convert.ToBase64String(imagenBytes);
 
@@ -98,7 +106,7 @@ Rules:
             return ParseLineasDesdeRespuesta(content);
         }
 
-        private (List<LineaDTO> Lineas, double? EspesorMuro) ParseLineasDesdeRespuesta(string content)
+        private (List<LineaDTO> Lineas, double? EspesorMuro, double? AlturaMuro) ParseLineasDesdeRespuesta(string content)
         {
             if (string.IsNullOrEmpty(content))
                 throw new Exception("Respuesta vacía de OpenAI");
@@ -115,10 +123,8 @@ Rules:
             if (lineasJson == null)
                 throw new Exception("El JSON no contiene la propiedad 'lineas'");
 
-            double? espesorMuro = null;
-            var espesorToken = obj["espesorMuro"];
-            if (espesorToken != null && espesorToken.Type != JTokenType.Null)
-                espesorMuro = espesorToken.Value<double>();
+            double? espesorMuro = ExtractMetricValue(obj["espesorMuro"]);
+            double? alturaMuro = ExtractMetricValue(obj["alturaMuro"]);
 
             const double METROS_A_MM = 1000.0;
             var lineas = new List<LineaDTO>();
@@ -134,7 +140,41 @@ Rules:
                     Vertices = new List<PuntoDTO>()
                 });
             }
-            return (lineas, espesorMuro);
+            return (lineas, espesorMuro, alturaMuro);
+        }
+
+        private static double? ExtractMetricValue(JToken token)
+        {
+            if (token == null || token.Type == JTokenType.Null)
+                return null;
+
+            if (token.Type == JTokenType.Float || token.Type == JTokenType.Integer)
+                return token.Value<double>();
+
+            var text = token.ToString();
+            if (string.IsNullOrWhiteSpace(text))
+                return null;
+
+            // Permite textos como: "E 0,30", "h=2.70", "altura: 2,70 m"
+            var match = System.Text.RegularExpressions.Regex.Match(
+                text,
+                @"[-+]?\d+(?:[.,]\d+)?",
+                System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+            if (!match.Success)
+                return null;
+
+            var normalized = match.Value.Replace(',', '.');
+            if (double.TryParse(
+                normalized,
+                System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out var value))
+            {
+                return value;
+            }
+
+            return null;
         }
     }
 }
