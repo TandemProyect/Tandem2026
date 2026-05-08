@@ -106,7 +106,7 @@ a.success {
 
 /* ---- DataTables Buttons (export, columns, etc.) collection dropdown ---- */
 div.dt-button-collection {
-    background: var(--bs-card-bg);
+    background: #E8E5F3;
     border: 1px solid var(--bs-border-color);
     border-radius: var(--bs-border-radius-lg);
     box-shadow: var(--bs-box-shadow);
