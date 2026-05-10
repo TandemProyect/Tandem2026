@@ -521,8 +521,6 @@ namespace Desing.Controllers
                 // Paging
                 query = query.Skip(requestModel.Start).Take(requestModel.Length);
 
-                // Rights
-                bool allowEdit = true;
                 var data = query.ToList().Select(p => new
                 {
                     emptyColumn = "",
@@ -765,7 +763,8 @@ namespace Desing.Controllers
                 var Id = Session["IDDesign"];
                 Session["IDDesign"] = null;
                 TSql_Design DesignEntity = db.TSql_Design.Find(Id);
-                return PartialView("_Edit", DesignEntity);
+                ConfigurarVistaCreateEditParaEdicion(DesignEntity);
+                return PartialView("_CreateEdit");
             }
             catch (Exception ex)
             {
@@ -814,7 +813,31 @@ namespace Desing.Controllers
         {
             try
             {
-                return PartialView("_Create");
+                ConfigurarVistaCreateEditParaAlta();
+                return PartialView("_CreateEdit");
+            }
+            catch (Exception ex)
+            {
+                return Json(ex.Message);
+            }
+        }
+
+        [AllowAnonymous]
+        public ActionResult CreateFromZwcad(string deviceId, int? created = null)
+        {
+            try
+            {
+                var auth = ValidarDispositivoZwcad(deviceId);
+                if (!auth.IsValid)
+                {
+                    return new HttpStatusCodeResult(403, "Equipo no autorizado para crear diseños.");
+                }
+
+                ConfigurarVistaCreateEditParaAlta();
+                ViewBag.ZwcadMode = true;
+                ViewBag.ZwcadDeviceId = auth.DeviceId;
+                ViewBag.ZwcadCreated = (created ?? 0) == 1;
+                return View();
             }
             catch (Exception ex)
             {
@@ -837,7 +860,8 @@ namespace Desing.Controllers
         // POST: Group/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(ModelDesign3d model)
+        [AllowAnonymous]
+        public ActionResult Create(ModelDesign3d model, string zwcadDeviceId = null)
         {
             try
             {
@@ -847,7 +871,21 @@ namespace Desing.Controllers
                 }
                 if (ModelState.IsValid)
                 {
-                    string UserId = User.Identity.GetUserId();
+                    string UserId = null;
+                    if (User != null && User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        UserId = User.Identity.GetUserId();
+                    }
+                    else
+                    {
+                        var auth = ValidarDispositivoZwcad(zwcadDeviceId);
+                        if (!auth.IsValid || string.IsNullOrWhiteSpace(auth.UserId))
+                        {
+                            return new HttpStatusCodeResult(403, "Equipo no autorizado para crear diseños.");
+                        }
+                        UserId = auth.UserId;
+                    }
+
                     TSql_Design newDesign = new TSql_Design
                     {
                         AttLabel = model.DesignName,
@@ -872,7 +910,12 @@ namespace Desing.Controllers
                     TempData["ToastMessage"] = "El diseño " + model.DesignName + " a sido creado correctamente";
 
 
-                    return RedirectToAction("Index");
+                    if (User != null && User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        return RedirectToAction("Index");
+                    }
+
+                    return RedirectToAction("CreateFromZwcad", new { deviceId = zwcadDeviceId, created = 1 });
                 }
                 return Json(new { success = false });
             }
@@ -902,6 +945,70 @@ namespace Desing.Controllers
         public ActionResult Snap()
         {
             return View();
+        }
+
+        private void ConfigurarVistaCreateEditParaAlta()
+        {
+            ViewBag.IsEdit = false;
+            ViewBag.FormAction = "Create";
+            ViewBag.FormId = "formCreateDesign";
+            ViewBag.TitleForm = "Crear nuevo diseño";
+            ViewBag.SubmitText = "Crear";
+            ViewBag.SubmitIcon = "ri-add-line";
+            ViewBag.NameFieldName = "DesignName";
+            ViewBag.NameFieldId = "DesignName";
+            ViewBag.NameFieldLabel = "Nombre del nuevo diseño";
+            ViewBag.NameValue = string.Empty;
+            ViewBag.DescriptionValue = string.Empty;
+        }
+
+        private void ConfigurarVistaCreateEditParaEdicion(TSql_Design designEntity)
+        {
+            ViewBag.IsEdit = true;
+            ViewBag.FormAction = "Edit";
+            ViewBag.FormId = "formEditDesign";
+            ViewBag.TitleForm = "Editar diseño";
+            ViewBag.SubmitText = "Guardar";
+            ViewBag.SubmitIcon = "ri-save-line";
+            ViewBag.NameFieldName = "AttLabel";
+            ViewBag.NameFieldId = "AttLabel";
+            ViewBag.NameFieldLabel = "Nombre del diseño";
+            ViewBag.NameValue = designEntity?.AttLabel ?? string.Empty;
+            ViewBag.DescriptionValue = designEntity?.AttDescription ?? string.Empty;
+            ViewBag.SysObjectID = designEntity?.SysObjectID ?? 0;
+        }
+
+        private sealed class ZwcadDeviceValidationResult
+        {
+            public bool IsValid { get; set; }
+            public string DeviceId { get; set; }
+            public string UserId { get; set; }
+        }
+
+        private ZwcadDeviceValidationResult ValidarDispositivoZwcad(string deviceId)
+        {
+            if (string.IsNullOrWhiteSpace(deviceId))
+            {
+                return new ZwcadDeviceValidationResult { IsValid = false };
+            }
+
+            var device = db.TSql_PluginDeviceAuth.FirstOrDefault(x => x.DeviceId == deviceId);
+            if (device == null)
+            {
+                return new ZwcadDeviceValidationResult { IsValid = false };
+            }
+
+            if (!device.Allowed || !device.IsActive || device.IsRevoked || device.AttIsDeleted)
+            {
+                return new ZwcadDeviceValidationResult { IsValid = false };
+            }
+
+            return new ZwcadDeviceValidationResult
+            {
+                IsValid = true,
+                DeviceId = device.DeviceId,
+                UserId = device.LinAspNetUsert
+            };
         }
 
         public JsonResult ListDesing([ModelBinder(typeof(DataTablesBinder))] IDataTablesRequest requestModel, bool OnlyUser)
@@ -2440,10 +2547,9 @@ namespace Desing.Controllers
                     return idEstimation;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return 0;
-                throw ex;
             }
         }
         public ActionResult Design(long? id)

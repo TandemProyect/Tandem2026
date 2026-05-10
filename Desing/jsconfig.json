@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "checkJs": false,
+    "target": "es5"
+  },
+  "exclude": [
+    "bin",
+    "obj",
+    "Scripts/jquery*",
+    "Scripts/bootstrap*",
+    "Scripts/datatables/**",
+    "Scripts/vscad_jquery/**",
+    "assets/**"
+  ]
+}

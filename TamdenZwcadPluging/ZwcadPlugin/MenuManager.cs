@@ -39,6 +39,7 @@ namespace ZwcadPlugin
             ed.WriteMessage("\n  REGENERAR3D               Borra y regenera solidos 3D");
             ed.WriteMessage("\n  CONFIGENCOFRADO           Configura el sistema de encofrado");
             ed.WriteMessage("\n  LEERDISENOMVC             Lee un diseno desde el servidor");
+            ed.WriteMessage("\n  CREARDISENOMVC            Crea un diseno nuevo y lo guarda en MVC");
             ed.WriteMessage("\n  GUARDARDISENOMVC          Guarda el diseno en el servidor");
             ed.WriteMessage("\n  TANDEM_SELECCIONAR_LINEAS Selecciona lineas y polilineas\n");
         }

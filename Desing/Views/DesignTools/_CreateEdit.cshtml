@@ -1,0 +1,106 @@
+@{
+    ViewBag.Title = ViewBag.TitleForm ?? "Diseño";
+    var isEdit = (ViewBag.IsEdit as bool?) ?? false;
+    var formAction = ViewBag.FormAction as string ?? "Create";
+    var formId = ViewBag.FormId as string ?? "formCreateDesign";
+    var titleForm = ViewBag.TitleForm as string ?? "Crear nuevo diseño";
+    var submitText = ViewBag.SubmitText as string ?? "Guardar";
+    var submitIcon = ViewBag.SubmitIcon as string ?? "ri-save-line";
+    var nameFieldName = ViewBag.NameFieldName as string ?? "DesignName";
+    var nameFieldId = ViewBag.NameFieldId as string ?? "DesignName";
+    var nameFieldLabel = ViewBag.NameFieldLabel as string ?? "Nombre del diseño";
+    var nameValue = ViewBag.NameValue as string ?? string.Empty;
+    var descriptionValue = ViewBag.DescriptionValue as string ?? string.Empty;
+    var sysObjectId = (ViewBag.SysObjectID as long?) ?? 0;
+    var zwcadDeviceId = ViewBag.ZwcadDeviceId as string ?? string.Empty;
+}
+
+<div class="tandem-popup p-4">
+    @using (Html.BeginForm(formAction, "DesignTools", FormMethod.Post, new { id = formId, role = "form" }))
+    {
+        @Html.AntiForgeryToken()
+        if (isEdit)
+        {
+            <input type="hidden" name="SysObjectID" value="@sysObjectId" />
+        }
+        if (!string.IsNullOrWhiteSpace(zwcadDeviceId))
+        {
+            <input type="hidden" name="zwcadDeviceId" value="@zwcadDeviceId" />
+        }
+
+        <div class="d-flex align-items-center mb-4">
+            <i class="icon-base ri @(isEdit ? "ri-edit-2-line" : "ri-add-circle-line") text-primary me-2" style="font-size:1.5rem"></i>
+            <h5 class="mb-0">@titleForm</h5>
+        </div>
+
+        <div class="form-floating form-floating-outline mb-4">
+            <input
+                type="text"
+                class="form-control"
+                id="@nameFieldId"
+                name="@nameFieldName"
+                placeholder="@nameFieldLabel"
+                value="@nameValue"
+                maxlength="500"
+                required />
+            <label for="@nameFieldId">@nameFieldLabel</label>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="CheckShareDesign" checked>
+                    <label class="form-check-label" for="CheckShareDesign">Compartir diseño</label>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="CheckShareOrg" checked>
+                    <label class="form-check-label" for="CheckShareOrg">Compartir con mi organización</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-floating form-floating-outline mb-4">
+            <textarea class="form-control" id="AttDescription" name="AttDescription" rows="5" placeholder="Observaciones" style="height:120px">@descriptionValue</textarea>
+            <label for="AttDescription">Observaciones</label>
+        </div>
+
+        <hr class="my-3" />
+
+        <div class="d-flex justify-content-end gap-2">
+            <button type="button" id="btnSalir" class="btn btn-outline-secondary">
+                <i class="icon-base ri ri-close-line me-1"></i> Salir
+            </button>
+            <button type="submit" id="SubmitEditBtn" class="btn btn-primary">
+                <i class="icon-base ri @submitIcon me-1"></i> @submitText
+            </button>
+        </div>
+    }
+</div>
+
+<script type="text/javascript">
+    (function () {
+        function closePanel() {
+            if (window.jQuery) {
+                if (window.jQuery("#CreateDesign").length) {
+                    window.jQuery("#CreateDesign").hide("slide", { direction: "right" }, 1000);
+                }
+                if (window.jQuery("#Loading").length) {
+                    window.jQuery("#Loading").hide("slide", { direction: "left" }, 700);
+                }
+                return;
+            }
+
+            var createDesign = document.getElementById("CreateDesign");
+            var loading = document.getElementById("Loading");
+            if (createDesign) createDesign.style.display = "none";
+            if (loading) loading.style.display = "none";
+        }
+
+        var btn = document.getElementById("btnSalir");
+        if (btn) {
+            btn.addEventListener("click", closePanel);
+        }
+    })();
+</script>

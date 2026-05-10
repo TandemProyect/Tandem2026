@@ -102,8 +102,6 @@ namespace Desing.Controllers
                 // Paging
                 query = query.Skip(requestModel.Start).Take(requestModel.Length);
 
-                // Rights
-                bool allowEdit = true;
                 bool allowDelete = true;
                 var data = query.ToList().Select(p => new
                 {

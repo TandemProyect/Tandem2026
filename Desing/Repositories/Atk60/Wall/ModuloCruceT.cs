@@ -5,13 +5,9 @@ namespace Desing.Repositories.Atk60.Wall
 {
     public class ModuloCruceT : BaseController
     {
-        private static string MeshTdwidag;
-        private static string _codeName;
-
         internal static List<ModelRenderElement> setdListElement(long type, DAL.TSql_DefaultDesign currentDefaultDisign, long DataHeight, long dataWith, long datalong, long dataCordenadX, long dataCordenadY, RotateMesh meshRotateX, RotateMesh meshRotateMirrowX, string dataRotateZ, long _Type)
         {
             List<ModelRenderElement> ListRenderElement = new List<ModelRenderElement>();
-            GetTdwidag(dataWith);
 
             SedPanels2700(type, currentDefaultDisign, DataHeight, datalong, dataCordenadX, dataCordenadY, dataWith, ListRenderElement, _Type);
             //SendRemate();
@@ -747,7 +743,7 @@ namespace Desing.Repositories.Atk60.Wall
 
             //        ModelRenderElement elementTdwidag = new ModelRenderElement();
             //        elementTdwidag.ElementUnion1 = MeshTdwidag;
-            //        elementTdwidag.CodeName = _codeName;
+            //        elementTdwidag.CodeName = "0230120";
             //        elementTdwidag.x = dataCordenadX + AddModulo + 4;
             //        elementTdwidag.y = dataCordenadY - ((dataWith / 10) / 2);
             //        elementTdwidag.z = data.ZCoordinate + 215;
@@ -755,26 +751,6 @@ namespace Desing.Repositories.Atk60.Wall
             //        ListRenderElement.Add(elementTdwidag);
             //        AddModulo += 90;
             //    }
-        }
-
-
-        private static void GetTdwidag(long dataWith)
-        {
-            if (dataWith > 500)
-            {
-                MeshTdwidag = "../../Content/DesignTools/Stl/ATK60/0230120.stl";
-                _codeName = "0230120";
-            }
-            if (dataWith > 700)
-            {
-                MeshTdwidag = "../../Content/DesignTools/Stl/ATK60/0230150.stl";
-                _codeName = "0230150";
-            }
-            if (dataWith > 1000)
-            {
-                MeshTdwidag = "../../Content/DesignTools/Stl/ATK60/0230200.stl";
-                _codeName = "0230200";
-            }
         }
 
         private static int getRest(long rest)

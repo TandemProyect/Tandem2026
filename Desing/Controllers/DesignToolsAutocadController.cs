@@ -57,9 +57,8 @@ namespace Desing.Controllers
                 var fileContents = System.IO.File.ReadAllText(Server.MapPath(FileToDonload));
                 return Json(new { data = true, ListMaterialExport, IsOk = true, fileContents, NameFile });
             }
-            catch (System.Exception ex)
+            catch (System.Exception)
             {
-                var j = ex.Message;
                 return null;
             }
         }

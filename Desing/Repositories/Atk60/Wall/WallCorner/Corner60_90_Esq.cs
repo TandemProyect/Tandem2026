@@ -1,4 +1,4 @@
-﻿using Desing.Controllers;
+using Desing.Controllers;
 using System.Collections.Generic;
 namespace Desing.Repositories.Atk60.Wall.WallCorner
 {
@@ -7,7 +7,6 @@ namespace Desing.Repositories.Atk60.Wall.WallCorner
         private static long PanelPerfil = 12;
         private static bool Is2700 = false;
         private static long LastPanel = 0;
-        private static string _codeName;
         internal static List<ModelRenderElement> setdListElement(long type, DAL.TSql_DefaultDesign currentDefaultDisign, long DataHeight, long dataWith, long datalong, long dataCordenadX, long dataCordenadY)
         {
             List<ModelRenderElement> ListRenderElement = new List<ModelRenderElement>();

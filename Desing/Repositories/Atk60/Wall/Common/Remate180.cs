@@ -1,4 +1,4 @@
-﻿using Desing.Controllers;
+using Desing.Controllers;
 using System.Collections.Generic;
 namespace Desing.Repositories.Atk60.Wall.Common
 {
@@ -7,7 +7,6 @@ namespace Desing.Repositories.Atk60.Wall.Common
         private static long PanelPerfil = 12;
         private static bool Is2700 = false;
         private static long LastPanel = 0;
-        private static string _codeName;
         internal static List<ModelRenderElement> setdListElement(List<ModelRenderElement> listRenderElement, long rest, long DataHeight, long dataWith, long datalong, long dataCordenadX, long dataCordenadY)
         {
             SedElement(rest, DataHeight, datalong, dataCordenadX, dataCordenadY, dataWith, listRenderElement);

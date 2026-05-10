@@ -14,6 +14,9 @@
     <PlatformTarget>x64</PlatformTarget>
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <LangVersion>latest</LangVersion>
+    <!-- API ZWCAD: misma versión que el CAD. Newtonsoft: DLL copiada en lib\ (no depende de ..\packages si borras esa carpeta). -->
+    <ZwCadApiRoot Condition="'$(ZWCAD_API_ROOT)' != ''">$(ZWCAD_API_ROOT)</ZwCadApiRoot>
+    <ZwCadApiRoot Condition="'$(ZwCadApiRoot)' == ''">C:\Program Files\ZWSOFT\ZWCAD 2026</ZwCadApiRoot>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -48,39 +51,39 @@
     <Reference Include="WindowsBase" />
     <Reference Include="System.Xaml" />
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.13.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>lib\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ZcCui, Version=25.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ZWCAD.NetApi.20.26.0\lib\net47\ZcCui.dll</HintPath>
+      <HintPath>$(ZwCadApiRoot)\ZcCui.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ZcWindows, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ZWCAD.NetApi.20.26.0\lib\net47\ZcWindows.dll</HintPath>
+      <HintPath>$(ZwCadApiRoot)\ZcWindows.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ZdWindows, Version=4.0.0.6, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ZWCAD.NetApi.20.26.0\lib\net47\ZdWindows.dll</HintPath>
+      <HintPath>$(ZwCadApiRoot)\ZdWindows.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ZwDatabaseMgd, Version=26.0.26.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\ZWCAD.NetApi.20.26.0\lib\net47\ZwDatabaseMgd.dll</HintPath>
+      <HintPath>$(ZwCadApiRoot)\ZwDatabaseMgd.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ZwDatabaseMgdBrep, Version=26.0.26.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\ZWCAD.NetApi.20.26.0\lib\net47\ZwDatabaseMgdBrep.dll</HintPath>
+      <HintPath>$(ZwCadApiRoot)\ZwDatabaseMgdBrep.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ZwManaged, Version=26.0.26.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\ZWCAD.NetApi.20.26.0\lib\net47\ZwManaged.dll</HintPath>
+      <HintPath>$(ZwCadApiRoot)\ZwManaged.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ZwSoft.ZwCAD.Interop, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ZWCAD.NetApi.20.26.0\lib\net47\ZwSoft.ZwCAD.Interop.dll</HintPath>
+      <HintPath>$(ZwCadApiRoot)\ZwSoft.ZwCAD.Interop.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ZwSoft.ZwCAD.Interop.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ZWCAD.NetApi.20.26.0\lib\net47\ZwSoft.ZwCAD.Interop.Common.dll</HintPath>
+      <HintPath>$(ZwCadApiRoot)\ZwSoft.ZwCAD.Interop.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -100,11 +103,18 @@
     <Compile Include="UI\ViewModels\ViewModelBase.cs" />
     <Compile Include="UI\ViewModels\RelayCommand.cs" />
     <Compile Include="UI\ViewModels\MainViewModel.cs" />
+    <Compile Include="UI\Views\CreateDesignWindow.xaml.cs">
+      <DependentUpon>CreateDesignWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="UI\Views\CreateDesignWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="UI\Views\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -115,7 +125,6 @@
     <None Include="DIAGNOSTICO_COMPILACION.md" />
     <None Include="INSTRUCCIONES_AGREGAR_ICONOS.md" />
     <None Include="MNU\Tandem2026_NEW.cui" />
-    <None Include="packages.config" />
     <None Include="MNU\Tandem2026.cui">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

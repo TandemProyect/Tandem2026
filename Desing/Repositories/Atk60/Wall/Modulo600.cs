@@ -1,4 +1,4 @@
-﻿using Desing.Controllers;
+using Desing.Controllers;
 using System.Collections.Generic;
 namespace Desing.Repositories.Atk60.Wall
 {
@@ -10,8 +10,6 @@ namespace Desing.Repositories.Atk60.Wall
         private static long LastPanel = 0;
         private static long PanelPerfil = 12;
         private static bool Is2700 = false;
-
-        private static string _codeName;
         internal static List<ModelRenderElement> setdListElement(string Tape_180o90, string Tape_0o270, long EndWallX, long EndWallY, long LongLeft, long LongRight, bool IsFirstModule, bool IsDimActive, long type, DAL.TSql_DefaultDesign currentDefaultDisign, long DataHeight, long dataWith, long datalong, long dataCordenadX, long dataCordenadY, RotateMesh meshRotateX, RotateMesh meshRotateMirrowX, string dataRotateZ, long _Type, bool _isEndModule, bool _HasPreviousModule, long _DataSupEnd)
         {
             if (Tape_0o270 != null)

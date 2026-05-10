@@ -220,6 +220,35 @@ namespace ZwcadPlugin
         }
 
         /// <summary>
+        /// Abre el formulario MVC de alta de diseño en el navegador.
+        /// </summary>
+        [CommandMethod("CREARDISENOMVC")]
+        public void CrearDisenoMVC()
+        {
+            Document doc = ZwcadApp.DocumentManager.MdiActiveDocument;
+            if (doc == null) return;
+
+            Editor ed = doc.Editor;
+            if (!ValidarAccesoPlugin(ed)) return;
+
+            try
+            {
+                var deviceId = ObtenerDeviceId();
+                var url = $"https://localhost:44384/DesignTools/CreateFromZwcad?deviceId={Uri.EscapeDataString(deviceId)}";
+                var window = new CreateDesignWindow(url);
+                window.SetOwnerHandle(ZwcadApp.MainWindow.Handle);
+                window.ShowDialog();
+                ed.WriteMessage("\nFormulario MVC embebido cerrado.\n");
+            }
+            catch (System.Exception ex)
+            {
+                ed.WriteMessage($"\nNo se pudo abrir el formulario WPF embebido: {ex.Message}");
+                ed.WriteMessage("\nComo alternativa, se ejecutará el flujo por consola.\n");
+                GuardarDisenoMVC();
+            }
+        }
+
+        /// <summary>
         /// Comando para seleccionar líneas y polilíneas y enviarlas al servidor MVC
         /// </summary>
         [CommandMethod("TANDEM_SELECCIONAR_LINEAS")]
@@ -606,6 +635,9 @@ namespace ZwcadPlugin
             ed.WriteMessage("\n");
             ed.WriteMessage("\n  LEERDISENOMVC     - Lee un diseÃ±o desde el servidor");
             ed.WriteMessage("\n                      (Especifica el ID del diseÃ±o)");
+            ed.WriteMessage("\n");
+            ed.WriteMessage("\n  CREARDISENOMVC    - Crea un diseÃ±o nuevo en el servidor");
+            ed.WriteMessage("\n                      (Solicita nombre y descripciÃ³n)");
             ed.WriteMessage("\n");
             ed.WriteMessage("\n  GUARDARDISENOMVC  - Guarda el diseÃ±o actual en el servidor");
             ed.WriteMessage("\n                      (Extrae todas las entidades del dibujo)");

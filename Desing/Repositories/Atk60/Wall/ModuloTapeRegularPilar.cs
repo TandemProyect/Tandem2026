@@ -10,7 +10,6 @@ namespace Desing.Repositories.Atk60.Wall
         private static long LastPanel = 0;
         private static long PanelPerfil = 12;
         private static bool Is2700 = false;
-        private static string _codeName;
         internal static List<ModelRenderElement> setdListElement(long EndWallX, long LongLeft, long LongRight, DAL.TSql_DefaultDesign currentDefaultDisign, long DataHeight, long dataWith, long datalong, long dataCordenadX, long dataCordenadY)
         {
             List<ModelRenderElement> ListRenderElement = new List<ModelRenderElement>();
@@ -23,10 +22,6 @@ namespace Desing.Repositories.Atk60.Wall
             InsertProp.SedProp(dataWith, 0, DataHeight, 1, dataCordenadX - 16, dataCordenadY, ListRenderElement, 0, 0, 0, 0, false);
             InsertProp.SedProp(dataWith, 0, DataHeight, 2, (dataCordenadX + (dataWith / 10)), dataCordenadY - 47, ListRenderElement, 0, 0, 0, 0, false);
 
-            var dimTypeVertical = DimType.No;
-            var DimTypeH = DimType.Horizontal;
-            var Elevation = 0;
-            var ElevationDiwydag = 0;
             int RestTypeHeight = 300;
             int n = (int)((DataHeight + 249) / 2700);
             var restHeight = (int)((DataHeight) - (2700 * n));

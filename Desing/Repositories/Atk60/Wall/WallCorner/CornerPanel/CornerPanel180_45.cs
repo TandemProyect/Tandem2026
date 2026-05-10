@@ -1,4 +1,4 @@
-﻿using Desing.Controllers;
+using Desing.Controllers;
 using System.Collections.Generic;
 namespace Desing.Repositories.Atk60.Wall.WallCorner
 {
@@ -8,7 +8,6 @@ namespace Desing.Repositories.Atk60.Wall.WallCorner
         private static bool IsAngular_00 = false;
         private static bool Is2700 = false;
         private static long LastPanel = 0;
-        private static string _codeName;
         internal static List<ModelRenderElement> setdListElement(bool isAngular_00, long type, DAL.TSql_DefaultDesign currentDefaultDisign, long DataHeight, long dataWith, long datalong, long dataCordenadX, long dataCordenadY)
         {
             IsAngular_00 = isAngular_00;

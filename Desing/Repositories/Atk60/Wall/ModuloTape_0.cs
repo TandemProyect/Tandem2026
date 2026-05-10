@@ -1,4 +1,4 @@
-﻿using Desing.Controllers;
+using Desing.Controllers;
 using System.Collections.Generic;
 namespace Desing.Repositories.Atk60.Wall
 {
@@ -7,8 +7,6 @@ namespace Desing.Repositories.Atk60.Wall
 
         private static long PanelPerfil = 12;
         private static bool Is2700 = false;
-
-        private static string _codeName;
         internal static List<ModelRenderElement> setdListElement(bool CHeck750R, long EndWallX, long LongLeft, long LongRight, DAL.TSql_DefaultDesign currentDefaultDisign, long DataHeight, long dataWith, long datalong, long dataCordenadX, long dataCordenadY)
         {
             List<ModelRenderElement> ListRenderElement = new List<ModelRenderElement>();
@@ -36,7 +34,6 @@ namespace Desing.Repositories.Atk60.Wall
             var suplement = (realdataWith - dataWith) / 10;
             dataCordenadY = dataCordenadY - suplement;
             var dimTypeVertical = DimType.No;
-            var DimTypeH = DimType.Horizontal;
             var Elevation = 0;
             var ElevationDiwydag = 0;
             int RestTypeHeight = 300;
@@ -50,12 +47,10 @@ namespace Desing.Repositories.Atk60.Wall
                 {
                     if (i == 0)
                     {
-                        DimTypeH = DimType.Horizontal;
                         Elevation = 45;
                     }
                     else
                     {
-                        DimTypeH = 0;
                         Elevation = Elevation + 270;
                         if (suplement < 0.1)
                         {

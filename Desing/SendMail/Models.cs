@@ -4,9 +4,6 @@
     {
         public class MailModel
         {
-            private string v;
-
-
             public string From
             {
                 get;

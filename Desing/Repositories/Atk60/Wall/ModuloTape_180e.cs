@@ -1,4 +1,4 @@
-﻿using Desing.Controllers;
+using Desing.Controllers;
 using System.Collections.Generic;
 namespace Desing.Repositories.Atk60.Wall
 {
@@ -10,8 +10,6 @@ namespace Desing.Repositories.Atk60.Wall
         private static long LastPanel = 0;
         private static long PanelPerfil = 12;
         private static bool Is2700 = false;
-
-        private static string _codeName;
         internal static List<ModelRenderElement> setdListElement(long EndWallX, long LongLeft, long LongRight, DAL.TSql_DefaultDesign currentDefaultDisign, long DataHeight, long dataWith, long datalong, long dataCordenadX, long dataCordenadY)
         {
             List<ModelRenderElement> ListRenderElement = new List<ModelRenderElement>();
@@ -23,7 +21,6 @@ namespace Desing.Repositories.Atk60.Wall
         private static void SedPanels30(long endWallX, DAL.TSql_DefaultDesign currentDefaultDisign, long DataHeight, long datalong, long dataCordenadX, long dataCordenadY, long dataWith, List<ModelRenderElement> ListRenderElement)
         {
             var dimTypeVertical = DimType.No;
-            var DimTypeH = DimType.Horizontal;
             var Elevation = 0;
             var ElevationDiwydag = 0;
             int RestTypeHeight = 300;
@@ -38,12 +35,10 @@ namespace Desing.Repositories.Atk60.Wall
                 {
                     if (i == 0)
                     {
-                        DimTypeH = DimType.Horizontal;
                         Elevation = 45;
                     }
                     else
                     {
-                        DimTypeH = 0;
                         Elevation = Elevation + 270;
                         CommonElement.UnionRijiMirror(1, 2, 12, 0, endWallX, -(dataWith / 10) / 2, dataCordenadY - 0, Elevation - 30, ListRenderElement, dataWith / 10, "");
                     }

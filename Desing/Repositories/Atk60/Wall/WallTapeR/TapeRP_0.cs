@@ -1,10 +1,9 @@
-﻿using Desing.Controllers;
+using Desing.Controllers;
 using System.Collections.Generic;
 namespace Desing.Repositories.Atk60.Wall.WallTapeR
 {
     public class TapeRP_0 : BaseController
     {
-        private static string _codeName;
         internal static List<ModelRenderElement> setdListElement(long EndWallX, long DataHeight, long dataWith, long datalong, long dataCordenadY, long TypeH, bool IsCorner)
         {
             List<ModelRenderElement> ListRenderElement = new List<ModelRenderElement>();

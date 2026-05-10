@@ -131,7 +131,6 @@ namespace Desing.Repositories.Atk60.Wall
             List<ModelRenderElement> ListRenderElementPanel270 = new List<ModelRenderElement>();
             if (Tape_270 == "Universal_Y")
             {
-                var dimTypeVertical = DimType.No;
                 var DimTypeH = DimType.Horizontal;
                 var Elevation = 0;
                 var ElevationDiwydag = 0;

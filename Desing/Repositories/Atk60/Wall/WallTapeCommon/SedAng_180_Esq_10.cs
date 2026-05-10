@@ -1,10 +1,9 @@
-﻿using Desing.Controllers;
+using Desing.Controllers;
 using System.Collections.Generic;
 namespace Desing.Repositories.Atk60.Wall
 {
     public class SedAng_180_Esq_10 : BaseController
     {
-        private static string _codeName;
         internal static List<ModelRenderElement> setdListElement(long endWallX, DAL.TSql_DefaultDesign currentDefaultDisign, long DataHeight, long dataWith, long datalong, long dataCordenadX, long dataCordenadY)
         {
             List<ModelRenderElement> ListRenderElement = new List<ModelRenderElement>();

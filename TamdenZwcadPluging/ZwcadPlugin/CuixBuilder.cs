@@ -64,6 +64,13 @@ namespace ZwcadPlugin
           <HelpString>Lee un diseno desde el servidor MVC</HelpString>
         </Macro>
       </MenuMacro>
+      <MenuMacro UID=""td_crear"">
+        <Macro>
+          <Name>Crear Diseno</Name>
+          <Command>^c^cCREARDISENOMVC</Command>
+          <HelpString>Crea un diseno nuevo y lo guarda en el servidor MVC</HelpString>
+        </Macro>
+      </MenuMacro>
       <MenuMacro UID=""td_save"">
         <Macro>
           <Name>Guardar Diseno</Name>
@@ -120,6 +127,9 @@ namespace ZwcadPlugin
           <PopMenuItem UID=""td_pmi_leer"">
             <MenuItem><MacroRef MenuMacroID=""td_leer""/></MenuItem>
           </PopMenuItem>
+          <PopMenuItem UID=""td_pmi_crear"">
+            <MenuItem><MacroRef MenuMacroID=""td_crear""/></MenuItem>
+          </PopMenuItem>
           <PopMenuItem UID=""td_pmi_save"">
             <MenuItem><MacroRef MenuMacroID=""td_save""/></MenuItem>
           </PopMenuItem>
@@ -165,6 +175,7 @@ namespace ZwcadPlugin
             <Name>Datos MVC</Name>
             <RibbonRow>
               <RibbonCommandButton ButtonStyle=""LargeWithText"" MenuMacroID=""td_leer"" Text=""Leer""/>
+              <RibbonCommandButton ButtonStyle=""LargeWithText"" MenuMacroID=""td_crear"" Text=""Crear""/>
               <RibbonCommandButton ButtonStyle=""LargeWithText"" MenuMacroID=""td_save"" Text=""Guardar""/>
             </RibbonRow>
           </RibbonPanelSource>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <!-- Misma carpeta que nuget.config → repositoryPath "packages" junto a Design.sln -->
+  <PropertyGroup>
+    <RepoNuGetPackages>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)packages'))</RepoNuGetPackages>
+  </PropertyGroup>
+</Project>

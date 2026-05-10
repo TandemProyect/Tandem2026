@@ -375,3 +375,6 @@ Desing/Publis/Exporters-master.zip
 # Carpetas excluidas del repositorio
 No_Publicar/
 IA/ejemplos/imagenes/
+
+# NuGet CLI opcional en la raíz (restore-packages.cmd puede descargarlo)
+nuget.exe
