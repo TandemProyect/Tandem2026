@@ -70,7 +70,7 @@ namespace Desing
                 "~/Scripts/Design/3D/Selection/Design_3d_Selection.js",
                 "~/Scripts/Design/3D/Selection/DesignOnDblclick.js",
                 "~/Scripts/Design/3D/Selection/DesignMouseMove.js",
-                "~/Scripts/Design/3D/Selection/DesignMouseMoveControl",
+                "~/Scripts/Design/3D/Selection/DesignMouseMoveControl.js",
                 //Action
                 "~/Scripts/Design/3D/Design_3d_AddControl.js",
                 "~/Scripts/Design/3D/Design_GetAndSet.js",

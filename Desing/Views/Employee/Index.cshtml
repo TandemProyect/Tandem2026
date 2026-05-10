@@ -27,7 +27,7 @@
     <h4 class="py-3 mb-0">
         <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> /</span> Empleados
     </h4>
-    <a class="btn btn-primary" href="@Url.Action("Register", "Account")">
+    <a class="btn btn-primary text-white" href="@Url.Action("Register", "Account")">
         <i class="icon-base ri ri-add-line me-1"></i> Crear Nuevo Empleado
     </a>
 </div>
@@ -184,7 +184,11 @@
 
                             $('td:eq(7)', nRow).append(data.buttonActive + '&nbsp;');
                             $('td:eq(9)', nRow).append(data.buttonSendMail + '&nbsp;');
-                            $('td:eq(0)', nRow).html('<img style="height:35px" src="@Url.Content("~/")' + data.AttPhotoMenu + '" alt="" />');
+                            var avatarPath = (data.AttPhotoMenu || '').toString();
+                            avatarPath = avatarPath.replace(/^~\//, '');
+                            avatarPath = avatarPath.replace(/^(\.\.\/)+/, '');
+                            var avatarUrl = avatarPath ? ('@Url.Content("~/")' + avatarPath) : '@Url.Content("~/Files/RRHH/User/AttPhotoMenu/User.png")';
+                            $('td:eq(0)', nRow).html('<img style="height:35px;width:35px;object-fit:cover;border-radius:50%;" src="' + avatarUrl + '" alt="avatar" onerror="this.onerror=null;this.src=\'@Url.Content("~/Files/RRHH/User/AttPhotoMenu/User.png")\';" />');
                             if (data.allowEdit == true) {
                                 $('td:eq(9)', nRow).append(data.buttonEdit + '&nbsp;');
                             }

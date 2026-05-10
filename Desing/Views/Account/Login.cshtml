@@ -4,6 +4,41 @@
     Layout = "~/Views/Shared/_LayoutMaterioBlank.cshtml";
     ViewBag.Title = "Iniciar sesion - Tandem Desing";
 }
+@section Styles {
+    <style>
+        .tandem-login-skyline {
+            width: 100%;
+            max-width: 2200px;
+            height: auto;
+            max-height: 430px;
+            object-fit: contain;
+            object-position: center bottom;
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 46px;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.96;
+            mix-blend-mode: multiply;
+            filter: contrast(1.08);
+        }
+
+        .authentication-inner {
+            position: relative;
+            min-height: calc(100vh - 3rem);
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 2.25rem;
+        }
+
+        .authentication-inner .card {
+            position: relative;
+            z-index: 2;
+        }
+    </style>
+}
 
 <div class="position-relative">
     <div class="authentication-wrapper authentication-basic container-p-y">
@@ -42,7 +77,9 @@
                                         @Html.PasswordFor(m => m.Password, new { @class = "form-control", id = "password", placeholder = "Password" })
                                         <label for="password">Password</label>
                                     </div>
-                                    <span class="input-group-text cursor-pointer" id="togglePassword"><i class="icon-base ri ri-eye-off-line icon-20px"></i></span>
+                                    <button type="button" class="input-group-text cursor-pointer" id="togglePassword" aria-label="Mostrar u ocultar contraseña" aria-pressed="false" onclick="togglePasswordVisibility(event)">
+                                        <i class="icon-base ri ri-eye-off-line icon-20px"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -70,27 +107,37 @@
                 </div>
             </div>
 
-            <img src="~/assets/materio/img/illustrations/tree-3.png" alt="auth-tree" class="authentication-image-object-left d-none d-lg-block" />
-            <img src="~/assets/materio/img/illustrations/auth-basic-mask-light.png" class="authentication-image d-none d-lg-block" height="172" alt="triangle-bg" />
-            <img src="~/assets/materio/img/illustrations/tree.png" alt="auth-tree" class="authentication-image-object-right d-none d-lg-block" />
+            <img src="~/assets/img/login-construction-skyline.png" class="tandem-login-skyline d-none d-lg-block" alt="construction-skyline" />
         </div>
     </div>
 </div>
 
 @section scripts {
     <script>
-        (function () {
+        window.togglePasswordVisibility = function (e) {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
             var toggle = document.getElementById('togglePassword');
             var pwd = document.getElementById('password');
-            if (toggle && pwd) {
-                toggle.addEventListener('click', function () {
-                    var isPwd = pwd.getAttribute('type') === 'password';
-                    pwd.setAttribute('type', isPwd ? 'text' : 'password');
-                    toggle.querySelector('i').className = isPwd
-                        ? 'icon-base ri ri-eye-line icon-20px'
-                        : 'icon-base ri ri-eye-off-line icon-20px';
-                });
+            if (!toggle || !pwd) return false;
+
+            var isPwd = pwd.getAttribute('type') === 'password';
+            pwd.setAttribute('type', isPwd ? 'text' : 'password');
+            toggle.setAttribute('aria-pressed', isPwd ? 'true' : 'false');
+            var icon = toggle.querySelector('i');
+            if (icon) {
+                icon.className = isPwd
+                    ? 'icon-base ri ri-eye-line icon-20px'
+                    : 'icon-base ri ri-eye-off-line icon-20px';
             }
+            return false;
+        };
+
+        (function initPasswordToggle() {
+            document.addEventListener('click', function (e) {
+                var toggle = e.target.closest('#togglePassword');
+                if (!toggle) return;
+                window.togglePasswordVisibility(e);
+            });
         })();
     </script>
 }

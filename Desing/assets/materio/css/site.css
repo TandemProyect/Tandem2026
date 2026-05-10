@@ -108,6 +108,15 @@ a.success {
     text-decoration: none;
 }
 
+/* Filled buttons must keep white foreground text */
+.btn-primary,
+.btn-success,
+.btn-info,
+.btn-danger,
+.btn-warning {
+    color: #fff !important;
+}
+
 /* ---- Compatibilidad: estilos de la app vieja que aun se usan ---- */
 .well {
     background: var(--bs-card-bg);
