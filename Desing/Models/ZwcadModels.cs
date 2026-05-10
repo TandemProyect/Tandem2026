@@ -199,4 +199,25 @@ namespace Desing.Models
         public string Motivo { get; set; }
         public string DeviceId { get; set; }
     }
+
+    /// <summary>
+    /// Registro de foto recibida desde Telegram para un diseno.
+    /// </summary>
+    public class TelegramDesignPhotoDTO
+    {
+        public long Id { get; set; }
+        public long DesignId { get; set; }
+        public string TelegramMessageId { get; set; }
+        public string TelegramChatId { get; set; }
+        public string TelegramUserId { get; set; }
+        public string TelegramUserName { get; set; }
+        public string Caption { get; set; }
+        public string FileId { get; set; }
+        public string FileUniqueId { get; set; }
+        public int WidthPx { get; set; }
+        public int HeightPx { get; set; }
+        public string Estado { get; set; }
+        public DateTime FechaMensajeUtc { get; set; }
+        public DateTime FechaRegistroUtc { get; set; }
+    }
 }

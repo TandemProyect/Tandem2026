@@ -1,4 +1,8 @@
 ﻿@model Desing.Models.ModelDesign3d
+@{
+    Layout = null;
+}
+<script src="~/Scripts/jquery-3.5.1.js"></script>
 <link href="~/Content/bootstrap.css" rel="stylesheet" />
 <link href="~/Content/DesignTools/Design-tool.css" rel="stylesheet">
 <link href="~/Content/Siteunited.css" rel="stylesheet" />
@@ -63,7 +67,7 @@
         <li id="SaveCamara" style="color: white; cursor:pointer"><i class="fa fa-save"></i> Salvar camara</li>
         <li id="btnSaveDesing" style="color: white; cursor: pointer"><i class="fa fa-save"></i> Salvar diseño</li>
         <li><a href="" style="color: white"><i class="fa fa-floppy-o" aria-hidden="true"></i>Diseño:  &nbsp;&nbsp; @Model.DesignName &nbsp;</a></li>
-        <li><a href="" style="color: white"><i class="fa fa-floppy-o" aria-hidden="true"></i>Diseñando : &nbsp;&nbsp; <img src=@Model.Avatar style="width:30px;height:30px" /> &nbsp;</a></li>
+        <li><a href="" style="color: white"><i class="fa fa-floppy-o" aria-hidden="true"></i>Diseñando : &nbsp;&nbsp; <img src="@Model.Avatar" style="width:30px;height:30px" /> &nbsp;</a></li>
         <li id="btnPrintDesing"><a style="color: white">&nbsp;<i class="fa fa-camera"></i>&nbsp;</a></li>
         <li id="CallHelp"><a style="color: white">&nbsp;?&nbsp;<i class="fas fa-film"></i></a></li>
     </ul>
@@ -94,14 +98,28 @@
 <script src="~/Scripts/Design/3D/Design-3d-Screenshot.js"></script>
 
  <script id="rendered-js">
+    (function bootstrapDesignPage() {
+        if (!window.jQuery) {
+            setTimeout(bootstrapDesignPage, 50);
+            return;
+        }
+        window.$ = window.$ || window.jQuery;
+        window.jQuery.easing = window.jQuery.easing || {};
+        if (typeof window.jQuery.easing.swing !== "function") {
+            window.jQuery.easing.swing = function (p) { return p; };
+        }
+        if (typeof window.jQuery.easing.linear !== "function") {
+            window.jQuery.easing.linear = function (p) { return p; };
+        }
+        startDesignPage();
+    })();
+
+    function startDesignPage() {
     _ListUndo_Redo = [];
-    LinkEnvironment=@Model.LinkEnvironment;
-    if (@Model.LinkEnvironmentOrbitValue === 1) {
-     OrbitDesign = 1;
-    }
-    else {
-        OrbitDesign = 2;
-    }
+    var linkEnvironmentValue = @Html.Raw(Json.Encode(Model.LinkEnvironment));
+    var linkEnvironmentOrbitValue = @Html.Raw(Json.Encode(Model.LinkEnvironmentOrbitValue));
+    LinkEnvironment = (linkEnvironmentValue === null || linkEnvironmentValue === "") ? 0 : Number(linkEnvironmentValue);
+    OrbitDesign = Number(linkEnvironmentOrbitValue) === 1 ? 1 : 2;
    var _Toas = '@TempData["ToastType"]';
     if (_Toas === "Act")
     {
@@ -742,10 +760,10 @@
                         var _tempBtn = "";
                         document.getElementById("containerDesign").style.left = "2px";
                         const gui = new dat.GUI();
-                        const pageWidth = document.documentElement.scrollWidth;
-                        const pageHeight = document.documentElement.scrollHeight;
-                        let windowInnerWidth = window.innerWidth - 5;
-                        let windowInnerHeight = window.innerHeight - 75;
+                        window.pageWidth = document.documentElement.scrollWidth;
+                        window.pageHeight = document.documentElement.scrollHeight;
+                        window.windowInnerWidth = window.innerWidth - 5;
+                        window.windowInnerHeight = window.innerHeight - 75;
                         viewCube = document.querySelector('.viewCube');
                         var viewCube, viewCubeMatrix;
                         var PositionMEnuBotton = (pageWidth / 2 - 250) + "px";
@@ -934,6 +952,7 @@ function SendListMaterial(id)
  $('#Help_Menu').load('/HelpDesing/MenuHelp');
  $("#Loading").hide();
     $("#Preload").hide("slide", { direction: "right" }, 1000);
+    }
 
 </script>
 

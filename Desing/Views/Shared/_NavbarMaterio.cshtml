@@ -1,0 +1,81 @@
+@*
+    Navbar superior estilo Materio (adaptado a MVC 5).
+    Avatar usuario + dropdown con Mi Espacio / Salir.
+*@
+<nav class="layout-navbar container-fluid navbar-detached navbar navbar-expand-xl align-items-center bg-navbar-theme" id="layout-navbar">
+
+    @* Toggle menu - visible en todas las resoluciones *@
+    <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0">
+        <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)" id="navbarMenuToggle" title="Mostrar/Ocultar menu">
+            <i class="icon-base ri ri-menu-line icon-md"></i>
+        </a>
+    </div>
+
+    <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
+
+        @* Etiqueta de entorno *@
+        <div class="navbar-nav align-items-center">
+            <div class="nav-item d-flex align-items-center">
+                <span class="badge bg-label-warning fs-tiny">Entorno: Staging</span>
+            </div>
+        </div>
+
+        <ul class="navbar-nav flex-row align-items-center ms-md-auto">
+
+            @* User dropdown *@
+            <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                @{
+                    var rawAvatar = ViewBag.avatar as string;
+                    var avatarPath = string.IsNullOrWhiteSpace(rawAvatar) ? "" : rawAvatar.Trim();
+                    avatarPath = avatarPath.Replace("\\", "/").TrimStart('/', '~');
+                    while (avatarPath.StartsWith("../", StringComparison.Ordinal))
+                    {
+                        avatarPath = avatarPath.Substring(3);
+                    }
+                    avatarPath = avatarPath.Replace("..", "");
+
+                    var avatarSrc = !string.IsNullOrWhiteSpace(avatarPath)
+                        ? Url.Content("~/" + avatarPath)
+                        : Url.Content("~/assets/materio/img/avatars/1.png");
+                }
+                <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
+                    <div class="avatar avatar-online">
+                        <img id="Iduser" src="@avatarSrc" alt="user" class="rounded-circle" onerror="this.onerror=null;this.src='@Url.Content("~/assets/materio/img/avatars/1.png")';" />
+                    </div>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end mt-3 py-2">
+                    <li>
+                        <a class="dropdown-item" href="javascript:void(0);">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-2">
+                                    <div class="avatar avatar-online">
+                                        <img src="@avatarSrc" alt="user" class="w-px-40 h-auto rounded-circle" onerror="this.onerror=null;this.src='@Url.Content("~/assets/materio/img/avatars/1.png")';" />
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0 small" id="IdName">@(ViewBag.userName ?? "Usuario")</h6>
+                                    <small class="text-body-secondary">Tandem Desing</small>
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                    <li><div class="dropdown-divider"></div></li>
+                    <li>
+                        <a class="dropdown-item" href="@Url.Action("MySapce", "Employee")">
+                            <i class="icon-base ri ri-user-3-line icon-22px me-2"></i>
+                            <span class="align-middle">Mi Espacio</span>
+                        </a>
+                    </li>
+                    <li>
+                        <div class="d-grid px-4 pt-2 pb-1">
+                            <a class="btn btn-danger d-flex" href="@Url.Action("LogOff", "Account")">
+                                <small class="align-middle">Salir</small>
+                                <i class="icon-base ri ri-logout-box-r-line ms-2 icon-16px"></i>
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</nav>

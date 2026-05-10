@@ -1,9 +1,7 @@
 ﻿@model Desing.Models.EmployeeViewMySpaceModel
-<ul class="breadcrumb">
-    <li><a style="color:black" id="sidebarCollapse" href="#" class=""><i class="fas fa-align-justify"></i></a></li>
-    <li><a href="@Url.Action("Index", "Home")"><i class="fas fa-home"></i> Inicio</a></li>
-    <li><i class="fas fa-user"></i> Mi Espacio</li>
-</ul>
+<h4 class="py-3 mb-4">
+    <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> /</span> Mi Espacio
+</h4>
 <h1 class="mt-1 text-center">Bienvenido @Model.FullName</h1>
 <div class="container d-flex justify-content-center mt-5">
     <!-- Tarjeta centrada -->

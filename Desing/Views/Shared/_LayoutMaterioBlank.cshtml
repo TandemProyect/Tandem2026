@@ -1,0 +1,68 @@
+@*
+    Layout en blanco (sin sidebar ni navbar) para paginas de autenticacion estilo Materio.
+*@
+<!DOCTYPE html>
+<html lang="es"
+      class="light-style customizer-hide"
+      dir="ltr"
+      data-theme="theme-default"
+      data-assets-path="@Url.Content("~/assets/materio/")"
+      data-template="vertical-menu-template-free">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>@(ViewBag.Title ?? "Tandem Desing")</title>
+
+    <link rel="icon" type="image/x-icon" href="@Url.Content("~/assets/client/images/Default/Ico/at.ico")" />
+
+    @{
+        var googleFontsUrl = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap";
+    }
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="@googleFontsUrl" rel="stylesheet" />
+
+    <link rel="stylesheet" href="@Url.Content("~/assets/materio/vendor/fonts/iconify-icons.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/assets/materio/vendor/libs/node-waves/node-waves.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/assets/materio/vendor/css/core.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/assets/materio/css/demo.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/assets/materio/vendor/libs/perfect-scrollbar/perfect-scrollbar.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/assets/materio/vendor/css/pages/page-auth.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/assets/materio/css/site.css")" />
+
+    <script src="@Url.Content("~/assets/materio/vendor/js/helpers.js")"></script>
+    <script src="@Url.Content("~/assets/materio/js/config.js")"></script>
+
+    @* === Plantilla del usuario (color principal) ============================== *@
+    @{
+        var plantillaColor = (ViewBag.PlantillaColor as string) ?? "#349d7d";
+    }
+    <style>
+        :root {
+            --tandem-primary: @plantillaColor;
+        }
+        .btn-primary,
+        .bg-primary { background-color: var(--tandem-primary) !important; border-color: var(--tandem-primary) !important; }
+        .text-primary { color: var(--tandem-primary) !important; }
+        .app-brand-text { color: var(--tandem-primary) !important; }
+        a { color: var(--tandem-primary); }
+    </style>
+
+    @RenderSection("Styles", required: false)
+</head>
+
+<body>
+    <div class="container-xxl">
+        @RenderBody()
+    </div>
+
+    <script src="@Url.Content("~/assets/materio/vendor/libs/jquery/jquery.js")"></script>
+    <script src="@Url.Content("~/assets/materio/vendor/libs/popper/popper.js")"></script>
+    <script src="@Url.Content("~/assets/materio/vendor/js/bootstrap.js")"></script>
+    <script src="@Url.Content("~/assets/materio/vendor/libs/node-waves/node-waves.js")"></script>
+    <script src="@Url.Content("~/assets/materio/js/main.js")"></script>
+
+    @RenderSection("scripts", required: false)
+</body>
+</html>

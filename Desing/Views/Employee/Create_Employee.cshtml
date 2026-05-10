@@ -1,13 +1,16 @@
 ﻿@model Desing.Models.EmployeeViewModel
 <div class="well" style="padding-left:15px">
     <div class="modal-body">
-        <ul class="breadcrumb">
-            <li><a style="color:black" id="sidebarCollapse" href="#" class=""><i class="fas fa-align-justify"></i></a></li>
-            <li><a href="@Url.Action("Index", "Home")"><i class="fas fa-home"></i>&nbsp;Home</a></li>
-            <li><a href="@Url.Action("Index", "Home")"><i class="fas fa-address-book"></i>&nbsp;Administración</a></li>
-            <li style="color:black"><a><i class="fas fa-user"></i>&nbsp;@ViewBag.MessageHeat;&nbsp; @Model.userSystem</a></li>
-            <li><i class="fas fa-user-friends"></i>&nbsp;Crear Empleado</li>
-        </ul>
+        <h4 class="py-3 mb-4">
+            <span class="text-muted fw-light">
+                <a href="@Url.Action("Index", "Home")">Inicio</a> /
+                <a href="@Url.Action("Index", "Employee")">Empleados</a> /
+            </span> @(Model.IsEdit ? "Editar Empleado" : "Crear Empleado")
+            @if (!string.IsNullOrEmpty(Model.userSystem))
+            {
+                <small class="text-muted ms-2">@Model.userSystem</small>
+            }
+        </h4>
     </div>
 
     @using (Html.BeginForm(Model.IsEdit ? "Update_Employee" : "Create_Employee", "Employee", FormMethod.Post, new { @class = "form-horizontal", role = "form", @id = "frm", enctype = "multipart/form-data" }))
@@ -45,6 +48,14 @@
                         <div class="col-md-12">
                             @Html.DropDownList("LinCompany", null, htmlAttributes: new { @class = "form-control-mandatory-Link" })
                             @Html.ValidationMessageFor(model => model.LinCompany, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin:15px;margin:15px">
+                        @Html.LabelFor(model => model.LinPlantilla, htmlAttributes: new { @class = "control-label col-md-9" })
+                        <div class="col-md-12">
+                            @Html.DropDownList("LinPlantilla", (IEnumerable<SelectListItem>)ViewBag.LinPlantilla, htmlAttributes: new { @class = "form-control" })
+                            <small class="text-muted">Si no se selecciona, se asigna la plantilla por defecto.</small>
+                            @Html.ValidationMessageFor(model => model.LinPlantilla, "", new { @class = "text-danger" })
                         </div>
                     </div>
                     <hr />

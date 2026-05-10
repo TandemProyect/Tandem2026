@@ -116,10 +116,16 @@ namespace Desing.Controllers
                             employee.AttName,
                             employee.AttSurname,
                             employee.AttPhoto,
-                            employee.AttPhotoMenu
+                            employee.AttPhotoMenu,
+                            employee.LinPlantilla
                         }).ToList();
             var l = Data.Count();
-            model.UserName = Data.FirstOrDefault().AttName;
+            var firstData = Data.FirstOrDefault();
+            model.UserName = firstData.AttName;
+
+            // Guardar en cookie persistente la plantilla del usuario que se loguea,
+            // para que la pagina de Login muestre el mismo color/logo en visitas posteriores.
+            WritePlantillaCookie(firstData.LinPlantilla);
 
             string hostName = Dns.GetHostName();
             // Get the IP

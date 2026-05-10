@@ -186,7 +186,7 @@ $("#View_Wall").on("click", function () {
     document.getElementById("IdShowMuros").checked = false;
     document.getElementById("IdShowDim").checked = false;
     document.getElementById("IdShowDimAll").checked = false;
-    $("#btnExportCad").hide("slide", 100, callback);
+    $("#btnExportCad").hide("slide", { direction: "right" }, 100);
     document.getElementById("IdShowDim").checked = false;
     EraseDesign();
     EraseDimension();

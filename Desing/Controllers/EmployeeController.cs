@@ -406,6 +406,12 @@ namespace Desing.Controllers
             var authInfo = ObtenerPrimerEquipoAutorizado(userSystem);
 
             ViewBag.LinCompany = new SelectList(db.TSql_Company.Where(u => u.BitIsDeleted == false), "SysObjectID", "TextLabel");
+
+            // Plantilla: si el empleado ya tiene una asignada se selecciona, si no, la plantilla por defecto.
+            long? plantillaSeleccionada = EmployeeId?.LinPlantilla
+                                          ?? PlantillaController.GetDefaultPlantillaId(db);
+            ViewBag.LinPlantilla = PlantillaController.GetSelectList(db, plantillaSeleccionada);
+
             EmployeeViewModel Model = new EmployeeViewModel
             {
                 AttName = attName,
@@ -420,18 +426,18 @@ namespace Desing.Controllers
                 DeviceAllowed = authInfo.Allowed ?? true,
                 EmployeeID = EmployeeId?.SysObjectID ?? 0,
                 IsEdit = isEdit,
-
+                LinPlantilla = plantillaSeleccionada,
             };
             return View(Model);
         }
         [HttpPost]
-        public ActionResult Create_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem, DeviceId, DeviceName, DeviceAllowed, EmployeeID, IsEdit")] EmployeeViewModel model, HttpPostedFileBase file1)
+        public ActionResult Create_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem, DeviceId, DeviceName, DeviceAllowed, EmployeeID, IsEdit, LinPlantilla")] EmployeeViewModel model, HttpPostedFileBase file1)
         {
             return SaveEmployee(model, file1, false);
         }
 
         [HttpPost]
-        public ActionResult Update_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem, DeviceId, DeviceName, DeviceAllowed, EmployeeID, IsEdit")] EmployeeViewModel model, HttpPostedFileBase file1)
+        public ActionResult Update_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem, DeviceId, DeviceName, DeviceAllowed, EmployeeID, IsEdit, LinPlantilla")] EmployeeViewModel model, HttpPostedFileBase file1)
         {
             return SaveEmployee(model, file1, true);
         }
@@ -510,6 +516,10 @@ namespace Desing.Controllers
                         model.AttPhotoMenu = "../../Files/RRHH/User/AttPhotoMenu/Temp/__" + nombre_original1;
                     }
                 }
+                // Si no se envia plantilla, asignamos la por defecto.
+                long? linPlantilla = model.LinPlantilla
+                                     ?? PlantillaController.GetDefaultPlantillaId(db);
+
                 TSql_Employee newEmployee = new TSql_Employee
                 {
                     AttName = model.AttName,
@@ -523,6 +533,7 @@ namespace Desing.Controllers
                     AttPassAspNetUsert = model.AttPassAspNetUsert,
                     AttIsDeleted = false,
                     Linlanguage = 1,
+                    LinPlantilla = linPlantilla,
                     LinCreatedBy = UserId,
                     AttCreated = DateTime.UtcNow,
                     LinModifiedBy = UserId,
@@ -618,6 +629,7 @@ namespace Desing.Controllers
                     EmployeeId.AttPassAspNetUsert = newEmployee.AttPassAspNetUsert;
                     EmployeeId.AttIsDeleted = false;
                     EmployeeId.Linlanguage = 1;
+                    EmployeeId.LinPlantilla = newEmployee.LinPlantilla;
                     EmployeeId.LinCreatedBy = UserId;
                     EmployeeId.LinModifiedBy = UserId;
                     EmployeeId.AttLastModification = DateTime.UtcNow;

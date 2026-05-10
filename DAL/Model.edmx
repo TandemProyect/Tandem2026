@@ -84,8 +84,8 @@
           <Property Name="AddLastDateChange" Type="datetime" Nullable="false" />
           <Property Name="SysUpdateNumber" Type="bigint" Nullable="false" />
         </EntityType>
-        <!--Errors Found During Generation:
-warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefault' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <!--Errores durante la generación:
+advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigDesingDefault' no tiene definida ninguna clave principal. Se ha inferido la clave y la definición se creado como una vista o tabla de solo lectura.-->
         <EntityType Name="TSql_ConfigDesingDefault">
           <Key>
             <PropertyRef Name="SysObjectID" />
@@ -248,6 +248,19 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
           <Property Name="IdWall_90" Type="nvarchar" MaxLength="128" />
           <Property Name="IdWall_270" Type="nvarchar" MaxLength="128" />
           <Property Name="IdTypeFormworkMode" Type="bit" Nullable="false" />
+          <Property Name="Remate0" Type="int" />
+          <Property Name="RematePositionX" Type="float" />
+          <Property Name="RematePositionXMirror" Type="float" />
+          <Property Name="Remate180" Type="int" />
+          <Property Name="RematePosition180X" Type="float" />
+          <Property Name="RematePosition180XMirror" Type="float" />
+          <Property Name="Remate90" Type="int" />
+          <Property Name="RematePosition90Y" Type="float" />
+          <Property Name="RematePosition90YMirror" Type="float" />
+          <Property Name="Remate270" Type="int" />
+          <Property Name="RematePosition270Y" Type="float" />
+          <Property Name="RematePosition270YMirror" Type="float" />
+          <Property Name="IsPanel060" Type="bit" />
         </EntityType>
         <EntityType Name="TSql_Employee">
           <Key>
@@ -269,6 +282,7 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
           <Property Name="AttIsDeleted" Type="bit" Nullable="false" />
           <Property Name="Linlanguage" Type="bigint" />
           <Property Name="AttPassAspNetUsert" Type="nvarchar" MaxLength="50" />
+          <Property Name="LinPlantilla" Type="bigint" />
         </EntityType>
         <EntityType Name="TSql_Help">
           <Key>
@@ -327,6 +341,43 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
           <Property Name="AddIsActive" Type="bit" Nullable="false" />
           <Property Name="LinkSystem" Type="bigint" Nullable="false" />
         </EntityType>
+        <EntityType Name="TSql_Plantilla">
+          <Key>
+            <PropertyRef Name="SysObjectID" />
+          </Key>
+          <Property Name="SysObjectID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="AttName" Type="nvarchar" MaxLength="150" Nullable="false" />
+          <Property Name="AttColor" Type="nvarchar" MaxLength="20" Nullable="false" />
+          <Property Name="AttLogo" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="AttIsDefault" Type="bit" Nullable="false" />
+          <Property Name="AttIsDeleted" Type="bit" Nullable="false" />
+          <Property Name="LinCreatedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AttCreated" Type="datetime" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AttLastModification" Type="datetime" Nullable="false" />
+          <Property Name="SysUpdateNumber" Type="bigint" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TSql_PluginDeviceAuth">
+          <Key>
+            <PropertyRef Name="SysObjectID" />
+          </Key>
+          <Property Name="SysObjectID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="DeviceId" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinAspNetUsert" Type="nvarchar" MaxLength="128" />
+          <Property Name="MachineName" Type="nvarchar" MaxLength="128" />
+          <Property Name="UsuarioWindows" Type="nvarchar" MaxLength="128" />
+          <Property Name="PluginVersion" Type="nvarchar" MaxLength="50" />
+          <Property Name="Allowed" Type="bit" Nullable="false" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="IsRevoked" Type="bit" Nullable="false" />
+          <Property Name="Estado" Type="nvarchar" MaxLength="20" />
+          <Property Name="AttIsDeleted" Type="bit" Nullable="false" />
+          <Property Name="LastCheckUtc" Type="datetime" />
+          <Property Name="LinCreatedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AttCreated" Type="datetime" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AttLastModification" Type="datetime" Nullable="false" />
+        </EntityType>
         <EntityType Name="TSql_Register">
           <Key>
             <PropertyRef Name="IdObject" />
@@ -382,11 +433,24 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
           <Property Name="AttLastModification" Type="datetime" Nullable="false" />
           <Property Name="SysUpdateNumber" Type="bigint" Nullable="false" />
         </EntityType>
-        <EntityType Name="TSql_RollFunctionsUser">
+        <EntityType Name="TSql_RolesFuntionUser">
           <Key>
             <PropertyRef Name="SysObjectID" />
           </Key>
-          <Property Name="SysObjectID" Type="bigint" Nullable="false" />
+          <Property Name="SysObjectID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="LinRollFunctions" Type="bigint" Nullable="false" />
+          <Property Name="LinAspNetUsers" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinCreatedBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="AttCreated" Type="datetime" Nullable="false" />
+          <Property Name="AttLastModification" Type="datetime" Nullable="false" />
+          <Property Name="SysUpdateNumber" Type="bigint" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TSql_RollFunctions">
+          <Key>
+            <PropertyRef Name="SysObjectID" />
+          </Key>
+          <Property Name="SysObjectID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="AttLabel" Type="nvarchar" MaxLength="500" Nullable="false" />
           <Property Name="AttDescription" Type="nvarchar" MaxLength="2000" />
           <Property Name="LinCreatedBy" Type="nvarchar" MaxLength="128" Nullable="false" />
@@ -450,6 +514,37 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
           <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
           <Property Name="AddImage" Type="nvarchar" MaxLength="500" />
         </EntityType>
+        <EntityType Name="TSql_TelegramDesignAccess">
+          <Key>
+            <PropertyRef Name="SysObjectID" />
+          </Key>
+          <Property Name="SysObjectID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="LinDesign" Type="bigint" Nullable="false" />
+          <Property Name="TelegramChatId" Type="nvarchar" MaxLength="64" />
+          <Property Name="TelegramUserId" Type="nvarchar" MaxLength="64" />
+          <Property Name="Alias" Type="nvarchar" MaxLength="150" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="FechaRegistroUtc" Type="datetime2" Precision="0" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TSql_TelegramDesignInbox">
+          <Key>
+            <PropertyRef Name="SysObjectID" />
+          </Key>
+          <Property Name="SysObjectID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="LinDesign" Type="bigint" Nullable="false" />
+          <Property Name="TelegramMessageId" Type="nvarchar" MaxLength="64" />
+          <Property Name="TelegramChatId" Type="nvarchar" MaxLength="64" />
+          <Property Name="TelegramUserId" Type="nvarchar" MaxLength="64" />
+          <Property Name="TelegramUserName" Type="nvarchar" MaxLength="120" />
+          <Property Name="Caption" Type="nvarchar" MaxLength="1000" />
+          <Property Name="FileId" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="FileUniqueId" Type="nvarchar" MaxLength="255" />
+          <Property Name="WidthPx" Type="int" />
+          <Property Name="HeightPx" Type="int" />
+          <Property Name="Estado" Type="nvarchar" MaxLength="40" Nullable="false" />
+          <Property Name="FechaMensajeUtc" Type="datetime2" Precision="0" Nullable="false" />
+          <Property Name="FechaRegistroUtc" Type="datetime2" Precision="0" Nullable="false" />
+        </EntityType>
         <EntityType Name="TSql_TemporalList">
           <Key>
             <PropertyRef Name="IdObject" />
@@ -477,19 +572,6 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
           <Property Name="AddTotalM2" Type="bigint" Nullable="false" />
           <Property Name="LinkDesing" Type="bigint" Nullable="false" />
           <Property Name="AddNumberSendMail" Type="bigint" Nullable="false" />
-        </EntityType>
-        <EntityType Name="TSql_User_Roles">
-          <Key>
-            <PropertyRef Name="SysObjectID" />
-          </Key>
-          <Property Name="SysObjectID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="LinUser" Type="nvarchar" MaxLength="128" Nullable="false" />
-          <Property Name="LinRoles" Type="bigint" Nullable="false" />
-          <Property Name="LinCreatedBy" Type="nvarchar" MaxLength="128" Nullable="false" />
-          <Property Name="AttCreated" Type="datetime" Nullable="false" />
-          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" Nullable="false" />
-          <Property Name="AttLastModification" Type="datetime" Nullable="false" />
-          <Property Name="SysUpdateNumber" Type="bigint" Nullable="false" />
         </EntityType>
         <Association Name="FK_TSql_App_AspNetUsers">
           <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
@@ -899,6 +981,18 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_TSql_Employee_TSql_Plantilla">
+          <End Role="TSql_Plantilla" Type="Self.TSql_Plantilla" Multiplicity="0..1" />
+          <End Role="TSql_Employee" Type="Self.TSql_Employee" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Plantilla">
+              <PropertyRef Name="SysObjectID" />
+            </Principal>
+            <Dependent Role="TSql_Employee">
+              <PropertyRef Name="LinPlantilla" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_TSql_Help_AspNetUsers">
           <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
           <End Role="TSql_Help" Type="Self.TSql_Help" Multiplicity="*" />
@@ -992,6 +1086,18 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
             </Principal>
             <Dependent Role="Tsql_Master_Articles">
               <PropertyRef Name="LinkSystem" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_PluginDeviceAuth_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="TSql_PluginDeviceAuth" Type="Self.TSql_PluginDeviceAuth" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_PluginDeviceAuth">
+              <PropertyRef Name="LinAspNetUsert" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1127,50 +1233,74 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_TSql_RollFunctionsUser_AspNetUsers">
+        <Association Name="FK_TSql_RolesFuntion_AspNetUsers">
           <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
-          <End Role="TSql_RollFunctionsUser" Type="Self.TSql_RollFunctionsUser" Multiplicity="*" />
+          <End Role="TSql_RolesFuntionUser" Type="Self.TSql_RolesFuntionUser" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="AspNetUsers">
               <PropertyRef Name="Id" />
             </Principal>
-            <Dependent Role="TSql_RollFunctionsUser">
+            <Dependent Role="TSql_RolesFuntionUser">
+              <PropertyRef Name="LinCreatedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_RolesFuntion_AspNetUsers1">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_RolesFuntionUser" Type="Self.TSql_RolesFuntionUser" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_RolesFuntionUser">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_RollFunctionsUser_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_RollFunctions" Type="Self.TSql_RollFunctions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_RollFunctions">
               <PropertyRef Name="LinCreatedBy" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_TSql_RollFunctionsUser_AspNetUsers1">
           <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
-          <End Role="TSql_RollFunctionsUser" Type="Self.TSql_RollFunctionsUser" Multiplicity="*" />
+          <End Role="TSql_RollFunctions" Type="Self.TSql_RollFunctions" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="AspNetUsers">
               <PropertyRef Name="Id" />
             </Principal>
-            <Dependent Role="TSql_RollFunctionsUser">
+            <Dependent Role="TSql_RollFunctions">
               <PropertyRef Name="LinModifiedBy" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_TSql_RollFunctionsUser_TSql_Roles">
           <End Role="TSql_Roles" Type="Self.TSql_Roles" Multiplicity="1" />
-          <End Role="TSql_RollFunctionsUser" Type="Self.TSql_RollFunctionsUser" Multiplicity="*" />
+          <End Role="TSql_RollFunctions" Type="Self.TSql_RollFunctions" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="TSql_Roles">
               <PropertyRef Name="SysObjectID" />
             </Principal>
-            <Dependent Role="TSql_RollFunctionsUser">
+            <Dependent Role="TSql_RollFunctions">
               <PropertyRef Name="LinRoles" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_TSql_RollFunctionsUser_TSql_RollGrupDesing">
           <End Role="TSql_RollGrupDesing" Type="Self.TSql_RollGrupDesing" Multiplicity="1" />
-          <End Role="TSql_RollFunctionsUser" Type="Self.TSql_RollFunctionsUser" Multiplicity="*" />
+          <End Role="TSql_RollFunctions" Type="Self.TSql_RollFunctions" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="TSql_RollGrupDesing">
               <PropertyRef Name="SysObjectID" />
             </Principal>
-            <Dependent Role="TSql_RollFunctionsUser">
+            <Dependent Role="TSql_RollFunctions">
               <PropertyRef Name="LinRollGrupDesing" />
             </Dependent>
           </ReferentialConstraint>
@@ -1283,6 +1413,30 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_TSql_TelegramDesignAccess_TSql_Design">
+          <End Role="TSql_Design" Type="Self.TSql_Design" Multiplicity="1" />
+          <End Role="TSql_TelegramDesignAccess" Type="Self.TSql_TelegramDesignAccess" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Design">
+              <PropertyRef Name="SysObjectID" />
+            </Principal>
+            <Dependent Role="TSql_TelegramDesignAccess">
+              <PropertyRef Name="LinDesign" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_TelegramDesignInbox_TSql_Design">
+          <End Role="TSql_Design" Type="Self.TSql_Design" Multiplicity="1" />
+          <End Role="TSql_TelegramDesignInbox" Type="Self.TSql_TelegramDesignInbox" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Design">
+              <PropertyRef Name="SysObjectID" />
+            </Principal>
+            <Dependent Role="TSql_TelegramDesignInbox">
+              <PropertyRef Name="LinDesign" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_TSql_TemporalList_AspNetUsers">
           <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
           <End Role="TSql_TemporalList" Type="Self.TSql_TemporalList" Multiplicity="*" />
@@ -1343,54 +1497,6 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_TSql_User_Roles_AspNetUsers">
-          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
-          <End Role="TSql_User_Roles" Type="Self.TSql_User_Roles" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUsers">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="TSql_User_Roles">
-              <PropertyRef Name="LinUser" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_TSql_User_Roles_AspNetUsers1">
-          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
-          <End Role="TSql_User_Roles" Type="Self.TSql_User_Roles" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUsers">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="TSql_User_Roles">
-              <PropertyRef Name="LinCreatedBy" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_TSql_User_Roles_AspNetUsers2">
-          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
-          <End Role="TSql_User_Roles" Type="Self.TSql_User_Roles" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUsers">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="TSql_User_Roles">
-              <PropertyRef Name="LinModifiedBy" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_TSql_User_Roles_TSql_Roles">
-          <End Role="TSql_Roles" Type="Self.TSql_Roles" Multiplicity="1" />
-          <End Role="TSql_User_Roles" Type="Self.TSql_User_Roles" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="TSql_Roles">
-              <PropertyRef Name="SysObjectID" />
-            </Principal>
-            <Dependent Role="TSql_User_Roles">
-              <PropertyRef Name="LinRoles" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityContainer Name="DesingEntityStoreContainer">
           <EntitySet Name="AspNetUsers" EntityType="Self.AspNetUsers" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_App" EntityType="Self.TSql_App" Schema="dbo" store:Type="Tables" />
@@ -1406,18 +1512,22 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
           <EntitySet Name="TSql_Help" EntityType="Self.TSql_Help" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_HelpGrup" EntityType="Self.TSql_HelpGrup" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Tsql_Master_Articles" EntityType="Self.Tsql_Master_Articles" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_Plantilla" EntityType="Self.TSql_Plantilla" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_PluginDeviceAuth" EntityType="Self.TSql_PluginDeviceAuth" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_Register" EntityType="Self.TSql_Register" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Tsql_RemplaceArticleStok" EntityType="Self.Tsql_RemplaceArticleStok" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Tsql_RemplaceArticleStokChildren" EntityType="Self.Tsql_RemplaceArticleStokChildren" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_Roles" EntityType="Self.TSql_Roles" Schema="dbo" store:Type="Tables" />
-          <EntitySet Name="TSql_RollFunctionsUser" EntityType="Self.TSql_RollFunctionsUser" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_RolesFuntionUser" EntityType="Self.TSql_RolesFuntionUser" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_RollFunctions" EntityType="Self.TSql_RollFunctions" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_RollGrupDesing" EntityType="Self.TSql_RollGrupDesing" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_System" EntityType="Self.TSql_System" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_TapeInialEndWallIMoreThan300" EntityType="Self.TSql_TapeInialEndWallIMoreThan300" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_TapeInialEndWallIsLessThan300" EntityType="Self.TSql_TapeInialEndWallIsLessThan300" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_TelegramDesignAccess" EntityType="Self.TSql_TelegramDesignAccess" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_TelegramDesignInbox" EntityType="Self.TSql_TelegramDesignInbox" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_TemporalList" EntityType="Self.TSql_TemporalList" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_TotalListsDesing" EntityType="Self.TSql_TotalListsDesing" Schema="dbo" store:Type="Tables" />
-          <EntitySet Name="TSql_User_Roles" EntityType="Self.TSql_User_Roles" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_ConfigDesingDefault" EntityType="Self.TSql_ConfigDesingDefault" store:Type="Tables" store:Schema="dbo">
             <DefiningQuery>SELECT 
     [TSql_ConfigDesingDefault].[SysObjectID] AS [SysObjectID], 
@@ -1565,6 +1675,10 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
             <End Role="TSql_Company" EntitySet="TSql_Company" />
             <End Role="TSql_Employee" EntitySet="TSql_Employee" />
           </AssociationSet>
+          <AssociationSet Name="FK_TSql_Employee_TSql_Plantilla" Association="Self.FK_TSql_Employee_TSql_Plantilla">
+            <End Role="TSql_Plantilla" EntitySet="TSql_Plantilla" />
+            <End Role="TSql_Employee" EntitySet="TSql_Employee" />
+          </AssociationSet>
           <AssociationSet Name="FK_TSql_Help_AspNetUsers" Association="Self.FK_TSql_Help_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="TSql_Help" EntitySet="TSql_Help" />
@@ -1596,6 +1710,10 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
           <AssociationSet Name="FK_Tsql_Master_Articles_TSql_System" Association="Self.FK_Tsql_Master_Articles_TSql_System">
             <End Role="TSql_System" EntitySet="TSql_System" />
             <End Role="Tsql_Master_Articles" EntitySet="Tsql_Master_Articles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_PluginDeviceAuth_AspNetUsers" Association="Self.FK_TSql_PluginDeviceAuth_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_PluginDeviceAuth" EntitySet="TSql_PluginDeviceAuth" />
           </AssociationSet>
           <AssociationSet Name="FK_TSql_Register_AspNetUsers" Association="Self.FK_TSql_Register_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
@@ -1641,21 +1759,29 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="TSql_Roles" EntitySet="TSql_Roles" />
           </AssociationSet>
+          <AssociationSet Name="FK_TSql_RolesFuntion_AspNetUsers" Association="Self.FK_TSql_RolesFuntion_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_RolesFuntionUser" EntitySet="TSql_RolesFuntionUser" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_RolesFuntion_AspNetUsers1" Association="Self.FK_TSql_RolesFuntion_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_RolesFuntionUser" EntitySet="TSql_RolesFuntionUser" />
+          </AssociationSet>
           <AssociationSet Name="FK_TSql_RollFunctionsUser_AspNetUsers" Association="Self.FK_TSql_RollFunctionsUser_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_RollFunctionsUser" EntitySet="TSql_RollFunctionsUser" />
+            <End Role="TSql_RollFunctions" EntitySet="TSql_RollFunctions" />
           </AssociationSet>
           <AssociationSet Name="FK_TSql_RollFunctionsUser_AspNetUsers1" Association="Self.FK_TSql_RollFunctionsUser_AspNetUsers1">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_RollFunctionsUser" EntitySet="TSql_RollFunctionsUser" />
+            <End Role="TSql_RollFunctions" EntitySet="TSql_RollFunctions" />
           </AssociationSet>
           <AssociationSet Name="FK_TSql_RollFunctionsUser_TSql_Roles" Association="Self.FK_TSql_RollFunctionsUser_TSql_Roles">
             <End Role="TSql_Roles" EntitySet="TSql_Roles" />
-            <End Role="TSql_RollFunctionsUser" EntitySet="TSql_RollFunctionsUser" />
+            <End Role="TSql_RollFunctions" EntitySet="TSql_RollFunctions" />
           </AssociationSet>
           <AssociationSet Name="FK_TSql_RollFunctionsUser_TSql_RollGrupDesing" Association="Self.FK_TSql_RollFunctionsUser_TSql_RollGrupDesing">
             <End Role="TSql_RollGrupDesing" EntitySet="TSql_RollGrupDesing" />
-            <End Role="TSql_RollFunctionsUser" EntitySet="TSql_RollFunctionsUser" />
+            <End Role="TSql_RollFunctions" EntitySet="TSql_RollFunctions" />
           </AssociationSet>
           <AssociationSet Name="FK_TSql_RollGrupDesing_AspNetUsers" Association="Self.FK_TSql_RollGrupDesing_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
@@ -1693,6 +1819,14 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="TSql_TapeInialEndWallIsLessThan300" EntitySet="TSql_TapeInialEndWallIsLessThan300" />
           </AssociationSet>
+          <AssociationSet Name="FK_TSql_TelegramDesignAccess_TSql_Design" Association="Self.FK_TSql_TelegramDesignAccess_TSql_Design">
+            <End Role="TSql_Design" EntitySet="TSql_Design" />
+            <End Role="TSql_TelegramDesignAccess" EntitySet="TSql_TelegramDesignAccess" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_TelegramDesignInbox_TSql_Design" Association="Self.FK_TSql_TelegramDesignInbox_TSql_Design">
+            <End Role="TSql_Design" EntitySet="TSql_Design" />
+            <End Role="TSql_TelegramDesignInbox" EntitySet="TSql_TelegramDesignInbox" />
+          </AssociationSet>
           <AssociationSet Name="FK_TSql_TemporalList_AspNetUsers" Association="Self.FK_TSql_TemporalList_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="TSql_TemporalList" EntitySet="TSql_TemporalList" />
@@ -1712,22 +1846,6 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
           <AssociationSet Name="FK_TSql_TotalListsDesing_TSql_Design" Association="Self.FK_TSql_TotalListsDesing_TSql_Design">
             <End Role="TSql_Design" EntitySet="TSql_Design" />
             <End Role="TSql_TotalListsDesing" EntitySet="TSql_TotalListsDesing" />
-          </AssociationSet>
-          <AssociationSet Name="FK_TSql_User_Roles_AspNetUsers" Association="Self.FK_TSql_User_Roles_AspNetUsers">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_User_Roles" EntitySet="TSql_User_Roles" />
-          </AssociationSet>
-          <AssociationSet Name="FK_TSql_User_Roles_AspNetUsers1" Association="Self.FK_TSql_User_Roles_AspNetUsers1">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_User_Roles" EntitySet="TSql_User_Roles" />
-          </AssociationSet>
-          <AssociationSet Name="FK_TSql_User_Roles_AspNetUsers2" Association="Self.FK_TSql_User_Roles_AspNetUsers2">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_User_Roles" EntitySet="TSql_User_Roles" />
-          </AssociationSet>
-          <AssociationSet Name="FK_TSql_User_Roles_TSql_Roles" Association="Self.FK_TSql_User_Roles_TSql_Roles">
-            <End Role="TSql_Roles" EntitySet="TSql_Roles" />
-            <End Role="TSql_User_Roles" EntitySet="TSql_User_Roles" />
           </AssociationSet>
         </EntityContainer>
       </Schema></edmx:StorageModels>
@@ -2015,40 +2133,6 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="TSql_RollGrupDesing" EntitySet="TSql_RollGrupDesing" />
           </AssociationSet>
-          <EntitySet Name="TSql_RollFunctionsUser" EntityType="DesingEntity.TSql_RollFunctionsUser" />
-          <EntitySet Name="TSql_User_Roles" EntityType="DesingEntity.TSql_User_Roles" />
-          <AssociationSet Name="FK_TSql_RollFunctionsUser_AspNetUsers" Association="DesingEntity.FK_TSql_RollFunctionsUser_AspNetUsers">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_RollFunctionsUser" EntitySet="TSql_RollFunctionsUser" />
-          </AssociationSet>
-          <AssociationSet Name="FK_TSql_RollFunctionsUser_AspNetUsers1" Association="DesingEntity.FK_TSql_RollFunctionsUser_AspNetUsers1">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_RollFunctionsUser" EntitySet="TSql_RollFunctionsUser" />
-          </AssociationSet>
-          <AssociationSet Name="FK_TSql_User_Roles_AspNetUsers" Association="DesingEntity.FK_TSql_User_Roles_AspNetUsers">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_User_Roles" EntitySet="TSql_User_Roles" />
-          </AssociationSet>
-          <AssociationSet Name="FK_TSql_User_Roles_AspNetUsers1" Association="DesingEntity.FK_TSql_User_Roles_AspNetUsers1">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_User_Roles" EntitySet="TSql_User_Roles" />
-          </AssociationSet>
-          <AssociationSet Name="FK_TSql_User_Roles_AspNetUsers2" Association="DesingEntity.FK_TSql_User_Roles_AspNetUsers2">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_User_Roles" EntitySet="TSql_User_Roles" />
-          </AssociationSet>
-          <AssociationSet Name="FK_TSql_RollFunctionsUser_TSql_Roles" Association="DesingEntity.FK_TSql_RollFunctionsUser_TSql_Roles">
-            <End Role="TSql_Roles" EntitySet="TSql_Roles" />
-            <End Role="TSql_RollFunctionsUser" EntitySet="TSql_RollFunctionsUser" />
-          </AssociationSet>
-          <AssociationSet Name="FK_TSql_User_Roles_TSql_Roles" Association="DesingEntity.FK_TSql_User_Roles_TSql_Roles">
-            <End Role="TSql_Roles" EntitySet="TSql_Roles" />
-            <End Role="TSql_User_Roles" EntitySet="TSql_User_Roles" />
-          </AssociationSet>
-          <AssociationSet Name="FK_TSql_RollFunctionsUser_TSql_RollGrupDesing" Association="DesingEntity.FK_TSql_RollFunctionsUser_TSql_RollGrupDesing">
-            <End Role="TSql_RollGrupDesing" EntitySet="TSql_RollGrupDesing" />
-            <End Role="TSql_RollFunctionsUser" EntitySet="TSql_RollFunctionsUser" />
-          </AssociationSet>
           <EntitySet Name="Tsql_Master_Articles" EntityType="DesingEntity.Tsql_Master_Articles" />
           <AssociationSet Name="FK_Tsql_Master_Articles_AspNetUsers" Association="DesingEntity.FK_Tsql_Master_Articles_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
@@ -2061,6 +2145,52 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
           <AssociationSet Name="FK_Tsql_Master_Articles_TSql_System" Association="DesingEntity.FK_Tsql_Master_Articles_TSql_System">
             <End Role="TSql_System" EntitySet="TSql_System" />
             <End Role="Tsql_Master_Articles" EntitySet="Tsql_Master_Articles" />
+          </AssociationSet>
+          <EntitySet Name="TSql_Plantilla" EntityType="DesingEntity.TSql_Plantilla" />
+          <EntitySet Name="TSql_PluginDeviceAuth" EntityType="DesingEntity.TSql_PluginDeviceAuth" />
+          <EntitySet Name="TSql_RolesFuntionUser" EntityType="DesingEntity.TSql_RolesFuntionUser" />
+          <EntitySet Name="TSql_RollFunctions" EntityType="DesingEntity.TSql_RollFunctions" />
+          <EntitySet Name="TSql_TelegramDesignAccess" EntityType="DesingEntity.TSql_TelegramDesignAccess" />
+          <EntitySet Name="TSql_TelegramDesignInbox" EntityType="DesingEntity.TSql_TelegramDesignInbox" />
+          <AssociationSet Name="FK_TSql_PluginDeviceAuth_AspNetUsers" Association="DesingEntity.FK_TSql_PluginDeviceAuth_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_PluginDeviceAuth" EntitySet="TSql_PluginDeviceAuth" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_RolesFuntion_AspNetUsers" Association="DesingEntity.FK_TSql_RolesFuntion_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_RolesFuntionUser" EntitySet="TSql_RolesFuntionUser" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_RolesFuntion_AspNetUsers1" Association="DesingEntity.FK_TSql_RolesFuntion_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_RolesFuntionUser" EntitySet="TSql_RolesFuntionUser" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_RollFunctionsUser_AspNetUsers2" Association="DesingEntity.FK_TSql_RollFunctionsUser_AspNetUsers2">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_RollFunctions" EntitySet="TSql_RollFunctions" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_RollFunctionsUser_AspNetUsers11" Association="DesingEntity.FK_TSql_RollFunctionsUser_AspNetUsers11">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_RollFunctions" EntitySet="TSql_RollFunctions" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_TelegramDesignAccess_TSql_Design" Association="DesingEntity.FK_TSql_TelegramDesignAccess_TSql_Design">
+            <End Role="TSql_Design" EntitySet="TSql_Design" />
+            <End Role="TSql_TelegramDesignAccess" EntitySet="TSql_TelegramDesignAccess" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_TelegramDesignInbox_TSql_Design" Association="DesingEntity.FK_TSql_TelegramDesignInbox_TSql_Design">
+            <End Role="TSql_Design" EntitySet="TSql_Design" />
+            <End Role="TSql_TelegramDesignInbox" EntitySet="TSql_TelegramDesignInbox" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Employee_TSql_Plantilla" Association="DesingEntity.FK_TSql_Employee_TSql_Plantilla">
+            <End Role="TSql_Plantilla" EntitySet="TSql_Plantilla" />
+            <End Role="TSql_Employee" EntitySet="TSql_Employee" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_RollFunctionsUser_TSql_Roles1" Association="DesingEntity.FK_TSql_RollFunctionsUser_TSql_Roles1">
+            <End Role="TSql_Roles" EntitySet="TSql_Roles" />
+            <End Role="TSql_RollFunctions" EntitySet="TSql_RollFunctions" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_RollFunctionsUser_TSql_RollGrupDesing1" Association="DesingEntity.FK_TSql_RollFunctionsUser_TSql_RollGrupDesing1">
+            <End Role="TSql_RollGrupDesing" EntitySet="TSql_RollGrupDesing" />
+            <End Role="TSql_RollFunctions" EntitySet="TSql_RollFunctions" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="TSql_Countrys">
@@ -2273,8 +2403,7 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
           <Property Name="SysUpdateNumber" Type="Int64" Nullable="false" />
           <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_Roles_AspNetUsers" FromRole="TSql_Roles" ToRole="AspNetUsers" />
           <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Roles_AspNetUsers1" FromRole="TSql_Roles" ToRole="AspNetUsers" />
-          <NavigationProperty Name="TSql_RollFunctionsUser" Relationship="DesingEntity.FK_TSql_RollFunctionsUser_TSql_Roles" FromRole="TSql_Roles" ToRole="TSql_RollFunctionsUser" />
-          <NavigationProperty Name="TSql_User_Roles" Relationship="DesingEntity.FK_TSql_User_Roles_TSql_Roles" FromRole="TSql_Roles" ToRole="TSql_User_Roles" />
+          <NavigationProperty Name="TSql_RollFunctions" Relationship="DesingEntity.FK_TSql_RollFunctionsUser_TSql_Roles1" FromRole="TSql_Roles" ToRole="TSql_RollFunctions" />
         </EntityType>
         <EntityType Name="TSql_Company">
           <Key>
@@ -2483,6 +2612,19 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
           <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_DesignDetails_AspNetUsers" FromRole="TSql_DesignDetails" ToRole="AspNetUsers" />
           <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_DesignDetails_AspNetUsers1" FromRole="TSql_DesignDetails" ToRole="AspNetUsers" />
           <NavigationProperty Name="TSql_Design" Relationship="DesingEntity.FK_TSql_DesignDetails_TSql_Design" FromRole="TSql_DesignDetails" ToRole="TSql_Design" />
+          <Property Name="Remate0" Type="Int32" />
+          <Property Name="RematePositionX" Type="Double" />
+          <Property Name="RematePositionXMirror" Type="Double" />
+          <Property Name="Remate180" Type="Int32" />
+          <Property Name="RematePosition180X" Type="Double" />
+          <Property Name="RematePosition180XMirror" Type="Double" />
+          <Property Name="Remate90" Type="Int32" />
+          <Property Name="RematePosition90Y" Type="Double" />
+          <Property Name="RematePosition90YMirror" Type="Double" />
+          <Property Name="Remate270" Type="Int32" />
+          <Property Name="RematePosition270Y" Type="Double" />
+          <Property Name="RematePosition270YMirror" Type="Double" />
+          <Property Name="IsPanel060" Type="Boolean" />
         </EntityType>
         <EntityType Name="TSql_Employee">
           <Key>
@@ -2508,6 +2650,8 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
           <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_Employee_AspNetUsers" FromRole="TSql_Employee" ToRole="AspNetUsers" />
           <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Employee_AspNetUsers1" FromRole="TSql_Employee" ToRole="AspNetUsers" />
           <NavigationProperty Name="AspNetUsers2" Relationship="DesingEntity.FK_TSql_Employee_AspNetUsers2" FromRole="TSql_Employee" ToRole="AspNetUsers" />
+          <Property Name="LinPlantilla" Type="Int64" />
+          <NavigationProperty Name="TSql_Plantilla" Relationship="DesingEntity.FK_TSql_Employee_TSql_Plantilla" FromRole="TSql_Employee" ToRole="TSql_Plantilla" />
         </EntityType>
         <Association Name="FK_TSql_Employee_TSql_Company">
           <End Type="DesingEntity.TSql_Company" Role="TSql_Company" Multiplicity="1" />
@@ -2589,13 +2733,13 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
           <NavigationProperty Name="TSql_Design1" Relationship="DesingEntity.FK_TSql_Design_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_Design" />
           <NavigationProperty Name="TSql_RollGrupDesing" Relationship="DesingEntity.FK_TSql_RollGrupDesing_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_RollGrupDesing" />
           <NavigationProperty Name="TSql_RollGrupDesing1" Relationship="DesingEntity.FK_TSql_RollGrupDesing_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_RollGrupDesing" />
-          <NavigationProperty Name="TSql_RollFunctionsUser" Relationship="DesingEntity.FK_TSql_RollFunctionsUser_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_RollFunctionsUser" />
-          <NavigationProperty Name="TSql_RollFunctionsUser1" Relationship="DesingEntity.FK_TSql_RollFunctionsUser_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_RollFunctionsUser" />
-          <NavigationProperty Name="TSql_User_Roles" Relationship="DesingEntity.FK_TSql_User_Roles_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_User_Roles" />
-          <NavigationProperty Name="TSql_User_Roles1" Relationship="DesingEntity.FK_TSql_User_Roles_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_User_Roles" />
-          <NavigationProperty Name="TSql_User_Roles2" Relationship="DesingEntity.FK_TSql_User_Roles_AspNetUsers2" FromRole="AspNetUsers" ToRole="TSql_User_Roles" />
           <NavigationProperty Name="Tsql_Master_Articles" Relationship="DesingEntity.FK_Tsql_Master_Articles_AspNetUsers" FromRole="AspNetUsers" ToRole="Tsql_Master_Articles" />
           <NavigationProperty Name="Tsql_Master_Articles1" Relationship="DesingEntity.FK_Tsql_Master_Articles_AspNetUsers1" FromRole="AspNetUsers" ToRole="Tsql_Master_Articles" />
+          <NavigationProperty Name="TSql_PluginDeviceAuth" Relationship="DesingEntity.FK_TSql_PluginDeviceAuth_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_PluginDeviceAuth" />
+          <NavigationProperty Name="TSql_RolesFuntionUser" Relationship="DesingEntity.FK_TSql_RolesFuntion_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_RolesFuntionUser" />
+          <NavigationProperty Name="TSql_RolesFuntionUser1" Relationship="DesingEntity.FK_TSql_RolesFuntion_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_RolesFuntionUser" />
+          <NavigationProperty Name="TSql_RollFunctions" Relationship="DesingEntity.FK_TSql_RollFunctionsUser_AspNetUsers2" FromRole="AspNetUsers" ToRole="TSql_RollFunctions" />
+          <NavigationProperty Name="TSql_RollFunctions1" Relationship="DesingEntity.FK_TSql_RollFunctionsUser_AspNetUsers11" FromRole="AspNetUsers" ToRole="TSql_RollFunctions" />
         </EntityType>
         <Association Name="FK_TSql_App_AspNetUsers">
           <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
@@ -3300,6 +3444,8 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
           <NavigationProperty Name="TSql_DesignCamera" Relationship="DesingEntity.FK_TSql_DesignCamera_TSql_Design" FromRole="TSql_Design" ToRole="TSql_DesignCamera" />
           <NavigationProperty Name="TSql_DesignDetails" Relationship="DesingEntity.FK_TSql_DesignDetails_TSql_Design" FromRole="TSql_Design" ToRole="TSql_DesignDetails" />
           <NavigationProperty Name="TSql_TotalListsDesing" Relationship="DesingEntity.FK_TSql_TotalListsDesing_TSql_Design" FromRole="TSql_Design" ToRole="TSql_TotalListsDesing" />
+          <NavigationProperty Name="TSql_TelegramDesignAccess" Relationship="DesingEntity.FK_TSql_TelegramDesignAccess_TSql_Design" FromRole="TSql_Design" ToRole="TSql_TelegramDesignAccess" />
+          <NavigationProperty Name="TSql_TelegramDesignInbox" Relationship="DesingEntity.FK_TSql_TelegramDesignInbox_TSql_Design" FromRole="TSql_Design" ToRole="TSql_TelegramDesignInbox" />
         </EntityType>
         <Association Name="FK_TSql_Design_AspNetUsers">
           <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
@@ -3374,7 +3520,7 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
           <Property Name="AttGrupDesing" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_RollGrupDesing_AspNetUsers" FromRole="TSql_RollGrupDesing" ToRole="AspNetUsers" />
           <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_RollGrupDesing_AspNetUsers1" FromRole="TSql_RollGrupDesing" ToRole="AspNetUsers" />
-          <NavigationProperty Name="TSql_RollFunctionsUser" Relationship="DesingEntity.FK_TSql_RollFunctionsUser_TSql_RollGrupDesing" FromRole="TSql_RollGrupDesing" ToRole="TSql_RollFunctionsUser" />
+          <NavigationProperty Name="TSql_RollFunctions" Relationship="DesingEntity.FK_TSql_RollFunctionsUser_TSql_RollGrupDesing1" FromRole="TSql_RollGrupDesing" ToRole="TSql_RollFunctions" />
         </EntityType>
         <Association Name="FK_TSql_RollGrupDesing_AspNetUsers">
           <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
@@ -3397,138 +3543,6 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
             </Principal>
             <Dependent Role="TSql_RollGrupDesing">
               <PropertyRef Name="LinkChangeBy" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <EntityType Name="TSql_RollFunctionsUser">
-          <Key>
-            <PropertyRef Name="SysObjectID" />
-          </Key>
-          <Property Name="SysObjectID" Type="Int64" Nullable="false" />
-          <Property Name="AttLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
-          <Property Name="AttDescription" Type="String" MaxLength="2000" FixedLength="false" Unicode="true" />
-          <Property Name="LinCreatedBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="AttCreated" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="LinModifiedBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="AttLastModification" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="SysUpdateNumber" Type="Int64" Nullable="false" />
-          <Property Name="LinRoles" Type="Int64" Nullable="false" />
-          <Property Name="LinRollGrupDesing" Type="Int64" Nullable="false" />
-          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_RollFunctionsUser_AspNetUsers" FromRole="TSql_RollFunctionsUser" ToRole="AspNetUsers" />
-          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_RollFunctionsUser_AspNetUsers1" FromRole="TSql_RollFunctionsUser" ToRole="AspNetUsers" />
-          <NavigationProperty Name="TSql_Roles" Relationship="DesingEntity.FK_TSql_RollFunctionsUser_TSql_Roles" FromRole="TSql_RollFunctionsUser" ToRole="TSql_Roles" />
-          <NavigationProperty Name="TSql_RollGrupDesing" Relationship="DesingEntity.FK_TSql_RollFunctionsUser_TSql_RollGrupDesing" FromRole="TSql_RollFunctionsUser" ToRole="TSql_RollGrupDesing" />
-        </EntityType>
-        <EntityType Name="TSql_User_Roles">
-          <Key>
-            <PropertyRef Name="SysObjectID" />
-          </Key>
-          <Property Name="SysObjectID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="LinUser" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="LinRoles" Type="Int64" Nullable="false" />
-          <Property Name="LinCreatedBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="AttCreated" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="LinModifiedBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="AttLastModification" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="SysUpdateNumber" Type="Int64" Nullable="false" />
-          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_User_Roles_AspNetUsers" FromRole="TSql_User_Roles" ToRole="AspNetUsers" />
-          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_User_Roles_AspNetUsers1" FromRole="TSql_User_Roles" ToRole="AspNetUsers" />
-          <NavigationProperty Name="AspNetUsers2" Relationship="DesingEntity.FK_TSql_User_Roles_AspNetUsers2" FromRole="TSql_User_Roles" ToRole="AspNetUsers" />
-          <NavigationProperty Name="TSql_Roles" Relationship="DesingEntity.FK_TSql_User_Roles_TSql_Roles" FromRole="TSql_User_Roles" ToRole="TSql_Roles" />
-        </EntityType>
-        <Association Name="FK_TSql_RollFunctionsUser_AspNetUsers">
-          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
-          <End Type="DesingEntity.TSql_RollFunctionsUser" Role="TSql_RollFunctionsUser" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUsers">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="TSql_RollFunctionsUser">
-              <PropertyRef Name="LinCreatedBy" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_TSql_RollFunctionsUser_AspNetUsers1">
-          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
-          <End Type="DesingEntity.TSql_RollFunctionsUser" Role="TSql_RollFunctionsUser" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUsers">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="TSql_RollFunctionsUser">
-              <PropertyRef Name="LinModifiedBy" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_TSql_User_Roles_AspNetUsers">
-          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
-          <End Type="DesingEntity.TSql_User_Roles" Role="TSql_User_Roles" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUsers">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="TSql_User_Roles">
-              <PropertyRef Name="LinUser" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_TSql_User_Roles_AspNetUsers1">
-          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
-          <End Type="DesingEntity.TSql_User_Roles" Role="TSql_User_Roles" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUsers">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="TSql_User_Roles">
-              <PropertyRef Name="LinCreatedBy" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_TSql_User_Roles_AspNetUsers2">
-          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
-          <End Type="DesingEntity.TSql_User_Roles" Role="TSql_User_Roles" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUsers">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="TSql_User_Roles">
-              <PropertyRef Name="LinModifiedBy" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_TSql_RollFunctionsUser_TSql_Roles">
-          <End Type="DesingEntity.TSql_Roles" Role="TSql_Roles" Multiplicity="1" />
-          <End Type="DesingEntity.TSql_RollFunctionsUser" Role="TSql_RollFunctionsUser" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="TSql_Roles">
-              <PropertyRef Name="SysObjectID" />
-            </Principal>
-            <Dependent Role="TSql_RollFunctionsUser">
-              <PropertyRef Name="LinRoles" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_TSql_User_Roles_TSql_Roles">
-          <End Type="DesingEntity.TSql_Roles" Role="TSql_Roles" Multiplicity="1" />
-          <End Type="DesingEntity.TSql_User_Roles" Role="TSql_User_Roles" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="TSql_Roles">
-              <PropertyRef Name="SysObjectID" />
-            </Principal>
-            <Dependent Role="TSql_User_Roles">
-              <PropertyRef Name="LinRoles" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_TSql_RollFunctionsUser_TSql_RollGrupDesing">
-          <End Type="DesingEntity.TSql_RollGrupDesing" Role="TSql_RollGrupDesing" Multiplicity="1" />
-          <End Type="DesingEntity.TSql_RollFunctionsUser" Role="TSql_RollFunctionsUser" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="TSql_RollGrupDesing">
-              <PropertyRef Name="SysObjectID" />
-            </Principal>
-            <Dependent Role="TSql_RollFunctionsUser">
-              <PropertyRef Name="LinRollGrupDesing" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -3594,6 +3608,232 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
             </Principal>
             <Dependent Role="Tsql_Master_Articles">
               <PropertyRef Name="LinkSystem" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="TSql_Plantilla">
+          <Key>
+            <PropertyRef Name="SysObjectID" />
+          </Key>
+          <Property Name="SysObjectID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="AttName" Type="String" Nullable="false" MaxLength="150" FixedLength="false" Unicode="true" />
+          <Property Name="AttColor" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="AttLogo" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="AttIsDefault" Type="Boolean" Nullable="false" />
+          <Property Name="AttIsDeleted" Type="Boolean" Nullable="false" />
+          <Property Name="LinCreatedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AttCreated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AttLastModification" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="SysUpdateNumber" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="TSql_Employee" Relationship="DesingEntity.FK_TSql_Employee_TSql_Plantilla" FromRole="TSql_Plantilla" ToRole="TSql_Employee" />
+        </EntityType>
+        <EntityType Name="TSql_PluginDeviceAuth">
+          <Key>
+            <PropertyRef Name="SysObjectID" />
+          </Key>
+          <Property Name="SysObjectID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="DeviceId" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinAspNetUsert" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="MachineName" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="UsuarioWindows" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="PluginVersion" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Allowed" Type="Boolean" Nullable="false" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <Property Name="IsRevoked" Type="Boolean" Nullable="false" />
+          <Property Name="Estado" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="AttIsDeleted" Type="Boolean" Nullable="false" />
+          <Property Name="LastCheckUtc" Type="DateTime" Precision="3" />
+          <Property Name="LinCreatedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AttCreated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AttLastModification" Type="DateTime" Nullable="false" Precision="3" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_PluginDeviceAuth_AspNetUsers" FromRole="TSql_PluginDeviceAuth" ToRole="AspNetUsers" />
+        </EntityType>
+        <EntityType Name="TSql_RolesFuntionUser">
+          <Key>
+            <PropertyRef Name="SysObjectID" />
+          </Key>
+          <Property Name="SysObjectID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="LinRollFunctions" Type="Int64" Nullable="false" />
+          <Property Name="LinAspNetUsers" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinCreatedBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinModifiedBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AttCreated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AttLastModification" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="SysUpdateNumber" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_RolesFuntion_AspNetUsers" FromRole="TSql_RolesFuntionUser" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_RolesFuntion_AspNetUsers1" FromRole="TSql_RolesFuntionUser" ToRole="AspNetUsers" />
+        </EntityType>
+        <EntityType Name="TSql_RollFunctions">
+          <Key>
+            <PropertyRef Name="SysObjectID" />
+          </Key>
+          <Property Name="SysObjectID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="AttLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="AttDescription" Type="String" MaxLength="2000" FixedLength="false" Unicode="true" />
+          <Property Name="LinCreatedBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AttCreated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LinModifiedBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AttLastModification" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="SysUpdateNumber" Type="Int64" Nullable="false" />
+          <Property Name="LinRoles" Type="Int64" Nullable="false" />
+          <Property Name="LinRollGrupDesing" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_RollFunctionsUser_AspNetUsers2" FromRole="TSql_RollFunctions" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_RollFunctionsUser_AspNetUsers11" FromRole="TSql_RollFunctions" ToRole="AspNetUsers" />
+          <NavigationProperty Name="TSql_Roles" Relationship="DesingEntity.FK_TSql_RollFunctionsUser_TSql_Roles1" FromRole="TSql_RollFunctions" ToRole="TSql_Roles" />
+          <NavigationProperty Name="TSql_RollGrupDesing" Relationship="DesingEntity.FK_TSql_RollFunctionsUser_TSql_RollGrupDesing1" FromRole="TSql_RollFunctions" ToRole="TSql_RollGrupDesing" />
+        </EntityType>
+        <EntityType Name="TSql_TelegramDesignAccess">
+          <Key>
+            <PropertyRef Name="SysObjectID" />
+          </Key>
+          <Property Name="SysObjectID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="LinDesign" Type="Int64" Nullable="false" />
+          <Property Name="TelegramChatId" Type="String" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="TelegramUserId" Type="String" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="Alias" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <Property Name="FechaRegistroUtc" Type="DateTime" Nullable="false" Precision="0" />
+          <NavigationProperty Name="TSql_Design" Relationship="DesingEntity.FK_TSql_TelegramDesignAccess_TSql_Design" FromRole="TSql_TelegramDesignAccess" ToRole="TSql_Design" />
+        </EntityType>
+        <EntityType Name="TSql_TelegramDesignInbox">
+          <Key>
+            <PropertyRef Name="SysObjectID" />
+          </Key>
+          <Property Name="SysObjectID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="LinDesign" Type="Int64" Nullable="false" />
+          <Property Name="TelegramMessageId" Type="String" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="TelegramChatId" Type="String" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="TelegramUserId" Type="String" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="TelegramUserName" Type="String" MaxLength="120" FixedLength="false" Unicode="true" />
+          <Property Name="Caption" Type="String" MaxLength="1000" FixedLength="false" Unicode="true" />
+          <Property Name="FileId" Type="String" Nullable="false" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="FileUniqueId" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="WidthPx" Type="Int32" />
+          <Property Name="HeightPx" Type="Int32" />
+          <Property Name="Estado" Type="String" Nullable="false" MaxLength="40" FixedLength="false" Unicode="true" />
+          <Property Name="FechaMensajeUtc" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="FechaRegistroUtc" Type="DateTime" Nullable="false" Precision="0" />
+          <NavigationProperty Name="TSql_Design" Relationship="DesingEntity.FK_TSql_TelegramDesignInbox_TSql_Design" FromRole="TSql_TelegramDesignInbox" ToRole="TSql_Design" />
+        </EntityType>
+        <Association Name="FK_TSql_PluginDeviceAuth_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_PluginDeviceAuth" Role="TSql_PluginDeviceAuth" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_PluginDeviceAuth">
+              <PropertyRef Name="LinAspNetUsert" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_RolesFuntion_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_RolesFuntionUser" Role="TSql_RolesFuntionUser" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_RolesFuntionUser">
+              <PropertyRef Name="LinCreatedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_RolesFuntion_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_RolesFuntionUser" Role="TSql_RolesFuntionUser" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_RolesFuntionUser">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_RollFunctionsUser_AspNetUsers2">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_RollFunctions" Role="TSql_RollFunctions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_RollFunctions">
+              <PropertyRef Name="LinCreatedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_RollFunctionsUser_AspNetUsers11">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_RollFunctions" Role="TSql_RollFunctions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_RollFunctions">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_TelegramDesignAccess_TSql_Design">
+          <End Type="DesingEntity.TSql_Design" Role="TSql_Design" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_TelegramDesignAccess" Role="TSql_TelegramDesignAccess" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Design">
+              <PropertyRef Name="SysObjectID" />
+            </Principal>
+            <Dependent Role="TSql_TelegramDesignAccess">
+              <PropertyRef Name="LinDesign" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_TelegramDesignInbox_TSql_Design">
+          <End Type="DesingEntity.TSql_Design" Role="TSql_Design" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_TelegramDesignInbox" Role="TSql_TelegramDesignInbox" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Design">
+              <PropertyRef Name="SysObjectID" />
+            </Principal>
+            <Dependent Role="TSql_TelegramDesignInbox">
+              <PropertyRef Name="LinDesign" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Employee_TSql_Plantilla">
+          <End Type="DesingEntity.TSql_Plantilla" Role="TSql_Plantilla" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_Employee" Role="TSql_Employee" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Plantilla">
+              <PropertyRef Name="SysObjectID" />
+            </Principal>
+            <Dependent Role="TSql_Employee">
+              <PropertyRef Name="LinPlantilla" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_RollFunctionsUser_TSql_Roles1">
+          <End Type="DesingEntity.TSql_Roles" Role="TSql_Roles" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_RollFunctions" Role="TSql_RollFunctions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Roles">
+              <PropertyRef Name="SysObjectID" />
+            </Principal>
+            <Dependent Role="TSql_RollFunctions">
+              <PropertyRef Name="LinRoles" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_RollFunctionsUser_TSql_RollGrupDesing1">
+          <End Type="DesingEntity.TSql_RollGrupDesing" Role="TSql_RollGrupDesing" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_RollFunctions" Role="TSql_RollFunctions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_RollGrupDesing">
+              <PropertyRef Name="SysObjectID" />
+            </Principal>
+            <Dependent Role="TSql_RollFunctions">
+              <PropertyRef Name="LinRollGrupDesing" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -3840,6 +4080,19 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
           <EntitySetMapping Name="TSql_DesignDetails">
             <EntityTypeMapping TypeName="DesingEntity.TSql_DesignDetails">
               <MappingFragment StoreEntitySet="TSql_DesignDetails">
+                <ScalarProperty Name="IsPanel060" ColumnName="IsPanel060" />
+                <ScalarProperty Name="RematePosition270YMirror" ColumnName="RematePosition270YMirror" />
+                <ScalarProperty Name="RematePosition270Y" ColumnName="RematePosition270Y" />
+                <ScalarProperty Name="Remate270" ColumnName="Remate270" />
+                <ScalarProperty Name="RematePosition90YMirror" ColumnName="RematePosition90YMirror" />
+                <ScalarProperty Name="RematePosition90Y" ColumnName="RematePosition90Y" />
+                <ScalarProperty Name="Remate90" ColumnName="Remate90" />
+                <ScalarProperty Name="RematePosition180XMirror" ColumnName="RematePosition180XMirror" />
+                <ScalarProperty Name="RematePosition180X" ColumnName="RematePosition180X" />
+                <ScalarProperty Name="Remate180" ColumnName="Remate180" />
+                <ScalarProperty Name="RematePositionXMirror" ColumnName="RematePositionXMirror" />
+                <ScalarProperty Name="RematePositionX" ColumnName="RematePositionX" />
+                <ScalarProperty Name="Remate0" ColumnName="Remate0" />
                 <ScalarProperty Name="IdTypeFormworkMode" ColumnName="IdTypeFormworkMode" />
                 <ScalarProperty Name="IdWall_270" ColumnName="IdWall_270" />
                 <ScalarProperty Name="IdWall_90" ColumnName="IdWall_90" />
@@ -3904,6 +4157,7 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
           <EntitySetMapping Name="TSql_Employee">
             <EntityTypeMapping TypeName="DesingEntity.TSql_Employee">
               <MappingFragment StoreEntitySet="TSql_Employee">
+                <ScalarProperty Name="LinPlantilla" ColumnName="LinPlantilla" />
                 <ScalarProperty Name="AttPassAspNetUsert" ColumnName="AttPassAspNetUsert" />
                 <ScalarProperty Name="Linlanguage" ColumnName="Linlanguage" />
                 <ScalarProperty Name="AttIsDeleted" ColumnName="AttIsDeleted" />
@@ -4051,36 +4305,6 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="TSql_RollFunctionsUser">
-            <EntityTypeMapping TypeName="DesingEntity.TSql_RollFunctionsUser">
-              <MappingFragment StoreEntitySet="TSql_RollFunctionsUser">
-                <ScalarProperty Name="LinRollGrupDesing" ColumnName="LinRollGrupDesing" />
-                <ScalarProperty Name="LinRoles" ColumnName="LinRoles" />
-                <ScalarProperty Name="SysUpdateNumber" ColumnName="SysUpdateNumber" />
-                <ScalarProperty Name="AttLastModification" ColumnName="AttLastModification" />
-                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
-                <ScalarProperty Name="AttCreated" ColumnName="AttCreated" />
-                <ScalarProperty Name="LinCreatedBy" ColumnName="LinCreatedBy" />
-                <ScalarProperty Name="AttDescription" ColumnName="AttDescription" />
-                <ScalarProperty Name="AttLabel" ColumnName="AttLabel" />
-                <ScalarProperty Name="SysObjectID" ColumnName="SysObjectID" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="TSql_User_Roles">
-            <EntityTypeMapping TypeName="DesingEntity.TSql_User_Roles">
-              <MappingFragment StoreEntitySet="TSql_User_Roles">
-                <ScalarProperty Name="SysUpdateNumber" ColumnName="SysUpdateNumber" />
-                <ScalarProperty Name="AttLastModification" ColumnName="AttLastModification" />
-                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
-                <ScalarProperty Name="AttCreated" ColumnName="AttCreated" />
-                <ScalarProperty Name="LinCreatedBy" ColumnName="LinCreatedBy" />
-                <ScalarProperty Name="LinRoles" ColumnName="LinRoles" />
-                <ScalarProperty Name="LinUser" ColumnName="LinUser" />
-                <ScalarProperty Name="SysObjectID" ColumnName="SysObjectID" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="Tsql_Master_Articles">
             <EntityTypeMapping TypeName="DesingEntity.Tsql_Master_Articles">
               <MappingFragment StoreEntitySet="Tsql_Master_Articles">
@@ -4105,6 +4329,108 @@ warning 6002: The table/view 'db_a197cd_desingdevelop.dbo.TSql_ConfigDesingDefau
                 <ScalarProperty Name="TextCode" ColumnName="TextCode" />
                 <ScalarProperty Name="AddAtenkoCode" ColumnName="AddAtenkoCode" />
                 <ScalarProperty Name="IdObject" ColumnName="IdObject" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_Plantilla">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_Plantilla">
+              <MappingFragment StoreEntitySet="TSql_Plantilla">
+                <ScalarProperty Name="SysUpdateNumber" ColumnName="SysUpdateNumber" />
+                <ScalarProperty Name="AttLastModification" ColumnName="AttLastModification" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="AttCreated" ColumnName="AttCreated" />
+                <ScalarProperty Name="LinCreatedBy" ColumnName="LinCreatedBy" />
+                <ScalarProperty Name="AttIsDeleted" ColumnName="AttIsDeleted" />
+                <ScalarProperty Name="AttIsDefault" ColumnName="AttIsDefault" />
+                <ScalarProperty Name="AttLogo" ColumnName="AttLogo" />
+                <ScalarProperty Name="AttColor" ColumnName="AttColor" />
+                <ScalarProperty Name="AttName" ColumnName="AttName" />
+                <ScalarProperty Name="SysObjectID" ColumnName="SysObjectID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_PluginDeviceAuth">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_PluginDeviceAuth">
+              <MappingFragment StoreEntitySet="TSql_PluginDeviceAuth">
+                <ScalarProperty Name="AttLastModification" ColumnName="AttLastModification" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="AttCreated" ColumnName="AttCreated" />
+                <ScalarProperty Name="LinCreatedBy" ColumnName="LinCreatedBy" />
+                <ScalarProperty Name="LastCheckUtc" ColumnName="LastCheckUtc" />
+                <ScalarProperty Name="AttIsDeleted" ColumnName="AttIsDeleted" />
+                <ScalarProperty Name="Estado" ColumnName="Estado" />
+                <ScalarProperty Name="IsRevoked" ColumnName="IsRevoked" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="Allowed" ColumnName="Allowed" />
+                <ScalarProperty Name="PluginVersion" ColumnName="PluginVersion" />
+                <ScalarProperty Name="UsuarioWindows" ColumnName="UsuarioWindows" />
+                <ScalarProperty Name="MachineName" ColumnName="MachineName" />
+                <ScalarProperty Name="LinAspNetUsert" ColumnName="LinAspNetUsert" />
+                <ScalarProperty Name="DeviceId" ColumnName="DeviceId" />
+                <ScalarProperty Name="SysObjectID" ColumnName="SysObjectID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_RolesFuntionUser">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_RolesFuntionUser">
+              <MappingFragment StoreEntitySet="TSql_RolesFuntionUser">
+                <ScalarProperty Name="SysUpdateNumber" ColumnName="SysUpdateNumber" />
+                <ScalarProperty Name="AttLastModification" ColumnName="AttLastModification" />
+                <ScalarProperty Name="AttCreated" ColumnName="AttCreated" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="LinCreatedBy" ColumnName="LinCreatedBy" />
+                <ScalarProperty Name="LinAspNetUsers" ColumnName="LinAspNetUsers" />
+                <ScalarProperty Name="LinRollFunctions" ColumnName="LinRollFunctions" />
+                <ScalarProperty Name="SysObjectID" ColumnName="SysObjectID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_RollFunctions">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_RollFunctions">
+              <MappingFragment StoreEntitySet="TSql_RollFunctions">
+                <ScalarProperty Name="LinRollGrupDesing" ColumnName="LinRollGrupDesing" />
+                <ScalarProperty Name="LinRoles" ColumnName="LinRoles" />
+                <ScalarProperty Name="SysUpdateNumber" ColumnName="SysUpdateNumber" />
+                <ScalarProperty Name="AttLastModification" ColumnName="AttLastModification" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="AttCreated" ColumnName="AttCreated" />
+                <ScalarProperty Name="LinCreatedBy" ColumnName="LinCreatedBy" />
+                <ScalarProperty Name="AttDescription" ColumnName="AttDescription" />
+                <ScalarProperty Name="AttLabel" ColumnName="AttLabel" />
+                <ScalarProperty Name="SysObjectID" ColumnName="SysObjectID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_TelegramDesignAccess">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_TelegramDesignAccess">
+              <MappingFragment StoreEntitySet="TSql_TelegramDesignAccess">
+                <ScalarProperty Name="FechaRegistroUtc" ColumnName="FechaRegistroUtc" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="Alias" ColumnName="Alias" />
+                <ScalarProperty Name="TelegramUserId" ColumnName="TelegramUserId" />
+                <ScalarProperty Name="TelegramChatId" ColumnName="TelegramChatId" />
+                <ScalarProperty Name="LinDesign" ColumnName="LinDesign" />
+                <ScalarProperty Name="SysObjectID" ColumnName="SysObjectID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_TelegramDesignInbox">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_TelegramDesignInbox">
+              <MappingFragment StoreEntitySet="TSql_TelegramDesignInbox">
+                <ScalarProperty Name="FechaRegistroUtc" ColumnName="FechaRegistroUtc" />
+                <ScalarProperty Name="FechaMensajeUtc" ColumnName="FechaMensajeUtc" />
+                <ScalarProperty Name="Estado" ColumnName="Estado" />
+                <ScalarProperty Name="HeightPx" ColumnName="HeightPx" />
+                <ScalarProperty Name="WidthPx" ColumnName="WidthPx" />
+                <ScalarProperty Name="FileUniqueId" ColumnName="FileUniqueId" />
+                <ScalarProperty Name="FileId" ColumnName="FileId" />
+                <ScalarProperty Name="Caption" ColumnName="Caption" />
+                <ScalarProperty Name="TelegramUserName" ColumnName="TelegramUserName" />
+                <ScalarProperty Name="TelegramUserId" ColumnName="TelegramUserId" />
+                <ScalarProperty Name="TelegramChatId" ColumnName="TelegramChatId" />
+                <ScalarProperty Name="TelegramMessageId" ColumnName="TelegramMessageId" />
+                <ScalarProperty Name="LinDesign" ColumnName="LinDesign" />
+                <ScalarProperty Name="SysObjectID" ColumnName="SysObjectID" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

@@ -1,81 +1,54 @@
 ﻿@model DAL.TSql_Design
-<div id="topmenuIndex" class="form-check" style="z-index:500;right:20px;top:10px;position:absolute;height:35px">
-    <ul class="breadcrumb">
-        <li id="btnAllDesing"><a href="@Url.Action("Index", "DesignTools", new { OnlyUser = false})"><i class="fas fa-receipt"></i>&nbsp;&nbsp;Ver todos los diseños</a></li>
-        <li id="btnMyDesing"><a href="@Url.Action("Index", "DesignTools", new { OnlyUser = true})"><i class="fas fa-receipt"></i>&nbsp;&nbsp;Ver solo mis diseños</a></li>
-    </ul>
+<div class="btn-group mb-3" role="group" aria-label="Filtrar diseños">
+    <a id="btnAllDesing" href="@Url.Action("Index", "DesignTools", new { OnlyUser = false })" class="btn btn-outline-primary">
+        <i class="icon-base ri ri-list-check me-1"></i> Ver todos los diseños
+    </a>
+    <a id="btnMyDesing" href="@Url.Action("Index", "DesignTools", new { OnlyUser = true })" class="btn btn-outline-primary">
+        <i class="icon-base ri ri-user-line me-1"></i> Solo mis diseños
+    </a>
 </div>
 <div id="Loading" style="z-index:5; position: absolute; background-color:   darkgrey; width: 100%; height: 100%; display: none; opacity: 0.8">
     &nbsp;&nbsp;&nbsp;&nbsp;
 </div>
-<div id="CreateDesign" style="position: absolute; z-index: 1200; background-color: ghostwhite; position: absolute; top: 70px; width: 750px; height:500px; display: none; border-radius: 0.9rem ">
-    <button type="button" id="BtnCloseCreateDesign" class="close" data-dismiss="modal" aria-label="Close" style="padding:5px;margin:5px;top:0px"><i class="fas fa-home"></i>&nbsp;&nbsp;</button>
-    <hr style="background-color:gray; height: 1px; margin: 1px; padding: 1px">
-    <form>
-        <fieldset>
-            <div id="ContentFormDesign" style="background-position: center;width:100%;height:100%">
-                <div id="IDCargandoCrear " class="col-md-12" style="position: absolute; left:300px">
-                    <img src="~/Content/comunIcon/LoadingAtK.gif" style="width:150px;height:150px">
-                </div>
-                <div class="col-md-12" style="position: absolute; left:300px;top:280px">
-                    <p>
-                        Cargando pagina ..
-                    </p>
-                </div>
-            </div>
-        </fieldset>
-    </form>
+<div id="CreateDesign" class="tandem-popup-shell" style="display: none;">
+    <div id="ContentFormDesign" class="tandem-popup-content">
+        <div class="text-center p-5">
+            <img src="~/Content/comunIcon/LoadingAtK.gif" style="width:120px;height:120px">
+            <p class="mt-3 text-muted">Cargando página ..</p>
+        </div>
+    </div>
 </div>
-<div id="DivDesignPoup" style="position: absolute; z-index: 1200; background-color: ghostwhite; position: absolute; top: 70px; width: 750px; height:500px; display: none; border-radius: 0.9rem ">
-    
-        <button type="button" id="BtnCloseDivDesignPoup" class="close" data-dismiss="modal" aria-label="Close" style="padding:5px;margin:5px;top:0px"><i class="fas fa-home"></i>&nbsp;&nbsp;</button>
-  
-        <hr style="background-color:gray; height: 1px; margin: 1px; padding: 1px">
-    <form>
-        <fieldset>
-            <div id="DivContentFormDesign" style="background-position: center;width:100%;height:100%">
-                <div id="IDCargandoCrear " class="col-md-12" style="position: absolute; left:300px">
-                    <img src="~/Content/comunIcon/LoadingAtK.gif" style="width:150px;height:150px">
-
-                </div>
-                <div class="col-md-12" style="position: absolute; left:300px;top:280px">
-                    <p>
-                        Cargando pagina ..
-                    </p>
-                </div>
-            </div>
-        </fieldset>
-    </form>
+<div id="DivDesignPoup" class="tandem-popup-shell" style="display: none;">
+    <div id="DivContentFormDesign" class="tandem-popup-content">
+        <div class="text-center p-5">
+            <img src="~/Content/comunIcon/LoadingAtK.gif" style="width:120px;height:120px">
+            <p class="mt-3 text-muted">Cargando página ..</p>
+        </div>
+    </div>
 </div>
-<div class="slimScrollDiv" style="position: relative; overflow: hidden; width: 100%;height:100%">
-    <ul class="breadcrumb">
-        @*<li><a style="color:black" id="sidebarCollapse" href="#" class=""><i class="fas fa-align-justify"></i></a></li>*@
-        <li><a href="@Url.Action("Index", "Home" )"><i class="fas fa-home"></i>Inicio</a></li>
-        <li><i class="fa fa-id-card" aria-hidden="true"></i>&nbsp;&nbsp; Lista de Diseños &nbsp;&nbsp; </li>
-        <li id="CreateDesing">
-            <a id="btDesign" style="color:white" class="btn btn-primary"><i class="fa fa-plus"></i> &nbsp;&nbsp;Crear Nuevo Diseño</a>
-        </li>
-    </ul>
-
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> /</span> Lista de Diseños
+    </h4>
+    <a id="btDesign" class="btn btn-primary" style="cursor:pointer">
+        <i class="icon-base ri ri-add-line me-1"></i> Crear Nuevo Diseño
+    </a>
 </div>
-<div style="height:15px">
-    <hr style="background-color:#0d6efd; height: 3px ">
-</div>
-<div class="panel panel-default" style="height: 100%; width: 100%;">
-    <div class="panel-body" style="padding:5px;margin:5px">
-        <table id="Design" class="table table-striped table-bordered table-hover" cellspacing="0" style="width: 100%; overflow: scroll">
+<div class="card mb-4">
+    <div class="card-body">
+        <table id="Design" class="table table-hover" cellspacing="0" style="width: 100%">
             <thead>
                 <tr>
-                    @*0*@<th style="background-color: #F4C53D; color: black;">Diseño</th>
-                    @*1*@<th style="background-color: #F4C53D; color: black ">Descripción</th>
-                    @*2*@<th style="background-color: #F4C53D; color: black ">Creado por</th>
-                    @*3*@<th style="background-color: #F4C53D; color: black "></th>
-                    @*4*@<th style="background-color: #F4C53D; color: black ">Empresa</th>
-                    @*5*@<th style="background-color: #F4C53D; color: black ">Delegación</th>
-                    @*6*@<th style="background-color: #F4C53D; color: black ">Modificada</th>
-                    @*7*@<th style="background-color: #F4C53D; color: black ">Creada</th>
-                    @*8*@<th style="background-color: #F4C53D; color: black "></th>
-                    @*9*@<th style="background-color: #F4C53D; color: black "></th>
+                    @*0*@<th>Diseño</th>
+                    @*1*@<th>Descripción</th>
+                    @*2*@<th>Creado por</th>
+                    @*3*@<th></th>
+                    @*4*@<th>Empresa</th>
+                    @*5*@<th>Delegación</th>
+                    @*6*@<th>Modificada</th>
+                    @*7*@<th>Creada</th>
+                    @*8*@<th></th>
+                    @*9*@<th></th>
                 </tr>
             </thead>
         </table>
@@ -86,11 +59,8 @@
     <script src="~/Scripts/jquery-ui.js.js"></script>
     <script type="text/javascript">
         function deleteOB(id) {
-            var w = (screen.width / 2) - 375 + "px";
-            document.getElementById("DivDesignPoup").style.left = w;
-            document.getElementById("DivDesignPoup").style.height = "300px";
-            $("#DivDesignPoup").show("slide", { direction: "right" }, 1000);
             $("#Loading").show();
+            $("#DivDesignPoup").fadeIn(300);
                $.ajax({
               type: 'POST',
                    url: '@Url.Content("~/DesignTools/_Delete")',
@@ -106,11 +76,8 @@
         });
         };
         function EditOB(id) {
-      var w = (screen.width / 2) - 375 + "px";
-            document.getElementById("CreateDesign").style.left = w;
-            document.getElementById("CreateDesign").style.height = "600px";
-            $("#CreateDesign").show("slide", { direction: "right" }, 1000);
-      $("#Loading").show();
+            $("#Loading").show();
+            $("#CreateDesign").fadeIn(300);
          $.ajax({
         type: 'POST',
              url: '@Url.Content("~/DesignTools/_Edit")',
@@ -142,12 +109,10 @@
             {
                 document.getElementById("LableToasTileGeneral").innerHTML = '@TempData["ToastTitle"]';
                 document.getElementById("LableToasContentedeGeneral").innerHTML = '@TempData["ToastMessage"]';
-                $("#Toas_General").show("slide", 400, callback);
-                function callback() {
-                    setTimeout(function () {
-                        $("#Toas_General").hide("slide", 400, callback);
-                    }, 4000);
-                };
+                $("#Toas_General").show("slide", 400);
+                setTimeout(function () {
+                    $("#Toas_General").hide("slide", 400);
+                }, 4000);
 
             }
         var ListDesign = {
@@ -271,13 +236,10 @@
                 }
             }
             ListDesign.init();
-       $('#CreateDesing').on('click', function ()
+       $('#btDesign').on('click', function ()
             {
-           var w = (screen.width / 2) - 375 + "px";
-           document.getElementById("CreateDesign").style.height = "600px";
-           document.getElementById("CreateDesign").style.left = w;
            $("#Loading").show();
-               $("#CreateDesign").show("slide", { direction: "right" }, 1000);
+           $("#CreateDesign").fadeIn(300);
            $.ajax
                (
                {
@@ -293,15 +255,12 @@
             }
         });
             });
-            $('#BtnCloseCreateDesign').on('click', function () {
-                $("#CreateDesign").hide("slide", { direction: "right" }, 1000);
-                $("#Loading").hide();
-            });
-
         });
 
-        $('#BtnCloseDivDesignPoup').on('click', function () {
-            $("#DivDesignPoup").hide("slide", { direction: "right" }, 1000);
+        // Cerrar popups al hacer click en el backdrop oscuro
+        $('#Loading').on('click', function () {
+            $("#CreateDesign").hide("slide", { direction: "right" }, 600);
+            $("#DivDesignPoup").hide("slide", { direction: "right" }, 600);
             $("#Loading").hide();
         });
     $('#sidebar').hide;
