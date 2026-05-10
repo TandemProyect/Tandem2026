@@ -51,6 +51,27 @@
     <script src="@Url.Content("~/assets/materio/vendor/js/helpers.js")"></script>
     <script src="@Url.Content("~/assets/materio/js/config.js")"></script>
 
+    @* === Plantilla del usuario (color principal) ============================== *@
+    @{
+        var plantillaColor = (ViewBag.PlantillaColor as string) ?? "#349d7d";
+    }
+    <style>
+        :root {
+            --tandem-primary: @plantillaColor;
+        }
+        /* Aplica el color de la plantilla al sidebar, botones primarios y enlaces. */
+        .app-brand-text { color: var(--tandem-primary) !important; }
+        .menu-vertical .menu-inner-shadow { background: linear-gradient(rgba(255,255,255,1) 5%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0) 100%); }
+        .menu-vertical .menu-item.active > .menu-link:not(.menu-toggle) {
+            background: var(--tandem-primary) !important;
+            color: #fff !important;
+        }
+        .btn-primary,
+        .bg-primary { background-color: var(--tandem-primary) !important; border-color: var(--tandem-primary) !important; }
+        .text-primary { color: var(--tandem-primary) !important; }
+        a { color: var(--tandem-primary); }
+    </style>
+
     @RenderSection("Styles", required: false)
 </head>
 

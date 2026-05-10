@@ -12,27 +12,27 @@ namespace DAL
     using System;
     using System.Collections.Generic;
     
-    public partial class TSql_HelpGrup
+    public partial class TSql_Plantilla
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public TSql_HelpGrup()
+        public TSql_Plantilla()
         {
-            this.TSql_Help = new HashSet<TSql_Help>();
+            this.TSql_Employee = new HashSet<TSql_Employee>();
         }
     
-        public long IdObject { get; set; }
-        public long LinkHelp { get; set; }
-        public string AddIcon { get; set; }
-        public string AddHelpGrup { get; set; }
-        public string AddHelpContent { get; set; }
-        public string LinkMadeBy { get; set; }
-        public string LinkChangeBy { get; set; }
-        public System.DateTime AddDateMade { get; set; }
-        public System.DateTime AddLastDateChange { get; set; }
+        public long SysObjectID { get; set; }
+        public string AttName { get; set; }
+        public string AttColor { get; set; }
+        public string AttLogo { get; set; }
+        public bool AttIsDefault { get; set; }
+        public bool AttIsDeleted { get; set; }
+        public string LinCreatedBy { get; set; }
+        public System.DateTime AttCreated { get; set; }
+        public string LinModifiedBy { get; set; }
+        public System.DateTime AttLastModification { get; set; }
+        public long SysUpdateNumber { get; set; }
     
-        public virtual AspNetUsers AspNetUsers { get; set; }
-        public virtual AspNetUsers AspNetUsers1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<TSql_Help> TSql_Help { get; set; }
+        public virtual ICollection<TSql_Employee> TSql_Employee { get; set; }
     }
 }

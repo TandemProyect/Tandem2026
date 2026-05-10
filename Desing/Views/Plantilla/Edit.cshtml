@@ -1,0 +1,155 @@
+@model Desing.Models.PlantillaViewModel
+@{
+    ViewBag.Title = Model.IsEdit ? "Editar plantilla" : "Crear plantilla";
+    var actionName = Model.IsEdit ? "Edit" : "Create";
+}
+<div class="well" style="padding-left:15px">
+    <div class="modal-body">
+        <h4 class="py-3 mb-4">
+            <span class="text-muted fw-light">
+                <a href="@Url.Action("Index", "Home")">Inicio</a> /
+                <a href="@Url.Action("Index", "Plantilla")">Plantillas</a> /
+            </span> @(Model.IsEdit ? "Editar plantilla" : "Crear plantilla")
+        </h4>
+    </div>
+
+    @using (Html.BeginForm(actionName, "Plantilla", FormMethod.Post, new { @class = "form-horizontal", role = "form", @id = "frmPlantilla", enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(m => m.SysObjectID)
+        @Html.HiddenFor(m => m.IsEdit)
+
+        <fieldset style="margin:10px;padding:10px">
+            <legend>@(Model.IsEdit ? "Editando plantilla" : "Nueva plantilla de estilo")</legend>
+
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+            <div class="row">
+                <div class="col-md-7">
+                    <div class="form-group" style="margin:15px">
+                        @Html.LabelFor(m => m.AttName, htmlAttributes: new { @class = "control-label col-md-9" })
+                        <div class="col-md-12">
+                            @Html.EditorFor(m => m.AttName, new { htmlAttributes = new { @class = "form-control-mandatory", @placeholder = "Ej: Plantilla Cliente Acme" } })
+                            @Html.ValidationMessageFor(m => m.AttName, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin:15px">
+                        @Html.LabelFor(m => m.AttColor, htmlAttributes: new { @class = "control-label col-md-9" })
+                        <div class="col-md-12 d-flex align-items-center" style="gap:10px">
+                            <input type="color" id="AttColorPicker" value="@Model.AttColor" style="width:50px;height:40px;padding:0;border:1px solid #ccc;border-radius:4px;cursor:pointer" />
+                            @Html.TextBoxFor(m => m.AttColor, new { @class = "form-control", @id = "AttColorText", @maxlength = 7, @style = "max-width:140px" })
+                            <span id="AttColorPreview" style="display:inline-block;width:36px;height:36px;border-radius:6px;border:1px solid #ccc;background:@Model.AttColor"></span>
+                        </div>
+                        @Html.ValidationMessageFor(m => m.AttColor, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="form-group" style="margin:15px">
+                        @Html.LabelFor(m => m.AttLogo, htmlAttributes: new { @class = "control-label col-md-9" })
+                        <div class="col-md-12">
+                            <input type="file" id="logoFile" name="logoFile" class="form-control" accept=".png,.jpg,.jpeg,.gif,.svg,.webp,.ico" />
+                            <small class="text-muted">Selecciona una imagen (PNG, JPG, GIF, SVG, WEBP o ICO; max 2 MB). Se sube al guardar.</small>
+                            <div class="mt-2">
+                                @Html.TextBoxFor(m => m.AttLogo, new { @class = "form-control", @readonly = "readonly", @style = "background:#f6f6f6", @placeholder = "/Content/images/Login/at.png" })
+                                <small class="text-muted">Ruta actual del logo (se actualiza automaticamente al subir un archivo).</small>
+                            </div>
+                            @Html.ValidationMessageFor(m => m.AttLogo, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin:15px">
+                        <div class="col-md-12">
+                            <label>
+                                @Html.CheckBoxFor(m => m.AttIsDefault)
+                                Marcar como plantilla por defecto
+                            </label>
+                            <div><small class="text-muted">Solo puede haber una plantilla por defecto. Al marcar esta, se desmarcara la anterior.</small></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-5">
+                    <div class="card">
+                        <div class="card-header" style="font-weight:600">Vista previa</div>
+                        <div id="PlantillaPreview" class="card-body text-center" style="background:@Model.AttColor;color:#fff;border-radius:0 0 6px 6px;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+                            <img id="PlantillaPreviewLogo" src="@(Url.Content("~" + (Model.AttLogo ?? "/Content/images/Login/at.png")))" style="height:48px;background:#fff;padding:6px;border-radius:6px" />
+                            <div style="margin-top:12px;font-size:18px;font-weight:600">Tandem Desing</div>
+                            <div style="opacity:.85">Color principal: <code id="PlantillaPreviewColorTxt" style="color:#fff;background:rgba(0,0,0,.2);padding:2px 6px;border-radius:4px">@Model.AttColor</code></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-12">
+                <hr style="background-color: gainsboro; height: 1px; margin: 1px; padding: 1px">
+                <div class="row">
+                    <div class="col-md-6">&nbsp;</div>
+                    <div class="col-md-5" style="margin:10px;padding:10px">
+                        <a href="@Url.Action("Index", "Plantilla")" class="btn btn-danger">Salir</a>
+                        <button type="submit" class="btn btn-warning">@(Model.IsEdit ? "Guardar cambios" : "Crear")</button>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    }
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var $picker = $('#AttColorPicker');
+            var $text = $('#AttColorText');
+            var $preview = $('#AttColorPreview');
+            var $previewBox = $('#PlantillaPreview');
+            var $previewTxt = $('#PlantillaPreviewColorTxt');
+            var $previewLogo = $('#PlantillaPreviewLogo');
+            var $logo = $('#@Html.IdFor(m => m.AttLogo)');
+
+            function applyColor(c) {
+                $preview.css('background', c);
+                $previewBox.css('background', c);
+                $previewTxt.text(c);
+            }
+
+            $picker.on('input change', function () {
+                $text.val(this.value);
+                applyColor(this.value);
+            });
+            $text.on('input change', function () {
+                var v = this.value;
+                if (/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(v)) {
+                    $picker.val(v);
+                    applyColor(v);
+                }
+            });
+            $logo.on('input change', function () {
+                var v = this.value;
+                if (v && v.length > 0) {
+                    // Permitimos rutas relativas y absolutas.
+                    var src = v.indexOf('http') === 0 ? v : (v.charAt(0) === '/' ? v : '/' + v);
+                    $previewLogo.attr('src', src);
+                }
+            });
+
+            // Preview inmediato al seleccionar un archivo desde el cliente.
+            $('#logoFile').on('change', function () {
+                var file = this.files && this.files[0];
+                if (!file) return;
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('El archivo supera 2 MB. Selecciona uno mas pequeno.');
+                    this.value = '';
+                    return;
+                }
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $previewLogo.attr('src', e.target.result);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            $('#sidebar').toggleClass('active');
+            $(this).toggleClass('active');
+        });
+    </script>
+}

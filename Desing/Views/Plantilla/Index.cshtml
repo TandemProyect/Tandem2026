@@ -1,0 +1,72 @@
+@{
+    ViewBag.Title = "Plantillas";
+}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> /</span> Plantillas
+    </h4>
+    <a class="btn btn-primary" href="@Url.Action("Create", "Plantilla")">
+        <i class="icon-base ri ri-add-line me-1"></i> Crear nueva plantilla
+    </a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body" style="padding:5px;margin:5px">
+        <table id="ListPlantilla" class="table table-hover" cellspacing="0" style="width: 100%; overflow: scroll">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Color</th>
+                    <th>Logo</th>
+                    <th>Por defecto</th>
+                    <th>Creada</th>
+                    <th></th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+
+@section scripts {
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#ListPlantilla').DataTable({
+                scrollX: true,
+                scrollY: 550,
+                dom: '<"dataTables-length-position">Bfrt<"dataTables-length-position"i>p',
+                lengthMenu: [[10, 25, 50, -1], ['10 rows', '25 rows', '50 rows', 'Show all']],
+                buttons: [{
+                    extend: 'collection',
+                    text: "<i class='fas fa-bars'></i>",
+                    className: 'custom-html-collection',
+                    buttons: ['<h5>Select Record</h5>', 'pageLength', '<h5>Export</h5>', 'print', 'copy', 'pdf', 'csv', 'excel', '<h5 class="not-top-heading">Column Visibility</h5>', 'colvis']
+                }],
+                serverSide: true,
+                processing: true,
+                stateSave: true,
+                stateDuration: 12,
+                scrollCollapse: true,
+                ajax: {
+                    url: "@Url.Content("~/Plantilla/ListPlantilla/")",
+                    type: "POST"
+                },
+                columns: [
+                    { data: "AttName" },
+                    { data: "colorBadge", orderable: false },
+                    { data: "logoPreview", orderable: false },
+                    { data: "defaultBadge", orderable: false },
+                    { data: "AttCreated" },
+                    { data: "SysObjectID", orderable: false }
+                ],
+                fnRowCallback: function (nRow, data) {
+                    $('td:eq(5)', nRow).html(data.buttonEdit + '&nbsp;' + data.buttonDelete);
+                    return nRow;
+                },
+                aaSorting: [[0, 'asc']]
+            });
+
+            $('#sidebar').toggleClass('active');
+            $(this).toggleClass('active');
+        });
+    </script>
+}

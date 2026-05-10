@@ -107,6 +107,22 @@
         <AssociationConnector Association="DesingEntity.FK_Tsql_Master_Articles_AspNetUsers" />
         <AssociationConnector Association="DesingEntity.FK_Tsql_Master_Articles_AspNetUsers1" />
         <AssociationConnector Association="DesingEntity.FK_Tsql_Master_Articles_TSql_System" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_Plantilla" Width="1.5" PointX="19.125" PointY="10.875" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_PluginDeviceAuth" Width="1.5" PointX="3.375" PointY="6.375" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_RolesFuntionUser" Width="1.5" PointX="3.375" PointY="32.375" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_RollFunctions" Width="1.5" PointX="30.125" PointY="16.875" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_TelegramDesignAccess" Width="1.5" PointX="5.625" PointY="7.25" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_TelegramDesignInbox" Width="1.5" PointX="5.625" PointY="31.5" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_PluginDeviceAuth_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_RolesFuntion_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_RolesFuntion_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_RollFunctionsUser_AspNetUsers2" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_RollFunctionsUser_AspNetUsers11" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_TelegramDesignAccess_TSql_Design" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_TelegramDesignInbox_TSql_Design" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Employee_TSql_Plantilla" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_RollFunctionsUser_TSql_Roles1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_RollFunctionsUser_TSql_RollGrupDesing1" />
         </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

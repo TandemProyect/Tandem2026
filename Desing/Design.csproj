@@ -212,6 +212,7 @@
     <Compile Include="Controllers\MasterArticlesController.cs" />
     <Compile Include="Controllers\MenuController.cs" />
     <Compile Include="Controllers\EmployeeController.cs" />
+    <Compile Include="Controllers\PlantillaController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
     <Compile Include="Controllers\TelegramWebhookController.cs" />
@@ -223,6 +224,7 @@
     <Compile Include="Models\CommercialManagementModels.cs" />
     <Compile Include="Models\Documents.cs" />
     <Compile Include="Models\EmployeeViewModel.cs" />
+    <Compile Include="Models\PlantillaViewModel.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\Enums\ToasType.cs" />
     <Compile Include="Models\IdentityModels.cs" />
@@ -3003,6 +3005,8 @@
     <Content Include="Views\Menu\_MenuAdmin.cshtml" />
     <Content Include="Views\ToasHelp\_DataToaster.cshtml" />
     <Content Include="Views\Employee\Create_Employee.cshtml" />
+    <Content Include="Views\Plantilla\Index.cshtml" />
+    <Content Include="Views\Plantilla\Edit.cshtml" />
     <Content Include="Views\DesignTools\Modal_View\_Wall.cshtml" />
     <Content Include="Views\DesignTools\_Create.cshtml" />
     <Content Include="Views\DesignTools\_vti_cnf\Design.cshtml" />

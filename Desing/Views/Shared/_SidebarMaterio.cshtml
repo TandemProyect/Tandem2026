@@ -12,13 +12,19 @@
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu">
 
-    @* Brand Tandem *@
+    @* Brand Tandem (logo dinamico desde la plantilla del usuario) *@
+    @{
+        var plantillaLogo = (ViewBag.PlantillaLogo as string) ?? "/Content/images/Login/at.png";
+        var plantillaLogoUrl = plantillaLogo.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+            ? plantillaLogo
+            : Url.Content("~" + (plantillaLogo.StartsWith("/") ? plantillaLogo : "/" + plantillaLogo));
+    }
     <div class="app-brand demo">
         <a href="@Url.Action("Index", "Home")" class="app-brand-link gap-xl-0 gap-2">
             <span class="app-brand-logo demo me-1">
-                <img src="~/Content/images/Login/at.png" alt="Tandem" style="height:28px" />
+                <img src="@plantillaLogoUrl" alt="Tandem" style="height:28px" />
             </span>
-            <span class="app-brand-text demo menu-text fw-semibold ms-2" style="color:gold">Tandem Desing</span>
+            <span class="app-brand-text demo menu-text fw-semibold ms-2">Tandem Desing</span>
         </a>
 
         <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
@@ -74,6 +80,13 @@
             <a href="@Url.Action("Index", "Country")" class="menu-link">
                 <i class="menu-icon icon-base ri ri-earth-line"></i>
                 <div>Paises</div>
+            </a>
+        </li>
+
+        <li class="menu-item@(activeClass("Plantilla", ""))">
+            <a href="@Url.Action("Index", "Plantilla")" class="menu-link">
+                <i class="menu-icon icon-base ri ri-palette-line"></i>
+                <div>Plantillas</div>
             </a>
         </li>
 

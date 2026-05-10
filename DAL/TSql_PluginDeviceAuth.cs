@@ -12,19 +12,25 @@ namespace DAL
     using System;
     using System.Collections.Generic;
     
-    public partial class TSql_Branch
+    public partial class TSql_PluginDeviceAuth
     {
         public long SysObjectID { get; set; }
-        public string AttLabel { get; set; }
-        public string AttDescription { get; set; }
+        public string DeviceId { get; set; }
+        public string LinAspNetUsert { get; set; }
+        public string MachineName { get; set; }
+        public string UsuarioWindows { get; set; }
+        public string PluginVersion { get; set; }
+        public bool Allowed { get; set; }
+        public bool IsActive { get; set; }
+        public bool IsRevoked { get; set; }
+        public string Estado { get; set; }
+        public bool AttIsDeleted { get; set; }
+        public Nullable<System.DateTime> LastCheckUtc { get; set; }
         public string LinCreatedBy { get; set; }
         public System.DateTime AttCreated { get; set; }
         public string LinModifiedBy { get; set; }
         public System.DateTime AttLastModification { get; set; }
-        public long SysUpdateNumber { get; set; }
-        public long LinCompany { get; set; }
-        public long LinBusiness { get; set; }
     
-        public virtual TSql_Company TSql_Company { get; set; }
+        public virtual AspNetUsers AspNetUsers { get; set; }
     }
 }

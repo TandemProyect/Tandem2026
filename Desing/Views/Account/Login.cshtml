@@ -10,11 +10,17 @@
 
             <div class="card p-sm-7 p-2">
 
-                @* Logo *@
+                @* Logo (dinamico desde la plantilla recordada en cookie) *@
+                @{
+                    var loginLogo = (ViewBag.PlantillaLogo as string) ?? "/Content/images/Login/at.png";
+                    var loginLogoUrl = loginLogo.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                        ? loginLogo
+                        : Url.Content("~" + (loginLogo.StartsWith("/") ? loginLogo : "/" + loginLogo));
+                }
                 <div class="app-brand justify-content-center mt-5">
                     <a href="@Url.Action("Index", "Home")" class="app-brand-link gap-3">
                         <span class="app-brand-logo demo">
-                            <img src="~/Content/images/Login/at.png" alt="Tandem" style="height:36px" />
+                            <img src="@loginLogoUrl" alt="Tandem" style="height:36px" />
                         </span>
                         <span class="app-brand-text demo text-heading fw-semibold">Tandem Desing</span>
                     </a>

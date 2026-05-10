@@ -12,17 +12,16 @@ namespace DAL
     using System;
     using System.Collections.Generic;
     
-    public partial class TSql_ConfigDesingDefault
+    public partial class TSql_TelegramDesignAccess
     {
         public long SysObjectID { get; set; }
-        public string LinkMadeBy { get; set; }
-        public System.DateTime AddDateMade { get; set; }
-        public string AddChangeBy { get; set; }
-        public System.DateTime AddLastDateChange { get; set; }
-        public long SysUpdateNumber { get; set; }
-        public double AddMaterialToSend { get; set; }
+        public long LinDesign { get; set; }
+        public string TelegramChatId { get; set; }
+        public string TelegramUserId { get; set; }
+        public string Alias { get; set; }
+        public bool IsActive { get; set; }
+        public System.DateTime FechaRegistroUtc { get; set; }
     
-        public virtual AspNetUsers AspNetUsers { get; set; }
-        public virtual AspNetUsers AspNetUsers1 { get; set; }
+        public virtual TSql_Design TSql_Design { get; set; }
     }
 }
