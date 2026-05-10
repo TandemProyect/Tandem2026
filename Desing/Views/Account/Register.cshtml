@@ -1,58 +1,57 @@
 ﻿@model Desing.Models.RegisterViewModel
 
-<h4 class="py-3 mb-4">
-    <span class="text-muted fw-light">
-        <a href="@Url.Action("Index", "Home")">Inicio</a> /
-        <a href="@Url.Action("Index", "Employee")">Empleados</a> /
-    </span> Crear nuevo usuario
-</h4>
-<link href="~/Content/DesignTools/Design-tool.css" rel="stylesheet">
-<link href="~/assets/carousel.css" rel="stylesheet" />
-<link href="~/Content/Site.css" rel="stylesheet" />
-<div class="well" style="margin:30px;padding:30px">
-    @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
-    {
-        <fieldset style="margin:10px;padding:10px">
-            <legend> Crear nuevo Usuario</legend>
-            @Html.AntiForgeryToken()
-            @Html.ValidationSummary("", new { @class = "text-danger" })
-            <div class="form-horizontal">
-                <div class="form-group" style="margin:15px;margin:15px">
-                    @Html.LabelFor(m => m.Email, htmlAttributes: new { @class = "control-label col-md-9" })
-                    <div class="col-md-12">
-                        @Html.EditorFor(m => m.Email, new { htmlAttributes = new { @class = "form-control-mandatory" } })
-                        @Html.ValidationMessageFor(m => m.Email, "", new { @id = "LabelField", @class = "text-danger" })
-                    </div>
-                </div>
-
-                <div class="form-group" style="margin:15px;margin:15px">
-                    @Html.LabelFor(m => m.Password, new { @class = "col-md-2 control-label" })
-                    <div class="col-md-10">
-                        @Html.PasswordFor(m => m.Password, new { @class = "form-control-mandatory" })
-                    </div>
-                </div>
-                <div class="form-group"style="margin:15px;margin:15px">
-                    @Html.LabelFor(m => m.ConfirmPassword, new { @class = "col-md-2 control-label" })
-                    <div class="col-md-10">
-                        @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control-mandatory" })
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="col-md-offset-2 col-md-10">
-                        <input type="submit" class="btn btn-default" value="Register" />
-                    </div>
-                </div>
-
-            </div>
-        </fieldset>
-    }
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">Inicio</a> /
+            <a href="@Url.Action("Index", "Employee")">Empleados</a> /
+        </span> Crear nuevo usuario
+    </h4>
 </div>
-    @section Scripts {
-        <script type="text/javascript">
-            $(document).ready(function () {
-                $('#sidebar').toggleClass('active');
-                $(this).toggleClass('active');
-            });
-        </script>
-        @Scripts.Render("~/bundles/jqueryval")
-    }
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-10 col-lg-8 col-xl-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Datos del nuevo usuario</h5>
+            </div>
+            <div class="card-body">
+                @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { id = "formRegister", role = "form" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger small d-block mb-3" })
+
+                    <div class="form-floating form-floating-outline mb-5">
+                        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", id = "Email", placeholder = "Email", type = "email", autofocus = "autofocus" })
+                        <label for="Email">Email</label>
+                    </div>
+                    @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small d-block mb-3" })
+
+                    <div class="form-floating form-floating-outline mb-5">
+                        @Html.PasswordFor(m => m.Password, new { @class = "form-control", id = "Password", placeholder = "Contrasena" })
+                        <label for="Password">Contrasena</label>
+                    </div>
+                    @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger small d-block mb-3" })
+
+                    <div class="form-floating form-floating-outline mb-5">
+                        @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", id = "ConfirmPassword", placeholder = "Confirmar contrasena" })
+                        <label for="ConfirmPassword">Confirmar contrasena</label>
+                    </div>
+                    @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger small d-block mb-3" })
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="@Url.Action("Index", "Employee")" class="btn btn-outline-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="icon-base ri ri-user-add-line me-1"></i>
+                            Crear usuario
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

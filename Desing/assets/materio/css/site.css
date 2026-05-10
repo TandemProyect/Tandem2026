@@ -2,6 +2,39 @@
    Tandem Desing - Custom overrides sobre Materio
    ============================================================ */
 
+/* ---- Auth pages: skyline + tarjeta centrada ---- */
+.tandem-login-skyline {
+    width: 100%;
+    max-width: 2200px;
+    height: auto;
+    max-height: 430px;
+    object-fit: contain;
+    object-position: center bottom;
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 46px;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.96;
+    mix-blend-mode: multiply;
+    filter: contrast(1.08);
+}
+
+.tandem-auth-inner {
+    position: relative;
+    min-height: calc(100vh - 3rem);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 2.25rem;
+}
+
+.tandem-auth-inner .card {
+    position: relative;
+    z-index: 2;
+}
+
 /* ---- DataTables (Bootstrap 5) integracion con Materio ---- */
 .dataTables_wrapper {
     padding: 0.5rem 0;

@@ -4,45 +4,9 @@
     Layout = "~/Views/Shared/_LayoutMaterioBlank.cshtml";
     ViewBag.Title = "Iniciar sesion - Tandem Desing";
 }
-@section Styles {
-    <style>
-        .tandem-login-skyline {
-            width: 100%;
-            max-width: 2200px;
-            height: auto;
-            max-height: 430px;
-            object-fit: contain;
-            object-position: center bottom;
-            position: fixed;
-            left: 50%;
-            transform: translateX(-50%);
-            bottom: 46px;
-            z-index: 0;
-            pointer-events: none;
-            opacity: 0.96;
-            mix-blend-mode: multiply;
-            filter: contrast(1.08);
-        }
-
-        .authentication-inner {
-            position: relative;
-            min-height: calc(100vh - 3rem);
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            padding-top: 2.25rem;
-        }
-
-        .authentication-inner .card {
-            position: relative;
-            z-index: 2;
-        }
-    </style>
-}
-
 <div class="position-relative">
     <div class="authentication-wrapper authentication-basic container-p-y">
-        <div class="authentication-inner py-6 mx-4">
+        <div class="authentication-inner tandem-auth-inner py-6 mx-4">
 
             <div class="card p-sm-7 p-2">
 
