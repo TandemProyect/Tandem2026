@@ -1,58 +1,54 @@
 ﻿@model DAL.TSql_Design
-<link href="~/Content/DesignTools/Design-tool.css" rel="stylesheet">
-<link href="~/assets/carousel.css" rel="stylesheet" />
-<link href="~/Content/Site.css" rel="stylesheet" />
 @{
     ViewBag.Title = "Editar Diseño";
 }
-<div class="well" style="width:700px;z-index:2">
-    @using (Html.BeginForm("Edit", "DesignTools", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+<div class="tandem-popup p-4">
+    @using (Html.BeginForm("Edit", "DesignTools", FormMethod.Post, new { id = "formEditDesign", role = "form" }))
     {
-        <fieldset style="margin:10px;padding:10px">
-            <legend> Editar diseño</legend>
-            <div class="row" style="margin:10px;padding:10px">
-                @Html.AntiForgeryToken()
-                <input type="hidden"  name="SysObjectID" value='@Model.SysObjectID' />
-                <div class="form-horizontal">
-                    <div class="form-group">
-                        @Html.LabelFor(model => model.AttLabel, htmlAttributes: new { @class = "control-label col-md-9" })
-                        <div class="col-md-12">
-                            @Html.EditorFor(model => model.AttLabel, new { htmlAttributes = new { @class = "form-control-mandatory" } })
-                            @Html.ValidationMessageFor(model => model.AttLabel, "", new { @id = "LabelField", @class = "text-danger" })
-                        </div>
-                    </div>
-                    <br />
-                    <div class="col-md-12">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Compartir diseño</label>
-                                <input class="form-check-input" type="checkbox" id="CHeckRijiOutside" checked>
-                            </div>
-                        </div>
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="SysObjectID" value='@Model.SysObjectID' />
 
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Compartir para mi organización</label>
-                                <input class="form-check-input" type="checkbox" id="CHeckRijiOutside" checked>
-                            </div>
-                        </div>
-                    </div>
-                    <br />
-                    <h6>Observaciones</h6>
-                    <div class="col-md-12">
-                        <textarea class="form-control text-box multi-line" data-val="true" data-val-length="The field &quot;Description&quot; must be a string with maximum length of 2000." data-val-length-max="2000" id="AttDescription" name="AttDescription" rows="6"></textarea>
-                        <span class="field-validation-valid text-danger" data-valmsg-for="AttDescription" data-valmsg-replace="true"></span>
-                    </div>
+        <div class="d-flex align-items-center mb-4">
+            <i class="icon-base ri ri-edit-2-line text-primary me-2" style="font-size:1.5rem"></i>
+            <h5 class="mb-0">Editar diseño</h5>
+        </div>
+
+        <div class="form-floating form-floating-outline mb-4">
+            @Html.EditorFor(model => model.AttLabel, new { htmlAttributes = new { @class = "form-control", id = "AttLabel", placeholder = "Nombre del diseño" } })
+            <label for="AttLabel">Nombre del diseño</label>
+            @Html.ValidationMessageFor(model => model.AttLabel, "", new { @class = "text-danger small d-block mt-1" })
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="CheckShareDesign" checked>
+                    <label class="form-check-label" for="CheckShareDesign">Compartir diseño</label>
                 </div>
             </div>
-        </fieldset>
-        <hr style="background-color:#0d6efd; height:1px" />
-        <div class="row">
-            <div class="col-md-6"> &nbsp;&nbsp;&nbsp;&nbsp;</div>
-            <div class="col-md-5" style="margin:10px;padding:10px">
-                <button type="button" id="btnSalir" class="btn btn-danger">Salir</button>
-                <button type="submit" id="SubmitEditBtn" class="btn btn-warning">Editar</button>
+            <div class="col-md-6">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="CheckShareOrg" checked>
+                    <label class="form-check-label" for="CheckShareOrg">Compartir con mi organización</label>
+                </div>
             </div>
+        </div>
+
+        <div class="form-floating form-floating-outline mb-4">
+            <textarea class="form-control" data-val="true" data-val-length="El campo Observaciones admite máximo 2000 caracteres." data-val-length-max="2000" id="AttDescription" name="AttDescription" rows="5" placeholder="Observaciones" style="height:120px"></textarea>
+            <label for="AttDescription">Observaciones</label>
+            <span class="field-validation-valid text-danger small d-block mt-1" data-valmsg-for="AttDescription" data-valmsg-replace="true"></span>
+        </div>
+
+        <hr class="my-3" />
+
+        <div class="d-flex justify-content-end gap-2">
+            <button type="button" id="btnSalir" class="btn btn-outline-secondary">
+                <i class="icon-base ri ri-close-line me-1"></i> Salir
+            </button>
+            <button type="submit" id="SubmitEditBtn" class="btn btn-primary">
+                <i class="icon-base ri ri-save-line me-1"></i> Guardar
+            </button>
         </div>
     }
 </div>
@@ -60,7 +56,6 @@
 <script src="~/Scripts/jquery.validate.js"></script>
 <script src="~/Scripts/jquery.validate.unobtrusive.js"></script>
 <script type="text/javascript">
-
     $('#btnSalir').on('click', function () {
         $("#CreateDesign").hide("slide", { direction: "right" }, 1000);
         $("#Loading").hide("slide", { direction: "left" }, 700);
