@@ -1,6 +1,6 @@
-@*
+﻿@*
     Layout principal estilo Materio adaptado para ASP.NET MVC 5 / .NET Framework 4.8.
-    Reemplaza al _Layout.cshtml clasico de Tandem Desing.
+    Reemplaza al _Layout.cshtml clasico de T Desing.net.
 *@
 <!DOCTYPE html>
 <html lang="es"
@@ -13,9 +13,15 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-    <title>@(ViewBag.Title ?? "Tandem Desing")</title>
+    <title>@(ViewBag.Title ?? "T Desing.net")</title>
 
-    <link rel="icon" type="image/x-icon" href="@Url.Content("~/assets/client/images/Default/Ico/at.ico")" />
+    @{
+        var faviconPath = (ViewBag.PlantillaFavicon as string) ?? "/assets/client/images/Default/Ico/at.ico";
+        var faviconUrl = faviconPath.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+            ? faviconPath
+            : Url.Content("~" + (faviconPath.StartsWith("/") ? faviconPath : "/" + faviconPath));
+    }
+    <link rel="icon" href="@faviconUrl" />
 
     @{
         var googleFontsUrl = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap";
@@ -52,25 +58,7 @@
     <script src="@Url.Content("~/assets/materio/js/config.js")"></script>
 
     @* === Plantilla del usuario (color principal) ============================== *@
-    @{
-        var plantillaColor = (ViewBag.PlantillaColor as string) ?? "#349d7d";
-    }
-    <style>
-        :root {
-            --tandem-primary: @plantillaColor;
-        }
-        /* Aplica el color de la plantilla al sidebar, botones primarios y enlaces. */
-        .app-brand-text { color: var(--tandem-primary) !important; }
-        .menu-vertical .menu-inner-shadow { background: linear-gradient(rgba(255,255,255,1) 5%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0) 100%); }
-        .menu-vertical .menu-item.active > .menu-link:not(.menu-toggle) {
-            background: var(--tandem-primary) !important;
-            color: #fff !important;
-        }
-        .btn-primary,
-        .bg-primary { background-color: var(--tandem-primary) !important; border-color: var(--tandem-primary) !important; }
-        .text-primary { color: var(--tandem-primary) !important; }
-        a { color: var(--tandem-primary); }
-    </style>
+    @Html.Partial("_PlantillaStyles")
 
     @RenderSection("Styles", required: false)
 </head>

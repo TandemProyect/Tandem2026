@@ -119,6 +119,7 @@ namespace Desing.Controllers
             {
                 AttColor = "#349d7d",
                 AttLogo = "/Content/images/Login/at.png",
+                AttFavicon = "/assets/client/images/Default/Ico/at.ico",
                 AttIsDefault = false,
                 IsEdit = false
             };
@@ -127,19 +128,32 @@ namespace Desing.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(PlantillaViewModel model, HttpPostedFileBase logoFile)
+        public ActionResult Create(PlantillaViewModel model, HttpPostedFileBase logoFile, HttpPostedFileBase faviconFile)
         {
-            // Si subio un archivo, guardamos y sobreescribimos AttLogo antes de validar.
+            // Si subio un archivo de logo, guardamos y sobreescribimos AttLogo antes de validar.
             string logoSaveError;
-            string savedPath = TrySaveLogoFile(logoFile, out logoSaveError);
+            string savedLogoPath = TrySaveLogoFile(logoFile, out logoSaveError);
             if (logoSaveError != null)
             {
                 ModelState.AddModelError("AttLogo", logoSaveError);
             }
-            else if (!string.IsNullOrEmpty(savedPath))
+            else if (!string.IsNullOrEmpty(savedLogoPath))
             {
-                model.AttLogo = savedPath;
+                model.AttLogo = savedLogoPath;
                 ModelState.Remove("AttLogo");
+            }
+
+            // Favicon (opcional).
+            string faviconSaveError;
+            string savedFaviconPath = TrySaveFaviconFile(faviconFile, out faviconSaveError);
+            if (faviconSaveError != null)
+            {
+                ModelState.AddModelError("AttFavicon", faviconSaveError);
+            }
+            else if (!string.IsNullOrEmpty(savedFaviconPath))
+            {
+                model.AttFavicon = savedFaviconPath;
+                ModelState.Remove("AttFavicon");
             }
 
             if (!ModelState.IsValid)
@@ -167,6 +181,7 @@ namespace Desing.Controllers
                 AttName = model.AttName,
                 AttColor = model.AttColor,
                 AttLogo = model.AttLogo,
+                AttFavicon = model.AttFavicon,
                 AttIsDefault = model.AttIsDefault,
                 AttIsDeleted = false,
                 LinCreatedBy = userId,
@@ -206,6 +221,9 @@ namespace Desing.Controllers
                 AttName = entity.AttName,
                 AttColor = entity.AttColor,
                 AttLogo = entity.AttLogo,
+                AttFavicon = string.IsNullOrWhiteSpace(entity.AttFavicon)
+                    ? "/assets/client/images/Default/Ico/at.ico"
+                    : entity.AttFavicon,
                 AttIsDefault = entity.AttIsDefault,
                 IsEdit = true
             };
@@ -214,18 +232,30 @@ namespace Desing.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(PlantillaViewModel model, HttpPostedFileBase logoFile)
+        public ActionResult Edit(PlantillaViewModel model, HttpPostedFileBase logoFile, HttpPostedFileBase faviconFile)
         {
             string logoSaveError;
-            string savedPath = TrySaveLogoFile(logoFile, out logoSaveError);
+            string savedLogoPath = TrySaveLogoFile(logoFile, out logoSaveError);
             if (logoSaveError != null)
             {
                 ModelState.AddModelError("AttLogo", logoSaveError);
             }
-            else if (!string.IsNullOrEmpty(savedPath))
+            else if (!string.IsNullOrEmpty(savedLogoPath))
             {
-                model.AttLogo = savedPath;
+                model.AttLogo = savedLogoPath;
                 ModelState.Remove("AttLogo");
+            }
+
+            string faviconSaveError;
+            string savedFaviconPath = TrySaveFaviconFile(faviconFile, out faviconSaveError);
+            if (faviconSaveError != null)
+            {
+                ModelState.AddModelError("AttFavicon", faviconSaveError);
+            }
+            else if (!string.IsNullOrEmpty(savedFaviconPath))
+            {
+                model.AttFavicon = savedFaviconPath;
+                ModelState.Remove("AttFavicon");
             }
 
             if (!ModelState.IsValid)
@@ -259,6 +289,7 @@ namespace Desing.Controllers
             entity.AttName = model.AttName;
             entity.AttColor = model.AttColor;
             entity.AttLogo = model.AttLogo;
+            entity.AttFavicon = model.AttFavicon;
             entity.AttIsDefault = model.AttIsDefault;
             entity.LinModifiedBy = userId;
             entity.AttLastModification = now;
@@ -413,6 +444,70 @@ namespace Desing.Controllers
             catch (Exception ex)
             {
                 error = "No se pudo guardar el archivo: " + ex.Message;
+                return null;
+            }
+        }
+
+        // Extensiones admitidas para favicon. Se guardan sin redimensionar
+        // (los .ico y .svg son formatos especiales; PNG tambien se mantiene).
+        private static readonly string[] AllowedFaviconExtensions =
+            new[] { ".ico", ".png", ".svg", ".jpg", ".jpeg", ".gif" };
+
+        // Favicons son archivos pequenos; con 512 KB sobra.
+        private const long MaxFaviconSizeBytes = 512 * 1024;
+
+        /// <summary>
+        /// Guarda en ~/Files/Plantilla/ el favicon subido. Valida extension y tamano.
+        /// Devuelve la ruta web relativa, null si no se subio nada, o expone un error
+        /// por el parametro 'error'.
+        /// </summary>
+        private string TrySaveFaviconFile(HttpPostedFileBase faviconFile, out string error)
+        {
+            error = null;
+            if (faviconFile == null || faviconFile.ContentLength <= 0)
+                return null;
+
+            var extension = (Path.GetExtension(faviconFile.FileName) ?? "").ToLowerInvariant();
+            if (string.IsNullOrEmpty(extension) || Array.IndexOf(AllowedFaviconExtensions, extension) < 0)
+            {
+                error = "Formato no permitido para el favicon. Usa: " + string.Join(", ", AllowedFaviconExtensions);
+                return null;
+            }
+            if (faviconFile.ContentLength > MaxFaviconSizeBytes)
+            {
+                error = "El favicon supera el tamano maximo permitido (512 KB).";
+                return null;
+            }
+
+            try
+            {
+                var folderPhysical = Server.MapPath("~/Files/Plantilla/");
+                if (!Directory.Exists(folderPhysical))
+                {
+                    Directory.CreateDirectory(folderPhysical);
+                }
+
+                var safeBase = Path.GetFileNameWithoutExtension(faviconFile.FileName);
+                if (string.IsNullOrWhiteSpace(safeBase)) safeBase = "favicon";
+                foreach (var ch in Path.GetInvalidFileNameChars())
+                    safeBase = safeBase.Replace(ch, '_');
+                safeBase = safeBase.Replace(' ', '_');
+                if (safeBase.Length > 40) safeBase = safeBase.Substring(0, 40);
+
+                var fileName = string.Format(
+                    "favicon_{0}_{1:yyyyMMdd_HHmmss}_{2}{3}",
+                    safeBase,
+                    DateTime.UtcNow,
+                    Guid.NewGuid().ToString("N").Substring(0, 6),
+                    extension);
+
+                var fullPath = Path.Combine(folderPhysical, fileName);
+                faviconFile.SaveAs(fullPath);
+                return "/Files/Plantilla/" + fileName;
+            }
+            catch (Exception ex)
+            {
+                error = "No se pudo guardar el favicon: " + ex.Message;
                 return null;
             }
         }

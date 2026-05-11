@@ -1,0 +1,204 @@
+@*
+    Overrides globales del color primario con el color de la plantilla activa.
+    Se inyecta en todos los layouts para que Bootstrap, Materio y DataTables usen
+    var(--tandem-primary) en lugar del #349d7d hardcodeado del tema.
+
+    Uso: @Html.Partial("_PlantillaStyles") dentro del <head> despues de los <link>
+    a las hojas de estilo del tema.
+*@
+@{
+    var _plantillaColor = (ViewBag.PlantillaColor as string) ?? "#349d7d";
+}
+@*
+    Tipografia de la marca "T Desing.net":
+      - Windows: usa Candara Light (instalada de serie).
+      - Otros sistemas: fallback a Questrial (Google Fonts, humanista similar).
+*@
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet" />
+<style>
+    /* ---- Marca T Desing.net -------------------------------------------- */
+    .brand-font,
+    .app-brand-text,
+    .app-brand-text .brand-font,
+    .app-brand-text .brand-font * {
+        font-family: 'Candara Light', 'Candara', 'Questrial', 'Segoe UI', sans-serif !important;
+        font-weight: 300 !important;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+        text-transform: none !important;
+    }
+    /* "T" italica en naranja, independiente del color de la plantilla. */
+    .brand-font .brand-t {
+        font-style: italic;
+        color: #f29100 !important;
+        font-weight: 400 !important;
+        margin-right: 0.05em;
+    }
+    /* "Desing.net" hereda el color del contenedor (currentColor / plantilla). */
+    .brand-font .brand-rest {
+        font-style: normal;
+        color: inherit;
+    }
+    /* Compatibilidad: clases .brand-svg* heredadas siguen sirviendo de tamano. */
+    .brand-svg,
+    .brand-font {
+        display: inline-block;
+        vertical-align: middle;
+        line-height: 1;
+    }
+    .brand-svg-sidebar, .brand-font.brand-svg-sidebar { font-size: 20px; }
+    .brand-svg-login,   .brand-font.brand-svg-login   { font-size: 30px; }
+    .brand-svg-footer,  .brand-font.brand-svg-footer  { font-size: 14px; }
+    .brand-svg-preview, .brand-font.brand-svg-preview { font-size: 24px; }
+    /* ---- Variables Bootstrap a nivel raiz ----------------------------- */
+    :root,
+    [data-bs-theme="light"],
+    [data-bs-theme="dark"] {
+        --tandem-primary: @_plantillaColor;
+        --bs-primary: @_plantillaColor !important;
+        --bs-primary-rgb: var(--tandem-primary-rgb, 52, 157, 125);
+        --bs-link-color: @_plantillaColor !important;
+        --bs-link-hover-color: @_plantillaColor !important;
+    }
+
+    /* ---- Boton primary ------------------------------------------------- */
+    .btn-primary {
+        --bs-btn-bg: var(--tandem-primary) !important;
+        --bs-btn-border-color: var(--tandem-primary) !important;
+        --bs-btn-hover-bg: var(--tandem-primary) !important;
+        --bs-btn-hover-border-color: var(--tandem-primary) !important;
+        --bs-btn-active-bg: var(--tandem-primary) !important;
+        --bs-btn-active-border-color: var(--tandem-primary) !important;
+        --bs-btn-disabled-bg: var(--tandem-primary) !important;
+        --bs-btn-disabled-border-color: var(--tandem-primary) !important;
+        filter: none;
+    }
+    .btn-primary:hover,
+    .btn-primary:focus,
+    .btn-primary:active,
+    .btn-primary.active {
+        filter: brightness(0.92);
+    }
+
+    /* ---- Boton outline-primary ---------------------------------------- */
+    .btn-outline-primary {
+        --bs-btn-color: var(--tandem-primary) !important;
+        --bs-btn-border-color: var(--tandem-primary) !important;
+        --bs-btn-hover-bg: var(--tandem-primary) !important;
+        --bs-btn-hover-border-color: var(--tandem-primary) !important;
+        --bs-btn-active-bg: var(--tandem-primary) !important;
+        --bs-btn-active-border-color: var(--tandem-primary) !important;
+        --bs-btn-disabled-color: var(--tandem-primary) !important;
+        --bs-btn-disabled-border-color: var(--tandem-primary) !important;
+    }
+
+    /* ---- Backgrounds / textos / bordes utilitarios -------------------- */
+    .bg-primary { background-color: var(--tandem-primary) !important; }
+    .text-primary { color: var(--tandem-primary) !important; }
+    .border-primary { border-color: var(--tandem-primary) !important; }
+    .link-primary { color: var(--tandem-primary) !important; }
+    a { color: var(--tandem-primary); }
+    a:hover { color: var(--tandem-primary); filter: brightness(0.9); }
+
+    /* ---- Badges con color primario ------------------------------------ */
+    .bg-label-primary {
+        background-color: color-mix(in srgb, var(--tandem-primary) 18%, transparent) !important;
+        color: var(--tandem-primary) !important;
+    }
+
+    /* ---- Sidebar Materio: elemento activo ----------------------------- */
+    .menu-vertical .menu-item.active > .menu-link:not(.menu-toggle) {
+        background: var(--tandem-primary) !important;
+        color: #fff !important;
+    }
+    .app-brand-text { color: var(--tandem-primary) !important; }
+
+    /* ---- Formularios: focus, checkboxes, radios, range ---------------- */
+    .form-control:focus,
+    .form-select:focus,
+    .form-check-input:focus {
+        border-color: var(--tandem-primary) !important;
+        box-shadow: 0 0 0 0.15rem color-mix(in srgb, var(--tandem-primary) 25%, transparent) !important;
+    }
+    .form-check-input:checked {
+        background-color: var(--tandem-primary) !important;
+        border-color: var(--tandem-primary) !important;
+    }
+    .form-switch .form-check-input:checked {
+        background-color: var(--tandem-primary) !important;
+        border-color: var(--tandem-primary) !important;
+    }
+
+    /* ---- Progress bars ------------------------------------------------- */
+    .progress-bar { background-color: var(--tandem-primary) !important; }
+
+    /* ---- Pagination (Bootstrap + DataTables) -------------------------- */
+    .page-link { color: var(--tandem-primary) !important; }
+    .page-item.active .page-link,
+    .page-link.active {
+        background-color: var(--tandem-primary) !important;
+        border-color: var(--tandem-primary) !important;
+        color: #fff !important;
+    }
+
+    /* ---- DataTables ---------------------------------------------------- */
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+        background: var(--tandem-primary) !important;
+        border-color: var(--tandem-primary) !important;
+        color: #fff !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background: color-mix(in srgb, var(--tandem-primary) 15%, transparent) !important;
+        border-color: var(--tandem-primary) !important;
+        color: var(--tandem-primary) !important;
+    }
+    table.dataTable tbody tr.selected,
+    table.dataTable tbody tr.selected td {
+        background-color: color-mix(in srgb, var(--tandem-primary) 20%, transparent) !important;
+        color: inherit !important;
+    }
+    .dataTables_wrapper .dataTables_length select:focus,
+    .dataTables_wrapper .dataTables_filter input:focus {
+        border-color: var(--tandem-primary) !important;
+        box-shadow: 0 0 0 0.15rem color-mix(in srgb, var(--tandem-primary) 25%, transparent) !important;
+    }
+
+    /* ---- Nav tabs / pills activas ------------------------------------- */
+    .nav-pills .nav-link.active,
+    .nav-pills .show > .nav-link {
+        background-color: var(--tandem-primary) !important;
+        color: #fff !important;
+    }
+    .nav-tabs .nav-link.active {
+        color: var(--tandem-primary) !important;
+        border-bottom-color: var(--tandem-primary) !important;
+    }
+
+    /* ---- Dropdown items activos / seleccionados ----------------------- */
+    .dropdown-item.active,
+    .dropdown-item:active {
+        background-color: var(--tandem-primary) !important;
+        color: #fff !important;
+    }
+
+    /* ---- Alertas primary ---------------------------------------------- */
+    .alert-primary {
+        background-color: color-mix(in srgb, var(--tandem-primary) 15%, #fff) !important;
+        border-color: color-mix(in srgb, var(--tandem-primary) 40%, #fff) !important;
+        color: var(--tandem-primary) !important;
+    }
+
+    /* ---- Spinner -------------------------------------------------------- */
+    .spinner-border.text-primary,
+    .spinner-grow.text-primary { color: var(--tandem-primary) !important; }
+
+    /* ---- List group items activos ------------------------------------- */
+    .list-group-item.active {
+        background-color: var(--tandem-primary) !important;
+        border-color: var(--tandem-primary) !important;
+        color: #fff !important;
+    }
+</style>

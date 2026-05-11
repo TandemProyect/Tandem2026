@@ -31,6 +31,10 @@ namespace Desing.Models
         [DisplayName("Logo (ruta)")]
         public string AttLogo { get; set; } = "/Content/images/Login/at.png";
 
+        [StringLength(500)]
+        [DisplayName("Favicon (ruta)")]
+        public string AttFavicon { get; set; } = "/assets/client/images/Default/Ico/at.ico";
+
         [DisplayName("Plantilla por defecto")]
         public bool AttIsDefault { get; set; }
 

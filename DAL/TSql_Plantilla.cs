@@ -24,6 +24,7 @@ namespace DAL
         public string AttName { get; set; }
         public string AttColor { get; set; }
         public string AttLogo { get; set; }
+        public string AttFavicon { get; set; }
         public bool AttIsDefault { get; set; }
         public bool AttIsDeleted { get; set; }
         public string LinCreatedBy { get; set; }

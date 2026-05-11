@@ -1,4 +1,4 @@
-@model Desing.Models.PlantillaViewModel
+﻿@model Desing.Models.PlantillaViewModel
 @{
     ViewBag.Title = Model.IsEdit ? "Editar plantilla" : "Crear plantilla";
     var actionName = Model.IsEdit ? "Edit" : "Create";
@@ -58,6 +58,24 @@
                     </div>
 
                     <div class="form-group" style="margin:15px">
+                        @Html.LabelFor(m => m.AttFavicon, htmlAttributes: new { @class = "control-label col-md-9" })
+                        <div class="col-md-12 d-flex align-items-center gap-2" style="gap:10px">
+                            <img id="PlantillaFaviconPreview"
+                                 src="@(Url.Content("~" + (Model.AttFavicon ?? "/assets/client/images/Default/Ico/at.ico")))"
+                                 style="width:32px;height:32px;border:1px solid #ddd;border-radius:4px;background:#fff;padding:2px" />
+                            <div style="flex:1">
+                                <input type="file" id="faviconFile" name="faviconFile" class="form-control" accept=".ico,.png,.svg,.jpg,.jpeg,.gif" />
+                                <small class="text-muted">Favicon del navegador (ICO, PNG, SVG, JPG o GIF; max 512 KB). Se sube al guardar.</small>
+                            </div>
+                        </div>
+                        <div class="col-md-12 mt-2">
+                            @Html.TextBoxFor(m => m.AttFavicon, new { @class = "form-control", @readonly = "readonly", @style = "background:#f6f6f6", @placeholder = "/assets/client/images/Default/Ico/at.ico" })
+                            <small class="text-muted">Ruta actual del favicon.</small>
+                            @Html.ValidationMessageFor(m => m.AttFavicon, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin:15px">
                         <div class="col-md-12">
                             <label>
                                 @Html.CheckBoxFor(m => m.AttIsDefault)
@@ -73,7 +91,7 @@
                         <div class="card-header" style="font-weight:600">Vista previa</div>
                         <div id="PlantillaPreview" class="card-body text-center" style="background:@Model.AttColor;color:#fff;border-radius:0 0 6px 6px;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center">
                             <img id="PlantillaPreviewLogo" src="@(Url.Content("~" + (Model.AttLogo ?? "/Content/images/Login/at.png")))" style="height:48px;background:#fff;padding:6px;border-radius:6px" />
-                            <div style="margin-top:12px;font-size:18px;font-weight:600">Tandem Desing</div>
+                            <div class="brand-svg-preview" style="margin-top:12px">@Html.Partial("_BrandSvg")</div>
                             <div style="opacity:.85">Color principal: <code id="PlantillaPreviewColorTxt" style="color:#fff;background:rgba(0,0,0,.2);padding:2px 6px;border-radius:4px">@Model.AttColor</code></div>
                         </div>
                     </div>
@@ -144,6 +162,23 @@
                 var reader = new FileReader();
                 reader.onload = function (e) {
                     $previewLogo.attr('src', e.target.result);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // Preview inmediato del favicon al seleccionar archivo.
+            var $previewFavicon = $('#PlantillaFaviconPreview');
+            $('#faviconFile').on('change', function () {
+                var file = this.files && this.files[0];
+                if (!file) return;
+                if (file.size > 512 * 1024) {
+                    alert('El favicon supera 512 KB. Selecciona uno mas pequeno.');
+                    this.value = '';
+                    return;
+                }
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $previewFavicon.attr('src', e.target.result);
                 };
                 reader.readAsDataURL(file);
             });

@@ -1,7 +1,12 @@
 {
   "compilerOptions": {
     "checkJs": false,
-    "target": "es5"
+    "allowJs": true,
+    "noImplicitAny": false,
+    "strict": false,
+    "target": "es2017",
+    "module": "esnext",
+    "lib": [ "es2017", "dom" ]
   },
   "exclude": [
     "bin",
@@ -10,6 +15,7 @@
     "Scripts/bootstrap*",
     "Scripts/datatables/**",
     "Scripts/vscad_jquery/**",
-    "assets/**"
+    "assets/**",
+    "Files/**"
   ]
 }

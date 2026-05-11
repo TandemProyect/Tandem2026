@@ -1,8 +1,8 @@
-@using Desing.Models
+﻿@using Desing.Models
 @model LoginViewModel
 @{
     Layout = "~/Views/Shared/_LayoutMaterioBlank.cshtml";
-    ViewBag.Title = "Iniciar sesion - Tandem Desing";
+    ViewBag.Title = "Iniciar sesion - T Desing.net";
 }
 <div class="position-relative">
     <div class="authentication-wrapper authentication-basic container-p-y">
@@ -22,12 +22,14 @@
                         <span class="app-brand-logo demo">
                             <img src="@loginLogoUrl" alt="Tandem" style="height:36px" />
                         </span>
-                        <span class="app-brand-text demo text-heading fw-semibold">Tandem Desing</span>
+                        <span class="app-brand-text demo text-heading brand-svg-login">
+                            @Html.Partial("_BrandSvg")
+                        </span>
                     </a>
                 </div>
 
                 <div class="card-body mt-1">
-                    <h4 class="mb-1">Bienvenido a Tandem Desing</h4>
+                    <h4 class="mb-1">Bienvenido a T Desing.net</h4>
                     <p class="mb-5">Inicia sesion para acceder a tu espacio de trabajo</p>
 
                     @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { id = "formAuthentication", @class = "mb-5", role = "form" }))
@@ -47,7 +49,7 @@
                                         @Html.PasswordFor(m => m.Password, new { @class = "form-control", id = "password", placeholder = "Password" })
                                         <label for="password">Password</label>
                                     </div>
-                                    <button type="button" class="input-group-text cursor-pointer" id="togglePassword" aria-label="Mostrar u ocultar contraseña" aria-pressed="false" onclick="togglePasswordVisibility(event)">
+                                    <button type="button" class="input-group-text cursor-pointer" id="togglePassword" aria-label="Mostrar u ocultar contrase&#241;a" aria-pressed="false">
                                         <i class="icon-base ri ri-eye-off-line icon-20px"></i>
                                     </button>
                                 </div>
@@ -84,29 +86,30 @@
 
 @section scripts {
     <script>
-        window.togglePasswordVisibility = function (e) {
-            if (e && typeof e.preventDefault === 'function') e.preventDefault();
-            var toggle = document.getElementById('togglePassword');
-            var pwd = document.getElementById('password');
-            if (!toggle || !pwd) return false;
+        // Toggle del icono de ojo para mostrar/ocultar la contrasena.
+        // Uso de bracket notation (window['jQuery']) para evitar avisos del
+        // analizador estatico de VS que no conoce jQuery como global.
+        (function () {
+            var $ = window['jQuery'];
+            if (!$) { return; }
+            $(function () {
+                $(document).on('click', '#togglePassword', function (e) {
+                    e.preventDefault();
+                    var $btn = $(this);
+                    var $pwd = $('#password');
+                    if (!$pwd.length) { return false; }
 
-            var isPwd = pwd.getAttribute('type') === 'password';
-            pwd.setAttribute('type', isPwd ? 'text' : 'password');
-            toggle.setAttribute('aria-pressed', isPwd ? 'true' : 'false');
-            var icon = toggle.querySelector('i');
-            if (icon) {
-                icon.className = isPwd
-                    ? 'icon-base ri ri-eye-line icon-20px'
-                    : 'icon-base ri ri-eye-off-line icon-20px';
-            }
-            return false;
-        };
-
-        (function initPasswordToggle() {
-            document.addEventListener('click', function (e) {
-                var toggle = e.target.closest('#togglePassword');
-                if (!toggle) return;
-                window.togglePasswordVisibility(e);
+                    var isPwd = $pwd.attr('type') === 'password';
+                    $pwd.attr('type', isPwd ? 'text' : 'password');
+                    $btn.attr('aria-pressed', isPwd ? 'true' : 'false');
+                    $btn.find('i').attr(
+                        'class',
+                        isPwd
+                            ? 'icon-base ri ri-eye-line icon-20px'
+                            : 'icon-base ri ri-eye-off-line icon-20px'
+                    );
+                    return false;
+                });
             });
         })();
     </script>

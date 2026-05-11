@@ -1,5 +1,5 @@
-@*
-    Sidebar vertical estilo Materio adaptado al menu de Tandem Desing.
+﻿@*
+    Sidebar vertical estilo Materio adaptado al menu de T Desing.net.
     Resalta el item activo segun la ruta actual.
 *@
 @{
@@ -24,7 +24,9 @@
             <span class="app-brand-logo demo me-1">
                 <img src="@plantillaLogoUrl" alt="Tandem" style="height:28px" />
             </span>
-            <span class="app-brand-text demo menu-text fw-semibold ms-2">Tandem Desing</span>
+            <span class="app-brand-text demo menu-text ms-2 brand-svg-sidebar">
+                @Html.Partial("_BrandSvg")
+            </span>
         </a>
 
         <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">

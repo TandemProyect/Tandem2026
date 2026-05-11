@@ -349,6 +349,7 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <Property Name="AttName" Type="nvarchar" MaxLength="150" Nullable="false" />
           <Property Name="AttColor" Type="nvarchar" MaxLength="20" Nullable="false" />
           <Property Name="AttLogo" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="AttFavicon" Type="nvarchar" MaxLength="500" />
           <Property Name="AttIsDefault" Type="bit" Nullable="false" />
           <Property Name="AttIsDeleted" Type="bit" Nullable="false" />
           <Property Name="LinCreatedBy" Type="nvarchar" MaxLength="128" />
@@ -3619,6 +3620,7 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <Property Name="AttName" Type="String" Nullable="false" MaxLength="150" FixedLength="false" Unicode="true" />
           <Property Name="AttColor" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="true" />
           <Property Name="AttLogo" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="AttFavicon" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
           <Property Name="AttIsDefault" Type="Boolean" Nullable="false" />
           <Property Name="AttIsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="LinCreatedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
@@ -4342,6 +4344,7 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
                 <ScalarProperty Name="LinCreatedBy" ColumnName="LinCreatedBy" />
                 <ScalarProperty Name="AttIsDeleted" ColumnName="AttIsDeleted" />
                 <ScalarProperty Name="AttIsDefault" ColumnName="AttIsDefault" />
+                <ScalarProperty Name="AttFavicon" ColumnName="AttFavicon" />
                 <ScalarProperty Name="AttLogo" ColumnName="AttLogo" />
                 <ScalarProperty Name="AttColor" ColumnName="AttColor" />
                 <ScalarProperty Name="AttName" ColumnName="AttName" />

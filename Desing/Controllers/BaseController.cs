@@ -33,9 +33,10 @@ namespace Desing.Controllers
         {
             base.OnActionExecuting(filterContext);
 
-            // Plantilla por defecto del sitio (color + logo) - fallback si no hay usuario.
+            // Plantilla por defecto del sitio (color + logo + favicon) - fallback si no hay usuario.
             ViewBag.PlantillaColor = "#349d7d";
             ViewBag.PlantillaLogo = "/Content/images/Login/at.png";
+            ViewBag.PlantillaFavicon = "/assets/client/images/Default/Ico/at.ico";
 
             // Disponibilizar avatar, userName y plantilla en todas las vistas (navbar Materio).
             try
@@ -80,6 +81,8 @@ namespace Desing.Controllers
                         ViewBag.PlantillaColor = plantilla.AttColor;
                     if (!string.IsNullOrWhiteSpace(plantilla.AttLogo))
                         ViewBag.PlantillaLogo = plantilla.AttLogo;
+                    if (!string.IsNullOrWhiteSpace(plantilla.AttFavicon))
+                        ViewBag.PlantillaFavicon = plantilla.AttFavicon;
                 }
             }
             catch

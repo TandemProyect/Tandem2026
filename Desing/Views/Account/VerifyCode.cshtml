@@ -1,7 +1,7 @@
 ﻿@model Desing.Models.VerifyCodeViewModel
 @{
     Layout = "~/Views/Shared/_LayoutMaterioBlank.cshtml";
-    ViewBag.Title = "Verificar codigo - Tandem Desing";
+    ViewBag.Title = "Verificar codigo - T Desing.net";
 }
 <div class="position-relative">
     <div class="authentication-wrapper authentication-basic container-p-y">
@@ -13,7 +13,9 @@
                         <span class="app-brand-logo demo">
                             <img src="~/Content/images/Login/at.png" alt="Tandem" style="height:36px" />
                         </span>
-                        <span class="app-brand-text demo text-heading fw-semibold">Tandem Desing</span>
+                        <span class="app-brand-text demo text-heading brand-svg-login">
+                            @Html.Partial("_BrandSvg")
+                        </span>
                     </a>
                 </div>
 
