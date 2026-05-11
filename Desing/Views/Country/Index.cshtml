@@ -31,8 +31,8 @@
                     dt = $('#TableEmployee').DataTable({
                         dom: '<"dataTables-length-position">Bfrt<"dataTables-length-position"i>p',
                         lengthMenu: [
-                            [10, 25, 50, -1],
-                            ['10 rows', '25 rows', '50 rows', 'Show all']
+                            [10, 25, 50, 100],
+                            ['10 filas', '25 filas', '50 filas', '100 filas']
                         ],
                         buttons: [
                             {
@@ -40,15 +40,15 @@
                                 text: "<i class='fas fa-bars'></i>",
                                 className: 'custom-html-collection',
                                 buttons: [
-                                    '<h5>Select Record</h5>',
+                                    '<h5>Registros</h5>',
                                     'pageLength',
-                                    '<h5>Export</h5>',
+                                    '<h5>Exportar</h5>',
                                     'print',
                                     'copy',
                                     'pdf',
                                     'csv',
                                     'excel',
-                                    '<h5 class="not-top-heading">Column Visibility</h5>',
+                                    '<h5 class="not-top-heading">Columnas visibles</h5>',
                                     'colvis'
                                 ]
                             }
@@ -60,6 +60,7 @@
                         "processing": true,
                         "stateSave": true,
                         "stateDuration": 12,
+                        "colReorder": { "iFixedColumnsRight": 2 },
                         //stateSaveCallback: function(settings,data) {
                         //    //Save personalized buttons data:
                         //    var dataString = JSON.stringify(data);
@@ -80,7 +81,6 @@
                             { "data": "emptyColumn" },
                             { "data": "SysObjectID" }
                         ],
-                        "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]],
                      /*   "iDisplayLength": parseInt(leerCookie("_rowsPerPage")),*/
                         "fnRowCallback": function (nRow, data, iDisplayIndex)
                         {

@@ -1,0 +1,99 @@
+/* === DataTables Tandem: tipografía y color unificados ====================
+   - Color texto: #4C4C4C (gris oscuro).
+   - Tamaño: ligeramente menor que el cuerpo del tema (~1 pt menos).
+   - Cabeceras th: solo primera letra en mayúscula (resto minúsculas).
+   - Celdas tbody: sin text-transform (se respetan nombres propios en datos).
+   ------------------------------------------------------------------------- */
+:root {
+    --dt-fg: #4c4c4c;
+    --dt-fs: 0.8125rem;
+}
+
+div.dataTables_wrapper,
+.dataTables_wrapper {
+    font-size: var(--dt-fs);
+    color: var(--dt-fg);
+}
+
+.dataTables_wrapper table.dataTable {
+    font-size: var(--dt-fs);
+    color: var(--dt-fg);
+}
+
+.dataTables_wrapper table.dataTable thead th,
+.dataTables_wrapper table.dataTable tbody td {
+    color: var(--dt-fg);
+}
+
+.dataTables_wrapper table.dataTable thead th {
+    text-transform: lowercase;
+    font-weight: 500;
+}
+
+.dataTables_wrapper table.dataTable thead th:not(:empty)::first-letter {
+    text-transform: uppercase;
+}
+
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter,
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_processing {
+    font-size: var(--dt-fs);
+    color: var(--dt-fg);
+}
+
+.dataTables_wrapper .dataTables_filter label,
+.dataTables_wrapper .dataTables_length label {
+    color: var(--dt-fg);
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    font-size: var(--dt-fs);
+    color: var(--dt-fg);
+}
+
+.dataTables_wrapper .dataTables_paginate,
+.dataTables_wrapper .dataTables_paginate .pagination {
+    font-size: var(--dt-fs);
+}
+
+.dataTables_wrapper .page-link {
+    color: var(--dt-fg) !important;
+}
+
+.dataTables_wrapper .pagination .page-item.active .page-link {
+    background-color: var(--dt-fg);
+    border-color: var(--dt-fg);
+    color: #fafafa !important;
+}
+
+.dataTables_wrapper .dt-buttons .dt-button,
+.dataTables_wrapper .dt-button-collection .dt-button,
+.dataTables_wrapper .dt-button-collection h5 {
+    font-size: var(--dt-fs) !important;
+    color: var(--dt-fg) !important;
+}
+
+.dataTables_wrapper .dt-button-collection {
+    color: var(--dt-fg);
+}
+
+.dataTables_wrapper table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control::before,
+.dataTables_wrapper table.dataTable.dtr-inline.collapsed > tbody > tr > th.dtr-control::before {
+    color: var(--dt-fg);
+}
+
+.dataTables_wrapper table.dataTable tbody tr.child span.dtr-title {
+    color: var(--dt-fg);
+    font-size: var(--dt-fs);
+    text-transform: lowercase;
+}
+
+.dataTables_wrapper table.dataTable tbody tr.child span.dtr-title::first-letter {
+    text-transform: uppercase;
+}
+
+.dataTables_wrapper table.dataTable tbody tr.child span.dtr-data {
+    color: var(--dt-fg);
+    font-size: var(--dt-fs);
+}

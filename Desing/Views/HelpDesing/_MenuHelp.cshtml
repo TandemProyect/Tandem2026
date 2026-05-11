@@ -1,5 +1,6 @@
 ﻿@model DAL.TSql_Help
 <link href="~/Scripts/datatables/datatables.css" rel="stylesheet" />
+<link href="~/Scripts/datatables-tandem.css" rel="stylesheet" />
 <div class="card mb-4">
     <div class="card-body" style="padding: 10px; margin: 10px; height: 500px; width: 450px; overflow-y: scroll; overflow-x: hidden ">
         <table id="TableHelp" class="table table-hover" cellspacing="0" style="width: 100%; font-size:16px">
@@ -26,24 +27,21 @@
                 {
                     dt = $('#TableHelp').DataTable({
                         language: {
-                            "decimal": "",
-                            "emptyTable": "No hay información",
-                            "info": "Mostrando _START_ a _END_ de _TOTAL_ Entradas",
-                            "infoEmpty": "Mostrando 0 to 0 of 0 Entradas",
-                            "infoFiltered": "(Filtrado de _MAX_ total entradas)",
-                            "infoPostFix": "",
-                            "thousands": ",",
-                            "lengthMenu": "Mostrar _MENU_ Entradas",
-                            "loadingRecords": "Cargando...",
-                            "processing": "Procesando...",
-                            "search": "Buscar:",
-                            "zeroRecords": "Sin resultados encontrados",
-                            "paginate": {
-                                "first": "Primero",
-                                "last": "Ultimo",
-                                "next": "Siguiente",
-                                "previous": "Anterior"
-                            },
+                            emptyTable: "No hay información",
+                            info: "Mostrando _START_ a _END_ de _TOTAL_ entradas",
+                            infoEmpty: "Mostrando 0 a 0 de 0 entradas",
+                            infoFiltered: "(filtrado de _MAX_ entradas totales)",
+                            lengthMenu: "Mostrar _MENU_ entradas",
+                            loadingRecords: "Cargando...",
+                            processing: "Procesando...",
+                            search: "Buscar:",
+                            zeroRecords: "No se encontraron resultados",
+                            paginate: {
+                                first: "Primero",
+                                last: "Último",
+                                next: "Siguiente",
+                                previous: "Anterior"
+                            }
                         },
                         dom: '<"dataTables-length-position">f<"dataTables-length-position">',
                         //"paging": false,

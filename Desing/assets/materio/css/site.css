@@ -2,6 +2,25 @@
    Tandem Desing - Custom overrides sobre Materio
    ============================================================ */
 
+/* ---- Separador: linea azul (color plantilla) entre contenido y pie ---- */
+.layout-content-navbar .content-footer.footer {
+    border-top: 1px solid var(--tandem-primary, var(--bs-primary));
+}
+
+/* ---- Menu lateral: fondo ligeramente mas oscuro (barra superior sin override) ---- */
+.layout-content-navbar {
+    --tandem-chrome-bg: color-mix(in srgb, var(--bs-body-bg, #fff) 94%, var(--bs-heading-color, #2e263d) 6%);
+}
+
+.layout-content-navbar #layout-menu.layout-menu.menu-vertical {
+    background-color: var(--tandem-chrome-bg) !important;
+}
+
+/* ---- Barra superior: linea fina inferior (mismo tono que separadores .menu-header) ---- */
+.layout-content-navbar .layout-navbar.bg-navbar-theme {
+    border-bottom: 1px solid rgba(var(--bs-base-color-rgb), 0.2);
+}
+
 /* ---- Popups AJAX (DesignTools _Create / _Edit / _Delete) ---- */
 
 /* Backdrop oscuro detras del popup */

@@ -42,12 +42,12 @@
                     @*0*@<th>Diseño</th>
                     @*1*@<th>Descripción</th>
                     @*2*@<th>Creado por</th>
-                    @*3*@<th></th>
+                    @*3*@<th>Apellido</th>
                     @*4*@<th>Empresa</th>
                     @*5*@<th>Delegación</th>
                     @*6*@<th>Modificada</th>
                     @*7*@<th>Creada</th>
-                    @*8*@<th></th>
+                    @*8*@<th class="text-nowrap">Acciones</th>
                     @*9*@<th></th>
                 </tr>
             </thead>
@@ -119,30 +119,10 @@
             dt: null,
             init: function () {
                 dt = $('#Design').DataTable({
-                    language: {
-                        "decimal": "",
-                        "emptyTable": "No hay información",
-                        "info": "Mostrando _START_ a _END_ de _TOTAL_ Entradas",
-                        "infoEmpty": "Mostrando 0 to 0 of 0 Entradas",
-                        "infoFiltered": "(Filtrado de _MAX_ total entradas)",
-                        "infoPostFix": "",
-                        "thousands": ",",
-                        "lengthMenu": "Mostrar _MENU_ Entradas",
-                        "loadingRecords": "Cargando...",
-                        "processing": "Procesando...",
-                        "search": "Buscar:",
-                        "zeroRecords": "Sin resultados encontrados",
-                        "paginate": {
-                            "first": "Primero",
-                            "last": "Ultimo",
-                            "next": "Siguiente",
-                            "previous": "Anterior"
-                        },
-                    },
                     dom: '<"dataTables-length-position">Bfrt<"dataTables-length-position"i>p',
                     lengthMenu: [
                         [10, 25, 50, -1],
-                        ['10 rows', '25 rows', '50 rows', 'Show all']
+                        ['10 filas', '25 filas', '50 filas', 'Todas']
                     ],
                     buttons: [
                         {
@@ -150,15 +130,15 @@
                             text: "<i class='fas fa-bars'></i>",
                             className: 'custom-html-collection',
                             buttons: [
-                                '<h5>Select Record</h5>',
+                                '<h5>Registros</h5>',
                                 'pageLength',
-                                '<h5>Export</h5>',
+                                '<h5>Exportar</h5>',
                                 'print',
                                 'copy',
                                 'pdf',
                                 'csv',
                                 'excel',
-                                '<h5 class="not-top-heading">Column Visibility</h5>',
+                                '<h5 class="not-top-heading">Columnas visibles</h5>',
                                 'colvis'
                             ]
                         }
@@ -170,7 +150,7 @@
                     "processing": true,
                     "stateSave": true,
                     "stateDuration": 12,
-
+                    "colReorder": { "iFixedColumnsRight": 2 },
 
                     //stateSaveCallback: function(settings,data) {
                     //    //Save personalized buttons data:
@@ -198,20 +178,21 @@
                         /*5*/{ "data": "AttLabelBranch"},
                         /*6*/{ "data": "DateChange" },
                         /*7*/{ "data": "DateCreate" },
-                        /*8*/{ "data": "emptyColumn"},
+                        /*8*/{
+                            "data": "emptyColumn",
+                            "orderable": false,
+                            "className": "text-nowrap",
+                            "render": function (data, type, row) {
+                                if (type !== "display") { return ""; }
+                                if (row.allowEdit != true) { return ""; }
+                                return (row.buttonOpen || "") + "&nbsp;" +
+                                    (row.buttonEdit || "") + "&nbsp;" +
+                                    (row.buttonDelete || "") + "&nbsp;";
+                            }
+                        },
                         /*9*/{ "data": "SysObjectID"}
             ],
-            "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]],
             /*   "iDisplayLength": parseInt(leerCookie("_rowsPerPage")),*/
-            "fnRowCallback": function (nRow, data, iDisplayIndex) {
-                $('td:eq(0)', nRow).html(data.AttLabel);
-                if (data.allowEdit == true) {
-                    $('td:eq(8)', nRow).append(data.buttonOpen +   '&nbsp;');
-                    $('td:eq(8)', nRow).append(data.buttonEdit +   '&nbsp;');
-                    $('td:eq(8)', nRow).append(data.buttonDelete + '&nbsp;');
-                }
-                return nRow;
-            },
             "aaSorting": [[1, 'desc']],
             "aoColumnDefs": [
                 { "bVisible": false, "aTargets": [9] },

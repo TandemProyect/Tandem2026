@@ -1,0 +1,48 @@
+/* === DataTables: handles de resize de columnas ====================== */
+table.dataTable thead th {
+    position: relative !important;
+}
+table.dataTable thead th .dt-col-resizer {
+    position: absolute;
+    top: 0;
+    right: -4px;          /* sobresale ligeramente para ser atrapable */
+    width: 9px;
+    height: 100%;
+    cursor: col-resize;
+    user-select: none;
+    z-index: 50;
+    background: transparent;
+    transition: background-color 0.15s ease;
+}
+/* Linea sutil siempre visible para indicar zona de arrastre. */
+table.dataTable thead th .dt-col-resizer::after {
+    content: '';
+    position: absolute;
+    top: 25%;
+    right: 4px;
+    width: 2px;
+    height: 50%;
+    background-color: rgba(0, 0, 0, 0.15);
+    border-radius: 1px;
+}
+table.dataTable thead th .dt-col-resizer:hover,
+table.dataTable thead th .dt-col-resizer.dt-col-resizing {
+    background-color: color-mix(in srgb, var(--tandem-primary, #349d7d) 35%, transparent);
+}
+table.dataTable thead th .dt-col-resizer:hover::after,
+table.dataTable thead th .dt-col-resizer.dt-col-resizing::after {
+    background-color: var(--tandem-primary, #349d7d);
+    width: 3px;
+}
+/* No tirar de los iconos de ordenacion: el icono de DataTables suele ir a la derecha. */
+table.dataTable thead th.sorting,
+table.dataTable thead th.sorting_asc,
+table.dataTable thead th.sorting_desc {
+    padding-right: 24px !important;
+}
+/* Mientras se arrastra, evita seleccion de texto en toda la pagina. */
+body.dt-col-resizing,
+body.dt-col-resizing * {
+    cursor: col-resize !important;
+    user-select: none !important;
+}

@@ -115,6 +115,30 @@
     }
     .app-brand-text { color: var(--tandem-primary) !important; }
 
+    /* ---- Badge "Entorno: Staging" (estilo pill plantilla) ------------- */
+    .badge.brand-env-badge {
+        background-color: var(--tandem-primary) !important;
+        color: #fff !important;
+        border-radius: 999px !important;
+        padding: 0.35em 0.85em !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.02em;
+    }
+
+    /* ---- DataTables: linea bajo la cabecera en color plantilla -------- */
+    table.dataTable > thead > tr > th,
+    table.dataTable > thead > tr > td,
+    table.dataTable thead th.sorting,
+    table.dataTable thead th.sorting_asc,
+    table.dataTable thead th.sorting_desc {
+        border-bottom: 2px solid var(--tandem-primary) !important;
+    }
+    /* Cuando hay scrollX, DataTables clona la cabecera en .dataTables_scrollHead. */
+    .dataTables_scrollHead table.dataTable thead th,
+    .dataTables_scrollHeadInner table.dataTable thead th {
+        border-bottom: 2px solid var(--tandem-primary) !important;
+    }
+
     /* ---- Formularios: focus, checkboxes, radios, range ---------------- */
     .form-control:focus,
     .form-select:focus,
@@ -164,6 +188,67 @@
     .dataTables_wrapper .dataTables_filter input:focus {
         border-color: var(--tandem-primary) !important;
         box-shadow: 0 0 0 0.15rem color-mix(in srgb, var(--tandem-primary) 25%, transparent) !important;
+    }
+
+    /* ---- DataTables Buttons (Select / Export / Column visibility) ----- */
+    /* Botones principales */
+    .dt-buttons .btn,
+    .dt-buttons .dt-button,
+    div.dt-buttons > .btn,
+    div.dt-buttons > .dt-button,
+    .dataTables_wrapper .dt-buttons .btn-secondary {
+        background-color: var(--tandem-primary) !important;
+        border-color: var(--tandem-primary) !important;
+        color: #fff !important;
+    }
+    .dt-buttons .btn:hover,
+    .dt-buttons .dt-button:hover,
+    div.dt-buttons > .btn:hover,
+    div.dt-buttons > .dt-button:hover,
+    .dt-buttons .btn:focus,
+    .dt-buttons .dt-button:focus,
+    .dt-buttons .btn:active,
+    .dt-buttons .dt-button:active,
+    .dt-buttons .dt-button.active {
+        background-color: var(--tandem-primary) !important;
+        border-color: var(--tandem-primary) !important;
+        color: #fff !important;
+        filter: brightness(0.92);
+    }
+    /* Menu desplegable de los botones (Collection) */
+    .dt-button-collection,
+    div.dt-button-collection,
+    .dt-button-collection.dropdown-menu {
+        background-color: var(--tandem-primary) !important;
+        border-color: var(--tandem-primary) !important;
+    }
+    /* Cabeceras de seccion: SELECT RECORD, EXPORT, COLUMN VISIBILITY */
+    .dt-button-collection .dropdown-header,
+    .dt-button-collection h6,
+    .dt-button-collection .dt-button-collection-title {
+        color: rgba(255, 255, 255, 0.85) !important;
+        background: transparent !important;
+        border-color: rgba(255, 255, 255, 0.2) !important;
+    }
+    /* Items del menu */
+    .dt-button-collection .dt-button,
+    .dt-button-collection .dropdown-item,
+    .dt-button-collection button.dt-button {
+        background-color: transparent !important;
+        color: #fff !important;
+        border: 0 !important;
+    }
+    .dt-button-collection .dt-button:hover,
+    .dt-button-collection .dropdown-item:hover,
+    .dt-button-collection .dt-button.active,
+    .dt-button-collection .dropdown-item.active,
+    .dt-button-collection .dropdown-item:active {
+        background-color: rgba(255, 255, 255, 0.15) !important;
+        color: #fff !important;
+    }
+    /* Separadores entre secciones */
+    .dt-button-collection .dropdown-divider {
+        border-color: rgba(255, 255, 255, 0.2) !important;
     }
 
     /* ---- Nav tabs / pills activas ------------------------------------- */

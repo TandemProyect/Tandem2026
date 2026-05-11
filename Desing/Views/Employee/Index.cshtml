@@ -100,34 +100,16 @@
        };
 
    }
+            var dtEmplRoot = '@Url.Content("~/")';
+            var dtEmplAvatarDefault = '@Url.Content("~/Files/RRHH/User/AttPhotoMenu/User.png")';
             var Employee = {
                 dt: null,
                 init: function () {
                     dt = $('#TableEmployee').DataTable({
-                        language: {
-                            "decimal": "",
-                            "emptyTable": "No hay información",
-                            "info": "Mostrando _START_ a _END_ de _TOTAL_ Entradas",
-                            "infoEmpty": "Mostrando 0 to 0 of 0 Entradas",
-                            "infoFiltered": "(Filtrado de _MAX_ total entradas)",
-                            "infoPostFix": "",
-                            "thousands": ",",
-                            "lengthMenu": "Mostrar _MENU_ Entradas",
-                            "loadingRecords": "Cargando...",
-                            "processing": "Procesando...",
-                            "search": "Buscar:",
-                            "zeroRecords": "Sin resultados encontrados",
-                            "paginate": {
-                                "first": "Primero",
-                                "last": "Ultimo",
-                                "next": "Siguiente",
-                                "previous": "Anterior"
-                            },
-                        },
                         dom: '<"dataTables-length-position">Bfrt<"dataTables-length-position"i>p',
                         lengthMenu: [
                             [10, 25, 50, -1],
-                            ['10 rows', '25 rows', '50 rows', 'Show all']
+                            ['10 filas', '25 filas', '50 filas', 'Todas']
                         ],
                         buttons: [
                             {
@@ -135,15 +117,15 @@
                                 text: "<i class='fas fa-bars'></i>",
                                 className: 'custom-html-collection',
                                 buttons: [
-                                    '<h5>Select Record</h5>',
+                                    '<h5>Registros</h5>',
                                     'pageLength',
-                                    '<h5>Export</h5>',
+                                    '<h5>Exportar</h5>',
                                     'print',
                                     'copy',
                                     'pdf',
                                     'csv',
                                     'excel',
-                                    '<h5 class="not-top-heading">Column Visibility</h5>',
+                                    '<h5 class="not-top-heading">Columnas visibles</h5>',
                                     'colvis'
                                 ]
                             }
@@ -152,6 +134,7 @@
                         "processing": true,
                         "stateSave": true,
                         "stateDuration": 12,
+                        "colReorder": { "iFixedColumnsRight": 2 },
                         "scrollCollapse": true,
 
                         "ajax": {
@@ -159,44 +142,60 @@
                             "type": "POST"
                         },
                         "columns": [
-                            { "data": "emptyColumn" },
+                            {
+                                "data": "emptyColumn",
+                                "orderable": false,
+                                "render": function (data, type, row) {
+                                    if (type !== "display" && type !== "filter") { return data || ""; }
+                                    var avatarPath = (row.AttPhotoMenu || "").toString();
+                                    avatarPath = avatarPath.replace(/^~\//, "");
+                                    avatarPath = avatarPath.replace(/^(\.\.\/)+/, "");
+                                    var avatarUrl = avatarPath ? (dtEmplRoot + avatarPath) : dtEmplAvatarDefault;
+                                    return "<img style=\"height:35px;width:35px;object-fit:cover;border-radius:50%;\" src=\"" + avatarUrl + "\" alt=\"avatar\" onerror=\"this.onerror=null;this.src='" + dtEmplAvatarDefault + "';\" />";
+                                }
+                            },
                             { "data": "UserName" },
                             { "data": "AttName"},
                             { "data": "AttSurname"},
                             { "data": "AddLeter"},
                             { "data": "AddCompany"},
                             { "data": "AttPassAspNetUsert"},
-                            { "data": "emptyColumn" },
+                            {
+                                "data": "emptyColumn",
+                                "orderable": false,
+                                "render": function (data, type, row) {
+                                    if (type !== "display") { return ""; }
+                                    return (row.buttonActive || "") + "&nbsp;";
+                                }
+                            },
                             { "data": "AttCreated"},
-                            { "data": "emptyColumn"},
+                            {
+                                "data": "emptyColumn",
+                                "orderable": false,
+                                "render": function (data, type, row) {
+                                    if (type !== "display") { return ""; }
+                                    var html = (row.buttonSendMail || "") + "&nbsp;";
+                                    if (row.allowEdit == true) {
+                                        html += (row.buttonEdit || "") + "&nbsp;";
+                                    }
+                                    if (row.AttIsDeleted == false) {
+                                        if ((row.Counter1 == 0) && (row.Counter2 == 0)) {
+                                            if (row.TotalDesing === 0 && row.allowDelete == true) {
+                                                html += (row.buttonDelete || "") + "&nbsp;";
+                                            }
+                                        }
+                                    }
+                                    return html;
+                                }
+                            },
                             { "data": "SysObjectID"}
                         ],
-                        "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]],
                      /*   "iDisplayLength": parseInt(leerCookie("_rowsPerPage")),*/
-                        "fnRowCallback": function (nRow, data, iDisplayIndex)
-                        {
+                        "fnRowCallback": function (nRow, data) {
                             if (data.EmailConfirmed == false) {
-                                $('td', nRow).addClass('danger');
-                            }
-                            else {
-                                $('td', nRow).removeClass('danger');
-                            };
-
-                            $('td:eq(7)', nRow).append(data.buttonActive + '&nbsp;');
-                            $('td:eq(9)', nRow).append(data.buttonSendMail + '&nbsp;');
-                            var avatarPath = (data.AttPhotoMenu || '').toString();
-                            avatarPath = avatarPath.replace(/^~\//, '');
-                            avatarPath = avatarPath.replace(/^(\.\.\/)+/, '');
-                            var avatarUrl = avatarPath ? ('@Url.Content("~/")' + avatarPath) : '@Url.Content("~/Files/RRHH/User/AttPhotoMenu/User.png")';
-                            $('td:eq(0)', nRow).html('<img style="height:35px;width:35px;object-fit:cover;border-radius:50%;" src="' + avatarUrl + '" alt="avatar" onerror="this.onerror=null;this.src=\'@Url.Content("~/Files/RRHH/User/AttPhotoMenu/User.png")\';" />');
-                            if (data.allowEdit == true) {
-                                $('td:eq(9)', nRow).append(data.buttonEdit + '&nbsp;');
-                            }
-                            if (data.AttIsDeleted == false) {
-                                if ((data.Counter1 == 0) && (data.Counter2 == 0)) {
-                                    if (data.TotalDesing === 0)
-                                    { if (data.allowDelete == true) {$('td:eq(9)', nRow).append(data.buttonDelete + '&nbsp;');}}
-                                }
+                                $("td", nRow).addClass("danger");
+                            } else {
+                                $("td", nRow).removeClass("danger");
                             }
                             return nRow;
                         },

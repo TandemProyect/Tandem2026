@@ -49,6 +49,14 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.7.0/css/colReorder.bootstrap5.min.css" />
+    @* Resize de columnas (handles propios) *@
+    <link rel="stylesheet" href="@Url.Content("~/Scripts/datatables-resize.css")" />
+    @* DataTables: color, tamaño y capitalización de cabeceras *@
+    <link rel="stylesheet" href="@Url.Content("~/Scripts/datatables-tandem.css")" />
+
+    @* Identificacion del usuario para clave de cookies de DataTables *@
+    <meta name="dt-user" content="@(User != null && User.Identity != null && User.Identity.IsAuthenticated ? User.Identity.Name : "anon")" />
 
     @* FontAwesome (compatibilidad con vistas existentes) *@
     <link href="@Url.Content("~/lib/font-awesome/css/all.css")" rel="stylesheet" />
@@ -111,17 +119,66 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+    @* ColReorder: arrastrar columnas para reordenar *@
+    <script src="https://cdn.datatables.net/colreorder/1.7.0/js/dataTables.colReorder.min.js"></script>
+    @* Helper de estado por usuario en cookie (orden, anchos, visibilidad...) *@
+    <script src="@Url.Content("~/Scripts/datatables-state.js")"></script>
 
-    @* Toggle del sidebar en escritorio (Materio gestiona el mobile) *@
+    @* Toggle del sidebar en escritorio: cookie por usuario (misma meta dt-user que DataTables) *@
     <script>
         (function () {
             var toggleBtn = document.getElementById('navbarMenuToggle');
             if (!toggleBtn) return;
             var html = document.documentElement;
-            var COLLAPSED_KEY = 'tandem-menu-collapsed';
+            var LS_LEGACY = 'tandem-menu-collapsed';
+            var COOKIE_GLOBAL_LEGACY = 'tandem_menu_collapsed';
+            var COOKIE_DAYS = 365;
 
-            // Restaurar estado guardado
-            if (localStorage.getItem(COLLAPSED_KEY) === '1') {
+            function getDtUser() {
+                var meta = document.querySelector('meta[name="dt-user"]');
+                var c = meta && meta.getAttribute('content');
+                return (c && c.length) ? c : 'anon';
+            }
+
+            var COOKIE_NAME = 'tandem_menu_collapsed_' + getDtUser();
+
+            function getCookie(name) {
+                var re = new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)');
+                var m = document.cookie.match(re);
+                return m ? decodeURIComponent(m[1]) : null;
+            }
+            function setCookie(name, value) {
+                var d = new Date();
+                d.setTime(d.getTime() + COOKIE_DAYS * 86400000);
+                try {
+                    document.cookie = name + '=' + encodeURIComponent(value) +
+                        ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
+                } catch (err) { /* noop */ }
+            }
+            function deleteCookie(name) {
+                try {
+                    document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/';
+                } catch (e3) { /* noop */ }
+            }
+
+            /* Migrar: cookie global sin usuario, luego localStorage legacy */
+            try {
+                if (getCookie(COOKIE_NAME) === null) {
+                    var g = getCookie(COOKIE_GLOBAL_LEGACY);
+                    if (g === '1' || g === '0') {
+                        setCookie(COOKIE_NAME, g);
+                        deleteCookie(COOKIE_GLOBAL_LEGACY);
+                    } else if (window.localStorage) {
+                        var legacy = localStorage.getItem(LS_LEGACY);
+                        if (legacy === '1' || legacy === '0') {
+                            setCookie(COOKIE_NAME, legacy);
+                            localStorage.removeItem(LS_LEGACY);
+                        }
+                    }
+                }
+            } catch (e2) { /* noop */ }
+
+            if (getCookie(COOKIE_NAME) === '1') {
                 html.classList.add('layout-menu-collapsed');
             }
 
@@ -130,7 +187,7 @@
                     e.preventDefault();
                     e.stopPropagation();
                     html.classList.toggle('layout-menu-collapsed');
-                    localStorage.setItem(COLLAPSED_KEY, html.classList.contains('layout-menu-collapsed') ? '1' : '0');
+                    setCookie(COOKIE_NAME, html.classList.contains('layout-menu-collapsed') ? '1' : '0');
                 }
             }, true);
         })();
