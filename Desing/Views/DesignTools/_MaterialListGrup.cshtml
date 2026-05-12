@@ -13,10 +13,10 @@
         </div>
     </div>
 </div>
-<div id="DivData" class="slimScrollDiv" style="position: relative; overflow: hidden; width: 1100px; height: 630px; display: none">
+<div id="DivData" class="slimScrollDiv" style="position: relative; overflow: hidden; width: 100%; min-height: 630px; display: none">
     <div class="card mb-4" style="height:100%;width:100%">
-        <div class="card-body" style="padding:5px;margin:5px">
-            <table id="MaterialList" class="table table-hover" cellspacing="0" style="width: 100%; overflow: scroll">
+        <div class="card-body" style="padding:5px">
+            <table id="MaterialList" class="table table-hover" cellspacing="0" style="width: 100%">
                 <thead>
                     <tr>
                         <th>Grupo</th>
@@ -55,8 +55,6 @@
             init: function ()
             {
                 dt = $('#MaterialList').DataTable({
-                    scrollX: true,
-                    scrollY: 400,
                     dom: '<"dataTables-length-position">Bfrt<"dataTables-length-position"i>p',
                     lengthMenu: [
                         [10, 25, 50, -1],

@@ -11,8 +11,8 @@
 </div>
 
 <div class="card mb-4">
-    <div class="card-body" style="padding:5px;margin:5px">
-        <table id="ListPlantilla" class="table table-hover" cellspacing="0" style="width: 100%; overflow: scroll">
+    <div class="card-body" style="padding:5px">
+        <table id="ListPlantilla" class="table table-hover" cellspacing="0" style="width: 100%">
             <thead>
                 <tr>
                     <th>Nombre</th>
@@ -31,8 +31,6 @@
     <script type="text/javascript">
         $(document).ready(function () {
             $('#ListPlantilla').DataTable({
-                scrollX: true,
-                scrollY: 550,
                 dom: '<"dataTables-length-position">Bfrt<"dataTables-length-position"i>p',
                 lengthMenu: [[10, 25, 50, -1], ['10 filas', '25 filas', '50 filas', 'Todas']],
                 buttons: [{
@@ -45,7 +43,6 @@
                 processing: true,
                 stateSave: true,
                 stateDuration: 12,
-                scrollCollapse: true,
                 ajax: {
                     url: "@Url.Content("~/Plantilla/ListPlantilla/")",
                     type: "POST"

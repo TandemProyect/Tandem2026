@@ -598,6 +598,9 @@
     <Content Include="assets\js\lib\datatables\dataTables.tableTools.min.js" />
     <Content Include="assets\js\lib\datatables\jquery.dataTables.js" />
     <Content Include="assets\js\lib\datatables\jquery.dataTables.min.js" />
+    <Content Include="Scripts\datatables-resize.css" />
+    <Content Include="Scripts\datatables-state.js" />
+    <Content Include="Scripts\datatables-tandem.css" />
     <Content Include="assets\js\lib\datepicker\bootstrap-datepicker.js" />
     <Content Include="assets\js\lib\datepicker\bootstrap-datepicker.min.js" />
     <Content Include="assets\js\lib\daterangepicker\daterangepicker.js" />
@@ -2981,6 +2984,8 @@
     <Content Include="Views\Shared\_SidebarMaterio.cshtml" />
     <Content Include="Views\Shared\_FooterMaterio.cshtml" />
     <Content Include="Views\Shared\_LayoutMaterioBlank.cshtml" />
+    <Content Include="Views\Shared\_BrandSvg.cshtml" />
+    <Content Include="Views\Shared\_PlantillaStyles.cshtml" />
     <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Contact.cshtml" />
     <Content Include="Views\Account\Logins.cshtml" />

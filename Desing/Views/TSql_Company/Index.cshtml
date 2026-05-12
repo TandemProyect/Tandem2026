@@ -8,8 +8,8 @@
     </a>
 </div>
 <div class="card mb-4">
-    <div class="card-body" style="padding:5px;margin:5px">
-        <table id="ListTSql_Company" class="table table-hover" cellspacing="0" style="width: 100%; overflow: scroll">
+    <div class="card-body" style="padding:5px">
+        <table id="ListTSql_Company" class="table table-hover" cellspacing="0" style="width: 100%">
             <thead>
                 <tr>
                     <th>Nombre</th>
@@ -38,8 +38,6 @@
             dt: null,
             init: function () {
                 dt = $('#ListTSql_Company').DataTable({
-                    scrollX: true,
-                    scrollY: 550,
                     dom: '<"dataTables-length-position">Bfrt<"dataTables-length-position"i>p',
                     lengthMenu: [
                         [10, 25, 50, -1],
@@ -72,7 +70,6 @@
                     "stateSave": true,
                     "stateDuration": 12,
                     "colReorder": { "iFixedColumnsRight": 2 },
-                    "scrollCollapse": true,
                     "ajax": {
                         "url": "@Url.Content("~/TSql_Company/ListTSql_Company/")",
                     "type": "POST"

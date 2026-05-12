@@ -55,6 +55,11 @@ namespace Desing.Controllers
         [AllowAnonymous]
         public ActionResult Login()
         {
+            // Si llega aqui con ReturnUrl, venia de una ruta protegida sin sesion valida.
+            if (!User.Identity.IsAuthenticated && !string.IsNullOrWhiteSpace(Request["ReturnUrl"]))
+            {
+                ViewBag.ErrorMessage = "Debes iniciar sesion para acceder a esa pagina.";
+            }
             return View();
         }
         //

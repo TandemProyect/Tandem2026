@@ -18,6 +18,37 @@ div.dataTables_wrapper,
 .dataTables_wrapper table.dataTable {
     font-size: var(--dt-fs);
     color: var(--dt-fg);
+    width: 100% !important;
+}
+
+.dataTables_wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+.dataTables_wrapper table.dataTable,
+.dataTables_wrapper table.dataTable th,
+.dataTables_wrapper table.dataTable td {
+    overflow: visible !important;
+}
+
+.dataTables_wrapper .dataTables_scroll {
+    width: 100%;
+    overflow: visible;
+}
+
+.dataTables_wrapper .dataTables_scrollHead,
+.dataTables_wrapper .dataTables_scrollBody {
+    width: 100% !important;
+    max-width: 100%;
+}
+
+.dataTables_wrapper .dataTables_scrollBody {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    max-height: none !important;
 }
 
 .dataTables_wrapper table.dataTable thead th,
