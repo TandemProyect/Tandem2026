@@ -1,0 +1,212 @@
+@model Desing.Models.MasterArticleStlPreviewSectionModel
+@using System.Linq
+@{
+    string FileHref(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) { return string.Empty; }
+        var p = path.Trim();
+        return Url.Content(p.StartsWith("~/", StringComparison.Ordinal) ? p : "~/" + p.TrimStart('/'));
+    }
+    var slotsGrid = Model.AttachmentSlots != null ? Model.AttachmentSlots.ToList() : new System.Collections.Generic.List<Desing.Models.MasterArticleAttachmentSlot>();
+    var rowLabels = new[] { "3D", "mock-up", "STL" };
+    var hasStlPreview = Model.HasStlPreview;
+}
+<div class="col-12">
+    <div class="card">
+        <div class="card-header"><strong>Archivos adjuntos por bloque</strong></div>
+        <div class="card-body">
+            <p class="small text-muted mb-3">
+                El visor muestra el <strong>STL</strong> asociado: junto a cada <code>.dwg</code> debe existir un <code>.stl</code> con el mismo nombre base en la misma carpeta (<code>~/Files/MasterArticles/blocks/</code>), o bien un adjunto STL en la fila correspondiente. Pulse el botón naranja para cargar el modelo en el visor.
+            </p>
+            <div class="row g-3 align-items-stretch">
+                <div class="col-lg-7">
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col" class="text-muted" style="width:6rem;"></th>
+                                    <th scope="col">Planta</th>
+                                    <th scope="col">Elevación vertical</th>
+                                    <th scope="col">Elevación horizontal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (var r = 0; r < 3 && slotsGrid.Count >= (r + 1) * 3; r++)
+                                {
+                                    <tr>
+                                        <th scope="row" class="text-muted text-nowrap bg-light">@rowLabels[r]</th>
+                                        @for (var c = 0; c < 3; c++)
+                                        {
+                                            var slot = slotsGrid[r * 3 + c];
+                                            var href = FileHref(slot.VirtualPath);
+                                            var stlPreviewHref = slot.StlPreviewExists && !string.IsNullOrWhiteSpace(slot.StlPreviewVirtualPath)
+                                                ? FileHref(slot.StlPreviewVirtualPath)
+                                                : string.Empty;
+                                            var fn = string.IsNullOrWhiteSpace(slot.VirtualPath)
+                                                ? string.Empty
+                                                : System.IO.Path.GetFileName(slot.VirtualPath.Trim().Replace('\\', '/'));
+                                            <td class="align-top">
+                                                @if (string.IsNullOrEmpty(href))
+                                                {
+                                                    <div class="text-muted">Sin archivo.</div>
+                                                    <div class="mt-2">
+                                                        <button type="button" class="btn btn-sm btn-warning master-article-stl-load opacity-50" disabled title="Sin STL en el visor">
+                                                            <i class="icon-base ri ri-eye-line" aria-hidden="true"></i>
+                                                        </button>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="text-break mb-1"><code>@fn</code></div>
+                                                    <div class="d-flex flex-wrap gap-1 align-items-center">
+                                                        @if (slot.StlPreviewExists && !string.IsNullOrEmpty(stlPreviewHref))
+                                                        {
+                                                            <button type="button" class="btn btn-sm btn-warning text-dark master-article-stl-load" data-stl-url="@stlPreviewHref" data-slot-label="@slot.Label" title="Ver en el visor 3D">
+                                                                <i class="icon-base ri ri-eye-line" aria-hidden="true"></i>
+                                                            </button>
+                                                        }
+                                                        else
+                                                        {
+                                                            <button type="button" class="btn btn-sm btn-warning master-article-stl-load opacity-50" disabled title="No hay STL en disco para esta celda (mismo nombre base que el adjunto o archivo .stl en el slot)">
+                                                                <i class="icon-base ri ri-eye-line" aria-hidden="true"></i>
+                                                            </button>
+                                                        }
+                                                    </div>
+                                                }
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div id="ma-stl-viewer-shell" class="border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" style="min-height: 420px;">
+                        <div class="@(hasStlPreview ? "d-flex" : "d-none") align-items-center justify-content-between flex-wrap gap-2 px-2 py-2 border-bottom bg-light" id="master-article-stl-viewer-toolbar">
+                            <div class="d-flex align-items-center flex-wrap gap-2">
+                                <span class="small text-muted mb-0">Cámara</span>
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Modo de cámara" id="master-article-stl-camera-modes">
+                                    <input type="radio" class="btn-check" name="ma-stl-cam-mode" id="ma-stl-cam-ortho" value="ortho" autocomplete="off" checked>
+                                    <label class="btn btn-outline-secondary" for="ma-stl-cam-ortho" title="Vista ortogonal">
+                                        <i class="icon-base ri ri-layout-4-line" aria-hidden="true"></i>
+                                        <span class="visually-hidden">Ortogonal</span>
+                                    </label>
+                                    <input type="radio" class="btn-check" name="ma-stl-cam-mode" id="ma-stl-cam-iso" value="iso" autocomplete="off">
+                                    <label class="btn btn-outline-secondary" for="ma-stl-cam-iso" title="Vista isométrica">
+                                        <i class="icon-base ri ri-box-3-line" aria-hidden="true"></i>
+                                        <span class="visually-hidden">Isométrica</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 ms-sm-auto flex-wrap">
+                                @if (hasStlPreview)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="ma-stl-fullscreen-toggle" aria-pressed="false" title="Pantalla completa">
+                                        <i class="icon-base ri ri-fullscreen-line" aria-hidden="true"></i>
+                                    </button>
+                                }
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="ma-stl-grid-toggle" aria-pressed="false" title="Mostrar u ocultar la rejilla de fondo">
+                                    <i class="icon-base ri ri-grid-line me-1" aria-hidden="true"></i><span id="ma-stl-grid-toggle-label">Mostrar rejilla</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="master-article-details-stl-viewer-canvas" class="flex-grow-1 position-relative bg-white" style="min-height: 360px;">
+                            <div id="ma-stl-viewer-gl-host" class="position-absolute top-0 start-0 w-100 h-100"></div>
+                            @if (hasStlPreview)
+                            {
+                                <div id="ma-stl-view-cube-ortho-wrap" class="ma-stl-vc-wrap">
+                                    <div class="ma-stl-vc-scene">
+                                        <div class="ma-stl-vc-cube">
+                                            <div class="ma-stl-vc-face ma-stl-vc-face--front">
+                                                <div class="ma-stl-vc-corner tl" data-ortho-view="front-top-left" title="Frente–arriba–izquierda"></div>
+                                                <div class="ma-stl-vc-corner tr" data-ortho-view="front-top-right" title="Frente–arriba–derecha"></div>
+                                                <div class="ma-stl-vc-corner bl" data-ortho-view="front-bottom-left" title="Frente–abajo–izquierda"></div>
+                                                <div class="ma-stl-vc-corner br" data-ortho-view="front-bottom-right" title="Frente–abajo–derecha"></div>
+                                                <div class="ma-stl-vc-edge-v top" data-ortho-view="front-top" title="Frente–arriba"></div>
+                                                <div class="ma-stl-vc-edge-v bottom" data-ortho-view="front-bottom" title="Frente–abajo"></div>
+                                                <div class="ma-stl-vc-edge-h left" data-ortho-view="front-left" title="Frente–izquierda"></div>
+                                                <div class="ma-stl-vc-edge-h right" data-ortho-view="front-right" title="Frente–derecha"></div>
+                                                <div class="ma-stl-vc-face-inside" data-face="front" title="Front (+Z)">FRONT</div>
+                                            </div>
+                                            <div class="ma-stl-vc-face ma-stl-vc-face--back">
+                                                <div class="ma-stl-vc-corner tl" data-ortho-view="top-back-right" title=""></div>
+                                                <div class="ma-stl-vc-corner tr" data-ortho-view="top-back-left" title=""></div>
+                                                <div class="ma-stl-vc-corner bl" data-ortho-view="bottom-back-right" title=""></div>
+                                                <div class="ma-stl-vc-corner br" data-ortho-view="bottom-back-left" title=""></div>
+                                                <div class="ma-stl-vc-edge-v top" data-ortho-view="top-back" title=""></div>
+                                                <div class="ma-stl-vc-edge-v bottom" data-ortho-view="back-bottom" title=""></div>
+                                                <div class="ma-stl-vc-edge-h left" data-ortho-view="back-right" title=""></div>
+                                                <div class="ma-stl-vc-edge-h right" data-ortho-view="back-left" title=""></div>
+                                                <div class="ma-stl-vc-face-inside" data-face="back" title="Back (−Z)">BACK</div>
+                                            </div>
+                                            <div class="ma-stl-vc-face ma-stl-vc-face--top">
+                                                <div class="ma-stl-vc-corner tl" data-ortho-view="top-back-left" title=""></div>
+                                                <div class="ma-stl-vc-corner tr" data-ortho-view="top-back-right" title=""></div>
+                                                <div class="ma-stl-vc-corner bl" data-ortho-view="front-top-left" title=""></div>
+                                                <div class="ma-stl-vc-corner br" data-ortho-view="front-top-right" title=""></div>
+                                                <div class="ma-stl-vc-edge-v bottom" data-ortho-view="front-top" title=""></div>
+                                                <div class="ma-stl-vc-edge-v top" data-ortho-view="top-back" title=""></div>
+                                                <div class="ma-stl-vc-edge-h left" data-ortho-view="left-top" title=""></div>
+                                                <div class="ma-stl-vc-edge-h right" data-ortho-view="right-top" title=""></div>
+                                                <div class="ma-stl-vc-face-inside" data-face="top" title="Top (+Y)">TOP</div>
+                                            </div>
+                                            <div class="ma-stl-vc-face ma-stl-vc-face--bottom">
+                                                <div class="ma-stl-vc-corner tl" data-ortho-view="front-bottom-left" title=""></div>
+                                                <div class="ma-stl-vc-corner tr" data-ortho-view="front-bottom-right" title=""></div>
+                                                <div class="ma-stl-vc-corner bl" data-ortho-view="bottom-back-left" title=""></div>
+                                                <div class="ma-stl-vc-corner br" data-ortho-view="bottom-back-right" title=""></div>
+                                                <div class="ma-stl-vc-edge-v top" data-ortho-view="front-bottom" title=""></div>
+                                                <div class="ma-stl-vc-edge-v bottom" data-ortho-view="back-bottom" title=""></div>
+                                                <div class="ma-stl-vc-edge-h left" data-ortho-view="left-bottom" title=""></div>
+                                                <div class="ma-stl-vc-edge-h right" data-ortho-view="right-bottom" title=""></div>
+                                                <div class="ma-stl-vc-face-inside" data-face="bottom" title="Bottom (−Y)">BOTT.</div>
+                                            </div>
+                                            <div class="ma-stl-vc-face ma-stl-vc-face--right">
+                                                <div class="ma-stl-vc-corner tl" data-ortho-view="front-top-right" title=""></div>
+                                                <div class="ma-stl-vc-corner tr" data-ortho-view="top-back-right" title=""></div>
+                                                <div class="ma-stl-vc-corner bl" data-ortho-view="front-bottom-right" title=""></div>
+                                                <div class="ma-stl-vc-corner br" data-ortho-view="bottom-back-right" title=""></div>
+                                                <div class="ma-stl-vc-edge-v top" data-ortho-view="right-top" title=""></div>
+                                                <div class="ma-stl-vc-edge-v bottom" data-ortho-view="right-bottom" title=""></div>
+                                                <div class="ma-stl-vc-edge-h left" data-ortho-view="front-right" title=""></div>
+                                                <div class="ma-stl-vc-edge-h right" data-ortho-view="back-right" title=""></div>
+                                                <div class="ma-stl-vc-face-inside" data-face="right" title="Right (+X)">RIGHT</div>
+                                            </div>
+                                            <div class="ma-stl-vc-face ma-stl-vc-face--left">
+                                                <div class="ma-stl-vc-corner tl" data-ortho-view="top-back-left" title=""></div>
+                                                <div class="ma-stl-vc-corner tr" data-ortho-view="front-top-left" title=""></div>
+                                                <div class="ma-stl-vc-corner bl" data-ortho-view="bottom-back-left" title=""></div>
+                                                <div class="ma-stl-vc-corner br" data-ortho-view="front-bottom-left" title=""></div>
+                                                <div class="ma-stl-vc-edge-v top" data-ortho-view="left-top" title=""></div>
+                                                <div class="ma-stl-vc-edge-v bottom" data-ortho-view="left-bottom" title=""></div>
+                                                <div class="ma-stl-vc-edge-h left" data-ortho-view="back-left" title=""></div>
+                                                <div class="ma-stl-vc-edge-h right" data-ortho-view="front-left" title=""></div>
+                                                <div class="ma-stl-vc-face-inside" data-face="left" title="Left (−X)">LEFT</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="ma-stl-view-cube-iso-wrap" class="ma-stl-vc-wrap d-none">
+                                    <div class="ma-stl-vc-scene">
+                                        <div class="ma-stl-vc-cube ma-stl-vc-cube--iso">
+                                            <div class="ma-stl-vc-face ma-stl-vc-face--front" data-face="front" title="Front">FRONT</div>
+                                            <div class="ma-stl-vc-face ma-stl-vc-face--back" data-face="back" title="Back">BACK</div>
+                                            <div class="ma-stl-vc-face ma-stl-vc-face--right" data-face="right" title="Right">RIGHT</div>
+                                            <div class="ma-stl-vc-face ma-stl-vc-face--left" data-face="left" title="Left">LEFT</div>
+                                            <div class="ma-stl-vc-face ma-stl-vc-face--top" data-face="top" title="Top">TOP</div>
+                                            <div class="ma-stl-vc-face ma-stl-vc-face--bottom" data-face="bottom" title="Bottom">BOTT.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div id="master-article-details-stl-viewer-status" class="small text-muted px-2 py-2 border-top bg-light">
+                            Seleccione un bloque con STL disponible (botón naranja) para verlo aquí.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

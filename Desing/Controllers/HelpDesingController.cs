@@ -1,4 +1,5 @@
 ﻿using DataTables.Mvc;
+using Desing.Helpers;
 using Desing.Models;
 using System;
 using System.Data.Entity;
@@ -77,7 +78,7 @@ namespace Desing.Controllers
                 }
                 query = query.OrderBy(orderByString == String.Empty ? "name asc" : orderByString);
                 // Paging
-                query = query.Skip(requestModel.Start).Take(requestModel.Length);
+                query = query.ApplyDataTablesPaging(requestModel.Start, requestModel.Length);
 
                 // Rights
 

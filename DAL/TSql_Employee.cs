@@ -30,12 +30,10 @@ namespace DAL
         public bool AttIsDeleted { get; set; }
         public Nullable<long> Linlanguage { get; set; }
         public string AttPassAspNetUsert { get; set; }
-        public Nullable<long> LinPlantilla { get; set; }
     
         public virtual TSql_Company TSql_Company { get; set; }
         public virtual AspNetUsers AspNetUsers { get; set; }
         public virtual AspNetUsers AspNetUsers1 { get; set; }
         public virtual AspNetUsers AspNetUsers2 { get; set; }
-        public virtual TSql_Plantilla TSql_Plantilla { get; set; }
     }
 }

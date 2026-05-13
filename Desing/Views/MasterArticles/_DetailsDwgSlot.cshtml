@@ -1,0 +1,35 @@
+@model Desing.Models.MasterArticleDwgSlotModel
+@{
+    var viewerDxfUrl = Url.Action("MasterArticleViewerDxf", "MasterArticles", new { id = Model.ArticleId, slotKey = Model.SlotKey });
+    var dwgName = System.IO.Path.GetFileName((Model.VirtualPath ?? "").Trim().Replace('\\', '/'));
+    var expectedDxfName = !string.IsNullOrWhiteSpace(Model.SiblingDxfFileName)
+        ? Model.SiblingDxfFileName
+        : (string.IsNullOrWhiteSpace(dwgName) ? "archivo.dxf" : System.IO.Path.ChangeExtension(dwgName, ".dxf"));
+}
+<p class="small mb-2 text-break"><code>@Model.VirtualPath</code></p>
+<div class="mb-3 d-flex flex-wrap gap-2">
+    <a class="btn btn-sm btn-primary" href="@Model.Href" target="_blank" rel="noopener">Descargar .dwg</a>
+    @if (!string.IsNullOrWhiteSpace(Model.SiblingDxfHref))
+    {
+        <a class="btn btn-sm btn-outline-primary" href="@Model.SiblingDxfHref" target="_blank" rel="noopener">Descargar @Model.SiblingDxfFileName</a>
+    }
+</div>
+<div class="small fw-semibold mb-2">Vista previa 2D (Three.js + DXF)</div>
+<p class="border-start border-3 border-primary ps-3 py-1 small text-body-secondary">
+    El visor usa el <strong>DXF gemelo</strong> del DWG: misma carpeta y mismo nombre base (por ejemplo <code>@expectedDxfName</code> junto a <code>@(string.IsNullOrWhiteSpace(dwgName) ? "…" : dwgName)</code>). Puede crearlo a mano o, más adelante, al guardar el artículo con una herramienta en servidor.
+</p>
+@if (Model.LoadDxfBrowserPreview)
+{
+    <div class="article-preview-host rounded border bg-dark position-relative" style="min-height:380px;height:380px;"
+         data-article-preview data-kind="dxf" data-url="@viewerDxfUrl">
+        <div class="position-absolute top-50 start-50 translate-middle text-white-50 small">Cargando DXF…</div>
+    </div>
+}
+else
+{
+    <div class="article-preview-host rounded border bg-dark position-relative d-flex align-items-center justify-content-center" style="min-height:220px;">
+        <p class="text-warning small text-center px-3 mb-0">
+            <strong>Vista previa no disponible.</strong> Coloque junto al .dwg el archivo <code>@expectedDxfName</code> y recargue la página.
+        </p>
+    </div>
+}

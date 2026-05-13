@@ -2,7 +2,7 @@
 @model LoginViewModel
 @{
     Layout = "~/Views/Shared/_LayoutMaterioBlank.cshtml";
-    ViewBag.Title = "Iniciar sesion - T Desing.net";
+    ViewBag.Title = "Iniciar sesion - " + (ViewBag.PlantillaBrandText as string ?? "T Desing.net");
 }
 <div class="position-relative">
     <div class="authentication-wrapper authentication-basic container-p-y">
@@ -29,7 +29,7 @@
                 </div>
 
                 <div class="card-body mt-1">
-                    <h4 class="mb-1">Bienvenido a T Desing.net</h4>
+                    <h4 class="mb-1">Bienvenido a @(ViewBag.PlantillaBrandText ?? "T Desing.net")</h4>
                     <p class="mb-5">Inicia sesion para acceder a tu espacio de trabajo</p>
 
                     @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { id = "formAuthentication", @class = "mb-5", role = "form" }))

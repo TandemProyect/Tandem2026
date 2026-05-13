@@ -10,9 +10,10 @@
         public string TextAddress_1 { get; set; }
         public string TextAddress_2 { get; set; }
         public string TextTown_1 { get; set; }
-        public int TextPostal_Code { get; set; }
+        public int? TextPostal_Code { get; set; }
         public string Country { get; set; }
         public string TextFlag { get; set; }
+        public bool BitIsDeleted { get; set; }
 
     }
 

@@ -111,6 +111,8 @@ namespace Desing.Controllers
 
             var Data = (from t in db.AspNetUsers
                         join employee in db.TSql_Employee on t.Id equals employee.LinAspNetUsert
+                        join company in db.TSql_Company on employee.LinCompany equals company.SysObjectID into cg
+                        from company in cg.DefaultIfEmpty()
                         where t.UserName == model.Email &&
                         t.EmailConfirmed == true
                         select new
@@ -122,7 +124,7 @@ namespace Desing.Controllers
                             employee.AttSurname,
                             employee.AttPhoto,
                             employee.AttPhotoMenu,
-                            employee.LinPlantilla
+                            LinPlantilla = company != null ? company.LinPlantilla : null
                         }).ToList();
             var l = Data.Count();
             var firstData = Data.FirstOrDefault();

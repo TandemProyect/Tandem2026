@@ -98,6 +98,7 @@
 <script src="~/Scripts/Design/3D/Design-3d-Screenshot.js"></script>
 
  <script id="rendered-js">
+    // @ts-nocheck — script inline con Razor y globals legacy; no validar con TypeScript.
     (function bootstrapDesignPage() {
         if (!window.jQuery) {
             setTimeout(bootstrapDesignPage, 50);
@@ -765,7 +766,6 @@
                         window.windowInnerWidth = window.innerWidth - 5;
                         window.windowInnerHeight = window.innerHeight - 75;
                         viewCube = document.querySelector('.viewCube');
-                        var viewCube, viewCubeMatrix;
                         var PositionMEnuBotton = (pageWidth / 2 - 250) + "px";
                         document.getElementById("MenubottomDesign").style.left = "10px";
                         document.getElementById("Menubottom").style.left = PositionMEnuBotton;

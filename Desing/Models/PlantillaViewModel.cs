@@ -8,7 +8,7 @@ namespace Desing.Models
 {
     /// <summary>
     /// ViewModel para crear y editar plantillas de estilo de usuario
-    /// (color principal y logo del layout).
+    /// (color principal, logo, marca y colores de texto).
     /// </summary>
     public class PlantillaViewModel
     {
@@ -18,6 +18,24 @@ namespace Desing.Models
         [StringLength(150)]
         [DisplayName("Nombre de la plantilla")]
         public string AttName { get; set; }
+
+        [Required(ErrorMessage = "El texto de marca es obligatorio")]
+        [StringLength(120)]
+        [DisplayName("Nombre mostrado (marca)")]
+        public string AttBrandText { get; set; } = "T Desing.net";
+
+        [StringLength(20)]
+        [RegularExpression(@"^$|^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
+            ErrorMessage = "Color de texto: vacío (usa color primario) o HEX, ej: #4c4c4c")]
+        [DisplayName("Color texto marca (resto)")]
+        public string AttBrandTextColor { get; set; }
+
+        [Required(ErrorMessage = "El color de acento es obligatorio")]
+        [StringLength(20)]
+        [RegularExpression("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
+            ErrorMessage = "El color de acento debe estar en formato HEX, ej: #f29100")]
+        [DisplayName("Color primera letra (acento)")]
+        public string AttBrandAccentColor { get; set; } = "#f29100";
 
         [Required(ErrorMessage = "El color es obligatorio")]
         [StringLength(20)]

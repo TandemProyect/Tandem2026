@@ -7,6 +7,10 @@
         <i class="icon-base ri ri-add-line me-1"></i> Crear Nueva empresa
     </a>
 </div>
+@if (!string.IsNullOrEmpty(TempData["ToastMessage"] as string))
+{
+    <div class="alert alert-success">@TempData["ToastMessage"]</div>
+}
 <div class="card mb-4">
     <div class="card-body" style="padding:5px">
         <table id="ListTSql_Company" class="table table-hover" cellspacing="0" style="width: 100%">
@@ -22,6 +26,7 @@
                     <th>Ciudad</th>
                     <th></th>
                     <th>Pais</th>
+                    <th>Estado</th>
                     <th></th>
                     <th>ID</th>
                 </tr>
@@ -68,7 +73,6 @@
                     "serverSide": true,
                     "processing": true,
                     "stateSave": true,
-                    "stateDuration": 12,
                     "colReorder": { "iFixedColumnsRight": 2 },
                     "ajax": {
                         "url": "@Url.Content("~/TSql_Company/ListTSql_Company/")",
@@ -85,28 +89,34 @@
                         { "data": "TextTown_1"},
                         { "data": "TextFlag"},
                         { "data": "Country"},
+                        {
+                            "data": "BitIsDeleted",
+                            "render": function (data, type) {
+                                if (type !== "display") { return data; }
+                                return data ? "<span class='badge bg-label-danger'>Desactivada</span>" : "<span class='badge bg-label-success'>Activa</span>";
+                            }
+                        },
                         { "data": "emptyColumn" },
                         { "data": "SysObjectID" }
             ],
             "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]],
             /*   "iDisplayLength": parseInt(leerCookie("_rowsPerPage")),*/
-            "fnRowCallback": function (nRow, data, iDisplayIndex) {
-                $('td:eq(0)', nRow).html(data.AttName);
-
-                if (data.allowEdit == true) {
-                    $('td:eq(10)', nRow).append(data.buttonEdit + '&nbsp;');
+            "fnRowCallback": function (nRow, data) {
+                var actions = (data.buttonDisable || "") + "&nbsp;" + (data.buttonEdit || "");
+                if (!data.HasDependencies) {
+                    actions += "&nbsp;" + (data.buttonDelete || "");
                 }
+                $('td:eq(11)', nRow).html(actions);
                 return nRow;
             },
             "aaSorting": [[1, 'desc']],
             "aoColumnDefs": [
-                { "bVisible": false, "aTargets": [10] },
-                { "bVisible": false, "aTargets": [11] },
-                { "bSortable": false, "aTargets": [10] },
                 { "bSortable": false, "aTargets": [11] },
+                { "bVisible": false, "aTargets": [12] },
+                { "bSortable": false, "aTargets": [12] },
                 { "width": "300px", "aTargets": [0] },
                 { "width": "500px", "aTargets": [3] },
-                { "width": "50px", "aTargets": [10] },
+                { "width": "120px", "aTargets": [11] },
             ],
             drawCallback: function () {
                 $('[data-toggle="tooltip"]').tooltip({
@@ -127,6 +137,26 @@
     $('#sidebar').toggleClass('active');
         $(this).toggleClass('active');
         $('#sidebar').load('/Menu/Index');
+
+        window.DeleteCompany = function (id) {
+            if (!confirm("¿Quieres eliminar esta empresa?")) return;
+            $.post('@Url.Action("DeleteCompany", "TSql_Company")', { id: id }, function (res) {
+                alert(res.Message);
+                if (res.IsOk) {
+                    $('#ListTSql_Company').DataTable().ajax.reload(null, false);
+                }
+            });
+        };
+
+        window.ToggleCompany = function (id) {
+            if (!confirm("¿Quieres desactivar/activar esta empresa?")) return;
+            $.post('@Url.Action("ToggleCompany", "TSql_Company")', { id: id }, function (res) {
+                alert(res.Message);
+                if (res.IsOk) {
+                    $('#ListTSql_Company').DataTable().ajax.reload(null, false);
+                }
+            });
+        };
     </script>
 }
 

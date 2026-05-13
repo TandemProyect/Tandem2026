@@ -2,114 +2,126 @@
 @{
     ViewBag.Title = Model.IsEdit ? "Editar plantilla" : "Crear plantilla";
     var actionName = Model.IsEdit ? "Edit" : "Create";
+    var brand = string.IsNullOrWhiteSpace(Model.AttBrandText) ? "T Desing.net" : Model.AttBrandText.Trim();
+    var b0 = brand.Length > 0 ? brand.Substring(0, 1) : "T";
+    var b1 = brand.Length > 1 ? brand.Substring(1) : "";
+    var accent = string.IsNullOrWhiteSpace(Model.AttBrandAccentColor) ? "#f29100" : Model.AttBrandAccentColor.Trim();
+    var textCol = string.IsNullOrWhiteSpace(Model.AttBrandTextColor) ? "" : Model.AttBrandTextColor.Trim();
 }
-<div class="well" style="padding-left:15px">
-    <div class="modal-body">
-        <h4 class="py-3 mb-4">
-            <span class="text-muted fw-light">
-                <a href="@Url.Action("Index", "Home")">Inicio</a> /
-                <a href="@Url.Action("Index", "Plantilla")">Plantillas</a> /
-            </span> @(Model.IsEdit ? "Editar plantilla" : "Crear plantilla")
-        </h4>
-    </div>
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">Inicio</a> /
+            <a href="@Url.Action("Index", "Plantilla")">Plantillas</a> /
+        </span> @(Model.IsEdit ? "Editar plantilla" : "Crear plantilla")
+    </h4>
+</div>
 
-    @using (Html.BeginForm(actionName, "Plantilla", FormMethod.Post, new { @class = "form-horizontal", role = "form", @id = "frmPlantilla", enctype = "multipart/form-data" }))
-    {
-        @Html.AntiForgeryToken()
-        @Html.HiddenFor(m => m.SysObjectID)
-        @Html.HiddenFor(m => m.IsEdit)
+<div class="card mb-4">
+    <div class="card-body">
+        @using (Html.BeginForm(actionName, "Plantilla", FormMethod.Post, new { @class = "row g-4", role = "form", @id = "frmPlantilla", enctype = "multipart/form-data" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.SysObjectID)
+            @Html.HiddenFor(m => m.IsEdit)
 
-        <fieldset style="margin:10px;padding:10px">
-            <legend>@(Model.IsEdit ? "Editando plantilla" : "Nueva plantilla de estilo")</legend>
+            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
 
-            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-
-            <div class="row">
-                <div class="col-md-7">
-                    <div class="form-group" style="margin:15px">
-                        @Html.LabelFor(m => m.AttName, htmlAttributes: new { @class = "control-label col-md-9" })
-                        <div class="col-md-12">
-                            @Html.EditorFor(m => m.AttName, new { htmlAttributes = new { @class = "form-control-mandatory", @placeholder = "Ej: Plantilla Cliente Acme" } })
-                            @Html.ValidationMessageFor(m => m.AttName, "", new { @class = "text-danger" })
-                        </div>
+            <div class="col-lg-7">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">@Html.DisplayNameFor(m => m.AttName)</label>
+                        @Html.EditorFor(m => m.AttName, new { htmlAttributes = new { @class = "form-control", placeholder = "Ej: Plantilla Cliente Acme" } })
+                        @Html.ValidationMessageFor(m => m.AttName, "", new { @class = "text-danger" })
                     </div>
 
-                    <div class="form-group" style="margin:15px">
-                        @Html.LabelFor(m => m.AttColor, htmlAttributes: new { @class = "control-label col-md-9" })
-                        <div class="col-md-12 d-flex align-items-center" style="gap:10px">
-                            <input type="color" id="AttColorPicker" value="@Model.AttColor" style="width:50px;height:40px;padding:0;border:1px solid #ccc;border-radius:4px;cursor:pointer" />
-                            @Html.TextBoxFor(m => m.AttColor, new { @class = "form-control", @id = "AttColorText", @maxlength = 7, @style = "max-width:140px" })
-                            <span id="AttColorPreview" style="display:inline-block;width:36px;height:36px;border-radius:6px;border:1px solid #ccc;background:@Model.AttColor"></span>
+                    <div class="col-12">
+                        <label class="form-label">@Html.DisplayNameFor(m => m.AttBrandText)</label>
+                        @Html.EditorFor(m => m.AttBrandText, new { htmlAttributes = new { @class = "form-control", id = "AttBrandText", maxlength = "120", placeholder = "Ej: T Desing.net" } })
+                        <small class="text-muted">Se muestra en cabecera, login y pie. La primera letra usa el color de acento.</small>
+                        @Html.ValidationMessageFor(m => m.AttBrandText, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">@Html.DisplayNameFor(m => m.AttBrandAccentColor)</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="color" id="AttBrandAccentPicker" value="@accent" class="form-control form-control-color p-1" style="width:3.25rem;height:2.5rem" title="Color primera letra" />
+                            @Html.TextBoxFor(m => m.AttBrandAccentColor, new { @class = "form-control", id = "AttBrandAccentColor", maxlength = "7" })
+                        </div>
+                        @Html.ValidationMessageFor(m => m.AttBrandAccentColor, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">@Html.DisplayNameFor(m => m.AttBrandTextColor)</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="color" id="AttBrandTextColorPicker" value="@(string.IsNullOrEmpty(textCol) ? "#ffffff" : textCol)" class="form-control form-control-color p-1" style="width:3.25rem;height:2.5rem" title="Color resto del texto (opcional)" />
+                            @Html.TextBoxFor(m => m.AttBrandTextColor, new { @class = "form-control", id = "AttBrandTextColor", maxlength = "7", placeholder = "Vacío = color primario" })
+                        </div>
+                        <small class="text-muted">Vacío: el resto del nombre hereda el color primario del tema.</small>
+                        @Html.ValidationMessageFor(m => m.AttBrandTextColor, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">@Html.DisplayNameFor(m => m.AttColor)</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="color" id="AttColorPicker" value="@Model.AttColor" class="form-control form-control-color p-1" style="width:3.25rem;height:2.5rem" />
+                            @Html.TextBoxFor(m => m.AttColor, new { @class = "form-control", id = "AttColorText", maxlength = "7" })
                         </div>
                         @Html.ValidationMessageFor(m => m.AttColor, "", new { @class = "text-danger" })
                     </div>
 
-                    <div class="form-group" style="margin:15px">
-                        @Html.LabelFor(m => m.AttLogo, htmlAttributes: new { @class = "control-label col-md-9" })
-                        <div class="col-md-12">
-                            <input type="file" id="logoFile" name="logoFile" class="form-control" accept=".png,.jpg,.jpeg,.gif,.svg,.webp,.ico" />
-                            <small class="text-muted">Selecciona una imagen (PNG, JPG, GIF, SVG, WEBP o ICO; max 2 MB). Se sube al guardar.</small>
-                            <div class="mt-2">
-                                @Html.TextBoxFor(m => m.AttLogo, new { @class = "form-control", @readonly = "readonly", @style = "background:#f6f6f6", @placeholder = "/Content/images/Login/at.png" })
-                                <small class="text-muted">Ruta actual del logo (se actualiza automaticamente al subir un archivo).</small>
-                            </div>
-                            @Html.ValidationMessageFor(m => m.AttLogo, "", new { @class = "text-danger" })
-                        </div>
+                    <div class="col-12">
+                        <label class="form-label">@Html.DisplayNameFor(m => m.AttLogo)</label>
+                        <input type="file" id="logoFile" name="logoFile" class="form-control" accept=".png,.jpg,.jpeg,.gif,.svg,.webp,.ico" />
+                        <small class="text-muted">PNG, JPG, GIF, SVG, WEBP o ICO; máx. 2 MB.</small>
+                        @Html.TextBoxFor(m => m.AttLogo, new { @class = "form-control mt-2", @readonly = "readonly", style = "background:#f8f7fa", placeholder = "/Content/images/Login/at.png" })
+                        @Html.ValidationMessageFor(m => m.AttLogo, "", new { @class = "text-danger" })
                     </div>
 
-                    <div class="form-group" style="margin:15px">
-                        @Html.LabelFor(m => m.AttFavicon, htmlAttributes: new { @class = "control-label col-md-9" })
-                        <div class="col-md-12 d-flex align-items-center gap-2" style="gap:10px">
+                    <div class="col-12">
+                        <label class="form-label">@Html.DisplayNameFor(m => m.AttFavicon)</label>
+                        <div class="d-flex flex-wrap align-items-center gap-3">
                             <img id="PlantillaFaviconPreview"
                                  src="@(Url.Content("~" + (Model.AttFavicon ?? "/assets/client/images/Default/Ico/at.ico")))"
-                                 style="width:32px;height:32px;border:1px solid #ddd;border-radius:4px;background:#fff;padding:2px" />
-                            <div style="flex:1">
+                                 alt="favicon" style="width:36px;height:36px;border:1px solid var(--bs-border-color);border-radius:6px;background:#fff;padding:2px" />
+                            <div class="flex-grow-1" style="min-width:200px">
                                 <input type="file" id="faviconFile" name="faviconFile" class="form-control" accept=".ico,.png,.svg,.jpg,.jpeg,.gif" />
-                                <small class="text-muted">Favicon del navegador (ICO, PNG, SVG, JPG o GIF; max 512 KB). Se sube al guardar.</small>
+                                <small class="text-muted">Máx. 512 KB.</small>
                             </div>
                         </div>
-                        <div class="col-md-12 mt-2">
-                            @Html.TextBoxFor(m => m.AttFavicon, new { @class = "form-control", @readonly = "readonly", @style = "background:#f6f6f6", @placeholder = "/assets/client/images/Default/Ico/at.ico" })
-                            <small class="text-muted">Ruta actual del favicon.</small>
-                            @Html.ValidationMessageFor(m => m.AttFavicon, "", new { @class = "text-danger" })
-                        </div>
+                        @Html.TextBoxFor(m => m.AttFavicon, new { @class = "form-control mt-2", @readonly = "readonly", style = "background:#f8f7fa", placeholder = "/assets/client/images/Default/Ico/at.ico" })
+                        @Html.ValidationMessageFor(m => m.AttFavicon, "", new { @class = "text-danger" })
                     </div>
 
-                    <div class="form-group" style="margin:15px">
-                        <div class="col-md-12">
-                            <label>
-                                @Html.CheckBoxFor(m => m.AttIsDefault)
-                                Marcar como plantilla por defecto
-                            </label>
-                            <div><small class="text-muted">Solo puede haber una plantilla por defecto. Al marcar esta, se desmarcara la anterior.</small></div>
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            @Html.CheckBoxFor(m => m.AttIsDefault, new { @class = "form-check-input" })
+                            <label class="form-check-label" for="AttIsDefault">Marcar como plantilla por defecto</label>
                         </div>
-                    </div>
-                </div>
-
-                <div class="col-md-5">
-                    <div class="card">
-                        <div class="card-header" style="font-weight:600">Vista previa</div>
-                        <div id="PlantillaPreview" class="card-body text-center" style="background:@Model.AttColor;color:#fff;border-radius:0 0 6px 6px;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center">
-                            <img id="PlantillaPreviewLogo" src="@(Url.Content("~" + (Model.AttLogo ?? "/Content/images/Login/at.png")))" style="height:48px;background:#fff;padding:6px;border-radius:6px" />
-                            <div class="brand-svg-preview" style="margin-top:12px">@Html.Partial("_BrandSvg")</div>
-                            <div style="opacity:.85">Color principal: <code id="PlantillaPreviewColorTxt" style="color:#fff;background:rgba(0,0,0,.2);padding:2px 6px;border-radius:4px">@Model.AttColor</code></div>
-                        </div>
+                        <small class="text-muted">Solo puede haber una por defecto; al marcar esta se desmarcará la anterior.</small>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-12">
-                <hr style="background-color: gainsboro; height: 1px; margin: 1px; padding: 1px">
-                <div class="row">
-                    <div class="col-md-6">&nbsp;</div>
-                    <div class="col-md-5" style="margin:10px;padding:10px">
-                        <a href="@Url.Action("Index", "Plantilla")" class="btn btn-danger">Salir</a>
-                        <button type="submit" class="btn btn-warning">@(Model.IsEdit ? "Guardar cambios" : "Crear")</button>
+            <div class="col-lg-5">
+                <div class="card border shadow-none h-100">
+                    <div class="card-header fw-semibold">Vista previa</div>
+                    <div id="PlantillaPreview" class="card-body text-center d-flex flex-column align-items-center justify-content-center" style="min-height:220px;background:@Model.AttColor;border-radius:0 0 .375rem .375rem;color:#fff;">
+                        <img id="PlantillaPreviewLogo" src="@(Url.Content("~" + (Model.AttLogo ?? "/Content/images/Login/at.png")))" alt="logo" style="height:48px;background:#fff;padding:6px;border-radius:8px" />
+                        <div id="BrandPreviewRow" class="brand-font brand-svg-preview mt-3" style="color:#fff;">
+                            <span id="pvFirst" class="brand-t" style="color:@accent">@b0</span><span id="pvRest" class="brand-rest" style="@(string.IsNullOrEmpty(textCol) ? "" : "color:" + textCol + ";")">@b1</span>
+                        </div>
+                        <div class="small mt-2 opacity-75">Color: <code id="PlantillaPreviewColorTxt" class="text-white">@Model.AttColor</code></div>
                     </div>
                 </div>
             </div>
-        </fieldset>
-    }
+
+            <div class="col-12 border-top pt-3 d-flex justify-content-end gap-2">
+                <a href="@Url.Action("Index", "Plantilla")" class="btn btn-outline-secondary">Salir</a>
+                <button type="submit" class="btn btn-primary">@(Model.IsEdit ? "Guardar cambios" : "Crear")</button>
+            </div>
+        }
+    </div>
 </div>
 
 @section scripts {
@@ -118,73 +130,97 @@
         $(document).ready(function () {
             var $picker = $('#AttColorPicker');
             var $text = $('#AttColorText');
-            var $preview = $('#AttColorPreview');
             var $previewBox = $('#PlantillaPreview');
             var $previewTxt = $('#PlantillaPreviewColorTxt');
             var $previewLogo = $('#PlantillaPreviewLogo');
             var $logo = $('#@Html.IdFor(m => m.AttLogo)');
 
-            function applyColor(c) {
-                $preview.css('background', c);
+            function applyMainColor(c) {
                 $previewBox.css('background', c);
                 $previewTxt.text(c);
             }
 
             $picker.on('input change', function () {
                 $text.val(this.value);
-                applyColor(this.value);
+                applyMainColor(this.value);
             });
             $text.on('input change', function () {
                 var v = this.value;
                 if (/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(v)) {
                     $picker.val(v);
-                    applyColor(v);
+                    applyMainColor(v);
                 }
             });
+
+            function syncHexPair(pickerSel, inputSel) {
+                var $p = $(pickerSel), $i = $(inputSel);
+                $p.on('input change', function () { $i.val(this.value); applyBrandPreview(); });
+                $i.on('input change', function () {
+                    var v = this.value;
+                    if (/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(v)) { $p.val(v); }
+                    applyBrandPreview();
+                });
+            }
+            syncHexPair('#AttBrandAccentPicker', '#AttBrandAccentColor');
+            syncHexPair('#AttBrandTextColorPicker', '#AttBrandTextColor');
+
+            function applyBrandPreview() {
+                var full = ($('#AttBrandText').val() || 'T Desing.net').trim();
+                if (!full.length) full = 'T Desing.net';
+                var first = full.charAt(0);
+                var rest = full.length > 1 ? full.substring(1) : '';
+                $('#pvFirst').text(first).css('color', $('#AttBrandAccentColor').val() || '#f29100');
+                var tc = ($('#AttBrandTextColor').val() || '').trim();
+                if (!tc) {
+                    $('#pvRest').text(rest).attr('style', '');
+                } else {
+                    $('#pvRest').text(rest).attr('style', 'color:' + tc + ';');
+                }
+            }
+            $('#AttBrandText').on('input change', applyBrandPreview);
+            applyBrandPreview();
+
             $logo.on('input change', function () {
                 var v = this.value;
                 if (v && v.length > 0) {
-                    // Permitimos rutas relativas y absolutas.
                     var src = v.indexOf('http') === 0 ? v : (v.charAt(0) === '/' ? v : '/' + v);
                     $previewLogo.attr('src', src);
                 }
             });
 
-            // Preview inmediato al seleccionar un archivo desde el cliente.
             $('#logoFile').on('change', function () {
                 var file = this.files && this.files[0];
                 if (!file) return;
                 if (file.size > 2 * 1024 * 1024) {
-                    alert('El archivo supera 2 MB. Selecciona uno mas pequeno.');
+                    alert('El archivo supera 2 MB.');
                     this.value = '';
                     return;
                 }
                 var reader = new FileReader();
-                reader.onload = function (e) {
-                    $previewLogo.attr('src', e.target.result);
-                };
+                reader.onload = function (e) { $previewLogo.attr('src', e.target.result); };
                 reader.readAsDataURL(file);
             });
 
-            // Preview inmediato del favicon al seleccionar archivo.
             var $previewFavicon = $('#PlantillaFaviconPreview');
             $('#faviconFile').on('change', function () {
                 var file = this.files && this.files[0];
                 if (!file) return;
                 if (file.size > 512 * 1024) {
-                    alert('El favicon supera 512 KB. Selecciona uno mas pequeno.');
+                    alert('El favicon supera 512 KB.');
                     this.value = '';
                     return;
                 }
                 var reader = new FileReader();
-                reader.onload = function (e) {
-                    $previewFavicon.attr('src', e.target.result);
-                };
+                reader.onload = function (e) { $previewFavicon.attr('src', e.target.result); };
                 reader.readAsDataURL(file);
             });
 
-            $('#sidebar').toggleClass('active');
-            $(this).toggleClass('active');
+            $('#frmPlantilla').on('submit', function () {
+                var tc = ($('#AttBrandTextColor').val() || '').trim();
+                if (tc === '#ffffff' || tc === '#fff') {
+                    $('#AttBrandTextColor').val('');
+                }
+            });
         });
     </script>
 }

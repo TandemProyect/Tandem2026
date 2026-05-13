@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "checkJs": false,
+    "allowJs": true,
+    "noImplicitAny": false,
+    "strict": false,
+    "target": "ES2017",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2017", "DOM"],
+    "skipLibCheck": true,
+    "paths": {
+      "three": ["./Desing/Scripts/Design/build/three.module.js"],
+      "@masterarticles/OrbitControls": ["./Desing/Scripts/Design/jsm/controls/OrbitControls.js"],
+      "@masterarticles/STLLoader": ["./Desing/Scripts/Design/jsm/loaders/STLLoader.js"],
+      "@masterarticles/InfiniteGridHelper": ["./Desing/Scripts/MasterArticles/infinite-grid-helper.module.js"],
+      "@masterarticles/threeDxfLoader": ["./Desing/Scripts/MasterArticles/vendor/three-dxf-loader.js"]
+    }
+  },
+  "include": [
+    "./Desing/Scripts/MasterArticles/**/*.js",
+    "./Desing/Scripts/Design/build/three.module.js",
+    "./Desing/Scripts/Design/jsm/**/*.js"
+  ],
+  "exclude": ["**/bin/**", "**/obj/**", "**/node_modules/**", "**/packages/**"]
+}

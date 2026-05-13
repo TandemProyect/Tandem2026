@@ -6,8 +6,11 @@
  *    pon colReorder: { iFixedColumnsRight: 2 }.
  *  - Parche preInit: el plugin oficial hace $.extend({}, init, defaults) y el
  *    default true machaca iFixedColumnsRight del init; aqui mergeamos bien.
- *  - Persiste estado (orden, visibilidad, longitud, busqueda, anchos)
+ *  - Persiste estado (orden, visibilidad, longitud, busqueda global, anchos)
  *    en una cookie por usuario y tabla:  dt_<usuario>_<idTabla>
+ *  - Si el estado JSON supera el limite practico de cookie (~4KB), se recorta
+ *    (anchos de columna, etc.) y la busqueda se duplica en cookie dtq_*.
+ *  - stateDuration por defecto: 1 año (segundos). Evite valores bajos en las vistas.
  *  - El usuario se obtiene del <meta name="dt-user"> del layout.
  *  - Activa colResizable (si esta cargado) y guarda los anchos en el
  *    mismo objeto de estado.
@@ -59,6 +62,10 @@
     function cookieKey(tableId) {
         return 'dt_' + getUser() + '_' + (tableId || 'unknown');
     }
+    /** Cookie pequeña solo con el texto del buscador (evita perder la búsqueda si la cookie principal supera ~4KB). */
+    function searchCookieKey(tableId) {
+        return 'dtq_' + getUser() + '_' + (tableId || 'unknown');
+    }
     function setCookie(name, value) {
         var days = 365;
         var d = new Date();
@@ -75,6 +82,74 @@
     }
     function deleteCookie(name) {
         document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/';
+    }
+
+    function encodedCookieLength(name, value) {
+        try {
+            return name.length + 1 + encodeURIComponent(value).length;
+        } catch (e) {
+            return 99999;
+        }
+    }
+
+    function persistSearchCookie(tableId, data) {
+        var q = '';
+        try {
+            if (data && data.search && data.search.search !== undefined && data.search.search !== null) {
+                q = String(data.search.search);
+            }
+        } catch (e0) {
+            q = '';
+        }
+        try {
+            setCookie(searchCookieKey(tableId), JSON.stringify({ q: q, t: data && data.time ? data.time : Date.now() }));
+        } catch (e1) { /* noop */ }
+    }
+
+    function slimStatePayload(tableId, data) {
+        var maxEnc = 3800;
+        function tryStringify(d) {
+            try {
+                var s = JSON.stringify(d);
+                if (encodedCookieLength(cookieKey(tableId), s) <= maxEnc) {
+                    return s;
+                }
+            } catch (e) { /* noop */ }
+            return null;
+        }
+        var d = $.extend(true, {}, data);
+        var s = tryStringify(d);
+        if (s) {
+            return s;
+        }
+        delete d.colWidths;
+        s = tryStringify(d);
+        if (s) {
+            return s;
+        }
+        if (d.columns && $.isArray(d.columns)) {
+            d.columns = $.map(d.columns, function (c) {
+                if (!c) {
+                    return { visible: true };
+                }
+                var vis = c.visible;
+                return { visible: vis === true || vis === false ? vis : true };
+            });
+        }
+        s = tryStringify(d);
+        if (s) {
+            return s;
+        }
+        delete d.ColReorder;
+        s = tryStringify(d);
+        if (s) {
+            return s;
+        }
+        try {
+            return JSON.stringify(d);
+        } catch (e2) {
+            return null;
+        }
     }
 
     /* === Defaults globales para todas las tablas ========================= */
@@ -108,8 +183,14 @@
             try {
                 var id = settings.sTableId || (settings.nTable && settings.nTable.id) || 'unknown';
                 var cached = $.data(settings.nTable, 'dtColWidths');
-                if (cached) { data.colWidths = cached; }
-                setCookie(cookieKey(id), JSON.stringify(data));
+                if (cached) {
+                    data.colWidths = cached;
+                }
+                persistSearchCookie(id, data);
+                var payload = slimStatePayload(id, data);
+                if (payload) {
+                    setCookie(cookieKey(id), payload);
+                }
             } catch (e) { /* noop */ }
         },
 
@@ -117,11 +198,41 @@
             try {
                 var id = settings.sTableId || (settings.nTable && settings.nTable.id) || 'unknown';
                 var raw = getCookie(cookieKey(id));
-                if (!raw) { return null; }
-                var parsed = JSON.parse(raw);
-                /* Cookie demasiado antigua o corrupta: limpiar */
-                if (!parsed || typeof parsed !== 'object') {
-                    deleteCookie(cookieKey(id));
+                var parsed = null;
+                if (raw) {
+                    parsed = JSON.parse(raw);
+                    if (!parsed || typeof parsed !== 'object') {
+                        deleteCookie(cookieKey(id));
+                        parsed = null;
+                    }
+                }
+                var qTxt = '';
+                var qRaw = getCookie(searchCookieKey(id));
+                if (qRaw) {
+                    try {
+                        var qo = JSON.parse(qRaw);
+                        if (qo && qo.q != null) {
+                            qTxt = String(qo.q);
+                        }
+                    } catch (qe) {
+                        deleteCookie(searchCookieKey(id));
+                    }
+                }
+                if (qTxt.length && parsed) {
+                    parsed.search = parsed.search || {};
+                    parsed.search.search = qTxt;
+                    if (parsed.search.smart === undefined) {
+                        parsed.search.smart = true;
+                    }
+                    if (parsed.search.regex === undefined) {
+                        parsed.search.regex = false;
+                    }
+                    if (parsed.search.caseInsensitive === undefined) {
+                        parsed.search.caseInsensitive = true;
+                    }
+                }
+                if (!parsed && qTxt.length && settings.nTable) {
+                    $.data(settings.nTable, 'dtDeferredSearch', qTxt);
                     return null;
                 }
                 return parsed;
@@ -234,13 +345,113 @@
         try { api.columns.adjust(); } catch (e) { /* noop */ }
     }
 
+    function isSingleScrollTable(settings) {
+        if (!settings || !settings.nTable) { return false; }
+        var $t = $(settings.nTable);
+        if ($t.hasClass('dt-no-single-scroll') || $t.closest('.dt-no-single-scroll').length) {
+            return false;
+        }
+        return true;
+    }
+
+    // Para listas tipo "pantalla completa": activar scroll interno de DataTables si la vista no lo define.
+    $(document).off('preInit.dt.singleScroll');
+    $(document).on('preInit.dt.singleScroll', function (e, settings) {
+        if (e.namespace !== 'dt') { return; }
+        if (!isSingleScrollTable(settings)) { return; }
+        var init = settings.oInit || {};
+        if (init.scrollY === undefined || init.scrollY === null || init.scrollY === '') {
+            settings.oInit.scrollY = 1;
+            settings.oInit.scrollCollapse = true;
+        }
+    });
+
+    function applySingleScrollLayout(api) {
+        var settings = api.settings()[0];
+        if (!isSingleScrollTable(settings)) { return; }
+
+        document.documentElement.classList.add('master-articles-one-scroll');
+        document.body.classList.add('master-articles-one-scroll');
+
+        var $host = $(settings.nTable).closest('.card-body');
+        if (!$host.length) {
+            $host = $(settings.nTable).closest('.slimScrollDiv');
+        }
+        if (!$host.length) {
+            $host = $(settings.nTable).closest('.card');
+        }
+        if (!$host.length) {
+            $host = $(settings.nTable).parent();
+        }
+        if (!$host.length) { return; }
+        $host.addClass('master-articles-partial-scroll');
+
+        var host = $host[0];
+        var hostRect = host.getBoundingClientRect();
+        var footer = document.querySelector('.content-footer.footer');
+        var bottomLimit = footer ? footer.getBoundingClientRect().top : window.innerHeight;
+        var hostHeight = Math.floor(bottomLimit - hostRect.top - 34);
+        if (hostHeight < 260) { hostHeight = 260; }
+        host.style.setProperty('--ma-partial-height', hostHeight + 'px');
+
+        var body = $host.find('.dataTables_scrollBody')[0];
+        if (!body) { return; }
+        var bodyTop = body.getBoundingClientRect().top;
+        var bodyHeight = Math.floor(bottomLimit - bodyTop - 12);
+        if (bodyHeight < 140) { bodyHeight = 140; }
+        body.style.height = bodyHeight + 'px';
+        body.style.maxHeight = bodyHeight + 'px';
+        body.style.overflowY = 'auto';
+    }
+
     $(document).on('init.dt', function (e, settings) {
         if (e.namespace !== 'dt') { return; }
         var api = new DT.Api(settings);
+        var id = settings.sTableId || (settings.nTable && settings.nTable.id) || 'unknown';
+        var deferred = settings.nTable ? $.data(settings.nTable, 'dtDeferredSearch') : null;
+        if (deferred) {
+            $.removeData(settings.nTable, 'dtDeferredSearch');
+            setTimeout(function () {
+                try { api.search(deferred).draw(false); } catch (ex0) { /* noop */ }
+            }, 0);
+        }
+
+        var $wrap = $(api.table().container());
+        var $filt = $wrap.find('.dataTables_filter input');
+        if ($filt.length) {
+            var tmr;
+            $filt.off('input.dtSearchPersist').on('input.dtSearchPersist', function () {
+                clearTimeout(tmr);
+                tmr = setTimeout(function () {
+                    try {
+                        persistSearchCookie(id, {
+                            time: Date.now(),
+                            search: { search: $filt.val(), smart: true, regex: false, caseInsensitive: true }
+                        });
+                        api.state.save();
+                    } catch (ex1) { /* noop */ }
+                }, 250);
+            });
+        }
+
         setTimeout(function () {
             restoreWidths(api);
             applyResizers(api);
+            applySingleScrollLayout(api);
         }, 50);
+
+        setTimeout(function () {
+            try {
+                var qRaw2 = getCookie(searchCookieKey(id));
+                if (!qRaw2) { return; }
+                var qo2 = JSON.parse(qRaw2);
+                var qv = (qo2 && qo2.q != null) ? String(qo2.q) : '';
+                if (!qv) { return; }
+                var ps = api.settings()[0].oPreviousSearch || {};
+                var cur = ps.sSearch != null ? String(ps.sSearch) : '';
+                if (cur !== qv) { api.search(qv).draw(false); }
+            } catch (ex2) { /* noop */ }
+        }, 120);
     });
 
     /* En tablas serverSide DataTables redibuja la cabecera con cada draw:
@@ -249,10 +460,31 @@
         if (e.namespace !== 'dt') { return; }
         var api = new DT.Api(settings);
         applyResizers(api);
+        applySingleScrollLayout(api);
+    });
+
+    $(window).off('resize.dtSingleScroll').on('resize.dtSingleScroll', function () {
+        try {
+            /* DataTables 1.11: `tables({api:true})` no expone `.every()` en el Api raíz. */
+            var nodes = DT.tables({ visible: true });
+            if (!nodes || !nodes.length) {
+                return;
+            }
+            for (var i = 0; i < nodes.length; i++) {
+                try {
+                    var $n = $(nodes[i]);
+                    if (!$n.length || typeof $n.DataTable !== 'function') {
+                        continue;
+                    }
+                    applySingleScrollLayout($n.DataTable());
+                } catch (e) { /* noop */ }
+            }
+        } catch (ex) { /* noop */ }
     });
 
     /* Helper publico para que el usuario pueda resetear su tabla. */
     window.dtResetState = function (tableId) {
         deleteCookie(cookieKey(tableId));
+        deleteCookie(searchCookieKey(tableId));
     };
 })(window.jQuery);

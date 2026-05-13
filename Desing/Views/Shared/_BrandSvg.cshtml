@@ -1,7 +1,17 @@
 @*
-    Marca "T Desing.net":
-      - La "T" se muestra en cursiva y color naranja.
-      - El resto ("Desing.net") usa el color de la plantilla (currentColor).
-    Estilos en _PlantillaStyles.cshtml (.brand-font, .brand-t, .brand-rest).
+    Marca configurable por plantilla (TSql_Plantilla):
+      - Primera letra: color acento (AttBrandAccentColor).
+      - Resto del texto: AttBrandTextColor si viene informado; si no, hereda color del contenedor (primario).
+    ViewBag: PlantillaBrandText, PlantillaBrandTextColor, PlantillaBrandAccentColor (BaseController).
 *@
-<span class="brand-font"><span class="brand-t">T</span><span class="brand-rest">&nbsp;Desing.net</span></span>
+@{
+    var full = (ViewBag.PlantillaBrandText as string) ?? "T Desing.net";
+    full = full.Trim();
+    if (full.Length == 0) { full = "T Desing.net"; }
+    var first = full.Substring(0, 1);
+    var rest = full.Length > 1 ? full.Substring(1) : "";
+    var accent = (ViewBag.PlantillaBrandAccentColor as string) ?? "#f29100";
+    var textColor = ViewBag.PlantillaBrandTextColor as string;
+    var hasTextColor = !string.IsNullOrWhiteSpace(textColor);
+}
+<span class="brand-font" style="@(hasTextColor ? "color:" + textColor + ";" : null)"><span class="brand-t" style="color:@accent">@first</span><span class="brand-rest">@rest</span></span>

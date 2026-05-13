@@ -1,5 +1,6 @@
 using DAL;
 using DataTables.Mvc;
+using Desing.Helpers;
 using Desing.Models;
 using Microsoft.AspNet.Identity;
 using System;
@@ -11,6 +12,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Linq.Dynamic.Core;
+using System.Data.SqlClient;
 using System.Web;
 using System.Web.Mvc;
 
@@ -18,7 +20,7 @@ namespace Desing.Controllers
 {
     /// <summary>
     /// Gestion de plantillas de estilo (color + logo) por usuario.
-    /// Cada empleado se enlaza con una plantilla a traves de TSql_Employee.LinPlantilla.
+    /// La plantilla se asigna por empresa (TSql_Company.LinPlantilla); todos los empleados de esa empresa la heredan.
     /// La plantilla marcada como "por defecto" se asigna automaticamente al crear empleado.
     /// </summary>
     [Authorize]
@@ -80,7 +82,7 @@ namespace Desing.Controllers
                 }
                 query = query.OrderBy(string.IsNullOrEmpty(orderByString) ? "AttIsDefault desc, AttName asc" : orderByString);
 
-                query = query.Skip(requestModel.Start).Take(requestModel.Length);
+                query = query.ApplyDataTablesPaging(requestModel.Start, requestModel.Length);
 
                 var data = query.ToList().Select(p => new
                 {
@@ -121,7 +123,10 @@ namespace Desing.Controllers
                 AttLogo = "/Content/images/Login/at.png",
                 AttFavicon = "/assets/client/images/Default/Ico/at.ico",
                 AttIsDefault = false,
-                IsEdit = false
+                IsEdit = false,
+                AttBrandText = "T Desing.net",
+                AttBrandAccentColor = "#f29100",
+                AttBrandTextColor = ""
             };
             return View("Edit", model);
         }
@@ -179,6 +184,9 @@ namespace Desing.Controllers
             var plantilla = new TSql_Plantilla
             {
                 AttName = model.AttName,
+                AttBrandText = string.IsNullOrWhiteSpace(model.AttBrandText) ? "T Desing.net" : model.AttBrandText.Trim(),
+                AttBrandTextColor = string.IsNullOrWhiteSpace(model.AttBrandTextColor) ? null : model.AttBrandTextColor.Trim(),
+                AttBrandAccentColor = string.IsNullOrWhiteSpace(model.AttBrandAccentColor) ? "#f29100" : model.AttBrandAccentColor.Trim(),
                 AttColor = model.AttColor,
                 AttLogo = model.AttLogo,
                 AttFavicon = model.AttFavicon,
@@ -205,7 +213,19 @@ namespace Desing.Controllers
         // ---------------------------------------------------------------------
         public ActionResult Edit(long Id)
         {
-            var entity = db.TSql_Plantilla.FirstOrDefault(p => p.SysObjectID == Id && !p.AttIsDeleted);
+            TSql_Plantilla entity;
+            try
+            {
+                entity = db.TSql_Plantilla.FirstOrDefault(p => p.SysObjectID == Id && !p.AttIsDeleted);
+            }
+            catch (Exception ex)
+            {
+                var handled = RedirectIfPlantillaDataModelMismatch(ex);
+                if (handled != null)
+                    return handled;
+                throw;
+            }
+
             if (entity == null)
             {
                 TempData["ToastType"] = "Error";
@@ -219,6 +239,9 @@ namespace Desing.Controllers
             {
                 SysObjectID = entity.SysObjectID,
                 AttName = entity.AttName,
+                AttBrandText = string.IsNullOrWhiteSpace(entity.AttBrandText) ? "T Desing.net" : entity.AttBrandText,
+                AttBrandTextColor = entity.AttBrandTextColor ?? "",
+                AttBrandAccentColor = string.IsNullOrWhiteSpace(entity.AttBrandAccentColor) ? "#f29100" : entity.AttBrandAccentColor,
                 AttColor = entity.AttColor,
                 AttLogo = entity.AttLogo,
                 AttFavicon = string.IsNullOrWhiteSpace(entity.AttFavicon)
@@ -264,7 +287,19 @@ namespace Desing.Controllers
                 return View("Edit", model);
             }
 
-            var entity = db.TSql_Plantilla.FirstOrDefault(p => p.SysObjectID == model.SysObjectID && !p.AttIsDeleted);
+            TSql_Plantilla entity;
+            try
+            {
+                entity = db.TSql_Plantilla.FirstOrDefault(p => p.SysObjectID == model.SysObjectID && !p.AttIsDeleted);
+            }
+            catch (Exception ex)
+            {
+                var handled = RedirectIfPlantillaDataModelMismatch(ex);
+                if (handled != null)
+                    return handled;
+                throw;
+            }
+
             if (entity == null)
             {
                 TempData["ToastType"] = "Error";
@@ -287,6 +322,9 @@ namespace Desing.Controllers
             }
 
             entity.AttName = model.AttName;
+            entity.AttBrandText = string.IsNullOrWhiteSpace(model.AttBrandText) ? "T Desing.net" : model.AttBrandText.Trim();
+            entity.AttBrandTextColor = string.IsNullOrWhiteSpace(model.AttBrandTextColor) ? null : model.AttBrandTextColor.Trim();
+            entity.AttBrandAccentColor = string.IsNullOrWhiteSpace(model.AttBrandAccentColor) ? "#f29100" : model.AttBrandAccentColor.Trim();
             entity.AttColor = model.AttColor;
             entity.AttLogo = model.AttLogo;
             entity.AttFavicon = model.AttFavicon;
@@ -326,10 +364,10 @@ namespace Desing.Controllers
                 .Select(p => (long?)p.SysObjectID)
                 .FirstOrDefault();
 
-            var afectados = db.TSql_Employee.Where(e => e.LinPlantilla == Id);
-            foreach (var emp in afectados)
+            var afectados = db.TSql_Company.Where(c => !c.BitIsDeleted && c.LinPlantilla == Id);
+            foreach (var comp in afectados)
             {
-                emp.LinPlantilla = defaultId;
+                comp.LinPlantilla = defaultId;
             }
 
             entity.AttIsDeleted = true;
@@ -346,6 +384,69 @@ namespace Desing.Controllers
         // ---------------------------------------------------------------------
         // Helpers reutilizables (SelectList y plantilla por defecto).
         // ---------------------------------------------------------------------
+
+        /// <summary>
+        /// Si la base de datos no tiene las columnas de marca (AttBrand*), EF falla al
+        /// materializar TSql_Plantilla. Devuelve un redirect con mensaje claro; si no
+        /// aplica, devuelve null.
+        /// </summary>
+        private ActionResult RedirectIfPlantillaDataModelMismatch(Exception ex)
+        {
+            if (!IsPlantillaSchemaOrMaterializationError(ex))
+                return null;
+
+            TempData["ToastType"] = "Error";
+            TempData["ToastTitle"] = "Base de datos";
+            TempData["ToastMessage"] =
+                "La tabla TSql_Plantilla no incluye las columnas de marca (AttBrandText, AttBrandTextColor, AttBrandAccentColor). " +
+                "Ejecuta en el servidor SQL el script: App_Data/Sql/TSql_Plantilla_add_brand_text_and_colors.sql (carpeta del proyecto Desing).";
+            return RedirectToAction("Index");
+        }
+
+        private static bool IsPlantillaSchemaOrMaterializationError(Exception ex)
+        {
+            // Captura cualquier anidamiento raro de EF + SqlException.
+            try
+            {
+                var dump = ex.ToString();
+                if (dump.IndexOf("Invalid column name", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                    dump.IndexOf("AttBrand", StringComparison.OrdinalIgnoreCase) >= 0)
+                    return true;
+            }
+            catch { /* ignorar */ }
+
+            for (var e = ex; e != null; e = e.InnerException)
+            {
+                var m = e.Message ?? "";
+                // SQL Server (EN): Invalid column name 'AttBrandText' ...
+                if (m.IndexOf("Invalid column name", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                    m.IndexOf("AttBrand", StringComparison.OrdinalIgnoreCase) >= 0)
+                    return true;
+                // SQL Server (ES, aprox.): ... nombre de columna 'AttBrandText' ...
+                if (m.IndexOf("AttBrand", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                    m.IndexOf("columna", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                    (m.IndexOf("válid", StringComparison.OrdinalIgnoreCase) >= 0 || m.IndexOf("valido", StringComparison.OrdinalIgnoreCase) >= 0))
+                    return true;
+                // 207 = columna invalida (mensaje puede estar localizado)
+                var sql = e as SqlException;
+                if (sql != null && sql.Number == 207)
+                {
+                    for (var i = 0; i < sql.Errors.Count; i++)
+                    {
+                        var em = sql.Errors[i].Message ?? "";
+                        if (em.IndexOf("AttBrand", StringComparison.OrdinalIgnoreCase) >= 0)
+                            return true;
+                    }
+                }
+                // EF: propiedad no-nullable recibe NULL desde la BD
+                if (m.IndexOf("AttBrand", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                    m.IndexOf("could not be set", StringComparison.OrdinalIgnoreCase) >= 0)
+                    return true;
+            }
+
+            return false;
+        }
+
         public static IEnumerable<SelectListItem> GetSelectList(ConexionData db, long? selected)
         {
             return db.TSql_Plantilla

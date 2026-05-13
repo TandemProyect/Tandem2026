@@ -1,0 +1,73 @@
+@model DAL.Tsql_Master_Articles
+
+@{
+
+    var blocksDwg = new[]
+
+    {
+
+        new { Key = "LinkBlockDwgPlant3D", Label = "Planta 3D", Val = Model.LinkBlockDwgPlant3D },
+
+        new { Key = "LinkBlockDwgVerticalElevation3D", Label = "Elevación vertical 3D", Val = Model.LinkBlockDwgVerticalElevation3D },
+
+        new { Key = "LinkBlockDwgHorizontalElevation3D", Label = "Elevación horizontal 3D", Val = Model.LinkBlockDwgHorizontalElevation3D },
+
+        new { Key = "LinkBlockDwgPlantMckUp", Label = "Planta mock-up", Val = Model.LinkBlockDwgPlantMckUp },
+
+        new { Key = "LinkBlockDwgVerticalElevationMockUp", Label = "Elevación vertical mock-up", Val = Model.LinkBlockDwgVerticalElevationMockUp },
+
+        new { Key = "LinkBlockDwgHorizontalElevationMockUp", Label = "Elevación horizontal mock-up", Val = Model.LinkBlockDwgHorizontalElevationMockUp },
+
+    };
+
+}
+
+<div class="col-12"><hr class="my-2 text-muted" /></div>
+
+<div class="col-12">
+
+    <h6 class="mb-2 text-muted">Archivos de bloque — AutoCAD (solo .dwg)</h6>
+    <p class="small text-muted mb-2">Estos .dwg son los archivos de trabajo (p. ej. con ZWCAD). Se guardan en la carpeta compartida <code>Files/MasterArticles/blocks</code> con el mismo nombre que adjunte. En la ficha, la vista previa usa el DXF gemelo (<code>.dxf</code> junto al <code>.dwg</code>).</p>
+
+</div>
+
+@foreach (var b in blocksDwg)
+
+{
+
+    <div class="col-md-6 mb-3">
+
+        <label class="form-label">@b.Label</label>
+
+        <input type="file" name="blockFile_@(b.Key)" class="form-control" accept=".dwg,.DWG" />
+
+        @Html.Hidden(b.Key, b.Val)
+
+        @if (!string.IsNullOrWhiteSpace(b.Val))
+
+        {
+
+            var href = Url.Content(b.Val.StartsWith("~/") ? b.Val : "~/" + b.Val.TrimStart('/'));
+            var fileLabel = System.IO.Path.GetFileName(b.Val.Trim().Replace('\\', '/'));
+
+            <div class="mt-2 small">
+
+                <span class="text-muted d-block mb-1">Archivo guardado: <strong>@fileLabel</strong></span>
+                <a href="@href" target="_blank" rel="noopener" class="me-2">Abrir archivo</a>
+
+                <div class="form-check form-check-inline">
+
+                    <input class="form-check-input" type="checkbox" name="clear_@(b.Key)" value="true" id="clear_@(b.Key)" />
+
+                    <label class="form-check-label" for="clear_@(b.Key)">Quitar</label>
+
+                </div>
+
+            </div>
+
+        }
+
+    </div>
+
+}
+

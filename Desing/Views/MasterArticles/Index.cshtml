@@ -1,14 +1,27 @@
 ﻿@model DAL.Tsql_Master_Articles
-<div class="d-flex align-items-center justify-content-between mb-4">
-    <h4 class="py-3 mb-0">
-        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> /</span> Artículos
-    </h4>
-    <a class="btn btn-primary" href="@Url.Action("Create", "MasterArticles")">
-        <i class="icon-base ri ri-add-line me-1"></i> Crear Nuevo artículo
-    </a>
-</div>
-<div class="card mb-4">
-    <div class="card-body" style="padding:5px">
+@{
+    var toastMsg = TempData["ToastMessage"] as string;
+    var toastType = TempData["ToastType"] as string;
+    var toastAlertClass = string.Equals(toastType, "Error", StringComparison.OrdinalIgnoreCase) ? "alert-danger" : "alert-success";
+}
+@if (!string.IsNullOrEmpty(toastMsg))
+{
+    <div class="alert @toastAlertClass alert-dismissible fade show" role="alert">
+        @toastMsg
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+}
+<div class="tandem-dt-list-page">
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-shrink-0">
+        <h4 class="py-3 mb-0">
+            <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> /</span> Artículos
+        </h4>
+        <a class="btn btn-primary" href="@Url.Action("Create", "MasterArticles")">
+            <i class="icon-base ri ri-add-line me-1"></i> Crear Nuevo artículo
+        </a>
+    </div>
+    <div class="card mb-4">
+        <div class="card-body master-articles-partial-scroll" style="padding:5px">
         <table id="Master_Articles" class="table table-hover" cellspacing="0" style="width: 100%">
             <thead>
                 <tr>
@@ -26,23 +39,103 @@
                     <th>Color Alto  </th>
                     <th>Empresa</th>
                     <th>Sistema</th>
-                    <th></th>
+                    <th>Planta 3D</th>
+                    <th>Elev. vert. 3D</th>
+                    <th>Elev. horiz. 3D</th>
+                    <th>Planta mock-up</th>
+                    <th>Elev. vert. mock-up</th>
+                    <th>Elev. horiz. mock-up</th>
+                    <th>Planta STL</th>
+                    <th>Elev. vert. STL</th>
+                    <th>Elev. horiz. STL</th>
+                    <th>Ins. Master</th>
+                    <th class="text-end">Acciones</th>
                     <th>ID</th>
                 </tr>
             </thead>
         </table>
+        </div>
     </div>
 </div>
+
+@section Styles {
+    <style>
+        /* Solo Artículos: forzar un único scroll (el de la partial) */
+        html.master-articles-one-scroll,
+        body.master-articles-one-scroll {
+            overflow: hidden !important;
+            height: 100dvh !important;
+            max-height: 100dvh !important;
+        }
+
+        body.master-articles-one-scroll .layout-content-navbar .layout-page,
+        body.master-articles-one-scroll .layout-content-navbar .content-wrapper,
+        body.master-articles-one-scroll .layout-content-navbar .content-wrapper > .container-fluid.flex-grow-1.container-p-y,
+        body.master-articles-one-scroll .layout-content-navbar .content-wrapper > .container-fluid.flex-grow-1 {
+            overflow: hidden !important;
+            max-height: 100% !important;
+        }
+
+        /* Solo Artículos: scroll vertical en la propia vista/partial */
+        .tandem-dt-list-page > .card > .card-body.master-articles-partial-scroll {
+            /* Altura exacta calculada por JS según viewport/pantalla */
+            max-height: var(--ma-partial-height, calc(100dvh - 14rem));
+            height: var(--ma-partial-height, calc(100dvh - 14rem));
+            overflow: hidden;
+            overflow-x: hidden;
+            display: block;
+        }
+
+        .master-articles-partial-scroll .dataTables_wrapper .dataTables_scrollBody {
+            border-bottom: 0 !important;
+            overflow-y: auto !important;
+        }
+    </style>
+}
 
 @section scripts
     {
     <script type="text/javascript">
         $(document).ready(function () {
+        document.documentElement.classList.add('master-articles-one-scroll');
+        $('body').addClass('master-articles-one-scroll');
+
+        function applyMasterArticlesPartialHeight() {
+            var el = document.querySelector('.tandem-dt-list-page > .card > .card-body.master-articles-partial-scroll');
+            if (!el) { return; }
+            var r = el.getBoundingClientRect();
+            var footer = document.querySelector('.content-footer.footer');
+            var bottomLimit = footer ? footer.getBoundingClientRect().top : window.innerHeight;
+            // Colchón mayor para asegurar visibilidad completa de la franja inferior
+            var h = Math.floor(bottomLimit - r.top - 34);
+            if (h < 260) { h = 260; }
+            el.style.setProperty('--ma-partial-height', h + 'px');
+        }
+
+        function applyMasterArticlesScrollBodyHeight() {
+            var host = document.querySelector('.master-articles-partial-scroll');
+            if (!host) { return; }
+            var body = host.querySelector('.dataTables_scrollBody');
+            if (!body) { return; }
+            var footer = document.querySelector('.content-footer.footer');
+            var bottomLimit = footer ? footer.getBoundingClientRect().top : window.innerHeight;
+            var top = body.getBoundingClientRect().top;
+            var h = Math.floor(bottomLimit - top - 12);
+            if (h < 140) { h = 140; }
+            body.style.height = h + 'px';
+            body.style.maxHeight = h + 'px';
+        }
+
         var MasterArticles = {
             dt: null,
             init: function () {
-                dt = $('#Master_Articles').DataTable({
+                this.dt = $('#Master_Articles').DataTable({
                     dom: '<"dataTables-length-position">Bfrt<"dataTables-length-position"i>p',
+                    scrollX: true,
+                    // Scroll solo en el cuerpo de la tabla (cabecera siempre visible).
+                    // Activamos modo scroll de DataTables; la altura real se fija por JS.
+                    scrollY: 1,
+                    scrollCollapse: true,
                     lengthMenu: [
                         [10, 25, 50, -1],
                         ['10 filas', '25 filas', '50 filas', 'Todas']
@@ -50,7 +143,7 @@
                     buttons: [
                         {
                             extend: 'collection',
-                            text: "<i class='fas fa-bars'></i>",
+                            text: '<span class="d-inline-flex align-items-center gap-1"><i class="icon-base ri ri-menu-line" aria-hidden="true"></i><i class="icon-base ri ri-arrow-down-s-line" aria-hidden="true"></i></span>',
                             className: 'custom-html-collection',
                             buttons: [
                                 '<h5>Registros</h5>',
@@ -72,7 +165,7 @@
                     "serverSide": true,
                     "processing": true,
                     "stateSave": true,
-                    "stateDuration": 12,
+                    /* stateDuration: hereda de Scripts/datatables-state.js (cookie, 1 año). No usar valores bajos: son segundos. */
                     "colReorder": { "iFixedColumnsRight": 2 },
                  
                     //stateSaveCallback: function(settings,data) {
@@ -104,45 +197,88 @@
                         { "data": "TextColor2" },
                         { "data": "CompanyTextLabel" },
                         { "data": "System_TextLabel" },
-                        { "data": "emptyColumn" },
+                        { "data": "LinkBlockDwgPlant3D", "visible": false },
+                        { "data": "LinkBlockDwgVerticalElevation3D", "visible": false },
+                        { "data": "LinkBlockDwgHorizontalElevation3D", "visible": false },
+                        { "data": "LinkBlockDwgPlantMckUp", "visible": false },
+                        { "data": "LinkBlockDwgVerticalElevationMockUp", "visible": false },
+                        { "data": "LinkBlockDwgHorizontalElevationMockUp", "visible": false },
+                        { "data": "LinkBlockDwgPlantStl", "visible": false },
+                        { "data": "LinkBlockDwgVerticalElevationStl", "visible": false },
+                        { "data": "LinkBlockDwgHorizontalElevationStl", "visible": false },
+                        { "data": "IInsertinMaterArticles", "visible": false },
+                        {
+                            "data": "emptyColumn",
+                            "orderable": false,
+                            "className": "text-nowrap text-end align-middle tandem-ma-actions-col",
+                            "render": function (data, type, row) {
+                                if (type !== 'display')
+                                    return '';
+                                // JSON puede enviar allowEdit / AllowEdit; solo ocultar si viene explícitamente false
+                                var denied = row.allowEdit === false || row.AllowEdit === false;
+                                if (denied)
+                                    return '';
+                                return data || '';
+                            }
+                        },
                         { "data": "SysObjectID" }
-            ],
+                    ],
             /*   "iDisplayLength": parseInt(leerCookie("_rowsPerPage")),*/
-            "fnRowCallback": function (nRow, data, iDisplayIndex) {
-                $('td:eq(0)', nRow).html(data.AttName);
-
-                if (data.allowEdit == true) {
-                    $('td:eq(14)', nRow).append(data.buttonEdit + '&nbsp;');
-                    $('td:eq(14)', nRow).append(data.buttonDelete + '&nbsp;');
-                }
-                return nRow;
-            },
             "aaSorting": [[1, 'desc']],
             "aoColumnDefs": [
-                { "bVisible": false, "aTargets": [15] },
-                { "bSortable": false, "aTargets": [14] },
+                { "bVisible": false, "aTargets": [25] },
+                { "bSortable": false, "aTargets": [24] },
                 { "width": "300px", "aTargets": [0] },
-                { "width": "50px", "aTargets": [15] },
+                { "width": "50px", "aTargets": [25] },
+                { "width": "170px", "aTargets": [24] },
             ],
-            drawCallback: function () {
+            "createdRow": function (row, data) {
+                var active = data.AddIsActive !== undefined ? data.AddIsActive : data.addIsActive;
+                if (active === false) {
+                    $(row).addClass("table-secondary");
+                }
+            },
+            drawCallback: function (settings) {
                 $('[data-toggle="tooltip"]').tooltip({
                     delay: { "show": 100, "hide": 100 },
                     placement: "auto right"
-                }),
-                    $('[title]').tooltip({
-                        delay: { "show": 100, "hide": 100 },
-                        placement: "auto"
-                    })
-            },
-
-        });
-                }
+                });
+                $('[title]').tooltip({
+                    delay: { "show": 100, "hide": 100 },
+                    placement: "auto"
+                });
+                applyMasterArticlesPartialHeight();
+                applyMasterArticlesScrollBodyHeight();
+                try { new $.fn.dataTable.Api(settings).columns.adjust(); } catch (e) { /* noop */ }
             }
-    MasterArticles.init();
         });
-    $('#sidebar').toggleClass('active');
-        $(this).toggleClass('active');
-        $('#sidebar').load('/Menu/Index');
+            }
+        };
+
+        MasterArticles.init();
+        applyMasterArticlesPartialHeight();
+        setTimeout(function () {
+            applyMasterArticlesScrollBodyHeight();
+        }, 50);
+        var _maResizeT;
+        $(window).on('resize', function () {
+            clearTimeout(_maResizeT);
+            _maResizeT = setTimeout(function () {
+                applyMasterArticlesPartialHeight();
+                applyMasterArticlesScrollBodyHeight();
+                try { MasterArticles.dt.columns.adjust(); } catch (e) { /* noop */ }
+            }, 150);
+        });
+        $(window).on('load', function () {
+            applyMasterArticlesPartialHeight();
+            applyMasterArticlesScrollBodyHeight();
+        });
+
+        $(window).on('unload', function () {
+            document.documentElement.classList.remove('master-articles-one-scroll');
+            document.body.classList.remove('master-articles-one-scroll');
+        });
+        });
     </script>
 }
 

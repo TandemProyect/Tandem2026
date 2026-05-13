@@ -62,9 +62,6 @@ namespace Desing.Models
 
         public long EmployeeID { get; set; }
         public bool IsEdit { get; set; }
-
-        [DisplayName("Plantilla de estilo")]
-        public Nullable<long> LinPlantilla { get; set; }
     }
     public class EmployeeUserModel
     {

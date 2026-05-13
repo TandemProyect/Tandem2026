@@ -35,6 +35,16 @@ namespace DAL
         public long Ntimeschanged { get; set; }
         public bool AddIsActive { get; set; }
         public long LinkSystem { get; set; }
+        public string LinkBlockDwgPlant3D { get; set; }
+        public string LinkBlockDwgVerticalElevation3D { get; set; }
+        public string LinkBlockDwgHorizontalElevation3D { get; set; }
+        public string LinkBlockDwgPlantMckUp { get; set; }
+        public string LinkBlockDwgVerticalElevationMockUp { get; set; }
+        public string LinkBlockDwgHorizontalElevationMockUp { get; set; }
+        public string LinkBlockDwgPlantStl { get; set; }
+        public string LinkBlockDwgVerticalElevationStl { get; set; }
+        public string LinkBlockDwgHorizontalElevationStl { get; set; }
+        public bool IInsertinMaterArticles { get; set; }
     
         public virtual AspNetUsers AspNetUsers { get; set; }
         public virtual AspNetUsers AspNetUsers1 { get; set; }

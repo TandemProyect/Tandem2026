@@ -37,6 +37,9 @@ namespace Desing.Controllers
             ViewBag.PlantillaColor = "#349d7d";
             ViewBag.PlantillaLogo = "/Content/images/Login/at.png";
             ViewBag.PlantillaFavicon = "/assets/client/images/Default/Ico/at.ico";
+            ViewBag.PlantillaBrandText = "T Desing.net";
+            ViewBag.PlantillaBrandTextColor = "";
+            ViewBag.PlantillaBrandAccentColor = "#f29100";
 
             // Disponibilizar avatar, userName y plantilla en todas las vistas (navbar Materio).
             try
@@ -53,7 +56,12 @@ namespace Desing.Controllers
                         {
                             ViewBag.avatar = employee.AttPhotoMenu;
                             ViewBag.userName = (employee.AttName + " " + employee.AttSurname).Trim();
-                            plantilla = employee.TSql_Plantilla;
+                            var company = db.TSql_Company.FirstOrDefault(c => c.SysObjectID == employee.LinCompany && !c.BitIsDeleted);
+                            if (company != null && company.LinPlantilla.HasValue)
+                            {
+                                plantilla = db.TSql_Plantilla.FirstOrDefault(p =>
+                                    p.SysObjectID == company.LinPlantilla.Value && !p.AttIsDeleted);
+                            }
                         }
                     }
                 }
@@ -83,6 +91,15 @@ namespace Desing.Controllers
                         ViewBag.PlantillaLogo = plantilla.AttLogo;
                     if (!string.IsNullOrWhiteSpace(plantilla.AttFavicon))
                         ViewBag.PlantillaFavicon = plantilla.AttFavicon;
+                    ViewBag.PlantillaBrandText = string.IsNullOrWhiteSpace(plantilla.AttBrandText)
+                        ? "T Desing.net"
+                        : plantilla.AttBrandText.Trim();
+                    ViewBag.PlantillaBrandTextColor = plantilla.AttBrandTextColor != null
+                        ? plantilla.AttBrandTextColor.Trim()
+                        : "";
+                    ViewBag.PlantillaBrandAccentColor = string.IsNullOrWhiteSpace(plantilla.AttBrandAccentColor)
+                        ? "#f29100"
+                        : plantilla.AttBrandAccentColor.Trim();
                 }
             }
             catch

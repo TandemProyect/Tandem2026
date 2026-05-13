@@ -1,5 +1,6 @@
 ﻿using DAL;
 using DataTables.Mvc;
+using Desing.Helpers;
 using Desing.Models;
 using Microsoft.AspNet.Identity;
 using System;
@@ -359,7 +360,7 @@ namespace Desing.Controllers
                 }
                 query = query.OrderBy(orderByString == String.Empty ? "name asc" : orderByString);
                 // Paging
-                query = query.Skip(requestModel.Start).Take(requestModel.Length);
+                query = query.ApplyDataTablesPaging(requestModel.Start, requestModel.Length);
 
 
                 bool allowEdit = true;
@@ -519,7 +520,7 @@ namespace Desing.Controllers
                 }
                 query = query.OrderBy(orderByString == String.Empty ? "name asc" : orderByString);
                 // Paging
-                query = query.Skip(requestModel.Start).Take(requestModel.Length);
+                query = query.ApplyDataTablesPaging(requestModel.Start, requestModel.Length);
 
                 var data = query.ToList().Select(p => new
                 {
@@ -656,7 +657,7 @@ namespace Desing.Controllers
                 }
                 query = query.OrderBy(orderByString == String.Empty ? "name asc" : orderByString);
                 // Paging
-                query = query.Skip(requestModel.Start).Take(requestModel.Length);
+                query = query.ApplyDataTablesPaging(requestModel.Start, requestModel.Length);
 
                 // Rights
                 bool allowEdit = true;
@@ -1139,7 +1140,7 @@ namespace Desing.Controllers
                 }
                 query = query.OrderBy(orderByString == String.Empty ? "AttChange asc" : orderByString);
                 // Paging
-                query = query.Skip(requestModel.Start).Take(requestModel.Length);
+                query = query.ApplyDataTablesPaging(requestModel.Start, requestModel.Length);
 
                 // Rights
                 bool allowEdit = true;

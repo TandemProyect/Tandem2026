@@ -71,6 +71,7 @@
           <Property Name="TextTown_1" Type="nvarchar" MaxLength="500" />
           <Property Name="TextTown_2" Type="nvarchar" MaxLength="500" />
           <Property Name="LinkCountry" Type="bigint" />
+          <Property Name="LinPlantilla" Type="bigint" />
         </EntityType>
         <EntityType Name="TSql_ConfigDesing">
           <Key>
@@ -282,7 +283,6 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <Property Name="AttIsDeleted" Type="bit" Nullable="false" />
           <Property Name="Linlanguage" Type="bigint" />
           <Property Name="AttPassAspNetUsert" Type="nvarchar" MaxLength="50" />
-          <Property Name="LinPlantilla" Type="bigint" />
         </EntityType>
         <EntityType Name="TSql_Help">
           <Key>
@@ -340,6 +340,16 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
           <Property Name="AddIsActive" Type="bit" Nullable="false" />
           <Property Name="LinkSystem" Type="bigint" Nullable="false" />
+          <Property Name="LinkBlockDwgPlant3D" Type="nvarchar" MaxLength="500" />
+          <Property Name="LinkBlockDwgVerticalElevation3D" Type="nvarchar" MaxLength="500" />
+          <Property Name="LinkBlockDwgHorizontalElevation3D" Type="nvarchar" MaxLength="500" />
+          <Property Name="LinkBlockDwgPlantMck-up" Type="nvarchar" MaxLength="500" />
+          <Property Name="LinkBlockDwgVerticalElevationMock-up" Type="nvarchar" MaxLength="500" />
+          <Property Name="LinkBlockDwgHorizontalElevationMock-up" Type="nvarchar" MaxLength="500" />
+          <Property Name="LinkBlockDwgPlant3ds" Type="nvarchar" MaxLength="500" />
+          <Property Name="LinkBlockDwgVerticalElevation3ds" Type="nvarchar" MaxLength="500" />
+          <Property Name="LinkBlockDwgHorizontalElevation3ds" Type="nvarchar" MaxLength="500" />
+          <Property Name="IInsertinMaterArticles" Type="bit" Nullable="false" />
         </EntityType>
         <EntityType Name="TSql_Plantilla">
           <Key>
@@ -347,6 +357,9 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           </Key>
           <Property Name="SysObjectID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="AttName" Type="nvarchar" MaxLength="150" Nullable="false" />
+          <Property Name="AttBrandText" Type="nvarchar" MaxLength="120" Nullable="false" />
+          <Property Name="AttBrandTextColor" Type="nvarchar" MaxLength="20" />
+          <Property Name="AttBrandAccentColor" Type="nvarchar" MaxLength="20" Nullable="false" />
           <Property Name="AttColor" Type="nvarchar" MaxLength="20" Nullable="false" />
           <Property Name="AttLogo" Type="nvarchar" MaxLength="500" Nullable="false" />
           <Property Name="AttFavicon" Type="nvarchar" MaxLength="500" />
@@ -982,14 +995,14 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_TSql_Employee_TSql_Plantilla">
+        <Association Name="FK_TSql_Company_TSql_Plantilla">
           <End Role="TSql_Plantilla" Type="Self.TSql_Plantilla" Multiplicity="0..1" />
-          <End Role="TSql_Employee" Type="Self.TSql_Employee" Multiplicity="*" />
+          <End Role="TSql_Company" Type="Self.TSql_Company" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="TSql_Plantilla">
               <PropertyRef Name="SysObjectID" />
             </Principal>
-            <Dependent Role="TSql_Employee">
+            <Dependent Role="TSql_Company">
               <PropertyRef Name="LinPlantilla" />
             </Dependent>
           </ReferentialConstraint>
@@ -1676,9 +1689,9 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
             <End Role="TSql_Company" EntitySet="TSql_Company" />
             <End Role="TSql_Employee" EntitySet="TSql_Employee" />
           </AssociationSet>
-          <AssociationSet Name="FK_TSql_Employee_TSql_Plantilla" Association="Self.FK_TSql_Employee_TSql_Plantilla">
+          <AssociationSet Name="FK_TSql_Company_TSql_Plantilla" Association="Self.FK_TSql_Company_TSql_Plantilla">
             <End Role="TSql_Plantilla" EntitySet="TSql_Plantilla" />
-            <End Role="TSql_Employee" EntitySet="TSql_Employee" />
+            <End Role="TSql_Company" EntitySet="TSql_Company" />
           </AssociationSet>
           <AssociationSet Name="FK_TSql_Help_AspNetUsers" Association="Self.FK_TSql_Help_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
@@ -2181,9 +2194,9 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
             <End Role="TSql_Design" EntitySet="TSql_Design" />
             <End Role="TSql_TelegramDesignInbox" EntitySet="TSql_TelegramDesignInbox" />
           </AssociationSet>
-          <AssociationSet Name="FK_TSql_Employee_TSql_Plantilla" Association="DesingEntity.FK_TSql_Employee_TSql_Plantilla">
+          <AssociationSet Name="FK_TSql_Company_TSql_Plantilla" Association="DesingEntity.FK_TSql_Company_TSql_Plantilla">
             <End Role="TSql_Plantilla" EntitySet="TSql_Plantilla" />
-            <End Role="TSql_Employee" EntitySet="TSql_Employee" />
+            <End Role="TSql_Company" EntitySet="TSql_Company" />
           </AssociationSet>
           <AssociationSet Name="FK_TSql_RollFunctionsUser_TSql_Roles1" Association="DesingEntity.FK_TSql_RollFunctionsUser_TSql_Roles1">
             <End Role="TSql_Roles" EntitySet="TSql_Roles" />
@@ -2428,9 +2441,11 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <Property Name="TextTown_1" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
           <Property Name="TextTown_2" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
           <Property Name="LinkCountry" Type="Int64" />
+          <Property Name="LinPlantilla" Type="Int64" Nullable="true" />
           <NavigationProperty Name="TSql_Countrys" Relationship="DesingEntity.FK_TSql_Company_TSql_Countrys" FromRole="TSql_Company" ToRole="TSql_Countrys" />
           <NavigationProperty Name="TSql_Branch" Relationship="DesingEntity.FK_TSql_Branch_TSql_Company" FromRole="TSql_Company" ToRole="TSql_Branch" />
           <NavigationProperty Name="TSql_Employee" Relationship="DesingEntity.FK_TSql_Employee_TSql_Company" FromRole="TSql_Company" ToRole="TSql_Employee" />
+          <NavigationProperty Name="TSql_Plantilla" Relationship="DesingEntity.FK_TSql_Company_TSql_Plantilla" FromRole="TSql_Company" ToRole="TSql_Plantilla" />
           <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_Company_AspNetUsers" FromRole="TSql_Company" ToRole="AspNetUsers" />
           <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Company_AspNetUsers1" FromRole="TSql_Company" ToRole="AspNetUsers" />
           <NavigationProperty Name="AspNetUsers2" Relationship="DesingEntity.FK_TSql_Company_AspNetUsers2" FromRole="TSql_Company" ToRole="AspNetUsers" />
@@ -2651,8 +2666,6 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_Employee_AspNetUsers" FromRole="TSql_Employee" ToRole="AspNetUsers" />
           <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Employee_AspNetUsers1" FromRole="TSql_Employee" ToRole="AspNetUsers" />
           <NavigationProperty Name="AspNetUsers2" Relationship="DesingEntity.FK_TSql_Employee_AspNetUsers2" FromRole="TSql_Employee" ToRole="AspNetUsers" />
-          <Property Name="LinPlantilla" Type="Int64" />
-          <NavigationProperty Name="TSql_Plantilla" Relationship="DesingEntity.FK_TSql_Employee_TSql_Plantilla" FromRole="TSql_Employee" ToRole="TSql_Plantilla" />
         </EntityType>
         <Association Name="FK_TSql_Employee_TSql_Company">
           <End Type="DesingEntity.TSql_Company" Role="TSql_Company" Multiplicity="1" />
@@ -3572,6 +3585,16 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
           <Property Name="AddIsActive" Type="Boolean" Nullable="false" />
           <Property Name="LinkSystem" Type="Int64" Nullable="false" />
+          <Property Name="LinkBlockDwgPlant3D" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="LinkBlockDwgVerticalElevation3D" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="LinkBlockDwgHorizontalElevation3D" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="LinkBlockDwgPlantMckUp" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="LinkBlockDwgVerticalElevationMockUp" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="LinkBlockDwgHorizontalElevationMockUp" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="LinkBlockDwgPlantStl" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="LinkBlockDwgVerticalElevationStl" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="LinkBlockDwgHorizontalElevationStl" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="IInsertinMaterArticles" Type="Boolean" Nullable="false" />
           <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_Tsql_Master_Articles_AspNetUsers" FromRole="Tsql_Master_Articles" ToRole="AspNetUsers" />
           <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_Tsql_Master_Articles_AspNetUsers1" FromRole="Tsql_Master_Articles" ToRole="AspNetUsers" />
           <NavigationProperty Name="TSql_System" Relationship="DesingEntity.FK_Tsql_Master_Articles_TSql_System" FromRole="Tsql_Master_Articles" ToRole="TSql_System" />
@@ -3618,6 +3641,9 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           </Key>
           <Property Name="SysObjectID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="AttName" Type="String" Nullable="false" MaxLength="150" FixedLength="false" Unicode="true" />
+          <Property Name="AttBrandText" Type="String" Nullable="false" MaxLength="120" FixedLength="false" Unicode="true" />
+          <Property Name="AttBrandTextColor" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="AttBrandAccentColor" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="true" />
           <Property Name="AttColor" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="true" />
           <Property Name="AttLogo" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
           <Property Name="AttFavicon" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
@@ -3628,7 +3654,7 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
           <Property Name="AttLastModification" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="SysUpdateNumber" Type="Int64" Nullable="false" />
-          <NavigationProperty Name="TSql_Employee" Relationship="DesingEntity.FK_TSql_Employee_TSql_Plantilla" FromRole="TSql_Plantilla" ToRole="TSql_Employee" />
+          <NavigationProperty Name="TSql_Company" Relationship="DesingEntity.FK_TSql_Company_TSql_Plantilla" FromRole="TSql_Plantilla" ToRole="TSql_Company" />
         </EntityType>
         <EntityType Name="TSql_PluginDeviceAuth">
           <Key>
@@ -3803,14 +3829,14 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_TSql_Employee_TSql_Plantilla">
+        <Association Name="FK_TSql_Company_TSql_Plantilla">
           <End Type="DesingEntity.TSql_Plantilla" Role="TSql_Plantilla" Multiplicity="0..1" />
-          <End Type="DesingEntity.TSql_Employee" Role="TSql_Employee" Multiplicity="*" />
+          <End Type="DesingEntity.TSql_Company" Role="TSql_Company" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="TSql_Plantilla">
               <PropertyRef Name="SysObjectID" />
             </Principal>
-            <Dependent Role="TSql_Employee">
+            <Dependent Role="TSql_Company">
               <PropertyRef Name="LinPlantilla" />
             </Dependent>
           </ReferentialConstraint>
@@ -4002,6 +4028,7 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <EntitySetMapping Name="TSql_Company">
             <EntityTypeMapping TypeName="DesingEntity.TSql_Company">
               <MappingFragment StoreEntitySet="TSql_Company">
+                <ScalarProperty Name="LinPlantilla" ColumnName="LinPlantilla" />
                 <ScalarProperty Name="LinkCountry" ColumnName="LinkCountry" />
                 <ScalarProperty Name="TextTown_2" ColumnName="TextTown_2" />
                 <ScalarProperty Name="TextTown_1" ColumnName="TextTown_1" />
@@ -4159,7 +4186,6 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <EntitySetMapping Name="TSql_Employee">
             <EntityTypeMapping TypeName="DesingEntity.TSql_Employee">
               <MappingFragment StoreEntitySet="TSql_Employee">
-                <ScalarProperty Name="LinPlantilla" ColumnName="LinPlantilla" />
                 <ScalarProperty Name="AttPassAspNetUsert" ColumnName="AttPassAspNetUsert" />
                 <ScalarProperty Name="Linlanguage" ColumnName="Linlanguage" />
                 <ScalarProperty Name="AttIsDeleted" ColumnName="AttIsDeleted" />
@@ -4310,6 +4336,16 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <EntitySetMapping Name="Tsql_Master_Articles">
             <EntityTypeMapping TypeName="DesingEntity.Tsql_Master_Articles">
               <MappingFragment StoreEntitySet="Tsql_Master_Articles">
+                <ScalarProperty Name="IInsertinMaterArticles" ColumnName="IInsertinMaterArticles" />
+                <ScalarProperty Name="LinkBlockDwgHorizontalElevationStl" ColumnName="LinkBlockDwgHorizontalElevation3ds" />
+                <ScalarProperty Name="LinkBlockDwgVerticalElevationStl" ColumnName="LinkBlockDwgVerticalElevation3ds" />
+                <ScalarProperty Name="LinkBlockDwgPlantStl" ColumnName="LinkBlockDwgPlant3ds" />
+                <ScalarProperty Name="LinkBlockDwgHorizontalElevationMockUp" ColumnName="LinkBlockDwgHorizontalElevationMock-up" />
+                <ScalarProperty Name="LinkBlockDwgVerticalElevationMockUp" ColumnName="LinkBlockDwgVerticalElevationMock-up" />
+                <ScalarProperty Name="LinkBlockDwgPlantMckUp" ColumnName="LinkBlockDwgPlantMck-up" />
+                <ScalarProperty Name="LinkBlockDwgHorizontalElevation3D" ColumnName="LinkBlockDwgHorizontalElevation3D" />
+                <ScalarProperty Name="LinkBlockDwgVerticalElevation3D" ColumnName="LinkBlockDwgVerticalElevation3D" />
+                <ScalarProperty Name="LinkBlockDwgPlant3D" ColumnName="LinkBlockDwgPlant3D" />
                 <ScalarProperty Name="LinkSystem" ColumnName="LinkSystem" />
                 <ScalarProperty Name="AddIsActive" ColumnName="AddIsActive" />
                 <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
@@ -4347,6 +4383,9 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
                 <ScalarProperty Name="AttFavicon" ColumnName="AttFavicon" />
                 <ScalarProperty Name="AttLogo" ColumnName="AttLogo" />
                 <ScalarProperty Name="AttColor" ColumnName="AttColor" />
+                <ScalarProperty Name="AttBrandAccentColor" ColumnName="AttBrandAccentColor" />
+                <ScalarProperty Name="AttBrandTextColor" ColumnName="AttBrandTextColor" />
+                <ScalarProperty Name="AttBrandText" ColumnName="AttBrandText" />
                 <ScalarProperty Name="AttName" ColumnName="AttName" />
                 <ScalarProperty Name="SysObjectID" ColumnName="SysObjectID" />
               </MappingFragment>

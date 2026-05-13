@@ -8,6 +8,7 @@
 *@
 @{
     var _plantillaColor = (ViewBag.PlantillaColor as string) ?? "#349d7d";
+    var _brandAccent = (ViewBag.PlantillaBrandAccentColor as string) ?? "#f29100";
 }
 @*
     Tipografia de la marca "T Desing.net":
@@ -29,10 +30,10 @@
         white-space: nowrap;
         text-transform: none !important;
     }
-    /* "T" italica en naranja, independiente del color de la plantilla. */
+    /* Primera letra en italica; color acento configurable por plantilla. */
     .brand-font .brand-t {
         font-style: italic;
-        color: #f29100 !important;
+        color: @_brandAccent !important;
         font-weight: 400 !important;
         margin-right: 0.05em;
     }

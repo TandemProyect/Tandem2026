@@ -1,0 +1,114 @@
+@model DAL.Tsql_Master_Articles
+@{
+    ViewBag.Title = "Nuevo artículo";
+}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> / <a href="@Url.Action("Index", "MasterArticles")">Artículos</a> /</span> Crear
+    </h4>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        @using (Html.BeginForm("Create", "MasterArticles", FormMethod.Post, new { @class = "row g-3", enctype = "multipart/form-data" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger py-2", role = "alert" })
+
+            <div class="col-md-4">
+                <label class="form-label">Código *</label>
+                @Html.TextBoxFor(m => m.TextCode, new { @class = "form-control", maxlength = "128", autocomplete = "off" })
+                @Html.ValidationMessageFor(m => m.TextCode, "", new { @class = "text-danger small" })
+            </div>
+            <div class="col-md-5">
+                <label class="form-label">Descripción *</label>
+                @Html.TextBoxFor(m => m.TextLabel, new { @class = "form-control", maxlength = "500" })
+                @Html.ValidationMessageFor(m => m.TextLabel, "", new { @class = "text-danger small" })
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Sistema *</label>
+                @Html.DropDownListFor(m => m.LinkSystem, (SelectList)ViewBag.ArticleLinkSystemSelectList, "-- Seleccionar --", new { @class = "form-select" })
+                @Html.ValidationMessageFor(m => m.LinkSystem, "", new { @class = "text-danger small" })
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Código Atenko</label>
+                @Html.TextBoxFor(m => m.AddAtenkoCode, new { @class = "form-control", maxlength = "50" })
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <div class="form-check mb-2">
+                    @Html.CheckBoxFor(m => m.AddIsActive, new { @class = "form-check-input" })
+                    <label class="form-check-label" for="@Html.IdFor(m => m.AddIsActive)">Activo</label>
+                </div>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <div class="form-check mb-2">
+                    @Html.CheckBoxFor(m => m.IInsertinMaterArticles, new { @class = "form-check-input" })
+                    <label class="form-check-label" for="@Html.IdFor(m => m.IInsertinMaterArticles)">Insertar en Master Articles</label>
+                </div>
+            </div>
+
+            <div class="col-12"><hr class="my-1 text-muted" /></div>
+
+            <div class="col-md-3">
+                <label class="form-label">Alto</label>
+                @Html.TextBoxFor(m => m.NumberHigh, "{0:G}", new { @class = "form-control", type = "number", step = "any" })
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Ancho</label>
+                @Html.TextBoxFor(m => m.NumberWidth, "{0:G}", new { @class = "form-control", type = "number", step = "any" })
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Largo</label>
+                @Html.TextBoxFor(m => m.NumberLong, "{0:G}", new { @class = "form-control", type = "number", step = "any" })
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Peso</label>
+                @Html.TextBoxFor(m => m.NumberWeight, "{0:G}", new { @class = "form-control", type = "number", step = "any" })
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">M²</label>
+                @Html.TextBoxFor(m => m.NumberMts2, "{0:G}", new { @class = "form-control", type = "number", step = "any" })
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">M³</label>
+                @Html.TextBoxFor(m => m.NumberMts3, "{0:G}", new { @class = "form-control", type = "number", step = "any" })
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Bloque DWG</label>
+                @Html.TextBoxFor(m => m.TextBlockNumber, new { @class = "form-control", maxlength = "200" })
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">.Stl</label>
+                @Html.TextBoxFor(m => m.TextStlNumber, new { @class = "form-control", maxlength = "200" })
+            </div>
+
+            <div class="col-12"><hr class="my-1 text-muted" /></div>
+            <div class="col-12">
+                <h6 class="mb-1 text-muted">Archivos modelo STL</h6>
+                <p class="text-muted small mb-0">Adjunte un archivo <strong>.stl</strong> por cada vista (planta y elevaciones). Son opcionales; se guardan en <code>Files/MasterArticles/blocks</code> y se muestran en Detalles con el visor 3D.</p>
+            </div>
+            @Html.Partial("_MasterArticleBlockStlFilesForm", Model)
+
+            <div class="col-md-6">
+                <label class="form-label">Color ancho</label>
+                @Html.TextBoxFor(m => m.TextColor1, new { @class = "form-control", maxlength = "200" })
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Color alto</label>
+                @Html.TextBoxFor(m => m.TextColor2, new { @class = "form-control", maxlength = "10" })
+                <small class="text-muted">Máximo 10 caracteres.</small>
+            </div>
+
+            @Html.Partial("_MasterArticleBlockFilesForm", Model)
+
+            <div class="col-12 d-flex gap-2 mt-3">
+                <a href="@Url.Action("Index", "MasterArticles")" class="btn btn-outline-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="icon-base ri ri-add-line me-1"></i> Crear artículo
+                </button>
+            </div>
+        }
+    </div>
+</div>

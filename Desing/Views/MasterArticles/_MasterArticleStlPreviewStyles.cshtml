@@ -1,0 +1,155 @@
+<style>
+    .master-article-stl-load.is-active { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85); }
+    #ma-stl-viewer-gl-host canvas { display: block; width: 100%; height: 100%; }
+    .ma-stl-vc-wrap {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+        width: auto;
+        max-width: min(250px, 92vw);
+        pointer-events: auto;
+        user-select: none;
+    }
+    .ma-stl-vc-wrap.d-none { pointer-events: none !important; }
+    .ma-stl-vc-scene {
+        width: 222px;
+        height: auto;
+        min-height: 106px;
+        margin: 0 0 0 auto;
+        padding-top: 2px;
+        padding-bottom: 11px;
+        perspective: 616px;
+        perspective-origin: 70% 18%;
+        display: flex;
+        justify-content: flex-end;
+        align-items: flex-start;
+        filter: drop-shadow(6px 14px 14px rgba(0, 0, 0, 0.28));
+    }
+    .ma-stl-vc-cube {
+        position: relative;
+        width: 90px;
+        height: 90px;
+        margin: 0;
+        flex-shrink: 0;
+        transform-style: preserve-3d;
+        transform-origin: 50% 50% 0;
+    }
+    /* Cubo: caras claras, líneas finas (arista exterior). */
+    .ma-stl-vc-face {
+        position: absolute;
+        width: 90px;
+        height: 90px;
+        box-sizing: border-box;
+        border: 1px solid #1f1f1f;
+        background: linear-gradient(180deg, #f7f8fa 0%, #e4e7ec 100%);
+        transform-style: preserve-3d;
+    }
+    .ma-stl-vc-face--front { transform: rotateY(0deg) rotateX(180deg) translateZ(-45px); }
+    .ma-stl-vc-face--back { transform: rotateY(180deg) rotateX(180deg) translateZ(-45px); }
+    .ma-stl-vc-face--right { transform: rotateY(90deg) rotateX(180deg) translateZ(-45px); }
+    .ma-stl-vc-face--left { transform: rotateY(-90deg) rotateX(180deg) translateZ(-45px); }
+    .ma-stl-vc-face--top { transform: rotateX(-90deg) rotateX(180deg) translateZ(-45px); }
+    .ma-stl-vc-face--bottom { transform: rotateX(90deg) rotateX(180deg) translateZ(-45px); }
+    /* Texto centrado en la cara; sin marco interior (solo borde de la cara .ma-stl-vc-face). */
+    .ma-stl-vc-face-inside {
+        position: absolute;
+        top: 7px;
+        left: 7px;
+        width: 76px;
+        height: 76px;
+        line-height: 76px;
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+        color: #3a3f4a;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        box-sizing: border-box;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        z-index: 4;
+        transition: background 0.12s;
+    }
+    .ma-stl-vc-face-inside:hover {
+        background: rgba(255, 249, 230, 0.55);
+    }
+    .ma-stl-vc-corner {
+        position: absolute;
+        width: 19px;
+        height: 19px;
+        z-index: 5;
+        cursor: pointer;
+        border-radius: 3px;
+    }
+    .ma-stl-vc-corner:hover { background: rgba(255, 195, 0, 0.85); }
+    .ma-stl-vc-corner.tl { top: -1px; left: -1px; }
+    .ma-stl-vc-corner.tr { top: -1px; right: -1px; }
+    .ma-stl-vc-corner.bl { bottom: -1px; left: -1px; }
+    .ma-stl-vc-corner.br { bottom: -1px; right: -1px; }
+    .ma-stl-vc-edge-h {
+        position: absolute;
+        width: 14px;
+        height: 76px;
+        z-index: 5;
+        cursor: pointer;
+    }
+    .ma-stl-vc-edge-h:hover { background: rgba(255, 195, 0, 0.85); }
+    .ma-stl-vc-edge-h.left { top: 7px; left: -1px; }
+    .ma-stl-vc-edge-h.right { top: 7px; right: -1px; }
+    .ma-stl-vc-edge-v {
+        position: absolute;
+        width: 76px;
+        height: 14px;
+        z-index: 5;
+        cursor: pointer;
+    }
+    .ma-stl-vc-edge-v:hover { background: rgba(255, 195, 0, 0.85); }
+    .ma-stl-vc-edge-v.top { top: -1px; left: 7px; }
+    .ma-stl-vc-edge-v.bottom { bottom: -1px; left: 7px; }
+    /* Cubo isométrico: mismas líneas finas que el ortogonal. */
+    .ma-stl-vc-cube--iso .ma-stl-vc-face {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+        color: #3a3f4a;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        cursor: pointer;
+        background: linear-gradient(180deg, #f7f8fa 0%, #e4e7ec 100%);
+        transition: background 0.12s;
+    }
+    .ma-stl-vc-cube--iso .ma-stl-vc-face:hover {
+        background: linear-gradient(180deg, #f0f6ff 0%, #dce8f8 100%);
+    }
+    /* Pantalla completa: panel del visor (toolbar + canvas + estado). */
+    #ma-stl-viewer-shell:fullscreen {
+        display: flex !important;
+        flex-direction: column;
+        min-height: 100vh !important;
+        max-height: 100vh;
+        border-radius: 0 !important;
+        background: #fff;
+    }
+    #master-article-stl-camera-modes .btn {
+        width: 2.35rem;
+        padding-left: 0;
+        padding-right: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    #master-article-stl-camera-modes .btn i {
+        font-size: 1.1rem;
+        line-height: 1;
+    }
+    #ma-stl-viewer-shell:fullscreen #master-article-details-stl-viewer-canvas {
+        flex: 1 1 auto;
+        min-height: 0 !important;
+    }
+</style>

@@ -47,9 +47,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ACadSharp, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ACadSharp.2.0.0-beta\lib\net48\ACadSharp.dll</HintPath>
-    </Reference>
     <Reference Include="DataTables.Mvc, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\datatables.mvc5.0.1.0\lib\net45\DataTables.Mvc.dll</HintPath>
     </Reference>
@@ -222,6 +219,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\DataTablesQueryExtensions.cs" />
     <Compile Include="Helpers\ImageHelper.cs" />
     <Compile Include="Models\CommercialManagementModels.cs" />
     <Compile Include="Models\Documents.cs" />
@@ -235,6 +233,7 @@
     <Compile Include="Models\ModelHelp.cs" />
     <Compile Include="Models\ModelDesing.cs" />
     <Compile Include="Models\ModelMasterArticle.cs" />
+    <Compile Include="Models\MasterArticleDetailsViewModel.cs" />
     <Compile Include="Models\ModelBlock.cs" />
     <Compile Include="Models\ModelWalls.cs" />
     <Compile Include="Models\ToasterModel.cs" />
@@ -328,10 +327,12 @@
     <Compile Include="Repositories\Atk60\Wall\WallTapeSolape\ModuloTape_0_02.cs" />
     <Compile Include="Repositories\Atk60\Wall\WallTapeSolape\ModuloTape_0_01.cs" />
     <Compile Include="SendMail\Models.cs" />
+    <Compile Include="Services\AutodeskApsClient.cs" />
     <Compile Include="Services\Implements\EmailService.cs" />
     <Compile Include="Services\Implements\EmailServiceBase.cs" />
     <Compile Include="Services\Implements\SendGridConfig.cs" />
     <Compile Include="Services\ImageAnalysisService.cs" />
+    <Compile Include="Services\MasterArticleViewerDxfConverter.cs" />
     <Compile Include="Services\LCornerDetector.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="System\Data\Common\NotificationHelper.cs" />
@@ -598,6 +599,14 @@
     <Content Include="assets\js\lib\datatables\dataTables.tableTools.min.js" />
     <Content Include="assets\js\lib\datatables\jquery.dataTables.js" />
     <Content Include="assets\js\lib\datatables\jquery.dataTables.min.js" />
+    <Content Include="Files\Plantilla\favicon_Logo_20260511_191621_3c76ab.ico" />
+    <Content Include="Files\Plantilla\favicon_Logo_20260512_085416_b7b32b.ico" />
+    <Content Include="Files\Plantilla\Logo_20260511_191621_b88856.png" />
+    <Content Include="Files\Plantilla\Logo_SF_20260511_192410_abb33e.png" />
+    <Content Include="Files\Plantilla\Logo_SF_20260512_085416_8a17e2.png" />
+    <Content Include="Files\RRHH\User\AttPhotoMenu\0.1.jpg" />
+    <Content Include="Files\RRHH\User\AttPhotoMenu\0.1.png" />
+    <Content Include="Files\RRHH\User\AttPhotoMenu\55.1.png" />
     <Content Include="Scripts\datatables-resize.css" />
     <Content Include="Scripts\datatables-state.js" />
     <Content Include="Scripts\datatables-tandem.css" />
@@ -2148,6 +2157,12 @@
     <Content Include="Content\bootstrap-grid.rtl.css.map" />
     <Content Include="Content\bootstrap-grid.min.css.map" />
     <Content Include="Content\bootstrap-grid.css.map" />
+    <Content Include="Files\MasterArticles\blocks\145\LinkBlockDwgPlant3D_185c0f8a.dwg" />
+    <Content Include="Files\MasterArticles\blocks\145\LinkBlockDwgPlant3D_4c8275a4.dwg" />
+    <Content Include="Files\MasterArticles\blocks\145\LinkBlockDwgPlant3D_db73e988.dwg" />
+    <Content Include="Files\MasterArticles\blocks\93\LinkBlockDwgPlant3D_47cc9648.dwg" />
+    <Content Include="Files\MasterArticles\blocks\93\27104219P.dwg" />
+    <Content Include="Files\MasterArticles\blocks\93\27104219P.dxf" />
     <None Include="Properties\PublishProfiles\atenko Develop.pubxml" />
     <None Include="Properties\PublishProfiles\atenko.net.pubxml" />
     <None Include="Properties\PublishProfiles\Athosstaging.pubxml" />
@@ -3023,6 +3038,19 @@
     <Content Include="Views\DesignTools\Design.cshtml" />
     <Content Include="Views\Country\Index.cshtml" />
     <Content Include="Views\DesignTools\DesigTemporal.cshtml" />
+    <Content Include="Views\MasterArticles\Create.cshtml" />
+    <Content Include="Views\MasterArticles\_MasterArticleBlockFilesForm.cshtml" />
+    <Content Include="Views\MasterArticles\_MasterArticleBlockStlFilesForm.cshtml" />
+    <Content Include="Views\MasterArticles\Details.cshtml" />
+    <Content Include="Views\MasterArticles\_MasterArticleStlPreviewSection.cshtml" />
+    <Content Include="Views\MasterArticles\_MasterArticleStlPreviewStyles.cshtml" />
+    <Content Include="Views\MasterArticles\_DetailsDwgSlot.cshtml" />
+    <Content Include="Scripts\MasterArticles\master-article-preview.js" />
+    <Content Include="Scripts\MasterArticles\master-article-details-stl-viewer.js" />
+    <Content Include="Scripts\MasterArticles\infinite-grid-helper.module.js" />
+    <Content Include="Scripts\MasterArticles\master-article-aps-dwg-viewer-boot.js" />
+    <Content Include="Scripts\MasterArticles\vendor\three-dxf-loader.js" />
+    <Content Include="Views\MasterArticles\Edit.cshtml" />
     <Content Include="Views\MasterArticles\Index.cshtml" />
     <Content Include="Views\DesignTools\_MaterialList.cshtml" />
     <Content Include="Views\DesignTools\Index.cshtml" />
@@ -3030,6 +3058,8 @@
     <Content Include="Views\DesignTools\Cut.cshtml" />
     <Content Include="Views\TSql_Company\Index.cshtml" />
     <Content Include="Views\TSql_Company\Details.cshtml" />
+    <Content Include="Views\TSql_Company\Create.cshtml" />
+    <Content Include="Views\TSql_Company\Edit.cshtml" />
     <Content Include="Views\DesignTools\_Delete.cshtml" />
     <Content Include="Views\DesignTools\_Edit.cshtml" />
     <Content Include="Uploads\Master_AC1014.dwg" />
@@ -3051,21 +3081,14 @@
     <Content Include="Views\Account\user.cshtml" />
     <Content Include="Views\Employee\_Edit_Employee.cshtml" />
     <Content Include="Views\Employee\MySpace.cshtml" />
+    <Content Include="Views\DesignTools\CreateFromZwcad.cshtml" />
+    <Content Include="Views\DesignTools\_CreateEdit.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="App_Data\" />
-    <Folder Include="assets\Home\" />
-    <Folder Include="assets\img\avatars\" />
-    <Folder Include="assets\img\gallery\" />
-    <Folder Include="assets\img\other\" />
-    <Folder Include="assets\img\products\" />
-    <Folder Include="assets\img\profile\" />
-    <Folder Include="assets\img\rating\" />
-    <Folder Include="Content\DesignTools\img\" />
-    <Folder Include="Content\Documents\Fotos\" />
-    <Folder Include="Files\RRHH\User\AttPhotoMenu\Temp\" />
-    <Folder Include="LibraryBlock\dxf\" />
-    <Folder Include="Repositories\Atk60\Wall\WallTapeSolape\NewFolder1\" />
+    <Content Include="App_Data\Sql\TSql_Plantilla_add_brand_text_and_colors.sql" />
+    <Content Include="App_Data\Sql\TSql_Plantilla_add_brand_columns_ONE_BATCH.sql" />
+    <Content Include="App_Data\Sql\Tsql_Master_Articles_add_link_block_columns.sql" />
+    <Content Include="App_Data\Sql\TSql_move_plantilla_to_company.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -3276,5 +3299,19 @@
     <Content Include="assets\materio\vendor\libs\perfect-scrollbar\perfect-scrollbar.css" />
     <Content Include="assets\materio\vendor\libs\perfect-scrollbar\perfect-scrollbar.js" />
     <Content Include="assets\materio\vendor\libs\popper\popper.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="assets\Home\" />
+    <Folder Include="assets\img\avatars\" />
+    <Folder Include="assets\img\gallery\" />
+    <Folder Include="assets\img\other\" />
+    <Folder Include="assets\img\products\" />
+    <Folder Include="assets\img\profile\" />
+    <Folder Include="assets\img\rating\" />
+    <Folder Include="Content\DesignTools\img\" />
+    <Folder Include="Content\Documents\Fotos\" />
+    <Folder Include="Files\RRHH\User\AttPhotoMenu\Temp\" />
+    <Folder Include="LibraryBlock\dxf\" />
+    <Folder Include="Repositories\Atk60\Wall\WallTapeSolape\NewFolder1\" />
   </ItemGroup>
 </Project>

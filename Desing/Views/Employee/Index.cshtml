@@ -87,19 +87,23 @@
     <script type="text/javascript">
         $(document).ready(function () {
             //Toas
-                var _Toas = '@TempData["ToastType"]';
-               if (_Toas === "Act")
-   {
-       document.getElementById("LableToasTileGeneral").innerHTML = '@TempData["ToastTitle"]';
-       document.getElementById("LableToasContentedeGeneral").innerHTML = '@TempData["ToastMessage"]';
-       $("#Toas_General").show("slide", 400, callback);
-       function callback() {
-           setTimeout(function () {
-               $("#Toas_General").hide("slide", 400, callback);
-           }, 4000);
-       };
-
-   }
+            var _Toas = @Html.Raw(Json.Encode(TempData["ToastType"]));
+            if (_Toas === "Act") {
+                var toastTitle = @Html.Raw(Json.Encode(TempData["ToastTitle"]));
+                var toastMessage = @Html.Raw(Json.Encode(TempData["ToastMessage"]));
+                var titleEl = document.getElementById("LableToasTileGeneral");
+                var contentEl = document.getElementById("LableToasContentedeGeneral");
+                if (titleEl) { titleEl.innerHTML = toastTitle || ""; }
+                if (contentEl) { contentEl.innerHTML = toastMessage || ""; }
+                if ($("#Toas_General").length) {
+                    $("#Toas_General").show("slide", 400, callback);
+                    function callback() {
+                        setTimeout(function () {
+                            $("#Toas_General").hide("slide", 400, callback);
+                        }, 4000);
+                    }
+                }
+            }
             var dtEmplRoot = '@Url.Content("~/")';
             var dtEmplAvatarDefault = '@Url.Content("~/Files/RRHH/User/AttPhotoMenu/User.png")';
             var Employee = {
@@ -133,7 +137,6 @@
                         "serverSide": true,
                         "processing": true,
                         "stateSave": true,
-                        "stateDuration": 12,
                         "colReorder": { "iFixedColumnsRight": 2 },
 
                         "ajax": {
@@ -210,14 +213,16 @@
                             { "width": "40px", "aTargets": [7] },
                         ],
                         drawCallback: function () {
-                            $('[data-toggle="tooltip"]').tooltip({
-                                delay: { "show": 100, "hide": 100 },
-                                placement: "auto right"
-                            }),
-                            $('[title]').tooltip({
-                                delay: { "show": 100, "hide": 100 },
-                                placement: "auto"
-                            })
+                            if ($.fn.tooltip) {
+                                $('[data-toggle="tooltip"]').tooltip({
+                                    delay: { "show": 100, "hide": 100 },
+                                    placement: "auto right"
+                                });
+                                $('[title]').tooltip({
+                                    delay: { "show": 100, "hide": 100 },
+                                    placement: "auto"
+                                });
+                            }
                         },
                     });
                 }

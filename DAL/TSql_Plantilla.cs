@@ -17,11 +17,14 @@ namespace DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public TSql_Plantilla()
         {
-            this.TSql_Employee = new HashSet<TSql_Employee>();
+            this.TSql_Company = new HashSet<TSql_Company>();
         }
     
         public long SysObjectID { get; set; }
         public string AttName { get; set; }
+        public string AttBrandText { get; set; }
+        public string AttBrandTextColor { get; set; }
+        public string AttBrandAccentColor { get; set; }
         public string AttColor { get; set; }
         public string AttLogo { get; set; }
         public string AttFavicon { get; set; }
@@ -34,6 +37,6 @@ namespace DAL
         public long SysUpdateNumber { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<TSql_Employee> TSql_Employee { get; set; }
+        public virtual ICollection<TSql_Company> TSql_Company { get; set; }
     }
 }

@@ -1,116 +1,89 @@
 ﻿@model Desing.Models.EmployeeViewModel
-<div class="well" style="padding-left:15px">
-    <div class="modal-body">
-        <h4 class="py-3 mb-4">
-            <span class="text-muted fw-light">
-                <a href="@Url.Action("Index", "Home")">Inicio</a> /
-                <a href="@Url.Action("Index", "Employee")">Empleados</a> /
-            </span> @(Model.IsEdit ? "Editar Empleado" : "Crear Empleado")
-            @if (!string.IsNullOrEmpty(Model.userSystem))
-            {
-                <small class="text-muted ms-2">@Model.userSystem</small>
-            }
-        </h4>
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">Inicio</a> /
+            <a href="@Url.Action("Index", "Employee")">Empleados</a> /
+        </span> @(Model.IsEdit ? "Editar Empleado" : "Crear Empleado")
+        @if (!string.IsNullOrEmpty(Model.userSystem))
+        {
+            <small class="text-muted ms-2">@Model.userSystem</small>
+        }
+    </h4>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        @using (Html.BeginForm(Model.IsEdit ? "Update_Employee" : "Create_Employee", "Employee", FormMethod.Post, new { @class = "row g-4", role = "form", @id = "frm", enctype = "multipart/form-data" }))
+        {
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="EmployeeID" value="@Model.EmployeeID" />
+            <input type="hidden" name="IsEdit" value="@Model.IsEdit" />
+            <input type="hidden" name="AttPhoto" value="@Model.AttPhoto" />
+            <input type="hidden" name="LinBusiness" value="@Model.LinBusiness" />
+            <input type="hidden" name="LinAspNetUsert" value="@Model.LinAspNetUsert" />
+            <input type="hidden" name="AttPassAspNetUsert" value="@Model.AttPassAspNetUsert" />
+            <input type="hidden" name="userSystem" value="@Model.userSystem" />
+
+            <div class="col-12">
+                <p class="text-muted mb-0">Alta de empleado para el usuario: <strong>@Model.userSystem</strong></p>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">@Html.DisplayNameFor(m => m.AttName)</label>
+                        @Html.EditorFor(m => m.AttName, new { htmlAttributes = new { @class = "form-control", @placeholder = "Inserta nombre" } })
+                        @Html.ValidationMessageFor(m => m.AttName, "", new { @id = "LabelField", @class = "text-danger" })
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">@Html.DisplayNameFor(m => m.AttSurname)</label>
+                        @Html.EditorFor(m => m.AttSurname, new { htmlAttributes = new { @class = "form-control", @placeholder = "Inserta apellido" } })
+                        @Html.ValidationMessageFor(m => m.AttSurname, "", new { @id = "LabelField", @class = "text-danger" })
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">@Html.DisplayNameFor(model => model.LinCompany)</label>
+                        @Html.DropDownList("LinCompany", null, htmlAttributes: new { @class = "form-select" })
+                        <small class="text-muted">La plantilla visual (colores, marca) la define la empresa en Empresas.</small>
+                        @Html.ValidationMessageFor(model => model.LinCompany, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-12 mt-2">
+                        <h6 class="mb-2">Autorización de equipo para plugin</h6>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">@Html.DisplayNameFor(m => m.DeviceName)</label>
+                        @Html.EditorFor(m => m.DeviceName, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ej: PC-OFICINA-01" } })
+                        @Html.ValidationMessageFor(m => m.DeviceName, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">@Html.DisplayNameFor(m => m.DeviceId)</label>
+                        @Html.EditorFor(m => m.DeviceId, new { htmlAttributes = new { @class = "form-control", @placeholder = "Hash DeviceId del plugin" } })
+                        @Html.ValidationMessageFor(m => m.DeviceId, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            @Html.CheckBoxFor(m => m.DeviceAllowed, new { @class = "form-check-input" })
+                            <label class="form-check-label" for="DeviceAllowed">Autorizar plugin para este equipo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="border rounded p-3 h-100">
+                    <div class="mb-3 text-center">
+                        <img id="output" src="~/Files/RRHH/User/AttPhotoMenu/User.png" class="img-fluid rounded" style="max-height:300px" />
+                    </div>
+                    <label for="file" class="form-label">Foto de perfil</label>
+                    <input class="form-control" type="file" name="file1" id="file" onchange="loadFile(event)">
+                </div>
+            </div>
+
+            <div class="col-12 border-top pt-3 mt-2 d-flex justify-content-end gap-2">
+                <a href="@Url.Action("Index", "Employee")" class="btn btn-outline-secondary">Salir</a>
+                <button type="submit" id="SubmitEditBtn" class="btn btn-primary">@(Model.IsEdit ? "Guardar cambios" : "Crear")</button>
+            </div>
+        }
     </div>
-
-    @using (Html.BeginForm(Model.IsEdit ? "Update_Employee" : "Create_Employee", "Employee", FormMethod.Post, new { @class = "form-horizontal", role = "form", @id = "frm", enctype = "multipart/form-data" }))
-    {
-        @Html.AntiForgeryToken()
-        <input type="hidden" name="EmployeeID" value="@Model.EmployeeID" />
-        <input type="hidden" name="IsEdit" value="@Model.IsEdit" />
-        <input type="hidden" name="AttPhoto" value="@Model.AttPhoto" />
-        <input type="hidden" name="LinBusiness" value="@Model.LinBusiness" />
-        <input type="hidden" name="LinAspNetUsert" value="@Model.LinAspNetUsert" />
-        <input type="hidden" name="AttPassAspNetUsert" value="@Model.AttPassAspNetUsert" />
-        <input type="hidden" name="userSystem" value="@Model.userSystem" />
-
-        <fieldset style="margin:10px;padding:10px">
-            <legend> Crear alta de empleado para el usuario: @Model.userSystem</legend>
-
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group" style="margin:15px;margin:15px">
-                        @Html.LabelFor(m => m.AttName, htmlAttributes: new { @class = "control-label col-md-9" })
-                        <div class="col-md-12">
-                            @Html.EditorFor(m => m.AttName, new { htmlAttributes = new { @class = "form-control-mandatory", @placeholder = "inserta Nombre" } })
-                            @Html.ValidationMessageFor(m => m.AttName, "", new { @id = "LabelField", @class = "text-danger" })
-                        </div>
-                    </div>
-                    <div class="form-group" style="margin:15px;margin:15px">
-                        @Html.LabelFor(m => m.AttSurname, htmlAttributes: new { @class = "control-label col-md-9" })
-                        <div class="col-md-12">
-                            @Html.EditorFor(m => m.AttSurname, new { htmlAttributes = new { @class = "form-control-mandatory", @placeholder = "Inserta Apellido" } })
-                            @Html.ValidationMessageFor(m => m.AttSurname, "", new { @id = "LabelField", @class = "text-danger" })
-                        </div>
-                    </div>
-                    <div class="form-group" style="margin:15px;margin:15px">
-                        @Html.LabelFor(model => model.LinCompany, htmlAttributes: new { @class = "control-label col-md-9" })
-                        <div class="col-md-12">
-                            @Html.DropDownList("LinCompany", null, htmlAttributes: new { @class = "form-control-mandatory-Link" })
-                            @Html.ValidationMessageFor(model => model.LinCompany, "", new { @class = "text-danger" })
-                        </div>
-                    </div>
-                    <div class="form-group" style="margin:15px;margin:15px">
-                        @Html.LabelFor(model => model.LinPlantilla, htmlAttributes: new { @class = "control-label col-md-9" })
-                        <div class="col-md-12">
-                            @Html.DropDownList("LinPlantilla", (IEnumerable<SelectListItem>)ViewBag.LinPlantilla, htmlAttributes: new { @class = "form-control" })
-                            <small class="text-muted">Si no se selecciona, se asigna la plantilla por defecto.</small>
-                            @Html.ValidationMessageFor(model => model.LinPlantilla, "", new { @class = "text-danger" })
-                        </div>
-                    </div>
-                    <hr />
-                    <h5 style="margin-left:15px">Autorización de equipo para plugin</h5>
-                    <div class="form-group" style="margin:15px;margin:15px">
-                        @Html.LabelFor(m => m.DeviceName, htmlAttributes: new { @class = "control-label col-md-9" })
-                        <div class="col-md-12">
-                            @Html.EditorFor(m => m.DeviceName, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ej: PC-OFICINA-01" } })
-                            @Html.ValidationMessageFor(m => m.DeviceName, "", new { @class = "text-danger" })
-                        </div>
-                    </div>
-                    <div class="form-group" style="margin:15px;margin:15px">
-                        @Html.LabelFor(m => m.DeviceId, htmlAttributes: new { @class = "control-label col-md-9" })
-                        <div class="col-md-12">
-                            @Html.EditorFor(m => m.DeviceId, new { htmlAttributes = new { @class = "form-control", @placeholder = "Hash DeviceId del plugin" } })
-                            @Html.ValidationMessageFor(m => m.DeviceId, "", new { @class = "text-danger" })
-                        </div>
-                    </div>
-                    <div class="form-group" style="margin:15px;margin:15px">
-                        <div class="col-md-12">
-                            <label>
-                                @Html.CheckBoxFor(m => m.DeviceAllowed)
-                                Autorizar plugin para este equipo
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div>
-                        <div class="mb-4 d-flex justify-content-center">
-                            <img style="height:300px" id="output" src="~/Files/RRHH/User/AttPhotoMenu/User.png" />
-
-                        </div>
-                        <div class="form-group">
-                            <div>
-                                <input class="btn btn-warning" type="file" name="file1" id="file" onchange="loadFile(event)">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-            <div class="col-md-12">
-                <hr style="background-color: gainsboro; height: 1px; margin: 1px; padding: 1px">
-                <div class="row">
-                    <div class="col-md-6"> &nbsp;&nbsp;&nbsp;&nbsp;</div>
-                    <div class="col-md-5" style="margin:10px;padding:10px">
-                        <button type="button" id="btnSalir" class="btn btn-danger">Salir</button>
-                        <button type="submit" id="SubmitEditBtn" class="btn btn-warning">@(Model.IsEdit ? "Guardar cambios" : "Crear")</button>
-                    </div>
-                </div>
-            </div>
-
-        </fieldset>
-    }
 </div>
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
