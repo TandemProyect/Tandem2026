@@ -152,4 +152,151 @@
         flex: 1 1 auto;
         min-height: 0 !important;
     }
+    /* Cortes STL: barra vertical = corte horizontal (Y); barra horizontal = corte vertical (X) */
+    .ma-stl-canvas--clips {
+        padding-bottom: 0;
+    }
+    .ma-stl-canvas--clips.ma-stl-canvas--clips-ui-visible {
+        padding-bottom: 2.25rem;
+    }
+    .ma-stl-clip-controls {
+        pointer-events: none;
+        /* Mismo cian que la rejilla 3D (InfiniteGridHelper / THREE 0x00c8e8). */
+        --ma-stl-clip-cyan: #00c8e8;
+        --ma-stl-clip-track: rgba(0, 200, 232, 0.38);
+        --ma-stl-clip-track-h: 3px;
+        --ma-stl-clip-thumb: 9px;
+    }
+    .ma-stl-clip-controls.d-none {
+        pointer-events: none !important;
+    }
+    .ma-stl-clip-controls input[type="range"] {
+        pointer-events: auto;
+        accent-color: var(--ma-stl-clip-cyan);
+        appearance: none;
+        background: transparent;
+        box-sizing: border-box;
+    }
+    .ma-stl-clip-controls input[type="range"]::-moz-focus-outer {
+        border: 0;
+    }
+    .ma-stl-clip-controls input[type="range"]:focus-visible {
+        outline: 2px solid rgba(0, 200, 232, 0.55);
+        outline-offset: 2px;
+    }
+    /* WebKit — horizontal (X) */
+    .ma-stl-clip-x-wrap input[type="range"]::-webkit-slider-runnable-track {
+        height: var(--ma-stl-clip-track-h);
+        border-radius: 999px;
+        background: var(--ma-stl-clip-track);
+    }
+    .ma-stl-clip-x-wrap input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: var(--ma-stl-clip-thumb);
+        height: var(--ma-stl-clip-thumb);
+        margin-top: calc((var(--ma-stl-clip-track-h) - var(--ma-stl-clip-thumb)) / 2);
+        border-radius: 50%;
+        background: var(--ma-stl-clip-cyan);
+        border: 1px solid rgba(26, 26, 26, 0.22);
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35) inset;
+    }
+    /* WebKit — vertical (Y): en vertical-lr el grosor de pista suele ser `width` del track */
+    .ma-stl-clip-y-wrap input[type="range"]::-webkit-slider-runnable-track {
+        width: var(--ma-stl-clip-track-h);
+        height: 100%;
+        min-height: 4rem;
+        border-radius: 999px;
+        background: var(--ma-stl-clip-track);
+    }
+    .ma-stl-clip-y-wrap input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: var(--ma-stl-clip-thumb);
+        height: var(--ma-stl-clip-thumb);
+        margin-inline-start: calc((var(--ma-stl-clip-track-h) - var(--ma-stl-clip-thumb)) / 2);
+        border-radius: 50%;
+        background: var(--ma-stl-clip-cyan);
+        border: 1px solid rgba(26, 26, 26, 0.22);
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35) inset;
+    }
+    /* Firefox — horizontal (X) */
+    .ma-stl-clip-x-wrap input[type="range"]::-moz-range-track {
+        height: var(--ma-stl-clip-track-h);
+        border-radius: 999px;
+        background: var(--ma-stl-clip-track);
+    }
+    .ma-stl-clip-x-wrap input[type="range"]::-moz-range-thumb {
+        width: var(--ma-stl-clip-thumb);
+        height: var(--ma-stl-clip-thumb);
+        border: 1px solid rgba(26, 26, 26, 0.22);
+        border-radius: 50%;
+        background: var(--ma-stl-clip-cyan);
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35) inset;
+    }
+    /* Firefox — vertical (Y): grosor de pista = ancho del track en modo vertical */
+    .ma-stl-clip-y-wrap input[type="range"]::-moz-range-track {
+        width: var(--ma-stl-clip-track-h);
+        border-radius: 999px;
+        background: var(--ma-stl-clip-track);
+    }
+    .ma-stl-clip-y-wrap input[type="range"]::-moz-range-thumb {
+        width: var(--ma-stl-clip-thumb);
+        height: var(--ma-stl-clip-thumb);
+        border: 1px solid rgba(26, 26, 26, 0.22);
+        border-radius: 50%;
+        background: var(--ma-stl-clip-cyan);
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35) inset;
+    }
+    .ma-stl-clip-label {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #5c6570;
+        line-height: 1;
+        user-select: none;
+    }
+    .ma-stl-clip-label--x {
+        align-self: flex-end;
+        margin-top: 2px;
+    }
+    .ma-stl-clip-y-wrap {
+        position: absolute;
+        left: 6px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 8;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        height: 52%;
+        max-height: 260px;
+        pointer-events: auto;
+    }
+    .ma-stl-clip-y-wrap input[type="range"] {
+        writing-mode: vertical-lr;
+        direction: rtl;
+        width: 22px;
+        min-height: 120px;
+        flex: 1 1 auto;
+        cursor: pointer;
+    }
+    .ma-stl-clip-x-wrap {
+        position: absolute;
+        left: 44px;
+        right: 12px;
+        bottom: 8px;
+        z-index: 8;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 2px;
+        pointer-events: auto;
+    }
+    .ma-stl-clip-x-wrap input[type="range"] {
+        width: 100%;
+        cursor: pointer;
+        /* Izquierda = 1000 (vista completa), derecha = 0 (máximo recorte), coherente con la fracción f = (1000−v)/1000. */
+        transform: scaleX(-1);
+    }
 </style>

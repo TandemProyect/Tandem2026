@@ -3,6 +3,67 @@ import { OrbitControls } from '@masterarticles/OrbitControls';
 import { STLLoader } from '@masterarticles/STLLoader';
 import { InfiniteGridHelper } from '@masterarticles/InfiniteGridHelper';
 
+/** Zenith → horizon gradient as `scene.background` (same module Three as import map `three.module.js`). */
+function createMasterArticleStlSkyBackgroundTexture() {
+    const w = 2;
+    const h = 256;
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    const grd = ctx.createLinearGradient(0, 0, 0, h);
+    /* Narrow blue band at top; ~lower 55–60% reads as near-white horizon / suelo. */
+    grd.addColorStop(0, '#5e9fd4');
+    grd.addColorStop(0.14, '#7eb8ea');
+    grd.addColorStop(0.28, '#a8cef0');
+    grd.addColorStop(0.4, '#dceaf7');
+    grd.addColorStop(0.52, '#f0f6fb');
+    grd.addColorStop(0.62, '#f5f8fc');
+    grd.addColorStop(0.78, '#fafcfd');
+    grd.addColorStop(1, '#ffffff');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, w, h);
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.minFilter = THREE.LinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+    tex.generateMipmaps = false;
+    return tex;
+}
+
+/** Horizon tone aligned with gradient bottom (clear color / no fog). */
+const MA_STL_SKY_HORIZON_HEX = 0xffffff;
+const MA_STL_SKY_OFF_HEX = 0xffffff;
+
+/** World XYZ at origin; length refit in `refitCamerasToObject` from `lastMaxDim`. */
+const MA_STL_AXES_VISIBLE = true;
+const MA_STL_AXES_OPACITY = 0.42;
+
+/**
+ * Discrete world axes length (model units): ~20% of span (2× prior 0.1), caps doubled.
+ * axisLength = clamp(maxDim * 0.2, 0.3, 1.0)  // was clamp(maxDim * 0.1, 0.15, 0.5)
+ */
+function masterArticleStlWorldAxesLength(maxDim) {
+    const d = Math.max(maxDim, 1e-9);
+    return THREE.MathUtils.clamp(d * 0.2, 0.3, 1.0);
+}
+
+function applyMasterArticleStlAxesStyle(axesRoot) {
+    if (!axesRoot) return;
+    axesRoot.traverse(function (obj) {
+        obj.raycast = function () {};
+        if (obj.material) {
+            const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+            mats.forEach(function (m) {
+                if (m) {
+                    m.transparent = true;
+                    m.opacity = MA_STL_AXES_OPACITY;
+                }
+            });
+        }
+    });
+}
+
 function disposeObject3D(obj) {
     if (!obj) return;
     obj.traverse(function (child) {
@@ -34,6 +95,41 @@ function bootMasterArticleDetailsStlViewer() {
     let activeMode = 'ortho';
     /** Última extensión del modelo (para distancia de cámara en vistas del dado). */
     let lastMaxDim = 1;
+    /** Recorte local (planos mundo): barra vertical → corte Y; horizontal → X. Valor 0–1000 en UI; fracción f = (1000−v)/1000 ∈ [0,1]: f=0 sin recorte, f=1 máximo. */
+    const clipBounds = { min: new THREE.Vector3(), max: new THREE.Vector3() };
+    const clipPlaneY = new THREE.Plane();
+    const clipPlaneX = new THREE.Plane();
+    /** @type {THREE.Mesh | null} */
+    let clipStlMesh = null;
+    const clipInputY = document.getElementById('ma-stl-clip-y');
+    const clipInputX = document.getElementById('ma-stl-clip-x');
+    const clipControlsEl = document.getElementById('ma-stl-clip-controls');
+    const clipToggleBtn = document.getElementById('ma-stl-clip-toggle');
+    const clipCanvasEl = document.getElementById('master-article-details-stl-viewer-canvas');
+    let clipUiVisible = false;
+
+    function syncClipToggleUi() {
+        const visible = clipUiVisible;
+        if (clipControlsEl) {
+            clipControlsEl.classList.toggle('d-none', !visible);
+            clipControlsEl.setAttribute('aria-hidden', visible ? 'false' : 'true');
+        }
+        if (clipCanvasEl) {
+            clipCanvasEl.classList.toggle('ma-stl-canvas--clips-ui-visible', visible);
+        }
+        if (clipToggleBtn) {
+            clipToggleBtn.setAttribute('aria-pressed', visible ? 'true' : 'false');
+            clipToggleBtn.classList.toggle('active', visible);
+            clipToggleBtn.setAttribute('title', visible ? 'Ocultar controles de corte' : 'Mostrar u ocultar cortes');
+        }
+    }
+    if (clipToggleBtn && clipControlsEl) {
+        clipToggleBtn.addEventListener('click', function () {
+            clipUiVisible = !clipUiVisible;
+            syncClipToggleUi();
+        });
+    }
+    syncClipToggleUi();
 
     function syncCameraRadios() {
         const ortho = document.getElementById('ma-stl-cam-ortho');
@@ -136,21 +232,71 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xffffff);
+    const skyBackgroundTexture = createMasterArticleStlSkyBackgroundTexture();
+    const skyOffBackground = new THREE.Color(MA_STL_SKY_OFF_HEX);
+    const skyToggleBtn = document.getElementById('ma-stl-sky-toggle');
+    const groundShadowToggleBtn = document.getElementById('ma-stl-ground-shadow-toggle');
+    const darkBgToggleBtn = document.getElementById('ma-stl-dark-bg-toggle');
+    let skyVisible = false;
+    let darkBgVisible = false;
+    scene.background = skyOffBackground;
 
-    const infiniteGrid = new InfiniteGridHelper(8, 32, new THREE.Color(0x9aa3ad), 500);
+    /* Rejilla: cian ligeramente más legible sobre blanco / suelo (ver infinite-grid-helper uOpacityMax). */
+    const infiniteGrid = new InfiniteGridHelper(8, 32, new THREE.Color(0x00b8dc), 500, 2.55, 0.56);
     scene.add(infiniteGrid);
+
+    /** Origen mundo (0,0,0): ejes discretos; una sola vez en `scene`, escala en `refitCamerasToObject`. */
+    const worldAxesHelper = new THREE.AxesHelper(1);
+    worldAxesHelper.position.set(0, 0, 0);
+    worldAxesHelper.visible = MA_STL_AXES_VISIBLE;
+    applyMasterArticleStlAxesStyle(worldAxesHelper);
+    scene.add(worldAxesHelper);
+    worldAxesHelper.scale.setScalar(masterArticleStlWorldAxesLength(lastMaxDim));
+
+    /** Plano “suelo” bajo la rejilla solo con cielo: refuerza lectura de suelo sin afectar cielo apagado. */
+    const skyFloorGeometry = new THREE.PlaneGeometry(1, 1);
+    const skyFloorMaterial = new THREE.MeshBasicMaterial({
+        color: 0xfafafa,
+        transparent: true,
+        opacity: 0.85,
+        depthWrite: false,
+        toneMapped: false
+    });
+    const skyFloorPlane = new THREE.Mesh(skyFloorGeometry, skyFloorMaterial);
+    skyFloorPlane.rotation.x = -0.5 * Math.PI;
+    skyFloorPlane.renderOrder = -20;
+    skyFloorPlane.visible = false;
+    scene.add(skyFloorPlane);
+    (function initSkyFloorExtent() {
+        const span = Math.max(lastMaxDim * 140, 2500);
+        skyFloorPlane.scale.set(span, span, 1);
+        skyFloorPlane.position.set(0, -Math.max(lastMaxDim * 0.018, 5e-4), 0);
+    })();
+
+    /** Plano receptor de sombras en Y=0 (solo con “sombra en suelo” activa). */
+    const shadowGroundGeometry = new THREE.PlaneGeometry(1, 1);
+    const shadowGroundMaterial = new THREE.ShadowMaterial({ opacity: 0.42 });
+    const shadowGroundPlane = new THREE.Mesh(shadowGroundGeometry, shadowGroundMaterial);
+    shadowGroundPlane.rotation.x = -0.5 * Math.PI;
+    shadowGroundPlane.position.set(0, 0, 0);
+    shadowGroundPlane.receiveShadow = true;
+    shadowGroundPlane.visible = false;
+    shadowGroundPlane.renderOrder = -15;
+    scene.add(shadowGroundPlane);
+    (function initShadowGroundExtent() {
+        const span = Math.max(lastMaxDim * 140, 2500);
+        shadowGroundPlane.scale.set(span, span, 1);
+    })();
+    let groundShadowVisible = false;
+
     let gridVisible = false;
     const gridToggleBtn = document.getElementById('ma-stl-grid-toggle');
-    const gridToggleLabel = document.getElementById('ma-stl-grid-toggle-label');
     function syncGridToggleUi() {
         infiniteGrid.visible = gridVisible;
         if (gridToggleBtn) {
             gridToggleBtn.setAttribute('aria-pressed', gridVisible ? 'true' : 'false');
             gridToggleBtn.classList.toggle('active', gridVisible);
-        }
-        if (gridToggleLabel) {
-            gridToggleLabel.textContent = gridVisible ? 'Ocultar rejilla' : 'Mostrar rejilla';
+            gridToggleBtn.setAttribute('title', gridVisible ? 'Ocultar rejilla de fondo' : 'Mostrar rejilla de fondo');
         }
     }
     if (gridToggleBtn) {
@@ -297,20 +443,120 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setClearColor(MA_STL_SKY_OFF_HEX, 1);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(w0, h0);
-    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.enabled = false;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
+    renderer.localClippingEnabled = true;
     canvasHost.innerHTML = '';
     canvasHost.appendChild(renderer.domElement);
+
+    /** Raycast desde la cámara activa para fijar el pivote de órbita bajo el cursor (comportamiento CAD). */
+    const orbitPivotRaycaster = new THREE.Raycaster();
+    const orbitPivotNdc = new THREE.Vector2();
+
+    /**
+     * Misma lógica que OrbitControls `onMouseDown`: solo cuando el gesto va a ROTAR (no pan/dolly con el mismo botón).
+     * Ratón/pen; touch queda con el comportamiento por defecto de OrbitControls.
+     */
+    function stlOrbitPointerDownWillRotate(ev) {
+        if (!controls || controls.enabled === false || !controls.enableRotate) return false;
+        if ((ev.pointerType !== 'mouse' && ev.pointerType !== 'pen') || ev.button !== 0) return false;
+        const MOUSE = THREE.MOUSE;
+        const leftAction = controls.mouseButtons.LEFT;
+        const mod = ev.ctrlKey || ev.metaKey || ev.shiftKey;
+        if (leftAction === MOUSE.ROTATE) {
+            return !mod;
+        }
+        if (leftAction === MOUSE.PAN) {
+            return mod;
+        }
+        return false;
+    }
+
+    /**
+     * Antes de que OrbitControls procese el pointerdown (fase capture): pivote = impacto en el grupo del STL.
+     * Sin impacto: no se modifica `controls.target` (mantiene último pivote o el fijado por el cubo de vistas en origen).
+     * Perspectiva: minDistance/maxDistance de OrbitControls siguen aplicando; aquí solo hay cámaras ortográficas (minZoom/maxZoom por defecto).
+     */
+    function onCanvasPointerDownSetOrbitPivot(ev) {
+        if (!stlOrbitPointerDownWillRotate(ev)) return;
+        const canvas = renderer.domElement;
+        if (ev.currentTarget !== canvas) return;
+        const rawTarget = ev.target;
+        if (rawTarget && typeof rawTarget.closest === 'function') {
+            if (rawTarget.closest('button, input, select, textarea, [role="button"], label')) return;
+        }
+        if (!currentRoot || !controls) return;
+        const rect = canvas.getBoundingClientRect();
+        const rw = Math.max(rect.width, 1);
+        const rh = Math.max(rect.height, 1);
+        orbitPivotNdc.x = ((ev.clientX - rect.left) / rw) * 2 - 1;
+        orbitPivotNdc.y = -((ev.clientY - rect.top) / rh) * 2 + 1;
+        orbitPivotRaycaster.setFromCamera(orbitPivotNdc, activeCamera());
+        const hits = orbitPivotRaycaster.intersectObject(currentRoot, true);
+        if (hits.length > 0) {
+            controls.target.copy(hits[0].point);
+        }
+        controls.update();
+    }
+
+    renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownSetOrbitPivot, true);
+
+    function applySceneBackgroundAndClearColor() {
+        if (darkBgVisible) {
+            scene.background = new THREE.Color(0x000000);
+            renderer.setClearColor(0x000000, 1);
+        } else if (skyVisible) {
+            scene.background = skyBackgroundTexture;
+            renderer.setClearColor(MA_STL_SKY_HORIZON_HEX, 1);
+        } else {
+            scene.background = skyOffBackground;
+            renderer.setClearColor(MA_STL_SKY_OFF_HEX, 1);
+        }
+        skyFloorPlane.visible = skyVisible && !darkBgVisible;
+    }
+
+    function syncSkyToggleUi() {
+        applySceneBackgroundAndClearColor();
+        if (skyToggleBtn) {
+            skyToggleBtn.setAttribute('aria-pressed', skyVisible ? 'true' : 'false');
+            skyToggleBtn.classList.toggle('active', skyVisible);
+            skyToggleBtn.setAttribute('title', skyVisible ? 'Ocultar cielo' : 'Mostrar u ocultar cielo');
+        }
+    }
+    if (skyToggleBtn) {
+        skyToggleBtn.addEventListener('click', function () {
+            skyVisible = !skyVisible;
+            syncSkyToggleUi();
+        });
+    }
+    syncSkyToggleUi();
+
+    function syncDarkBgToggleUi() {
+        applySceneBackgroundAndClearColor();
+        if (darkBgToggleBtn) {
+            darkBgToggleBtn.setAttribute('aria-pressed', darkBgVisible ? 'true' : 'false');
+            darkBgToggleBtn.classList.toggle('active', darkBgVisible);
+            darkBgToggleBtn.setAttribute('title', darkBgVisible ? 'Desactivar fondo negro' : 'Activar fondo negro');
+        }
+    }
+    if (darkBgToggleBtn) {
+        darkBgToggleBtn.addEventListener('click', function () {
+            darkBgVisible = !darkBgVisible;
+            syncDarkBgToggleUi();
+        });
+    }
+    syncDarkBgToggleUi();
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.34);
     scene.add(ambientLight);
     const mainDirLight = new THREE.DirectionalLight(0xffffff, 1.05);
     mainDirLight.position.set(4.5, 9, 6);
-    mainDirLight.castShadow = true;
+    mainDirLight.castShadow = false;
     mainDirLight.shadow.mapSize.set(2048, 2048);
     mainDirLight.shadow.camera.near = 0.2;
     mainDirLight.shadow.camera.far = 8000;
@@ -322,6 +568,31 @@ function bootMasterArticleDetailsStlViewer() {
     fillDirLight.position.set(-6, 2.5, -4);
     fillDirLight.castShadow = false;
     scene.add(fillDirLight);
+
+    function syncGroundShadowToggleUi() {
+        shadowGroundPlane.visible = groundShadowVisible;
+        mainDirLight.castShadow = groundShadowVisible;
+        renderer.shadowMap.enabled = groundShadowVisible;
+        if (clipStlMesh) {
+            clipStlMesh.castShadow = groundShadowVisible;
+            clipStlMesh.receiveShadow = groundShadowVisible;
+        }
+        if (groundShadowToggleBtn) {
+            groundShadowToggleBtn.setAttribute('aria-pressed', groundShadowVisible ? 'true' : 'false');
+            groundShadowToggleBtn.classList.toggle('active', groundShadowVisible);
+            groundShadowToggleBtn.setAttribute(
+                'title',
+                groundShadowVisible ? 'Ocultar sombra en el suelo' : 'Mostrar sombra en el suelo'
+            );
+        }
+    }
+    if (groundShadowToggleBtn) {
+        groundShadowToggleBtn.addEventListener('click', function () {
+            groundShadowVisible = !groundShadowVisible;
+            syncGroundShadowToggleUi();
+        });
+    }
+    syncGroundShadowToggleUi();
 
     applyFrustumToBoth();
     placeCamerasForModel(1);
@@ -457,8 +728,48 @@ function bootMasterArticleDetailsStlViewer() {
         });
     });
 
+    function clipFractionFromSlider(inputEl) {
+        if (!inputEl) return 0;
+        const vRaw = Number.parseFloat(String(inputEl.value).trim());
+        const v = Number.isFinite(vRaw) ? vRaw : 1000;
+        return THREE.MathUtils.clamp((1000 - v) / 1000, 0, 1);
+    }
+
+    function updateClipPlanes() {
+        if (!clipStlMesh || !clipStlMesh.material) return;
+        const min = clipBounds.min;
+        const max = clipBounds.max;
+        const pad = Math.max(lastMaxDim * 0.02, 1e-6);
+        const h = max.y - min.y + 2 * pad;
+        const w = max.x - min.x + 2 * pad;
+        const fY = clipFractionFromSlider(clipInputY);
+        const fX = clipFractionFromSlider(clipInputX);
+        const cutY = max.y + pad - fY * h;
+        const cutX = max.x + pad - fX * w;
+        /* Three.js descarta si n·p + d < 0: (0,-1,0,cutY) descarta y > cutY → recorte desde arriba al subir fY. */
+        clipPlaneY.setComponents(0, -1, 0, cutY);
+        /* (-1,0,0,cutX) descarta x > cutX → recorte desde +X (derecha) al subir fX. */
+        clipPlaneX.setComponents(-1, 0, 0, cutX);
+        clipStlMesh.material.clippingPlanes = [clipPlaneY, clipPlaneX];
+    }
+
+    if (clipInputY) clipInputY.addEventListener('input', updateClipPlanes);
+    if (clipInputX) clipInputX.addEventListener('input', updateClipPlanes);
+
     function refitCamerasToObject(group) {
-        const box = new THREE.Box3().setFromObject(group);
+        const groundY = 0;
+        group.updateMatrixWorld(true);
+        let box = new THREE.Box3().setFromObject(group);
+        const sizePre = box.getSize(new THREE.Vector3());
+        const maxDimPre = Math.max(sizePre.x, sizePre.y, sizePre.z, 1e-6);
+        /* Rejilla en Y=0 (InfiniteGridHelper): sin esto, geometry.center() + rotación deja el AABB simétrico en Y y la mitad queda bajo el plano. */
+        const epsilon = Math.max(maxDimPre * 1e-6, 1e-9);
+        const dy = groundY + epsilon - box.min.y;
+        if (Math.abs(dy) > 1e-12) {
+            group.position.y += dy;
+            group.updateMatrixWorld(true);
+            box = new THREE.Box3().setFromObject(group);
+        }
         const size = box.getSize(new THREE.Vector3());
         const maxDim = Math.max(size.x, size.y, size.z, 1e-6);
         lastMaxDim = maxDim;
@@ -483,6 +794,16 @@ function bootMasterArticleDetailsStlViewer() {
         shadowCam.bottom = -s;
         shadowCam.far = Math.max(maxDim * 24, 800);
         shadowCam.updateProjectionMatrix();
+        const floorSpan = Math.max(maxDim * 140, 2500);
+        skyFloorPlane.scale.set(floorSpan, floorSpan, 1);
+        skyFloorPlane.position.set(0, -Math.max(maxDim * 0.018, 5e-4), 0);
+        shadowGroundPlane.scale.set(floorSpan, floorSpan, 1);
+        shadowGroundPlane.position.set(0, 0, 0);
+        clipBounds.min.copy(box.min);
+        clipBounds.max.copy(box.max);
+        updateClipPlanes();
+        const axisLen = masterArticleStlWorldAxesLength(maxDim);
+        worldAxesHelper.scale.setScalar(axisLen);
         applyFrustumToBoth();
         placeCamerasForModel(maxDim);
         bindControls(activeCamera());
@@ -491,6 +812,7 @@ function bootMasterArticleDetailsStlViewer() {
     function loadStl(url, label) {
         const myToken = ++loadToken;
         setStatus('Cargando…');
+        clipStlMesh = null;
         disposeObject3D(currentRoot);
         currentRoot = null;
 
@@ -505,16 +827,21 @@ function bootMasterArticleDetailsStlViewer() {
                     color: 0x5a7aa5,
                     metalness: 0.14,
                     roughness: 0.42,
-                    side: THREE.DoubleSide
+                    side: THREE.DoubleSide,
+                    clippingPlanes: [clipPlaneY, clipPlaneX],
+                    clipShadows: true
                 });
                 const mesh = new THREE.Mesh(geometry, mat);
-                mesh.castShadow = true;
-                mesh.receiveShadow = true;
+                mesh.castShadow = groundShadowVisible;
+                mesh.receiveShadow = groundShadowVisible;
                 /* STL/CAD suele tener la planta en XY y Z como eje del edificio; en Three (Y arriba, frente +Z)
                    hay que bascular -90° en X para que FRONT sea alzado y la planta se vea con TOP. */
                 mesh.rotation.x = -0.5 * Math.PI;
                 const group = new THREE.Group();
                 group.add(mesh);
+                clipStlMesh = mesh;
+                if (clipInputY) clipInputY.value = '1000';
+                if (clipInputX) clipInputX.value = '1000';
                 currentRoot = group;
                 scene.add(group);
                 refitCamerasToObject(group);
