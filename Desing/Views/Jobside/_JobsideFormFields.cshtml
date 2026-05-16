@@ -1,0 +1,46 @@
+@model DAL.TSql_Jobside
+@using Desing.Models
+@using System.Configuration
+@{
+    var mapsKey = ConfigurationManager.AppSettings["GoogleMaps:ApiKey"] ?? "";
+}
+@if (string.IsNullOrWhiteSpace(mapsKey))
+{
+    <div class="col-12">
+        <div class="alert alert-warning tandem-address-api-warning" role="alert">
+            <strong>Google Maps no configurado.</strong>
+            Añada <code>GoogleMaps:ApiKey</code> en Web.config para autocompletado y mapa. Puede rellenar la dirección manualmente.
+        </div>
+    </div>
+}
+<div class="col-md-8">
+    <label class="form-label">Nombre obra *</label>
+    @Html.TextBoxFor(m => m.TextLabel, new { @class = "form-control", maxlength = "500" })
+    @Html.ValidationMessageFor(m => m.TextLabel, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-4">
+    <label class="form-label">Cliente</label>
+    @Html.DropDownListFor(m => m.LinkClient_V2, (SelectList)ViewBag.LinkClient_V2, "-- Sin cliente --", new { @class = "form-select" })
+</div>
+<div class="col-md-3">
+    <label class="form-label">Activo</label>
+    <div class="form-check mt-2">
+        @Html.CheckBoxFor(m => m.Is_Active, new { @class = "form-check-input" })
+        <label class="form-check-label" for="Is_Active">Obra activa</label>
+    </div>
+</div>
+
+<div class="col-12">
+    @Html.Partial("~/Views/Shared/_GooglePlacesAddressBlock.cshtml", GooglePlacesAddressBlockModel.FromJobside(Model, "Loc", "Dirección local"))
+</div>
+
+<div class="col-12 mb-2" id="billSameAsLocRow">
+    <div class="form-check">
+        @Html.CheckBoxFor(m => m.BitBillSameAsLoc, new { @class = "form-check-input", id = "BitBillSameAsLoc" })
+        <label class="form-check-label" for="BitBillSameAsLoc">Facturación = misma dirección que local</label>
+    </div>
+</div>
+
+<div class="col-12" id="billAddressSection">
+    @Html.Partial("~/Views/Shared/_GooglePlacesAddressBlock.cshtml", GooglePlacesAddressBlockModel.FromJobside(Model, "Bill", "Dirección facturación"))
+</div>

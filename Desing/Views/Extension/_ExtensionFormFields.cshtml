@@ -1,0 +1,46 @@
+@model DAL.TSql_Extension
+<div class="col-md-6">
+    <label class="form-label" for="TextLabel">Nombre / Etiqueta *</label>
+    @Html.TextBoxFor(m => m.TextLabel, new
+    {
+        @class = "form-control",
+        maxlength = "500",
+        required = "required",
+        placeholder = "Ej.: PDF, DWG, .pdf"
+    })
+    @Html.ValidationMessageFor(m => m.TextLabel, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-6">
+    <label class="form-label" for="icoFile">Icono (archivo opcional)</label>
+    @Html.HiddenFor(m => m.IcoPath)
+    <input id="icoFile" name="icoFile" type="file" class="form-control"
+           accept=".png,.jpg,.jpeg,.gif,.ico,.webp,image/png,image/jpeg,image/gif,image/webp" />
+    @Html.ValidationMessageFor(m => m.IcoPath, "", new { @class = "text-danger" })
+    @if (!string.IsNullOrWhiteSpace(Model.IcoPath))
+    {
+        var src = Url.Content(Model.IcoPath.StartsWith("~") ? Model.IcoPath : "~" + Model.IcoPath);
+        <div class="mt-2">
+            <img src="@src" alt="" style="max-height:40px;max-width:80px;object-fit:contain" />
+        </div>
+    }
+</div>
+<div class="col-md-4">
+    <label class="form-label" for="NumberMaxFileSizeBytes">Tamaño máximo (bytes) *</label>
+    @Html.TextBoxFor(m => m.NumberMaxFileSizeBytes, new
+    {
+        @class = "form-control",
+        type = "number",
+        min = "1",
+        step = "1",
+        required = "required",
+        placeholder = "10485760 = 10 MB"
+    })
+    @Html.ValidationMessageFor(m => m.NumberMaxFileSizeBytes, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-2">
+    <label class="form-label">Activo</label>
+    <div class="form-check mt-2">
+        @Html.CheckBoxFor(m => m.Is_Active, new { @class = "form-check-input" })
+        <label class="form-check-label" for="Is_Active">Activa</label>
+    </div>
+</div>

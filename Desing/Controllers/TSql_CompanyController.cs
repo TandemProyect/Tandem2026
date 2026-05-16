@@ -234,7 +234,7 @@ namespace Desing.Controllers
                     buttonDelete = "<a title='Eliminar empresa' onclick=\"DeleteCompany('" + p.SysObjectID + "')\" class=\"btn btn-danger btn-xs\"><span class=\"fas fa-trash-alt\" aria-hidden=\"true\"></span></a>",
                     buttonDisable = "<a title='Desactivar empresa' onclick=\"ToggleCompany('" + p.SysObjectID + "')\" class=\"btn btn-info btn-xs\"><span class=\"fas fa-sync\" aria-hidden=\"true\"></span></a>"
                 }).ToList();
-                return Json(new DataTablesResponse(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
+                return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {

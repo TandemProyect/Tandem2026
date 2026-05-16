@@ -1,96 +1,282 @@
 ﻿@*
+
     Sidebar vertical estilo Materio adaptado al menu de T Desing.net.
+
     Resalta el item activo segun la ruta actual.
+
+    Submenus expandibles: estructura propia con clases js-menu-group /
+    js-menu-group-toggle (NO se usa .menu-toggle de Materio para evitar
+    que su menu.js intercepte el click y lance "Toggable .menu-item not found").
+    El click lo gestiona Scripts/Intranet/sidebar-menu.js.
+    Plantilla: ver _SidebarMenuItemGroup.cshtml.
+
 *@
+
+@using Desing.Models
+
 @{
+
     string currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
-    string currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+
+
 
     Func<string, string, string> activeClass = (ctrl, action) =>
+
         currentController.Equals(ctrl, StringComparison.OrdinalIgnoreCase) ? " active" : "";
+
+
+
+    bool isDocumentTypeController = currentController.Equals("DocumentType", StringComparison.OrdinalIgnoreCase);
+
+    bool isExtensionController = currentController.Equals("Extension", StringComparison.OrdinalIgnoreCase);
+
+
+
+    var configuracionMenu = new SidebarMenuGroupModel
+
+    {
+
+        GroupId = "menu-configuracion",
+
+        Title = "Configuración",
+
+        IconClass = "ri ri-settings-3-line",
+
+        IsOpen = isDocumentTypeController || isExtensionController,
+
+        Children = new List<SidebarMenuChildItem>
+
+        {
+
+            new SidebarMenuChildItem
+
+            {
+
+                Controller = "DocumentType",
+
+                Text = "Tipos de documento"
+
+            },
+
+            new SidebarMenuChildItem
+
+            {
+
+                Controller = "Extension",
+
+                Text = "Extensiones"
+
+            }
+
+        }
+
+    };
+
 }
+
+
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu">
 
+
+
     @* Brand Tandem (logo dinamico desde la plantilla del usuario) *@
+
     @{
+
         var plantillaLogo = (ViewBag.PlantillaLogo as string) ?? "/Content/images/Login/at.png";
+
         var plantillaLogoUrl = plantillaLogo.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+
             ? plantillaLogo
+
             : Url.Content("~" + (plantillaLogo.StartsWith("/") ? plantillaLogo : "/" + plantillaLogo));
+
     }
+
     <div class="app-brand demo">
+
         <a href="@Url.Action("Index", "Home")" class="app-brand-link gap-xl-0 gap-2">
+
             <span class="app-brand-logo demo me-1">
+
                 <img src="@plantillaLogoUrl" alt="Tandem" style="height:28px" />
+
             </span>
-            <span class="app-brand-text demo menu-text ms-2 brand-svg-sidebar">
+
+            <span class="app-brand-text demo menu-text fw-bold ms-2 brand-svg-sidebar">
+
                 @Html.Partial("_BrandSvg")
+
             </span>
+
         </a>
 
     </div>
 
+
+
     <div class="menu-inner-shadow"></div>
+
+
 
     <ul class="menu-inner py-1">
 
+
+
         @* Inicio *@
+
         <li class="menu-item@(activeClass("Home", ""))">
+
             <a href="@Url.Action("Index", "Home")" class="menu-link">
+
                 <i class="menu-icon icon-base ri ri-home-smile-line"></i>
+
                 <div>Inicio</div>
+
             </a>
+
         </li>
+
+
 
         @* Diseno *@
+
         <li class="menu-item@(activeClass("DesignTools", ""))">
+
             <a href="@Url.Action("Index", "DesignTools", new { OnlyUser = true })" class="menu-link">
+
                 <i class="menu-icon icon-base ri ri-shape-line"></i>
+
                 <div>Diseno</div>
+
             </a>
+
         </li>
+
+
 
         @* Header Administracion *@
+
         <li class="menu-header small text-uppercase"><span class="menu-header-text">Administracion</span></li>
 
+
+
         <li class="menu-item@(activeClass("TSql_Company", ""))">
+
             <a href="@Url.Action("Index", "TSql_Company")" class="menu-link">
+
                 <i class="menu-icon icon-base ri ri-building-line"></i>
+
                 <div>Empresas</div>
+
             </a>
+
         </li>
+
+
 
         <li class="menu-item@(activeClass("Employee", ""))">
+
             <a href="@Url.Action("Index", "Employee")" class="menu-link">
+
                 <i class="menu-icon icon-base ri ri-user-line"></i>
+
                 <div>Empleados</div>
+
             </a>
+
         </li>
+
+
 
         <li class="menu-item@(activeClass("MasterArticles", ""))">
+
             <a href="@Url.Action("Index", "MasterArticles")" class="menu-link">
+
                 <i class="menu-icon icon-base ri ri-list-check-2"></i>
+
                 <div>Articulos</div>
+
             </a>
+
         </li>
+
+
 
         <li class="menu-item@(activeClass("Plantilla", ""))">
+
             <a href="@Url.Action("Index", "Plantilla")" class="menu-link">
+
                 <i class="menu-icon icon-base ri ri-palette-line"></i>
+
                 <div>Plantillas</div>
+
             </a>
+
         </li>
+
+
+
+        <li class="menu-item@(activeClass("ClientV2", ""))">
+
+            <a href="@Url.Action("Index", "ClientV2")" class="menu-link">
+
+                <i class="menu-icon icon-base ri ri-group-line"></i>
+
+                <div>Clientes</div>
+
+            </a>
+
+        </li>
+
+
+
+        <li class="menu-item@(activeClass("Jobside", ""))">
+
+            <a href="@Url.Action("Index", "Jobside")" class="menu-link">
+
+                <i class="menu-icon icon-base ri ri-map-pin-line"></i>
+
+                <div>Obras</div>
+
+            </a>
+
+        </li>
+
+
+
+        @* Header Configuracion *@
+
+        <li class="menu-header small text-uppercase"><span class="menu-header-text">Configuración</span></li>
+
+
+
+        @Html.Partial("_SidebarMenuItemGroup", configuracionMenu)
+
+
 
         @* Header Soporte *@
+
         <li class="menu-header small text-uppercase"><span class="menu-header-text">Soporte</span></li>
 
+
+
         <li class="menu-item@(activeClass("HelpDesing", ""))">
+
             <a href="@Url.Action("Index", "HelpDesing")" class="menu-link">
+
                 <i class="menu-icon icon-base ri ri-question-line"></i>
+
                 <div>Ayuda</div>
+
             </a>
+
         </li>
 
+
+
     </ul>
+
 </aside>
+

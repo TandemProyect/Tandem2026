@@ -108,6 +108,23 @@ namespace Desing.Controllers
             return "~/" + t.TrimStart('/');
         }
 
+        private const string MasterArticleDefaultHexColor = "#000000";
+
+        /// <summary>Trim, cap length, default to <see cref="MasterArticleDefaultHexColor"/> when empty (for <c>type="color"</c> binding).</summary>
+        private static string NormalizeMasterArticleHexColor(string input, int maxLength)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return MasterArticleDefaultHexColor;
+            }
+            var t = input.Trim();
+            if (t.Length > maxLength)
+            {
+                t = t.Substring(0, maxLength);
+            }
+            return string.IsNullOrWhiteSpace(t) ? MasterArticleDefaultHexColor : t;
+        }
+
         public ActionResult Index()
         {
             return View();
@@ -147,10 +164,6 @@ namespace Desing.Controllers
             {
                 ModelState.AddModelError("LinkSystem", "El sistema seleccionado no es válido.");
             }
-            if (model.TextColor2 != null && model.TextColor2.Length > 10)
-            {
-                model.TextColor2 = model.TextColor2.Substring(0, 10);
-            }
             if (db.Tsql_Master_Articles.Any(a => a.LinkSystem == model.LinkSystem && a.TextCode == model.TextCode))
             {
                 ModelState.AddModelError("TextCode", "Ya existe un artículo con este código en el mismo sistema.");
@@ -169,8 +182,8 @@ namespace Desing.Controllers
             model.AddAtenkoCode = string.IsNullOrWhiteSpace(model.AddAtenkoCode) ? null : model.AddAtenkoCode.Trim();
             model.TextBlockNumber = string.IsNullOrWhiteSpace(model.TextBlockNumber) ? null : model.TextBlockNumber.Trim();
             model.TextStlNumber = string.IsNullOrWhiteSpace(model.TextStlNumber) ? null : model.TextStlNumber.Trim();
-            model.TextColor1 = string.IsNullOrWhiteSpace(model.TextColor1) ? null : model.TextColor1.Trim();
-            model.TextColor2 = string.IsNullOrWhiteSpace(model.TextColor2) ? null : model.TextColor2.Trim();
+            model.TextColor1 = NormalizeMasterArticleHexColor(model.TextColor1, 200);
+            model.TextColor2 = NormalizeMasterArticleHexColor(model.TextColor2, 10);
             model.LinkMadeBy = userId;
             model.AddChangeBy = userId;
             model.AddDateMade = now;
@@ -229,7 +242,9 @@ namespace Desing.Controllers
                 Article = row.article,
                 CompanyTextLabel = row.CompanyText,
                 SystemTextLabel = row.SystemText,
-                AttachmentSlots = slots
+                AttachmentSlots = slots,
+                StlPreviewTextColor1Hex = NormalizeMasterArticleHexColor(row.article.TextColor1, 200),
+                StlPreviewTextColor2Hex = NormalizeMasterArticleHexColor(row.article.TextColor2, 10)
             };
             return View(vm);
         }
@@ -294,10 +309,6 @@ namespace Desing.Controllers
             {
                 ModelState.AddModelError("LinkSystem", "El sistema seleccionado no es válido.");
             }
-            if (model.TextColor2 != null && model.TextColor2.Length > 10)
-            {
-                model.TextColor2 = model.TextColor2.Substring(0, 10);
-            }
             if (db.Tsql_Master_Articles.Any(a => a.IdObject != model.IdObject && a.LinkSystem == model.LinkSystem && a.TextCode == model.TextCode))
             {
                 ModelState.AddModelError("TextCode", "Ya existe otro artículo con este código en el mismo sistema.");
@@ -323,8 +334,8 @@ namespace Desing.Controllers
             article.NumberMts3 = model.NumberMts3;
             article.TextBlockNumber = string.IsNullOrWhiteSpace(model.TextBlockNumber) ? null : model.TextBlockNumber.Trim();
             article.TextStlNumber = string.IsNullOrWhiteSpace(model.TextStlNumber) ? null : model.TextStlNumber.Trim();
-            article.TextColor1 = string.IsNullOrWhiteSpace(model.TextColor1) ? null : model.TextColor1.Trim();
-            article.TextColor2 = string.IsNullOrWhiteSpace(model.TextColor2) ? null : model.TextColor2.Trim();
+            article.TextColor1 = NormalizeMasterArticleHexColor(model.TextColor1, 200);
+            article.TextColor2 = NormalizeMasterArticleHexColor(model.TextColor2, 10);
             article.LinkSystem = model.LinkSystem;
             article.AddIsActive = model.AddIsActive;
             article.IInsertinMaterArticles = model.IInsertinMaterArticles;
@@ -785,7 +796,12 @@ namespace Desing.Controllers
         {
             var slots = BuildMasterArticleAttachmentSlots(sourceForSlots).ToList();
             EnrichAttachmentSlotsWithStlPreview(slots, articleId);
-            ViewData["MasterArticleStlPreview"] = new MasterArticleStlPreviewSectionModel { AttachmentSlots = slots };
+            ViewData["MasterArticleStlPreview"] = new MasterArticleStlPreviewSectionModel
+            {
+                AttachmentSlots = slots,
+                TextColor1Hex = NormalizeMasterArticleHexColor(sourceForSlots.TextColor1, 200),
+                TextColor2Hex = NormalizeMasterArticleHexColor(sourceForSlots.TextColor2, 10)
+            };
         }
 
         private string ArticleLinkCellHtml(string storedPath)
@@ -909,9 +925,9 @@ namespace Desing.Controllers
                                                       select new ListMasterArticle
                                                       {
                                                           IdObject = masterArticles.IdObject,
+                                                          AddAtenkoCode = masterArticles.AddAtenkoCode,
                                                           CompanyTextLabel = company.TextLabel,
                                                           System_TextLabel = system.TextLabel,
-                                                          TextCode = masterArticles.TextCode,
                                                           TextLabel = masterArticles.TextLabel,
                                                           NumberHigh = masterArticles.NumberHigh,
                                                           NumberWidth = masterArticles.NumberWidth,
@@ -921,8 +937,6 @@ namespace Desing.Controllers
                                                           NumberMts3 = masterArticles.NumberMts3,
                                                           TextBlockNumber = masterArticles.TextBlockNumber,
                                                           TextStlNumber = masterArticles.TextStlNumber,
-                                                          TextColor1 = masterArticles.TextColor1,
-                                                          TextColor2 = masterArticles.TextColor2,
                                                           AddChangeBy = masterArticles.AddLastDateChange,
                                                           AddIsActive = masterArticles.AddIsActive,
                                                           LinkBlockDwgPlant3D = masterArticles.LinkBlockDwgPlant3D,
@@ -944,7 +958,7 @@ namespace Desing.Controllers
                     var value = requestModel.Search.Value.Trim();
                     query = query.Where(p => p.CompanyTextLabel.Contains(value) ||
                                              p.System_TextLabel.Contains(value) ||
-                                             p.TextCode.Contains(value) ||
+                                             (p.AddAtenkoCode != null && p.AddAtenkoCode.Contains(value)) ||
                                              p.TextLabel.Contains(value) ||
                                              (p.NumberHigh != null && p.NumberHigh.ToString().Contains(value)) ||
                                              (p.NumberWidth != null && p.NumberWidth.ToString().Contains(value)) ||
@@ -954,8 +968,6 @@ namespace Desing.Controllers
                                              (p.NumberMts3 != null && p.NumberMts3.ToString().Contains(value)) ||
                                              (p.TextBlockNumber != null && p.TextBlockNumber.Contains(value)) ||
                                              (p.TextStlNumber != null && p.TextStlNumber.Contains(value)) ||
-                                             (p.TextColor1 != null && p.TextColor1.Contains(value)) ||
-                                             (p.TextColor2 != null && p.TextColor2.Contains(value)) ||
                                              p.AddChangeBy.ToString().Contains(value) ||
                                              p.AddIsActive.ToString().Contains(value) ||
                                              (p.LinkBlockDwgPlant3D != null && p.LinkBlockDwgPlant3D.Contains(value)) ||
@@ -980,9 +992,9 @@ namespace Desing.Controllers
                 {
                     switch (column.Data)
                     {
+                        case "AddAtenkoCode": orderColumn = "AddAtenkoCode"; break;
                         case "CompanyTextLabel": orderColumn = "CompanyTextLabel"; break;
                         case "System_TextLabel": orderColumn = "System_TextLabel"; break;
-                        case "TextCode": orderColumn = "TextCode"; break;
                         case "TextLabel": orderColumn = "TextLabel"; break;
                         case "NumberHigh": orderColumn = "NumberHigh"; break;
                         case "NumberWidth": orderColumn = "NumberWidth"; break;
@@ -992,8 +1004,6 @@ namespace Desing.Controllers
                         case "NumberMts3": orderColumn = "NumberMts3"; break;
                         case "TextBlockNumber": orderColumn = "TextBlockNumber"; break;
                         case "TextStlNumber": orderColumn = "TextStlNumber"; break;
-                        case "TextColor1": orderColumn = "TextColor1"; break;
-                        case "TextColor2": orderColumn = "TextColor2"; break;
                         case "AddChangeBy": orderColumn = "AddChangeBy"; break;
                         case "AddIsActive": orderColumn = "AddIsActive"; break;
                         case "LinkBlockDwgPlant3D": orderColumn = "LinkBlockDwgPlant3D"; break;
@@ -1027,11 +1037,9 @@ namespace Desing.Controllers
                     var actionsHtml = allowEdit ? (btnDetails + "&nbsp;" + btnEdit + "&nbsp;" + btnDelete + "&nbsp;" + btnToggle) : string.Empty;
                     return new
                     {
-                        emptyColumn = actionsHtml,
-                        SysObjectID = p.IdObject,
+                        AddAtenkoCode = p.AddAtenkoCode ?? "",
                         CompanyTextLabel = p.CompanyTextLabel,
                         System_TextLabel = p.System_TextLabel,
-                        TextCode = p.TextCode,
                         TextLabel = p.TextLabel,
                         NumberHigh = p.NumberHigh,
                         NumberWidth = p.NumberWidth,
@@ -1041,8 +1049,6 @@ namespace Desing.Controllers
                         NumberMts3 = p.NumberMts3,
                         TextBlockNumber = p.TextBlockNumber,
                         TextStlNumber = p.TextStlNumber,
-                        TextColor1 = p.TextColor1,
-                        TextColor2 = p.TextColor2,
                         AddChangeBy = p.AddChangeBy,
                         AddIsActive = p.AddIsActive,
                         LinkBlockDwgPlant3D = ArticleLinkCellHtml(p.LinkBlockDwgPlant3D),
@@ -1055,11 +1061,12 @@ namespace Desing.Controllers
                         LinkBlockDwgVerticalElevationStl = ArticleLinkCellHtml(p.LinkBlockDwgVerticalElevationStl),
                         LinkBlockDwgHorizontalElevationStl = ArticleLinkCellHtml(p.LinkBlockDwgHorizontalElevationStl),
                         IInsertinMaterArticles = p.IInsertinMaterArticles ? "<span class=\"badge bg-label-success\">Sí</span>" : "<span class=\"badge bg-label-secondary\">No</span>",
+                        emptyColumn = actionsHtml,
                         allowEdit = allowEdit,
                         allowDelete = allowDelete
                     };
                 }).ToList();
-                return Json(new DataTablesResponse(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
+                return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {

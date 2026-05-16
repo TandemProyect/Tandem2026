@@ -110,13 +110,43 @@
     }
 
     /* ---- Sidebar Materio: elemento activo ----------------------------- */
-    .menu-vertical .menu-item.active > .menu-link:not(.menu-toggle) {
+    .menu-vertical .menu-item.active > .menu-link:not(.js-menu-group-toggle) {
         background: var(--tandem-primary) !important;
         color: #fff !important;
     }
+    /* ---- Sidebar: grupos expandibles (sin menu-toggle de Materio) -----
+       El click lo maneja Scripts/Intranet/sidebar-menu.js anyadiendo la
+       clase "open" al <li class="menu-item js-menu-group">. */
+    #layout-menu .menu-item.js-menu-group > .js-menu-group-sub {
+        display: none !important;
+    }
+    #layout-menu .menu-item.js-menu-group.open > .js-menu-group-sub {
+        display: flex !important;
+        flex-direction: column;
+    }
+    #layout-menu .js-menu-group-toggle {
+        cursor: pointer;
+    }
+    #layout-menu .js-menu-group-toggle .menu-icon-arrow {
+        transition: transform .2s ease;
+        font-size: 1.1em;
+    }
+    #layout-menu .menu-item.js-menu-group.open > .js-menu-group-toggle .menu-icon-arrow {
+        transform: rotate(90deg);
+    }
+    /* Brand superior del sidebar: altura Materio demo (64px) */
+    #layout-menu.menu-vertical > .app-brand.demo {
+        height: 64px;
+        min-height: 64px;
+        align-items: center;
+    }
+    #layout-menu .app-brand-link {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
     .app-brand-text { color: var(--tandem-primary) !important; }
 
-    /* ---- Badge "Entorno: Staging" (estilo pill plantilla) ------------- */
+    /* ---- Badge "Entorno: Develop" (estilo pill plantilla) ------------- */
     .badge.brand-env-badge {
         background-color: var(--tandem-primary) !important;
         color: #fff !important;
@@ -138,6 +168,14 @@
     .dataTables_scrollHead table.dataTable thead th,
     .dataTables_scrollHeadInner table.dataTable thead th {
         border-bottom: 2px solid var(--tandem-primary) !important;
+    }
+
+    /* ---- Formularios: etiquetas en color marca (sustituye --bs-heading-color de Materio) */
+    .form-label,
+    .col-form-label,
+    label.control-label {
+        color: var(--tandem-primary);
+        font-weight: 500;
     }
 
     /* ---- Formularios: focus, checkboxes, radios, range ---------------- */
@@ -286,5 +324,15 @@
         background-color: var(--tandem-primary) !important;
         border-color: var(--tandem-primary) !important;
         color: #fff !important;
+    }
+
+    /* ---- Formularios: pie de acciones (Cancelar / Guardar) a la derecha */
+    .tandem-form-actions,
+    .form-actions,
+    .card .card-body > form.row .col-12.d-flex.gap-2:has(.btn-primary),
+    .card .card-body > form > .d-flex:last-child:has(.btn-primary),
+    .card-footer.tandem-form-actions,
+    .card-footer:has(.btn-primary) {
+        justify-content: flex-end !important;
     }
 </style>

@@ -94,7 +94,7 @@ namespace Desing.Controllers
                     NumberHigh = p.AddHelpGrup,
                     LinkVideo = "<a title='Tile' href='" + Url.Content("~/Employee/Edit/" + p.SysObjectID) + "' class=\"btn btn-default btn-xs\"><span class=\"fas fa-edit\" aria-hidden=\"true\"></span></a>",
                 }).ToList();
-                return Json(new DataTablesResponse(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
+                return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {

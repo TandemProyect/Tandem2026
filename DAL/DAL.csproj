@@ -89,6 +89,12 @@
     <Compile Include="TSql_Branch.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
+    <Compile Include="TSql_Business.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="TSql_Client_V2.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
     <Compile Include="TSql_Company.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
@@ -113,16 +119,38 @@
     <Compile Include="TSql_DesignDetails.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
+    <Compile Include="TSql_Document.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="TSql_DocumentType.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="TSql_DocumentTypeExtension.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
     <Compile Include="TSql_Employee.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
+    <Compile Include="TSql_Extension.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="TSql_Extension.NotMapped.cs" />
     <Compile Include="TSql_Help.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="TSql_HelpGrup.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
+    <Compile Include="TSql_Jobside.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tsql_Master_Articles.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="TSql_Offers.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
+    <Compile Include="TSql_OfferState.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="TSql_Plantilla.cs">

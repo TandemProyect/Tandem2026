@@ -191,11 +191,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Owin.Security.Cookies">
-      <HintPath>..\packages\Microsoft.Owin.Security.Cookies.4.2.2\lib\net45\Microsoft.Owin.Security.Cookies.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\IdentityConfig.cs" />
@@ -212,6 +207,10 @@
     <Compile Include="Controllers\MenuController.cs" />
     <Compile Include="Controllers\EmployeeController.cs" />
     <Compile Include="Controllers\PlantillaController.cs" />
+    <Compile Include="Controllers\ClientV2Controller.cs" />
+    <Compile Include="Controllers\DocumentTypeController.cs" />
+    <Compile Include="Controllers\ExtensionController.cs" />
+    <Compile Include="Controllers\JobsideController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
     <Compile Include="Controllers\TelegramWebhookController.cs" />
@@ -219,12 +218,18 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\DataTablesMvcJson.cs" />
     <Compile Include="Helpers\DataTablesQueryExtensions.cs" />
     <Compile Include="Helpers\ImageHelper.cs" />
+    <Compile Include="Helpers\IntranetFileHelper.cs" />
+    <Compile Include="Helpers\ExtensionPathIcoQueries.cs" />
+    <Compile Include="Helpers\IntranetAuditHelper.cs" />
     <Compile Include="Models\CommercialManagementModels.cs" />
     <Compile Include="Models\Documents.cs" />
     <Compile Include="Models\EmployeeViewModel.cs" />
     <Compile Include="Models\PlantillaViewModel.cs" />
+    <Compile Include="Models\IntranetViewModels.cs" />
+    <Compile Include="Models\GooglePlacesAddressBlockModel.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\Enums\ToasType.cs" />
     <Compile Include="Models\IdentityModels.cs" />
@@ -599,6 +604,26 @@
     <Content Include="assets\js\lib\datatables\dataTables.tableTools.min.js" />
     <Content Include="assets\js\lib\datatables\jquery.dataTables.js" />
     <Content Include="assets\js\lib\datatables\jquery.dataTables.min.js" />
+    <Content Include="Content\images\brand\t-desing-net.svg" />
+    <Content Include="Content\images\ico\Logo.ico" />
+    <Content Include="Content\images\tDesing\Logo_TDesing_450.png" />
+    <Content Include="Files\MaterialIco\10000221.png" />
+    <Content Include="Files\MaterialIco\18501164.png" />
+    <Content Include="Files\MaterialIco\1861122.png" />
+    <Content Include="Files\MaterialIco\1900144.png" />
+    <Content Include="Files\MaterialIco\1920804.png" />
+    <Content Include="Files\MaterialIco\1920811.png" />
+    <Content Include="Files\MaterialIco\1920818.png" />
+    <Content Include="Files\MaterialIco\7238001.png" />
+    <Content Include="Files\MaterialIco\Angular.png" />
+    <Content Include="Files\MaterialIco\braquet.png" />
+    <Content Include="Files\MaterialIco\dywidag.png" />
+    <Content Include="Files\MaterialIco\esq.png" />
+    <Content Include="Files\MaterialIco\panel.png" />
+    <Content Include="Files\MaterialIco\Puntal.png" />
+    <Content Include="Files\MaterialIco\rigi.png" />
+    <Content Include="Files\MaterialIco\SinArticulo.png" />
+    <Content Include="Files\MaterialIco\texagonal.png" />
     <Content Include="Files\Plantilla\favicon_Logo_20260511_191621_3c76ab.ico" />
     <Content Include="Files\Plantilla\favicon_Logo_20260512_085416_b7b32b.ico" />
     <Content Include="Files\Plantilla\Logo_20260511_191621_b88856.png" />
@@ -2157,12 +2182,9 @@
     <Content Include="Content\bootstrap-grid.rtl.css.map" />
     <Content Include="Content\bootstrap-grid.min.css.map" />
     <Content Include="Content\bootstrap-grid.css.map" />
-    <Content Include="Files\MasterArticles\blocks\145\LinkBlockDwgPlant3D_185c0f8a.dwg" />
-    <Content Include="Files\MasterArticles\blocks\145\LinkBlockDwgPlant3D_4c8275a4.dwg" />
-    <Content Include="Files\MasterArticles\blocks\145\LinkBlockDwgPlant3D_db73e988.dwg" />
-    <Content Include="Files\MasterArticles\blocks\93\LinkBlockDwgPlant3D_47cc9648.dwg" />
-    <Content Include="Files\MasterArticles\blocks\93\27104219P.dwg" />
-    <Content Include="Files\MasterArticles\blocks\93\27104219P.dxf" />
+    <Content Include="Files\MasterArticles\blocks\27104219P.dwg" />
+    <Content Include="Files\MasterArticles\blocks\27104219P.stl" />
+    <Content Include="Files\MasterArticles\blocks\27104219P2.stl" />
     <None Include="Properties\PublishProfiles\atenko Develop.pubxml" />
     <None Include="Properties\PublishProfiles\atenko.net.pubxml" />
     <None Include="Properties\PublishProfiles\Athosstaging.pubxml" />
@@ -2997,6 +3019,7 @@
     <Content Include="Views\Shared\_LayoutMaterio.cshtml" />
     <Content Include="Views\Shared\_NavbarMaterio.cshtml" />
     <Content Include="Views\Shared\_SidebarMaterio.cshtml" />
+    <Content Include="Views\Shared\_SidebarMenuItemGroup.cshtml" />
     <Content Include="Views\Shared\_FooterMaterio.cshtml" />
     <Content Include="Views\Shared\_LayoutMaterioBlank.cshtml" />
     <Content Include="Views\Shared\_BrandSvg.cshtml" />
@@ -3048,6 +3071,7 @@
     <Content Include="Scripts\MasterArticles\master-article-preview.js" />
     <Content Include="Scripts\MasterArticles\master-article-details-stl-viewer.js" />
     <Content Include="Scripts\MasterArticles\infinite-grid-helper.module.js" />
+    <Content Include="Scripts\ThreejsDesing\README.md" />
     <Content Include="Scripts\MasterArticles\master-article-aps-dwg-viewer-boot.js" />
     <Content Include="Scripts\MasterArticles\vendor\three-dxf-loader.js" />
     <Content Include="Views\MasterArticles\Edit.cshtml" />
@@ -3060,6 +3084,34 @@
     <Content Include="Views\TSql_Company\Details.cshtml" />
     <Content Include="Views\TSql_Company\Create.cshtml" />
     <Content Include="Views\TSql_Company\Edit.cshtml" />
+    <Content Include="Views\ClientV2\Index.cshtml" />
+    <Content Include="Views\ClientV2\Create.cshtml" />
+    <Content Include="Views\ClientV2\Edit.cshtml" />
+    <Content Include="Views\ClientV2\Details.cshtml" />
+    <Content Include="Views\ClientV2\_ClientV2FormFields.cshtml" />
+    <Content Include="Views\DocumentType\Index.cshtml" />
+    <Content Include="Views\DocumentType\Create.cshtml" />
+    <Content Include="Views\DocumentType\Edit.cshtml" />
+    <Content Include="Views\DocumentType\Details.cshtml" />
+    <Content Include="Views\DocumentType\_DocumentTypeFormFields.cshtml" />
+    <Content Include="Views\Extension\Index.cshtml" />
+    <Content Include="Views\Extension\Create.cshtml" />
+    <Content Include="Views\Extension\Edit.cshtml" />
+    <Content Include="Views\Extension\Details.cshtml" />
+    <Content Include="Views\Extension\_ExtensionFormFields.cshtml" />
+    <Content Include="Views\Jobside\Index.cshtml" />
+    <Content Include="Views\Jobside\Create.cshtml" />
+    <Content Include="Views\Jobside\Edit.cshtml" />
+    <Content Include="Views\Jobside\Details.cshtml" />
+    <Content Include="Views\Jobside\_JobsideFormFields.cshtml" />
+    <Content Include="Views\Shared\_GooglePlacesAddressBlock.cshtml" />
+    <Content Include="Views\Shared\_IntranetAuditSection.cshtml" />
+    <Content Include="Views\Shared\_GooglePlacesAddressScripts.cshtml" />
+    <Content Include="Content\Intranet\tandem-address-places.css" />
+    <Content Include="Scripts\Intranet\tandem-address-places.js" />
+    <Content Include="Scripts\Intranet\intranet-datatables-list.js" />
+    <Content Include="Scripts\Intranet\sidebar-menu.js" />
+    <Content Include="Scripts\Intranet\jobside-google-places.js" />
     <Content Include="Views\DesignTools\_Delete.cshtml" />
     <Content Include="Views\DesignTools\_Edit.cshtml" />
     <Content Include="Uploads\Master_AC1014.dwg" />
@@ -3310,6 +3362,7 @@
     <Folder Include="assets\img\rating\" />
     <Folder Include="Content\DesignTools\img\" />
     <Folder Include="Content\Documents\Fotos\" />
+    <Folder Include="Files\MasterArticles\blocks\93\" />
     <Folder Include="Files\RRHH\User\AttPhotoMenu\Temp\" />
     <Folder Include="LibraryBlock\dxf\" />
     <Folder Include="Repositories\Atk60\Wall\WallTapeSolape\NewFolder1\" />

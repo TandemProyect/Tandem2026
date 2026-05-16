@@ -60,8 +60,6 @@ namespace DAL
             this.TSql_HelpGrup1 = new HashSet<TSql_HelpGrup>();
             this.TSql_TotalListsDesing = new HashSet<TSql_TotalListsDesing>();
             this.TSql_TotalListsDesing1 = new HashSet<TSql_TotalListsDesing>();
-            this.TSql_ConfigDesingDefault = new HashSet<TSql_ConfigDesingDefault>();
-            this.TSql_ConfigDesingDefault1 = new HashSet<TSql_ConfigDesingDefault>();
             this.TSql_ConfigDesing = new HashSet<TSql_ConfigDesing>();
             this.TSql_ConfigDesing1 = new HashSet<TSql_ConfigDesing>();
             this.TSql_ConfigDesing2 = new HashSet<TSql_ConfigDesing>();
@@ -76,6 +74,30 @@ namespace DAL
             this.TSql_RolesFuntionUser1 = new HashSet<TSql_RolesFuntionUser>();
             this.TSql_RollFunctions = new HashSet<TSql_RollFunctions>();
             this.TSql_RollFunctions1 = new HashSet<TSql_RollFunctions>();
+            this.TSql_Client_V2 = new HashSet<TSql_Client_V2>();
+            this.TSql_Client_V21 = new HashSet<TSql_Client_V2>();
+            this.TSql_DocumentType = new HashSet<TSql_DocumentType>();
+            this.TSql_DocumentType1 = new HashSet<TSql_DocumentType>();
+            this.TSql_DocumentTypeExtension = new HashSet<TSql_DocumentTypeExtension>();
+            this.TSql_DocumentTypeExtension1 = new HashSet<TSql_DocumentTypeExtension>();
+            this.TSql_Extension = new HashSet<TSql_Extension>();
+            this.TSql_Extension1 = new HashSet<TSql_Extension>();
+            this.TSql_Extension2 = new HashSet<TSql_Extension>();
+            this.TSql_Extension3 = new HashSet<TSql_Extension>();
+            this.TSql_Jobside = new HashSet<TSql_Jobside>();
+            this.TSql_Jobside1 = new HashSet<TSql_Jobside>();
+            this.TSql_Branch = new HashSet<TSql_Branch>();
+            this.TSql_Branch1 = new HashSet<TSql_Branch>();
+            this.TSql_Document = new HashSet<TSql_Document>();
+            this.TSql_Document1 = new HashSet<TSql_Document>();
+            this.TSql_Offers = new HashSet<TSql_Offers>();
+            this.TSql_Offers1 = new HashSet<TSql_Offers>();
+            this.TSql_OfferState = new HashSet<TSql_OfferState>();
+            this.TSql_OfferState1 = new HashSet<TSql_OfferState>();
+            this.TSql_Business = new HashSet<TSql_Business>();
+            this.TSql_Business1 = new HashSet<TSql_Business>();
+            this.TSql_ConfigDesingDefault = new HashSet<TSql_ConfigDesingDefault>();
+            this.TSql_ConfigDesingDefault1 = new HashSet<TSql_ConfigDesingDefault>();
         }
     
         public string Id { get; set; }
@@ -178,10 +200,6 @@ namespace DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TSql_TotalListsDesing> TSql_TotalListsDesing1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<TSql_ConfigDesingDefault> TSql_ConfigDesingDefault { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<TSql_ConfigDesingDefault> TSql_ConfigDesingDefault1 { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TSql_ConfigDesing> TSql_ConfigDesing { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TSql_ConfigDesing> TSql_ConfigDesing1 { get; set; }
@@ -209,5 +227,53 @@ namespace DAL
         public virtual ICollection<TSql_RollFunctions> TSql_RollFunctions { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TSql_RollFunctions> TSql_RollFunctions1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Client_V2> TSql_Client_V2 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Client_V2> TSql_Client_V21 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_DocumentType> TSql_DocumentType { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_DocumentType> TSql_DocumentType1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_DocumentTypeExtension> TSql_DocumentTypeExtension { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_DocumentTypeExtension> TSql_DocumentTypeExtension1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Extension> TSql_Extension { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Extension> TSql_Extension1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Extension> TSql_Extension2 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Extension> TSql_Extension3 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Jobside> TSql_Jobside { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Jobside> TSql_Jobside1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Branch> TSql_Branch { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Branch> TSql_Branch1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Document> TSql_Document { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Document> TSql_Document1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Offers> TSql_Offers { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Offers> TSql_Offers1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_OfferState> TSql_OfferState { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_OfferState> TSql_OfferState1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Business> TSql_Business { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Business> TSql_Business1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_ConfigDesingDefault> TSql_ConfigDesingDefault { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_ConfigDesingDefault> TSql_ConfigDesingDefault1 { get; set; }
     }
 }

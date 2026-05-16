@@ -24,7 +24,10 @@ namespace DAL
         public long SysUpdateNumber { get; set; }
         public long LinCompany { get; set; }
         public long LinBusiness { get; set; }
+        public string AddLetter { get; set; }
     
         public virtual TSql_Company TSql_Company { get; set; }
+        public virtual AspNetUsers AspNetUsers { get; set; }
+        public virtual AspNetUsers AspNetUsers1 { get; set; }
     }
 }

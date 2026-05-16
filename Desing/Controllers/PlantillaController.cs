@@ -103,7 +103,7 @@ namespace Desing.Controllers
                         : "<a title='Eliminar plantilla' href='" + Url.Action("Delete", "Plantilla", new { Id = p.SysObjectID }) + "' class=\"btn btn-danger btn-xs\" onclick=\"return confirm('¿Eliminar esta plantilla?');\"><span class=\"fas fa-trash-alt\"></span></a>"
                 }).ToList();
 
-                return Json(new DataTablesResponse(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
+                return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {

@@ -48,6 +48,43 @@
           <Property Name="SysUpdateNumber" Type="bigint" Nullable="false" />
           <Property Name="LinCompany" Type="bigint" Nullable="false" />
           <Property Name="LinBusiness" Type="bigint" Nullable="false" />
+          <Property Name="AddLetter" Type="nchar" MaxLength="2" />
+        </EntityType>
+        <EntityType Name="TSql_Business">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="AttLabel" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="AttDescription" Type="nvarchar" MaxLength="2000" />
+          <Property Name="LinCreatedBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="AttCreated" Type="datetime" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="AttLastModification" Type="datetime" Nullable="false" />
+          <Property Name="SysUpdateNumber" Type="bigint" Nullable="false" />
+          <Property Name="LinCompany" Type="bigint" Nullable="false" />
+          <Property Name="AddLetter" Type="nchar" MaxLength="2" />
+        </EntityType>
+        <EntityType Name="TSql_Client_V2">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TextLabel" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Is_Delete" Type="bit" Nullable="false" />
+          <Property Name="Is_Active" Type="bit" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AddDateMade" Type="datetime" Nullable="false" />
+          <Property Name="AddLastDateChange" Type="datetime" />
+          <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
+          <Property Name="LinkMethodOfPayment" Type="bigint" />
+          <Property Name="Path_Ico" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Path_Logo" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="TextCode" Type="nvarchar" MaxLength="128" />
+          <Property Name="TextTaxId" Type="nvarchar" MaxLength="50" />
+          <Property Name="TextEmail" Type="nvarchar" MaxLength="256" />
+          <Property Name="TextPhone" Type="nvarchar" MaxLength="50" />
         </EntityType>
         <EntityType Name="TSql_Company">
           <Key>
@@ -72,6 +109,7 @@
           <Property Name="TextTown_2" Type="nvarchar" MaxLength="500" />
           <Property Name="LinkCountry" Type="bigint" />
           <Property Name="LinPlantilla" Type="bigint" />
+          <Property Name="AddLetter" Type="nchar" MaxLength="2" />
         </EntityType>
         <EntityType Name="TSql_ConfigDesing">
           <Key>
@@ -85,19 +123,11 @@
           <Property Name="AddLastDateChange" Type="datetime" Nullable="false" />
           <Property Name="SysUpdateNumber" Type="bigint" Nullable="false" />
         </EntityType>
-        <!--Errores durante la generación:
-advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigDesingDefault' no tiene definida ninguna clave principal. Se ha inferido la clave y la definición se creado como una vista o tabla de solo lectura.-->
         <EntityType Name="TSql_ConfigDesingDefault">
           <Key>
             <PropertyRef Name="SysObjectID" />
-            <PropertyRef Name="LinkMadeBy" />
-            <PropertyRef Name="AddDateMade" />
-            <PropertyRef Name="AddChangeBy" />
-            <PropertyRef Name="AddLastDateChange" />
-            <PropertyRef Name="SysUpdateNumber" />
-            <PropertyRef Name="AddMaterialToSend" />
           </Key>
-          <Property Name="SysObjectID" Type="bigint" Nullable="false" />
+          <Property Name="SysObjectID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="LinkMadeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
           <Property Name="AddDateMade" Type="datetime" Nullable="false" />
           <Property Name="AddChangeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
@@ -263,6 +293,61 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <Property Name="RematePosition270YMirror" Type="float" />
           <Property Name="IsPanel060" Type="bit" />
         </EntityType>
+        <EntityType Name="TSql_Document">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="AddDescription" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="LinkJobside" Type="bigint" />
+          <Property Name="LinkClient_V2" Type="bigint" />
+          <Property Name="LinkOffer" Type="bigint" />
+          <Property Name="LinkPersonal" Type="bigint" />
+          <Property Name="LinkExtension" Type="bigint" />
+          <Property Name="LinkDocumentType" Type="bigint" Nullable="false" />
+          <Property Name="AddPath" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="Is_Delete" Type="bit" Nullable="false" />
+          <Property Name="Is_Active" Type="bit" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AddDateMade" Type="datetime" Nullable="false" />
+          <Property Name="AddChangeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
+          <Property Name="ExpirationDate" Type="datetime" />
+          <Property Name="NoticeDate" Type="datetime" />
+        </EntityType>
+        <EntityType Name="TSql_DocumentType">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TextLabel" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Is_Delete" Type="bit" Nullable="false" />
+          <Property Name="Is_Active" Type="bit" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AddDateMade" Type="datetime" Nullable="false" />
+          <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
+          <Property Name="AddLastDateChange" Type="datetime" />
+          <Property Name="TextCode" Type="nvarchar" MaxLength="50" />
+          <Property Name="TextDescription" Type="nvarchar" MaxLength="500" />
+          <Property Name="NumberMaxFileSizeBytes" Type="bigint" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TSql_DocumentTypeExtension">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Is_Delete" Type="bit" Nullable="false" />
+          <Property Name="Is_Active" Type="bit" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AddDateMade" Type="datetime" Nullable="false" />
+          <Property Name="AddChangeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
+          <Property Name="LinkExtension" Type="bigint" Nullable="false" />
+          <Property Name="LinkDocumentType" Type="bigint" Nullable="false" />
+        </EntityType>
         <EntityType Name="TSql_Employee">
           <Key>
             <PropertyRef Name="SysObjectID" />
@@ -283,6 +368,22 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <Property Name="AttIsDeleted" Type="bit" Nullable="false" />
           <Property Name="Linlanguage" Type="bigint" />
           <Property Name="AttPassAspNetUsert" Type="nvarchar" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="TSql_Extension">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TextLabel" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Is_Delete" Type="bit" Nullable="false" />
+          <Property Name="Is_Active" Type="bit" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AddDateMade" Type="datetime" Nullable="false" />
+          <Property Name="AddChangeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
+          <Property Name="NumberMaxFileSizeBytes" Type="bigint" Nullable="false" />
+          <Property Name="Path_Ico" Type="nvarchar" MaxLength="500" />
         </EntityType>
         <EntityType Name="TSql_Help">
           <Key>
@@ -314,6 +415,50 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <Property Name="LinkChangeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
           <Property Name="AddDateMade" Type="datetime" Nullable="false" />
           <Property Name="AddLastDateChange" Type="datetime" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TSql_Jobside">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TextLabel" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Is_Delete" Type="bit" Nullable="false" />
+          <Property Name="Is_Active" Type="bit" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AddDateMade" Type="datetime" Nullable="false" />
+          <Property Name="AddLastDateChange" Type="datetime" />
+          <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
+          <Property Name="LinkClient_V2" Type="bigint" />
+          <Property Name="BitBillSameAsLoc" Type="bit" Nullable="false" />
+          <Property Name="Loc_Place_Id" Type="nvarchar" MaxLength="255" />
+          <Property Name="Loc_Formatted_Address" Type="nvarchar" MaxLength="1000" />
+          <Property Name="Loc_Lat" Type="decimal" Precision="9" Scale="6" />
+          <Property Name="Loc_Lng" Type="decimal" Precision="9" Scale="6" />
+          <Property Name="Loc_Street_Number" Type="nvarchar" MaxLength="50" />
+          <Property Name="Loc_Route" Type="nvarchar" MaxLength="250" />
+          <Property Name="Loc_Subpremise" Type="nvarchar" MaxLength="100" />
+          <Property Name="Loc_Locality" Type="nvarchar" MaxLength="250" />
+          <Property Name="Loc_Admin_Area_1" Type="nvarchar" MaxLength="250" />
+          <Property Name="Loc_Admin_Area_2" Type="nvarchar" MaxLength="250" />
+          <Property Name="Loc_Postal_Code" Type="nvarchar" MaxLength="20" />
+          <Property Name="Loc_Country_Code" Type="nvarchar" MaxLength="10" />
+          <Property Name="Loc_Country_Name" Type="nvarchar" MaxLength="100" />
+          <Property Name="Loc_Address_Components_Json" Type="nvarchar(max)" />
+          <Property Name="Bill_Place_Id" Type="nvarchar" MaxLength="255" />
+          <Property Name="Bill_Formatted_Address" Type="nvarchar" MaxLength="1000" />
+          <Property Name="Bill_Lat" Type="decimal" Precision="9" Scale="6" />
+          <Property Name="Bill_Lng" Type="decimal" Precision="9" Scale="6" />
+          <Property Name="Bill_Street_Number" Type="nvarchar" MaxLength="50" />
+          <Property Name="Bill_Route" Type="nvarchar" MaxLength="250" />
+          <Property Name="Bill_Subpremise" Type="nvarchar" MaxLength="100" />
+          <Property Name="Bill_Locality" Type="nvarchar" MaxLength="250" />
+          <Property Name="Bill_Admin_Area_1" Type="nvarchar" MaxLength="250" />
+          <Property Name="Bill_Admin_Area_2" Type="nvarchar" MaxLength="250" />
+          <Property Name="Bill_Postal_Code" Type="nvarchar" MaxLength="20" />
+          <Property Name="Bill_Country_Code" Type="nvarchar" MaxLength="10" />
+          <Property Name="Bill_Country_Name" Type="nvarchar" MaxLength="100" />
+          <Property Name="Bill_Address_Components_Json" Type="nvarchar(max)" />
         </EntityType>
         <EntityType Name="Tsql_Master_Articles">
           <Key>
@@ -351,18 +496,48 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <Property Name="LinkBlockDwgHorizontalElevation3ds" Type="nvarchar" MaxLength="500" />
           <Property Name="IInsertinMaterArticles" Type="bit" Nullable="false" />
         </EntityType>
+        <EntityType Name="TSql_Offers">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="AddOfferNumber" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="TextLabel" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="AddDescription" Type="nvarchar(max)" />
+          <Property Name="LinkJobside" Type="bigint" Nullable="false" />
+          <Property Name="LinkClient_V2" Type="bigint" Nullable="false" />
+          <Property Name="Is_Delete" Type="bit" Nullable="false" />
+          <Property Name="Is_Active" Type="bit" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AddDateMade" Type="datetime" Nullable="false" />
+          <Property Name="AddChangeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
+          <Property Name="LinkOfferState" Type="bigint" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TSql_OfferState">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TextLabel" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="AddColor" Type="nvarchar" MaxLength="50" />
+          <Property Name="Is_Delete" Type="bit" Nullable="false" />
+          <Property Name="Is_Active" Type="bit" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AddDateMade" Type="datetime" Nullable="false" />
+          <Property Name="AddChangeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
+        </EntityType>
         <EntityType Name="TSql_Plantilla">
           <Key>
             <PropertyRef Name="SysObjectID" />
           </Key>
           <Property Name="SysObjectID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="AttName" Type="nvarchar" MaxLength="150" Nullable="false" />
-          <Property Name="AttBrandText" Type="nvarchar" MaxLength="120" Nullable="false" />
-          <Property Name="AttBrandTextColor" Type="nvarchar" MaxLength="20" />
-          <Property Name="AttBrandAccentColor" Type="nvarchar" MaxLength="20" Nullable="false" />
           <Property Name="AttColor" Type="nvarchar" MaxLength="20" Nullable="false" />
           <Property Name="AttLogo" Type="nvarchar" MaxLength="500" Nullable="false" />
-          <Property Name="AttFavicon" Type="nvarchar" MaxLength="500" />
           <Property Name="AttIsDefault" Type="bit" Nullable="false" />
           <Property Name="AttIsDeleted" Type="bit" Nullable="false" />
           <Property Name="LinCreatedBy" Type="nvarchar" MaxLength="128" />
@@ -370,6 +545,10 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
           <Property Name="AttLastModification" Type="datetime" Nullable="false" />
           <Property Name="SysUpdateNumber" Type="bigint" Nullable="false" />
+          <Property Name="AttFavicon" Type="nvarchar" MaxLength="500" />
+          <Property Name="AttBrandText" Type="nvarchar" MaxLength="120" Nullable="false" />
+          <Property Name="AttBrandTextColor" Type="nvarchar" MaxLength="20" />
+          <Property Name="AttBrandAccentColor" Type="nvarchar" MaxLength="20" Nullable="false" />
         </EntityType>
         <EntityType Name="TSql_PluginDeviceAuth">
           <Key>
@@ -599,7 +778,31 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_TSql_Branch_TSql_Company">
+        <Association Name="FK_TSql_Branch_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_Branch" Type="Self.TSql_Branch" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Branch">
+              <PropertyRef Name="LinCreatedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Branch_AspNetUsers1">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_Branch" Type="Self.TSql_Branch" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Branch">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Branch_TSql_Company1">
           <End Role="TSql_Company" Type="Self.TSql_Company" Multiplicity="1" />
           <End Role="TSql_Branch" Type="Self.TSql_Branch" Multiplicity="*" />
           <ReferentialConstraint>
@@ -608,6 +811,54 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
             </Principal>
             <Dependent Role="TSql_Branch">
               <PropertyRef Name="LinCompany" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Business_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_Business" Type="Self.TSql_Business" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Business">
+              <PropertyRef Name="LinCreatedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Business_AspNetUsers1">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_Business" Type="Self.TSql_Business" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Business">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Client_V2_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_Client_V2" Type="Self.TSql_Client_V2" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Client_V2">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Client_V2_AspNetUsers1">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="TSql_Client_V2" Type="Self.TSql_Client_V2" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Client_V2">
+              <PropertyRef Name="LinModifiedBy" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -635,30 +886,6 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_TSql_Company_AspNetUsers2">
-          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
-          <End Role="TSql_Company" Type="Self.TSql_Company" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUsers">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="TSql_Company">
-              <PropertyRef Name="LinkMadeBy" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_TSql_Company_AspNetUsers3">
-          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
-          <End Role="TSql_Company" Type="Self.TSql_Company" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUsers">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="TSql_Company">
-              <PropertyRef Name="AddChangeBy" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_TSql_Company_TSql_Countrys">
           <End Role="TSql_Countrys" Type="Self.TSql_Countrys" Multiplicity="0..1" />
           <End Role="TSql_Company" Type="Self.TSql_Company" Multiplicity="*" />
@@ -668,6 +895,18 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
             </Principal>
             <Dependent Role="TSql_Company">
               <PropertyRef Name="LinkCountry" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Company_TSql_Plantilla">
+          <End Role="TSql_Plantilla" Type="Self.TSql_Plantilla" Multiplicity="0..1" />
+          <End Role="TSql_Company" Type="Self.TSql_Company" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Plantilla">
+              <PropertyRef Name="SysObjectID" />
+            </Principal>
+            <Dependent Role="TSql_Company">
+              <PropertyRef Name="LinPlantilla" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -947,6 +1186,162 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_TSql_Document_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_Document" Type="Self.TSql_Document" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Document">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Document_AspNetUsers1">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="TSql_Document" Type="Self.TSql_Document" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Document">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Document_TSql_Client_V2">
+          <End Role="TSql_Client_V2" Type="Self.TSql_Client_V2" Multiplicity="0..1" />
+          <End Role="TSql_Document" Type="Self.TSql_Document" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Client_V2">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Document">
+              <PropertyRef Name="LinkClient_V2" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Document_TSql_DocumentType">
+          <End Role="TSql_DocumentType" Type="Self.TSql_DocumentType" Multiplicity="1" />
+          <End Role="TSql_Document" Type="Self.TSql_Document" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_DocumentType">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Document">
+              <PropertyRef Name="LinkDocumentType" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Document_TSql_DocumentTypeExtension">
+          <End Role="TSql_DocumentTypeExtension" Type="Self.TSql_DocumentTypeExtension" Multiplicity="0..1" />
+          <End Role="TSql_Document" Type="Self.TSql_Document" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_DocumentTypeExtension">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Document">
+              <PropertyRef Name="LinkExtension" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Document_TSql_Jobside">
+          <End Role="TSql_Jobside" Type="Self.TSql_Jobside" Multiplicity="0..1" />
+          <End Role="TSql_Document" Type="Self.TSql_Document" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Jobside">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Document">
+              <PropertyRef Name="LinkJobside" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Document_TSql_Offers">
+          <End Role="TSql_Offers" Type="Self.TSql_Offers" Multiplicity="0..1" />
+          <End Role="TSql_Document" Type="Self.TSql_Document" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Offers">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Document">
+              <PropertyRef Name="LinkOffer" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_DocumentType_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_DocumentType" Type="Self.TSql_DocumentType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_DocumentType">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_DocumentType_AspNetUsers1">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="TSql_DocumentType" Type="Self.TSql_DocumentType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_DocumentType">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_DocumentTypeExtension_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_DocumentTypeExtension" Type="Self.TSql_DocumentTypeExtension" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_DocumentTypeExtension">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_DocumentTypeExtension_AspNetUsers1">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="TSql_DocumentTypeExtension" Type="Self.TSql_DocumentTypeExtension" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_DocumentTypeExtension">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_DocumentTypeExtension_TSql_DocumentType">
+          <End Role="TSql_DocumentType" Type="Self.TSql_DocumentType" Multiplicity="1" />
+          <End Role="TSql_DocumentTypeExtension" Type="Self.TSql_DocumentTypeExtension" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_DocumentType">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_DocumentTypeExtension">
+              <PropertyRef Name="LinkDocumentType" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_DocumentTypeExtension_TSql_Extension">
+          <End Role="TSql_Extension" Type="Self.TSql_Extension" Multiplicity="1" />
+          <End Role="TSql_DocumentTypeExtension" Type="Self.TSql_DocumentTypeExtension" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Extension">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_DocumentTypeExtension">
+              <PropertyRef Name="LinkExtension" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_TSql_Employee_AspNetUsers">
           <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
           <End Role="TSql_Employee" Type="Self.TSql_Employee" Multiplicity="*" />
@@ -995,15 +1390,51 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_TSql_Company_TSql_Plantilla">
-          <End Role="TSql_Plantilla" Type="Self.TSql_Plantilla" Multiplicity="0..1" />
-          <End Role="TSql_Company" Type="Self.TSql_Company" Multiplicity="*" />
+        <Association Name="FK_TSql_Extension_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_Extension" Type="Self.TSql_Extension" Multiplicity="*" />
           <ReferentialConstraint>
-            <Principal Role="TSql_Plantilla">
-              <PropertyRef Name="SysObjectID" />
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
             </Principal>
-            <Dependent Role="TSql_Company">
-              <PropertyRef Name="LinPlantilla" />
+            <Dependent Role="TSql_Extension">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Extension_AspNetUsers1">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="TSql_Extension" Type="Self.TSql_Extension" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Extension">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Extension_AspNetUsers2">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_Extension" Type="Self.TSql_Extension" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Extension">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Extension_AspNetUsers3">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="TSql_Extension" Type="Self.TSql_Extension" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Extension">
+              <PropertyRef Name="LinModifiedBy" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1067,6 +1498,42 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_TSql_Jobside_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_Jobside" Type="Self.TSql_Jobside" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Jobside">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Jobside_AspNetUsers1">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="TSql_Jobside" Type="Self.TSql_Jobside" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Jobside">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Jobside_TSql_Client_V2">
+          <End Role="TSql_Client_V2" Type="Self.TSql_Client_V2" Multiplicity="0..1" />
+          <End Role="TSql_Jobside" Type="Self.TSql_Jobside" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Client_V2">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Jobside">
+              <PropertyRef Name="LinkClient_V2" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_Tsql_Master_Articles_AspNetUsers">
           <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
           <End Role="Tsql_Master_Articles" Type="Self.Tsql_Master_Articles" Multiplicity="*" />
@@ -1100,6 +1567,90 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
             </Principal>
             <Dependent Role="Tsql_Master_Articles">
               <PropertyRef Name="LinkSystem" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Offers_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_Offers" Type="Self.TSql_Offers" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Offers">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Offers_AspNetUsers1">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="TSql_Offers" Type="Self.TSql_Offers" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Offers">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Offers_TSql_Client_V2">
+          <End Role="TSql_Client_V2" Type="Self.TSql_Client_V2" Multiplicity="1" />
+          <End Role="TSql_Offers" Type="Self.TSql_Offers" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Client_V2">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Offers">
+              <PropertyRef Name="LinkClient_V2" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Offers_TSql_Jobside">
+          <End Role="TSql_Jobside" Type="Self.TSql_Jobside" Multiplicity="1" />
+          <End Role="TSql_Offers" Type="Self.TSql_Offers" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Jobside">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Offers">
+              <PropertyRef Name="LinkJobside" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Offers_TSql_OfferState">
+          <End Role="TSql_OfferState" Type="Self.TSql_OfferState" Multiplicity="1" />
+          <End Role="TSql_Offers" Type="Self.TSql_Offers" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_OfferState">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Offers">
+              <PropertyRef Name="LinkOfferState" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_OfferState_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_OfferState" Type="Self.TSql_OfferState" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_OfferState">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_OfferState_AspNetUsers1">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="TSql_OfferState" Type="Self.TSql_OfferState" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_OfferState">
+              <PropertyRef Name="LinModifiedBy" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1515,17 +2066,27 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <EntitySet Name="AspNetUsers" EntityType="Self.AspNetUsers" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_App" EntityType="Self.TSql_App" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_Branch" EntityType="Self.TSql_Branch" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_Business" EntityType="Self.TSql_Business" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_Client_V2" EntityType="Self.TSql_Client_V2" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_Company" EntityType="Self.TSql_Company" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_ConfigDesing" EntityType="Self.TSql_ConfigDesing" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_ConfigDesingDefault" EntityType="Self.TSql_ConfigDesingDefault" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_Countrys" EntityType="Self.TSql_Countrys" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_DefaultDesign" EntityType="Self.TSql_DefaultDesign" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_Design" EntityType="Self.TSql_Design" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_DesignCamera" EntityType="Self.TSql_DesignCamera" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_DesignDetails" EntityType="Self.TSql_DesignDetails" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_Document" EntityType="Self.TSql_Document" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_DocumentType" EntityType="Self.TSql_DocumentType" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_DocumentTypeExtension" EntityType="Self.TSql_DocumentTypeExtension" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_Employee" EntityType="Self.TSql_Employee" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_Extension" EntityType="Self.TSql_Extension" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_Help" EntityType="Self.TSql_Help" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_HelpGrup" EntityType="Self.TSql_HelpGrup" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_Jobside" EntityType="Self.TSql_Jobside" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Tsql_Master_Articles" EntityType="Self.Tsql_Master_Articles" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_Offers" EntityType="Self.TSql_Offers" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_OfferState" EntityType="Self.TSql_OfferState" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_Plantilla" EntityType="Self.TSql_Plantilla" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_PluginDeviceAuth" EntityType="Self.TSql_PluginDeviceAuth" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_Register" EntityType="Self.TSql_Register" Schema="dbo" store:Type="Tables" />
@@ -1542,24 +2103,37 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <EntitySet Name="TSql_TelegramDesignInbox" EntityType="Self.TSql_TelegramDesignInbox" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_TemporalList" EntityType="Self.TSql_TemporalList" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_TotalListsDesing" EntityType="Self.TSql_TotalListsDesing" Schema="dbo" store:Type="Tables" />
-          <EntitySet Name="TSql_ConfigDesingDefault" EntityType="Self.TSql_ConfigDesingDefault" store:Type="Tables" store:Schema="dbo">
-            <DefiningQuery>SELECT 
-    [TSql_ConfigDesingDefault].[SysObjectID] AS [SysObjectID], 
-    [TSql_ConfigDesingDefault].[LinkMadeBy] AS [LinkMadeBy], 
-    [TSql_ConfigDesingDefault].[AddDateMade] AS [AddDateMade], 
-    [TSql_ConfigDesingDefault].[AddChangeBy] AS [AddChangeBy], 
-    [TSql_ConfigDesingDefault].[AddLastDateChange] AS [AddLastDateChange], 
-    [TSql_ConfigDesingDefault].[SysUpdateNumber] AS [SysUpdateNumber], 
-    [TSql_ConfigDesingDefault].[AddMaterialToSend] AS [AddMaterialToSend]
-    FROM [dbo].[TSql_ConfigDesingDefault] AS [TSql_ConfigDesingDefault]</DefiningQuery>
-          </EntitySet>
           <AssociationSet Name="FK_TSql_App_AspNetUsers" Association="Self.FK_TSql_App_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="TSql_App" EntitySet="TSql_App" />
           </AssociationSet>
-          <AssociationSet Name="FK_TSql_Branch_TSql_Company" Association="Self.FK_TSql_Branch_TSql_Company">
+          <AssociationSet Name="FK_TSql_Branch_AspNetUsers" Association="Self.FK_TSql_Branch_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Branch" EntitySet="TSql_Branch" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Branch_AspNetUsers1" Association="Self.FK_TSql_Branch_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Branch" EntitySet="TSql_Branch" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Branch_TSql_Company1" Association="Self.FK_TSql_Branch_TSql_Company1">
             <End Role="TSql_Company" EntitySet="TSql_Company" />
             <End Role="TSql_Branch" EntitySet="TSql_Branch" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Business_AspNetUsers" Association="Self.FK_TSql_Business_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Business" EntitySet="TSql_Business" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Business_AspNetUsers1" Association="Self.FK_TSql_Business_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Business" EntitySet="TSql_Business" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Client_V2_AspNetUsers" Association="Self.FK_TSql_Client_V2_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Client_V2" EntitySet="TSql_Client_V2" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Client_V2_AspNetUsers1" Association="Self.FK_TSql_Client_V2_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Client_V2" EntitySet="TSql_Client_V2" />
           </AssociationSet>
           <AssociationSet Name="FK_TSql_Company_AspNetUsers" Association="Self.FK_TSql_Company_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
@@ -1569,16 +2143,12 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="TSql_Company" EntitySet="TSql_Company" />
           </AssociationSet>
-          <AssociationSet Name="FK_TSql_Company_AspNetUsers2" Association="Self.FK_TSql_Company_AspNetUsers2">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_Company" EntitySet="TSql_Company" />
-          </AssociationSet>
-          <AssociationSet Name="FK_TSql_Company_AspNetUsers3" Association="Self.FK_TSql_Company_AspNetUsers3">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_Company" EntitySet="TSql_Company" />
-          </AssociationSet>
           <AssociationSet Name="FK_TSql_Company_TSql_Countrys" Association="Self.FK_TSql_Company_TSql_Countrys">
             <End Role="TSql_Countrys" EntitySet="TSql_Countrys" />
+            <End Role="TSql_Company" EntitySet="TSql_Company" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Company_TSql_Plantilla" Association="Self.FK_TSql_Company_TSql_Plantilla">
+            <End Role="TSql_Plantilla" EntitySet="TSql_Plantilla" />
             <End Role="TSql_Company" EntitySet="TSql_Company" />
           </AssociationSet>
           <AssociationSet Name="FK_TSql_ConfigDesing_AspNetUsers" Association="Self.FK_TSql_ConfigDesing_AspNetUsers">
@@ -1673,6 +2243,58 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
             <End Role="TSql_Design" EntitySet="TSql_Design" />
             <End Role="TSql_DesignDetails" EntitySet="TSql_DesignDetails" />
           </AssociationSet>
+          <AssociationSet Name="FK_TSql_Document_AspNetUsers" Association="Self.FK_TSql_Document_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Document" EntitySet="TSql_Document" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Document_AspNetUsers1" Association="Self.FK_TSql_Document_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Document" EntitySet="TSql_Document" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Document_TSql_Client_V2" Association="Self.FK_TSql_Document_TSql_Client_V2">
+            <End Role="TSql_Client_V2" EntitySet="TSql_Client_V2" />
+            <End Role="TSql_Document" EntitySet="TSql_Document" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Document_TSql_DocumentType" Association="Self.FK_TSql_Document_TSql_DocumentType">
+            <End Role="TSql_DocumentType" EntitySet="TSql_DocumentType" />
+            <End Role="TSql_Document" EntitySet="TSql_Document" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Document_TSql_DocumentTypeExtension" Association="Self.FK_TSql_Document_TSql_DocumentTypeExtension">
+            <End Role="TSql_DocumentTypeExtension" EntitySet="TSql_DocumentTypeExtension" />
+            <End Role="TSql_Document" EntitySet="TSql_Document" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Document_TSql_Jobside" Association="Self.FK_TSql_Document_TSql_Jobside">
+            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
+            <End Role="TSql_Document" EntitySet="TSql_Document" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Document_TSql_Offers" Association="Self.FK_TSql_Document_TSql_Offers">
+            <End Role="TSql_Offers" EntitySet="TSql_Offers" />
+            <End Role="TSql_Document" EntitySet="TSql_Document" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_DocumentType_AspNetUsers" Association="Self.FK_TSql_DocumentType_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_DocumentType" EntitySet="TSql_DocumentType" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_DocumentType_AspNetUsers1" Association="Self.FK_TSql_DocumentType_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_DocumentType" EntitySet="TSql_DocumentType" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_DocumentTypeExtension_AspNetUsers" Association="Self.FK_TSql_DocumentTypeExtension_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_DocumentTypeExtension" EntitySet="TSql_DocumentTypeExtension" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_DocumentTypeExtension_AspNetUsers1" Association="Self.FK_TSql_DocumentTypeExtension_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_DocumentTypeExtension" EntitySet="TSql_DocumentTypeExtension" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_DocumentTypeExtension_TSql_DocumentType" Association="Self.FK_TSql_DocumentTypeExtension_TSql_DocumentType">
+            <End Role="TSql_DocumentType" EntitySet="TSql_DocumentType" />
+            <End Role="TSql_DocumentTypeExtension" EntitySet="TSql_DocumentTypeExtension" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_DocumentTypeExtension_TSql_Extension" Association="Self.FK_TSql_DocumentTypeExtension_TSql_Extension">
+            <End Role="TSql_Extension" EntitySet="TSql_Extension" />
+            <End Role="TSql_DocumentTypeExtension" EntitySet="TSql_DocumentTypeExtension" />
+          </AssociationSet>
           <AssociationSet Name="FK_TSql_Employee_AspNetUsers" Association="Self.FK_TSql_Employee_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="TSql_Employee" EntitySet="TSql_Employee" />
@@ -1689,9 +2311,21 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
             <End Role="TSql_Company" EntitySet="TSql_Company" />
             <End Role="TSql_Employee" EntitySet="TSql_Employee" />
           </AssociationSet>
-          <AssociationSet Name="FK_TSql_Company_TSql_Plantilla" Association="Self.FK_TSql_Company_TSql_Plantilla">
-            <End Role="TSql_Plantilla" EntitySet="TSql_Plantilla" />
-            <End Role="TSql_Company" EntitySet="TSql_Company" />
+          <AssociationSet Name="FK_TSql_Extension_AspNetUsers" Association="Self.FK_TSql_Extension_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Extension" EntitySet="TSql_Extension" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Extension_AspNetUsers1" Association="Self.FK_TSql_Extension_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Extension" EntitySet="TSql_Extension" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Extension_AspNetUsers2" Association="Self.FK_TSql_Extension_AspNetUsers2">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Extension" EntitySet="TSql_Extension" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Extension_AspNetUsers3" Association="Self.FK_TSql_Extension_AspNetUsers3">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Extension" EntitySet="TSql_Extension" />
           </AssociationSet>
           <AssociationSet Name="FK_TSql_Help_AspNetUsers" Association="Self.FK_TSql_Help_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
@@ -1713,6 +2347,18 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="TSql_HelpGrup" EntitySet="TSql_HelpGrup" />
           </AssociationSet>
+          <AssociationSet Name="FK_TSql_Jobside_AspNetUsers" Association="Self.FK_TSql_Jobside_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Jobside_AspNetUsers1" Association="Self.FK_TSql_Jobside_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Jobside_TSql_Client_V2" Association="Self.FK_TSql_Jobside_TSql_Client_V2">
+            <End Role="TSql_Client_V2" EntitySet="TSql_Client_V2" />
+            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
+          </AssociationSet>
           <AssociationSet Name="FK_Tsql_Master_Articles_AspNetUsers" Association="Self.FK_Tsql_Master_Articles_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="Tsql_Master_Articles" EntitySet="Tsql_Master_Articles" />
@@ -1724,6 +2370,34 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <AssociationSet Name="FK_Tsql_Master_Articles_TSql_System" Association="Self.FK_Tsql_Master_Articles_TSql_System">
             <End Role="TSql_System" EntitySet="TSql_System" />
             <End Role="Tsql_Master_Articles" EntitySet="Tsql_Master_Articles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Offers_AspNetUsers" Association="Self.FK_TSql_Offers_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Offers" EntitySet="TSql_Offers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Offers_AspNetUsers1" Association="Self.FK_TSql_Offers_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Offers" EntitySet="TSql_Offers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Offers_TSql_Client_V2" Association="Self.FK_TSql_Offers_TSql_Client_V2">
+            <End Role="TSql_Client_V2" EntitySet="TSql_Client_V2" />
+            <End Role="TSql_Offers" EntitySet="TSql_Offers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Offers_TSql_Jobside" Association="Self.FK_TSql_Offers_TSql_Jobside">
+            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
+            <End Role="TSql_Offers" EntitySet="TSql_Offers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Offers_TSql_OfferState" Association="Self.FK_TSql_Offers_TSql_OfferState">
+            <End Role="TSql_OfferState" EntitySet="TSql_OfferState" />
+            <End Role="TSql_Offers" EntitySet="TSql_Offers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_OfferState_AspNetUsers" Association="Self.FK_TSql_OfferState_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_OfferState" EntitySet="TSql_OfferState" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_OfferState_AspNetUsers1" Association="Self.FK_TSql_OfferState_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_OfferState" EntitySet="TSql_OfferState" />
           </AssociationSet>
           <AssociationSet Name="FK_TSql_PluginDeviceAuth_AspNetUsers" Association="Self.FK_TSql_PluginDeviceAuth_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
@@ -2095,15 +2769,6 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="TSql_TotalListsDesing" EntitySet="TSql_TotalListsDesing" />
           </AssociationSet>
-          <EntitySet Name="TSql_ConfigDesingDefault" EntityType="DesingEntity.TSql_ConfigDesingDefault" />
-          <AssociationSet Name="FK_TSql_ConfigDesingDefault_AspNetUsers" Association="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_ConfigDesingDefault" EntitySet="TSql_ConfigDesingDefault" />
-          </AssociationSet>
-          <AssociationSet Name="FK_TSql_ConfigDesingDefault_AspNetUsers1" Association="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers1">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_ConfigDesingDefault" EntitySet="TSql_ConfigDesingDefault" />
-          </AssociationSet>
           <EntitySet Name="TSql_ConfigDesing" EntityType="DesingEntity.TSql_ConfigDesing" />
           <AssociationSet Name="FK_TSql_ConfigDesing_AspNetUsers" Association="DesingEntity.FK_TSql_ConfigDesing_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
@@ -2205,6 +2870,156 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <AssociationSet Name="FK_TSql_RollFunctionsUser_TSql_RollGrupDesing1" Association="DesingEntity.FK_TSql_RollFunctionsUser_TSql_RollGrupDesing1">
             <End Role="TSql_RollGrupDesing" EntitySet="TSql_RollGrupDesing" />
             <End Role="TSql_RollFunctions" EntitySet="TSql_RollFunctions" />
+          </AssociationSet>
+          <EntitySet Name="TSql_Client_V2" EntityType="DesingEntity.TSql_Client_V2" />
+          <EntitySet Name="TSql_DocumentType" EntityType="DesingEntity.TSql_DocumentType" />
+          <EntitySet Name="TSql_DocumentTypeExtension" EntityType="DesingEntity.TSql_DocumentTypeExtension" />
+          <EntitySet Name="TSql_Extension" EntityType="DesingEntity.TSql_Extension" />
+          <EntitySet Name="TSql_Jobside" EntityType="DesingEntity.TSql_Jobside" />
+          <AssociationSet Name="FK_TSql_Client_V2_AspNetUsers" Association="DesingEntity.FK_TSql_Client_V2_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Client_V2" EntitySet="TSql_Client_V2" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Client_V2_AspNetUsers1" Association="DesingEntity.FK_TSql_Client_V2_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Client_V2" EntitySet="TSql_Client_V2" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_DocumentType_AspNetUsers" Association="DesingEntity.FK_TSql_DocumentType_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_DocumentType" EntitySet="TSql_DocumentType" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_DocumentType_AspNetUsers1" Association="DesingEntity.FK_TSql_DocumentType_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_DocumentType" EntitySet="TSql_DocumentType" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_DocumentTypeExtension_AspNetUsers" Association="DesingEntity.FK_TSql_DocumentTypeExtension_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_DocumentTypeExtension" EntitySet="TSql_DocumentTypeExtension" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_DocumentTypeExtension_AspNetUsers1" Association="DesingEntity.FK_TSql_DocumentTypeExtension_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_DocumentTypeExtension" EntitySet="TSql_DocumentTypeExtension" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Extension_AspNetUsers" Association="DesingEntity.FK_TSql_Extension_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Extension" EntitySet="TSql_Extension" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Extension_AspNetUsers1" Association="DesingEntity.FK_TSql_Extension_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Extension" EntitySet="TSql_Extension" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Extension_AspNetUsers2" Association="DesingEntity.FK_TSql_Extension_AspNetUsers2">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Extension" EntitySet="TSql_Extension" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Extension_AspNetUsers3" Association="DesingEntity.FK_TSql_Extension_AspNetUsers3">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Extension" EntitySet="TSql_Extension" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Jobside_AspNetUsers" Association="DesingEntity.FK_TSql_Jobside_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Jobside_AspNetUsers1" Association="DesingEntity.FK_TSql_Jobside_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Jobside_TSql_Client_V2" Association="DesingEntity.FK_TSql_Jobside_TSql_Client_V2">
+            <End Role="TSql_Client_V2" EntitySet="TSql_Client_V2" />
+            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_DocumentTypeExtension_TSql_DocumentType" Association="DesingEntity.FK_TSql_DocumentTypeExtension_TSql_DocumentType">
+            <End Role="TSql_DocumentType" EntitySet="TSql_DocumentType" />
+            <End Role="TSql_DocumentTypeExtension" EntitySet="TSql_DocumentTypeExtension" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_DocumentTypeExtension_TSql_Extension" Association="DesingEntity.FK_TSql_DocumentTypeExtension_TSql_Extension">
+            <End Role="TSql_Extension" EntitySet="TSql_Extension" />
+            <End Role="TSql_DocumentTypeExtension" EntitySet="TSql_DocumentTypeExtension" />
+          </AssociationSet>
+          <EntitySet Name="TSql_Document" EntityType="DesingEntity.TSql_Document" />
+          <EntitySet Name="TSql_Offers" EntityType="DesingEntity.TSql_Offers" />
+          <EntitySet Name="TSql_OfferState" EntityType="DesingEntity.TSql_OfferState" />
+          <AssociationSet Name="FK_TSql_Branch_AspNetUsers" Association="DesingEntity.FK_TSql_Branch_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Branch" EntitySet="TSql_Branch" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Branch_AspNetUsers1" Association="DesingEntity.FK_TSql_Branch_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Branch" EntitySet="TSql_Branch" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Document_AspNetUsers" Association="DesingEntity.FK_TSql_Document_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Document" EntitySet="TSql_Document" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Document_AspNetUsers1" Association="DesingEntity.FK_TSql_Document_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Document" EntitySet="TSql_Document" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Offers_AspNetUsers" Association="DesingEntity.FK_TSql_Offers_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Offers" EntitySet="TSql_Offers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Offers_AspNetUsers1" Association="DesingEntity.FK_TSql_Offers_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Offers" EntitySet="TSql_Offers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_OfferState_AspNetUsers" Association="DesingEntity.FK_TSql_OfferState_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_OfferState" EntitySet="TSql_OfferState" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_OfferState_AspNetUsers1" Association="DesingEntity.FK_TSql_OfferState_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_OfferState" EntitySet="TSql_OfferState" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Document_TSql_Client_V2" Association="DesingEntity.FK_TSql_Document_TSql_Client_V2">
+            <End Role="TSql_Client_V2" EntitySet="TSql_Client_V2" />
+            <End Role="TSql_Document" EntitySet="TSql_Document" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Offers_TSql_Client_V2" Association="DesingEntity.FK_TSql_Offers_TSql_Client_V2">
+            <End Role="TSql_Client_V2" EntitySet="TSql_Client_V2" />
+            <End Role="TSql_Offers" EntitySet="TSql_Offers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Document_TSql_DocumentType" Association="DesingEntity.FK_TSql_Document_TSql_DocumentType">
+            <End Role="TSql_DocumentType" EntitySet="TSql_DocumentType" />
+            <End Role="TSql_Document" EntitySet="TSql_Document" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Document_TSql_DocumentTypeExtension" Association="DesingEntity.FK_TSql_Document_TSql_DocumentTypeExtension">
+            <End Role="TSql_DocumentTypeExtension" EntitySet="TSql_DocumentTypeExtension" />
+            <End Role="TSql_Document" EntitySet="TSql_Document" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Document_TSql_Jobside" Association="DesingEntity.FK_TSql_Document_TSql_Jobside">
+            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
+            <End Role="TSql_Document" EntitySet="TSql_Document" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Document_TSql_Offers" Association="DesingEntity.FK_TSql_Document_TSql_Offers">
+            <End Role="TSql_Offers" EntitySet="TSql_Offers" />
+            <End Role="TSql_Document" EntitySet="TSql_Document" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Offers_TSql_Jobside" Association="DesingEntity.FK_TSql_Offers_TSql_Jobside">
+            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
+            <End Role="TSql_Offers" EntitySet="TSql_Offers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Offers_TSql_OfferState" Association="DesingEntity.FK_TSql_Offers_TSql_OfferState">
+            <End Role="TSql_OfferState" EntitySet="TSql_OfferState" />
+            <End Role="TSql_Offers" EntitySet="TSql_Offers" />
+          </AssociationSet>
+          <EntitySet Name="TSql_Business" EntityType="DesingEntity.TSql_Business" />
+          <AssociationSet Name="FK_TSql_Business_AspNetUsers" Association="DesingEntity.FK_TSql_Business_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Business" EntitySet="TSql_Business" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Business_AspNetUsers1" Association="DesingEntity.FK_TSql_Business_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Business" EntitySet="TSql_Business" />
+          </AssociationSet>
+          <EntitySet Name="TSql_ConfigDesingDefault" EntityType="DesingEntity.TSql_ConfigDesingDefault" />
+          <AssociationSet Name="FK_TSql_ConfigDesingDefault_AspNetUsers" Association="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_ConfigDesingDefault" EntitySet="TSql_ConfigDesingDefault" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_ConfigDesingDefault_AspNetUsers1" Association="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_ConfigDesingDefault" EntitySet="TSql_ConfigDesingDefault" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="TSql_Countrys">
@@ -2450,6 +3265,7 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Company_AspNetUsers1" FromRole="TSql_Company" ToRole="AspNetUsers" />
           <NavigationProperty Name="AspNetUsers2" Relationship="DesingEntity.FK_TSql_Company_AspNetUsers2" FromRole="TSql_Company" ToRole="AspNetUsers" />
           <NavigationProperty Name="AspNetUsers3" Relationship="DesingEntity.FK_TSql_Company_AspNetUsers3" FromRole="TSql_Company" ToRole="AspNetUsers" />
+          <Property Name="AddLetter" Type="String" MaxLength="2" FixedLength="true" Unicode="true" />
         </EntityType>
         <Association Name="FK_TSql_Company_TSql_Countrys">
           <End Type="DesingEntity.TSql_Countrys" Role="TSql_Countrys" Multiplicity="0..1" />
@@ -2493,6 +3309,9 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <Property Name="LinCompany" Type="Int64" Nullable="false" />
           <Property Name="LinBusiness" Type="Int64" Nullable="false" />
           <NavigationProperty Name="TSql_Company" Relationship="DesingEntity.FK_TSql_Branch_TSql_Company" FromRole="TSql_Branch" ToRole="TSql_Company" />
+          <Property Name="AddLetter" Type="String" MaxLength="2" FixedLength="true" Unicode="true" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_Branch_AspNetUsers" FromRole="TSql_Branch" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Branch_AspNetUsers1" FromRole="TSql_Branch" ToRole="AspNetUsers" />
         </EntityType>
         <Association Name="FK_TSql_Branch_TSql_Company">
           <End Type="DesingEntity.TSql_Company" Role="TSql_Company" Multiplicity="1" />
@@ -2738,8 +3557,6 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <NavigationProperty Name="TSql_HelpGrup1" Relationship="DesingEntity.FK_TSql_HelpGrup_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_HelpGrup" />
           <NavigationProperty Name="TSql_TotalListsDesing" Relationship="DesingEntity.FK_TSql_TotalListsDesing_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_TotalListsDesing" />
           <NavigationProperty Name="TSql_TotalListsDesing1" Relationship="DesingEntity.FK_TSql_TotalListsDesing_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_TotalListsDesing" />
-          <NavigationProperty Name="TSql_ConfigDesingDefault" Relationship="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_ConfigDesingDefault" />
-          <NavigationProperty Name="TSql_ConfigDesingDefault1" Relationship="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_ConfigDesingDefault" />
           <NavigationProperty Name="TSql_ConfigDesing" Relationship="DesingEntity.FK_TSql_ConfigDesing_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_ConfigDesing" />
           <NavigationProperty Name="TSql_ConfigDesing1" Relationship="DesingEntity.FK_TSql_ConfigDesing_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_ConfigDesing" />
           <NavigationProperty Name="TSql_ConfigDesing2" Relationship="DesingEntity.FK_TSql_ConfigDesing_AspNetUsers2" FromRole="AspNetUsers" ToRole="TSql_ConfigDesing" />
@@ -2754,7 +3571,31 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <NavigationProperty Name="TSql_RolesFuntionUser1" Relationship="DesingEntity.FK_TSql_RolesFuntion_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_RolesFuntionUser" />
           <NavigationProperty Name="TSql_RollFunctions" Relationship="DesingEntity.FK_TSql_RollFunctionsUser_AspNetUsers2" FromRole="AspNetUsers" ToRole="TSql_RollFunctions" />
           <NavigationProperty Name="TSql_RollFunctions1" Relationship="DesingEntity.FK_TSql_RollFunctionsUser_AspNetUsers11" FromRole="AspNetUsers" ToRole="TSql_RollFunctions" />
-        </EntityType>
+          <NavigationProperty Name="TSql_Client_V2" Relationship="DesingEntity.FK_TSql_Client_V2_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_Client_V2" />
+          <NavigationProperty Name="TSql_Client_V21" Relationship="DesingEntity.FK_TSql_Client_V2_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_Client_V2" />
+          <NavigationProperty Name="TSql_DocumentType" Relationship="DesingEntity.FK_TSql_DocumentType_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_DocumentType" />
+          <NavigationProperty Name="TSql_DocumentType1" Relationship="DesingEntity.FK_TSql_DocumentType_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_DocumentType" />
+          <NavigationProperty Name="TSql_DocumentTypeExtension" Relationship="DesingEntity.FK_TSql_DocumentTypeExtension_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_DocumentTypeExtension" />
+          <NavigationProperty Name="TSql_DocumentTypeExtension1" Relationship="DesingEntity.FK_TSql_DocumentTypeExtension_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_DocumentTypeExtension" />
+          <NavigationProperty Name="TSql_Extension" Relationship="DesingEntity.FK_TSql_Extension_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_Extension" />
+          <NavigationProperty Name="TSql_Extension1" Relationship="DesingEntity.FK_TSql_Extension_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_Extension" />
+          <NavigationProperty Name="TSql_Extension2" Relationship="DesingEntity.FK_TSql_Extension_AspNetUsers2" FromRole="AspNetUsers" ToRole="TSql_Extension" />
+          <NavigationProperty Name="TSql_Extension3" Relationship="DesingEntity.FK_TSql_Extension_AspNetUsers3" FromRole="AspNetUsers" ToRole="TSql_Extension" />
+          <NavigationProperty Name="TSql_Jobside" Relationship="DesingEntity.FK_TSql_Jobside_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_Jobside" />
+          <NavigationProperty Name="TSql_Jobside1" Relationship="DesingEntity.FK_TSql_Jobside_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_Jobside" />
+          <NavigationProperty Name="TSql_Branch" Relationship="DesingEntity.FK_TSql_Branch_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_Branch" />
+          <NavigationProperty Name="TSql_Branch1" Relationship="DesingEntity.FK_TSql_Branch_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_Branch" />
+          <NavigationProperty Name="TSql_Document" Relationship="DesingEntity.FK_TSql_Document_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_Document" />
+          <NavigationProperty Name="TSql_Document1" Relationship="DesingEntity.FK_TSql_Document_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_Document" />
+          <NavigationProperty Name="TSql_Offers" Relationship="DesingEntity.FK_TSql_Offers_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_Offers" />
+          <NavigationProperty Name="TSql_Offers1" Relationship="DesingEntity.FK_TSql_Offers_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_Offers" />
+          <NavigationProperty Name="TSql_OfferState" Relationship="DesingEntity.FK_TSql_OfferState_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_OfferState" />
+          <NavigationProperty Name="TSql_OfferState1" Relationship="DesingEntity.FK_TSql_OfferState_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_OfferState" />
+          <NavigationProperty Name="TSql_Business" Relationship="DesingEntity.FK_TSql_Business_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_Business" />
+          <NavigationProperty Name="TSql_Business1" Relationship="DesingEntity.FK_TSql_Business_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_Business" />
+          <NavigationProperty Name="TSql_ConfigDesingDefault" Relationship="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_ConfigDesingDefault" />
+          <NavigationProperty Name="TSql_ConfigDesingDefault1" Relationship="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_ConfigDesingDefault" />
+          </EntityType>
         <Association Name="FK_TSql_App_AspNetUsers">
           <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
           <End Type="DesingEntity.TSql_App" Role="TSql_App" Multiplicity="*" />
@@ -3338,50 +4179,6 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <EntityType Name="TSql_ConfigDesingDefault">
-          <Key>
-            <PropertyRef Name="SysObjectID" />
-            <PropertyRef Name="LinkMadeBy" />
-            <PropertyRef Name="AddDateMade" />
-            <PropertyRef Name="AddChangeBy" />
-            <PropertyRef Name="AddLastDateChange" />
-            <PropertyRef Name="SysUpdateNumber" />
-            <PropertyRef Name="AddMaterialToSend" />
-          </Key>
-          <Property Name="SysObjectID" Type="Int64" Nullable="false" />
-          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="AddChangeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="AddLastDateChange" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="SysUpdateNumber" Type="Int64" Nullable="false" />
-          <Property Name="AddMaterialToSend" Type="Double" Nullable="false" />
-          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers" FromRole="TSql_ConfigDesingDefault" ToRole="AspNetUsers" />
-          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers1" FromRole="TSql_ConfigDesingDefault" ToRole="AspNetUsers" />
-        </EntityType>
-        <Association Name="FK_TSql_ConfigDesingDefault_AspNetUsers">
-          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
-          <End Type="DesingEntity.TSql_ConfigDesingDefault" Role="TSql_ConfigDesingDefault" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUsers">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="TSql_ConfigDesingDefault">
-              <PropertyRef Name="LinkMadeBy" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_TSql_ConfigDesingDefault_AspNetUsers1">
-          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
-          <End Type="DesingEntity.TSql_ConfigDesingDefault" Role="TSql_ConfigDesingDefault" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUsers">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="TSql_ConfigDesingDefault">
-              <PropertyRef Name="AddChangeBy" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="TSql_ConfigDesing">
           <Key>
             <PropertyRef Name="SysObjectID" />
@@ -3865,6 +4662,667 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="TSql_Client_V2">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TextLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Is_Delete" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Active" Type="Boolean" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AddLastDateChange" Type="DateTime" Precision="3" />
+          <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
+          <Property Name="LinkMethodOfPayment" Type="Int64" />
+          <Property Name="Path_Ico" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Path_Logo" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="TextCode" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="TextTaxId" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TextEmail" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="TextPhone" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_Client_V2_AspNetUsers" FromRole="TSql_Client_V2" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Client_V2_AspNetUsers1" FromRole="TSql_Client_V2" ToRole="AspNetUsers" />
+          <NavigationProperty Name="TSql_Jobside" Relationship="DesingEntity.FK_TSql_Jobside_TSql_Client_V2" FromRole="TSql_Client_V2" ToRole="TSql_Jobside" />
+          <NavigationProperty Name="TSql_Document" Relationship="DesingEntity.FK_TSql_Document_TSql_Client_V2" FromRole="TSql_Client_V2" ToRole="TSql_Document" />
+          <NavigationProperty Name="TSql_Offers" Relationship="DesingEntity.FK_TSql_Offers_TSql_Client_V2" FromRole="TSql_Client_V2" ToRole="TSql_Offers" />
+        </EntityType>
+        <EntityType Name="TSql_DocumentType">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TextLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Is_Delete" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Active" Type="Boolean" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
+          <Property Name="AddLastDateChange" Type="DateTime" Precision="3" />
+          <Property Name="TextCode" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TextDescription" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="NumberMaxFileSizeBytes" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_DocumentType_AspNetUsers" FromRole="TSql_DocumentType" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_DocumentType_AspNetUsers1" FromRole="TSql_DocumentType" ToRole="AspNetUsers" />
+          <NavigationProperty Name="TSql_DocumentTypeExtension" Relationship="DesingEntity.FK_TSql_DocumentTypeExtension_TSql_DocumentType" FromRole="TSql_DocumentType" ToRole="TSql_DocumentTypeExtension" />
+          <NavigationProperty Name="TSql_Document" Relationship="DesingEntity.FK_TSql_Document_TSql_DocumentType" FromRole="TSql_DocumentType" ToRole="TSql_Document" />
+        </EntityType>
+        <EntityType Name="TSql_DocumentTypeExtension">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Is_Delete" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Active" Type="Boolean" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AddChangeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
+          <Property Name="LinkExtension" Type="Int64" Nullable="false" />
+          <Property Name="LinkDocumentType" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_DocumentTypeExtension_AspNetUsers" FromRole="TSql_DocumentTypeExtension" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_DocumentTypeExtension_AspNetUsers1" FromRole="TSql_DocumentTypeExtension" ToRole="AspNetUsers" />
+          <NavigationProperty Name="TSql_DocumentType" Relationship="DesingEntity.FK_TSql_DocumentTypeExtension_TSql_DocumentType" FromRole="TSql_DocumentTypeExtension" ToRole="TSql_DocumentType" />
+          <NavigationProperty Name="TSql_Extension" Relationship="DesingEntity.FK_TSql_DocumentTypeExtension_TSql_Extension" FromRole="TSql_DocumentTypeExtension" ToRole="TSql_Extension" />
+          <NavigationProperty Name="TSql_Document" Relationship="DesingEntity.FK_TSql_Document_TSql_DocumentTypeExtension" FromRole="TSql_DocumentTypeExtension" ToRole="TSql_Document" />
+        </EntityType>
+        <EntityType Name="TSql_Extension">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TextLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Is_Delete" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Active" Type="Boolean" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AddChangeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
+          <Property Name="NumberMaxFileSizeBytes" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_Extension_AspNetUsers" FromRole="TSql_Extension" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Extension_AspNetUsers1" FromRole="TSql_Extension" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers2" Relationship="DesingEntity.FK_TSql_Extension_AspNetUsers2" FromRole="TSql_Extension" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers3" Relationship="DesingEntity.FK_TSql_Extension_AspNetUsers3" FromRole="TSql_Extension" ToRole="AspNetUsers" />
+          <NavigationProperty Name="TSql_DocumentTypeExtension" Relationship="DesingEntity.FK_TSql_DocumentTypeExtension_TSql_Extension" FromRole="TSql_Extension" ToRole="TSql_DocumentTypeExtension" />
+          <Property Name="Path_Ico" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="TSql_Jobside">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TextLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Is_Delete" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Active" Type="Boolean" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AddLastDateChange" Type="DateTime" Precision="3" />
+          <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
+          <Property Name="LinkClient_V2" Type="Int64" />
+          <Property Name="BitBillSameAsLoc" Type="Boolean" Nullable="false" />
+          <Property Name="Loc_Place_Id" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Formatted_Address" Type="String" MaxLength="1000" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Lat" Type="Decimal" Precision="9" Scale="6" />
+          <Property Name="Loc_Lng" Type="Decimal" Precision="9" Scale="6" />
+          <Property Name="Loc_Street_Number" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Route" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Subpremise" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Locality" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Admin_Area_1" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Admin_Area_2" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Postal_Code" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Country_Code" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Country_Name" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Address_Components_Json" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Place_Id" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Formatted_Address" Type="String" MaxLength="1000" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Lat" Type="Decimal" Precision="9" Scale="6" />
+          <Property Name="Bill_Lng" Type="Decimal" Precision="9" Scale="6" />
+          <Property Name="Bill_Street_Number" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Route" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Subpremise" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Locality" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Admin_Area_1" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Admin_Area_2" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Postal_Code" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Country_Code" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Country_Name" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Address_Components_Json" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_Jobside_AspNetUsers" FromRole="TSql_Jobside" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Jobside_AspNetUsers1" FromRole="TSql_Jobside" ToRole="AspNetUsers" />
+          <NavigationProperty Name="TSql_Client_V2" Relationship="DesingEntity.FK_TSql_Jobside_TSql_Client_V2" FromRole="TSql_Jobside" ToRole="TSql_Client_V2" />
+          <NavigationProperty Name="TSql_Document" Relationship="DesingEntity.FK_TSql_Document_TSql_Jobside" FromRole="TSql_Jobside" ToRole="TSql_Document" />
+          <NavigationProperty Name="TSql_Offers" Relationship="DesingEntity.FK_TSql_Offers_TSql_Jobside" FromRole="TSql_Jobside" ToRole="TSql_Offers" />
+        </EntityType>
+        <Association Name="FK_TSql_Client_V2_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_Client_V2" Role="TSql_Client_V2" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Client_V2">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Client_V2_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_Client_V2" Role="TSql_Client_V2" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Client_V2">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_DocumentType_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_DocumentType" Role="TSql_DocumentType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_DocumentType">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_DocumentType_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_DocumentType" Role="TSql_DocumentType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_DocumentType">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_DocumentTypeExtension_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_DocumentTypeExtension" Role="TSql_DocumentTypeExtension" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_DocumentTypeExtension">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_DocumentTypeExtension_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_DocumentTypeExtension" Role="TSql_DocumentTypeExtension" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_DocumentTypeExtension">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Extension_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_Extension" Role="TSql_Extension" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Extension">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Extension_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_Extension" Role="TSql_Extension" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Extension">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Extension_AspNetUsers2">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_Extension" Role="TSql_Extension" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Extension">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Extension_AspNetUsers3">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_Extension" Role="TSql_Extension" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Extension">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Jobside_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_Jobside" Role="TSql_Jobside" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Jobside">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Jobside_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_Jobside" Role="TSql_Jobside" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Jobside">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Jobside_TSql_Client_V2">
+          <End Type="DesingEntity.TSql_Client_V2" Role="TSql_Client_V2" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_Jobside" Role="TSql_Jobside" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Client_V2">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Jobside">
+              <PropertyRef Name="LinkClient_V2" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_DocumentTypeExtension_TSql_DocumentType">
+          <End Type="DesingEntity.TSql_DocumentType" Role="TSql_DocumentType" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_DocumentTypeExtension" Role="TSql_DocumentTypeExtension" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_DocumentType">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_DocumentTypeExtension">
+              <PropertyRef Name="LinkDocumentType" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_DocumentTypeExtension_TSql_Extension">
+          <End Type="DesingEntity.TSql_Extension" Role="TSql_Extension" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_DocumentTypeExtension" Role="TSql_DocumentTypeExtension" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Extension">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_DocumentTypeExtension">
+              <PropertyRef Name="LinkExtension" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="TSql_Document">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="AddDescription" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="LinkJobside" Type="Int64" />
+          <Property Name="LinkClient_V2" Type="Int64" />
+          <Property Name="LinkOffer" Type="Int64" />
+          <Property Name="LinkPersonal" Type="Int64" />
+          <Property Name="LinkExtension" Type="Int64" />
+          <Property Name="LinkDocumentType" Type="Int64" Nullable="false" />
+          <Property Name="AddPath" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Is_Delete" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Active" Type="Boolean" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AddChangeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
+          <Property Name="ExpirationDate" Type="DateTime" Precision="3" />
+          <Property Name="NoticeDate" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_Document_AspNetUsers" FromRole="TSql_Document" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Document_AspNetUsers1" FromRole="TSql_Document" ToRole="AspNetUsers" />
+          <NavigationProperty Name="TSql_Client_V2" Relationship="DesingEntity.FK_TSql_Document_TSql_Client_V2" FromRole="TSql_Document" ToRole="TSql_Client_V2" />
+          <NavigationProperty Name="TSql_DocumentType" Relationship="DesingEntity.FK_TSql_Document_TSql_DocumentType" FromRole="TSql_Document" ToRole="TSql_DocumentType" />
+          <NavigationProperty Name="TSql_DocumentTypeExtension" Relationship="DesingEntity.FK_TSql_Document_TSql_DocumentTypeExtension" FromRole="TSql_Document" ToRole="TSql_DocumentTypeExtension" />
+          <NavigationProperty Name="TSql_Jobside" Relationship="DesingEntity.FK_TSql_Document_TSql_Jobside" FromRole="TSql_Document" ToRole="TSql_Jobside" />
+          <NavigationProperty Name="TSql_Offers" Relationship="DesingEntity.FK_TSql_Document_TSql_Offers" FromRole="TSql_Document" ToRole="TSql_Offers" />
+        </EntityType>
+        <EntityType Name="TSql_Offers">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="AddOfferNumber" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="TextLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="AddDescription" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="LinkJobside" Type="Int64" Nullable="false" />
+          <Property Name="LinkClient_V2" Type="Int64" Nullable="false" />
+          <Property Name="Is_Delete" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Active" Type="Boolean" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AddChangeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
+          <Property Name="LinkOfferState" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_Offers_AspNetUsers" FromRole="TSql_Offers" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Offers_AspNetUsers1" FromRole="TSql_Offers" ToRole="AspNetUsers" />
+          <NavigationProperty Name="TSql_Client_V2" Relationship="DesingEntity.FK_TSql_Offers_TSql_Client_V2" FromRole="TSql_Offers" ToRole="TSql_Client_V2" />
+          <NavigationProperty Name="TSql_Document" Relationship="DesingEntity.FK_TSql_Document_TSql_Offers" FromRole="TSql_Offers" ToRole="TSql_Document" />
+          <NavigationProperty Name="TSql_Jobside" Relationship="DesingEntity.FK_TSql_Offers_TSql_Jobside" FromRole="TSql_Offers" ToRole="TSql_Jobside" />
+          <NavigationProperty Name="TSql_OfferState" Relationship="DesingEntity.FK_TSql_Offers_TSql_OfferState" FromRole="TSql_Offers" ToRole="TSql_OfferState" />
+        </EntityType>
+        <EntityType Name="TSql_OfferState">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TextLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="AddColor" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Is_Delete" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Active" Type="Boolean" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AddChangeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_OfferState_AspNetUsers" FromRole="TSql_OfferState" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_OfferState_AspNetUsers1" FromRole="TSql_OfferState" ToRole="AspNetUsers" />
+          <NavigationProperty Name="TSql_Offers" Relationship="DesingEntity.FK_TSql_Offers_TSql_OfferState" FromRole="TSql_OfferState" ToRole="TSql_Offers" />
+        </EntityType>
+        <Association Name="FK_TSql_Branch_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_Branch" Role="TSql_Branch" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Branch">
+              <PropertyRef Name="LinCreatedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Branch_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_Branch" Role="TSql_Branch" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Branch">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Document_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_Document" Role="TSql_Document" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Document">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Document_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_Document" Role="TSql_Document" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Document">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Offers_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_Offers" Role="TSql_Offers" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Offers">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Offers_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_Offers" Role="TSql_Offers" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Offers">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_OfferState_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_OfferState" Role="TSql_OfferState" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_OfferState">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_OfferState_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_OfferState" Role="TSql_OfferState" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_OfferState">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Document_TSql_Client_V2">
+          <End Type="DesingEntity.TSql_Client_V2" Role="TSql_Client_V2" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_Document" Role="TSql_Document" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Client_V2">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Document">
+              <PropertyRef Name="LinkClient_V2" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Offers_TSql_Client_V2">
+          <End Type="DesingEntity.TSql_Client_V2" Role="TSql_Client_V2" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_Offers" Role="TSql_Offers" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Client_V2">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Offers">
+              <PropertyRef Name="LinkClient_V2" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Document_TSql_DocumentType">
+          <End Type="DesingEntity.TSql_DocumentType" Role="TSql_DocumentType" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_Document" Role="TSql_Document" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_DocumentType">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Document">
+              <PropertyRef Name="LinkDocumentType" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Document_TSql_DocumentTypeExtension">
+          <End Type="DesingEntity.TSql_DocumentTypeExtension" Role="TSql_DocumentTypeExtension" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_Document" Role="TSql_Document" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_DocumentTypeExtension">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Document">
+              <PropertyRef Name="LinkExtension" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Document_TSql_Jobside">
+          <End Type="DesingEntity.TSql_Jobside" Role="TSql_Jobside" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_Document" Role="TSql_Document" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Jobside">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Document">
+              <PropertyRef Name="LinkJobside" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Document_TSql_Offers">
+          <End Type="DesingEntity.TSql_Offers" Role="TSql_Offers" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_Document" Role="TSql_Document" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Offers">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Document">
+              <PropertyRef Name="LinkOffer" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Offers_TSql_Jobside">
+          <End Type="DesingEntity.TSql_Jobside" Role="TSql_Jobside" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_Offers" Role="TSql_Offers" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Jobside">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Offers">
+              <PropertyRef Name="LinkJobside" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Offers_TSql_OfferState">
+          <End Type="DesingEntity.TSql_OfferState" Role="TSql_OfferState" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_Offers" Role="TSql_Offers" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_OfferState">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Offers">
+              <PropertyRef Name="LinkOfferState" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="TSql_Business">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="AttLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="AttDescription" Type="String" MaxLength="2000" FixedLength="false" Unicode="true" />
+          <Property Name="LinCreatedBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AttCreated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LinModifiedBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AttLastModification" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="SysUpdateNumber" Type="Int64" Nullable="false" />
+          <Property Name="LinCompany" Type="Int64" Nullable="false" />
+          <Property Name="AddLetter" Type="String" MaxLength="2" FixedLength="true" Unicode="true" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_Business_AspNetUsers" FromRole="TSql_Business" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Business_AspNetUsers1" FromRole="TSql_Business" ToRole="AspNetUsers" />
+        </EntityType>
+        <Association Name="FK_TSql_Business_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_Business" Role="TSql_Business" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Business">
+              <PropertyRef Name="LinCreatedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Business_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_Business" Role="TSql_Business" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Business">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="TSql_ConfigDesingDefault">
+          <Key>
+            <PropertyRef Name="SysObjectID" />
+          </Key>
+          <Property Name="SysObjectID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AddChangeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddLastDateChange" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="SysUpdateNumber" Type="Int64" Nullable="false" />
+          <Property Name="AddMaterialToSend" Type="Double" Nullable="false" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers" FromRole="TSql_ConfigDesingDefault" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers1" FromRole="TSql_ConfigDesingDefault" ToRole="AspNetUsers" />
+        </EntityType>
+        <Association Name="FK_TSql_ConfigDesingDefault_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_ConfigDesingDefault" Role="TSql_ConfigDesingDefault" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_ConfigDesingDefault">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_ConfigDesingDefault_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_ConfigDesingDefault" Role="TSql_ConfigDesingDefault" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_ConfigDesingDefault">
+              <PropertyRef Name="AddChangeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -4028,6 +5486,7 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <EntitySetMapping Name="TSql_Company">
             <EntityTypeMapping TypeName="DesingEntity.TSql_Company">
               <MappingFragment StoreEntitySet="TSql_Company">
+                <ScalarProperty Name="AddLetter" ColumnName="AddLetter" />
                 <ScalarProperty Name="LinPlantilla" ColumnName="LinPlantilla" />
                 <ScalarProperty Name="LinkCountry" ColumnName="LinkCountry" />
                 <ScalarProperty Name="TextTown_2" ColumnName="TextTown_2" />
@@ -4067,6 +5526,7 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
           <EntitySetMapping Name="TSql_Branch">
             <EntityTypeMapping TypeName="DesingEntity.TSql_Branch">
               <MappingFragment StoreEntitySet="TSql_Branch">
+                <ScalarProperty Name="AddLetter" ColumnName="AddLetter" />
                 <ScalarProperty Name="LinBusiness" ColumnName="LinBusiness" />
                 <ScalarProperty Name="LinCompany" ColumnName="LinCompany" />
                 <ScalarProperty Name="SysUpdateNumber" ColumnName="SysUpdateNumber" />
@@ -4272,19 +5732,6 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="TSql_ConfigDesingDefault">
-            <EntityTypeMapping TypeName="DesingEntity.TSql_ConfigDesingDefault">
-              <MappingFragment StoreEntitySet="TSql_ConfigDesingDefault">
-                <ScalarProperty Name="AddMaterialToSend" ColumnName="AddMaterialToSend" />
-                <ScalarProperty Name="SysUpdateNumber" ColumnName="SysUpdateNumber" />
-                <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
-                <ScalarProperty Name="AddChangeBy" ColumnName="AddChangeBy" />
-                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
-                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
-                <ScalarProperty Name="SysObjectID" ColumnName="SysObjectID" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="TSql_ConfigDesing">
             <EntityTypeMapping TypeName="DesingEntity.TSql_ConfigDesing">
               <MappingFragment StoreEntitySet="TSql_ConfigDesing">
@@ -4472,6 +5919,213 @@ advertencia 6002: La tabla o vista 'db_a197cd_desingproducction.dbo.TSql_ConfigD
                 <ScalarProperty Name="TelegramChatId" ColumnName="TelegramChatId" />
                 <ScalarProperty Name="TelegramMessageId" ColumnName="TelegramMessageId" />
                 <ScalarProperty Name="LinDesign" ColumnName="LinDesign" />
+                <ScalarProperty Name="SysObjectID" ColumnName="SysObjectID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_Client_V2">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_Client_V2">
+              <MappingFragment StoreEntitySet="TSql_Client_V2">
+                <ScalarProperty Name="TextPhone" ColumnName="TextPhone" />
+                <ScalarProperty Name="TextEmail" ColumnName="TextEmail" />
+                <ScalarProperty Name="TextTaxId" ColumnName="TextTaxId" />
+                <ScalarProperty Name="TextCode" ColumnName="TextCode" />
+                <ScalarProperty Name="Path_Logo" ColumnName="Path_Logo" />
+                <ScalarProperty Name="Path_Ico" ColumnName="Path_Ico" />
+                <ScalarProperty Name="LinkMethodOfPayment" ColumnName="LinkMethodOfPayment" />
+                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
+                <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
+                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
+                <ScalarProperty Name="Is_Delete" ColumnName="Is_Delete" />
+                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_DocumentType">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_DocumentType">
+              <MappingFragment StoreEntitySet="TSql_DocumentType">
+                <ScalarProperty Name="NumberMaxFileSizeBytes" ColumnName="NumberMaxFileSizeBytes" />
+                <ScalarProperty Name="TextDescription" ColumnName="TextDescription" />
+                <ScalarProperty Name="TextCode" ColumnName="TextCode" />
+                <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
+                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
+                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
+                <ScalarProperty Name="Is_Delete" ColumnName="Is_Delete" />
+                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_DocumentTypeExtension">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_DocumentTypeExtension">
+              <MappingFragment StoreEntitySet="TSql_DocumentTypeExtension">
+                <ScalarProperty Name="LinkDocumentType" ColumnName="LinkDocumentType" />
+                <ScalarProperty Name="LinkExtension" ColumnName="LinkExtension" />
+                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
+                <ScalarProperty Name="AddChangeBy" ColumnName="AddChangeBy" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
+                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
+                <ScalarProperty Name="Is_Delete" ColumnName="Is_Delete" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_Extension">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_Extension">
+              <MappingFragment StoreEntitySet="TSql_Extension">
+                <ScalarProperty Name="Path_Ico" ColumnName="Path_Ico" />
+                <ScalarProperty Name="NumberMaxFileSizeBytes" ColumnName="NumberMaxFileSizeBytes" />
+                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
+                <ScalarProperty Name="AddChangeBy" ColumnName="AddChangeBy" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
+                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
+                <ScalarProperty Name="Is_Delete" ColumnName="Is_Delete" />
+                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_Jobside">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_Jobside">
+              <MappingFragment StoreEntitySet="TSql_Jobside">
+                <ScalarProperty Name="Bill_Address_Components_Json" ColumnName="Bill_Address_Components_Json" />
+                <ScalarProperty Name="Bill_Country_Name" ColumnName="Bill_Country_Name" />
+                <ScalarProperty Name="Bill_Country_Code" ColumnName="Bill_Country_Code" />
+                <ScalarProperty Name="Bill_Postal_Code" ColumnName="Bill_Postal_Code" />
+                <ScalarProperty Name="Bill_Admin_Area_2" ColumnName="Bill_Admin_Area_2" />
+                <ScalarProperty Name="Bill_Admin_Area_1" ColumnName="Bill_Admin_Area_1" />
+                <ScalarProperty Name="Bill_Locality" ColumnName="Bill_Locality" />
+                <ScalarProperty Name="Bill_Subpremise" ColumnName="Bill_Subpremise" />
+                <ScalarProperty Name="Bill_Route" ColumnName="Bill_Route" />
+                <ScalarProperty Name="Bill_Street_Number" ColumnName="Bill_Street_Number" />
+                <ScalarProperty Name="Bill_Lng" ColumnName="Bill_Lng" />
+                <ScalarProperty Name="Bill_Lat" ColumnName="Bill_Lat" />
+                <ScalarProperty Name="Bill_Formatted_Address" ColumnName="Bill_Formatted_Address" />
+                <ScalarProperty Name="Bill_Place_Id" ColumnName="Bill_Place_Id" />
+                <ScalarProperty Name="Loc_Address_Components_Json" ColumnName="Loc_Address_Components_Json" />
+                <ScalarProperty Name="Loc_Country_Name" ColumnName="Loc_Country_Name" />
+                <ScalarProperty Name="Loc_Country_Code" ColumnName="Loc_Country_Code" />
+                <ScalarProperty Name="Loc_Postal_Code" ColumnName="Loc_Postal_Code" />
+                <ScalarProperty Name="Loc_Admin_Area_2" ColumnName="Loc_Admin_Area_2" />
+                <ScalarProperty Name="Loc_Admin_Area_1" ColumnName="Loc_Admin_Area_1" />
+                <ScalarProperty Name="Loc_Locality" ColumnName="Loc_Locality" />
+                <ScalarProperty Name="Loc_Subpremise" ColumnName="Loc_Subpremise" />
+                <ScalarProperty Name="Loc_Route" ColumnName="Loc_Route" />
+                <ScalarProperty Name="Loc_Street_Number" ColumnName="Loc_Street_Number" />
+                <ScalarProperty Name="Loc_Lng" ColumnName="Loc_Lng" />
+                <ScalarProperty Name="Loc_Lat" ColumnName="Loc_Lat" />
+                <ScalarProperty Name="Loc_Formatted_Address" ColumnName="Loc_Formatted_Address" />
+                <ScalarProperty Name="Loc_Place_Id" ColumnName="Loc_Place_Id" />
+                <ScalarProperty Name="BitBillSameAsLoc" ColumnName="BitBillSameAsLoc" />
+                <ScalarProperty Name="LinkClient_V2" ColumnName="LinkClient_V2" />
+                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
+                <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
+                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
+                <ScalarProperty Name="Is_Delete" ColumnName="Is_Delete" />
+                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_Document">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_Document">
+              <MappingFragment StoreEntitySet="TSql_Document">
+                <ScalarProperty Name="NoticeDate" ColumnName="NoticeDate" />
+                <ScalarProperty Name="ExpirationDate" ColumnName="ExpirationDate" />
+                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
+                <ScalarProperty Name="AddChangeBy" ColumnName="AddChangeBy" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
+                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
+                <ScalarProperty Name="Is_Delete" ColumnName="Is_Delete" />
+                <ScalarProperty Name="AddPath" ColumnName="AddPath" />
+                <ScalarProperty Name="LinkDocumentType" ColumnName="LinkDocumentType" />
+                <ScalarProperty Name="LinkExtension" ColumnName="LinkExtension" />
+                <ScalarProperty Name="LinkPersonal" ColumnName="LinkPersonal" />
+                <ScalarProperty Name="LinkOffer" ColumnName="LinkOffer" />
+                <ScalarProperty Name="LinkClient_V2" ColumnName="LinkClient_V2" />
+                <ScalarProperty Name="LinkJobside" ColumnName="LinkJobside" />
+                <ScalarProperty Name="AddDescription" ColumnName="AddDescription" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_Offers">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_Offers">
+              <MappingFragment StoreEntitySet="TSql_Offers">
+                <ScalarProperty Name="LinkOfferState" ColumnName="LinkOfferState" />
+                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
+                <ScalarProperty Name="AddChangeBy" ColumnName="AddChangeBy" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
+                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
+                <ScalarProperty Name="Is_Delete" ColumnName="Is_Delete" />
+                <ScalarProperty Name="LinkClient_V2" ColumnName="LinkClient_V2" />
+                <ScalarProperty Name="LinkJobside" ColumnName="LinkJobside" />
+                <ScalarProperty Name="AddDescription" ColumnName="AddDescription" />
+                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
+                <ScalarProperty Name="AddOfferNumber" ColumnName="AddOfferNumber" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_OfferState">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_OfferState">
+              <MappingFragment StoreEntitySet="TSql_OfferState">
+                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
+                <ScalarProperty Name="AddChangeBy" ColumnName="AddChangeBy" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
+                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
+                <ScalarProperty Name="Is_Delete" ColumnName="Is_Delete" />
+                <ScalarProperty Name="AddColor" ColumnName="AddColor" />
+                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_Business">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_Business">
+              <MappingFragment StoreEntitySet="TSql_Business">
+                <ScalarProperty Name="AddLetter" ColumnName="AddLetter" />
+                <ScalarProperty Name="LinCompany" ColumnName="LinCompany" />
+                <ScalarProperty Name="SysUpdateNumber" ColumnName="SysUpdateNumber" />
+                <ScalarProperty Name="AttLastModification" ColumnName="AttLastModification" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="AttCreated" ColumnName="AttCreated" />
+                <ScalarProperty Name="LinCreatedBy" ColumnName="LinCreatedBy" />
+                <ScalarProperty Name="AttDescription" ColumnName="AttDescription" />
+                <ScalarProperty Name="AttLabel" ColumnName="AttLabel" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_ConfigDesingDefault">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_ConfigDesingDefault">
+              <MappingFragment StoreEntitySet="TSql_ConfigDesingDefault">
+                <ScalarProperty Name="AddMaterialToSend" ColumnName="AddMaterialToSend" />
+                <ScalarProperty Name="SysUpdateNumber" ColumnName="SysUpdateNumber" />
+                <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
+                <ScalarProperty Name="AddChangeBy" ColumnName="AddChangeBy" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
                 <ScalarProperty Name="SysObjectID" ColumnName="SysObjectID" />
               </MappingFragment>
             </EntityTypeMapping>

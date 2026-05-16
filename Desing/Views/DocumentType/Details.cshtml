@@ -1,0 +1,56 @@
+@model DAL.TSql_DocumentType
+@{
+    ViewBag.Title = Model.TextLabel;
+    var extensiones = ViewBag.ExtensionesAsignadas as System.Collections.Generic.List<DAL.TSql_Extension>;
+    var extPathById = ViewBag.ExtensionPathIcoById as System.Collections.Generic.Dictionary<long, string>
+                      ?? new System.Collections.Generic.Dictionary<long, string>();
+}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> / <a href="@Url.Action("Index")">Configuración</a> / <a href="@Url.Action("Index")">Tipos de documento</a> /</span> @Model.TextLabel
+    </h4>
+    <a class="btn btn-warning" href="@Url.Action("Edit", new { id = Model.IdObject })">Editar</a>
+</div>
+<div class="card">
+    <div class="card-body row g-3">
+        <div class="col-md-6"><strong>Código:</strong> @(Model.TextCode ?? "—")</div>
+        <div class="col-md-6"><strong>Activo:</strong> @(Model.Is_Active ? "Sí" : "No")</div>
+        <div class="col-md-12"><strong>Descripción:</strong> @(string.IsNullOrWhiteSpace(Model.TextDescription) ? "—" : Model.TextDescription)</div>
+        <div class="col-md-12">
+            <strong>Extensiones permitidas:</strong>
+            @if (extensiones == null || extensiones.Count == 0)
+            {
+                <span class="ms-2">— Sin extensiones asociadas.</span>
+            }
+            else
+            {
+                <div class="mt-2">
+                    @foreach (var ext in extensiones)
+                    {
+                        extPathById.TryGetValue(ext.IdObject, out var p);
+                        var hasIco = !string.IsNullOrWhiteSpace(p);
+                        string imgsrc = null;
+                        if (hasIco)
+                        {
+                            imgsrc = Url.Content(p.StartsWith("~") ? p : "~" + p);
+                        }
+                        <span class="badge bg-label-info me-1 mb-1" title="@ext.TextLabel">
+                            @if (!string.IsNullOrEmpty(imgsrc))
+                            {
+                                <span class="me-1">
+                                    <img src="@imgsrc" alt="" style="height:14px;width:auto;vertical-align:middle;object-fit:contain"/>
+                                </span>
+                            }
+
+                            @ext.TextLabel
+                        </span>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+@if (ViewBag.Audit != null)
+{
+    @Html.Partial("_IntranetAuditSection", (Desing.Models.IntranetAuditDisplayModel)ViewBag.Audit)
+}

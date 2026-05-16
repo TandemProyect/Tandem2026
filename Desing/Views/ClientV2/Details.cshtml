@@ -1,0 +1,26 @@
+@model DAL.TSql_Client_V2
+@{
+    ViewBag.Title = Model.TextLabel;
+}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light"><a href="@Url.Action("Index")">Clientes V2</a> /</span> @Model.TextLabel
+    </h4>
+    <a class="btn btn-warning" href="@Url.Action("Edit", new { id = Model.IdObject })">Editar</a>
+</div>
+<div class="card">
+    <div class="card-body row g-3">
+        <div class="col-md-6"><strong>Código:</strong> @(Model.TextCode ?? "—")</div>
+        <div class="col-md-6"><strong>CIF/NIF:</strong> @(Model.TextTaxId ?? "—")</div>
+        <div class="col-md-6"><strong>Email:</strong> @(Model.TextEmail ?? "—")</div>
+        <div class="col-md-6"><strong>Teléfono:</strong> @(Model.TextPhone ?? "—")</div>
+        <div class="col-md-6"><strong>Activo:</strong> @(Model.Is_Active ? "Sí" : "No")</div>
+        @if (!string.IsNullOrEmpty(Model.Path_Logo))
+        {
+            <div class="col-md-12">
+                <strong>Logo:</strong><br />
+                <img src="@Url.Content(Model.Path_Logo.StartsWith("~") ? Model.Path_Logo : "~" + Model.Path_Logo)" style="max-height:80px" alt="" />
+            </div>
+        }
+    </div>
+</div>

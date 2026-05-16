@@ -1,0 +1,119 @@
+Google Maps / Places — referentes HTTP para desarrollo local (Tandem / Jobside)
+
+================================================================================
+
+
+
+Localhost está soportado por Google. El mensaje "Esta página no puede cargar Google Maps
+
+correctamente" NO significa que "local no sirva": suele ser restricción de referente, facturación
+
+o APIs no habilitadas / excluidas en la misma clave que GoogleMaps:ApiKey (Web.config).
+
+
+
+URL de desarrollo (Design.csproj IIS Express):
+
+  https://localhost:44384/
+
+  Puerto SSL: 44384 (IISExpressSSLPort)
+
+  Puerto Cassini alternativo (si no usa IIS Express): 55506 — añadir referentes con ese puerto si aplica.
+
+
+
+DIAGNÓSTICO EN LA PÁGINA (solo desarrollo, compilation debug=true):
+
+  En Jobside/Create verá un panel azul #tandemAddressApiWarning con:
+
+  - longitud de la clave (no el valor completo)
+
+  - origen exacto (window.location.origin), p. ej. https://localhost:44384
+
+  - referente HTTP a copiar: https://localhost:44384/*
+
+  Copie el referente del panel, no adivine el puerto.
+
+
+
+En Google Cloud Console > APIs y servicios > Credenciales > [su clave de navegador]:
+
+  Tipo de restricción de aplicación: Sitios web (referentes HTTP)
+
+  Añadir (copiar del diagnóstico; mínimo el primero):
+
+
+
+  https://localhost:44384/*
+
+  http://localhost:44384/*
+
+
+
+  Opcional si usa 127.0.0.1 o otro puerto:
+
+  https://127.0.0.1:44384/*
+
+  http://127.0.0.1:44384/*
+
+
+
+  PRUEBA RÁPIDA (2 minutos): restricción de aplicación = "Ninguna".
+
+  Si el mapa funciona, el problema son solo los referentes HTTP.
+
+
+
+APIs a HABILITAR en el proyecto (Biblioteca, mismo proyecto que la clave):
+
+  - Maps JavaScript API          (obligatorio: carga el script y el mapa)
+
+  - Places API                   (legacy: google.maps.places.Autocomplete)
+
+
+
+  NO confundir: el widget legacy NO basta con solo "Places API (New)".
+
+  Places API (New) es para Place Autocomplete (nuevo) / migración futura.
+
+
+
+Restricción "Restringir clave" > APIs seleccionadas (~33 APIs):
+
+  La lista DEBE INCLUIR explícitamente:
+
+  - Maps JavaScript API
+
+  - Places API
+
+  Si Maps JavaScript API no está en la lista, verá el error aunque Places esté habilitado.
+
+
+
+Facturación: cuenta de facturación vinculada al proyecto (obligatorio aunque haya crédito gratuito).
+
+
+
+Tras cambiar referentes o APIs: guardar en Console, esperar 1–5 min, Ctrl+F5.
+
+
+
+Verificación rápida en el navegador (F12 > Consola):
+
+  [TandemAddressPlaces] Google Maps authentication failed ...
+
+  Muestra origin y referrerToAdd.
+
+
+
+Verificación (F12 > Red): petición a maps.googleapis.com/maps/api/js
+
+  - Si TandemAddressPlacesConfig.apiKey es null: revisar Web.config y reiniciar IIS Express.
+
+  - Si la clave llega pero el mapa falla: referente, facturación o APIs/restricción de APIs.
+
+
+
+Credenciales: https://console.cloud.google.com/apis/credentials
+
+

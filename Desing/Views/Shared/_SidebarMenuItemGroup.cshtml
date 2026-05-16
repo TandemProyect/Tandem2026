@@ -1,0 +1,78 @@
+@*
+    Grupo de menu lateral con submenu expandible.
+
+    IMPORTANTE: NO se usa la clase "menu-toggle" del tema Materio porque su
+    menu.js engancha esa clase y lanza el error
+        "Toggable `.menu-item` element not found"
+    cuando el sub <ul> no esta exactamente como el espera. Usamos clases
+    propias "js-menu-group" / "js-menu-group-toggle" que Materio NUNCA
+    intentara manejar. El toggle lo controla 100% Scripts/Intranet/sidebar-menu.js.
+
+    Estructura HTML emitida:
+        <li class="menu-item js-menu-group [open]" data-group-id="...">
+            <a href="javascript:void(0);" class="menu-link js-menu-group-toggle"
+               data-group-target="..." role="button" aria-expanded="...">
+                <i class="menu-icon ..."></i>
+                <div>Titulo</div>
+                <i class="menu-icon-arrow ri ri-arrow-right-s-line ms-auto"></i>
+            </a>
+            <ul class="menu-sub js-menu-group-sub" id="...-sub">
+                <li class="menu-item [active]">
+                    <a href="..." class="menu-link"><div>Hijo</div></a>
+                </li>
+            </ul>
+        </li>
+
+    Modelo: Desing.Models.SidebarMenuGroupModel
+*@
+@model Desing.Models.SidebarMenuGroupModel
+@{
+    if (Model == null)
+    {
+        return;
+    }
+
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    string openClass = Model.IsOpen ? " open" : "";
+    string subMenuId = Model.GroupId + "-sub";
+    string ariaExpanded = Model.IsOpen ? "true" : "false";
+}
+
+<li class="menu-item js-menu-group@(openClass)" id="@Model.GroupId" data-group-id="@Model.GroupId">
+    <a href="javascript:void(0);"
+       class="menu-link js-menu-group-toggle"
+       data-group-target="@Model.GroupId"
+       role="button"
+       aria-expanded="@ariaExpanded"
+       aria-controls="@subMenuId">
+        @if (!string.IsNullOrWhiteSpace(Model.IconClass))
+        {
+            <i class="menu-icon icon-base @Model.IconClass"></i>
+        }
+        <div>@Model.Title</div>
+        <i class="menu-icon-arrow ri ri-arrow-right-s-line ms-auto"></i>
+    </a>
+    <ul class="menu-sub js-menu-group-sub" id="@subMenuId">
+        @foreach (var child in Model.Children ?? new Desing.Models.SidebarMenuChildItem[0])
+        {
+            var controllers = (child.ActiveControllers ?? child.Controller ?? "")
+                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            bool isActive = false;
+            foreach (var ctrl in controllers)
+            {
+                if (currentController.Equals(ctrl.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    isActive = true;
+                    break;
+                }
+            }
+            var childClass = isActive ? " active" : "";
+            var action = string.IsNullOrWhiteSpace(child.Action) ? "Index" : child.Action;
+            <li class="menu-item@(childClass)">
+                <a href="@Url.Action(action, child.Controller)" class="menu-link">
+                    <div>@child.Text</div>
+                </a>
+            </li>
+        }
+    </ul>
+</li>

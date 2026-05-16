@@ -1,10 +1,25 @@
 @model DAL.Tsql_Master_Articles
 @using System.Collections.Generic
+@using System.Text.RegularExpressions
 @using Desing.Models
 @{
     ViewBag.Title = "Editar artículo";
     var stlSection = ViewData["MasterArticleStlPreview"] as MasterArticleStlPreviewSectionModel
         ?? new MasterArticleStlPreviewSectionModel { AttachmentSlots = new List<MasterArticleAttachmentSlot>() };
+
+    /** Valor válido #rrggbb para atributo value del color (misma idea que Plantilla/Edit). */
+    Func<string, string> maHexForPicker = raw =>
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return "#000000";
+        var v = raw.Trim().Replace(" ", "");
+        if (v.Length == 0) return "#000000";
+        if (v[0] != '#') v = "#" + v;
+        if (v.Length == 9 && v[0] == '#') v = v.Substring(0, 7);
+        if (Regex.IsMatch(v, "^#[0-9a-fA-F]{6}$")) return v.ToLowerInvariant();
+        if (Regex.IsMatch(v, "^#[0-9a-fA-F]{3}$"))
+            return ("#" + v[1] + v[1] + v[2] + v[2] + v[3] + v[3]).ToLowerInvariant();
+        return "#000000";
+    };
 }
 
 @section Styles
@@ -101,21 +116,31 @@
             </div>
             @Html.Partial("_MasterArticleBlockStlFilesForm", Model)
 
-            <div class="col-md-6">
-                <label class="form-label">Color ancho</label>
-                @Html.TextBoxFor(m => m.TextColor1, new { @class = "form-control", maxlength = "200" })
-            </div>
-            <div class="col-md-6">
-                <label class="form-label">Color alto</label>
-                @Html.TextBoxFor(m => m.TextColor2, new { @class = "form-control", maxlength = "10" })
-                <small class="text-muted">Máximo 10 caracteres.</small>
+            <div class="col-12">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-6">
+                        <label class="form-label">Color 1</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="color" id="ma_picker_TextColor1" value="@maHexForPicker(Model.TextColor1)" class="form-control form-control-color p-1" style="width:3.25rem;height:2.5rem" title="Color 1" />
+                            @Html.TextBox("TextColor1", maHexForPicker(Model.TextColor1), new { @class = "form-control", id = "ma_TextColor1", maxlength = "200", autocomplete = "off", spellcheck = "false" })
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Color 2</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="color" id="ma_picker_TextColor2" value="@maHexForPicker(Model.TextColor2)" class="form-control form-control-color p-1" style="width:3.25rem;height:2.5rem" title="Color 2" />
+                            @Html.TextBox("TextColor2", maHexForPicker(Model.TextColor2), new { @class = "form-control", id = "ma_TextColor2", maxlength = "10", autocomplete = "off", spellcheck = "false" })
+                        </div>
+                        <small class="text-muted d-block mt-1">Máx. 10 caracteres al guardar.</small>
+                    </div>
+                </div>
             </div>
 
             @Html.Partial("_MasterArticleBlockFilesForm", Model)
 
             @Html.Partial("_MasterArticleStlPreviewSection", stlSection)
 
-            <div class="col-12 d-flex gap-2 mt-3">
+            <div class="col-12 d-flex justify-content-end gap-2 tandem-form-actions mt-3">
                 <a href="@Url.Action("Index", "MasterArticles")" class="btn btn-outline-secondary">Cancelar</a>
                 <button type="submit" class="btn btn-primary">
                     <i class="icon-base ri ri-save-line me-1"></i> Guardar cambios
@@ -127,6 +152,76 @@
 
 @section scripts
 {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script type="text/javascript">
+        /// <reference path="../../Scripts/types/jquery-global.d.ts" />
+        /* Igual que Plantilla/Edit (syncHexPair + input/change) + ruta nativa por si el color no dispara bien con jQuery en Chromium. */
+        (function () {
+            /**
+             * @@param {string} v
+             * @@returns {string}
+             */
+            function expand3(v) {
+                if (/^#[0-9a-fA-F]{3}$/.test(v)) {
+                    return ('#' + v[1] + v[1] + v[2] + v[2] + v[3] + v[3]).toLowerCase();
+                }
+                return v;
+            }
+            /**
+             * @@param {string} pickerId
+             * @@param {string} textId
+             */
+            function wireNative(pickerId, textId) {
+                var p = document.getElementById(pickerId);
+                var t = document.getElementById(textId);
+                if (!(p instanceof HTMLInputElement) || !(t instanceof HTMLInputElement)) return;
+                function pickerToText() {
+                    t.value = p.value;
+                }
+                function textToPicker() {
+                    var v = (t.value || '').trim();
+                    if (/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(v)) {
+                        p.value = expand3(v);
+                    }
+                }
+                p.addEventListener('input', pickerToText);
+                p.addEventListener('change', pickerToText);
+                p.addEventListener('blur', pickerToText);
+                t.addEventListener('input', textToPicker);
+                t.addEventListener('change', textToPicker);
+            }
+            wireNative('ma_picker_TextColor1', 'ma_TextColor1');
+            wireNative('ma_picker_TextColor2', 'ma_TextColor2');
+        })();
+        if (typeof window !== 'undefined' && typeof window.jQuery === 'function') {
+            /**
+             * @@param {any} jq
+             */
+            window.jQuery(function (jq) {
+                /**
+                 * @@param {string} pickerSel
+                 * @@param {string} inputSel
+                 */
+                function syncHexPair(pickerSel, inputSel) {
+                    var $p = jq(pickerSel), $i = jq(inputSel);
+                    if (!$p.length || !$i.length) return;
+                    $p.on('input change', function () {
+                        var src = /** @@type {HTMLInputElement} */ (this);
+                        $i.val(src.value);
+                    });
+                    $i.on('input change', function () {
+                        var src = /** @@type {HTMLInputElement} */ (this);
+                        var v = src.value;
+                        if (/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(v)) {
+                            $p.val(v);
+                        }
+                    });
+                }
+                syncHexPair('#ma_picker_TextColor1', '#ma_TextColor1');
+                syncHexPair('#ma_picker_TextColor2', '#ma_TextColor2');
+            });
+        }
+    </script>
     @if (stlSection.HasStlPreview)
     {
         var masterArticleImports = new System.Collections.Generic.Dictionary<string, string>

@@ -1,0 +1,37 @@
+@model Desing.Models.IntranetAuditDisplayModel
+@using System.Web
+@{
+    Func<Desing.Models.IntranetAuditUserLink, string> userCell = link =>
+    {
+        if (link == null || string.IsNullOrWhiteSpace(link.UserId))
+        {
+            return "—";
+        }
+        var text = HttpUtility.HtmlEncode(link.DisplayName ?? link.UserId);
+        if (link.EmployeeId.HasValue)
+        {
+            var href = Url.Action("Edit_Employee", "Employee", new { Id = link.EmployeeId.Value });
+            return "<a href=\"" + href + "\" title=\"Seguridad Windows / usuario\">" + text + "</a>";
+        }
+        return text;
+    };
+}
+<div class="card mt-4">
+    <div class="card-header"><strong>Seguridad y auditoría</strong></div>
+    <div class="card-body">
+        <dl class="row mb-0 small">
+            <dt class="col-sm-4">Creado por</dt>
+            <dd class="col-sm-8">@Html.Raw(userCell(Model.LinkMadeBy))</dd>
+            <dt class="col-sm-4">Fecha alta</dt>
+            <dd class="col-sm-8">@Model.AddDateMade.ToString("g")</dd>
+            <dt class="col-sm-4">Última modificación por</dt>
+            <dd class="col-sm-8">@Html.Raw(userCell(Model.LinModifiedBy))</dd>
+            <dt class="col-sm-4">Último cambio (usuario)</dt>
+            <dd class="col-sm-8">@Html.Raw(userCell(Model.AddChangeBy))</dd>
+            <dt class="col-sm-4">Fecha último cambio</dt>
+            <dd class="col-sm-8">@Model.AddLastDateChange.ToString("g")</dd>
+            <dt class="col-sm-4">N.º de cambios</dt>
+            <dd class="col-sm-8">@Model.Ntimeschanged</dd>
+        </dl>
+    </div>
+</div>

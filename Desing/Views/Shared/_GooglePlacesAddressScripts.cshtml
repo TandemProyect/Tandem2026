@@ -1,0 +1,27 @@
+@using System.Configuration
+
+@{
+    var mapsKey = ConfigurationManager.AppSettings["GoogleMaps:ApiKey"] ?? "";
+    var language = ConfigurationManager.AppSettings["GoogleMaps:Language"] ?? "es";
+    var region = ConfigurationManager.AppSettings["GoogleMaps:Region"] ?? "ES";
+    var pageScript = ViewData["GooglePlacesPageScript"] as string;
+    var hasKey = !string.IsNullOrWhiteSpace(mapsKey);
+}
+
+<div id="tandemAddressApiWarning" class="alert alert-warning tandem-address-api-warning d-none" role="alert">
+    <span class="js-tandem-maps-warning-text">No se pudo cargar Google Maps. Compruebe la clave en <code>GoogleMaps:ApiKey</code> (Web.config) y la configuración en Google Cloud Console.</span>
+</div>
+
+<link rel="stylesheet" href="@Url.Content("~/Content/Intranet/tandem-address-places.css")" />
+<script>
+window.TandemAddressPlacesConfig = {
+    apiKey: @Html.Raw(hasKey ? "\"" + mapsKey.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"" : "null"),
+    language: @Html.Raw("\"" + language.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\""),
+    region: @Html.Raw("\"" + region.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"")
+};
+</script>
+<script src="@Url.Content("~/Scripts/Intranet/tandem-address-places.js")"></script>
+@if (!string.IsNullOrEmpty(pageScript))
+{
+    <script src="@Url.Content(pageScript)"></script>
+}

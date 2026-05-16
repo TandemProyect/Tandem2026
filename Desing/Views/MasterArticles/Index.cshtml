@@ -35,8 +35,6 @@
                     <th>M 3 </th>
                     <th> Bloque Dwg </th>
                     <th>.Stl  </th>
-                    <th>Color Ancho </th>
-                    <th>Color Alto  </th>
                     <th>Empresa</th>
                     <th>Sistema</th>
                     <th>Planta 3D</th>
@@ -50,7 +48,6 @@
                     <th>Elev. horiz. STL</th>
                     <th>Ins. Master</th>
                     <th class="text-end">Acciones</th>
-                    <th>ID</th>
                 </tr>
             </thead>
         </table>
@@ -129,44 +126,18 @@
         var MasterArticles = {
             dt: null,
             init: function () {
-                this.dt = $('#Master_Articles').DataTable({
-                    dom: '<"dataTables-length-position">Bfrt<"dataTables-length-position"i>p',
+                this.dt = $('#Master_Articles').DataTable(TandemDataTablesList.applyListDefaults({
+                    buttonsOptions: { icon: 'materio' },
                     scrollX: true,
                     // Scroll solo en el cuerpo de la tabla (cabecera siempre visible).
                     // Activamos modo scroll de DataTables; la altura real se fija por JS.
                     scrollY: 1,
                     scrollCollapse: true,
-                    lengthMenu: [
-                        [10, 25, 50, -1],
-                        ['10 filas', '25 filas', '50 filas', 'Todas']
-                    ],
-                    buttons: [
-                        {
-                            extend: 'collection',
-                            text: '<span class="d-inline-flex align-items-center gap-1"><i class="icon-base ri ri-menu-line" aria-hidden="true"></i><i class="icon-base ri ri-arrow-down-s-line" aria-hidden="true"></i></span>',
-                            className: 'custom-html-collection',
-                            buttons: [
-                                '<h5>Registros</h5>',
-                                'pageLength',
-                                '<h5>Exportar</h5>',
-                                'print',
-                                'copy',
-                                'pdf',
-                                'csv',
-                                'excel',
-                                '<h5 class="not-top-heading">Columnas visibles</h5>',
-                                'colvis'
-                            ]
-                        }
-                    ],
-                    //buttons: [
-                    //    'copy', 'csv', 'excel', 'pdf', 'print'
-                    //],
                     "serverSide": true,
                     "processing": true,
                     "stateSave": true,
                     /* stateDuration: hereda de Scripts/datatables-state.js (cookie, 1 año). No usar valores bajos: son segundos. */
-                    "colReorder": { "iFixedColumnsRight": 2 },
+                    "colReorder": { "iFixedColumnsRight": 1 },
                  
                     //stateSaveCallback: function(settings,data) {
                     //    //Save personalized buttons data:
@@ -183,7 +154,7 @@
                     "type": "POST"
                         },
                     "columns": [
-                        { "data": "TextCode" },
+                        { "data": "AddAtenkoCode" },
                         { "data": "TextLabel" },
                         { "data": "NumberHigh" },
                         { "data": "NumberWidth" },
@@ -193,8 +164,6 @@
                         { "data": "NumberMts3" },
                         { "data": "TextBlockNumber" },
                         { "data": "TextStlNumber" },
-                        { "data": "TextColor1" },
-                        { "data": "TextColor2" },
                         { "data": "CompanyTextLabel" },
                         { "data": "System_TextLabel" },
                         { "data": "LinkBlockDwgPlant3D", "visible": false },
@@ -220,17 +189,14 @@
                                     return '';
                                 return data || '';
                             }
-                        },
-                        { "data": "SysObjectID" }
+                        }
                     ],
             /*   "iDisplayLength": parseInt(leerCookie("_rowsPerPage")),*/
-            "aaSorting": [[1, 'desc']],
+            "aaSorting": [[1, 'asc']],
             "aoColumnDefs": [
-                { "bVisible": false, "aTargets": [25] },
-                { "bSortable": false, "aTargets": [24] },
-                { "width": "300px", "aTargets": [0] },
-                { "width": "50px", "aTargets": [25] },
-                { "width": "170px", "aTargets": [24] },
+                { "bSortable": false, "aTargets": [21] },
+                { "width": "300px", "aTargets": [1] },
+                { "width": "170px", "aTargets": [21] },
             ],
             "createdRow": function (row, data) {
                 var active = data.AddIsActive !== undefined ? data.AddIsActive : data.addIsActive;
@@ -251,7 +217,7 @@
                 applyMasterArticlesScrollBodyHeight();
                 try { new $.fn.dataTable.Api(settings).columns.adjust(); } catch (e) { /* noop */ }
             }
-        });
+        }));
             }
         };
 

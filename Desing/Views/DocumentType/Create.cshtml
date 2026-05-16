@@ -1,0 +1,22 @@
+@model Desing.Models.DocumentTypeFormViewModel
+@{
+    ViewBag.Title = "Nuevo tipo de documento";
+}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> / <a href="@Url.Action("Index")">Configuración</a> / <a href="@Url.Action("Index")">Tipos de documento</a> /</span> Crear
+    </h4>
+</div>
+<div class="card mb-4">
+    <div class="card-body">
+        @using (Html.BeginForm("Create", "DocumentType", FormMethod.Post, new { @class = "row g-3" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.Partial("_DocumentTypeFormFields", Model)
+            <div class="col-12 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
+                <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,143 @@
+@model Desing.Models.DocumentTypeFormViewModel
+@{
+    var seleccionadas = Model.IdExtensionesSeleccionadas != null
+        ? new HashSet<long>(Model.IdExtensionesSeleccionadas)
+        : new HashSet<long>();
+    var totalDisponibles = Model.ExtensionesDisponibles != null ? Model.ExtensionesDisponibles.Count : 0;
+}
+<div class="col-md-8">
+    <label class="form-label">Nombre *</label>
+    @Html.TextBoxFor(m => m.DocumentType.TextLabel, new { @class = "form-control", maxlength = "500" })
+    @Html.ValidationMessageFor(m => m.DocumentType.TextLabel, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-4">
+    <label class="form-label">Código</label>
+    @Html.TextBoxFor(m => m.DocumentType.TextCode, new { @class = "form-control", maxlength = "50" })
+    @Html.ValidationMessageFor(m => m.DocumentType.TextCode, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-12">
+    <label class="form-label">Descripción</label>
+    @Html.TextAreaFor(m => m.DocumentType.TextDescription, new { @class = "form-control", maxlength = "500", rows = 3 })
+</div>
+<div class="col-md-4">
+    <label class="form-label">Activo</label>
+    <div class="form-check mt-2">
+        @Html.CheckBoxFor(m => m.DocumentType.Is_Active, new { @class = "form-check-input" })
+        <label class="form-check-label" for="DocumentType_Is_Active">Tipo activo</label>
+    </div>
+</div>
+<div class="col-md-12">
+    <label class="form-label d-flex align-items-center justify-content-between">
+        <span>Extensiones permitidas</span>
+        <span class="badge bg-label-secondary ms-2" id="docTypeExtCount">@seleccionadas.Count / @totalDisponibles</span>
+    </label>
+    @if (totalDisponibles == 0)
+    {
+        <div class="alert alert-warning mb-0">
+            No hay extensiones de fichero registradas todavía. Crea al menos una en el catálogo de extensiones para poder asociarlas.
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="mb-3">
+                    <input type="text"
+                           class="form-control"
+                           id="docTypeExtFilter"
+                           placeholder="Buscar extensión por nombre (.pdf, .dwg, ...)"
+                           autocomplete="off" />
+                </div>
+                <div class="row g-2" id="docTypeExtList">
+                    @foreach (var ext in Model.ExtensionesDisponibles)
+                    {
+                        var isChecked = seleccionadas.Contains(ext.IdObject);
+                        var fieldId = "extOpt_" + ext.IdObject;
+                        var label = ext.TextLabel ?? string.Empty;
+                        var search = label.Trim().ToLower();
+                        string extIcoPath = null;
+                        if (Model.ExtensionPathIcoById != null &&
+                            Model.ExtensionPathIcoById.TryGetValue(ext.IdObject, out var ep) &&
+                            !string.IsNullOrWhiteSpace(ep))
+                        {
+                            extIcoPath = ep;
+                        }
+
+                        string searchIco = "";
+                        if (!string.IsNullOrEmpty(extIcoPath))
+                        {
+                            var fileName = System.IO.Path.GetFileName(extIcoPath);
+                            if (!string.IsNullOrEmpty(fileName))
+                            {
+                                searchIco = fileName.Trim().ToLowerInvariant();
+                            }
+                        }
+
+                        var searchCombined =
+                            search + (searchIco.Length > 0 ? " " + searchIco : "");
+                        <div class="col-sm-6 col-md-4 col-lg-3 doc-type-ext-item" data-search="@searchCombined">
+                            <div class="form-check">
+                                <input class="form-check-input doc-type-ext-checkbox"
+                                       type="checkbox"
+                                       name="IdExtensionesSeleccionadas"
+                                       value="@ext.IdObject"
+                                       id="@fieldId"
+                                       @(isChecked ? "checked=\"checked\"" : "") />
+                                <label class="form-check-label" for="@fieldId">
+                                    @if (!string.IsNullOrWhiteSpace(extIcoPath))
+                                    {
+                                        var imgsrc =
+                                            Url.Content(extIcoPath.StartsWith("~") ? extIcoPath : "~" + extIcoPath);
+                                        <span class="me-1"><img src="@imgsrc" alt=""
+                                                             style="height:18px;width:auto;vertical-align:middle;object-fit:contain" /></span>
+                                    }
+
+                                    <strong>@label</strong>
+                                </label>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<script>
+    (function () {
+        var filterInput = document.getElementById('docTypeExtFilter');
+        var listEl = document.getElementById('docTypeExtList');
+        var counterEl = document.getElementById('docTypeExtCount');
+        if (!listEl) return;
+
+        var items = Array.prototype.slice.call(listEl.querySelectorAll('.doc-type-ext-item'));
+        var checkboxes = Array.prototype.slice.call(listEl.querySelectorAll('.doc-type-ext-checkbox'));
+        var totalDisponibles = items.length;
+
+        function refreshCounter() {
+            if (!counterEl) return;
+            var selected = checkboxes.filter(function (c) { return c.checked; }).length;
+            counterEl.textContent = selected + ' / ' + totalDisponibles;
+        }
+
+        function applyFilter() {
+            if (!filterInput) return;
+            var q = (filterInput.value || '').trim().toLowerCase();
+            items.forEach(function (item) {
+                if (q.length === 0) {
+                    item.style.display = '';
+                    return;
+                }
+                var hay = item.getAttribute('data-search') || '';
+                item.style.display = hay.indexOf(q) >= 0 ? '' : 'none';
+            });
+        }
+
+        if (filterInput) {
+            filterInput.addEventListener('input', applyFilter);
+        }
+        checkboxes.forEach(function (c) {
+            c.addEventListener('change', refreshCounter);
+        });
+        refreshCounter();
+    })();
+</script>

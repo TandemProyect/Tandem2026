@@ -1,0 +1,58 @@
+@{
+    ViewBag.Title = "Clientes V2";
+}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> / Intranet /</span> Clientes V2
+    </h4>
+    <a class="btn btn-primary" href="@Url.Action("Create")">
+        <i class="icon-base ri ri-add-line me-1"></i> Nuevo cliente
+    </a>
+</div>
+@if (!string.IsNullOrEmpty(TempData["ToastMessage"] as string))
+{
+    <div class="alert alert-success">@TempData["ToastMessage"]</div>
+}
+<div class="card mb-4">
+    <div class="card-body" style="padding:5px">
+        <table id="ListClientV2" class="table table-hover" cellspacing="0" style="width: 100%">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Código</th>
+                    <th>Logo</th>
+                    <th>Estado</th>
+                    <th></th>
+                    <th>ID</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+
+@section scripts {
+    <script type="text/javascript">
+        function deleteClientV2(id) {
+            if (!confirm('¿Eliminar este cliente?')) return;
+            $.post('@Url.Action("DeleteClientV2")', { id: id }, function (r) {
+                alert(r.Message);
+                if (r.IsOk) $('#ListClientV2').DataTable().ajax.reload();
+            });
+        }
+        $(document).ready(function () {
+            $('#ListClientV2').DataTable(TandemDataTablesList.applyListDefaults({
+                serverSide: true,
+                processing: true,
+                ajax: { url: '@Url.Action("ListClientV2")', type: 'POST' },
+                columns: [
+                    { data: 'TextLabel', name: 'TextLabel' },
+                    { data: 'TextCode', name: 'TextCode' },
+                    { data: 'logoPreview', orderable: false, searchable: false },
+                    { data: 'activeBadge', name: 'Is_Active' },
+                    { data: 'buttonEdit', orderable: false, searchable: false },
+                    { data: 'IdObject', visible: false }
+                ]
+            }));
+        });
+    </script>
+}

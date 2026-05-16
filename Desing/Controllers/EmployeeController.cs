@@ -332,7 +332,7 @@ namespace Desing.Controllers
                     buttonDelete = "<a title=' Eliminar Empreado '            onclick=DeleteEmployee('" + p.SysObjectID + "')    class=\"btn btn-danger btn-xs\"  data-modalpaging><span class=\"fas fa-trash-alt\" aria-hidden=\"true\"></span></a>",
                     buttonSendMail = "<a title=' Enviar Mail '         onclick=SendmailToEmployee('" + p.SysObjectID + "') class=\"btn btn-success btn-xs\"><span class=\"fa fa-envelope-open\" aria-hidden=\"true\"></span></a>",
                 }).ToList();
-                return Json(new DataTablesResponse(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
+                return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {

@@ -23,8 +23,6 @@
             <div class="card-header"><strong>Identificación y sistema</strong></div>
             <div class="card-body">
                 <dl class="row mb-0 small">
-                    <dt class="col-sm-5">Id interno</dt><dd class="col-sm-7">@a.IdObject</dd>
-                    <dt class="col-sm-5">Código</dt><dd class="col-sm-7">@a.TextCode</dd>
                     <dt class="col-sm-5">Descripción</dt><dd class="col-sm-7">@a.TextLabel</dd>
                     <dt class="col-sm-5">Código Atenko</dt><dd class="col-sm-7">@(a.AddAtenkoCode ?? "—")</dd>
                     <dt class="col-sm-5">Empresa</dt><dd class="col-sm-7">@Model.CompanyTextLabel</dd>
@@ -48,13 +46,11 @@
                     <dt class="col-sm-5">M³</dt><dd class="col-sm-7">@(a.NumberMts3?.ToString("G") ?? "—")</dd>
                     <dt class="col-sm-5">Bloque DWG (texto)</dt><dd class="col-sm-7">@(a.TextBlockNumber ?? "—")</dd>
                     <dt class="col-sm-5">.Stl (texto)</dt><dd class="col-sm-7">@(a.TextStlNumber ?? "—")</dd>
-                    <dt class="col-sm-5">Color ancho</dt><dd class="col-sm-7">@(a.TextColor1 ?? "—")</dd>
-                    <dt class="col-sm-5">Color alto</dt><dd class="col-sm-7">@(a.TextColor2 ?? "—")</dd>
                 </dl>
             </div>
         </div>
     </div>
-    @Html.Partial("_MasterArticleStlPreviewSection", new Desing.Models.MasterArticleStlPreviewSectionModel { AttachmentSlots = Model.AttachmentSlots ?? new System.Collections.Generic.List<Desing.Models.MasterArticleAttachmentSlot>() })
+    @Html.Partial("_MasterArticleStlPreviewSection", new Desing.Models.MasterArticleStlPreviewSectionModel { AttachmentSlots = Model.AttachmentSlots ?? new System.Collections.Generic.List<Desing.Models.MasterArticleAttachmentSlot>(), TextColor1Hex = Model.StlPreviewTextColor1Hex, TextColor2Hex = Model.StlPreviewTextColor2Hex })
 </div>
 
 @section scripts

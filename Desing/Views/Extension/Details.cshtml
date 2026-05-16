@@ -1,0 +1,57 @@
+@model DAL.TSql_Extension
+@{
+    ViewBag.Title = Model.TextLabel;
+    var documentTypes = ViewBag.DocumentTypesAsignados as System.Collections.Generic.List<DAL.TSql_DocumentType>;
+}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> / <a href="@Url.Action("Index")">Configuración</a> / <a href="@Url.Action("Index")">Extensiones</a> /</span> @Model.TextLabel
+    </h4>
+    <a class="btn btn-warning" href="@Url.Action("Edit", new { id = Model.IdObject })">Editar</a>
+</div>
+<div class="card">
+    <div class="card-body row g-3">
+        <div class="col-md-6"><strong>Nombre:</strong> @Model.TextLabel</div>
+        <div class="col-md-4">
+            <strong>Tamaño máximo:</strong>
+            @(ViewBag.MaxFileSizeDisplay as string)
+            <span class="text-muted">(@Model.NumberMaxFileSizeBytes bytes)</span>
+        </div>
+        <div class="col-md-2"><strong>Activo:</strong> @(Model.Is_Active ? "Sí" : "No")</div>
+        @{
+            var extIco = ViewBag.ExtensionPathIco as string;
+            if (!string.IsNullOrWhiteSpace(extIco))
+            {
+                var src = Url.Content(extIco.StartsWith("~") ? extIco : "~" + extIco);
+                <div class="col-md-12">
+                    <strong>Icono:</strong>
+                    <span class="ms-2"><img src="@src" alt="" style="max-height:48px;max-width:72px;object-fit:contain" /></span>
+                </div>
+            }
+        }
+        <div class="col-md-12">
+            <strong>Tipos de documento que la usan:</strong>
+            @if (documentTypes == null || documentTypes.Count == 0)
+            {
+                <span class="ms-2">— Sin tipos de documento asociados.</span>
+            }
+            else
+            {
+                <div class="mt-2">
+                    @foreach (var dt in documentTypes)
+                    {
+                        <a class="badge bg-label-info me-1 mb-1"
+                           title="@dt.TextLabel"
+                           href="@Url.Action("Details", "DocumentType", new { id = dt.IdObject })">
+                            @dt.TextLabel
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+@if (ViewBag.Audit != null)
+{
+    @Html.Partial("_IntranetAuditSection", (Desing.Models.IntranetAuditDisplayModel)ViewBag.Audit)
+}

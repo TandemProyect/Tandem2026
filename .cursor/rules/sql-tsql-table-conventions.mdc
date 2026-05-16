@@ -1,0 +1,265 @@
+---
+description: Convenciones obligatorias para crear tablas SQL Server (TSql_*) en este proyecto — columnas de auditoría, borrado lógico y plantilla T-SQL idempotente
+globs:
+  - "**/*.sql"
+  - "Desing/Scripts/TemporalScript/**"
+  - "DAL/**"
+alwaysApply: true
+---
+
+# Convenciones para crear tablas SQL Server (`TSql_*`)
+
+Esta regla es **obligatoria** para TODO agente (Cursor u otro) que cree o
+altere tablas en la base de datos del proyecto (`Desing` + `DAL` con EF EDMX).
+Cualquier desviación debe justificarse en un comentario al inicio del script
+SQL y avisarse al usuario antes de ejecutarse.
+
+---
+
+## 1. Nombre, esquema y ubicación
+
+- **Prefijo fijo** `TSql_` seguido del nombre de la entidad en **PascalCase**.
+  - Correcto: `TSql_Client_V2`, `TSql_Jobside`, `TSql_DocumentType`.
+  - Incorrecto: `Client`, `tsql_client`, `tClient`, `TSqlClient` (sin guion bajo).
+- Si la tabla sustituye a una previa, añadir sufijo `_V2`, `_V3`, ... (no
+  reutilizar el nombre original sin versión).
+- **Esquema**: siempre `dbo`, salvo que ya exista uno alternativo documentado.
+- **Ubicación del script**: `Desing/Scripts/TemporalScript/`.
+- **Nombre del fichero** (formato exacto):
+  - Creación: `yyyy-MM-dd_create_TSql_<Entidad>.sql`
+  - Alteración: `yyyy-MM-dd_alter_TSql_<Entidad>_<motivo>.sql`
+
+## 2. Columnas obligatorias (auditoría estándar — 9 columnas)
+
+TODA tabla nueva DEBE llevar EXACTAMENTE estas 9 columnas, con estos nombres,
+tipos y comportamiento. No se permite omitir ninguna.
+
+| # | Columna             | Tipo            | Nulabilidad                         | Default        | Notas |
+|---|---------------------|-----------------|-------------------------------------|----------------|-------|
+| 1 | `IdObject`          | `BIGINT`        | NOT NULL, IDENTITY(1,1), PRIMARY KEY| (IDENTITY)     | **Siempre se llama `IdObject`** sea cual sea la entidad. Lo asigna SQL Server. |
+| 2 | `TextLabel`         | `NVARCHAR(500)` | NOT NULL                            | —              | Etiqueta/nombre legible. Lo escribe el controlador. No es PK alterna. |
+| 3 | `Is_Delete`         | `BIT`           | NOT NULL                            | `0`            | Borrado lógico. Los registros **NUNCA** se borran físicamente. |
+| 4 | `Is_Active`         | `BIT`           | NOT NULL                            | `1`            | Activación/desactivación funcional, independiente del borrado lógico. |
+| 5 | `LinkMadeBy`        | `NVARCHAR(128)` | NOT NULL                            | —              | Usuario que **creó** el registro. Inmutable tras el INSERT. |
+| 6 | `LinModifiedBy`     | `NVARCHAR(128)` | **NULL en INSERT**, se rellena en cada UPDATE | — | Último usuario que modificó. |
+| 7 | `AddDateMade`       | `DATETIME`      | NOT NULL                            | `GETDATE()`    | Fecha de creación. Inmutable tras el INSERT. |
+| 8 | `AddLastDateChange` | `DATETIME`      | **NULL en INSERT**, se rellena en cada UPDATE | — | Fecha de última modificación. |
+| 9 | `Ntimeschanged`     | `BIGINT`        | NOT NULL                            | `0`            | Contador. Se incrementa **+1** en cada UPDATE. |
+
+**Orden recomendado en la tabla**: primero `IdObject`, después las columnas de
+negocio (incluida `TextLabel`), y al final el bloque de auditoría
+(`Is_Delete`, `Is_Active`, `LinkMadeBy`, `LinModifiedBy`, `AddDateMade`,
+`AddLastDateChange`, `Ntimeschanged`).
+
+> ⚠️ **`AddChangeBy` ya NO se usa** en tablas nuevas. Tablas legadas pueden
+> tenerla; en tablas nuevas queda sustituida por `LinModifiedBy`.
+
+## 3. Reglas operativas (controladores C#)
+
+- `IdObject`: lo asigna SQL Server (`IDENTITY`). El controlador NUNCA lo fija.
+- `TextLabel`: lo asigna el controlador en INSERT y UPDATE.
+- `Is_Delete`: borrado lógico. Las consultas por defecto filtran
+  `WHERE Is_Delete = 0`. **Nunca** ejecutar `DELETE` sobre estas tablas.
+- `Is_Active`: filtro de negocio adicional. Los registros visibles para el
+  usuario final suelen consultarse con `Is_Active = 1 AND Is_Delete = 0`.
+- `LinkMadeBy` + `AddDateMade`: se rellenan **SOLO en el INSERT**
+  (`User.Identity.GetUserId()` o equivalente). **Inmutables** después.
+- `LinModifiedBy` + `AddLastDateChange`: se rellenan **SOLO en el UPDATE**
+  (quedan `NULL` mientras la fila no se haya modificado nunca).
+- `Ntimeschanged`: se incrementa `+1` en cada UPDATE
+  (`Ntimeschanged = Ntimeschanged + 1`).
+
+Pseudocódigo de controlador C# (EF):
+
+```csharp
+// INSERT
+entity.TextLabel        = model.TextLabel;
+entity.Is_Delete        = false;
+entity.Is_Active        = true;
+entity.LinkMadeBy       = User.Identity.GetUserId();
+entity.LinModifiedBy    = null;
+entity.AddDateMade      = DateTime.Now;
+entity.AddLastDateChange= null;
+entity.Ntimeschanged    = 0;
+
+// UPDATE
+entity.TextLabel         = model.TextLabel;
+entity.LinModifiedBy     = User.Identity.GetUserId();
+entity.AddLastDateChange = DateTime.Now;
+entity.Ntimeschanged    += 1;
+
+// DELETE (lógico)
+entity.Is_Delete         = true;
+entity.LinModifiedBy     = User.Identity.GetUserId();
+entity.AddLastDateChange = DateTime.Now;
+entity.Ntimeschanged    += 1;
+```
+
+## 4. Plantilla T-SQL de creación (copiar y adaptar)
+
+Script idempotente: se puede ejecutar N veces y solo crea lo que falta.
+
+```sql
+/* =============================================================================
+   dbo.TSql_<Entidad> — <descripción breve>
+   ============================================================================= */
+SET NOCOUNT ON;
+SET XACT_ABORT ON;
+GO
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.tables t
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE s.name = N'dbo' AND t.name = N'TSql_<Entidad>'
+)
+BEGIN
+    CREATE TABLE [dbo].[TSql_<Entidad>]
+    (
+        /* ----- Clave primaria ----- */
+        [IdObject]            BIGINT          IDENTITY(1,1) NOT NULL
+            CONSTRAINT PK_TSql_<Entidad> PRIMARY KEY CLUSTERED,
+
+        /* ----- Negocio ----- */
+        [TextLabel]           NVARCHAR(500)   NOT NULL,
+        -- ... resto de columnas de negocio aquí (TextCode, NumberX, IdFk, ...) ...
+
+        /* ----- Auditoría obligatoria ----- */
+        [Is_Delete]           BIT             NOT NULL
+            CONSTRAINT DF_TSql_<Entidad>_Is_Delete         DEFAULT (0),
+        [Is_Active]           BIT             NOT NULL
+            CONSTRAINT DF_TSql_<Entidad>_Is_Active         DEFAULT (1),
+        [LinkMadeBy]          NVARCHAR(128)   NOT NULL,
+        [LinModifiedBy]       NVARCHAR(128)   NULL,
+        [AddDateMade]         DATETIME        NOT NULL
+            CONSTRAINT DF_TSql_<Entidad>_AddDateMade       DEFAULT (GETDATE()),
+        [AddLastDateChange]   DATETIME        NULL,
+        [Ntimeschanged]       BIGINT          NOT NULL
+            CONSTRAINT DF_TSql_<Entidad>_Ntimeschanged     DEFAULT (0)
+    );
+END
+GO
+
+/* Índice estándar para listados activos */
+IF NOT EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = N'IX_TSql_<Entidad>_TextLabel_Active'
+      AND object_id = OBJECT_ID(N'dbo.TSql_<Entidad>')
+)
+    CREATE NONCLUSTERED INDEX IX_TSql_<Entidad>_TextLabel_Active
+        ON [dbo].[TSql_<Entidad>] ([TextLabel])
+        INCLUDE ([Is_Active])
+        WHERE [Is_Delete] = 0;
+GO
+
+PRINT N'OK — dbo.TSql_<Entidad> creada (o ya existía).';
+GO
+```
+
+## 5. Ejemplo completo real (`TSql_DocumentType` simplificado)
+
+```sql
+/* =============================================================================
+   dbo.TSql_DocumentType — Tipos de documento (intranet / Configuración)
+   ============================================================================= */
+SET NOCOUNT ON;
+SET XACT_ABORT ON;
+GO
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.tables t
+    JOIN sys.schemas s ON s.schema_id = t.schema_id
+    WHERE s.name = N'dbo' AND t.name = N'TSql_DocumentType'
+)
+BEGIN
+    CREATE TABLE [dbo].[TSql_DocumentType]
+    (
+        [IdObject]               BIGINT          IDENTITY(1,1) NOT NULL
+            CONSTRAINT PK_TSql_DocumentType PRIMARY KEY CLUSTERED,
+
+        /* ----- Negocio ----- */
+        [TextLabel]              NVARCHAR(500)   NOT NULL,
+        [TextCode]               NVARCHAR(50)    NULL,
+        [TextDescription]        NVARCHAR(500)   NULL,
+
+        /* ----- Auditoría obligatoria ----- */
+        [Is_Delete]              BIT             NOT NULL
+            CONSTRAINT DF_TSql_DocumentType_Is_Delete         DEFAULT (0),
+        [Is_Active]              BIT             NOT NULL
+            CONSTRAINT DF_TSql_DocumentType_Is_Active         DEFAULT (1),
+        [LinkMadeBy]             NVARCHAR(128)   NOT NULL,
+        [LinModifiedBy]          NVARCHAR(128)   NULL,
+        [AddDateMade]            DATETIME        NOT NULL
+            CONSTRAINT DF_TSql_DocumentType_AddDateMade       DEFAULT (GETDATE()),
+        [AddLastDateChange]      DATETIME        NULL,
+        [Ntimeschanged]          BIGINT          NOT NULL
+            CONSTRAINT DF_TSql_DocumentType_Ntimeschanged     DEFAULT (0)
+    );
+END
+GO
+
+PRINT N'OK — dbo.TSql_DocumentType creada (o ya existía).';
+GO
+```
+
+## 6. Nomenclatura de columnas de negocio
+
+- `PascalCase`, sin acentos ni `ñ`, sin espacios.
+- Prefijo por tipo:
+  - Texto → `Text*` (`TextCode`, `TextDescription`).
+  - Numérico → `Number*` (p. ej. `NumberMaxFileSizeBytes` en catálogos como `TSql_Extension`).
+  - Fecha → `Date*` o `Add*Date*` (auditoría).
+  - Bandera bit → `Is_*` (con guion bajo, igual que las fijas).
+  - FK → `Link<EntidadDestino>` o `Id<EntidadDestino>` (p.ej. `LinkClient_V2`,
+    `IdDocumentType`). Mantener coherencia con las FKs ya existentes en
+    `DAL/Model.edmx`.
+- IDs de usuario AspNet → `NVARCHAR(128)`.
+- Strings cortos → `NVARCHAR(50|100|255)`; descripciones → `NVARCHAR(500|MAX)`.
+
+## 7. Integración con EF EDMX (`DAL/Model.edmx`)
+
+Tras ejecutar el script SQL:
+
+1. Abrir `DAL/Model.edmx` en Visual Studio.
+2. **Update Model from Database** → seleccionar la nueva tabla.
+3. Verificar que se ha generado el `DbSet<TSql_<Entidad>>` en
+   `DAL/Model.Context.cs` (sección con los demás `TSql_*`).
+4. Si se añade un fichero `DAL/TSql_<Entidad>.cs` con `partial class` para
+   anotaciones / lógica adicional, registrarlo en `DAL/DAL.csproj`.
+
+No editar `DAL/Model.edmx` ni `DAL/Model.Context.cs` a mano; deben venir del
+generador.
+
+## 8. Checklist obligatorio antes de dar por terminada una tabla nueva
+
+- [ ] Nombre `TSql_<Entidad>` en PascalCase, esquema `dbo`.
+- [ ] Las **9 columnas de auditoría** están presentes, con el tipo, nulabilidad
+      y default exactos de la tabla del apartado 2.
+- [ ] `IdObject` es `BIGINT IDENTITY(1,1) PRIMARY KEY CLUSTERED` y NO se ha
+      renombrado.
+- [ ] El script vive en `Desing/Scripts/TemporalScript/` con el nombre
+      `yyyy-MM-dd_create_TSql_<Entidad>.sql`.
+- [ ] El script es idempotente (`IF NOT EXISTS` antes de cada `CREATE`/`ADD`).
+- [ ] Termina con `PRINT N'OK — dbo.TSql_<Entidad> creada (o ya existía).'`.
+- [ ] Tras ejecutarlo, se actualiza `DAL/Model.edmx` y se confirma el
+      `DbSet<TSql_<Entidad>>` en `DAL/Model.Context.cs`.
+- [ ] El controlador respeta las reglas operativas del apartado 3
+      (inmutabilidad de `LinkMadeBy`/`AddDateMade`, `Ntimeschanged += 1`,
+      borrado lógico).
+
+## 9. Anti-patrones (NUNCA hacer)
+
+- ❌ Renombrar `IdObject` por tabla (`IdCliente`, `IdDoc`, `Id`, ...).
+- ❌ Exponer `IdObject` directamente en la UI (es interno; usar `TextLabel`).
+- ❌ Borrar filas con `DELETE` físico. Usar SIEMPRE `UPDATE ... SET Is_Delete = 1`.
+- ❌ Permitir NULL en `IdObject`, `TextLabel`, `Is_Delete`, `Is_Active`,
+      `LinkMadeBy`, `AddDateMade`, `Ntimeschanged`.
+- ❌ Omitir alguna de las 9 columnas de auditoría.
+- ❌ Añadir `AddChangeBy` en tablas nuevas (deprecado, sustituido por `LinModifiedBy`).
+- ❌ Olvidar actualizar `LinModifiedBy`, `AddLastDateChange` o
+      `Ntimeschanged += 1` en un UPDATE.
+- ❌ Consultas LINQ/SQL sin filtrar `Is_Delete = 0` cuando se listan registros
+      para el usuario.
+- ❌ Crear `CREATE TABLE`/`CREATE INDEX`/`ADD CONSTRAINT` sin guarda
+      `IF NOT EXISTS` (rompe la idempotencia).
+- ❌ Saltarse el prefijo `TSql_` o usar otro esquema distinto de `dbo` sin
+      justificación documentada.

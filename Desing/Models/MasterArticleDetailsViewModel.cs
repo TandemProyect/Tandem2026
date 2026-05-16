@@ -8,6 +8,10 @@ namespace Desing.Models
     public class MasterArticleStlPreviewSectionModel
     {
         public IReadOnlyList<MasterArticleAttachmentSlot> AttachmentSlots { get; set; }
+        /// <summary>Color 1 (<c>TextColor1</c>) en hex para el material del STL en el visor Three.js.</summary>
+        public string TextColor1Hex { get; set; }
+        /// <summary>Color 2 (<c>TextColor2</c>) en hex para la segunda malla (<c>{{base}}2.stl</c>) en el visor.</summary>
+        public string TextColor2Hex { get; set; }
         public bool HasStlPreview => AttachmentSlots != null && AttachmentSlots.Any(s => s.StlPreviewExists);
     }
 
@@ -17,6 +21,10 @@ namespace Desing.Models
         public string CompanyTextLabel { get; set; }
         public string SystemTextLabel { get; set; }
         public IReadOnlyList<MasterArticleAttachmentSlot> AttachmentSlots { get; set; }
+        /// <summary>Hex normalizado en servidor para <see cref="MasterArticleStlPreviewSectionModel.TextColor1Hex"/> en la vista Detalles.</summary>
+        public string StlPreviewTextColor1Hex { get; set; }
+        /// <summary>Hex normalizado para <see cref="MasterArticleStlPreviewSectionModel.TextColor2Hex"/> en Detalles (TextColor2, longitud máx. 10 al guardar).</summary>
+        public string StlPreviewTextColor2Hex { get; set; }
     }
 
     public class MasterArticleAttachmentSlot

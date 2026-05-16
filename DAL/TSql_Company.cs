@@ -40,13 +40,14 @@ namespace DAL
         public string TextTown_2 { get; set; }
         public Nullable<long> LinkCountry { get; set; }
         public Nullable<long> LinPlantilla { get; set; }
+        public string AddLetter { get; set; }
     
         public virtual TSql_Countrys TSql_Countrys { get; set; }
-        public virtual TSql_Plantilla TSql_Plantilla { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TSql_Branch> TSql_Branch { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TSql_Employee> TSql_Employee { get; set; }
+        public virtual TSql_Plantilla TSql_Plantilla { get; set; }
         public virtual AspNetUsers AspNetUsers { get; set; }
         public virtual AspNetUsers AspNetUsers1 { get; set; }
         public virtual AspNetUsers AspNetUsers2 { get; set; }

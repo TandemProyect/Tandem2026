@@ -1,0 +1,22 @@
+@model DAL.TSql_Client_V2
+@{
+    ViewBag.Title = "Nuevo cliente";
+}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> / <a href="@Url.Action("Index")">Clientes V2</a> /</span> Crear
+    </h4>
+</div>
+<div class="card mb-4">
+    <div class="card-body">
+        @using (Html.BeginForm("Create", "ClientV2", FormMethod.Post, new { @class = "row g-3", enctype = "multipart/form-data" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.Partial("_ClientV2FormFields", Model)
+            <div class="col-12 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
+                <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        }
+    </div>
+</div>

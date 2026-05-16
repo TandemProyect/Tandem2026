@@ -10,6 +10,8 @@
     var slotsGrid = Model.AttachmentSlots != null ? Model.AttachmentSlots.ToList() : new System.Collections.Generic.List<Desing.Models.MasterArticleAttachmentSlot>();
     var rowLabels = new[] { "3D", "mock-up", "STL" };
     var hasStlPreview = Model.HasStlPreview;
+    var textColor1Hex = string.IsNullOrWhiteSpace(Model.TextColor1Hex) ? "#000000" : Model.TextColor1Hex.Trim();
+    var textColor2Hex = string.IsNullOrWhiteSpace(Model.TextColor2Hex) ? "#000000" : Model.TextColor2Hex.Trim();
 }
 <div class="col-12">
     <div class="card">
@@ -78,7 +80,7 @@
                     </div>
                 </div>
                 <div class="col-lg-5">
-                    <div id="ma-stl-viewer-shell" class="border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" style="min-height: 420px;">
+                    <div id="ma-stl-viewer-shell" class="border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" style="min-height: 420px;" data-ma-text-color1="@System.Web.HttpUtility.HtmlAttributeEncode(textColor1Hex)" data-ma-text-color2="@System.Web.HttpUtility.HtmlAttributeEncode(textColor2Hex)">
                         <div class="@(hasStlPreview ? "d-flex" : "d-none") align-items-center justify-content-between flex-wrap gap-2 px-2 py-2 border-bottom bg-light" id="master-article-stl-viewer-toolbar">
                             <div class="d-flex align-items-center flex-wrap gap-2">
                                 <span class="small text-muted mb-0">Cámara</span>

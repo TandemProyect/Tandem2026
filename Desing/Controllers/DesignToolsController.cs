@@ -385,7 +385,7 @@ namespace Desing.Controllers
                     buttonView = "<a id=Btn_" + p.TextCode + " title='Visualizar o no el artículo' href='javascript:OpacityArtiquel(" + p.TextCode + ");'                                             class=\"btn btn-danger btn-xs\"><span class=\"fas fa-eye\" aria-hidden=\"true\"></span></a>",
                     buttonViewOpacity = "<a id=BtnV_" + p.TextCode + " title='Opacidad al 50% o no el cartículo' href='javascript:ViewArtiquel(" + p.TextCode + ");'                                  class=\"btn btn-warning btn-xs\"><span class=\"fas fa-eye\" aria-hidden=\"true\"></span></a>",
                 }).ToList();
-                return Json(new DataTablesResponse(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
+                return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
@@ -532,7 +532,7 @@ namespace Desing.Controllers
                     //buttonView = "<a id=BtnShow_" + p.AddGrup + " title='Ocular' href='javascript:ShwoGrup();' class=\"btn btn-default btn-xs\"><span class=\"fas fa-eye-slash\" aria-hidden=\"true\"></span></a>",
                     buttonView = "<a id=BtnShow_" + p.AddGrup + " title='Ocular' href='javascript:ShwoGrup(" + p.AddGrup + ");' class=\"btn btn-default btn-xs\"><span class=\"fas fa-eye-slash\" aria-hidden=\"true\"></span></a>",
                 }).ToList();
-                return Json(new DataTablesResponse(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
+                return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
@@ -682,7 +682,7 @@ namespace Desing.Controllers
                     button = "<a id=Btn3_" + p.TextCode + " title='Visualizar articulo'     href='javascript:OpacityArtiquel(" + p.TextCode + ");' class=\"btn btn-default btn-xs\"><span class=\"fas fa-eye\" aria-hidden=\"true\"></span></a>",
                     button1 = "<a id=BtnV4_" + p.TextCode + " title='Ocular'                href='javascript:ViewArtiquel(" + p.TextCode + ");'    class=\"btn btn-default btn-xs\"><span class=\"fas fa-eye-slash\" aria-hidden=\"true\"></span></a>",
                 }).ToList();
-                return Json(new DataTablesResponse(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
+                return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
@@ -1165,7 +1165,7 @@ namespace Desing.Controllers
                     buttonDelete = "<a title='  Eliminar Diseño ' onclick=deleteOB('" + p.IdObject + "')  class=\"btn btn-danger btn-xs\" data-modalpaging><span class=\"fas fa-trash-alt\" aria-hidden=\"true\"></span></a>"
                     //buttonDelete = "<a title='" + Language.Employee.DeleteEmployeeTitle + "' href='" + Url.Content("~/Employee/Delete/" + p.SysObjectID) + "' class=\"btn btn-danger btn-xs\" data-modalpaging><span class=\"glyphicon glyphicon-trash\" aria-hidden=\"true\"></span></a>"
                 }).ToList();
-                return Json(new DataTablesResponse(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
+                return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
             }
 
             catch (Exception ex)

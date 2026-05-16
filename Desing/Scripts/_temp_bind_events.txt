@@ -1,0 +1,122 @@
+key: "_bindEvents",
+    value: function _bindEvents() {
+      var _this = this;
+      // Click Event
+      this._evntElClick = function (e) {
+        // Find top parent element
+        if (e.target.closest('ul') && e.target.closest('ul').classList.contains('menu-inner')) {
+          var menuItem = Menu._findParent(e.target, 'menu-item', false);
+
+          // eslint-disable-next-line prefer-destructuring
+          if (menuItem) _this._topParent = menuItem.childNodes[0];
+        }
+        var toggleLink = e.target.classList.contains('menu-toggle') ? e.target : Menu._findParent(e.target, 'menu-toggle', false);
+        if (toggleLink) {
+          e.preventDefault();
+          if (toggleLink.getAttribute('data-hover') !== 'true') {
+            _this.toggle(toggleLink);
+          }
+        }
+      };
+      if (window.Helpers.isMobileDevice) this._el.addEventListener('click', this._evntElClick);
+      this._evntWindowResize = function () {
+        _this.update();
+        if (_this._lastWidth !== window.innerWidth) {
+          _this._lastWidth = window.innerWidth;
+          _this.update();
+        }
+        var horizontalMenuTemplate = document.querySelector("[data-template^='horizontal-menu']");
+        if (!_this._horizontal && !horizontalMenuTemplate) _this.manageScroll();
+      };
+      window.addEventListener('resize', this._evntWindowResize);
+    }
+  }, {
+    key: "_unbindEvents",
+    value: function _unbindEvents() {
+      if (this._evntElClick) {
+        this._el.removeEventListener('click', this._evntElClick);
+        this._evntElClick = null;
+      }
+      if (this._evntElMouseOver) {
+        this._el.removeEventListener('mouseover', this._evntElMouseOver);
+        this._evntElMouseOver = null;
+      }
+      if (this._evntElMouseOut) {
+        this._el.removeEventListener('mouseout', this._evntElMouseOut);
+        this._evntElMouseOut = null;
+      }
+      if (this._evntWindowResize) {
+        window.removeEventListener('resize', this._evntWindowResize);
+        this._evntWindowResize = null;
+      }
+      if (this._evntBodyClick) {
+        document.body.removeEventListener('click', this._evntBodyClick);
+        this._evntBodyClick = null;
+      }
+      if (this._evntInnerMousemove) {
+        this._inner.removeEventListener('mousemove', this._evntInnerMousemove);
+        this._evntInnerMousemove = null;
+      }
+      if (this._evntInnerMouseleave) {
+        this._inner.removeEventListener('mouseleave', this._evntInnerMouseleave);
+        this._evntInnerMouseleave = null;
+      }
+    }
+  }, {
+    key: "open",
+    value: function open(el) {
+      var _this2 = this;
+      var closeChildren = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._closeChildren;
+      var item = this._findUnopenedParent(Menu._getItem(el, true), closeChildren);
+      if (!item) return;
+      var toggleLink = Menu._getLink(item, true);
+      Menu._promisify(this._onOpen, this, item, toggleLink, Menu._findMenu(item)).then(function () {
+        if (!_this2._horizontal || !Menu._isRoot(item)) {
+          if (_this2._animate && !_this2._horizontal) {
+            window.requestAnimationFrame(function () {
+              return _this2._toggleAnimation(true, item, false);
+            });
+            if (_this2._accordion) _this2._closeOther(item, closeChildren);
+          } else if (_this2._animate) {
+            // eslint-disable-next-line no-unused-expressions
+            _this2._onOpened && _this2._onOpened(_this2, item, toggleLink, Menu._findMenu(item));
+          } else {
+            item.classList.add('open');
+            // eslint-disable-next-line no-unused-expressions
+            _this2._onOpened && _this2._onOpened(_this2, item, toggleLink, Menu._findMenu(item));
+            if (_this2._accordion) _this2._closeOther(item, closeChildren);
+          }
+        } else {
+          // eslint-disable-next-line no-unused-expressions
+          _this2._onOpened && _this2._onOpened(_this2, item, toggleLink, Menu._findMenu(item));
+        }
+      }).catch(function () {});
+    }
+  }, {
+    key: "close",
+    value: function close(el) {
+      var _this3 = this;
+      var closeChildren = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._closeChildren;
+      var _autoClose = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+      var item = Menu._getItem(el, true);
+      var toggleLink = Menu._getLink(el, true);
+      if (!item.classList.contains('open') || item.classList.contains('disabled')) return;
+      Menu._promisify(this._onClose, this, item, toggleLink, Menu._findMenu(item), _autoClose).then(function () {
+        if (!_this3._horizontal || !Menu._isRoot(item)) {
+          if (_this3._animate && !_this3._horizontal) {
+            window.requestAnimationFrame(function () {
+              return _this3._toggleAnimation(false, item, closeChildren);
+            });
+          } else {
+            item.classList.remove('open');
+            if (closeChildren) {
+              var opened = item.querySelectorAll('.menu-item.open');
+              for (var i = 0, l = opened.length; i < l; i++) opened[i].classList.remove('open');
+            }
+
+            // eslint-disable-next-line no-unused-expressions
+            _this3._onClosed && _this3._onClosed(_this3, item, toggleLink, Menu._findMenu(item));
+          }
+        } else {
+          // eslint-disable-next-line no-unused-expressions
+          _this3._onClosed && _this3._onClosed(_this3, item, toggleLink, Menu._findMen

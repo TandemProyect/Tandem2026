@@ -1,0 +1,46 @@
+---
+description: Formularios y CRUD Intranet (Materio) — leer docs antes de implementar
+globs:
+  - Desing/Controllers/*Controller.cs
+  - Desing/Views/**/*
+  - Desing/Models/*.cs
+  - Desing/Scripts/Intranet/**
+alwaysApply: false
+---
+
+# Intranet — formularios y estilo
+
+Antes de crear o modificar pantallas CRUD Intranet, **leer en este orden**:
+
+1. `Desing/Docs/Intranet/README.md`
+2. `Desing/Docs/Intranet/UI-Formularios-y-Estilo.md`
+3. Si hay dirección con mapa: `Desing/Docs/Intranet/Google-Places-Direcciones.md`
+4. Tablas DataTables / layout: `Desing/docs/agente-ui-materio-datatables.md`
+5. Visor STL 3D (solo Master Articles): `Desing/Scripts/ThreejsDesing/README.md`
+
+## Reglas obligatorias
+
+- Layout Materio; etiquetas con `form-label` (color plantilla vía `_PlantillaStyles.cshtml`).
+- Formulario: `card` > `card-body` > `form.row.g-3`; acciones `tandem-form-actions` alineadas a la **derecha** (Cancelar + Guardar).
+- **No** añadir `form-text text-muted`, `<small class="text-muted">` ni ayuda gris bajo campos.
+- Checkboxes: `form-label` + `form-check mt-2` + `form-check-input` / `form-check-label`.
+- Index DataTables: columnas de negocio + `activeBadge` + `buttonEdit` + **`IdObject` visible:false**; soft delete con `Is_Delete`.
+- Index DataTables export: `TandemDataTablesList.applyListDefaults({...})` — menú Registros / Exportar / Columnas visibles (ver `UI-Formularios-y-Estilo.md` § Listados DataTables).
+- Entidad estándar: `IdObject`, `TextLabel`, `Is_Active`, `Is_Delete`, campos auditoría (`LinkMadeBy`, `AddDateMade`, …).
+- Nuevo módulo: Controller + Views (Index/Create/Edit/Details + `_ModuloFormFields`) + entrada `_SidebarMaterio.cshtml` + `Design.csproj`.
+
+## Google Places (si aplica)
+
+- Parcial `_GooglePlacesAddressBlock` + `_GooglePlacesAddressScripts` en `@section scripts`.
+- `BitBillSameAsLoc` en `#billSameAsLocRow`, **fuera** de `#billAddressSection`.
+- Web.config: `GoogleMaps:ApiKey`, `Language`, `Region`; referentes `https://localhost:44384/*`.
+- Registrar vistas/JS/CSS en `Design.csproj`.
+
+## Checklist nuevo CRUD
+
+- [ ] Docs leídas
+- [ ] Patrón ClientV2 (simple) o Jobside (dirección)
+- [ ] Sin texto ayuda gris
+- [ ] Bind POST completo + auditoría
+- [ ] Menú sidebar + csproj
+- [ ] Index: `TandemDataTablesList.applyListDefaults` (exportación estándar)

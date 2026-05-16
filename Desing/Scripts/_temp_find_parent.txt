@@ -1,0 +1,73 @@
+key: "_findParent",
+    value: function _findParent(el, cls) {
+      var throwError = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+      if (el.tagName.toUpperCase() === 'BODY') return null;
+      el = el.parentNode;
+      while (el.tagName.toUpperCase() !== 'BODY' && !el.classList.contains(cls)) {
+        el = el.parentNode;
+      }
+      el = el.tagName.toUpperCase() !== 'BODY' ? el : null;
+      if (!el && throwError) throw new Error("Cannot find `.".concat(cls, "` parent element"));
+      return el;
+    }
+  }, {
+    key: "_findChild",
+    value: function _findChild(el, cls) {
+      var items = el.childNodes;
+      var found = [];
+      for (var i = 0, l = items.length; i < l; i++) {
+        if (items[i].classList) {
+          var passed = 0;
+          for (var j = 0; j < cls.length; j++) {
+            if (items[i].classList.contains(cls[j])) passed += 1;
+          }
+          if (cls.length === passed) found.push(items[i]);
+        }
+      }
+      return found;
+    }
+  }, {
+    key: "_findMenu",
+    value: function _findMenu(item) {
+      var curEl = item.childNodes[0];
+      var menu = null;
+      while (curEl && !menu) {
+        if (curEl.classList && curEl.classList.contains('menu-sub')) menu = curEl;
+        curEl = curEl.nextSibling;
+      }
+      if (!menu) throw new Error('Cannot find `.menu-sub` element for the current `.menu-toggle`');
+      return menu;
+    }
+
+    // Has class
+  }, {
+    key: "_hasClass",
+    value: function _hasClass(cls) {
+      var el = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : window.Helpers.ROOT_EL;
+      var result = false;
+      cls.split(' ').forEach(function (c) {
+        if (el.classList.contains(c)) result = true;
+      });
+      return result;
+    }
+  }, {
+    key: "_getItem",
+    value: function _getItem(el, toggle) {
+      var item = null;
+      var selector = toggle ? 'menu-toggle' : 'menu-link';
+      if (el.classList.contains('menu-item')) {
+        if (Menu._findChild(el, [selector]).length) item = el;
+      } else if (el.classList.contains(selector)) {
+        item = el.parentNode.classList.contains('menu-item') ? el.parentNode : null;
+      }
+      if (!item) {
+        throw new Error("".concat(toggle ? 'Toggable ' : '', "`.menu-item` element not found."));
+      }
+      return item;
+    }
+  }, {
+    key: "_getLink",
+    value: function _getLink(el, toggle) {
+      var found = [];
+      var selector = toggle ? 'menu-toggle' : 'menu-link';
+      if (el.

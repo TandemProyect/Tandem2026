@@ -45,7 +45,6 @@ namespace DAL
         public virtual DbSet<TSql_Help> TSql_Help { get; set; }
         public virtual DbSet<TSql_HelpGrup> TSql_HelpGrup { get; set; }
         public virtual DbSet<TSql_TotalListsDesing> TSql_TotalListsDesing { get; set; }
-        public virtual DbSet<TSql_ConfigDesingDefault> TSql_ConfigDesingDefault { get; set; }
         public virtual DbSet<TSql_ConfigDesing> TSql_ConfigDesing { get; set; }
         public virtual DbSet<TSql_Design> TSql_Design { get; set; }
         public virtual DbSet<TSql_RollGrupDesing> TSql_RollGrupDesing { get; set; }
@@ -56,5 +55,15 @@ namespace DAL
         public virtual DbSet<TSql_RollFunctions> TSql_RollFunctions { get; set; }
         public virtual DbSet<TSql_TelegramDesignAccess> TSql_TelegramDesignAccess { get; set; }
         public virtual DbSet<TSql_TelegramDesignInbox> TSql_TelegramDesignInbox { get; set; }
+        public virtual DbSet<TSql_Client_V2> TSql_Client_V2 { get; set; }
+        public virtual DbSet<TSql_DocumentType> TSql_DocumentType { get; set; }
+        public virtual DbSet<TSql_DocumentTypeExtension> TSql_DocumentTypeExtension { get; set; }
+        public virtual DbSet<TSql_Extension> TSql_Extension { get; set; }
+        public virtual DbSet<TSql_Jobside> TSql_Jobside { get; set; }
+        public virtual DbSet<TSql_Document> TSql_Document { get; set; }
+        public virtual DbSet<TSql_Offers> TSql_Offers { get; set; }
+        public virtual DbSet<TSql_OfferState> TSql_OfferState { get; set; }
+        public virtual DbSet<TSql_Business> TSql_Business { get; set; }
+        public virtual DbSet<TSql_ConfigDesingDefault> TSql_ConfigDesingDefault { get; set; }
     }
 }

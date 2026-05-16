@@ -80,10 +80,53 @@ function disposeObject3D(obj) {
     if (obj.parent) obj.parent.remove(obj);
 }
 
+/**
+ * Color 1 desde `data-ma-text-color1` (hex #rgb / #rrggbb); inválido → negro.
+ * @param {string|null|undefined} hexRaw
+ * @returns {THREE.Color}
+ */
+function masterArticleStlTintColorFromDataHex(hexRaw) {
+    const c = new THREE.Color();
+    const hex = (hexRaw || '').trim();
+    if (/^#[0-9a-fA-F]{3}$/.test(hex) || /^#[0-9a-fA-F]{6}$/.test(hex)) {
+        try {
+            c.setStyle(hex);
+        } catch (e) {
+            c.setStyle('#000000');
+        }
+    } else {
+        c.setStyle('#000000');
+    }
+    return c;
+}
+
+/**
+ * URL del STL secundario convención `{{stem}}2.stl` (p. ej. `27104219P.stl` → `27104219P2.stl`).
+ * Conserva sufijos tras `.stl` (p. ej. query string) si los hubiera.
+ * @param {string|null|undefined} primaryUrl
+ * @returns {string|null}
+ */
+function masterArticleStlSecondaryUrlFromPrimary(primaryUrl) {
+    const u = (primaryUrl || '').trim();
+    if (!u) return null;
+    const lower = u.toLowerCase();
+    const idx = lower.lastIndexOf('.stl');
+    if (idx < 0) return null;
+    return u.slice(0, idx) + '2' + u.slice(idx);
+}
+
 function bootMasterArticleDetailsStlViewer() {
     const canvasHost = document.getElementById('ma-stl-viewer-gl-host');
     const statusEl = document.getElementById('master-article-details-stl-viewer-status');
     if (!canvasHost) return;
+
+    const viewerShell = document.getElementById('ma-stl-viewer-shell');
+    const stlMeshTintColor = masterArticleStlTintColorFromDataHex(
+        viewerShell ? viewerShell.getAttribute('data-ma-text-color1') : null
+    );
+    const stlMeshTintColor2 = masterArticleStlTintColorFromDataHex(
+        viewerShell ? viewerShell.getAttribute('data-ma-text-color2') : null
+    );
 
     let currentRoot = null;
     let loadToken = 0;
@@ -99,9 +142,12 @@ function bootMasterArticleDetailsStlViewer() {
     const clipBounds = { min: new THREE.Vector3(), max: new THREE.Vector3() };
     const clipPlaneY = new THREE.Plane();
     const clipPlaneX = new THREE.Plane();
-    /** @type {THREE.Mesh | null} */
-    let clipStlMesh = null;
+    /** Mallas STL con recorte / sombra (primera = principal, opcional segunda = `*2.stl`). */
+    /** @type {THREE.Mesh[]} */
+    let clipStlMeshes = [];
+    /** @type {HTMLInputElement | null} */
     const clipInputY = document.getElementById('ma-stl-clip-y');
+    /** @type {HTMLInputElement | null} */
     const clipInputX = document.getElementById('ma-stl-clip-x');
     const clipControlsEl = document.getElementById('ma-stl-clip-controls');
     const clipToggleBtn = document.getElementById('ma-stl-clip-toggle');
@@ -573,10 +619,10 @@ function bootMasterArticleDetailsStlViewer() {
         shadowGroundPlane.visible = groundShadowVisible;
         mainDirLight.castShadow = groundShadowVisible;
         renderer.shadowMap.enabled = groundShadowVisible;
-        if (clipStlMesh) {
-            clipStlMesh.castShadow = groundShadowVisible;
-            clipStlMesh.receiveShadow = groundShadowVisible;
-        }
+        clipStlMeshes.forEach(function (mesh) {
+            mesh.castShadow = groundShadowVisible;
+            mesh.receiveShadow = groundShadowVisible;
+        });
         if (groundShadowToggleBtn) {
             groundShadowToggleBtn.setAttribute('aria-pressed', groundShadowVisible ? 'true' : 'false');
             groundShadowToggleBtn.classList.toggle('active', groundShadowVisible);
@@ -603,8 +649,8 @@ function bootMasterArticleDetailsStlViewer() {
     const orthoCubeWrap = document.getElementById('ma-stl-view-cube-ortho-wrap');
     if (orthoCubeWrap) {
         orthoCubeWrap.addEventListener('click', function (ev) {
-            const t = ev.target;
-            if (!t || !t.closest) return;
+            const t = ev.target instanceof Element ? ev.target : null;
+            if (!t) return;
             const corner = t.closest('[data-ortho-view]');
             if (corner) {
                 ev.preventDefault();
@@ -649,7 +695,6 @@ function bootMasterArticleDetailsStlViewer() {
         renderer.setSize(nw, nh);
     }
 
-    const viewerShell = document.getElementById('ma-stl-viewer-shell');
     const fullscreenBtn = document.getElementById('ma-stl-fullscreen-toggle');
     function getFullscreenElement() {
         return (
@@ -722,12 +767,16 @@ function bootMasterArticleDetailsStlViewer() {
 
     const modeInputs = document.querySelectorAll('#master-article-stl-camera-modes input[name="ma-stl-cam-mode"]');
     modeInputs.forEach(function (inp) {
+        if (!(inp instanceof HTMLInputElement)) return;
         inp.addEventListener('change', function () {
             if (!inp.checked) return;
             setCameraMode(inp.value);
         });
     });
 
+    /**
+     * @param {HTMLInputElement | null | undefined} inputEl
+     */
     function clipFractionFromSlider(inputEl) {
         if (!inputEl) return 0;
         const vRaw = Number.parseFloat(String(inputEl.value).trim());
@@ -736,7 +785,7 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     function updateClipPlanes() {
-        if (!clipStlMesh || !clipStlMesh.material) return;
+        if (!clipStlMeshes.length) return;
         const min = clipBounds.min;
         const max = clipBounds.max;
         const pad = Math.max(lastMaxDim * 0.02, 1e-6);
@@ -750,28 +799,34 @@ function bootMasterArticleDetailsStlViewer() {
         clipPlaneY.setComponents(0, -1, 0, cutY);
         /* (-1,0,0,cutX) descarta x > cutX → recorte desde +X (derecha) al subir fX. */
         clipPlaneX.setComponents(-1, 0, 0, cutX);
-        clipStlMesh.material.clippingPlanes = [clipPlaneY, clipPlaneX];
+        clipStlMeshes.forEach(function (m) {
+            if (m.material) {
+                m.material.clippingPlanes = [clipPlaneY, clipPlaneX];
+            }
+        });
     }
 
     if (clipInputY) clipInputY.addEventListener('input', updateClipPlanes);
     if (clipInputX) clipInputX.addEventListener('input', updateClipPlanes);
 
-    function refitCamerasToObject(group) {
-        const groundY = 0;
-        group.updateMatrixWorld(true);
-        let box = new THREE.Box3().setFromObject(group);
-        const sizePre = box.getSize(new THREE.Vector3());
-        const maxDimPre = Math.max(sizePre.x, sizePre.y, sizePre.z, 1e-6);
-        /* Rejilla en Y=0 (InfiniteGridHelper): sin esto, geometry.center() + rotación deja el AABB simétrico en Y y la mitad queda bajo el plano. */
-        const epsilon = Math.max(maxDimPre * 1e-6, 1e-9);
-        const dy = groundY + epsilon - box.min.y;
-        if (Math.abs(dy) > 1e-12) {
-            group.position.y += dy;
-            group.updateMatrixWorld(true);
-            box = new THREE.Box3().setFromObject(group);
-        }
+    /**
+     * Característica de tamaño para encuadre (cámara / frustum) sin mover geometría: arista máxima del AABB
+     * y extensión máxima desde el origen (inserción CAD en (0,0,0)) por si el modelo no está centrado en bbox.
+     */
+    function masterArticleStlFitMaxDimFromWorldBox(box) {
         const size = box.getSize(new THREE.Vector3());
-        const maxDim = Math.max(size.x, size.y, size.z, 1e-6);
+        const maxEdge = Math.max(size.x, size.y, size.z, 1e-6);
+        const spanX = Math.max(Math.abs(box.min.x), Math.abs(box.max.x));
+        const spanY = Math.max(Math.abs(box.min.y), Math.abs(box.max.y));
+        const spanZ = Math.max(Math.abs(box.min.z), Math.abs(box.max.z));
+        const spanFromOrigin = Math.max(spanX, spanY, spanZ, 1e-6);
+        return Math.max(maxEdge, spanFromOrigin);
+    }
+
+    function refitCamerasToObject(group) {
+        group.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(group);
+        const maxDim = masterArticleStlFitMaxDimFromWorldBox(box);
         lastMaxDim = maxDim;
         frustumHalfY = maxDim * 0.55;
         lastAspect = Math.max(canvasHost.clientWidth || 400, 200) / Math.max(canvasHost.clientHeight || 200, 200);
@@ -809,10 +864,59 @@ function bootMasterArticleDetailsStlViewer() {
         bindControls(activeCamera());
     }
 
+    function makeStlMeshStandardMaterial(tintColor) {
+        return new THREE.MeshStandardMaterial({
+            color: tintColor.clone(),
+            metalness: 0.14,
+            roughness: 0.42,
+            side: THREE.DoubleSide,
+            clippingPlanes: [clipPlaneY, clipPlaneX],
+            clipShadows: true
+        });
+    }
+
+    /**
+     * Opcional: `{{base}}2.stl` junto al primario. Mismo `THREE.Group` y mismas rotaciones (origen escena compartido).
+     * 404 u error de red → se ignora sin mensaje. Vértices STL tal cual archivo; mismo grupo y rotación que el primario.
+     * @param {string} primaryUrl
+     * @param {THREE.Group} group
+     * @param {number} myToken
+     * @param {*} loader
+     */
+    function tryLoadSecondaryStl(primaryUrl, group, myToken, loader) {
+        const url2 = masterArticleStlSecondaryUrlFromPrimary(primaryUrl);
+        if (!url2 || url2 === primaryUrl) return;
+        fetch(url2, { method: 'GET', credentials: 'same-origin' })
+            .then(function (res) {
+                if (!res.ok) return null;
+                return res.arrayBuffer();
+            })
+            .then(function (buffer) {
+                if (myToken !== loadToken || !buffer) return;
+                let geometry;
+                try {
+                    geometry = loader.parse(buffer);
+                } catch (_e) {
+                    return;
+                }
+                geometry.computeVertexNormals();
+                const mesh2 = new THREE.Mesh(geometry, makeStlMeshStandardMaterial(stlMeshTintColor2));
+                mesh2.castShadow = groundShadowVisible;
+                mesh2.receiveShadow = groundShadowVisible;
+                mesh2.rotation.x = -0.5 * Math.PI;
+                group.add(mesh2);
+                clipStlMeshes.push(mesh2);
+                updateClipPlanes();
+                syncGroundShadowToggleUi();
+                refitCamerasToObject(group);
+            })
+            .catch(function () {});
+    }
+
     function loadStl(url, label) {
         const myToken = ++loadToken;
         setStatus('Cargando…');
-        clipStlMesh = null;
+        clipStlMeshes = [];
         disposeObject3D(currentRoot);
         currentRoot = null;
 
@@ -822,16 +926,7 @@ function bootMasterArticleDetailsStlViewer() {
             function (geometry) {
                 if (myToken !== loadToken) return;
                 geometry.computeVertexNormals();
-                geometry.center();
-                const mat = new THREE.MeshStandardMaterial({
-                    color: 0x5a7aa5,
-                    metalness: 0.14,
-                    roughness: 0.42,
-                    side: THREE.DoubleSide,
-                    clippingPlanes: [clipPlaneY, clipPlaneX],
-                    clipShadows: true
-                });
-                const mesh = new THREE.Mesh(geometry, mat);
+                const mesh = new THREE.Mesh(geometry, makeStlMeshStandardMaterial(stlMeshTintColor));
                 mesh.castShadow = groundShadowVisible;
                 mesh.receiveShadow = groundShadowVisible;
                 /* STL/CAD suele tener la planta en XY y Z como eje del edificio; en Three (Y arriba, frente +Z)
@@ -839,13 +934,14 @@ function bootMasterArticleDetailsStlViewer() {
                 mesh.rotation.x = -0.5 * Math.PI;
                 const group = new THREE.Group();
                 group.add(mesh);
-                clipStlMesh = mesh;
+                clipStlMeshes = [mesh];
                 if (clipInputY) clipInputY.value = '1000';
                 if (clipInputX) clipInputX.value = '1000';
                 currentRoot = group;
                 scene.add(group);
                 refitCamerasToObject(group);
                 setStatus(label ? 'Viendo: ' + label : 'Modelo cargado.');
+                tryLoadSecondaryStl(url, group, myToken, loader);
             },
             undefined,
             function () {
