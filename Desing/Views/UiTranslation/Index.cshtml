@@ -1,0 +1,56 @@
+@{
+    var msg = TempData["UiTranslationMsg"] as string;
+    var msgType = TempData["UiTranslationMsgType"] as string ?? "info";
+    var alertClass = msgType == "danger" ? "danger" : msgType == "warning" ? "warning" : msgType == "success" ? "success" : "info";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@Html.Ui("UiTranslation.BreadcrumbHome", "Inicio")</a>
+            / @Html.Ui("UiTranslation.BreadcrumbConfiguration", "Configuración") /
+        </span>
+        @Html.Ui("UiTranslation.PageTitle", "Traducciones UI")
+    </h4>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(msg))
+{
+    <div class="alert alert-@alertClass">@msg</div>
+}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <h5 class="mb-3">@Html.Ui("UiTranslation.ExportHeading", "Exportar")</h5>
+                <p>@Html.Ui("UiTranslation.ExportDescription", "Descarga un .xlsx con TextResourceKey, TextModule, texto del idioma por defecto y una columna por cada idioma activo (TextCode).")</p>
+                <a class="btn btn-primary" href="@Url.Action("Export")">
+                    <i class="icon-base ri ri-file-excel-2-line me-1"></i> @Html.Ui("UiTranslation.ExportButton", "Descargar Excel")
+                </a>
+            </div>
+            <div class="col-md-6">
+                <h5 class="mb-3">@Html.Ui("UiTranslation.ImportHeading", "Importar")</h5>
+                <p>@Html.Ui("UiTranslation.ImportDescription", "Sube un .xlsx con la columna TextResourceKey, opcionalmente TextModule e Is_Active, y columnas por idioma (mismo encabezado que el TextCode en BD).")</p>
+                @using (Html.BeginForm("Import", "UiTranslation", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <input type="file" name="upload" class="form-control" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required />
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="icon-base ri ri-upload-2-line me-1"></i> @Html.Ui("UiTranslation.ImportButton", "Importar")
+                    </button>
+                }
+            </div>
+        </div>
+        @if (ViewBag.HasImportErrorReport as bool? == true)
+        {
+            <div class="mt-4">
+                <a class="btn btn-outline-danger" href="@Url.Action("DownloadLastErrorReport")">
+                    <i class="icon-base ri ri-error-warning-line me-1"></i> @Html.Ui("UiTranslation.ErrorReportButton", "Descargar informe de errores (.xlsx)")
+                </a>
+            </div>
+        }
+    </div>
+</div>

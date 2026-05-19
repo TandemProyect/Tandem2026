@@ -1,20 +1,18 @@
-﻿<link href="~/Content/DesignTools/Design-tool.css" rel="stylesheet">
-<link href="~/assets/carousel.css" rel="stylesheet" />
-<link href="~/Content/Site.css" rel="stylesheet" />
-@model DAL.TSql_Employee
+﻿@model DAL.TSql_Employee
+@using Desing.Resources
+
 @using (Html.BeginForm())
 {
     @Html.AntiForgeryToken()
     <fieldset style="margin:10px;padding:10px">
         <legend style="color:brown">
             <i class="fa fa-trash" aria-hidden="true"></i>
-            &nbsp;&nbsp;¿ Deseas eliminar el Empleado ?
+            &nbsp;&nbsp;@Employee.Modal_DeleteLegend
         </legend>
         <div class="row" style="margin:10px;padding:10px">
             <div class="form-horizontal">
                 <div class="form-group">
-
-                    <h4 style="color: darkgray"> </h4>
+                    <p class="text-muted mb-0">@Employee.Modal_DeleteConfirm</p>
                 </div>
             </div>
         </div>
@@ -24,14 +22,16 @@
         <div class="col-md-6"> &nbsp;&nbsp;&nbsp;&nbsp;</div>
         <div class="col-md-5" style="margin:10px;padding:10px">
             <input type="hidden" name="id" value='@Model.SysObjectID'>
-            <button type="button" id="btnSalirDeleteEmployee" class="btn btn-danger">Salir</button>
-            <button type="submit" id="SubmitEditBtn" class="btn btn-warning">Eliminar</button>
+            <button type="button" id="btnSalirDeleteEmployee" class="btn btn-outline-secondary">@Employee.Btn_Exit</button>
+            <button type="submit" id="SubmitEditBtn" class="btn btn-danger">@Employee.Btn_Delete</button>
         </div>
     </div>
 }
 <script type="text/javascript">
     $('#btnSalirDeleteEmployee').on('click', function () {
-        $("#DivDesignPoupEmployee").hide("slide", { direction: "right" }, 1000);
-        $("#Loading").hide();
+        if (typeof $("#DivDesignPoupEmployee").hide === "function") {
+            $("#DivDesignPoupEmployee").hide("slide", { direction: "right" }, 1000);
+            $("#Loading").hide();
+        }
     });
 </script>

@@ -1,0 +1,51 @@
+@model DAL.TSql_Countrys
+@using Desing.Helpers
+@using Desing.Resources
+<div class="col-md-6">
+    <label class="form-label" for="TextLabel">@Country.Lbl_NameRequired</label>
+    @Html.TextBoxFor(m => m.TextLabel, new
+    {
+        @class = "form-control",
+        maxlength = "500",
+        required = "required",
+        placeholder = Country.Ph_Name
+    })
+    @Html.ValidationMessageFor(m => m.TextLabel, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-3">
+    <label class="form-label" for="TextIso2">@Country.Lbl_Iso2</label>
+    @Html.TextBoxFor(m => m.TextIso2, new { @class = "form-control", maxlength = "50", placeholder = Country.Ph_Iso2 })
+    @Html.ValidationMessageFor(m => m.TextIso2, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-3">
+    <label class="form-label" for="TextIso3">@Country.Lbl_Iso3</label>
+    @Html.TextBoxFor(m => m.TextIso3, new { @class = "form-control", maxlength = "50", placeholder = Country.Ph_Iso3 })
+    @Html.ValidationMessageFor(m => m.TextIso3, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-4">
+    <label class="form-label" for="NumberIso">@Country.Lbl_NumberIso</label>
+    @Html.TextBoxFor(m => m.NumberIso, new { @class = "form-control", maxlength = "50", placeholder = Country.Ph_NumberIso })
+    @Html.ValidationMessageFor(m => m.NumberIso, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-8">
+    <label class="form-label" for="TextFlag">@Country.Lbl_FlagPath</label>
+    @Html.TextBoxFor(m => m.TextFlag, new { @class = "form-control", maxlength = "200", placeholder = Country.Ph_FlagPath })
+    @Html.ValidationMessageFor(m => m.TextFlag, "", new { @class = "text-danger" })
+    @{
+        var flagVp = LanguageUiHelper.NormalizeCountryFlagVirtualPath(Model?.TextFlag);
+        if (!string.IsNullOrEmpty(flagVp))
+        {
+            var src = Url.Content(flagVp);
+            <div class="mt-2">
+                <img src="@src" alt="" width="40" height="28" class="rounded border" style="object-fit:cover" />
+            </div>
+        }
+    }
+</div>
+<div class="col-md-12">
+    <label class="form-label">@Country.Lbl_Active</label>
+    <div class="form-check mt-2">
+        @Html.CheckBoxFor(m => m.AddIsActive, new { @class = "form-check-input" })
+        <label class="form-check-label" for="AddIsActive">@Country.Lbl_ActiveCheckbox</label>
+    </div>
+</div>

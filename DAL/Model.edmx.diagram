@@ -4,7 +4,7 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="372838cd3da94ab891750af082e86b2e" Name="Diagram1" ZoomLevel="26" >
+      <Diagram DiagramId="372838cd3da94ab891750af082e86b2e" Name="Diagram1" ZoomLevel="80" >
         <EntityTypeShape EntityType="DesingEntity.TSql_Countrys" Width="1.5" PointX="3" PointY="18.375" />
         <EntityTypeShape EntityType="DesingEntity.TSql_DesignCamera" Width="2.875" PointX="7" PointY="11.25" />
         <EntityTypeShape EntityType="DesingEntity.TSql_System" Width="1.5" PointX="10.5" PointY="11.75" />
@@ -21,8 +21,6 @@
         <EntityTypeShape EntityType="DesingEntity.TSql_Company" Width="1.5" PointX="14.625" PointY="20.625" />
         <AssociationConnector Association="DesingEntity.FK_TSql_Company_TSql_Countrys" />
         <EntityTypeShape EntityType="DesingEntity.TSql_TemporalList" Width="3.75" PointX="9.5" PointY="0.5" />
-        <EntityTypeShape EntityType="DesingEntity.TSql_Branch" Width="1.5" PointX="16.875" PointY="21.75" />
-        <AssociationConnector Association="DesingEntity.FK_TSql_Branch_TSql_Company" />
         <EntityTypeShape EntityType="DesingEntity.TSql_DefaultDesign" Width="1.5" PointX="13.875" PointY="2" />
         <AssociationConnector Association="DesingEntity.FK_TSql_DefaultDesign_TSql_TapeInialEndWallIMoreThan300" />
         <AssociationConnector Association="DesingEntity.FK_TSql_DefaultDesign_TSql_TapeInialEndWallIsLessThan300" />
@@ -120,20 +118,14 @@
         <AssociationConnector Association="DesingEntity.FK_TSql_DocumentTypeExtension_TSql_Extension" />
         <EntityTypeShape EntityType="DesingEntity.TSql_Client_V2" Width="1.5" PointX="3.375" PointY="37" />
         <EntityTypeShape EntityType="DesingEntity.TSql_DocumentType" Width="1.5" PointX="3.375" PointY="1.375" />
-        <EntityTypeShape EntityType="DesingEntity.TSql_Jobside" Width="1.5" PointX="11.625" PointY="31" />
         <AssociationConnector Association="DesingEntity.FK_TSql_Client_V2_AspNetUsers" />
         <AssociationConnector Association="DesingEntity.FK_TSql_Client_V2_AspNetUsers1" />
         <AssociationConnector Association="DesingEntity.FK_TSql_DocumentType_AspNetUsers" />
         <AssociationConnector Association="DesingEntity.FK_TSql_DocumentType_AspNetUsers1" />
-        <AssociationConnector Association="DesingEntity.FK_TSql_Jobside_AspNetUsers" />
-        <AssociationConnector Association="DesingEntity.FK_TSql_Jobside_AspNetUsers1" />
-        <AssociationConnector Association="DesingEntity.FK_TSql_Jobside_TSql_Client_V2" />
         <AssociationConnector Association="DesingEntity.FK_TSql_DocumentTypeExtension_TSql_DocumentType" />
         <EntityTypeShape EntityType="DesingEntity.TSql_Document" Width="1.5" PointX="19.875" PointY="23.75" />
-        <EntityTypeShape EntityType="DesingEntity.TSql_Offers" Width="1.5" PointX="13.875" PointY="29.75" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_Offers" Width="1.5" PointX="29.5" PointY="20" />
         <EntityTypeShape EntityType="DesingEntity.TSql_OfferState" Width="1.5" PointX="3.375" PointY="47.25" />
-        <AssociationConnector Association="DesingEntity.FK_TSql_Branch_AspNetUsers" />
-        <AssociationConnector Association="DesingEntity.FK_TSql_Branch_AspNetUsers1" />
         <AssociationConnector Association="DesingEntity.FK_TSql_Document_AspNetUsers" />
         <AssociationConnector Association="DesingEntity.FK_TSql_Document_AspNetUsers1" />
         <AssociationConnector Association="DesingEntity.FK_TSql_Offers_AspNetUsers" />
@@ -144,16 +136,29 @@
         <AssociationConnector Association="DesingEntity.FK_TSql_Offers_TSql_Client_V2" />
         <AssociationConnector Association="DesingEntity.FK_TSql_Document_TSql_DocumentType" />
         <AssociationConnector Association="DesingEntity.FK_TSql_Document_TSql_DocumentTypeExtension" />
-        <AssociationConnector Association="DesingEntity.FK_TSql_Document_TSql_Jobside" />
         <AssociationConnector Association="DesingEntity.FK_TSql_Document_TSql_Offers" />
-        <AssociationConnector Association="DesingEntity.FK_TSql_Offers_TSql_Jobside" />
         <AssociationConnector Association="DesingEntity.FK_TSql_Offers_TSql_OfferState" />
-        <EntityTypeShape EntityType="DesingEntity.TSql_Business" Width="1.5" PointX="3.375" PointY="52.25" />
-        <AssociationConnector Association="DesingEntity.FK_TSql_Business_AspNetUsers" />
-        <AssociationConnector Association="DesingEntity.FK_TSql_Business_AspNetUsers1" />
         <EntityTypeShape EntityType="DesingEntity.TSql_ConfigDesingDefault" Width="1.5" PointX="3.375" PointY="43.625" />
         <AssociationConnector Association="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers" />
         <AssociationConnector Association="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers1" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_Branch" Width="1.5" PointX="16.875" PointY="24.25" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Branch_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Branch_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Branch_TSql_Company1" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_UiTranslation" Width="1.5" PointX="3.375" PointY="56.5" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_language" Width="1.5" PointX="13.25" PointY="9.5" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Language_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Language_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_UiTranslation_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_UiTranslation_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Language_TSql_Countrys" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_Jobside" Width="1.5" PointX="22.125" PointY="22.5" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Jobside_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Jobside_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Jobside_TSql_Branch" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Jobside_TSql_Client_V2" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Document_TSql_Jobside" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_Offers_TSql_Jobside" />
         </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

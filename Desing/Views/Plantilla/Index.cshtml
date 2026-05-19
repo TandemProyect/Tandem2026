@@ -1,68 +1,138 @@
+@using Newtonsoft.Json
+@using Desing.Resources
+@using System.Globalization
 @{
-    ViewBag.Title = "Plantillas";
+    ViewBag.Title = Plantilla.Index_Breadcrumb;
+    var ci = CultureInfo.CurrentUICulture?.TwoLetterISOLanguageName ?? "es";
+    var plantillaDt = JsonConvert.SerializeObject(new
+    {
+        culture = ci,
+        rowsSuffix = Plantilla.Dt_Rows_N,
+        allRows = Plantilla.Dt_Rows_All,
+        sectionRecords = Plantilla.Dt_Section_Records,
+        sectionExport = Plantilla.Dt_Section_Export,
+        sectionCols = Plantilla.Dt_Section_ColumnsVisible,
+        confirmDeletePlantilla = Plantilla.Js_ConfirmDeletePlantilla,
+        ariaMenu = Plantilla.Dt_MenuAria
+    });
 }
+
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="py-3 mb-0">
-        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> /</span> Plantillas
+        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">@Plantilla.Common_Home</a> /</span> @Plantilla.Index_Breadcrumb
     </h4>
-    <a class="btn btn-primary" href="@Url.Action("Create", "Plantilla")">
-        <i class="icon-base ri ri-add-line me-1"></i> Crear nueva plantilla
+    <a class="btn btn-primary text-white" href="@Url.Action("Create", "Plantilla")">
+        <i class="icon-base ri ri-add-line me-1"></i> @Plantilla.Index_CreatePlantilla
     </a>
 </div>
+
+@if (!string.IsNullOrEmpty(TempData["ToastMessage"] as string))
+{
+    <div class="alert alert-success">@TempData["ToastMessage"]</div>
+}
 
 <div class="card mb-4">
     <div class="card-body" style="padding:5px">
         <table id="ListPlantilla" class="table table-hover" cellspacing="0" style="width: 100%">
             <thead>
                 <tr>
-                    <th>Nombre</th>
-                    <th>Color</th>
-                    <th>Logo</th>
-                    <th>Por defecto</th>
-                    <th>Creada</th>
-                    <th></th>
+                    <th>@Plantilla.Col_Name</th>
+                    <th>@Plantilla.Col_BrandText</th>
+                    <th>@Plantilla.Col_Color</th>
+                    <th>@Plantilla.Col_Logo</th>
+                    <th>@Plantilla.Col_Default</th>
+                    <th>@Plantilla.Col_CreatedDate</th>
+                    <th class="text-end text-nowrap" style="width:1%;"></th>
+                    <th>ID</th>
                 </tr>
             </thead>
         </table>
     </div>
 </div>
 
-@section scripts {
+@section scripts
+{
     <script type="text/javascript">
+        var plantillaDt = @Html.Raw(plantillaDt);
+        var plantillaExportOpts = TandemDataTablesList.exportOptsPlainVisible;
+
         $(document).ready(function () {
-            $('#ListPlantilla').DataTable({
-                dom: '<"dataTables-length-position">Bfrt<"dataTables-length-position"i>p',
-                lengthMenu: [[10, 25, 50, -1], ['10 filas', '25 filas', '50 filas', 'Todas']],
+            $('#ListPlantilla').DataTable(TandemDataTablesList.applyListDefaults({
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    ['10 ' + plantillaDt.rowsSuffix, '25 ' + plantillaDt.rowsSuffix, '50 ' + plantillaDt.rowsSuffix, plantillaDt.allRows]
+                ],
                 buttons: [{
                     extend: 'collection',
                     text: "<i class='fas fa-bars'></i>",
+                    attr: { 'aria-label': plantillaDt.ariaMenu },
                     className: 'custom-html-collection',
-                    buttons: ['<h5>Registros</h5>', 'pageLength', '<h5>Exportar</h5>', 'print', 'copy', 'pdf', 'csv', 'excel', '<h5 class="not-top-heading">Columnas visibles</h5>', 'colvis']
+                    buttons: [
+                        '<h5>' + plantillaDt.sectionRecords + '</h5>',
+                        'pageLength',
+                        '<h5>' + plantillaDt.sectionExport + '</h5>',
+                        'print',
+                        'copy',
+                        'pdf',
+                        { extend: 'csv', exportOptions: plantillaExportOpts },
+                        { extend: 'excel', exportOptions: plantillaExportOpts },
+                        '<h5 class="not-top-heading">' + plantillaDt.sectionCols + '</h5>',
+                        'colvis'
+                    ]
                 }],
                 serverSide: true,
                 processing: true,
-                stateSave: true,
+                colReorder: { iFixedColumnsRight: 2 },
                 ajax: {
-                    url: "@Url.Content("~/Plantilla/ListPlantilla/")",
-                    type: "POST"
+                    url: '@Url.Content("~/Plantilla/ListPlantilla/")',
+                    type: 'POST'
                 },
+                order: [[0, 'asc']],
                 columns: [
-                    { data: "AttName" },
-                    { data: "colorBadge", orderable: false },
-                    { data: "logoPreview", orderable: false },
-                    { data: "defaultBadge", orderable: false },
-                    { data: "AttCreated" },
-                    { data: "SysObjectID", orderable: false }
+                    {
+                        data: 'TextLabel',
+                        name: 'AttName',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.TextLabelPlain || '';
+                            }
+                            return data;
+                        }
+                    },
+                    { data: 'AttBrandText', name: 'AttBrandText' },
+                    { data: 'colorBadge', name: 'AttColor', orderable: false, searchable: false },
+                    { data: 'logoPreview', name: 'AttLogo', orderable: false, searchable: false },
+                    { data: 'defaultBadge', name: 'AttIsDefault', orderable: true, searchable: false },
+                    { data: 'AttCreated', name: 'AttCreated' },
+                    {
+                        data: 'rowActions',
+                        orderable: false,
+                        searchable: false,
+                        className: 'tandem-col-actions text-end align-middle text-nowrap'
+                    },
+                    { data: 'SysObjectID', visible: false }
                 ],
-                fnRowCallback: function (nRow, data) {
-                    $('td:eq(5)', nRow).html(data.buttonEdit + '&nbsp;' + data.buttonDelete);
-                    return nRow;
-                },
-                aaSorting: [[0, 'asc']]
-            });
-
-            $('#sidebar').toggleClass('active');
-            $(this).toggleClass('active');
+                drawCallback: function () {
+                    $('[data-toggle="tooltip"]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto right'
+                    });
+                    $('[title]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto'
+                    });
+                }
+            }));
         });
+
+        window.DeletePlantilla = function (id) {
+            if (!confirm(plantillaDt.confirmDeletePlantilla)) return;
+            $.post('@Url.Action("DeletePlantilla", "Plantilla")', { id: id }, function (res) {
+                if (res && res.Message) { alert(res.Message); }
+                if (res && res.IsOk) {
+                    $('#ListPlantilla').DataTable().ajax.reload(null, false);
+                }
+            });
+        };
     </script>
 }

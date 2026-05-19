@@ -1,0 +1,71 @@
+@model DAL.TSql_Countrys
+@using Desing.Helpers
+@using Desing.Resources
+@{
+    ViewBag.Title = Model.TextLabel;
+    var flagVp = LanguageUiHelper.NormalizeCountryFlagVirtualPath(Model.TextFlag);
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@Country.Common_Home</a> /
+            @Country.Common_Settings /
+            <a href="@Url.Action("Index", "Country")">@Country.Index_Breadcrumb</a> /
+        </span> @Model.TextLabel
+    </h4>
+    <a class="btn btn-warning" href="@Url.Action("Edit", "Country", new { id = Model.IdObject })">
+        <i class="icon-base ri ri-pencil-line me-1"></i> @Common.Btn_Edit
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">@Country.Details_Field_Name</dt>
+            <dd class="col-sm-9">@Model.TextLabel</dd>
+
+            <dt class="col-sm-3">@Country.Details_Field_Iso2</dt>
+            <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.TextIso2) ? Country.Details_NoValue : Model.TextIso2)</dd>
+
+            <dt class="col-sm-3">@Country.Details_Field_Iso3</dt>
+            <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.TextIso3) ? Country.Details_NoValue : Model.TextIso3)</dd>
+
+            <dt class="col-sm-3">@Country.Details_Field_NumberIso</dt>
+            <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.NumberIso) ? Country.Details_NoValue : Model.NumberIso)</dd>
+
+            <dt class="col-sm-3">@Country.Details_Field_Active</dt>
+            <dd class="col-sm-9">
+                @if (Model.AddIsActive)
+                {
+                    <span class="badge bg-label-success">@Country.State_Active</span>
+                }
+                else
+                {
+                    <span class="badge bg-label-secondary">@Country.State_Inactive</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">@Country.Details_Field_Flag</dt>
+            <dd class="col-sm-9">
+                @if (string.IsNullOrEmpty(flagVp))
+                {
+                    <span class="text-muted">@Country.Details_NoValue</span>
+                }
+                else
+                {
+                    var src = Url.Content(flagVp);
+                    <div>
+                        <img src="@src" alt="" width="48" height="32" class="rounded border mb-1" style="object-fit:cover" />
+                        <div class="small text-muted"><code>@Model.TextFlag</code></div>
+                    </div>
+                }
+            </dd>
+        </dl>
+    </div>
+</div>
+
+@if (ViewBag.Audit != null)
+{
+    @Html.Partial("_IntranetAuditSection", (Desing.Models.IntranetAuditDisplayModel)ViewBag.Audit)
+}

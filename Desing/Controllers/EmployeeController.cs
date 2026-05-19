@@ -2,15 +2,17 @@
 using DataTables.Mvc;
 using Desing.Helpers;
 using Desing.Models;
+using Desing.Resources;
 using Microsoft.AspNet.Identity;
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.SqlClient;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Net.Mail;
-using System.Data.SqlClient;
-using System.Collections.Generic;
 using System.Web;
 using System.Web.Mvc;
 using static SendMail.Models;
@@ -19,61 +21,265 @@ namespace Desing.Controllers
 {
     public class EmployeeController : BaseController
     {
-        public object EmployeeId { get; private set; }
+        /* ============================================================
+           Index + DataTables JSON (patrón Materio + applyListDefaults)
+           ============================================================ */
+
+        public ActionResult Index()
+        {
+            return View();
+        }
+
+        [OutputCache(Duration = 1)]
+        public JsonResult ListEmployee([ModelBinder(typeof(DataTablesBinder))] IDataTablesRequest requestModel)
+        {
+            try
+            {
+                IQueryable<EmployeeViewModel> query = from user in db.AspNetUsers
+                                                     join employee in db.TSql_Employee on user.Id equals employee.LinAspNetUsert
+                                                     join company in db.TSql_Company on employee.LinCompany equals company.SysObjectID
+                                                     join design in (from d in db.TSql_Design
+                                                                     group d by d.LinCreatedBy into g
+                                                                     select new { LinCreatedBy = g.Key, NDesing = g.Count() }) on user.Id equals design.LinCreatedBy into designGroup
+                                                     from totalDesign in designGroup.DefaultIfEmpty()
+                                                     where employee.AttIsDeleted == false
+                                                     select new EmployeeViewModel
+                                                     {
+                                                         SysObjectID = employee.SysObjectID,
+                                                         userId = user.Id,
+                                                         TotalDesing = totalDesign != null ? totalDesign.NDesing : 0,
+                                                         AttName = employee.AttName,
+                                                         AttSurname = employee.AttSurname,
+                                                         AttPhotoMenu = employee.AttPhotoMenu,
+                                                         AttCreated = employee.AttCreated,
+                                                         AddLeter = company.AddLeter,
+                                                         AddCompany = company.TextLabel,
+                                                         AttPassAspNetUsert = employee.AttPassAspNetUsert,
+                                                         EmailConfirmed = user.EmailConfirmed,
+                                                         UserName = user.UserName
+                                                     };
+
+                var totalCount = query.Count();
+
+                if (!string.IsNullOrEmpty(requestModel.Search.Value))
+                {
+                    var value = requestModel.Search.Value.Trim();
+                    query = query.Where(p =>
+                        (p.AttName ?? "").Contains(value) ||
+                        (p.AttSurname ?? "").Contains(value) ||
+                        (p.UserName ?? "").Contains(value) ||
+                        (p.AddCompany ?? "").Contains(value) ||
+                        (p.AddLeter ?? "").Contains(value));
+                }
+
+                var filteredCount = query.Count();
+
+                var sortedColumns = requestModel.Columns.GetSortedColumns();
+                var orderByString = string.Empty;
+                foreach (var column in sortedColumns)
+                {
+                    string orderColumn;
+                    switch (column.Data)
+                    {
+                        case "UserName": orderColumn = "UserName"; break;
+                        case "AttName": orderColumn = "AttName"; break;
+                        case "AttSurname": orderColumn = "AttSurname"; break;
+                        case "AddLeter": orderColumn = "AddLeter"; break;
+                        case "AddCompany": orderColumn = "AddCompany"; break;
+                        case "AttCreated": orderColumn = "AttCreated"; break;
+                        case "EmailConfirmed": orderColumn = "EmailConfirmed"; break;
+                        case "TotalDesing": orderColumn = "TotalDesing"; break;
+                        default: orderColumn = "AttName"; break;
+                    }
+                    orderByString += orderByString != string.Empty ? "," : "";
+                    orderByString += orderColumn + (column.SortDirection == Column.OrderDirection.Ascendant ? " asc" : " desc");
+                }
+                query = query.OrderBy(string.IsNullOrEmpty(orderByString) ? "AttName asc" : orderByString);
+                query = query.ApplyDataTablesPaging(requestModel.Start, requestModel.Length);
+
+                var avatarRoot = Url.Content("~/");
+                var avatarDefault = Url.Content("~/Files/RRHH/User/AttPhotoMenu/User.png");
+                var ttEdit = HttpUtility.HtmlAttributeEncode(Employee.List_LinkEditTooltip);
+                var ttDelete = HttpUtility.HtmlAttributeEncode(Employee.List_LinkDeleteTooltip);
+                var ttToggle = HttpUtility.HtmlAttributeEncode(Employee.List_LinkToggleTooltip);
+                var ttSendMail = HttpUtility.HtmlAttributeEncode(Employee.List_LinkSendMailTooltip);
+                var stateActive = Employee.State_AccountConfirmed;
+                var stateInactive = Employee.State_AccountUnconfirmed;
+
+                var data = query.ToList().Select(p =>
+                {
+                    var fullName = ((p.AttName ?? "") + " " + (p.AttSurname ?? "")).Trim();
+                    var fullNamePlain = fullName.Length == 0 ? (p.UserName ?? "") : fullName;
+                    var fullNameEnc = HttpUtility.HtmlEncode(fullNamePlain);
+                    var nameCell = "<a href=\"" + Url.Action("Edit_Employee", "Employee", new { Id = p.SysObjectID }) +
+                                   "\" title=\"" + HttpUtility.HtmlAttributeEncode(Employee.List_LinkEditTooltip) + "\">" +
+                                   fullNameEnc + "</a>";
+
+                    var avatarPath = (p.AttPhotoMenu ?? string.Empty).Trim();
+                    avatarPath = System.Text.RegularExpressions.Regex.Replace(avatarPath, "^~/", "");
+                    avatarPath = System.Text.RegularExpressions.Regex.Replace(avatarPath, "^(\\.\\./)+", "");
+                    var avatarUrl = string.IsNullOrEmpty(avatarPath) ? avatarDefault : avatarRoot + avatarPath;
+                    var avatarHtml = "<img style=\"height:35px;width:35px;object-fit:cover;border-radius:50%;\" src=\"" +
+                                     HttpUtility.HtmlAttributeEncode(avatarUrl) + "\" alt=\"\" " +
+                                     "onerror=\"this.onerror=null;this.src='" +
+                                     HttpUtility.HtmlAttributeEncode(avatarDefault) + "';\" />";
+
+                    var editBtn =
+                        "<a title=\"" + ttEdit + "\" href=\"" +
+                        Url.Action("Edit_Employee", "Employee", new { Id = p.SysObjectID }) +
+                        "\" class=\"btn btn-warning btn-xs\"><span class=\"fas fa-edit\" aria-hidden=\"true\"></span></a>";
+                    var toggleBtn =
+                        "<a title=\"" + ttToggle + "\" href=\"#\" onclick=\"ToggleEmployee('" + p.SysObjectID +
+                        "'); return false;\" class=\"btn btn-info btn-xs\"><span class=\"fas fa-sync\" aria-hidden=\"true\"></span></a>";
+                    var sendBtn =
+                        "<a title=\"" + ttSendMail + "\" href=\"#\" onclick=\"SendmailToEmployee('" + p.SysObjectID +
+                        "'); return false;\" class=\"btn btn-success btn-xs\"><span class=\"fa fa-envelope-open\" aria-hidden=\"true\"></span></a>";
+                    var deleteBtn = (p.TotalDesing == 0)
+                        ? "<a title=\"" + ttDelete + "\" href=\"#\" onclick=\"DeleteEmployee('" + p.SysObjectID +
+                          "'); return false;\" class=\"btn btn-danger btn-xs\"><span class=\"fas fa-trash-alt\" aria-hidden=\"true\"></span></a>"
+                        : "";
+
+                    var rowActions =
+                        "<div class=\"d-inline-flex align-items-center gap-2\" role=\"group\">" +
+                        toggleBtn + sendBtn + editBtn +
+                        (string.IsNullOrEmpty(deleteBtn) ? "" : deleteBtn) +
+                        "</div>";
+
+                    return new
+                    {
+                        SysObjectID = p.SysObjectID,
+                        Avatar = avatarHtml,
+                        UserName = p.UserName ?? "",
+                        TextLabelPlain = fullNamePlain,
+                        TextLabel = nameCell,
+                        AttName = p.AttName ?? "",
+                        AttSurname = p.AttSurname ?? "",
+                        AddLeter = p.AddLeter ?? "",
+                        AddCompany = p.AddCompany ?? "",
+                        AttPassAspNetUsert = p.AttPassAspNetUsert ?? "",
+                        AttCreated = p.AttCreated.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                        TotalDesing = p.TotalDesing,
+                        EmailConfirmed = p.EmailConfirmed,
+                        StatusText = p.EmailConfirmed ? stateActive : stateInactive,
+                        rowActions
+                    };
+                }).ToList();
+
+                return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(ex.Message);
+            }
+        }
+
+        /* ============================================================
+           Delete (logical) + Toggle account (EmailConfirmed)
+           ============================================================ */
+
+        [HttpPost]
+        public JsonResult DeleteEmployee(long id)
+        {
+            var employee = db.TSql_Employee.FirstOrDefault(x => x.SysObjectID == id);
+            if (employee == null)
+                return Json(new { IsOk = false, Message = Employee.Err_EmployeeNotFound });
+
+            var hasDesigns = db.TSql_Design.Any(d => d.LinCreatedBy == employee.LinAspNetUsert);
+            if (hasDesigns)
+                return Json(new { IsOk = false, Message = Employee.Err_CannotDeleteRelated });
+
+            var defaults = db.TSql_DefaultDesign.Where(x => x.LinkAspNetUsers == employee.LinAspNetUsert).ToList();
+            foreach (var d in defaults) db.TSql_DefaultDesign.Remove(d);
+
+            employee.AttIsDeleted = true;
+            employee.LinModifiedBy = User.Identity.GetUserId();
+            employee.AttLastModification = DateTime.UtcNow;
+            employee.SysUpdateNumber = employee.SysUpdateNumber + 1;
+            db.SaveChanges();
+
+            return Json(new { IsOk = true, Message = Employee.Msg_EmployeeDeleted });
+        }
+
+        [HttpPost]
+        public JsonResult ToggleEmployee(long id)
+        {
+            var employee = db.TSql_Employee.FirstOrDefault(x => x.SysObjectID == id);
+            if (employee == null)
+                return Json(new { IsOk = false, Message = Employee.Err_EmployeeNotFound });
+
+            var user = db.AspNetUsers.FirstOrDefault(x => x.Id == employee.LinAspNetUsert);
+            if (user == null)
+                return Json(new { IsOk = false, Message = Employee.Err_UserNotFound });
+
+            user.EmailConfirmed = !user.EmailConfirmed;
+            employee.LinModifiedBy = User.Identity.GetUserId();
+            employee.AttLastModification = DateTime.UtcNow;
+            employee.SysUpdateNumber = employee.SysUpdateNumber + 1;
+            db.SaveChanges();
+
+            return Json(new
+            {
+                IsOk = true,
+                Message = user.EmailConfirmed ? Employee.Msg_EmployeeActivated : Employee.Msg_EmployeeDeactivated
+            });
+        }
+
+        /* ============================================================
+           Send mail (legacy SMTP envelope, mail send disabled below).
+           ============================================================ */
 
         public ActionResult SendMailUser(long Id)
         {
             try
             {
-                var employeeId = db.TSql_Employee.FirstOrDefault(x => x.SysObjectID == Id);
-                if (employeeId == null)
-                {
-                    return Content("Error: Empleado no encontrado");
+                var employee = db.TSql_Employee.FirstOrDefault(x => x.SysObjectID == Id);
+                if (employee == null)
+                    return Content("Error: " + Employee.Err_EmployeeNotFound, "text/plain");
 
-                }
+                var user = db.AspNetUsers.FirstOrDefault(x => x.Id == employee.LinAspNetUsert);
+                if (user == null)
+                    return Content("Error: " + Employee.Err_UserNotFound, "text/plain");
 
-                var UserId = db.AspNetUsers.FirstOrDefault(x => x.Id == employeeId.LinAspNetUsert);
-                if (UserId == null)
+                MailModel Model = new MailModel
                 {
-                    return Content("Error: Usuario no encontrado");
-                }
-                if (employeeId == null) { return null; }
-                MailModel Model = new MailModel();
-                Model.To = UserId.Email;
-                Model.From = "admin@atenko.net";
-                Model.Subject = "Envio de contraseña";
-                //Model.Body = @"<html><body><p><strong> El usuario:  "" + model.userSystem + "" a sido creado en el sistema con la contraseña:  "" + model.AttPassAspNetUsert</strong></p><br></br><p> Time for bed </p></body></html>";
-                Model.Body = @"Envio de contraseña al usuario:  " + employeeId.AttName + " " + employeeId.AttSurname + " La contraseña requerida es:  " + employeeId.AttPassAspNetUsert;
+                    To = user.Email,
+                    From = "admin@atenko.net",
+                    Subject = "Envio de contraseña",
+                    Body = "Envio de contraseña al usuario:  " + employee.AttName + " " + employee.AttSurname +
+                           " La contraseña requerida es:  " + employee.AttPassAspNetUsert
+                };
                 SendMail(Model);
-                return Content("Success: El correo se envio correctamente.", "text/plain");
+                return Content("Success: " + Employee.Msg_MailSent, "text/plain");
             }
             catch (Exception ex)
             {
-                return RedirectToAction("Error500", ex.Message);
+                return Content("Error: " + ex.Message, "text/plain");
             }
         }
 
+        /* ============================================================
+           MySpace
+           ============================================================ */
 
-        //MySpace
         public ActionResult MySapce()
         {
             try
             {
-                string UserId = User.Identity.GetUserId();
-                AspNetUsers aspNetUser = db.AspNetUsers.Find(UserId);
-                TSql_Employee employeeId = db.TSql_Employee.FirstOrDefault(x => x.LinAspNetUsert == UserId);
-                var totalDesigns = db.TSql_Design.Where(x => x.LinCreatedBy == employeeId.LinAspNetUsert).Count();
+                string userId = User.Identity.GetUserId();
+                AspNetUsers aspNetUser = db.AspNetUsers.Find(userId);
+                TSql_Employee employee = db.TSql_Employee.FirstOrDefault(x => x.LinAspNetUsert == userId);
+                if (employee == null) return RedirectToAction("Index");
 
-                if (employeeId == null) { return null; }
+                var totalDesigns = db.TSql_Design.Count(x => x.LinCreatedBy == employee.LinAspNetUsert);
+
                 EmployeeViewMySpaceModel Model = new EmployeeViewMySpaceModel
                 {
-                    FullName = $"{employeeId.AttName} {employeeId.AttSurname}",
-                    UserName = aspNetUser.UserName,
-                    AttPhoto = employeeId.AttPhotoMenu,
-                    EmailConfirmed = aspNetUser.EmailConfirmed,
-                    AccountCreationDate = employeeId.AttCreated,
+                    FullName = $"{employee.AttName} {employee.AttSurname}",
+                    UserName = aspNetUser != null ? aspNetUser.UserName : string.Empty,
+                    AttPhoto = employee.AttPhotoMenu,
+                    EmailConfirmed = aspNetUser != null && aspNetUser.EmailConfirmed,
+                    AccountCreationDate = employee.AttCreated,
                     TotalDesigns = totalDesigns
-
                 };
                 return View("Myspace", Model);
             }
@@ -83,19 +289,26 @@ namespace Desing.Controllers
             }
         }
 
+        /* ============================================================
+           Legacy modal endpoints (Delete / Active popups). Mantenidos
+           para no romper enlaces directos; las acciones modernas
+           (DeleteEmployee / ToggleEmployee) son las recomendadas.
+           ============================================================ */
+
         public ActionResult Delete()
         {
             try
             {
-                var Id = Session["IDDesign"];
-                TSql_Employee EmployeeId = db.TSql_Employee.Find(Id);
-                return PartialView("_Delete", EmployeeId);
+                var id = Session["IDDesign"];
+                TSql_Employee employee = db.TSql_Employee.Find(id);
+                return PartialView("_Delete", employee);
             }
             catch (Exception ex)
             {
                 return RedirectToAction("Error500", ex.Message);
             }
         }
+
         public ActionResult _Delete(long Id)
         {
             try
@@ -108,30 +321,29 @@ namespace Desing.Controllers
                 return RedirectToAction("Error500", ex);
             }
         }
+
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(long id)
         {
             try
             {
+                TSql_Employee employee = db.TSql_Employee.Find(id);
+                if (employee == null)
+                    return RedirectToAction("Index");
 
-                //db.Movies.Remove(movie);
-                string UserId = User.Identity.GetUserId();
-                TSql_Employee Employee = db.TSql_Employee.Find(id);
-                var Default = db.TSql_DefaultDesign.Where(x => x.LinkAspNetUsers == Employee.LinAspNetUsert).FirstOrDefault();
-                if (Default != null)
-                {
-                    db.TSql_DefaultDesign.Remove(Default);
-                }
-                if (Employee != null)
-                {
-                    db.TSql_Employee.Remove(Employee);
-                }
+                var defaults = db.TSql_DefaultDesign.Where(x => x.LinkAspNetUsers == employee.LinAspNetUsert).ToList();
+                foreach (var d in defaults) db.TSql_DefaultDesign.Remove(d);
+
+                employee.AttIsDeleted = true;
+                employee.LinModifiedBy = User.Identity.GetUserId();
+                employee.AttLastModification = DateTime.UtcNow;
+                employee.SysUpdateNumber = employee.SysUpdateNumber + 1;
                 db.SaveChanges();
                 TempData.Clear();
                 TempData["ToastType"] = "Act";
-                TempData["ToastTitle"] = "Eliminar Usuario";
-                TempData["ToastMessage"] = "El Usuario " + Employee.AttName + " a sido eliminado correctamente así como sus setup por defecto";
+                TempData["ToastTitle"] = Employee.ToastTitle_DeleteEmployee;
+                TempData["ToastMessage"] = Employee.ToastMessage_EmployeeDeleted;
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
@@ -140,35 +352,34 @@ namespace Desing.Controllers
             }
         }
 
-        //Active
         public ActionResult Active()
         {
             try
             {
-                long Id = (long)Session["IDDesign"];
+                long id = (long)Session["IDDesign"];
+                TSql_Employee employee = db.TSql_Employee.FirstOrDefault(x => x.SysObjectID == id);
+                if (employee == null) return RedirectToAction("Index");
 
-                TSql_Employee EmployeeId = db.TSql_Employee.FirstOrDefault(x => x.SysObjectID == Id);
-                var UserId = db.AspNetUsers.Where(x => x.Id == EmployeeId.LinAspNetUsert);
-                var ActiveNoActive = "El usuario esta activado";
-                var Mesaje = "¿Quieres Desactivar el usuario " + EmployeeId.AttName + " ?";
-                var Button = "Desactivar";
-                bool ActDesc = UserId.FirstOrDefault().EmailConfirmed;
-                if (ActDesc != true)
-                {
-                    ActiveNoActive = "El usuario esta desactivado";
-                    Mesaje = "¿Quieres Activar el usuario " + EmployeeId.AttName + " ?";
-                    Button = "Activar";
-                }
-                ViewBag.ActiveNoActive = ActiveNoActive;
-                ViewBag.Mesaje = Mesaje;
-                ViewBag.Button = Button;
-                return PartialView("_Active", EmployeeId);
+                var user = db.AspNetUsers.FirstOrDefault(x => x.Id == employee.LinAspNetUsert);
+                var isActive = user != null && user.EmailConfirmed;
+                var name = (employee.AttName ?? "") + " " + (employee.AttSurname ?? "");
+                name = name.Trim();
+
+                ViewBag.ActiveNoActive = isActive
+                    ? Employee.Modal_ActiveLegendActivated
+                    : Employee.Modal_ActiveLegendDeactivated;
+                ViewBag.Mesaje = string.Format(
+                    isActive ? Employee.Modal_ActiveQuestionDeactivate : Employee.Modal_ActiveQuestionActivate,
+                    name);
+                ViewBag.Button = isActive ? Employee.Modal_BtnDeactivate : Employee.Modal_BtnActivate;
+                return PartialView("_Active", employee);
             }
             catch (Exception ex)
             {
                 return RedirectToAction("Error500", ex.Message);
             }
         }
+
         public ActionResult _Active(long Id)
         {
             try
@@ -181,29 +392,27 @@ namespace Desing.Controllers
                 return RedirectToAction("Error500", ex);
             }
         }
+
         [HttpPost, ActionName("Active")]
         [ValidateAntiForgeryToken]
         public ActionResult ActiveConfirmed(long id)
         {
             try
             {
-                TSql_Employee EmployeeId = db.TSql_Employee.FirstOrDefault(x => x.SysObjectID == id);
+                TSql_Employee employee = db.TSql_Employee.FirstOrDefault(x => x.SysObjectID == id);
+                if (employee == null) return RedirectToAction("Index");
 
-                var ActiveNoActive = true;
-                var UserId = db.AspNetUsers.Where(x => x.Id == EmployeeId.LinAspNetUsert);
-                var ActDesc = UserId.FirstOrDefault().EmailConfirmed;
+                var user = db.AspNetUsers.FirstOrDefault(x => x.Id == employee.LinAspNetUsert);
+                if (user == null) return RedirectToAction("Index");
 
-                if (ActDesc == true)
-                {
-                    ActiveNoActive = false;
-                }
-
-                UserId.FirstOrDefault().EmailConfirmed = ActiveNoActive;
+                user.EmailConfirmed = !user.EmailConfirmed;
                 db.SaveChanges();
                 TempData.Clear();
                 TempData["ToastType"] = "Act";
-                TempData["ToastTitle"] = "Ativar o descativar Usuario";
-                TempData["ToastMessage"] = "El Usuario " + EmployeeId.AttName + " a sido Modificado";
+                TempData["ToastTitle"] = Employee.ToastTitle_ToggleEmployee;
+                TempData["ToastMessage"] = user.EmailConfirmed
+                    ? Employee.ToastMessage_EmployeeActivated
+                    : Employee.ToastMessage_EmployeeDeactivated;
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
@@ -211,149 +420,24 @@ namespace Desing.Controllers
                 return Json(ex.Message);
             }
         }
-        //Index
-        public ActionResult Index()
-        {
-            TSql_Employee employee = db.TSql_Employee.Find(10007);
 
-            return View(employee);
-        }
-        [OutputCache(Duration = 1)]
-        public JsonResult ListEmployee([ModelBinder(typeof(DataTablesBinder))] IDataTablesRequest requestModel)
-        {
-            try
-            {
-                IQueryable<EmployeeViewModel> query = from user in db.AspNetUsers
-                                                      join employee in db.TSql_Employee on user.Id equals employee.LinAspNetUsert
-                                                      join company in db.TSql_Company on employee.LinCompany equals company.SysObjectID
-                                                      join design in (from d in db.TSql_Design
-                                                                      group d by d.LinCreatedBy into g
-                                                                      select new { LinCreatedBy = g.Key, NDesing = g.Count() }) on user.Id equals design.LinCreatedBy into designGroup
-                                                      from totalDesign in designGroup.DefaultIfEmpty()
-                                                      select new EmployeeViewModel
-                                                      {
-                                                          SysObjectID = employee.SysObjectID,
-                                                          userId = user.Id,
-                                                          TotalDesing = totalDesign != null ? totalDesign.NDesing : 0,
-                                                          AttName = employee.AttName,
-                                                          AttSurname = employee.AttSurname,
-                                                          AttPhotoMenu = employee.AttPhotoMenu,
-                                                          AttCreated = employee.AttCreated,
-                                                          AddLeter = company.AddLeter,
-                                                          AddCompany = company.TextLabel,
-                                                          AttPassAspNetUsert = employee.AttPassAspNetUsert,
-                                                          EmailConfirmed = user.EmailConfirmed,
-                                                          UserName = user.UserName
-                                                      };
-                var totalCount = query.Count();
+        /* ============================================================
+           Create / Edit (basado en sesión heredada del flujo de Account)
+           ============================================================ */
 
-                // Apply filters
-                if (requestModel.Search.Value != String.Empty)
-                {
-                    var value = requestModel.Search.Value.Trim();
-                    query = query.Where(p => p.AttName.Contains(value) ||
-                                             p.AttSurname.Contains(value)
-                    );
-                }
-
-                var filteredCount = query.Count();
-                // Sort
-                var sortedColumns = requestModel.Columns.GetSortedColumns();
-                var orderByString = String.Empty;
-                string orderColumn = "";
-                foreach (var column in sortedColumns)
-                {
-                    switch (column.Data)
-                    {
-
-                        case "UserName":
-                            orderColumn = "UserName";
-                            break;
-                        case "AttName":
-                            orderColumn = "AttName";
-                            break;
-                        case "AttSurname":
-                            orderColumn = "AttSurname";
-                            break;
-                        case "AddLeter":
-                            orderColumn = "AddLeter";
-                            break;
-                        case "AddCompany":
-                            orderColumn = "AddCompany";
-                            break;
-                        case "AttPassAspNetUsert":
-                            orderColumn = "AttPassAspNetUsert";
-                            break;
-                        case "AttCreated":
-                            orderColumn = "AttCreated";
-                            break;
-                        case "EmailConfirmed":
-                            orderColumn = "EmailConfirmed";
-                            break;
-                        case "TotalDesing":
-                            orderColumn = "TotalDesing";
-                            break;
-                        default:
-                            orderColumn = "AttName";
-                            break;
-                    }
-                    orderByString += orderByString != String.Empty ? "," : "";
-                    orderByString += (column.Data == "UserName" ? "UserName" : orderColumn) + (column.SortDirection == Column.OrderDirection.Ascendant ? " asc" : " desc");
-                }
-                query = query.OrderBy(orderByString == String.Empty ? "name asc" : orderByString);
-                // Paging
-                query = query.ApplyDataTablesPaging(requestModel.Start, requestModel.Length);
-
-                // Rights
-                bool allowEdit = true;
-                bool allowDelete = true;
-
-                var data = query.ToList().Select(p => new
-                {
-                    UserName = p.UserName,
-                    emptyColumn = "",
-                    Counter1 = 0,
-                    Counter2 = 0,
-                    TotalDesing = p.TotalDesing,
-                    SysObjectID = p.SysObjectID,
-                    AttName = p.AttName,
-                    AttSurname = p.AttSurname,
-                    AttPhotoMenu = p.AttPhotoMenu,
-                    AddLeter = p.AddLeter,
-                    AddCompany = p.AddCompany,
-                    AttPassAspNetUsert = p.AttPassAspNetUsert,
-                    AttCreated = p.AttCreated.ToShortDateString(),
-                    EmailConfirmed = p.EmailConfirmed,
-                    AttIsDeleted = false,
-                    allowEdit = allowEdit,
-                    allowDelete = allowDelete,
-                    buttonActive = "<a title='Activar / Descativar Empleado'  onclick=ActiveDesactive('" + p.SysObjectID + "')   class=\"btn btn-info btn-xs\"><span class=\"fas fa-sync\" aria-hidden=\"true\"></span></a>",
-                    buttonEdit = "<a title='Editar Empleado'  href='" + Url.Content("~/Employee/Edit_Employee/" + p.SysObjectID) + "' class=\"btn btn-warning btn-xs\"><span class=\"fas fa-edit\" aria-hidden=\"true\"></span></a>",
-                    buttonDelete = "<a title=' Eliminar Empreado '            onclick=DeleteEmployee('" + p.SysObjectID + "')    class=\"btn btn-danger btn-xs\"  data-modalpaging><span class=\"fas fa-trash-alt\" aria-hidden=\"true\"></span></a>",
-                    buttonSendMail = "<a title=' Enviar Mail '         onclick=SendmailToEmployee('" + p.SysObjectID + "') class=\"btn btn-success btn-xs\"><span class=\"fa fa-envelope-open\" aria-hidden=\"true\"></span></a>",
-                }).ToList();
-                return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                return Json(ex.Message);
-            }
-        }
-        //Aqui Angel
-        //onclick=SendmailToEmployee('" + p.SysObjectID + "')
-
-        //Edit
         public ActionResult Edit_Employee(long Id)
         {
             try
             {
-                TSql_Employee EmployeeId = db.TSql_Employee.FirstOrDefault(x => x.SysObjectID == Id);
-                var UserId = db.AspNetUsers.Where(x => x.Id == EmployeeId.LinAspNetUsert);
+                TSql_Employee employee = db.TSql_Employee.FirstOrDefault(x => x.SysObjectID == Id);
+                if (employee == null) return RedirectToAction("Index");
+
+                var user = db.AspNetUsers.FirstOrDefault(x => x.Id == employee.LinAspNetUsert);
                 Session["EmployeeID"] = Id;
                 Session["ItComeFrom"] = "Edit_Employee";
-                Session["userSystem"] = UserId.FirstOrDefault().Id;
-                Session["userVscad"] = UserId.FirstOrDefault().UserName;
-                Session["passVscad"] = EmployeeId.AttPassAspNetUsert;
+                Session["userSystem"] = user?.Id;
+                Session["userVscad"] = user?.UserName;
+                Session["passVscad"] = employee.AttPassAspNetUsert;
                 return RedirectToAction("Create_Employee", "Employee");
             }
             catch (Exception ex)
@@ -361,6 +445,7 @@ namespace Desing.Controllers
                 return RedirectToAction("Error500", ex);
             }
         }
+
         public ActionResult Create_Employee()
         {
             var iTComeFrom = Session["ItComeFrom"] as string;
@@ -370,39 +455,34 @@ namespace Desing.Controllers
                 Session["EmployeeID"] = "";
             }
 
-            ViewBag.MessageHeat = "Crear Usuario";
-            if (iTComeFrom == "Edit_Employee")
-            {
-                ViewBag.MessageHeat = "Editar Usuario";
-            };
+            ViewBag.MessageHeat = isEdit ? Employee.Page_EditTitle : Employee.Page_CreateTitle;
 
             var userSystem = Session["userSystem"]?.ToString();
             var userVscad = Session["userVscad"]?.ToString();
             var passVscad = Session["passVscad"]?.ToString();
             if (string.IsNullOrWhiteSpace(userSystem) || string.IsNullOrWhiteSpace(userVscad))
             {
-                // Sin contexto de usuario en sesión no se puede crear/editar empleado.
                 return RedirectToAction("Index");
             }
 
             long employeeIdSesion;
             bool tieneEmployeeIdSesion = long.TryParse(Session["EmployeeID"]?.ToString(), out employeeIdSesion) && employeeIdSesion > 0;
-            TSql_Employee EmployeeId = null;
+            TSql_Employee employee = null;
             if (isEdit && tieneEmployeeIdSesion)
-                EmployeeId = db.TSql_Employee.FirstOrDefault(x => x.SysObjectID == employeeIdSesion);
-            if (EmployeeId == null)
-                EmployeeId = db.TSql_Employee.FirstOrDefault(x => x.LinAspNetUsert == userSystem);
-            //Session["EmployeeID"] = EmployeeId.SysObjectID;
+                employee = db.TSql_Employee.FirstOrDefault(x => x.SysObjectID == employeeIdSesion);
+            if (employee == null)
+                employee = db.TSql_Employee.FirstOrDefault(x => x.LinAspNetUsert == userSystem);
+
             var attName = "";
             var attSurname = "";
             var attPhotoMenu = "~/Files/RRHH/User/AttPhotoMenu/user.png";
             var linCompany = 1;
-            if (EmployeeId != null)
+            if (employee != null)
             {
-                attName = EmployeeId.AttName;
-                attSurname = EmployeeId.AttSurname;
-                attPhotoMenu = EmployeeId.AttPhotoMenu;
-                linCompany = (int)EmployeeId.LinCompany;
+                attName = employee.AttName;
+                attSurname = employee.AttSurname;
+                attPhotoMenu = employee.AttPhotoMenu;
+                linCompany = (int)employee.LinCompany;
             }
             var authInfo = ObtenerPrimerEquipoAutorizado(userSystem);
 
@@ -420,11 +500,12 @@ namespace Desing.Controllers
                 DeviceId = authInfo.DeviceId,
                 DeviceName = authInfo.MachineName,
                 DeviceAllowed = authInfo.Allowed ?? true,
-                EmployeeID = EmployeeId?.SysObjectID ?? 0,
+                EmployeeID = employee?.SysObjectID ?? 0,
                 IsEdit = isEdit,
             };
             return View(Model);
         }
+
         [HttpPost]
         public ActionResult Create_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem, DeviceId, DeviceName, DeviceAllowed, EmployeeID, IsEdit")] EmployeeViewModel model, HttpPostedFileBase file1)
         {
@@ -441,63 +522,35 @@ namespace Desing.Controllers
         {
             try
             {
-                //var di2 = Server.MapPath("~") + @"\Files\RRHH\User\AttPhotoMenu\Temp\";
-                //System.IO.DirectoryInfo di = new DirectoryInfo(di2);
-
-                //foreach (FileInfo file in di.GetFiles())
-                //{
-                //    file.Delete();
-                //}
-                //foreach (DirectoryInfo dir in di.GetDirectories())
-                //{
-                //    dir.Delete(true);
-                //}
-
                 var iTComeFrom = Session["ItComeFrom"] as string ?? "";
                 var isEdit = forceEdit || model.IsEdit || string.Equals(iTComeFrom, "Edit_Employee", StringComparison.OrdinalIgnoreCase);
-                var ChangeFoto = true;
-                long EmployeeID = 0;
+                var changeFoto = true;
+                long employeeId = 0;
 
-                if (model.EmployeeID > 0) EmployeeID = model.EmployeeID;
-                if (EmployeeID <= 0) long.TryParse(Session["EmployeeID"]?.ToString(), out EmployeeID);
-                var EmployeeId = db.TSql_Employee.FirstOrDefault(x => x.SysObjectID == EmployeeID);
-                if (EmployeeId != null)
+                if (model.EmployeeID > 0) employeeId = model.EmployeeID;
+                if (employeeId <= 0) long.TryParse(Session["EmployeeID"]?.ToString(), out employeeId);
+                var existing = db.TSql_Employee.FirstOrDefault(x => x.SysObjectID == employeeId);
+                if (existing != null && isEdit)
                 {
-                    if (isEdit)
-                    {
-                        var check = "";
-                        if (EmployeeId.AttPhotoMenu != null)
-                        {
-                            check = EmployeeId.AttPhotoMenu.Substring(35);
-                        }
-                        if (file1 == null)
-                        {
-                            ChangeFoto = false;
-                        }
-                        else
-                        {
-                            if (file1.FileName == check)
-                            {
-                                ChangeFoto = false;
-                            }
-                        }
-                    }
+                    var check = existing.AttPhotoMenu?.Length >= 35 ? existing.AttPhotoMenu.Substring(35) : "";
+                    if (file1 == null) changeFoto = false;
+                    else if (file1.FileName == check) changeFoto = false;
                 }
 
-                string UserId = User.Identity.GetUserId();
-                string nombre_original1 = "";
-                string extension_original1 = "";
+                string userId = User.Identity.GetUserId();
+                string nombreOriginal = "";
+                string extensionOriginal = "";
                 string rutaTemp = "";
                 string rutaNew = "";
-                if (ChangeFoto == true)
+                if (changeFoto)
                 {
                     rutaTemp = Server.MapPath("~") + @"\Files\RRHH\User\AttPhotoMenu\Temp\";
                     rutaNew = Server.MapPath("~") + @"\Files\RRHH\User\AttPhotoMenu\";
 
                     if (file1 != null && file1.ContentLength > 0)
                     {
-                        nombre_original1 = Path.GetFileName(file1.FileName);
-                        extension_original1 = Path.GetExtension(file1.FileName);
+                        nombreOriginal = Path.GetFileName(file1.FileName);
+                        extensionOriginal = Path.GetExtension(file1.FileName);
                     }
                     else
                     {
@@ -505,12 +558,12 @@ namespace Desing.Controllers
                     }
                     if (file1 != null && file1.ContentLength > 0)
                     {
-                        file1.SaveAs(Path.Combine(rutaTemp, "_" + nombre_original1));
-                        ImageHelper.RedimensionarImagen(rutaTemp, "_" + nombre_original1, 100, 100, 0);
-
-                        model.AttPhotoMenu = "../../Files/RRHH/User/AttPhotoMenu/Temp/__" + nombre_original1;
+                        file1.SaveAs(Path.Combine(rutaTemp, "_" + nombreOriginal));
+                        ImageHelper.RedimensionarImagen(rutaTemp, "_" + nombreOriginal, 100, 100, 0);
+                        model.AttPhotoMenu = "../../Files/RRHH/User/AttPhotoMenu/Temp/__" + nombreOriginal;
                     }
                 }
+
                 TSql_Employee newEmployee = new TSql_Employee
                 {
                     AttName = model.AttName,
@@ -524,26 +577,24 @@ namespace Desing.Controllers
                     AttPassAspNetUsert = model.AttPassAspNetUsert,
                     AttIsDeleted = false,
                     Linlanguage = 1,
-                    LinCreatedBy = UserId,
+                    LinCreatedBy = userId,
                     AttCreated = DateTime.UtcNow,
-                    LinModifiedBy = UserId,
+                    LinModifiedBy = userId,
                     AttLastModification = DateTime.UtcNow,
                 };
                 if (iTComeFrom != "Edit_Employee")
                 {
                     db.TSql_Employee.Add(newEmployee);
                     db.SaveChanges();
-                };
-                if (ChangeFoto == true)
-                {
-                    if (file1 != null && file1.ContentLength > 0)
-                    {
-                        newEmployee.AttPhotoMenu = "../../Files/RRHH/User/AttPhotoMenu/" + newEmployee.SysObjectID.ToString() + ".1" + extension_original1;
-                        System.IO.File.Move(rutaTemp + @"\__" + nombre_original1,
-                        rutaNew + @"\" + newEmployee.SysObjectID.ToString() + ".1" + extension_original1);
-                    }
                 }
-                TSql_DefaultDesign Config = new TSql_DefaultDesign
+                if (changeFoto && file1 != null && file1.ContentLength > 0)
+                {
+                    newEmployee.AttPhotoMenu = "../../Files/RRHH/User/AttPhotoMenu/" + newEmployee.SysObjectID.ToString() + ".1" + extensionOriginal;
+                    System.IO.File.Move(rutaTemp + @"\__" + nombreOriginal,
+                        rutaNew + @"\" + newEmployee.SysObjectID.ToString() + ".1" + extensionOriginal);
+                }
+
+                TSql_DefaultDesign config = new TSql_DefaultDesign
                 {
                     LinkAspNetUsers = model.LinAspNetUsert,
                     NumberClosingStartEndWall = 1,
@@ -558,77 +609,46 @@ namespace Desing.Controllers
                     IsSolutionCornerWithUniversalPanel = true,
                     OrbitControlsType = 1,
                     Ntimeschanged = 1,
-                    LinkMadeBy = UserId,
-                    LinModifiedBy = UserId,
-                    AddChangeBy = UserId,
+                    LinkMadeBy = userId,
+                    LinModifiedBy = userId,
+                    AddChangeBy = userId,
                     AddDateMade = DateTime.UtcNow,
                     AddLastDateChange = DateTime.UtcNow,
                     BitIsDeleted = false,
                 };
                 if (!isEdit)
                 {
-                    db.TSql_DefaultDesign.Add(Config);
+                    db.TSql_DefaultDesign.Add(config);
                     db.SaveChanges();
-                    var equipoRegistrado = UpsertPluginDeviceAuth(model, UserId);
+                    UpsertPluginDeviceAuth(model, userId);
 
-                    MailModel Model = new MailModel();
-                    Model.To = model.userSystem;
-                    Model.From = "admin@atenko.net";
-                    Model.Subject = "Alta en la aplicación Atenko.net";
-                    //Model.Body = @"<html><body><p><strong> El usuario:  "" + model.userSystem + "" a sido creado en el sistema con la contraseña:  "" + model.AttPassAspNetUsert</strong></p><br></br><p> Time for bed </p></body></html>";
-                    Model.Body = @"El usuario:  " + model.userSystem + " a sido creado en el sistema con la contraseña:  " + model.AttPassAspNetUsert;
-                    if (equipoRegistrado)
-                    {
-                        Model.Body += @" | Equipo autorizado: " + (model.DeviceName ?? "(sin nombre)") + @" | DeviceId: " + model.DeviceId;
-                    }
-                    // Envío de correo desactivado temporalmente.
-                    // Lo reactivaremos cuando se cierre la configuración SMTP/certificados.
-                    // bool mailOk = true;
-                    // string mailError = "";
-                    // try
-                    // {
-                    //     SendMail(Model);
-                    // }
-                    // catch (System.Exception mailEx)
-                    // {
-                    //     // No bloquear el alta de empleado/equipo por fallo de SMTP.
-                    //     mailOk = false;
-                    //     mailError = mailEx.Message;
-                    //     System.Diagnostics.Debug.WriteLine("Advertencia envío mail (no bloqueante): " + mailEx.Message);
-                    // }
                     TempData.Clear();
                     TempData["ToastType"] = "Act";
-                    TempData["ToastTitle"] = "Crear diseño";
-                    TempData["ToastMessage"] = "Usuario/equipo guardado correctamente.";
-                };
-                if (isEdit)
+                    TempData["ToastTitle"] = Employee.ToastTitle_CreateEmployee;
+                    TempData["ToastMessage"] = Employee.ToastMessage_EmployeeSaved;
+                }
+                if (isEdit && existing != null)
                 {
-
-                    EmployeeId.AttName = newEmployee.AttName;
-                    EmployeeId.AttSurname = newEmployee.AttSurname;
-                    EmployeeId.AttPhoto = newEmployee.AttPhoto;
-                    if (ChangeFoto == true)
-                    {
-                        EmployeeId.AttPhotoMenu = newEmployee.AttPhotoMenu;
-                    }
-
-                    EmployeeId.LinCompany = newEmployee.LinCompany;
-                    EmployeeId.LinBusiness = newEmployee.LinBusiness;
-                    EmployeeId.SysUpdateNumber = newEmployee.SysUpdateNumber;
-                    EmployeeId.LinAspNetUsert = newEmployee.LinAspNetUsert;
-                    EmployeeId.AttPassAspNetUsert = newEmployee.AttPassAspNetUsert;
-                    EmployeeId.AttIsDeleted = false;
-                    EmployeeId.Linlanguage = 1;
-                    EmployeeId.LinCreatedBy = UserId;
-                    EmployeeId.LinModifiedBy = UserId;
-                    EmployeeId.AttLastModification = DateTime.UtcNow;
+                    existing.AttName = newEmployee.AttName;
+                    existing.AttSurname = newEmployee.AttSurname;
+                    existing.AttPhoto = newEmployee.AttPhoto;
+                    if (changeFoto) existing.AttPhotoMenu = newEmployee.AttPhotoMenu;
+                    existing.LinCompany = newEmployee.LinCompany;
+                    existing.LinBusiness = newEmployee.LinBusiness;
+                    existing.SysUpdateNumber = newEmployee.SysUpdateNumber;
+                    existing.LinAspNetUsert = newEmployee.LinAspNetUsert;
+                    existing.AttPassAspNetUsert = newEmployee.AttPassAspNetUsert;
+                    existing.AttIsDeleted = false;
+                    existing.Linlanguage = 1;
+                    existing.LinModifiedBy = userId;
+                    existing.AttLastModification = DateTime.UtcNow;
                     db.SaveChanges();
-                    UpsertPluginDeviceAuth(model, UserId);
+                    UpsertPluginDeviceAuth(model, userId);
                     TempData.Clear();
                     TempData["ToastType"] = "Editar";
-                    TempData["ToastTitle"] = "Editar Usuario";
-                    TempData["ToastMessage"] = "El Usuario " + EmployeeId.AttName + " a sido Modificado";
-                };
+                    TempData["ToastTitle"] = Employee.ToastTitle_EditEmployee;
+                    TempData["ToastMessage"] = Employee.ToastMessage_EmployeeUpdated;
+                }
                 Session.Clear();
                 return RedirectToAction("Index");
             }
@@ -637,6 +657,10 @@ namespace Desing.Controllers
                 return Json(ex.Message);
             }
         }
+
+        /* ============================================================
+           Plugin device auth (sin cambios funcionales)
+           ============================================================ */
 
         private sealed class PluginDeviceAuthInfo
         {
@@ -754,19 +778,18 @@ WHERE TABLE_SCHEMA = 'dbo'
                 mail.To.Add(_objModelMail.To);
                 mail.From = new MailAddress(_objModelMail.From);
                 mail.Subject = _objModelMail.Subject;
-                string Body = _objModelMail.Body;
-                mail.Body = Body;
+                mail.Body = _objModelMail.Body;
                 mail.IsBodyHtml = true;
-                SmtpClient smtp = new SmtpClient();
-                smtp.Host = "mail5005.smarterasp.net";
-                smtp.Port = 587;
-                smtp.UseDefaultCredentials = false;
-                smtp.Credentials = new System.Net.NetworkCredential("admin@atenko.net", "AngelyJuan01@");
-                smtp.EnableSsl = true;
+                SmtpClient smtp = new SmtpClient
+                {
+                    Host = "mail5005.smarterasp.net",
+                    Port = 587,
+                    UseDefaultCredentials = false,
+                    Credentials = new System.Net.NetworkCredential("admin@atenko.net", "AngelyJuan01@"),
+                    EnableSsl = true
+                };
                 smtp.Send(mail);
-
             }
-
         }
 
         protected override void Dispose(bool disposing)

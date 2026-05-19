@@ -1,5 +1,7 @@
 ﻿using DAL;
+using Desing.Helpers;
 using Desing.Models;
+using Desing.Resources;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
@@ -58,7 +60,7 @@ namespace Desing.Controllers
             // Si llega aqui con ReturnUrl, venia de una ruta protegida sin sesion valida.
             if (!User.Identity.IsAuthenticated && !string.IsNullOrWhiteSpace(Request["ReturnUrl"]))
             {
-                ViewBag.ErrorMessage = "Debes iniciar sesion para acceder a esa pagina.";
+                ViewBag.ErrorMessage = Common.Account_Err_LoginRequired;
             }
             return View();
         }
@@ -89,8 +91,8 @@ namespace Desing.Controllers
                 var userc = UserManager.IsEmailConfirmedAsync(user.Id);
                 if (!await UserManager.IsEmailConfirmedAsync(user.Id))
                 {
-                    await SendEmailConfirmationTokenAsync(user.Id, user.UserName, user.Email, "Por favor, valida tu cuenta vscad");
-                    ViewBag.ErrorMessage = "Tienes que confirmar el Email la confirmación ha sido enviada";
+                    await SendEmailConfirmationTokenAsync(user.Id, user.UserName, user.Email, Common.Account_EmailConfirmation_Subject);
+                    ViewBag.ErrorMessage = Common.Account_Err_EmailNotConfirmed;
 
                     return View("Error");
                 }
@@ -105,7 +107,7 @@ namespace Desing.Controllers
                     return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
                 //return View(model);
                 case SignInStatus.Failure:
-                    ViewBag.ErrorMessage = "El usuario no esta registrado";
+                    ViewBag.ErrorMessage = Common.Account_Err_UserNotRegistered;
                     return View(model);
             }
 
@@ -133,6 +135,22 @@ namespace Desing.Controllers
             // Guardar en cookie persistente la plantilla del usuario que se loguea,
             // para que la pagina de Login muestre el mismo color/logo en visitas posteriores.
             WritePlantillaCookie(firstData.LinPlantilla);
+
+            try
+            {
+                var hasLang = Request.Cookies[LanguageUiHelper.LanguageCookieName] != null
+                    || Request.Cookies[LanguageUiHelper.LegacyUiCultureCookieName] != null;
+                if (!hasLang)
+                {
+                    var def = LanguageUiHelper.TryGetDefaultLanguageTextCode(db);
+                    if (!string.IsNullOrWhiteSpace(def))
+                        LanguageUiHelper.WriteLanguageCookies(Response, def);
+                }
+            }
+            catch
+            {
+                /* no bloquear login */
+            }
 
             string hostName = Dns.GetHostName();
             // Get the IP
@@ -205,7 +223,7 @@ namespace Desing.Controllers
                     return View("Lockout");
                 case SignInStatus.Failure:
                 default:
-                    ModelState.AddModelError("", "Invalid code.");
+                    ModelState.AddModelError("", Common.Account_Err_InvalidCode);
                     return View(model);
             }
         }

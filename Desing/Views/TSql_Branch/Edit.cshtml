@@ -1,0 +1,71 @@
+@model DAL.TSql_Branch
+@using Desing.Resources
+@using System.Configuration
+@{
+    ViewBag.Title = Branch.Branch_Page_EditTitle;
+    var mapsKey = ConfigurationManager.AppSettings["GoogleMaps:ApiKey"] ?? "";
+    var hasSummaryErrors = ViewData.ModelState != null
+        && ViewData.ModelState.Values.Where(v => v != null && v.Errors != null)
+            .SelectMany(v => v.Errors)
+            .Any(e => e != null && (!string.IsNullOrEmpty(e.ErrorMessage) || e.Exception != null));
+    var cancelUrl = ViewBag.CompanyEditUrl as string ?? Url.Action("Details", "TSql_Company", new { id = Model.LinCompany });
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@Branch.Common_Home</a> /
+            <a href="@Url.Action("Index", "TSql_Company")">@Company.Index_Breadcrumb</a> /
+        </span> @Branch.Branch_Page_EditTitle
+    </h4>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        @if (string.IsNullOrWhiteSpace(mapsKey))
+        {
+            <div class="alert alert-warning tandem-address-api-warning mb-3" role="alert">
+                <strong>@Company.Google_NotConfiguredStrong</strong>
+                @Company.Google_NotConfiguredBody
+            </div>
+        }
+        @if (hasSummaryErrors)
+        {
+            <div class="alert alert-danger mb-3" role="alert">
+                @Html.ValidationSummary(false)
+            </div>
+        }
+        @using (Html.BeginForm("Edit", "TSql_Branch", FormMethod.Post, new { @class = "row g-3", id = "branchFullForm" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.SysObjectID)
+
+            @Html.Partial("_BranchFormFields", Model)
+
+            <div class="col-12 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
+                <a href="@cancelUrl" class="btn btn-outline-secondary">@Company.Btn_Cancel</a>
+                <button type="submit" class="btn btn-primary">@Branch.Btn_SaveChanges</button>
+            </div>
+        }
+    </div>
+</div>
+
+@section scripts {
+    @{
+        ViewData["GooglePlacesPageScript"] = "~/Scripts/Intranet/company-google-places.js";
+    }
+    @Html.Partial("~/Views/Shared/_GooglePlacesAddressScripts.cshtml")
+    <script>
+        (function () {
+            var p = document.getElementById('branchAttcolorPicker');
+            var t = document.getElementById('branchAttcolorText');
+            if (!p || !t) return;
+            p.addEventListener('input', function () { t.value = p.value; });
+            p.addEventListener('change', function () { t.value = p.value; });
+            t.addEventListener('input', function () {
+                var v = t.value;
+                if (/^#[0-9A-Fa-f]{6}$/.test(v)) p.value = v;
+            });
+        })();
+    </script>
+}

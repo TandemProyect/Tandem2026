@@ -1,10 +1,17 @@
-﻿@*
+@*
     Layout principal estilo Materio adaptado para ASP.NET MVC 5 / .NET Framework 4.8.
     Reemplaza al _Layout.cshtml clasico de T Desing.net.
 *@
+@using Desing.Helpers
+@using Desing.Resources
+@using Newtonsoft.Json
+@{
+    var tandemUiCulture = LanguageUiHelper.ReadResolvedUiCultureCode(Request) ?? "es";
+    var tandemHtmlLang = string.IsNullOrWhiteSpace(tandemUiCulture) ? "es" : tandemUiCulture.Trim().ToLowerInvariant();
+}
 <!DOCTYPE html>
-<html lang="es"
-      class="light-style layout-menu-fixed layout-compact"
+<html lang="@tandemHtmlLang"
+      class="light-style layout-menu-fixed layout-compact tandem-intranet-chrome"
       dir="ltr"
       data-theme="theme-default"
       data-assets-path="@Url.Content("~/assets/materio/")"
@@ -13,7 +20,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-    <title>@(ViewBag.Title ?? ViewBag.PlantillaBrandText ?? "T Desing.net")</title>
+    <title>@(ViewBag.Title ?? ViewBag.PlantillaBrandText ?? Common.App_BrandFallback)</title>
 
     @{
         var faviconPath = (ViewBag.PlantillaFavicon as string) ?? "/assets/client/images/Default/Ico/at.ico";
@@ -65,6 +72,33 @@
     <script src="@Url.Content("~/assets/materio/vendor/js/helpers.js")"></script>
     <script src="@Url.Content("~/assets/materio/js/config.js")"></script>
 
+    @* === DataTables i18n por idioma actual (modulo Common, claves Dt_*) =======
+       intranet-datatables-list.js usa window.tandemCommonDt para textos del menu
+       colectivo (Registros / Exportar / Columnas visibles / "10 filas" / Todas).
+       Si una vista define <vm>Dt (p. ej. companyDt) y lo pasa a applyListDefaults,
+       ese objeto especifico GANA — esto solo es el fallback global. *@
+    @{
+        var tandemCommonDt = new
+        {
+            sectionRecords = Common.Dt_Section_Records,
+            sectionExport = Common.Dt_Section_Export,
+            sectionColumnsVisible = Common.Dt_Section_ColumnsVisible,
+            menuAria = Common.Dt_MenuAria,
+            rowsN = Common.Dt_Rows_N,
+            rowsAll = Common.Dt_Rows_All,
+            btnPrint = Common.Dt_Btn_Print,
+            btnCopy = Common.Dt_Btn_Copy,
+            btnPdf = Common.Dt_Btn_Pdf,
+            btnCsv = Common.Dt_Btn_Csv,
+            btnExcel = Common.Dt_Btn_Excel,
+            btnPageLength = Common.Dt_Btn_PageLength,
+            btnColVis = Common.Dt_Btn_ColVis
+        };
+    }
+    <script>
+        window.tandemCommonDt = @Html.Raw(JsonConvert.SerializeObject(tandemCommonDt));
+    </script>
+
     @* === Plantilla del usuario (color principal) ============================== *@
     @Html.Partial("_PlantillaStyles")
 
@@ -82,7 +116,7 @@
                 @Html.Partial("_NavbarMaterio")
 
                 <div class="content-wrapper">
-                    <div class="container-fluid flex-grow-1 container-p-y">
+                    <div class="container-fluid flex-grow-1 container-p-y tandem-layout-main-scroll">
                         @RenderBody()
                     </div>
 

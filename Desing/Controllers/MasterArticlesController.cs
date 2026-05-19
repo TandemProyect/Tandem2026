@@ -1,8 +1,8 @@
 ﻿using DataTables.Mvc;
 using Desing.Helpers;
 using Desing.Models;
+using Desing.Resources;
 using Desing.Services;
-using Microsoft.AspNet.Identity;
 using System;
 using System.Data.Entity;
 using System.Collections.Generic;
@@ -17,6 +17,14 @@ using System.Web.Mvc;
 
 namespace Desing.Controllers
 {
+    /// <summary>
+    /// CRUD para artículos maestros (Tsql_Master_Articles). Sigue el patrón Materio +
+    /// DataTables estándar (rowActions, TextLabelPlain, exportOptsPlainVisible) y
+    /// delega los textos a Desing.Resources.MasterArticles (.resx + DbBackedResourceManager).
+    /// El esquema legacy de la tabla usa AddIsActive (no Is_Active) y borrado físico
+    /// con bloqueo por dependencias (TSql_RemplaceArticleStok / TSql_TemporalList).
+    /// </summary>
+    [Authorize]
     public class MasterArticlesController : BaseController
     {
         private const long BlockFileMaxBytes = 50L * 1024 * 1024;
@@ -148,26 +156,7 @@ namespace Desing.Controllers
         {
             model.TextCode = (model.TextCode ?? string.Empty).Trim();
             model.TextLabel = (model.TextLabel ?? string.Empty).Trim();
-            if (string.IsNullOrEmpty(model.TextCode))
-            {
-                ModelState.AddModelError("TextCode", "El código es obligatorio.");
-            }
-            if (string.IsNullOrEmpty(model.TextLabel))
-            {
-                ModelState.AddModelError("TextLabel", "La descripción es obligatoria.");
-            }
-            if (model.LinkSystem <= 0)
-            {
-                ModelState.AddModelError("LinkSystem", "Seleccione un sistema.");
-            }
-            else if (!AllowedLinkSystemIds().Contains(model.LinkSystem))
-            {
-                ModelState.AddModelError("LinkSystem", "El sistema seleccionado no es válido.");
-            }
-            if (db.Tsql_Master_Articles.Any(a => a.LinkSystem == model.LinkSystem && a.TextCode == model.TextCode))
-            {
-                ModelState.AddModelError("TextCode", "Ya existe un artículo con este código en el mismo sistema.");
-            }
+            ValidateMasterArticleServer(model, isCreate: true);
 
             PreValidateBlockFiles(Request);
 
@@ -177,18 +166,14 @@ namespace Desing.Controllers
                 return View(model);
             }
 
-            var userId = User.Identity.GetUserId();
-            var now = DateTime.UtcNow;
             model.AddAtenkoCode = string.IsNullOrWhiteSpace(model.AddAtenkoCode) ? null : model.AddAtenkoCode.Trim();
             model.TextBlockNumber = string.IsNullOrWhiteSpace(model.TextBlockNumber) ? null : model.TextBlockNumber.Trim();
             model.TextStlNumber = string.IsNullOrWhiteSpace(model.TextStlNumber) ? null : model.TextStlNumber.Trim();
             model.TextColor1 = NormalizeMasterArticleHexColor(model.TextColor1, 200);
             model.TextColor2 = NormalizeMasterArticleHexColor(model.TextColor2, 10);
-            model.LinkMadeBy = userId;
-            model.AddChangeBy = userId;
-            model.AddDateMade = now;
-            model.AddLastDateChange = now;
-            model.Ntimeschanged = 1;
+            // Audit helper aplica LinkMadeBy/AddChangeBy/AddDateMade/Ntimeschanged=0 vía reflection.
+            // El esquema legado mantiene AddLastDateChange NOT NULL: el helper usa fallback now.
+            IntranetAuditHelper.SetAuditOnCreate(model, User);
 
             db.Tsql_Master_Articles.Add(model);
             db.SaveChanges();
@@ -198,15 +183,16 @@ namespace Desing.Controllers
             if (!ModelState.IsValid)
             {
                 var errs = string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).Where(m => !string.IsNullOrWhiteSpace(m)));
+                TempData["ToastTitle"] = MasterArticles.ToastTitle_CreateArticle;
                 TempData["ToastMessage"] = string.IsNullOrWhiteSpace(errs)
-                    ? "Artículo creado. Revise los adjuntos en la edición."
-                    : "Artículo creado. " + errs;
+                    ? MasterArticles.ToastMessage_ArticleCreatedReviewAttachments
+                    : string.Format(MasterArticles.ToastMessage_ArticleCreatedWithErrors, errs);
                 return RedirectToAction("Edit", new { id = model.IdObject });
             }
 
             TempData["ToastType"] = "Act";
-            TempData["ToastTitle"] = "Artículos";
-            TempData["ToastMessage"] = "Artículo creado correctamente.";
+            TempData["ToastTitle"] = MasterArticles.ToastTitle_CreateArticle;
+            TempData["ToastMessage"] = string.Format(MasterArticles.ToastMessage_ArticleCreated, model.TextLabel);
             return RedirectToAction("Index");
         }
 
@@ -215,7 +201,10 @@ namespace Desing.Controllers
             var article = db.Tsql_Master_Articles.FirstOrDefault(a => a.IdObject == id);
             if (article == null)
             {
-                return HttpNotFound();
+                TempData["ToastType"] = "Error";
+                TempData["ToastTitle"] = MasterArticles.ToastTitle_EditArticle;
+                TempData["ToastMessage"] = MasterArticles.Err_ArticleNotFound;
+                return RedirectToAction("Index");
             }
             PopulateLinkSystem(article.LinkSystem);
             PopulateMasterArticleStlPreviewViewData(article, article.IdObject);
@@ -234,7 +223,7 @@ namespace Desing.Controllers
                 return HttpNotFound();
             }
 
-            ViewBag.Title = "Detalles del artículo";
+            ViewBag.Title = MasterArticles.Page_DetailsTitle;
             var slots = BuildMasterArticleAttachmentSlots(row.article).ToList();
             EnrichAttachmentSlotsWithStlPreview(slots, row.article.IdObject);
             var vm = new MasterArticleDetailsViewModel
@@ -272,7 +261,7 @@ namespace Desing.Controllers
                 Response.TrySkipIisCustomErrors = true;
                 Response.StatusCode = 404;
                 return Content(
-                    "No se encontró el DXF gemelo (mismo nombre y carpeta que el .dwg, extensión .dxf). Coloque el archivo en el servidor o genérelo al guardar el artículo.",
+                    MasterArticles.Err_DxfSiblingMissing,
                     "text/plain",
                     Encoding.UTF8);
             }
@@ -288,31 +277,15 @@ namespace Desing.Controllers
             var article = db.Tsql_Master_Articles.FirstOrDefault(a => a.IdObject == model.IdObject);
             if (article == null)
             {
-                return HttpNotFound();
+                TempData["ToastType"] = "Error";
+                TempData["ToastTitle"] = MasterArticles.ToastTitle_EditArticle;
+                TempData["ToastMessage"] = MasterArticles.Err_ArticleNotFound;
+                return RedirectToAction("Index");
             }
 
             model.TextCode = (model.TextCode ?? string.Empty).Trim();
             model.TextLabel = (model.TextLabel ?? string.Empty).Trim();
-            if (string.IsNullOrEmpty(model.TextCode))
-            {
-                ModelState.AddModelError("TextCode", "El código es obligatorio.");
-            }
-            if (string.IsNullOrEmpty(model.TextLabel))
-            {
-                ModelState.AddModelError("TextLabel", "La descripción es obligatoria.");
-            }
-            if (model.LinkSystem <= 0)
-            {
-                ModelState.AddModelError("LinkSystem", "Seleccione un sistema.");
-            }
-            else if (!AllowedLinkSystemIds().Contains(model.LinkSystem))
-            {
-                ModelState.AddModelError("LinkSystem", "El sistema seleccionado no es válido.");
-            }
-            if (db.Tsql_Master_Articles.Any(a => a.IdObject != model.IdObject && a.LinkSystem == model.LinkSystem && a.TextCode == model.TextCode))
-            {
-                ModelState.AddModelError("TextCode", "Ya existe otro artículo con este código en el mismo sistema.");
-            }
+            ValidateMasterArticleServer(model, isCreate: false);
 
             PreValidateBlockFiles(Request);
 
@@ -340,9 +313,8 @@ namespace Desing.Controllers
             article.AddIsActive = model.AddIsActive;
             article.IInsertinMaterArticles = model.IInsertinMaterArticles;
             CopyLinkStringsFromModel(article, model);
-            article.AddChangeBy = User.Identity.GetUserId();
-            article.AddLastDateChange = DateTime.UtcNow;
-            article.Ntimeschanged = article.Ntimeschanged + 1;
+            // Audit helper: AddChangeBy + AddLastDateChange + Ntimeschanged += 1 (vía reflection, sólo si existen).
+            IntranetAuditHelper.SetAuditOnUpdate(article, User);
 
             MergeArticleBlockFiles(article, Request);
             if (!ModelState.IsValid)
@@ -355,9 +327,62 @@ namespace Desing.Controllers
             db.SaveChanges();
 
             TempData["ToastType"] = "Act";
-            TempData["ToastTitle"] = "Artículos";
-            TempData["ToastMessage"] = "Artículo actualizado correctamente.";
+            TempData["ToastTitle"] = MasterArticles.ToastTitle_EditArticle;
+            TempData["ToastMessage"] = string.Format(MasterArticles.ToastMessage_ArticleUpdated, article.TextLabel);
             return RedirectToAction("Index");
+        }
+
+        /// <summary>
+        /// Validación servidor en mensajes traducidos (MasterArticles.Val_*). Sustituye los
+        /// errores que pudieran venir de DataAnnotations en español del modelo y añade
+        /// comprobaciones de duplicados que no se pueden hacer en cliente.
+        /// </summary>
+        private void ValidateMasterArticleServer(DAL.Tsql_Master_Articles model, bool isCreate)
+        {
+            if (model == null) return;
+
+            ClearFieldErrors("TextCode");
+            if (string.IsNullOrEmpty(model.TextCode))
+            {
+                ModelState.AddModelError("TextCode", MasterArticles.Val_CodeRequired);
+            }
+
+            ClearFieldErrors("TextLabel");
+            if (string.IsNullOrEmpty(model.TextLabel))
+            {
+                ModelState.AddModelError("TextLabel", MasterArticles.Val_LabelRequired);
+            }
+
+            ClearFieldErrors("LinkSystem");
+            if (model.LinkSystem <= 0)
+            {
+                ModelState.AddModelError("LinkSystem", MasterArticles.Val_SystemRequired);
+            }
+            else if (!AllowedLinkSystemIds().Contains(model.LinkSystem))
+            {
+                ModelState.AddModelError("LinkSystem", MasterArticles.Val_SystemInvalid);
+            }
+
+            if (!string.IsNullOrEmpty(model.TextCode) && model.LinkSystem > 0)
+            {
+                bool duplicate = isCreate
+                    ? db.Tsql_Master_Articles.Any(a => a.LinkSystem == model.LinkSystem && a.TextCode == model.TextCode)
+                    : db.Tsql_Master_Articles.Any(a => a.IdObject != model.IdObject && a.LinkSystem == model.LinkSystem && a.TextCode == model.TextCode);
+                if (duplicate)
+                {
+                    ModelState.AddModelError("TextCode",
+                        isCreate ? MasterArticles.Val_DuplicateCodeCreate : MasterArticles.Val_DuplicateCodeEdit);
+                }
+            }
+        }
+
+        private void ClearFieldErrors(string field)
+        {
+            System.Web.Mvc.ModelState state;
+            if (ModelState.TryGetValue(field, out state) && state != null && state.Errors != null)
+            {
+                state.Errors.Clear();
+            }
         }
 
         /// <summary>Activa o desactiva el artículo desde la lista (GET; confirmación en el cliente, igual que eliminar).</summary>
@@ -366,25 +391,99 @@ namespace Desing.Controllers
             var article = db.Tsql_Master_Articles.FirstOrDefault(a => a.IdObject == id);
             if (article == null)
             {
-                return HttpNotFound();
+                TempData["ToastType"] = "Error";
+                TempData["ToastTitle"] = MasterArticles.ToastTitle_Articles;
+                TempData["ToastMessage"] = MasterArticles.Err_ArticleNotFound;
+                return RedirectToAction("Index");
             }
             article.AddIsActive = active;
-            article.AddChangeBy = User.Identity.GetUserId();
-            article.AddLastDateChange = DateTime.UtcNow;
-            article.Ntimeschanged = article.Ntimeschanged + 1;
+            // Audit helper: AddChangeBy + AddLastDateChange + Ntimeschanged += 1.
+            IntranetAuditHelper.SetAuditOnUpdate(article, User);
             db.SaveChanges();
-            TempData["ToastMessage"] = active ? "Artículo activado." : "Artículo desactivado.";
+            TempData["ToastTitle"] = MasterArticles.ToastTitle_Articles;
+            TempData["ToastMessage"] = string.Format(
+                active ? MasterArticles.ToastMessage_ArticleActivated : MasterArticles.ToastMessage_ArticleDeactivated,
+                article.TextLabel ?? "");
             return RedirectToAction("Index");
         }
 
-        /// <summary>Elimina el artículo (GET; confirmación en el cliente). Bloqueado si hay referencias en stock o listas temporales.</summary>
+        /// <summary>
+        /// Elimina el artículo. Esquema legado sin Is_Delete: borrado físico, bloqueado si
+        /// hay referencias en stock de reemplazo o listas temporales (las dependencias se
+        /// chequean también desde ListMasterArticles para deshabilitar el botón en el listado).
+        /// </summary>
+        [HttpPost]
+        public JsonResult DeleteMasterArticle(long id)
+        {
+            var article = db.Tsql_Master_Articles.FirstOrDefault(a => a.IdObject == id);
+            if (article == null)
+            {
+                return Json(new { IsOk = false, Message = MasterArticles.Err_ArticleNotFoundOrDeleted });
+            }
+
+            if (db.Tsql_RemplaceArticleStok.Any(r => r.LinkMaster_Articles == id)
+                || db.Tsql_RemplaceArticleStokChildren.Any(c => c.LinkMaster_Articles == id)
+                || db.TSql_TemporalList.Any(t => t.linkMasterArticles == id))
+            {
+                return Json(new { IsOk = false, Message = MasterArticles.Err_CannotDeleteHasReferences });
+            }
+
+            var attachmentPaths = BlockLinkKeys
+                .Select(k => GetBlockVirtualPathForSlot(article, k))
+                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var nombre = article.TextLabel ?? "";
+
+            db.Tsql_Master_Articles.Remove(article);
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                return Json(new { IsOk = false, Message = string.Format(MasterArticles.Err_DeleteFailed, ex.Message) });
+            }
+
+            foreach (var v in attachmentPaths)
+            {
+                TryDeletePhysicalBlockFileIfOwned(v, null);
+                if (v.EndsWith(".dwg", StringComparison.OrdinalIgnoreCase))
+                {
+                    TryDeleteViewerDxfSidecar(v, id);
+                }
+            }
+
+            try
+            {
+                var legacyDir = Server.MapPath("~/Files/MasterArticles/blocks/" + id);
+                if (Directory.Exists(legacyDir))
+                {
+                    Directory.Delete(legacyDir, true);
+                }
+            }
+            catch
+            {
+                // Adjuntos: no impedir éxito si falla el borrado en disco.
+            }
+
+            return Json(new
+            {
+                IsOk = true,
+                Message = string.Format(MasterArticles.ToastMessage_ArticleDeleted, nombre)
+            });
+        }
+
+        /// <summary>Compatibilidad con el link GET legado (confirm() del navegador). Redirige al listado.</summary>
         public ActionResult Delete(long id)
         {
             var article = db.Tsql_Master_Articles.FirstOrDefault(a => a.IdObject == id);
             if (article == null)
             {
                 TempData["ToastType"] = "Error";
-                TempData["ToastMessage"] = "El artículo no existe o ya fue eliminado.";
+                TempData["ToastTitle"] = MasterArticles.ToastTitle_DeleteArticle;
+                TempData["ToastMessage"] = MasterArticles.Err_ArticleNotFoundOrDeleted;
                 return RedirectToAction("Index");
             }
 
@@ -393,7 +492,8 @@ namespace Desing.Controllers
                 || db.TSql_TemporalList.Any(t => t.linkMasterArticles == id))
             {
                 TempData["ToastType"] = "Error";
-                TempData["ToastMessage"] = "No se puede eliminar: el artículo está en uso (stock de reemplazo o listas temporales).";
+                TempData["ToastTitle"] = MasterArticles.ToastTitle_DeleteArticle;
+                TempData["ToastMessage"] = MasterArticles.Err_CannotDeleteHasReferences;
                 return RedirectToAction("Index");
             }
 
@@ -403,6 +503,8 @@ namespace Desing.Controllers
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
+            var nombre = article.TextLabel ?? "";
+
             db.Tsql_Master_Articles.Remove(article);
             try
             {
@@ -411,7 +513,8 @@ namespace Desing.Controllers
             catch (Exception ex)
             {
                 TempData["ToastType"] = "Error";
-                TempData["ToastMessage"] = "No se pudo eliminar el artículo. " + ex.Message;
+                TempData["ToastTitle"] = MasterArticles.ToastTitle_DeleteArticle;
+                TempData["ToastMessage"] = string.Format(MasterArticles.Err_DeleteFailed, ex.Message);
                 return RedirectToAction("Index");
             }
 
@@ -434,10 +537,12 @@ namespace Desing.Controllers
             }
             catch
             {
-                // Adjuntos: no impedir éxito si falla el borrado en disco
+                // Adjuntos: no impedir éxito si falla el borrado en disco.
             }
 
-            TempData["ToastMessage"] = "Artículo eliminado correctamente.";
+            TempData["ToastType"] = "Act";
+            TempData["ToastTitle"] = MasterArticles.ToastTitle_DeleteArticle;
+            TempData["ToastMessage"] = string.Format(MasterArticles.ToastMessage_ArticleDeleted, nombre);
             return RedirectToAction("Index");
         }
 
@@ -465,13 +570,15 @@ namespace Desing.Controllers
                 }
                 if (posted.ContentLength > 0 && posted.ContentLength > BlockFileMaxBytes)
                 {
-                    ModelState.AddModelError(string.Empty, "Archivo demasiado grande (máx. 50 MB) para el bloque " + key + ".");
+                    ModelState.AddModelError(string.Empty,
+                        string.Format(MasterArticles.Val_BlockFileTooLarge, key));
                     continue;
                 }
                 var ext = Path.GetExtension(posted.FileName);
                 if (string.IsNullOrEmpty(ext))
                 {
-                    ModelState.AddModelError(string.Empty, "Extensión no válida en archivo para " + key + ".");
+                    ModelState.AddModelError(string.Empty,
+                        string.Format(MasterArticles.Val_BlockFileExtensionRequired, key));
                     continue;
                 }
                 ext = ext.ToLowerInvariant();
@@ -479,7 +586,8 @@ namespace Desing.Controllers
                 if (allowed.Length == 0 || !allowed.Contains(ext))
                 {
                     ModelState.AddModelError(string.Empty,
-                        "Solo " + AllowedExtensionsHumanLabel(key) + " para el bloque " + key + ".");
+                        string.Format(MasterArticles.Val_BlockFileExtensionInvalid,
+                            AllowedExtensionsHumanLabel(key), key));
                 }
             }
         }
@@ -613,25 +721,25 @@ namespace Desing.Controllers
             error = null;
             if (!HasPostedNonEmptyFile(file))
             {
-                error = "Archivo vacío.";
+                error = MasterArticles.Val_BlockFileEmpty;
                 return false;
             }
             if (file.ContentLength > 0 && file.ContentLength > maxBytes)
             {
-                error = "El archivo supera el tamaño máximo permitido (50 MB).";
+                error = MasterArticles.Val_BlockFileMaxSize;
                 return false;
             }
 
             var ext = Path.GetExtension(file.FileName);
             if (string.IsNullOrEmpty(ext))
             {
-                error = "El archivo no tiene extensión. Se permiten: " + string.Join(", ", allowedLowercaseExtensions) + ".";
+                error = string.Format(MasterArticles.Val_BlockFileExtensionMissing, string.Join(", ", allowedLowercaseExtensions));
                 return false;
             }
             ext = ext.ToLowerInvariant();
             if (allowedLowercaseExtensions == null || allowedLowercaseExtensions.Length == 0 || !allowedLowercaseExtensions.Contains(ext))
             {
-                error = "Solo se permiten archivos " + string.Join(", ", allowedLowercaseExtensions) + " para este campo.";
+                error = string.Format(MasterArticles.Val_BlockFileNotAllowedExtension, string.Join(", ", allowedLowercaseExtensions));
                 return false;
             }
 
@@ -662,7 +770,7 @@ namespace Desing.Controllers
             }
             if (fileName.IndexOfAny(new[] { '/', '\\' }) >= 0)
             {
-                error = "Nombre de archivo no válido.";
+                error = MasterArticles.Val_BlockFileNameInvalid;
                 return false;
             }
 
@@ -676,7 +784,7 @@ namespace Desing.Controllers
             }
             catch (Exception ex)
             {
-                error = "No se pudo sobrescribir el archivo existente: " + ex.Message;
+                error = string.Format(MasterArticles.Val_BlockFileSaveOverwriteFailed, ex.Message);
                 return false;
             }
 
@@ -694,7 +802,7 @@ namespace Desing.Controllers
                     {
                         // ignore
                     }
-                    error = "El archivo supera el tamaño máximo permitido (50 MB).";
+                    error = MasterArticles.Val_BlockFileMaxSize;
                     return false;
                 }
             }
@@ -736,15 +844,15 @@ namespace Desing.Controllers
                 var kind = p == null ? "none" : AttachmentViewerKind(p, defaultKind);
                 list.Add(new MasterArticleAttachmentSlot { SlotKey = slotKey, Label = label, VirtualPath = p, ViewerKind = kind });
             }
-            slot("LinkBlockDwgPlant3D", "Planta 3D", a.LinkBlockDwgPlant3D, "dwg");
-            slot("LinkBlockDwgVerticalElevation3D", "Elevación vertical 3D", a.LinkBlockDwgVerticalElevation3D, "dwg");
-            slot("LinkBlockDwgHorizontalElevation3D", "Elevación horizontal 3D", a.LinkBlockDwgHorizontalElevation3D, "dwg");
-            slot("LinkBlockDwgPlantMckUp", "Planta mock-up", a.LinkBlockDwgPlantMckUp, "dwg");
-            slot("LinkBlockDwgVerticalElevationMockUp", "Elevación vertical mock-up", a.LinkBlockDwgVerticalElevationMockUp, "dwg");
-            slot("LinkBlockDwgHorizontalElevationMockUp", "Elevación horizontal mock-up", a.LinkBlockDwgHorizontalElevationMockUp, "dwg");
-            slot("LinkBlockDwgPlantStl", "Planta STL", a.LinkBlockDwgPlantStl, "stl");
-            slot("LinkBlockDwgVerticalElevationStl", "Elevación vertical STL", a.LinkBlockDwgVerticalElevationStl, "stl");
-            slot("LinkBlockDwgHorizontalElevationStl", "Elevación horizontal STL", a.LinkBlockDwgHorizontalElevationStl, "stl");
+            slot("LinkBlockDwgPlant3D", MasterArticles.BlockSlot_Plant3D, a.LinkBlockDwgPlant3D, "dwg");
+            slot("LinkBlockDwgVerticalElevation3D", MasterArticles.BlockSlot_VertElev3D, a.LinkBlockDwgVerticalElevation3D, "dwg");
+            slot("LinkBlockDwgHorizontalElevation3D", MasterArticles.BlockSlot_HorzElev3D, a.LinkBlockDwgHorizontalElevation3D, "dwg");
+            slot("LinkBlockDwgPlantMckUp", MasterArticles.BlockSlot_PlantMockup, a.LinkBlockDwgPlantMckUp, "dwg");
+            slot("LinkBlockDwgVerticalElevationMockUp", MasterArticles.BlockSlot_VertElevMockup, a.LinkBlockDwgVerticalElevationMockUp, "dwg");
+            slot("LinkBlockDwgHorizontalElevationMockUp", MasterArticles.BlockSlot_HorzElevMockup, a.LinkBlockDwgHorizontalElevationMockUp, "dwg");
+            slot("LinkBlockDwgPlantStl", MasterArticles.Col_PlantStl, a.LinkBlockDwgPlantStl, "stl");
+            slot("LinkBlockDwgVerticalElevationStl", MasterArticles.Col_VertElevStl, a.LinkBlockDwgVerticalElevationStl, "stl");
+            slot("LinkBlockDwgHorizontalElevationStl", MasterArticles.Col_HorzElevStl, a.LinkBlockDwgHorizontalElevationStl, "stl");
             return list;
         }
 
@@ -812,7 +920,18 @@ namespace Desing.Controllers
             }
             var href = Url.Content(storedPath.StartsWith("~/", StringComparison.Ordinal) ? storedPath : "~/" + storedPath.TrimStart('/'));
             var safeHref = System.Web.HttpUtility.HtmlAttributeEncode(href);
-            return "<a class=\"btn btn-sm btn-outline-primary\" target=\"_blank\" rel=\"noopener\" href=\"" + safeHref + "\" title=\"Abrir\"><i class=\"fas fa-paperclip\" aria-hidden=\"true\"></i></a>";
+            var ttAttachment = System.Web.HttpUtility.HtmlAttributeEncode(MasterArticles.List_LinkAttachmentTooltip);
+            return "<a class=\"btn btn-sm btn-outline-primary\" target=\"_blank\" rel=\"noopener\" href=\"" + safeHref + "\" title=\"" + ttAttachment + "\"><i class=\"fas fa-paperclip\" aria-hidden=\"true\"></i></a>";
+        }
+
+        /// <summary>Texto plano por celda de adjunto para el export Excel/CSV (`orthogonal:'export'`).</summary>
+        private static string ArticleLinkCellPlain(string storedPath)
+        {
+            if (string.IsNullOrWhiteSpace(storedPath))
+            {
+                return "";
+            }
+            return Path.GetFileName(storedPath.Trim().Replace('\\', '/'));
         }
 
         [HttpGet]
@@ -838,11 +957,11 @@ namespace Desing.Controllers
         {
             if (!AutodeskApsClient.IsConfigured)
             {
-                return Json(new { ok = false, error = "Autodesk APS no está configurado (ClientId y ClientSecret en Web.config)." }, JsonRequestBehavior.AllowGet);
+                return Json(new { ok = false, error = MasterArticles.Err_ApsNotConfigured }, JsonRequestBehavior.AllowGet);
             }
             if (string.IsNullOrWhiteSpace(slotKey) || !BlockLinkKeysDwgOnly.Contains(slotKey))
             {
-                return Json(new { ok = false, error = "Parámetro slotKey no válido." }, JsonRequestBehavior.AllowGet);
+                return Json(new { ok = false, error = MasterArticles.Err_SlotKeyInvalid }, JsonRequestBehavior.AllowGet);
             }
             if (!TryResolveMasterArticleDwgPhysicalPath(id, slotKey, out var physicalPath, out var resolveError))
             {
@@ -866,13 +985,13 @@ namespace Desing.Controllers
             var article = db.Tsql_Master_Articles.FirstOrDefault(a => a.IdObject == articleId);
             if (article == null)
             {
-                error = "Artículo no encontrado.";
+                error = MasterArticles.Err_ArticleNotFound;
                 return false;
             }
             var virtualPath = GetBlockVirtualPathForSlot(article, slotKey);
             if (string.IsNullOrWhiteSpace(virtualPath))
             {
-                error = "No hay archivo DWG en este bloque.";
+                error = MasterArticles.Err_NoDwgInBlock;
                 return false;
             }
             return MasterArticleViewerDxfConverter.TryMapAppRelativeDwgToPhysical(Server, articleId, virtualPath, out physicalPath, out error);
@@ -1024,23 +1143,96 @@ namespace Desing.Controllers
                 query = query.OrderBy(orderByString == String.Empty ? "TextLabel asc" : orderByString);
                 query = query.ApplyDataTablesPaging(requestModel.Start, requestModel.Length);
 
-                bool allowEdit = true;
-                bool allowDelete = true;
-                var data = query.ToList().Select(p =>
+                var rows = query.ToList();
+
+                // Dependencias para bloquear borrado (lookup en bulk para evitar N+1).
+                var ids = rows.Select(r => r.IdObject).ToList();
+                var idsLockedStock = db.Tsql_RemplaceArticleStok
+                    .Where(r => ids.Contains(r.LinkMaster_Articles))
+                    .Select(r => r.LinkMaster_Articles)
+                    .Distinct()
+                    .ToList()
+                    .ToHashSet();
+                var idsLockedStockChildren = db.Tsql_RemplaceArticleStokChildren
+                    .Where(c => ids.Contains(c.LinkMaster_Articles))
+                    .Select(c => c.LinkMaster_Articles)
+                    .Distinct()
+                    .ToList()
+                    .ToHashSet();
+                var idsLockedTemporal = db.TSql_TemporalList
+                    .Where(t => ids.Contains(t.linkMasterArticles))
+                    .Select(t => t.linkMasterArticles)
+                    .Distinct()
+                    .ToList()
+                    .ToHashSet();
+
+                var ttDetails = HttpUtility.HtmlAttributeEncode(MasterArticles.List_LinkOpenTooltip);
+                var ttEdit = HttpUtility.HtmlAttributeEncode(MasterArticles.List_LinkEditTooltip);
+                var ttDelete = HttpUtility.HtmlAttributeEncode(MasterArticles.List_LinkDeleteTooltip);
+                var ttDeleteLocked = HttpUtility.HtmlAttributeEncode(MasterArticles.List_LinkDeleteLockedTooltip);
+                var ttActivate = HttpUtility.HtmlAttributeEncode(MasterArticles.List_LinkActivateTooltip);
+                var ttDeactivate = HttpUtility.HtmlAttributeEncode(MasterArticles.List_LinkDeactivateTooltip);
+                var lblYes = HttpUtility.HtmlEncode(MasterArticles.State_Yes);
+                var lblNo = HttpUtility.HtmlEncode(MasterArticles.State_No);
+
+                var data = rows.Select(p =>
                 {
-                    var btnDetails = "<a title='Detalles del artículo' href='" + Url.Action("Details", "MasterArticles", new { id = p.IdObject }) + "' class=\"btn btn-info btn-xs\"><span class=\"fas fa-file-alt\" aria-hidden=\"true\"></span></a>";
-                    var btnEdit = "<a title='Editar artículo' href='" + Url.Action("Edit", "MasterArticles", new { id = p.IdObject }) + "' class=\"btn btn-warning btn-xs\"><span class=\"fas fa-edit\" aria-hidden=\"true\"></span></a>";
-                    var btnDelete = "<a title='Eliminar artículo' href='" + Url.Action("Delete", "MasterArticles", new { id = p.IdObject }) + "' class=\"btn btn-danger btn-xs\" onclick=\"return confirm('¿Eliminar este artículo?');\"><span class=\"fas fa-trash-alt\" aria-hidden=\"true\"></span></a>";
+                    var namePlain = p.TextLabel ?? "";
+                    var nameCell =
+                        "<a title=\"" + ttDetails + "\" href=\"" +
+                        Url.Action("Details", new { id = p.IdObject }) + "\">" +
+                        HttpUtility.HtmlEncode(namePlain) + "</a>";
+
+                    var btnEdit =
+                        "<a title=\"" + ttEdit + "\" href=\"" +
+                        Url.Action("Edit", new { id = p.IdObject }) +
+                        "\" class=\"btn btn-warning btn-xs\"><span class=\"fas fa-edit\" aria-hidden=\"true\"></span></a>";
+
+                    var locked = idsLockedStock.Contains(p.IdObject)
+                        || idsLockedStockChildren.Contains(p.IdObject)
+                        || idsLockedTemporal.Contains(p.IdObject);
+
+                    string btnDelete;
+                    if (locked)
+                    {
+                        btnDelete =
+                            "<a title=\"" + ttDeleteLocked + "\" class=\"btn btn-secondary btn-xs disabled\" aria-disabled=\"true\" tabindex=\"-1\">" +
+                            "<span class=\"fas fa-trash-alt\" aria-hidden=\"true\"></span></a>";
+                    }
+                    else
+                    {
+                        btnDelete =
+                            "<a title=\"" + ttDelete + "\" href=\"#\" onclick=\"DeleteMasterArticle(" + p.IdObject +
+                            "); return false;\" class=\"btn btn-danger btn-xs\"><span class=\"fas fa-trash-alt\" aria-hidden=\"true\"></span></a>";
+                    }
+
                     var btnToggle = p.AddIsActive
-                        ? "<a title='Desactivar artículo' href='" + Url.Action("SetArticleActive", "MasterArticles", new { id = p.IdObject, active = false }) + "' class=\"btn btn-secondary btn-xs\" onclick=\"return confirm('¿Desactivar este artículo? Seguirá en la base de datos pero no se usará como activo.');\"><span class=\"fas fa-toggle-on\" aria-hidden=\"true\"></span></a>"
-                        : "<a title='Activar artículo' href='" + Url.Action("SetArticleActive", "MasterArticles", new { id = p.IdObject, active = true }) + "' class=\"btn btn-success btn-xs\" onclick=\"return confirm('¿Activar este artículo?');\"><span class=\"fas fa-toggle-off\" aria-hidden=\"true\"></span></a>";
-                    var actionsHtml = allowEdit ? (btnDetails + "&nbsp;" + btnEdit + "&nbsp;" + btnDelete + "&nbsp;" + btnToggle) : string.Empty;
+                        ? "<a title=\"" + ttDeactivate + "\" href=\"" +
+                          Url.Action("SetArticleActive", new { id = p.IdObject, active = false }) +
+                          "\" class=\"btn btn-secondary btn-xs\" onclick=\"return MasterArticlesConfirmDeactivate();\">" +
+                          "<span class=\"fas fa-toggle-on\" aria-hidden=\"true\"></span></a>"
+                        : "<a title=\"" + ttActivate + "\" href=\"" +
+                          Url.Action("SetArticleActive", new { id = p.IdObject, active = true }) +
+                          "\" class=\"btn btn-success btn-xs\" onclick=\"return MasterArticlesConfirmActivate();\">" +
+                          "<span class=\"fas fa-toggle-off\" aria-hidden=\"true\"></span></a>";
+
+                    var rowActions =
+                        "<div class=\"d-inline-flex align-items-center gap-2\" role=\"group\">" +
+                        btnEdit + btnDelete + btnToggle + "</div>";
+
+                    var insertHtml = p.IInsertinMaterArticles
+                        ? "<span class=\"badge bg-label-success\">" + lblYes + "</span>"
+                        : "<span class=\"badge bg-label-secondary\">" + lblNo + "</span>";
+                    var insertPlain = p.IInsertinMaterArticles ? lblYes : lblNo;
+
                     return new
                     {
+                        IdObject = p.IdObject,
                         AddAtenkoCode = p.AddAtenkoCode ?? "",
                         CompanyTextLabel = p.CompanyTextLabel,
                         System_TextLabel = p.System_TextLabel,
-                        TextLabel = p.TextLabel,
+                        TextLabel = nameCell,
+                        TextLabelPlain = namePlain,
                         NumberHigh = p.NumberHigh,
                         NumberWidth = p.NumberWidth,
                         NumberLong = p.NumberLong,
@@ -1052,18 +1244,26 @@ namespace Desing.Controllers
                         AddChangeBy = p.AddChangeBy,
                         AddIsActive = p.AddIsActive,
                         LinkBlockDwgPlant3D = ArticleLinkCellHtml(p.LinkBlockDwgPlant3D),
+                        LinkBlockDwgPlant3DPlain = ArticleLinkCellPlain(p.LinkBlockDwgPlant3D),
                         LinkBlockDwgVerticalElevation3D = ArticleLinkCellHtml(p.LinkBlockDwgVerticalElevation3D),
+                        LinkBlockDwgVerticalElevation3DPlain = ArticleLinkCellPlain(p.LinkBlockDwgVerticalElevation3D),
                         LinkBlockDwgHorizontalElevation3D = ArticleLinkCellHtml(p.LinkBlockDwgHorizontalElevation3D),
+                        LinkBlockDwgHorizontalElevation3DPlain = ArticleLinkCellPlain(p.LinkBlockDwgHorizontalElevation3D),
                         LinkBlockDwgPlantMckUp = ArticleLinkCellHtml(p.LinkBlockDwgPlantMckUp),
+                        LinkBlockDwgPlantMckUpPlain = ArticleLinkCellPlain(p.LinkBlockDwgPlantMckUp),
                         LinkBlockDwgVerticalElevationMockUp = ArticleLinkCellHtml(p.LinkBlockDwgVerticalElevationMockUp),
+                        LinkBlockDwgVerticalElevationMockUpPlain = ArticleLinkCellPlain(p.LinkBlockDwgVerticalElevationMockUp),
                         LinkBlockDwgHorizontalElevationMockUp = ArticleLinkCellHtml(p.LinkBlockDwgHorizontalElevationMockUp),
+                        LinkBlockDwgHorizontalElevationMockUpPlain = ArticleLinkCellPlain(p.LinkBlockDwgHorizontalElevationMockUp),
                         LinkBlockDwgPlantStl = ArticleLinkCellHtml(p.LinkBlockDwgPlantStl),
+                        LinkBlockDwgPlantStlPlain = ArticleLinkCellPlain(p.LinkBlockDwgPlantStl),
                         LinkBlockDwgVerticalElevationStl = ArticleLinkCellHtml(p.LinkBlockDwgVerticalElevationStl),
+                        LinkBlockDwgVerticalElevationStlPlain = ArticleLinkCellPlain(p.LinkBlockDwgVerticalElevationStl),
                         LinkBlockDwgHorizontalElevationStl = ArticleLinkCellHtml(p.LinkBlockDwgHorizontalElevationStl),
-                        IInsertinMaterArticles = p.IInsertinMaterArticles ? "<span class=\"badge bg-label-success\">Sí</span>" : "<span class=\"badge bg-label-secondary\">No</span>",
-                        emptyColumn = actionsHtml,
-                        allowEdit = allowEdit,
-                        allowDelete = allowDelete
+                        LinkBlockDwgHorizontalElevationStlPlain = ArticleLinkCellPlain(p.LinkBlockDwgHorizontalElevationStl),
+                        IInsertinMaterArticles = insertHtml,
+                        IInsertinMaterArticlesPlain = insertPlain,
+                        rowActions = rowActions
                     };
                 }).ToList();
                 return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);

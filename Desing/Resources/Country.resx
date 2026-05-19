@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Btn_New" xml:space="preserve">
+    <value>Nuevo país</value>
+  </data>
+  <data name="Col_Flag" xml:space="preserve">
+    <value>Bandera</value>
+  </data>
+  <data name="Col_Iso2" xml:space="preserve">
+    <value>ISO 2</value>
+  </data>
+  <data name="Col_Iso3" xml:space="preserve">
+    <value>ISO 3</value>
+  </data>
+  <data name="Col_IsoNumber" xml:space="preserve">
+    <value>N.º ISO</value>
+  </data>
+  <data name="Col_Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Col_State" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Common_Home" xml:space="preserve">
+    <value>Inicio</value>
+  </data>
+  <data name="Common_Settings" xml:space="preserve">
+    <value>Configuración</value>
+  </data>
+  <data name="Details_Field_Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="Details_Field_Flag" xml:space="preserve">
+    <value>Bandera</value>
+  </data>
+  <data name="Details_Field_Iso2" xml:space="preserve">
+    <value>ISO 2</value>
+  </data>
+  <data name="Details_Field_Iso3" xml:space="preserve">
+    <value>ISO 3</value>
+  </data>
+  <data name="Details_Field_Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Details_Field_NumberIso" xml:space="preserve">
+    <value>Número ISO</value>
+  </data>
+  <data name="Details_NoBoolValue" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Details_NoValue" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="Details_YesValue" xml:space="preserve">
+    <value>Sí</value>
+  </data>
+  <data name="Err_CannotDeleteHasCompanies" xml:space="preserve">
+    <value>No se puede eliminar: una empresa activa enlaza este país.</value>
+  </data>
+  <data name="Err_CannotDeleteHasLanguages" xml:space="preserve">
+    <value>No se puede eliminar: un idioma activo enlaza este país.</value>
+  </data>
+  <data name="Err_CountryNotFound" xml:space="preserve">
+    <value>País no encontrado.</value>
+  </data>
+  <data name="Index_Breadcrumb" xml:space="preserve">
+    <value>Países</value>
+  </data>
+  <data name="Index_CreateCountry" xml:space="preserve">
+    <value>Nuevo país</value>
+  </data>
+  <data name="Js_ConfirmDeleteCountry" xml:space="preserve">
+    <value>¿Eliminar este país de forma permanente? Solo es posible si no está enlazado a idiomas o empresas.</value>
+  </data>
+  <data name="Lbl_Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="Lbl_ActiveCheckbox" xml:space="preserve">
+    <value>País activo</value>
+  </data>
+  <data name="Lbl_FlagPath" xml:space="preserve">
+    <value>Ruta bandera (virtual)</value>
+  </data>
+  <data name="Lbl_Iso2" xml:space="preserve">
+    <value>ISO 2 (alpha-2)</value>
+  </data>
+  <data name="Lbl_Iso3" xml:space="preserve">
+    <value>ISO 3 (alpha-3)</value>
+  </data>
+  <data name="Lbl_NameRequired" xml:space="preserve">
+    <value>Nombre *</value>
+  </data>
+  <data name="Lbl_NumberIso" xml:space="preserve">
+    <value>Número ISO</value>
+  </data>
+  <data name="List_LinkDeleteLockedCompaniesTooltip" xml:space="preserve">
+    <value>No se puede eliminar: una empresa activa enlaza este país.</value>
+  </data>
+  <data name="List_LinkDeleteLockedLanguagesTooltip" xml:space="preserve">
+    <value>No se puede eliminar: un idioma activo enlaza este país.</value>
+  </data>
+  <data name="List_LinkDeleteTooltip" xml:space="preserve">
+    <value>Eliminar país</value>
+  </data>
+  <data name="List_LinkEditTooltip" xml:space="preserve">
+    <value>Editar país</value>
+  </data>
+  <data name="List_LinkOpenTooltip" xml:space="preserve">
+    <value>Ver país</value>
+  </data>
+  <data name="List_NoFlag" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="Page_CreateTitle" xml:space="preserve">
+    <value>Crear país</value>
+  </data>
+  <data name="Page_DetailsTitle" xml:space="preserve">
+    <value>Detalle del país</value>
+  </data>
+  <data name="Page_EditTitle" xml:space="preserve">
+    <value>Editar país</value>
+  </data>
+  <data name="Ph_FlagPath" xml:space="preserve">
+    <value>~/Content/flags/es.svg</value>
+  </data>
+  <data name="Ph_Iso2" xml:space="preserve">
+    <value>ES</value>
+  </data>
+  <data name="Ph_Iso3" xml:space="preserve">
+    <value>ESP</value>
+  </data>
+  <data name="Ph_Name" xml:space="preserve">
+    <value>Ej.: España</value>
+  </data>
+  <data name="Ph_NumberIso" xml:space="preserve">
+    <value>724</value>
+  </data>
+  <data name="State_Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="State_Inactive" xml:space="preserve">
+    <value>Inactivo</value>
+  </data>
+  <data name="ToastMessage_CountryCreated" xml:space="preserve">
+    <value>País &quot;{0}&quot; creado correctamente.</value>
+  </data>
+  <data name="ToastMessage_CountryDeleted" xml:space="preserve">
+    <value>País &quot;{0}&quot; eliminado correctamente.</value>
+  </data>
+  <data name="ToastMessage_CountryUpdated" xml:space="preserve">
+    <value>País &quot;{0}&quot; actualizado correctamente.</value>
+  </data>
+  <data name="ToastTitle_CreateCountry" xml:space="preserve">
+    <value>Crear país</value>
+  </data>
+  <data name="ToastTitle_DeleteCountry" xml:space="preserve">
+    <value>Eliminar país</value>
+  </data>
+  <data name="ToastTitle_EditCountry" xml:space="preserve">
+    <value>Editar país</value>
+  </data>
+  <data name="Val_DuplicateNameCreate" xml:space="preserve">
+    <value>Ya existe un país con ese nombre.</value>
+  </data>
+  <data name="Val_DuplicateNameEdit" xml:space="preserve">
+    <value>Ya existe otro país con ese nombre.</value>
+  </data>
+  <data name="Val_FlagPathTooLong" xml:space="preserve">
+    <value>La ruta de la bandera no puede superar los 200 caracteres.</value>
+  </data>
+  <data name="Val_Iso2TooLong" xml:space="preserve">
+    <value>ISO 2 no puede superar los 50 caracteres.</value>
+  </data>
+  <data name="Val_Iso3TooLong" xml:space="preserve">
+    <value>ISO 3 no puede superar los 50 caracteres.</value>
+  </data>
+  <data name="Val_NameRequired" xml:space="preserve">
+    <value>El nombre del país es obligatorio.</value>
+  </data>
+  <data name="Val_NameTooLong" xml:space="preserve">
+    <value>El nombre no puede superar los 500 caracteres.</value>
+  </data>
+  <data name="Val_NumberIsoTooLong" xml:space="preserve">
+    <value>El número ISO no puede superar los 50 caracteres.</value>
+  </data>
+</root>

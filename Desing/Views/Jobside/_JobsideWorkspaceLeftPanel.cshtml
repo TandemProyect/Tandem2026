@@ -1,0 +1,149 @@
+@model DAL.TSql_Jobside
+@using Desing.Resources
+@using System.Configuration
+@using System.Linq
+@functions {
+    private static string JoinParts(params string[] parts)
+    {
+        return string.Join(", ", parts.Where(s => !string.IsNullOrWhiteSpace(s)));
+    }
+}
+@{
+    var clientName = Model.TSql_Client_V2 != null ? Model.TSql_Client_V2.TextLabel : null;
+    var branchName = Model.TSql_Branch != null ? Model.TSql_Branch.AttLabel : null;
+    var locStreetLine = JoinParts(Model.Loc_Street_Number, Model.Loc_Route, Model.Loc_Subpremise);
+    var locRest = JoinParts(Model.Loc_Locality, Model.Loc_Admin_Area_2, Model.Loc_Admin_Area_1, Model.Loc_Postal_Code, Model.Loc_Country_Name);
+    var billStreetLine = JoinParts(Model.Bill_Street_Number, Model.Bill_Route, Model.Bill_Subpremise);
+    var billRest = JoinParts(Model.Bill_Locality, Model.Bill_Admin_Area_2, Model.Bill_Admin_Area_1, Model.Bill_Postal_Code, Model.Bill_Country_Name);
+    var mapsKey = ConfigurationManager.AppSettings["GoogleMaps:ApiKey"] ?? "";
+    var hasMapsKey = !string.IsNullOrWhiteSpace(mapsKey);
+    var hasLocCoords = Model.Loc_Lat.HasValue && Model.Loc_Lng.HasValue;
+}
+
+<div class="card border shadow-none">
+    <div class="card-header fw-semibold text-primary py-3 px-4">
+        @Jobside.Workspace_LeftTitle
+    </div>
+    <div class="card-body pt-3 px-4 pb-4 tandem-fill-scroll">
+        <dl class="row mb-0">
+            <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Details_Field_ContractRef</dt>
+            <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.TextContractRef) ? Jobside.Details_NoValue : Model.TextContractRef)</dd>
+
+            <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Details_Field_JobsideNotes</dt>
+            <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.TextJobsideNotes) ? Jobside.Details_NoValue : Model.TextJobsideNotes)</dd>
+
+            <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Details_Field_AddNJobside</dt>
+            <dd class="col-sm-8"><span class="font-monospace">@(string.IsNullOrWhiteSpace(Model.AddNJobside) ? Jobside.Details_NoValue : Model.AddNJobside)</span></dd>
+
+            <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Details_Field_Name</dt>
+            <dd class="col-sm-8">@Model.TextLabel</dd>
+
+            <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Details_Field_Client</dt>
+            <dd class="col-sm-8">@(string.IsNullOrEmpty(clientName) ? Jobside.Details_NoValue : clientName)</dd>
+
+            <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Details_Field_Branch</dt>
+            <dd class="col-sm-8">@(string.IsNullOrEmpty(branchName) ? Jobside.Details_NoValue : branchName)</dd>
+
+            <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Details_Field_Active</dt>
+            <dd class="col-sm-8">
+                @if (Model.Is_Active)
+                {
+                    <span class="badge bg-label-success">@Jobside.State_Active</span>
+                }
+                else
+                {
+                    <span class="badge bg-label-secondary">@Jobside.State_Inactive</span>
+                }
+            </dd>
+
+            <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Details_Field_BillSameAsLocLabel</dt>
+            <dd class="col-sm-8">@(Model.BitBillSameAsLoc ? Jobside.Details_YesValue : Jobside.Details_NoBoolValue)</dd>
+
+            <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Details_Field_LocAddress</dt>
+            <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.Loc_Formatted_Address) ? Jobside.Details_NoValue : Model.Loc_Formatted_Address)</dd>
+
+            <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Details_Section_LocationDetail</dt>
+            <dd class="col-sm-8">
+                @if (string.IsNullOrEmpty(locStreetLine) && string.IsNullOrEmpty(locRest))
+                {
+                    @Jobside.Details_NoValue
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(locStreetLine))
+                    {
+                        <div>@locStreetLine</div>
+                    }
+                    if (!string.IsNullOrEmpty(locRest))
+                    {
+                        <div>@locRest</div>
+                    }
+                }
+            </dd>
+
+            <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Details_Field_BillAddress</dt>
+            <dd class="col-sm-8">
+                @if (Model.BitBillSameAsLoc)
+                {
+                    <span class="text-muted">@Jobside.Lbl_BillSameAsLocShort</span>
+                }
+                else
+                {
+                    @(string.IsNullOrEmpty(Model.Bill_Formatted_Address) ? Jobside.Details_NoValue : Model.Bill_Formatted_Address)
+                }
+            </dd>
+
+            <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Details_Section_BillingDetail</dt>
+            <dd class="col-sm-8">
+                @if (Model.BitBillSameAsLoc)
+                {
+                    <span class="text-muted">@Jobside.Lbl_BillSameAsLocShort</span>
+                }
+                else if (string.IsNullOrEmpty(billStreetLine) && string.IsNullOrEmpty(billRest))
+                {
+                    @Jobside.Details_NoValue
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(billStreetLine))
+                    {
+                        <div>@billStreetLine</div>
+                    }
+                    if (!string.IsNullOrEmpty(billRest))
+                    {
+                        <div>@billRest</div>
+                    }
+                }
+            </dd>
+        </dl>
+
+        <div class="card border shadow-none mt-3 mb-0">
+            <div class="card-header fw-semibold text-primary py-2 px-3 bg-label-primary bg-opacity-10">
+                @Jobside.Workspace_MapTitle
+            </div>
+            <div class="card-body p-3">
+                @if (!hasLocCoords)
+                {
+                    <div class="tandem-address-block tandem-address-block--compact border rounded p-2 mb-0">
+                        <div class="tandem-address-map is-empty mb-0" role="status">
+                            @Common.Google_Msg_NoAddress
+                        </div>
+                    </div>
+                }
+                else if (!hasMapsKey)
+                {
+                    <div class="alert alert-warning mb-0 py-2" role="alert">
+                        <strong>@Jobside.Google_NotConfiguredStrong</strong>@Jobside.Google_NotConfiguredBody
+                    </div>
+                }
+                else
+                {
+                    <div class="tandem-address-block tandem-address-block--compact border rounded p-2 mb-0">
+                        <label class="form-label mb-2 text-primary">@Common.Google_Lbl_Map</label>
+                        <div id="jobsideWorkspaceLocMap" class="tandem-address-map mb-0" role="img" aria-label="@Common.Google_Aria_MapPreview"></div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

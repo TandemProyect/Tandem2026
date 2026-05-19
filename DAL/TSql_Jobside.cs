@@ -22,6 +22,8 @@ namespace DAL
         }
     
         public long IdObject { get; set; }
+        public string AddNJobside { get; set; }
+        public string AddNJobsideClient { get; set; }
         public string TextLabel { get; set; }
         public bool Is_Delete { get; set; }
         public bool Is_Active { get; set; }
@@ -60,9 +62,13 @@ namespace DAL
         public string Bill_Country_Code { get; set; }
         public string Bill_Country_Name { get; set; }
         public string Bill_Address_Components_Json { get; set; }
+        public string TextContractRef { get; set; }
+        public string TextJobsideNotes { get; set; }
+        public long LinBranch { get; set; }
     
         public virtual AspNetUsers AspNetUsers { get; set; }
         public virtual AspNetUsers AspNetUsers1 { get; set; }
+        public virtual TSql_Branch TSql_Branch { get; set; }
         public virtual TSql_Client_V2 TSql_Client_V2 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TSql_Document> TSql_Document { get; set; }

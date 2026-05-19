@@ -1,8 +1,9 @@
-﻿@{
-    ViewBag.Title = "Login Failure";
+﻿@using Desing.Resources
+@{
+    ViewBag.Title = Common.ExternalLogin_FailureTitle;
 }
 
 <hgroup>
     <h2>@ViewBag.Title.</h2>
-    <h3 class="text-danger">Unsuccessful login with service.</h3>
+    <h3 class="text-danger">@Common.ExternalLogin_FailureSubtitle</h3>
 </hgroup>

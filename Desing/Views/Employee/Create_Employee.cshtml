@@ -1,10 +1,12 @@
 ﻿@model Desing.Models.EmployeeViewModel
+@using Desing.Resources
+
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="py-3 mb-0">
         <span class="text-muted fw-light">
-            <a href="@Url.Action("Index", "Home")">Inicio</a> /
-            <a href="@Url.Action("Index", "Employee")">Empleados</a> /
-        </span> @(Model.IsEdit ? "Editar Empleado" : "Crear Empleado")
+            <a href="@Url.Action("Index", "Home")">@Employee.Common_Home</a> /
+            <a href="@Url.Action("Index", "Employee")">@Employee.Index_Breadcrumb</a> /
+        </span> @(Model.IsEdit ? Employee.Page_EditTitle : Employee.Page_CreateTitle)
         @if (!string.IsNullOrEmpty(Model.userSystem))
         {
             <small class="text-muted ms-2">@Model.userSystem</small>
@@ -26,44 +28,44 @@
             <input type="hidden" name="userSystem" value="@Model.userSystem" />
 
             <div class="col-12">
-                <p class="text-muted mb-0">Alta de empleado para el usuario: <strong>@Model.userSystem</strong></p>
+                <p class="text-muted mb-0">@Employee.Header_AccountInfo <strong>@Model.userSystem</strong></p>
             </div>
 
             <div class="col-lg-7">
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label">@Html.DisplayNameFor(m => m.AttName)</label>
-                        @Html.EditorFor(m => m.AttName, new { htmlAttributes = new { @class = "form-control", @placeholder = "Inserta nombre" } })
-                        @Html.ValidationMessageFor(m => m.AttName, "", new { @id = "LabelField", @class = "text-danger" })
+                        <label class="form-label">@Employee.Lbl_NameRequired</label>
+                        @Html.EditorFor(m => m.AttName, new { htmlAttributes = new { @class = "form-control", @placeholder = Employee.Ph_NameRequired } })
+                        @Html.ValidationMessageFor(m => m.AttName, "", new { @class = "text-danger" })
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">@Html.DisplayNameFor(m => m.AttSurname)</label>
-                        @Html.EditorFor(m => m.AttSurname, new { htmlAttributes = new { @class = "form-control", @placeholder = "Inserta apellido" } })
-                        @Html.ValidationMessageFor(m => m.AttSurname, "", new { @id = "LabelField", @class = "text-danger" })
+                        <label class="form-label">@Employee.Lbl_SurnameRequired</label>
+                        @Html.EditorFor(m => m.AttSurname, new { htmlAttributes = new { @class = "form-control", @placeholder = Employee.Ph_SurnameRequired } })
+                        @Html.ValidationMessageFor(m => m.AttSurname, "", new { @class = "text-danger" })
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">@Html.DisplayNameFor(model => model.LinCompany)</label>
+                        <label class="form-label">@Employee.Lbl_Company</label>
                         @Html.DropDownList("LinCompany", null, htmlAttributes: new { @class = "form-select" })
-                        <small class="text-muted">La plantilla visual (colores, marca) la define la empresa en Empresas.</small>
+                        <small class="text-muted">@Employee.Lbl_CompanyHint</small>
                         @Html.ValidationMessageFor(model => model.LinCompany, "", new { @class = "text-danger" })
                     </div>
                     <div class="col-12 mt-2">
-                        <h6 class="mb-2">Autorización de equipo para plugin</h6>
+                        <h6 class="mb-2">@Employee.Lbl_DeviceSectionTitle</h6>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">@Html.DisplayNameFor(m => m.DeviceName)</label>
-                        @Html.EditorFor(m => m.DeviceName, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ej: PC-OFICINA-01" } })
+                        <label class="form-label">@Employee.Lbl_DeviceName</label>
+                        @Html.EditorFor(m => m.DeviceName, new { htmlAttributes = new { @class = "form-control", @placeholder = Employee.Ph_DeviceName } })
                         @Html.ValidationMessageFor(m => m.DeviceName, "", new { @class = "text-danger" })
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">@Html.DisplayNameFor(m => m.DeviceId)</label>
-                        @Html.EditorFor(m => m.DeviceId, new { htmlAttributes = new { @class = "form-control", @placeholder = "Hash DeviceId del plugin" } })
+                        <label class="form-label">@Employee.Lbl_DeviceId</label>
+                        @Html.EditorFor(m => m.DeviceId, new { htmlAttributes = new { @class = "form-control", @placeholder = Employee.Ph_DeviceId } })
                         @Html.ValidationMessageFor(m => m.DeviceId, "", new { @class = "text-danger" })
                     </div>
                     <div class="col-12">
                         <div class="form-check form-switch">
                             @Html.CheckBoxFor(m => m.DeviceAllowed, new { @class = "form-check-input" })
-                            <label class="form-check-label" for="DeviceAllowed">Autorizar plugin para este equipo</label>
+                            <label class="form-check-label" for="DeviceAllowed">@Employee.Lbl_DeviceAllowed</label>
                         </div>
                     </div>
                 </div>
@@ -73,54 +75,35 @@
                     <div class="mb-3 text-center">
                         <img id="output" src="~/Files/RRHH/User/AttPhotoMenu/User.png" class="img-fluid rounded" style="max-height:300px" />
                     </div>
-                    <label for="file" class="form-label">Foto de perfil</label>
+                    <label for="file" class="form-label">@Employee.Lbl_Photo</label>
                     <input class="form-control" type="file" name="file1" id="file" onchange="loadFile(event)">
+                    <small class="text-muted d-block mt-1">@Employee.Lbl_PhotoHint</small>
                 </div>
             </div>
 
             <div class="col-12 border-top pt-3 mt-2 d-flex justify-content-end gap-2">
-                <a href="@Url.Action("Index", "Employee")" class="btn btn-outline-secondary">Salir</a>
-                <button type="submit" id="SubmitEditBtn" class="btn btn-primary">@(Model.IsEdit ? "Guardar cambios" : "Crear")</button>
+                <a href="@Url.Action("Index", "Employee")" class="btn btn-outline-secondary">@Employee.Btn_Exit</a>
+                <button type="submit" id="SubmitEditBtn" class="btn btn-primary">@(Model.IsEdit ? Employee.Btn_SaveChanges : Employee.Btn_SaveEmployee)</button>
             </div>
         }
     </div>
 </div>
+
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
-<script type="text/javascript">
-        $(document).ready(function ()
-        {
+    <script type="text/javascript">
+        $(document).ready(function () {
             if ('@Model.AttPhotoMenu' == "") {
                 output.src = "~/Files/RRHH/User/AttPhotoMenu/user.png";
             }
             else {
                 output.src = '@Model.AttPhotoMenu';
             }
- 
-            $('#sidebar').toggleClass('active');
-            $(this).toggleClass('active');
-             //Load Toas
-                $.ajax({
-                type: 'POST',
-                url: '@Url.Content("~/ToasHelp/DataToaster")',
-                    data: {
-                        Type: "info",
-                        ToasConcept: "The User was create ok",
-                        ToasMessage: "Create User",
-                    },
-                success: function (data) {
-                    $('#PartialToas').html(data);
-                    }
-                });
-                $('#PartialToas').fadeIn();
-                //End Load Toas
         });
 
         var loadFile = function (event) {
             var image = document.getElementById('output');
             image.src = URL.createObjectURL(event.target.files[0]);
         };
-
-</script>
+    </script>
 }
-

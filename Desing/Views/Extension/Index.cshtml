@@ -1,13 +1,31 @@
+@using Newtonsoft.Json
+@using Desing.Resources
+@using System.Globalization
 @{
-    ViewBag.Title = "Extensiones";
+    ViewBag.Title = Extension.Index_Breadcrumb;
+    var ci = CultureInfo.CurrentUICulture?.TwoLetterISOLanguageName ?? "es";
+    var extensionDt = JsonConvert.SerializeObject(new
+    {
+        culture = ci,
+        rowsSuffix = Common.Dt_Rows_N,
+        allRows = Common.Dt_Rows_All,
+        sectionRecords = Common.Dt_Section_Records,
+        sectionExport = Common.Dt_Section_Export,
+        sectionCols = Common.Dt_Section_ColumnsVisible,
+        confirmDeleteExtension = Extension.Js_ConfirmDeleteExtension,
+        ariaMenu = Common.Dt_MenuAria
+    });
 }
 
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="py-3 mb-0">
-        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> / Configuración /</span> Extensiones
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@Extension.Common_Home</a> /
+            @Extension.Common_Settings /
+        </span> @Extension.Index_Breadcrumb
     </h4>
-    <a class="btn btn-primary" href="@Url.Action("Create")">
-        <i class="icon-base ri ri-add-line me-1"></i> Nueva extensión
+    <a class="btn btn-primary text-white" href="@Url.Action("Create", "Extension")">
+        <i class="icon-base ri ri-add-line me-1"></i> @Extension.Index_CreateExtension
     </a>
 </div>
 
@@ -21,11 +39,12 @@
         <table id="ListExtensions" class="table table-hover" cellspacing="0" style="width: 100%">
             <thead>
                 <tr>
-                    <th></th>
-                    <th>Nombre</th>
-                    <th>Tamaño máx.</th>
-                    <th>Estado</th>
-                    <th></th>
+                    <th>@Extension.Col_Icon</th>
+                    <th>@Extension.Col_Name</th>
+                    <th>@Extension.Col_MaxFileSize</th>
+                    <th>@Extension.Col_DocumentTypes</th>
+                    <th>@Extension.Col_State</th>
+                    <th class="text-end text-nowrap" style="width:1%;"></th>
                     <th>ID</th>
                 </tr>
             </thead>
@@ -33,35 +52,92 @@
     </div>
 </div>
 
-@section scripts {
+@section scripts
+{
     <script type="text/javascript">
-        function deleteExtension(id) {
-            if (!confirm('¿Eliminar esta extensión?')) return;
-
-            $.post('@Url.Action("DeleteExtension")',
-                { id: id, __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() },
-                function (r) {
-                    alert(r.Message);
-                    if (r.IsOk) $('#ListExtensions').DataTable().ajax.reload();
-                });
-        }
+        var extensionDt = @Html.Raw(extensionDt);
+        var extensionExportOpts = TandemDataTablesList.exportOptsPlainVisible;
 
         $(document).ready(function () {
             $('#ListExtensions').DataTable(TandemDataTablesList.applyListDefaults({
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    ['10 ' + extensionDt.rowsSuffix, '25 ' + extensionDt.rowsSuffix, '50 ' + extensionDt.rowsSuffix, extensionDt.allRows]
+                ],
+                buttons: [{
+                    extend: 'collection',
+                    text: "<i class='fas fa-bars'></i>",
+                    attr: { 'aria-label': extensionDt.ariaMenu },
+                    className: 'custom-html-collection',
+                    buttons: [
+                        '<h5>' + extensionDt.sectionRecords + '</h5>',
+                        'pageLength',
+                        '<h5>' + extensionDt.sectionExport + '</h5>',
+                        'print',
+                        'copy',
+                        'pdf',
+                        { extend: 'csv', exportOptions: extensionExportOpts },
+                        { extend: 'excel', exportOptions: extensionExportOpts },
+                        '<h5 class="not-top-heading">' + extensionDt.sectionCols + '</h5>',
+                        'colvis'
+                    ]
+                }],
                 serverSide: true,
                 processing: true,
-                ajax: { url: '@Url.Action("ListExtensions")', type: 'POST' },
+                colReorder: { iFixedColumnsRight: 2 },
+                ajax: {
+                    url: '@Url.Action("ListExtensions", "Extension")',
+                    type: 'POST'
+                },
+                order: [[1, 'asc']],
                 columns: [
                     { data: 'IcoThumb', name: 'IcoThumb', orderable: false, searchable: false },
-                    { data: 'TextLabel', name: 'TextLabel' },
+                    {
+                        data: 'TextLabel',
+                        name: 'TextLabel',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.TextLabelPlain || '';
+                            }
+                            return data;
+                        }
+                    },
                     { data: 'MaxFileSize', name: 'MaxFileSize' },
-                    { data: 'activeBadge', name: 'Is_Active' },
-                    { data: 'buttonEdit', orderable: false, searchable: false },
+                    { data: 'DocumentTypes', name: 'DocumentTypes', orderable: false, searchable: false },
+                    { data: 'activeBadge', name: 'Is_Active', orderable: true, searchable: false },
+                    {
+                        data: 'rowActions',
+                        orderable: false,
+                        searchable: false,
+                        className: 'tandem-col-actions text-end align-middle text-nowrap'
+                    },
                     { data: 'IdObject', visible: false }
-                ]
+                ],
+                drawCallback: function () {
+                    $('[data-toggle="tooltip"]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto right'
+                    });
+                    $('[title]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto'
+                    });
+                }
             }));
         });
+
+        window.DeleteExtension = function (id) {
+            if (!confirm(extensionDt.confirmDeleteExtension)) return;
+            $.post('@Url.Action("DeleteExtension", "Extension")',
+                { id: id, __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() },
+                function (res) {
+                    if (res && res.Message) { alert(res.Message); }
+                    if (res && res.IsOk) {
+                        $('#ListExtensions').DataTable().ajax.reload(null, false);
+                    }
+                });
+        };
     </script>
-    @* Token AntiForgery para que deleteExtension pueda incluirlo en el POST. *@
+    @* Token AntiForgery para que DeleteExtension pueda incluirlo en el POST. *@
     <div style="display:none;">@Html.AntiForgeryToken()</div>
 }

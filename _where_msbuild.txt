@@ -1,0 +1,7 @@
+﻿where.exe : INFORMACIÓN: no se pudo encontrar ningún archivo para los patrones dados.
+En C:\Users\jag\AppData\Local\Temp\ps-script-1edc628a-442b-4e84-a2af-47018e69dfd4.ps1: 108 Carácter: 1
++ where.exe msbuild 2>&1 | Out-File C:\00_Tandem2026\_where_msbuild.txt ...
++ ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (INFORMACIÓN: no...patrones dados.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

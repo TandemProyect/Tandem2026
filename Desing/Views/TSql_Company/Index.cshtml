@@ -1,10 +1,30 @@
 ﻿@model DAL.TSql_Company
+@using Newtonsoft.Json
+@using Desing.Resources
+@using System.Globalization
+@{
+    var ci = CultureInfo.CurrentUICulture?.TwoLetterISOLanguageName ?? "es";
+    var companyDt = JsonConvert.SerializeObject(new
+    {
+        culture = ci,
+        rowsSuffix = Company.Dt_Rows_N,
+        allRows = Company.Dt_Rows_All,
+        sectionRecords = Company.Dt_Section_Records,
+        sectionExport = Company.Dt_Section_Export,
+        sectionCols = Company.Dt_Section_ColumnsVisible,
+        badgeActiveClass = Company.State_Active,
+        badgeInactiveClass = Company.State_Inactive,
+        confirmDeleteCompany = Company.Js_ConfirmDeleteCompany,
+        confirmToggleCompany = Company.Js_ConfirmToggleCompany,
+        ariaMenu = Company.Dt_MenuAria
+    });
+}
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="py-3 mb-0">
-        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> /</span> Empresas
+        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">@Company.Common_Home</a> /</span> @Company.Index_Breadcrumb
     </h4>
     <a class="btn btn-primary" href="@Url.Action("Create", "TSql_Company")">
-        <i class="icon-base ri ri-add-line me-1"></i> Crear Nueva empresa
+        <i class="icon-base ri ri-add-line me-1"></i> @Company.Index_CreateCompany
     </a>
 </div>
 @if (!string.IsNullOrEmpty(TempData["ToastMessage"] as string))
@@ -16,18 +36,18 @@
         <table id="ListTSql_Company" class="table table-hover" cellspacing="0" style="width: 100%">
             <thead>
                 <tr>
-                    <th>Nombre</th>
-                    <th>Signadura</th>
-                    <th>Logo</th>
-                    <th>Descripción</th>
-                    <th>Dirección</th>
-                    <th>Dirección 2</th>
-                    <th>Código Postal</th>
-                    <th>Ciudad</th>
+                    <th>@Company.Col_Name</th>
+                    <th>@Company.Col_AddLeter</th>
+                    <th>@Company.Col_Logo</th>
+                    <th>@Company.Col_Description</th>
+                    <th>@Company.Col_Address</th>
+                    <th>@Company.Col_Address2</th>
+                    <th>@Company.Col_PostalCode</th>
+                    <th>@Company.Col_City</th>
                     <th></th>
-                    <th>Pais</th>
-                    <th>Estado</th>
-                    <th></th>
+                    <th>@Company.Col_Country</th>
+                    <th>@Company.Col_State</th>
+                    <th class="text-end text-nowrap" style="width:1%;"></th>
                     <th>ID</th>
                 </tr>
             </thead>
@@ -36,110 +56,105 @@
 </div>
 
 @section scripts
-    {
+{
     <script type="text/javascript">
-        $(document).ready(function () {
-            var ListTSql_Company = {
-            dt: null,
-            init: function () {
-                dt = $('#ListTSql_Company').DataTable({
-                    dom: '<"dataTables-length-position">Bfrt<"dataTables-length-position"i>p',
-                    lengthMenu: [
-                        [10, 25, 50, -1],
-                        ['10 filas', '25 filas', '50 filas', 'Todas']
-                    ],
-                    buttons: [
-                        {
-                            extend: 'collection',
-                            text: "<i class='fas fa-bars'></i>",
-                            className: 'custom-html-collection',
-                            buttons: [
-                                '<h5>Registros</h5>',
-                                'pageLength',
-                                '<h5>Exportar</h5>',
-                                'print',
-                                'copy',
-                                'pdf',
-                                'csv',
-                                'excel',
-                                '<h5 class="not-top-heading">Columnas visibles</h5>',
-                                'colvis'
-                            ]
-                        }
-                    ],
-                    //buttons: [
-                    //    'copy', 'csv', 'excel', 'pdf', 'print'
-                    //],
-                    "serverSide": true,
-                    "processing": true,
-                    "stateSave": true,
-                    "colReorder": { "iFixedColumnsRight": 2 },
-                    "ajax": {
-                        "url": "@Url.Content("~/TSql_Company/ListTSql_Company/")",
-                    "type": "POST"
-                        },
-                    "columns": [
-                        { "data": "TextLabel"},
-                        { "data": "AddLeter"},
-                        { "data": "TextLogo"},
-                        { "data": "TextDescription"},
-                        { "data": "TextAddress_1"},
-                        { "data": "TextAddress_2"},
-                        { "data": "TextPostal_Code"},
-                        { "data": "TextTown_1"},
-                        { "data": "TextFlag"},
-                        { "data": "Country"},
-                        {
-                            "data": "BitIsDeleted",
-                            "render": function (data, type) {
-                                if (type !== "display") { return data; }
-                                return data ? "<span class='badge bg-label-danger'>Desactivada</span>" : "<span class='badge bg-label-success'>Activa</span>";
-                            }
-                        },
-                        { "data": "emptyColumn" },
-                        { "data": "SysObjectID" }
-            ],
-            "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]],
-            /*   "iDisplayLength": parseInt(leerCookie("_rowsPerPage")),*/
-            "fnRowCallback": function (nRow, data) {
-                var actions = (data.buttonDisable || "") + "&nbsp;" + (data.buttonEdit || "");
-                if (!data.HasDependencies) {
-                    actions += "&nbsp;" + (data.buttonDelete || "");
-                }
-                $('td:eq(11)', nRow).html(actions);
-                return nRow;
-            },
-            "aaSorting": [[1, 'desc']],
-            "aoColumnDefs": [
-                { "bSortable": false, "aTargets": [11] },
-                { "bVisible": false, "aTargets": [12] },
-                { "bSortable": false, "aTargets": [12] },
-                { "width": "300px", "aTargets": [0] },
-                { "width": "500px", "aTargets": [3] },
-                { "width": "120px", "aTargets": [11] },
-            ],
-            drawCallback: function () {
-                $('[data-toggle="tooltip"]').tooltip({
-                    delay: { "show": 100, "hide": 100 },
-                    placement: "auto right"
-                }),
-                    $('[title]').tooltip({
-                        delay: { "show": 100, "hide": 100 },
-                        placement: "auto"
-                    })
-            },
+        var companyDt = @Html.Raw(companyDt);
+        var companyExportOpts = TandemDataTablesList.exportOptsPlainVisible;
 
-        });
+        $(document).ready(function () {
+            $('#ListTSql_Company').DataTable(TandemDataTablesList.applyListDefaults({
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    ['10 ' + companyDt.rowsSuffix, '25 ' + companyDt.rowsSuffix, '50 ' + companyDt.rowsSuffix, companyDt.allRows]
+                ],
+                buttons: [{
+                    extend: 'collection',
+                    text: "<i class='fas fa-bars'></i>",
+                    attr: { 'aria-label': companyDt.ariaMenu },
+                    className: 'custom-html-collection',
+                    buttons: [
+                        '<h5>' + companyDt.sectionRecords + '</h5>',
+                        'pageLength',
+                        '<h5>' + companyDt.sectionExport + '</h5>',
+                        'print',
+                        'copy',
+                        'pdf',
+                        { extend: 'csv', exportOptions: companyExportOpts },
+                        { extend: 'excel', exportOptions: companyExportOpts },
+                        '<h5 class="not-top-heading">' + companyDt.sectionCols + '</h5>',
+                        'colvis'
+                    ]
+                }],
+                serverSide: true,
+                processing: true,
+                colReorder: { iFixedColumnsRight: 2 },
+                ajax: {
+                    url: '@Url.Content("~/TSql_Company/ListTSql_Company/")',
+                    type: 'POST'
+                },
+                order: [[0, 'asc']],
+                columns: [
+                    {
+                        data: 'TextLabel',
+                        name: 'TextLabel',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.TextLabelPlain || '';
+                            }
+                            return data;
+                        }
+                    },
+                    { data: 'AddLeter', name: 'AddLeter' },
+                    { data: 'TextLogo', name: 'TextLogo' },
+                    { data: 'TextDescription', name: 'TextDescription' },
+                    { data: 'TextAddress_1', name: 'TextAddress_1' },
+                    { data: 'TextAddress_2', name: 'TextAddress_2' },
+                    { data: 'TextPostal_Code', name: 'TextPostal_Code' },
+                    { data: 'TextTown_1', name: 'TextTown_1' },
+                    { data: 'TextFlag', name: 'TextFlag', orderable: false, searchable: false },
+                    { data: 'Country', name: 'Country' },
+                    {
+                        data: 'BitIsDeleted',
+                        name: 'BitIsDeleted',
+                        render: function (data, type) {
+                            if (type === 'export') {
+                                return data ? companyDt.badgeInactiveClass : companyDt.badgeActiveClass;
+                            }
+                            if (type !== 'display') {
+                                return data;
+                            }
+                            return data
+                                ? '<span class="badge bg-label-danger">' + companyDt.badgeInactiveClass + '</span>'
+                                : '<span class="badge bg-label-success">' + companyDt.badgeActiveClass + '</span>';
+                        }
+                    },
+                    {
+                        data: 'rowActions',
+                        orderable: false,
+                        searchable: false,
+                        className: 'tandem-col-actions text-end align-middle text-nowrap'
+                    },
+                    { data: 'SysObjectID', visible: false }
+                ],
+                drawCallback: function () {
+                    $('[data-toggle="tooltip"]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto right'
+                    });
+                    $('[title]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto'
+                    });
                 }
-            }
-            ListTSql_Company.init();
+            }));
         });
-    $('#sidebar').toggleClass('active');
+
+        $('#sidebar').toggleClass('active');
         $(this).toggleClass('active');
         $('#sidebar').load('/Menu/Index');
 
         window.DeleteCompany = function (id) {
-            if (!confirm("¿Quieres eliminar esta empresa?")) return;
+            if (!confirm(companyDt.confirmDeleteCompany)) return;
             $.post('@Url.Action("DeleteCompany", "TSql_Company")', { id: id }, function (res) {
                 alert(res.Message);
                 if (res.IsOk) {
@@ -149,7 +164,7 @@
         };
 
         window.ToggleCompany = function (id) {
-            if (!confirm("¿Quieres desactivar/activar esta empresa?")) return;
+            if (!confirm(companyDt.confirmToggleCompany)) return;
             $.post('@Url.Action("ToggleCompany", "TSql_Company")', { id: id }, function (res) {
                 alert(res.Message);
                 if (res.IsOk) {
@@ -159,4 +174,3 @@
         };
     </script>
 }
-

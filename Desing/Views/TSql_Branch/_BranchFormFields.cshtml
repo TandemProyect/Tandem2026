@@ -1,0 +1,33 @@
+@model DAL.TSql_Branch
+@using Desing.Helpers
+@using Desing.Models
+@using Desing.Resources
+@{
+    var pickerHex = BranchColorHelper.HexForColorInput(Model.Attcolor);
+}
+<div class="col-md-12">
+    <label class="form-label" for="AttLabel">@Branch.Branch_Lbl_NameRequiredModal</label>
+    @Html.TextBoxFor(m => m.AttLabel, new { @class = "form-control", maxlength = "500", autocomplete = "organization" })
+    @Html.ValidationMessageFor(m => m.AttLabel, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-12">
+    <label class="form-label" for="AttDescription">@Branch.Branch_Lbl_Description</label>
+    @Html.TextAreaFor(m => m.AttDescription, new { @class = "form-control", rows = "2", maxlength = "2000" })
+    @Html.ValidationMessageFor(m => m.AttDescription, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-4">
+    <label class="form-label" for="AddLetter">@Branch.Branch_Lbl_LetterShort</label>
+    @Html.TextBoxFor(m => m.AddLetter, new { @class = "form-control", maxlength = "2" })
+    @Html.ValidationMessageFor(m => m.AddLetter, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-8">
+    <label class="form-label" for="branchAttcolorText">@Branch.Branch_Lbl_AccentColor</label>
+    <div class="d-flex align-items-center gap-2">
+        <input type="color" id="branchAttcolorPicker" value="@pickerHex" class="form-control form-control-color p-1" style="width:3.25rem;height:2.5rem" title="@Branch.Branch_Lbl_AccentColor" />
+        @Html.TextBoxFor(m => m.Attcolor, new { @class = "form-control", id = "branchAttcolorText", maxlength = "7", placeholder = "#RRGGBB" })
+    </div>
+    @Html.ValidationMessageFor(m => m.Attcolor, "", new { @class = "text-danger" })
+</div>
+<div class="col-12">
+    @Html.Partial("~/Views/Shared/_GooglePlacesAddressBlock.cshtml", GooglePlacesAddressBlockModel.FromBranch(Model, "Loc", Company.Lbl_AddressGooglePlaces))
+</div>

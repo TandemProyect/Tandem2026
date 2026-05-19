@@ -1,18 +1,20 @@
 @model Desing.Models.MasterArticleDetailsViewModel
 @using System.Linq
+@using Desing.Resources
 @{
     var a = Model.Article;
     var hasStlPreview = Model.AttachmentSlots != null && Model.AttachmentSlots.Any(s => s.StlPreviewExists);
+    ViewBag.Title = MasterArticles.Page_DetailsTitle;
 }
 @Html.Partial("_MasterArticleStlPreviewStyles")
 <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
     <h4 class="py-3 mb-0">
-        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> / <a href="@Url.Action("Index", "MasterArticles")">Artículos</a> /</span> Detalles
+        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">@MasterArticles.Common_Home</a> / <a href="@Url.Action("Index", "MasterArticles")">@MasterArticles.Index_Breadcrumb</a> /</span> @MasterArticles.Page_DetailsTitle
     </h4>
     <div class="d-flex flex-wrap gap-2">
-        <a class="btn btn-outline-secondary" href="@Url.Action("Index", "MasterArticles")">Volver a la lista</a>
+        <a class="btn btn-outline-secondary" href="@Url.Action("Index", "MasterArticles")">@MasterArticles.Btn_BackToList</a>
         <a class="btn btn-primary" href="@Url.Action("Edit", "MasterArticles", new { id = a.IdObject })">
-            <i class="icon-base ri ri-edit-line me-1"></i> Editar artículo
+            <i class="icon-base ri ri-edit-line me-1"></i> @MasterArticles.Btn_EditArticle
         </a>
     </div>
 </div>
@@ -20,32 +22,32 @@
 <div class="row g-3">
     <div class="col-lg-6">
         <div class="card h-100">
-            <div class="card-header"><strong>Identificación y sistema</strong></div>
+            <div class="card-header"><strong>@MasterArticles.Details_Section_Identification</strong></div>
             <div class="card-body">
                 <dl class="row mb-0 small">
-                    <dt class="col-sm-5">Descripción</dt><dd class="col-sm-7">@a.TextLabel</dd>
-                    <dt class="col-sm-5">Código Atenko</dt><dd class="col-sm-7">@(a.AddAtenkoCode ?? "—")</dd>
-                    <dt class="col-sm-5">Empresa</dt><dd class="col-sm-7">@Model.CompanyTextLabel</dd>
-                    <dt class="col-sm-5">Sistema</dt><dd class="col-sm-7">@Model.SystemTextLabel</dd>
-                    <dt class="col-sm-5">Activo</dt><dd class="col-sm-7">@(a.AddIsActive ? "Sí" : "No")</dd>
-                    <dt class="col-sm-5">Insertar en Master Articles</dt><dd class="col-sm-7">@(a.IInsertinMaterArticles ? "Sí" : "No")</dd>
+                    <dt class="col-sm-5">@MasterArticles.Details_Field_Description</dt><dd class="col-sm-7">@a.TextLabel</dd>
+                    <dt class="col-sm-5">@MasterArticles.Details_Field_AtenkoCode</dt><dd class="col-sm-7">@(a.AddAtenkoCode ?? MasterArticles.Details_NoValue)</dd>
+                    <dt class="col-sm-5">@MasterArticles.Details_Field_Company</dt><dd class="col-sm-7">@Model.CompanyTextLabel</dd>
+                    <dt class="col-sm-5">@MasterArticles.Details_Field_System</dt><dd class="col-sm-7">@Model.SystemTextLabel</dd>
+                    <dt class="col-sm-5">@MasterArticles.Details_Field_Active</dt><dd class="col-sm-7">@(a.AddIsActive ? MasterArticles.Details_YesValue : MasterArticles.Details_NoBoolValue)</dd>
+                    <dt class="col-sm-5">@MasterArticles.Details_Field_InsertMaster</dt><dd class="col-sm-7">@(a.IInsertinMaterArticles ? MasterArticles.Details_YesValue : MasterArticles.Details_NoBoolValue)</dd>
                 </dl>
             </div>
         </div>
     </div>
     <div class="col-lg-6">
         <div class="card h-100">
-            <div class="card-header"><strong>Medidas y referencias</strong></div>
+            <div class="card-header"><strong>@MasterArticles.Details_Section_Measurements</strong></div>
             <div class="card-body">
                 <dl class="row mb-0 small">
-                    <dt class="col-sm-5">Alto</dt><dd class="col-sm-7">@(a.NumberHigh?.ToString("G") ?? "—")</dd>
-                    <dt class="col-sm-5">Ancho</dt><dd class="col-sm-7">@(a.NumberWidth?.ToString("G") ?? "—")</dd>
-                    <dt class="col-sm-5">Largo</dt><dd class="col-sm-7">@(a.NumberLong?.ToString("G") ?? "—")</dd>
-                    <dt class="col-sm-5">Peso</dt><dd class="col-sm-7">@(a.NumberWeight?.ToString("G") ?? "—")</dd>
-                    <dt class="col-sm-5">M²</dt><dd class="col-sm-7">@(a.NumberMts2?.ToString("G") ?? "—")</dd>
-                    <dt class="col-sm-5">M³</dt><dd class="col-sm-7">@(a.NumberMts3?.ToString("G") ?? "—")</dd>
-                    <dt class="col-sm-5">Bloque DWG (texto)</dt><dd class="col-sm-7">@(a.TextBlockNumber ?? "—")</dd>
-                    <dt class="col-sm-5">.Stl (texto)</dt><dd class="col-sm-7">@(a.TextStlNumber ?? "—")</dd>
+                    <dt class="col-sm-5">@MasterArticles.Details_Field_High</dt><dd class="col-sm-7">@(a.NumberHigh?.ToString("G") ?? MasterArticles.Details_NoValue)</dd>
+                    <dt class="col-sm-5">@MasterArticles.Details_Field_Width</dt><dd class="col-sm-7">@(a.NumberWidth?.ToString("G") ?? MasterArticles.Details_NoValue)</dd>
+                    <dt class="col-sm-5">@MasterArticles.Details_Field_Long</dt><dd class="col-sm-7">@(a.NumberLong?.ToString("G") ?? MasterArticles.Details_NoValue)</dd>
+                    <dt class="col-sm-5">@MasterArticles.Details_Field_Weight</dt><dd class="col-sm-7">@(a.NumberWeight?.ToString("G") ?? MasterArticles.Details_NoValue)</dd>
+                    <dt class="col-sm-5">@MasterArticles.Details_Field_Mts2</dt><dd class="col-sm-7">@(a.NumberMts2?.ToString("G") ?? MasterArticles.Details_NoValue)</dd>
+                    <dt class="col-sm-5">@MasterArticles.Details_Field_Mts3</dt><dd class="col-sm-7">@(a.NumberMts3?.ToString("G") ?? MasterArticles.Details_NoValue)</dd>
+                    <dt class="col-sm-5">@MasterArticles.Details_Field_BlockNumber</dt><dd class="col-sm-7">@(a.TextBlockNumber ?? MasterArticles.Details_NoValue)</dd>
+                    <dt class="col-sm-5">@MasterArticles.Details_Field_StlNumber</dt><dd class="col-sm-7">@(a.TextStlNumber ?? MasterArticles.Details_NoValue)</dd>
                 </dl>
             </div>
         </div>

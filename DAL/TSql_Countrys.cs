@@ -18,6 +18,7 @@ namespace DAL
         public TSql_Countrys()
         {
             this.TSql_Company = new HashSet<TSql_Company>();
+            this.TSql_language = new HashSet<TSql_language>();
         }
     
         public long IdObject { get; set; }
@@ -37,5 +38,7 @@ namespace DAL
         public virtual ICollection<TSql_Company> TSql_Company { get; set; }
         public virtual AspNetUsers AspNetUsers { get; set; }
         public virtual AspNetUsers AspNetUsers1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_language> TSql_language { get; set; }
     }
 }

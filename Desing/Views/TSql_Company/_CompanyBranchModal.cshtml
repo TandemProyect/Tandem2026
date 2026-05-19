@@ -1,0 +1,54 @@
+@using DAL
+@using Desing.Models
+@using Desing.Resources
+@using System.Configuration
+@{
+    var mapsKey = ConfigurationManager.AppSettings["GoogleMaps:ApiKey"] ?? "";
+    var branchStub = new TSql_Branch();
+}
+<div class="modal fade" id="companyBranchModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="companyBranchModalTitle">@Branch.Branch_ModalTitle_Edit</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@Branch.Aria_CloseModal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="companyBranchModalSysObjectID" value="" />
+                @if (string.IsNullOrWhiteSpace(mapsKey))
+                {
+                    <div class="alert alert-warning tandem-address-api-warning mb-3 py-2" role="alert">
+                        <strong>@Company.Google_NotConfiguredStrong</strong>@Company.Google_NotConfiguredBody
+                    </div>
+                }
+                <div class="mb-3">
+                    <label class="form-label" for="companyBranchModalAttLabel">@Branch.Branch_Lbl_NameRequiredModal</label>
+                    <input type="text" class="form-control" id="companyBranchModalAttLabel" maxlength="500" autocomplete="organization" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="companyBranchModalAttDescription">@Branch.Branch_Lbl_Description</label>
+                    <textarea class="form-control" id="companyBranchModalAttDescription" rows="2" maxlength="2000"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="companyBranchModalAddLetter">@Branch.Branch_Lbl_LetterShort</label>
+                    <input type="text" class="form-control" id="companyBranchModalAddLetter" maxlength="2" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="companyBranchModalAttcolorText">@Branch.Branch_Lbl_AccentColor</label>
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="color" id="companyBranchModalAttcolorPicker" value="#808080" class="form-control form-control-color p-1" style="width:3.25rem;height:2.5rem" title="@Branch.Branch_Lbl_AccentColor" />
+                        <input type="text" class="form-control" id="companyBranchModalAttcolorText" maxlength="7" placeholder="#RRGGBB" autocomplete="off" />
+                    </div>
+                </div>
+                <div class="mb-0">
+                    @Html.Partial("~/Views/Shared/_GooglePlacesAddressBlock.cshtml",
+                        GooglePlacesAddressBlockModel.FromBranch(branchStub, "BrLoc", Company.Lbl_AddressGooglePlaces))
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@Branch.Branch_ModalBtn_CancelModal</button>
+                <button type="button" class="btn btn-primary" id="companyBranchModalSave">@Branch.Btn_SaveChanges</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,5 @@
+﻿.cursor
+Common
+DAL
+Desing
+Docs

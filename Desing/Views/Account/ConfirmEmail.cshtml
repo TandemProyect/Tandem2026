@@ -1,10 +1,12 @@
-﻿@{
-    ViewBag.Title = "Confirm Email";
+﻿@using Desing.Resources
+@{
+    ViewBag.Title = Common.ConfirmEmail_Title;
 }
 
 <h2>@ViewBag.Title.</h2>
 <div>
     <p>
-        Thank you for confirming your email. Please @Html.ActionLink("Click here to Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })
+        @Common.ConfirmEmail_Lead
+        @Html.ActionLink(Common.ConfirmEmail_Link, "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })
     </p>
 </div>

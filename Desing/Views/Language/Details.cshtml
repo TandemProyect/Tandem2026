@@ -1,0 +1,93 @@
+@model DAL.TSql_language
+@using Desing.Helpers
+@using Desing.Models
+@using Desing.Resources
+@{
+    ViewBag.Title = Model.TextLabel;
+    var boot = ViewBag.CountryBootstrap as LanguageCountryFormBootstrap ?? new LanguageCountryFormBootstrap();
+    var countryLabel = string.IsNullOrWhiteSpace(boot.Label) ? Language.List_NoCountry : boot.Label;
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@Language.Common_Home</a> /
+            @Language.Common_Settings /
+            <a href="@Url.Action("Index", "Language")">@Language.Index_Breadcrumb</a> /
+        </span> @Model.TextLabel
+    </h4>
+    <a class="btn btn-warning" href="@Url.Action("Edit", "Language", new { id = Model.IdObject })">
+        <i class="icon-base ri ri-pencil-line me-1"></i> @Common.Btn_Edit
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">@Language.Details_Field_Name</dt>
+            <dd class="col-sm-9">@Model.TextLabel</dd>
+
+            <dt class="col-sm-3">@Language.Details_Field_Code</dt>
+            <dd class="col-sm-9"><code>@Model.TextCode</code></dd>
+
+            <dt class="col-sm-3">@Language.Details_Field_NativeName</dt>
+            <dd class="col-sm-9">
+                @if (string.IsNullOrWhiteSpace(Model.TextNativeName))
+                {
+                    <span class="text-muted">@Language.List_NoNativeName</span>
+                }
+                else
+                {
+                    @Model.TextNativeName
+                }
+            </dd>
+
+            <dt class="col-sm-3">@Language.Details_Field_Country</dt>
+            <dd class="col-sm-9">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    @if (!string.IsNullOrEmpty(boot.FlagUrl))
+                    {
+                        <img src="@boot.FlagUrl" alt="" width="28" height="20" class="rounded border" style="object-fit:cover" />
+                    }
+                    <span>@countryLabel</span>
+                    @if (!string.IsNullOrEmpty(boot.Iso2) || !string.IsNullOrEmpty(boot.Iso3))
+                    {
+                        var parts = new List<string>();
+                        if (!string.IsNullOrEmpty(boot.Iso2)) parts.Add(boot.Iso2);
+                        if (!string.IsNullOrEmpty(boot.Iso3)) parts.Add(boot.Iso3);
+                        <small class="text-body-secondary">@string.Join(" · ", parts)</small>
+                    }
+                </div>
+            </dd>
+
+            <dt class="col-sm-3">@Language.Details_Field_Default</dt>
+            <dd class="col-sm-9">
+                @if (Model.Is_Default)
+                {
+                    <span class="badge bg-label-primary">@Language.State_DefaultYes</span>
+                }
+                else
+                {
+                    <span class="text-muted">@Language.State_DefaultNo</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">@Language.Details_Field_State</dt>
+            <dd class="col-sm-9">
+                @if (Model.Is_Active)
+                {
+                    <span class="badge bg-label-success">@Language.State_Active</span>
+                }
+                else
+                {
+                    <span class="badge bg-label-secondary">@Language.State_Inactive</span>
+                }
+            </dd>
+        </dl>
+    </div>
+</div>
+
+@if (ViewBag.Audit != null)
+{
+    @Html.Partial("_IntranetAuditSection", (Desing.Models.IntranetAuditDisplayModel)ViewBag.Audit)
+}

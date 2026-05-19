@@ -1,0 +1,27 @@
+---
+description: MVC/user-visible strings — keep .resx generators and UiTranslation (Language/BD) in sync
+alwaysApply: true
+---
+
+# Intranet — cadenas visibles: `.resx` + `TSql_UiTranslation`
+
+Antes de dar por cerrado un cambio que toque texto de UI (vistas `.cshtml`, `Controllers`, `Scripts/Intranet/*.js` con literales, mensajes JSON), **cerrar el circuito i18n híbrido** descrito en `Desing/docs/agente-traducciones-modulos.md`.
+
+## 1. Módulo CRUD / pantalla (`Company`, `Branch`, `ClientV2`, …)
+
+- Añadir o cambiar claves en el generador `Desing/_gen_<modulo>_resources.js` (no editar a mano `.resx` ni `Designer.cs`).
+- Desde `Desing/`: `node _gen_<modulo>_resources.js`.
+- Mantener **paridad `es` / `en`** en el objeto `en` del script.
+- Si el módulo es nuevo: registrar `Tuple.Create("<Modulo>", typeof(Desing.Resources.<Modulo>))` en `UiTranslationController.ResxBackedModules`.
+- **BD / Language:** las filas en `TSql_UiTranslation` **no sustituyen** la obligación del `.resx`; opcionalmente, tras desplegar, quien traduzca puede **Exportar Excel** en `/UiTranslation` para ver claves faltantes y **Importar**. No volcar catálogos enteros a SQL salvo decisión explícita del equipo.
+
+## 2. Solo base de datos (`@Html.Ui`, navbar `@Html.Ui`, sidebar `LanguageUiHelper.GetUiStringWithFallback` con `Common`, etc.)
+
+- Esas claves **no** pasan por `.resx`; deben existir en **`TSql_UiTranslation`** para el idioma activo (y empresa con `LinkLanguage` si aplica).
+- Añadir entrada **idempotente** en `Desing/Scripts/TemporalScript/` siguiendo el patrón de `2026-05-17_seed_TSql_UiTranslation_Common_menu_nav.sql` (idioma `TSql_Language.Is_Default = 1`, `TextModule` correcto, `NOT EXISTS` por clave+idioma).
+- Los seeds del repo suelen cubrir solo **español por defecto**; otros idiomas vía Excel `/UiTranslation`, salvo que exista ya un seed EN paralelo para ese bloque.
+
+## 3. No hacer
+
+- Cadenas nuevas en español fijo en código/vistas ya migradas.
+- Duplicar sin criterio todo el `.resx` de un módulo en SQL seed **solo** porque cambió una pantalla — usar generador + Excel o seeds **solo** para claves puramente BD (menú, `@Html.Ui`, etc.).

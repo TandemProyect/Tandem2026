@@ -1,0 +1,57 @@
+@model long
+@using Desing.Resources
+@using Newtonsoft.Json
+@using System.Globalization
+@using System.Web
+@{
+    var ci = CultureInfo.CurrentUICulture?.TwoLetterISOLanguageName ?? "es";
+    var companyBranchListDt = JsonConvert.SerializeObject(new
+    {
+        culture = ci,
+        rowsSuffix = Company.Dt_Rows_N,
+        allRows = Company.Dt_Rows_All,
+        sectionRecords = Company.Dt_Section_Records,
+        sectionExport = Company.Dt_Section_Export,
+        sectionCols = Company.Dt_Section_ColumnsVisible,
+        confirmDeleteBranch = Branch.JsBranch_DeleteConfirm,
+        ariaMenu = Company.Dt_MenuAria
+    });
+    var branchModalI18n = JsonConvert.SerializeObject(new
+    {
+        refreshFail = Branch.JsBranch_RefreshFail,
+        newNeedsBusiness = Branch.JsBranch_NewNeedsBusiness,
+        createFail = Branch.JsBranch_CreateFail,
+        networkError = Branch.JsBranch_NetworkError,
+        saveFail = Branch.JsBranch_SaveFail,
+        deleteFail = Branch.JsBranch_DeleteFail,
+        modalTitleEdit = Branch.Branch_ModalTitle_Edit,
+        modalTitleCreate = Branch.Branch_ModalTitle_Create
+    });
+}
+<div class="card mb-4" id="companyBranchesDtRoot"
+     data-company-id="@Model.ToString()"
+     data-list-branches-url="@Url.Content("~/TSql_Company/ListCompanyBranches/" + Model)"
+     data-create-url="@Url.Action("CreateCompanyBranch", "TSql_Company")"
+     data-update-url="@Url.Action("UpdateCompanyBranch", "TSql_Company")"
+     data-delete-url="@Url.Action("DeleteCompanyBranch", "TSql_Company")"
+     data-dt-i18n="@HttpUtility.HtmlAttributeEncode(companyBranchListDt)"
+     data-modal-i18n="@HttpUtility.HtmlAttributeEncode(branchModalI18n)">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span class="fw-semibold">@Branch.BranchPanel_Title</span>
+        <button type="button" class="btn btn-sm btn-primary" id="btnNewCompanyBranchDt">@Branch.BranchPanel_New</button>
+    </div>
+    <div class="card-body p-2">
+        <table id="ListCompanyBranchesEdit" class="table table-hover w-100 mb-0" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>@Branch.Branch_Details_Field_Name</th>
+                    <th>@Branch.Branch_Details_Field_Letter</th>
+                    <th>@Branch.Branch_Details_Field_Description</th>
+                    <th class="text-end text-nowrap" style="width:1%;"></th>
+                    <th>ID</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+    @Html.Partial("_CompanyBranchModal")
+</div>

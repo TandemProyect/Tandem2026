@@ -1,23 +1,38 @@
 @model Desing.Models.DocumentTypeFormViewModel
+@using Desing.Resources
 @{
-    ViewBag.Title = "Editar tipo de documento";
+    ViewBag.Title = DocumentType.Page_EditTitle;
 }
+
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="py-3 mb-0">
-        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> / <a href="@Url.Action("Index")">Configuración</a> / <a href="@Url.Action("Index")">Tipos de documento</a> /</span> Editar
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@DocumentType.Common_Home</a> /
+            @DocumentType.Common_Settings /
+            <a href="@Url.Action("Index", "DocumentType")">@DocumentType.Index_Breadcrumb</a> /
+        </span> @DocumentType.Page_EditTitle
     </h4>
 </div>
+
 <div class="card mb-4">
     <div class="card-body">
-        @using (Html.BeginForm("Edit", "DocumentType", FormMethod.Post, new { @class = "row g-3" }))
+        @using (Html.BeginForm("Edit", "DocumentType", FormMethod.Post, new { @class = "row g-3", role = "form", @id = "documentTypeForm" }))
         {
             @Html.AntiForgeryToken()
             @Html.HiddenFor(m => m.DocumentType.IdObject)
+
+            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
             @Html.Partial("_DocumentTypeFormFields", Model)
-            <div class="col-12 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
-                <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Cancelar</a>
-                <button type="submit" class="btn btn-primary">Guardar</button>
+
+            <div class="col-12 border-top pt-3 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
+                <a href="@Url.Action("Index", "DocumentType")" class="btn btn-outline-secondary">@Common.Btn_Cancel</a>
+                <button type="submit" class="btn btn-primary">@Common.Btn_SaveChanges</button>
             </div>
         }
     </div>
 </div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

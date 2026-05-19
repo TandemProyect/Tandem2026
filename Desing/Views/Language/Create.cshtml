@@ -1,0 +1,62 @@
+@model DAL.TSql_language
+@using Desing.Models
+@using Desing.Resources
+@{
+    ViewBag.Title = Language.Page_CreateTitle;
+    ViewBag.IsEdit = false;
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@Language.Common_Home</a> /
+            @Language.Common_Settings /
+            <a href="@Url.Action("Index", "Language")">@Language.Index_Breadcrumb</a> /
+        </span> @Language.Page_CreateTitle
+    </h4>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        @using (Html.BeginForm("Create", "Language", FormMethod.Post, new { @class = "row g-3", role = "form", id = "languageForm" }))
+        {
+            @Html.AntiForgeryToken()
+
+            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+            @Html.Partial("_LanguageFormFields", Model)
+
+            <div class="col-12 border-top pt-3 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
+                <a href="@Url.Action("Index", "Language")" class="btn btn-outline-secondary">@Common.Btn_Cancel</a>
+                <button type="submit" class="btn btn-primary">@Common.Btn_Save</button>
+            </div>
+        }
+    </div>
+</div>
+
+@section Styles
+{
+    <link href="@Url.Content("~/Content/jquery/jquery-ui.css")" rel="stylesheet" />
+    <style>
+        .ui-autocomplete { z-index: 20000 !important; max-height: 240px; overflow-y: auto; }
+        .tandem-country-catalog-menu { max-height: min(420px, 70vh); overflow-x: hidden; overflow-y: auto; min-width: min(320px, calc(100vw - 1.5rem)); }
+        .input-group > .dropdown { display: flex; }
+    </style>
+}
+
+@section scripts
+{
+    @Scripts.Render("~/bundles/jqueryval")
+    <script src="@Url.Content("~/Scripts/jquery-ui.js.js")"></script>
+    <script src="@Url.Content("~/Scripts/Intranet/language-country-autocomplete.js")"></script>
+    <script>
+        $(function () {
+            var boot = @(Html.Raw(Json.Encode(ViewBag.LanguageCountryBootstrap ?? new LanguageCountryFormBootstrap())));
+            window.TandemLanguageCountryAutocomplete.init({
+                searchUrl: @(Html.Raw(Json.Encode(Url.Action("SearchCountries", "Language")))),
+                catalogUrl: @(Html.Raw(Json.Encode(Url.Action("ListCountriesCatalog", "Language")))),
+                bootstrap: boot
+            });
+        });
+    </script>
+}

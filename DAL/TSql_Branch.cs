@@ -14,6 +14,12 @@ namespace DAL
     
     public partial class TSql_Branch
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public TSql_Branch()
+        {
+            this.TSql_Jobside = new HashSet<TSql_Jobside>();
+        }
+    
         public long SysObjectID { get; set; }
         public string AttLabel { get; set; }
         public string AttDescription { get; set; }
@@ -23,11 +29,27 @@ namespace DAL
         public System.DateTime AttLastModification { get; set; }
         public long SysUpdateNumber { get; set; }
         public long LinCompany { get; set; }
-        public long LinBusiness { get; set; }
         public string AddLetter { get; set; }
+        public string Attcolor { get; set; }
+        public string Loc_Place_Id { get; set; }
+        public string Loc_Formatted_Address { get; set; }
+        public Nullable<decimal> Loc_Lat { get; set; }
+        public Nullable<decimal> Loc_Lng { get; set; }
+        public string Loc_Street_Number { get; set; }
+        public string Loc_Route { get; set; }
+        public string Loc_Subpremise { get; set; }
+        public string Loc_Locality { get; set; }
+        public string Loc_Admin_Area_1 { get; set; }
+        public string Loc_Admin_Area_2 { get; set; }
+        public string Loc_Postal_Code { get; set; }
+        public string Loc_Country_Code { get; set; }
+        public string Loc_Country_Name { get; set; }
+        public string Loc_Address_Components_Json { get; set; }
     
-        public virtual TSql_Company TSql_Company { get; set; }
         public virtual AspNetUsers AspNetUsers { get; set; }
         public virtual AspNetUsers AspNetUsers1 { get; set; }
+        public virtual TSql_Company TSql_Company { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Jobside> TSql_Jobside { get; set; }
     }
 }

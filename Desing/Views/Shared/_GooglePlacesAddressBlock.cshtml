@@ -1,31 +1,29 @@
+@using Desing.Resources
+@using System.Web
 @model Desing.Models.GooglePlacesAddressBlockModel
 @if (Model == null) { return; }
 
 @{
     var prefix = Model.Prefix ?? "Loc";
     var mapId = string.IsNullOrEmpty(Model.MapElementId) ? prefix + "AddressMap" : Model.MapElementId;
-    var searchValue = Model.Formatted_Address ?? "";
 }
 
 <fieldset class="border rounded p-2 mb-2 tandem-address-block tandem-address-block--compact address-block" data-prefix="@prefix" data-map-id="@mapId">
-    <legend class="float-none w-auto px-2 fs-6 mb-0">@(Model.Title ?? "Dirección")</legend>
+    <legend class="float-none w-auto px-2 fs-6 mb-0">@(Model.Title ?? Common.Google_Title)</legend>
 
     <div class="alert alert-warning js-tandem-address-maps-error d-none mb-2 py-2" role="alert"></div>
 
     <div class="row g-2 align-items-start">
         <div class="col-12 col-md-7 tandem-address-fields">
             <div class="mb-2">
-                <label class="form-label" for="@(prefix)_PlacesSearch">Buscar dirección</label>
-                <input type="text"
-                       id="@(prefix)_PlacesSearch"
-                       class="form-control form-control-sm js-tandem-places-autocomplete"
-                       autocomplete="off"
-                       placeholder="Escriba calle, localidad o código postal…"
-                       value="@searchValue" />
+                <label class="form-label" for="@(prefix)_PlacesSearch">@Common.Google_Lbl_Search</label>
+                <div id="@(prefix)_PlacesSearch"
+                     class="js-tandem-place-autocomplete-host tandem-place-autocomplete-host"
+                     data-placeholder="@HttpUtility.HtmlAttributeEncode(Common.Google_Ph_Search)"></div>
             </div>
 
             <div class="mb-2">
-                <label class="form-label" for="@(prefix)_Formatted_Address">Dirección formateada</label>
+                <label class="form-label" for="@(prefix)_Formatted_Address">@Common.Google_Lbl_FormattedAddress</label>
                 <input type="text" name="@(prefix)_Formatted_Address" id="@(prefix)_Formatted_Address" class="form-control form-control-sm"
                        value="@Model.Formatted_Address" maxlength="1000" />
             </div>
@@ -37,37 +35,37 @@
 
             <div class="row g-1 tandem-address-fields-grid">
                 <div class="col-4 col-md-2">
-                    <label class="form-label" for="@(prefix)_Street_Number">Nº</label>
+                    <label class="form-label" for="@(prefix)_Street_Number">@Common.Google_Lbl_StreetNumber</label>
                     <input type="text" name="@(prefix)_Street_Number" id="@(prefix)_Street_Number" class="form-control form-control-sm" maxlength="50"
                            value="@Model.Street_Number" />
                 </div>
                 <div class="col-8 col-md-5">
-                    <label class="form-label" for="@(prefix)_Route">Vía</label>
+                    <label class="form-label" for="@(prefix)_Route">@Common.Google_Lbl_Route</label>
                     <input type="text" name="@(prefix)_Route" id="@(prefix)_Route" class="form-control form-control-sm" maxlength="250"
                            value="@Model.Route" />
                 </div>
                 <div class="col-12 col-md-5">
-                    <label class="form-label" for="@(prefix)_Subpremise">Piso / puerta</label>
+                    <label class="form-label" for="@(prefix)_Subpremise">@Common.Google_Lbl_Subpremise</label>
                     <input type="text" name="@(prefix)_Subpremise" id="@(prefix)_Subpremise" class="form-control form-control-sm" maxlength="100"
                            value="@Model.Subpremise" />
                 </div>
                 <div class="col-6 col-md-4">
-                    <label class="form-label" for="@(prefix)_Locality">Localidad</label>
+                    <label class="form-label" for="@(prefix)_Locality">@Common.Google_Lbl_Locality</label>
                     <input type="text" name="@(prefix)_Locality" id="@(prefix)_Locality" class="form-control form-control-sm" maxlength="250"
                            value="@Model.Locality" />
                 </div>
                 <div class="col-6 col-md-4">
-                    <label class="form-label" for="@(prefix)_Admin_Area_1">Provincia</label>
+                    <label class="form-label" for="@(prefix)_Admin_Area_1">@Common.Google_Lbl_AdminArea1</label>
                     <input type="text" name="@(prefix)_Admin_Area_1" id="@(prefix)_Admin_Area_1" class="form-control form-control-sm" maxlength="250"
                            value="@Model.Admin_Area_1" />
                 </div>
                 <div class="col-4 col-md-2">
-                    <label class="form-label" for="@(prefix)_Postal_Code">CP</label>
+                    <label class="form-label" for="@(prefix)_Postal_Code">@Common.Google_Lbl_PostalCode</label>
                     <input type="text" name="@(prefix)_Postal_Code" id="@(prefix)_Postal_Code" class="form-control form-control-sm" maxlength="20"
                            value="@Model.Postal_Code" />
                 </div>
                 <div class="col-4 col-md-2">
-                    <label class="form-label" for="@(prefix)_Country_Code">País</label>
+                    <label class="form-label" for="@(prefix)_Country_Code">@Common.Google_Lbl_CountryCode</label>
                     <input type="text" name="@(prefix)_Country_Code" id="@(prefix)_Country_Code" class="form-control form-control-sm" maxlength="10"
                            value="@Model.Country_Code" />
                 </div>
@@ -77,9 +75,9 @@
         </div>
 
         <div class="col-12 col-md-5 tandem-address-map-col">
-            <label class="form-label">Ubicación en mapa</label>
-            <div id="@mapId" class="tandem-address-map is-empty" role="img" aria-label="Vista previa del mapa">
-                <span>Seleccione una dirección para ver el mapa</span>
+            <label class="form-label">@Common.Google_Lbl_Map</label>
+            <div id="@mapId" class="tandem-address-map is-empty" role="img" aria-label="@Common.Google_Aria_MapPreview">
+                <span>@Common.Google_Msg_NoAddress</span>
             </div>
         </div>
     </div>

@@ -1,19 +1,379 @@
 @model DAL.TSql_Jobside
+@using System.Linq
+@using Desing.Resources
+@using Newtonsoft.Json
+@using System.Configuration
+@using System.Globalization
 @{
-    ViewBag.Title = Model.TextLabel;
-    var clientName = Model.TSql_Client_V2 != null ? Model.TSql_Client_V2.TextLabel : "—";
+    ViewBag.Title = Jobside.Page_DetailsTitle;
+    var ci = CultureInfo.CurrentUICulture?.TwoLetterISOLanguageName ?? "es";
+    var docsDt = JsonConvert.SerializeObject(new
+    {
+        culture = ci,
+        rowsSuffix = Jobside.Dt_Rows_N,
+        allRows = Jobside.Dt_Rows_All,
+        sectionRecords = Jobside.Dt_Section_Records,
+        sectionExport = Jobside.Dt_Section_Export,
+        sectionCols = Jobside.Dt_Section_ColumnsVisible,
+        ariaMenu = Jobside.Dt_MenuAria,
+        emptyMessage = Jobside.Docs_NoDocuments
+    });
+    var mapsKey = ConfigurationManager.AppSettings["GoogleMaps:ApiKey"] ?? "";
+    var hasMapsKey = !string.IsNullOrWhiteSpace(mapsKey);
+    var hasLocCoords = Model.Loc_Lat.HasValue && Model.Loc_Lng.HasValue;
+    object mapPayload;
+    if (hasLocCoords && hasMapsKey)
+    {
+        mapPayload = new { lat = (double)Model.Loc_Lat.Value, lng = (double)Model.Loc_Lng.Value };
+    }
+    else
+    {
+        mapPayload = new { lat = (double?)null, lng = (double?)null };
+    }
+    var mapBoot = JsonConvert.SerializeObject(mapPayload);
+    var uploadUi = JsonConvert.SerializeObject(new
+    {
+        uploadUrl = Url.Action("UploadJobsideDocument", "Jobside"),
+        jobsideId = Model.IdObject,
+        success = Jobside.Docs_Upload_Success,
+        failed = Jobside.Docs_Upload_Failed
+    });
+    var docTypeSelect = ViewBag.JobsideDocumentTypes as SelectList;
+    var hasDocTypes = docTypeSelect != null && docTypeSelect.Any();
 }
-<div class="d-flex align-items-center justify-content-between mb-4">
-    <h4 class="py-3 mb-0">
-        <span class="text-muted fw-light"><a href="@Url.Action("Index")">Obras</a> /</span> @Model.TextLabel
-    </h4>
-    <a class="btn btn-warning" href="@Url.Action("Edit", new { id = Model.IdObject })">Editar</a>
-</div>
-<div class="card">
-    <div class="card-body row g-3">
-        <div class="col-md-6"><strong>Cliente:</strong> @clientName</div>
-        <div class="col-md-6"><strong>Activo:</strong> @(Model.Is_Active ? "Sí" : "No")</div>
-        <div class="col-md-12"><strong>Local:</strong> @(Model.Loc_Formatted_Address ?? "—")</div>
-        <div class="col-md-12"><strong>Facturación:</strong> @(Model.BitBillSameAsLoc ? "(igual que local)" : (Model.Bill_Formatted_Address ?? "—"))</div>
+
+@Html.AntiForgeryToken()
+
+<div id="jobsideWorkspaceRoot" class="tandem-jobside-workspace">
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2 tandem-jobside-workspace-toolbar">
+        <h4 class="py-3 mb-0">
+            <span class="text-muted fw-light">
+                <a href="@Url.Action("Index", "Home")">@Jobside.Common_Home</a> /
+                <a href="@Url.Action("Index", "Jobside")">@Jobside.Index_Breadcrumb</a> /
+            </span> @Model.TextLabel
+        </h4>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-light" href="@Url.Action("Index", "Jobside")">
+                <i class="icon-base ri ri-arrow-left-line me-1"></i> @Common.Btn_Back
+            </a>
+            <a class="btn btn-warning" href="@Url.Action("Edit", "Jobside", new { id = Model.IdObject })">
+                <i class="icon-base ri ri-pencil-line me-1"></i> @Common.Btn_Edit
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4 align-items-stretch tandem-jobside-workspace-row">
+        <div class="col-12 col-lg-5 tandem-jobside-col-left">
+            @Html.Partial("_JobsideWorkspaceLeftPanel", Model)
+        </div>
+        <div class="col-12 col-lg-7 tandem-jobside-col-right d-flex">
+            <div class="card tandem-jobside-right-card h-100 w-100 border shadow-none">
+                <div class="card-body tandem-jobside-right-card-body">
+                    <div class="d-flex align-items-end gap-2 flex-nowrap tandem-jobside-tabs-bar flex-shrink-0">
+                        <ul class="nav nav-tabs flex-grow-1 mb-0 flex-nowrap overflow-x-auto" role="tablist" style="min-width:0">
+                            <li class="nav-item text-nowrap" role="presentation">
+                                <button type="button" class="nav-link" id="jobside-tab-offers" data-bs-toggle="tab" data-bs-target="#jobside-pane-offers" role="tab" aria-controls="jobside-pane-offers" aria-selected="false">
+                                    @Jobside.Tab_Offers
+                                </button>
+                            </li>
+                            <li class="nav-item text-nowrap" role="presentation">
+                                <button type="button" class="nav-link active" id="jobside-tab-docs" data-bs-toggle="tab" data-bs-target="#jobside-pane-docs" role="tab" aria-controls="jobside-pane-docs" aria-selected="true">
+                                    @Jobside.Tab_Documents
+                                </button>
+                            </li>
+                            <li class="nav-item text-nowrap" role="presentation">
+                                <button type="button" class="nav-link" id="jobside-tab-chat" data-bs-toggle="tab" data-bs-target="#jobside-pane-chat" role="tab" aria-controls="jobside-pane-chat" aria-selected="false">
+                                    @Jobside.Tab_Chat
+                                </button>
+                            </li>
+                        </ul>
+                        <button type="button"
+                                class="btn btn-sm btn-outline-secondary tandem-jobside-expand-btn flex-shrink-0 mb-1"
+                                id="jobsideWorkspaceExpandBtn"
+                                title="@Jobside.Workspace_Tooltip_ExpandPanel"
+                                aria-label="@Jobside.Workspace_Tooltip_ExpandPanel"
+                                aria-pressed="false">
+                            <i class="icon-base ri ri-fullscreen-line" id="jobsideWorkspaceExpandIcon" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <div class="tab-content tandem-jobside-tab-content pt-3" id="jobsideWorkspaceTabContent">
+                        <div class="tab-pane fade" id="jobside-pane-offers" role="tabpanel" aria-labelledby="jobside-tab-offers">
+                            <p class="text-muted mb-0">@Jobside.Tab_ComingSoon</p>
+                        </div>
+                        <div class="tab-pane fade show active" id="jobside-pane-docs" role="tabpanel" aria-labelledby="jobside-tab-docs">
+                            <div id="jobsideDocsFlash" class="mb-2"></div>
+                            <div class="d-flex flex-wrap align-items-stretch justify-content-between gap-2 mb-2">
+                                <p class="text-muted small mb-0 align-self-center">@Jobside.Docs_DtTitle</p>
+                                @if (hasDocTypes)
+                                {
+                                    <button type="button" class="btn btn-sm btn-primary align-self-center" id="jobsideOpenUploadModalBtn">
+                                        <i class="icon-base ri ri-attachment-line me-1" aria-hidden="true"></i>@Jobside.Docs_Btn_AttachDocument
+                                    </button>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-warning mb-0 py-2 px-3 small d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2" role="alert">
+                                        <span class="flex-grow-1 mb-0">@Jobside.Docs_Upload_NoDocTypes</span>
+                                        <a class="btn btn-sm btn-primary text-nowrap flex-shrink-0 align-self-sm-center" href="@Url.Action("Index", "DocumentType")">
+                                            <i class="icon-base ri ri-file-list-3-line me-1" aria-hidden="true"></i>@DocumentType.Index_Breadcrumb
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                            <div class="mb-3 table-responsive" style="padding:5px">
+                                <table id="JobsideDocumentsTable" class="table table-hover w-100" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>@Jobside.Docs_Col_Name</th>
+                                            <th>@Jobside.Docs_Col_Type</th>
+                                            <th>@Jobside.Docs_Col_Extension</th>
+                                            <th>@Jobside.Docs_Col_Date</th>
+                                            <th class="text-end text-nowrap" style="width:1%;">@Jobside.Docs_Col_Actions</th>
+                                            <th>ID</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="jobside-pane-chat" role="tabpanel" aria-labelledby="jobside-tab-chat">
+                            <p class="text-muted mb-0">@Jobside.Tab_ComingSoon</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<div class="modal fade" id="jobsideUploadDocModal" tabindex="-1" aria-labelledby="jobsideUploadDocModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title text-white" id="jobsideUploadDocModalLabel">@Jobside.Docs_UploadModalTitle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="@Common.Aria_CloseModal"></button>
+            </div>
+            <form id="jobsideUploadDocForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    @* POST param matches UploadJobsideDocument(long jobsideId, …); scopes upload to this obra. *@
+                    <input type="hidden" name="jobsideId" value="@Model.IdObject" />
+                    <div class="mb-3">
+                        <label class="form-label" for="documentTypeId">@Jobside.Docs_Upload_Type</label>
+                        @Html.DropDownList("documentTypeId", (SelectList)ViewBag.JobsideDocumentTypes, new { @class = "form-select", required = "required", id = "documentTypeId" })
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="jobsideUploadFile">@Jobside.Docs_Upload_File</label>
+                        <input id="jobsideUploadFile" name="file" type="file" class="form-control" required="required" />
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label" for="jobsideUploadDescription">@Jobside.Docs_Upload_Description</label>
+                        <textarea id="jobsideUploadDescription" name="description" class="form-control" rows="2" maxlength="4000"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">@Common.Btn_Cancel</button>
+                    <button type="submit" class="btn btn-primary">@Jobside.Docs_Upload_Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section scripts
+{
+    @Html.Partial("~/Views/Shared/_GooglePlacesAddressScripts.cshtml")
+    <script type="text/javascript">
+        var jobsideDocsDt = @Html.Raw(docsDt);
+        var jobsideDocsExportOpts = TandemDataTablesList.exportOptsPlainVisible;
+        var jobsideUploadUi = @Html.Raw(uploadUi);
+        var jobsideDetailMapInit = @Html.Raw(mapBoot);
+        var jobsideWorkspaceUi = @Html.Raw(JsonConvert.SerializeObject(new {
+            expandTip = Jobside.Workspace_Tooltip_ExpandPanel,
+            restoreTip = Jobside.Workspace_Tooltip_RestorePanel
+        }));
+
+        var jobsideDocumentsDt;
+
+        function jobsidePatchDocsDtDropdownPopper() {
+            var pane = document.getElementById('jobside-pane-docs');
+            if (!pane) return;
+            var btns = pane.querySelectorAll('.dt-buttons button.btn, .dt-buttons button.dt-button');
+            btns.forEach(function (btn) {
+                if (!btn.getAttribute('data-tandem-popper-fixed')) {
+                    btn.setAttribute('data-bs-popper-config', JSON.stringify({ strategy: 'fixed' }));
+                    btn.setAttribute('data-tandem-popper-fixed', '1');
+                }
+            });
+        }
+
+        function jobsideDocsShowFlash(kind, message) {
+            var cls = kind === 'success' ? 'alert-success' : 'alert-danger';
+            var html = '<div class="alert ' + cls + ' alert-dismissible fade show" role="alert">' +
+                $('<div/>').text(message).html() +
+                '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label=""></button></div>';
+            $('#jobsideDocsFlash').html(html);
+        }
+
+        $(document).ready(function () {
+            jobsideDocumentsDt = $('#JobsideDocumentsTable').DataTable(TandemDataTablesList.applyListDefaults({
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    ['10 ' + jobsideDocsDt.rowsSuffix, '25 ' + jobsideDocsDt.rowsSuffix, '50 ' + jobsideDocsDt.rowsSuffix, jobsideDocsDt.allRows]
+                ],
+                buttons: [{
+                    extend: 'collection',
+                    text: "<i class='fas fa-bars'></i>",
+                    attr: { 'aria-label': jobsideDocsDt.ariaMenu },
+                    className: 'custom-html-collection',
+                    buttons: [
+                        '<h5>' + jobsideDocsDt.sectionRecords + '</h5>',
+                        'pageLength',
+                        '<h5>' + jobsideDocsDt.sectionExport + '</h5>',
+                        'print',
+                        'copy',
+                        'pdf',
+                        { extend: 'csv', exportOptions: jobsideDocsExportOpts },
+                        { extend: 'excel', exportOptions: jobsideDocsExportOpts },
+                        '<h5 class="not-top-heading">' + jobsideDocsDt.sectionCols + '</h5>',
+                        'colvis'
+                    ]
+                }],
+                serverSide: true,
+                processing: true,
+                language: {
+                    emptyTable: jobsideDocsDt.emptyMessage,
+                    zeroRecords: jobsideDocsDt.emptyMessage
+                },
+                colReorder: { iFixedColumnsRight: 1 },
+                ajax: {
+                    url: '@Url.Action("ListJobsideDocuments", "Jobside", new { jobsideId = Model.IdObject })',
+                    type: 'POST'
+                },
+                order: [[3, 'desc']],
+                columns: [
+                    {
+                        data: 'displayName',
+                        name: 'displayName',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.displayNamePlain || '';
+                            }
+                            return data;
+                        }
+                    },
+                    { data: 'documentTypeName', name: 'documentTypeName' },
+                    { data: 'fileExtension', name: 'fileExtension' },
+                    {
+                        data: 'addDateMadeFmt',
+                        name: 'addDateMade',
+                        render: function (data, type, row) {
+                            if (type === 'sort' || type === 'type') {
+                                return row.addDateMade || '';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'rowActions',
+                        orderable: false,
+                        searchable: false,
+                        className: 'tandem-col-actions text-end align-middle text-nowrap'
+                    },
+                    { data: 'IdObject', visible: false }
+                ],
+                drawCallback: function () {
+                    jobsidePatchDocsDtDropdownPopper();
+                    $('[data-toggle="tooltip"]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto right'
+                    });
+                    $('[title]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto'
+                    });
+                }
+            }));
+            jobsidePatchDocsDtDropdownPopper();
+
+            var root = document.getElementById('jobsideWorkspaceRoot');
+            var expandBtn = document.getElementById('jobsideWorkspaceExpandBtn');
+            var expandIcon = document.getElementById('jobsideWorkspaceExpandIcon');
+            var leftCol = root ? root.querySelector('.tandem-jobside-col-left') : null;
+            var rightCol = root ? root.querySelector('.tandem-jobside-col-right') : null;
+            if (root && expandBtn && expandIcon && leftCol && rightCol) {
+                var expanded = false;
+                function applyJobsideWorkspaceExpanded(on) {
+                    expanded = !!on;
+                    root.classList.toggle('tandem-jobside-workspace--expanded', expanded);
+                    leftCol.classList.toggle('col-lg-5', !expanded);
+                    leftCol.classList.toggle('col-lg-2', expanded);
+                    rightCol.classList.toggle('col-lg-7', !expanded);
+                    rightCol.classList.toggle('col-lg-10', expanded);
+                    expandBtn.setAttribute('aria-pressed', expanded ? 'true' : 'false');
+                    var tip = expanded ? jobsideWorkspaceUi.restoreTip : jobsideWorkspaceUi.expandTip;
+                    expandBtn.setAttribute('aria-label', tip);
+                    expandBtn.setAttribute('title', tip);
+                    expandIcon.className = expanded ? 'icon-base ri ri-fullscreen-exit-line' : 'icon-base ri ri-fullscreen-line';
+                    if (jobsideDocumentsDt && jobsideDocumentsDt.columns) {
+                        jobsideDocumentsDt.columns.adjust();
+                    }
+                }
+                expandBtn.addEventListener('click', function () {
+                    applyJobsideWorkspaceExpanded(!expanded);
+                });
+            }
+
+            $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function () {
+                jobsideDocumentsDt.columns.adjust();
+            });
+
+            var openUploadBtn = document.getElementById('jobsideOpenUploadModalBtn');
+            if (openUploadBtn) {
+                openUploadBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    var modalEl = document.getElementById('jobsideUploadDocModal');
+                    if (modalEl && window.bootstrap && bootstrap.Modal) {
+                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                    }
+                });
+            }
+
+            $('#jobsideUploadDocForm').on('submit', function (e) {
+                e.preventDefault();
+                var fd = new FormData(this);
+                var token = $('input[name="__RequestVerificationToken"]').first().val();
+                if (token) {
+                    fd.set('__RequestVerificationToken', token);
+                }
+                $.ajax({
+                    url: jobsideUploadUi.uploadUrl,
+                    type: 'POST',
+                    data: fd,
+                    processData: false,
+                    contentType: false
+                }).done(function (r) {
+                    if (r && r.ok) {
+                        var modalEl = document.getElementById('jobsideUploadDocModal');
+                        if (modalEl && window.bootstrap) {
+                            var inst = bootstrap.Modal.getInstance(modalEl);
+                            if (inst) inst.hide();
+                        }
+                        document.getElementById('jobsideUploadDocForm').reset();
+                        jobsideDocumentsDt.ajax.reload(null, false);
+                        jobsideDocsShowFlash('success', r.message || jobsideUploadUi.success);
+                    } else {
+                        jobsideDocsShowFlash('danger', (r && r.message) ? r.message : jobsideUploadUi.failed);
+                    }
+                }).fail(function () {
+                    jobsideDocsShowFlash('danger', jobsideUploadUi.failed);
+                });
+            });
+
+            var m = jobsideDetailMapInit;
+            if (m && m.lat != null && m.lng != null && window.TandemAddressPlaces && TandemAddressPlaces.loadMapsApi) {
+                TandemAddressPlaces.loadMapsApi().then(function () {
+                    TandemAddressPlaces.updateMap('jobsideMap', 'jobsideWorkspaceLocMap', { lat: m.lat, lng: m.lng });
+                }).catch(function () { });
+            }
+        });
+    </script>
+}

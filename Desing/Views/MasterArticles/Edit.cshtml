@@ -2,8 +2,9 @@
 @using System.Collections.Generic
 @using System.Text.RegularExpressions
 @using Desing.Models
+@using Desing.Resources
 @{
-    ViewBag.Title = "Editar artículo";
+    ViewBag.Title = MasterArticles.Page_EditTitle;
     var stlSection = ViewData["MasterArticleStlPreview"] as MasterArticleStlPreviewSectionModel
         ?? new MasterArticleStlPreviewSectionModel { AttachmentSlots = new List<MasterArticleAttachmentSlot>() };
 
@@ -28,7 +29,7 @@
 }
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="py-3 mb-0">
-        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> / <a href="@Url.Action("Index", "MasterArticles")">Artículos</a> /</span> Editar
+        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">@MasterArticles.Common_Home</a> / <a href="@Url.Action("Index", "MasterArticles")">@MasterArticles.Index_Breadcrumb</a> /</span> @MasterArticles.Page_EditTitle
     </h4>
 </div>
 
@@ -41,97 +42,97 @@
             @Html.ValidationSummary(true, "", new { @class = "alert alert-danger py-2", role = "alert" })
 
             <div class="col-md-4">
-                <label class="form-label">Código *</label>
+                <label class="form-label">@MasterArticles.Lbl_CodeRequired</label>
                 @Html.TextBoxFor(m => m.TextCode, new { @class = "form-control", maxlength = "128", autocomplete = "off" })
                 @Html.ValidationMessageFor(m => m.TextCode, "", new { @class = "text-danger small" })
             </div>
             <div class="col-md-5">
-                <label class="form-label">Descripción *</label>
+                <label class="form-label">@MasterArticles.Lbl_LabelRequired</label>
                 @Html.TextBoxFor(m => m.TextLabel, new { @class = "form-control", maxlength = "500" })
                 @Html.ValidationMessageFor(m => m.TextLabel, "", new { @class = "text-danger small" })
             </div>
             <div class="col-md-3">
-                <label class="form-label">Sistema *</label>
-                @Html.DropDownListFor(m => m.LinkSystem, (SelectList)ViewBag.ArticleLinkSystemSelectList, "-- Seleccionar --", new { @class = "form-select" })
+                <label class="form-label">@MasterArticles.Lbl_SystemRequired</label>
+                @Html.DropDownListFor(m => m.LinkSystem, (SelectList)ViewBag.ArticleLinkSystemSelectList, MasterArticles.Lbl_SystemPlaceholder, new { @class = "form-select" })
                 @Html.ValidationMessageFor(m => m.LinkSystem, "", new { @class = "text-danger small" })
             </div>
 
             <div class="col-md-4">
-                <label class="form-label">Código Atenko</label>
+                <label class="form-label">@MasterArticles.Lbl_AtenkoCode</label>
                 @Html.TextBoxFor(m => m.AddAtenkoCode, new { @class = "form-control", maxlength = "50" })
             </div>
             <div class="col-md-2 d-flex align-items-end">
                 <div class="form-check mb-2">
                     @Html.CheckBoxFor(m => m.AddIsActive, new { @class = "form-check-input" })
-                    <label class="form-check-label" for="@Html.IdFor(m => m.AddIsActive)">Activo</label>
+                    <label class="form-check-label" for="@Html.IdFor(m => m.AddIsActive)">@MasterArticles.Lbl_Active</label>
                 </div>
             </div>
             <div class="col-md-3 d-flex align-items-end">
                 <div class="form-check mb-2">
                     @Html.CheckBoxFor(m => m.IInsertinMaterArticles, new { @class = "form-check-input" })
-                    <label class="form-check-label" for="@Html.IdFor(m => m.IInsertinMaterArticles)">Insertar en Master Articles</label>
+                    <label class="form-check-label" for="@Html.IdFor(m => m.IInsertinMaterArticles)">@MasterArticles.Lbl_InsertInMaster</label>
                 </div>
             </div>
 
             <div class="col-12"><hr class="my-1 text-muted" /></div>
 
             <div class="col-md-3">
-                <label class="form-label">Alto</label>
+                <label class="form-label">@MasterArticles.Lbl_High</label>
                 @Html.TextBoxFor(m => m.NumberHigh, "{0:G}", new { @class = "form-control", type = "number", step = "any" })
             </div>
             <div class="col-md-3">
-                <label class="form-label">Ancho</label>
+                <label class="form-label">@MasterArticles.Lbl_Width</label>
                 @Html.TextBoxFor(m => m.NumberWidth, "{0:G}", new { @class = "form-control", type = "number", step = "any" })
             </div>
             <div class="col-md-3">
-                <label class="form-label">Largo</label>
+                <label class="form-label">@MasterArticles.Lbl_Long</label>
                 @Html.TextBoxFor(m => m.NumberLong, "{0:G}", new { @class = "form-control", type = "number", step = "any" })
             </div>
             <div class="col-md-3">
-                <label class="form-label">Peso</label>
+                <label class="form-label">@MasterArticles.Lbl_Weight</label>
                 @Html.TextBoxFor(m => m.NumberWeight, "{0:G}", new { @class = "form-control", type = "number", step = "any" })
             </div>
             <div class="col-md-3">
-                <label class="form-label">M²</label>
+                <label class="form-label">@MasterArticles.Lbl_Mts2</label>
                 @Html.TextBoxFor(m => m.NumberMts2, "{0:G}", new { @class = "form-control", type = "number", step = "any" })
             </div>
             <div class="col-md-3">
-                <label class="form-label">M³</label>
+                <label class="form-label">@MasterArticles.Lbl_Mts3</label>
                 @Html.TextBoxFor(m => m.NumberMts3, "{0:G}", new { @class = "form-control", type = "number", step = "any" })
             </div>
 
             <div class="col-md-6">
-                <label class="form-label">Bloque DWG</label>
+                <label class="form-label">@MasterArticles.Lbl_BlockNumber</label>
                 @Html.TextBoxFor(m => m.TextBlockNumber, new { @class = "form-control", maxlength = "200" })
             </div>
             <div class="col-md-6">
-                <label class="form-label">.Stl</label>
+                <label class="form-label">@MasterArticles.Lbl_StlNumber</label>
                 @Html.TextBoxFor(m => m.TextStlNumber, new { @class = "form-control", maxlength = "200" })
             </div>
 
             <div class="col-12"><hr class="my-1 text-muted" /></div>
             <div class="col-12">
-                <h6 class="mb-1 text-muted">Archivos modelo STL</h6>
-                <p class="text-muted small mb-0">Adjunte un archivo <strong>.stl</strong> por cada vista (planta y elevaciones). Son opcionales; se guardan en <code>Files/MasterArticles/blocks</code> y se muestran en Detalles con el visor 3D.</p>
+                <h6 class="mb-1 text-muted">@MasterArticles.Lbl_StlFilesSection</h6>
+                <p class="text-muted small mb-0">@MasterArticles.Lbl_StlFilesHelp</p>
             </div>
             @Html.Partial("_MasterArticleBlockStlFilesForm", Model)
 
             <div class="col-12">
                 <div class="row g-2 align-items-end">
                     <div class="col-md-6">
-                        <label class="form-label">Color 1</label>
+                        <label class="form-label">@MasterArticles.Lbl_Color1</label>
                         <div class="d-flex align-items-center gap-2">
-                            <input type="color" id="ma_picker_TextColor1" value="@maHexForPicker(Model.TextColor1)" class="form-control form-control-color p-1" style="width:3.25rem;height:2.5rem" title="Color 1" />
+                            <input type="color" id="ma_picker_TextColor1" value="@maHexForPicker(Model.TextColor1)" class="form-control form-control-color p-1" style="width:3.25rem;height:2.5rem" title="@MasterArticles.Lbl_Color1" />
                             @Html.TextBox("TextColor1", maHexForPicker(Model.TextColor1), new { @class = "form-control", id = "ma_TextColor1", maxlength = "200", autocomplete = "off", spellcheck = "false" })
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Color 2</label>
+                        <label class="form-label">@MasterArticles.Lbl_Color2</label>
                         <div class="d-flex align-items-center gap-2">
-                            <input type="color" id="ma_picker_TextColor2" value="@maHexForPicker(Model.TextColor2)" class="form-control form-control-color p-1" style="width:3.25rem;height:2.5rem" title="Color 2" />
+                            <input type="color" id="ma_picker_TextColor2" value="@maHexForPicker(Model.TextColor2)" class="form-control form-control-color p-1" style="width:3.25rem;height:2.5rem" title="@MasterArticles.Lbl_Color2" />
                             @Html.TextBox("TextColor2", maHexForPicker(Model.TextColor2), new { @class = "form-control", id = "ma_TextColor2", maxlength = "10", autocomplete = "off", spellcheck = "false" })
                         </div>
-                        <small class="text-muted d-block mt-1">Máx. 10 caracteres al guardar.</small>
+                        <small class="text-muted d-block mt-1">@MasterArticles.Lbl_Color2Hint</small>
                     </div>
                 </div>
             </div>
@@ -141,9 +142,9 @@
             @Html.Partial("_MasterArticleStlPreviewSection", stlSection)
 
             <div class="col-12 d-flex justify-content-end gap-2 tandem-form-actions mt-3">
-                <a href="@Url.Action("Index", "MasterArticles")" class="btn btn-outline-secondary">Cancelar</a>
+                <a href="@Url.Action("Index", "MasterArticles")" class="btn btn-outline-secondary">@MasterArticles.Btn_Cancel</a>
                 <button type="submit" class="btn btn-primary">
-                    <i class="icon-base ri ri-save-line me-1"></i> Guardar cambios
+                    <i class="icon-base ri ri-save-line me-1"></i> @MasterArticles.Btn_SaveChanges
                 </button>
             </div>
         }

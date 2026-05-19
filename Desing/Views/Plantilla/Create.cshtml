@@ -1,0 +1,48 @@
+@model Desing.Models.PlantillaViewModel
+@using Desing.Resources
+@using Newtonsoft.Json
+@{
+    ViewBag.Title = Plantilla.Page_CreateTitle;
+    var jsDt = JsonConvert.SerializeObject(new
+    {
+        fileTooLargeLogo = Plantilla.Js_FileTooLargeLogo,
+        fileTooLargeFavicon = Plantilla.Js_FileTooLargeFavicon
+    });
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@Plantilla.Common_Home</a> /
+            <a href="@Url.Action("Index", "Plantilla")">@Plantilla.Index_Breadcrumb</a> /
+        </span> @Plantilla.Page_CreateTitle
+    </h4>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        @using (Html.BeginForm("Create", "Plantilla", FormMethod.Post, new { @class = "row g-4", role = "form", @id = "frmPlantilla", enctype = "multipart/form-data" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.SysObjectID)
+            @Html.HiddenFor(m => m.IsEdit)
+
+            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+            @Html.Partial("_PlantillaFormFields", Model)
+
+            <div class="col-12 border-top pt-3 d-flex justify-content-end gap-2">
+                <a href="@Url.Action("Index", "Plantilla")" class="btn btn-outline-secondary">@Plantilla.Btn_Exit</a>
+                <button type="submit" class="btn btn-primary">@Plantilla.Btn_SavePlantilla</button>
+            </div>
+        }
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script type="text/javascript">
+        var plantillaFormDt = @Html.Raw(jsDt);
+    </script>
+    <script src="@Url.Content("~/Scripts/Intranet/plantilla-form.js")"></script>
+}

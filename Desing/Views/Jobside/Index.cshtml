@@ -1,28 +1,51 @@
+@using Newtonsoft.Json
+@using Desing.Resources
+@using System.Globalization
 @{
-    ViewBag.Title = "Obras";
+    ViewBag.Title = Jobside.Index_Breadcrumb;
+    var ci = CultureInfo.CurrentUICulture?.TwoLetterISOLanguageName ?? "es";
+    var jobsideDt = JsonConvert.SerializeObject(new
+    {
+        culture = ci,
+        rowsSuffix = Jobside.Dt_Rows_N,
+        allRows = Jobside.Dt_Rows_All,
+        sectionRecords = Jobside.Dt_Section_Records,
+        sectionExport = Jobside.Dt_Section_Export,
+        sectionCols = Jobside.Dt_Section_ColumnsVisible,
+        confirmDeleteJobside = Jobside.Js_ConfirmDeleteJobside,
+        ariaMenu = Jobside.Dt_MenuAria
+    });
 }
+
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="py-3 mb-0">
-        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> / Intranet /</span> Obras
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@Jobside.Common_Home</a> /
+            @Jobside.Common_Intranet /
+        </span> @Jobside.Index_Breadcrumb
     </h4>
-    <a class="btn btn-primary" href="@Url.Action("Create")">
-        <i class="icon-base ri ri-add-line me-1"></i> Nueva obra
+    <a class="btn btn-primary text-white" href="@Url.Action("Create", "Jobside")">
+        <i class="icon-base ri ri-add-line me-1"></i> @Jobside.Index_CreateJobside
     </a>
 </div>
+
 @if (!string.IsNullOrEmpty(TempData["ToastMessage"] as string))
 {
     <div class="alert alert-success">@TempData["ToastMessage"]</div>
 }
+
 <div class="card mb-4">
     <div class="card-body" style="padding:5px">
         <table id="ListJobside" class="table table-hover" cellspacing="0" style="width: 100%">
             <thead>
                 <tr>
-                    <th>Nombre</th>
-                    <th>Cliente</th>
-                    <th>Dirección local</th>
-                    <th>Estado</th>
-                    <th></th>
+                    <th>@Jobside.Col_AddNJobside</th>
+                    <th>@Jobside.Col_AddNJobsideClient</th>
+                    <th>@Jobside.Col_Name</th>
+                    <th>@Jobside.Col_Client</th>
+                    <th>@Jobside.Col_LocAddress</th>
+                    <th>@Jobside.Col_State</th>
+                    <th class="text-end text-nowrap" style="width:1%;"></th>
                     <th>ID</th>
                 </tr>
             </thead>
@@ -30,29 +53,109 @@
     </div>
 </div>
 
-@section scripts {
+@section scripts
+{
     <script type="text/javascript">
-        function deleteJobside(id) {
-            if (!confirm('¿Eliminar esta obra?')) return;
-            $.post('@Url.Action("DeleteJobside")', { id: id }, function (r) {
-                alert(r.Message);
-                if (r.IsOk) $('#ListJobside').DataTable().ajax.reload();
-            });
-        }
+        var jobsideDt = @Html.Raw(jobsideDt);
+        var jobsideExportOpts = TandemDataTablesList.exportOptsPlainVisible;
+
         $(document).ready(function () {
             $('#ListJobside').DataTable(TandemDataTablesList.applyListDefaults({
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    ['10 ' + jobsideDt.rowsSuffix, '25 ' + jobsideDt.rowsSuffix, '50 ' + jobsideDt.rowsSuffix, jobsideDt.allRows]
+                ],
+                buttons: [{
+                    extend: 'collection',
+                    text: "<i class='fas fa-bars'></i>",
+                    attr: { 'aria-label': jobsideDt.ariaMenu },
+                    className: 'custom-html-collection',
+                    buttons: [
+                        '<h5>' + jobsideDt.sectionRecords + '</h5>',
+                        'pageLength',
+                        '<h5>' + jobsideDt.sectionExport + '</h5>',
+                        'print',
+                        'copy',
+                        'pdf',
+                        { extend: 'csv', exportOptions: jobsideExportOpts },
+                        { extend: 'excel', exportOptions: jobsideExportOpts },
+                        '<h5 class="not-top-heading">' + jobsideDt.sectionCols + '</h5>',
+                        'colvis'
+                    ]
+                }],
                 serverSide: true,
                 processing: true,
-                ajax: { url: '@Url.Action("ListJobside")', type: 'POST' },
+                colReorder: { iFixedColumnsLeft: 1, iFixedColumnsRight: 2 },
+                ajax: {
+                    url: '@Url.Action("ListJobside", "Jobside")',
+                    type: 'POST'
+                },
+                order: [[0, 'asc']],
                 columns: [
-                    { data: 'TextLabel' },
-                    { data: 'ClientName' },
-                    { data: 'Loc_Formatted_Address' },
-                    { data: 'activeBadge', orderable: false },
-                    { data: 'buttonEdit', orderable: false, searchable: false },
+                    {
+                        data: 'AddNJobside',
+                        name: 'AddNJobside',
+                        orderable: true,
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.AddNJobsidePlain || '';
+                            }
+                            return data || '';
+                        }
+                    },
+                    {
+                        data: 'AddNJobsideClient',
+                        name: 'AddNJobsideClient',
+                        orderable: true,
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.AddNJobsideClientPlain || '';
+                            }
+                            return data || '';
+                        }
+                    },
+                    {
+                        data: 'TextLabel',
+                        name: 'TextLabel',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.TextLabelPlain || '';
+                            }
+                            return data;
+                        }
+                    },
+                    { data: 'ClientName', name: 'ClientName' },
+                    { data: 'Loc_Formatted_Address', name: 'Loc_Formatted_Address' },
+                    { data: 'activeBadge', name: 'Is_Active', orderable: true, searchable: false },
+                    {
+                        data: 'rowActions',
+                        orderable: false,
+                        searchable: false,
+                        className: 'tandem-col-actions text-end align-middle text-nowrap'
+                    },
                     { data: 'IdObject', visible: false }
-                ]
+                ],
+                drawCallback: function () {
+                    $('[data-toggle="tooltip"]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto right'
+                    });
+                    $('[title]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto'
+                    });
+                }
             }));
         });
+
+        window.DeleteJobside = function (id) {
+            if (!confirm(jobsideDt.confirmDeleteJobside)) return;
+            $.post('@Url.Action("DeleteJobside", "Jobside")', { id: id }, function (res) {
+                if (res && res.Message) { alert(res.Message); }
+                if (res && res.IsOk) {
+                    $('#ListJobside').DataTable().ajax.reload(null, false);
+                }
+            });
+        };
     </script>
 }

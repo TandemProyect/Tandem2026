@@ -40,7 +40,7 @@ namespace DAL
         public virtual TSql_Client_V2 TSql_Client_V2 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TSql_Document> TSql_Document { get; set; }
-        public virtual TSql_Jobside TSql_Jobside { get; set; }
         public virtual TSql_OfferState TSql_OfferState { get; set; }
+        public virtual TSql_Jobside TSql_Jobside { get; set; }
     }
 }

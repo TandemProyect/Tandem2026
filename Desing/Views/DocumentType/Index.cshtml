@@ -1,120 +1,139 @@
+@using Newtonsoft.Json
+@using Desing.Resources
+@using System.Globalization
 @{
-
-    ViewBag.Title = "Tipos de documento";
-
+    ViewBag.Title = DocumentType.Index_Breadcrumb;
+    var ci = CultureInfo.CurrentUICulture?.TwoLetterISOLanguageName ?? "es";
+    var documentTypeDt = JsonConvert.SerializeObject(new
+    {
+        culture = ci,
+        rowsSuffix = Common.Dt_Rows_N,
+        allRows = Common.Dt_Rows_All,
+        sectionRecords = Common.Dt_Section_Records,
+        sectionExport = Common.Dt_Section_Export,
+        sectionCols = Common.Dt_Section_ColumnsVisible,
+        confirmDeleteDocumentType = DocumentType.Js_ConfirmDeleteDocumentType,
+        ariaMenu = Common.Dt_MenuAria
+    });
 }
 
 <div class="d-flex align-items-center justify-content-between mb-4">
-
     <h4 class="py-3 mb-0">
-
-        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> / Configuración /</span> Tipos de documento
-
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@DocumentType.Common_Home</a> /
+            @DocumentType.Common_Settings /
+        </span> @DocumentType.Index_Breadcrumb
     </h4>
-
-    <a class="btn btn-primary" href="@Url.Action("Create")">
-
-        <i class="icon-base ri ri-add-line me-1"></i> Nuevo tipo
-
+    <a class="btn btn-primary text-white" href="@Url.Action("Create", "DocumentType")">
+        <i class="icon-base ri ri-add-line me-1"></i> @DocumentType.Index_CreateDocumentType
     </a>
-
 </div>
 
 @if (!string.IsNullOrEmpty(TempData["ToastMessage"] as string))
-
 {
-
     <div class="alert alert-success">@TempData["ToastMessage"]</div>
-
 }
 
 <div class="card mb-4">
-
     <div class="card-body" style="padding:5px">
-
         <table id="ListDocumentTypes" class="table table-hover" cellspacing="0" style="width: 100%">
-
             <thead>
-
                 <tr>
-
-                    <th>Nombre</th>
-
-                    <th>Código</th>
-
-                    <th>Descripción</th>
-
-                    <th>Extensiones</th>
-
-                    <th>Estado</th>
-
-                    <th></th>
-
+                    <th>@DocumentType.Col_Name</th>
+                    <th>@DocumentType.Col_Code</th>
+                    <th>@DocumentType.Col_Description</th>
+                    <th>@DocumentType.Col_Extensions</th>
+                    <th>@DocumentType.Col_State</th>
+                    <th class="text-end text-nowrap" style="width:1%;"></th>
                     <th>ID</th>
-
                 </tr>
-
             </thead>
-
         </table>
-
     </div>
-
 </div>
 
-
-
-@section scripts {
-
+@section scripts
+{
     <script type="text/javascript">
-
-        function deleteDocumentType(id) {
-
-            if (!confirm('¿Eliminar este tipo de documento?')) return;
-
-            $.post('@Url.Action("DeleteDocumentType")', { id: id }, function (r) {
-
-                alert(r.Message);
-
-                if (r.IsOk) $('#ListDocumentTypes').DataTable().ajax.reload();
-
-            });
-
-        }
+        var documentTypeDt = @Html.Raw(documentTypeDt);
+        var documentTypeExportOpts = TandemDataTablesList.exportOptsPlainVisible;
 
         $(document).ready(function () {
-
             $('#ListDocumentTypes').DataTable(TandemDataTablesList.applyListDefaults({
-
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    ['10 ' + documentTypeDt.rowsSuffix, '25 ' + documentTypeDt.rowsSuffix, '50 ' + documentTypeDt.rowsSuffix, documentTypeDt.allRows]
+                ],
+                buttons: [{
+                    extend: 'collection',
+                    text: "<i class='fas fa-bars'></i>",
+                    attr: { 'aria-label': documentTypeDt.ariaMenu },
+                    className: 'custom-html-collection',
+                    buttons: [
+                        '<h5>' + documentTypeDt.sectionRecords + '</h5>',
+                        'pageLength',
+                        '<h5>' + documentTypeDt.sectionExport + '</h5>',
+                        'print',
+                        'copy',
+                        'pdf',
+                        { extend: 'csv', exportOptions: documentTypeExportOpts },
+                        { extend: 'excel', exportOptions: documentTypeExportOpts },
+                        '<h5 class="not-top-heading">' + documentTypeDt.sectionCols + '</h5>',
+                        'colvis'
+                    ]
+                }],
                 serverSide: true,
-
                 processing: true,
-
-                ajax: { url: '@Url.Action("ListDocumentTypes")', type: 'POST' },
-
+                colReorder: { iFixedColumnsRight: 2 },
+                ajax: {
+                    url: '@Url.Action("ListDocumentTypes", "DocumentType")',
+                    type: 'POST'
+                },
+                order: [[0, 'asc']],
                 columns: [
-
-                    { data: 'TextLabel', name: 'TextLabel' },
-
+                    {
+                        data: 'TextLabel',
+                        name: 'TextLabel',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.TextLabelPlain || '';
+                            }
+                            return data;
+                        }
+                    },
                     { data: 'TextCode', name: 'TextCode' },
-
                     { data: 'TextDescription', name: 'TextDescription' },
-
                     { data: 'Extensions', name: 'Extensions', orderable: false, searchable: false },
-
-                    { data: 'activeBadge', name: 'Is_Active' },
-
-                    { data: 'buttonEdit', orderable: false, searchable: false },
-
+                    { data: 'activeBadge', name: 'Is_Active', orderable: true, searchable: false },
+                    {
+                        data: 'rowActions',
+                        orderable: false,
+                        searchable: false,
+                        className: 'tandem-col-actions text-end align-middle text-nowrap'
+                    },
                     { data: 'IdObject', visible: false }
-
-                ]
-
+                ],
+                drawCallback: function () {
+                    $('[data-toggle="tooltip"]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto right'
+                    });
+                    $('[title]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto'
+                    });
+                }
             }));
-
         });
 
+        window.DeleteDocumentType = function (id) {
+            if (!confirm(documentTypeDt.confirmDeleteDocumentType)) return;
+            $.post('@Url.Action("DeleteDocumentType", "DocumentType")', { id: id }, function (res) {
+                if (res && res.Message) { alert(res.Message); }
+                if (res && res.IsOk) {
+                    $('#ListDocumentTypes').DataTable().ajax.reload(null, false);
+                }
+            });
+        };
     </script>
-
 }
-

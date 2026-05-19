@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Btn_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Btn_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Btn_Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Btn_Exit" xml:space="preserve">
+    <value>Exit</value>
+  </data>
+  <data name="Btn_SaveChanges" xml:space="preserve">
+    <value>Save changes</value>
+  </data>
+  <data name="Btn_SavePlantilla" xml:space="preserve">
+    <value>Create template</value>
+  </data>
+  <data name="Col_BrandText" xml:space="preserve">
+    <value>Brand</value>
+  </data>
+  <data name="Col_Color" xml:space="preserve">
+    <value>Color</value>
+  </data>
+  <data name="Col_CreatedDate" xml:space="preserve">
+    <value>Created</value>
+  </data>
+  <data name="Col_Default" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="Col_Logo" xml:space="preserve">
+    <value>Logo</value>
+  </data>
+  <data name="Col_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Common_Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Details_Field_AccentColor" xml:space="preserve">
+    <value>Accent color</value>
+  </data>
+  <data name="Details_Field_BrandText" xml:space="preserve">
+    <value>Brand</value>
+  </data>
+  <data name="Details_Field_BrandTextColor" xml:space="preserve">
+    <value>Brand text color</value>
+  </data>
+  <data name="Details_Field_CreatedDate" xml:space="preserve">
+    <value>Created on</value>
+  </data>
+  <data name="Details_Field_Favicon" xml:space="preserve">
+    <value>Favicon</value>
+  </data>
+  <data name="Details_Field_IsDefault" xml:space="preserve">
+    <value>Default template</value>
+  </data>
+  <data name="Details_Field_Logo" xml:space="preserve">
+    <value>Logo</value>
+  </data>
+  <data name="Details_Field_MainColor" xml:space="preserve">
+    <value>Main color</value>
+  </data>
+  <data name="Details_Field_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Details_NoBoolValue" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Details_NoValue" xml:space="preserve">
+    <value>-</value>
+  </data>
+  <data name="Details_YesValue" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="Dt_MenuAria" xml:space="preserve">
+    <value>List options</value>
+  </data>
+  <data name="Dt_Rows_All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Dt_Rows_N" xml:space="preserve">
+    <value>rows</value>
+  </data>
+  <data name="Dt_Section_ColumnsVisible" xml:space="preserve">
+    <value>Visible columns</value>
+  </data>
+  <data name="Dt_Section_Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="Dt_Section_Records" xml:space="preserve">
+    <value>Records</value>
+  </data>
+  <data name="Err_CannotDeleteDefault" xml:space="preserve">
+    <value>The default template cannot be deleted.</value>
+  </data>
+  <data name="Err_FaviconFormatNotAllowed" xml:space="preserve">
+    <value>Favicon format is not allowed. Use: {0}.</value>
+  </data>
+  <data name="Err_FaviconSaveFailed" xml:space="preserve">
+    <value>Could not save the favicon: {0}</value>
+  </data>
+  <data name="Err_FaviconTooLarge" xml:space="preserve">
+    <value>The favicon exceeds the maximum size (512 KB).</value>
+  </data>
+  <data name="Err_LogoFormatNotAllowed" xml:space="preserve">
+    <value>Logo format is not allowed. Use: {0}.</value>
+  </data>
+  <data name="Err_LogoSaveFailed" xml:space="preserve">
+    <value>Could not save the logo: {0}</value>
+  </data>
+  <data name="Err_LogoTooLarge" xml:space="preserve">
+    <value>The logo exceeds the maximum size (2 MB).</value>
+  </data>
+  <data name="Err_PlantillaNotFound" xml:space="preserve">
+    <value>Template not found.</value>
+  </data>
+  <data name="Help_BrandText" xml:space="preserve">
+    <value>Shown in the navbar, login and footer. The first letter uses the accent color.</value>
+  </data>
+  <data name="Help_BrandTextColor" xml:space="preserve">
+    <value>If empty, the rest of the name inherits the theme primary color.</value>
+  </data>
+  <data name="Help_FaviconSize" xml:space="preserve">
+    <value>Max. 512 KB.</value>
+  </data>
+  <data name="Help_LogoFormats" xml:space="preserve">
+    <value>PNG, JPG, GIF, SVG, WEBP or ICO; max. 2 MB.</value>
+  </data>
+  <data name="Help_OnlyOneDefault" xml:space="preserve">
+    <value>Only one template can be the default; marking this will unmark the previous one.</value>
+  </data>
+  <data name="Index_Breadcrumb" xml:space="preserve">
+    <value>Templates</value>
+  </data>
+  <data name="Index_CreatePlantilla" xml:space="preserve">
+    <value>New template</value>
+  </data>
+  <data name="Js_ConfirmDeletePlantilla" xml:space="preserve">
+    <value>Delete this template? (soft delete). Companies using it will fall back to the default template.</value>
+  </data>
+  <data name="Js_FileTooLargeFavicon" xml:space="preserve">
+    <value>Favicon exceeds 512 KB.</value>
+  </data>
+  <data name="Js_FileTooLargeLogo" xml:space="preserve">
+    <value>File exceeds 2 MB.</value>
+  </data>
+  <data name="Lbl_BrandAccentColor" xml:space="preserve">
+    <value>First letter color (accent) *</value>
+  </data>
+  <data name="Lbl_BrandAccentColorTitle" xml:space="preserve">
+    <value>First-letter color</value>
+  </data>
+  <data name="Lbl_BrandTextColor" xml:space="preserve">
+    <value>Brand text color (rest)</value>
+  </data>
+  <data name="Lbl_BrandTextColorTitle" xml:space="preserve">
+    <value>Rest-of-text color (optional)</value>
+  </data>
+  <data name="Lbl_BrandTextRequired" xml:space="preserve">
+    <value>Displayed brand *</value>
+  </data>
+  <data name="Lbl_Favicon" xml:space="preserve">
+    <value>Favicon</value>
+  </data>
+  <data name="Lbl_IsDefault" xml:space="preserve">
+    <value>Mark as default template</value>
+  </data>
+  <data name="Lbl_Logo" xml:space="preserve">
+    <value>Logo</value>
+  </data>
+  <data name="Lbl_MainColor" xml:space="preserve">
+    <value>Main color *</value>
+  </data>
+  <data name="Lbl_NameRequired" xml:space="preserve">
+    <value>Template name *</value>
+  </data>
+  <data name="List_DefaultLockedTooltip" xml:space="preserve">
+    <value>The default template cannot be deleted.</value>
+  </data>
+  <data name="List_LinkDeleteTooltip" xml:space="preserve">
+    <value>Delete template</value>
+  </data>
+  <data name="List_LinkEditTooltip" xml:space="preserve">
+    <value>Edit template</value>
+  </data>
+  <data name="List_LinkOpenTooltip" xml:space="preserve">
+    <value>Open template</value>
+  </data>
+  <data name="Msg_PlantillaDeleted" xml:space="preserve">
+    <value>Template deleted successfully.</value>
+  </data>
+  <data name="Page_CreateTitle" xml:space="preserve">
+    <value>Create template</value>
+  </data>
+  <data name="Page_EditTitle" xml:space="preserve">
+    <value>Edit template</value>
+  </data>
+  <data name="Ph_BrandText" xml:space="preserve">
+    <value>E.g.: T Desing.net</value>
+  </data>
+  <data name="Ph_BrandTextColor" xml:space="preserve">
+    <value>Empty = primary color</value>
+  </data>
+  <data name="Ph_FaviconPath" xml:space="preserve">
+    <value>/assets/client/images/Default/Ico/at.ico</value>
+  </data>
+  <data name="Ph_LogoPath" xml:space="preserve">
+    <value>/Content/images/Login/at.png</value>
+  </data>
+  <data name="Ph_Name" xml:space="preserve">
+    <value>E.g.: Acme Client Template</value>
+  </data>
+  <data name="Preview_ColorLabel" xml:space="preserve">
+    <value>Color:</value>
+  </data>
+  <data name="Preview_Title" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="State_Default" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="State_NotDefault" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="ToastMessage_DbBrandColumnsMissing" xml:space="preserve">
+    <value>TSql_Plantilla is missing the brand columns (AttBrandText, AttBrandTextColor, AttBrandAccentColor). Run on the SQL server the script: App_Data/Sql/TSql_Plantilla_add_brand_text_and_colors.sql (Desing project folder).</value>
+  </data>
+  <data name="ToastMessage_PlantillaCreated" xml:space="preserve">
+    <value>Template &quot;{0}&quot; created successfully.</value>
+  </data>
+  <data name="ToastMessage_PlantillaDeleted" xml:space="preserve">
+    <value>Template &quot;{0}&quot; deleted successfully.</value>
+  </data>
+  <data name="ToastMessage_PlantillaUpdated" xml:space="preserve">
+    <value>Template &quot;{0}&quot; updated successfully.</value>
+  </data>
+  <data name="ToastTitle_CreatePlantilla" xml:space="preserve">
+    <value>Create template</value>
+  </data>
+  <data name="ToastTitle_DbError" xml:space="preserve">
+    <value>Database</value>
+  </data>
+  <data name="ToastTitle_DeletePlantilla" xml:space="preserve">
+    <value>Delete template</value>
+  </data>
+  <data name="ToastTitle_EditPlantilla" xml:space="preserve">
+    <value>Edit template</value>
+  </data>
+  <data name="Val_AccentColorHexFormat" xml:space="preserve">
+    <value>Accent color must be a HEX value, e.g. #f29100.</value>
+  </data>
+  <data name="Val_AccentColorRequired" xml:space="preserve">
+    <value>Accent color is required.</value>
+  </data>
+  <data name="Val_BrandTextColorHexFormat" xml:space="preserve">
+    <value>Text color: empty (inherits primary color) or HEX, e.g. #4c4c4c.</value>
+  </data>
+  <data name="Val_BrandTextRequired" xml:space="preserve">
+    <value>Brand text is required.</value>
+  </data>
+  <data name="Val_DuplicateNameCreate" xml:space="preserve">
+    <value>A template with this name already exists.</value>
+  </data>
+  <data name="Val_DuplicateNameEdit" xml:space="preserve">
+    <value>Another template already uses this name.</value>
+  </data>
+  <data name="Val_LogoPathRequired" xml:space="preserve">
+    <value>Logo path is required.</value>
+  </data>
+  <data name="Val_MainColorHexFormat" xml:space="preserve">
+    <value>Main color must be a HEX value, e.g. #349d7d.</value>
+  </data>
+  <data name="Val_MainColorRequired" xml:space="preserve">
+    <value>Main color is required.</value>
+  </data>
+  <data name="Val_NameRequired" xml:space="preserve">
+    <value>Template name is required.</value>
+  </data>
+</root>

@@ -1,11 +1,12 @@
-﻿@model Desing.Models.RegisterViewModel
+﻿@using Desing.Resources
+@model Desing.Models.RegisterViewModel
 
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="py-3 mb-0">
         <span class="text-muted fw-light">
-            <a href="@Url.Action("Index", "Home")">Inicio</a> /
-            <a href="@Url.Action("Index", "Employee")">Empleados</a> /
-        </span> Crear nuevo usuario
+            <a href="@Url.Action("Index", "Home")">@Common.Register_BreadcrumbHome</a> /
+            <a href="@Url.Action("Index", "Employee")">@Common.Register_BreadcrumbEmployees</a> /
+        </span> @Common.Register_PageHeading
     </h4>
 </div>
 
@@ -13,7 +14,7 @@
     <div class="col-12 col-md-10 col-lg-8 col-xl-6">
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0">Datos del nuevo usuario</h5>
+                <h5 class="mb-0">@Common.Register_CardTitle</h5>
             </div>
             <div class="card-body">
                 @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { id = "formRegister", role = "form" }))
@@ -22,28 +23,28 @@
                     @Html.ValidationSummary(true, "", new { @class = "text-danger small d-block mb-3" })
 
                     <div class="form-floating form-floating-outline mb-5">
-                        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", id = "Email", placeholder = "Email", type = "email", autofocus = "autofocus" })
-                        <label for="Email">Email</label>
+                        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", id = "Email", placeholder = Common.Register_Lbl_Email, type = "email", autofocus = "autofocus" })
+                        <label for="Email">@Common.Register_Lbl_Email</label>
                     </div>
                     @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small d-block mb-3" })
 
                     <div class="form-floating form-floating-outline mb-5">
-                        @Html.PasswordFor(m => m.Password, new { @class = "form-control", id = "Password", placeholder = "Contrasena" })
-                        <label for="Password">Contrasena</label>
+                        @Html.PasswordFor(m => m.Password, new { @class = "form-control", id = "Password", placeholder = Common.Register_Lbl_Password })
+                        <label for="Password">@Common.Register_Lbl_Password</label>
                     </div>
                     @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger small d-block mb-3" })
 
                     <div class="form-floating form-floating-outline mb-5">
-                        @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", id = "ConfirmPassword", placeholder = "Confirmar contrasena" })
-                        <label for="ConfirmPassword">Confirmar contrasena</label>
+                        @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", id = "ConfirmPassword", placeholder = Common.Register_Lbl_ConfirmPassword })
+                        <label for="ConfirmPassword">@Common.Register_Lbl_ConfirmPassword</label>
                     </div>
                     @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger small d-block mb-3" })
 
                     <div class="d-flex justify-content-end gap-2 mt-4">
-                        <a href="@Url.Action("Index", "Employee")" class="btn btn-outline-secondary">Cancelar</a>
+                        <a href="@Url.Action("Index", "Employee")" class="btn btn-outline-secondary">@Common.Register_Btn_Cancel</a>
                         <button type="submit" class="btn btn-primary">
                             <i class="icon-base ri ri-user-add-line me-1"></i>
-                            Crear usuario
+                            @Common.Register_Btn_Create
                         </button>
                     </div>
                 }

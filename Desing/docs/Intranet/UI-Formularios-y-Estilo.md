@@ -2,7 +2,7 @@
 
 Guía para desarrolladores y agentes Cursor al crear o modificar pantallas CRUD en **Intranet** (`Desing/`, layout Materio).
 
-**Relacionado:** [README](./README.md) · [Google-Places-Direcciones.md](./Google-Places-Direcciones.md) · [agente-ui-materio-datatables.md](../../docs/agente-ui-materio-datatables.md) · [ThreejsDesing/README.md](../../Scripts/ThreejsDesing/README.md) (visor 3D, fuera de Intranet CRUD).
+**Relacionado:** [README](./README.md) · [Google-Places-Direcciones.md](./Google-Places-Direcciones.md) · §10 (Details / mapa / modales) · [agente-ui-materio-datatables.md](../../docs/agente-ui-materio-datatables.md) · [ThreejsDesing/README.md](../../Scripts/ThreejsDesing/README.md) (visor 3D, fuera de Intranet CRUD).
 
 ---
 
@@ -266,6 +266,40 @@ Si hay checkbox «misma dirección facturación», en POST cuando está marcado 
 | Obras | `Views/Jobside/_JobsideFormFields.cshtml` | `Views/Jobside/Index.cshtml` |
 
 Estilos globales formulario/plantilla: `Views/Shared/_PlantillaStyles.cshtml`.
+
+---
+
+## 10. Details — paneles con mapa y modales de adjuntos
+
+Referencia viva: **Jobside · Details** (`Views/Jobside/_JobsideWorkspaceLeftPanel.cshtml`, `Details.cshtml`).
+
+### Color de marca (plantilla Materio)
+
+El primario viene de `_PlantillaStyles.cshtml`: variable **`--tandem-primary`**, utilidades **`text-primary`**, **`bg-primary`**, **`bg-label-primary`** (sello Materio sobre el color de plantilla activa).
+
+### Tarjetas en vistas Details
+
+| Pieza | Patrón |
+|-------|--------|
+| Bloque principal (datos de la entidad) | `card … h-100 border shadow-none` → **`card-header fw-semibold text-primary`** → `card-body` con `dl.row` |
+| Sub-panel (mapa, vista previa, bloque técnico) | Tarjeta anidada: `card border shadow-none mt-3 mb-0` → **`card-header fw-semibold py-2 px-3 bg-label-primary bg-opacity-10`** → **`card-body p-3`** |
+
+Otros ejemplos en el repo: vista previa en **`Plantilla/Details.cshtml`** (`card-header fw-semibold`), panel de sucursales **`TSql_Company/_CompanyBranchesPanel.cshtml`** (`card-header` + secciones con `bg-label-*`).
+
+### Mapa solo lectura (sin autocomplete Places)
+
+Reutilizar las mismas clases que **`_GooglePlacesAddressBlock.cshtml`** / [Google-Places-Direcciones.md](./Google-Places-Direcciones.md):
+
+- Contenedor: **`tandem-address-block tandem-address-block--compact`** + `border rounded p-2`.
+- Mapa renderizado: **`tandem-address-map`**; alturas y **`min-height`** en **`Content/Intranet/tandem-address-places.css`** (p. ej. 220px base, ~250px en bloque compacto en escritorio).
+- Sin coordenadas: **`tandem-address-map is-empty`** dentro del mismo bloque — texto centrado y tono definido en CSS (equivalente visual al placeholder del mapa en formulario).
+- Sin clave API pero hay coordenadas: **`alert alert-warning`** (avisos de configuración permitidos; ver §5 y doc Google Places §8).
+
+### Modal Bootstrap (p. ej. adjuntar documento)
+
+- **`modal-dialog modal-dialog-centered`**.
+- Cabecera acorde al primario de plantilla: **`modal-header bg-primary text-white`**, **`modal-title text-white`**, cierre **`btn-close btn-close-white`**.
+- Campos ocultos deben coincidir con **los parámetros de la acción MVC** (p. ej. `name="jobsideId"` para `UploadJobsideDocument(long jobsideId, …)`).
 
 ---
 

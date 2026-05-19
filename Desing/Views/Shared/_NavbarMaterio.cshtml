@@ -1,4 +1,4 @@
-﻿@*
+@*
     Navbar superior estilo Materio (adaptado a MVC 5).
     Avatar usuario + dropdown con Mi Espacio / Salir.
 *@
@@ -6,7 +6,7 @@
 
     @* Toggle menu - visible en todas las resoluciones *@
     <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0">
-        <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)" id="navbarMenuToggle" title="Mostrar/Ocultar menu">
+        <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)" id="navbarMenuToggle" title="@Html.Ui("Navbar.MenuToggleTitle", "Mostrar/Ocultar menú", "Common")">
             <i class="icon-base ri ri-menu-line icon-md"></i>
         </a>
     </div>
@@ -16,11 +16,13 @@
         @* Etiqueta de entorno *@
         <div class="navbar-nav align-items-center">
             <div class="nav-item d-flex align-items-center">
-                <span class="badge brand-env-badge fs-tiny">Entorno: Develop</span>
+                <span class="badge brand-env-badge fs-tiny">@Html.Ui("Navbar.EnvironmentBadge", "Entorno: Develop", "Common")</span>
             </div>
         </div>
 
         <ul class="navbar-nav flex-row align-items-center ms-md-auto">
+
+            @Html.Action("NavbarSwitcher", "UiLanguage")
 
             @* User dropdown *@
             <li class="nav-item navbar-dropdown dropdown-user dropdown">
@@ -53,7 +55,19 @@
                                     </div>
                                 </div>
                                 <div class="flex-grow-1">
-                                    <h6 class="mb-0 small" id="IdName">@(ViewBag.userName ?? "Usuario")</h6>
+                                    <h6 class="mb-0 small" id="IdName">
+                                        @{
+                                            var displayName = ViewBag.userName as string;
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(displayName))
+                                        {
+                                            @displayName
+                                        }
+                                        else
+                                        {
+                                            @Html.Ui("Navbar.UserFallback", "Usuario", "Common")
+                                        }
+                                    </h6>
                                     <small class="text-body-secondary brand-font brand-svg-sidebar">@Html.Partial("_BrandSvg")</small>
                                 </div>
                             </div>
@@ -63,13 +77,13 @@
                     <li>
                         <a class="dropdown-item" href="@Url.Action("MySapce", "Employee")">
                             <i class="icon-base ri ri-user-3-line icon-22px me-2"></i>
-                            <span class="align-middle">Mi Espacio</span>
+                            <span class="align-middle">@Html.Ui("Navbar.MySpace", "Mi espacio", "Common")</span>
                         </a>
                     </li>
                     <li>
                         <div class="d-grid px-4 pt-2 pb-1">
                             <a class="btn btn-danger d-flex" href="@Url.Action("LogOff", "Account")">
-                                <small class="align-middle">Salir</small>
+                                <small class="align-middle">@Html.Ui("Navbar.SignOut", "Salir", "Common")</small>
                                 <i class="icon-base ri ri-logout-box-r-line ms-2 icon-16px"></i>
                             </a>
                         </div>

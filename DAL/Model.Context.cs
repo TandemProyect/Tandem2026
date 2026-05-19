@@ -37,7 +37,6 @@ namespace DAL
         public virtual DbSet<TSql_Roles> TSql_Roles { get; set; }
         public virtual DbSet<TSql_Company> TSql_Company { get; set; }
         public virtual DbSet<TSql_TemporalList> TSql_TemporalList { get; set; }
-        public virtual DbSet<TSql_Branch> TSql_Branch { get; set; }
         public virtual DbSet<TSql_DefaultDesign> TSql_DefaultDesign { get; set; }
         public virtual DbSet<TSql_DesignDetails> TSql_DesignDetails { get; set; }
         public virtual DbSet<TSql_Employee> TSql_Employee { get; set; }
@@ -59,11 +58,13 @@ namespace DAL
         public virtual DbSet<TSql_DocumentType> TSql_DocumentType { get; set; }
         public virtual DbSet<TSql_DocumentTypeExtension> TSql_DocumentTypeExtension { get; set; }
         public virtual DbSet<TSql_Extension> TSql_Extension { get; set; }
-        public virtual DbSet<TSql_Jobside> TSql_Jobside { get; set; }
         public virtual DbSet<TSql_Document> TSql_Document { get; set; }
         public virtual DbSet<TSql_Offers> TSql_Offers { get; set; }
         public virtual DbSet<TSql_OfferState> TSql_OfferState { get; set; }
-        public virtual DbSet<TSql_Business> TSql_Business { get; set; }
         public virtual DbSet<TSql_ConfigDesingDefault> TSql_ConfigDesingDefault { get; set; }
+        public virtual DbSet<TSql_Branch> TSql_Branch { get; set; }
+        public virtual DbSet<TSql_UiTranslation> TSql_UiTranslation { get; set; }
+        public virtual DbSet<TSql_language> TSql_language { get; set; }
+        public virtual DbSet<TSql_Jobside> TSql_Jobside { get; set; }
     }
 }

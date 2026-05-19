@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\EntityFramework.6.5.1\build\EntityFramework.props" Condition="Exists('..\packages\EntityFramework.6.5.1\build\EntityFramework.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
@@ -105,6 +105,27 @@
     <Reference Include="netDxf, Version=2023.11.10.0, Culture=neutral, PublicKeyToken=618c63290969e781, processorArchitecture=MSIL">
       <HintPath>..\packages\netDxf.2023.11.10\lib\net48\netDxf.dll</HintPath>
     </Reference>
+    <Reference Include="ClosedXML, Version=0.102.3.0, Culture=neutral, PublicKeyToken=fd1eb21b62ae805b, processorArchitecture=MSIL">
+      <HintPath>..\packages\ClosedXML.0.102.3\lib\netstandard2.0\ClosedXML.dll</HintPath>
+    </Reference>
+    <Reference Include="DocumentFormat.OpenXml, Version=2.16.0.0, Culture=neutral, PublicKeyToken=8fb06cb64d019a17, processorArchitecture=MSIL">
+      <HintPath>..\packages\DocumentFormat.OpenXml.2.16.0\lib\net46\DocumentFormat.OpenXml.dll</HintPath>
+    </Reference>
+    <Reference Include="ExcelNumberFormat, Version=1.1.0.0, Culture=neutral, PublicKeyToken=23c6f5d73be07eca, processorArchitecture=MSIL">
+      <HintPath>..\packages\ExcelNumberFormat.1.1.0\lib\net20\ExcelNumberFormat.dll</HintPath>
+    </Reference>
+    <Reference Include="Irony, Version=1.0.11.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
+      <HintPath>..\packages\Irony.NetCore.1.0.11\lib\net461\Irony.dll</HintPath>
+    </Reference>
+    <Reference Include="SixLabors.Fonts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=d998eea7b14cab13, processorArchitecture=MSIL">
+      <HintPath>..\packages\SixLabors.Fonts.1.0.0\lib\netstandard2.0\SixLabors.Fonts.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.Packaging, Version=6.0.0.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.Packaging.6.0.1\lib\net461\System.IO.Packaging.dll</HintPath>
+    </Reference>
+    <Reference Include="XLParser, Version=1.5.2.0, Culture=neutral, PublicKeyToken=63397e1e46bb91b4, processorArchitecture=MSIL">
+      <HintPath>..\packages\XLParser.1.5.2\lib\net461\XLParser.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -191,6 +212,56 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Resources\Company.resx" />
+    <EmbeddedResource Include="Resources\Company.en.resx">
+      <DependentUpon>Company.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Employee.resx" />
+    <EmbeddedResource Include="Resources\Employee.en.resx">
+      <DependentUpon>Employee.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Plantilla.resx" />
+    <EmbeddedResource Include="Resources\Plantilla.en.resx">
+      <DependentUpon>Plantilla.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\ClientV2.resx" />
+    <EmbeddedResource Include="Resources\ClientV2.en.resx">
+      <DependentUpon>ClientV2.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\MasterArticles.resx" />
+    <EmbeddedResource Include="Resources\MasterArticles.en.resx">
+      <DependentUpon>MasterArticles.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Branch.resx" />
+    <EmbeddedResource Include="Resources\Branch.en.resx">
+      <DependentUpon>Branch.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Jobside.resx" />
+    <EmbeddedResource Include="Resources\Jobside.en.resx">
+      <DependentUpon>Jobside.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\DocumentType.resx" />
+    <EmbeddedResource Include="Resources\DocumentType.en.resx">
+      <DependentUpon>DocumentType.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Extension.resx" />
+    <EmbeddedResource Include="Resources\Extension.en.resx">
+      <DependentUpon>Extension.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Language.resx" />
+    <EmbeddedResource Include="Resources\Language.en.resx">
+      <DependentUpon>Language.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Country.resx" />
+    <EmbeddedResource Include="Resources\Country.en.resx">
+      <DependentUpon>Country.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Common.resx" />
+    <EmbeddedResource Include="Resources\Common.en.resx">
+      <DependentUpon>Common.resx</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\IdentityConfig.cs" />
@@ -202,6 +273,7 @@
     <Compile Include="Controllers\DesignToolsController.cs" />
     <Compile Include="Controllers\HelpDesingController.cs" />
     <Compile Include="Controllers\SendMailerController.cs" />
+    <Compile Include="Controllers\TSql_BranchController.cs" />
     <Compile Include="Controllers\TSql_CompanyController.cs" />
     <Compile Include="Controllers\MasterArticlesController.cs" />
     <Compile Include="Controllers\MenuController.cs" />
@@ -215,24 +287,83 @@
     <Compile Include="Controllers\ManageController.cs" />
     <Compile Include="Controllers\TelegramWebhookController.cs" />
     <Compile Include="Controllers\ToasHelpController.cs" />
+    <Compile Include="Controllers\UiLanguageController.cs" />
+    <Compile Include="Controllers\LanguageController.cs" />
+    <Compile Include="Controllers\CountryController.cs" />
+    <Compile Include="Controllers\UiTranslationController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\DataTablesMvcJson.cs" />
     <Compile Include="Helpers\DataTablesQueryExtensions.cs" />
+    <Compile Include="Helpers\BranchColorHelper.cs" />
+    <Compile Include="Helpers\DbBackedResourceManager.cs" />
     <Compile Include="Helpers\ImageHelper.cs" />
     <Compile Include="Helpers\IntranetFileHelper.cs" />
     <Compile Include="Helpers\ExtensionPathIcoQueries.cs" />
     <Compile Include="Helpers\IntranetAuditHelper.cs" />
+    <Compile Include="Helpers\JobsideCodeHelper.cs" />
+    <Compile Include="Helpers\LanguageUiHelper.cs" />
+    <Compile Include="Helpers\UiHtmlExtensions.cs" />
+    <Compile Include="Resources\Company.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Company.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\Employee.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Employee.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\Plantilla.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Plantilla.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\ClientV2.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ClientV2.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\MasterArticles.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MasterArticles.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\Branch.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Branch.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\Jobside.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Jobside.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\DocumentType.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DocumentType.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\Extension.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Extension.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\Language.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Language.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\Country.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Country.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\Common.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Common.resx</DependentUpon>
+    </Compile>
     <Compile Include="Models\CommercialManagementModels.cs" />
     <Compile Include="Models\Documents.cs" />
     <Compile Include="Models\EmployeeViewModel.cs" />
     <Compile Include="Models\PlantillaViewModel.cs" />
     <Compile Include="Models\IntranetViewModels.cs" />
     <Compile Include="Models\GooglePlacesAddressBlockModel.cs" />
+    <Compile Include="ModelBinders\CultureFallbackDecimalModelBinder.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\Enums\ToasType.cs" />
     <Compile Include="Models\IdentityModels.cs" />
+    <Compile Include="Models\LanguageNavItem.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
     <Compile Include="Models\ModelDesign3d.cs" />
     <Compile Include="Models\ModelHelp.cs" />
@@ -2185,6 +2316,7 @@
     <Content Include="Files\MasterArticles\blocks\27104219P.dwg" />
     <Content Include="Files\MasterArticles\blocks\27104219P.stl" />
     <Content Include="Files\MasterArticles\blocks\27104219P2.stl" />
+    <Content Include="Files\Jobside\2\07669da8a8e14ffcb7c49f4e32879081_27104219P.dwg" />
     <None Include="Properties\PublishProfiles\atenko Develop.pubxml" />
     <None Include="Properties\PublishProfiles\atenko.net.pubxml" />
     <None Include="Properties\PublishProfiles\Athosstaging.pubxml" />
@@ -3018,6 +3150,7 @@
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Shared\_LayoutMaterio.cshtml" />
     <Content Include="Views\Shared\_NavbarMaterio.cshtml" />
+    <Content Include="Views\Shared\_NavbarLanguageSwitcher.cshtml" />
     <Content Include="Views\Shared\_SidebarMaterio.cshtml" />
     <Content Include="Views\Shared\_SidebarMenuItemGroup.cshtml" />
     <Content Include="Views\Shared\_FooterMaterio.cshtml" />
@@ -3052,6 +3185,9 @@
     <Content Include="Views\Employee\Create_Employee.cshtml" />
     <Content Include="Views\Plantilla\Index.cshtml" />
     <Content Include="Views\Plantilla\Edit.cshtml" />
+    <Content Include="Views\Plantilla\Create.cshtml" />
+    <Content Include="Views\Plantilla\Details.cshtml" />
+    <Content Include="Views\Plantilla\_PlantillaFormFields.cshtml" />
     <Content Include="Views\DesignTools\Modal_View\_Wall.cshtml" />
     <Content Include="Views\DesignTools\_Create.cshtml" />
     <Content Include="Views\DesignTools\_vti_cnf\Design.cshtml" />
@@ -3059,7 +3195,11 @@
     <Content Include="Views\No_publicar\View.cshtml" />
     <Content Include="Scripts\Secction\models\house.dae" />
     <Content Include="Views\DesignTools\Design.cshtml" />
+    <Content Include="Views\Country\Create.cshtml" />
+    <Content Include="Views\Country\Details.cshtml" />
+    <Content Include="Views\Country\Edit.cshtml" />
     <Content Include="Views\Country\Index.cshtml" />
+    <Content Include="Views\Country\_CountryFormFields.cshtml" />
     <Content Include="Views\DesignTools\DesigTemporal.cshtml" />
     <Content Include="Views\MasterArticles\Create.cshtml" />
     <Content Include="Views\MasterArticles\_MasterArticleBlockFilesForm.cshtml" />
@@ -3080,10 +3220,14 @@
     <Content Include="Views\DesignTools\Index.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\DesignTools\Cut.cshtml" />
+    <Content Include="Views\TSql_Branch\Details.cshtml" />
+    <Content Include="Views\TSql_Branch\Edit.cshtml" />
+    <Content Include="Views\TSql_Branch\_BranchFormFields.cshtml" />
     <Content Include="Views\TSql_Company\Index.cshtml" />
     <Content Include="Views\TSql_Company\Details.cshtml" />
     <Content Include="Views\TSql_Company\Create.cshtml" />
     <Content Include="Views\TSql_Company\Edit.cshtml" />
+    <Content Include="Views\TSql_Company\_CompanyUiLanguageSelect.cshtml" />
     <Content Include="Views\ClientV2\Index.cshtml" />
     <Content Include="Views\ClientV2\Create.cshtml" />
     <Content Include="Views\ClientV2\Edit.cshtml" />
@@ -3093,6 +3237,11 @@
     <Content Include="Views\DocumentType\Create.cshtml" />
     <Content Include="Views\DocumentType\Edit.cshtml" />
     <Content Include="Views\DocumentType\Details.cshtml" />
+    <Content Include="Views\Language\Index.cshtml" />
+    <Content Include="Views\Language\Create.cshtml" />
+    <Content Include="Views\Language\Edit.cshtml" />
+    <Content Include="Views\Language\_LanguageFormFields.cshtml" />
+    <Content Include="Views\UiTranslation\Index.cshtml" />
     <Content Include="Views\DocumentType\_DocumentTypeFormFields.cshtml" />
     <Content Include="Views\Extension\Index.cshtml" />
     <Content Include="Views\Extension\Create.cshtml" />
@@ -3103,6 +3252,7 @@
     <Content Include="Views\Jobside\Create.cshtml" />
     <Content Include="Views\Jobside\Edit.cshtml" />
     <Content Include="Views\Jobside\Details.cshtml" />
+    <Content Include="Views\Jobside\_JobsideWorkspaceLeftPanel.cshtml" />
     <Content Include="Views\Jobside\_JobsideFormFields.cshtml" />
     <Content Include="Views\Shared\_GooglePlacesAddressBlock.cshtml" />
     <Content Include="Views\Shared\_IntranetAuditSection.cshtml" />
@@ -3112,6 +3262,11 @@
     <Content Include="Scripts\Intranet\intranet-datatables-list.js" />
     <Content Include="Scripts\Intranet\sidebar-menu.js" />
     <Content Include="Scripts\Intranet\jobside-google-places.js" />
+    <Content Include="Scripts\Intranet\company-google-places.js" />
+    <Content Include="Scripts\Intranet\company-branches-panel.js" />
+    <Content Include="Scripts\Intranet\company-branches-dt-panel.js" />
+    <Content Include="Scripts\Intranet\language-country-autocomplete.js" />
+    <Content Include="Scripts\Intranet\plantilla-form.js" />
     <Content Include="Views\DesignTools\_Delete.cshtml" />
     <Content Include="Views\DesignTools\_Edit.cshtml" />
     <Content Include="Uploads\Master_AC1014.dwg" />

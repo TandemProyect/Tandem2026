@@ -1,58 +1,50 @@
 @model DAL.TSql_Jobside
-
+@using Desing.Resources
+@using System.Linq
 @{
-
-    ViewBag.Title = "Nueva obra";
-
+    ViewBag.Title = Jobside.Page_CreateTitle;
+    var hasSummaryErrors = ViewData.ModelState != null
+        && ViewData.ModelState.Values.Where(v => v != null && v.Errors != null)
+            .SelectMany(v => v.Errors)
+            .Any(e => e != null && (!string.IsNullOrEmpty(e.ErrorMessage) || e.Exception != null));
 }
 
 <div class="d-flex align-items-center justify-content-between mb-4">
-
     <h4 class="py-3 mb-0">
-
-        <span class="text-muted fw-light"><a href="@Url.Action("Index")">Obras</a> /</span> Crear
-
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@Jobside.Common_Home</a> /
+            <a href="@Url.Action("Index", "Jobside")">@Jobside.Index_Breadcrumb</a> /
+        </span> @Jobside.Page_CreateTitle
     </h4>
-
 </div>
 
 <div class="card mb-4">
-
     <div class="card-body">
-
-        @using (Html.BeginForm("Create", "Jobside", FormMethod.Post, new { @class = "row g-3", id = "jobsideForm" }))
-
+        @if (hasSummaryErrors)
         {
+            <div class="alert alert-danger mb-3" role="alert">
+                @Html.ValidationSummary(false)
+            </div>
+        }
 
+        @using (Html.BeginForm("Create", "Jobside", FormMethod.Post, new { @class = "row g-3", @role = "form", @id = "jobsideForm" }))
+        {
             @Html.AntiForgeryToken()
 
             @Html.Partial("_JobsideFormFields", Model)
 
-            <div class="col-12 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
-
-                <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Cancelar</a>
-
-                <button type="submit" class="btn btn-primary">Guardar</button>
-
+            <div class="col-12 border-top pt-3 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
+                <a href="@Url.Action("Index", "Jobside")" class="btn btn-outline-secondary">@Common.Btn_Cancel</a>
+                <button type="submit" class="btn btn-primary">@Common.Btn_Save</button>
             </div>
-
         }
-
     </div>
-
 </div>
 
-
-
 @section scripts {
-
     @{
-
         ViewData["GooglePlacesPageScript"] = "~/Scripts/Intranet/jobside-google-places.js";
-
     }
-
     @Html.Partial("~/Views/Shared/_GooglePlacesAddressScripts.cshtml")
-
+    @Scripts.Render("~/bundles/jqueryval")
 }
-

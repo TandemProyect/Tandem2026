@@ -1,67 +1,57 @@
-﻿@model DAL.TSql_Employee
-
-@*<div id="topmenuEmployeeRight" class="TopMenu" style="z-index:500;right:10px;top:10px;position:absolute;height:35px">
-    <button id="CallHelpEmployee" class="btn btn-sm btn-outline-secondary" title="Ayuda">
-        <i class="icon-base ri ri-question-line"></i>
-    </button>
-</div>*@
-
-<div id="HelpDesingEmployee" abindex="-1" style="z-index: 500; width: 1500px; height:650px; display: none; position: absolute; top: 90px; margin: 1px; padding: 1px;background-color:white;">
-    <label>&nbsp;&nbsp;&nbsp;&nbsp;Tutorial</label> &nbsp;&nbsp;&nbsp;&nbsp;
-    <button type="button" id="BtnCloseHelpEmployee" class="close" data-dismiss="modal" aria-label="Close" style="padding:5px;margin:5px"><i class="fas fa-home"></i>&nbsp;&nbsp;</button>
-    <hr style="color: #F88402">
-    <div class="col-md-12">
-        <div class="row" style="margin:1px;padding:1px">
-            <div id="Help_GeneralEmployee" style=" width:900px;height:600px; margin:10px;padding:10px">
-                @Html.Action("Principal", "HelpDesing");
-            </div>
-
-            <div id="Help_MenuEmployee" style="width: 500px; height: 600px; margin:10px; padding: 10px">
-
-            </div>
-        </div>
-    </div>
-</div>
+﻿@using Newtonsoft.Json
+@using Desing.Resources
+@using System.Globalization
+@{
+    var ci = CultureInfo.CurrentUICulture?.TwoLetterISOLanguageName ?? "es";
+    var employeeDt = JsonConvert.SerializeObject(new
+    {
+        culture = ci,
+        rowsSuffix = Employee.Dt_Rows_N,
+        allRows = Employee.Dt_Rows_All,
+        sectionRecords = Employee.Dt_Section_Records,
+        sectionExport = Employee.Dt_Section_Export,
+        sectionCols = Employee.Dt_Section_ColumnsVisible,
+        badgeActiveClass = Employee.State_AccountConfirmed,
+        badgeInactiveClass = Employee.State_AccountUnconfirmed,
+        confirmDeleteEmployee = Employee.Js_ConfirmDeleteEmployee,
+        confirmToggleEmployee = Employee.Js_ConfirmToggleEmployee,
+        confirmSendMail = Employee.Js_ConfirmSendMail,
+        sendMailSuccessFallback = Employee.Js_SendMailSuccessFallback,
+        sendMailErrorFallback = Employee.Js_SendMailErrorFallback,
+        sendMailUnexpected = Employee.Js_SendMailUnexpected,
+        sendMailNetworkError = Employee.Js_SendMailNetworkError,
+        ariaMenu = Employee.Dt_MenuAria
+    });
+}
 
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="py-3 mb-0">
-        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> /</span> Empleados
+        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">@Employee.Common_Home</a> /</span> @Employee.Index_Breadcrumb
     </h4>
     <a class="btn btn-primary text-white" href="@Url.Action("Register", "Account")">
-        <i class="icon-base ri ri-add-line me-1"></i> Crear Nuevo Empleado
+        <i class="icon-base ri ri-add-line me-1"></i> @Employee.Index_CreateEmployee
     </a>
 </div>
-<div id="Loading" style="z-index:5; position: absolute; background-color:   darkgrey; width: 100%; height: 100%; display: none; opacity: 0.8">
-    &nbsp;&nbsp;&nbsp;&nbsp;
-</div>
-<div id="DivDesignPoupEmployee" style="position: absolute; z-index: 1200; background-color: ghostwhite; position: absolute; top: 70px; width: 750px; height:500px; display: none; border-radius: 0.9rem ">
-    <div class="modal-header" style="background-color: #ffc107">
-        <button type="button" id="BtnCloseDivDesignPoupEmployee" class="close" data-dismiss="modal" aria-label="Close" style="padding:5px;margin:5px;top:0px"><i class="fas fa-home"></i>&nbsp;&nbsp;</button>
-        <h5 class="modal-title" id="myModalLabel" style="color:black"><label id="LabelPoupEmployee">Mesaje</label></h5>
-    </div>
-    <form>
-        <fieldset>
-            <div id="DivContentFormDesign" style="background-position: center;width:100%;height:100%">
 
-            </div>
-        </fieldset>
-    </form>
-</div>
-<div class="card mb-4" style="width: 100%">
+@if (!string.IsNullOrEmpty(TempData["ToastMessage"] as string))
+{
+    <div class="alert alert-success">@TempData["ToastMessage"]</div>
+}
+
+<div class="card mb-4">
     <div class="card-body" style="padding:5px">
-        <table id="TableEmployee" class="table table-hover" cellspacing="0" style="width: 100%">
+        <table id="ListEmployee" class="table table-hover" cellspacing="0" style="width: 100%">
             <thead>
                 <tr>
-                    <th> Avatar</th>
-                    <th>UserName</th>
-                    <th>Nombre</th>
-                    <th>Apellido</th>
-                    <th></th>
-                    <th>Empresa</th>
-                    <th>Contraseña</th>
-                    <th>Act./des.</th>
-                    <th>Fecha alta</th>
-                    <th>Acciones</th>
+                    <th>@Employee.Col_Avatar</th>
+                    <th>@Employee.Col_UserName</th>
+                    <th>@Employee.Col_Name</th>
+                    <th>@Employee.Col_CompanyLetter</th>
+                    <th>@Employee.Col_Company</th>
+                    <th class="text-end">@Employee.Col_TotalDesigns</th>
+                    <th>@Employee.Col_Account</th>
+                    <th>@Employee.Col_CreatedDate</th>
+                    <th class="text-end text-nowrap" style="width:1%;"></th>
                     <th>ID</th>
                 </tr>
             </thead>
@@ -69,301 +59,172 @@
     </div>
 </div>
 
-<div id="ConfirmSendMailModal" style="display:none; position:fixed; top:25%; left:40%; width:400px; height:200px; background:white; border:1px solid #ccc; z-index:1000; padding:20px; box-shadow:0px 4px 6px rgba(0,0,0,0.1);">
-    <h3>Confirmación</h3>
-    <p>¿Estás seguro de que quieres enviar el mensaje?</p>
-    <button class="btn btn-success align-center" id="ConfirmYes" style="margin-right:10px;">Sí</button>
-    <button class="btn btn-danger align-center" id="ConfirmNo">No</button>
-</div>
-
-<!-- HTML para el mensaje de éxito/error -->
-<div id="NotificationPopup" style="display:none; position:fixed; top:05%; left:40%; width:300px; background:#00aaff; color:white; padding:15px; border-radius:5px; text-align:center; z-index:1001;">
-    <span id="NotificationText"></span>
+<!-- Modal de confirmación de envío de correo -->
+<div class="modal fade" id="EmployeeSendMailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@Employee.Btn_SendMail</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@Employee.Btn_Cancel"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0" id="EmployeeSendMailBody">@Employee.Js_ConfirmSendMail</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@Employee.Btn_Cancel</button>
+                <button type="button" class="btn btn-success" id="EmployeeSendMailConfirm">@Employee.Btn_SendMail</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section scripts
-    {
-    <script src="~/Scripts/jquery-ui.js.js"></script>
+{
     <script type="text/javascript">
-        $(document).ready(function () {
-            //Toas
-            var _Toas = @Html.Raw(Json.Encode(TempData["ToastType"]));
-            if (_Toas === "Act") {
-                var toastTitle = @Html.Raw(Json.Encode(TempData["ToastTitle"]));
-                var toastMessage = @Html.Raw(Json.Encode(TempData["ToastMessage"]));
-                var titleEl = document.getElementById("LableToasTileGeneral");
-                var contentEl = document.getElementById("LableToasContentedeGeneral");
-                if (titleEl) { titleEl.innerHTML = toastTitle || ""; }
-                if (contentEl) { contentEl.innerHTML = toastMessage || ""; }
-                if ($("#Toas_General").length) {
-                    $("#Toas_General").show("slide", 400, callback);
-                    function callback() {
-                        setTimeout(function () {
-                            $("#Toas_General").hide("slide", 400, callback);
-                        }, 4000);
-                    }
-                }
-            }
-            var dtEmplRoot = '@Url.Content("~/")';
-            var dtEmplAvatarDefault = '@Url.Content("~/Files/RRHH/User/AttPhotoMenu/User.png")';
-            var Employee = {
-                dt: null,
-                init: function () {
-                    dt = $('#TableEmployee').DataTable({
-                        dom: '<"dataTables-length-position">Bfrt<"dataTables-length-position"i>p',
-                        lengthMenu: [
-                            [10, 25, 50, -1],
-                            ['10 filas', '25 filas', '50 filas', 'Todas']
-                        ],
-                        buttons: [
-                            {
-                                extend: 'collection',
-                                text: "<i class='fas fa-bars'></i>",
-                                className: 'custom-html-collection',
-                                buttons: [
-                                    '<h5>Registros</h5>',
-                                    'pageLength',
-                                    '<h5>Exportar</h5>',
-                                    'print',
-                                    'copy',
-                                    'pdf',
-                                    'csv',
-                                    'excel',
-                                    '<h5 class="not-top-heading">Columnas visibles</h5>',
-                                    'colvis'
-                                ]
-                            }
-                        ],
-                        "serverSide": true,
-                        "processing": true,
-                        "stateSave": true,
-                        "colReorder": { "iFixedColumnsRight": 2 },
+        var employeeDt = @Html.Raw(employeeDt);
+        var employeeExportOpts = TandemDataTablesList.exportOptsPlainVisible;
 
-                        "ajax": {
-                            "url": "@Url.Content("~/Employee/ListEmployee/" + 1)",
-                            "type": "POST"
-                        },
-                        "columns": [
-                            {
-                                "data": "emptyColumn",
-                                "orderable": false,
-                                "render": function (data, type, row) {
-                                    if (type !== "display" && type !== "filter") { return data || ""; }
-                                    var avatarPath = (row.AttPhotoMenu || "").toString();
-                                    avatarPath = avatarPath.replace(/^~\//, "");
-                                    avatarPath = avatarPath.replace(/^(\.\.\/)+/, "");
-                                    var avatarUrl = avatarPath ? (dtEmplRoot + avatarPath) : dtEmplAvatarDefault;
-                                    return "<img style=\"height:35px;width:35px;object-fit:cover;border-radius:50%;\" src=\"" + avatarUrl + "\" alt=\"avatar\" onerror=\"this.onerror=null;this.src='" + dtEmplAvatarDefault + "';\" />";
-                                }
-                            },
-                            { "data": "UserName" },
-                            { "data": "AttName"},
-                            { "data": "AttSurname"},
-                            { "data": "AddLeter"},
-                            { "data": "AddCompany"},
-                            { "data": "AttPassAspNetUsert"},
-                            {
-                                "data": "emptyColumn",
-                                "orderable": false,
-                                "render": function (data, type, row) {
-                                    if (type !== "display") { return ""; }
-                                    return (row.buttonActive || "") + "&nbsp;";
-                                }
-                            },
-                            { "data": "AttCreated"},
-                            {
-                                "data": "emptyColumn",
-                                "orderable": false,
-                                "render": function (data, type, row) {
-                                    if (type !== "display") { return ""; }
-                                    var html = (row.buttonSendMail || "") + "&nbsp;";
-                                    if (row.allowEdit == true) {
-                                        html += (row.buttonEdit || "") + "&nbsp;";
-                                    }
-                                    if (row.AttIsDeleted == false) {
-                                        if ((row.Counter1 == 0) && (row.Counter2 == 0)) {
-                                            if (row.TotalDesing === 0 && row.allowDelete == true) {
-                                                html += (row.buttonDelete || "") + "&nbsp;";
-                                            }
-                                        }
-                                    }
-                                    return html;
-                                }
-                            },
-                            { "data": "SysObjectID"}
-                        ],
-                     /*   "iDisplayLength": parseInt(leerCookie("_rowsPerPage")),*/
-                        "fnRowCallback": function (nRow, data) {
-                            if (data.EmailConfirmed == false) {
-                                $("td", nRow).addClass("danger");
-                            } else {
-                                $("td", nRow).removeClass("danger");
+        $(document).ready(function () {
+            $('#ListEmployee').DataTable(TandemDataTablesList.applyListDefaults({
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    ['10 ' + employeeDt.rowsSuffix, '25 ' + employeeDt.rowsSuffix, '50 ' + employeeDt.rowsSuffix, employeeDt.allRows]
+                ],
+                buttons: [{
+                    extend: 'collection',
+                    text: "<i class='fas fa-bars'></i>",
+                    attr: { 'aria-label': employeeDt.ariaMenu },
+                    className: 'custom-html-collection',
+                    buttons: [
+                        '<h5>' + employeeDt.sectionRecords + '</h5>',
+                        'pageLength',
+                        '<h5>' + employeeDt.sectionExport + '</h5>',
+                        'print',
+                        'copy',
+                        'pdf',
+                        { extend: 'csv', exportOptions: employeeExportOpts },
+                        { extend: 'excel', exportOptions: employeeExportOpts },
+                        '<h5 class="not-top-heading">' + employeeDt.sectionCols + '</h5>',
+                        'colvis'
+                    ]
+                }],
+                serverSide: true,
+                processing: true,
+                colReorder: { iFixedColumnsRight: 2 },
+                ajax: {
+                    url: '@Url.Content("~/Employee/ListEmployee/")',
+                    type: 'POST'
+                },
+                order: [[2, 'asc']],
+                columns: [
+                    {
+                        data: 'Avatar',
+                        name: 'Avatar',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center align-middle',
+                        width: '60px'
+                    },
+                    { data: 'UserName', name: 'UserName' },
+                    {
+                        data: 'TextLabel',
+                        name: 'TextLabel',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.TextLabelPlain || '';
                             }
-                            return nRow;
-                        },
-                        "aaSorting": [[1, 'desc']],
-                        "aoColumnDefs": [
-                            { "bSortable": false, "aTargets": [0] },
-                            { "bVisible": false, "aTargets": [10] },
-                            { "bSortable": false, "aTargets": [9] },
-                            { "bSortable": false, "aTargets": [10] },
-                            { "bSortable": false, "aTargets": [7] },
-                            { "width": "80px", "aTargets": [0] },
-                            { "width": "80px", "aTargets": [9] },
-                            { "width": "40px", "aTargets": [7] },
-                        ],
-                        drawCallback: function () {
-                            if ($.fn.tooltip) {
-                                $('[data-toggle="tooltip"]').tooltip({
-                                    delay: { "show": 100, "hide": 100 },
-                                    placement: "auto right"
-                                });
-                                $('[title]').tooltip({
-                                    delay: { "show": 100, "hide": 100 },
-                                    placement: "auto"
-                                });
+                            return data;
+                        }
+                    },
+                    { data: 'AddLeter', name: 'AddLeter' },
+                    { data: 'AddCompany', name: 'AddCompany' },
+                    {
+                        data: 'TotalDesing',
+                        name: 'TotalDesing',
+                        className: 'text-end align-middle'
+                    },
+                    {
+                        data: 'EmailConfirmed',
+                        name: 'EmailConfirmed',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.StatusText || (data ? employeeDt.badgeActiveClass : employeeDt.badgeInactiveClass);
                             }
-                        },
+                            if (type !== 'display') {
+                                return data;
+                            }
+                            return data
+                                ? '<span class="badge bg-label-success">' + employeeDt.badgeActiveClass + '</span>'
+                                : '<span class="badge bg-label-danger">' + employeeDt.badgeInactiveClass + '</span>';
+                        }
+                    },
+                    { data: 'AttCreated', name: 'AttCreated' },
+                    {
+                        data: 'rowActions',
+                        orderable: false,
+                        searchable: false,
+                        className: 'tandem-col-actions text-end align-middle text-nowrap'
+                    },
+                    { data: 'SysObjectID', visible: false }
+                ],
+                drawCallback: function () {
+                    $('[data-toggle="tooltip"]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto right'
+                    });
+                    $('[title]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto'
                     });
                 }
-            }
-            Employee.init();
+            }));
         });
-        $('#sidebar').toggleClass('active');
-        $(this).toggleClass('active');
-        $('#sidebar').load('/Menu/Index');
-        //Help
-        $('#BtnCloseDivDesignPoupEmployee').on('click', function () {
-            $("#DivDesignPoupEmployee").hide("slide", { direction: "right" }, 1000);
-            $("#Loading").hide();
-        })
-        $("#CallHelpEmployee").on("click", function () {
-            $("#Loading").show();
-            var pageWidth = screen.width;
-            var LeftM = pageWidth - ((pageWidth / 2) + 700) + "px";
-            document.getElementById("HelpDesingEmployee").style.left = LeftM;
-            $("#HelpDesingEmployee").show("slide", { direction: "left" }, 400);
-            videoElem = document.getElementById("Video_Principal");
-            videoElem.src = "../../Files/Help/Video/Presentacion2025.mp4";
-            videoElem.play();
-        });
-        //Employee
-        $("#BtnCloseHelpEmployee").on("click", function () {
-            videoElem.src = "";
-            $("#Loading").hide();
-            $("#HelpDesingEmployee").hide("slide", { direction: "left" }, 400);
 
-        });
-        $('#btnSalirEditEmployee').on('click', function () {
-            $("#DivDesignPoupEmployee").hide("slide", { direction: "right" }, 1000);
-            $("#Loading").hide();
-        });
-        $('#Help_MenuEmployee').load('/HelpDesing/MenuHelp');
-        var loadFile = function (event) {
-            var image = document.getElementById('output');
-            image.src = URL.createObjectURL(event.target.files[0]);
-        };
-        function DeleteEmployee(id)
-        {
-            $("#Loading").show();
-            document.getElementById("LabelPoupEmployee").innerHTML = " Eliminar Empleado ";
-            var w = (screen.width / 2) - 375 + "px";
-            document.getElementById("DivDesignPoupEmployee").style.left = w;
-            document.getElementById("DivDesignPoupEmployee").style.width = "750px";
-            document.getElementById("DivDesignPoupEmployee").style.height = "300px";
-            $("#DivDesignPoupEmployee").show("slide", { direction: "right" }, 1000);
-            //$("#Loading").show();
-            $.ajax({
-            type: 'POST',
-            url: '@Url.Content("~/Employee/_Delete")',
-            data: {Id:id},
-                success: function (data) {
-                    if (data.IsOk == true) {
-                        $('#DivContentFormDesign').load('/Employee/Delete');
-                    }
-                }, error: function () {
-                    alert('Error occured');
+        window.DeleteEmployee = function (id) {
+            if (!confirm(employeeDt.confirmDeleteEmployee)) return;
+            $.post('@Url.Action("DeleteEmployee", "Employee")', { id: id }, function (res) {
+                if (res && res.Message) { alert(res.Message); }
+                if (res && res.IsOk) {
+                    $('#ListEmployee').DataTable().ajax.reload(null, false);
                 }
-});
+            });
         };
-        function ActiveDesactive(id)
-        {
-            $("#Loading").show();
-            document.getElementById("LabelPoupEmployee").innerHTML =" Activa y descativar Empleado ";
-            var w = (screen.width / 2) - 375 + "px";
-            document.getElementById("DivDesignPoupEmployee").style.left = w;
-            document.getElementById("DivDesignPoupEmployee").style.width = "750px";
-            document.getElementById("DivDesignPoupEmployee").style.height = "300px";
-            $("#DivDesignPoupEmployee").show("slide", { direction: "right" }, 1000);
-            //$("#Loading").show();
-            $.ajax({
-            type: 'POST',
-            url: '@Url.Content("~/Employee/_Active")',
-            data: {Id:id},
-                success: function (data) {
-                    if (data.IsOk == true) {
-                        $('#DivContentFormDesign').load('/Employee/Active');
-                    }
-                }, error: function () {
-                    alert('Error occured');
+
+        window.ToggleEmployee = function (id) {
+            if (!confirm(employeeDt.confirmToggleEmployee)) return;
+            $.post('@Url.Action("ToggleEmployee", "Employee")', { id: id }, function (res) {
+                if (res && res.Message) { alert(res.Message); }
+                if (res && res.IsOk) {
+                    $('#ListEmployee').DataTable().ajax.reload(null, false);
                 }
-});
-};
-        function EditEmployee(id)
-        {
-        $.ajax({
-        type: 'POST',
-        url: '@Url.Content("~/Employee/Create_Employee")',
-        data: {}
-        });
+            });
         };
-   // funcion para mandar el mensaje al usuario en concreto.
-       function SendmailToEmployee(id) {
-    $("#ConfirmSendMailModal").fadeIn();
 
-    $("#ConfirmYes").off("click").on("click", function () {
-        $("#ConfirmSendMailModal").fadeOut();
+        window.SendmailToEmployee = function (id) {
+            var $modal = $('#EmployeeSendMailModal');
+            var hasBootstrap5 = typeof bootstrap !== 'undefined' && bootstrap.Modal;
+            var modal = hasBootstrap5 ? bootstrap.Modal.getOrCreateInstance(document.getElementById('EmployeeSendMailModal')) : null;
+            if (modal) { modal.show(); } else { $modal.fadeIn(); }
 
-        $.ajax({
-            type: 'POST',
-            url: '@Url.Content("~/Employee/SendMailUser")',
-            data: { Id: id },
-            success: function (data) {
-                console.log("respuesta del servidor:", data);
-                if (data.startsWith("Success:")) {
-                    showNotification(data.replace("Success:", "").trim(), "success");
-                } else if (data.startsWith("Error:")) {
-                    showNotification(data.replace("Error:", "").trim(), "error");
-                } else {
-                    showNotification("Respuesta inesperada del servidor.", "error");
-                }
-            },
-            error: function () {
-                showNotification("Ocurrió un error al enviar el mensaje.", "error");
-            }
-        });
-    });
-
-    $("#ConfirmNo").off("click").on("click", function () {
-        $("#ConfirmSendMailModal").fadeOut();
-    });
-   };
-
-// Función para mostrar una notificación con el estado del envio del correo exitoso o fallido 
-function showNotification(message, type) {
-    var $popup = $("#NotificationPopup");
-    var backgroundColor = type === "success" ? "#28a745" : "#dc3545";
-    $popup.css("background", backgroundColor);
-    $("#NotificationText").text(message);
-    $popup.fadeIn();
-
-    // Ocultar el popup después de 5 segundos
-    setTimeout(function () {
-        $popup.fadeOut();
-    }, 5000);
-}
-
-
+            $('#EmployeeSendMailConfirm').off('click').on('click', function () {
+                if (modal) { modal.hide(); } else { $modal.fadeOut(); }
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("SendMailUser", "Employee")',
+                    data: { Id: id },
+                    success: function (data) {
+                        var text = (data || '').toString();
+                        if (text.indexOf('Success:') === 0) {
+                            alert(text.replace('Success:', '').trim() || employeeDt.sendMailSuccessFallback);
+                        } else if (text.indexOf('Error:') === 0) {
+                            alert(text.replace('Error:', '').trim() || employeeDt.sendMailErrorFallback);
+                        } else {
+                            alert(employeeDt.sendMailUnexpected);
+                        }
+                    },
+                    error: function () { alert(employeeDt.sendMailNetworkError); }
+                });
+            });
+        };
     </script>
 }
-

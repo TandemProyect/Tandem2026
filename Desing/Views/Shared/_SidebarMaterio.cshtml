@@ -1,4 +1,4 @@
-﻿@*
+@*
 
     Sidebar vertical estilo Materio adaptado al menu de T Desing.net.
 
@@ -13,10 +13,19 @@
 *@
 
 @using Desing.Models
+@using Desing.Controllers
+@using Desing.Helpers
 
 @{
 
     string currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+
+    var bcMenu = ViewContext.Controller as BaseController;
+    var dbMenu = bcMenu != null ? bcMenu.ConexionData : null;
+    Func<string, string, string> UiCommon = (key, fallback) =>
+        dbMenu != null
+            ? LanguageUiHelper.GetUiStringWithFallback(dbMenu, Request, key, fallback, "Common")
+            : fallback;
 
 
 
@@ -32,17 +41,29 @@
 
 
 
+    bool isUiTranslationController = currentController.Equals("UiTranslation", StringComparison.OrdinalIgnoreCase);
+
+
+
+    bool isLanguageController = currentController.Equals("Language", StringComparison.OrdinalIgnoreCase);
+
+
+
+    bool isCountryController = currentController.Equals("Country", StringComparison.OrdinalIgnoreCase);
+
+
+
     var configuracionMenu = new SidebarMenuGroupModel
 
     {
 
         GroupId = "menu-configuracion",
 
-        Title = "Configuración",
+        Title = UiCommon("Menu.Configuration", "Configuración"),
 
         IconClass = "ri ri-settings-3-line",
 
-        IsOpen = isDocumentTypeController || isExtensionController,
+        IsOpen = isDocumentTypeController || isExtensionController || isUiTranslationController || isLanguageController || isCountryController,
 
         Children = new List<SidebarMenuChildItem>
 
@@ -54,7 +75,7 @@
 
                 Controller = "DocumentType",
 
-                Text = "Tipos de documento"
+                Text = UiCommon("Menu.DocumentTypes", "Tipos de documento")
 
             },
 
@@ -64,7 +85,37 @@
 
                 Controller = "Extension",
 
-                Text = "Extensiones"
+                Text = UiCommon("Menu.Extensions", "Extensiones")
+
+            },
+
+            new SidebarMenuChildItem
+
+            {
+
+                Controller = "Language",
+
+                Text = UiCommon("Menu.Languages", "Idiomas")
+
+            },
+
+            new SidebarMenuChildItem
+
+            {
+
+                Controller = "Country",
+
+                Text = UiCommon("Menu.Countries", "Países")
+
+            },
+
+            new SidebarMenuChildItem
+
+            {
+
+                Controller = "UiTranslation",
+
+                Text = UiCommon("Menu.UiTranslations", "Traducciones UI")
 
             }
 
@@ -132,7 +183,7 @@
 
                 <i class="menu-icon icon-base ri ri-home-smile-line"></i>
 
-                <div>Inicio</div>
+                <div>@Html.Ui("Menu.Home", "Inicio", "Common")</div>
 
             </a>
 
@@ -148,7 +199,7 @@
 
                 <i class="menu-icon icon-base ri ri-shape-line"></i>
 
-                <div>Diseno</div>
+                <div>@Html.Ui("Menu.Design", "Diseño", "Common")</div>
 
             </a>
 
@@ -158,7 +209,7 @@
 
         @* Header Administracion *@
 
-        <li class="menu-header small text-uppercase"><span class="menu-header-text">Administracion</span></li>
+        <li class="menu-header small text-uppercase"><span class="menu-header-text">@Html.Ui("Menu.Administration", "Administración", "Common")</span></li>
 
 
 
@@ -168,7 +219,7 @@
 
                 <i class="menu-icon icon-base ri ri-building-line"></i>
 
-                <div>Empresas</div>
+                <div>@Html.Ui("Menu.Companies", "Empresas", "Common")</div>
 
             </a>
 
@@ -182,7 +233,7 @@
 
                 <i class="menu-icon icon-base ri ri-user-line"></i>
 
-                <div>Empleados</div>
+                <div>@Html.Ui("Menu.Employees", "Empleados", "Common")</div>
 
             </a>
 
@@ -196,7 +247,7 @@
 
                 <i class="menu-icon icon-base ri ri-list-check-2"></i>
 
-                <div>Articulos</div>
+                <div>@Html.Ui("Menu.Articles", "Artículos", "Common")</div>
 
             </a>
 
@@ -210,7 +261,7 @@
 
                 <i class="menu-icon icon-base ri ri-palette-line"></i>
 
-                <div>Plantillas</div>
+                <div>@Html.Ui("Menu.Templates", "Plantillas", "Common")</div>
 
             </a>
 
@@ -224,7 +275,7 @@
 
                 <i class="menu-icon icon-base ri ri-group-line"></i>
 
-                <div>Clientes</div>
+                <div>@Html.Ui("Menu.Clients", "Clientes", "Common")</div>
 
             </a>
 
@@ -238,7 +289,7 @@
 
                 <i class="menu-icon icon-base ri ri-map-pin-line"></i>
 
-                <div>Obras</div>
+                <div>@Html.Ui("Menu.JobSites", "Obras", "Common")</div>
 
             </a>
 
@@ -248,7 +299,7 @@
 
         @* Header Configuracion *@
 
-        <li class="menu-header small text-uppercase"><span class="menu-header-text">Configuración</span></li>
+        <li class="menu-header small text-uppercase"><span class="menu-header-text">@Html.Ui("Menu.ConfigurationSection", "Configuración", "Common")</span></li>
 
 
 
@@ -258,7 +309,7 @@
 
         @* Header Soporte *@
 
-        <li class="menu-header small text-uppercase"><span class="menu-header-text">Soporte</span></li>
+        <li class="menu-header small text-uppercase"><span class="menu-header-text">@Html.Ui("Menu.Support", "Soporte", "Common")</span></li>
 
 
 
@@ -268,7 +319,7 @@
 
                 <i class="menu-icon icon-base ri ri-question-line"></i>
 
-                <div>Ayuda</div>
+                <div>@Html.Ui("Menu.Help", "Ayuda", "Common")</div>
 
             </a>
 

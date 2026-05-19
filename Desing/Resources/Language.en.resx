@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Btn_New" xml:space="preserve">
+    <value>New language</value>
+  </data>
+  <data name="Col_Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Col_Country" xml:space="preserve">
+    <value>Country</value>
+  </data>
+  <data name="Col_Default" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="Col_Flag" xml:space="preserve">
+    <value>Flag</value>
+  </data>
+  <data name="Col_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Col_NativeName" xml:space="preserve">
+    <value>Native name</value>
+  </data>
+  <data name="Col_State" xml:space="preserve">
+    <value>State</value>
+  </data>
+  <data name="Common_Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Common_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Country_AriaToggle" xml:space="preserve">
+    <value>Open country catalog</value>
+  </data>
+  <data name="Country_Empty" xml:space="preserve">
+    <value>No countries in catalog.</value>
+  </data>
+  <data name="Country_LoadError" xml:space="preserve">
+    <value>Could not load the catalog.</value>
+  </data>
+  <data name="Country_Loading" xml:space="preserve">
+    <value>Loading…</value>
+  </data>
+  <data name="Country_TitleToggle" xml:space="preserve">
+    <value>Country catalog</value>
+  </data>
+  <data name="Details_Field_Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Details_Field_Country" xml:space="preserve">
+    <value>Country</value>
+  </data>
+  <data name="Details_Field_Default" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="Details_Field_Flag" xml:space="preserve">
+    <value>Flag</value>
+  </data>
+  <data name="Details_Field_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Details_Field_NativeName" xml:space="preserve">
+    <value>Native name</value>
+  </data>
+  <data name="Details_Field_State" xml:space="preserve">
+    <value>State</value>
+  </data>
+  <data name="Details_NoBoolValue" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Details_NoValue" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="Details_YesValue" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="Err_CannotDeleteHasCompanies" xml:space="preserve">
+    <value>Cannot delete: the language is linked to active companies.</value>
+  </data>
+  <data name="Err_CannotDeleteIsDefault" xml:space="preserve">
+    <value>Cannot delete the language marked as default.</value>
+  </data>
+  <data name="Err_LanguageNotFound" xml:space="preserve">
+    <value>Language not found.</value>
+  </data>
+  <data name="Index_Breadcrumb" xml:space="preserve">
+    <value>Languages</value>
+  </data>
+  <data name="Index_CreateLanguage" xml:space="preserve">
+    <value>New language</value>
+  </data>
+  <data name="Index_FallbackNote" xml:space="preserve">
+    <value>If a user picks a language without a translation for a key, the text from the &lt;strong&gt;default&lt;/strong&gt; language (or the literal in the view) is shown.</value>
+  </data>
+  <data name="Info_NotDefaultOnCreate" xml:space="preserve">
+    <value>The new language will not be the default one. The site default language stays until you toggle the flag in &lt;strong&gt;Edit&lt;/strong&gt; on another language.</value>
+  </data>
+  <data name="Js_ConfirmDeleteLanguage" xml:space="preserve">
+    <value>Delete this language? (soft delete).</value>
+  </data>
+  <data name="Lbl_ActiveCheckbox" xml:space="preserve">
+    <value>Active language</value>
+  </data>
+  <data name="Lbl_CodeRequired" xml:space="preserve">
+    <value>UI code (TextCode) *</value>
+  </data>
+  <data name="Lbl_Default" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="Lbl_DefaultCheckbox" xml:space="preserve">
+    <value>Default site language</value>
+  </data>
+  <data name="Lbl_LinkCountry" xml:space="preserve">
+    <value>Country (flag and ISO from catalog)</value>
+  </data>
+  <data name="Lbl_NameRequired" xml:space="preserve">
+    <value>Name / label *</value>
+  </data>
+  <data name="Lbl_NativeName" xml:space="preserve">
+    <value>Native name (optional)</value>
+  </data>
+  <data name="Lbl_State" xml:space="preserve">
+    <value>State</value>
+  </data>
+  <data name="List_LinkDeleteLockedCompaniesTooltip" xml:space="preserve">
+    <value>Cannot delete: the language is linked to active companies.</value>
+  </data>
+  <data name="List_LinkDeleteLockedDefaultTooltip" xml:space="preserve">
+    <value>Cannot delete: this language is marked as default.</value>
+  </data>
+  <data name="List_LinkDeleteTooltip" xml:space="preserve">
+    <value>Delete language</value>
+  </data>
+  <data name="List_LinkEditTooltip" xml:space="preserve">
+    <value>Edit language</value>
+  </data>
+  <data name="List_LinkOpenTooltip" xml:space="preserve">
+    <value>Open language</value>
+  </data>
+  <data name="List_NoCountry" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="List_NoFlag" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="List_NoNativeName" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="Page_CreateTitle" xml:space="preserve">
+    <value>Create language</value>
+  </data>
+  <data name="Page_DetailsTitle" xml:space="preserve">
+    <value>Language details</value>
+  </data>
+  <data name="Page_EditTitle" xml:space="preserve">
+    <value>Edit language</value>
+  </data>
+  <data name="Ph_Code" xml:space="preserve">
+    <value>en</value>
+  </data>
+  <data name="Ph_CountrySearch" xml:space="preserve">
+    <value>Search (3 letters) or use the list…</value>
+  </data>
+  <data name="Ph_Name" xml:space="preserve">
+    <value>E.g.: English</value>
+  </data>
+  <data name="Ph_NativeName" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="State_Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="State_Default" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="State_DefaultNo" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="State_DefaultYes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="State_Inactive" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  <data name="ToastMessage_LanguageCreated" xml:space="preserve">
+    <value>Language &quot;{0}&quot; created successfully.</value>
+  </data>
+  <data name="ToastMessage_LanguageDeleted" xml:space="preserve">
+    <value>Language &quot;{0}&quot; deleted successfully.</value>
+  </data>
+  <data name="ToastMessage_LanguageUpdated" xml:space="preserve">
+    <value>Language &quot;{0}&quot; updated successfully.</value>
+  </data>
+  <data name="ToastTitle_CreateLanguage" xml:space="preserve">
+    <value>Create language</value>
+  </data>
+  <data name="ToastTitle_DeleteLanguage" xml:space="preserve">
+    <value>Delete language</value>
+  </data>
+  <data name="ToastTitle_EditLanguage" xml:space="preserve">
+    <value>Edit language</value>
+  </data>
+  <data name="Val_CodeDuplicate" xml:space="preserve">
+    <value>An active language with that code already exists.</value>
+  </data>
+  <data name="Val_CodeFormat" xml:space="preserve">
+    <value>Use a code like &quot;es&quot;, &quot;en&quot; or &quot;en-gb&quot; (letters and optional dash).</value>
+  </data>
+  <data name="Val_CodeRequired" xml:space="preserve">
+    <value>The UI code (TextCode) is required.</value>
+  </data>
+  <data name="Val_CodeTooLong" xml:space="preserve">
+    <value>Code cannot exceed 20 characters.</value>
+  </data>
+  <data name="Val_DefaultMustExist" xml:space="preserve">
+    <value>A default language must exist. Set another language as default before unmarking this one.</value>
+  </data>
+  <data name="Val_NameRequired" xml:space="preserve">
+    <value>Language name is required.</value>
+  </data>
+  <data name="Val_NameTooLong" xml:space="preserve">
+    <value>Name cannot exceed 500 characters.</value>
+  </data>
+  <data name="Val_NativeNameTooLong" xml:space="preserve">
+    <value>Native name cannot exceed 100 characters.</value>
+  </data>
+</root>

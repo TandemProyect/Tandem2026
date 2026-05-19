@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Account_EmailConfirmation_Subject" xml:space="preserve">
+    <value>Por favor, valida tu cuenta</value>
+  </data>
+  <data name="Account_Err_EmailNotConfirmed" xml:space="preserve">
+    <value>Tienes que confirmar el email; la confirmación ha sido enviada.</value>
+  </data>
+  <data name="Account_Err_InvalidCode" xml:space="preserve">
+    <value>Código no válido.</value>
+  </data>
+  <data name="Account_Err_LoginRequired" xml:space="preserve">
+    <value>Debes iniciar sesión para acceder a esa página.</value>
+  </data>
+  <data name="Account_Err_UserNotRegistered" xml:space="preserve">
+    <value>El usuario no está registrado.</value>
+  </data>
+  <data name="App_BrandFallback" xml:space="preserve">
+    <value>T Desing.net</value>
+  </data>
+  <data name="App_EnvironmentLabel" xml:space="preserve">
+    <value>Entorno Develop</value>
+  </data>
+  <data name="Aria_CloseModal" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="Aria_LanguageSwitcher" xml:space="preserve">
+    <value>Selector de idioma</value>
+  </data>
+  <data name="Aria_TogglePassword" xml:space="preserve">
+    <value>Mostrar u ocultar contraseña</value>
+  </data>
+  <data name="Btn_Back" xml:space="preserve">
+    <value>Volver</value>
+  </data>
+  <data name="Btn_Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Btn_Close" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="Btn_Confirm" xml:space="preserve">
+    <value>Confirmar</value>
+  </data>
+  <data name="Btn_Create" xml:space="preserve">
+    <value>Crear</value>
+  </data>
+  <data name="Btn_Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Btn_Details" xml:space="preserve">
+    <value>Detalles</value>
+  </data>
+  <data name="Btn_Edit" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="Btn_Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="Btn_SaveChanges" xml:space="preserve">
+    <value>Guardar cambios</value>
+  </data>
+  <data name="Btn_Search" xml:space="preserve">
+    <value>Buscar</value>
+  </data>
+  <data name="Btn_Send" xml:space="preserve">
+    <value>Enviar</value>
+  </data>
+  <data name="ConfirmEmail_Lead" xml:space="preserve">
+    <value>Gracias por confirmar tu email.</value>
+  </data>
+  <data name="ConfirmEmail_Link" xml:space="preserve">
+    <value>Pulsa aquí para iniciar sesión</value>
+  </data>
+  <data name="ConfirmEmail_Title" xml:space="preserve">
+    <value>Confirmación de email</value>
+  </data>
+  <data name="Display_Code" xml:space="preserve">
+    <value>Código</value>
+  </data>
+  <data name="Display_ConfirmPassword" xml:space="preserve">
+    <value>Confirmar contraseña</value>
+  </data>
+  <data name="Display_Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Display_Password" xml:space="preserve">
+    <value>Contraseña</value>
+  </data>
+  <data name="Display_RememberBrowser" xml:space="preserve">
+    <value>¿Recordar este navegador?</value>
+  </data>
+  <data name="Display_RememberMe" xml:space="preserve">
+    <value>¿Recordarme?</value>
+  </data>
+  <data name="Display_UserName" xml:space="preserve">
+    <value>Nombre de usuario</value>
+  </data>
+  <data name="Dt_Btn_ColVis" xml:space="preserve">
+    <value>Visibilidad</value>
+  </data>
+  <data name="Dt_Btn_Copy" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="Dt_Btn_Csv" xml:space="preserve">
+    <value>CSV</value>
+  </data>
+  <data name="Dt_Btn_Excel" xml:space="preserve">
+    <value>Excel</value>
+  </data>
+  <data name="Dt_Btn_PageLength" xml:space="preserve">
+    <value>Filas por página</value>
+  </data>
+  <data name="Dt_Btn_Pdf" xml:space="preserve">
+    <value>PDF</value>
+  </data>
+  <data name="Dt_Btn_Print" xml:space="preserve">
+    <value>Imprimir</value>
+  </data>
+  <data name="Dt_MenuAria" xml:space="preserve">
+    <value>Opciones del listado</value>
+  </data>
+  <data name="Dt_Rows_All" xml:space="preserve">
+    <value>Todas</value>
+  </data>
+  <data name="Dt_Rows_N" xml:space="preserve">
+    <value>filas</value>
+  </data>
+  <data name="Dt_Section_ColumnsVisible" xml:space="preserve">
+    <value>Columnas visibles</value>
+  </data>
+  <data name="Dt_Section_Export" xml:space="preserve">
+    <value>Exportar</value>
+  </data>
+  <data name="Dt_Section_Records" xml:space="preserve">
+    <value>Registros</value>
+  </data>
+  <data name="Error_Subtitle" xml:space="preserve">
+    <value>Se ha producido un error al procesar la solicitud.</value>
+  </data>
+  <data name="Error_Title" xml:space="preserve">
+    <value>Error.</value>
+  </data>
+  <data name="ExternalLogin_FailureSubtitle" xml:space="preserve">
+    <value>No se pudo iniciar sesión con el proveedor externo.</value>
+  </data>
+  <data name="ExternalLogin_FailureTitle" xml:space="preserve">
+    <value>Error de inicio de sesión</value>
+  </data>
+  <data name="Footer_LastReleaseLabel" xml:space="preserve">
+    <value>Última publicación:</value>
+  </data>
+  <data name="Forgot_Btn_Send" xml:space="preserve">
+    <value>Enviar enlace</value>
+  </data>
+  <data name="Forgot_ConfirmationMessage" xml:space="preserve">
+    <value>Por favor, revisa tu correo para restablecer la contraseña.</value>
+  </data>
+  <data name="Forgot_ConfirmationTitle" xml:space="preserve">
+    <value>Solicitud enviada</value>
+  </data>
+  <data name="Forgot_Heading" xml:space="preserve">
+    <value>Recuperar contraseña</value>
+  </data>
+  <data name="Forgot_Lbl_Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Forgot_Link_BackToLogin" xml:space="preserve">
+    <value>Volver a iniciar sesión</value>
+  </data>
+  <data name="Forgot_PageTitle" xml:space="preserve">
+    <value>Recuperar contraseña</value>
+  </data>
+  <data name="Forgot_Subtitle" xml:space="preserve">
+    <value>Introduce tu email y te enviaremos un enlace para restablecer tu contraseña.</value>
+  </data>
+  <data name="Google_Aria_MapPreview" xml:space="preserve">
+    <value>Vista previa del mapa</value>
+  </data>
+  <data name="Google_Err_ApiLoadFailed" xml:space="preserve">
+    <value>No se pudo cargar Google Maps. Compruebe la clave en GoogleMaps:ApiKey (Web.config) y la configuración en Google Cloud Console.</value>
+  </data>
+  <data name="Google_Lbl_AdminArea1" xml:space="preserve">
+    <value>Provincia</value>
+  </data>
+  <data name="Google_Lbl_CountryCode" xml:space="preserve">
+    <value>País</value>
+  </data>
+  <data name="Google_Lbl_FormattedAddress" xml:space="preserve">
+    <value>Dirección formateada</value>
+  </data>
+  <data name="Google_Lbl_Locality" xml:space="preserve">
+    <value>Localidad</value>
+  </data>
+  <data name="Google_Lbl_Map" xml:space="preserve">
+    <value>Ubicación en mapa</value>
+  </data>
+  <data name="Google_Lbl_PostalCode" xml:space="preserve">
+    <value>CP</value>
+  </data>
+  <data name="Google_Lbl_Route" xml:space="preserve">
+    <value>Vía</value>
+  </data>
+  <data name="Google_Lbl_Search" xml:space="preserve">
+    <value>Buscar dirección</value>
+  </data>
+  <data name="Google_Lbl_StreetNumber" xml:space="preserve">
+    <value>Nº</value>
+  </data>
+  <data name="Google_Lbl_Subpremise" xml:space="preserve">
+    <value>Piso / puerta</value>
+  </data>
+  <data name="Google_Msg_NoAddress" xml:space="preserve">
+    <value>Seleccione una dirección para ver el mapa</value>
+  </data>
+  <data name="Google_Ph_Search" xml:space="preserve">
+    <value>Escriba calle, localidad o código postal…</value>
+  </data>
+  <data name="Google_Title" xml:space="preserve">
+    <value>Dirección</value>
+  </data>
+  <data name="LanguageSwitcher_LockedBadge" xml:space="preserve">
+    <value>Empresa</value>
+  </data>
+  <data name="LanguageSwitcher_LockedSuffix" xml:space="preserve">
+    <value>(idioma de la empresa)</value>
+  </data>
+  <data name="Lockout_PageTitle" xml:space="preserve">
+    <value>Cuenta bloqueada</value>
+  </data>
+  <data name="Lockout_Subtitle" xml:space="preserve">
+    <value>Esta cuenta ha sido bloqueada temporalmente. Inténtelo de nuevo más tarde.</value>
+  </data>
+  <data name="Lockout_Title" xml:space="preserve">
+    <value>Cuenta bloqueada.</value>
+  </data>
+  <data name="Login_Btn_SignIn" xml:space="preserve">
+    <value>Entrar</value>
+  </data>
+  <data name="Login_Lbl_Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Login_Lbl_Password" xml:space="preserve">
+    <value>Contraseña</value>
+  </data>
+  <data name="Login_Lbl_RememberMe" xml:space="preserve">
+    <value>Recordarme</value>
+  </data>
+  <data name="Login_Link_ForgotPassword" xml:space="preserve">
+    <value>¿Olvidé mi contraseña?</value>
+  </data>
+  <data name="Login_PageTitle" xml:space="preserve">
+    <value>Iniciar sesión</value>
+  </data>
+  <data name="Login_Subtitle" xml:space="preserve">
+    <value>Inicia sesión para acceder a tu espacio de trabajo</value>
+  </data>
+  <data name="Login_Welcome" xml:space="preserve">
+    <value>Bienvenido a {0}</value>
+  </data>
+  <data name="Register_BreadcrumbEmployees" xml:space="preserve">
+    <value>Empleados</value>
+  </data>
+  <data name="Register_BreadcrumbHome" xml:space="preserve">
+    <value>Inicio</value>
+  </data>
+  <data name="Register_Btn_Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Register_Btn_Create" xml:space="preserve">
+    <value>Crear usuario</value>
+  </data>
+  <data name="Register_CardTitle" xml:space="preserve">
+    <value>Datos del nuevo usuario</value>
+  </data>
+  <data name="Register_Lbl_ConfirmPassword" xml:space="preserve">
+    <value>Confirmar contraseña</value>
+  </data>
+  <data name="Register_Lbl_Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Register_Lbl_Password" xml:space="preserve">
+    <value>Contraseña</value>
+  </data>
+  <data name="Register_PageHeading" xml:space="preserve">
+    <value>Crear nuevo usuario</value>
+  </data>
+  <data name="Register_PageTitle" xml:space="preserve">
+    <value>Crear cuenta</value>
+  </data>
+  <data name="Reset_Btn_Submit" xml:space="preserve">
+    <value>Cambiar contraseña</value>
+  </data>
+  <data name="Reset_ConfirmationLead" xml:space="preserve">
+    <value>Tu contraseña se ha restablecido correctamente.</value>
+  </data>
+  <data name="Reset_ConfirmationLink" xml:space="preserve">
+    <value>Pulsa aquí para iniciar sesión</value>
+  </data>
+  <data name="Reset_ConfirmationTitle" xml:space="preserve">
+    <value>Contraseña restablecida</value>
+  </data>
+  <data name="Reset_Heading" xml:space="preserve">
+    <value>Restablecer contraseña</value>
+  </data>
+  <data name="Reset_Lbl_ConfirmPassword" xml:space="preserve">
+    <value>Confirmar contraseña</value>
+  </data>
+  <data name="Reset_Lbl_Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Reset_Lbl_NewPassword" xml:space="preserve">
+    <value>Nueva contraseña</value>
+  </data>
+  <data name="Reset_Link_BackToLogin" xml:space="preserve">
+    <value>Volver a iniciar sesión</value>
+  </data>
+  <data name="Reset_PageTitle" xml:space="preserve">
+    <value>Restablecer contraseña</value>
+  </data>
+  <data name="Reset_Subtitle" xml:space="preserve">
+    <value>Introduce tu nueva contraseña para volver a acceder a {0}.</value>
+  </data>
+  <data name="Val_CodeRequired" xml:space="preserve">
+    <value>El código es obligatorio.</value>
+  </data>
+  <data name="Val_EmailInvalid" xml:space="preserve">
+    <value>El formato del email no es válido.</value>
+  </data>
+  <data name="Val_EmailRequired" xml:space="preserve">
+    <value>El email es obligatorio.</value>
+  </data>
+  <data name="Val_PasswordRequired" xml:space="preserve">
+    <value>La contraseña es obligatoria.</value>
+  </data>
+  <data name="Val_PasswordTooShort" xml:space="preserve">
+    <value>El campo {0} debe tener al menos {2} caracteres.</value>
+  </data>
+  <data name="Val_PasswordsDoNotMatch" xml:space="preserve">
+    <value>La contraseña y la confirmación no coinciden.</value>
+  </data>
+</root>

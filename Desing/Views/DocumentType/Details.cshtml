@@ -1,55 +1,84 @@
 @model DAL.TSql_DocumentType
+@using Desing.Resources
 @{
     ViewBag.Title = Model.TextLabel;
     var extensiones = ViewBag.ExtensionesAsignadas as System.Collections.Generic.List<DAL.TSql_Extension>;
     var extPathById = ViewBag.ExtensionPathIcoById as System.Collections.Generic.Dictionary<long, string>
                       ?? new System.Collections.Generic.Dictionary<long, string>();
 }
+
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="py-3 mb-0">
-        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> / <a href="@Url.Action("Index")">Configuración</a> / <a href="@Url.Action("Index")">Tipos de documento</a> /</span> @Model.TextLabel
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@DocumentType.Common_Home</a> /
+            @DocumentType.Common_Settings /
+            <a href="@Url.Action("Index", "DocumentType")">@DocumentType.Index_Breadcrumb</a> /
+        </span> @Model.TextLabel
     </h4>
-    <a class="btn btn-warning" href="@Url.Action("Edit", new { id = Model.IdObject })">Editar</a>
+    <a class="btn btn-warning" href="@Url.Action("Edit", "DocumentType", new { id = Model.IdObject })">
+        <i class="icon-base ri ri-pencil-line me-1"></i> @Common.Btn_Edit
+    </a>
 </div>
-<div class="card">
-    <div class="card-body row g-3">
-        <div class="col-md-6"><strong>Código:</strong> @(Model.TextCode ?? "—")</div>
-        <div class="col-md-6"><strong>Activo:</strong> @(Model.Is_Active ? "Sí" : "No")</div>
-        <div class="col-md-12"><strong>Descripción:</strong> @(string.IsNullOrWhiteSpace(Model.TextDescription) ? "—" : Model.TextDescription)</div>
-        <div class="col-md-12">
-            <strong>Extensiones permitidas:</strong>
-            @if (extensiones == null || extensiones.Count == 0)
-            {
-                <span class="ms-2">— Sin extensiones asociadas.</span>
-            }
-            else
-            {
-                <div class="mt-2">
-                    @foreach (var ext in extensiones)
-                    {
-                        extPathById.TryGetValue(ext.IdObject, out var p);
-                        var hasIco = !string.IsNullOrWhiteSpace(p);
-                        string imgsrc = null;
-                        if (hasIco)
-                        {
-                            imgsrc = Url.Content(p.StartsWith("~") ? p : "~" + p);
-                        }
-                        <span class="badge bg-label-info me-1 mb-1" title="@ext.TextLabel">
-                            @if (!string.IsNullOrEmpty(imgsrc))
-                            {
-                                <span class="me-1">
-                                    <img src="@imgsrc" alt="" style="height:14px;width:auto;vertical-align:middle;object-fit:contain"/>
-                                </span>
-                            }
 
-                            @ext.TextLabel
-                        </span>
-                    }
-                </div>
-            }
-        </div>
+<div class="card">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">@DocumentType.Details_Field_Name</dt>
+            <dd class="col-sm-9">@Model.TextLabel</dd>
+
+            <dt class="col-sm-3">@DocumentType.Details_Field_Code</dt>
+            <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.TextCode) ? DocumentType.Details_NoValue : Model.TextCode)</dd>
+
+            <dt class="col-sm-3">@DocumentType.Details_Field_Description</dt>
+            <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.TextDescription) ? DocumentType.Details_NoValue : Model.TextDescription)</dd>
+
+            <dt class="col-sm-3">@DocumentType.Details_Field_Active</dt>
+            <dd class="col-sm-9">
+                @if (Model.Is_Active)
+                {
+                    <span class="badge bg-label-success">@DocumentType.State_Active</span>
+                }
+                else
+                {
+                    <span class="badge bg-label-secondary">@DocumentType.State_Inactive</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">@DocumentType.Details_Field_Extensions</dt>
+            <dd class="col-sm-9">
+                @if (extensiones == null || extensiones.Count == 0)
+                {
+                    <span class="text-muted">@DocumentType.Details_NoExtensionsAssigned</span>
+                }
+                else
+                {
+                    <div>
+                        @foreach (var ext in extensiones)
+                        {
+                            extPathById.TryGetValue(ext.IdObject, out var p);
+                            var hasIco = !string.IsNullOrWhiteSpace(p);
+                            string imgsrc = null;
+                            if (hasIco)
+                            {
+                                imgsrc = Url.Content(p.StartsWith("~") ? p : "~" + p);
+                            }
+                            <span class="badge bg-label-info me-1 mb-1" title="@ext.TextLabel">
+                                @if (!string.IsNullOrEmpty(imgsrc))
+                                {
+                                    <span class="me-1">
+                                        <img src="@imgsrc" alt="" style="height:14px;width:auto;vertical-align:middle;object-fit:contain" />
+                                    </span>
+                                }
+                                @ext.TextLabel
+                            </span>
+                        }
+                    </div>
+                }
+            </dd>
+        </dl>
     </div>
 </div>
+
 @if (ViewBag.Audit != null)
 {
     @Html.Partial("_IntranetAuditSection", (Desing.Models.IntranetAuditDisplayModel)ViewBag.Audit)

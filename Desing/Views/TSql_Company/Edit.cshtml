@@ -1,62 +1,99 @@
 @model DAL.TSql_Company
+@using Desing.Models
+@using Desing.Resources
+@using System.Configuration
+@{
+    var mapsKey = ConfigurationManager.AppSettings["GoogleMaps:ApiKey"] ?? "";
+}
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="py-3 mb-0">
-        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> / <a href="@Url.Action("Index", "TSql_Company")">Empresas</a> /</span> Editar empresa
+        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">@Company.Common_Home</a> / <a href="@Url.Action("Index", "TSql_Company")">@Company.Index_Breadcrumb</a> /</span> @Company.Page_EditTitle
     </h4>
 </div>
 
-<div class="card mb-4">
-    <div class="card-body">
-        @using (Html.BeginForm("Edit", "TSql_Company", FormMethod.Post, new { @class = "row g-3" }))
-        {
-            @Html.AntiForgeryToken()
-            @Html.HiddenFor(m => m.SysObjectID)
-            <div class="col-md-6">
-                <label class="form-label">Nombre *</label>
-                @Html.TextBoxFor(m => m.TextLabel, new { @class = "form-control", maxlength = "120" })
-                @Html.ValidationMessageFor(m => m.TextLabel, "", new { @class = "text-danger" })
+<div class="row g-3 align-items-start">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-body">
+                @if (string.IsNullOrWhiteSpace(mapsKey))
+                {
+                    <div class="alert alert-warning tandem-address-api-warning mb-3" role="alert">
+                        <strong>@Company.Google_NotConfiguredStrong</strong>
+                        @Company.Google_NotConfiguredBody
+                    </div>
+                }
+                @using (Html.BeginForm("Edit", "TSql_Company", FormMethod.Post, new { @class = "row g-3", id = "companyForm" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.SysObjectID)
+                    <div class="col-md-6">
+                        <label class="form-label">@Company.Lbl_NameRequired</label>
+                        @Html.TextBoxFor(m => m.TextLabel, new { @class = "form-control", maxlength = "120" })
+                        @Html.ValidationMessageFor(m => m.TextLabel, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">@Company.Lbl_AddLeter</label>
+                        @Html.TextBoxFor(m => m.AddLeter, new { @class = "form-control", maxlength = "10" })
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">@Company.Lbl_Country</label>
+                        @Html.DropDownListFor(m => m.LinkCountry, (SelectList)ViewBag.LinkCountry, Company.Dd_SelectPlaceholder, new { @class = "form-select" })
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">@Company.Lbl_VisualTemplate</label>
+                        @Html.DropDownListFor(m => m.LinPlantilla, (IEnumerable<SelectListItem>)ViewBag.LinPlantilla, new { @class = "form-select" })
+                        <small class="text-muted">@Company.Help_VisualTemplateEmployees</small>
+                    </div>
+                    @Html.Partial("_CompanyUiLanguageSelect", Model)
+                    <div class="col-md-12">
+                        <label class="form-label">@Company.Lbl_Description</label>
+                        @Html.TextAreaFor(m => m.TextDescription, new { @class = "form-control", rows = "2" })
+                    </div>
+
+                    <div class="col-12">
+                        @Html.Partial("~/Views/Shared/_GooglePlacesAddressBlock.cshtml", GooglePlacesAddressBlockModel.FromCompany(Model, "Loc", Company.Lbl_AddressGooglePlaces))
+                    </div>
+
+                    <div class="col-md-12">
+                        <small class="text-muted d-block mb-1">@Company.Lbl_LegacyBlockHint</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">@Company.Lbl_AddressLegacy</label>
+                        @Html.TextBoxFor(m => m.TextAddress_1, new { @class = "form-control", maxlength = "200" })
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">@Company.Lbl_AddressLegacy2</label>
+                        @Html.TextBoxFor(m => m.TextAddress_2, new { @class = "form-control", maxlength = "200" })
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">@Company.Lbl_PostalLegacy</label>
+                        @Html.TextBoxFor(m => m.TextPostal_Code, new { @class = "form-control", type = "number", min = "0" })
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">@Company.Lbl_CityLegacy</label>
+                        @Html.TextBoxFor(m => m.TextTown_1, new { @class = "form-control", maxlength = "120" })
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label">@Company.Lbl_LogoPath</label>
+                        @Html.TextBoxFor(m => m.TextLogo, new { @class = "form-control", maxlength = "250" })
+                    </div>
+                    <div class="col-12 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
+                        <a href="@Url.Action("Index", "TSql_Company")" class="btn btn-outline-secondary">@Company.Btn_Cancel</a>
+                        <button type="submit" class="btn btn-primary">@Company.Btn_SaveChanges</button>
+                    </div>
+                }
             </div>
-            <div class="col-md-2">
-                <label class="form-label">Signadura</label>
-                @Html.TextBoxFor(m => m.AddLeter, new { @class = "form-control", maxlength = "10" })
-            </div>
-            <div class="col-md-4">
-                <label class="form-label">País</label>
-                @Html.DropDownListFor(m => m.LinkCountry, (SelectList)ViewBag.LinkCountry, "-- Seleccionar --", new { @class = "form-select" })
-            </div>
-            <div class="col-md-12">
-                <label class="form-label">Plantilla visual (colores, marca)</label>
-                @Html.DropDownListFor(m => m.LinPlantilla, (IEnumerable<SelectListItem>)ViewBag.LinPlantilla, new { @class = "form-select" })
-                <small class="text-muted">Todos los empleados de esta empresa verán esta plantilla. Vacío = plantilla global por defecto.</small>
-            </div>
-            <div class="col-md-12">
-                <label class="form-label">Descripción</label>
-                @Html.TextAreaFor(m => m.TextDescription, new { @class = "form-control", rows = "2" })
-            </div>
-            <div class="col-md-6">
-                <label class="form-label">Dirección</label>
-                @Html.TextBoxFor(m => m.TextAddress_1, new { @class = "form-control", maxlength = "200" })
-            </div>
-            <div class="col-md-6">
-                <label class="form-label">Dirección 2</label>
-                @Html.TextBoxFor(m => m.TextAddress_2, new { @class = "form-control", maxlength = "200" })
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Código postal</label>
-                @Html.TextBoxFor(m => m.TextPostal_Code, new { @class = "form-control", type = "number", min = "0" })
-            </div>
-            <div class="col-md-4">
-                <label class="form-label">Ciudad</label>
-                @Html.TextBoxFor(m => m.TextTown_1, new { @class = "form-control", maxlength = "120" })
-            </div>
-            <div class="col-md-5">
-                <label class="form-label">Logo (texto/ruta)</label>
-                @Html.TextBoxFor(m => m.TextLogo, new { @class = "form-control", maxlength = "250" })
-            </div>
-            <div class="col-12 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
-                <a href="@Url.Action("Index", "TSql_Company")" class="btn btn-outline-secondary">Cancelar</a>
-                <button type="submit" class="btn btn-primary">Guardar cambios</button>
-            </div>
-        }
+        </div>
+    </div>
+    <div class="col-lg-4">
+        @Html.Partial("_CompanyBranchesDtCard", Model.SysObjectID)
     </div>
 </div>
+
+@section scripts {
+    @{
+        ViewData["GooglePlacesPageScript"] = "~/Scripts/Intranet/company-google-places.js";
+    }
+    @Html.Partial("~/Views/Shared/_GooglePlacesAddressScripts.cshtml")
+    <script src="@Url.Content("~/Scripts/Intranet/company-branches-dt-panel.js")"></script>
+}

@@ -1,6 +1,8 @@
-﻿using DAL;
+using DAL;
 using Microsoft.AspNet.Identity;
+using Desing.Helpers;
 using System;
+using System.Data.Entity;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -29,6 +31,9 @@ namespace Desing.Controllers
             }
         }
 
+        /// <summary>Contexto EF para helpers de vista (p. ej. textos <see cref="DAL.TSql_UiTranslation"/>).</summary>
+        public ConexionData ConexionData => db;
+
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
             base.OnActionExecuting(filterContext);
@@ -56,11 +61,30 @@ namespace Desing.Controllers
                         {
                             ViewBag.avatar = employee.AttPhotoMenu;
                             ViewBag.userName = (employee.AttName + " " + employee.AttSurname).Trim();
-                            var company = db.TSql_Company.FirstOrDefault(c => c.SysObjectID == employee.LinCompany && !c.BitIsDeleted);
-                            if (company != null && company.LinPlantilla.HasValue)
+                            var company = db.TSql_Company.FirstOrDefault(c =>
+                                c.SysObjectID == employee.LinCompany && !c.BitIsDeleted);
+                            if (company != null)
                             {
-                                plantilla = db.TSql_Plantilla.FirstOrDefault(p =>
-                                    p.SysObjectID == company.LinPlantilla.Value && !p.AttIsDeleted);
+                                if (company.LinPlantilla.HasValue)
+                                {
+                                    plantilla = db.TSql_Plantilla.FirstOrDefault(p =>
+                                        p.SysObjectID == company.LinPlantilla.Value && !p.AttIsDeleted);
+                                }
+
+                                if (company.LinkLanguage.HasValue)
+                                {
+                                    var langRow = db.TSql_language.AsNoTracking().FirstOrDefault(l =>
+                                        l.IdObject == company.LinkLanguage.Value && !l.Is_Delete && l.Is_Active);
+                                    if (langRow != null && !string.IsNullOrWhiteSpace(langRow.TextCode))
+                                    {
+                                        var code = langRow.TextCode.Trim();
+                                        HttpContext.Items[LanguageUiHelper.ItemKeyCompanyLanguageId] = langRow.IdObject;
+                                        HttpContext.Items[LanguageUiHelper.ItemKeyCompanyLanguageCode] = code;
+                                        HttpContext.Items[LanguageUiHelper.ItemKeyCompanyLanguageLocked] = true;
+                                        LanguageUiHelper.WriteLanguageCookies(Response, code);
+                                        LanguageUiHelper.ApplyCultureExplicit(code);
+                                    }
+                                }
                             }
                         }
                     }
@@ -106,6 +130,11 @@ namespace Desing.Controllers
             {
                 // Si falla la consulta, simplemente no se establecen los ViewBag.
             }
+
+            ViewBag.TandemUiCultureCode = LanguageUiHelper.ReadResolvedUiCultureCode(Request);
+            ViewBag.TandemLanguageIdObject = LanguageUiHelper.TryResolveLanguageId(db, Request);
+            ViewBag.TandemCompanyLanguageLocked =
+                HttpContext.Items[LanguageUiHelper.ItemKeyCompanyLanguageLocked] as bool? == true;
         }
 
         /// <summary>

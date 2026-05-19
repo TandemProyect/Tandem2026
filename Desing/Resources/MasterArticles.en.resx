@@ -1,0 +1,544 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="BlockSlot_HorzElev3D" xml:space="preserve">
+    <value>Horizontal elevation 3D</value>
+  </data>
+  <data name="BlockSlot_HorzElevMockup" xml:space="preserve">
+    <value>Horizontal elevation mock-up</value>
+  </data>
+  <data name="BlockSlot_HorzElevStl" xml:space="preserve">
+    <value>Horizontal elevation — .stl file</value>
+  </data>
+  <data name="BlockSlot_OpenFile" xml:space="preserve">
+    <value>Open file</value>
+  </data>
+  <data name="BlockSlot_Plant3D" xml:space="preserve">
+    <value>Plan 3D</value>
+  </data>
+  <data name="BlockSlot_PlantMockup" xml:space="preserve">
+    <value>Plan mock-up</value>
+  </data>
+  <data name="BlockSlot_PlantStl" xml:space="preserve">
+    <value>Plan — .stl file</value>
+  </data>
+  <data name="BlockSlot_Remove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="BlockSlot_SavedFile" xml:space="preserve">
+    <value>Saved file:</value>
+  </data>
+  <data name="BlockSlot_VertElev3D" xml:space="preserve">
+    <value>Vertical elevation 3D</value>
+  </data>
+  <data name="BlockSlot_VertElevMockup" xml:space="preserve">
+    <value>Vertical elevation mock-up</value>
+  </data>
+  <data name="BlockSlot_VertElevStl" xml:space="preserve">
+    <value>Vertical elevation — .stl file</value>
+  </data>
+  <data name="Btn_BackToList" xml:space="preserve">
+    <value>Back to list</value>
+  </data>
+  <data name="Btn_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Btn_CreateArticle" xml:space="preserve">
+    <value>Create article</value>
+  </data>
+  <data name="Btn_EditArticle" xml:space="preserve">
+    <value>Edit article</value>
+  </data>
+  <data name="Btn_New" xml:space="preserve">
+    <value>New article</value>
+  </data>
+  <data name="Btn_Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Btn_SaveChanges" xml:space="preserve">
+    <value>Save changes</value>
+  </data>
+  <data name="Col_Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="Col_AtenkoCode" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Col_BlockNumber" xml:space="preserve">
+    <value>DWG block</value>
+  </data>
+  <data name="Col_Company" xml:space="preserve">
+    <value>Company</value>
+  </data>
+  <data name="Col_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Col_High" xml:space="preserve">
+    <value>Height</value>
+  </data>
+  <data name="Col_HorzElev3D" xml:space="preserve">
+    <value>Horz. elev. 3D</value>
+  </data>
+  <data name="Col_HorzElevMockup" xml:space="preserve">
+    <value>Horz. elev. mock-up</value>
+  </data>
+  <data name="Col_HorzElevStl" xml:space="preserve">
+    <value>Horz. elev. STL</value>
+  </data>
+  <data name="Col_InsertMaster" xml:space="preserve">
+    <value>Insert master</value>
+  </data>
+  <data name="Col_Long" xml:space="preserve">
+    <value>Length</value>
+  </data>
+  <data name="Col_Mts2" xml:space="preserve">
+    <value>M²</value>
+  </data>
+  <data name="Col_Mts3" xml:space="preserve">
+    <value>M³</value>
+  </data>
+  <data name="Col_Plant3D" xml:space="preserve">
+    <value>Plan 3D</value>
+  </data>
+  <data name="Col_PlantMockup" xml:space="preserve">
+    <value>Plan mock-up</value>
+  </data>
+  <data name="Col_PlantStl" xml:space="preserve">
+    <value>Plan STL</value>
+  </data>
+  <data name="Col_State" xml:space="preserve">
+    <value>State</value>
+  </data>
+  <data name="Col_StlNumber" xml:space="preserve">
+    <value>.Stl</value>
+  </data>
+  <data name="Col_System" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="Col_VertElev3D" xml:space="preserve">
+    <value>Vert. elev. 3D</value>
+  </data>
+  <data name="Col_VertElevMockup" xml:space="preserve">
+    <value>Vert. elev. mock-up</value>
+  </data>
+  <data name="Col_VertElevStl" xml:space="preserve">
+    <value>Vert. elev. STL</value>
+  </data>
+  <data name="Col_Weight" xml:space="preserve">
+    <value>Weight</value>
+  </data>
+  <data name="Col_Width" xml:space="preserve">
+    <value>Width</value>
+  </data>
+  <data name="Common_Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Common_Intranet" xml:space="preserve">
+    <value>Intranet</value>
+  </data>
+  <data name="Details_Field_Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Details_Field_AtenkoCode" xml:space="preserve">
+    <value>Atenko code</value>
+  </data>
+  <data name="Details_Field_BlockNumber" xml:space="preserve">
+    <value>DWG block (text)</value>
+  </data>
+  <data name="Details_Field_Company" xml:space="preserve">
+    <value>Company</value>
+  </data>
+  <data name="Details_Field_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Details_Field_High" xml:space="preserve">
+    <value>Height</value>
+  </data>
+  <data name="Details_Field_InsertMaster" xml:space="preserve">
+    <value>Insert in Master Articles</value>
+  </data>
+  <data name="Details_Field_Long" xml:space="preserve">
+    <value>Length</value>
+  </data>
+  <data name="Details_Field_Mts2" xml:space="preserve">
+    <value>M²</value>
+  </data>
+  <data name="Details_Field_Mts3" xml:space="preserve">
+    <value>M³</value>
+  </data>
+  <data name="Details_Field_StlNumber" xml:space="preserve">
+    <value>.Stl (text)</value>
+  </data>
+  <data name="Details_Field_System" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="Details_Field_Weight" xml:space="preserve">
+    <value>Weight</value>
+  </data>
+  <data name="Details_Field_Width" xml:space="preserve">
+    <value>Width</value>
+  </data>
+  <data name="Details_NoBoolValue" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Details_NoValue" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="Details_Section_Identification" xml:space="preserve">
+    <value>Identification and system</value>
+  </data>
+  <data name="Details_Section_Measurements" xml:space="preserve">
+    <value>Measurements and references</value>
+  </data>
+  <data name="Details_YesValue" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="Dt_MenuAria" xml:space="preserve">
+    <value>List options</value>
+  </data>
+  <data name="Dt_Rows_All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Dt_Rows_N" xml:space="preserve">
+    <value>rows</value>
+  </data>
+  <data name="Dt_Section_ColumnsVisible" xml:space="preserve">
+    <value>Visible columns</value>
+  </data>
+  <data name="Dt_Section_Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="Dt_Section_Records" xml:space="preserve">
+    <value>Records</value>
+  </data>
+  <data name="Err_ApsNotConfigured" xml:space="preserve">
+    <value>Autodesk APS is not configured (ClientId and ClientSecret in Web.config).</value>
+  </data>
+  <data name="Err_ArticleNotFound" xml:space="preserve">
+    <value>Article not found.</value>
+  </data>
+  <data name="Err_ArticleNotFoundOrDeleted" xml:space="preserve">
+    <value>The article does not exist or has already been deleted.</value>
+  </data>
+  <data name="Err_CannotDeleteHasReferences" xml:space="preserve">
+    <value>Cannot delete: the article is in use (replacement stock or temporary lists).</value>
+  </data>
+  <data name="Err_DeleteFailed" xml:space="preserve">
+    <value>Could not delete the article. {0}</value>
+  </data>
+  <data name="Err_DxfSiblingMissing" xml:space="preserve">
+    <value>Sibling DXF not found (same base name and folder as the .dwg, .dxf extension). Place the file on the server or generate it when saving the article.</value>
+  </data>
+  <data name="Err_NoDwgInBlock" xml:space="preserve">
+    <value>No DWG file in this block.</value>
+  </data>
+  <data name="Err_SlotKeyInvalid" xml:space="preserve">
+    <value>Invalid slotKey parameter.</value>
+  </data>
+  <data name="Index_Breadcrumb" xml:space="preserve">
+    <value>Articles</value>
+  </data>
+  <data name="Index_CreateArticle" xml:space="preserve">
+    <value>New article</value>
+  </data>
+  <data name="Js_ConfirmActivate" xml:space="preserve">
+    <value>Activate this article?</value>
+  </data>
+  <data name="Js_ConfirmDeactivate" xml:space="preserve">
+    <value>Deactivate this article? It will remain in the database but will not be used as active.</value>
+  </data>
+  <data name="Js_ConfirmDeleteArticle" xml:space="preserve">
+    <value>Delete this article? This action cannot be undone.</value>
+  </data>
+  <data name="Lbl_Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Lbl_AtenkoCode" xml:space="preserve">
+    <value>Atenko code</value>
+  </data>
+  <data name="Lbl_BlockDwgFilesHelp" xml:space="preserve">
+    <value>These .dwg files are work files (e.g. with ZWCAD). They are saved in the shared folder Files/MasterArticles/blocks with the same name you attach. In the details view, the preview uses the sibling DXF (.dxf next to the .dwg).</value>
+  </data>
+  <data name="Lbl_BlockDwgFilesSection" xml:space="preserve">
+    <value>Block files — AutoCAD (only .dwg)</value>
+  </data>
+  <data name="Lbl_BlockNumber" xml:space="preserve">
+    <value>DWG block</value>
+  </data>
+  <data name="Lbl_CodeRequired" xml:space="preserve">
+    <value>Code *</value>
+  </data>
+  <data name="Lbl_Color1" xml:space="preserve">
+    <value>Color 1</value>
+  </data>
+  <data name="Lbl_Color2" xml:space="preserve">
+    <value>Color 2</value>
+  </data>
+  <data name="Lbl_Color2Hint" xml:space="preserve">
+    <value>Max. 10 characters when saved.</value>
+  </data>
+  <data name="Lbl_High" xml:space="preserve">
+    <value>Height</value>
+  </data>
+  <data name="Lbl_InsertInMaster" xml:space="preserve">
+    <value>Insert in Master Articles</value>
+  </data>
+  <data name="Lbl_LabelRequired" xml:space="preserve">
+    <value>Description *</value>
+  </data>
+  <data name="Lbl_Long" xml:space="preserve">
+    <value>Length</value>
+  </data>
+  <data name="Lbl_Mts2" xml:space="preserve">
+    <value>M²</value>
+  </data>
+  <data name="Lbl_Mts3" xml:space="preserve">
+    <value>M³</value>
+  </data>
+  <data name="Lbl_StlFilesHelp" xml:space="preserve">
+    <value>Attach an .stl file for each view (plan and elevations). They are optional; saved in Files/MasterArticles/blocks and shown in Details with the 3D viewer.</value>
+  </data>
+  <data name="Lbl_StlFilesSection" xml:space="preserve">
+    <value>STL model files</value>
+  </data>
+  <data name="Lbl_StlNumber" xml:space="preserve">
+    <value>.Stl</value>
+  </data>
+  <data name="Lbl_SystemPlaceholder" xml:space="preserve">
+    <value>-- Select --</value>
+  </data>
+  <data name="Lbl_SystemRequired" xml:space="preserve">
+    <value>System *</value>
+  </data>
+  <data name="Lbl_Weight" xml:space="preserve">
+    <value>Weight</value>
+  </data>
+  <data name="Lbl_Width" xml:space="preserve">
+    <value>Width</value>
+  </data>
+  <data name="List_LinkActivateTooltip" xml:space="preserve">
+    <value>Activate article</value>
+  </data>
+  <data name="List_LinkAttachmentTooltip" xml:space="preserve">
+    <value>Open attachment</value>
+  </data>
+  <data name="List_LinkDeactivateTooltip" xml:space="preserve">
+    <value>Deactivate article</value>
+  </data>
+  <data name="List_LinkDeleteLockedTooltip" xml:space="preserve">
+    <value>Cannot delete: the article is in use (replacement stock or temporary lists).</value>
+  </data>
+  <data name="List_LinkDeleteTooltip" xml:space="preserve">
+    <value>Delete article</value>
+  </data>
+  <data name="List_LinkEditTooltip" xml:space="preserve">
+    <value>Edit article</value>
+  </data>
+  <data name="List_LinkOpenTooltip" xml:space="preserve">
+    <value>Article details</value>
+  </data>
+  <data name="Page_BackToList" xml:space="preserve">
+    <value>Back to list</value>
+  </data>
+  <data name="Page_CreateTitle" xml:space="preserve">
+    <value>Create article</value>
+  </data>
+  <data name="Page_DetailsTitle" xml:space="preserve">
+    <value>Article details</value>
+  </data>
+  <data name="Page_EditTitle" xml:space="preserve">
+    <value>Edit article</value>
+  </data>
+  <data name="State_Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="State_Inactive" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  <data name="State_No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="State_Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="StlPreview_CameraIso" xml:space="preserve">
+    <value>Isometric</value>
+  </data>
+  <data name="StlPreview_CameraIsoTitle" xml:space="preserve">
+    <value>Isometric view</value>
+  </data>
+  <data name="StlPreview_CameraLabel" xml:space="preserve">
+    <value>Camera</value>
+  </data>
+  <data name="StlPreview_CameraModeAria" xml:space="preserve">
+    <value>Camera mode</value>
+  </data>
+  <data name="StlPreview_CameraOrtho" xml:space="preserve">
+    <value>Orthographic</value>
+  </data>
+  <data name="StlPreview_CameraOrthoTitle" xml:space="preserve">
+    <value>Orthographic view</value>
+  </data>
+  <data name="StlPreview_ClipToggleAria" xml:space="preserve">
+    <value>STL clipping</value>
+  </data>
+  <data name="StlPreview_ClipToggleTitle" xml:space="preserve">
+    <value>Show or hide clipping</value>
+  </data>
+  <data name="StlPreview_ClipXAria" xml:space="preserve">
+    <value>Plan clipping (X): 1000 full view; lowering it clips from right to left</value>
+  </data>
+  <data name="StlPreview_ClipXTitle" xml:space="preserve">
+    <value>Plan clipping: 1000 = full view; lowering the slider clips from right to left.</value>
+  </data>
+  <data name="StlPreview_ClipYAria" xml:space="preserve">
+    <value>Horizontal clipping (height): 1000 full view; lowering it clips from top to bottom</value>
+  </data>
+  <data name="StlPreview_ClipYTitle" xml:space="preserve">
+    <value>Height clipping: 1000 = full view; lowering the slider clips from top to bottom.</value>
+  </data>
+  <data name="StlPreview_DarkBgAria" xml:space="preserve">
+    <value>Dark background</value>
+  </data>
+  <data name="StlPreview_DarkBgTitle" xml:space="preserve">
+    <value>Enable dark background</value>
+  </data>
+  <data name="StlPreview_FullscreenTitle" xml:space="preserve">
+    <value>Fullscreen</value>
+  </data>
+  <data name="StlPreview_GridColHorzElev" xml:space="preserve">
+    <value>Horizontal elevation</value>
+  </data>
+  <data name="StlPreview_GridColPlant" xml:space="preserve">
+    <value>Plan</value>
+  </data>
+  <data name="StlPreview_GridColVertElev" xml:space="preserve">
+    <value>Vertical elevation</value>
+  </data>
+  <data name="StlPreview_GridHeaderEmpty" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="StlPreview_GridToggleAria" xml:space="preserve">
+    <value>Background grid</value>
+  </data>
+  <data name="StlPreview_GridToggleTitle" xml:space="preserve">
+    <value>Show background grid</value>
+  </data>
+  <data name="StlPreview_GroundShadowAria" xml:space="preserve">
+    <value>Ground shadow</value>
+  </data>
+  <data name="StlPreview_GroundShadowTitle" xml:space="preserve">
+    <value>Show ground shadow</value>
+  </data>
+  <data name="StlPreview_LoadStlTooltip" xml:space="preserve">
+    <value>View in the 3D viewer</value>
+  </data>
+  <data name="StlPreview_NoFile" xml:space="preserve">
+    <value>No file.</value>
+  </data>
+  <data name="StlPreview_NoStlInDiskTooltip" xml:space="preserve">
+    <value>No STL on disk for this cell (same base name as the attachment or .stl file in the slot).</value>
+  </data>
+  <data name="StlPreview_NoStlInViewerTooltip" xml:space="preserve">
+    <value>No STL in the viewer</value>
+  </data>
+  <data name="StlPreview_RowLabel3D" xml:space="preserve">
+    <value>3D</value>
+  </data>
+  <data name="StlPreview_RowLabelMockup" xml:space="preserve">
+    <value>mock-up</value>
+  </data>
+  <data name="StlPreview_RowLabelStl" xml:space="preserve">
+    <value>STL</value>
+  </data>
+  <data name="StlPreview_SkyToggleAria" xml:space="preserve">
+    <value>STL sky</value>
+  </data>
+  <data name="StlPreview_SkyToggleTitle" xml:space="preserve">
+    <value>Show or hide sky</value>
+  </data>
+  <data name="StlPreview_StatusInitial" xml:space="preserve">
+    <value>Select a block with available STL (orange button) to view it here.</value>
+  </data>
+  <data name="ToastMessage_ArticleActivated" xml:space="preserve">
+    <value>Article &quot;{0}&quot; activated.</value>
+  </data>
+  <data name="ToastMessage_ArticleCreated" xml:space="preserve">
+    <value>Article &quot;{0}&quot; created successfully.</value>
+  </data>
+  <data name="ToastMessage_ArticleCreatedReviewAttachments" xml:space="preserve">
+    <value>Article created. Please review the attachments in the edit form.</value>
+  </data>
+  <data name="ToastMessage_ArticleCreatedWithErrors" xml:space="preserve">
+    <value>Article created. {0}</value>
+  </data>
+  <data name="ToastMessage_ArticleDeactivated" xml:space="preserve">
+    <value>Article &quot;{0}&quot; deactivated.</value>
+  </data>
+  <data name="ToastMessage_ArticleDeleted" xml:space="preserve">
+    <value>Article &quot;{0}&quot; deleted successfully.</value>
+  </data>
+  <data name="ToastMessage_ArticleUpdated" xml:space="preserve">
+    <value>Article &quot;{0}&quot; updated successfully.</value>
+  </data>
+  <data name="ToastTitle_Articles" xml:space="preserve">
+    <value>Articles</value>
+  </data>
+  <data name="ToastTitle_CreateArticle" xml:space="preserve">
+    <value>Create article</value>
+  </data>
+  <data name="ToastTitle_DeleteArticle" xml:space="preserve">
+    <value>Delete article</value>
+  </data>
+  <data name="ToastTitle_EditArticle" xml:space="preserve">
+    <value>Edit article</value>
+  </data>
+  <data name="Val_BlockFileEmpty" xml:space="preserve">
+    <value>Empty file.</value>
+  </data>
+  <data name="Val_BlockFileExtensionInvalid" xml:space="preserve">
+    <value>Only {0} files are allowed for block {1}.</value>
+  </data>
+  <data name="Val_BlockFileExtensionMissing" xml:space="preserve">
+    <value>The file has no extension. Allowed extensions: {0}.</value>
+  </data>
+  <data name="Val_BlockFileExtensionRequired" xml:space="preserve">
+    <value>Invalid extension in file for {0}.</value>
+  </data>
+  <data name="Val_BlockFileMaxSize" xml:space="preserve">
+    <value>The file exceeds the maximum allowed size (50 MB).</value>
+  </data>
+  <data name="Val_BlockFileNameInvalid" xml:space="preserve">
+    <value>Invalid file name.</value>
+  </data>
+  <data name="Val_BlockFileNotAllowedExtension" xml:space="preserve">
+    <value>Only {0} files are allowed for this field.</value>
+  </data>
+  <data name="Val_BlockFileSaveOverwriteFailed" xml:space="preserve">
+    <value>Could not overwrite the existing file: {0}</value>
+  </data>
+  <data name="Val_BlockFileTooLarge" xml:space="preserve">
+    <value>File too large (max. 50 MB) for block {0}.</value>
+  </data>
+  <data name="Val_CodeRequired" xml:space="preserve">
+    <value>Code is required.</value>
+  </data>
+  <data name="Val_DuplicateCodeCreate" xml:space="preserve">
+    <value>An article with this code already exists in the same system.</value>
+  </data>
+  <data name="Val_DuplicateCodeEdit" xml:space="preserve">
+    <value>Another article with this code already exists in the same system.</value>
+  </data>
+  <data name="Val_LabelRequired" xml:space="preserve">
+    <value>Description is required.</value>
+  </data>
+  <data name="Val_SystemInvalid" xml:space="preserve">
+    <value>The selected system is not valid.</value>
+  </data>
+  <data name="Val_SystemRequired" xml:space="preserve">
+    <value>Please select a system.</value>
+  </data>
+</root>

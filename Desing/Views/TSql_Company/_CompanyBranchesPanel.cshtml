@@ -1,0 +1,48 @@
+@model Desing.Models.CompanyBranchesPanelModel
+@using Desing.Resources
+@using Newtonsoft.Json
+@using System.Web
+@{
+    var branchI18n = JsonConvert.SerializeObject(new
+    {
+        refreshFail = Branch.JsBranch_RefreshFail,
+        newNeedsBusiness = Branch.JsBranch_NewNeedsBusiness,
+        createFail = Branch.JsBranch_CreateFail,
+        networkError = Branch.JsBranch_NetworkError,
+        saveFail = Branch.JsBranch_SaveFail,
+        deleteConfirm = Branch.JsBranch_DeleteConfirm,
+        deleteFail = Branch.JsBranch_DeleteFail,
+        modalTitleEdit = Branch.Branch_ModalTitle_Edit,
+        modalTitleCreate = Branch.Branch_ModalTitle_Create
+    });
+}
+
+<div class="card mb-4" id="companyBranchesPanelRoot"
+     data-company-id="@(Model.CompanyId.HasValue ? Model.CompanyId.Value.ToString() : "")"
+     data-list-url="@Url.Action("BranchPanelList", "TSql_Company")"
+     data-create-url="@Url.Action("CreateCompanyBranch", "TSql_Company")"
+     data-update-url="@Url.Action("UpdateCompanyBranch", "TSql_Company")"
+     data-delete-url="@Url.Action("DeleteCompanyBranch", "TSql_Company")"
+     data-i18n="@HttpUtility.HtmlAttributeEncode(branchI18n)">
+
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span class="fw-semibold">@Branch.BranchPanel_Title</span>
+        @if (Model.CompanyId.HasValue)
+        {
+            <button type="button" class="btn btn-sm btn-primary" id="btnNewCompanyBranch">@Branch.BranchPanel_New</button>
+        }
+    </div>
+
+    <div class="card-body p-0" id="companyBranchListMount">
+        @Html.Partial("_CompanyBranchesPanelList", Model)
+    </div>
+
+    @if (!Model.CompanyId.HasValue)
+    {
+        <div class="card-body border-top border-light">
+            <p class="small mb-0">@Branch.Branch_Msg_SaveToManageBranches</p>
+        </div>
+    }
+
+    @Html.Partial("_CompanyBranchModal")
+</div>

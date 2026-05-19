@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Aria_CloseModal" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="BranchPanel_CreateSectionTitle" xml:space="preserve">
+    <value>Crear sede</value>
+  </data>
+  <data name="BranchPanel_New" xml:space="preserve">
+    <value>Nueva sede</value>
+  </data>
+  <data name="BranchPanel_Title" xml:space="preserve">
+    <value>Sedes (Branch)</value>
+  </data>
+  <data name="Branch_Btn_BackToCompany" xml:space="preserve">
+    <value>Volver a la empresa</value>
+  </data>
+  <data name="Branch_Btn_OpenFullEdit" xml:space="preserve">
+    <value>Ficha completa (dirección)</value>
+  </data>
+  <data name="Branch_Btn_SaveInline" xml:space="preserve">
+    <value>Guardar sede</value>
+  </data>
+  <data name="Branch_Details_Field_Color" xml:space="preserve">
+    <value>Color</value>
+  </data>
+  <data name="Branch_Details_Field_Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="Branch_Details_Field_FormattedAddress" xml:space="preserve">
+    <value>Dirección (Google)</value>
+  </data>
+  <data name="Branch_Details_Field_Letter" xml:space="preserve">
+    <value>Letra</value>
+  </data>
+  <data name="Branch_Details_Field_Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Branch_Details_NoValue" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="Branch_Err_InvalidCompany" xml:space="preserve">
+    <value>Empresa no válida.</value>
+  </data>
+  <data name="Branch_Err_InvalidData" xml:space="preserve">
+    <value>Datos no válidos.</value>
+  </data>
+  <data name="Branch_Err_NameRequired" xml:space="preserve">
+    <value>El nombre de la sede es obligatorio.</value>
+  </data>
+  <data name="Branch_Err_NoBusinessDetailed" xml:space="preserve">
+    <value>No hay negocio para esta empresa en base de datos. Cree al menos un TSql_Business con LinCompany igual a esta empresa antes de añadir sedes.</value>
+  </data>
+  <data name="Branch_Err_NotFound" xml:space="preserve">
+    <value>Sede no encontrada.</value>
+  </data>
+  <data name="Branch_Lbl_AccentColor" xml:space="preserve">
+    <value>Color de acento (opcional)</value>
+  </data>
+  <data name="Branch_Lbl_Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="Branch_Lbl_LetterShort" xml:space="preserve">
+    <value>Letra (máx. 2)</value>
+  </data>
+  <data name="Branch_Lbl_NameRequiredModal" xml:space="preserve">
+    <value>Nombre *</value>
+  </data>
+  <data name="Branch_ModalBtn_CancelModal" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Branch_ModalTitle_Create" xml:space="preserve">
+    <value>Nueva sede</value>
+  </data>
+  <data name="Branch_ModalTitle_Edit" xml:space="preserve">
+    <value>Editar sede</value>
+  </data>
+  <data name="Branch_Msg_Created" xml:space="preserve">
+    <value>Sede creada correctamente.</value>
+  </data>
+  <data name="Branch_Msg_Deleted" xml:space="preserve">
+    <value>Sede eliminada correctamente.</value>
+  </data>
+  <data name="Branch_Msg_NoBusinessBlock" xml:space="preserve">
+    <value>No hay ningún negocio (TSql_Business) para esta empresa en base de datos. Debe existir al menos uno para poder crear sedes; el sistema asignará automáticamente ese negocio a cada nueva sede.</value>
+  </data>
+  <data name="Branch_Msg_SaveToManageBranches" xml:space="preserve">
+    <value>Guarde la empresa para poder crear y gestionar sedes.</value>
+  </data>
+  <data name="Branch_Msg_Updated" xml:space="preserve">
+    <value>Sede actualizada correctamente.</value>
+  </data>
+  <data name="Branch_NoRows" xml:space="preserve">
+    <value>No hay sedes registradas.</value>
+  </data>
+  <data name="Branch_Page_DetailsTitle" xml:space="preserve">
+    <value>Detalle de sede</value>
+  </data>
+  <data name="Branch_Page_EditTitle" xml:space="preserve">
+    <value>Editar sede</value>
+  </data>
+  <data name="Branch_RowTooltip_Delete" xml:space="preserve">
+    <value>Eliminar fila</value>
+  </data>
+  <data name="Branch_RowTooltip_Edit" xml:space="preserve">
+    <value>Editar fila</value>
+  </data>
+  <data name="Branch_ToastMessage_Saved" xml:space="preserve">
+    <value>Datos de la sede guardados.</value>
+  </data>
+  <data name="Branch_ToastTitle_Saved" xml:space="preserve">
+    <value>Sede</value>
+  </data>
+  <data name="Branch_Val_AttcolorHex" xml:space="preserve">
+    <value>El color debe ser un hexadecimal #RRGGBB (p. ej. #349d7d) o dejar vacío.</value>
+  </data>
+  <data name="Btn_SaveChanges" xml:space="preserve">
+    <value>Guardar cambios</value>
+  </data>
+  <data name="Common_Home" xml:space="preserve">
+    <value>Inicio</value>
+  </data>
+  <data name="Common_Intranet" xml:space="preserve">
+    <value>Intranet</value>
+  </data>
+  <data name="JsBranch_CreateFail" xml:space="preserve">
+    <value>Error al crear la sede.</value>
+  </data>
+  <data name="JsBranch_DeleteConfirm" xml:space="preserve">
+    <value>¿Eliminar esta sede?</value>
+  </data>
+  <data name="JsBranch_DeleteFail" xml:space="preserve">
+    <value>No se pudo eliminar.</value>
+  </data>
+  <data name="JsBranch_NetworkError" xml:space="preserve">
+    <value>Error de red.</value>
+  </data>
+  <data name="JsBranch_NewNeedsBusiness" xml:space="preserve">
+    <value>No puede crear sedes todavía: necesita al menos un negocio (TSql_Business) para esta empresa en base de datos.</value>
+  </data>
+  <data name="JsBranch_NoBusinessInline" xml:space="preserve">
+    <value>No hay negocio asociado: no se puede crear la sede.</value>
+  </data>
+  <data name="JsBranch_RefreshFail" xml:space="preserve">
+    <value>No se pudo actualizar la lista de sedes.</value>
+  </data>
+  <data name="JsBranch_SaveFail" xml:space="preserve">
+    <value>Error al guardar.</value>
+  </data>
+  <data name="JsBranch_UseInlineFirst" xml:space="preserve">
+    <value>Use el botón «Nueva sede» para crear una sede en el cuadro de diálogo.</value>
+  </data>
+</root>

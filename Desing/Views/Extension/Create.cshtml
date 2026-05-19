@@ -1,22 +1,37 @@
 @model DAL.TSql_Extension
+@using Desing.Resources
 @{
-    ViewBag.Title = "Nueva extensión";
+    ViewBag.Title = Extension.Page_CreateTitle;
 }
+
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="py-3 mb-0">
-        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> / <a href="@Url.Action("Index")">Configuración</a> / <a href="@Url.Action("Index")">Extensiones</a> /</span> Crear
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@Extension.Common_Home</a> /
+            @Extension.Common_Settings /
+            <a href="@Url.Action("Index", "Extension")">@Extension.Index_Breadcrumb</a> /
+        </span> @Extension.Page_CreateTitle
     </h4>
 </div>
+
 <div class="card mb-4">
     <div class="card-body">
-        @using (Html.BeginForm("Create", "Extension", FormMethod.Post, new { @class = "row g-3", enctype = "multipart/form-data" }))
+        @using (Html.BeginForm("Create", "Extension", FormMethod.Post, new { @class = "row g-3", role = "form", enctype = "multipart/form-data", id = "extensionForm" }))
         {
             @Html.AntiForgeryToken()
+
+            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
             @Html.Partial("_ExtensionFormFields", Model)
-            <div class="col-12 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
-                <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Cancelar</a>
-                <button type="submit" class="btn btn-primary">Guardar</button>
+
+            <div class="col-12 border-top pt-3 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
+                <a href="@Url.Action("Index", "Extension")" class="btn btn-outline-secondary">@Common.Btn_Cancel</a>
+                <button type="submit" class="btn btn-primary">@Common.Btn_Save</button>
             </div>
         }
     </div>
 </div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

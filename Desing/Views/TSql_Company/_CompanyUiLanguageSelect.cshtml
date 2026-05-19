@@ -1,0 +1,51 @@
+@model DAL.TSql_Company
+@using Desing.Models
+@using Desing.Resources
+@{
+    var opts = ViewBag.UiLanguageOptions as System.Collections.Generic.IList<CompanyUiLanguageOption> ??
+               new System.Collections.Generic.List<CompanyUiLanguageOption>();
+    long? sel = Model.LinkLanguage ?? ViewBag.LinkLanguageSelected as long?;
+}
+<div class="col-md-12">
+    <label class="form-label" for="LinkLanguage">@Company.Lbl_WorkUiLanguageRequired</label>
+    <select name="LinkLanguage" id="LinkLanguage" class="form-select" required="required">
+        @foreach (var o in opts)
+        {
+            var selected = sel.HasValue && sel.Value == o.IdObject;
+            var flagUrl = !string.IsNullOrEmpty(o.FlagVirtualPath) ? Url.Content(o.FlagVirtualPath) : "";
+            if (selected)
+            {
+                <option value="@o.IdObject" selected="selected" data-flag-url="@flagUrl">@o.TextLabel (@o.TextCode)</option>
+            }
+            else
+            {
+                <option value="@o.IdObject" data-flag-url="@flagUrl">@o.TextLabel (@o.TextCode)</option>
+            }
+        }
+    </select>
+    @Html.ValidationMessageFor(m => m.LinkLanguage, "", new { @class = "text-danger" })
+    <div class="d-flex align-items-center gap-2 mt-2">
+        <img id="companyUiLangFlagPreview" src="" alt="" width="28" height="20" class="rounded border d-none" style="object-fit:cover" />
+        <small class="text-muted">@Company.LanguageSelect_FlagHint</small>
+    </div>
+</div>
+<script type="text/javascript">
+    (function () {
+        var sel = document.getElementById('LinkLanguage');
+        var img = document.getElementById('companyUiLangFlagPreview');
+        if (!sel || !img) return;
+        function sync() {
+            var opt = sel.options[sel.selectedIndex];
+            var u = opt ? opt.getAttribute('data-flag-url') : '';
+            if (u) {
+                img.src = u;
+                img.classList.remove('d-none');
+            } else {
+                img.removeAttribute('src');
+                img.classList.add('d-none');
+            }
+        }
+        sel.addEventListener('change', sync);
+        sync();
+    })();
+</script>

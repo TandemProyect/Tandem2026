@@ -25,6 +25,7 @@
       }
     } else {
       $inputs.prop('disabled', false);
+      $billBlock.find('.js-tandem-place-autocomplete-host').removeData('places-bound').empty();
       $billBlock.find('.js-tandem-places-autocomplete').removeData('places-bound');
       if (window.TandemAddressPlaces && TandemAddressPlaces.initBlocks) {
         TandemAddressPlaces.initBlocks('#billAddressSection .tandem-address-block');

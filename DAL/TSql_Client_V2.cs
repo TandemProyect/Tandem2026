@@ -17,9 +17,9 @@ namespace DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public TSql_Client_V2()
         {
-            this.TSql_Jobside = new HashSet<TSql_Jobside>();
             this.TSql_Document = new HashSet<TSql_Document>();
             this.TSql_Offers = new HashSet<TSql_Offers>();
+            this.TSql_Jobside = new HashSet<TSql_Jobside>();
         }
     
         public long IdObject { get; set; }
@@ -42,10 +42,10 @@ namespace DAL
         public virtual AspNetUsers AspNetUsers { get; set; }
         public virtual AspNetUsers AspNetUsers1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<TSql_Jobside> TSql_Jobside { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TSql_Document> TSql_Document { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TSql_Offers> TSql_Offers { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Jobside> TSql_Jobside { get; set; }
     }
 }

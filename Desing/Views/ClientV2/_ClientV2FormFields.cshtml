@@ -1,51 +1,58 @@
 @model DAL.TSql_Client_V2
+@using Desing.Resources
+
 <div class="col-md-8">
-    <label class="form-label">Nombre *</label>
-    @Html.TextBoxFor(m => m.TextLabel, new { @class = "form-control", maxlength = "500" })
+    <label class="form-label">@ClientV2.Lbl_NameRequired</label>
+    @Html.TextBoxFor(m => m.TextLabel, new { @class = "form-control", maxlength = "500", placeholder = ClientV2.Ph_Name })
     @Html.ValidationMessageFor(m => m.TextLabel, "", new { @class = "text-danger" })
 </div>
 <div class="col-md-4">
-    <label class="form-label">Código interno</label>
-    @Html.TextBoxFor(m => m.TextCode, new { @class = "form-control", maxlength = "128" })
+    <label class="form-label">@ClientV2.Lbl_Code</label>
+    @Html.TextBoxFor(m => m.TextCode, new { @class = "form-control", maxlength = "128", placeholder = ClientV2.Ph_Code })
 </div>
 <div class="col-md-4">
-    <label class="form-label">CIF / NIF</label>
-    @Html.TextBoxFor(m => m.TextTaxId, new { @class = "form-control", maxlength = "50" })
+    <label class="form-label">@ClientV2.Lbl_TaxId</label>
+    @Html.TextBoxFor(m => m.TextTaxId, new { @class = "form-control", maxlength = "50", placeholder = ClientV2.Ph_TaxId })
 </div>
 <div class="col-md-4">
-    <label class="form-label">Email</label>
-    @Html.TextBoxFor(m => m.TextEmail, new { @class = "form-control", maxlength = "256", type = "email" })
+    <label class="form-label">@ClientV2.Lbl_Email</label>
+    @Html.TextBoxFor(m => m.TextEmail, new { @class = "form-control", maxlength = "256", type = "email", placeholder = ClientV2.Ph_Email })
+    @Html.ValidationMessageFor(m => m.TextEmail, "", new { @class = "text-danger" })
 </div>
 <div class="col-md-4">
-    <label class="form-label">Teléfono</label>
-    @Html.TextBoxFor(m => m.TextPhone, new { @class = "form-control", maxlength = "50" })
+    <label class="form-label">@ClientV2.Lbl_Phone</label>
+    @Html.TextBoxFor(m => m.TextPhone, new { @class = "form-control", maxlength = "50", placeholder = ClientV2.Ph_Phone })
 </div>
 <div class="col-md-6">
-    <label class="form-label">Método de pago</label>
-    @Html.DropDownListFor(m => m.LinkMethodOfPayment, (SelectList)ViewBag.LinkMethodOfPayment, "-- Sin asignar --", new { @class = "form-select" })
+    <label class="form-label">@ClientV2.Lbl_MethodOfPayment</label>
+    @Html.DropDownListFor(m => m.LinkMethodOfPayment, (SelectList)ViewBag.LinkMethodOfPayment, ClientV2.Lbl_MethodOfPaymentEmpty, new { @class = "form-select" })
 </div>
 <div class="col-md-3">
-    <label class="form-label">Activo</label>
+    <label class="form-label">@ClientV2.Lbl_Active</label>
     <div class="form-check mt-2">
         @Html.CheckBoxFor(m => m.Is_Active, new { @class = "form-check-input" })
-        <label class="form-check-label" for="Is_Active">Cliente activo</label>
+        <label class="form-check-label" for="Is_Active">@ClientV2.Lbl_ActiveCheckbox</label>
     </div>
 </div>
 <div class="col-md-6">
-    <label class="form-label">Icono</label>
+    <label class="form-label">@ClientV2.Lbl_Icon</label>
     <input type="file" name="icoFile" class="form-control" accept="image/*" />
     @Html.HiddenFor(m => m.Path_Ico)
     @if (!string.IsNullOrEmpty(Model.Path_Ico))
     {
-        <img src="@Url.Content(Model.Path_Ico.StartsWith("~") ? Model.Path_Ico : "~" + Model.Path_Ico)" class="mt-2" style="height:32px" alt="" />
+        <img src="@Url.Content(Model.Path_Ico.StartsWith("~") ? Model.Path_Ico : "~" + Model.Path_Ico)"
+             class="mt-2" style="height:32px;background:#fff;padding:2px;border:1px solid #eee;border-radius:4px" alt="" />
     }
+    @Html.ValidationMessageFor(m => m.Path_Ico, "", new { @class = "text-danger" })
 </div>
 <div class="col-md-6">
-    <label class="form-label">Logo</label>
+    <label class="form-label">@ClientV2.Lbl_Logo</label>
     <input type="file" name="logoFile" class="form-control" accept="image/*" />
     @Html.HiddenFor(m => m.Path_Logo)
     @if (!string.IsNullOrEmpty(Model.Path_Logo))
     {
-        <img src="@Url.Content(Model.Path_Logo.StartsWith("~") ? Model.Path_Logo : "~" + Model.Path_Logo)" class="mt-2" style="height:40px" alt="" />
+        <img src="@Url.Content(Model.Path_Logo.StartsWith("~") ? Model.Path_Logo : "~" + Model.Path_Logo)"
+             class="mt-2" style="height:40px;background:#fff;padding:2px;border:1px solid #eee;border-radius:4px" alt="" />
     }
+    @Html.ValidationMessageFor(m => m.Path_Logo, "", new { @class = "text-danger" })
 </div>

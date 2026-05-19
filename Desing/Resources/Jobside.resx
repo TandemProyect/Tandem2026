@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Btn_New" xml:space="preserve">
+    <value>Nueva obra</value>
+  </data>
+  <data name="Col_AddNJobside" xml:space="preserve">
+    <value>Código obra</value>
+  </data>
+  <data name="Col_AddNJobsideClient" xml:space="preserve">
+    <value>Código cliente</value>
+  </data>
+  <data name="Col_Client" xml:space="preserve">
+    <value>Cliente</value>
+  </data>
+  <data name="Col_LocAddress" xml:space="preserve">
+    <value>Dirección local</value>
+  </data>
+  <data name="Col_Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Col_State" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Common_Home" xml:space="preserve">
+    <value>Inicio</value>
+  </data>
+  <data name="Common_Intranet" xml:space="preserve">
+    <value>Intranet</value>
+  </data>
+  <data name="Details_Field_Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="Details_Field_AddNJobside" xml:space="preserve">
+    <value>Código obra</value>
+  </data>
+  <data name="Details_Field_BillAddress" xml:space="preserve">
+    <value>Dirección facturación</value>
+  </data>
+  <data name="Details_Field_BillSameAsLocLabel" xml:space="preserve">
+    <value>Facturación igual que local</value>
+  </data>
+  <data name="Details_Field_Branch" xml:space="preserve">
+    <value>Delegación / sucursal</value>
+  </data>
+  <data name="Details_Field_Client" xml:space="preserve">
+    <value>Cliente</value>
+  </data>
+  <data name="Details_Field_ContractRef" xml:space="preserve">
+    <value>Ref. contrato / expediente</value>
+  </data>
+  <data name="Details_Field_JobsideNotes" xml:space="preserve">
+    <value>Notas</value>
+  </data>
+  <data name="Details_Field_LocAddress" xml:space="preserve">
+    <value>Dirección local</value>
+  </data>
+  <data name="Details_Field_Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Details_NoBoolValue" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Details_NoValue" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="Details_Section_BillingDetail" xml:space="preserve">
+    <value>Detalle dirección facturación</value>
+  </data>
+  <data name="Details_Section_LocationDetail" xml:space="preserve">
+    <value>Detalle dirección local</value>
+  </data>
+  <data name="Details_YesValue" xml:space="preserve">
+    <value>Sí</value>
+  </data>
+  <data name="Docs_Btn_AttachDocument" xml:space="preserve">
+    <value>Adjuntar documento</value>
+  </data>
+  <data name="Docs_Col_Actions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  <data name="Docs_Col_Date" xml:space="preserve">
+    <value>Alta</value>
+  </data>
+  <data name="Docs_Col_Extension" xml:space="preserve">
+    <value>Extensión</value>
+  </data>
+  <data name="Docs_Col_Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Docs_Col_Type" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="Docs_DownloadTooltip" xml:space="preserve">
+    <value>Descargar archivo</value>
+  </data>
+  <data name="Docs_DtTitle" xml:space="preserve">
+    <value>Documentos de la obra</value>
+  </data>
+  <data name="Docs_NoDocuments" xml:space="preserve">
+    <value>No hay documentos para esta obra.</value>
+  </data>
+  <data name="Docs_NoFile" xml:space="preserve">
+    <value>Sin archivo</value>
+  </data>
+  <data name="Docs_UploadModalTitle" xml:space="preserve">
+    <value>Adjuntar documento a la obra</value>
+  </data>
+  <data name="Docs_Upload_Description" xml:space="preserve">
+    <value>Descripción (opcional)</value>
+  </data>
+  <data name="Docs_Upload_Failed" xml:space="preserve">
+    <value>No se pudo subir el documento.</value>
+  </data>
+  <data name="Docs_Upload_File" xml:space="preserve">
+    <value>Archivo</value>
+  </data>
+  <data name="Docs_Upload_NoDocTypes" xml:space="preserve">
+    <value>No hay tipos de documento activos. Cree uno en Configuración antes de adjuntar archivos.</value>
+  </data>
+  <data name="Docs_Upload_Submit" xml:space="preserve">
+    <value>Subir</value>
+  </data>
+  <data name="Docs_Upload_Success" xml:space="preserve">
+    <value>Documento guardado correctamente.</value>
+  </data>
+  <data name="Docs_Upload_Type" xml:space="preserve">
+    <value>Tipo de documento</value>
+  </data>
+  <data name="Docs_Val_DocTypeInvalid" xml:space="preserve">
+    <value>El tipo de documento no es válido.</value>
+  </data>
+  <data name="Docs_Val_ExtensionMissing" xml:space="preserve">
+    <value>El archivo debe tener extensión.</value>
+  </data>
+  <data name="Docs_Val_ExtensionNotAllowed" xml:space="preserve">
+    <value>La extensión del archivo no está permitida para el tipo seleccionado.</value>
+  </data>
+  <data name="Docs_Val_FileTooLarge" xml:space="preserve">
+    <value>El archivo supera el tamaño máximo permitido ({0}).</value>
+  </data>
+  <data name="Docs_Val_NoFile" xml:space="preserve">
+    <value>Seleccione un archivo.</value>
+  </data>
+  <data name="Docs_Val_SaveFailed" xml:space="preserve">
+    <value>Error al guardar el archivo.</value>
+  </data>
+  <data name="Dt_MenuAria" xml:space="preserve">
+    <value>Opciones del listado</value>
+  </data>
+  <data name="Dt_Rows_All" xml:space="preserve">
+    <value>Todas</value>
+  </data>
+  <data name="Dt_Rows_N" xml:space="preserve">
+    <value>filas</value>
+  </data>
+  <data name="Dt_Section_ColumnsVisible" xml:space="preserve">
+    <value>Columnas visibles</value>
+  </data>
+  <data name="Dt_Section_Export" xml:space="preserve">
+    <value>Exportar</value>
+  </data>
+  <data name="Dt_Section_Records" xml:space="preserve">
+    <value>Registros</value>
+  </data>
+  <data name="Err_CannotDeleteHasDocuments" xml:space="preserve">
+    <value>No se puede eliminar: la obra tiene documentos asociados.</value>
+  </data>
+  <data name="Err_CannotDeleteHasOffers" xml:space="preserve">
+    <value>No se puede eliminar: la obra tiene ofertas asociadas.</value>
+  </data>
+  <data name="Err_JobsideNotFound" xml:space="preserve">
+    <value>Obra no encontrada.</value>
+  </data>
+  <data name="Google_NotConfiguredBody" xml:space="preserve">
+    <value> Añada GoogleMaps:ApiKey en Web.config para autocompletado y mapa. Puede rellenar la dirección manualmente.</value>
+  </data>
+  <data name="Google_NotConfiguredStrong" xml:space="preserve">
+    <value>Google Maps no configurado.</value>
+  </data>
+  <data name="Help_AddNJobsidePending" xml:space="preserve">
+    <value>Se generará automáticamente al guardar.</value>
+  </data>
+  <data name="Help_ContractRefOptional" xml:space="preserve">
+    <value>(opcional)</value>
+  </data>
+  <data name="Index_Breadcrumb" xml:space="preserve">
+    <value>Obras</value>
+  </data>
+  <data name="Index_CreateJobside" xml:space="preserve">
+    <value>Nueva obra</value>
+  </data>
+  <data name="Js_ConfirmDeleteJobside" xml:space="preserve">
+    <value>¿Eliminar esta obra? (borrado lógico).</value>
+  </data>
+  <data name="Lbl_Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="Lbl_ActiveCheckbox" xml:space="preserve">
+    <value>Obra activa</value>
+  </data>
+  <data name="Lbl_AddNJobside" xml:space="preserve">
+    <value>Código interno de obra</value>
+  </data>
+  <data name="Lbl_BillAddress" xml:space="preserve">
+    <value>Dirección facturación</value>
+  </data>
+  <data name="Lbl_BillSameAsLoc" xml:space="preserve">
+    <value>Facturación = misma dirección que local</value>
+  </data>
+  <data name="Lbl_BillSameAsLocShort" xml:space="preserve">
+    <value>(igual que local)</value>
+  </data>
+  <data name="Lbl_Branch" xml:space="preserve">
+    <value>Delegación / sucursal</value>
+  </data>
+  <data name="Lbl_BranchEmpty" xml:space="preserve">
+    <value>-- Seleccione delegación --</value>
+  </data>
+  <data name="Lbl_Client" xml:space="preserve">
+    <value>Cliente</value>
+  </data>
+  <data name="Lbl_ClientEmpty" xml:space="preserve">
+    <value>-- Sin cliente --</value>
+  </data>
+  <data name="Lbl_ContractRef" xml:space="preserve">
+    <value>Ref. contrato / expediente</value>
+  </data>
+  <data name="Lbl_JobsideNotes" xml:space="preserve">
+    <value>Notas de obra</value>
+  </data>
+  <data name="Lbl_LocAddress" xml:space="preserve">
+    <value>Dirección local</value>
+  </data>
+  <data name="Lbl_NameRequired" xml:space="preserve">
+    <value>Nombre obra *</value>
+  </data>
+  <data name="List_LinkDeleteLockedDocumentsTooltip" xml:space="preserve">
+    <value>No se puede eliminar: la obra tiene documentos asociados.</value>
+  </data>
+  <data name="List_LinkDeleteLockedOffersTooltip" xml:space="preserve">
+    <value>No se puede eliminar: la obra tiene ofertas asociadas.</value>
+  </data>
+  <data name="List_LinkDeleteTooltip" xml:space="preserve">
+    <value>Eliminar obra</value>
+  </data>
+  <data name="List_LinkEditTooltip" xml:space="preserve">
+    <value>Editar obra</value>
+  </data>
+  <data name="List_LinkOpenTooltip" xml:space="preserve">
+    <value>Ver obra</value>
+  </data>
+  <data name="List_LinkWorkspaceTooltip" xml:space="preserve">
+    <value>Espacio de trabajo de la obra</value>
+  </data>
+  <data name="Page_CreateTitle" xml:space="preserve">
+    <value>Crear obra</value>
+  </data>
+  <data name="Page_DetailsTitle" xml:space="preserve">
+    <value>Detalles de la obra</value>
+  </data>
+  <data name="Page_EditTitle" xml:space="preserve">
+    <value>Editar obra</value>
+  </data>
+  <data name="Ph_ContractRef" xml:space="preserve">
+    <value>Ej.: EXP-2026-001</value>
+  </data>
+  <data name="Ph_JobsideNotes" xml:space="preserve">
+    <value>Observaciones (opcional)</value>
+  </data>
+  <data name="Ph_Name" xml:space="preserve">
+    <value>Ej.: Obra Calle Mayor 23</value>
+  </data>
+  <data name="State_Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="State_Inactive" xml:space="preserve">
+    <value>Inactivo</value>
+  </data>
+  <data name="Tab_Chat" xml:space="preserve">
+    <value>Chat</value>
+  </data>
+  <data name="Tab_ComingSoon" xml:space="preserve">
+    <value>Contenido próximamente.</value>
+  </data>
+  <data name="Tab_Documents" xml:space="preserve">
+    <value>Documentos</value>
+  </data>
+  <data name="Tab_Offers" xml:space="preserve">
+    <value>Ofertas</value>
+  </data>
+  <data name="ToastMessage_JobsideCreated" xml:space="preserve">
+    <value>Obra &quot;{0}&quot; creada correctamente.</value>
+  </data>
+  <data name="ToastMessage_JobsideDeleted" xml:space="preserve">
+    <value>Obra &quot;{0}&quot; eliminada correctamente.</value>
+  </data>
+  <data name="ToastMessage_JobsideUpdated" xml:space="preserve">
+    <value>Obra &quot;{0}&quot; actualizada correctamente.</value>
+  </data>
+  <data name="ToastTitle_CreateJobside" xml:space="preserve">
+    <value>Crear obra</value>
+  </data>
+  <data name="ToastTitle_DeleteJobside" xml:space="preserve">
+    <value>Eliminar obra</value>
+  </data>
+  <data name="ToastTitle_EditJobside" xml:space="preserve">
+    <value>Editar obra</value>
+  </data>
+  <data name="Val_BranchInvalid" xml:space="preserve">
+    <value>La delegación seleccionada no es válida.</value>
+  </data>
+  <data name="Val_BranchRequired" xml:space="preserve">
+    <value>Seleccione una delegación / sucursal.</value>
+  </data>
+  <data name="Val_ClientInvalid" xml:space="preserve">
+    <value>El cliente seleccionado no es válido.</value>
+  </data>
+  <data name="Val_DuplicateNameCreate" xml:space="preserve">
+    <value>Ya existe una obra con ese nombre para el cliente seleccionado.</value>
+  </data>
+  <data name="Val_DuplicateNameEdit" xml:space="preserve">
+    <value>Ya existe otra obra con ese nombre para el cliente seleccionado.</value>
+  </data>
+  <data name="Val_NameRequired" xml:space="preserve">
+    <value>El nombre de la obra es obligatorio.</value>
+  </data>
+  <data name="Workspace_LeftTitle" xml:space="preserve">
+    <value>Datos de la obra</value>
+  </data>
+  <data name="Workspace_MapTitle" xml:space="preserve">
+    <value>Mapa (dirección local)</value>
+  </data>
+  <data name="Workspace_Tooltip_ExpandPanel" xml:space="preserve">
+    <value>Expandir panel</value>
+  </data>
+  <data name="Workspace_Tooltip_RestorePanel" xml:space="preserve">
+    <value>Restaurar</value>
+  </data>
+</root>

@@ -14,46 +14,51 @@ namespace Desing.Models
     {
         public long SysObjectID { get; set; }
 
-        [Required(ErrorMessage = "El nombre de la plantilla es obligatorio")]
+        [Required(
+            ErrorMessageResourceType = typeof(Desing.Resources.Plantilla),
+            ErrorMessageResourceName = "Val_NameRequired")]
         [StringLength(150)]
-        [DisplayName("Nombre de la plantilla")]
         public string AttName { get; set; }
 
-        [Required(ErrorMessage = "El texto de marca es obligatorio")]
+        [Required(
+            ErrorMessageResourceType = typeof(Desing.Resources.Plantilla),
+            ErrorMessageResourceName = "Val_BrandTextRequired")]
         [StringLength(120)]
-        [DisplayName("Nombre mostrado (marca)")]
         public string AttBrandText { get; set; } = "T Desing.net";
 
         [StringLength(20)]
         [RegularExpression(@"^$|^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
-            ErrorMessage = "Color de texto: vacío (usa color primario) o HEX, ej: #4c4c4c")]
-        [DisplayName("Color texto marca (resto)")]
+            ErrorMessageResourceType = typeof(Desing.Resources.Plantilla),
+            ErrorMessageResourceName = "Val_BrandTextColorHexFormat")]
         public string AttBrandTextColor { get; set; }
 
-        [Required(ErrorMessage = "El color de acento es obligatorio")]
+        [Required(
+            ErrorMessageResourceType = typeof(Desing.Resources.Plantilla),
+            ErrorMessageResourceName = "Val_AccentColorRequired")]
         [StringLength(20)]
         [RegularExpression("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
-            ErrorMessage = "El color de acento debe estar en formato HEX, ej: #f29100")]
-        [DisplayName("Color primera letra (acento)")]
+            ErrorMessageResourceType = typeof(Desing.Resources.Plantilla),
+            ErrorMessageResourceName = "Val_AccentColorHexFormat")]
         public string AttBrandAccentColor { get; set; } = "#f29100";
 
-        [Required(ErrorMessage = "El color es obligatorio")]
+        [Required(
+            ErrorMessageResourceType = typeof(Desing.Resources.Plantilla),
+            ErrorMessageResourceName = "Val_MainColorRequired")]
         [StringLength(20)]
         [RegularExpression("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
-            ErrorMessage = "El color debe estar en formato HEX, ej: #349d7d")]
-        [DisplayName("Color principal")]
+            ErrorMessageResourceType = typeof(Desing.Resources.Plantilla),
+            ErrorMessageResourceName = "Val_MainColorHexFormat")]
         public string AttColor { get; set; } = "#349d7d";
 
-        [Required(ErrorMessage = "La ruta del logo es obligatoria")]
+        [Required(
+            ErrorMessageResourceType = typeof(Desing.Resources.Plantilla),
+            ErrorMessageResourceName = "Val_LogoPathRequired")]
         [StringLength(500)]
-        [DisplayName("Logo (ruta)")]
         public string AttLogo { get; set; } = "/Content/images/Login/at.png";
 
         [StringLength(500)]
-        [DisplayName("Favicon (ruta)")]
         public string AttFavicon { get; set; } = "/assets/client/images/Default/Ico/at.ico";
 
-        [DisplayName("Plantilla por defecto")]
         public bool AttIsDefault { get; set; }
 
         public bool IsEdit { get; set; }
@@ -66,6 +71,7 @@ namespace Desing.Models
     {
         public long SysObjectID { get; set; }
         public string AttName { get; set; }
+        public string AttBrandText { get; set; }
         public string AttColor { get; set; }
         public string AttLogo { get; set; }
         public bool AttIsDefault { get; set; }

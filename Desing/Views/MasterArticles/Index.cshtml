@@ -1,56 +1,77 @@
-﻿@model DAL.Tsql_Master_Articles
+﻿@using Newtonsoft.Json
+@using Desing.Resources
+@using System.Globalization
 @{
+    ViewBag.Title = MasterArticles.Index_Breadcrumb;
+    var ci = CultureInfo.CurrentUICulture?.TwoLetterISOLanguageName ?? "es";
+    var masterArticlesDt = JsonConvert.SerializeObject(new
+    {
+        culture = ci,
+        rowsSuffix = MasterArticles.Dt_Rows_N,
+        allRows = MasterArticles.Dt_Rows_All,
+        sectionRecords = MasterArticles.Dt_Section_Records,
+        sectionExport = MasterArticles.Dt_Section_Export,
+        sectionCols = MasterArticles.Dt_Section_ColumnsVisible,
+        confirmDeleteArticle = MasterArticles.Js_ConfirmDeleteArticle,
+        confirmActivate = MasterArticles.Js_ConfirmActivate,
+        confirmDeactivate = MasterArticles.Js_ConfirmDeactivate,
+        ariaMenu = MasterArticles.Dt_MenuAria
+    });
     var toastMsg = TempData["ToastMessage"] as string;
     var toastType = TempData["ToastType"] as string;
     var toastAlertClass = string.Equals(toastType, "Error", StringComparison.OrdinalIgnoreCase) ? "alert-danger" : "alert-success";
 }
-@if (!string.IsNullOrEmpty(toastMsg))
-{
-    <div class="alert @toastAlertClass alert-dismissible fade show" role="alert">
-        @toastMsg
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-    </div>
-}
+
 <div class="tandem-dt-list-page">
     <div class="d-flex align-items-center justify-content-between mb-4 flex-shrink-0">
         <h4 class="py-3 mb-0">
-            <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> /</span> Artículos
+            <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">@MasterArticles.Common_Home</a> /</span> @MasterArticles.Index_Breadcrumb
         </h4>
-        <a class="btn btn-primary" href="@Url.Action("Create", "MasterArticles")">
-            <i class="icon-base ri ri-add-line me-1"></i> Crear Nuevo artículo
+        <a class="btn btn-primary text-white" href="@Url.Action("Create", "MasterArticles")">
+            <i class="icon-base ri ri-add-line me-1"></i> @MasterArticles.Index_CreateArticle
         </a>
     </div>
+
+    @if (!string.IsNullOrEmpty(toastMsg))
+    {
+        <div class="alert @toastAlertClass alert-dismissible fade show" role="alert">
+            @toastMsg
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+    }
+
     <div class="card mb-4">
         <div class="card-body master-articles-partial-scroll" style="padding:5px">
-        <table id="Master_Articles" class="table table-hover" cellspacing="0" style="width: 100%">
-            <thead>
-                <tr>
-                    <th>Código</th>
-                    <th>Descripción</th>
-                    <th>Alto</th>
-                    <th>Ancho</th>
-                    <th>largo</th>
-                    <th>Peso </th>
-                    <th>M 2 </th>
-                    <th>M 3 </th>
-                    <th> Bloque Dwg </th>
-                    <th>.Stl  </th>
-                    <th>Empresa</th>
-                    <th>Sistema</th>
-                    <th>Planta 3D</th>
-                    <th>Elev. vert. 3D</th>
-                    <th>Elev. horiz. 3D</th>
-                    <th>Planta mock-up</th>
-                    <th>Elev. vert. mock-up</th>
-                    <th>Elev. horiz. mock-up</th>
-                    <th>Planta STL</th>
-                    <th>Elev. vert. STL</th>
-                    <th>Elev. horiz. STL</th>
-                    <th>Ins. Master</th>
-                    <th class="text-end">Acciones</th>
-                </tr>
-            </thead>
-        </table>
+            <table id="Master_Articles" class="table table-hover" cellspacing="0" style="width: 100%">
+                <thead>
+                    <tr>
+                        <th>@MasterArticles.Col_AtenkoCode</th>
+                        <th>@MasterArticles.Col_Description</th>
+                        <th>@MasterArticles.Col_High</th>
+                        <th>@MasterArticles.Col_Width</th>
+                        <th>@MasterArticles.Col_Long</th>
+                        <th>@MasterArticles.Col_Weight</th>
+                        <th>@MasterArticles.Col_Mts2</th>
+                        <th>@MasterArticles.Col_Mts3</th>
+                        <th>@MasterArticles.Col_BlockNumber</th>
+                        <th>@MasterArticles.Col_StlNumber</th>
+                        <th>@MasterArticles.Col_Company</th>
+                        <th>@MasterArticles.Col_System</th>
+                        <th>@MasterArticles.Col_Plant3D</th>
+                        <th>@MasterArticles.Col_VertElev3D</th>
+                        <th>@MasterArticles.Col_HorzElev3D</th>
+                        <th>@MasterArticles.Col_PlantMockup</th>
+                        <th>@MasterArticles.Col_VertElevMockup</th>
+                        <th>@MasterArticles.Col_HorzElevMockup</th>
+                        <th>@MasterArticles.Col_PlantStl</th>
+                        <th>@MasterArticles.Col_VertElevStl</th>
+                        <th>@MasterArticles.Col_HorzElevStl</th>
+                        <th>@MasterArticles.Col_InsertMaster</th>
+                        <th class="text-end text-nowrap">@MasterArticles.Col_Actions</th>
+                        <th>ID</th>
+                    </tr>
+                </thead>
+            </table>
         </div>
     </div>
 </div>
@@ -90,161 +111,205 @@
     </style>
 }
 
-@section scripts
-    {
+@section scripts {
     <script type="text/javascript">
-        $(document).ready(function () {
-        document.documentElement.classList.add('master-articles-one-scroll');
-        $('body').addClass('master-articles-one-scroll');
+        var masterArticlesDt = @Html.Raw(masterArticlesDt);
+        var masterArticlesExportOpts = TandemDataTablesList.exportOptsPlainVisible;
 
-        function applyMasterArticlesPartialHeight() {
-            var el = document.querySelector('.tandem-dt-list-page > .card > .card-body.master-articles-partial-scroll');
-            if (!el) { return; }
-            var r = el.getBoundingClientRect();
-            var footer = document.querySelector('.content-footer.footer');
-            var bottomLimit = footer ? footer.getBoundingClientRect().top : window.innerHeight;
-            // Colchón mayor para asegurar visibilidad completa de la franja inferior
-            var h = Math.floor(bottomLimit - r.top - 34);
-            if (h < 260) { h = 260; }
-            el.style.setProperty('--ma-partial-height', h + 'px');
-        }
-
-        function applyMasterArticlesScrollBodyHeight() {
-            var host = document.querySelector('.master-articles-partial-scroll');
-            if (!host) { return; }
-            var body = host.querySelector('.dataTables_scrollBody');
-            if (!body) { return; }
-            var footer = document.querySelector('.content-footer.footer');
-            var bottomLimit = footer ? footer.getBoundingClientRect().top : window.innerHeight;
-            var top = body.getBoundingClientRect().top;
-            var h = Math.floor(bottomLimit - top - 12);
-            if (h < 140) { h = 140; }
-            body.style.height = h + 'px';
-            body.style.maxHeight = h + 'px';
-        }
-
-        var MasterArticles = {
-            dt: null,
-            init: function () {
-                this.dt = $('#Master_Articles').DataTable(TandemDataTablesList.applyListDefaults({
-                    buttonsOptions: { icon: 'materio' },
-                    scrollX: true,
-                    // Scroll solo en el cuerpo de la tabla (cabecera siempre visible).
-                    // Activamos modo scroll de DataTables; la altura real se fija por JS.
-                    scrollY: 1,
-                    scrollCollapse: true,
-                    "serverSide": true,
-                    "processing": true,
-                    "stateSave": true,
-                    /* stateDuration: hereda de Scripts/datatables-state.js (cookie, 1 año). No usar valores bajos: son segundos. */
-                    "colReorder": { "iFixedColumnsRight": 1 },
-                 
-                    //stateSaveCallback: function(settings,data) {
-                    //    //Save personalized buttons data:
-                    //    var dataString = JSON.stringify(data);
-                    //    localStorage.setItem(LocalStorageKey, dataString)
-                    //},
-                    //stateLoadCallback: function(settings) {
-                    //    //Load Personalized buttons with selected options.
-                    //    var options = JSON.parse(localStorage.getItem(LocalStorageKey));
-                    //    return options;
-                    //},
-                    "ajax": {
-                        "url": "@Url.Content("~/MasterArticles/ListMasterArticles/")",
-                    "type": "POST"
-                        },
-                    "columns": [
-                        { "data": "AddAtenkoCode" },
-                        { "data": "TextLabel" },
-                        { "data": "NumberHigh" },
-                        { "data": "NumberWidth" },
-                        { "data": "NumberLong" },
-                        { "data": "NumberWeight" },
-                        { "data": "NumberMts2" },
-                        { "data": "NumberMts3" },
-                        { "data": "TextBlockNumber" },
-                        { "data": "TextStlNumber" },
-                        { "data": "CompanyTextLabel" },
-                        { "data": "System_TextLabel" },
-                        { "data": "LinkBlockDwgPlant3D", "visible": false },
-                        { "data": "LinkBlockDwgVerticalElevation3D", "visible": false },
-                        { "data": "LinkBlockDwgHorizontalElevation3D", "visible": false },
-                        { "data": "LinkBlockDwgPlantMckUp", "visible": false },
-                        { "data": "LinkBlockDwgVerticalElevationMockUp", "visible": false },
-                        { "data": "LinkBlockDwgHorizontalElevationMockUp", "visible": false },
-                        { "data": "LinkBlockDwgPlantStl", "visible": false },
-                        { "data": "LinkBlockDwgVerticalElevationStl", "visible": false },
-                        { "data": "LinkBlockDwgHorizontalElevationStl", "visible": false },
-                        { "data": "IInsertinMaterArticles", "visible": false },
-                        {
-                            "data": "emptyColumn",
-                            "orderable": false,
-                            "className": "text-nowrap text-end align-middle tandem-ma-actions-col",
-                            "render": function (data, type, row) {
-                                if (type !== 'display')
-                                    return '';
-                                // JSON puede enviar allowEdit / AllowEdit; solo ocultar si viene explícitamente false
-                                var denied = row.allowEdit === false || row.AllowEdit === false;
-                                if (denied)
-                                    return '';
-                                return data || '';
-                            }
-                        }
-                    ],
-            /*   "iDisplayLength": parseInt(leerCookie("_rowsPerPage")),*/
-            "aaSorting": [[1, 'asc']],
-            "aoColumnDefs": [
-                { "bSortable": false, "aTargets": [21] },
-                { "width": "300px", "aTargets": [1] },
-                { "width": "170px", "aTargets": [21] },
-            ],
-            "createdRow": function (row, data) {
-                var active = data.AddIsActive !== undefined ? data.AddIsActive : data.addIsActive;
-                if (active === false) {
-                    $(row).addClass("table-secondary");
+        // Confirmaciones reutilizables desde los enlaces del rowActions (el HTML del servidor llama
+        // a estas funciones desde onclick="..."; los textos se traducen vía masterArticlesDt).
+        window.MasterArticlesConfirmActivate = function () {
+            return confirm(masterArticlesDt.confirmActivate);
+        };
+        window.MasterArticlesConfirmDeactivate = function () {
+            return confirm(masterArticlesDt.confirmDeactivate);
+        };
+        window.DeleteMasterArticle = function (id) {
+            if (!confirm(masterArticlesDt.confirmDeleteArticle)) return;
+            $.post('@Url.Action("DeleteMasterArticle", "MasterArticles")', { id: id }, function (res) {
+                if (res && res.Message) { alert(res.Message); }
+                if (res && res.IsOk) {
+                    $('#Master_Articles').DataTable().ajax.reload(null, false);
                 }
-            },
-            drawCallback: function (settings) {
-                $('[data-toggle="tooltip"]').tooltip({
-                    delay: { "show": 100, "hide": 100 },
-                    placement: "auto right"
-                });
-                $('[title]').tooltip({
-                    delay: { "show": 100, "hide": 100 },
-                    placement: "auto"
-                });
-                applyMasterArticlesPartialHeight();
-                applyMasterArticlesScrollBodyHeight();
-                try { new $.fn.dataTable.Api(settings).columns.adjust(); } catch (e) { /* noop */ }
-            }
-        }));
-            }
+            });
         };
 
-        MasterArticles.init();
-        applyMasterArticlesPartialHeight();
-        setTimeout(function () {
-            applyMasterArticlesScrollBodyHeight();
-        }, 50);
-        var _maResizeT;
-        $(window).on('resize', function () {
-            clearTimeout(_maResizeT);
-            _maResizeT = setTimeout(function () {
+        $(document).ready(function () {
+            document.documentElement.classList.add('master-articles-one-scroll');
+            $('body').addClass('master-articles-one-scroll');
+
+            function applyMasterArticlesPartialHeight() {
+                var el = document.querySelector('.tandem-dt-list-page > .card > .card-body.master-articles-partial-scroll');
+                if (!el) { return; }
+                var r = el.getBoundingClientRect();
+                var footer = document.querySelector('.content-footer.footer');
+                var bottomLimit = footer ? footer.getBoundingClientRect().top : window.innerHeight;
+                // Colchón mayor para asegurar visibilidad completa de la franja inferior
+                var h = Math.floor(bottomLimit - r.top - 34);
+                if (h < 260) { h = 260; }
+                el.style.setProperty('--ma-partial-height', h + 'px');
+            }
+
+            function applyMasterArticlesScrollBodyHeight() {
+                var host = document.querySelector('.master-articles-partial-scroll');
+                if (!host) { return; }
+                var body = host.querySelector('.dataTables_scrollBody');
+                if (!body) { return; }
+                var footer = document.querySelector('.content-footer.footer');
+                var bottomLimit = footer ? footer.getBoundingClientRect().top : window.innerHeight;
+                var top = body.getBoundingClientRect().top;
+                var h = Math.floor(bottomLimit - top - 12);
+                if (h < 140) { h = 140; }
+                body.style.height = h + 'px';
+                body.style.maxHeight = h + 'px';
+            }
+
+            // Render reutilizable: HTML por defecto, plano para export Excel/CSV.
+            function attachmentRender(plainKey) {
+                return function (data, type, row) {
+                    if (type === 'export') {
+                        return row[plainKey] || '';
+                    }
+                    return data || '';
+                };
+            }
+
+            var dt = $('#Master_Articles').DataTable(TandemDataTablesList.applyListDefaults({
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    ['10 ' + masterArticlesDt.rowsSuffix, '25 ' + masterArticlesDt.rowsSuffix, '50 ' + masterArticlesDt.rowsSuffix, masterArticlesDt.allRows]
+                ],
+                buttons: [{
+                    extend: 'collection',
+                    text: "<i class='fas fa-bars'></i>",
+                    attr: { 'aria-label': masterArticlesDt.ariaMenu },
+                    className: 'custom-html-collection',
+                    buttons: [
+                        '<h5>' + masterArticlesDt.sectionRecords + '</h5>',
+                        'pageLength',
+                        '<h5>' + masterArticlesDt.sectionExport + '</h5>',
+                        'print',
+                        'copy',
+                        'pdf',
+                        { extend: 'csv', exportOptions: masterArticlesExportOpts },
+                        { extend: 'excel', exportOptions: masterArticlesExportOpts },
+                        '<h5 class="not-top-heading">' + masterArticlesDt.sectionCols + '</h5>',
+                        'colvis'
+                    ]
+                }],
+                scrollX: true,
+                // Scroll solo en el cuerpo de la tabla (cabecera siempre visible).
+                // Activamos modo scroll de DataTables; la altura real se fija por JS.
+                scrollY: 1,
+                scrollCollapse: true,
+                serverSide: true,
+                processing: true,
+                stateSave: true,
+                /* stateDuration: hereda de Scripts/datatables-state.js (cookie, 1 año). */
+                colReorder: { iFixedColumnsRight: 2 },
+                ajax: {
+                    url: '@Url.Action("ListMasterArticles", "MasterArticles")',
+                    type: 'POST'
+                },
+                order: [[1, 'asc']],
+                columns: [
+                    { data: 'AddAtenkoCode', name: 'AddAtenkoCode' },
+                    {
+                        data: 'TextLabel',
+                        name: 'TextLabel',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.TextLabelPlain || '';
+                            }
+                            return data;
+                        }
+                    },
+                    { data: 'NumberHigh', name: 'NumberHigh' },
+                    { data: 'NumberWidth', name: 'NumberWidth' },
+                    { data: 'NumberLong', name: 'NumberLong' },
+                    { data: 'NumberWeight', name: 'NumberWeight' },
+                    { data: 'NumberMts2', name: 'NumberMts2' },
+                    { data: 'NumberMts3', name: 'NumberMts3' },
+                    { data: 'TextBlockNumber', name: 'TextBlockNumber' },
+                    { data: 'TextStlNumber', name: 'TextStlNumber' },
+                    { data: 'CompanyTextLabel', name: 'CompanyTextLabel' },
+                    { data: 'System_TextLabel', name: 'System_TextLabel' },
+                    { data: 'LinkBlockDwgPlant3D', name: 'LinkBlockDwgPlant3D', visible: false, orderable: false, searchable: false, render: attachmentRender('LinkBlockDwgPlant3DPlain') },
+                    { data: 'LinkBlockDwgVerticalElevation3D', name: 'LinkBlockDwgVerticalElevation3D', visible: false, orderable: false, searchable: false, render: attachmentRender('LinkBlockDwgVerticalElevation3DPlain') },
+                    { data: 'LinkBlockDwgHorizontalElevation3D', name: 'LinkBlockDwgHorizontalElevation3D', visible: false, orderable: false, searchable: false, render: attachmentRender('LinkBlockDwgHorizontalElevation3DPlain') },
+                    { data: 'LinkBlockDwgPlantMckUp', name: 'LinkBlockDwgPlantMckUp', visible: false, orderable: false, searchable: false, render: attachmentRender('LinkBlockDwgPlantMckUpPlain') },
+                    { data: 'LinkBlockDwgVerticalElevationMockUp', name: 'LinkBlockDwgVerticalElevationMockUp', visible: false, orderable: false, searchable: false, render: attachmentRender('LinkBlockDwgVerticalElevationMockUpPlain') },
+                    { data: 'LinkBlockDwgHorizontalElevationMockUp', name: 'LinkBlockDwgHorizontalElevationMockUp', visible: false, orderable: false, searchable: false, render: attachmentRender('LinkBlockDwgHorizontalElevationMockUpPlain') },
+                    { data: 'LinkBlockDwgPlantStl', name: 'LinkBlockDwgPlantStl', visible: false, orderable: false, searchable: false, render: attachmentRender('LinkBlockDwgPlantStlPlain') },
+                    { data: 'LinkBlockDwgVerticalElevationStl', name: 'LinkBlockDwgVerticalElevationStl', visible: false, orderable: false, searchable: false, render: attachmentRender('LinkBlockDwgVerticalElevationStlPlain') },
+                    { data: 'LinkBlockDwgHorizontalElevationStl', name: 'LinkBlockDwgHorizontalElevationStl', visible: false, orderable: false, searchable: false, render: attachmentRender('LinkBlockDwgHorizontalElevationStlPlain') },
+                    {
+                        data: 'IInsertinMaterArticles',
+                        name: 'IInsertinMaterArticles',
+                        visible: false,
+                        orderable: true,
+                        searchable: false,
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.IInsertinMaterArticlesPlain || '';
+                            }
+                            return data || '';
+                        }
+                    },
+                    {
+                        data: 'rowActions',
+                        orderable: false,
+                        searchable: false,
+                        className: 'tandem-col-actions text-end align-middle text-nowrap'
+                    },
+                    { data: 'IdObject', visible: false }
+                ],
+                aoColumnDefs: [
+                    { width: '300px', aTargets: [1] }
+                ],
+                createdRow: function (row, data) {
+                    var active = data.AddIsActive !== undefined ? data.AddIsActive : data.addIsActive;
+                    if (active === false) {
+                        $(row).addClass('table-secondary');
+                    }
+                },
+                drawCallback: function (settings) {
+                    $('[data-toggle="tooltip"]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto right'
+                    });
+                    $('[title]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto'
+                    });
+                    applyMasterArticlesPartialHeight();
+                    applyMasterArticlesScrollBodyHeight();
+                    try { new $.fn.dataTable.Api(settings).columns.adjust(); } catch (e) { /* noop */ }
+                }
+            }));
+
+            applyMasterArticlesPartialHeight();
+            setTimeout(function () {
+                applyMasterArticlesScrollBodyHeight();
+            }, 50);
+
+            var _maResizeT;
+            $(window).on('resize', function () {
+                clearTimeout(_maResizeT);
+                _maResizeT = setTimeout(function () {
+                    applyMasterArticlesPartialHeight();
+                    applyMasterArticlesScrollBodyHeight();
+                    try { dt.columns.adjust(); } catch (e) { /* noop */ }
+                }, 150);
+            });
+            $(window).on('load', function () {
                 applyMasterArticlesPartialHeight();
                 applyMasterArticlesScrollBodyHeight();
-                try { MasterArticles.dt.columns.adjust(); } catch (e) { /* noop */ }
-            }, 150);
-        });
-        $(window).on('load', function () {
-            applyMasterArticlesPartialHeight();
-            applyMasterArticlesScrollBodyHeight();
-        });
-
-        $(window).on('unload', function () {
-            document.documentElement.classList.remove('master-articles-one-scroll');
-            document.body.classList.remove('master-articles-one-scroll');
-        });
+            });
+            $(window).on('unload', function () {
+                document.documentElement.classList.remove('master-articles-one-scroll');
+                document.body.classList.remove('master-articles-one-scroll');
+            });
         });
     </script>
 }
-

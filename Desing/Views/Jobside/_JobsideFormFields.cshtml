@@ -1,46 +1,83 @@
 @model DAL.TSql_Jobside
 @using Desing.Models
+@using Desing.Resources
 @using System.Configuration
 @{
     var mapsKey = ConfigurationManager.AppSettings["GoogleMaps:ApiKey"] ?? "";
+    var isNew = Model == null || Model.IdObject == 0;
 }
+
 @if (string.IsNullOrWhiteSpace(mapsKey))
 {
     <div class="col-12">
         <div class="alert alert-warning tandem-address-api-warning" role="alert">
-            <strong>Google Maps no configurado.</strong>
-            Añada <code>GoogleMaps:ApiKey</code> en Web.config para autocompletado y mapa. Puede rellenar la dirección manualmente.
+            <strong>@Jobside.Google_NotConfiguredStrong</strong>@Jobside.Google_NotConfiguredBody
         </div>
     </div>
 }
+
+<div class="col-md-6">
+    <label class="form-label" for="TextContractRef">
+        @Jobside.Lbl_ContractRef <span class="text-muted small fw-normal">@Jobside.Help_ContractRefOptional</span>
+    </label>
+    @Html.TextBoxFor(m => m.TextContractRef, new { @class = "form-control", maxlength = "500", placeholder = Jobside.Ph_ContractRef, data_val = false })
+    @Html.ValidationMessageFor(m => m.TextContractRef, "", new { @class = "text-danger" })
+</div>
+
+<div class="col-md-6">
+    <label class="form-label" for="TextJobsideNotes">@Jobside.Lbl_JobsideNotes</label>
+    @Html.TextAreaFor(m => m.TextJobsideNotes, new { @class = "form-control", rows = "2", maxlength = "500", placeholder = Jobside.Ph_JobsideNotes })
+</div>
+
+<div class="col-md-6">
+    <label class="form-label" for="AddNJobsideDisplay">@Jobside.Lbl_AddNJobside</label>
+    @if (isNew)
+    {
+        <p class="form-control-plaintext text-muted mb-0 small" id="AddNJobsideDisplay">@Jobside.Help_AddNJobsidePending</p>
+    }
+    else
+    {
+        <input type="text" id="AddNJobsideDisplay" class="form-control font-monospace" value="@Model.AddNJobside" maxlength="50" readonly="readonly" aria-readonly="true" />
+    }
+</div>
+
 <div class="col-md-8">
-    <label class="form-label">Nombre obra *</label>
-    @Html.TextBoxFor(m => m.TextLabel, new { @class = "form-control", maxlength = "500" })
+    <label class="form-label" for="TextLabel">@Jobside.Lbl_NameRequired</label>
+    @Html.TextBoxFor(m => m.TextLabel, new { @class = "form-control", maxlength = "500", placeholder = Jobside.Ph_Name })
     @Html.ValidationMessageFor(m => m.TextLabel, "", new { @class = "text-danger" })
 </div>
+
 <div class="col-md-4">
-    <label class="form-label">Cliente</label>
-    @Html.DropDownListFor(m => m.LinkClient_V2, (SelectList)ViewBag.LinkClient_V2, "-- Sin cliente --", new { @class = "form-select" })
+    <label class="form-label" for="LinkClient_V2">@Jobside.Lbl_Client</label>
+    @Html.DropDownListFor(m => m.LinkClient_V2, (SelectList)ViewBag.LinkClient_V2, Jobside.Lbl_ClientEmpty, new { @class = "form-select" })
+    @Html.ValidationMessageFor(m => m.LinkClient_V2, "", new { @class = "text-danger" })
 </div>
+
+<div class="col-md-4">
+    <label class="form-label" for="LinBranch">@Jobside.Lbl_Branch</label>
+    @Html.DropDownListFor(m => m.LinBranch, (SelectList)ViewBag.LinBranch, Jobside.Lbl_BranchEmpty, new { @class = "form-select" })
+    @Html.ValidationMessageFor(m => m.LinBranch, "", new { @class = "text-danger" })
+</div>
+
 <div class="col-md-3">
-    <label class="form-label">Activo</label>
+    <label class="form-label">@Jobside.Lbl_Active</label>
     <div class="form-check mt-2">
         @Html.CheckBoxFor(m => m.Is_Active, new { @class = "form-check-input" })
-        <label class="form-check-label" for="Is_Active">Obra activa</label>
+        <label class="form-check-label" for="Is_Active">@Jobside.Lbl_ActiveCheckbox</label>
     </div>
 </div>
 
 <div class="col-12">
-    @Html.Partial("~/Views/Shared/_GooglePlacesAddressBlock.cshtml", GooglePlacesAddressBlockModel.FromJobside(Model, "Loc", "Dirección local"))
+    @Html.Partial("~/Views/Shared/_GooglePlacesAddressBlock.cshtml", GooglePlacesAddressBlockModel.FromJobside(Model, "Loc", Jobside.Lbl_LocAddress))
 </div>
 
 <div class="col-12 mb-2" id="billSameAsLocRow">
     <div class="form-check">
         @Html.CheckBoxFor(m => m.BitBillSameAsLoc, new { @class = "form-check-input", id = "BitBillSameAsLoc" })
-        <label class="form-check-label" for="BitBillSameAsLoc">Facturación = misma dirección que local</label>
+        <label class="form-check-label" for="BitBillSameAsLoc">@Jobside.Lbl_BillSameAsLoc</label>
     </div>
 </div>
 
 <div class="col-12" id="billAddressSection">
-    @Html.Partial("~/Views/Shared/_GooglePlacesAddressBlock.cshtml", GooglePlacesAddressBlockModel.FromJobside(Model, "Bill", "Dirección facturación"))
+    @Html.Partial("~/Views/Shared/_GooglePlacesAddressBlock.cshtml", GooglePlacesAddressBlockModel.FromJobside(Model, "Bill", Jobside.Lbl_BillAddress))
 </div>

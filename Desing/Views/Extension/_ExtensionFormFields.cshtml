@@ -1,17 +1,18 @@
 @model DAL.TSql_Extension
+@using Desing.Resources
 <div class="col-md-6">
-    <label class="form-label" for="TextLabel">Nombre / Etiqueta *</label>
+    <label class="form-label" for="TextLabel">@Extension.Lbl_NameRequired</label>
     @Html.TextBoxFor(m => m.TextLabel, new
     {
         @class = "form-control",
         maxlength = "500",
         required = "required",
-        placeholder = "Ej.: PDF, DWG, .pdf"
+        placeholder = Extension.Ph_Name
     })
     @Html.ValidationMessageFor(m => m.TextLabel, "", new { @class = "text-danger" })
 </div>
 <div class="col-md-6">
-    <label class="form-label" for="icoFile">Icono (archivo opcional)</label>
+    <label class="form-label" for="icoFile">@Extension.Lbl_Icon</label>
     @Html.HiddenFor(m => m.IcoPath)
     <input id="icoFile" name="icoFile" type="file" class="form-control"
            accept=".png,.jpg,.jpeg,.gif,.ico,.webp,image/png,image/jpeg,image/gif,image/webp" />
@@ -25,7 +26,7 @@
     }
 </div>
 <div class="col-md-4">
-    <label class="form-label" for="NumberMaxFileSizeBytes">Tamaño máximo (bytes) *</label>
+    <label class="form-label" for="NumberMaxFileSizeBytes">@Extension.Lbl_MaxFileSizeRequired</label>
     @Html.TextBoxFor(m => m.NumberMaxFileSizeBytes, new
     {
         @class = "form-control",
@@ -33,14 +34,14 @@
         min = "1",
         step = "1",
         required = "required",
-        placeholder = "10485760 = 10 MB"
+        placeholder = Extension.Ph_MaxFileSize
     })
     @Html.ValidationMessageFor(m => m.NumberMaxFileSizeBytes, "", new { @class = "text-danger" })
 </div>
 <div class="col-md-2">
-    <label class="form-label">Activo</label>
+    <label class="form-label">@Extension.Lbl_Active</label>
     <div class="form-check mt-2">
         @Html.CheckBoxFor(m => m.Is_Active, new { @class = "form-check-input" })
-        <label class="form-check-label" for="Is_Active">Activa</label>
+        <label class="form-check-label" for="Is_Active">@Extension.Lbl_ActiveCheckbox</label>
     </div>
 </div>

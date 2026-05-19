@@ -1,0 +1,109 @@
+@model DAL.TSql_Plantilla
+@using Desing.Resources
+@{
+    ViewBag.Title = Model.AttName;
+    var color = string.IsNullOrWhiteSpace(Model.AttColor) ? "#349d7d" : Model.AttColor;
+    var accent = string.IsNullOrWhiteSpace(Model.AttBrandAccentColor) ? "#f29100" : Model.AttBrandAccentColor;
+    var textCol = Model.AttBrandTextColor ?? "";
+    var brand = string.IsNullOrWhiteSpace(Model.AttBrandText) ? "T Desing.net" : Model.AttBrandText;
+    var b0 = brand.Length > 0 ? brand.Substring(0, 1) : "T";
+    var b1 = brand.Length > 1 ? brand.Substring(1) : "";
+    var logoSrc = string.IsNullOrWhiteSpace(Model.AttLogo)
+        ? Url.Content("~/Content/images/Login/at.png")
+        : Url.Content("~" + Model.AttLogo);
+    var faviconSrc = string.IsNullOrWhiteSpace(Model.AttFavicon)
+        ? Url.Content("~/assets/client/images/Default/Ico/at.ico")
+        : Url.Content("~" + Model.AttFavicon);
+}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@Plantilla.Common_Home</a> /
+            <a href="@Url.Action("Index", "Plantilla")">@Plantilla.Index_Breadcrumb</a> /
+        </span> @Model.AttName
+    </h4>
+    <a class="btn btn-warning" href="@Url.Action("Edit", "Plantilla", new { Id = Model.SysObjectID })">
+        <i class="icon-base ri ri-pencil-line me-1"></i> @Plantilla.Btn_Edit
+    </a>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card mb-4">
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">@Plantilla.Details_Field_Name</dt>
+                    <dd class="col-sm-8">@Model.AttName</dd>
+
+                    <dt class="col-sm-4">@Plantilla.Details_Field_BrandText</dt>
+                    <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.AttBrandText) ? Plantilla.Details_NoValue : Model.AttBrandText)</dd>
+
+                    <dt class="col-sm-4">@Plantilla.Details_Field_MainColor</dt>
+                    <dd class="col-sm-8">
+                        <span style="display:inline-block;width:22px;height:22px;border-radius:4px;border:1px solid #ccc;vertical-align:middle;background:@color"></span>
+                        <code>@color</code>
+                    </dd>
+
+                    <dt class="col-sm-4">@Plantilla.Details_Field_AccentColor</dt>
+                    <dd class="col-sm-8">
+                        <span style="display:inline-block;width:22px;height:22px;border-radius:4px;border:1px solid #ccc;vertical-align:middle;background:@accent"></span>
+                        <code>@accent</code>
+                    </dd>
+
+                    <dt class="col-sm-4">@Plantilla.Details_Field_BrandTextColor</dt>
+                    <dd class="col-sm-8">
+                        @if (string.IsNullOrWhiteSpace(textCol))
+                        {
+                            <span class="text-muted">@Plantilla.Details_NoValue</span>
+                        }
+                        else
+                        {
+                            <span style="display:inline-block;width:22px;height:22px;border-radius:4px;border:1px solid #ccc;vertical-align:middle;background:@textCol"></span>
+                            <code>@textCol</code>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">@Plantilla.Details_Field_Logo</dt>
+                    <dd class="col-sm-8">
+                        <img src="@logoSrc" alt="" style="height:32px;background:#fff;padding:4px;border:1px solid #eee;border-radius:6px" />
+                        <div class="text-muted small mt-1"><code>@(Model.AttLogo ?? "")</code></div>
+                    </dd>
+
+                    <dt class="col-sm-4">@Plantilla.Details_Field_Favicon</dt>
+                    <dd class="col-sm-8">
+                        <img src="@faviconSrc" alt="" style="width:24px;height:24px;background:#fff;padding:2px;border:1px solid #eee;border-radius:4px" />
+                        <div class="text-muted small mt-1"><code>@(Model.AttFavicon ?? "")</code></div>
+                    </dd>
+
+                    <dt class="col-sm-4">@Plantilla.Details_Field_IsDefault</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.AttIsDefault)
+                        {
+                            <span class="badge bg-label-success">@Plantilla.Details_YesValue</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">@Plantilla.Details_NoBoolValue</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">@Plantilla.Details_Field_CreatedDate</dt>
+                    <dd class="col-sm-8">@Model.AttCreated.ToString("yyyy-MM-dd HH:mm")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card border shadow-none h-100">
+            <div class="card-header fw-semibold">@Plantilla.Preview_Title</div>
+            <div class="card-body text-center d-flex flex-column align-items-center justify-content-center" style="min-height:220px;background:@color;border-radius:0 0 .375rem .375rem;color:#fff;">
+                <img src="@logoSrc" alt="logo" style="height:48px;background:#fff;padding:6px;border-radius:8px" />
+                <div class="brand-font brand-svg-preview mt-3" style="color:#fff;">
+                    <span class="brand-t" style="color:@accent">@b0</span><span class="brand-rest" style="@(string.IsNullOrWhiteSpace(textCol) ? "" : "color:" + textCol + ";")">@b1</span>
+                </div>
+                <div class="small mt-2 opacity-75">@Plantilla.Preview_ColorLabel <code class="text-white">@color</code></div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Btn_Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Btn_Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Btn_Edit" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="Btn_Exit" xml:space="preserve">
+    <value>Salir</value>
+  </data>
+  <data name="Btn_SaveChanges" xml:space="preserve">
+    <value>Guardar cambios</value>
+  </data>
+  <data name="Btn_SaveEmployee" xml:space="preserve">
+    <value>Guardar empleado</value>
+  </data>
+  <data name="Btn_SendMail" xml:space="preserve">
+    <value>Enviar correo</value>
+  </data>
+  <data name="Btn_Toggle" xml:space="preserve">
+    <value>Activar / Desactivar</value>
+  </data>
+  <data name="Col_Account" xml:space="preserve">
+    <value>Cuenta</value>
+  </data>
+  <data name="Col_Avatar" xml:space="preserve">
+    <value>Avatar</value>
+  </data>
+  <data name="Col_Company" xml:space="preserve">
+    <value>Empresa</value>
+  </data>
+  <data name="Col_CompanyLetter" xml:space="preserve">
+    <value>Sig.</value>
+  </data>
+  <data name="Col_CreatedDate" xml:space="preserve">
+    <value>Fecha alta</value>
+  </data>
+  <data name="Col_Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Col_Password" xml:space="preserve">
+    <value>Contraseña</value>
+  </data>
+  <data name="Col_State" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Col_Surname" xml:space="preserve">
+    <value>Apellido</value>
+  </data>
+  <data name="Col_TotalDesigns" xml:space="preserve">
+    <value>Diseños</value>
+  </data>
+  <data name="Col_UserName" xml:space="preserve">
+    <value>Usuario</value>
+  </data>
+  <data name="Common_Home" xml:space="preserve">
+    <value>Inicio</value>
+  </data>
+  <data name="Details_Field_Account" xml:space="preserve">
+    <value>Cuenta de usuario</value>
+  </data>
+  <data name="Details_Field_Company" xml:space="preserve">
+    <value>Empresa</value>
+  </data>
+  <data name="Details_Field_CreatedDate" xml:space="preserve">
+    <value>Fecha de alta</value>
+  </data>
+  <data name="Details_Field_Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Details_Field_Surname" xml:space="preserve">
+    <value>Apellido</value>
+  </data>
+  <data name="Details_Field_TotalDesigns" xml:space="preserve">
+    <value>Diseños creados</value>
+  </data>
+  <data name="Details_NoValue" xml:space="preserve">
+    <value>-</value>
+  </data>
+  <data name="Dt_MenuAria" xml:space="preserve">
+    <value>Opciones del listado</value>
+  </data>
+  <data name="Dt_Rows_All" xml:space="preserve">
+    <value>Todas</value>
+  </data>
+  <data name="Dt_Rows_N" xml:space="preserve">
+    <value>filas</value>
+  </data>
+  <data name="Dt_Section_ColumnsVisible" xml:space="preserve">
+    <value>Columnas visibles</value>
+  </data>
+  <data name="Dt_Section_Export" xml:space="preserve">
+    <value>Exportar</value>
+  </data>
+  <data name="Dt_Section_Records" xml:space="preserve">
+    <value>Registros</value>
+  </data>
+  <data name="Err_CannotDeleteRelated" xml:space="preserve">
+    <value>No se puede eliminar: el empleado tiene diseños asignados.</value>
+  </data>
+  <data name="Err_EmployeeNotFound" xml:space="preserve">
+    <value>Empleado no encontrado.</value>
+  </data>
+  <data name="Err_GenericFailure" xml:space="preserve">
+    <value>Se produjo un error al procesar la operación.</value>
+  </data>
+  <data name="Err_MailNotConfigured" xml:space="preserve">
+    <value>Envío de correo no disponible.</value>
+  </data>
+  <data name="Err_UserNotFound" xml:space="preserve">
+    <value>Usuario asociado no encontrado.</value>
+  </data>
+  <data name="Header_AccountInfo" xml:space="preserve">
+    <value>Alta de empleado para el usuario:</value>
+  </data>
+  <data name="Index_Breadcrumb" xml:space="preserve">
+    <value>Empleados</value>
+  </data>
+  <data name="Index_CreateEmployee" xml:space="preserve">
+    <value>Crear nuevo empleado</value>
+  </data>
+  <data name="Js_ConfirmDeleteEmployee" xml:space="preserve">
+    <value>¿Eliminar este empleado? (borrado lógico)</value>
+  </data>
+  <data name="Js_ConfirmSendMail" xml:space="preserve">
+    <value>¿Enviar al empleado un correo con su contraseña?</value>
+  </data>
+  <data name="Js_ConfirmToggleEmployee" xml:space="preserve">
+    <value>¿Activar o desactivar la cuenta de este empleado?</value>
+  </data>
+  <data name="Js_SendMailErrorFallback" xml:space="preserve">
+    <value>No se pudo enviar el correo.</value>
+  </data>
+  <data name="Js_SendMailNetworkError" xml:space="preserve">
+    <value>Ocurrió un error al enviar el mensaje.</value>
+  </data>
+  <data name="Js_SendMailSuccessFallback" xml:space="preserve">
+    <value>Correo enviado correctamente.</value>
+  </data>
+  <data name="Js_SendMailUnexpected" xml:space="preserve">
+    <value>Respuesta inesperada del servidor.</value>
+  </data>
+  <data name="Lbl_Company" xml:space="preserve">
+    <value>Empresa</value>
+  </data>
+  <data name="Lbl_CompanyHint" xml:space="preserve">
+    <value>La plantilla visual y el idioma de trabajo los hereda el empleado de la empresa.</value>
+  </data>
+  <data name="Lbl_DeviceAllowed" xml:space="preserve">
+    <value>Autorizar plugin para este equipo</value>
+  </data>
+  <data name="Lbl_DeviceId" xml:space="preserve">
+    <value>ID del equipo (DeviceId)</value>
+  </data>
+  <data name="Lbl_DeviceName" xml:space="preserve">
+    <value>Nombre del equipo</value>
+  </data>
+  <data name="Lbl_DeviceSectionTitle" xml:space="preserve">
+    <value>Autorización de equipo para plugin</value>
+  </data>
+  <data name="Lbl_NameRequired" xml:space="preserve">
+    <value>Nombre *</value>
+  </data>
+  <data name="Lbl_Photo" xml:space="preserve">
+    <value>Foto de perfil</value>
+  </data>
+  <data name="Lbl_PhotoHint" xml:space="preserve">
+    <value>Sube una imagen cuadrada (se redimensionará automáticamente a 100×100).</value>
+  </data>
+  <data name="Lbl_SurnameRequired" xml:space="preserve">
+    <value>Apellido *</value>
+  </data>
+  <data name="List_LinkDeleteTooltip" xml:space="preserve">
+    <value>Eliminar empleado</value>
+  </data>
+  <data name="List_LinkEditTooltip" xml:space="preserve">
+    <value>Editar empleado</value>
+  </data>
+  <data name="List_LinkOpenTooltip" xml:space="preserve">
+    <value>Ver empleado</value>
+  </data>
+  <data name="List_LinkSendMailTooltip" xml:space="preserve">
+    <value>Enviar contraseña por correo</value>
+  </data>
+  <data name="List_LinkToggleTooltip" xml:space="preserve">
+    <value>Activar / desactivar cuenta</value>
+  </data>
+  <data name="Modal_ActiveLegendActivated" xml:space="preserve">
+    <value>El usuario está activado.</value>
+  </data>
+  <data name="Modal_ActiveLegendDeactivated" xml:space="preserve">
+    <value>El usuario está desactivado.</value>
+  </data>
+  <data name="Modal_ActiveQuestionActivate" xml:space="preserve">
+    <value>¿Quieres activar al usuario {0}?</value>
+  </data>
+  <data name="Modal_ActiveQuestionDeactivate" xml:space="preserve">
+    <value>¿Quieres desactivar al usuario {0}?</value>
+  </data>
+  <data name="Modal_BtnActivate" xml:space="preserve">
+    <value>Activar</value>
+  </data>
+  <data name="Modal_BtnDeactivate" xml:space="preserve">
+    <value>Desactivar</value>
+  </data>
+  <data name="Modal_DeleteConfirm" xml:space="preserve">
+    <value>Esta acción marca el empleado como eliminado (borrado lógico). Sus datos quedarán fuera de los listados normales.</value>
+  </data>
+  <data name="Modal_DeleteLegend" xml:space="preserve">
+    <value>¿Deseas eliminar al empleado?</value>
+  </data>
+  <data name="Msg_EmployeeActivated" xml:space="preserve">
+    <value>Cuenta del empleado activada.</value>
+  </data>
+  <data name="Msg_EmployeeDeactivated" xml:space="preserve">
+    <value>Cuenta del empleado desactivada.</value>
+  </data>
+  <data name="Msg_EmployeeDeleted" xml:space="preserve">
+    <value>Empleado eliminado correctamente.</value>
+  </data>
+  <data name="Msg_MailSent" xml:space="preserve">
+    <value>Correo enviado correctamente.</value>
+  </data>
+  <data name="MySpace_Breadcrumb" xml:space="preserve">
+    <value>Mi espacio</value>
+  </data>
+  <data name="MySpace_Field_FirstLogin" xml:space="preserve">
+    <value>Fecha del primer inicio de sesión:</value>
+  </data>
+  <data name="MySpace_Field_FullName" xml:space="preserve">
+    <value>Nombre completo:</value>
+  </data>
+  <data name="MySpace_Field_TotalDesigns" xml:space="preserve">
+    <value>Diseños creados:</value>
+  </data>
+  <data name="MySpace_Field_UserName" xml:space="preserve">
+    <value>Usuario:</value>
+  </data>
+  <data name="MySpace_SectionTitle" xml:space="preserve">
+    <value>Información del usuario</value>
+  </data>
+  <data name="MySpace_Welcome" xml:space="preserve">
+    <value>Bienvenido, {0}</value>
+  </data>
+  <data name="Page_CreateTitle" xml:space="preserve">
+    <value>Crear empleado</value>
+  </data>
+  <data name="Page_EditTitle" xml:space="preserve">
+    <value>Editar empleado</value>
+  </data>
+  <data name="Ph_DeviceId" xml:space="preserve">
+    <value>Hash DeviceId del plugin</value>
+  </data>
+  <data name="Ph_DeviceName" xml:space="preserve">
+    <value>Ej.: PC-OFICINA-01</value>
+  </data>
+  <data name="Ph_NameRequired" xml:space="preserve">
+    <value>Inserta nombre</value>
+  </data>
+  <data name="Ph_SurnameRequired" xml:space="preserve">
+    <value>Inserta apellido</value>
+  </data>
+  <data name="State_AccountConfirmed" xml:space="preserve">
+    <value>Confirmada</value>
+  </data>
+  <data name="State_AccountUnconfirmed" xml:space="preserve">
+    <value>Sin confirmar</value>
+  </data>
+  <data name="State_Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="State_Inactive" xml:space="preserve">
+    <value>Inactivo</value>
+  </data>
+  <data name="ToastMessage_EmployeeActivated" xml:space="preserve">
+    <value>Cuenta del empleado activada.</value>
+  </data>
+  <data name="ToastMessage_EmployeeDeactivated" xml:space="preserve">
+    <value>Cuenta del empleado desactivada.</value>
+  </data>
+  <data name="ToastMessage_EmployeeDeleted" xml:space="preserve">
+    <value>Empleado eliminado correctamente.</value>
+  </data>
+  <data name="ToastMessage_EmployeeSaved" xml:space="preserve">
+    <value>Empleado guardado correctamente.</value>
+  </data>
+  <data name="ToastMessage_EmployeeUpdated" xml:space="preserve">
+    <value>Empleado actualizado correctamente.</value>
+  </data>
+  <data name="ToastTitle_CreateEmployee" xml:space="preserve">
+    <value>Crear empleado</value>
+  </data>
+  <data name="ToastTitle_DeleteEmployee" xml:space="preserve">
+    <value>Eliminar empleado</value>
+  </data>
+  <data name="ToastTitle_EditEmployee" xml:space="preserve">
+    <value>Editar empleado</value>
+  </data>
+  <data name="ToastTitle_ToggleEmployee" xml:space="preserve">
+    <value>Activar / desactivar empleado</value>
+  </data>
+  <data name="Val_CompanyRequired" xml:space="preserve">
+    <value>Seleccione la empresa del empleado.</value>
+  </data>
+  <data name="Val_NameRequired" xml:space="preserve">
+    <value>El nombre del empleado es obligatorio.</value>
+  </data>
+  <data name="Val_SurnameRequired" xml:space="preserve">
+    <value>El apellido del empleado es obligatorio.</value>
+  </data>
+</root>

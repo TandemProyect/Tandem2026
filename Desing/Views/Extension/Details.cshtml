@@ -1,56 +1,83 @@
 @model DAL.TSql_Extension
+@using Desing.Resources
 @{
     ViewBag.Title = Model.TextLabel;
     var documentTypes = ViewBag.DocumentTypesAsignados as System.Collections.Generic.List<DAL.TSql_DocumentType>;
 }
+
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="py-3 mb-0">
-        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> / <a href="@Url.Action("Index")">Configuración</a> / <a href="@Url.Action("Index")">Extensiones</a> /</span> @Model.TextLabel
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@Extension.Common_Home</a> /
+            @Extension.Common_Settings /
+            <a href="@Url.Action("Index", "Extension")">@Extension.Index_Breadcrumb</a> /
+        </span> @Model.TextLabel
     </h4>
-    <a class="btn btn-warning" href="@Url.Action("Edit", new { id = Model.IdObject })">Editar</a>
+    <a class="btn btn-warning" href="@Url.Action("Edit", "Extension", new { id = Model.IdObject })">
+        <i class="icon-base ri ri-pencil-line me-1"></i> @Common.Btn_Edit
+    </a>
 </div>
+
 <div class="card">
-    <div class="card-body row g-3">
-        <div class="col-md-6"><strong>Nombre:</strong> @Model.TextLabel</div>
-        <div class="col-md-4">
-            <strong>Tamaño máximo:</strong>
-            @(ViewBag.MaxFileSizeDisplay as string)
-            <span class="text-muted">(@Model.NumberMaxFileSizeBytes bytes)</span>
-        </div>
-        <div class="col-md-2"><strong>Activo:</strong> @(Model.Is_Active ? "Sí" : "No")</div>
-        @{
-            var extIco = ViewBag.ExtensionPathIco as string;
-            if (!string.IsNullOrWhiteSpace(extIco))
-            {
-                var src = Url.Content(extIco.StartsWith("~") ? extIco : "~" + extIco);
-                <div class="col-md-12">
-                    <strong>Icono:</strong>
-                    <span class="ms-2"><img src="@src" alt="" style="max-height:48px;max-width:72px;object-fit:contain" /></span>
-                </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">@Extension.Details_Field_Name</dt>
+            <dd class="col-sm-9">@Model.TextLabel</dd>
+
+            <dt class="col-sm-3">@Extension.Details_Field_MaxFileSize</dt>
+            <dd class="col-sm-9">
+                @(ViewBag.MaxFileSizeDisplay as string)
+                <span class="text-muted">(@Model.NumberMaxFileSizeBytes bytes)</span>
+            </dd>
+
+            <dt class="col-sm-3">@Extension.Details_Field_Active</dt>
+            <dd class="col-sm-9">
+                @if (Model.Is_Active)
+                {
+                    <span class="badge bg-label-success">@Extension.State_Active</span>
+                }
+                else
+                {
+                    <span class="badge bg-label-secondary">@Extension.State_Inactive</span>
+                }
+            </dd>
+
+            @{
+                var extIco = ViewBag.ExtensionPathIco as string;
+                if (!string.IsNullOrWhiteSpace(extIco))
+                {
+                    var src = Url.Content(extIco.StartsWith("~") ? extIco : "~" + extIco);
+                    <dt class="col-sm-3">@Extension.Details_Field_Icon</dt>
+                    <dd class="col-sm-9">
+                        <img src="@src" alt="" style="max-height:48px;max-width:72px;object-fit:contain" />
+                    </dd>
+                }
             }
-        }
-        <div class="col-md-12">
-            <strong>Tipos de documento que la usan:</strong>
-            @if (documentTypes == null || documentTypes.Count == 0)
-            {
-                <span class="ms-2">— Sin tipos de documento asociados.</span>
-            }
-            else
-            {
-                <div class="mt-2">
-                    @foreach (var dt in documentTypes)
-                    {
-                        <a class="badge bg-label-info me-1 mb-1"
-                           title="@dt.TextLabel"
-                           href="@Url.Action("Details", "DocumentType", new { id = dt.IdObject })">
-                            @dt.TextLabel
-                        </a>
-                    }
-                </div>
-            }
-        </div>
+
+            <dt class="col-sm-3">@Extension.Details_Field_DocumentTypes</dt>
+            <dd class="col-sm-9">
+                @if (documentTypes == null || documentTypes.Count == 0)
+                {
+                    <span class="text-muted">@Extension.Details_NoDocumentTypesAssigned</span>
+                }
+                else
+                {
+                    <div>
+                        @foreach (var dt in documentTypes)
+                        {
+                            <a class="badge bg-label-info me-1 mb-1"
+                               title="@dt.TextLabel"
+                               href="@Url.Action("Details", "DocumentType", new { id = dt.IdObject })">
+                                @dt.TextLabel
+                            </a>
+                        }
+                    </div>
+                }
+            </dd>
+        </dl>
     </div>
 </div>
+
 @if (ViewBag.Audit != null)
 {
     @Html.Partial("_IntranetAuditSection", (Desing.Models.IntranetAuditDisplayModel)ViewBag.Audit)

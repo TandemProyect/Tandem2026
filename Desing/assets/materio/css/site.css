@@ -2,6 +2,90 @@
    Tandem Desing - Custom overrides sobre Materio
    ============================================================ */
 
+/* =============================================================================
+   Intranet Materio: pie visible siempre; scroll solo en la zona de contenido
+   (marcador en <html> de _LayoutMaterio.cshtml — no afecta _LayoutMaterioBlank).
+   ============================================================================= */
+html.tandem-intranet-chrome {
+    height: 100%;
+    min-height: 100dvh;
+    max-height: 100dvh;
+}
+
+html.tandem-intranet-chrome body {
+    min-height: 100%;
+    height: 100%;
+    max-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Filas hijas del wrapper: menu + pagina deben encajar en el viewport */
+html.tandem-intranet-chrome .layout-wrapper.layout-content-navbar {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    align-items: stretch;
+    overflow: hidden;
+}
+
+html.tandem-intranet-chrome .layout-wrapper.layout-content-navbar > .layout-container {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    max-height: 100%;
+    /* sustituye min-block-size: 100vh de Materio, que forzaba altura documento */
+    min-block-size: 0;
+    align-self: stretch;
+}
+
+html.tandem-intranet-chrome .layout-content-navbar .layout-menu {
+    max-height: 100%;
+    align-self: stretch;
+}
+
+html.tandem-intranet-chrome .layout-content-navbar .layout-page {
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+}
+
+html.tandem-intranet-chrome .layout-content-navbar .content-wrapper {
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+}
+
+/*
+ * Contenido principal (.tandem-layout-main-scroll): scroll aqui salvo pantallas que
+ * fuerzan overflow:hidden en este mismo contenedor (DataTables lista, Jobside workspace).
+ */
+html.tandem-intranet-chrome .layout-content-navbar .content-wrapper > .container-fluid.flex-grow-1.container-p-y.tandem-layout-main-scroll:not(:has(.tandem-dt-list-page)):not(:has(.tandem-jobside-workspace)) {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Intranet flex panels: .tandem-scroll-y = min-height:0 + overflow-y:auto inside a flex chain; .tandem-fill-scroll = flex:1 1 auto + min-height:0 + overflow-y:auto (body under a fixed flex header, e.g. long card stacks). */
+.tandem-scroll-y {
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.tandem-fill-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 /* ---- Separador: linea azul (color plantilla) entre contenido y pie ---- */
 .layout-content-navbar .content-footer.footer {
     border-top: 1px solid var(--tandem-primary, var(--bs-primary));
@@ -110,6 +194,7 @@
     flex-direction: column;
     flex: 1 1 auto;
     min-height: 0;
+    overflow: hidden;
 }
 
 .tandem-dt-list-page {
@@ -117,8 +202,13 @@
     flex-direction: column;
     flex: 1 1 auto;
     min-height: 0;
-    max-height: calc(100dvh - 8.75rem);
+    max-height: 100%;
     overflow: hidden;
+}
+
+/* Intranet con pie fijo: el alto util es el del contenedor flex, no un vh fijo */
+html.tandem-intranet-chrome .tandem-dt-list-page {
+    max-height: 100%;
 }
 
 .tandem-dt-list-page > .card {
@@ -155,6 +245,100 @@
 .tandem-dt-list-page .dataTables_wrapper .dataTables_scrollBody {
     flex: 1 1 auto;
     min-height: 0;
+}
+
+/* ---- Jobside Details: workspace (columna izquierda: card-body con .tandem-fill-scroll; derecha: tabs + scroll en .tandem-jobside-tab-content) ----- */
+.layout-content-navbar .content-wrapper > .container-fluid.flex-grow-1:has(.tandem-jobside-workspace) {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.tandem-jobside-workspace {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+}
+
+html.tandem-intranet-chrome .tandem-jobside-workspace {
+    max-height: 100%;
+}
+
+.tandem-jobside-workspace-toolbar {
+    flex: 0 0 auto;
+}
+
+.tandem-jobside-workspace-row {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.tandem-jobside-workspace .tandem-jobside-col-left,
+.tandem-jobside-workspace .tandem-jobside-col-right {
+    min-height: 0;
+}
+
+.tandem-jobside-workspace .tandem-jobside-col-left {
+    display: flex;
+    flex-direction: column;
+}
+
+.tandem-jobside-workspace .tandem-jobside-col-left > .card {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+}
+
+.tandem-jobside-workspace .tandem-jobside-col-left > .card > .card-header {
+    flex-shrink: 0;
+}
+
+/* Cuerpo izquierdo: flex-basis 0 obliga al alto acotado del padre (sin esto el card crece y no aparece scroll). */
+.tandem-jobside-workspace .tandem-jobside-col-left > .card > .card-body.tandem-fill-scroll {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.tandem-jobside-workspace .tandem-jobside-right-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.tandem-jobside-workspace .tandem-jobside-right-card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.tandem-jobside-workspace .tandem-jobside-tab-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Documents tab: menús DataTables / dropdowns en panel con scroll */
+.tandem-jobside-workspace .tandem-jobside-tab-content .table-responsive {
+    overflow-x: auto !important;
+    overflow-y: visible;
+}
+
+.tandem-jobside-workspace.tandem-jobside-workspace--expanded .tandem-jobside-col-left {
+    opacity: 0.42;
+    transition: opacity 0.2s ease;
 }
 
 /* ---- DataTables: modo un solo scroll (global) ------------------------- */

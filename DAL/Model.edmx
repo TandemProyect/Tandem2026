@@ -47,23 +47,22 @@
           <Property Name="AttLastModification" Type="datetime" Nullable="false" />
           <Property Name="SysUpdateNumber" Type="bigint" Nullable="false" />
           <Property Name="LinCompany" Type="bigint" Nullable="false" />
-          <Property Name="LinBusiness" Type="bigint" Nullable="false" />
           <Property Name="AddLetter" Type="nchar" MaxLength="2" />
-        </EntityType>
-        <EntityType Name="TSql_Business">
-          <Key>
-            <PropertyRef Name="IdObject" />
-          </Key>
-          <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="AttLabel" Type="nvarchar" MaxLength="500" Nullable="false" />
-          <Property Name="AttDescription" Type="nvarchar" MaxLength="2000" />
-          <Property Name="LinCreatedBy" Type="nvarchar" MaxLength="128" Nullable="false" />
-          <Property Name="AttCreated" Type="datetime" Nullable="false" />
-          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" Nullable="false" />
-          <Property Name="AttLastModification" Type="datetime" Nullable="false" />
-          <Property Name="SysUpdateNumber" Type="bigint" Nullable="false" />
-          <Property Name="LinCompany" Type="bigint" Nullable="false" />
-          <Property Name="AddLetter" Type="nchar" MaxLength="2" />
+          <Property Name="Attcolor" Type="nvarchar" MaxLength="16" />
+          <Property Name="Loc_Place_Id" Type="nvarchar" MaxLength="255" />
+          <Property Name="Loc_Formatted_Address" Type="nvarchar" MaxLength="1000" />
+          <Property Name="Loc_Lat" Type="decimal" Precision="9" Scale="6" />
+          <Property Name="Loc_Lng" Type="decimal" Precision="9" Scale="6" />
+          <Property Name="Loc_Street_Number" Type="nvarchar" MaxLength="50" />
+          <Property Name="Loc_Route" Type="nvarchar" MaxLength="250" />
+          <Property Name="Loc_Subpremise" Type="nvarchar" MaxLength="100" />
+          <Property Name="Loc_Locality" Type="nvarchar" MaxLength="250" />
+          <Property Name="Loc_Admin_Area_1" Type="nvarchar" MaxLength="250" />
+          <Property Name="Loc_Admin_Area_2" Type="nvarchar" MaxLength="250" />
+          <Property Name="Loc_Postal_Code" Type="nvarchar" MaxLength="20" />
+          <Property Name="Loc_Country_Code" Type="nvarchar" MaxLength="10" />
+          <Property Name="Loc_Country_Name" Type="nvarchar" MaxLength="100" />
+          <Property Name="Loc_Address_Components_Json" Type="nvarchar(max)" />
         </EntityType>
         <EntityType Name="TSql_Client_V2">
           <Key>
@@ -110,6 +109,21 @@
           <Property Name="LinkCountry" Type="bigint" />
           <Property Name="LinPlantilla" Type="bigint" />
           <Property Name="AddLetter" Type="nchar" MaxLength="2" />
+          <Property Name="Loc_Place_Id" Type="nvarchar" MaxLength="255" />
+          <Property Name="Loc_Formatted_Address" Type="nvarchar" MaxLength="1000" />
+          <Property Name="Loc_Lat" Type="decimal" Precision="9" Scale="6" />
+          <Property Name="Loc_Lng" Type="decimal" Precision="9" Scale="6" />
+          <Property Name="Loc_Street_Number" Type="nvarchar" MaxLength="50" />
+          <Property Name="Loc_Route" Type="nvarchar" MaxLength="250" />
+          <Property Name="Loc_Subpremise" Type="nvarchar" MaxLength="100" />
+          <Property Name="Loc_Locality" Type="nvarchar" MaxLength="250" />
+          <Property Name="Loc_Admin_Area_1" Type="nvarchar" MaxLength="250" />
+          <Property Name="Loc_Admin_Area_2" Type="nvarchar" MaxLength="250" />
+          <Property Name="Loc_Postal_Code" Type="nvarchar" MaxLength="20" />
+          <Property Name="Loc_Country_Code" Type="nvarchar" MaxLength="10" />
+          <Property Name="Loc_Country_Name" Type="nvarchar" MaxLength="100" />
+          <Property Name="Loc_Address_Components_Json" Type="nvarchar(max)" />
+          <Property Name="LinkLanguage" Type="bigint" />
         </EntityType>
         <EntityType Name="TSql_ConfigDesing">
           <Key>
@@ -421,6 +435,8 @@
             <PropertyRef Name="IdObject" />
           </Key>
           <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="AddNJobside" Type="nvarchar" MaxLength="50" />
+          <Property Name="AddNJobsideClient" Type="nvarchar" MaxLength="50" />
           <Property Name="TextLabel" Type="nvarchar" MaxLength="500" Nullable="false" />
           <Property Name="Is_Delete" Type="bit" Nullable="false" />
           <Property Name="Is_Active" Type="bit" Nullable="false" />
@@ -459,6 +475,27 @@
           <Property Name="Bill_Country_Code" Type="nvarchar" MaxLength="10" />
           <Property Name="Bill_Country_Name" Type="nvarchar" MaxLength="100" />
           <Property Name="Bill_Address_Components_Json" Type="nvarchar(max)" />
+          <Property Name="TextContractRef" Type="nvarchar" MaxLength="500" />
+          <Property Name="TextJobsideNotes" Type="nvarchar" MaxLength="500" />
+          <Property Name="LinBranch" Type="bigint" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TSql_Language">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TextLabel" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="TextCode" Type="nvarchar" MaxLength="20" Nullable="false" />
+          <Property Name="TextNativeName" Type="nvarchar" MaxLength="100" />
+          <Property Name="Is_Default" Type="bit" Nullable="false" />
+          <Property Name="Is_Delete" Type="bit" Nullable="false" />
+          <Property Name="Is_Active" Type="bit" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AddDateMade" Type="datetime" Nullable="false" />
+          <Property Name="AddLastDateChange" Type="datetime" />
+          <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
+          <Property Name="LinkCountry" Type="bigint" />
         </EntityType>
         <EntityType Name="Tsql_Master_Articles">
           <Key>
@@ -766,6 +803,24 @@
           <Property Name="LinkDesing" Type="bigint" Nullable="false" />
           <Property Name="AddNumberSendMail" Type="bigint" Nullable="false" />
         </EntityType>
+        <EntityType Name="TSql_UiTranslation">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TextResourceKey" Type="nvarchar" MaxLength="256" Nullable="false" />
+          <Property Name="TextModule" Type="nvarchar" MaxLength="100" />
+          <Property Name="LinkLanguage" Type="bigint" Nullable="false" />
+          <Property Name="TextValue" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="Is_Delete" Type="bit" Nullable="false" />
+          <Property Name="Is_Active" Type="bit" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AddDateMade" Type="datetime" Nullable="false" />
+          <Property Name="AddLastDateChange" Type="datetime" />
+          <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
+          <Property Name="TextModuleNorm" Type="nvarchar" MaxLength="100" StoreGeneratedPattern="Computed" Nullable="false" />
+        </EntityType>
         <Association Name="FK_TSql_App_AspNetUsers">
           <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
           <End Role="TSql_App" Type="Self.TSql_App" Multiplicity="*" />
@@ -811,30 +866,6 @@
             </Principal>
             <Dependent Role="TSql_Branch">
               <PropertyRef Name="LinCompany" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_TSql_Business_AspNetUsers">
-          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
-          <End Role="TSql_Business" Type="Self.TSql_Business" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUsers">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="TSql_Business">
-              <PropertyRef Name="LinCreatedBy" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_TSql_Business_AspNetUsers1">
-          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
-          <End Role="TSql_Business" Type="Self.TSql_Business" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUsers">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="TSql_Business">
-              <PropertyRef Name="LinModifiedBy" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -895,6 +926,18 @@
             </Principal>
             <Dependent Role="TSql_Company">
               <PropertyRef Name="LinkCountry" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Company_TSql_Language">
+          <End Role="TSql_Language" Type="Self.TSql_Language" Multiplicity="0..1" />
+          <End Role="TSql_Company" Type="Self.TSql_Company" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Language">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Company">
+              <PropertyRef Name="LinkLanguage" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1522,6 +1565,18 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_TSql_Jobside_TSql_Branch">
+          <End Role="TSql_Branch" Type="Self.TSql_Branch" Multiplicity="1" />
+          <End Role="TSql_Jobside" Type="Self.TSql_Jobside" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Branch">
+              <PropertyRef Name="SysObjectID" />
+            </Principal>
+            <Dependent Role="TSql_Jobside">
+              <PropertyRef Name="LinBranch" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_TSql_Jobside_TSql_Client_V2">
           <End Role="TSql_Client_V2" Type="Self.TSql_Client_V2" Multiplicity="0..1" />
           <End Role="TSql_Jobside" Type="Self.TSql_Jobside" Multiplicity="*" />
@@ -1531,6 +1586,42 @@
             </Principal>
             <Dependent Role="TSql_Jobside">
               <PropertyRef Name="LinkClient_V2" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Language_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_Language" Type="Self.TSql_Language" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Language">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Language_AspNetUsers1">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="TSql_Language" Type="Self.TSql_Language" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Language">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Language_TSql_Countrys">
+          <End Role="TSql_Countrys" Type="Self.TSql_Countrys" Multiplicity="0..1" />
+          <End Role="TSql_Language" Type="Self.TSql_Language" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Countrys">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Language">
+              <PropertyRef Name="LinkCountry" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -2062,11 +2153,34 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_TSql_UiTranslation_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_UiTranslation" Type="Self.TSql_UiTranslation" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_UiTranslation">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_UiTranslation_AspNetUsers1">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="TSql_UiTranslation" Type="Self.TSql_UiTranslation" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_UiTranslation">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <EntityContainer Name="DesingEntityStoreContainer">
           <EntitySet Name="AspNetUsers" EntityType="Self.AspNetUsers" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_App" EntityType="Self.TSql_App" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_Branch" EntityType="Self.TSql_Branch" Schema="dbo" store:Type="Tables" />
-          <EntitySet Name="TSql_Business" EntityType="Self.TSql_Business" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_Client_V2" EntityType="Self.TSql_Client_V2" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_Company" EntityType="Self.TSql_Company" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_ConfigDesing" EntityType="Self.TSql_ConfigDesing" Schema="dbo" store:Type="Tables" />
@@ -2084,6 +2198,7 @@
           <EntitySet Name="TSql_Help" EntityType="Self.TSql_Help" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_HelpGrup" EntityType="Self.TSql_HelpGrup" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_Jobside" EntityType="Self.TSql_Jobside" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_Language" EntityType="Self.TSql_Language" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Tsql_Master_Articles" EntityType="Self.Tsql_Master_Articles" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_Offers" EntityType="Self.TSql_Offers" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_OfferState" EntityType="Self.TSql_OfferState" Schema="dbo" store:Type="Tables" />
@@ -2103,6 +2218,7 @@
           <EntitySet Name="TSql_TelegramDesignInbox" EntityType="Self.TSql_TelegramDesignInbox" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_TemporalList" EntityType="Self.TSql_TemporalList" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_TotalListsDesing" EntityType="Self.TSql_TotalListsDesing" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_UiTranslation" EntityType="Self.TSql_UiTranslation" Schema="dbo" store:Type="Tables" />
           <AssociationSet Name="FK_TSql_App_AspNetUsers" Association="Self.FK_TSql_App_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="TSql_App" EntitySet="TSql_App" />
@@ -2118,14 +2234,6 @@
           <AssociationSet Name="FK_TSql_Branch_TSql_Company1" Association="Self.FK_TSql_Branch_TSql_Company1">
             <End Role="TSql_Company" EntitySet="TSql_Company" />
             <End Role="TSql_Branch" EntitySet="TSql_Branch" />
-          </AssociationSet>
-          <AssociationSet Name="FK_TSql_Business_AspNetUsers" Association="Self.FK_TSql_Business_AspNetUsers">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_Business" EntitySet="TSql_Business" />
-          </AssociationSet>
-          <AssociationSet Name="FK_TSql_Business_AspNetUsers1" Association="Self.FK_TSql_Business_AspNetUsers1">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_Business" EntitySet="TSql_Business" />
           </AssociationSet>
           <AssociationSet Name="FK_TSql_Client_V2_AspNetUsers" Association="Self.FK_TSql_Client_V2_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
@@ -2145,6 +2253,10 @@
           </AssociationSet>
           <AssociationSet Name="FK_TSql_Company_TSql_Countrys" Association="Self.FK_TSql_Company_TSql_Countrys">
             <End Role="TSql_Countrys" EntitySet="TSql_Countrys" />
+            <End Role="TSql_Company" EntitySet="TSql_Company" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Company_TSql_Language" Association="Self.FK_TSql_Company_TSql_Language">
+            <End Role="TSql_Language" EntitySet="TSql_Language" />
             <End Role="TSql_Company" EntitySet="TSql_Company" />
           </AssociationSet>
           <AssociationSet Name="FK_TSql_Company_TSql_Plantilla" Association="Self.FK_TSql_Company_TSql_Plantilla">
@@ -2355,9 +2467,25 @@
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
           </AssociationSet>
+          <AssociationSet Name="FK_TSql_Jobside_TSql_Branch" Association="Self.FK_TSql_Jobside_TSql_Branch">
+            <End Role="TSql_Branch" EntitySet="TSql_Branch" />
+            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
+          </AssociationSet>
           <AssociationSet Name="FK_TSql_Jobside_TSql_Client_V2" Association="Self.FK_TSql_Jobside_TSql_Client_V2">
             <End Role="TSql_Client_V2" EntitySet="TSql_Client_V2" />
             <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Language_AspNetUsers" Association="Self.FK_TSql_Language_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Language" EntitySet="TSql_Language" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Language_AspNetUsers1" Association="Self.FK_TSql_Language_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Language" EntitySet="TSql_Language" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Language_TSql_Countrys" Association="Self.FK_TSql_Language_TSql_Countrys">
+            <End Role="TSql_Countrys" EntitySet="TSql_Countrys" />
+            <End Role="TSql_Language" EntitySet="TSql_Language" />
           </AssociationSet>
           <AssociationSet Name="FK_Tsql_Master_Articles_AspNetUsers" Association="Self.FK_Tsql_Master_Articles_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
@@ -2535,6 +2663,14 @@
             <End Role="TSql_Design" EntitySet="TSql_Design" />
             <End Role="TSql_TotalListsDesing" EntitySet="TSql_TotalListsDesing" />
           </AssociationSet>
+          <AssociationSet Name="FK_TSql_UiTranslation_AspNetUsers" Association="Self.FK_TSql_UiTranslation_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_UiTranslation" EntitySet="TSql_UiTranslation" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_UiTranslation_AspNetUsers1" Association="Self.FK_TSql_UiTranslation_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_UiTranslation" EntitySet="TSql_UiTranslation" />
+          </AssociationSet>
         </EntityContainer>
       </Schema></edmx:StorageModels>
     <!-- CSDL content -->
@@ -2569,11 +2705,6 @@
             <End Role="TSql_Company" EntitySet="TSql_Company" />
           </AssociationSet>
           <EntitySet Name="TSql_TemporalList" EntityType="DesingEntity.TSql_TemporalList" />
-          <EntitySet Name="TSql_Branch" EntityType="DesingEntity.TSql_Branch" />
-          <AssociationSet Name="FK_TSql_Branch_TSql_Company" Association="DesingEntity.FK_TSql_Branch_TSql_Company">
-            <End Role="TSql_Company" EntitySet="TSql_Company" />
-            <End Role="TSql_Branch" EntitySet="TSql_Branch" />
-          </AssociationSet>
           <EntitySet Name="TSql_DefaultDesign" EntityType="DesingEntity.TSql_DefaultDesign" />
           <AssociationSet Name="FK_TSql_DefaultDesign_TSql_TapeInialEndWallIMoreThan300" Association="DesingEntity.FK_TSql_DefaultDesign_TSql_TapeInialEndWallIMoreThan300">
             <End Role="TSql_TapeInialEndWallIMoreThan300" EntitySet="TSql_TapeInialEndWallIMoreThan300" />
@@ -2875,7 +3006,6 @@
           <EntitySet Name="TSql_DocumentType" EntityType="DesingEntity.TSql_DocumentType" />
           <EntitySet Name="TSql_DocumentTypeExtension" EntityType="DesingEntity.TSql_DocumentTypeExtension" />
           <EntitySet Name="TSql_Extension" EntityType="DesingEntity.TSql_Extension" />
-          <EntitySet Name="TSql_Jobside" EntityType="DesingEntity.TSql_Jobside" />
           <AssociationSet Name="FK_TSql_Client_V2_AspNetUsers" Association="DesingEntity.FK_TSql_Client_V2_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="TSql_Client_V2" EntitySet="TSql_Client_V2" />
@@ -2916,18 +3046,6 @@
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="TSql_Extension" EntitySet="TSql_Extension" />
           </AssociationSet>
-          <AssociationSet Name="FK_TSql_Jobside_AspNetUsers" Association="DesingEntity.FK_TSql_Jobside_AspNetUsers">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
-          </AssociationSet>
-          <AssociationSet Name="FK_TSql_Jobside_AspNetUsers1" Association="DesingEntity.FK_TSql_Jobside_AspNetUsers1">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
-          </AssociationSet>
-          <AssociationSet Name="FK_TSql_Jobside_TSql_Client_V2" Association="DesingEntity.FK_TSql_Jobside_TSql_Client_V2">
-            <End Role="TSql_Client_V2" EntitySet="TSql_Client_V2" />
-            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
-          </AssociationSet>
           <AssociationSet Name="FK_TSql_DocumentTypeExtension_TSql_DocumentType" Association="DesingEntity.FK_TSql_DocumentTypeExtension_TSql_DocumentType">
             <End Role="TSql_DocumentType" EntitySet="TSql_DocumentType" />
             <End Role="TSql_DocumentTypeExtension" EntitySet="TSql_DocumentTypeExtension" />
@@ -2939,14 +3057,6 @@
           <EntitySet Name="TSql_Document" EntityType="DesingEntity.TSql_Document" />
           <EntitySet Name="TSql_Offers" EntityType="DesingEntity.TSql_Offers" />
           <EntitySet Name="TSql_OfferState" EntityType="DesingEntity.TSql_OfferState" />
-          <AssociationSet Name="FK_TSql_Branch_AspNetUsers" Association="DesingEntity.FK_TSql_Branch_AspNetUsers">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_Branch" EntitySet="TSql_Branch" />
-          </AssociationSet>
-          <AssociationSet Name="FK_TSql_Branch_AspNetUsers1" Association="DesingEntity.FK_TSql_Branch_AspNetUsers1">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_Branch" EntitySet="TSql_Branch" />
-          </AssociationSet>
           <AssociationSet Name="FK_TSql_Document_AspNetUsers" Association="DesingEntity.FK_TSql_Document_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="TSql_Document" EntitySet="TSql_Document" />
@@ -2987,30 +3097,13 @@
             <End Role="TSql_DocumentTypeExtension" EntitySet="TSql_DocumentTypeExtension" />
             <End Role="TSql_Document" EntitySet="TSql_Document" />
           </AssociationSet>
-          <AssociationSet Name="FK_TSql_Document_TSql_Jobside" Association="DesingEntity.FK_TSql_Document_TSql_Jobside">
-            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
-            <End Role="TSql_Document" EntitySet="TSql_Document" />
-          </AssociationSet>
           <AssociationSet Name="FK_TSql_Document_TSql_Offers" Association="DesingEntity.FK_TSql_Document_TSql_Offers">
             <End Role="TSql_Offers" EntitySet="TSql_Offers" />
             <End Role="TSql_Document" EntitySet="TSql_Document" />
           </AssociationSet>
-          <AssociationSet Name="FK_TSql_Offers_TSql_Jobside" Association="DesingEntity.FK_TSql_Offers_TSql_Jobside">
-            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
-            <End Role="TSql_Offers" EntitySet="TSql_Offers" />
-          </AssociationSet>
           <AssociationSet Name="FK_TSql_Offers_TSql_OfferState" Association="DesingEntity.FK_TSql_Offers_TSql_OfferState">
             <End Role="TSql_OfferState" EntitySet="TSql_OfferState" />
             <End Role="TSql_Offers" EntitySet="TSql_Offers" />
-          </AssociationSet>
-          <EntitySet Name="TSql_Business" EntityType="DesingEntity.TSql_Business" />
-          <AssociationSet Name="FK_TSql_Business_AspNetUsers" Association="DesingEntity.FK_TSql_Business_AspNetUsers">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_Business" EntitySet="TSql_Business" />
-          </AssociationSet>
-          <AssociationSet Name="FK_TSql_Business_AspNetUsers1" Association="DesingEntity.FK_TSql_Business_AspNetUsers1">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="TSql_Business" EntitySet="TSql_Business" />
           </AssociationSet>
           <EntitySet Name="TSql_ConfigDesingDefault" EntityType="DesingEntity.TSql_ConfigDesingDefault" />
           <AssociationSet Name="FK_TSql_ConfigDesingDefault_AspNetUsers" Association="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers">
@@ -3020,6 +3113,70 @@
           <AssociationSet Name="FK_TSql_ConfigDesingDefault_AspNetUsers1" Association="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers1">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="TSql_ConfigDesingDefault" EntitySet="TSql_ConfigDesingDefault" />
+          </AssociationSet>
+          <EntitySet Name="TSql_Branch" EntityType="DesingEntity.TSql_Branch" />
+          <AssociationSet Name="FK_TSql_Branch_AspNetUsers" Association="DesingEntity.FK_TSql_Branch_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Branch" EntitySet="TSql_Branch" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Branch_AspNetUsers1" Association="DesingEntity.FK_TSql_Branch_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Branch" EntitySet="TSql_Branch" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Branch_TSql_Company1" Association="DesingEntity.FK_TSql_Branch_TSql_Company1">
+            <End Role="TSql_Company" EntitySet="TSql_Company" />
+            <End Role="TSql_Branch" EntitySet="TSql_Branch" />
+          </AssociationSet>
+          <EntitySet Name="TSql_UiTranslation" EntityType="DesingEntity.TSql_UiTranslation" />
+          <EntitySet Name="TSql_language" EntityType="DesingEntity.TSql_language" />
+          <AssociationSet Name="FK_TSql_Language_AspNetUsers" Association="DesingEntity.FK_TSql_Language_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_language" EntitySet="TSql_language" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Language_AspNetUsers1" Association="DesingEntity.FK_TSql_Language_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_language" EntitySet="TSql_language" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_UiTranslation_AspNetUsers" Association="DesingEntity.FK_TSql_UiTranslation_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_UiTranslation" EntitySet="TSql_UiTranslation" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_UiTranslation_AspNetUsers1" Association="DesingEntity.FK_TSql_UiTranslation_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_UiTranslation" EntitySet="TSql_UiTranslation" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Language_TSql_Countrys" Association="DesingEntity.FK_TSql_Language_TSql_Countrys">
+            <End Role="TSql_Countrys" EntitySet="TSql_Countrys" />
+            <End Role="TSql_language" EntitySet="TSql_language" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Company_TSql_Language" Association="DesingEntity.FK_TSql_Company_TSql_Language">
+            <End Role="TSql_language" EntitySet="TSql_language" />
+            <End Role="TSql_Company" EntitySet="TSql_Company" />
+          </AssociationSet>
+          <EntitySet Name="TSql_Jobside" EntityType="DesingEntity.TSql_Jobside" />
+          <AssociationSet Name="FK_TSql_Jobside_AspNetUsers" Association="DesingEntity.FK_TSql_Jobside_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Jobside_AspNetUsers1" Association="DesingEntity.FK_TSql_Jobside_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Jobside_TSql_Branch" Association="DesingEntity.FK_TSql_Jobside_TSql_Branch">
+            <End Role="TSql_Branch" EntitySet="TSql_Branch" />
+            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Jobside_TSql_Client_V2" Association="DesingEntity.FK_TSql_Jobside_TSql_Client_V2">
+            <End Role="TSql_Client_V2" EntitySet="TSql_Client_V2" />
+            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Document_TSql_Jobside" Association="DesingEntity.FK_TSql_Document_TSql_Jobside">
+            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
+            <End Role="TSql_Document" EntitySet="TSql_Document" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_Offers_TSql_Jobside" Association="DesingEntity.FK_TSql_Offers_TSql_Jobside">
+            <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
+            <End Role="TSql_Offers" EntitySet="TSql_Offers" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="TSql_Countrys">
@@ -3041,6 +3198,7 @@
           <NavigationProperty Name="TSql_Company" Relationship="DesingEntity.FK_TSql_Company_TSql_Countrys" FromRole="TSql_Countrys" ToRole="TSql_Company" />
           <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_Countrys_AspNetUsers" FromRole="TSql_Countrys" ToRole="AspNetUsers" />
           <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Countrys_AspNetUsers1" FromRole="TSql_Countrys" ToRole="AspNetUsers" />
+          <NavigationProperty Name="TSql_language" Relationship="DesingEntity.FK_TSql_Language_TSql_Countrys" FromRole="TSql_Countrys" ToRole="TSql_language" />
         </EntityType>
         <EntityType Name="TSql_DesignCamera">
           <Key>
@@ -3257,15 +3415,31 @@
           <Property Name="TextTown_2" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
           <Property Name="LinkCountry" Type="Int64" />
           <Property Name="LinPlantilla" Type="Int64" Nullable="true" />
+          <Property Name="LinkLanguage" Type="Int64" Nullable="true" />
           <NavigationProperty Name="TSql_Countrys" Relationship="DesingEntity.FK_TSql_Company_TSql_Countrys" FromRole="TSql_Company" ToRole="TSql_Countrys" />
-          <NavigationProperty Name="TSql_Branch" Relationship="DesingEntity.FK_TSql_Branch_TSql_Company" FromRole="TSql_Company" ToRole="TSql_Branch" />
           <NavigationProperty Name="TSql_Employee" Relationship="DesingEntity.FK_TSql_Employee_TSql_Company" FromRole="TSql_Company" ToRole="TSql_Employee" />
           <NavigationProperty Name="TSql_Plantilla" Relationship="DesingEntity.FK_TSql_Company_TSql_Plantilla" FromRole="TSql_Company" ToRole="TSql_Plantilla" />
+          <NavigationProperty Name="TSql_language" Relationship="DesingEntity.FK_TSql_Company_TSql_Language" FromRole="TSql_Company" ToRole="TSql_language" />
           <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_Company_AspNetUsers" FromRole="TSql_Company" ToRole="AspNetUsers" />
           <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Company_AspNetUsers1" FromRole="TSql_Company" ToRole="AspNetUsers" />
           <NavigationProperty Name="AspNetUsers2" Relationship="DesingEntity.FK_TSql_Company_AspNetUsers2" FromRole="TSql_Company" ToRole="AspNetUsers" />
           <NavigationProperty Name="AspNetUsers3" Relationship="DesingEntity.FK_TSql_Company_AspNetUsers3" FromRole="TSql_Company" ToRole="AspNetUsers" />
           <Property Name="AddLetter" Type="String" MaxLength="2" FixedLength="true" Unicode="true" />
+          <NavigationProperty Name="TSql_Branch" Relationship="DesingEntity.FK_TSql_Branch_TSql_Company1" FromRole="TSql_Company" ToRole="TSql_Branch" />
+          <Property Name="Loc_Place_Id" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Formatted_Address" Type="String" MaxLength="1000" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Lat" Type="Decimal" Precision="9" Scale="6" />
+          <Property Name="Loc_Lng" Type="Decimal" Precision="9" Scale="6" />
+          <Property Name="Loc_Street_Number" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Route" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Subpremise" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Locality" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Admin_Area_1" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Admin_Area_2" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Postal_Code" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Country_Code" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Country_Name" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Address_Components_Json" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
         </EntityType>
         <Association Name="FK_TSql_Company_TSql_Countrys">
           <End Type="DesingEntity.TSql_Countrys" Role="TSql_Countrys" Multiplicity="0..1" />
@@ -3276,6 +3450,18 @@
             </Principal>
             <Dependent Role="TSql_Company">
               <PropertyRef Name="LinkCountry" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Company_TSql_Language">
+          <End Type="DesingEntity.TSql_language" Role="TSql_language" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_Company" Role="TSql_Company" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_language">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Company">
+              <PropertyRef Name="LinkLanguage" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -3294,37 +3480,6 @@
           <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_TemporalList_AspNetUsers" FromRole="TSql_TemporalList" ToRole="AspNetUsers" />
           <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_TemporalList_AspNetUsers1" FromRole="TSql_TemporalList" ToRole="AspNetUsers" />
         </EntityType>
-        <EntityType Name="TSql_Branch">
-          <Key>
-            <PropertyRef Name="SysObjectID" />
-          </Key>
-          <Property Name="SysObjectID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="AttLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
-          <Property Name="AttDescription" Type="String" MaxLength="2000" FixedLength="false" Unicode="true" />
-          <Property Name="LinCreatedBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="AttCreated" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="LinModifiedBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="AttLastModification" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="SysUpdateNumber" Type="Int64" Nullable="false" />
-          <Property Name="LinCompany" Type="Int64" Nullable="false" />
-          <Property Name="LinBusiness" Type="Int64" Nullable="false" />
-          <NavigationProperty Name="TSql_Company" Relationship="DesingEntity.FK_TSql_Branch_TSql_Company" FromRole="TSql_Branch" ToRole="TSql_Company" />
-          <Property Name="AddLetter" Type="String" MaxLength="2" FixedLength="true" Unicode="true" />
-          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_Branch_AspNetUsers" FromRole="TSql_Branch" ToRole="AspNetUsers" />
-          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Branch_AspNetUsers1" FromRole="TSql_Branch" ToRole="AspNetUsers" />
-        </EntityType>
-        <Association Name="FK_TSql_Branch_TSql_Company">
-          <End Type="DesingEntity.TSql_Company" Role="TSql_Company" Multiplicity="1" />
-          <End Type="DesingEntity.TSql_Branch" Role="TSql_Branch" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="TSql_Company">
-              <PropertyRef Name="SysObjectID" />
-            </Principal>
-            <Dependent Role="TSql_Branch">
-              <PropertyRef Name="LinCompany" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="TSql_DefaultDesign">
           <Key>
             <PropertyRef Name="IdObject" />
@@ -3581,20 +3736,22 @@
           <NavigationProperty Name="TSql_Extension1" Relationship="DesingEntity.FK_TSql_Extension_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_Extension" />
           <NavigationProperty Name="TSql_Extension2" Relationship="DesingEntity.FK_TSql_Extension_AspNetUsers2" FromRole="AspNetUsers" ToRole="TSql_Extension" />
           <NavigationProperty Name="TSql_Extension3" Relationship="DesingEntity.FK_TSql_Extension_AspNetUsers3" FromRole="AspNetUsers" ToRole="TSql_Extension" />
-          <NavigationProperty Name="TSql_Jobside" Relationship="DesingEntity.FK_TSql_Jobside_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_Jobside" />
-          <NavigationProperty Name="TSql_Jobside1" Relationship="DesingEntity.FK_TSql_Jobside_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_Jobside" />
-          <NavigationProperty Name="TSql_Branch" Relationship="DesingEntity.FK_TSql_Branch_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_Branch" />
-          <NavigationProperty Name="TSql_Branch1" Relationship="DesingEntity.FK_TSql_Branch_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_Branch" />
           <NavigationProperty Name="TSql_Document" Relationship="DesingEntity.FK_TSql_Document_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_Document" />
           <NavigationProperty Name="TSql_Document1" Relationship="DesingEntity.FK_TSql_Document_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_Document" />
           <NavigationProperty Name="TSql_Offers" Relationship="DesingEntity.FK_TSql_Offers_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_Offers" />
           <NavigationProperty Name="TSql_Offers1" Relationship="DesingEntity.FK_TSql_Offers_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_Offers" />
           <NavigationProperty Name="TSql_OfferState" Relationship="DesingEntity.FK_TSql_OfferState_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_OfferState" />
           <NavigationProperty Name="TSql_OfferState1" Relationship="DesingEntity.FK_TSql_OfferState_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_OfferState" />
-          <NavigationProperty Name="TSql_Business" Relationship="DesingEntity.FK_TSql_Business_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_Business" />
-          <NavigationProperty Name="TSql_Business1" Relationship="DesingEntity.FK_TSql_Business_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_Business" />
           <NavigationProperty Name="TSql_ConfigDesingDefault" Relationship="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_ConfigDesingDefault" />
           <NavigationProperty Name="TSql_ConfigDesingDefault1" Relationship="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_ConfigDesingDefault" />
+          <NavigationProperty Name="TSql_Branch" Relationship="DesingEntity.FK_TSql_Branch_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_Branch" />
+          <NavigationProperty Name="TSql_Branch1" Relationship="DesingEntity.FK_TSql_Branch_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_Branch" />
+          <NavigationProperty Name="TSql_language" Relationship="DesingEntity.FK_TSql_Language_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_language" />
+          <NavigationProperty Name="TSql_language1" Relationship="DesingEntity.FK_TSql_Language_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_language" />
+          <NavigationProperty Name="TSql_UiTranslation" Relationship="DesingEntity.FK_TSql_UiTranslation_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_UiTranslation" />
+          <NavigationProperty Name="TSql_UiTranslation1" Relationship="DesingEntity.FK_TSql_UiTranslation_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_UiTranslation" />
+          <NavigationProperty Name="TSql_Jobside" Relationship="DesingEntity.FK_TSql_Jobside_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_Jobside" />
+          <NavigationProperty Name="TSql_Jobside1" Relationship="DesingEntity.FK_TSql_Jobside_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_Jobside" />
           </EntityType>
         <Association Name="FK_TSql_App_AspNetUsers">
           <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
@@ -4684,9 +4841,9 @@
           <Property Name="TextPhone" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_Client_V2_AspNetUsers" FromRole="TSql_Client_V2" ToRole="AspNetUsers" />
           <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Client_V2_AspNetUsers1" FromRole="TSql_Client_V2" ToRole="AspNetUsers" />
-          <NavigationProperty Name="TSql_Jobside" Relationship="DesingEntity.FK_TSql_Jobside_TSql_Client_V2" FromRole="TSql_Client_V2" ToRole="TSql_Jobside" />
           <NavigationProperty Name="TSql_Document" Relationship="DesingEntity.FK_TSql_Document_TSql_Client_V2" FromRole="TSql_Client_V2" ToRole="TSql_Document" />
           <NavigationProperty Name="TSql_Offers" Relationship="DesingEntity.FK_TSql_Offers_TSql_Client_V2" FromRole="TSql_Client_V2" ToRole="TSql_Offers" />
+          <NavigationProperty Name="TSql_Jobside" Relationship="DesingEntity.FK_TSql_Jobside_TSql_Client_V2" FromRole="TSql_Client_V2" ToRole="TSql_Jobside" />
         </EntityType>
         <EntityType Name="TSql_DocumentType">
           <Key>
@@ -4749,55 +4906,6 @@
           <NavigationProperty Name="AspNetUsers3" Relationship="DesingEntity.FK_TSql_Extension_AspNetUsers3" FromRole="TSql_Extension" ToRole="AspNetUsers" />
           <NavigationProperty Name="TSql_DocumentTypeExtension" Relationship="DesingEntity.FK_TSql_DocumentTypeExtension_TSql_Extension" FromRole="TSql_Extension" ToRole="TSql_DocumentTypeExtension" />
           <Property Name="Path_Ico" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
-        </EntityType>
-        <EntityType Name="TSql_Jobside">
-          <Key>
-            <PropertyRef Name="IdObject" />
-          </Key>
-          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="TextLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
-          <Property Name="Is_Delete" Type="Boolean" Nullable="false" />
-          <Property Name="Is_Active" Type="Boolean" Nullable="false" />
-          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="AddLastDateChange" Type="DateTime" Precision="3" />
-          <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
-          <Property Name="LinkClient_V2" Type="Int64" />
-          <Property Name="BitBillSameAsLoc" Type="Boolean" Nullable="false" />
-          <Property Name="Loc_Place_Id" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
-          <Property Name="Loc_Formatted_Address" Type="String" MaxLength="1000" FixedLength="false" Unicode="true" />
-          <Property Name="Loc_Lat" Type="Decimal" Precision="9" Scale="6" />
-          <Property Name="Loc_Lng" Type="Decimal" Precision="9" Scale="6" />
-          <Property Name="Loc_Street_Number" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="Loc_Route" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
-          <Property Name="Loc_Subpremise" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
-          <Property Name="Loc_Locality" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
-          <Property Name="Loc_Admin_Area_1" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
-          <Property Name="Loc_Admin_Area_2" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
-          <Property Name="Loc_Postal_Code" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
-          <Property Name="Loc_Country_Code" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
-          <Property Name="Loc_Country_Name" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
-          <Property Name="Loc_Address_Components_Json" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Name="Bill_Place_Id" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
-          <Property Name="Bill_Formatted_Address" Type="String" MaxLength="1000" FixedLength="false" Unicode="true" />
-          <Property Name="Bill_Lat" Type="Decimal" Precision="9" Scale="6" />
-          <Property Name="Bill_Lng" Type="Decimal" Precision="9" Scale="6" />
-          <Property Name="Bill_Street_Number" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="Bill_Route" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
-          <Property Name="Bill_Subpremise" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
-          <Property Name="Bill_Locality" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
-          <Property Name="Bill_Admin_Area_1" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
-          <Property Name="Bill_Admin_Area_2" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
-          <Property Name="Bill_Postal_Code" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
-          <Property Name="Bill_Country_Code" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
-          <Property Name="Bill_Country_Name" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
-          <Property Name="Bill_Address_Components_Json" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_Jobside_AspNetUsers" FromRole="TSql_Jobside" ToRole="AspNetUsers" />
-          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Jobside_AspNetUsers1" FromRole="TSql_Jobside" ToRole="AspNetUsers" />
-          <NavigationProperty Name="TSql_Client_V2" Relationship="DesingEntity.FK_TSql_Jobside_TSql_Client_V2" FromRole="TSql_Jobside" ToRole="TSql_Client_V2" />
-          <NavigationProperty Name="TSql_Document" Relationship="DesingEntity.FK_TSql_Document_TSql_Jobside" FromRole="TSql_Jobside" ToRole="TSql_Document" />
-          <NavigationProperty Name="TSql_Offers" Relationship="DesingEntity.FK_TSql_Offers_TSql_Jobside" FromRole="TSql_Jobside" ToRole="TSql_Offers" />
         </EntityType>
         <Association Name="FK_TSql_Client_V2_AspNetUsers">
           <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
@@ -4919,42 +5027,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_TSql_Jobside_AspNetUsers">
-          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
-          <End Type="DesingEntity.TSql_Jobside" Role="TSql_Jobside" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUsers">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="TSql_Jobside">
-              <PropertyRef Name="LinkMadeBy" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_TSql_Jobside_AspNetUsers1">
-          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1" />
-          <End Type="DesingEntity.TSql_Jobside" Role="TSql_Jobside" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUsers">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="TSql_Jobside">
-              <PropertyRef Name="LinModifiedBy" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_TSql_Jobside_TSql_Client_V2">
-          <End Type="DesingEntity.TSql_Client_V2" Role="TSql_Client_V2" Multiplicity="0..1" />
-          <End Type="DesingEntity.TSql_Jobside" Role="TSql_Jobside" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="TSql_Client_V2">
-              <PropertyRef Name="IdObject" />
-            </Principal>
-            <Dependent Role="TSql_Jobside">
-              <PropertyRef Name="LinkClient_V2" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_TSql_DocumentTypeExtension_TSql_DocumentType">
           <End Type="DesingEntity.TSql_DocumentType" Role="TSql_DocumentType" Multiplicity="1" />
           <End Type="DesingEntity.TSql_DocumentTypeExtension" Role="TSql_DocumentTypeExtension" Multiplicity="*" />
@@ -5006,8 +5078,8 @@
           <NavigationProperty Name="TSql_Client_V2" Relationship="DesingEntity.FK_TSql_Document_TSql_Client_V2" FromRole="TSql_Document" ToRole="TSql_Client_V2" />
           <NavigationProperty Name="TSql_DocumentType" Relationship="DesingEntity.FK_TSql_Document_TSql_DocumentType" FromRole="TSql_Document" ToRole="TSql_DocumentType" />
           <NavigationProperty Name="TSql_DocumentTypeExtension" Relationship="DesingEntity.FK_TSql_Document_TSql_DocumentTypeExtension" FromRole="TSql_Document" ToRole="TSql_DocumentTypeExtension" />
-          <NavigationProperty Name="TSql_Jobside" Relationship="DesingEntity.FK_TSql_Document_TSql_Jobside" FromRole="TSql_Document" ToRole="TSql_Jobside" />
           <NavigationProperty Name="TSql_Offers" Relationship="DesingEntity.FK_TSql_Document_TSql_Offers" FromRole="TSql_Document" ToRole="TSql_Offers" />
+          <NavigationProperty Name="TSql_Jobside" Relationship="DesingEntity.FK_TSql_Document_TSql_Jobside" FromRole="TSql_Document" ToRole="TSql_Jobside" />
         </EntityType>
         <EntityType Name="TSql_Offers">
           <Key>
@@ -5031,8 +5103,8 @@
           <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Offers_AspNetUsers1" FromRole="TSql_Offers" ToRole="AspNetUsers" />
           <NavigationProperty Name="TSql_Client_V2" Relationship="DesingEntity.FK_TSql_Offers_TSql_Client_V2" FromRole="TSql_Offers" ToRole="TSql_Client_V2" />
           <NavigationProperty Name="TSql_Document" Relationship="DesingEntity.FK_TSql_Document_TSql_Offers" FromRole="TSql_Offers" ToRole="TSql_Document" />
-          <NavigationProperty Name="TSql_Jobside" Relationship="DesingEntity.FK_TSql_Offers_TSql_Jobside" FromRole="TSql_Offers" ToRole="TSql_Jobside" />
           <NavigationProperty Name="TSql_OfferState" Relationship="DesingEntity.FK_TSql_Offers_TSql_OfferState" FromRole="TSql_Offers" ToRole="TSql_OfferState" />
+          <NavigationProperty Name="TSql_Jobside" Relationship="DesingEntity.FK_TSql_Offers_TSql_Jobside" FromRole="TSql_Offers" ToRole="TSql_Jobside" />
         </EntityType>
         <EntityType Name="TSql_OfferState">
           <Key>
@@ -5052,30 +5124,6 @@
           <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_OfferState_AspNetUsers1" FromRole="TSql_OfferState" ToRole="AspNetUsers" />
           <NavigationProperty Name="TSql_Offers" Relationship="DesingEntity.FK_TSql_Offers_TSql_OfferState" FromRole="TSql_OfferState" ToRole="TSql_Offers" />
         </EntityType>
-        <Association Name="FK_TSql_Branch_AspNetUsers">
-          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
-          <End Type="DesingEntity.TSql_Branch" Role="TSql_Branch" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUsers">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="TSql_Branch">
-              <PropertyRef Name="LinCreatedBy" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_TSql_Branch_AspNetUsers1">
-          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
-          <End Type="DesingEntity.TSql_Branch" Role="TSql_Branch" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUsers">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="TSql_Branch">
-              <PropertyRef Name="LinModifiedBy" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_TSql_Document_AspNetUsers">
           <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
           <End Type="DesingEntity.TSql_Document" Role="TSql_Document" Multiplicity="*" />
@@ -5196,18 +5244,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_TSql_Document_TSql_Jobside">
-          <End Type="DesingEntity.TSql_Jobside" Role="TSql_Jobside" Multiplicity="0..1" />
-          <End Type="DesingEntity.TSql_Document" Role="TSql_Document" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="TSql_Jobside">
-              <PropertyRef Name="IdObject" />
-            </Principal>
-            <Dependent Role="TSql_Document">
-              <PropertyRef Name="LinkJobside" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_TSql_Document_TSql_Offers">
           <End Type="DesingEntity.TSql_Offers" Role="TSql_Offers" Multiplicity="0..1" />
           <End Type="DesingEntity.TSql_Document" Role="TSql_Document" Multiplicity="*" />
@@ -5220,18 +5256,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_TSql_Offers_TSql_Jobside">
-          <End Type="DesingEntity.TSql_Jobside" Role="TSql_Jobside" Multiplicity="1" />
-          <End Type="DesingEntity.TSql_Offers" Role="TSql_Offers" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="TSql_Jobside">
-              <PropertyRef Name="IdObject" />
-            </Principal>
-            <Dependent Role="TSql_Offers">
-              <PropertyRef Name="LinkJobside" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_TSql_Offers_TSql_OfferState">
           <End Type="DesingEntity.TSql_OfferState" Role="TSql_OfferState" Multiplicity="1" />
           <End Type="DesingEntity.TSql_Offers" Role="TSql_Offers" Multiplicity="*" />
@@ -5241,47 +5265,6 @@
             </Principal>
             <Dependent Role="TSql_Offers">
               <PropertyRef Name="LinkOfferState" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <EntityType Name="TSql_Business">
-          <Key>
-            <PropertyRef Name="IdObject" />
-          </Key>
-          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="AttLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
-          <Property Name="AttDescription" Type="String" MaxLength="2000" FixedLength="false" Unicode="true" />
-          <Property Name="LinCreatedBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="AttCreated" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="LinModifiedBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="AttLastModification" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="SysUpdateNumber" Type="Int64" Nullable="false" />
-          <Property Name="LinCompany" Type="Int64" Nullable="false" />
-          <Property Name="AddLetter" Type="String" MaxLength="2" FixedLength="true" Unicode="true" />
-          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_Business_AspNetUsers" FromRole="TSql_Business" ToRole="AspNetUsers" />
-          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Business_AspNetUsers1" FromRole="TSql_Business" ToRole="AspNetUsers" />
-        </EntityType>
-        <Association Name="FK_TSql_Business_AspNetUsers">
-          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
-          <End Type="DesingEntity.TSql_Business" Role="TSql_Business" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUsers">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="TSql_Business">
-              <PropertyRef Name="LinCreatedBy" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_TSql_Business_AspNetUsers1">
-          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
-          <End Type="DesingEntity.TSql_Business" Role="TSql_Business" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUsers">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="TSql_Business">
-              <PropertyRef Name="LinModifiedBy" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -5320,6 +5303,305 @@
             </Principal>
             <Dependent Role="TSql_ConfigDesingDefault">
               <PropertyRef Name="AddChangeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="TSql_Branch">
+          <Key>
+            <PropertyRef Name="SysObjectID" />
+          </Key>
+          <Property Name="SysObjectID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="AttLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="AttDescription" Type="String" MaxLength="2000" FixedLength="false" Unicode="true" />
+          <Property Name="LinCreatedBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AttCreated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LinModifiedBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AttLastModification" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="SysUpdateNumber" Type="Int64" Nullable="false" />
+          <Property Name="LinCompany" Type="Int64" Nullable="false" />
+          <Property Name="AddLetter" Type="String" MaxLength="2" FixedLength="true" Unicode="true" />
+          <Property Name="Attcolor" Type="String" MaxLength="16" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Place_Id" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Formatted_Address" Type="String" MaxLength="1000" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Lat" Type="Decimal" Precision="9" Scale="6" />
+          <Property Name="Loc_Lng" Type="Decimal" Precision="9" Scale="6" />
+          <Property Name="Loc_Street_Number" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Route" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Subpremise" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Locality" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Admin_Area_1" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Admin_Area_2" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Postal_Code" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Country_Code" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Country_Name" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Address_Components_Json" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_Branch_AspNetUsers" FromRole="TSql_Branch" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Branch_AspNetUsers1" FromRole="TSql_Branch" ToRole="AspNetUsers" />
+          <NavigationProperty Name="TSql_Company" Relationship="DesingEntity.FK_TSql_Branch_TSql_Company1" FromRole="TSql_Branch" ToRole="TSql_Company" />
+          <NavigationProperty Name="TSql_Jobside" Relationship="DesingEntity.FK_TSql_Jobside_TSql_Branch" FromRole="TSql_Branch" ToRole="TSql_Jobside" />
+        </EntityType>
+        <Association Name="FK_TSql_Branch_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_Branch" Role="TSql_Branch" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Branch">
+              <PropertyRef Name="LinCreatedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Branch_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_Branch" Role="TSql_Branch" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Branch">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Branch_TSql_Company1">
+          <End Type="DesingEntity.TSql_Company" Role="TSql_Company" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_Branch" Role="TSql_Branch" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Company">
+              <PropertyRef Name="SysObjectID" />
+            </Principal>
+            <Dependent Role="TSql_Branch">
+              <PropertyRef Name="LinCompany" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="TSql_UiTranslation">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TextResourceKey" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="TextModule" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="LinkLanguage" Type="Int64" Nullable="false" />
+          <Property Name="TextValue" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Is_Delete" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Active" Type="Boolean" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AddLastDateChange" Type="DateTime" Precision="3" />
+          <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_UiTranslation_AspNetUsers" FromRole="TSql_UiTranslation" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_UiTranslation_AspNetUsers1" FromRole="TSql_UiTranslation" ToRole="AspNetUsers" />
+          <Property Name="TextModuleNorm" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" annotation:StoreGeneratedPattern="Computed" />
+        </EntityType>
+        <EntityType Name="TSql_language">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TextLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="TextCode" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="TextNativeName" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Is_Default" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Delete" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Active" Type="Boolean" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AddLastDateChange" Type="DateTime" Precision="3" />
+          <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
+          <Property Name="LinkCountry" Type="Int64" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_Language_AspNetUsers" FromRole="TSql_language" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Language_AspNetUsers1" FromRole="TSql_language" ToRole="AspNetUsers" />
+          <NavigationProperty Name="TSql_Countrys" Relationship="DesingEntity.FK_TSql_Language_TSql_Countrys" FromRole="TSql_language" ToRole="TSql_Countrys" />
+          <NavigationProperty Name="TSql_Company" Relationship="DesingEntity.FK_TSql_Company_TSql_Language" FromRole="TSql_language" ToRole="TSql_Company" />
+        </EntityType>
+        <Association Name="FK_TSql_Language_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_language" Role="TSql_language" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_language">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Language_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_language" Role="TSql_language" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_language">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_UiTranslation_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_UiTranslation" Role="TSql_UiTranslation" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_UiTranslation">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_UiTranslation_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_UiTranslation" Role="TSql_UiTranslation" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_UiTranslation">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Language_TSql_Countrys">
+          <End Type="DesingEntity.TSql_Countrys" Role="TSql_Countrys" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_language" Role="TSql_language" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Countrys">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_language">
+              <PropertyRef Name="LinkCountry" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="TSql_Jobside">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="AddNJobside" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddNJobsideClient" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TextLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Is_Delete" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Active" Type="Boolean" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AddLastDateChange" Type="DateTime" Precision="3" />
+          <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
+          <Property Name="LinkClient_V2" Type="Int64" />
+          <Property Name="BitBillSameAsLoc" Type="Boolean" Nullable="false" />
+          <Property Name="Loc_Place_Id" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Formatted_Address" Type="String" MaxLength="1000" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Lat" Type="Decimal" Precision="9" Scale="6" />
+          <Property Name="Loc_Lng" Type="Decimal" Precision="9" Scale="6" />
+          <Property Name="Loc_Street_Number" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Route" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Subpremise" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Locality" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Admin_Area_1" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Admin_Area_2" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Postal_Code" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Country_Code" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Country_Name" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Loc_Address_Components_Json" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Place_Id" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Formatted_Address" Type="String" MaxLength="1000" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Lat" Type="Decimal" Precision="9" Scale="6" />
+          <Property Name="Bill_Lng" Type="Decimal" Precision="9" Scale="6" />
+          <Property Name="Bill_Street_Number" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Route" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Subpremise" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Locality" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Admin_Area_1" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Admin_Area_2" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Postal_Code" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Country_Code" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Country_Name" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Bill_Address_Components_Json" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="TextContractRef" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="TextJobsideNotes" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="LinBranch" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_Jobside_AspNetUsers" FromRole="TSql_Jobside" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Jobside_AspNetUsers1" FromRole="TSql_Jobside" ToRole="AspNetUsers" />
+          <NavigationProperty Name="TSql_Branch" Relationship="DesingEntity.FK_TSql_Jobside_TSql_Branch" FromRole="TSql_Jobside" ToRole="TSql_Branch" />
+          <NavigationProperty Name="TSql_Client_V2" Relationship="DesingEntity.FK_TSql_Jobside_TSql_Client_V2" FromRole="TSql_Jobside" ToRole="TSql_Client_V2" />
+          <NavigationProperty Name="TSql_Document" Relationship="DesingEntity.FK_TSql_Document_TSql_Jobside" FromRole="TSql_Jobside" ToRole="TSql_Document" />
+          <NavigationProperty Name="TSql_Offers" Relationship="DesingEntity.FK_TSql_Offers_TSql_Jobside" FromRole="TSql_Jobside" ToRole="TSql_Offers" />
+        </EntityType>
+        <Association Name="FK_TSql_Jobside_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_Jobside" Role="TSql_Jobside" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Jobside">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Jobside_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_Jobside" Role="TSql_Jobside" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_Jobside">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Jobside_TSql_Branch">
+          <End Type="DesingEntity.TSql_Branch" Role="TSql_Branch" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_Jobside" Role="TSql_Jobside" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Branch">
+              <PropertyRef Name="SysObjectID" />
+            </Principal>
+            <Dependent Role="TSql_Jobside">
+              <PropertyRef Name="LinBranch" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Jobside_TSql_Client_V2">
+          <End Type="DesingEntity.TSql_Client_V2" Role="TSql_Client_V2" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_Jobside" Role="TSql_Jobside" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Client_V2">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Jobside">
+              <PropertyRef Name="LinkClient_V2" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Document_TSql_Jobside">
+          <End Type="DesingEntity.TSql_Jobside" Role="TSql_Jobside" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_Document" Role="TSql_Document" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Jobside">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Document">
+              <PropertyRef Name="LinkJobside" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_Offers_TSql_Jobside">
+          <End Type="DesingEntity.TSql_Jobside" Role="TSql_Jobside" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_Offers" Role="TSql_Offers" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Jobside">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_Offers">
+              <PropertyRef Name="LinkJobside" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -5486,7 +5768,22 @@
           <EntitySetMapping Name="TSql_Company">
             <EntityTypeMapping TypeName="DesingEntity.TSql_Company">
               <MappingFragment StoreEntitySet="TSql_Company">
+                <ScalarProperty Name="Loc_Address_Components_Json" ColumnName="Loc_Address_Components_Json" />
+                <ScalarProperty Name="Loc_Country_Name" ColumnName="Loc_Country_Name" />
+                <ScalarProperty Name="Loc_Country_Code" ColumnName="Loc_Country_Code" />
+                <ScalarProperty Name="Loc_Postal_Code" ColumnName="Loc_Postal_Code" />
+                <ScalarProperty Name="Loc_Admin_Area_2" ColumnName="Loc_Admin_Area_2" />
+                <ScalarProperty Name="Loc_Admin_Area_1" ColumnName="Loc_Admin_Area_1" />
+                <ScalarProperty Name="Loc_Locality" ColumnName="Loc_Locality" />
+                <ScalarProperty Name="Loc_Subpremise" ColumnName="Loc_Subpremise" />
+                <ScalarProperty Name="Loc_Route" ColumnName="Loc_Route" />
+                <ScalarProperty Name="Loc_Street_Number" ColumnName="Loc_Street_Number" />
+                <ScalarProperty Name="Loc_Lng" ColumnName="Loc_Lng" />
+                <ScalarProperty Name="Loc_Lat" ColumnName="Loc_Lat" />
+                <ScalarProperty Name="Loc_Formatted_Address" ColumnName="Loc_Formatted_Address" />
+                <ScalarProperty Name="Loc_Place_Id" ColumnName="Loc_Place_Id" />
                 <ScalarProperty Name="AddLetter" ColumnName="AddLetter" />
+                <ScalarProperty Name="LinkLanguage" ColumnName="LinkLanguage" />
                 <ScalarProperty Name="LinPlantilla" ColumnName="LinPlantilla" />
                 <ScalarProperty Name="LinkCountry" ColumnName="LinkCountry" />
                 <ScalarProperty Name="TextTown_2" ColumnName="TextTown_2" />
@@ -5520,23 +5817,6 @@
                 <ScalarProperty Name="TextCode" ColumnName="TextCode" />
                 <ScalarProperty Name="linkMasterArticles" ColumnName="linkMasterArticles" />
                 <ScalarProperty Name="IdObject" ColumnName="IdObject" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="TSql_Branch">
-            <EntityTypeMapping TypeName="DesingEntity.TSql_Branch">
-              <MappingFragment StoreEntitySet="TSql_Branch">
-                <ScalarProperty Name="AddLetter" ColumnName="AddLetter" />
-                <ScalarProperty Name="LinBusiness" ColumnName="LinBusiness" />
-                <ScalarProperty Name="LinCompany" ColumnName="LinCompany" />
-                <ScalarProperty Name="SysUpdateNumber" ColumnName="SysUpdateNumber" />
-                <ScalarProperty Name="AttLastModification" ColumnName="AttLastModification" />
-                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
-                <ScalarProperty Name="AttCreated" ColumnName="AttCreated" />
-                <ScalarProperty Name="LinCreatedBy" ColumnName="LinCreatedBy" />
-                <ScalarProperty Name="AttDescription" ColumnName="AttDescription" />
-                <ScalarProperty Name="AttLabel" ColumnName="AttLabel" />
-                <ScalarProperty Name="SysObjectID" ColumnName="SysObjectID" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -5996,51 +6276,6 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="TSql_Jobside">
-            <EntityTypeMapping TypeName="DesingEntity.TSql_Jobside">
-              <MappingFragment StoreEntitySet="TSql_Jobside">
-                <ScalarProperty Name="Bill_Address_Components_Json" ColumnName="Bill_Address_Components_Json" />
-                <ScalarProperty Name="Bill_Country_Name" ColumnName="Bill_Country_Name" />
-                <ScalarProperty Name="Bill_Country_Code" ColumnName="Bill_Country_Code" />
-                <ScalarProperty Name="Bill_Postal_Code" ColumnName="Bill_Postal_Code" />
-                <ScalarProperty Name="Bill_Admin_Area_2" ColumnName="Bill_Admin_Area_2" />
-                <ScalarProperty Name="Bill_Admin_Area_1" ColumnName="Bill_Admin_Area_1" />
-                <ScalarProperty Name="Bill_Locality" ColumnName="Bill_Locality" />
-                <ScalarProperty Name="Bill_Subpremise" ColumnName="Bill_Subpremise" />
-                <ScalarProperty Name="Bill_Route" ColumnName="Bill_Route" />
-                <ScalarProperty Name="Bill_Street_Number" ColumnName="Bill_Street_Number" />
-                <ScalarProperty Name="Bill_Lng" ColumnName="Bill_Lng" />
-                <ScalarProperty Name="Bill_Lat" ColumnName="Bill_Lat" />
-                <ScalarProperty Name="Bill_Formatted_Address" ColumnName="Bill_Formatted_Address" />
-                <ScalarProperty Name="Bill_Place_Id" ColumnName="Bill_Place_Id" />
-                <ScalarProperty Name="Loc_Address_Components_Json" ColumnName="Loc_Address_Components_Json" />
-                <ScalarProperty Name="Loc_Country_Name" ColumnName="Loc_Country_Name" />
-                <ScalarProperty Name="Loc_Country_Code" ColumnName="Loc_Country_Code" />
-                <ScalarProperty Name="Loc_Postal_Code" ColumnName="Loc_Postal_Code" />
-                <ScalarProperty Name="Loc_Admin_Area_2" ColumnName="Loc_Admin_Area_2" />
-                <ScalarProperty Name="Loc_Admin_Area_1" ColumnName="Loc_Admin_Area_1" />
-                <ScalarProperty Name="Loc_Locality" ColumnName="Loc_Locality" />
-                <ScalarProperty Name="Loc_Subpremise" ColumnName="Loc_Subpremise" />
-                <ScalarProperty Name="Loc_Route" ColumnName="Loc_Route" />
-                <ScalarProperty Name="Loc_Street_Number" ColumnName="Loc_Street_Number" />
-                <ScalarProperty Name="Loc_Lng" ColumnName="Loc_Lng" />
-                <ScalarProperty Name="Loc_Lat" ColumnName="Loc_Lat" />
-                <ScalarProperty Name="Loc_Formatted_Address" ColumnName="Loc_Formatted_Address" />
-                <ScalarProperty Name="Loc_Place_Id" ColumnName="Loc_Place_Id" />
-                <ScalarProperty Name="BitBillSameAsLoc" ColumnName="BitBillSameAsLoc" />
-                <ScalarProperty Name="LinkClient_V2" ColumnName="LinkClient_V2" />
-                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
-                <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
-                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
-                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
-                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
-                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
-                <ScalarProperty Name="Is_Delete" ColumnName="Is_Delete" />
-                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
-                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="TSql_Document">
             <EntityTypeMapping TypeName="DesingEntity.TSql_Document">
               <MappingFragment StoreEntitySet="TSql_Document">
@@ -6101,22 +6336,6 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="TSql_Business">
-            <EntityTypeMapping TypeName="DesingEntity.TSql_Business">
-              <MappingFragment StoreEntitySet="TSql_Business">
-                <ScalarProperty Name="AddLetter" ColumnName="AddLetter" />
-                <ScalarProperty Name="LinCompany" ColumnName="LinCompany" />
-                <ScalarProperty Name="SysUpdateNumber" ColumnName="SysUpdateNumber" />
-                <ScalarProperty Name="AttLastModification" ColumnName="AttLastModification" />
-                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
-                <ScalarProperty Name="AttCreated" ColumnName="AttCreated" />
-                <ScalarProperty Name="LinCreatedBy" ColumnName="LinCreatedBy" />
-                <ScalarProperty Name="AttDescription" ColumnName="AttDescription" />
-                <ScalarProperty Name="AttLabel" ColumnName="AttLabel" />
-                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="TSql_ConfigDesingDefault">
             <EntityTypeMapping TypeName="DesingEntity.TSql_ConfigDesingDefault">
               <MappingFragment StoreEntitySet="TSql_ConfigDesingDefault">
@@ -6127,6 +6346,125 @@
                 <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
                 <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
                 <ScalarProperty Name="SysObjectID" ColumnName="SysObjectID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_language">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_language">
+              <MappingFragment StoreEntitySet="TSql_Language">
+                <ScalarProperty Name="LinkCountry" ColumnName="LinkCountry" />
+                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
+                <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
+                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
+                <ScalarProperty Name="Is_Delete" ColumnName="Is_Delete" />
+                <ScalarProperty Name="Is_Default" ColumnName="Is_Default" />
+                <ScalarProperty Name="TextNativeName" ColumnName="TextNativeName" />
+                <ScalarProperty Name="TextCode" ColumnName="TextCode" />
+                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_Branch">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_Branch">
+              <MappingFragment StoreEntitySet="TSql_Branch">
+                <ScalarProperty Name="Loc_Address_Components_Json" ColumnName="Loc_Address_Components_Json" />
+                <ScalarProperty Name="Loc_Country_Name" ColumnName="Loc_Country_Name" />
+                <ScalarProperty Name="Loc_Country_Code" ColumnName="Loc_Country_Code" />
+                <ScalarProperty Name="Loc_Postal_Code" ColumnName="Loc_Postal_Code" />
+                <ScalarProperty Name="Loc_Admin_Area_2" ColumnName="Loc_Admin_Area_2" />
+                <ScalarProperty Name="Loc_Admin_Area_1" ColumnName="Loc_Admin_Area_1" />
+                <ScalarProperty Name="Loc_Locality" ColumnName="Loc_Locality" />
+                <ScalarProperty Name="Loc_Subpremise" ColumnName="Loc_Subpremise" />
+                <ScalarProperty Name="Loc_Route" ColumnName="Loc_Route" />
+                <ScalarProperty Name="Loc_Street_Number" ColumnName="Loc_Street_Number" />
+                <ScalarProperty Name="Loc_Lng" ColumnName="Loc_Lng" />
+                <ScalarProperty Name="Loc_Lat" ColumnName="Loc_Lat" />
+                <ScalarProperty Name="Loc_Formatted_Address" ColumnName="Loc_Formatted_Address" />
+                <ScalarProperty Name="Loc_Place_Id" ColumnName="Loc_Place_Id" />
+                <ScalarProperty Name="Attcolor" ColumnName="Attcolor" />
+                <ScalarProperty Name="AddLetter" ColumnName="AddLetter" />
+                <ScalarProperty Name="LinCompany" ColumnName="LinCompany" />
+                <ScalarProperty Name="SysUpdateNumber" ColumnName="SysUpdateNumber" />
+                <ScalarProperty Name="AttLastModification" ColumnName="AttLastModification" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="AttCreated" ColumnName="AttCreated" />
+                <ScalarProperty Name="LinCreatedBy" ColumnName="LinCreatedBy" />
+                <ScalarProperty Name="AttDescription" ColumnName="AttDescription" />
+                <ScalarProperty Name="AttLabel" ColumnName="AttLabel" />
+                <ScalarProperty Name="SysObjectID" ColumnName="SysObjectID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_UiTranslation">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_UiTranslation">
+              <MappingFragment StoreEntitySet="TSql_UiTranslation">
+                <ScalarProperty Name="TextModuleNorm" ColumnName="TextModuleNorm" />
+                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
+                <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
+                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
+                <ScalarProperty Name="Is_Delete" ColumnName="Is_Delete" />
+                <ScalarProperty Name="TextValue" ColumnName="TextValue" />
+                <ScalarProperty Name="LinkLanguage" ColumnName="LinkLanguage" />
+                <ScalarProperty Name="TextModule" ColumnName="TextModule" />
+                <ScalarProperty Name="TextResourceKey" ColumnName="TextResourceKey" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_Jobside">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_Jobside">
+              <MappingFragment StoreEntitySet="TSql_Jobside">
+                <ScalarProperty Name="LinBranch" ColumnName="LinBranch" />
+                <ScalarProperty Name="TextJobsideNotes" ColumnName="TextJobsideNotes" />
+                <ScalarProperty Name="TextContractRef" ColumnName="TextContractRef" />
+                <ScalarProperty Name="Bill_Address_Components_Json" ColumnName="Bill_Address_Components_Json" />
+                <ScalarProperty Name="Bill_Country_Name" ColumnName="Bill_Country_Name" />
+                <ScalarProperty Name="Bill_Country_Code" ColumnName="Bill_Country_Code" />
+                <ScalarProperty Name="Bill_Postal_Code" ColumnName="Bill_Postal_Code" />
+                <ScalarProperty Name="Bill_Admin_Area_2" ColumnName="Bill_Admin_Area_2" />
+                <ScalarProperty Name="Bill_Admin_Area_1" ColumnName="Bill_Admin_Area_1" />
+                <ScalarProperty Name="Bill_Locality" ColumnName="Bill_Locality" />
+                <ScalarProperty Name="Bill_Subpremise" ColumnName="Bill_Subpremise" />
+                <ScalarProperty Name="Bill_Route" ColumnName="Bill_Route" />
+                <ScalarProperty Name="Bill_Street_Number" ColumnName="Bill_Street_Number" />
+                <ScalarProperty Name="Bill_Lng" ColumnName="Bill_Lng" />
+                <ScalarProperty Name="Bill_Lat" ColumnName="Bill_Lat" />
+                <ScalarProperty Name="Bill_Formatted_Address" ColumnName="Bill_Formatted_Address" />
+                <ScalarProperty Name="Bill_Place_Id" ColumnName="Bill_Place_Id" />
+                <ScalarProperty Name="Loc_Address_Components_Json" ColumnName="Loc_Address_Components_Json" />
+                <ScalarProperty Name="Loc_Country_Name" ColumnName="Loc_Country_Name" />
+                <ScalarProperty Name="Loc_Country_Code" ColumnName="Loc_Country_Code" />
+                <ScalarProperty Name="Loc_Postal_Code" ColumnName="Loc_Postal_Code" />
+                <ScalarProperty Name="Loc_Admin_Area_2" ColumnName="Loc_Admin_Area_2" />
+                <ScalarProperty Name="Loc_Admin_Area_1" ColumnName="Loc_Admin_Area_1" />
+                <ScalarProperty Name="Loc_Locality" ColumnName="Loc_Locality" />
+                <ScalarProperty Name="Loc_Subpremise" ColumnName="Loc_Subpremise" />
+                <ScalarProperty Name="Loc_Route" ColumnName="Loc_Route" />
+                <ScalarProperty Name="Loc_Street_Number" ColumnName="Loc_Street_Number" />
+                <ScalarProperty Name="Loc_Lng" ColumnName="Loc_Lng" />
+                <ScalarProperty Name="Loc_Lat" ColumnName="Loc_Lat" />
+                <ScalarProperty Name="Loc_Formatted_Address" ColumnName="Loc_Formatted_Address" />
+                <ScalarProperty Name="Loc_Place_Id" ColumnName="Loc_Place_Id" />
+                <ScalarProperty Name="BitBillSameAsLoc" ColumnName="BitBillSameAsLoc" />
+                <ScalarProperty Name="LinkClient_V2" ColumnName="LinkClient_V2" />
+                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
+                <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
+                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
+                <ScalarProperty Name="Is_Delete" ColumnName="Is_Delete" />
+                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
+                <ScalarProperty Name="AddNJobsideClient" ColumnName="AddNJobsideClient" />
+                <ScalarProperty Name="AddNJobside" ColumnName="AddNJobside" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

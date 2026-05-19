@@ -1,42 +1,191 @@
 ﻿@model DAL.TSql_Company
-<div class="d-flex align-items-center justify-content-between mb-4">
+@using Newtonsoft.Json
+@using Desing.Resources
+@using System.Globalization
+@{
+    ViewBag.Title = Model.TextLabel;
+    var ci = CultureInfo.CurrentUICulture?.TwoLetterISOLanguageName ?? "es";
+    var companyBranchListDt = JsonConvert.SerializeObject(new
+    {
+        culture = ci,
+        rowsSuffix = Company.Dt_Rows_N,
+        allRows = Company.Dt_Rows_All,
+        sectionRecords = Company.Dt_Section_Records,
+        sectionExport = Company.Dt_Section_Export,
+        sectionCols = Company.Dt_Section_ColumnsVisible,
+        confirmDeleteBranch = Branch.JsBranch_DeleteConfirm,
+        ariaMenu = Company.Dt_MenuAria
+    });
+    var branchExportOpts = new
+    {
+        columns = ":visible:not(.tandem-col-actions)",
+        orthogonal = "export",
+        format = new { body = "stripHtmlForExport" }
+    };
+}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
     <h4 class="py-3 mb-0">
         <span class="text-muted fw-light">
-            <a href="@Url.Action("Index", "Home")">Inicio</a> /
-            <a href="@Url.Action("Index", "TSql_Company")">Empresas</a> /
+            <a href="@Url.Action("Index", "Home")">@Company.Common_Home</a> /
+            <a href="@Url.Action("Index", "TSql_Company")">@Company.Index_Breadcrumb</a> /
         </span> @Model.TextLabel
     </h4>
-    <a class="btn btn-warning" href="@Url.Action("Edit", "TSql_Company", new { id = Model.SysObjectID })">
-        <i class="icon-base ri ri-pencil-line me-1"></i> Editar
-    </a>
-</div>
-
-<div class="card mb-4">
-    <div class="card-body">
-        <dl class="row mb-0">
-            <dt class="col-sm-3">Nombre</dt>
-            <dd class="col-sm-9">@Model.TextLabel</dd>
-
-            <dt class="col-sm-3">Signadura</dt>
-            <dd class="col-sm-9">@Model.AddLeter</dd>
-
-            <dt class="col-sm-3">Descripción</dt>
-            <dd class="col-sm-9">@Model.TextDescription</dd>
-
-            <dt class="col-sm-3">Dirección</dt>
-            <dd class="col-sm-9">@Model.TextAddress_1</dd>
-
-            <dt class="col-sm-3">Dirección 2</dt>
-            <dd class="col-sm-9">@Model.TextAddress_2</dd>
-
-            <dt class="col-sm-3">Código postal</dt>
-            <dd class="col-sm-9">@Model.TextPostal_Code</dd>
-
-            <dt class="col-sm-3">Ciudad</dt>
-            <dd class="col-sm-9">@Model.TextTown_1</dd>
-
-            <dt class="col-sm-3">País</dt>
-            <dd class="col-sm-9">@(Model.TSql_Countrys != null ? Model.TSql_Countrys.TextLabel : "-")</dd>
-        </dl>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-primary" href="@Url.Action("Create", "TSql_Branch", new { companyId = Model.SysObjectID })">
+            <i class="icon-base ri ri-add-line me-1"></i>@Branch.BranchPanel_New
+        </a>
+        <a class="btn btn-warning" href="@Url.Action("Edit", "TSql_Company", new { id = Model.SysObjectID })">
+            <i class="icon-base ri ri-pencil-line me-1"></i>@Company.Btn_Edit
+        </a>
     </div>
 </div>
+@if (!string.IsNullOrEmpty(TempData["ToastMessage"] as string))
+{
+    <div class="alert alert-success">@TempData["ToastMessage"]</div>
+}
+<div class="card mb-4">
+    <div class="card-body" style="padding:5px">
+        @Html.AntiForgeryToken()
+        <table id="ListCompanyBranches" class="table table-hover" cellspacing="0" style="width: 100%">
+            <thead>
+                <tr>
+                    <th>@Branch.Branch_Details_Field_Name</th>
+                    <th>@Branch.Branch_Details_Field_Letter</th>
+                    <th>@Branch.Branch_Details_Field_Description</th>
+                    <th class="text-end text-nowrap" style="width:1%;"></th>
+                    <th>ID</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+
+@section scripts
+{
+    <script type="text/javascript">
+        var companyBranchListDt = @Html.Raw(companyBranchListDt);
+        var companyId = @Model.SysObjectID;
+        var branchDeleteUrl = '@Url.Action("DeleteCompanyBranch", "TSql_Company")';
+        var branchListExportOpts = $.extend(true, {}, TandemDataTablesList.exportOptsPlainVisible, {
+            format: {
+                body: function (data, type, row, meta) {
+                    return TandemDataTablesList.stripHtmlForExport(data, type, row, meta);
+                }
+            }
+        });
+
+        $(document).ready(function () {
+            var token = $('input[name="__RequestVerificationToken"]').val();
+
+            var dt = $('#ListCompanyBranches').DataTable(TandemDataTablesList.applyListDefaults({
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    ['10 ' + companyBranchListDt.rowsSuffix, '25 ' + companyBranchListDt.rowsSuffix, '50 ' + companyBranchListDt.rowsSuffix, companyBranchListDt.allRows]
+                ],
+                buttons: [{
+                    extend: 'collection',
+                    text: "<i class='fas fa-bars'></i>",
+                    attr: { 'aria-label': companyBranchListDt.ariaMenu },
+                    className: 'custom-html-collection',
+                    buttons: [
+                        '<h5>' + companyBranchListDt.sectionRecords + '</h5>',
+                        'pageLength',
+                        '<h5>' + companyBranchListDt.sectionExport + '</h5>',
+                        'print',
+                        'copy',
+                        'pdf',
+                        { extend: 'csv', exportOptions: branchListExportOpts },
+                        { extend: 'excel', exportOptions: branchListExportOpts },
+                        '<h5 class="not-top-heading">' + companyBranchListDt.sectionCols + '</h5>',
+                        'colvis'
+                    ]
+                }],
+                serverSide: true,
+                processing: true,
+                colReorder: { iFixedColumnsRight: 1 },
+                ajax: {
+                    url: '@Url.Content("~/TSql_Company/ListCompanyBranches/")' + companyId,
+                    type: 'POST'
+                },
+                order: [[0, 'asc']],
+                columns: [
+                    {
+                        data: 'AttLabel',
+                        name: 'AttLabel',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.AttLabelPlain || '';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'LetterHtml',
+                        name: 'LetterHtml',
+                        orderable: true,
+                        render: function (data, type) {
+                            if (type === 'export') {
+                                return TandemDataTablesList.stripHtmlForExport(data, type);
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'AttDescription',
+                        name: 'AttDescription',
+                        render: function (data, type, row) {
+                            if (type === 'export' || type === 'sort' || type === 'filter') {
+                                return row.AttDescriptionPlain != null ? row.AttDescriptionPlain : '';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'rowActions',
+                        orderable: false,
+                        searchable: false,
+                        className: 'tandem-col-actions text-end align-middle text-nowrap'
+                    },
+                    { data: 'SysObjectID', visible: false }
+                ],
+                drawCallback: function () {
+                    $('[data-toggle="tooltip"]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto right'
+                    });
+                    $('[title]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto'
+                    });
+                }
+            }));
+
+            $('#ListCompanyBranches').on('click', '[data-branch-delete]', function () {
+                var sid = $(this).attr('data-branch-delete');
+                if (!sid || !confirm(companyBranchListDt.confirmDeleteBranch)) return;
+                $.ajax({
+                    url: branchDeleteUrl,
+                    type: 'POST',
+                    data: {
+                        __RequestVerificationToken: token,
+                        sysObjectId: sid,
+                        companyId: companyId
+                    },
+                    success: function (res) {
+                        window.alert(res && res.Message ? res.Message : '');
+                        if (res && res.IsOk) {
+                            dt.ajax.reload(null, false);
+                        }
+                    },
+                    error: function () {
+                        window.alert('@Branch.JsBranch_NetworkError');
+                    }
+                });
+            });
+        });
+
+        $('#sidebar').toggleClass('active');
+        $(this).toggleClass('active');
+        $('#sidebar').load('/Menu/Index');
+    </script>
+}

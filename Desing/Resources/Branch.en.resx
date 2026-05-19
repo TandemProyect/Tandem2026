@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Aria_CloseModal" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="BranchPanel_CreateSectionTitle" xml:space="preserve">
+    <value>Create branch</value>
+  </data>
+  <data name="BranchPanel_New" xml:space="preserve">
+    <value>New branch</value>
+  </data>
+  <data name="BranchPanel_Title" xml:space="preserve">
+    <value>Branches</value>
+  </data>
+  <data name="Branch_Btn_BackToCompany" xml:space="preserve">
+    <value>Back to company</value>
+  </data>
+  <data name="Branch_Btn_OpenFullEdit" xml:space="preserve">
+    <value>Full record (address)</value>
+  </data>
+  <data name="Branch_Btn_SaveInline" xml:space="preserve">
+    <value>Save branch</value>
+  </data>
+  <data name="Branch_Details_Field_Color" xml:space="preserve">
+    <value>Color</value>
+  </data>
+  <data name="Branch_Details_Field_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Branch_Details_Field_FormattedAddress" xml:space="preserve">
+    <value>Address (Google)</value>
+  </data>
+  <data name="Branch_Details_Field_Letter" xml:space="preserve">
+    <value>Letter</value>
+  </data>
+  <data name="Branch_Details_Field_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Branch_Details_NoValue" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="Branch_Err_InvalidCompany" xml:space="preserve">
+    <value>Invalid company.</value>
+  </data>
+  <data name="Branch_Err_InvalidData" xml:space="preserve">
+    <value>Invalid data.</value>
+  </data>
+  <data name="Branch_Err_NameRequired" xml:space="preserve">
+    <value>Branch name is required.</value>
+  </data>
+  <data name="Branch_Err_NoBusinessDetailed" xml:space="preserve">
+    <value>There is no business linked to this company. Create at least one TSql_Business with LinCompany pointing to this company before adding branches.</value>
+  </data>
+  <data name="Branch_Err_NotFound" xml:space="preserve">
+    <value>Branch not found.</value>
+  </data>
+  <data name="Branch_Lbl_AccentColor" xml:space="preserve">
+    <value>Accent color (optional)</value>
+  </data>
+  <data name="Branch_Lbl_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Branch_Lbl_LetterShort" xml:space="preserve">
+    <value>Letter (max 2)</value>
+  </data>
+  <data name="Branch_Lbl_NameRequiredModal" xml:space="preserve">
+    <value>Name *</value>
+  </data>
+  <data name="Branch_ModalBtn_CancelModal" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Branch_ModalTitle_Create" xml:space="preserve">
+    <value>New branch</value>
+  </data>
+  <data name="Branch_ModalTitle_Edit" xml:space="preserve">
+    <value>Edit branch</value>
+  </data>
+  <data name="Branch_Msg_Created" xml:space="preserve">
+    <value>Branch created successfully.</value>
+  </data>
+  <data name="Branch_Msg_Deleted" xml:space="preserve">
+    <value>Branch deleted successfully.</value>
+  </data>
+  <data name="Branch_Msg_NoBusinessBlock" xml:space="preserve">
+    <value>There is no TSql_Business row for this company. At least one is required before creating branches; new branches reuse that business automatically.</value>
+  </data>
+  <data name="Branch_Msg_SaveToManageBranches" xml:space="preserve">
+    <value>Save the company before you can add or manage branches.</value>
+  </data>
+  <data name="Branch_Msg_Updated" xml:space="preserve">
+    <value>Branch updated successfully.</value>
+  </data>
+  <data name="Branch_NoRows" xml:space="preserve">
+    <value>No branches yet.</value>
+  </data>
+  <data name="Branch_Page_DetailsTitle" xml:space="preserve">
+    <value>Branch details</value>
+  </data>
+  <data name="Branch_Page_EditTitle" xml:space="preserve">
+    <value>Edit branch</value>
+  </data>
+  <data name="Branch_RowTooltip_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Branch_RowTooltip_Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Branch_ToastMessage_Saved" xml:space="preserve">
+    <value>Branch saved.</value>
+  </data>
+  <data name="Branch_ToastTitle_Saved" xml:space="preserve">
+    <value>Branch</value>
+  </data>
+  <data name="Branch_Val_AttcolorHex" xml:space="preserve">
+    <value>Color must be #RRGGBB hex (e.g. #349d7d) or left empty.</value>
+  </data>
+  <data name="Btn_SaveChanges" xml:space="preserve">
+    <value>Save changes</value>
+  </data>
+  <data name="Common_Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Common_Intranet" xml:space="preserve">
+    <value>Intranet</value>
+  </data>
+  <data name="JsBranch_CreateFail" xml:space="preserve">
+    <value>Could not create the branch.</value>
+  </data>
+  <data name="JsBranch_DeleteConfirm" xml:space="preserve">
+    <value>Delete this branch?</value>
+  </data>
+  <data name="JsBranch_DeleteFail" xml:space="preserve">
+    <value>Could not delete.</value>
+  </data>
+  <data name="JsBranch_NetworkError" xml:space="preserve">
+    <value>Network error.</value>
+  </data>
+  <data name="JsBranch_NewNeedsBusiness" xml:space="preserve">
+    <value>You cannot add branches yet: at least one TSql_Business is required for this company.</value>
+  </data>
+  <data name="JsBranch_NoBusinessInline" xml:space="preserve">
+    <value>No linked business — cannot create the branch.</value>
+  </data>
+  <data name="JsBranch_RefreshFail" xml:space="preserve">
+    <value>Could not refresh the branch list.</value>
+  </data>
+  <data name="JsBranch_SaveFail" xml:space="preserve">
+    <value>Could not save.</value>
+  </data>
+  <data name="JsBranch_UseInlineFirst" xml:space="preserve">
+    <value>Use the «New branch» button to create a branch in the dialog.</value>
+  </data>
+</root>

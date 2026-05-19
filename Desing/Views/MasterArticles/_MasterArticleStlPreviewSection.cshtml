@@ -1,5 +1,6 @@
 @model Desing.Models.MasterArticleStlPreviewSectionModel
 @using System.Linq
+@using Desing.Resources
 @{
     string FileHref(string path)
     {
@@ -8,7 +9,7 @@
         return Url.Content(p.StartsWith("~/", StringComparison.Ordinal) ? p : "~/" + p.TrimStart('/'));
     }
     var slotsGrid = Model.AttachmentSlots != null ? Model.AttachmentSlots.ToList() : new System.Collections.Generic.List<Desing.Models.MasterArticleAttachmentSlot>();
-    var rowLabels = new[] { "3D", "mock-up", "STL" };
+    var rowLabels = new[] { MasterArticles.StlPreview_RowLabel3D, MasterArticles.StlPreview_RowLabelMockup, MasterArticles.StlPreview_RowLabelStl };
     var hasStlPreview = Model.HasStlPreview;
     var textColor1Hex = string.IsNullOrWhiteSpace(Model.TextColor1Hex) ? "#000000" : Model.TextColor1Hex.Trim();
     var textColor2Hex = string.IsNullOrWhiteSpace(Model.TextColor2Hex) ? "#000000" : Model.TextColor2Hex.Trim();
@@ -23,9 +24,9 @@
                             <thead class="table-light">
                                 <tr>
                                     <th scope="col" class="text-muted" style="width:6rem;"></th>
-                                    <th scope="col">Planta</th>
-                                    <th scope="col">Elevación vertical</th>
-                                    <th scope="col">Elevación horizontal</th>
+                                    <th scope="col">@MasterArticles.StlPreview_GridColPlant</th>
+                                    <th scope="col">@MasterArticles.StlPreview_GridColVertElev</th>
+                                    <th scope="col">@MasterArticles.StlPreview_GridColHorzElev</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -46,9 +47,9 @@
                                             <td class="align-top">
                                                 @if (string.IsNullOrEmpty(href))
                                                 {
-                                                    <div class="text-muted">Sin archivo.</div>
+                                                    <div class="text-muted">@MasterArticles.StlPreview_NoFile</div>
                                                     <div class="mt-2">
-                                                        <button type="button" class="btn btn-sm btn-warning master-article-stl-load opacity-50" disabled title="Sin STL en el visor">
+                                                        <button type="button" class="btn btn-sm btn-warning master-article-stl-load opacity-50" disabled title="@MasterArticles.StlPreview_NoStlInViewerTooltip">
                                                             <i class="icon-base ri ri-eye-line" aria-hidden="true"></i>
                                                         </button>
                                                     </div>
@@ -59,13 +60,13 @@
                                                     <div class="d-flex flex-wrap gap-1 align-items-center">
                                                         @if (slot.StlPreviewExists && !string.IsNullOrEmpty(stlPreviewHref))
                                                         {
-                                                            <button type="button" class="btn btn-sm btn-warning text-dark master-article-stl-load" data-stl-url="@stlPreviewHref" data-slot-label="@slot.Label" title="Ver en el visor 3D">
+                                                            <button type="button" class="btn btn-sm btn-warning text-dark master-article-stl-load" data-stl-url="@stlPreviewHref" data-slot-label="@slot.Label" title="@MasterArticles.StlPreview_LoadStlTooltip">
                                                                 <i class="icon-base ri ri-eye-line" aria-hidden="true"></i>
                                                             </button>
                                                         }
                                                         else
                                                         {
-                                                            <button type="button" class="btn btn-sm btn-warning master-article-stl-load opacity-50" disabled title="No hay STL en disco para esta celda (mismo nombre base que el adjunto o archivo .stl en el slot)">
+                                                            <button type="button" class="btn btn-sm btn-warning master-article-stl-load opacity-50" disabled title="@MasterArticles.StlPreview_NoStlInDiskTooltip">
                                                                 <i class="icon-base ri ri-eye-line" aria-hidden="true"></i>
                                                             </button>
                                                         }
@@ -83,45 +84,45 @@
                     <div id="ma-stl-viewer-shell" class="border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" style="min-height: 420px;" data-ma-text-color1="@System.Web.HttpUtility.HtmlAttributeEncode(textColor1Hex)" data-ma-text-color2="@System.Web.HttpUtility.HtmlAttributeEncode(textColor2Hex)">
                         <div class="@(hasStlPreview ? "d-flex" : "d-none") align-items-center justify-content-between flex-wrap gap-2 px-2 py-2 border-bottom bg-light" id="master-article-stl-viewer-toolbar">
                             <div class="d-flex align-items-center flex-wrap gap-2">
-                                <span class="small text-muted mb-0">Cámara</span>
-                                <div class="btn-group btn-group-sm" role="group" aria-label="Modo de cámara" id="master-article-stl-camera-modes">
+                                <span class="small text-muted mb-0">@MasterArticles.StlPreview_CameraLabel</span>
+                                <div class="btn-group btn-group-sm" role="group" aria-label="@MasterArticles.StlPreview_CameraModeAria" id="master-article-stl-camera-modes">
                                     <input type="radio" class="btn-check" name="ma-stl-cam-mode" id="ma-stl-cam-ortho" value="ortho" autocomplete="off" checked>
-                                    <label class="btn btn-outline-secondary" for="ma-stl-cam-ortho" title="Vista ortogonal">
+                                    <label class="btn btn-outline-secondary" for="ma-stl-cam-ortho" title="@MasterArticles.StlPreview_CameraOrthoTitle">
                                         <i class="icon-base ri ri-layout-4-line" aria-hidden="true"></i>
-                                        <span class="visually-hidden">Ortogonal</span>
+                                        <span class="visually-hidden">@MasterArticles.StlPreview_CameraOrtho</span>
                                     </label>
                                     <input type="radio" class="btn-check" name="ma-stl-cam-mode" id="ma-stl-cam-iso" value="iso" autocomplete="off">
-                                    <label class="btn btn-outline-secondary" for="ma-stl-cam-iso" title="Vista isométrica">
+                                    <label class="btn btn-outline-secondary" for="ma-stl-cam-iso" title="@MasterArticles.StlPreview_CameraIsoTitle">
                                         <i class="icon-base ri ri-box-3-line" aria-hidden="true"></i>
-                                        <span class="visually-hidden">Isométrica</span>
+                                        <span class="visually-hidden">@MasterArticles.StlPreview_CameraIso</span>
                                     </label>
                                 </div>
                             </div>
                             <div class="d-flex align-items-center gap-2 ms-sm-auto flex-wrap">
                                 @if (hasStlPreview)
                                 {
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="ma-stl-fullscreen-toggle" aria-pressed="false" title="Pantalla completa">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="ma-stl-fullscreen-toggle" aria-pressed="false" title="@MasterArticles.StlPreview_FullscreenTitle">
                                         <i class="icon-base ri ri-fullscreen-line" aria-hidden="true"></i>
                                     </button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="ma-stl-grid-toggle" aria-pressed="false" title="Mostrar rejilla de fondo">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="ma-stl-grid-toggle" aria-pressed="false" title="@MasterArticles.StlPreview_GridToggleTitle">
                                         <i class="icon-base ri ri-grid-line" aria-hidden="true"></i>
-                                        <span class="visually-hidden">Rejilla de fondo</span>
+                                        <span class="visually-hidden">@MasterArticles.StlPreview_GridToggleAria</span>
                                     </button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="ma-stl-sky-toggle" aria-pressed="false" title="Mostrar u ocultar cielo">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="ma-stl-sky-toggle" aria-pressed="false" title="@MasterArticles.StlPreview_SkyToggleTitle">
                                         <i class="icon-base ri ri-cloud-line" aria-hidden="true"></i>
-                                        <span class="visually-hidden">Cielo STL</span>
+                                        <span class="visually-hidden">@MasterArticles.StlPreview_SkyToggleAria</span>
                                     </button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="ma-stl-ground-shadow-toggle" aria-pressed="false" title="Mostrar sombra en el suelo">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="ma-stl-ground-shadow-toggle" aria-pressed="false" title="@MasterArticles.StlPreview_GroundShadowTitle">
                                         <i class="icon-base ri ri-shadow-line" aria-hidden="true"></i>
-                                        <span class="visually-hidden">Sombra en el suelo</span>
+                                        <span class="visually-hidden">@MasterArticles.StlPreview_GroundShadowAria</span>
                                     </button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="ma-stl-dark-bg-toggle" aria-pressed="false" title="Activar fondo negro">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="ma-stl-dark-bg-toggle" aria-pressed="false" title="@MasterArticles.StlPreview_DarkBgTitle">
                                         <i class="icon-base ri ri-moon-line" aria-hidden="true"></i>
-                                        <span class="visually-hidden">Fondo negro</span>
+                                        <span class="visually-hidden">@MasterArticles.StlPreview_DarkBgAria</span>
                                     </button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="ma-stl-clip-toggle" aria-pressed="false" title="Mostrar u ocultar cortes">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="ma-stl-clip-toggle" aria-pressed="false" title="@MasterArticles.StlPreview_ClipToggleTitle">
                                         <i class="icon-base ri ri-scissors-cut-line" aria-hidden="true"></i>
-                                        <span class="visually-hidden">Cortes STL</span>
+                                        <span class="visually-hidden">@MasterArticles.StlPreview_ClipToggleAria</span>
                                     </button>
                                 }
                             </div>
@@ -132,12 +133,12 @@
                             {
                                 @* Recorte: 0–1000; 1000 = vista completa (f=0); al bajar el valor aumenta el recorte. *@
                                 <div class="ma-stl-clip-controls d-none" id="ma-stl-clip-controls" aria-hidden="true">
-                                    <div class="ma-stl-clip-y-wrap" title="Corte por altura: 1000 = vista completa; al bajar el control, recorta desde arriba hacia abajo.">
+                                    <div class="ma-stl-clip-y-wrap" title="@MasterArticles.StlPreview_ClipYTitle">
                                         <span class="ma-stl-clip-label">Y</span>
-                                        <input type="range" id="ma-stl-clip-y" min="0" max="1000" value="1000" step="1" aria-label="Corte horizontal (altura): 1000 vista completa; al bajar, recorta desde arriba hacia abajo" />
+                                        <input type="range" id="ma-stl-clip-y" min="0" max="1000" value="1000" step="1" aria-label="@MasterArticles.StlPreview_ClipYAria" />
                                     </div>
-                                    <div class="ma-stl-clip-x-wrap" title="Corte en planta: 1000 = vista completa; al bajar el valor, recorta desde la derecha hacia la izquierda.">
-                                        <input type="range" id="ma-stl-clip-x" min="0" max="1000" value="1000" step="1" aria-label="Corte en planta (X): 1000 vista completa; al bajar, recorta desde la derecha hacia la izquierda" />
+                                    <div class="ma-stl-clip-x-wrap" title="@MasterArticles.StlPreview_ClipXTitle">
+                                        <input type="range" id="ma-stl-clip-x" min="0" max="1000" value="1000" step="1" aria-label="@MasterArticles.StlPreview_ClipXAria" />
                                         <span class="ma-stl-clip-label ma-stl-clip-label--x">X</span>
                                     </div>
                                 </div>
@@ -228,7 +229,7 @@
                             }
                         </div>
                         <div id="master-article-details-stl-viewer-status" class="small text-muted px-2 py-2 border-top bg-light">
-                            Seleccione un bloque con STL disponible (botón naranja) para verlo aquí.
+                            @MasterArticles.StlPreview_StatusInitial
                         </div>
                     </div>
                 </div>

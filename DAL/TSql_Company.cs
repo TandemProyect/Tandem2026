@@ -17,8 +17,8 @@ namespace DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public TSql_Company()
         {
-            this.TSql_Branch = new HashSet<TSql_Branch>();
             this.TSql_Employee = new HashSet<TSql_Employee>();
+            this.TSql_Branch = new HashSet<TSql_Branch>();
         }
     
         public long SysObjectID { get; set; }
@@ -40,17 +40,33 @@ namespace DAL
         public string TextTown_2 { get; set; }
         public Nullable<long> LinkCountry { get; set; }
         public Nullable<long> LinPlantilla { get; set; }
+        public Nullable<long> LinkLanguage { get; set; }
         public string AddLetter { get; set; }
+        public string Loc_Place_Id { get; set; }
+        public string Loc_Formatted_Address { get; set; }
+        public Nullable<decimal> Loc_Lat { get; set; }
+        public Nullable<decimal> Loc_Lng { get; set; }
+        public string Loc_Street_Number { get; set; }
+        public string Loc_Route { get; set; }
+        public string Loc_Subpremise { get; set; }
+        public string Loc_Locality { get; set; }
+        public string Loc_Admin_Area_1 { get; set; }
+        public string Loc_Admin_Area_2 { get; set; }
+        public string Loc_Postal_Code { get; set; }
+        public string Loc_Country_Code { get; set; }
+        public string Loc_Country_Name { get; set; }
+        public string Loc_Address_Components_Json { get; set; }
     
         public virtual TSql_Countrys TSql_Countrys { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<TSql_Branch> TSql_Branch { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TSql_Employee> TSql_Employee { get; set; }
         public virtual TSql_Plantilla TSql_Plantilla { get; set; }
+        public virtual TSql_language TSql_language { get; set; }
         public virtual AspNetUsers AspNetUsers { get; set; }
         public virtual AspNetUsers AspNetUsers1 { get; set; }
         public virtual AspNetUsers AspNetUsers2 { get; set; }
         public virtual AspNetUsers AspNetUsers3 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Branch> TSql_Branch { get; set; }
     }
 }

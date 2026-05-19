@@ -38,7 +38,7 @@ namespace DAL
         public virtual TSql_Client_V2 TSql_Client_V2 { get; set; }
         public virtual TSql_DocumentType TSql_DocumentType { get; set; }
         public virtual TSql_DocumentTypeExtension TSql_DocumentTypeExtension { get; set; }
-        public virtual TSql_Jobside TSql_Jobside { get; set; }
         public virtual TSql_Offers TSql_Offers { get; set; }
+        public virtual TSql_Jobside TSql_Jobside { get; set; }
     }
 }

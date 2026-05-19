@@ -1,0 +1,74 @@
+@model DAL.TSql_Branch
+@using Desing.Helpers
+@using Desing.Resources
+@using System.Web
+@{
+    ViewBag.Title = Branch.Branch_Page_DetailsTitle;
+    var companyName = Model.TSql_Company != null ? Model.TSql_Company.TextLabel : "";
+    var companyId = Model.LinCompany;
+    var backUrl = Url.Action("Details", "TSql_Company", new { id = companyId });
+    var fmt = string.IsNullOrWhiteSpace(Model.Loc_Formatted_Address) ? Branch.Branch_Details_NoValue : Model.Loc_Formatted_Address;
+    var swatch = BranchColorHelper.BadgeInlineStyle(Model.Attcolor);
+}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@Branch.Common_Home</a> /
+            <a href="@Url.Action("Index", "TSql_Company")">@Company.Index_Breadcrumb</a> /
+            <a href="@backUrl">@HttpUtility.HtmlEncode(companyName)</a> /
+        </span> @Branch.Branch_Page_DetailsTitle
+    </h4>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="@backUrl">@Branch.Branch_Btn_BackToCompany</a>
+        <a class="btn btn-primary" href="@Url.Action("Edit", "TSql_Branch", new { id = Model.SysObjectID })">
+            <i class="icon-base ri ri-pencil-line me-1"></i> @Common.Btn_Edit
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">@Branch.Branch_Details_Field_Name</dt>
+            <dd class="col-sm-9">@Html.Encode(Model.AttLabel ?? "")</dd>
+
+            <dt class="col-sm-3">@Branch.Branch_Details_Field_Description</dt>
+            <dd class="col-sm-9">@Html.Encode(string.IsNullOrWhiteSpace(Model.AttDescription) ? Branch.Branch_Details_NoValue : Model.AttDescription)</dd>
+
+            <dt class="col-sm-3">@Branch.Branch_Details_Field_Letter</dt>
+            <dd class="col-sm-9">
+                @if (!string.IsNullOrWhiteSpace(Model.AddLetter))
+                {
+                    var letter = Model.AddLetter.Trim();
+                    if (!string.IsNullOrEmpty(swatch))
+                    {
+                        <span class="badge" style="@swatch">@Html.Encode(letter)</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-label-secondary">@Html.Encode(letter)</span>
+                    }
+                }
+                else
+                {
+                    @Branch.Branch_Details_NoValue
+                }
+            </dd>
+
+            <dt class="col-sm-3">@Branch.Branch_Details_Field_Color</dt>
+            <dd class="col-sm-9">
+                @if (BranchColorHelper.TryNormalizeAttcolor(Model.Attcolor, out var hx))
+                {
+                    <code>@hx</code>
+                }
+                else
+                {
+                    @Branch.Branch_Details_NoValue
+                }
+            </dd>
+
+            <dt class="col-sm-3">@Branch.Branch_Details_Field_FormattedAddress</dt>
+            <dd class="col-sm-9">@Html.Encode(fmt)</dd>
+        </dl>
+    </div>
+</div>

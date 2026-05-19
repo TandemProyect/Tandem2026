@@ -1,18 +1,51 @@
-﻿@model DAL.TSql_Employee
+﻿@using Newtonsoft.Json
+@using Desing.Resources
+@using System.Globalization
+@{
+    ViewBag.Title = Country.Index_Breadcrumb;
+    var ci = CultureInfo.CurrentUICulture?.TwoLetterISOLanguageName ?? "es";
+    var countryDt = JsonConvert.SerializeObject(new
+    {
+        culture = ci,
+        rowsSuffix = Common.Dt_Rows_N,
+        allRows = Common.Dt_Rows_All,
+        sectionRecords = Common.Dt_Section_Records,
+        sectionExport = Common.Dt_Section_Export,
+        sectionCols = Common.Dt_Section_ColumnsVisible,
+        confirmDeleteCountry = Country.Js_ConfirmDeleteCountry,
+        ariaMenu = Common.Dt_MenuAria
+    });
+}
 
-@*<link href="~/Content/app.min.css" rel="stylesheet" />*@
-<h4 class="py-3 mb-4">
-    <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> /</span> Países
-</h4>
- 
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@Country.Common_Home</a> /
+            @Country.Common_Settings /
+        </span> @Country.Index_Breadcrumb
+    </h4>
+    <a class="btn btn-primary text-white" href="@Url.Action("Create", "Country")">
+        <i class="icon-base ri ri-add-line me-1"></i> @Country.Index_CreateCountry
+    </a>
+</div>
+
+@if (!string.IsNullOrEmpty(TempData["ToastMessage"] as string))
+{
+    <div class="alert alert-success">@TempData["ToastMessage"]</div>
+}
+
 <div class="card mb-4">
     <div class="card-body" style="padding:5px">
-        <table id="TableEmployee" class="table table-hover" cellspacing="0" style="width:100%">
+        <table id="ListCountries" class="table table-hover" cellspacing="0" style="width: 100%">
             <thead>
                 <tr>
-                    <th>Nombre</th>
-                    <th>Apellido</th>
-                    <th></th>
+                    <th>@Country.Col_Flag</th>
+                    <th>@Country.Col_Name</th>
+                    <th>@Country.Col_Iso2</th>
+                    <th>@Country.Col_Iso3</th>
+                    <th>@Country.Col_IsoNumber</th>
+                    <th>@Country.Col_State</th>
+                    <th class="text-end text-nowrap" style="width:1%;"></th>
                     <th>ID</th>
                 </tr>
             </thead>
@@ -21,107 +54,118 @@
 </div>
 
 @section scripts
-    {
+{
     <script type="text/javascript">
-        $(document).ready(function ()
-        {
-            var Employee = {
-                dt: null,
-                init: function () {
-                    dt = $('#TableEmployee').DataTable({
-                        dom: '<"dataTables-length-position">Bfrt<"dataTables-length-position"i>p',
-                        lengthMenu: [
-                            [10, 25, 50, 100],
-                            ['10 filas', '25 filas', '50 filas', '100 filas']
-                        ],
-                        buttons: [
-                            {
-                                extend: 'collection',
-                                text: "<i class='fas fa-bars'></i>",
-                                className: 'custom-html-collection',
-                                buttons: [
-                                    '<h5>Registros</h5>',
-                                    'pageLength',
-                                    '<h5>Exportar</h5>',
-                                    'print',
-                                    'copy',
-                                    'pdf',
-                                    'csv',
-                                    'excel',
-                                    '<h5 class="not-top-heading">Columnas visibles</h5>',
-                                    'colvis'
-                                ]
-                            }
-                        ],
-                        //buttons: [
-                        //    'copy', 'csv', 'excel', 'pdf', 'print'
-                        //],
-                        "serverSide": true,
-                        "processing": true,
-                        "stateSave": true,
-                        "colReorder": { "iFixedColumnsRight": 2 },
-                        //stateSaveCallback: function(settings,data) {
-                        //    //Save personalized buttons data:
-                        //    var dataString = JSON.stringify(data);
-                        //    localStorage.setItem(LocalStorageKey, dataString)
-                        //},
-                        //stateLoadCallback: function(settings) {
-                        //    //Load Personalized buttons with selected options.
-                        //    var options = JSON.parse(localStorage.getItem(LocalStorageKey));
-                        //    return options;
-                        //},
-                        "ajax": {
-                            "url": "@Url.Content("~/Employee/ListEmployee/" + 1)",
-                            "type": "POST"
-                        },
-                        "columns": [
-                            { "data": "AttName" },
-                            { "data": "AttSurname" },
-                            { "data": "emptyColumn" },
-                            { "data": "SysObjectID" }
-                        ],
-                     /*   "iDisplayLength": parseInt(leerCookie("_rowsPerPage")),*/
-                        "fnRowCallback": function (nRow, data, iDisplayIndex)
-                        {
-                            $('td:eq(0)', nRow).html(data.AttName);
+        var countryDt = @Html.Raw(countryDt);
+        var countryExportOpts = TandemDataTablesList.exportOptsPlainVisible;
 
-                            if (data.allowEdit == true) {
-                                $('td:eq(2)', nRow).append(data.buttonEdit + '&nbsp;');
+        $(document).ready(function () {
+            $('#ListCountries').DataTable(TandemDataTablesList.applyListDefaults({
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    ['10 ' + countryDt.rowsSuffix, '25 ' + countryDt.rowsSuffix, '50 ' + countryDt.rowsSuffix, countryDt.allRows]
+                ],
+                buttons: [{
+                    extend: 'collection',
+                    text: "<i class='fas fa-bars'></i>",
+                    attr: { 'aria-label': countryDt.ariaMenu },
+                    className: 'custom-html-collection',
+                    buttons: [
+                        '<h5>' + countryDt.sectionRecords + '</h5>',
+                        'pageLength',
+                        '<h5>' + countryDt.sectionExport + '</h5>',
+                        'print',
+                        'copy',
+                        'pdf',
+                        { extend: 'csv', exportOptions: countryExportOpts },
+                        { extend: 'excel', exportOptions: countryExportOpts },
+                        '<h5 class="not-top-heading">' + countryDt.sectionCols + '</h5>',
+                        'colvis'
+                    ]
+                }],
+                serverSide: true,
+                processing: true,
+                colReorder: { iFixedColumnsRight: 2 },
+                ajax: {
+                    url: '@Url.Action("ListCountries", "Country")',
+                    type: 'POST'
+                },
+                order: [[1, 'asc']],
+                columns: [
+                    { data: 'flagImg', name: 'flagImg', orderable: false, searchable: false },
+                    {
+                        data: 'TextLabel',
+                        name: 'TextLabel',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.TextLabelPlain || '';
                             }
-                            if (data.AttIsDeleted == false) {
-                                if ((data.Counter1 == 0) && (data.Counter2 == 0)) {
-                                    if (data.allowDelete == true) {
-                                        $('td:eq(2)', nRow).append(data.buttonDelete + '&nbsp;');
-                                    }
-                                }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'iso2Cell',
+                        name: 'TextIso2',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.TextIso2Plain || '';
                             }
-                            return nRow;
-                        },
-                        "aaSorting": [[3, 'desc']],
-                        "aoColumnDefs": [
-                            { "bVisible": false, "aTargets": [3] },
-                            { "bSortable": false, "aTargets": [2] },
-                            { "width": "300px", "aTargets": [0] },
-                            { "width": "50px", "aTargets": [2] },
-                        ],
-                        drawCallback: function () {
-                            $('[data-toggle="tooltip"]').tooltip({
-                                delay: { "show": 100, "hide": 100 },
-                                placement: "auto right"
-                            }),
-                            $('[title]').tooltip({
-                                delay: { "show": 100, "hide": 100 },
-                                placement: "auto"
-                            })
-                        },
-
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'iso3Cell',
+                        name: 'TextIso3',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.TextIso3Plain || '';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'numberIsoCell',
+                        name: 'NumberIso',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.NumberIsoPlain || '';
+                            }
+                            return data;
+                        }
+                    },
+                    { data: 'activeBadge', name: 'AddIsActive', orderable: true, searchable: false },
+                    {
+                        data: 'rowActions',
+                        orderable: false,
+                        searchable: false,
+                        className: 'tandem-col-actions text-end align-middle text-nowrap'
+                    },
+                    { data: 'IdObject', visible: false }
+                ],
+                drawCallback: function () {
+                    $('[data-toggle="tooltip"]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto right'
+                    });
+                    $('[title]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto'
                     });
                 }
-            }
-            Employee.init();
+            }));
         });
-            $('#sidebar').toggleClass('active');
-            $(this).toggleClass('active');
-    </script>
-}
 
+        window.DeleteCountry = function (id) {
+            if (!confirm(countryDt.confirmDeleteCountry)) return;
+            $.post('@Url.Action("DeleteCountry", "Country")',
+                { id: id, __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() },
+                function (res) {
+                    if (res && res.Message) { alert(res.Message); }
+                    if (res && res.IsOk) {
+                        $('#ListCountries').DataTable().ajax.reload(null, false);
+                    }
+                });
+        };
+    </script>
+    <div style="display:none;">@Html.AntiForgeryToken()</div>
+}

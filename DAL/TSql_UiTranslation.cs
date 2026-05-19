@@ -12,18 +12,21 @@ namespace DAL
     using System;
     using System.Collections.Generic;
     
-    public partial class TSql_Business
+    public partial class TSql_UiTranslation
     {
         public long IdObject { get; set; }
-        public string AttLabel { get; set; }
-        public string AttDescription { get; set; }
-        public string LinCreatedBy { get; set; }
-        public System.DateTime AttCreated { get; set; }
+        public string TextResourceKey { get; set; }
+        public string TextModule { get; set; }
+        public long LinkLanguage { get; set; }
+        public string TextValue { get; set; }
+        public bool Is_Delete { get; set; }
+        public bool Is_Active { get; set; }
+        public string LinkMadeBy { get; set; }
         public string LinModifiedBy { get; set; }
-        public System.DateTime AttLastModification { get; set; }
-        public long SysUpdateNumber { get; set; }
-        public long LinCompany { get; set; }
-        public string AddLetter { get; set; }
+        public System.DateTime AddDateMade { get; set; }
+        public Nullable<System.DateTime> AddLastDateChange { get; set; }
+        public long Ntimeschanged { get; set; }
+        public string TextModuleNorm { get; set; }
     
         public virtual AspNetUsers AspNetUsers { get; set; }
         public virtual AspNetUsers AspNetUsers1 { get; set; }

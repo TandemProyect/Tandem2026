@@ -1,0 +1,53 @@
+@model Desing.Models.CompanyBranchesPanelModel
+@using Desing.Helpers
+@using Desing.Resources
+@using System.Web
+@if (Model.BranchRows == null || Model.BranchRows.Count == 0)
+{
+    <div class="p-3">
+        <p class="text-muted small mb-0">@Branch.Branch_NoRows</p>
+    </div>
+}
+else
+{
+    <ul class="list-group list-group-flush" id="companyBranchListItems">
+        @foreach (var br in Model.BranchRows)
+        {
+            var letter = (br.AddLetter ?? "").Trim();
+            var letterStyle = BranchColorHelper.BadgeInlineStyle(br.Attcolor);
+            <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2 js-branch-row"
+                data-branch-id="@br.SysObjectID"
+                data-label="@HttpUtility.HtmlAttributeEncode(br.AttLabel ?? "")"
+                data-description="@HttpUtility.HtmlAttributeEncode(br.AttDescription ?? "")"
+                data-letter="@HttpUtility.HtmlAttributeEncode(letter)"
+                data-attcolor="@HttpUtility.HtmlAttributeEncode(br.Attcolor ?? "")"
+                data-loc-json="@Html.Raw(br.LocJsonDom)">
+                <div class="flex-grow-1 d-flex align-items-center gap-2 text-truncate" style="min-width: 0;">
+                    <span class="fw-semibold text-truncate" title="@HttpUtility.HtmlAttributeEncode(br.AttLabel ?? "")">@Html.Encode(br.AttLabel ?? "")</span>
+                    @if (!string.IsNullOrEmpty(letter))
+                    {
+                        if (!string.IsNullOrEmpty(letterStyle))
+                        {
+                            <span class="badge flex-shrink-0" style="@letterStyle">@Html.Encode(letter)</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-label-secondary flex-shrink-0">@Html.Encode(letter)</span>
+                        }
+                    }
+                </div>
+                <div class="btn-group btn-group-sm flex-shrink-0" role="group">
+                    <a class="btn btn-outline-primary btn-open-branch-full" title="@Branch.Branch_Btn_OpenFullEdit" href="@Url.Action("Edit", "TSql_Branch", new { id = br.SysObjectID })">
+                        <span class="icon-base ri ri-external-link-line"></span>
+                    </a>
+                    <button type="button" class="btn btn-outline-warning btn-edit-branch" title="@Branch.Branch_RowTooltip_Edit">
+                        <span class="icon-base ri ri-pencil-line"></span>
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-delete-branch" title="@Branch.Branch_RowTooltip_Delete">
+                        <span class="icon-base ri ri-delete-bin-line"></span>
+                    </button>
+                </div>
+            </li>
+        }
+    </ul>
+}

@@ -1,6 +1,14 @@
 /**
  * DataTables list toolbar estándar (Empleados / Intranet).
  * Requiere jQuery DataTables + Buttons (layout Materio).
+ *
+ * i18n:
+ *   - Lee window.tandemCommonDt (inyectado en _LayoutMaterio.cshtml desde el
+ *     modulo Common) para textos del menu colectivo y del lengthMenu por
+ *     defecto. Si no existe, cae a textos en español (compatibilidad).
+ *   - Una vista que defina su propio objeto i18n a nivel de modulo (p. ej.
+ *     companyDt) y lo pase a applyListDefaults sigue ganando: su language /
+ *     lengthMenu / buttons sustituye al default global.
  */
 (function (window, $) {
     'use strict';
@@ -9,12 +17,45 @@
         return;
     }
 
+    /* Defaults i18n (window.tandemCommonDt -> _LayoutMaterio.cshtml). */
+    var i18n = window.tandemCommonDt || {};
+    function t(key, fallback) {
+        var v = i18n[key];
+        return (typeof v === 'string' && v.length) ? v : fallback;
+    }
+
     var dom = '<"dataTables-length-position">Bfrt<"dataTables-length-position"i>p';
 
+    var rowsLabel = t('rowsN', 'filas');
+    var allLabel = t('rowsAll', 'Todas');
     var lengthMenu = [
         [10, 25, 50, -1],
-        ['10 filas', '25 filas', '50 filas', 'Todas']
+        ['10 ' + rowsLabel, '25 ' + rowsLabel, '50 ' + rowsLabel, allLabel]
     ];
+
+    /**
+     * Texto plano para Excel/CSV: evita fallos de excelHtml5 con HTML complejo
+     * (p. ej. img + onerror con JS en columnas tipo bandera / acciones).
+     */
+    function stripHtmlForExport(data /*, row, column, node */) {
+        if (data == null || data === '') {
+            return '';
+        }
+        var s = typeof data === 'string' ? data : String(data);
+        var tmp = document.createElement('div');
+        tmp.innerHTML = s;
+        var text = tmp.textContent || tmp.innerText || '';
+        return text.replace(/\s+/g, ' ').trim();
+    }
+
+    var exportOptsPlainVisible = {
+        /* Excluye columna de acciones (HTML/botones) y celdas ocultas. */
+        columns: ':visible:not(.tandem-col-actions)',
+        orthogonal: 'export',
+        format: {
+            body: stripHtmlForExport
+        }
+    };
 
     function buildCollectionButtons(options) {
         options = options || {};
@@ -23,20 +64,30 @@
             ? '<i class="icon-base ri ri-menu-line" aria-hidden="true"></i>'
             : "<i class='fas fa-bars'></i>";
 
+        var sectionRecords = t('sectionRecords', 'Registros');
+        var sectionExport = t('sectionExport', 'Exportar');
+        var sectionColvis = t('sectionColumnsVisible', 'Columnas visibles');
+
         return [{
             extend: 'collection',
             text: icon,
             className: 'custom-html-collection',
             buttons: [
-                '<h5>Registros</h5>',
+                '<h5>' + sectionRecords + '</h5>',
                 'pageLength',
-                '<h5>Exportar</h5>',
+                '<h5>' + sectionExport + '</h5>',
                 'print',
                 'copy',
                 'pdf',
-                'csv',
-                'excel',
-                '<h5 class="not-top-heading">Columnas visibles</h5>',
+                {
+                    extend: 'csv',
+                    exportOptions: exportOptsPlainVisible
+                },
+                {
+                    extend: 'excel',
+                    exportOptions: exportOptsPlainVisible
+                },
+                '<h5 class="not-top-heading">' + sectionColvis + '</h5>',
                 'colvis'
             ]
         }];
@@ -102,6 +153,8 @@
     window.TandemDataTablesList = {
         dom: dom,
         lengthMenu: lengthMenu,
+        exportOptsPlainVisible: exportOptsPlainVisible,
+        stripHtmlForExport: stripHtmlForExport,
         buildCollectionButtons: buildCollectionButtons,
         applyListDefaults: applyListDefaults
     };

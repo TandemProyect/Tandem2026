@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Btn_New" xml:space="preserve">
+    <value>New extension</value>
+  </data>
+  <data name="Col_DocumentTypes" xml:space="preserve">
+    <value>Document types</value>
+  </data>
+  <data name="Col_Icon" xml:space="preserve">
+    <value>Icon</value>
+  </data>
+  <data name="Col_MaxFileSize" xml:space="preserve">
+    <value>Max size</value>
+  </data>
+  <data name="Col_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Col_State" xml:space="preserve">
+    <value>State</value>
+  </data>
+  <data name="Common_Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Common_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Details_Field_Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Details_Field_DocumentTypes" xml:space="preserve">
+    <value>Document types that use it</value>
+  </data>
+  <data name="Details_Field_Icon" xml:space="preserve">
+    <value>Icon</value>
+  </data>
+  <data name="Details_Field_MaxFileSize" xml:space="preserve">
+    <value>Maximum size</value>
+  </data>
+  <data name="Details_Field_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Details_NoBoolValue" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Details_NoDocumentTypesAssigned" xml:space="preserve">
+    <value>— No linked document types.</value>
+  </data>
+  <data name="Details_NoValue" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="Details_YesValue" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="Err_CannotDeleteHasDocumentTypes" xml:space="preserve">
+    <value>Cannot delete: the extension is linked to active document types.</value>
+  </data>
+  <data name="Err_CannotDeleteHasDocuments" xml:space="preserve">
+    <value>Cannot delete: the extension is in use by documents.</value>
+  </data>
+  <data name="Err_ExtensionNotFound" xml:space="preserve">
+    <value>Extension not found.</value>
+  </data>
+  <data name="Help_MaxFileSizeBytes" xml:space="preserve">
+    <value>(bytes)</value>
+  </data>
+  <data name="Index_Breadcrumb" xml:space="preserve">
+    <value>Extensions</value>
+  </data>
+  <data name="Index_CreateExtension" xml:space="preserve">
+    <value>New extension</value>
+  </data>
+  <data name="Js_ConfirmDeleteExtension" xml:space="preserve">
+    <value>Delete this extension? (soft delete).</value>
+  </data>
+  <data name="Lbl_Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Lbl_ActiveCheckbox" xml:space="preserve">
+    <value>Active extension</value>
+  </data>
+  <data name="Lbl_DocumentTypesUsage" xml:space="preserve">
+    <value>Document types that use it</value>
+  </data>
+  <data name="Lbl_Icon" xml:space="preserve">
+    <value>Icon (optional file)</value>
+  </data>
+  <data name="Lbl_MaxFileSizeRequired" xml:space="preserve">
+    <value>Maximum size (bytes) *</value>
+  </data>
+  <data name="Lbl_NameRequired" xml:space="preserve">
+    <value>Name / Label *</value>
+  </data>
+  <data name="List_LinkDeleteLockedDocumentTypesTooltip" xml:space="preserve">
+    <value>Cannot delete: the extension is linked to active document types.</value>
+  </data>
+  <data name="List_LinkDeleteLockedDocumentsTooltip" xml:space="preserve">
+    <value>Cannot delete: the extension is in use by documents.</value>
+  </data>
+  <data name="List_LinkDeleteTooltip" xml:space="preserve">
+    <value>Delete extension</value>
+  </data>
+  <data name="List_LinkEditTooltip" xml:space="preserve">
+    <value>Edit extension</value>
+  </data>
+  <data name="List_LinkOpenTooltip" xml:space="preserve">
+    <value>Open extension</value>
+  </data>
+  <data name="List_NoDocumentTypes" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="List_NoIcon" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="Page_CreateTitle" xml:space="preserve">
+    <value>Create extension</value>
+  </data>
+  <data name="Page_DetailsTitle" xml:space="preserve">
+    <value>Extension details</value>
+  </data>
+  <data name="Page_EditTitle" xml:space="preserve">
+    <value>Edit extension</value>
+  </data>
+  <data name="Ph_MaxFileSize" xml:space="preserve">
+    <value>10485760 = 10 MB</value>
+  </data>
+  <data name="Ph_Name" xml:space="preserve">
+    <value>E.g.: PDF, DWG, .pdf</value>
+  </data>
+  <data name="State_Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="State_Inactive" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  <data name="ToastMessage_ExtensionCreated" xml:space="preserve">
+    <value>Extension &quot;{0}&quot; created successfully.</value>
+  </data>
+  <data name="ToastMessage_ExtensionDeleted" xml:space="preserve">
+    <value>Extension &quot;{0}&quot; deleted successfully.</value>
+  </data>
+  <data name="ToastMessage_ExtensionUpdated" xml:space="preserve">
+    <value>Extension &quot;{0}&quot; updated successfully.</value>
+  </data>
+  <data name="ToastTitle_CreateExtension" xml:space="preserve">
+    <value>Create extension</value>
+  </data>
+  <data name="ToastTitle_DeleteExtension" xml:space="preserve">
+    <value>Delete extension</value>
+  </data>
+  <data name="ToastTitle_EditExtension" xml:space="preserve">
+    <value>Edit extension</value>
+  </data>
+  <data name="Val_DuplicateNameCreate" xml:space="preserve">
+    <value>An extension with this name already exists.</value>
+  </data>
+  <data name="Val_DuplicateNameEdit" xml:space="preserve">
+    <value>Another extension already uses this name.</value>
+  </data>
+  <data name="Val_IcoFileMissingExtension" xml:space="preserve">
+    <value>The file must have an extension.</value>
+  </data>
+  <data name="Val_IcoFormatNotAllowed" xml:space="preserve">
+    <value>Format not allowed (png, jpg, gif, ico, webp).</value>
+  </data>
+  <data name="Val_IcoPathTooLong" xml:space="preserve">
+    <value>The icon virtual path cannot exceed 500 characters.</value>
+  </data>
+  <data name="Val_MaxFileSizeMax" xml:space="preserve">
+    <value>Maximum size cannot exceed {0} bytes (2 GB).</value>
+  </data>
+  <data name="Val_MaxFileSizeMin" xml:space="preserve">
+    <value>Maximum size must be greater than 0.</value>
+  </data>
+  <data name="Val_NameRequired" xml:space="preserve">
+    <value>Extension name is required.</value>
+  </data>
+  <data name="Val_NameTooLong" xml:space="preserve">
+    <value>Name cannot exceed 500 characters.</value>
+  </data>
+</root>

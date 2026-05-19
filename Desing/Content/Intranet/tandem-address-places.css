@@ -82,3 +82,13 @@ body.tandem-maps-auth-failed .dismissButton {
   visibility: hidden !important;
   pointer-events: none !important;
 }
+
+/* Host del widget PlaceAutocompleteElement (Places API New) */
+.tandem-address-block .tandem-place-autocomplete-host {
+  min-height: 2.375rem;
+}
+
+.tandem-address-block .tandem-place-autocomplete-host gmp-place-autocomplete {
+  width: 100%;
+  display: block;
+}

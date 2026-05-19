@@ -6,15 +6,16 @@
 
  *
 
- * APIs en Google Cloud (widget legacy google.maps.places.Autocomplete):
+ * Predicciones: PlaceAutocompleteElement (Places API New). El Autocomplete legacy
 
- *   - Maps JavaScript API (obligatorio para mapa y script)
+ * no está disponible para proyectos/clientes nuevos en Google Cloud.
 
- *   - Places API (legacy, NO "Places API (New)" sola para este widget)
+ *
 
- * Restricción "APIs seleccionadas": debe INCLUIR Maps JavaScript API y Places API.
+ * Consola: Maps JavaScript API + Places API (New).
 
  */
+
 
 (function (window) {
 
@@ -490,45 +491,43 @@
 
 
 
-  function populateFromPlace(prefix, mapId, place) {
+  function normalizeNewPlaceAddressComponents(arr) {
 
-    if (!place) return;
+    if (!arr || !arr.length) return [];
 
+    var out = [];
 
+    for (var i = 0; i < arr.length; i++) {
 
-    var formatted = place.formatted_address || '';
+      var ac = arr[i];
 
-    var components = place.address_components || [];
+      out.push({
 
-    var placeId = place.place_id || '';
+        long_name: ac.longText || ac.long_name || '',
 
-    var lat = null;
+        short_name: ac.shortText || ac.short_name || '',
 
-    var lng = null;
+        types: ac.types || []
 
-
-
-    if (place.geometry && place.geometry.location) {
-
-      lat = typeof place.geometry.location.lat === 'function'
-
-        ? place.geometry.location.lat()
-
-        : place.geometry.location.lat;
-
-      lng = typeof place.geometry.location.lng === 'function'
-
-        ? place.geometry.location.lng()
-
-        : place.geometry.location.lng;
+      });
 
     }
 
+    return out;
+
+  }
 
 
-    setField(prefix, 'Place_Id', placeId);
 
-    setField(prefix, 'Formatted_Address', formatted);
+  function applyParsedPlaceToForm(prefix, mapId, formatted, placeId, lat, lng, componentsForJson) {
+
+    var components = componentsForJson || [];
+
+
+
+    setField(prefix, 'Place_Id', placeId || '');
+
+    setField(prefix, 'Formatted_Address', formatted || '');
 
     setField(prefix, 'Lat', lat != null ? lat : '');
 
@@ -568,11 +567,23 @@
 
     var $block = $('.tandem-address-block[data-prefix="' + prefix + '"]');
 
-    var $search = $block.find('.js-tandem-places-autocomplete');
+    var $searchLegacy = $block.find('.js-tandem-places-autocomplete');
 
-    if ($search.length && formatted) {
+    if ($searchLegacy.length && formatted) {
 
-      $search.val(formatted);
+      $searchLegacy.val(formatted);
+
+    }
+
+    var hostEl = $block.find('.js-tandem-place-autocomplete-host')[0];
+
+    if (hostEl && formatted && hostEl.firstElementChild && 'value' in hostEl.firstElementChild) {
+
+      try {
+
+        hostEl.firstElementChild.value = formatted;
+
+      } catch (e1) { /* ignore */ }
 
     }
 
@@ -592,7 +603,237 @@
 
 
 
-  function bindAutocomplete($block) {
+  function populateFromPlace(prefix, mapId, place) {
+
+    if (!place) return;
+
+
+
+    var formatted = place.formatted_address || '';
+
+    var components = place.address_components || [];
+
+    var placeId = place.place_id || '';
+
+    var lat = null;
+
+    var lng = null;
+
+
+
+    if (place.geometry && place.geometry.location) {
+
+      lat = typeof place.geometry.location.lat === 'function'
+
+        ? place.geometry.location.lat()
+
+        : place.geometry.location.lat;
+
+      lng = typeof place.geometry.location.lng === 'function'
+
+        ? place.geometry.location.lng()
+
+        : place.geometry.location.lng;
+
+    }
+
+
+
+    applyParsedPlaceToForm(prefix, mapId, formatted, placeId, lat, lng, components);
+
+  }
+
+
+
+  function populateFromNewPlace(prefix, mapId, place) {
+
+    if (!place) return;
+
+
+
+    var formatted = place.formattedAddress || '';
+
+    var placeId = place.id || '';
+
+    var lat = null;
+
+    var lng = null;
+
+    var loc = place.location;
+
+
+
+    if (loc) {
+
+      lat = typeof loc.lat === 'function' ? loc.lat() : loc.lat;
+
+      lng = typeof loc.lng === 'function' ? loc.lng() : loc.lng;
+
+    }
+
+
+
+    var norm = normalizeNewPlaceAddressComponents(place.addressComponents || []);
+
+    applyParsedPlaceToForm(prefix, mapId, formatted, placeId, lat, lng, norm);
+
+  }
+
+
+
+  /** PlaceAutocompleteElement (Places API New) en .js-tandem-place-autocomplete-host */
+
+  function bindPlaceAutocompleteHost($block) {
+
+    var prefix = $block.data('prefix');
+
+    var mapId = $block.data('map-id');
+
+    var $hostEl = $block.find('.js-tandem-place-autocomplete-host');
+
+
+
+    if (!$hostEl.length || $hostEl.data('places-bound')) {
+
+      return;
+
+    }
+
+
+
+    var placeholder = $hostEl.data('placeholder');
+
+    placeholder = placeholder != null ? String(placeholder) : '';
+
+
+
+    function mountFallbackTextInput() {
+
+      $hostEl.data('places-bound', true);
+
+      var manual = document.createElement('input');
+
+      manual.type = 'text';
+
+      manual.className = 'form-control form-control-sm';
+
+      if (placeholder) manual.setAttribute('placeholder', placeholder);
+
+      manual.addEventListener('change', function () {
+
+        setField(prefix, 'Formatted_Address', manual.value);
+
+      });
+
+      manual.addEventListener('blur', function () {
+
+        setField(prefix, 'Formatted_Address', manual.value);
+
+      });
+
+      $hostEl.empty().append(manual);
+
+    }
+
+
+
+    if (!hasApiKey() || mapsAuthFailed) {
+
+      mountFallbackTextInput();
+
+      return;
+
+    }
+
+
+
+    if (!window.google || !window.google.maps || typeof google.maps.importLibrary !== 'function') {
+
+      mountFallbackTextInput();
+
+      return;
+
+    }
+
+
+
+    google.maps.importLibrary('places').then(function (placesLib) {
+
+      var PlaceAutocompleteElement = placesLib.PlaceAutocompleteElement;
+
+      if (!PlaceAutocompleteElement) {
+
+        mountFallbackTextInput();
+
+        return;
+
+      }
+
+
+
+      var pac = new PlaceAutocompleteElement({});
+
+      if (placeholder) {
+
+        try {
+
+          pac.placeholder = placeholder;
+
+        } catch (ePh) {
+
+          if (pac.setAttribute) pac.setAttribute('placeholder', placeholder);
+
+        }
+
+      }
+
+
+
+      $hostEl.empty().append(pac);
+
+      $hostEl.data('places-bound', true);
+
+
+
+      pac.addEventListener('gmp-select', function (event) {
+
+        var pp = event.placePrediction;
+
+        if (!pp) return;
+
+        var place = pp.toPlace();
+
+        place.fetchFields({
+
+          fields: ['id', 'formattedAddress', 'location', 'addressComponents', 'viewport']
+
+        }).then(function () {
+
+          populateFromNewPlace(prefix, mapId, place);
+
+        }).catch(function (eSel) {
+
+          console.error('[TandemAddressPlaces] fetchFields after gmp-select failed', eSel);
+
+        });
+
+      });
+
+    }).catch(function (errLib) {
+
+      console.error('[TandemAddressPlaces] importLibrary(places) failed', errLib);
+
+      mountFallbackTextInput();
+
+    });
+
+  }
+
+
+
+  /** Legacy google.maps.places.Autocomplete en input .js-tandem-places-autocomplete */
+
+  function bindLegacyPlacesAutocomplete($block) {
 
     var prefix = $block.data('prefix');
 
@@ -679,6 +920,22 @@
       populateFromPlace(prefix, mapId, place);
 
     });
+
+  }
+
+
+
+  function bindAutocomplete($block) {
+
+    if ($block.find('.js-tandem-place-autocomplete-host').length) {
+
+      bindPlaceAutocompleteHost($block);
+
+      return;
+
+    }
+
+    bindLegacyPlacesAutocomplete($block);
 
   }
 
@@ -958,6 +1215,8 @@
 
         'key=' + encodeURIComponent(cfg.apiKey),
 
+        'loading=async',
+
         'libraries=places',
 
         'v=weekly',
@@ -1111,6 +1370,8 @@
 
 
   ns.populateFromPlace = populateFromPlace;
+
+  ns.populateFromNewPlace = populateFromNewPlace;
 
   ns.updateMap = updateMap;
 

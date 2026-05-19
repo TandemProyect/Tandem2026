@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Btn_New" xml:space="preserve">
+    <value>Nuevo tipo</value>
+  </data>
+  <data name="Col_Code" xml:space="preserve">
+    <value>Código</value>
+  </data>
+  <data name="Col_Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="Col_Extensions" xml:space="preserve">
+    <value>Extensiones</value>
+  </data>
+  <data name="Col_Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Col_State" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Common_Home" xml:space="preserve">
+    <value>Inicio</value>
+  </data>
+  <data name="Common_Settings" xml:space="preserve">
+    <value>Configuración</value>
+  </data>
+  <data name="Details_Field_Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="Details_Field_Code" xml:space="preserve">
+    <value>Código</value>
+  </data>
+  <data name="Details_Field_Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="Details_Field_Extensions" xml:space="preserve">
+    <value>Extensiones permitidas</value>
+  </data>
+  <data name="Details_Field_Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Details_NoBoolValue" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Details_NoExtensionsAssigned" xml:space="preserve">
+    <value>— Sin extensiones asociadas.</value>
+  </data>
+  <data name="Details_NoValue" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="Details_YesValue" xml:space="preserve">
+    <value>Sí</value>
+  </data>
+  <data name="Err_CannotDeleteHasDocuments" xml:space="preserve">
+    <value>No se puede eliminar: el tipo de documento tiene documentos asociados.</value>
+  </data>
+  <data name="Err_DocumentTypeNotFound" xml:space="preserve">
+    <value>Tipo de documento no encontrado.</value>
+  </data>
+  <data name="Ext_EmptyCatalog" xml:space="preserve">
+    <value>No hay extensiones de fichero registradas todavía. Crea al menos una en el catálogo de extensiones para poder asociarlas.</value>
+  </data>
+  <data name="Index_Breadcrumb" xml:space="preserve">
+    <value>Tipos de documento</value>
+  </data>
+  <data name="Index_CreateDocumentType" xml:space="preserve">
+    <value>Nuevo tipo</value>
+  </data>
+  <data name="Js_ConfirmDeleteDocumentType" xml:space="preserve">
+    <value>¿Eliminar este tipo de documento? (borrado lógico).</value>
+  </data>
+  <data name="Lbl_Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="Lbl_ActiveCheckbox" xml:space="preserve">
+    <value>Tipo activo</value>
+  </data>
+  <data name="Lbl_Code" xml:space="preserve">
+    <value>Código</value>
+  </data>
+  <data name="Lbl_Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="Lbl_Extensions" xml:space="preserve">
+    <value>Extensiones permitidas</value>
+  </data>
+  <data name="Lbl_NameRequired" xml:space="preserve">
+    <value>Nombre *</value>
+  </data>
+  <data name="List_LinkDeleteLockedDocumentsTooltip" xml:space="preserve">
+    <value>No se puede eliminar: el tipo de documento tiene documentos asociados.</value>
+  </data>
+  <data name="List_LinkDeleteTooltip" xml:space="preserve">
+    <value>Eliminar tipo de documento</value>
+  </data>
+  <data name="List_LinkEditTooltip" xml:space="preserve">
+    <value>Editar tipo de documento</value>
+  </data>
+  <data name="List_LinkOpenTooltip" xml:space="preserve">
+    <value>Ver tipo de documento</value>
+  </data>
+  <data name="List_NoExtensions" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="Page_CreateTitle" xml:space="preserve">
+    <value>Crear tipo de documento</value>
+  </data>
+  <data name="Page_DetailsTitle" xml:space="preserve">
+    <value>Detalle del tipo de documento</value>
+  </data>
+  <data name="Page_EditTitle" xml:space="preserve">
+    <value>Editar tipo de documento</value>
+  </data>
+  <data name="Ph_Code" xml:space="preserve">
+    <value>Ej.: PLA, FAC</value>
+  </data>
+  <data name="Ph_Description" xml:space="preserve">
+    <value>Descripción opcional del tipo de documento.</value>
+  </data>
+  <data name="Ph_ExtensionFilter" xml:space="preserve">
+    <value>Buscar extensión por nombre (.pdf, .dwg, ...)</value>
+  </data>
+  <data name="Ph_Name" xml:space="preserve">
+    <value>Ej.: Plano, Factura, Contrato</value>
+  </data>
+  <data name="State_Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="State_Inactive" xml:space="preserve">
+    <value>Inactivo</value>
+  </data>
+  <data name="ToastMessage_DocumentTypeCreated" xml:space="preserve">
+    <value>Tipo de documento &quot;{0}&quot; creado correctamente.</value>
+  </data>
+  <data name="ToastMessage_DocumentTypeDeleted" xml:space="preserve">
+    <value>Tipo de documento &quot;{0}&quot; eliminado correctamente.</value>
+  </data>
+  <data name="ToastMessage_DocumentTypeUpdated" xml:space="preserve">
+    <value>Tipo de documento &quot;{0}&quot; actualizado correctamente.</value>
+  </data>
+  <data name="ToastTitle_CreateDocumentType" xml:space="preserve">
+    <value>Crear tipo de documento</value>
+  </data>
+  <data name="ToastTitle_DeleteDocumentType" xml:space="preserve">
+    <value>Eliminar tipo de documento</value>
+  </data>
+  <data name="ToastTitle_EditDocumentType" xml:space="preserve">
+    <value>Editar tipo de documento</value>
+  </data>
+  <data name="Val_DuplicateCodeCreate" xml:space="preserve">
+    <value>Ya existe un tipo de documento con ese código.</value>
+  </data>
+  <data name="Val_DuplicateCodeEdit" xml:space="preserve">
+    <value>Ya existe otro tipo de documento con ese código.</value>
+  </data>
+  <data name="Val_NameRequired" xml:space="preserve">
+    <value>El nombre del tipo de documento es obligatorio.</value>
+  </data>
+</root>

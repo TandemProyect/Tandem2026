@@ -61,6 +61,20 @@ Donde la penúltima columna es acciones y la última es `SysObjectID` u oculta, 
 
 Ejemplos ya ajustados: `Employee/Index`, `DesignTools/Index`, `Country/Index`, `MasterArticles/Index`, `TSql_Company/Index`.
 
+### Lista intranet: columna única «Acciones»
+
+- **Una columna**: Editar, Eliminar y acciones similares van en **una sola** columna DataTables (`rowActions` en el JSON del servidor o HTML equivalente en `columns.render`). No partir cada icono en columnas distintas.
+- **Iconos agrupados con aire**: envolver los enlaces/botones en `d-inline-flex align-items-center gap-2` (o `gap-1` si el listado debe ir más compacto). **No usar `btn-group`** cuando los controles queden visualmente «pegados» sin espacio entre ellos (feedback recurrente): flex + `gap-*` mantiene el bloque cohesionado pero legible.
+- **Alineación**: opcional `text-end` en el `<th>` «Acciones» y la misma clase en la celda (`className` de la columna) para alinear el bloque a la derecha.
+
+**Referencia de implementación:** `LanguageController.ListLanguages` → propiedad `rowActions` en cada fila + `Views/Language/Index.cshtml` (columna `{ data: 'rowActions', … }`, cabecera `Acciones` con `text-end`).
+
+```html
+<div class="d-inline-flex align-items-center gap-2">
+  <!-- enlaces/iconos Editar, Eliminar, … -->
+</div>
+```
+
 ### `fnRowCallback` con `$('td:eq(N)')`
 
 Si ColReorder mueve columnas, **los índices DOM dejan de coincidir** con la columna lógica → iconos/textos en celdas equivocadas. Solución correcta: **`columns.render`** por columna (como en `Employee/Index` y `DesignTools/Index` para acciones/avatar). Mientras queden `td:eq`, no fiarse solo de `iFixedColumnsRight` en todas las pantallas.

@@ -1,0 +1,117 @@
+@model DAL.TSql_language
+@using Newtonsoft.Json
+@using Desing.Resources
+@{
+    var isEdit = ViewBag.IsEdit as bool? ?? false;
+    var countryI18n = JsonConvert.SerializeObject(new
+    {
+        ariaToggle = Language.Country_AriaToggle,
+        titleToggle = Language.Country_TitleToggle,
+        loading = Language.Country_Loading,
+        empty = Language.Country_Empty,
+        loadError = Language.Country_LoadError
+    });
+}
+
+@if (isEdit)
+{
+    @Html.HiddenFor(m => m.IdObject)
+}
+
+<div class="col-md-6">
+    <label class="form-label" for="TextLabel">@Language.Lbl_NameRequired</label>
+    @Html.TextBoxFor(m => m.TextLabel, new
+    {
+        @class = "form-control",
+        maxlength = "500",
+        required = "required",
+        placeholder = Language.Ph_Name
+    })
+    @Html.ValidationMessageFor(m => m.TextLabel, "", new { @class = "text-danger" })
+</div>
+
+<div class="col-md-6">
+    <label class="form-label" for="TextCode">@Language.Lbl_CodeRequired</label>
+    @Html.TextBoxFor(m => m.TextCode, new
+    {
+        @class = "form-control",
+        maxlength = "20",
+        required = "required",
+        placeholder = Language.Ph_Code,
+        autocomplete = "off"
+    })
+    @Html.ValidationMessageFor(m => m.TextCode, "", new { @class = "text-danger" })
+</div>
+
+<div class="col-md-6">
+    <label class="form-label" for="TextNativeName">@Language.Lbl_NativeName</label>
+    @Html.TextBoxFor(m => m.TextNativeName, new
+    {
+        @class = "form-control",
+        maxlength = "100",
+        placeholder = Language.Ph_NativeName
+    })
+    @Html.ValidationMessageFor(m => m.TextNativeName, "", new { @class = "text-danger" })
+</div>
+
+<div class="col-md-6" data-i18n='@Html.Raw(countryI18n)'>
+    <label class="form-label" for="LanguageCountryAutocomplete">@Language.Lbl_LinkCountry</label>
+    @Html.HiddenFor(m => m.LinkCountry)
+    <div class="input-group">
+        <input type="text"
+               id="LanguageCountryAutocomplete"
+               class="form-control"
+               autocomplete="off"
+               placeholder="@Language.Ph_CountrySearch" />
+        <div class="dropdown">
+            <button type="button"
+                    class="btn btn-outline-secondary"
+                    id="languageCountryCatalogToggle"
+                    data-bs-toggle="dropdown"
+                    data-bs-auto-close="outside"
+                    aria-expanded="false"
+                    aria-label="@Language.Country_AriaToggle"
+                    title="@Language.Country_TitleToggle">
+                <span class="fas fa-chevron-down" aria-hidden="true"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end tandem-country-catalog-menu py-1"
+                id="languageCountryCatalogMenu"
+                role="menu"
+                aria-labelledby="languageCountryCatalogToggle">
+            </ul>
+        </div>
+    </div>
+    @Html.ValidationMessageFor(m => m.LinkCountry, "", new { @class = "text-danger" })
+    <div class="d-flex align-items-center gap-2 mt-2 flex-wrap">
+        <img id="languageCountryFlagPreview" src="" alt="" width="28" height="20" class="rounded border d-none" style="object-fit:cover" />
+        <span id="languageCountryIsoPreview" class="fw-medium"></span>
+    </div>
+</div>
+
+<div class="col-md-6">
+    <label class="form-label">@Language.Lbl_State</label>
+    <div class="form-check mt-2">
+        @Html.CheckBoxFor(m => m.Is_Active, new { @class = "form-check-input" })
+        <label class="form-check-label" for="Is_Active">@Language.Lbl_ActiveCheckbox</label>
+    </div>
+</div>
+
+@if (isEdit)
+{
+    <div class="col-md-6">
+        <label class="form-label">@Language.Lbl_Default</label>
+        <div class="form-check mt-2">
+            @Html.CheckBoxFor(m => m.Is_Default, new { @class = "form-check-input" })
+            <label class="form-check-label" for="Is_Default">@Language.Lbl_DefaultCheckbox</label>
+        </div>
+        @Html.ValidationMessageFor(m => m.Is_Default, "", new { @class = "text-danger" })
+    </div>
+}
+else
+{
+    <div class="col-12">
+        <div class="alert alert-info mb-0 py-2">
+            @Html.Raw(Language.Info_NotDefaultOnCreate)
+        </div>
+    </div>
+}

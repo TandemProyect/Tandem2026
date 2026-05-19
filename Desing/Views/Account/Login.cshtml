@@ -1,8 +1,10 @@
 ﻿@using Desing.Models
+@using Desing.Resources
 @model LoginViewModel
 @{
     Layout = "~/Views/Shared/_LayoutMaterioBlank.cshtml";
-    ViewBag.Title = "Iniciar sesion - " + (ViewBag.PlantillaBrandText as string ?? "T Desing.net");
+    var brandText = (ViewBag.PlantillaBrandText as string) ?? Common.App_BrandFallback;
+    ViewBag.Title = Common.Login_PageTitle + " - " + brandText;
 }
 <div class="position-relative">
     <div class="authentication-wrapper authentication-basic container-p-y">
@@ -29,16 +31,16 @@
                 </div>
 
                 <div class="card-body mt-1">
-                    <h4 class="mb-1">Bienvenido a @(ViewBag.PlantillaBrandText ?? "T Desing.net")</h4>
-                    <p class="mb-5">Inicia sesion para acceder a tu espacio de trabajo</p>
+                    <h4 class="mb-1">@string.Format(Common.Login_Welcome, brandText)</h4>
+                    <p class="mb-5">@Common.Login_Subtitle</p>
 
                     @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { id = "formAuthentication", @class = "mb-5", role = "form" }))
                     {
                         @Html.AntiForgeryToken()
 
                         <div class="form-floating form-floating-outline mb-5 form-control-validation">
-                            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", id = "email", placeholder = "Email", autofocus = "autofocus" })
-                            <label for="email">Email</label>
+                            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", id = "email", placeholder = Common.Login_Lbl_Email, autofocus = "autofocus" })
+                            <label for="email">@Common.Login_Lbl_Email</label>
                         </div>
                         @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small d-block mb-3" })
 
@@ -46,10 +48,10 @@
                             <div class="form-password-toggle form-control-validation">
                                 <div class="input-group input-group-merge">
                                     <div class="form-floating form-floating-outline">
-                                        @Html.PasswordFor(m => m.Password, new { @class = "form-control", id = "password", placeholder = "Password" })
-                                        <label for="password">Password</label>
+                                        @Html.PasswordFor(m => m.Password, new { @class = "form-control", id = "password", placeholder = Common.Login_Lbl_Password })
+                                        <label for="password">@Common.Login_Lbl_Password</label>
                                     </div>
-                                    <button type="button" class="input-group-text cursor-pointer" id="togglePassword" aria-label="Mostrar u ocultar contrase&#241;a" aria-pressed="false">
+                                    <button type="button" class="input-group-text cursor-pointer" id="togglePassword" aria-label="@Common.Aria_TogglePassword" aria-pressed="false">
                                         <i class="icon-base ri ri-eye-off-line icon-20px"></i>
                                     </button>
                                 </div>
@@ -65,15 +67,15 @@
                         <div class="mb-5 pb-2 d-flex justify-content-between pt-2 align-items-center">
                             <div class="form-check mb-0">
                                 @Html.CheckBoxFor(m => m.RememberMe, new { @class = "form-check-input", id = "remember-me" })
-                                <label class="form-check-label" for="remember-me">Recordarme</label>
+                                <label class="form-check-label" for="remember-me">@Common.Login_Lbl_RememberMe</label>
                             </div>
                             <a href="@Url.Action("ForgotPassword", "Account")" class="float-end mb-1">
-                                <span>Olvide mi contrasena?</span>
+                                <span>@Common.Login_Link_ForgotPassword</span>
                             </a>
                         </div>
 
                         <div class="mb-5">
-                            <button class="btn btn-primary d-grid w-100" type="submit">Entrar</button>
+                            <button class="btn btn-primary d-grid w-100" type="submit">@Common.Login_Btn_SignIn</button>
                         </div>
                     }
                 </div>

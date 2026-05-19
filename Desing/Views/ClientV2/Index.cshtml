@@ -1,28 +1,52 @@
+@using Newtonsoft.Json
+@using Desing.Resources
+@using System.Globalization
 @{
-    ViewBag.Title = "Clientes V2";
+    ViewBag.Title = ClientV2.Index_Breadcrumb;
+    var ci = CultureInfo.CurrentUICulture?.TwoLetterISOLanguageName ?? "es";
+    var clientV2Dt = JsonConvert.SerializeObject(new
+    {
+        culture = ci,
+        rowsSuffix = ClientV2.Dt_Rows_N,
+        allRows = ClientV2.Dt_Rows_All,
+        sectionRecords = ClientV2.Dt_Section_Records,
+        sectionExport = ClientV2.Dt_Section_Export,
+        sectionCols = ClientV2.Dt_Section_ColumnsVisible,
+        confirmDeleteClient = ClientV2.Js_ConfirmDeleteClient,
+        ariaMenu = ClientV2.Dt_MenuAria
+    });
 }
+
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="py-3 mb-0">
-        <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">Inicio</a> / Intranet /</span> Clientes V2
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@ClientV2.Common_Home</a> /
+            @ClientV2.Common_Intranet /
+        </span> @ClientV2.Index_Breadcrumb
     </h4>
-    <a class="btn btn-primary" href="@Url.Action("Create")">
-        <i class="icon-base ri ri-add-line me-1"></i> Nuevo cliente
+    <a class="btn btn-primary text-white" href="@Url.Action("Create", "ClientV2")">
+        <i class="icon-base ri ri-add-line me-1"></i> @ClientV2.Index_CreateClient
     </a>
 </div>
+
 @if (!string.IsNullOrEmpty(TempData["ToastMessage"] as string))
 {
     <div class="alert alert-success">@TempData["ToastMessage"]</div>
 }
+
 <div class="card mb-4">
     <div class="card-body" style="padding:5px">
         <table id="ListClientV2" class="table table-hover" cellspacing="0" style="width: 100%">
             <thead>
                 <tr>
-                    <th>Nombre</th>
-                    <th>Código</th>
-                    <th>Logo</th>
-                    <th>Estado</th>
-                    <th></th>
+                    <th>@ClientV2.Col_Name</th>
+                    <th>@ClientV2.Col_Code</th>
+                    <th>@ClientV2.Col_TaxId</th>
+                    <th>@ClientV2.Col_Email</th>
+                    <th>@ClientV2.Col_Phone</th>
+                    <th>@ClientV2.Col_Logo</th>
+                    <th>@ClientV2.Col_State</th>
+                    <th class="text-end text-nowrap" style="width:1%;"></th>
                     <th>ID</th>
                 </tr>
             </thead>
@@ -30,29 +54,90 @@
     </div>
 </div>
 
-@section scripts {
+@section scripts
+{
     <script type="text/javascript">
-        function deleteClientV2(id) {
-            if (!confirm('¿Eliminar este cliente?')) return;
-            $.post('@Url.Action("DeleteClientV2")', { id: id }, function (r) {
-                alert(r.Message);
-                if (r.IsOk) $('#ListClientV2').DataTable().ajax.reload();
-            });
-        }
+        var clientV2Dt = @Html.Raw(clientV2Dt);
+        var clientV2ExportOpts = TandemDataTablesList.exportOptsPlainVisible;
+
         $(document).ready(function () {
             $('#ListClientV2').DataTable(TandemDataTablesList.applyListDefaults({
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    ['10 ' + clientV2Dt.rowsSuffix, '25 ' + clientV2Dt.rowsSuffix, '50 ' + clientV2Dt.rowsSuffix, clientV2Dt.allRows]
+                ],
+                buttons: [{
+                    extend: 'collection',
+                    text: "<i class='fas fa-bars'></i>",
+                    attr: { 'aria-label': clientV2Dt.ariaMenu },
+                    className: 'custom-html-collection',
+                    buttons: [
+                        '<h5>' + clientV2Dt.sectionRecords + '</h5>',
+                        'pageLength',
+                        '<h5>' + clientV2Dt.sectionExport + '</h5>',
+                        'print',
+                        'copy',
+                        'pdf',
+                        { extend: 'csv', exportOptions: clientV2ExportOpts },
+                        { extend: 'excel', exportOptions: clientV2ExportOpts },
+                        '<h5 class="not-top-heading">' + clientV2Dt.sectionCols + '</h5>',
+                        'colvis'
+                    ]
+                }],
                 serverSide: true,
                 processing: true,
-                ajax: { url: '@Url.Action("ListClientV2")', type: 'POST' },
+                colReorder: { iFixedColumnsRight: 2 },
+                ajax: {
+                    url: '@Url.Action("ListClientV2", "ClientV2")',
+                    type: 'POST'
+                },
+                order: [[0, 'asc']],
                 columns: [
-                    { data: 'TextLabel', name: 'TextLabel' },
+                    {
+                        data: 'TextLabel',
+                        name: 'TextLabel',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.TextLabelPlain || '';
+                            }
+                            return data;
+                        }
+                    },
                     { data: 'TextCode', name: 'TextCode' },
-                    { data: 'logoPreview', orderable: false, searchable: false },
-                    { data: 'activeBadge', name: 'Is_Active' },
-                    { data: 'buttonEdit', orderable: false, searchable: false },
+                    { data: 'TextTaxId', name: 'TextTaxId' },
+                    { data: 'TextEmail', name: 'TextEmail' },
+                    { data: 'TextPhone', name: 'TextPhone' },
+                    { data: 'logoPreview', name: 'Path_Logo', orderable: false, searchable: false },
+                    { data: 'activeBadge', name: 'Is_Active', orderable: true, searchable: false },
+                    {
+                        data: 'rowActions',
+                        orderable: false,
+                        searchable: false,
+                        className: 'tandem-col-actions text-end align-middle text-nowrap'
+                    },
                     { data: 'IdObject', visible: false }
-                ]
+                ],
+                drawCallback: function () {
+                    $('[data-toggle="tooltip"]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto right'
+                    });
+                    $('[title]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto'
+                    });
+                }
             }));
         });
+
+        window.DeleteClientV2 = function (id) {
+            if (!confirm(clientV2Dt.confirmDeleteClient)) return;
+            $.post('@Url.Action("DeleteClientV2", "ClientV2")', { id: id }, function (res) {
+                if (res && res.Message) { alert(res.Message); }
+                if (res && res.IsOk) {
+                    $('#ListClientV2').DataTable().ajax.reload(null, false);
+                }
+            });
+        };
     </script>
 }

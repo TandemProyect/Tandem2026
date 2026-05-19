@@ -1,0 +1,79 @@
+@using Desing.Helpers
+@using Desing.Models
+@using Desing.Resources
+@model IEnumerable<LanguageNavItem>
+@{
+    var items = Model != null ? Model.ToList() : new List<LanguageNavItem>();
+    var locked = ViewBag.TandemLanguageSwitcherLocked as bool? == true;
+    var current = ViewBag.TandemLanguageCurrent as LanguageNavItem ?? items.FirstOrDefault();
+    var currentLabel = current != null ? (current.TextLabel ?? current.TextCode ?? "").Trim() : "";
+    var returnUrl = Request.RawUrl;
+    var lockedTitle = string.IsNullOrEmpty(currentLabel)
+        ? Common.LanguageSwitcher_LockedSuffix
+        : currentLabel + " " + Common.LanguageSwitcher_LockedSuffix;
+}
+
+@helper FlagCell(LanguageNavItem row)
+{
+    var v = LanguageUiHelper.NormalizeCountryFlagVirtualPath(row != null ? row.TextFlagRaw : null);
+    if (string.IsNullOrEmpty(v))
+    {
+        <i class="icon-base ri ri-translate-2 icon-md text-body-secondary d-inline-flex align-items-center justify-content-center" style="width:22px;height:16px" title=""></i>
+    }
+    else
+    {
+        <img src="@Url.Content(v)" alt="" width="22" height="16" class="rounded border flex-shrink-0" style="object-fit:cover"
+             onerror="this.style.display='none';var i=this.nextElementSibling;if(i)i.classList.remove('d-none');" />
+        <i class="icon-base ri ri-translate-2 icon-md text-body-secondary d-none d-inline-flex align-items-center justify-content-center" style="width:22px;height:16px"></i>
+    }
+}
+
+@if (locked && current != null)
+{
+    <li class="nav-item navbar-dropdown dropdown-language dropdown me-2 me-md-3">
+        <span class="nav-link d-flex align-items-center gap-1 py-0" title="@lockedTitle">
+            @FlagCell(current)
+            <span class="d-none d-sm-inline small text-body">@(current.TextCode ?? "")</span>
+            <small class="text-muted ms-1 d-none d-md-inline">@Common.LanguageSwitcher_LockedBadge</small>
+        </span>
+    </li>
+}
+else
+{
+    if (items.Count == 0)
+    {
+        return;
+    }
+
+    <li class="nav-item navbar-dropdown dropdown-language dropdown me-2 me-md-3">
+        <a class="nav-link dropdown-toggle hide-arrow d-flex align-items-center gap-1 py-0" href="javascript:void(0);" data-bs-toggle="dropdown" title="@currentLabel" aria-label="@Common.Aria_LanguageSwitcher">
+            @FlagCell(current)
+            <span class="d-none d-sm-inline small text-body">@(current?.TextCode ?? "")</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end mt-2 py-2">
+            @foreach (var lang in items)
+            {
+                <li>
+                    <form method="post" action="@Url.Action("SetCulturePost", "UiLanguage")" style="display:contents" autocomplete="off">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="c" value="@lang.TextCode" />
+                        <input type="hidden" name="id" value="@lang.IdObject" />
+                        <input type="hidden" name="returnUrl" value="@returnUrl" />
+                        <button type="submit" class="dropdown-item d-flex align-items-center gap-2 border-0 bg-transparent w-100 text-start px-3 py-2">
+                            @FlagCell(lang)
+                            <span class="flex-grow-1">@lang.TextLabel</span>
+                            @if (lang.IsDefault)
+                            {
+                                <span class="badge bg-label-primary fs-tiny">@lang.TextCode</span>
+                            }
+                            else
+                            {
+                                <small class="text-body-secondary">@lang.TextCode</small>
+                            }
+                        </button>
+                    </form>
+                </li>
+            }
+        </ul>
+    </li>
+}
