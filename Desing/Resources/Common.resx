@@ -19,6 +19,9 @@
   <data name="Account_Err_UserNotRegistered" xml:space="preserve">
     <value>El usuario no está registrado.</value>
   </data>
+  <data name="Action_OpenList" xml:space="preserve">
+    <value>Ver listado completo</value>
+  </data>
   <data name="App_BrandFallback" xml:space="preserve">
     <value>T Desing.net</value>
   </data>
@@ -222,6 +225,9 @@
   </data>
   <data name="Google_Title" xml:space="preserve">
     <value>Dirección</value>
+  </data>
+  <data name="Home_PageHeading" xml:space="preserve">
+    <value>Panel</value>
   </data>
   <data name="LanguageSwitcher_LockedBadge" xml:space="preserve">
     <value>Empresa</value>

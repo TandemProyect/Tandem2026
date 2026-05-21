@@ -87,6 +87,40 @@ namespace Desing.Models
     }
 
     /// <summary>
+    /// Cliente (TSql_Client_V2): mismas columnas Loc_* que en <see cref="TSql_Company"/>.
+    /// </summary>
+    public static GooglePlacesAddressBlockModel FromClientV2(TSql_Client_V2 model, string prefix, string title)
+    {
+      if (model == null) throw new ArgumentNullException(nameof(model));
+      if (string.IsNullOrEmpty(prefix)) throw new ArgumentException("prefix required", nameof(prefix));
+
+      var isLoc = string.Equals(prefix, "Loc", StringComparison.OrdinalIgnoreCase);
+      if (!isLoc)
+        throw new ArgumentException("TSql_Client_V2 solo usa columnas Loc_*; el prefijo debe ser Loc.", nameof(prefix));
+
+      return new GooglePlacesAddressBlockModel
+      {
+        Prefix = prefix,
+        MapElementId = prefix + "AddressMap",
+        Title = title ?? "Dirección",
+        Place_Id = model.Loc_Place_Id,
+        Formatted_Address = model.Loc_Formatted_Address,
+        Lat = model.Loc_Lat,
+        Lng = model.Loc_Lng,
+        Street_Number = model.Loc_Street_Number,
+        Route = model.Loc_Route,
+        Subpremise = model.Loc_Subpremise,
+        Locality = model.Loc_Locality,
+        Admin_Area_1 = model.Loc_Admin_Area_1,
+        Admin_Area_2 = model.Loc_Admin_Area_2,
+        Postal_Code = model.Loc_Postal_Code,
+        Country_Code = model.Loc_Country_Code,
+        Country_Name = model.Loc_Country_Name,
+        Address_Components_Json = model.Loc_Address_Components_Json
+      };
+    }
+
+    /// <summary>
     /// Sede (TSql_Branch): mismas columnas Loc_* que en <see cref="TSql_Company"/>.
     /// </summary>
     /// <param name="prefix">Prefijo HTML (<c>Loc</c>, <c>BrLoc</c>, …). Los datos siempre leen/escriben columnas <c>Loc_*</c> de la sede.</param>

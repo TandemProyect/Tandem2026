@@ -41,6 +41,10 @@
 
 
 
+    bool isOfferStateController = currentController.Equals("OfferState", StringComparison.OrdinalIgnoreCase);
+
+
+
     bool isUiTranslationController = currentController.Equals("UiTranslation", StringComparison.OrdinalIgnoreCase);
 
 
@@ -63,7 +67,7 @@
 
         IconClass = "ri ri-settings-3-line",
 
-        IsOpen = isDocumentTypeController || isExtensionController || isUiTranslationController || isLanguageController || isCountryController,
+        IsOpen = isDocumentTypeController || isExtensionController || isOfferStateController || isUiTranslationController || isLanguageController || isCountryController,
 
         Children = new List<SidebarMenuChildItem>
 
@@ -86,6 +90,16 @@
                 Controller = "Extension",
 
                 Text = UiCommon("Menu.Extensions", "Extensiones")
+
+            },
+
+            new SidebarMenuChildItem
+
+            {
+
+                Controller = "OfferState",
+
+                Text = UiCommon("Menu.OfferStates", "Estados de oferta")
 
             },
 

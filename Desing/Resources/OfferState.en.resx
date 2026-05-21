@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Col_Color" xml:space="preserve">
+    <value>Color</value>
+  </data>
+  <data name="Col_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Col_State" xml:space="preserve">
+    <value>State</value>
+  </data>
+  <data name="Common_Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Common_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Details_Field_Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Details_Field_Color" xml:space="preserve">
+    <value>Color</value>
+  </data>
+  <data name="Details_Field_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Details_NoColor" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="Err_CannotDeleteHasOffers" xml:space="preserve">
+    <value>Cannot delete: offers are using this state.</value>
+  </data>
+  <data name="Err_OfferStateNotFound" xml:space="preserve">
+    <value>Offer state not found.</value>
+  </data>
+  <data name="Index_Breadcrumb" xml:space="preserve">
+    <value>Offer states</value>
+  </data>
+  <data name="Index_CreateOfferState" xml:space="preserve">
+    <value>New offer state</value>
+  </data>
+  <data name="Js_ConfirmDeleteOfferState" xml:space="preserve">
+    <value>Delete this offer state? (soft delete).</value>
+  </data>
+  <data name="Lbl_Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Lbl_ActiveCheckbox" xml:space="preserve">
+    <value>Active state</value>
+  </data>
+  <data name="Lbl_Color" xml:space="preserve">
+    <value>Color</value>
+  </data>
+  <data name="Lbl_ColorPickerTitle" xml:space="preserve">
+    <value>Pick color</value>
+  </data>
+  <data name="Lbl_NameRequired" xml:space="preserve">
+    <value>Name *</value>
+  </data>
+  <data name="List_LinkDeleteLockedOffersTooltip" xml:space="preserve">
+    <value>Cannot delete: offers are using this state.</value>
+  </data>
+  <data name="List_LinkDeleteTooltip" xml:space="preserve">
+    <value>Delete offer state</value>
+  </data>
+  <data name="List_LinkEditTooltip" xml:space="preserve">
+    <value>Edit offer state</value>
+  </data>
+  <data name="List_LinkOpenTooltip" xml:space="preserve">
+    <value>Open offer state</value>
+  </data>
+  <data name="Page_CreateTitle" xml:space="preserve">
+    <value>Create offer state</value>
+  </data>
+  <data name="Page_DetailsTitle" xml:space="preserve">
+    <value>Offer state details</value>
+  </data>
+  <data name="Page_EditTitle" xml:space="preserve">
+    <value>Edit offer state</value>
+  </data>
+  <data name="Ph_ColorHex" xml:space="preserve">
+    <value>#RRGGBB</value>
+  </data>
+  <data name="Ph_Name" xml:space="preserve">
+    <value>E.g.: Sent, Accepted, Rejected</value>
+  </data>
+  <data name="State_Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="State_Inactive" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  <data name="ToastMessage_OfferStateCreated" xml:space="preserve">
+    <value>Offer state &quot;{0}&quot; created successfully.</value>
+  </data>
+  <data name="ToastMessage_OfferStateDeleted" xml:space="preserve">
+    <value>Offer state &quot;{0}&quot; deleted successfully.</value>
+  </data>
+  <data name="ToastMessage_OfferStateUpdated" xml:space="preserve">
+    <value>Offer state &quot;{0}&quot; updated successfully.</value>
+  </data>
+  <data name="ToastTitle_CreateOfferState" xml:space="preserve">
+    <value>Create offer state</value>
+  </data>
+  <data name="ToastTitle_DeleteOfferState" xml:space="preserve">
+    <value>Delete offer state</value>
+  </data>
+  <data name="ToastTitle_EditOfferState" xml:space="preserve">
+    <value>Edit offer state</value>
+  </data>
+  <data name="Val_ColorInvalidHex" xml:space="preserve">
+    <value>If you set a color, use HEX format: #RGB or #RRGGBB (e.g. #28a745).</value>
+  </data>
+  <data name="Val_DuplicateNameCreate" xml:space="preserve">
+    <value>An offer state with this name already exists.</value>
+  </data>
+  <data name="Val_DuplicateNameEdit" xml:space="preserve">
+    <value>Another offer state already uses this name.</value>
+  </data>
+  <data name="Val_NameRequired" xml:space="preserve">
+    <value>Offer state name is required.</value>
+  </data>
+  <data name="Val_NameTooLong" xml:space="preserve">
+    <value>Name cannot exceed 500 characters.</value>
+  </data>
+</root>

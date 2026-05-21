@@ -1,9 +1,9 @@
 @model DAL.TSql_Jobside
 @using Desing.Models
 @using Desing.Resources
-@using System.Configuration
+@using Desing.Helpers
 @{
-    var mapsKey = ConfigurationManager.AppSettings["GoogleMaps:ApiKey"] ?? "";
+    var mapsKey = GoogleMapsConfigHelper.GetApiKey();
     var isNew = Model == null || Model.IdObject == 0;
 }
 

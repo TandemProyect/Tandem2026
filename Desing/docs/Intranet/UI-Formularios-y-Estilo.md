@@ -32,6 +32,8 @@ Patrón usado en **ClientV2**, **Jobside** y **DocumentType** (referencia para n
 
 Las vistas Intranet usan el layout Materio (vía `_ViewStart` o equivalente del área). El color de marca llega por `ViewBag.PlantillaColor` y el parcial **`_PlantillaStyles.cshtml`** (incluido en `_LayoutMaterio.cshtml`).
 
+El contenedor `@RenderBody()` (`_LayoutMaterio.cshtml`) lleva **`tandem-layout-main-scroll`**; con `html.tandem-intranet-chrome`, `site.css` acota **`html`** y **`body`** con **`overflow: hidden`** y aplica **`flex: 1 1 0%`**, **`min-height: 0`** y **`overflow-y: auto`** en esa zona (**`scrollbar-gutter: stable`**; **`overscroll-behavior-y: contain`**) dentro de la cadena **`layout-page` / `content-wrapper`**. El contenido usa flujo bloque dentro del área scrollable por defecto (sin **`display: flex`** en esa columna) para una sola zona de scroll fiable con la rueda; solo **`flex-basis: auto`** en la cadena haría que el área creciera con el contenido y **`body`** recortaría sin scrollbar útil. Las pantallas con **`.tandem-dt-list-page`**, **`.tandem-jobside-workspace`** o **`.tandem-desing2-stl-viewport`** reactivan **`display: flex`** y **`overflow: hidden`** ahí para delegar el scroll internamente. Detalle y diagnóstico: [intranet-scroll-layout.md](./intranet-scroll-layout.md).
+
 ---
 
 ## 2. Campos de entidad y auditoría
@@ -189,6 +191,21 @@ Usar siempre **`class="form-label"`** en `<label>` (no depender del gris por def
 | Select FK | `form-select` + `DropDownListFor` con `ViewBag` poblado en el controlador |
 | Validación | `@Html.ValidationMessageFor(..., "", new { @class = "text-danger" })` |
 
+### Color (HEX) — selector nativo + cuadro de texto
+
+Para **un único color guardado como HEX** (`#RGB` o `#RRGGBB`), usar siempre el mismo patrón que **Plantilla** (`_PlantillaFormFields.cshtml`, color principal) y **OfferState** (`_OfferStateFormFields.cshtml`):
+
+1. **Marcado**
+   - `<input type="color" id="…Picker" class="form-control form-control-color p-1" style="width:3.25rem;height:2.5rem" title="…" />`
+   - `@Html.TextBoxFor(m => m.CampoHex, new { id = "…Text", maxlength = "7", autocomplete = "off", placeholder = … })`
+   - Ambos en `div.d-flex.align-items-center.gap-2` bajo una única `form-label` ligada al campo de texto (`for` del id del TextBox).
+2. **Valor inicial del picker** — `<input type="color">` solo acepta HEX válido. Si el modelo tiene vacío o valor no HEX, usar fallback **`#808080`** en el picker y el texto muestra el valor real del modelo (cuando no es HEX válido, el usuario puede corregirlo).
+3. **JavaScript** — script dedicado del módulo (p. ej. `Scripts/Intranet/offerstate-form.js`) o la lógica equivalente en `plantilla-form.js`: en `input`/`change` del picker copiar a texto; si el texto coincide con `^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$`, actualizar el picker. Incluir el script en **Create** y **Edit** tras `jqueryval`.
+4. **Servidor** — validar opcional: vacío permitido; si no vacío, `^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$` (misma regla que `OfferStateController.HexColorRegex`).
+5. **Sin texto de ayuda gris** bajo el campo (regla general § siguiente); el `title` del picker puede sustituir ayuda breve.
+
+Referencias en código: `Views/Plantilla/_PlantillaFormFields.cshtml` (varios colores + vista previa), `Views/OfferState/_OfferStateFormFields.cshtml` (un color), `Scripts/Intranet/plantilla-form.js`, `Scripts/Intranet/offerstate-form.js`.
+
 ### Prohibido: texto de ayuda gris bajo campos
 
 **No** añadir:
@@ -197,7 +214,7 @@ Usar siempre **`class="form-label"`** en `<label>` (no depender del gris por def
 - `<small class="text-muted">…</small>` bajo inputs
 - `help-block` / hints decorativos
 
-La UI debe quedar limpia: etiqueta + control + solo mensaje de validación en rojo si aplica. Excepciones: **alertas** de configuración (p. ej. Google Maps sin clave) o **avisos de error** del bloque de dirección (`alert-warning`), no ayuda por campo.
+La UI debe quedar limpia: etiqueta + control + solo mensaje de validación en rojo si aplica. Excepciones: **alertas** de configuración (p. ej. Google Maps sin clave) o **avisos de error** del bloque de dirección (`alert-warning`), no ayuda por campo. **Plantilla** puede incluir `<small class="text-muted">` en campos de marca/logo por decisión histórica; **no** replicar ese patrón en módulos nuevos salvo necesidad explícita de producto.
 
 ### Checkboxes (`Is_Active`, flags)
 

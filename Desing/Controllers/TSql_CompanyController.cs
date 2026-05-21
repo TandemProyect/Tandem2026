@@ -65,7 +65,7 @@ namespace Desing.Controllers
                         AttLabel = br.AttLabel,
                         AttDescription = br.AttDescription,
                         AddLetter = br.AddLetter,
-                        Attcolor = br.Attcolor
+                        Attcolor = br.AttColor
                     });
 
                 var totalCount = query.Count();
@@ -511,7 +511,7 @@ namespace Desing.Controllers
                 AttDescription = string.IsNullOrWhiteSpace(attDescription) ? null : attDescription.Trim(),
                 LinCompany = companyId,
                 AddLetter = NormalizeBranchAddLetter(addLetter),
-                Attcolor = normColor,
+                AttColor = normColor,
                 LinCreatedBy = userId,
                 LinModifiedBy = userId,
                 AttCreated = now,
@@ -580,7 +580,7 @@ namespace Desing.Controllers
             branch.AttLabel = attLabel.Trim();
             branch.AttDescription = string.IsNullOrWhiteSpace(attDescription) ? null : attDescription.Trim();
             branch.AddLetter = NormalizeBranchAddLetter(addLetter);
-            branch.Attcolor = normColor;
+            branch.AttColor = normColor;
             ApplyBranchGoogleLoc(
                 branch,
                 Loc_Place_Id,
@@ -640,7 +640,7 @@ namespace Desing.Controllers
                                     AttLabel = br.AttLabel,
                                     AttDescription = br.AttDescription,
                                     AddLetter = br.AddLetter,
-                                    Attcolor = br.Attcolor,
+                                    Attcolor = br.AttColor,
                                     Loc_Place_Id = br.Loc_Place_Id,
                                     Loc_Formatted_Address = br.Loc_Formatted_Address,
                                     Loc_Lat = br.Loc_Lat,

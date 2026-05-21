@@ -1,0 +1,66 @@
+@model DAL.TSql_OfferState
+@using Desing.Resources
+@using System.Text.RegularExpressions
+@{
+    ViewBag.Title = Model.TextLabel;
+    var hexOk = !string.IsNullOrWhiteSpace(Model.AddColor)
+        && Regex.IsMatch(Model.AddColor.Trim(), "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$");
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@OfferState.Common_Home</a> /
+            @OfferState.Common_Settings /
+            <a href="@Url.Action("Index", "OfferState")">@OfferState.Index_Breadcrumb</a> /
+        </span> @Model.TextLabel
+    </h4>
+    <a class="btn btn-warning" href="@Url.Action("Edit", "OfferState", new { id = Model.IdObject })">
+        <i class="icon-base ri ri-pencil-line me-1"></i> @Common.Btn_Edit
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">@OfferState.Details_Field_Name</dt>
+            <dd class="col-sm-9">@Model.TextLabel</dd>
+
+            <dt class="col-sm-3">@OfferState.Details_Field_Color</dt>
+            <dd class="col-sm-9">
+                @if (string.IsNullOrWhiteSpace(Model.AddColor))
+                {
+                    <span class="text-muted">@OfferState.Details_NoColor</span>
+                }
+                else if (hexOk)
+                {
+                    var css = Model.AddColor.Trim();
+                    <span class="d-inline-block rounded border me-2 align-middle"
+                          style="width:22px;height:22px;background-color:@css;vertical-align:middle"></span>
+                    <span class="align-middle">@Model.AddColor</span>
+                }
+                else
+                {
+                    @Model.AddColor
+                }
+            </dd>
+
+            <dt class="col-sm-3">@OfferState.Details_Field_Active</dt>
+            <dd class="col-sm-9">
+                @if (Model.Is_Active)
+                {
+                    <span class="badge bg-label-success">@OfferState.State_Active</span>
+                }
+                else
+                {
+                    <span class="badge bg-label-secondary">@OfferState.State_Inactive</span>
+                }
+            </dd>
+        </dl>
+    </div>
+</div>
+
+@if (ViewBag.Audit != null)
+{
+    @Html.Partial("_IntranetAuditSection", (Desing.Models.IntranetAuditDisplayModel)ViewBag.Audit)
+}

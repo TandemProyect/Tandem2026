@@ -1,0 +1,350 @@
+using DAL;
+
+using Desing.Helpers;
+
+using Desing.Models;
+
+using Desing.Resources;
+
+using System;
+
+using System.Collections.Generic;
+
+using System.Data.Entity;
+
+using System.Globalization;
+
+using System.IO;
+
+using System.Linq;
+
+using System.Web.Mvc;
+
+
+
+namespace Desing.Controllers
+
+{
+
+    /// <summary>
+
+    /// Espacio de diseño «v2» (visor Three.js / STL). La edición de diseño creado desde la oferta puede redirigir aquí con el STL correspondiente.
+
+    /// </summary>
+
+    [Authorize]
+
+    public class Desing_2Controller : BaseController
+
+    {
+
+        /// <summary>
+
+        /// Visor STL (misma pieza DOM y script que Artículos maestros).
+
+        /// Query opcional: <paramref name="stlUrl"/> (virtual ~/…), <paramref name="offerId"/>, <paramref name="designId"/>.
+
+        /// Sin STL la escena arranca vacía; con <paramref name="autoLoad"/> = 1 y STL válido se carga al iniciar (enlaces desde la oferta).
+
+        /// </summary>
+
+        public ActionResult Viewer(string stlUrl, long? offerId, long? designId, int? autoLoad)
+
+        {
+
+            string resolvedContentUrl = null;
+
+            if (!string.IsNullOrWhiteSpace(stlUrl))
+
+            {
+
+                var virt = ApplicationStlUrlHelper.TryGetTrustedStlVirtualPath(stlUrl);
+
+                if (virt == null)
+
+                {
+
+                    return HttpNotFound();
+
+                }
+
+
+
+                resolvedContentUrl = Url.Content(virt);
+
+            }
+
+
+
+            var auto = autoLoad == 1 && !string.IsNullOrEmpty(resolvedContentUrl);
+
+
+
+            var statusFooter = auto
+
+                ? Jobside.OfferWorkspace_Designs_ViewerAutoLoadPending
+
+                : Jobside.OfferWorkspace_Designs_ViewerCanvasEmpty;
+
+
+
+            var model = new Desing2ViewerPageModel
+
+            {
+
+                TextColor1Hex = "#efdf34",
+
+                TextColor2Hex = "#a18c8c",
+
+                InitialStlUrl = resolvedContentUrl,
+
+                InitialStlLabel = offerId.HasValue
+
+                    ? "Diseño — oferta " + offerId.Value.ToString(CultureInfo.InvariantCulture)
+
+                    : "Planta 3D",
+
+                AutoLoadInitialStl = auto,
+
+                InitialStatusFooter = statusFooter,
+
+                OfferId = offerId,
+
+                DesignId = designId,
+
+                BrandLogoUrl = ResolvePlantillaLogoUrl(Url, ViewBag.PlantillaLogo as string)
+
+            };
+
+
+
+            FillOfferDesignContext(model, offerId, designId);
+
+            TryAttachDevSampleStlForEmptyViewer(model);
+
+
+
+            ViewBag.BodyHtmlClass = "desing2-stl-fullpage";
+
+
+
+            return View(model);
+
+        }
+
+
+
+        private static string ResolvePlantillaLogoUrl(UrlHelper url, string plantillaLogoRaw)
+
+        {
+
+            var plantillaLogo = string.IsNullOrWhiteSpace(plantillaLogoRaw)
+
+                ? "/Content/images/Login/at.png"
+
+                : plantillaLogoRaw.Trim();
+
+            if (plantillaLogo.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+
+                || plantillaLogo.StartsWith("//", StringComparison.Ordinal))
+
+            {
+
+                return plantillaLogo;
+
+            }
+
+
+
+            return url.Content("~" + (plantillaLogo.StartsWith("/") ? plantillaLogo : "/" + plantillaLogo));
+
+        }
+
+
+
+        /// <summary>
+
+        /// Rellena <see cref="Desing2ViewerPageModel.ContextSubtitleLine"/> con obra / oferta / diseño si hay ids válidos en BD.
+
+        /// </summary>
+
+        private void FillOfferDesignContext(Desing2ViewerPageModel model, long? offerId, long? designId)
+
+        {
+
+            string jobsideCode = null;
+
+            string offerNumber = null;
+
+            string offerName = null;
+
+            string designPart = null;
+
+
+
+            if (offerId.HasValue)
+
+            {
+
+                var offer = db.TSql_Offers.AsNoTracking().FirstOrDefault(o => o.IdObject == offerId.Value && !o.Is_Delete);
+
+                if (offer != null)
+
+                {
+
+                    offerNumber = offer.AddOfferNumber;
+
+                    offerName = offer.TextLabel;
+
+                    var js = db.TSql_Jobside.AsNoTracking().FirstOrDefault(j => j.IdObject == offer.LinkJobside && !j.Is_Delete);
+
+                    if (js != null)
+
+                    {
+
+                        jobsideCode = js.AddNJobside;
+
+                    }
+
+                }
+
+            }
+
+
+
+            if (designId.HasValue)
+
+            {
+
+                if (offerId.HasValue)
+
+                {
+
+                    var d = db.TSql_Design_V2.AsNoTracking().FirstOrDefault(x =>
+
+                        x.SysObjectID == designId.Value && x.LinkOffers == offerId.Value && !x.AttIsDeleted);
+
+                    if (d != null && !string.IsNullOrWhiteSpace(d.AttLabel))
+
+                    {
+
+                        designPart = d.AttLabel.Trim() + " (#" +
+
+                                     designId.Value.ToString(CultureInfo.InvariantCulture) + ")";
+
+                    }
+
+                }
+
+
+
+                if (designPart == null)
+
+                {
+
+                    designPart = "#" + designId.Value.ToString(CultureInfo.InvariantCulture);
+
+                }
+
+            }
+
+
+
+            var parts = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(jobsideCode))
+
+            {
+
+                parts.Add(jobsideCode.Trim());
+
+            }
+
+
+
+            if (!string.IsNullOrWhiteSpace(offerNumber))
+
+            {
+
+                parts.Add(offerNumber.Trim());
+
+            }
+
+
+
+            if (!string.IsNullOrWhiteSpace(offerName))
+
+            {
+
+                parts.Add(offerName.Trim());
+
+            }
+
+
+
+            if (!string.IsNullOrWhiteSpace(designPart))
+
+            {
+
+                parts.Add(designPart.Trim());
+
+            }
+
+
+
+            model.ContextSubtitleLine = parts.Count > 0 ? string.Join(" — ", parts) : null;
+
+        }
+
+
+
+        /// <summary>
+
+        /// Sin STL en query ni oferta: si existe un bloque de prueba en disco, el visor lo carga al abrir (solo desarrollo).
+
+        /// </summary>
+
+        private void TryAttachDevSampleStlForEmptyViewer(Desing2ViewerPageModel model)
+
+        {
+
+            if (model == null || model.AutoLoadInitialStl || !string.IsNullOrWhiteSpace(model.InitialStlUrl))
+
+            {
+
+                return;
+
+            }
+
+
+
+            const string sampleVirt = "~/Files/MasterArticles/blocks/3120270090P.stl";
+
+            var phys = Server.MapPath(sampleVirt);
+
+            if (!System.IO.File.Exists(phys))
+
+            {
+
+                return;
+
+            }
+
+
+
+            model.InitialStlUrl = Url.Content(sampleVirt);
+
+            model.InitialStlLabel = "STL de prueba (3120270090P)";
+
+            model.AutoLoadInitialStl = true;
+
+            model.StlSourceUnits = "m";
+
+            model.InitialStatusFooter = Jobside.OfferWorkspace_Designs_ViewerAutoLoadPending;
+
+        }
+
+    }
+
+}
+

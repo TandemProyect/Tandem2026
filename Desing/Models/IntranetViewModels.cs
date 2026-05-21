@@ -57,7 +57,44 @@ namespace Desing.Models
         public string AddDescription { get; set; }
         public string AddPath { get; set; }
         public string DocumentTypeName { get; set; }
+        /// <summary><see cref="DAL.TSql_Offers.AddOfferNumber"/> cuando <see cref="DAL.TSql_Document.LinkOffer"/> no es null.</summary>
+        public string OfferNumberPlain { get; set; }
         public DateTime AddDateMade { get; set; }
+    }
+
+    /// <summary>
+    /// Listado DataTables de <see cref="DAL.TSql_Offers"/> filtrado por obra
+    /// (<see cref="DAL.TSql_Offers.LinkJobside"/>).
+    /// </summary>
+    public class JobsideOfferListItem
+    {
+        public long IdObject { get; set; }
+        public string AddOfferNumber { get; set; }
+        public string TextLabel { get; set; }
+        /// <summary>TSql_OfferState.AddColor (#RGB / #RRGGBB) para estilo del número.</summary>
+        public string OfferStateAddColor { get; set; }
+        public string ClientName { get; set; }
+        /// <summary>Ruta logo cliente (<c>TSql_Client_V2.Path_Logo</c>), opcional.</summary>
+        public string ClientPathLogo { get; set; }
+        public string StateName { get; set; }
+        public bool Is_Active { get; set; }
+        public DateTime AddDateMade { get; set; }
+    }
+
+    /// <summary>
+    /// Formulario modal crear/editar oferta desde el espacio de trabajo de obra.
+    /// </summary>
+    public class JobsideOfferFormModel
+    {
+        public long? IdObject { get; set; }
+        public long JobsideId { get; set; }
+        public string AddOfferNumber { get; set; }
+        public string TextLabel { get; set; }
+        public string AddDescription { get; set; }
+        /// <summary>Cliente de la oferta; 0 = usar cliente de la obra en servidor.</summary>
+        public long LinkClient_V2 { get; set; }
+        public long LinkOfferState { get; set; }
+        public bool Is_Active { get; set; }
     }
 
     public class DocumentTypeListItem
@@ -189,5 +226,23 @@ namespace Desing.Models
         public string Iso3 { get; set; }
         /// <summary>Ruta aplicación resuelta vía Url.Content (~ → /app/…) o null.</summary>
         public string FlagUrl { get; set; }
+    }
+
+    /// <summary>
+    /// Fila en la pestaña Diseños del espacio de trabajo de oferta (<see cref="Desing.Controllers.JobsideController.OfferDetails"/>).
+    /// </summary>
+    public class JobsideOfferDesignRowVm
+    {
+        public long DesignId { get; set; }
+        public string Title { get; set; }
+        /// <summary>Ruta virtual ~/… para el query <c>stlUrl</c>, o null si no hay STL de confianza enlazado (<see cref="DAL.TSql_Design_V2.AttThumbnail"/>).</summary>
+        public string StlVirtualPath { get; set; }
+    }
+
+    /// <summary>Vista parcial Diseño-V2 dentro del espacio de trabajo de oferta (card + enlaces visor).</summary>
+    public class OfferWorkspaceDesignRowDisplayModel
+    {
+        public long OfferId { get; set; }
+        public JobsideOfferDesignRowVm Row { get; set; }
     }
 }

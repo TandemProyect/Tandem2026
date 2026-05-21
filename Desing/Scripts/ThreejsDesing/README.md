@@ -107,7 +107,7 @@ Generado en Razor con `Newtonsoft.Json.JsonConvert.SerializeObject` y seguido de
 
 | Selector | Atributos / notas |
 |----------|-------------------|
-| `#ma-stl-viewer-shell` | `data-ma-text-color1`, `data-ma-text-color2` — hex `#rgb` o `#rrggbb` para materiales primario/secundario |
+| `#ma-stl-viewer-shell` | `data-ma-text-color1`, `data-ma-text-color2` — tintes STL. **Solo visor Desing_2** (`data-ma-stl-show-rulers-toggle="true"`): `data-ma-stl-source-units` / `data-ma-stl-unit-to-meters` escalan el modelo a **metros**; **rosa náutica SVG** (`#ma-stl-compass-overlay` / `_Desing2CompassOverlay.cshtml`) alineada con **cámara activa** (ortho/iso); reglas/rejilla métrica; eje Z en UCS. **Artículos maestro** no usa ese `data-*` → mismo comportamiento que antes (sin escala extra, sin compás, UCS XY). **Opcional desarrollo:** `data-ma-stl-dev-auto-load="true"` + `data-ma-stl-dev-default-stl` (URL ya resuelta, p. ej. `@Url.Content("~/Files/MasterArticles/blocks/3120270090P.stl")`) + opcional `data-ma-stl-dev-default-label`. Sin estos atributos no hay auto-carga. |
 | `#ma-stl-viewer-gl-host` | Host del `<canvas>` WebGL (vacío hasta boot) |
 | `#master-article-details-stl-viewer-canvas` | Área canvas; clase `ma-stl-canvas--clips`; con cortes visibles: `ma-stl-canvas--clips-ui-visible` |
 | `#master-article-details-stl-viewer-status` | Texto de estado (“Cargando…”, “Viendo: …”) |
@@ -168,7 +168,7 @@ Claves `data-ortho-view` (ej.): `front`, `top`, `front-top-left`, `top-back-righ
 |----|---------------|----------------|---------|
 | `#ma-stl-cam-ortho` / `#ma-stl-cam-iso` | layout / box-3 | `ortho` checked | `setCameraMode('ortho'|'iso')` — enlaza `OrbitControls` a la cámara activa; alterna cubos CSS |
 | `#ma-stl-fullscreen-toggle` | fullscreen | off | Fullscreen API sobre `#ma-stl-viewer-shell`; redimensiona renderer en `fullscreenchange` |
-| `#ma-stl-grid-toggle` | grid | off | `infiniteGrid.visible`; ajusta `uFwidthFloor` en `onBeforeRender` para líneas estables en orto |
+| `#ma-stl-grid-toggle` | grid | Desing_2 **on** por defecto (rejilla + reglas); maestro **off** hasta pulsar | `infiniteGrid.visible`; plano rejilla = mismo Y que reglas (`uPlaneY`); `uFwidthFloor` en `onBeforeRender` para líneas estables en orto mm |
 | `#ma-stl-sky-toggle` | cloud | off | Gradiente canvas `createMasterArticleStlSkyBackgroundTexture()` + plano suelo `skyFloorPlane`; mutuamente compatible con fondo negro (cielo desactivado si negro) |
 | `#ma-stl-ground-shadow-toggle` | shadow | off | `ShadowMaterial` en Y=0, `mainDirLight.castShadow`, `renderer.shadowMap.enabled`, mallas `castShadow`/`receiveShadow` |
 | `#ma-stl-dark-bg-toggle` | moon | off | `scene.background` y `clearColor` negros; oculta suelo del cielo |
@@ -221,7 +221,7 @@ Claves `data-ortho-view` (ej.): `front`, `top`, `front-top-left`, `top-back-righ
 | `tryLoadSecondaryStl(primaryUrl, group, myToken, loader)` | `fetch` a URL `*2.stl`; 404 silencioso; material `TextColor2` |
 | `makeStlMeshStandardMaterial(tintColor)` | `MeshStandardMaterial` + `clippingPlanes` + `clipShadows` |
 
-**Transformación CAD → Three:** `mesh.rotation.x = -Math.PI / 2` (planta CAD en XY → Y arriba en Three). **No** se llama `geometry.center()` — vértices y origen de inserción se respetan.
+**Transformación CAD → Three:** `mesh.rotation.x = -Math.PI / 2`. **No** se llama `geometry.center()` — vértices y origen de inserción se respetan. **Metros / compás / reglas:** solo en shell Desing_2 con `data-ma-stl-show-rulers-toggle`; ahí `group.scale = maStlVertexUnitsToMetersScale(shell)`. Maestro: sin ese atributo, escala **1**.
 
 #### Materiales y colores
 
@@ -340,9 +340,14 @@ El sufijo `2` se inserta **inmediatamente antes** de `.stl` (no confundir con `2
 
 ## 10. InfiniteGridHelper
 
-Constructor en viewer: `new InfiniteGridHelper(8, 32, color, 500, 2.55, 0.56)` — celdas escaladas en `refitCamerasToObject` (`uSize1 = maxDim/16`, `uSize2 = maxDim/4`, `uDistance = maxDim * 100`).
+Constructor en viewer: `new InfiniteGridHelper(8, 32, color, 500, 2.55, 0.56)` — en `refitCamerasToObject` se actualizan uniforms:
 
-Plano XZ, shader con `fwidth` y `uFwidthFloor` para cámaras ortográficas. `renderOrder = -10`, `depthWrite: false`.
+- **Desing_2 (mm escena):** `uSize1 = 250`, `uSize2 = 1000` → **0,25 m / 1 m físicos** con `MA_STL_SCENE_MM_PER_PHYSICAL_METER = 1000`.
+- **Maestro (sin reglas):** `uSize1 = maxDim/16`, `uSize2 = maxDim/4`, `uDistance` proporcional al encuadre.
+
+Uniform **`uPlaneY`**: plano horizontal XZ alineado con la base del workspace de **reglas** (Desing_2) o ligeramente bajo el bounding box del STL (maestro). Shader usa `worldPosition` coherente con ese plano.
+
+Plano XZ, `depthWrite: false`, **`depthTest: false`** (rejilla legible con malla encima), shader con `fwidth` y `uFwidthFloor` para cámaras ortográficas. `renderOrder = -10`.
 
 ---
 

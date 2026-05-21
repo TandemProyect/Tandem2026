@@ -56,7 +56,7 @@ namespace Desing.Controllers
             if (string.IsNullOrWhiteSpace(model.AttLabel))
                 ModelState.AddModelError("AttLabel", Branch.Branch_Err_NameRequired);
 
-            if (!BranchColorHelper.TryNormalizeAttcolor(model.Attcolor, out var normCreateColor))
+            if (!BranchColorHelper.TryNormalizeAttcolor(model.AttColor, out var normCreateColor))
                 ModelState.AddModelError("Attcolor", Branch.Branch_Val_AttcolorHex);
 
             if (!ModelState.IsValid)
@@ -69,7 +69,7 @@ namespace Desing.Controllers
                 AttLabel = model.AttLabel.Trim(),
                 AttDescription = string.IsNullOrWhiteSpace(model.AttDescription) ? null : model.AttDescription.Trim(),
                 AddLetter = NormalizeBranchAddLetter(model.AddLetter),
-                Attcolor = normCreateColor,
+                AttColor = normCreateColor,
                 LinCompany = model.LinCompany,
                 LinCreatedBy = userId,
                 LinModifiedBy = userId,
@@ -122,7 +122,7 @@ namespace Desing.Controllers
             if (string.IsNullOrWhiteSpace(model.AttLabel))
                 ModelState.AddModelError("AttLabel", Branch.Branch_Err_NameRequired);
 
-            if (!BranchColorHelper.TryNormalizeAttcolor(model.Attcolor, out var normColor))
+            if (!BranchColorHelper.TryNormalizeAttcolor(model.AttColor, out var normColor))
                 ModelState.AddModelError("Attcolor", Branch.Branch_Val_AttcolorHex);
 
             if (!ModelState.IsValid)
@@ -130,7 +130,7 @@ namespace Desing.Controllers
                 entity.AttLabel = model.AttLabel;
                 entity.AttDescription = model.AttDescription;
                 entity.AddLetter = model.AddLetter;
-                entity.Attcolor = model.Attcolor;
+                 entity.AttColor = model.AttColor;
                 CopyBranchGoogleLocFields(entity, model);
                 return View(entity);
             }
@@ -138,7 +138,7 @@ namespace Desing.Controllers
             entity.AttLabel = model.AttLabel.Trim();
             entity.AttDescription = string.IsNullOrWhiteSpace(model.AttDescription) ? null : model.AttDescription.Trim();
             entity.AddLetter = NormalizeBranchAddLetter(model.AddLetter);
-            entity.Attcolor = normColor;
+             entity.AttColor = normColor;
             CopyBranchGoogleLocFields(entity, model);
             entity.LinModifiedBy = User.Identity.GetUserId();
             entity.AttLastModification = DateTime.UtcNow;

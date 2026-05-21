@@ -1,0 +1,48 @@
+@model DAL.TSql_OfferState
+@using Desing.Resources
+@using System.Text.RegularExpressions
+@{
+    var raw = Model.AddColor ?? "";
+    var trimmed = raw.Trim();
+    var hexOk = !string.IsNullOrEmpty(trimmed)
+        && Regex.IsMatch(trimmed, "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$");
+    var pickerValue = hexOk ? trimmed : "#808080";
+}
+<div class="col-md-6">
+    <label class="form-label" for="TextLabel">@OfferState.Lbl_NameRequired</label>
+    @Html.TextBoxFor(m => m.TextLabel, new
+    {
+        @class = "form-control",
+        maxlength = "500",
+        required = "required",
+        placeholder = OfferState.Ph_Name
+    })
+    @Html.ValidationMessageFor(m => m.TextLabel, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-4">
+    <label class="form-label" for="OfferStateColorText">@OfferState.Lbl_Color</label>
+    <div class="d-flex align-items-center gap-2">
+        <input type="color"
+               id="OfferStateColorPicker"
+               value="@pickerValue"
+               class="form-control form-control-color p-1"
+               style="width:3.25rem;height:2.5rem"
+               title="@OfferState.Lbl_ColorPickerTitle" />
+        @Html.TextBoxFor(m => m.AddColor, new
+        {
+            @class = "form-control",
+            id = "OfferStateColorText",
+            maxlength = "7",
+            placeholder = OfferState.Ph_ColorHex,
+            autocomplete = "off"
+        })
+    </div>
+    @Html.ValidationMessageFor(m => m.AddColor, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-2">
+    <label class="form-label">@OfferState.Lbl_Active</label>
+    <div class="form-check mt-2">
+        @Html.CheckBoxFor(m => m.Is_Active, new { @class = "form-check-input" })
+        <label class="form-check-label" for="Is_Active">@OfferState.Lbl_ActiveCheckbox</label>
+    </div>
+</div>

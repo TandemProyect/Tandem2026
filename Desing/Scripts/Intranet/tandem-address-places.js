@@ -151,7 +151,7 @@
 
       'Add HTTP referrer:', detail.referrerToAdd + '.',
 
-      'Enable Maps JavaScript API + Places API (legacy).',
+      'Enable Maps JavaScript API + Places API (New).',
 
       'Credentials:', CREDENTIALS_URL,
 
@@ -432,6 +432,9 @@
             center: center,
 
             zoom: 16,
+
+            /* Evita capturar la rueda del raton sobre el preview: el usuario puede subir/bajar la pagina. */
+            gestureHandling: 'cooperative',
 
             mapTypeControl: false,
 
@@ -737,6 +740,26 @@
 
 
 
+    function mountLegacyAutocompleteInput() {
+
+      $hostEl.data('places-bound', true);
+
+      var legacy = document.createElement('input');
+
+      legacy.type = 'text';
+
+      legacy.className = 'form-control form-control-sm js-tandem-places-autocomplete';
+
+      if (placeholder) legacy.setAttribute('placeholder', placeholder);
+
+      $hostEl.empty().append(legacy);
+
+      bindLegacyPlacesAutocomplete($block);
+
+    }
+
+
+
     if (!hasApiKey() || mapsAuthFailed) {
 
       mountFallbackTextInput();
@@ -749,7 +772,7 @@
 
     if (!window.google || !window.google.maps || typeof google.maps.importLibrary !== 'function') {
 
-      mountFallbackTextInput();
+      mountLegacyAutocompleteInput();
 
       return;
 
@@ -763,7 +786,7 @@
 
       if (!PlaceAutocompleteElement) {
 
-        mountFallbackTextInput();
+        mountLegacyAutocompleteInput();
 
         return;
 
@@ -771,7 +794,17 @@
 
 
 
-      var pac = new PlaceAutocompleteElement({});
+      var pacOptions = {};
+
+      var cfgRegion = getConfig().region;
+
+      if (cfgRegion) {
+
+        pacOptions.includedRegionCodes = [String(cfgRegion).toLowerCase()];
+
+      }
+
+      var pac = new PlaceAutocompleteElement(pacOptions);
 
       if (placeholder) {
 
@@ -819,11 +852,19 @@
 
       });
 
+
+
+      pac.addEventListener('gmp-error', function (event) {
+
+        console.error('[TandemAddressPlaces] PlaceAutocompleteElement gmp-error', event);
+
+      });
+
     }).catch(function (errLib) {
 
       console.error('[TandemAddressPlaces] importLibrary(places) failed', errLib);
 
-      mountFallbackTextInput();
+      mountLegacyAutocompleteInput();
 
     });
 

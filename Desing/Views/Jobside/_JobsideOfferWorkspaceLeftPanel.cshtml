@@ -1,0 +1,119 @@
+@model DAL.TSql_Offers
+@using System.Globalization
+@using Desing.Resources
+@using Desing.Helpers
+@{
+    var jobside = Model.TSql_Jobside;
+    var jsClientName = jobside?.TSql_Client_V2?.TextLabel;
+    var jsBranchName = jobside?.TSql_Branch?.AttLabel;
+    var companyName = jobside?.TSql_Branch?.TSql_Company?.TextLabel;
+    var numRaw = (Model.AddOfferNumber ?? "").Trim();
+    var numForDisplay = string.IsNullOrEmpty(numRaw) ? Jobside.Details_NoValue : numRaw;
+    var stateColor = Model.TSql_OfferState != null ? Model.TSql_OfferState.AddColor : null;
+
+    string offerClientName = null;
+    var offerClientVp = "";
+    if (Model.TSql_Client_V2 != null)
+    {
+        offerClientName = Model.TSql_Client_V2.TextLabel;
+        offerClientVp = IntranetFileHelper.ResolvePublicUrl(
+            Url,
+            IntranetFileHelper.NormalizeUploadedWebPath(Model.TSql_Client_V2.Path_Logo));
+    }
+}
+
+<div class="card border shadow-none">
+    <div class="card-header fw-semibold text-primary py-3 px-4">
+        @Jobside.OfferWorkspace_LeftTitle
+    </div>
+    <div class="card-body pt-3 px-4 pb-4 tandem-fill-scroll">
+        <dl class="row mb-0">
+            <dt class="col-12 pb-2 text-uppercase text-muted small fw-bold">
+                @Jobside.OfferWorkspace_SubheaderJobsite
+            </dt>
+
+            @if (jobside != null)
+            {
+                <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Details_Field_ContractRef</dt>
+                <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(jobside.TextContractRef) ? Jobside.Details_NoValue : jobside.TextContractRef)</dd>
+
+                <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Details_Field_AddNJobside</dt>
+                <dd class="col-sm-8"><span class="font-monospace">@(string.IsNullOrWhiteSpace(jobside.AddNJobside) ? Jobside.Details_NoValue : jobside.AddNJobside)</span></dd>
+
+                <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Details_Field_Name</dt>
+                <dd class="col-sm-8">@jobside.TextLabel</dd>
+
+                <dt class="col-sm-4 text-primary fw-semibold">@Jobside.OfferWorkspace_Field_Company</dt>
+                <dd class="col-sm-8">@(string.IsNullOrEmpty(companyName) ? Jobside.Details_NoValue : companyName)</dd>
+
+                <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Details_Field_Branch</dt>
+                <dd class="col-sm-8">@(string.IsNullOrEmpty(jsBranchName) ? Jobside.Details_NoValue : jsBranchName)</dd>
+
+                <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Details_Field_Client</dt>
+                <dd class="col-sm-8">
+                    @if (string.IsNullOrEmpty(jsClientName))
+                    {
+                        @Jobside.Details_NoValue
+                    }
+                    else
+                    {
+                        <span>@jsClientName</span>
+                    }
+                </dd>
+            }
+            else
+            {
+                <dd class="col-12"><span class="text-muted">@Jobside.Details_NoValue</span></dd>
+            }
+
+            <dt class="col-12 pb-2 pt-3 text-uppercase text-muted small fw-bold">
+                @Jobside.OfferWorkspace_SubheaderOffer
+            </dt>
+
+            <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Offers_Lbl_Number</dt>
+            <dd class="col-sm-8">@Html.Raw(OfferDisplayHelper.BuildOfferNumberCellHtml(numForDisplay, stateColor))</dd>
+
+            <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Offers_Lbl_Name</dt>
+            <dd class="col-sm-8">@Model.TextLabel</dd>
+
+            <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Lbl_Client</dt>
+            <dd class="col-sm-8">
+                @if (string.IsNullOrEmpty(offerClientName))
+                {
+                    @Jobside.Details_NoValue
+                }
+                else
+                {
+                    <span class="d-inline-flex align-items-center gap-2 flex-wrap">
+                        @if (!string.IsNullOrWhiteSpace(offerClientVp))
+                        {
+                            <img src="@offerClientVp" alt="" class="flex-shrink-0" style="max-height: 32px; width: auto;" />
+                        }
+                        <span>@offerClientName</span>
+                    </span>
+                }
+            </dd>
+
+            <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Offers_Lbl_State</dt>
+            <dd class="col-sm-8">@(Model.TSql_OfferState != null ? Model.TSql_OfferState.TextLabel : Jobside.Details_NoValue)</dd>
+
+            <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Details_Field_Active</dt>
+            <dd class="col-sm-8">
+                @if (Model.Is_Active)
+                {
+                    <span class="badge bg-label-success">@Jobside.State_Active</span>
+                }
+                else
+                {
+                    <span class="badge bg-label-secondary">@Jobside.State_Inactive</span>
+                }
+            </dd>
+
+            <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Offers_Col_Date</dt>
+            <dd class="col-sm-8">@Model.AddDateMade.ToString("g", CultureInfo.CurrentCulture)</dd>
+
+            <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Offers_Lbl_Description</dt>
+            <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.AddDescription) ? Jobside.Details_NoValue : Model.AddDescription)</dd>
+        </dl>
+    </div>
+</div>

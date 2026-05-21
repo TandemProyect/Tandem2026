@@ -1,0 +1,47 @@
+@model Desing.Models.JobsideOfferFormModel
+@using Desing.Resources
+@using System.Web.Mvc
+@{
+    var states = ViewBag.JobsideOfferStates as SelectList ?? new SelectList(new SelectListItem[0]);
+    var isEdit = Model.IdObject.HasValue && Model.IdObject.Value > 0;
+}
+<form id="jobsideOfferForm" class="jobside-offer-form">
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.JobsideId)
+    @Html.HiddenFor(m => m.IdObject)
+    <div class="mb-3">
+        <label class="form-label">@Jobside.Offers_Lbl_Number</label>
+        @if (isEdit)
+        {
+            <input type="text" class="form-control" id="AddOfferNumberDisplay"
+                   value="@Model.AddOfferNumber" readonly />
+            <div class="form-text">@Jobside.Offers_Help_NumberReadOnly</div>
+        }
+        else
+        {
+            <p class="form-control-plaintext border rounded px-3 py-2 bg-light text-break mb-0 small"
+               id="AddOfferNumberPlaceholder">@Jobside.Offers_Help_NumberOnCreate</p>
+        }
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="offerTextLabel">@Jobside.Offers_Lbl_Name</label>
+        @Html.TextBoxFor(m => m.TextLabel, new { @class = "form-control", id = "offerTextLabel", maxlength = 500 })
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="offerAddDescription">@Jobside.Offers_Lbl_Description</label>
+        @Html.TextAreaFor(m => m.AddDescription, new { @class = "form-control", id = "offerAddDescription", rows = 3 })
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="LinkClient_V2">@Jobside.Lbl_Client</label>
+        @Html.DropDownListFor(m => m.LinkClient_V2, (SelectList)ViewBag.LinkClient_V2, new { @class = "form-select", id = "LinkClient_V2", required = "required" })
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="LinkOfferState">@Jobside.Offers_Lbl_State</label>
+        @Html.DropDownListFor(m => m.LinkOfferState, states, new { @class = "form-select", id = "LinkOfferState", required = "required" })
+    </div>
+
+    <div class="form-check mt-2 mb-0">
+        @Html.CheckBoxFor(m => m.Is_Active, new { @class = "form-check-input", id = "offerIsActive" })
+        <label class="form-check-label" for="offerIsActive">@Jobside.Offers_Lbl_ActiveCheckbox</label>
+    </div>
+</form>

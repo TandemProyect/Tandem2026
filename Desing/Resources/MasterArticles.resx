@@ -454,6 +454,39 @@
   <data name="StlPreview_RowLabelStl" xml:space="preserve">
     <value>STL</value>
   </data>
+  <data name="StlPreview_RulerAnchorGridCoordsHud" xml:space="preserve">
+    <value>X: {0} m  Z: {1} m</value>
+  </data>
+  <data name="StlPreview_RulerAnchorGridIntersectionToast" xml:space="preserve">
+    <value>Reglas colocadas</value>
+  </data>
+  <data name="StlPreview_RulerAnchorPickAria" xml:space="preserve">
+    <value>Seleccionar punto de inserción para reglas</value>
+  </data>
+  <data name="StlPreview_RulerAnchorPickFloorToast" xml:space="preserve">
+    <value>Anclaje en planta</value>
+  </data>
+  <data name="StlPreview_RulerAnchorPickModeToast" xml:space="preserve">
+    <value>Clic en un cruce de la rejilla para colocar reglas</value>
+  </data>
+  <data name="StlPreview_RulerAnchorPickSelectedToast" xml:space="preserve">
+    <value>Punto de inserción seleccionado</value>
+  </data>
+  <data name="StlPreview_RulerAnchorPickTitle" xml:space="preserve">
+    <value>Seleccionar punto de inserción (acercar al centro de la base y clic)</value>
+  </data>
+  <data name="StlPreview_SaveViewAria" xml:space="preserve">
+    <value>Guardar vista</value>
+  </data>
+  <data name="StlPreview_SaveViewSavedTitle" xml:space="preserve">
+    <value>Guardado</value>
+  </data>
+  <data name="StlPreview_SaveViewSavedToast" xml:space="preserve">
+    <value>Vista guardada</value>
+  </data>
+  <data name="StlPreview_SaveViewTitle" xml:space="preserve">
+    <value>Guardar vista</value>
+  </data>
   <data name="StlPreview_SkyToggleAria" xml:space="preserve">
     <value>Cielo STL</value>
   </data>
@@ -462,6 +495,18 @@
   </data>
   <data name="StlPreview_StatusInitial" xml:space="preserve">
     <value>Seleccione un bloque con STL disponible (botón naranja) para verlo aquí.</value>
+  </data>
+  <data name="StlPreview_UcsRulersAria" xml:space="preserve">
+    <value>Reglas de plano</value>
+  </data>
+  <data name="StlPreview_UcsRulersToggleTitle" xml:space="preserve">
+    <value>Mostrar u ocultar reglas de plano desde el anclaje (+X / +Z)</value>
+  </data>
+  <data name="StlPreview_XyzAxesAria" xml:space="preserve">
+    <value>Ejes XYZ</value>
+  </data>
+  <data name="StlPreview_XyzAxesToggleTitle" xml:space="preserve">
+    <value>Mostrar u ocultar vectores de ejes X, Y y Z (verdes, con flecha)</value>
   </data>
   <data name="ToastMessage_ArticleActivated" xml:space="preserve">
     <value>Artículo &quot;{0}&quot; activado.</value>

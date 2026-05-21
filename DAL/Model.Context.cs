@@ -62,9 +62,10 @@ namespace DAL
         public virtual DbSet<TSql_Offers> TSql_Offers { get; set; }
         public virtual DbSet<TSql_OfferState> TSql_OfferState { get; set; }
         public virtual DbSet<TSql_ConfigDesingDefault> TSql_ConfigDesingDefault { get; set; }
-        public virtual DbSet<TSql_Branch> TSql_Branch { get; set; }
         public virtual DbSet<TSql_UiTranslation> TSql_UiTranslation { get; set; }
         public virtual DbSet<TSql_language> TSql_language { get; set; }
         public virtual DbSet<TSql_Jobside> TSql_Jobside { get; set; }
+        public virtual DbSet<TSql_Design_V2> TSql_Design_V2 { get; set; }
+        public virtual DbSet<TSql_Branch> TSql_Branch { get; set; }
     }
 }

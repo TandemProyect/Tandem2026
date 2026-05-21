@@ -134,6 +134,7 @@ const es = Object.fromEntries(
 
     Docs_Col_Name: "Nombre",
     Docs_Col_Type: "Tipo",
+    Docs_Col_OfferNumber: "Nº oferta",
     Docs_Col_Extension: "Extensión",
     Docs_Col_Date: "Alta",
     Docs_Col_Actions: "Acciones",
@@ -158,6 +159,90 @@ const es = Object.fromEntries(
     Docs_Val_FileTooLarge: "El archivo supera el tamaño máximo permitido ({0}).",
     Docs_Upload_NoDocTypes:
       "No hay tipos de documento activos. Cree uno en Configuración antes de adjuntar archivos.",
+
+    Docs_Offer_DtTitle: "Documentos de la oferta",
+    Docs_Offer_NoDocuments: "No hay documentos para esta oferta.",
+    Docs_Offer_UploadModalTitle: "Adjuntar documento a la oferta",
+    Docs_Offer_DeleteTooltip: "Eliminar documento (borrado lógico)",
+    Docs_Offer_DeleteSuccess: "Documento eliminado correctamente.",
+    Docs_Offer_DeleteFailed: "No se pudo eliminar el documento.",
+    Js_ConfirmDeleteOfferDocument:
+      "¿Eliminar este documento de la oferta? (borrado lógico).",
+    Err_OfferDocumentTypeMissing:
+      'No se encontró el tipo de documento «Oferta» en el catálogo (código o nombre). Revise Tipos de documento, active el tipo si está inactivo, o defina appSettings OfferDocumentTypeId / OfferDocumentTypeTextCode en Web.config.',
+
+    Offers_DtTitle: "Ofertas de la obra",
+    Offers_NoOffers: "No hay ofertas para esta obra.",
+    Offers_Btn_New: "Nueva oferta",
+    Offers_Col_Number: "Número de oferta",
+    Offers_Col_Name: "Nombre",
+    Offers_Col_Client: "Cliente",
+    Offers_Col_State: "Estado",
+    Offers_Col_Date: "Alta",
+    Offers_Col_Active: "Activa",
+    Offers_Col_Actions: "Acciones",
+    Offers_Btn_EditRow: "Editar",
+    Offers_Btn_DetailsRow: "Detalles",
+    Offers_DetailsTooltip: "Espacio de trabajo de la oferta",
+    Offers_EditTooltip: "Editar oferta",
+    Offers_CreateModalTitle: "Nueva oferta",
+    Offers_EditModalTitle: "Editar oferta",
+    Offers_Lbl_Number: "Número de oferta",
+    Offers_Help_NumberOnCreate:
+      "Se asignará automáticamente al guardar (empresa–delegación–código obra–orden).",
+    Offers_Help_NumberReadOnly:
+      "Generado por el sistema; no se puede cambiar.",
+    Offers_Lbl_Name: "Nombre",
+    Offers_Lbl_Description: "Descripción",
+    Offers_Lbl_State: "Estado",
+    Offers_Lbl_ActiveCheckbox: "Oferta activa",
+    Offers_SaveSuccess: "Oferta guardada correctamente.",
+    Offers_SaveFailed: "No se pudo guardar la oferta.",
+    Offers_Val_NameRequired: "El nombre de la oferta es obligatorio.",
+    Offers_Val_StateInvalid: "El estado seleccionado no es válido.",
+    Offers_Val_NotFound: "Oferta no encontrada.",
+    Offers_Val_WrongJobside: "La oferta no pertenece a esta obra.",
+    Offers_Val_JobsideNeedsClient:
+      "La obra debe tener un cliente asignado para crear ofertas.",
+    Offers_Val_JobsideCodePending:
+      "La obra aún no tiene código interno; guarde la obra y vuelva a intentarlo.",
+    Offers_Val_BranchOrCompanyMissing:
+      "No se encontró la delegación o empresa vinculada a la obra; no se puede asignar el número de oferta.",
+    Offers_NoOfferStates:
+      "No hay estados de oferta activos en el catálogo.",
+
+    OfferWorkspace_PageTitleFmt: "{0} — {1}",
+    OfferWorkspace_LeftTitle: "Datos de la obra y oferta",
+    OfferWorkspace_SubheaderJobsite: "Obra",
+    OfferWorkspace_SubheaderOffer: "Oferta",
+    OfferWorkspace_Field_Company: "Empresa",
+    OfferWorkspace_TabDesigns: "Diseños",
+    OfferWorkspace_DesignsComingSoon:
+      "Aquí aparecerán los diseños vinculados a la oferta (Desing_V2).",
+    OfferWorkspace_Designs_None: "No hay diseños vinculados a esta oferta.",
+    OfferWorkspace_Designs_OpenViewer: "Abrir visor STL",
+    OfferWorkspace_Designs_NoStlLinked: "Sin STL enlazado",
+    OfferWorkspace_Designs_OpenViewerDemo: "Abrir visor (demo)",
+    OfferWorkspace_Designs_DedicatedPageNote: "Se abre en página dedicada.",
+    OfferWorkspace_Designs_ViewerCanvasEmpty:
+      "Espacio 3D vacío. Desde la oferta, use «Abrir visor STL» en un diseño con archivo .stl para cargar el modelo aquí.",
+    OfferWorkspace_Designs_ViewerAutoLoadPending: "Cargando modelo…",
+
+    OfferWorkspace_Designs_Btn_New: "Nuevo diseño",
+    OfferWorkspace_Designs_Btn_NewTooltip: "Crear diseño para esta oferta",
+    OfferWorkspace_Designs_ModalTitle: "Nuevo diseño",
+    OfferWorkspace_Designs_Lbl_AttLabel: "Nombre del diseño *",
+    OfferWorkspace_Designs_Lbl_AttDescription: "Descripción",
+    OfferWorkspace_Designs_Lbl_AttThumbnail: "Ruta STL en la aplicación (opcional)",
+    OfferWorkspace_Designs_Ph_AttThumbnail:
+      "Ej.: ~/Content/DesignTools/Stl/ATK60/12904215_F.stl",
+    OfferWorkspace_Designs_Save_Submit: "Crear diseño",
+    OfferWorkspace_Designs_SaveSuccess: "Diseño creado correctamente.",
+    OfferWorkspace_Designs_SaveFailed: "No se pudo crear el diseño.",
+    OfferWorkspace_Designs_Val_LabelRequired: "Indique un nombre de diseño.",
+    OfferWorkspace_Designs_Val_InvalidStlPath:
+      "La ruta STL debe ser ~/Files/… o ~/Content/DesignTools/… y terminar en .stl (sin rutas externas).",
+    OfferWorkspace_Designs_Tooltip_Open3DViewer: "Abrir visor 3D",
 
     Workspace_MapTitle: "Mapa (dirección local)",
     Workspace_Tooltip_ExpandPanel: "Expandir panel",
@@ -277,6 +362,7 @@ const en = Object.assign({}, es, {
 
   Docs_Col_Name: "Name",
   Docs_Col_Type: "Type",
+  Docs_Col_OfferNumber: "Offer no.",
   Docs_Col_Extension: "Extension",
   Docs_Col_Date: "Uploaded",
   Docs_Col_Actions: "Actions",
@@ -301,6 +387,88 @@ const en = Object.assign({}, es, {
   Docs_Val_FileTooLarge: "The file exceeds the maximum allowed size ({0}).",
   Docs_Upload_NoDocTypes:
     "There are no active document types. Create one under Settings before attaching files.",
+
+  Docs_Offer_DtTitle: "Offer documents",
+  Docs_Offer_NoDocuments: "There are no documents for this offer.",
+  Docs_Offer_UploadModalTitle: "Attach document to offer",
+  Docs_Offer_DeleteTooltip: "Remove document (soft delete)",
+  Docs_Offer_DeleteSuccess: "Document removed successfully.",
+  Docs_Offer_DeleteFailed: "Could not remove the document.",
+  Js_ConfirmDeleteOfferDocument:
+    "Remove this document from the offer? (soft delete).",
+  Err_OfferDocumentTypeMissing:
+    "No «Oferta» document type was found in the catalog (code or name). Check Document types, activate the row if it is inactive, or set appSettings OfferDocumentTypeId / OfferDocumentTypeTextCode in Web.config.",
+
+  Offers_DtTitle: "Jobsite offers",
+  Offers_NoOffers: "There are no offers for this jobsite.",
+  Offers_Btn_New: "New offer",
+  Offers_Col_Number: "Offer number",
+  Offers_Col_Name: "Name",
+  Offers_Col_Client: "Client",
+  Offers_Col_State: "Status",
+  Offers_Col_Date: "Created",
+  Offers_Col_Active: "Active",
+  Offers_Col_Actions: "Actions",
+  Offers_Btn_EditRow: "Edit",
+  Offers_Btn_DetailsRow: "Details",
+  Offers_DetailsTooltip: "Offer workspace",
+  Offers_EditTooltip: "Edit offer",
+  Offers_CreateModalTitle: "New offer",
+  Offers_EditModalTitle: "Edit offer",
+  Offers_Lbl_Number: "Offer number",
+  Offers_Help_NumberOnCreate:
+    "Assigned automatically on save (company–branch–jobsite code–sequence).",
+  Offers_Help_NumberReadOnly: "System-generated; cannot be changed.",
+  Offers_Lbl_Name: "Name",
+  Offers_Lbl_Description: "Description",
+  Offers_Lbl_State: "Status",
+  Offers_Lbl_ActiveCheckbox: "Offer active",
+  Offers_SaveSuccess: "Offer saved successfully.",
+  Offers_SaveFailed: "Could not save the offer.",
+  Offers_Val_NameRequired: "Offer name is required.",
+  Offers_Val_StateInvalid: "The selected status is not valid.",
+  Offers_Val_NotFound: "Offer not found.",
+  Offers_Val_WrongJobside: "The offer does not belong to this jobsite.",
+  Offers_Val_JobsideNeedsClient:
+    "The jobsite must have a client assigned before creating offers.",
+  Offers_Val_JobsideCodePending:
+    "The jobsite does not have an internal code yet; save the jobsite and try again.",
+  Offers_Val_BranchOrCompanyMissing:
+    "The jobsite's branch or company could not be found; the offer number cannot be assigned.",
+  Offers_NoOfferStates: "There are no active offer statuses in the catalog.",
+
+  OfferWorkspace_PageTitleFmt: "{0} — {1}",
+  OfferWorkspace_LeftTitle: "Jobsite and offer details",
+  OfferWorkspace_SubheaderJobsite: "Jobsite",
+  OfferWorkspace_SubheaderOffer: "Offer",
+  OfferWorkspace_Field_Company: "Company",
+  OfferWorkspace_TabDesigns: "Designs",
+  OfferWorkspace_DesignsComingSoon:
+    "Designs linked to this offer (Desing_V2) will appear here.",
+  OfferWorkspace_Designs_None: "There are no designs linked to this offer.",
+  OfferWorkspace_Designs_OpenViewer: "Open STL viewer",
+  OfferWorkspace_Designs_NoStlLinked: "No STL linked",
+  OfferWorkspace_Designs_OpenViewerDemo: "Open viewer (demo)",
+  OfferWorkspace_Designs_DedicatedPageNote: "Opens in a dedicated page.",
+  OfferWorkspace_Designs_ViewerCanvasEmpty:
+    "Empty 3D workspace. From the offer, use «Open STL viewer» on a design that has a .stl file to load the model here.",
+  OfferWorkspace_Designs_ViewerAutoLoadPending: "Loading model…",
+
+  OfferWorkspace_Designs_Btn_New: "New design",
+  OfferWorkspace_Designs_Btn_NewTooltip: "Create design for this offer",
+  OfferWorkspace_Designs_ModalTitle: "New design",
+  OfferWorkspace_Designs_Lbl_AttLabel: "Design name *",
+  OfferWorkspace_Designs_Lbl_AttDescription: "Description",
+  OfferWorkspace_Designs_Lbl_AttThumbnail: "Application STL path (optional)",
+  OfferWorkspace_Designs_Ph_AttThumbnail:
+    "e.g.: ~/Content/DesignTools/Stl/ATK60/12904215_F.stl",
+  OfferWorkspace_Designs_Save_Submit: "Create design",
+  OfferWorkspace_Designs_SaveSuccess: "Design created successfully.",
+  OfferWorkspace_Designs_SaveFailed: "Could not create the design.",
+  OfferWorkspace_Designs_Val_LabelRequired: "Enter a design name.",
+  OfferWorkspace_Designs_Val_InvalidStlPath:
+    "The STL path must be ~/Files/… or ~/Content/DesignTools/… and end in .stl (no external URLs).",
+  OfferWorkspace_Designs_Tooltip_Open3DViewer: "Open 3D viewer",
 
   Workspace_MapTitle: "Map (site address)",
   Workspace_Tooltip_ExpandPanel: "Expand panel",

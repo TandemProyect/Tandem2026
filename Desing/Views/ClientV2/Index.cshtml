@@ -39,12 +39,12 @@
         <table id="ListClientV2" class="table table-hover" cellspacing="0" style="width: 100%">
             <thead>
                 <tr>
+                    <th class="text-center text-nowrap" style="width:1%">@ClientV2.Col_Logo</th>
                     <th>@ClientV2.Col_Name</th>
                     <th>@ClientV2.Col_Code</th>
                     <th>@ClientV2.Col_TaxId</th>
                     <th>@ClientV2.Col_Email</th>
                     <th>@ClientV2.Col_Phone</th>
-                    <th>@ClientV2.Col_Logo</th>
                     <th>@ClientV2.Col_State</th>
                     <th class="text-end text-nowrap" style="width:1%;"></th>
                     <th>ID</th>
@@ -86,13 +86,26 @@
                 }],
                 serverSide: true,
                 processing: true,
-                colReorder: { iFixedColumnsRight: 2 },
+                colReorder: { iFixedColumnsLeft: 2, iFixedColumnsRight: 2 },
                 ajax: {
                     url: '@Url.Action("ListClientV2", "ClientV2")',
                     type: 'POST'
                 },
-                order: [[0, 'asc']],
+                order: [[1, 'asc']],
                 columns: [
+                    {
+                        data: 'logoPreview',
+                        name: 'Path_Logo',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center align-middle text-nowrap',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.logoPlain || '';
+                            }
+                            return data;
+                        }
+                    },
                     {
                         data: 'TextLabel',
                         name: 'TextLabel',
@@ -107,7 +120,6 @@
                     { data: 'TextTaxId', name: 'TextTaxId' },
                     { data: 'TextEmail', name: 'TextEmail' },
                     { data: 'TextPhone', name: 'TextPhone' },
-                    { data: 'logoPreview', name: 'Path_Logo', orderable: false, searchable: false },
                     { data: 'activeBadge', name: 'Is_Active', orderable: true, searchable: false },
                     {
                         data: 'rowActions',

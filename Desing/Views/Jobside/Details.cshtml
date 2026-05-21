@@ -1,8 +1,8 @@
 @model DAL.TSql_Jobside
 @using System.Linq
 @using Desing.Resources
+@using Desing.Helpers
 @using Newtonsoft.Json
-@using System.Configuration
 @using System.Globalization
 @{
     ViewBag.Title = Jobside.Page_DetailsTitle;
@@ -18,7 +18,18 @@
         ariaMenu = Jobside.Dt_MenuAria,
         emptyMessage = Jobside.Docs_NoDocuments
     });
-    var mapsKey = ConfigurationManager.AppSettings["GoogleMaps:ApiKey"] ?? "";
+    var offersDt = JsonConvert.SerializeObject(new
+    {
+        culture = ci,
+        rowsSuffix = Jobside.Dt_Rows_N,
+        allRows = Jobside.Dt_Rows_All,
+        sectionRecords = Jobside.Dt_Section_Records,
+        sectionExport = Jobside.Dt_Section_Export,
+        sectionCols = Jobside.Dt_Section_ColumnsVisible,
+        ariaMenu = Jobside.Dt_MenuAria,
+        emptyMessage = Jobside.Offers_NoOffers
+    });
+    var mapsKey = GoogleMapsConfigHelper.GetApiKey();
     var hasMapsKey = !string.IsNullOrWhiteSpace(mapsKey);
     var hasLocCoords = Model.Loc_Lat.HasValue && Model.Loc_Lng.HasValue;
     object mapPayload;
@@ -38,8 +49,19 @@
         success = Jobside.Docs_Upload_Success,
         failed = Jobside.Docs_Upload_Failed
     });
+    var jobsideOfferUi = JsonConvert.SerializeObject(new
+    {
+        formUrl = Url.Action("JobsideOfferForm", "Jobside"),
+        saveUrl = Url.Action("SaveJobsideOffer", "Jobside"),
+        titleCreate = Jobside.Offers_CreateModalTitle,
+        titleEdit = Jobside.Offers_EditModalTitle,
+        success = Jobside.Offers_SaveSuccess,
+        failed = Jobside.Offers_SaveFailed
+    });
     var docTypeSelect = ViewBag.JobsideDocumentTypes as SelectList;
     var hasDocTypes = docTypeSelect != null && docTypeSelect.Any();
+    var hasOfferStates = ViewBag.JobsideHasOfferStates as bool? ?? false;
+    var hasClientForOffers = Model.LinkClient_V2.HasValue;
 }
 
 @Html.AntiForgeryToken()
@@ -72,13 +94,13 @@
                     <div class="d-flex align-items-end gap-2 flex-nowrap tandem-jobside-tabs-bar flex-shrink-0">
                         <ul class="nav nav-tabs flex-grow-1 mb-0 flex-nowrap overflow-x-auto" role="tablist" style="min-width:0">
                             <li class="nav-item text-nowrap" role="presentation">
-                                <button type="button" class="nav-link" id="jobside-tab-offers" data-bs-toggle="tab" data-bs-target="#jobside-pane-offers" role="tab" aria-controls="jobside-pane-offers" aria-selected="false">
-                                    @Jobside.Tab_Offers
+                                <button type="button" class="nav-link active" id="jobside-tab-docs" data-bs-toggle="tab" data-bs-target="#jobside-pane-docs" role="tab" aria-controls="jobside-pane-docs" aria-selected="true">
+                                    @Jobside.Tab_Documents
                                 </button>
                             </li>
                             <li class="nav-item text-nowrap" role="presentation">
-                                <button type="button" class="nav-link active" id="jobside-tab-docs" data-bs-toggle="tab" data-bs-target="#jobside-pane-docs" role="tab" aria-controls="jobside-pane-docs" aria-selected="true">
-                                    @Jobside.Tab_Documents
+                                <button type="button" class="nav-link" id="jobside-tab-offers" data-bs-toggle="tab" data-bs-target="#jobside-pane-offers" role="tab" aria-controls="jobside-pane-offers" aria-selected="false">
+                                    @Jobside.Tab_Offers
                                 </button>
                             </li>
                             <li class="nav-item text-nowrap" role="presentation">
@@ -97,9 +119,6 @@
                         </button>
                     </div>
                     <div class="tab-content tandem-jobside-tab-content pt-3" id="jobsideWorkspaceTabContent">
-                        <div class="tab-pane fade" id="jobside-pane-offers" role="tabpanel" aria-labelledby="jobside-tab-offers">
-                            <p class="text-muted mb-0">@Jobside.Tab_ComingSoon</p>
-                        </div>
                         <div class="tab-pane fade show active" id="jobside-pane-docs" role="tabpanel" aria-labelledby="jobside-tab-docs">
                             <div id="jobsideDocsFlash" class="mb-2"></div>
                             <div class="d-flex flex-wrap align-items-stretch justify-content-between gap-2 mb-2">
@@ -126,9 +145,50 @@
                                         <tr>
                                             <th>@Jobside.Docs_Col_Name</th>
                                             <th>@Jobside.Docs_Col_Type</th>
+                                            <th>@Jobside.Docs_Col_OfferNumber</th>
                                             <th>@Jobside.Docs_Col_Extension</th>
                                             <th>@Jobside.Docs_Col_Date</th>
                                             <th class="text-end text-nowrap" style="width:1%;">@Jobside.Docs_Col_Actions</th>
+                                            <th>ID</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="jobside-pane-offers" role="tabpanel" aria-labelledby="jobside-tab-offers">
+                            <div id="jobsideOffersFlash" class="mb-2"></div>
+                            <div class="d-flex flex-wrap align-items-stretch justify-content-between gap-2 mb-2">
+                                <p class="text-muted small mb-0 align-self-center">@Jobside.Offers_DtTitle</p>
+                                @if (hasClientForOffers && hasOfferStates)
+                                {
+                                    <button type="button" class="btn btn-sm btn-primary align-self-center" id="jobsideOpenNewOfferBtn">
+                                        <i class="icon-base ri ri-add-line me-1" aria-hidden="true"></i>@Jobside.Offers_Btn_New
+                                    </button>
+                                }
+                            </div>
+                            @if (!hasClientForOffers)
+                            {
+                                <div class="alert alert-warning mb-3 py-2 px-3 small" role="alert">
+                                    @Jobside.Offers_Val_JobsideNeedsClient
+                                </div>
+                            }
+                            else if (!hasOfferStates)
+                            {
+                                <div class="alert alert-warning mb-3 py-2 px-3 small" role="alert">
+                                    @Jobside.Offers_NoOfferStates
+                                </div>
+                            }
+                            <div class="mb-3 table-responsive" style="padding:5px">
+                                <table id="JobsideOffersTable" class="table table-hover w-100" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>@Jobside.Offers_Col_Number</th>
+                                            <th>@Jobside.Offers_Col_Name</th>
+                                            <th>@Jobside.Offers_Col_Client</th>
+                                            <th>@Jobside.Offers_Col_State</th>
+                                            <th>@Jobside.Offers_Col_Date</th>
+                                            <th>@Jobside.Offers_Col_Active</th>
+                                            <th class="text-end text-nowrap" style="width:1%;">@Jobside.Offers_Col_Actions</th>
                                             <th>ID</th>
                                         </tr>
                                     </thead>
@@ -178,11 +238,28 @@
     </div>
 </div>
 
+<div class="modal fade" id="jobsideOfferModal" tabindex="-1" aria-labelledby="jobsideOfferModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title text-white" id="jobsideOfferModalTitle">@Jobside.Offers_CreateModalTitle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="@Common.Aria_CloseModal"></button>
+            </div>
+            <div class="modal-body" id="jobsideOfferModalBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">@Common.Btn_Cancel</button>
+                <button type="button" class="btn btn-primary" id="jobsideOfferModalSaveBtn">@Common.Btn_Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section scripts
 {
     @Html.Partial("~/Views/Shared/_GooglePlacesAddressScripts.cshtml")
     <script type="text/javascript">
         var jobsideDocsDt = @Html.Raw(docsDt);
+        var jobsideOffersCfg = @Html.Raw(offersDt);
         var jobsideDocsExportOpts = TandemDataTablesList.exportOptsPlainVisible;
         var jobsideUploadUi = @Html.Raw(uploadUi);
         var jobsideDetailMapInit = @Html.Raw(mapBoot);
@@ -191,7 +268,10 @@
             restoreTip = Jobside.Workspace_Tooltip_RestorePanel
         }));
 
+        var jobsideOfferUi = @Html.Raw(jobsideOfferUi);
+
         var jobsideDocumentsDt;
+        var jobsideOffersDt;
 
         function jobsidePatchDocsDtDropdownPopper() {
             var pane = document.getElementById('jobside-pane-docs');
@@ -211,6 +291,41 @@
                 $('<div/>').text(message).html() +
                 '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label=""></button></div>';
             $('#jobsideDocsFlash').html(html);
+        }
+
+        function jobsideOffersShowFlash(kind, message) {
+            var cls = kind === 'success' ? 'alert-success' : 'alert-danger';
+            var html = '<div class="alert ' + cls + ' alert-dismissible fade show" role="alert">' +
+                $('<div/>').text(message).html() +
+                '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label=""></button></div>';
+            $('#jobsideOffersFlash').html(html);
+        }
+
+        function jobsidePatchOffersDtDropdownPopper() {
+            var pane = document.getElementById('jobside-pane-offers');
+            if (!pane) return;
+            var btns = pane.querySelectorAll('.dt-buttons button.btn, .dt-buttons button.dt-button');
+            btns.forEach(function (btn) {
+                if (!btn.getAttribute('data-tandem-popper-fixed')) {
+                    btn.setAttribute('data-bs-popper-config', JSON.stringify({ strategy: 'fixed' }));
+                    btn.setAttribute('data-tandem-popper-fixed', '1');
+                }
+            });
+        }
+
+        function jobsideLoadOfferForm(offerId) {
+            var url = jobsideOfferUi.formUrl + '?jobsideId=@Model.IdObject' + (offerId ? '&id=' + offerId : '');
+            $('#jobsideOfferModalBody').load(url, function (response, status) {
+                if (status === 'error') {
+                    jobsideOffersShowFlash('danger', jobsideOfferUi.failed);
+                    return;
+                }
+                $('#jobsideOfferModalTitle').text(offerId ? jobsideOfferUi.titleEdit : jobsideOfferUi.titleCreate);
+                var modalEl = document.getElementById('jobsideOfferModal');
+                if (modalEl && window.bootstrap && bootstrap.Modal) {
+                    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                }
+            });
         }
 
         $(document).ready(function () {
@@ -248,7 +363,7 @@
                     url: '@Url.Action("ListJobsideDocuments", "Jobside", new { jobsideId = Model.IdObject })',
                     type: 'POST'
                 },
-                order: [[3, 'desc']],
+                order: [[4, 'desc']],
                 columns: [
                     {
                         data: 'displayName',
@@ -261,6 +376,16 @@
                         }
                     },
                     { data: 'documentTypeName', name: 'documentTypeName' },
+                    {
+                        data: 'offerNumber',
+                        name: 'offerNumber',
+                        render: function (data, type, row) {
+                            if (type === 'export' || type === 'sort' || type === 'type') {
+                                return row.offerNumberPlain || '';
+                            }
+                            return data;
+                        }
+                    },
                     { data: 'fileExtension', name: 'fileExtension' },
                     {
                         data: 'addDateMadeFmt',
@@ -294,6 +419,120 @@
             }));
             jobsidePatchDocsDtDropdownPopper();
 
+            jobsideOffersDt = $('#JobsideOffersTable').DataTable(TandemDataTablesList.applyListDefaults({
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    ['10 ' + jobsideOffersCfg.rowsSuffix, '25 ' + jobsideOffersCfg.rowsSuffix, '50 ' + jobsideOffersCfg.rowsSuffix, jobsideOffersCfg.allRows]
+                ],
+                buttons: [{
+                    extend: 'collection',
+                    text: "<i class='fas fa-bars'></i>",
+                    attr: { 'aria-label': jobsideOffersCfg.ariaMenu },
+                    className: 'custom-html-collection',
+                    buttons: [
+                        '<h5>' + jobsideOffersCfg.sectionRecords + '</h5>',
+                        'pageLength',
+                        '<h5>' + jobsideOffersCfg.sectionExport + '</h5>',
+                        'print',
+                        'copy',
+                        'pdf',
+                        { extend: 'csv', exportOptions: jobsideDocsExportOpts },
+                        { extend: 'excel', exportOptions: jobsideDocsExportOpts },
+                        '<h5 class="not-top-heading">' + jobsideOffersCfg.sectionCols + '</h5>',
+                        'colvis'
+                    ]
+                }],
+                serverSide: true,
+                processing: true,
+                language: {
+                    emptyTable: jobsideOffersCfg.emptyMessage,
+                    zeroRecords: jobsideOffersCfg.emptyMessage
+                },
+                colReorder: { iFixedColumnsRight: 1 },
+                ajax: {
+                    url: '@Url.Action("ListJobsideOffers", "Jobside", new { jobsideId = Model.IdObject })',
+                    type: 'POST'
+                },
+                order: [[4, 'desc']],
+                columns: [
+                    {
+                        data: 'addOfferNumber',
+                        name: 'addOfferNumber',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.addOfferNumberPlain || '';
+                            }
+                            if (type === 'sort' || type === 'type') {
+                                return row.addOfferNumberPlain || '';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'textLabel',
+                        name: 'textLabel',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.textLabelPlain || '';
+                            }
+                            if (type === 'sort' || type === 'type') {
+                                return row.textLabelPlain || '';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'clientCell',
+                        name: 'clientName',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.clientNamePlain || '';
+                            }
+                            if (type === 'sort' || type === 'type') {
+                                return row.clientNamePlain || '';
+                            }
+                            return data;
+                        }
+                    },
+                    { data: 'stateName', name: 'stateName' },
+                    {
+                        data: 'addDateMadeFmt',
+                        name: 'addDateMade',
+                        render: function (data, type, row) {
+                            if (type === 'sort' || type === 'type') {
+                                return row.addDateMade || '';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'activeBadge',
+                        name: 'Is_Active',
+                        orderable: true,
+                        searchable: false
+                    },
+                    {
+                        data: 'rowActions',
+                        orderable: false,
+                        searchable: false,
+                        className: 'tandem-col-actions text-end align-middle text-nowrap'
+                    },
+                    { data: 'IdObject', visible: false }
+                ],
+                drawCallback: function () {
+                    jobsidePatchOffersDtDropdownPopper();
+                    $('[data-toggle="tooltip"]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto right'
+                    });
+                    $('[title]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto'
+                    });
+                }
+            }));
+            jobsidePatchOffersDtDropdownPopper();
+
             var root = document.getElementById('jobsideWorkspaceRoot');
             var expandBtn = document.getElementById('jobsideWorkspaceExpandBtn');
             var expandIcon = document.getElementById('jobsideWorkspaceExpandIcon');
@@ -316,6 +555,9 @@
                     if (jobsideDocumentsDt && jobsideDocumentsDt.columns) {
                         jobsideDocumentsDt.columns.adjust();
                     }
+                    if (jobsideOffersDt && jobsideOffersDt.columns) {
+                        jobsideOffersDt.columns.adjust();
+                    }
                 }
                 expandBtn.addEventListener('click', function () {
                     applyJobsideWorkspaceExpanded(!expanded);
@@ -323,7 +565,12 @@
             }
 
             $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function () {
-                jobsideDocumentsDt.columns.adjust();
+                if (jobsideDocumentsDt && jobsideDocumentsDt.columns) {
+                    jobsideDocumentsDt.columns.adjust();
+                }
+                if (jobsideOffersDt && jobsideOffersDt.columns) {
+                    jobsideOffersDt.columns.adjust();
+                }
             });
 
             var openUploadBtn = document.getElementById('jobsideOpenUploadModalBtn');
@@ -367,6 +614,54 @@
                     jobsideDocsShowFlash('danger', jobsideUploadUi.failed);
                 });
             });
+
+            var newOfferBtn = document.getElementById('jobsideOpenNewOfferBtn');
+            if (newOfferBtn) {
+                newOfferBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    jobsideLoadOfferForm(null);
+                });
+            }
+
+            /* Solo .tandem-jobside-offer-edit-row abre el modal; Detalles es un enlace normal (sin este handler). */
+            $('#JobsideOffersTable').on('click', '.tandem-jobside-offer-edit-row', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-offer-id');
+                if (id == null || id === '') return;
+                jobsideLoadOfferForm(id);
+            });
+
+            $('#jobsideOfferModalSaveBtn').on('click', function () {
+                var form = $('#jobsideOfferModalBody').find('#jobsideOfferForm');
+                if (!form.length) return;
+                $.ajax({
+                    url: jobsideOfferUi.saveUrl,
+                    type: 'POST',
+                    data: form.serialize()
+                }).done(function (r) {
+                    if (r && r.ok) {
+                        var modalEl = document.getElementById('jobsideOfferModal');
+                        if (modalEl && window.bootstrap) {
+                            var inst = bootstrap.Modal.getInstance(modalEl);
+                            if (inst) inst.hide();
+                        }
+                        $('#jobsideOfferModalBody').empty();
+                        jobsideOffersDt.ajax.reload(null, false);
+                        jobsideOffersShowFlash('success', r.message || jobsideOfferUi.success);
+                    } else {
+                        jobsideOffersShowFlash('danger', (r && r.message) ? r.message : jobsideOfferUi.failed);
+                    }
+                }).fail(function () {
+                    jobsideOffersShowFlash('danger', jobsideOfferUi.failed);
+                });
+            });
+
+            var offerModalEl = document.getElementById('jobsideOfferModal');
+            if (offerModalEl) {
+                offerModalEl.addEventListener('hidden.bs.modal', function () {
+                    $('#jobsideOfferModalBody').empty();
+                });
+            }
 
             var m = jobsideDetailMapInit;
             if (m && m.lat != null && m.lng != null && window.TandemAddressPlaces && TandemAddressPlaces.loadMapsApi) {

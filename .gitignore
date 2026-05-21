@@ -378,3 +378,6 @@ IA/ejemplos/imagenes/
 
 # NuGet CLI opcional en la raíz (restore-packages.cmd puede descargarlo)
 nuget.exe
+
+# Google Maps API key — copiar Web.GoogleMaps.config.example → Web.GoogleMaps.config (local)
+Desing/Web.GoogleMaps.config

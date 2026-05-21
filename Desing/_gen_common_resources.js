@@ -184,6 +184,10 @@ const es = Object.fromEntries(
     Google_Msg_NoAddress: "Seleccione una dirección para ver el mapa",
     Google_Err_ApiLoadFailed:
       "No se pudo cargar Google Maps. Compruebe la clave en GoogleMaps:ApiKey (Web.config) y la configuración en Google Cloud Console.",
+
+    /* ===== Home / dashboard ===== */
+    Home_PageHeading: "Panel",
+    Action_OpenList: "Ver listado completo",
   })
 );
 
@@ -336,6 +340,10 @@ const en = Object.assign({}, es, {
   Google_Msg_NoAddress: "Select an address to display the map",
   Google_Err_ApiLoadFailed:
     "Could not load Google Maps. Check the key at GoogleMaps:ApiKey (Web.config) and the Google Cloud Console settings.",
+
+  /* Home dashboard */
+  Home_PageHeading: "Dashboard",
+  Action_OpenList: "Open full list",
 });
 
 function xmlEsc(s) {

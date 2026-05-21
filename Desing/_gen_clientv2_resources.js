@@ -78,6 +78,12 @@ const es = Object.fromEntries(
     Lbl_Icon: "Icono",
     Lbl_Logo: "Logo",
 
+    Lbl_AddressGooglePlaces: "Dirección (Google Places)",
+
+    Google_NotConfiguredStrong: "Google Maps no configurado.",
+    Google_NotConfiguredBody:
+      " Copie Web.GoogleMaps.config.example → Web.GoogleMaps.config (o use GOOGLE_MAPS_API_KEY) para autocompletado y mapa. Puede rellenar la dirección manualmente.",
+
     Ph_Name: "Ej.: Constructora Acme, S.L.",
     Ph_Code: "Ej.: ACME-001",
     Ph_TaxId: "Ej.: B12345678",
@@ -101,6 +107,10 @@ const es = Object.fromEntries(
     Details_Field_Active: "Activo",
     Details_Field_Icon: "Icono",
     Details_Field_Logo: "Logo",
+    Details_Field_AddressFormatted: "Dirección (Google Places)",
+    Details_Section_AddressDetail: "Detalle de ubicación",
+    Details_MapTitle: "Mapa",
+
     Details_NoValue: "—",
     Details_YesValue: "Sí",
     Details_NoBoolValue: "No",
@@ -179,6 +189,12 @@ const en = Object.assign({}, es, {
   Lbl_Icon: "Icon",
   Lbl_Logo: "Logo",
 
+  Lbl_AddressGooglePlaces: "Address (Google Places)",
+
+  Google_NotConfiguredStrong: "Google Maps is not configured.",
+  Google_NotConfiguredBody:
+    " Copy Web.GoogleMaps.config.example → Web.GoogleMaps.config (or set GOOGLE_MAPS_API_KEY) for autocomplete and map. You can still enter the address manually.",
+
   Ph_Name: "E.g.: Acme Builders Ltd.",
   Ph_Code: "E.g.: ACME-001",
   Ph_TaxId: "E.g.: B12345678",
@@ -202,6 +218,10 @@ const en = Object.assign({}, es, {
   Details_Field_Active: "Active",
   Details_Field_Icon: "Icon",
   Details_Field_Logo: "Logo",
+  Details_Field_AddressFormatted: "Address (Google Places)",
+  Details_Section_AddressDetail: "Location detail",
+  Details_MapTitle: "Map",
+
   Details_NoValue: "—",
   Details_YesValue: "Yes",
   Details_NoBoolValue: "No",

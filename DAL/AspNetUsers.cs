@@ -92,14 +92,16 @@ namespace DAL
             this.TSql_OfferState1 = new HashSet<TSql_OfferState>();
             this.TSql_ConfigDesingDefault = new HashSet<TSql_ConfigDesingDefault>();
             this.TSql_ConfigDesingDefault1 = new HashSet<TSql_ConfigDesingDefault>();
-            this.TSql_Branch = new HashSet<TSql_Branch>();
-            this.TSql_Branch1 = new HashSet<TSql_Branch>();
             this.TSql_language = new HashSet<TSql_language>();
             this.TSql_language1 = new HashSet<TSql_language>();
             this.TSql_UiTranslation = new HashSet<TSql_UiTranslation>();
             this.TSql_UiTranslation1 = new HashSet<TSql_UiTranslation>();
             this.TSql_Jobside = new HashSet<TSql_Jobside>();
             this.TSql_Jobside1 = new HashSet<TSql_Jobside>();
+            this.TSql_Design_V2 = new HashSet<TSql_Design_V2>();
+            this.TSql_Design_V21 = new HashSet<TSql_Design_V2>();
+            this.TSql_Branch = new HashSet<TSql_Branch>();
+            this.TSql_Branch1 = new HashSet<TSql_Branch>();
         }
     
         public string Id { get; set; }
@@ -266,10 +268,6 @@ namespace DAL
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TSql_ConfigDesingDefault> TSql_ConfigDesingDefault1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<TSql_Branch> TSql_Branch { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<TSql_Branch> TSql_Branch1 { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TSql_language> TSql_language { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TSql_language> TSql_language1 { get; set; }
@@ -281,5 +279,13 @@ namespace DAL
         public virtual ICollection<TSql_Jobside> TSql_Jobside { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TSql_Jobside> TSql_Jobside1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Design_V2> TSql_Design_V2 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Design_V2> TSql_Design_V21 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Branch> TSql_Branch { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Branch> TSql_Branch1 { get; set; }
     }
 }

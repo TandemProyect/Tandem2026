@@ -1,6 +1,6 @@
 @model DAL.TSql_Jobside
 @using Desing.Resources
-@using System.Configuration
+@using Desing.Helpers
 @using System.Linq
 @functions {
     private static string JoinParts(params string[] parts)
@@ -10,12 +10,17 @@
 }
 @{
     var clientName = Model.TSql_Client_V2 != null ? Model.TSql_Client_V2.TextLabel : null;
+    var clientLogoSrc = IntranetFileHelper.ResolvePublicUrl(
+        Url,
+        Model.TSql_Client_V2 != null
+            ? IntranetFileHelper.NormalizeUploadedWebPath(Model.TSql_Client_V2.Path_Logo)
+            : null);
     var branchName = Model.TSql_Branch != null ? Model.TSql_Branch.AttLabel : null;
     var locStreetLine = JoinParts(Model.Loc_Street_Number, Model.Loc_Route, Model.Loc_Subpremise);
     var locRest = JoinParts(Model.Loc_Locality, Model.Loc_Admin_Area_2, Model.Loc_Admin_Area_1, Model.Loc_Postal_Code, Model.Loc_Country_Name);
     var billStreetLine = JoinParts(Model.Bill_Street_Number, Model.Bill_Route, Model.Bill_Subpremise);
     var billRest = JoinParts(Model.Bill_Locality, Model.Bill_Admin_Area_2, Model.Bill_Admin_Area_1, Model.Bill_Postal_Code, Model.Bill_Country_Name);
-    var mapsKey = ConfigurationManager.AppSettings["GoogleMaps:ApiKey"] ?? "";
+    var mapsKey = GoogleMapsConfigHelper.GetApiKey();
     var hasMapsKey = !string.IsNullOrWhiteSpace(mapsKey);
     var hasLocCoords = Model.Loc_Lat.HasValue && Model.Loc_Lng.HasValue;
 }
@@ -39,7 +44,22 @@
             <dd class="col-sm-8">@Model.TextLabel</dd>
 
             <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Details_Field_Client</dt>
-            <dd class="col-sm-8">@(string.IsNullOrEmpty(clientName) ? Jobside.Details_NoValue : clientName)</dd>
+            <dd class="col-sm-8">
+                @if (string.IsNullOrEmpty(clientName))
+                {
+                    @Jobside.Details_NoValue
+                }
+                else
+                {
+                    <span class="d-inline-flex align-items-center gap-2 flex-wrap">
+                        @if (!string.IsNullOrWhiteSpace(clientLogoSrc))
+                        {
+                            <img src="@clientLogoSrc" alt="" class="flex-shrink-0" style="max-height: 32px; width: auto;" />
+                        }
+                        <span>@clientName</span>
+                    </span>
+                }
+            </dd>
 
             <dt class="col-sm-4 text-primary fw-semibold">@Jobside.Details_Field_Branch</dt>
             <dd class="col-sm-8">@(string.IsNullOrEmpty(branchName) ? Jobside.Details_NoValue : branchName)</dd>

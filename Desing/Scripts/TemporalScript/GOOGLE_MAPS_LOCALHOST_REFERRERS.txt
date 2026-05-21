@@ -2,7 +2,34 @@ Google Maps / Places — referentes HTTP para desarrollo local (Tandem / Jobside
 
 ================================================================================
 
+CONFIGURAR CLAVE LOCAL (obligatorio para mapa y autocompletado)
+--------------------------------------------------------------------------------
 
+La clave NO va en el repositorio. Tras clonar o tras la alerta de GitHub:
+
+  1. ROTAR/REVOCAR la clave expuesta en Google Cloud Console (Credenciales).
+
+  2. Crear una clave de navegador nueva con restricción HTTP (referentes abajo).
+
+  3. Configurar en local (elija A o B):
+
+     A) Fichero local (recomendado)
+        copy Desing\Web.GoogleMaps.config.example Desing\Web.GoogleMaps.config
+        Editar Web.GoogleMaps.config y sustituir YOUR_BROWSER_API_KEY_HERE.
+        (Web.GoogleMaps.config está en .gitignore — no commitear.)
+
+     B) Variable de entorno (prioridad sobre Web.config)
+        set GOOGLE_MAPS_API_KEY=su_clave_aqui
+        (PowerShell: $env:GOOGLE_MAPS_API_KEY = "su_clave_aqui")
+
+  4. Reiniciar IIS Express / la app.
+
+  5. Sin clave: aviso amarillo en formularios; la dirección se puede rellenar manualmente.
+
+Producción (site4now u otro host): configurar la clave en el panel del hosting
+(appSettings o fichero merge equivalente), nunca en git.
+
+================================================================================
 
 Localhost está soportado por Google. El mensaje "Esta página no puede cargar Google Maps
 
@@ -67,24 +94,24 @@ En Google Cloud Console > APIs y servicios > Credenciales > [su clave de navegad
 APIs a HABILITAR en el proyecto (Biblioteca, mismo proyecto que la clave):
 
   - Maps JavaScript API          (obligatorio: carga el script y el mapa)
+  - Places API (New)             (obligatorio: PlaceAutocompleteElement / autocompletado)
 
-  - Places API                   (legacy: google.maps.places.Autocomplete)
+  El widget usa PlaceAutocompleteElement (Places API New). Si solo tiene habilitada
+  "Places API" (legacy) sin Places API (New), el autocompletado puede fallar; el JS
+  intentará fallback al Autocomplete legacy cuando la clave y la biblioteca places carguen.
 
-
-
-  NO confundir: el widget legacy NO basta con solo "Places API (New)".
-
-  Places API (New) es para Place Autocomplete (nuevo) / migración futura.
-
+  Para el fallback legacy (opcional): Places API (legacy).
 
 
-Restricción "Restringir clave" > APIs seleccionadas (~33 APIs):
+
+Restricción "Restringir clave" > APIs seleccionadas:
 
   La lista DEBE INCLUIR explícitamente:
 
   - Maps JavaScript API
+  - Places API (New)
 
-  - Places API
+  Opcional (fallback legacy): Places API
 
   Si Maps JavaScript API no está en la lista, verá el error aunque Places esté habilitado.
 
@@ -108,7 +135,8 @@ Verificación rápida en el navegador (F12 > Consola):
 
 Verificación (F12 > Red): petición a maps.googleapis.com/maps/api/js
 
-  - Si TandemAddressPlacesConfig.apiKey es null: revisar Web.config y reiniciar IIS Express.
+  - Si TandemAddressPlacesConfig.apiKey es null: copiar Web.GoogleMaps.config.example →
+    Web.GoogleMaps.config (o GOOGLE_MAPS_API_KEY) y reiniciar IIS Express.
 
   - Si la clave llega pero el mapa falla: referente, facturación o APIs/restricción de APIs.
 

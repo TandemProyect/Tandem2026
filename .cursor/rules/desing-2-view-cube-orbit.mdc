@@ -1,0 +1,32 @@
+---
+description: Desing_2 STL viewer — cubo 90° y pivote órbita (NO regredir)
+globs:
+  - Desing/Scripts/MasterArticles/master-article-details-stl-viewer.js
+  - Desing/docs/desing-2-orbit-pivot.md
+  - Desing/docs/desing-2-stl-viewer-funciones.md
+  - Desing/Views/Desing_2/**
+alwaysApply: false
+---
+
+# Desing_2 — cubo de vistas y pivote de órbita
+
+Antes de tocar cubo de vistas, `OrbitControls`, cookie Desing_2 o `onCanvasPointerDownSetOrbitPivot`, **leer**:
+
+`Desing/docs/desing-2-orbit-pivot.md`
+
+## Reglas canónicas (no regredir)
+
+1. **`applyDirectionToOrthoCam`:** `camera.up` **siempre** `(0, 1, 0)` — **nunca** `(0, 0, ±1)` para TOP/BOTTOM.
+2. **Orden cubo:** `applyDirectionToOrthoCam` → `bindControls` (reutilizar si misma cámara) → `maStlFinalizeViewCubePreset` (`update` + `saveState`).
+3. **Desing_2 rotar:** `maStlUsesFixedOrbitPivotAtOrigin()` → early return **sin** raycast STL; pivote = `maStlRulerAnchorMm`.
+4. **Cookie restore:** aplicar `rulerAnchor` y cámaras; **no** aplicar `state.target`.
+
+## Detección Desing_2
+
+Usar `maStlDesingV2Viewer` / shell `data-ma-stl-show-rulers-toggle="true"`. **No** usar `maStlRulersGate` para decidir pivote fijo.
+
+## Tras cualquier cambio
+
+Ejecutar prueba manual de 5 pasos en `desing-2-orbit-pivot.md` (cubo TOP/FRONT/RIGHT + zoom out + rotar + cookie).
+
+Preservar comentarios `/* VIEW CUBE 90° — DO NOT REGRESS: see desing-2-orbit-pivot.md */` en funciones críticas.

@@ -1,9 +1,9 @@
 @model DAL.TSql_Branch
 @using Desing.Resources
-@using System.Configuration
+@using Desing.Helpers
 @{
     ViewBag.Title = Branch.Branch_Page_EditTitle;
-    var mapsKey = ConfigurationManager.AppSettings["GoogleMaps:ApiKey"] ?? "";
+    var mapsKey = GoogleMapsConfigHelper.GetApiKey();
     var hasSummaryErrors = ViewData.ModelState != null
         && ViewData.ModelState.Values.Where(v => v != null && v.Errors != null)
             .SelectMany(v => v.Errors)

@@ -1,13 +1,39 @@
 @model DAL.TSql_Client_V2
 @using Desing.Resources
+@using Desing.Helpers
+@using Newtonsoft.Json
+@using System.Linq
+@functions {
+    private static string JoinParts(params string[] parts)
+    {
+        return string.Join(", ", parts.Where(s => !string.IsNullOrWhiteSpace(s)));
+    }
+}
 @{
     ViewBag.Title = Model.TextLabel;
-    var icoSrc = string.IsNullOrEmpty(Model.Path_Ico)
+    var icoSrc = string.IsNullOrWhiteSpace(Model.Path_Ico)
         ? null
-        : Url.Content(Model.Path_Ico.StartsWith("~") ? Model.Path_Ico : "~" + Model.Path_Ico);
-    var logoSrc = string.IsNullOrEmpty(Model.Path_Logo)
+        : IntranetFileHelper.ResolvePublicUrl(Url, IntranetFileHelper.NormalizeUploadedWebPath(Model.Path_Ico));
+    var logoSrc = string.IsNullOrWhiteSpace(Model.Path_Logo)
         ? null
-        : Url.Content(Model.Path_Logo.StartsWith("~") ? Model.Path_Logo : "~" + Model.Path_Logo);
+        : IntranetFileHelper.ResolvePublicUrl(Url, IntranetFileHelper.NormalizeUploadedWebPath(Model.Path_Logo));
+
+    var mapsKey = GoogleMapsConfigHelper.GetApiKey();
+    var hasMapsKey = !string.IsNullOrWhiteSpace(mapsKey);
+    var hasLocCoords = Model.Loc_Lat.HasValue && Model.Loc_Lng.HasValue;
+    object mapPayload;
+    if (hasLocCoords && hasMapsKey)
+    {
+        mapPayload = new { lat = (double)Model.Loc_Lat.Value, lng = (double)Model.Loc_Lng.Value };
+    }
+    else
+    {
+        mapPayload = new { lat = (double?)null, lng = (double?)null };
+    }
+    var mapBoot = JsonConvert.SerializeObject(mapPayload);
+
+    var locStreetLine = JoinParts(Model.Loc_Street_Number, Model.Loc_Route, Model.Loc_Subpremise);
+    var locRest = JoinParts(Model.Loc_Locality, Model.Loc_Admin_Area_2, Model.Loc_Admin_Area_1, Model.Loc_Postal_Code, Model.Loc_Country_Name);
 }
 
 <div class="d-flex align-items-center justify-content-between mb-4">
@@ -22,7 +48,7 @@
     </a>
 </div>
 
-<div class="card">
+<div class="card mb-4">
     <div class="card-body">
         <dl class="row mb-0">
             <dt class="col-sm-3">@ClientV2.Details_Field_Name</dt>
@@ -40,6 +66,28 @@
             <dt class="col-sm-3">@ClientV2.Details_Field_Phone</dt>
             <dd class="col-sm-9">@(string.IsNullOrEmpty(Model.TextPhone) ? ClientV2.Details_NoValue : Model.TextPhone)</dd>
 
+            <dt class="col-sm-3">@ClientV2.Details_Field_AddressFormatted</dt>
+            <dd class="col-sm-9">@(string.IsNullOrEmpty(Model.Loc_Formatted_Address) ? ClientV2.Details_NoValue : Model.Loc_Formatted_Address)</dd>
+
+            <dt class="col-sm-3">@ClientV2.Details_Section_AddressDetail</dt>
+            <dd class="col-sm-9">
+                @if (string.IsNullOrEmpty(locStreetLine) && string.IsNullOrEmpty(locRest))
+                {
+                    @ClientV2.Details_NoValue
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(locStreetLine))
+                    {
+                        <div>@locStreetLine</div>
+                    }
+                    if (!string.IsNullOrEmpty(locRest))
+                    {
+                        <div>@locRest</div>
+                    }
+                }
+            </dd>
+
             <dt class="col-sm-3">@ClientV2.Details_Field_Active</dt>
             <dd class="col-sm-9">
                 @if (Model.Is_Active)
@@ -54,7 +102,7 @@
 
             <dt class="col-sm-3">@ClientV2.Details_Field_Icon</dt>
             <dd class="col-sm-9">
-                @if (icoSrc != null)
+                @if (!string.IsNullOrWhiteSpace(icoSrc))
                 {
                     <img src="@icoSrc" style="height:32px;background:#fff;padding:2px;border:1px solid #eee;border-radius:4px" alt="" />
                 }
@@ -66,7 +114,7 @@
 
             <dt class="col-sm-3">@ClientV2.Details_Field_Logo</dt>
             <dd class="col-sm-9">
-                @if (logoSrc != null)
+                @if (!string.IsNullOrWhiteSpace(logoSrc))
                 {
                     <img src="@logoSrc" style="max-height:80px;background:#fff;padding:4px;border:1px solid #eee;border-radius:6px" alt="" />
                 }
@@ -78,3 +126,47 @@
         </dl>
     </div>
 </div>
+
+<div class="card border shadow-none mb-0">
+    <div class="card-header fw-semibold text-primary py-2 px-3 bg-label-primary bg-opacity-10">
+        @ClientV2.Details_MapTitle
+    </div>
+    <div class="card-body p-3">
+        @if (!hasLocCoords)
+        {
+            <div class="tandem-address-block tandem-address-block--compact border rounded p-2 mb-0">
+                <div class="tandem-address-map is-empty mb-0" role="status">
+                    @Common.Google_Msg_NoAddress
+                </div>
+            </div>
+        }
+        else if (!hasMapsKey)
+        {
+            <div class="alert alert-warning mb-0 py-2" role="alert">
+                <strong>@ClientV2.Google_NotConfiguredStrong</strong>@ClientV2.Google_NotConfiguredBody
+            </div>
+        }
+        else
+        {
+            <div class="tandem-address-block tandem-address-block--compact border rounded p-2 mb-0">
+                <label class="form-label mb-2 text-primary">@Common.Google_Lbl_Map</label>
+                <div id="clientV2DetailsLocMap" class="tandem-address-map mb-0" role="img" aria-label="@Common.Google_Aria_MapPreview"></div>
+            </div>
+        }
+    </div>
+</div>
+
+@section scripts
+{
+    @Html.Partial("~/Views/Shared/_GooglePlacesAddressScripts.cshtml")
+    <script type="text/javascript">
+        $(function () {
+            var m = @Html.Raw(mapBoot);
+            if (m && m.lat != null && m.lng != null && window.TandemAddressPlaces && TandemAddressPlaces.loadMapsApi) {
+                TandemAddressPlaces.loadMapsApi().then(function () {
+                    TandemAddressPlaces.updateMap('clientV2Details', 'clientV2DetailsLocMap', { lat: m.lat, lng: m.lng });
+                }).catch(function () { });
+            }
+        });
+    </script>
+}

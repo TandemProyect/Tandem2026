@@ -1,0 +1,677 @@
+@model DAL.TSql_Offers
+@using Desing.Models
+@using Desing.Resources
+@using Newtonsoft.Json
+@using System.Collections.Generic
+@using System.Web
+@using DocumentType = Desing.Resources.DocumentType
+@{
+    var jobsideId = Model.LinkJobside;
+    var js = Model.TSql_Jobside;
+
+    var numRaw = (Model.AddOfferNumber ?? "").Trim();
+    var numTit = HttpUtility.HtmlEncode(string.IsNullOrEmpty(numRaw) ? Jobside.Details_NoValue : numRaw);
+    var nameTit = HttpUtility.HtmlEncode(Model.TextLabel ?? "");
+    ViewBag.Title = string.Format(Jobside.OfferWorkspace_PageTitleFmt, numTit, nameTit);
+
+    var numHeaderPlain = string.IsNullOrEmpty(numRaw) ? Jobside.Details_NoValue : numRaw;
+    var stateColor = Model.TSql_OfferState != null ? Model.TSql_OfferState.AddColor : null;
+    var ci = System.Globalization.CultureInfo.CurrentUICulture?.TwoLetterISOLanguageName ?? "es";
+    var hasOfferDocType = ViewBag.OfferWorkspaceHasOfferDocType as bool? ?? false;
+    var offerDesigns = ViewBag.OfferWorkspaceDesigns as IList<JobsideOfferDesignRowVm>
+        ?? new List<JobsideOfferDesignRowVm>();
+
+    var jobsideOfferUi = JsonConvert.SerializeObject(new
+    {
+        formUrl = Url.Action("JobsideOfferForm", "Jobside"),
+        saveUrl = Url.Action("SaveJobsideOffer", "Jobside"),
+        titleEdit = Jobside.Offers_EditModalTitle,
+        success = Jobside.Offers_SaveSuccess,
+        failed = Jobside.Offers_SaveFailed,
+        jobsideId = jobsideId,
+        offerId = Model.IdObject
+    });
+    var offerWorkspaceChrome = JsonConvert.SerializeObject(new
+    {
+        expandTip = Jobside.Workspace_Tooltip_ExpandPanel,
+        restoreTip = Jobside.Workspace_Tooltip_RestorePanel
+    });
+    var offerDocsCfg = JsonConvert.SerializeObject(new
+    {
+        culture = ci,
+        rowsSuffix = Jobside.Dt_Rows_N,
+        allRows = Jobside.Dt_Rows_All,
+        sectionRecords = Jobside.Dt_Section_Records,
+        sectionExport = Jobside.Dt_Section_Export,
+        sectionCols = Jobside.Dt_Section_ColumnsVisible,
+        ariaMenu = Jobside.Dt_MenuAria,
+        emptyMessage = Jobside.Docs_Offer_NoDocuments
+    });
+    var offerDesignsUi = JsonConvert.SerializeObject(new
+    {
+        saveUrl = Url.Action("SaveOfferDesign", "Jobside"),
+        offerId = Model.IdObject,
+        jobsideId = jobsideId,
+        saveSuccess = Jobside.OfferWorkspace_Designs_SaveSuccess,
+        saveFailed = Jobside.OfferWorkspace_Designs_SaveFailed
+    });
+    var offerDocsUi = JsonConvert.SerializeObject(new
+    {
+        uploadUrl = Url.Action("UploadOfferDocument", "Jobside"),
+        deleteUrl = Url.Action("DeleteOfferDocument", "Jobside"),
+        listUrl = Url.Action("ListOfferDocuments", "Jobside", new { offerId = Model.IdObject, jobsideId = jobsideId }),
+        offerId = Model.IdObject,
+        jobsideId = jobsideId,
+        uploadSuccess = Jobside.Docs_Upload_Success,
+        uploadFailed = Jobside.Docs_Upload_Failed,
+        deleteSuccess = Jobside.Docs_Offer_DeleteSuccess,
+        deleteFailed = Jobside.Docs_Offer_DeleteFailed,
+        confirmDelete = Jobside.Js_ConfirmDeleteOfferDocument
+    });
+}
+
+@Html.AntiForgeryToken()
+
+<div id="offerWorkspaceRoot" class="tandem-jobside-workspace tandem-offer-workspace">
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2 tandem-jobside-workspace-toolbar">
+        <h4 class="py-3 mb-0">
+            <span class="text-muted fw-light">
+                <a href="@Url.Action("Index", "Home")">@Jobside.Common_Home</a> /
+                <a href="@Url.Action("Index", "Jobside")">@Jobside.Index_Breadcrumb</a> /
+                @if (js != null)
+                {
+                    <a href="@Url.Action("Details", "Jobside", new { id = js.IdObject })">@Html.Encode(js.TextLabel ?? string.Empty)</a>
+                    @: /
+                }
+            </span>
+            <span class="d-inline-flex flex-wrap align-items-center gap-2 align-middle">
+                <span class="tandem-offer-header-number">@Html.Raw(OfferDisplayHelper.BuildOfferNumberCellHtml(numHeaderPlain, stateColor))</span>
+                <span>@Html.Encode(Model.TextLabel ?? string.Empty)</span>
+            </span>
+        </h4>
+        <div class="d-flex flex-wrap gap-2">
+            @if (js != null)
+            {
+                <a class="btn btn-light" href="@Url.Action("Details", "Jobside", new { id = js.IdObject })">
+                    <i class="icon-base ri ri-arrow-left-line me-1"></i> @Common.Btn_Back
+                </a>
+            }
+            else
+            {
+                <a class="btn btn-light" href="@Url.Action("Index", "Jobside")">
+                    <i class="icon-base ri ri-arrow-left-line me-1"></i> @Common.Btn_Back
+                </a>
+            }
+            <button type="button" class="btn btn-sm btn-warning" id="offerWorkspaceOpenOfferEditBtn"
+                    title="@Jobside.Offers_EditTooltip" aria-label="@Jobside.Offers_EditTooltip">
+                <i class="icon-base ri ri-pencil-line me-1" aria-hidden="true"></i> @Jobside.Offers_Btn_EditRow
+            </button>
+        </div>
+    </div>
+
+    <div id="offerWorkspaceOfferFlash" class="mb-2"></div>
+
+    <div class="row g-4 align-items-stretch tandem-jobside-workspace-row">
+        <div class="col-12 col-lg-5 tandem-jobside-col-left">
+            @Html.Partial("_JobsideOfferWorkspaceLeftPanel", Model)
+        </div>
+        <div class="col-12 col-lg-7 tandem-jobside-col-right d-flex">
+            <div class="card tandem-jobside-right-card h-100 w-100 border shadow-none">
+                <div class="card-body tandem-jobside-right-card-body">
+                    <div class="d-flex align-items-end gap-2 flex-nowrap tandem-jobside-tabs-bar flex-shrink-0">
+                        <ul class="nav nav-tabs flex-grow-1 mb-0 flex-nowrap overflow-x-auto" role="tablist" style="min-width:0">
+                            <li class="nav-item text-nowrap" role="presentation">
+                                <button type="button" class="nav-link active" id="offer-tab-designs"
+                                        data-bs-toggle="tab" data-bs-target="#offer-pane-designs"
+                                        role="tab" aria-controls="offer-pane-designs" aria-selected="true">
+                                    @Jobside.OfferWorkspace_TabDesigns
+                                </button>
+                            </li>
+                            <li class="nav-item text-nowrap" role="presentation">
+                                <button type="button" class="nav-link" id="offer-tab-docs"
+                                        data-bs-toggle="tab" data-bs-target="#offer-pane-docs"
+                                        role="tab" aria-controls="offer-pane-docs" aria-selected="false">
+                                    @Jobside.Tab_Documents
+                                </button>
+                            </li>
+                            <li class="nav-item text-nowrap" role="presentation">
+                                <button type="button" class="nav-link" id="offer-tab-chat"
+                                        data-bs-toggle="tab" data-bs-target="#offer-pane-chat"
+                                        role="tab" aria-controls="offer-pane-chat" aria-selected="false">
+                                    @Jobside.Tab_Chat
+                                </button>
+                            </li>
+                        </ul>
+                        <button type="button"
+                                class="btn btn-sm btn-outline-secondary tandem-jobside-expand-btn flex-shrink-0 mb-1"
+                                id="offerWorkspaceExpandBtn"
+                                title="@Jobside.Workspace_Tooltip_ExpandPanel"
+                                aria-label="@Jobside.Workspace_Tooltip_ExpandPanel"
+                                aria-pressed="false">
+                            <i class="icon-base ri ri-fullscreen-line" id="offerWorkspaceExpandIcon" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <div class="tab-content tandem-jobside-tab-content pt-3" id="offerWorkspaceTabContent">
+                        <div class="tab-pane fade show active" id="offer-pane-designs" role="tabpanel" aria-labelledby="offer-tab-designs">
+                            <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
+                                <p class="small mb-0">@Jobside.OfferWorkspace_Designs_DedicatedPageNote</p>
+                                <button type="button"
+                                        class="btn btn-sm btn-primary flex-shrink-0"
+                                        id="offerWorkspaceNewDesignBtn"
+                                        title="@Jobside.OfferWorkspace_Designs_Btn_NewTooltip"
+                                        aria-label="@Jobside.OfferWorkspace_Designs_Btn_NewTooltip">
+                                    <i class="icon-base ri ri-add-line me-1" aria-hidden="true"></i>@Jobside.OfferWorkspace_Designs_Btn_New
+                                </button>
+                            </div>
+                            <div id="offerWorkspaceDesignsFlash" class="mb-2"></div>
+                            <div id="offerWorkspaceDesignsEmpty" class="@(offerDesigns.Count > 0 ? "d-none" : "")">
+                                <p class="mb-0">@Jobside.OfferWorkspace_Designs_None</p>
+                            </div>
+                            <div id="offerWorkspaceDesignsList">
+                                @foreach (var row in offerDesigns)
+                                {
+                                    @Html.Partial("_OfferWorkspaceDesignRow", new OfferWorkspaceDesignRowDisplayModel
+                                    {
+                                        OfferId = Model.IdObject,
+                                        Row = row
+                                    })
+                                }
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="offer-pane-docs" role="tabpanel" aria-labelledby="offer-tab-docs">
+                            <div id="offerPaneDocsFlash" class="mb-2"></div>
+                            <div class="d-flex flex-wrap align-items-stretch justify-content-between gap-2 mb-2">
+                                <p class="text-muted small mb-0 align-self-center">@Jobside.Docs_Offer_DtTitle</p>
+                                @if (hasOfferDocType)
+                                {
+                                    <button type="button" class="btn btn-sm btn-primary align-self-center" id="offerOpenUploadModalBtn">
+                                        <i class="icon-base ri ri-attachment-line me-1" aria-hidden="true"></i>@Jobside.Docs_Btn_AttachDocument
+                                    </button>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-warning mb-0 py-2 px-3 small d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2" role="alert">
+                                        <span class="flex-grow-1 mb-0">@Jobside.Err_OfferDocumentTypeMissing</span>
+                                        <a class="btn btn-sm btn-primary text-nowrap flex-shrink-0 align-self-sm-center" href="@Url.Action("Index", "DocumentType")">
+                                            <i class="icon-base ri ri-file-list-3-line me-1" aria-hidden="true"></i>@DocumentType.Index_Breadcrumb
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                            <div class="mb-3 table-responsive" style="padding:5px">
+                                <table id="OfferDocumentsTable" class="table table-hover w-100" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>@Jobside.Docs_Col_Name</th>
+                                            <th>@Jobside.Docs_Col_Type</th>
+                                            <th>@Jobside.Docs_Col_Extension</th>
+                                            <th>@Jobside.Docs_Col_Date</th>
+                                            <th class="text-end text-nowrap" style="width:1%;">@Jobside.Docs_Col_Actions</th>
+                                            <th>ID</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="offer-pane-chat" role="tabpanel" aria-labelledby="offer-tab-chat">
+                            <p class="text-muted mb-0">@Jobside.Tab_ComingSoon</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="offerUploadDocModal" tabindex="-1" aria-labelledby="offerUploadDocModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title text-white" id="offerUploadDocModalLabel">@Jobside.Docs_Offer_UploadModalTitle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="@Common.Aria_CloseModal"></button>
+            </div>
+            <form id="offerUploadDocForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" name="offerId" value="@Model.IdObject" />
+                    <input type="hidden" name="jobsideId" value="@jobsideId" />
+                    <div class="mb-3">
+                        <label class="form-label" for="offerUploadFile">@Jobside.Docs_Upload_File</label>
+                        <input id="offerUploadFile" name="file" type="file" class="form-control" required="required" />
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label" for="offerUploadDescription">@Jobside.Docs_Upload_Description</label>
+                        <textarea id="offerUploadDescription" name="description" class="form-control" rows="2" maxlength="4000"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">@Common.Btn_Cancel</button>
+                    <button type="submit" class="btn btn-primary">@Jobside.Docs_Upload_Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="offerWorkspaceOfferModal" tabindex="-1" aria-labelledby="offerWorkspaceOfferModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title text-white" id="offerWorkspaceOfferModalTitle">@Jobside.Offers_EditModalTitle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="@Common.Aria_CloseModal"></button>
+            </div>
+            <div class="modal-body" id="offerWorkspaceOfferModalBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">@Common.Btn_Cancel</button>
+                <button type="button" class="btn btn-primary" id="offerWorkspaceOfferModalSaveBtn">@Common.Btn_Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="offerWorkspaceNewDesignModal" tabindex="-1" aria-labelledby="offerWorkspaceNewDesignModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title text-white" id="offerWorkspaceNewDesignModalLabel">@Jobside.OfferWorkspace_Designs_ModalTitle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="@Common.Aria_CloseModal"></button>
+            </div>
+            <form id="offerWorkspaceNewDesignForm">
+                <div class="modal-body">
+                    <input type="hidden" name="offerId" id="offerWorkspaceNewDesignOfferId" value="@Model.IdObject" />
+                    <input type="hidden" name="jobsideId" id="offerWorkspaceNewDesignJobsideId" value="@jobsideId" />
+                    <div class="mb-3">
+                        <label class="form-label" for="offerWorkspaceNewDesignAttLabel">@Jobside.OfferWorkspace_Designs_Lbl_AttLabel</label>
+                        <input type="text" class="form-control" id="offerWorkspaceNewDesignAttLabel"
+                               name="attLabel" maxlength="500" autocomplete="off" required="required" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="offerWorkspaceNewDesignAttDesc">@Jobside.OfferWorkspace_Designs_Lbl_AttDescription</label>
+                        <textarea class="form-control" id="offerWorkspaceNewDesignAttDesc"
+                                  name="attDescription" rows="2" maxlength="2000"></textarea>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label" for="offerWorkspaceNewDesignAttThumbnail">@Jobside.OfferWorkspace_Designs_Lbl_AttThumbnail</label>
+                        <input type="text" class="form-control" id="offerWorkspaceNewDesignAttThumbnail"
+                               name="attThumbnail" maxlength="2000" autocomplete="off" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">@Common.Btn_Cancel</button>
+                    <button type="submit" class="btn btn-primary">@Jobside.OfferWorkspace_Designs_Save_Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section scripts
+{
+    <script type="text/javascript">
+        var offerWorkspaceOfferUi = @Html.Raw(jobsideOfferUi);
+        var offerWorkspaceChrome = @Html.Raw(offerWorkspaceChrome);
+        var offerDocsCfg = @Html.Raw(offerDocsCfg);
+        var offerWorkspaceDesignUi = @Html.Raw(offerDesignsUi);
+        var offerDocsUploadUi = @Html.Raw(offerDocsUi);
+        var offerDocsExportOpts = TandemDataTablesList.exportOptsPlainVisible;
+        var offerDocumentsDt;
+
+        function offerPaneDocsShowFlash(kind, message) {
+            var cls = kind === 'success' ? 'alert-success' : 'alert-danger';
+            var html = '<div class="alert ' + cls + ' alert-dismissible fade show" role="alert">' +
+                $('<div/>').text(message).html() +
+                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+            $('#offerPaneDocsFlash').html(html);
+        }
+
+        function offerPaneDocsPatchDtDropdownPopper() {
+            var pane = document.getElementById('offer-pane-docs');
+            if (!pane) return;
+            var btns = pane.querySelectorAll('.dt-buttons button.btn, .dt-buttons button.dt-button');
+            btns.forEach(function (btn) {
+                if (!btn.getAttribute('data-tandem-popper-fixed')) {
+                    btn.setAttribute('data-bs-popper-config', JSON.stringify({ strategy: 'fixed' }));
+                    btn.setAttribute('data-tandem-popper-fixed', '1');
+                }
+            });
+        }
+
+        function offerWorkspaceOffersShowFlash(kind, message) {
+            var cls = kind === 'success' ? 'alert-success' : 'alert-danger';
+            var html = '<div class="alert ' + cls + ' alert-dismissible fade show" role="alert">' +
+                $('<div/>').text(message).html() +
+                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+            $('#offerWorkspaceOfferFlash').html(html);
+        }
+
+        function offerWorkspaceLoadOfferForm(offerId) {
+            var ui = offerWorkspaceOfferUi || {};
+            var url = ui.formUrl + '?jobsideId=' + encodeURIComponent(ui.jobsideId) + (offerId ? '&id=' + encodeURIComponent(offerId) : '');
+            $('#offerWorkspaceOfferModalBody').load(url, function (response, status) {
+                if (status === 'error') {
+                    offerWorkspaceOffersShowFlash('danger', ui.failed || '');
+                    return;
+                }
+                $('#offerWorkspaceOfferModalTitle').text(ui.titleEdit || '');
+                var modalEl = document.getElementById('offerWorkspaceOfferModal');
+                if (modalEl && window.bootstrap && bootstrap.Modal) {
+                    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                }
+            });
+        }
+
+        function offerWorkspaceDesignsFlash(kind, message) {
+            var cls = kind === 'success' ? 'alert-success' : 'alert-danger';
+            var html = '<div class="alert ' + cls + ' alert-dismissible fade show tandem-offer-designs-flash" role="alert">' +
+                $('<div/>').text(message).html() +
+                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+            $('#offerWorkspaceDesignsFlash').html(html);
+        }
+
+        $(document).ready(function () {
+            var ndBtn = document.getElementById('offerWorkspaceNewDesignBtn');
+            if (ndBtn) {
+                ndBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    var mf = document.getElementById('offerWorkspaceNewDesignForm');
+                    if (mf) { mf.reset(); }
+                    document.getElementById('offerWorkspaceNewDesignOfferId').value = String((offerWorkspaceDesignUi || {}).offerId || '');
+                    document.getElementById('offerWorkspaceNewDesignJobsideId').value = String((offerWorkspaceDesignUi || {}).jobsideId || '');
+                    var nm = document.getElementById('offerWorkspaceNewDesignModal');
+                    if (nm && window.bootstrap && bootstrap.Modal) {
+                        bootstrap.Modal.getOrCreateInstance(nm).show();
+                    }
+                });
+            }
+
+            $('#offerWorkspaceNewDesignForm').on('submit', function (e) {
+                e.preventDefault();
+                var cfg = window.offerWorkspaceDesignUi || {};
+                var tk = $('input[name="__RequestVerificationToken"]').first().val();
+                var dataArr = $('#offerWorkspaceNewDesignForm').serializeArray();
+                if (tk) {
+                    dataArr.push({ name: '__RequestVerificationToken', value: tk });
+                }
+                $.ajax({
+                    url: cfg.saveUrl,
+                    type: 'POST',
+                    data: $.param(dataArr)
+                }).done(function (r) {
+                    var msgOk = cfg.saveSuccess || '';
+                    var msgFail = cfg.saveFailed || '';
+                    if (r && r.ok) {
+                        var modalEl = document.getElementById('offerWorkspaceNewDesignModal');
+                        if (modalEl && window.bootstrap) {
+                            var inst = bootstrap.Modal.getInstance(modalEl);
+                            if (inst) { inst.hide(); }
+                        }
+                        $('#offerWorkspaceNewDesignForm')[0].reset();
+                        $('#offerWorkspaceDesignsEmpty').addClass('d-none');
+                        if (r.rowHtml) {
+                            $('#offerWorkspaceDesignsList').append(r.rowHtml);
+                        }
+                        offerWorkspaceDesignsFlash('success', r.message || msgOk);
+                        $('[data-bs-toggle="tooltip"]').tooltip({
+                            delay: { show: 100, hide: 100 },
+                            placement: 'auto right'
+                        });
+                        $('[title]').tooltip({
+                            delay: { show: 100, hide: 100 },
+                            placement: 'auto'
+                        });
+                    } else {
+                        offerWorkspaceDesignsFlash('danger', (r && r.message) ? r.message : msgFail);
+                    }
+                }).fail(function () {
+                    var cfg = window.offerWorkspaceDesignUi || {};
+                    offerWorkspaceDesignsFlash('danger', cfg.saveFailed || '');
+                });
+            });
+
+            $('#offer-pane-designs [title]').tooltip({
+                delay: { show: 100, hide: 100 },
+                placement: 'auto'
+            });
+
+            $('#offerWorkspaceDesignsList').on('click', '.tandem-offer-design-card', function (e) {
+                if ($(e.target).closest('a, button').length) {
+                    return;
+                }
+                var url = $(this).attr('data-viewer-url');
+                if (url) {
+                    window.location.href = url;
+                }
+            });
+
+            var openEdit = document.getElementById('offerWorkspaceOpenOfferEditBtn');
+            if (openEdit) {
+                openEdit.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    var ui = offerWorkspaceOfferUi || {};
+                    offerWorkspaceLoadOfferForm(ui.offerId);
+                });
+            }
+
+            $('#offerWorkspaceOfferModalSaveBtn').on('click', function () {
+                var form = $('#offerWorkspaceOfferModalBody').find('#jobsideOfferForm');
+                if (!form.length) return;
+                var ui = offerWorkspaceOfferUi || {};
+                $.ajax({
+                    url: ui.saveUrl,
+                    type: 'POST',
+                    data: form.serialize()
+                }).done(function (r) {
+                    if (r && r.ok) {
+                        var modalEl = document.getElementById('offerWorkspaceOfferModal');
+                        if (modalEl && window.bootstrap) {
+                            var inst = bootstrap.Modal.getInstance(modalEl);
+                            if (inst) inst.hide();
+                        }
+                        $('#offerWorkspaceOfferModalBody').empty();
+                        window.location.reload();
+                    } else {
+                        offerWorkspaceOffersShowFlash('danger', (r && r.message) ? r.message : ui.failed);
+                    }
+                }).fail(function () {
+                    var ui = offerWorkspaceOfferUi || {};
+                    offerWorkspaceOffersShowFlash('danger', ui.failed);
+                });
+            });
+
+            var offerModalEl = document.getElementById('offerWorkspaceOfferModal');
+            if (offerModalEl) {
+                offerModalEl.addEventListener('hidden.bs.modal', function () {
+                    $('#offerWorkspaceOfferModalBody').empty();
+                });
+            }
+
+            @if (hasOfferDocType)
+            {
+                <text>
+            offerDocumentsDt = $('#OfferDocumentsTable').DataTable(TandemDataTablesList.applyListDefaults({
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    ['10 ' + offerDocsCfg.rowsSuffix, '25 ' + offerDocsCfg.rowsSuffix, '50 ' + offerDocsCfg.rowsSuffix, offerDocsCfg.allRows]
+                ],
+                buttons: [{
+                    extend: 'collection',
+                    text: "<i class='fas fa-bars'></i>",
+                    attr: { 'aria-label': offerDocsCfg.ariaMenu },
+                    className: 'custom-html-collection',
+                    buttons: [
+                        '<h5>' + offerDocsCfg.sectionRecords + '</h5>',
+                        'pageLength',
+                        '<h5>' + offerDocsCfg.sectionExport + '</h5>',
+                        'print',
+                        'copy',
+                        'pdf',
+                        { extend: 'csv', exportOptions: offerDocsExportOpts },
+                        { extend: 'excel', exportOptions: offerDocsExportOpts },
+                        '<h5 class="not-top-heading">' + offerDocsCfg.sectionCols + '</h5>',
+                        'colvis'
+                    ]
+                }],
+                serverSide: true,
+                processing: true,
+                language: {
+                    emptyTable: offerDocsCfg.emptyMessage,
+                    zeroRecords: offerDocsCfg.emptyMessage
+                },
+                colReorder: { iFixedColumnsRight: 1 },
+                ajax: {
+                    url: offerDocsUploadUi.listUrl,
+                    type: 'POST'
+                },
+                order: [[3, 'desc']],
+                columns: [
+                    {
+                        data: 'displayName',
+                        name: 'displayName',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.displayNamePlain || '';
+                            }
+                            return data;
+                        }
+                    },
+                    { data: 'documentTypeName', name: 'documentTypeName' },
+                    { data: 'fileExtension', name: 'fileExtension' },
+                    {
+                        data: 'addDateMadeFmt',
+                        name: 'addDateMade',
+                        render: function (data, type, row) {
+                            if (type === 'sort' || type === 'type') {
+                                return row.addDateMade || '';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'rowActions',
+                        orderable: false,
+                        searchable: false,
+                        className: 'tandem-col-actions text-end align-middle text-nowrap'
+                    },
+                    { data: 'IdObject', visible: false }
+                ],
+                drawCallback: function () {
+                    offerPaneDocsPatchDtDropdownPopper();
+                    $('[data-toggle="tooltip"]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto right'
+                    });
+                    $('[title]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto'
+                    });
+                }
+            }));
+            offerPaneDocsPatchDtDropdownPopper();
+
+            var openOfferUploadBtn = document.getElementById('offerOpenUploadModalBtn');
+            if (openOfferUploadBtn) {
+                openOfferUploadBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    var modalEl = document.getElementById('offerUploadDocModal');
+                    if (modalEl && window.bootstrap && bootstrap.Modal) {
+                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                    }
+                });
+            }
+
+            $('#offerUploadDocForm').on('submit', function (e) {
+                e.preventDefault();
+                var fd = new FormData(this);
+                var token = $('input[name="__RequestVerificationToken"]').first().val();
+                if (token) {
+                    fd.set('__RequestVerificationToken', token);
+                }
+                $.ajax({
+                    url: offerDocsUploadUi.uploadUrl,
+                    type: 'POST',
+                    data: fd,
+                    processData: false,
+                    contentType: false
+                }).done(function (r) {
+                    if (r && r.ok) {
+                        var modalEl = document.getElementById('offerUploadDocModal');
+                        if (modalEl && window.bootstrap) {
+                            var inst = bootstrap.Modal.getInstance(modalEl);
+                            if (inst) inst.hide();
+                        }
+                        document.getElementById('offerUploadDocForm').reset();
+                        offerDocumentsDt.ajax.reload(null, false);
+                        offerPaneDocsShowFlash('success', r.message || offerDocsUploadUi.uploadSuccess);
+                    } else {
+                        offerPaneDocsShowFlash('danger', (r && r.message) ? r.message : offerDocsUploadUi.uploadFailed);
+                    }
+                }).fail(function () {
+                    offerPaneDocsShowFlash('danger', offerDocsUploadUi.uploadFailed);
+                });
+            });
+
+            $('#offer-pane-docs').on('click', '.tandem-offer-doc-delete', function (e) {
+                e.preventDefault();
+                var ui = offerDocsUploadUi || {};
+                if (!confirm(ui.confirmDelete || '')) return;
+                var id = $(this).attr('data-doc-id');
+                if (!id) return;
+                var token = $('input[name="__RequestVerificationToken"]').first().val();
+                $.ajax({
+                    url: ui.deleteUrl,
+                    type: 'POST',
+                    data: {
+                        __RequestVerificationToken: token,
+                        id: id,
+                        offerId: ui.offerId,
+                        jobsideId: ui.jobsideId
+                    }
+                }).done(function (r) {
+                    if (r && r.ok) {
+                        offerDocumentsDt.ajax.reload(null, false);
+                        offerPaneDocsShowFlash('success', r.message || ui.deleteSuccess);
+                    } else {
+                        offerPaneDocsShowFlash('danger', (r && r.message) ? r.message : ui.deleteFailed);
+                    }
+                }).fail(function () {
+                    offerPaneDocsShowFlash('danger', ui.deleteFailed);
+                });
+            });
+                </text>
+            }
+
+            var root = document.getElementById('offerWorkspaceRoot');
+            var expandBtn = document.getElementById('offerWorkspaceExpandBtn');
+            var expandIcon = document.getElementById('offerWorkspaceExpandIcon');
+            var leftCol = root ? root.querySelector('.tandem-jobside-col-left') : null;
+            var rightCol = root ? root.querySelector('.tandem-jobside-col-right') : null;
+            if (root && expandBtn && expandIcon && leftCol && rightCol) {
+                var expanded = false;
+                function applyOfferWorkspaceExpanded(on) {
+                    expanded = !!on;
+                    root.classList.toggle('tandem-jobside-workspace--expanded', expanded);
+                    leftCol.classList.toggle('col-lg-5', !expanded);
+                    leftCol.classList.toggle('col-lg-2', expanded);
+                    rightCol.classList.toggle('col-lg-7', !expanded);
+                    rightCol.classList.toggle('col-lg-10', expanded);
+                    expandBtn.setAttribute('aria-pressed', expanded ? 'true' : 'false');
+                    var tip = expanded ? offerWorkspaceChrome.restoreTip : offerWorkspaceChrome.expandTip;
+                    expandBtn.setAttribute('aria-label', tip);
+                    expandBtn.setAttribute('title', tip);
+                    expandIcon.className = expanded ? 'icon-base ri ri-fullscreen-exit-line' : 'icon-base ri ri-fullscreen-line';
+                    if (offerDocumentsDt && offerDocumentsDt.columns) {
+                        offerDocumentsDt.columns.adjust();
+                    }
+                }
+                expandBtn.addEventListener('click', function () {
+                    applyOfferWorkspaceExpanded(!expanded);
+                });
+            }
+
+            $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function () {
+                if (offerDocumentsDt && offerDocumentsDt.columns) {
+                    offerDocumentsDt.columns.adjust();
+                }
+            });
+        });
+    </script>
+}

@@ -131,17 +131,22 @@ En el controlador, si `BitBillSameAsLoc` en POST: `CopyLocToBill(model)` antes d
 
 ---
 
-## 5. Web.config
+## 5. Web.config y clave local
+
+`Web.config` lleva `GoogleMaps:ApiKey` vacío y merge opcional `file="Web.GoogleMaps.config"`:
 
 ```xml
-<add key="GoogleMaps:ApiKey" value="SU_CLAVE_AQUI" />
-<add key="GoogleMaps:Language" value="es" />
-<add key="GoogleMaps:Region" value="ES" />
-<!-- Opcional: panel diagnóstico forzado -->
-<!-- <add key="GoogleMaps:ShowDiagnostics" value="true" /> -->
+<appSettings file="Web.GoogleMaps.config">
+  ...
+  <add key="GoogleMaps:ApiKey" value="" />
+  <add key="GoogleMaps:Language" value="es" />
+  <add key="GoogleMaps:Region" value="ES" />
+</appSettings>
 ```
 
-- **No** commitear claves reales en documentación pública; en desarrollo usar clave de prueba con restricciones.
+**Desarrollo local:** copiar `Web.GoogleMaps.config.example` → `Web.GoogleMaps.config` (gitignored) o variable `GOOGLE_MAPS_API_KEY`. Ver `Scripts/TemporalScript/GOOGLE_MAPS_LOCALHOST_REFERRERS.txt`.
+
+- **No** commitear claves reales; rotar cualquier clave expuesta en GitHub.
 - Sin clave: aviso amarillo en formulario; el usuario puede rellenar dirección **manualmente** (el JS degrada con gracia).
 
 ---
@@ -155,11 +160,10 @@ Documento detallado: `Scripts/TemporalScript/GOOGLE_MAPS_LOCALHOST_REFERRERS.txt
 | API | Motivo |
 |-----|--------|
 | **Maps JavaScript API** | Carga `maps/api/js` y el mapa |
-| **Places API** (legacy) | `google.maps.places.Autocomplete` |
+| **Places API (New)** | `PlaceAutocompleteElement` (autocompletado actual) |
+| **Places API** (legacy, opcional) | Fallback `google.maps.places.Autocomplete` si falla el widget nuevo |
 
-No basta con solo **Places API (New)** para el widget actual.
-
-Si la clave tiene «Restringir a APIs seleccionadas», la lista **debe incluir** Maps JavaScript API y Places API.
+Si la clave tiene «Restringir a APIs seleccionadas», la lista **debe incluir** Maps JavaScript API y **Places API (New)** como mínimo.
 
 ### Restricción HTTP (desarrollo local)
 
@@ -240,4 +244,4 @@ Estos **no** sustituyen el texto de ayuda gris bajo cada campo (sigue prohibido 
 
 ---
 
-*Widget: Places Autocomplete legacy (`google.maps.places.Autocomplete`). Migración futura a Places API (New) requerirá cambio de JS.*
+*Widget principal: `PlaceAutocompleteElement` (Places API New). Fallback legacy: `google.maps.places.Autocomplete` si el widget nuevo no está disponible.*

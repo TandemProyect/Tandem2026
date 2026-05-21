@@ -454,6 +454,39 @@
   <data name="StlPreview_RowLabelStl" xml:space="preserve">
     <value>STL</value>
   </data>
+  <data name="StlPreview_RulerAnchorGridCoordsHud" xml:space="preserve">
+    <value>X: {0} m  Z: {1} m</value>
+  </data>
+  <data name="StlPreview_RulerAnchorGridIntersectionToast" xml:space="preserve">
+    <value>Rulers placed</value>
+  </data>
+  <data name="StlPreview_RulerAnchorPickAria" xml:space="preserve">
+    <value>Select insertion point for rulers</value>
+  </data>
+  <data name="StlPreview_RulerAnchorPickFloorToast" xml:space="preserve">
+    <value>Anchor on floor plane</value>
+  </data>
+  <data name="StlPreview_RulerAnchorPickModeToast" xml:space="preserve">
+    <value>Click a grid intersection to place rulers</value>
+  </data>
+  <data name="StlPreview_RulerAnchorPickSelectedToast" xml:space="preserve">
+    <value>Insertion point selected</value>
+  </data>
+  <data name="StlPreview_RulerAnchorPickTitle" xml:space="preserve">
+    <value>Select insertion point (zoom to panel base center and click)</value>
+  </data>
+  <data name="StlPreview_SaveViewAria" xml:space="preserve">
+    <value>Save view</value>
+  </data>
+  <data name="StlPreview_SaveViewSavedTitle" xml:space="preserve">
+    <value>Saved</value>
+  </data>
+  <data name="StlPreview_SaveViewSavedToast" xml:space="preserve">
+    <value>View saved</value>
+  </data>
+  <data name="StlPreview_SaveViewTitle" xml:space="preserve">
+    <value>Save view</value>
+  </data>
   <data name="StlPreview_SkyToggleAria" xml:space="preserve">
     <value>STL sky</value>
   </data>
@@ -462,6 +495,18 @@
   </data>
   <data name="StlPreview_StatusInitial" xml:space="preserve">
     <value>Select a block with available STL (orange button) to view it here.</value>
+  </data>
+  <data name="StlPreview_UcsRulersAria" xml:space="preserve">
+    <value>Plan rulers</value>
+  </data>
+  <data name="StlPreview_UcsRulersToggleTitle" xml:space="preserve">
+    <value>Show or hide plan rulers from anchor (+X / +Z)</value>
+  </data>
+  <data name="StlPreview_XyzAxesAria" xml:space="preserve">
+    <value>XYZ axes</value>
+  </data>
+  <data name="StlPreview_XyzAxesToggleTitle" xml:space="preserve">
+    <value>Show or hide X, Y, and Z axis vectors (green, with arrowheads)</value>
   </data>
   <data name="ToastMessage_ArticleActivated" xml:space="preserve">
     <value>Article &quot;{0}&quot; activated.</value>

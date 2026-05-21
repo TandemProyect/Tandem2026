@@ -18,6 +18,7 @@ namespace DAL
         public TSql_Offers()
         {
             this.TSql_Document = new HashSet<TSql_Document>();
+            this.TSql_Design_V2 = new HashSet<TSql_Design_V2>();
         }
     
         public long IdObject { get; set; }
@@ -42,5 +43,7 @@ namespace DAL
         public virtual ICollection<TSql_Document> TSql_Document { get; set; }
         public virtual TSql_OfferState TSql_OfferState { get; set; }
         public virtual TSql_Jobside TSql_Jobside { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_Design_V2> TSql_Design_V2 { get; set; }
     }
 }

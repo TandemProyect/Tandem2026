@@ -21,6 +21,18 @@ namespace Desing.Controllers
     [Authorize]
     public class ClientV2Controller : BaseController
     {
+        private const string ClientV2GooglePlacesLocBindFields =
+            "Loc_Place_Id,Loc_Formatted_Address,Loc_Lat,Loc_Lng,Loc_Street_Number,Loc_Route,Loc_Subpremise," +
+            "Loc_Locality,Loc_Admin_Area_1,Loc_Admin_Area_2,Loc_Postal_Code,Loc_Country_Code,Loc_Country_Name,Loc_Address_Components_Json";
+
+        private const string ClientV2CreateBindInclude =
+            "TextLabel,TextCode,TextTaxId,TextEmail,TextPhone,LinkMethodOfPayment,Is_Active,Path_Ico,Path_Logo," +
+            ClientV2GooglePlacesLocBindFields;
+
+        private const string ClientV2EditBindInclude =
+            "IdObject,TextLabel,TextCode,TextTaxId,TextEmail,TextPhone,LinkMethodOfPayment,Is_Active,Path_Ico,Path_Logo," +
+            ClientV2GooglePlacesLocBindFields;
+
         // ---------------------------------------------------------------------
         // INDEX + DataTable (patron Materio + applyListDefaults)
         // ---------------------------------------------------------------------
@@ -140,11 +152,38 @@ namespace Desing.Controllers
                         Url.Action("Details", new { id = p.IdObject }) + "\">" +
                         HttpUtility.HtmlEncode(namePlain) + "</a>";
 
-                    var logoPreview = string.IsNullOrEmpty(p.Path_Logo)
-                        ? ""
-                        : "<img src=\"" + HttpUtility.HtmlAttributeEncode(
-                                Url.Content(p.Path_Logo.StartsWith("~") ? p.Path_Logo : "~" + p.Path_Logo)) +
-                          "\" style=\"height:24px;background:#fff;padding:2px;border:1px solid #eee;border-radius:4px\" alt=\"\" />";
+                    var logoBoxStyle =
+                        "display:inline-flex;align-items:center;justify-content:center;" +
+                        "width:40px;height:40px;flex-shrink:0;border:1px solid #e8e8e8;" +
+                        "border-radius:6px;background:#fff;box-sizing:border-box";
+                    var logoImgStyle =
+                        "width:40px;height:40px;object-fit:contain;display:block;" +
+                        "padding:2px;box-sizing:border-box";
+                    var logoPlain = "";
+                    string logoPreview;
+                    if (string.IsNullOrWhiteSpace(p.Path_Logo))
+                    {
+                        logoPreview =
+                            "<span class=\"text-muted tandem-client-logo-empty\" style=\"" + logoBoxStyle + "\" title=\"\"></span>";
+                    }
+                    else
+                    {
+                        logoPlain = (p.Path_Logo ?? "").Trim();
+                        var logoVp = IntranetFileHelper.NormalizeUploadedWebPath(p.Path_Logo);
+                        var logoSrc = IntranetFileHelper.ResolvePublicUrl(Url, logoVp);
+                        if (string.IsNullOrWhiteSpace(logoSrc))
+                        {
+                            logoPreview =
+                                "<span class=\"text-muted tandem-client-logo-empty\" style=\"" + logoBoxStyle + "\" title=\"\"></span>";
+                        }
+                        else
+                        {
+                            logoPreview =
+                                "<span class=\"tandem-client-logo-cell\" style=\"" + logoBoxStyle + "\">" +
+                                "<img src=\"" + HttpUtility.HtmlAttributeEncode(logoSrc) + "\" " +
+                                "style=\"" + logoImgStyle + "\" width=\"40\" height=\"40\" alt=\"\" /></span>";
+                        }
+                    }
 
                     var activeBadge = p.Is_Active
                         ? "<span class=\"badge bg-label-success\">" + lblActive + "</span>"
@@ -188,6 +227,7 @@ namespace Desing.Controllers
                         TextEmail = p.TextEmail ?? "",
                         TextPhone = p.TextPhone ?? "",
                         logoPreview,
+                        logoPlain,
                         Is_Active = p.Is_Active,
                         activeBadge,
                         rowActions
@@ -220,7 +260,7 @@ namespace Desing.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(
-            [Bind(Include = "TextLabel,TextCode,TextTaxId,TextEmail,TextPhone,LinkMethodOfPayment,Is_Active,Path_Ico,Path_Logo")] TSql_Client_V2 model,
+            [Bind(Include = ClientV2CreateBindInclude)] TSql_Client_V2 model,
             HttpPostedFileBase icoFile,
             HttpPostedFileBase logoFile)
         {
@@ -267,7 +307,7 @@ namespace Desing.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(
-            [Bind(Include = "IdObject,TextLabel,TextCode,TextTaxId,TextEmail,TextPhone,LinkMethodOfPayment,Is_Active,Path_Ico,Path_Logo")] TSql_Client_V2 model,
+            [Bind(Include = ClientV2EditBindInclude)] TSql_Client_V2 model,
             HttpPostedFileBase icoFile,
             HttpPostedFileBase logoFile)
         {
@@ -298,6 +338,8 @@ namespace Desing.Controllers
             entity.Is_Active = model.Is_Active;
             if (!string.IsNullOrEmpty(model.Path_Ico)) entity.Path_Ico = model.Path_Ico;
             if (!string.IsNullOrEmpty(model.Path_Logo)) entity.Path_Logo = model.Path_Logo;
+
+            CopyClientV2GoogleLocFields(entity, model);
 
             IntranetAuditHelper.SetAuditOnUpdate(entity, User);
 
@@ -423,6 +465,24 @@ namespace Desing.Controllers
                 model.Path_Logo = logoPath;
                 ModelState.Remove("Path_Logo");
             }
+        }
+
+        private static void CopyClientV2GoogleLocFields(TSql_Client_V2 entity, TSql_Client_V2 model)
+        {
+            entity.Loc_Place_Id = model.Loc_Place_Id;
+            entity.Loc_Formatted_Address = model.Loc_Formatted_Address;
+            entity.Loc_Lat = model.Loc_Lat;
+            entity.Loc_Lng = model.Loc_Lng;
+            entity.Loc_Street_Number = model.Loc_Street_Number;
+            entity.Loc_Route = model.Loc_Route;
+            entity.Loc_Subpremise = model.Loc_Subpremise;
+            entity.Loc_Locality = model.Loc_Locality;
+            entity.Loc_Admin_Area_1 = model.Loc_Admin_Area_1;
+            entity.Loc_Admin_Area_2 = model.Loc_Admin_Area_2;
+            entity.Loc_Postal_Code = model.Loc_Postal_Code;
+            entity.Loc_Country_Code = model.Loc_Country_Code;
+            entity.Loc_Country_Name = model.Loc_Country_Name;
+            entity.Loc_Address_Components_Json = model.Loc_Address_Components_Json;
         }
 
         private void PopulateMethodOfPayment(long? selected)

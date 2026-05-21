@@ -1,10 +1,10 @@
-@using System.Configuration
+@using Desing.Helpers
 @using Desing.Resources
 
 @{
-    var mapsKey = ConfigurationManager.AppSettings["GoogleMaps:ApiKey"] ?? "";
-    var language = ConfigurationManager.AppSettings["GoogleMaps:Language"] ?? "es";
-    var region = ConfigurationManager.AppSettings["GoogleMaps:Region"] ?? "ES";
+    var mapsKey = GoogleMapsConfigHelper.GetApiKey();
+    var language = GoogleMapsConfigHelper.GetLanguage();
+    var region = GoogleMapsConfigHelper.GetRegion();
     var pageScript = ViewData["GooglePlacesPageScript"] as string;
     var hasKey = !string.IsNullOrWhiteSpace(mapsKey);
 }

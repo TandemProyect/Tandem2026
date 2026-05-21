@@ -38,6 +38,20 @@ namespace DAL
         public string TextTaxId { get; set; }
         public string TextEmail { get; set; }
         public string TextPhone { get; set; }
+        public string Loc_Place_Id { get; set; }
+        public string Loc_Formatted_Address { get; set; }
+        public Nullable<decimal> Loc_Lat { get; set; }
+        public Nullable<decimal> Loc_Lng { get; set; }
+        public string Loc_Street_Number { get; set; }
+        public string Loc_Route { get; set; }
+        public string Loc_Subpremise { get; set; }
+        public string Loc_Locality { get; set; }
+        public string Loc_Admin_Area_1 { get; set; }
+        public string Loc_Admin_Area_2 { get; set; }
+        public string Loc_Postal_Code { get; set; }
+        public string Loc_Country_Code { get; set; }
+        public string Loc_Country_Name { get; set; }
+        public string Loc_Address_Components_Json { get; set; }
     
         public virtual AspNetUsers AspNetUsers { get; set; }
         public virtual AspNetUsers AspNetUsers1 { get; set; }

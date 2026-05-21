@@ -91,6 +91,9 @@
   <data name="Docs_Col_Name" xml:space="preserve">
     <value>Nombre</value>
   </data>
+  <data name="Docs_Col_OfferNumber" xml:space="preserve">
+    <value>Nº oferta</value>
+  </data>
   <data name="Docs_Col_Type" xml:space="preserve">
     <value>Tipo</value>
   </data>
@@ -105,6 +108,24 @@
   </data>
   <data name="Docs_NoFile" xml:space="preserve">
     <value>Sin archivo</value>
+  </data>
+  <data name="Docs_Offer_DeleteFailed" xml:space="preserve">
+    <value>No se pudo eliminar el documento.</value>
+  </data>
+  <data name="Docs_Offer_DeleteSuccess" xml:space="preserve">
+    <value>Documento eliminado correctamente.</value>
+  </data>
+  <data name="Docs_Offer_DeleteTooltip" xml:space="preserve">
+    <value>Eliminar documento (borrado lógico)</value>
+  </data>
+  <data name="Docs_Offer_DtTitle" xml:space="preserve">
+    <value>Documentos de la oferta</value>
+  </data>
+  <data name="Docs_Offer_NoDocuments" xml:space="preserve">
+    <value>No hay documentos para esta oferta.</value>
+  </data>
+  <data name="Docs_Offer_UploadModalTitle" xml:space="preserve">
+    <value>Adjuntar documento a la oferta</value>
   </data>
   <data name="Docs_UploadModalTitle" xml:space="preserve">
     <value>Adjuntar documento a la obra</value>
@@ -175,6 +196,9 @@
   <data name="Err_JobsideNotFound" xml:space="preserve">
     <value>Obra no encontrada.</value>
   </data>
+  <data name="Err_OfferDocumentTypeMissing" xml:space="preserve">
+    <value>No se encontró el tipo de documento «Oferta» en el catálogo (código o nombre). Revise Tipos de documento, active el tipo si está inactivo, o defina appSettings OfferDocumentTypeId / OfferDocumentTypeTextCode en Web.config.</value>
+  </data>
   <data name="Google_NotConfiguredBody" xml:space="preserve">
     <value> Añada GoogleMaps:ApiKey en Web.config para autocompletado y mapa. Puede rellenar la dirección manualmente.</value>
   </data>
@@ -195,6 +219,9 @@
   </data>
   <data name="Js_ConfirmDeleteJobside" xml:space="preserve">
     <value>¿Eliminar esta obra? (borrado lógico).</value>
+  </data>
+  <data name="Js_ConfirmDeleteOfferDocument" xml:space="preserve">
+    <value>¿Eliminar este documento de la oferta? (borrado lógico).</value>
   </data>
   <data name="Lbl_Active" xml:space="preserve">
     <value>Activo</value>
@@ -255,6 +282,186 @@
   </data>
   <data name="List_LinkWorkspaceTooltip" xml:space="preserve">
     <value>Espacio de trabajo de la obra</value>
+  </data>
+  <data name="OfferWorkspace_DesignsComingSoon" xml:space="preserve">
+    <value>Aquí aparecerán los diseños vinculados a la oferta (Desing_V2).</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Btn_New" xml:space="preserve">
+    <value>Nuevo diseño</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Btn_NewTooltip" xml:space="preserve">
+    <value>Crear diseño para esta oferta</value>
+  </data>
+  <data name="OfferWorkspace_Designs_DedicatedPageNote" xml:space="preserve">
+    <value>Se abre en página dedicada.</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Lbl_AttDescription" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Lbl_AttLabel" xml:space="preserve">
+    <value>Nombre del diseño *</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Lbl_AttThumbnail" xml:space="preserve">
+    <value>Ruta STL en la aplicación (opcional)</value>
+  </data>
+  <data name="OfferWorkspace_Designs_ModalTitle" xml:space="preserve">
+    <value>Nuevo diseño</value>
+  </data>
+  <data name="OfferWorkspace_Designs_NoStlLinked" xml:space="preserve">
+    <value>Sin STL enlazado</value>
+  </data>
+  <data name="OfferWorkspace_Designs_None" xml:space="preserve">
+    <value>No hay diseños vinculados a esta oferta.</value>
+  </data>
+  <data name="OfferWorkspace_Designs_OpenViewer" xml:space="preserve">
+    <value>Abrir visor STL</value>
+  </data>
+  <data name="OfferWorkspace_Designs_OpenViewerDemo" xml:space="preserve">
+    <value>Abrir visor (demo)</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Ph_AttThumbnail" xml:space="preserve">
+    <value>Ej.: ~/Content/DesignTools/Stl/ATK60/12904215_F.stl</value>
+  </data>
+  <data name="OfferWorkspace_Designs_SaveFailed" xml:space="preserve">
+    <value>No se pudo crear el diseño.</value>
+  </data>
+  <data name="OfferWorkspace_Designs_SaveSuccess" xml:space="preserve">
+    <value>Diseño creado correctamente.</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Save_Submit" xml:space="preserve">
+    <value>Crear diseño</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Tooltip_Open3DViewer" xml:space="preserve">
+    <value>Abrir visor 3D</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Val_InvalidStlPath" xml:space="preserve">
+    <value>La ruta STL debe ser ~/Files/… o ~/Content/DesignTools/… y terminar en .stl (sin rutas externas).</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Val_LabelRequired" xml:space="preserve">
+    <value>Indique un nombre de diseño.</value>
+  </data>
+  <data name="OfferWorkspace_Designs_ViewerAutoLoadPending" xml:space="preserve">
+    <value>Cargando modelo…</value>
+  </data>
+  <data name="OfferWorkspace_Designs_ViewerCanvasEmpty" xml:space="preserve">
+    <value>Espacio 3D vacío. Desde la oferta, use «Abrir visor STL» en un diseño con archivo .stl para cargar el modelo aquí.</value>
+  </data>
+  <data name="OfferWorkspace_Field_Company" xml:space="preserve">
+    <value>Empresa</value>
+  </data>
+  <data name="OfferWorkspace_LeftTitle" xml:space="preserve">
+    <value>Datos de la obra y oferta</value>
+  </data>
+  <data name="OfferWorkspace_PageTitleFmt" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="OfferWorkspace_SubheaderJobsite" xml:space="preserve">
+    <value>Obra</value>
+  </data>
+  <data name="OfferWorkspace_SubheaderOffer" xml:space="preserve">
+    <value>Oferta</value>
+  </data>
+  <data name="OfferWorkspace_TabDesigns" xml:space="preserve">
+    <value>Diseños</value>
+  </data>
+  <data name="Offers_Btn_DetailsRow" xml:space="preserve">
+    <value>Detalles</value>
+  </data>
+  <data name="Offers_Btn_EditRow" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="Offers_Btn_New" xml:space="preserve">
+    <value>Nueva oferta</value>
+  </data>
+  <data name="Offers_Col_Actions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  <data name="Offers_Col_Active" xml:space="preserve">
+    <value>Activa</value>
+  </data>
+  <data name="Offers_Col_Client" xml:space="preserve">
+    <value>Cliente</value>
+  </data>
+  <data name="Offers_Col_Date" xml:space="preserve">
+    <value>Alta</value>
+  </data>
+  <data name="Offers_Col_Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Offers_Col_Number" xml:space="preserve">
+    <value>Número de oferta</value>
+  </data>
+  <data name="Offers_Col_State" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Offers_CreateModalTitle" xml:space="preserve">
+    <value>Nueva oferta</value>
+  </data>
+  <data name="Offers_DetailsTooltip" xml:space="preserve">
+    <value>Espacio de trabajo de la oferta</value>
+  </data>
+  <data name="Offers_DtTitle" xml:space="preserve">
+    <value>Ofertas de la obra</value>
+  </data>
+  <data name="Offers_EditModalTitle" xml:space="preserve">
+    <value>Editar oferta</value>
+  </data>
+  <data name="Offers_EditTooltip" xml:space="preserve">
+    <value>Editar oferta</value>
+  </data>
+  <data name="Offers_Help_NumberOnCreate" xml:space="preserve">
+    <value>Se asignará automáticamente al guardar (empresa–delegación–código obra–orden).</value>
+  </data>
+  <data name="Offers_Help_NumberReadOnly" xml:space="preserve">
+    <value>Generado por el sistema; no se puede cambiar.</value>
+  </data>
+  <data name="Offers_Lbl_ActiveCheckbox" xml:space="preserve">
+    <value>Oferta activa</value>
+  </data>
+  <data name="Offers_Lbl_Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="Offers_Lbl_Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Offers_Lbl_Number" xml:space="preserve">
+    <value>Número de oferta</value>
+  </data>
+  <data name="Offers_Lbl_State" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Offers_NoOfferStates" xml:space="preserve">
+    <value>No hay estados de oferta activos en el catálogo.</value>
+  </data>
+  <data name="Offers_NoOffers" xml:space="preserve">
+    <value>No hay ofertas para esta obra.</value>
+  </data>
+  <data name="Offers_SaveFailed" xml:space="preserve">
+    <value>No se pudo guardar la oferta.</value>
+  </data>
+  <data name="Offers_SaveSuccess" xml:space="preserve">
+    <value>Oferta guardada correctamente.</value>
+  </data>
+  <data name="Offers_Val_BranchOrCompanyMissing" xml:space="preserve">
+    <value>No se encontró la delegación o empresa vinculada a la obra; no se puede asignar el número de oferta.</value>
+  </data>
+  <data name="Offers_Val_JobsideCodePending" xml:space="preserve">
+    <value>La obra aún no tiene código interno; guarde la obra y vuelva a intentarlo.</value>
+  </data>
+  <data name="Offers_Val_JobsideNeedsClient" xml:space="preserve">
+    <value>La obra debe tener un cliente asignado para crear ofertas.</value>
+  </data>
+  <data name="Offers_Val_NameRequired" xml:space="preserve">
+    <value>El nombre de la oferta es obligatorio.</value>
+  </data>
+  <data name="Offers_Val_NotFound" xml:space="preserve">
+    <value>Oferta no encontrada.</value>
+  </data>
+  <data name="Offers_Val_StateInvalid" xml:space="preserve">
+    <value>El estado seleccionado no es válido.</value>
+  </data>
+  <data name="Offers_Val_WrongJobside" xml:space="preserve">
+    <value>La oferta no pertenece a esta obra.</value>
   </data>
   <data name="Page_CreateTitle" xml:space="preserve">
     <value>Crear obra</value>

@@ -7,15 +7,18 @@
    (marcador en <html> de _LayoutMaterio.cshtml — no afecta _LayoutMaterioBlank).
    ============================================================================= */
 html.tandem-intranet-chrome {
-    height: 100%;
+    /* Alto explícito al viewport: los porcentajes en body/layout encajan siempre tras fuentes/Maps/DT. */
+    height: 100dvh;
     min-height: 100dvh;
     max-height: 100dvh;
+    /* Un solo viewport de scroll; sin esto algunos navegadores encadenan rueda a <html>/<body>. */
+    overflow: hidden;
 }
 
 html.tandem-intranet-chrome body {
-    min-height: 100%;
+    min-height: 0;
     height: 100%;
-    max-height: 100dvh;
+    max-height: 100%;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -23,17 +26,18 @@ html.tandem-intranet-chrome body {
 
 /* Filas hijas del wrapper: menu + pagina deben encajar en el viewport */
 html.tandem-intranet-chrome .layout-wrapper.layout-content-navbar {
-    flex: 1 1 auto;
-    min-height: 0;
+    /* flex-basis 0%: si es "auto", el bloque crece con el contenido y body{overflow:hidden} recorta sin barra de scroll */
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
     max-height: 100%;
     align-items: stretch;
     overflow: hidden;
 }
 
 html.tandem-intranet-chrome .layout-wrapper.layout-content-navbar > .layout-container {
-    flex: 1 1 auto;
+    flex: 1 1 0% !important;
     min-width: 0;
-    min-height: 0;
+    min-height: 0 !important;
     max-height: 100%;
     /* sustituye min-block-size: 100vh de Materio, que forzaba altura documento */
     min-block-size: 0;
@@ -46,29 +50,41 @@ html.tandem-intranet-chrome .layout-content-navbar .layout-menu {
 }
 
 html.tandem-intranet-chrome .layout-content-navbar .layout-page {
-    min-height: 0;
+    /* Sustituye flex 1 1 auto de Materio: basis 0 para altura acotada al viewport (cadena flex + scroll) */
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
     max-height: 100%;
     overflow: hidden;
 }
 
 html.tandem-intranet-chrome .layout-content-navbar .content-wrapper {
-    min-height: 0;
-    flex: 1 1 auto;
+    min-height: 0 !important;
+    flex: 1 1 0% !important;
     overflow: hidden;
 }
 
 /*
- * Contenido principal (.tandem-layout-main-scroll): scroll aqui salvo pantallas que
- * fuerzan overflow:hidden en este mismo contenedor (DataTables lista, Jobside workspace).
+ * Contenido principal (.tandem-layout-main-scroll): scroll vertical SIEMPRE aqui.
+ * flex 1 1 0% + min-height:0: sin "basis 0" el area crece al contenido (flex-basis:auto),
+ * no aparece overflow-y y el exceso queda oculto por body { overflow: hidden }.
+ * Las pantallas especificas debajo vuelven a display:flex / overflow:hidden con :has(...)
+ * cuando el scroll secundario vive dentro (DataTables / Jobside / STL).
+ * Sin flex interno aqui: menos choques rueda/encadenamiento; el contenido va en bloque normal.
  */
-html.tandem-intranet-chrome .layout-content-navbar .content-wrapper > .container-fluid.flex-grow-1.container-p-y.tandem-layout-main-scroll:not(:has(.tandem-dt-list-page)):not(:has(.tandem-jobside-workspace)) {
-    flex: 1 1 auto;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
+html.tandem-intranet-chrome .layout-content-navbar .content-wrapper > .container-fluid.flex-grow-1.container-p-y.tandem-layout-main-scroll {
+    /*
+     * !important: Bootstrap `.flex-grow-1` usa flex-grow:!important y Materio puede dejar flex-basis:auto.
+     * Sin basis 0 + min-height 0 FORZADOS, esta caja crece con el contenido → overflow-y nunca activa,
+     * la barra “desaparece” tras el pintado final y body sigue recortando (TSql_Company/Edit, etc.).
+     */
+    flex-grow: 1 !important;
+    flex-shrink: 1 !important;
+    flex-basis: 0 !important;
+    min-height: 0 !important;
     overflow-x: hidden;
-    overflow-y: auto;
+    overflow-y: auto !important;
+    scrollbar-gutter: stable;
+    overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
 }
 
@@ -80,7 +96,7 @@ html.tandem-intranet-chrome .layout-content-navbar .content-wrapper > .container
 }
 
 .tandem-fill-scroll {
-    flex: 1 1 auto;
+    flex: 1 1 0%;
     min-height: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -189,12 +205,14 @@ html.tandem-intranet-chrome .layout-content-navbar .content-wrapper > .container
 /* ---- Listas DataTables: altura a viewport, scroll en la tabla -----------
    El contenedor principal deja de crecer con todas las filas; el scroll
    vertical queda en .dataTables_scrollBody (requiere scrollY en la init). */
-.layout-content-navbar .content-wrapper > .container-fluid.flex-grow-1:has(.tandem-dt-list-page) {
+html.tandem-intranet-chrome .layout-content-navbar .content-wrapper > .container-fluid.flex-grow-1.container-p-y.tandem-layout-main-scroll:has(.tandem-dt-list-page) {
     display: flex;
     flex-direction: column;
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: hidden;
+    flex-grow: 1 !important;
+    flex-shrink: 1 !important;
+    flex-basis: 0 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
 }
 
 .tandem-dt-list-page {
@@ -202,6 +220,7 @@ html.tandem-intranet-chrome .layout-content-navbar .content-wrapper > .container
     flex-direction: column;
     flex: 1 1 auto;
     min-height: 0;
+    min-width: 0;
     max-height: 100%;
     overflow: hidden;
 }
@@ -214,6 +233,7 @@ html.tandem-intranet-chrome .tandem-dt-list-page {
 .tandem-dt-list-page > .card {
     flex: 1 1 auto;
     min-height: 0;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -223,6 +243,8 @@ html.tandem-intranet-chrome .tandem-dt-list-page {
 .tandem-dt-list-page > .card > .card-body {
     flex: 1 1 auto;
     min-height: 0;
+    /* Permite que hijos con tabla ancha reduzcan el ancho útil y activen scrollX en scrollBody */
+    min-width: 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -231,6 +253,7 @@ html.tandem-intranet-chrome .tandem-dt-list-page {
 .tandem-dt-list-page .dataTables_wrapper {
     flex: 1 1 auto;
     min-height: 0;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -239,21 +262,27 @@ html.tandem-intranet-chrome .tandem-dt-list-page {
 .tandem-dt-list-page .dataTables_wrapper .dataTables_scroll {
     flex: 1 1 auto;
     min-height: 0;
+    min-width: 0;
     overflow: hidden;
 }
 
 .tandem-dt-list-page .dataTables_wrapper .dataTables_scrollBody {
     flex: 1 1 auto;
     min-height: 0;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* ---- Jobside Details: workspace (columna izquierda: card-body con .tandem-fill-scroll; derecha: tabs + scroll en .tandem-jobside-tab-content) ----- */
-.layout-content-navbar .content-wrapper > .container-fluid.flex-grow-1:has(.tandem-jobside-workspace) {
+html.tandem-intranet-chrome .layout-content-navbar .content-wrapper > .container-fluid.flex-grow-1.container-p-y.tandem-layout-main-scroll:has(.tandem-jobside-workspace) {
     display: flex;
     flex-direction: column;
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: hidden;
+    flex-grow: 1 !important;
+    flex-shrink: 1 !important;
+    flex-basis: 0 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
 }
 
 .tandem-jobside-workspace {
@@ -266,6 +295,63 @@ html.tandem-intranet-chrome .tandem-dt-list-page {
 
 html.tandem-intranet-chrome .tandem-jobside-workspace {
     max-height: 100%;
+}
+
+/* ---- Desing_2 STL viewer: lienzo a pantalla completa en el área de contenido (sin pie de página) ----- */
+html.tandem-intranet-chrome .layout-content-navbar .content-wrapper > .container-fluid.flex-grow-1.container-p-y.tandem-layout-main-scroll:has(.tandem-desing2-stl-viewport) {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1 !important;
+    flex-shrink: 1 !important;
+    flex-basis: 0 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .content-footer.footer {
+    display: none !important;
+}
+
+.tandem-desing2-stl-viewport {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    width: 100%;
+}
+
+.tandem-desing2-stl-viewport__toolbar {
+    flex: 0 0 auto;
+}
+
+.tandem-desing2-stl-viewport__fill {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.tandem-desing2-stl-viewport__fill #ma-stl-viewer-shell {
+    flex: 1 1 auto;
+    min-height: 0 !important;
+    height: auto !important;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+}
+
+.tandem-desing2-stl-viewport__fill #master-article-details-stl-viewer-canvas {
+    /* flex-basis 0: el lienzo ocupa todo el hueco flex aunque solo haya hijos absolute */
+    flex: 1 1 0;
+    min-height: 0 !important;
+    overflow: hidden;
+}
+
+.tandem-desing2-stl-viewport__fill #ma-stl-viewer-gl-host {
+    min-height: 0;
 }
 
 .tandem-jobside-workspace-toolbar {
@@ -361,11 +447,27 @@ body.master-articles-one-scroll .layout-content-navbar .content-wrapper > .conta
     max-height: var(--ma-partial-height, calc(100dvh - 14rem));
     height: var(--ma-partial-height, calc(100dvh - 14rem));
     overflow: hidden !important;
+    min-width: 0;
+}
+
+.master-articles-partial-scroll .dataTables_wrapper .dataTables_scroll {
+    min-width: 0;
 }
 
 .master-articles-partial-scroll .dataTables_wrapper .dataTables_scrollBody {
+    overflow-x: auto !important;
     overflow-y: auto !important;
     border-bottom: 0 !important;
+    min-width: 0;
+}
+
+/* Master Articles (scroll en cuerpo): no encoger filas de herramientas ni pie DT */
+.master-articles-partial-scroll .dataTables_wrapper .dt-buttons,
+.master-articles-partial-scroll .dataTables_wrapper .dataTables_filter,
+.master-articles-partial-scroll .dataTables_wrapper .dataTables_processing,
+.master-articles-partial-scroll .dataTables_wrapper .dataTables_info,
+.master-articles-partial-scroll .dataTables_wrapper .dataTables_paginate {
+    flex-shrink: 0;
 }
 
 /* ---- DataTables (Bootstrap 5) integracion con Materio ---- */

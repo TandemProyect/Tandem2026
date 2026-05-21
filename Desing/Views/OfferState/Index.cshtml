@@ -1,0 +1,149 @@
+@using Newtonsoft.Json
+@using Desing.Resources
+@using System.Globalization
+@{
+    ViewBag.Title = OfferState.Index_Breadcrumb;
+    var ci = CultureInfo.CurrentUICulture?.TwoLetterISOLanguageName ?? "es";
+    var offerStateDt = JsonConvert.SerializeObject(new
+    {
+        culture = ci,
+        rowsSuffix = Common.Dt_Rows_N,
+        allRows = Common.Dt_Rows_All,
+        sectionRecords = Common.Dt_Section_Records,
+        sectionExport = Common.Dt_Section_Export,
+        sectionCols = Common.Dt_Section_ColumnsVisible,
+        confirmDeleteOfferState = OfferState.Js_ConfirmDeleteOfferState,
+        ariaMenu = Common.Dt_MenuAria
+    });
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@OfferState.Common_Home</a> /
+            @OfferState.Common_Settings /
+        </span> @OfferState.Index_Breadcrumb
+    </h4>
+    <a class="btn btn-primary text-white" href="@Url.Action("Create", "OfferState")">
+        <i class="icon-base ri ri-add-line me-1"></i> @OfferState.Index_CreateOfferState
+    </a>
+</div>
+
+@if (!string.IsNullOrEmpty(TempData["ToastMessage"] as string))
+{
+    <div class="alert alert-success">@TempData["ToastMessage"]</div>
+}
+
+<div class="card mb-4">
+    <div class="card-body" style="padding:5px">
+        <table id="ListOfferStates" class="table table-hover" cellspacing="0" style="width: 100%">
+            <thead>
+                <tr>
+                    <th>@OfferState.Col_Name</th>
+                    <th>@OfferState.Col_Color</th>
+                    <th>@OfferState.Col_State</th>
+                    <th class="text-end text-nowrap" style="width:1%;"></th>
+                    <th>ID</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+
+@section scripts
+{
+    <script type="text/javascript">
+        var offerStateDt = @Html.Raw(offerStateDt);
+        var offerStateExportOpts = TandemDataTablesList.exportOptsPlainVisible;
+
+        $(document).ready(function () {
+            $('#ListOfferStates').DataTable(TandemDataTablesList.applyListDefaults({
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    ['10 ' + offerStateDt.rowsSuffix, '25 ' + offerStateDt.rowsSuffix, '50 ' + offerStateDt.rowsSuffix, offerStateDt.allRows]
+                ],
+                buttons: [{
+                    extend: 'collection',
+                    text: "<i class='fas fa-bars'></i>",
+                    attr: { 'aria-label': offerStateDt.ariaMenu },
+                    className: 'custom-html-collection',
+                    buttons: [
+                        '<h5>' + offerStateDt.sectionRecords + '</h5>',
+                        'pageLength',
+                        '<h5>' + offerStateDt.sectionExport + '</h5>',
+                        'print',
+                        'copy',
+                        'pdf',
+                        { extend: 'csv', exportOptions: offerStateExportOpts },
+                        { extend: 'excel', exportOptions: offerStateExportOpts },
+                        '<h5 class="not-top-heading">' + offerStateDt.sectionCols + '</h5>',
+                        'colvis'
+                    ]
+                }],
+                serverSide: true,
+                processing: true,
+                colReorder: { iFixedColumnsRight: 2 },
+                ajax: {
+                    url: '@Url.Action("ListOfferStates", "OfferState")',
+                    type: 'POST'
+                },
+                order: [[0, 'asc']],
+                columns: [
+                    {
+                        data: 'TextLabel',
+                        name: 'TextLabel',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.TextLabelPlain || '';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'colorCell',
+                        name: 'AddColor',
+                        orderable: true,
+                        searchable: true,
+                        render: function (data, type, row) {
+                            if (type === 'export' || type === 'sort' || type === 'filter') {
+                                return row.colorPlain || '';
+                            }
+                            return data;
+                        }
+                    },
+                    { data: 'activeBadge', name: 'Is_Active', orderable: true, searchable: false },
+                    {
+                        data: 'rowActions',
+                        orderable: false,
+                        searchable: false,
+                        className: 'tandem-col-actions text-end align-middle text-nowrap'
+                    },
+                    { data: 'IdObject', visible: false }
+                ],
+                drawCallback: function () {
+                    $('[data-toggle="tooltip"]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto right'
+                    });
+                    $('[title]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto'
+                    });
+                }
+            }));
+        });
+
+        window.DeleteOfferState = function (id) {
+            if (!confirm(offerStateDt.confirmDeleteOfferState)) return;
+            $.post('@Url.Action("DeleteOfferState", "OfferState")',
+                { id: id, __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() },
+                function (res) {
+                    if (res && res.Message) { alert(res.Message); }
+                    if (res && res.IsOk) {
+                        $('#ListOfferStates').DataTable().ajax.reload(null, false);
+                    }
+                });
+        };
+    </script>
+    <div style="display:none;">@Html.AntiForgeryToken()</div>
+}

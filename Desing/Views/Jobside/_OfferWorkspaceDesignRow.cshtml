@@ -1,0 +1,48 @@
+@model Desing.Models.OfferWorkspaceDesignRowDisplayModel
+@using Desing.Helpers
+@using Desing.Resources
+@{
+    Layout = null;
+    var row = Model.Row ?? new Desing.Models.JobsideOfferDesignRowVm();
+    var viewerUrl = OfferDesignWorkspaceHelper.BuildViewerUrl(
+        Url, Model.OfferId, row.DesignId, row.StlVirtualPath);
+    var viewerUrlAttr = Html.AttributeEncode(viewerUrl);
+    var tooltip3d = Jobside.OfferWorkspace_Designs_Tooltip_Open3DViewer;
+}
+
+<div class="card mb-3 border shadow-none tandem-offer-design-card"
+     data-design-id="@row.DesignId"
+     data-viewer-url="@viewerUrlAttr">
+    <div class="card-body py-3">
+        <div class="d-flex flex-wrap align-items-start justify-content-between gap-2">
+            <div class="flex-grow-1" style="min-width:0">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                    <h6 class="mb-0">
+                        <a href="@viewerUrl" class="text-body text-decoration-none tandem-offer-design-title-link"
+                           title="@Html.AttributeEncode(tooltip3d)">
+                            @Html.Encode(row.Title)
+                        </a>
+                    </h6>
+                    <a href="@viewerUrl"
+                       class="btn btn-icon btn-outline-primary btn-sm flex-shrink-0"
+                       title="@Html.AttributeEncode(tooltip3d)"
+                       aria-label="@Html.AttributeEncode(tooltip3d)">
+                        <i class="icon-base ri ri-shape-3-line" aria-hidden="true"></i>
+                    </a>
+                </div>
+                @if (row.StlVirtualPath == null)
+                {
+                    <p class="mb-0">@Jobside.OfferWorkspace_Designs_NoStlLinked</p>
+                    <a class="d-inline-block mt-2 small" href="@viewerUrl">@Jobside.OfferWorkspace_Designs_OpenViewerDemo</a>
+                }
+            </div>
+            @if (row.StlVirtualPath != null)
+            {
+                <a class="btn btn-primary flex-shrink-0" href="@viewerUrl">
+                    @Jobside.OfferWorkspace_Designs_OpenViewer
+                </a>
+            }
+        </div>
+    </div>
+</div>
+

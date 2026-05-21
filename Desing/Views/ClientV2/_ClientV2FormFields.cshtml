@@ -1,5 +1,19 @@
 @model DAL.TSql_Client_V2
+@using Desing.Models
 @using Desing.Resources
+@using Desing.Helpers
+@{
+    var mapsKey = GoogleMapsConfigHelper.GetApiKey();
+}
+
+@if (string.IsNullOrWhiteSpace(mapsKey))
+{
+    <div class="col-12">
+        <div class="alert alert-warning tandem-address-api-warning" role="alert">
+            <strong>@ClientV2.Google_NotConfiguredStrong</strong>@ClientV2.Google_NotConfiguredBody
+        </div>
+    </div>
+}
 
 <div class="col-md-8">
     <label class="form-label">@ClientV2.Lbl_NameRequired</label>
@@ -38,9 +52,9 @@
     <label class="form-label">@ClientV2.Lbl_Icon</label>
     <input type="file" name="icoFile" class="form-control" accept="image/*" />
     @Html.HiddenFor(m => m.Path_Ico)
-    @if (!string.IsNullOrEmpty(Model.Path_Ico))
+    @if (!string.IsNullOrWhiteSpace(Model.Path_Ico))
     {
-        <img src="@Url.Content(Model.Path_Ico.StartsWith("~") ? Model.Path_Ico : "~" + Model.Path_Ico)"
+        <img src="@IntranetFileHelper.ResolvePublicUrl(Url, IntranetFileHelper.NormalizeUploadedWebPath(Model.Path_Ico))"
              class="mt-2" style="height:32px;background:#fff;padding:2px;border:1px solid #eee;border-radius:4px" alt="" />
     }
     @Html.ValidationMessageFor(m => m.Path_Ico, "", new { @class = "text-danger" })
@@ -49,10 +63,14 @@
     <label class="form-label">@ClientV2.Lbl_Logo</label>
     <input type="file" name="logoFile" class="form-control" accept="image/*" />
     @Html.HiddenFor(m => m.Path_Logo)
-    @if (!string.IsNullOrEmpty(Model.Path_Logo))
+    @if (!string.IsNullOrWhiteSpace(Model.Path_Logo))
     {
-        <img src="@Url.Content(Model.Path_Logo.StartsWith("~") ? Model.Path_Logo : "~" + Model.Path_Logo)"
+        <img src="@IntranetFileHelper.ResolvePublicUrl(Url, IntranetFileHelper.NormalizeUploadedWebPath(Model.Path_Logo))"
              class="mt-2" style="height:40px;background:#fff;padding:2px;border:1px solid #eee;border-radius:4px" alt="" />
     }
     @Html.ValidationMessageFor(m => m.Path_Logo, "", new { @class = "text-danger" })
+</div>
+<div class="col-12">
+    @Html.Partial("~/Views/Shared/_GooglePlacesAddressBlock.cshtml",
+        GooglePlacesAddressBlockModel.FromClientV2(Model, "Loc", ClientV2.Lbl_AddressGooglePlaces))
 </div>

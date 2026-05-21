@@ -100,13 +100,19 @@
             max-height: var(--ma-partial-height, calc(100dvh - 14rem));
             height: var(--ma-partial-height, calc(100dvh - 14rem));
             overflow: hidden;
-            overflow-x: hidden;
-            display: block;
+            /* min-width:0: hijo flex puede acotar ancho y scrollX en .dataTables_scrollBody */
+            min-width: 0;
+            /* Mismo patrón que site.css tandem-dt-list-page: si display:block rompe flex en el DT */
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
         }
 
         .master-articles-partial-scroll .dataTables_wrapper .dataTables_scrollBody {
             border-bottom: 0 !important;
+            overflow-x: auto !important;
             overflow-y: auto !important;
+            min-width: 0;
         }
     </style>
 }
@@ -155,10 +161,23 @@
                 if (!host) { return; }
                 var body = host.querySelector('.dataTables_scrollBody');
                 if (!body) { return; }
-                var footer = document.querySelector('.content-footer.footer');
-                var bottomLimit = footer ? footer.getBoundingClientRect().top : window.innerHeight;
+                /* Debe caber dentro del card (overflow:hidden): no usar el pie de página del layout,
+                   o el alto del scrollBody absorbe también la franja info+paginación y queda cortada. */
+                var wrap = host.querySelector('.dataTables_wrapper');
+                var hostBottom = host.getBoundingClientRect().bottom;
+                var info = wrap && wrap.querySelector('.dataTables_info');
+                var pag = wrap && wrap.querySelector('.dataTables_paginate');
+                var reserveBottom = 8;
+                if (info && info.offsetParent !== null)
+                    reserveBottom += info.getBoundingClientRect().height;
+                else
+                    reserveBottom += 32;
+                if (pag && pag.offsetParent !== null)
+                    reserveBottom += pag.getBoundingClientRect().height;
+                else
+                    reserveBottom += 48;
                 var top = body.getBoundingClientRect().top;
-                var h = Math.floor(bottomLimit - top - 12);
+                var h = Math.floor(hostBottom - top - reserveBottom);
                 if (h < 140) { h = 140; }
                 body.style.height = h + 'px';
                 body.style.maxHeight = h + 'px';

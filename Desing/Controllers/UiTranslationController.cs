@@ -42,6 +42,7 @@ namespace Desing.Controllers
             Tuple.Create("Extension", typeof(Desing.Resources.Extension)),
             Tuple.Create("Language", typeof(Desing.Resources.Language)),
             Tuple.Create("Country", typeof(Desing.Resources.Country)),
+            Tuple.Create("OfferState", typeof(Desing.Resources.OfferState)),
             Tuple.Create("Common", typeof(Desing.Resources.Common))
         };
 

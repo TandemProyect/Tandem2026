@@ -1,0 +1,159 @@
+@model Desing.Models.Desing2ViewerPageModel
+@using Desing.Resources
+@{
+    ViewBag.Title = "Diseño — visor STL";
+    Layout = "~/Views/Shared/_LayoutMaterio.cshtml";
+}
+@*
+    Desing_2 / Viewer — Three.js STL. Barra única: logo plantilla + contexto obra/oferta/diseño (izq.);
+    fullscreen, rejilla, cielo, sombra, fondo oscuro, cortes, reglas UCS (Desing_2), Volver. Cubo vistas + radio cámara.
+*@
+@section Styles
+{
+    @Html.Partial("~/Views/MasterArticles/_MasterArticleStlPreviewStyles.cshtml")
+    <style>
+        /* Barra única: logo + contexto (izquierda); iconos + Volver (derecha) — color plantilla */
+        .desing2-stl-view-scope #master-article-stl-viewer-toolbar.desing2-stl-actions-toolbar {
+            background-color: var(--tandem-primary, var(--bs-primary)) !important;
+            border-bottom-color: rgba(255, 255, 255, 0.22) !important;
+            min-height: calc(44px + 0.75rem);
+        }
+        .desing2-stl-view-scope #master-article-stl-viewer-toolbar .btn-outline-secondary {
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.55);
+        }
+        .desing2-stl-view-scope #master-article-stl-viewer-toolbar .btn-outline-secondary:hover,
+        .desing2-stl-view-scope #master-article-stl-viewer-toolbar .btn-outline-secondary:focus {
+            background: rgba(255, 255, 255, 0.18);
+            color: #fff;
+            border-color: #fff;
+        }
+        .desing2-stl-view-scope #master-article-stl-viewer-toolbar .btn-outline-secondary.active,
+        .desing2-stl-view-scope #master-article-stl-viewer-toolbar .btn-check:checked + .btn-outline-secondary {
+            background: rgba(0, 0, 0, 0.2);
+            color: #fff;
+            border-color: #fff;
+        }
+        .desing2-stl-toolbar-leading {
+            flex-basis: 12rem;
+        }
+        /* Cubo de vistas arriba; controles de cámara debajo */
+        .desing2-stl-cube-camera-stack {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 11;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            max-width: min(280px, 92vw);
+            pointer-events: none;
+        }
+        .desing2-stl-cube-camera-stack > * {
+            pointer-events: auto;
+        }
+        .desing2-stl-view-scope .desing2-stl-cube-camera-stack .ma-stl-vc-wrap {
+            position: relative !important;
+            top: auto !important;
+            right: auto !important;
+            max-width: 100%;
+        }
+        .desing2-stl-camera-below-cube {
+            background: rgba(255, 255, 255, 0.94);
+            border-radius: 8px;
+            padding: 4px 8px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+        }
+        .desing2-stl-view-scope #master-article-stl-camera-modes .btn-outline-secondary {
+            color: #334155;
+            border-color: rgba(51, 65, 85, 0.35);
+        }
+        .desing2-stl-view-scope #master-article-stl-camera-modes .btn-outline-secondary:hover {
+            background: rgba(51, 65, 85, 0.08);
+            color: #0f172a;
+        }
+        .desing2-stl-view-scope #master-article-stl-camera-modes .btn-check:checked + .btn-outline-secondary {
+            background: rgba(51, 65, 85, 0.15);
+            color: #0f172a;
+            border-color: #334155;
+        }
+        /* Rosa náutica SVG (solo Desing_2): overlay DOM, sin segunda cámara WebGL */
+        .desing2-stl-view-scope .ma-stl-compass-overlay {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            z-index: 12;
+            pointer-events: none;
+            filter: drop-shadow(0 1px 2px rgba(15, 23, 42, 0.14));
+        }
+        .desing2-stl-view-scope .ma-stl-ruler-anchor-coords-hud {
+            position: absolute;
+            left: 10px;
+            bottom: 10px;
+            z-index: 13;
+            pointer-events: none;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            line-height: 1.35;
+            letter-spacing: 0.02em;
+            color: #0f172a;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(51, 65, 85, 0.28);
+            border-radius: 0.375rem;
+            padding: 0.35rem 0.55rem;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+        }
+        .desing2-stl-view-scope .ma-stl-desing2-toast-container {
+            z-index: 11000;
+            pointer-events: none;
+        }
+        .desing2-stl-view-scope .ma-stl-desing2-toast-container .toast {
+            pointer-events: auto;
+        }
+    </style>
+}
+
+<div class="tandem-desing2-stl-viewport">
+    <div class="tandem-desing2-stl-viewport__fill">
+        @Html.Partial("_Desing2StlViewerWorkspace", Model)
+    </div>
+</div>
+
+@section scripts
+{
+    @{
+        var masterArticleImports = new System.Collections.Generic.Dictionary<string, string>
+        {
+            { "three", Url.Content("~/Scripts/Design/build/three.module.js") },
+            { "@masterarticles/OrbitControls", Url.Content("~/Scripts/Design/jsm/controls/OrbitControls.js") },
+            { "@masterarticles/STLLoader", Url.Content("~/Scripts/Design/jsm/loaders/STLLoader.js") },
+            { "@masterarticles/InfiniteGridHelper", Url.Content("~/Scripts/MasterArticles/infinite-grid-helper.module.js") }
+        };
+        var masterArticleImportMap = new System.Collections.Generic.Dictionary<string, object> { { "imports", masterArticleImports } };
+    }
+    <script type="importmap">
+@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(masterArticleImportMap))
+    </script>
+    <script type="module" src="@Url.Content("~/Scripts/MasterArticles/master-article-details-stl-viewer.js")"></script>
+    @if (Model.AutoLoadInitialStl)
+    {
+        <script>
+            (function () {
+                var booted = false;
+                function tryBoot() {
+                    if (booted) return;
+                    var b = document.getElementById('desing2-initial-stl-boot');
+                    if (!b) return;
+                    var u = b.getAttribute('data-stl-url');
+                    if (!u) return;
+                    booted = true;
+                    b.click();
+                }
+                document.addEventListener('ma-stl-desing2-viewer-ready', tryBoot, { once: true });
+                setTimeout(tryBoot, 400);
+            })();
+        </script>
+    }
+}

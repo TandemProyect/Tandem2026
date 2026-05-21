@@ -105,7 +105,7 @@
     @RenderSection("Styles", required: false)
 </head>
 
-<body>
+<body class="@(ViewBag.BodyHtmlClass as string ?? string.Empty)">
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
 
@@ -156,15 +156,16 @@
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.colVis.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    @* JSZip + pdfmake desde el mismo origen: evita "Tracking Prevention blocked access to storage" en Edge al cargar desde CDN. *@
+    <script src="@Url.Content("~/Scripts/datatables/JSZip-2.5.0/jszip.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/datatables/pdfmake-0.1.36/pdfmake.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/datatables/pdfmake-0.1.36/vfs_fonts.js")"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
     @* ColReorder: arrastrar columnas para reordenar *@
     <script src="https://cdn.datatables.net/colreorder/1.7.0/js/dataTables.colReorder.min.js"></script>
     @* Helper de estado por usuario en cookie (orden, anchos, visibilidad...) *@
-    <script src="@Url.Content("~/Scripts/datatables-state.js")"></script>
+    <script src="@Url.Content("~/Scripts/datatables-state.js?v=13")"></script>
     <script src="@Url.Content("~/Scripts/Intranet/intranet-datatables-list.js")"></script>
 
     @* Toggle del sidebar en escritorio: cookie por usuario (misma meta dt-user que DataTables) *@

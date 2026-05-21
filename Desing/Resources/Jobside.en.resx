@@ -91,6 +91,9 @@
   <data name="Docs_Col_Name" xml:space="preserve">
     <value>Name</value>
   </data>
+  <data name="Docs_Col_OfferNumber" xml:space="preserve">
+    <value>Offer no.</value>
+  </data>
   <data name="Docs_Col_Type" xml:space="preserve">
     <value>Type</value>
   </data>
@@ -105,6 +108,24 @@
   </data>
   <data name="Docs_NoFile" xml:space="preserve">
     <value>No file</value>
+  </data>
+  <data name="Docs_Offer_DeleteFailed" xml:space="preserve">
+    <value>Could not remove the document.</value>
+  </data>
+  <data name="Docs_Offer_DeleteSuccess" xml:space="preserve">
+    <value>Document removed successfully.</value>
+  </data>
+  <data name="Docs_Offer_DeleteTooltip" xml:space="preserve">
+    <value>Remove document (soft delete)</value>
+  </data>
+  <data name="Docs_Offer_DtTitle" xml:space="preserve">
+    <value>Offer documents</value>
+  </data>
+  <data name="Docs_Offer_NoDocuments" xml:space="preserve">
+    <value>There are no documents for this offer.</value>
+  </data>
+  <data name="Docs_Offer_UploadModalTitle" xml:space="preserve">
+    <value>Attach document to offer</value>
   </data>
   <data name="Docs_UploadModalTitle" xml:space="preserve">
     <value>Attach document to jobsite</value>
@@ -175,6 +196,9 @@
   <data name="Err_JobsideNotFound" xml:space="preserve">
     <value>Jobsite not found.</value>
   </data>
+  <data name="Err_OfferDocumentTypeMissing" xml:space="preserve">
+    <value>No «Oferta» document type was found in the catalog (code or name). Check Document types, activate the row if it is inactive, or set appSettings OfferDocumentTypeId / OfferDocumentTypeTextCode in Web.config.</value>
+  </data>
   <data name="Google_NotConfiguredBody" xml:space="preserve">
     <value> Add GoogleMaps:ApiKey in Web.config to enable autocomplete and the map. You can also fill the address manually.</value>
   </data>
@@ -195,6 +219,9 @@
   </data>
   <data name="Js_ConfirmDeleteJobside" xml:space="preserve">
     <value>Delete this jobsite? (soft delete).</value>
+  </data>
+  <data name="Js_ConfirmDeleteOfferDocument" xml:space="preserve">
+    <value>Remove this document from the offer? (soft delete).</value>
   </data>
   <data name="Lbl_Active" xml:space="preserve">
     <value>Active</value>
@@ -255,6 +282,186 @@
   </data>
   <data name="List_LinkWorkspaceTooltip" xml:space="preserve">
     <value>Jobsite workspace</value>
+  </data>
+  <data name="OfferWorkspace_DesignsComingSoon" xml:space="preserve">
+    <value>Designs linked to this offer (Desing_V2) will appear here.</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Btn_New" xml:space="preserve">
+    <value>New design</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Btn_NewTooltip" xml:space="preserve">
+    <value>Create design for this offer</value>
+  </data>
+  <data name="OfferWorkspace_Designs_DedicatedPageNote" xml:space="preserve">
+    <value>Opens in a dedicated page.</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Lbl_AttDescription" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Lbl_AttLabel" xml:space="preserve">
+    <value>Design name *</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Lbl_AttThumbnail" xml:space="preserve">
+    <value>Application STL path (optional)</value>
+  </data>
+  <data name="OfferWorkspace_Designs_ModalTitle" xml:space="preserve">
+    <value>New design</value>
+  </data>
+  <data name="OfferWorkspace_Designs_NoStlLinked" xml:space="preserve">
+    <value>No STL linked</value>
+  </data>
+  <data name="OfferWorkspace_Designs_None" xml:space="preserve">
+    <value>There are no designs linked to this offer.</value>
+  </data>
+  <data name="OfferWorkspace_Designs_OpenViewer" xml:space="preserve">
+    <value>Open STL viewer</value>
+  </data>
+  <data name="OfferWorkspace_Designs_OpenViewerDemo" xml:space="preserve">
+    <value>Open viewer (demo)</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Ph_AttThumbnail" xml:space="preserve">
+    <value>e.g.: ~/Content/DesignTools/Stl/ATK60/12904215_F.stl</value>
+  </data>
+  <data name="OfferWorkspace_Designs_SaveFailed" xml:space="preserve">
+    <value>Could not create the design.</value>
+  </data>
+  <data name="OfferWorkspace_Designs_SaveSuccess" xml:space="preserve">
+    <value>Design created successfully.</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Save_Submit" xml:space="preserve">
+    <value>Create design</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Tooltip_Open3DViewer" xml:space="preserve">
+    <value>Open 3D viewer</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Val_InvalidStlPath" xml:space="preserve">
+    <value>The STL path must be ~/Files/… or ~/Content/DesignTools/… and end in .stl (no external URLs).</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Val_LabelRequired" xml:space="preserve">
+    <value>Enter a design name.</value>
+  </data>
+  <data name="OfferWorkspace_Designs_ViewerAutoLoadPending" xml:space="preserve">
+    <value>Loading model…</value>
+  </data>
+  <data name="OfferWorkspace_Designs_ViewerCanvasEmpty" xml:space="preserve">
+    <value>Empty 3D workspace. From the offer, use «Open STL viewer» on a design that has a .stl file to load the model here.</value>
+  </data>
+  <data name="OfferWorkspace_Field_Company" xml:space="preserve">
+    <value>Company</value>
+  </data>
+  <data name="OfferWorkspace_LeftTitle" xml:space="preserve">
+    <value>Jobsite and offer details</value>
+  </data>
+  <data name="OfferWorkspace_PageTitleFmt" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="OfferWorkspace_SubheaderJobsite" xml:space="preserve">
+    <value>Jobsite</value>
+  </data>
+  <data name="OfferWorkspace_SubheaderOffer" xml:space="preserve">
+    <value>Offer</value>
+  </data>
+  <data name="OfferWorkspace_TabDesigns" xml:space="preserve">
+    <value>Designs</value>
+  </data>
+  <data name="Offers_Btn_DetailsRow" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="Offers_Btn_EditRow" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Offers_Btn_New" xml:space="preserve">
+    <value>New offer</value>
+  </data>
+  <data name="Offers_Col_Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="Offers_Col_Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Offers_Col_Client" xml:space="preserve">
+    <value>Client</value>
+  </data>
+  <data name="Offers_Col_Date" xml:space="preserve">
+    <value>Created</value>
+  </data>
+  <data name="Offers_Col_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Offers_Col_Number" xml:space="preserve">
+    <value>Offer number</value>
+  </data>
+  <data name="Offers_Col_State" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Offers_CreateModalTitle" xml:space="preserve">
+    <value>New offer</value>
+  </data>
+  <data name="Offers_DetailsTooltip" xml:space="preserve">
+    <value>Offer workspace</value>
+  </data>
+  <data name="Offers_DtTitle" xml:space="preserve">
+    <value>Jobsite offers</value>
+  </data>
+  <data name="Offers_EditModalTitle" xml:space="preserve">
+    <value>Edit offer</value>
+  </data>
+  <data name="Offers_EditTooltip" xml:space="preserve">
+    <value>Edit offer</value>
+  </data>
+  <data name="Offers_Help_NumberOnCreate" xml:space="preserve">
+    <value>Assigned automatically on save (company–branch–jobsite code–sequence).</value>
+  </data>
+  <data name="Offers_Help_NumberReadOnly" xml:space="preserve">
+    <value>System-generated; cannot be changed.</value>
+  </data>
+  <data name="Offers_Lbl_ActiveCheckbox" xml:space="preserve">
+    <value>Offer active</value>
+  </data>
+  <data name="Offers_Lbl_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Offers_Lbl_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Offers_Lbl_Number" xml:space="preserve">
+    <value>Offer number</value>
+  </data>
+  <data name="Offers_Lbl_State" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Offers_NoOfferStates" xml:space="preserve">
+    <value>There are no active offer statuses in the catalog.</value>
+  </data>
+  <data name="Offers_NoOffers" xml:space="preserve">
+    <value>There are no offers for this jobsite.</value>
+  </data>
+  <data name="Offers_SaveFailed" xml:space="preserve">
+    <value>Could not save the offer.</value>
+  </data>
+  <data name="Offers_SaveSuccess" xml:space="preserve">
+    <value>Offer saved successfully.</value>
+  </data>
+  <data name="Offers_Val_BranchOrCompanyMissing" xml:space="preserve">
+    <value>The jobsite's branch or company could not be found; the offer number cannot be assigned.</value>
+  </data>
+  <data name="Offers_Val_JobsideCodePending" xml:space="preserve">
+    <value>The jobsite does not have an internal code yet; save the jobsite and try again.</value>
+  </data>
+  <data name="Offers_Val_JobsideNeedsClient" xml:space="preserve">
+    <value>The jobsite must have a client assigned before creating offers.</value>
+  </data>
+  <data name="Offers_Val_NameRequired" xml:space="preserve">
+    <value>Offer name is required.</value>
+  </data>
+  <data name="Offers_Val_NotFound" xml:space="preserve">
+    <value>Offer not found.</value>
+  </data>
+  <data name="Offers_Val_StateInvalid" xml:space="preserve">
+    <value>The selected status is not valid.</value>
+  </data>
+  <data name="Offers_Val_WrongJobside" xml:space="preserve">
+    <value>The offer does not belong to this jobsite.</value>
   </data>
   <data name="Page_CreateTitle" xml:space="preserve">
     <value>Create jobsite</value>

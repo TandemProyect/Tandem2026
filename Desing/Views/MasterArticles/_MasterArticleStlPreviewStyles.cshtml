@@ -131,8 +131,13 @@
     #ma-stl-viewer-shell:fullscreen {
         display: flex !important;
         flex-direction: column;
+        box-sizing: border-box;
+        height: 100vh !important;
+        height: 100dvh !important;
         min-height: 100vh !important;
-        max-height: 100vh;
+        min-height: 100dvh !important;
+        max-height: 100vh !important;
+        max-height: 100dvh !important;
         border-radius: 0 !important;
         background: #fff;
     }
@@ -149,7 +154,20 @@
         line-height: 1;
     }
     #ma-stl-viewer-shell:fullscreen #master-article-details-stl-viewer-canvas {
-        flex: 1 1 auto;
+        flex: 1 1 0 !important;
+        min-height: 0 !important;
+        position: relative;
+        overflow: hidden;
+    }
+    /* Evitar h-100/w-100: el alto lo fijan top+bottom respecto al lienzo flex */
+    #ma-stl-viewer-shell:fullscreen #ma-stl-viewer-gl-host {
+        position: absolute !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: auto !important;
+        height: auto !important;
         min-height: 0 !important;
     }
     /* Cortes STL: barra vertical = corte horizontal (Y); barra horizontal = corte vertical (X) */

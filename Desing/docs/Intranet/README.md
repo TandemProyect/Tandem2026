@@ -7,6 +7,7 @@ Guías mantenidas en el repositorio para **desarrolladores** y **agentes Cursor*
 | Documento | Contenido |
 |-----------|-----------|
 | [UI-Formularios-y-Estilo.md](./UI-Formularios-y-Estilo.md) | Estructura MVC, tablas DataTables, formularios, plantilla de color, checkboxes, acciones, convenciones de campos |
+| [intranet-scroll-layout.md](./intranet-scroll-layout.md) | Scroll único en `.tandem-layout-main-scroll`: cadena flex, `:has(...)` para DT / Jobside / Desing_2 |
 | [Google-Places-Direcciones.md](./Google-Places-Direcciones.md) | Bloque reutilizable de dirección, `TandemAddressPlaces`, Web.config, Google Cloud, Jobside |
 | [../../docs/agente-ui-materio-datatables.md](../../docs/agente-ui-materio-datatables.md) | Layout Materio, cookies `dt-user`, DataTables globales, menú colapsado |
 | [../../Scripts/ThreejsDesing/README.md](../../Scripts/ThreejsDesing/README.md) | Visor STL Three.js (Master Articles) — **no** duplicar aquí |

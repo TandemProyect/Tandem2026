@@ -1,23 +1,17 @@
 /*
- * DataTables state per user + cookie + ColReorder + colResizable
+ * DataTables state por usuario: localStorage + ColReorder + colResizable
  * -----------------------------------------------------------------
- *  - ColReorder activo por defecto; la ultima columna (p. ej. Acciones) queda fija
- *    con iFixedColumnsRight: 1. Si hay ID oculto despues de Acciones, en la vista
- *    pon colReorder: { iFixedColumnsRight: 2 }.
- *  - Parche preInit: el plugin oficial hace $.extend({}, init, defaults) y el
- *    default true machaca iFixedColumnsRight del init; aqui mergeamos bien.
- *  - Persiste estado (orden, visibilidad, longitud, busqueda global, anchos)
- *    en una cookie por usuario y tabla:  dt_<usuario>_<idTabla>
- *  - Si el estado JSON supera el limite practico de cookie (~4KB), se recorta
- *    (anchos de columna, etc.) y la busqueda se duplica en cookie dtq_*.
- *  - stateDuration por defecto: 1 año (segundos). Evite valores bajos en las vistas.
- *  - El usuario se obtiene del <meta name="dt-user"> del layout.
- *  - Activa colResizable (si esta cargado) y guarda los anchos en el
- *    mismo objeto de estado.
+ *  - ColReorder activo por defecto; ultima columna fija con iFixedColumnsRight (ver defaults).
+ *  - Estado (orden, visibilidad, pageLength, busqueda, anchos): **localStorage**
+ *    claves tandem_dt_ls1_* / tandem_dtq_ls1_* — no usa cookies: evita HTTP 400 por cabecera Cookie demasiado grande.
+ *  - Si la cabecera Cookie ya es enorme, el servidor puede responder 400 ANTES de enviar HTML:
+ *    entonces no hay JS; hay que subir MaxFieldLength/http.sys o borrar cookies del sitio una vez.
+ *  - slimStatePayload recorta JSON pesado (~3.8KB) como antes.
+ *  - Usuario: meta dt-user del layout.
  */
 (function ($) {
-    if (!$ || !$.fn || !$.fn.dataTable) { return; }
-    var DT = $.fn.dataTable;
+    if (!$ || !$.fn || (!$.fn.dataTable && !$.fn.DataTable)) { return; }
+    var DT = $.fn.dataTable || $.fn.DataTable;
 
     /* ColReorder: merge correcto (init gana sobre defaults) y ultima columna fija por defecto */
     (function patchColReorderPreInit() {
@@ -62,37 +56,108 @@
     function cookieKey(tableId) {
         return 'dt_' + getUser() + '_' + (tableId || 'unknown');
     }
-    /** Cookie pequeña solo con el texto del buscador (evita perder la búsqueda si la cookie principal supera ~4KB). */
+    /** Nombre legacy de cookie de busqueda (solo para borrar en dtResetState). */
     function searchCookieKey(tableId) {
         return 'dtq_' + getUser() + '_' + (tableId || 'unknown');
     }
-    function setCookie(name, value) {
-        var days = 365;
-        var d = new Date();
-        d.setTime(d.getTime() + days * 86400000);
-        try {
-            document.cookie = name + '=' + encodeURIComponent(value) +
-                ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
-        } catch (e) { /* noop */ }
-    }
-    function getCookie(name) {
-        var re = new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)');
-        var m = document.cookie.match(re);
-        return m ? decodeURIComponent(m[1]) : null;
-    }
     function deleteCookie(name) {
-        document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/';
+        document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/;SameSite=Lax';
     }
 
-    function encodedCookieLength(name, value) {
+    /** Prefijos localStorage (v1); no usar cookies para estado de tablas. */
+    var LS_PREFIX_STATE = 'tandem_dt_ls1_';
+    var LS_PREFIX_SEARCH = 'tandem_dtq_ls1_';
+
+    function lsStateKey(tableId) {
+        return LS_PREFIX_STATE + getUser() + '_' + (tableId || 'unknown');
+    }
+    function lsSearchKey(tableId) {
+        return LS_PREFIX_SEARCH + getUser() + '_' + (tableId || 'unknown');
+    }
+    function lsSet(key, value) {
         try {
-            return name.length + 1 + encodeURIComponent(value).length;
-        } catch (e) {
-            return 99999;
-        }
+            if (window.localStorage) {
+                window.localStorage.setItem(key, value);
+                return true;
+            }
+        } catch (e) { /* cuota / modo privado */ }
+        try {
+            if (window.sessionStorage) {
+                window.sessionStorage.setItem(key, value);
+                return true;
+            }
+        } catch (e2) { /* noop */ }
+        return false;
+    }
+    function lsGet(key) {
+        try {
+            if (window.localStorage) {
+                var loc = window.localStorage.getItem(key);
+                if (loc !== null && loc !== undefined) {
+                    return loc;
+                }
+            }
+        } catch (e) { /* noop */ }
+        try {
+            if (window.sessionStorage) {
+                return window.sessionStorage.getItem(key);
+            }
+        } catch (e2) { /* noop */ }
+        return null;
+    }
+    function lsRemove(key) {
+        try {
+            if (window.localStorage) window.localStorage.removeItem(key);
+        } catch (e) { /* noop */ }
+        try {
+            if (window.sessionStorage) window.sessionStorage.removeItem(key);
+        } catch (e2) { /* noop */ }
     }
 
-    function persistSearchCookie(tableId, data) {
+    /** Migra dt_* / dtq_* a storage y SIEMPRE borra la cookie (incluso valor vacío / corrupto). */
+    function migrateLegacyDtCookiesToLocalStorage() {
+        try {
+            var parts = document.cookie.split(';');
+            for (var i = 0; i < parts.length; i++) {
+                var seg = parts[i];
+                var eq = seg.indexOf('=');
+                var name = (eq >= 0 ? seg.substring(0, eq) : seg).trim();
+                var isDtq = name.indexOf('dtq_') === 0;
+                var isDt = !isDtq && name.indexOf('dt_') === 0;
+                if (!isDtq && !isDt) {
+                    continue;
+                }
+                var rawVal = eq >= 0 ? seg.substring(eq + 1).trim() : '';
+                var val = '';
+                if (rawVal.length) {
+                    try {
+                        val = decodeURIComponent(rawVal.replace(/\+/g, ' '));
+                    } catch (de) {
+                        val = rawVal;
+                    }
+                }
+                if (val.length) {
+                    if (isDtq) {
+                        var sfxQ = name.substring(4);
+                        var kq = LS_PREFIX_SEARCH + sfxQ;
+                        if (!lsGet(kq)) {
+                            lsSet(kq, val);
+                        }
+                    } else {
+                        var sfxState = name.substring(3);
+                        var ks = LS_PREFIX_STATE + sfxState;
+                        if (!lsGet(ks)) {
+                            lsSet(ks, val);
+                        }
+                    }
+                }
+                deleteCookie(name);
+            }
+        } catch (e0) { /* noop */ }
+    }
+    migrateLegacyDtCookiesToLocalStorage();
+
+    function persistSearchPersist(tableId, data) {
         var q = '';
         try {
             if (data && data.search && data.search.search !== undefined && data.search.search !== null) {
@@ -102,16 +167,17 @@
             q = '';
         }
         try {
-            setCookie(searchCookieKey(tableId), JSON.stringify({ q: q, t: data && data.time ? data.time : Date.now() }));
+            lsSet(lsSearchKey(tableId), JSON.stringify({ q: q, t: data && data.time ? data.time : Date.now() }));
         } catch (e1) { /* noop */ }
     }
 
     function slimStatePayload(tableId, data) {
-        var maxEnc = 3800;
+        /* Limite conservador: cabe en localStorage y evita cuota; antes era ~4KB por cookie. */
+        var maxJson = 3800;
         function tryStringify(d) {
             try {
                 var s = JSON.stringify(d);
-                if (encodedCookieLength(cookieKey(tableId), s) <= maxEnc) {
+                if (s.length <= maxJson) {
                     return s;
                 }
             } catch (e) { /* noop */ }
@@ -152,8 +218,7 @@
         }
     }
 
-    /* === Defaults globales para todas las tablas ========================= */
-    $.extend(true, DT.defaults, {
+    var dtDefaultsMerged = {
         colReorder: { bEnable: true, iFixedColumnsRight: 1 },
         stateSave: true,
         stateDuration: 60 * 60 * 24 * 365, /* 1 ano (en segundos) */
@@ -186,10 +251,10 @@
                 if (cached) {
                     data.colWidths = cached;
                 }
-                persistSearchCookie(id, data);
+                persistSearchPersist(id, data);
                 var payload = slimStatePayload(id, data);
                 if (payload) {
-                    setCookie(cookieKey(id), payload);
+                    lsSet(lsStateKey(id), payload);
                 }
             } catch (e) { /* noop */ }
         },
@@ -197,17 +262,22 @@
         stateLoadCallback: function (settings) {
             try {
                 var id = settings.sTableId || (settings.nTable && settings.nTable.id) || 'unknown';
-                var raw = getCookie(cookieKey(id));
+                var raw = lsGet(lsStateKey(id));
                 var parsed = null;
                 if (raw) {
-                    parsed = JSON.parse(raw);
+                    try {
+                        parsed = JSON.parse(raw);
+                    } catch (pe) {
+                        lsRemove(lsStateKey(id));
+                        parsed = null;
+                    }
                     if (!parsed || typeof parsed !== 'object') {
-                        deleteCookie(cookieKey(id));
+                        lsRemove(lsStateKey(id));
                         parsed = null;
                     }
                 }
                 var qTxt = '';
-                var qRaw = getCookie(searchCookieKey(id));
+                var qRaw = lsGet(lsSearchKey(id));
                 if (qRaw) {
                     try {
                         var qo = JSON.parse(qRaw);
@@ -215,7 +285,7 @@
                             qTxt = String(qo.q);
                         }
                     } catch (qe) {
-                        deleteCookie(searchCookieKey(id));
+                        lsRemove(lsSearchKey(id));
                     }
                 }
                 if (qTxt.length && parsed) {
@@ -240,7 +310,8 @@
                 return null;
             }
         }
-    });
+    };
+    $.extend(true, DT.defaults, dtDefaultsMerged);
 
     /* === Resize de columnas por arrastre (con o sin scrollX) ============ */
     /*
@@ -424,7 +495,7 @@
                 clearTimeout(tmr);
                 tmr = setTimeout(function () {
                     try {
-                        persistSearchCookie(id, {
+                        persistSearchPersist(id, {
                             time: Date.now(),
                             search: { search: $filt.val(), smart: true, regex: false, caseInsensitive: true }
                         });
@@ -442,7 +513,7 @@
 
         setTimeout(function () {
             try {
-                var qRaw2 = getCookie(searchCookieKey(id));
+                var qRaw2 = lsGet(lsSearchKey(id));
                 if (!qRaw2) { return; }
                 var qo2 = JSON.parse(qRaw2);
                 var qv = (qo2 && qo2.q != null) ? String(qo2.q) : '';
@@ -484,6 +555,8 @@
 
     /* Helper publico para que el usuario pueda resetear su tabla. */
     window.dtResetState = function (tableId) {
+        lsRemove(lsStateKey(tableId));
+        lsRemove(lsSearchKey(tableId));
         deleteCookie(cookieKey(tableId));
         deleteCookie(searchCookieKey(tableId));
     };

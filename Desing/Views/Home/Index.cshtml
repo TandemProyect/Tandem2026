@@ -1,28 +1,504 @@
-﻿@{
+﻿@using Newtonsoft.Json
+
+@using Desing.Resources
+
+@using System.Globalization
+
+@{
+
     Layout = "~/Views/Shared/_LayoutMaterio.cshtml";
+
     ViewBag.Title = "Inicio - " + (ViewBag.PlantillaBrandText as string ?? "T Desing.net");
+
+    var ci = CultureInfo.CurrentUICulture != null ? CultureInfo.CurrentUICulture.TwoLetterISOLanguageName : "es";
+
+    var dashDt = JsonConvert.SerializeObject(new
+
+    {
+
+        culture = ci,
+
+        rowsSuffix = Common.Dt_Rows_N,
+
+        allRows = Common.Dt_Rows_All,
+
+        ariaMenu = Common.Dt_MenuAria
+
+    });
+
 }
 
-<h4 class="py-3 mb-4">
-    <span class="text-muted fw-light">Inicio /</span> Bienvenido
-</h4>
 
-<div class="row g-4">
-    <div class="col-md-6 col-lg-4">
-        <div class="card h-100">
-            <img src="~/Content/images/Home/at4.jpg" class="card-img-top" alt="ATK60 / ATK40" />
-            <div class="card-body">
-                <h5 class="card-title">PANELES ATK60 / ATK40</h5>
-                <p class="card-text">
-                    <strong>PANELES ATK60:</strong> Ideal para muros de contencion, pilares, pantallas, nucleos de ascensor y cualquier tipo de estructura vertical.
-                </p>
-                <p class="card-text">
-                    <strong>PANELES ATK40:</strong> Encofrado rapido, modular y con buena terminacion. Paneles de medidas variadas y facilmente manipulables por un solo hombre.
-                </p>
-                <a id="btDesign" href="@Url.Action("Index", "DesignTools", new { OnlyUser = true })" class="btn btn-primary">
-                    <i class="icon-base ri ri-shape-line me-1"></i> Abrir Disenador
-                </a>
+
+@section Styles
+
+{
+
+    <style>
+
+        .home-dash-shell {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 1rem;
+
+            height: calc(100vh - 8rem);
+
+            min-height: 420px;
+
+            max-height: calc(100vh - 8rem);
+
+        }
+
+
+
+        .home-dash-row {
+
+            flex: 1 1 50%;
+
+            min-height: 0;
+
+            display: flex;
+
+            flex-direction: column;
+
+        }
+
+
+
+        .home-dash-grid {
+
+            flex: 1;
+
+            min-height: 0;
+
+            display: grid;
+
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+
+            gap: 1rem;
+
+            align-content: stretch;
+
+        }
+
+
+
+        .home-dash-tile {
+
+            min-height: 0;
+
+            display: flex;
+
+            flex-direction: column;
+
+        }
+
+
+
+            .home-dash-tile > .card {
+
+                flex: 1;
+
+                display: flex;
+
+                flex-direction: column;
+
+                min-height: 0;
+
+            }
+
+
+
+            .home-dash-tile .card-body.home-dash-card-body {
+
+                flex: 1;
+
+                min-height: 0;
+
+                overflow-y: auto;
+
+                overflow-x: hidden;
+
+                padding: 0.35rem 0.5rem 0.5rem;
+
+            }
+
+
+
+            .home-dash-tile--placeholder .card-body.home-dash-card-body {
+
+                overflow: hidden;
+
+            }
+
+
+
+            .home-dash-tile table.dataTable {
+
+                margin-bottom: 0 !important;
+
+                font-size: 0.8125rem;
+
+            }
+
+
+
+            .home-dash-tile .dataTables_wrapper {
+
+                padding: 0;
+
+            }
+
+
+
+        @@media (max-width: 1199.98px) {
+
+            .home-dash-shell {
+
+                height: auto;
+
+                max-height: none;
+
+            }
+
+
+
+            .home-dash-row {
+
+                flex: 0 0 auto;
+
+            }
+
+
+
+            .home-dash-grid {
+
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+
+                grid-auto-rows: minmax(240px, auto);
+
+            }
+
+        }
+
+
+
+        @@media (max-width: 575.98px) {
+
+            .home-dash-grid {
+
+                grid-template-columns: 1fr;
+
+                grid-auto-rows: minmax(220px, auto);
+
+            }
+
+        }
+
+    </style>
+
+}
+
+
+
+<div class="home-dash-shell mb-4">
+
+    <div class="home-dash-row home-dash-row--top">
+
+        <div class="home-dash-grid">
+
+            <div class="home-dash-tile">
+
+                <div class="card shadow-none border">
+
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+
+                        <span class="fw-semibold">@Jobside.Index_Breadcrumb</span>
+
+                        <a href="@Url.Action("Index", "Jobside")" class="small">@Common.Action_OpenList</a>
+
+                    </div>
+
+                    <div class="card-body home-dash-card-body">
+
+                        <table id="DashJobs" class="table table-hover table-sm w-100" cellspacing="0">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>@Jobside.Col_AddNJobside</th>
+
+                                    <th>@Jobside.Col_Name</th>
+
+                                    <th class="text-end text-nowrap" style="width:1%;"></th>
+
+                                </tr>
+
+                            </thead>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
             </div>
+
+            <div class="home-dash-tile">
+
+                <div class="card shadow-none border">
+
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+
+                        <span class="fw-semibold">@Jobside.Offers_DtTitle</span>
+
+                        <a href="@Url.Action("Index", "Jobside")" class="small">@Jobside.Index_Breadcrumb</a>
+
+                    </div>
+
+                    <div class="card-body home-dash-card-body">
+
+                        <table id="DashOffers" class="table table-hover table-sm w-100" cellspacing="0">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>@Jobside.Offers_Col_Number</th>
+
+                                    <th>@Jobside.Offers_Col_Name</th>
+
+                                    <th class="text-end text-nowrap" style="width:1%;"></th>
+
+                                </tr>
+
+                            </thead>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="home-dash-tile">
+
+                <div class="card shadow-none border">
+
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+
+                        <span class="fw-semibold">@Jobside.OfferWorkspace_TabDesigns</span>
+
+                    </div>
+
+                    <div class="card-body home-dash-card-body">
+
+                        <table id="DashDesigns" class="table table-hover table-sm w-100" cellspacing="0">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>@Jobside.Offers_Col_Number</th>
+
+                                    <th>@Jobside.OfferWorkspace_Designs_Lbl_AttLabel</th>
+
+                                    <th class="text-end text-nowrap" style="width:1%;"></th>
+
+                                </tr>
+
+                            </thead>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="home-dash-tile">
+
+                <div class="card shadow-none border">
+
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+
+                        <span class="fw-semibold">@ClientV2.Index_Breadcrumb</span>
+
+                        <a href="@Url.Action("Index", "ClientV2")" class="small">@Common.Action_OpenList</a>
+
+                    </div>
+
+                    <div class="card-body home-dash-card-body">
+
+                        <table id="DashClients" class="table table-hover table-sm w-100" cellspacing="0">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>@ClientV2.Col_Code</th>
+
+                                    <th>@ClientV2.Col_Name</th>
+
+                                    <th class="text-end text-nowrap" style="width:1%;"></th>
+
+                                </tr>
+
+                            </thead>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
+
     </div>
+
+    <div class="home-dash-row home-dash-row--bottom">
+
+        <div class="home-dash-grid">
+
+            @for (var i = 0; i < 4; i++)
+
+            {
+
+                <div class="home-dash-tile home-dash-tile--placeholder">
+
+                    <div class="card shadow-none border h-100">
+
+                        <div class="card-body home-dash-card-body d-flex align-items-center justify-content-center text-muted">
+
+                            <span>@Jobside.Tab_ComingSoon</span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            }
+
+        </div>
+
+    </div>
+
 </div>
+
+
+
+@section scripts
+
+{
+
+    <script type="text/javascript">
+
+        var dashDt = @Html.Raw(dashDt);
+
+
+
+        function tandemDashTableOptions(url, columns) {
+
+            return TandemDataTablesList.applyListDefaults({
+
+                dom: 'rtip',
+
+                buttons: [],
+
+                stateSave: false,
+
+                lengthMenu: [
+
+                    [5, 10, 15],
+
+                    ['5 ' + dashDt.rowsSuffix, '10 ' + dashDt.rowsSuffix, '15 ' + dashDt.rowsSuffix]
+
+                ],
+
+                pageLength: 5,
+
+                scrollCollapse: false,
+
+                serverSide: true,
+
+                processing: true,
+
+                ordering: false,
+
+                ajax: { url: url, type: 'POST' },
+
+                order: [],
+
+                language: window.tandemCommonDt ? window.tandemCommonDt[dashDt.culture] || window.tandemCommonDt.es : {},
+
+                columns: columns
+
+            });
+
+        }
+
+
+
+        $(document).ready(function () {
+
+            $('#DashJobs').DataTable(tandemDashTableOptions('@Url.Action("ListDashboardJobs", "Home")', [
+
+                { data: 'AddNJobside', name: 'AddNJobside', orderable: false },
+
+                { data: 'TextLabel', name: 'TextLabel', orderable: false },
+
+                { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-end text-nowrap' }
+
+            ]));
+
+
+
+            $('#DashOffers').DataTable(tandemDashTableOptions('@Url.Action("ListDashboardOffers", "Home")', [
+
+                { data: 'AddOfferNumber', name: 'AddOfferNumber', orderable: false },
+
+                { data: 'TextLabel', name: 'TextLabel', orderable: false },
+
+                { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-end text-nowrap' }
+
+            ]));
+
+
+
+            $('#DashDesigns').DataTable(tandemDashTableOptions('@Url.Action("ListDashboardDesigns", "Home")', [
+
+                { data: 'AddOfferNumber', name: 'AddOfferNumber', orderable: false },
+
+                { data: 'AttLabel', name: 'AttLabel', orderable: false },
+
+                { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-end text-nowrap' }
+
+            ]));
+
+
+
+            $('#DashClients').DataTable(tandemDashTableOptions('@Url.Action("ListDashboardClients", "Home")', [
+
+                { data: 'TextCode', name: 'TextCode', orderable: false },
+
+                { data: 'TextLabel', name: 'TextLabel', orderable: false },
+
+                { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-end text-nowrap' }
+
+            ]));
+
+        });
+
+    </script>
+
+}
+

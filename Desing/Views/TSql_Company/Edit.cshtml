@@ -1,9 +1,9 @@
 @model DAL.TSql_Company
 @using Desing.Models
 @using Desing.Resources
-@using System.Configuration
+@using Desing.Helpers
 @{
-    var mapsKey = ConfigurationManager.AppSettings["GoogleMaps:ApiKey"] ?? "";
+    var mapsKey = GoogleMapsConfigHelper.GetApiKey();
 }
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="py-3 mb-0">

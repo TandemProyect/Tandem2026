@@ -22,6 +22,7 @@ namespace DAL
     
         public long SysObjectID { get; set; }
         public string AttLabel { get; set; }
+        public string AddLetter { get; set; }
         public string AttDescription { get; set; }
         public string LinCreatedBy { get; set; }
         public System.DateTime AttCreated { get; set; }
@@ -29,8 +30,7 @@ namespace DAL
         public System.DateTime AttLastModification { get; set; }
         public long SysUpdateNumber { get; set; }
         public long LinCompany { get; set; }
-        public string AddLetter { get; set; }
-        public string Attcolor { get; set; }
+        public string AttColor { get; set; }
         public string Loc_Place_Id { get; set; }
         public string Loc_Formatted_Address { get; set; }
         public Nullable<decimal> Loc_Lat { get; set; }

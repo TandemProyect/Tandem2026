@@ -18,6 +18,10 @@ Antes de crear o modificar pantallas CRUD Intranet, **leer en este orden**:
 4. Tablas DataTables / layout: `Desing/docs/agente-ui-materio-datatables.md`
 5. Visor STL 3D (solo Master Articles): `Desing/Scripts/ThreejsDesing/README.md`
 
+## Campo color HEX
+
+Usar **selector nativo + texto sincronizados** y validación servidor `#RGB` / `#RRGGBB` según `Desing/docs/Intranet/UI-Formularios-y-Estilo.md` §5 (subsection «Color (HEX)»). Referencia: OfferState, Plantilla.
+
 ## Reglas obligatorias
 
 - Layout Materio; etiquetas con `form-label` (color plantilla vía `_PlantillaStyles.cshtml`).

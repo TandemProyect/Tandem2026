@@ -55,6 +55,9 @@
   <data name="Details_Field_Active" xml:space="preserve">
     <value>Active</value>
   </data>
+  <data name="Details_Field_AddressFormatted" xml:space="preserve">
+    <value>Address (Google Places)</value>
+  </data>
   <data name="Details_Field_Code" xml:space="preserve">
     <value>Code</value>
   </data>
@@ -79,11 +82,17 @@
   <data name="Details_Field_TaxId" xml:space="preserve">
     <value>Tax ID</value>
   </data>
+  <data name="Details_MapTitle" xml:space="preserve">
+    <value>Map</value>
+  </data>
   <data name="Details_NoBoolValue" xml:space="preserve">
     <value>No</value>
   </data>
   <data name="Details_NoValue" xml:space="preserve">
     <value>—</value>
+  </data>
+  <data name="Details_Section_AddressDetail" xml:space="preserve">
+    <value>Location detail</value>
   </data>
   <data name="Details_YesValue" xml:space="preserve">
     <value>Yes</value>
@@ -130,6 +139,12 @@
   <data name="Err_LogoSaveFailed" xml:space="preserve">
     <value>Could not save the logo: {0}</value>
   </data>
+  <data name="Google_NotConfiguredBody" xml:space="preserve">
+    <value> Copy Web.GoogleMaps.config.example → Web.GoogleMaps.config (or set GOOGLE_MAPS_API_KEY) for autocomplete and map. You can still enter the address manually.</value>
+  </data>
+  <data name="Google_NotConfiguredStrong" xml:space="preserve">
+    <value>Google Maps is not configured.</value>
+  </data>
   <data name="Index_Breadcrumb" xml:space="preserve">
     <value>Clients</value>
   </data>
@@ -144,6 +159,9 @@
   </data>
   <data name="Lbl_ActiveCheckbox" xml:space="preserve">
     <value>Active client</value>
+  </data>
+  <data name="Lbl_AddressGooglePlaces" xml:space="preserve">
+    <value>Address (Google Places)</value>
   </data>
   <data name="Lbl_Code" xml:space="preserve">
     <value>Internal code</value>

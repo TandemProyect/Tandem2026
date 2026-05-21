@@ -116,6 +116,9 @@
     <Compile Include="TSql_DesignDetails.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
+    <Compile Include="TSql_Design_V2.cs">
+      <DependentUpon>Model.tt</DependentUpon>
+    </Compile>
     <Compile Include="TSql_Document.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>

@@ -33,5 +33,9 @@
 </div>
 
 @section scripts {
+    @{
+        ViewData["GooglePlacesPageScript"] = "~/Scripts/Intranet/clientv2-google-places.js";
+    }
+    @Html.Partial("~/Views/Shared/_GooglePlacesAddressScripts.cshtml")
     @Scripts.Render("~/bundles/jqueryval")
 }
