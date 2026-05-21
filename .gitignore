@@ -189,6 +189,8 @@ publish/
 # Note: Comment the next line if you want to checkin your web deploy settings,
 # but database connection strings (with potential passwords) will be unencrypted
 *.pubxml
+# Perfil de publicación sólo sistema de ficheros (sin FTP ni contraseñas)
+!Desing/Properties/PublishProfiles/Site4Now-FileSystem.pubxml
 *.publishproj
 
 # Microsoft Azure Web App publish settings. Comment the next line if you want to

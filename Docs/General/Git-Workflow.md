@@ -19,7 +19,7 @@ Flujo de trabajo con Git y GitHub para Tandem 2026.
 
 - **Propósito:** Código estable y funcional
 - **Protección:** Commits directos permitidos (proyecto pequeño)
-- **Deployment:** Manual
+- **Deployment:** Automático o manual a Site4Now / SmarterASP — ver **[Deploy-Site4Now.md](./Deploy-Site4Now.md)** (GitHub Actions + FTP, Visual Studio o script PowerShell).
 
 **Reglas:**
 - ✅ Solo código que compila
