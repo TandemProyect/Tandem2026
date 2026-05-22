@@ -2,7 +2,9 @@ using Desing.Helpers;
 using Desing.Models;
 using System;
 using System.Data.Entity;
+using System.Security.Claims;
 using System.Web;
+using System.Web.Helpers;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
@@ -18,6 +20,9 @@ namespace Desing
 
         protected void Application_Start()
         {
+            // Identity uses claims; antiforgery must key off NameIdentifier, not Identity.Name.
+            AntiForgeryConfig.UniqueClaimTypeIdentifier = ClaimTypes.NameIdentifier;
+
             // Never auto-create databases (shared SQL / remote hosting has no CREATE DATABASE on master).
             Database.SetInitializer<ApplicationDbContext>(null);
             Database.SetInitializer<DAL.ConexionData>(null);

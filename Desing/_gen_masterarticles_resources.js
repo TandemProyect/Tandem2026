@@ -205,6 +205,7 @@ const es = Object.fromEntries(
     StlPreview_SaveViewAria: "Guardar vista",
     StlPreview_SaveViewSavedTitle: "Guardado",
     StlPreview_SaveViewSavedToast: "Vista guardada",
+    StlPreview_EscapeCancelToolsToast: "Cancelado",
     StlPreview_GridToggleTitle: "Mostrar rejilla de fondo",
     StlPreview_GridToggleAria: "Rejilla de fondo",
     StlPreview_SkyToggleTitle: "Mostrar u ocultar cielo",
@@ -219,13 +220,22 @@ const es = Object.fromEntries(
     StlPreview_XyzAxesAria: "Ejes XYZ",
     StlPreview_UcsRulersToggleTitle: "Mostrar u ocultar reglas de plano desde el anclaje (+X / +Z)",
     StlPreview_UcsRulersAria: "Reglas de plano",
-    StlPreview_RulerAnchorPickTitle:
-      "Seleccionar punto de inserción (acercar al centro de la base y clic)",
-    StlPreview_RulerAnchorPickAria: "Seleccionar punto de inserción para reglas",
-    StlPreview_RulerAnchorPickSelectedToast: "Punto de inserción seleccionado",
-    StlPreview_RulerAnchorPickFloorToast: "Anclaje en planta",
-    StlPreview_RulerAnchorPickModeToast:
-      "Clic en un cruce de la rejilla para colocar reglas",
+    StlPreview_RulerAnchorGridPickTitle: "Colocar reglas en cruce de rejilla (500 mm)",
+    StlPreview_RulerAnchorGridPickAria: "Modo rejilla: solo cruces activos del retículo menor (500 mm)",
+    StlPreview_RulerAnchorGridPickModeToast:
+      "Centre el cursor en un cruce de rejilla hasta el resaltado verde y haga clic",
+    StlPreview_RulerAnchorGridSnapRequiredToast:
+      "Aceérquese más al cruce (resaltado verde) antes de hacer clic — solo se permite snap de rejilla",
+    StlPreview_RulerAnchorObjectPickTitle:
+      "Punto de inserción desde la pieza STL (esquina inferior izquierda de la huella)",
+    StlPreview_RulerAnchorObjectPickAria:
+      "Sitúese sobre una pieza y haga clic: reglas en el origen tipo croquis CAD (esquina inferior izquierda en planta)",
+    StlPreview_RulerAnchorObjectPickModeToast:
+      "Pasar el ratón sobre el volumen STL (resaltado) y clic para las reglas en su punto de inserción",
+    StlPreview_RulerAnchorObjectInsertionToast:
+      "Punto de inserción aplicado a las reglas",
+    StlPreview_RulerAnchorObjectPickMissToast:
+      "Seleccione un volumen STL bajo el cursor",
     StlPreview_RulerAnchorGridCoordsHud: "X: {0} m  Z: {1} m",
     StlPreview_RulerAnchorGridIntersectionToast: "Reglas colocadas",
     StlPreview_ClipYTitle:
@@ -235,7 +245,68 @@ const es = Object.fromEntries(
     StlPreview_ClipXTitle:
       "Corte en planta: 1000 = vista completa; al bajar el valor, recorta desde la derecha hacia la izquierda.",
     StlPreview_ClipXAria:
-      "Corte en planta (X): 1000 vista completa; al bajar, recorta desde la derecha hacia la izquierda"
+      "Corte en planta (X): 1000 vista completa; al bajar, recorta desde la derecha hacia la izquierda",
+    StlPreview_Desing2SideMenuAria: "Menú lateral del visor STL",
+    StlPreview_Desing2TopToolbarAria: "Barra de herramientas del lienzo STL",
+    StlPreview_Desing2TopToolbarCollapseTitle:
+      "Ocultar barra hasta acercar de nuevo el puntero al borde superior centrado",
+    StlPreview_Desing2TopToolbarPinTitle:
+      "Fijar barra abierta (siempre expandida hasta desanclar)",
+    StlPreview_Desing2TopToolbarUnpinTitle:
+      "Desanclar barra y volver al modo expansión al pasar el puntero",
+    StlPreview_LineToolInstructionFirst: "Clic para el primer punto (mueva el ratón para situar la vista previa).",
+    StlPreview_LineToolInstructionSecond:
+        "Segundo punto: clic en planta, o escriba la distancia y pulse Intro.",
+    StlPreview_LineToolHudDistanceAria:
+        "Longitud hasta el segundo punto (metros o milímetros). Intro termina el segmento; Escape cancela el modo línea.",
+    StlPreview_LineToolHudDistancePlaceholder: "p. ej. 5 · 5,5 · 5000 mm",
+    StlPreview_LineToolDistancePreviewApprox: "≈",
+    StlPreview_LineToolDistanceInvalidToast:
+        "Introduzca una distancia válida (p. ej. 5, 5,5 ó 5000 mm) o pulse clic para el segundo punto.",
+    StlPreview_UserFloorLineDimEditAria:
+      "Longitud del segmento de línea en planta en metros (o mm con sufijo). Intro para aplicar, Escape cancela.",
+    StlPreview_UserFloorLineDimEditDeltaXAria:
+      "ΔX desde el punto de anclaje de reglas hasta el segundo punto del segmento (P2) en metros, con signo (o mm). Intro aplicar; Escape cancela.",
+    StlPreview_UserFloorLineDimEditDeltaZAria:
+      "ΔZ desde el punto de anclaje de reglas hasta el segundo punto del segmento (P2) en metros, con signo (o mm). Intro aplicar; Escape cancela.",
+    StlPreview_UserFloorLineDimReadoutDeltaXAria:
+        "ΔX desde el cruce de reglas hasta el extremo libre del segmento (metros, con signo). Doble clic para editar.",
+    StlPreview_UserFloorLineDimReadoutDeltaZAria:
+        "ΔZ desde el cruce de reglas hasta el extremo libre del segmento (metros, con signo). Doble clic para editar.",
+    StlPreview_UserFloorLineDragHandleAria:
+        "Arrastrar para mover el segmento en planta (eje X y Z)",
+    StlPreview_Desing2TopToolLinea: "Línea",
+    StlPreview_Desing2TopToolLineaAria:
+        "Segmento en el plano del suelo: segundo punto por clic o distancia por teclado (+ Intro); snap de rejilla informativo",
+    StlPreview_Desing2TopToolOrtho15TitleOn:
+      "Ortogonal 15° en planta activo — segundo punto en múltiplos de 15° (0° = eje +X). Pulse o F8 para desactivar.",
+    StlPreview_Desing2TopToolOrtho15TitleOff:
+      "Ortogonal 15° desactivado — ángulo libre hacia el segundo punto. Pulse o F8 para activar.",
+    StlPreview_LineToolOrthoToastOn: "Ortogonal 15° activado (F8).",
+    StlPreview_LineToolOrthoToastOff: "Ortogonal 15° desactivado (F8).",
+    StlPreview_Desing2TopToolOffset: "Offset",
+    StlPreview_Desing2TopToolOffsetAria:
+      "Herramienta offset — próximamente (solo interfaz)",
+    StlPreview_Desing2TopToolRecortar: "Recortar",
+    StlPreview_Desing2TopToolRecortarAria:
+      "Herramienta recortar — próximamente (solo interfaz)",
+    StlPreview_Desing2TopToolAlargar: "Alargar",
+    StlPreview_Desing2TopToolAlargarAria:
+      "Herramienta alargar — próximamente (solo interfaz)",
+    StlPreview_Desing2TopToolBorrar: "Borrar",
+    StlPreview_Desing2TopToolBorrarAria:
+      "Herramienta borrar — próximamente (solo interfaz)",
+    StlPreview_Desing2SideMenuCollapseTitle:
+      "Ocultar panel hasta acercar de nuevo el puntero al borde izquierdo",
+    StlPreview_Desing2SideMenuTabEntorno: "Entorno",
+    StlPreview_Desing2SideMenuTabConfiguracion: "Configuración",
+    StlPreview_Desing2SideMenuPlaceholder: "Menú (próximamente)",
+    StlPreview_Desing2EntornoGridSnapLabel: "Incremental de rejilla y snap",
+    StlPreview_Desing2EntornoGridSnapAria:
+      "Espaciado menor de rejilla en planta y paso del snap en modo punto de rejilla para las cotas.",
+    StlPreview_Desing2EntornoRulerExtentLabel: "Alcance máximo del trazado de reglas",
+    StlPreview_Desing2EntornoRulerExtentAria:
+      "Distancia física máxima de los trazados de cotas desde el punto de referencia."
   })
 );
 
@@ -442,6 +513,7 @@ const en = Object.assign({}, es, {
   StlPreview_SaveViewAria: "Save view",
   StlPreview_SaveViewSavedTitle: "Saved",
   StlPreview_SaveViewSavedToast: "View saved",
+  StlPreview_EscapeCancelToolsToast: "Canceled",
   StlPreview_GridToggleTitle: "Show background grid",
   StlPreview_GridToggleAria: "Background grid",
   StlPreview_SkyToggleTitle: "Show or hide sky",
@@ -456,12 +528,21 @@ const en = Object.assign({}, es, {
   StlPreview_XyzAxesAria: "XYZ axes",
   StlPreview_UcsRulersToggleTitle: "Show or hide plan rulers from anchor (+X / +Z)",
   StlPreview_UcsRulersAria: "Plan rulers",
-  StlPreview_RulerAnchorPickTitle:
-    "Select insertion point (zoom to panel base center and click)",
-  StlPreview_RulerAnchorPickAria: "Select insertion point for rulers",
-  StlPreview_RulerAnchorPickSelectedToast: "Insertion point selected",
-  StlPreview_RulerAnchorPickFloorToast: "Anchor on floor plane",
-  StlPreview_RulerAnchorPickModeToast: "Click a grid intersection to place rulers",
+  StlPreview_RulerAnchorGridPickTitle: "Place rulers on a grid intersection (500 mm)",
+  StlPreview_RulerAnchorGridPickAria: "Grid mode: only activated minor-grid intersections",
+  StlPreview_RulerAnchorGridPickModeToast:
+    "Move to a grid junction until it highlights green, then click",
+  StlPreview_RulerAnchorGridSnapRequiredToast:
+    "Move closer to an active junction (green highlight); only grid snap is accepted",
+  StlPreview_RulerAnchorObjectPickTitle:
+    "Insertion point from the STL part (floor plan bottom-left footprint corner)",
+  StlPreview_RulerAnchorObjectPickAria:
+    "Hover an STL mesh and click: rulers anchor at the CAD sketch origin (footprint bottom-left corner)",
+  StlPreview_RulerAnchorObjectPickModeToast:
+    "Hover the STL (highlight), then click to anchor rulers at its insertion point",
+  StlPreview_RulerAnchorObjectInsertionToast:
+    "Insertion point applied to rulers",
+  StlPreview_RulerAnchorObjectPickMissToast: "Pick an STL mesh under the cursor",
   StlPreview_RulerAnchorGridCoordsHud: "X: {0} m  Z: {1} m",
   StlPreview_RulerAnchorGridIntersectionToast: "Rulers placed",
   StlPreview_ClipYTitle:
@@ -471,7 +552,68 @@ const en = Object.assign({}, es, {
   StlPreview_ClipXTitle:
     "Plan clipping: 1000 = full view; lowering the slider clips from right to left.",
   StlPreview_ClipXAria:
-    "Plan clipping (X): 1000 full view; lowering it clips from right to left"
+    "Plan clipping (X): 1000 full view; lowering it clips from right to left",
+  StlPreview_Desing2SideMenuAria: "STL viewer side menu",
+  StlPreview_Desing2TopToolbarAria: "STL canvas tool bar",
+  StlPreview_Desing2TopToolbarCollapseTitle:
+    "Collapse bar until you move the pointer near the top center strip again",
+  StlPreview_Desing2TopToolbarPinTitle:
+    "Pin toolbar open (stay expanded until unpinned)",
+  StlPreview_Desing2TopToolbarUnpinTitle:
+    "Unpin toolbar and return to hover-to-expand mode",
+  StlPreview_LineToolInstructionFirst: "Click for the first point (move the mouse for preview).",
+  StlPreview_LineToolInstructionSecond:
+    "Second point: click on the floor, or type the distance and press Enter.",
+  StlPreview_LineToolHudDistanceAria:
+    "Length to the second point (metres or millimetres). Enter completes the segment; Escape cancels line mode.",
+  StlPreview_LineToolHudDistancePlaceholder: "e.g. 5 · 5.5 · 5000 mm",
+  StlPreview_LineToolDistancePreviewApprox: "≈",
+  StlPreview_LineToolDistanceInvalidToast:
+    "Enter a valid distance (e.g. 5, 5.5 or 5000 mm) or click for the second point.",
+  StlPreview_UserFloorLineDimEditAria:
+    "Floor line segment length in metres (or type mm suffix). Enter to apply, Escape cancels.",
+  StlPreview_UserFloorLineDimEditDeltaXAria:
+    "ΔX from the ruler anchor to the line’s second endpoint (P2) in metres (signed; mm suffix OK). Enter to apply; Escape cancels.",
+  StlPreview_UserFloorLineDimEditDeltaZAria:
+    "ΔZ from the ruler anchor to the line’s second endpoint (P2) in metres (signed; mm suffix OK). Enter to apply; Escape cancels.",
+  StlPreview_UserFloorLineDimReadoutDeltaXAria:
+    "ΔX from ruler intersection to the free end of the segment (signed metres). Double-click to edit.",
+  StlPreview_UserFloorLineDimReadoutDeltaZAria:
+    "ΔZ from ruler intersection to the free end of the segment (signed metres). Double-click to edit.",
+  StlPreview_UserFloorLineDragHandleAria:
+    "Drag to move the segment on the floor plan (X and Z axes)",
+  StlPreview_Desing2TopToolLinea: "Line",
+  StlPreview_Desing2TopToolLineaAria:
+    "Floor-plan segment: place the second point with a click or by typing a distance (+ Enter); optional grid snap hints",
+  StlPreview_Desing2TopToolOrtho15TitleOn:
+    "15° floor ortho on — second point snaps to 15° steps (0° = +X axis). Click or F8 to turn off.",
+  StlPreview_Desing2TopToolOrtho15TitleOff:
+    "15° floor ortho off — free angle to the second point. Click or F8 to turn on.",
+  StlPreview_LineToolOrthoToastOn: "15° ortho on (F8).",
+  StlPreview_LineToolOrthoToastOff: "15° ortho off (F8).",
+  StlPreview_Desing2TopToolOffset: "Offset",
+  StlPreview_Desing2TopToolOffsetAria:
+    "Offset tool — coming soon (UI placeholder only)",
+  StlPreview_Desing2TopToolRecortar: "Trim",
+  StlPreview_Desing2TopToolRecortarAria:
+    "Trim tool — coming soon (UI placeholder only)",
+  StlPreview_Desing2TopToolAlargar: "Extend",
+  StlPreview_Desing2TopToolAlargarAria:
+    "Extend tool — coming soon (UI placeholder only)",
+  StlPreview_Desing2TopToolBorrar: "Delete",
+  StlPreview_Desing2TopToolBorrarAria:
+    "Delete tool — coming soon (UI placeholder only)",
+  StlPreview_Desing2SideMenuCollapseTitle:
+    "Hide panel until you move the pointer near the left edge again",
+  StlPreview_Desing2SideMenuTabEntorno: "Environment",
+  StlPreview_Desing2SideMenuTabConfiguracion: "Configuration",
+  StlPreview_Desing2SideMenuPlaceholder: "Menu (coming soon)",
+  StlPreview_Desing2EntornoGridSnapLabel: "Grid increment and snap",
+  StlPreview_Desing2EntornoGridSnapAria:
+    "Minor grid spacing on the floor plane and snap step in grid pick mode for ruler placement.",
+  StlPreview_Desing2EntornoRulerExtentLabel: "Maximum ruler drawing reach",
+  StlPreview_Desing2EntornoRulerExtentAria:
+    "Maximum physical distance of ruler tick marks from the reference point."
 });
 
 function xmlEsc(s) {

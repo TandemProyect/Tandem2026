@@ -1,0 +1,52 @@
+@using Desing.Resources
+@*
+    Desing_2 — barra superior centrada sobre el lienzo (hover / bloqueo colapsado).
+    Solo UI; herramientas futuras vía ids ma-stl-tool-*.
+*@
+<aside id="desing2-stl-hover-top-toolbar" class="desing2-stl-hover-top-toolbar" role="region" aria-label="@MasterArticles.StlPreview_Desing2TopToolbarAria">
+    <div class="desing2-stl-hover-top-toolbar__hover-zone">
+        <div class="desing2-stl-hover-top-toolbar__sheet border border-top-0 rounded-bottom shadow-sm">
+            <div class="desing2-stl-hover-top-toolbar__toolbar d-flex justify-content-center align-items-center gap-1 px-2 py-1 border-bottom border-light">
+                <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-hover-top-toolbar__collapse rounded" id="desing2-stl-top-toolbar-collapse" title="@MasterArticles.StlPreview_Desing2TopToolbarCollapseTitle" aria-label="@MasterArticles.StlPreview_Desing2TopToolbarCollapseTitle">
+                    <i class="icon-base ri ri-menu-fold-line fs-6 desing2-stl-hover-top-toolbar__collapse-icon" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-hover-top-toolbar__pin rounded" id="desing2-stl-top-toolbar-pin"
+                        data-ma-pin-title="@MasterArticles.StlPreview_Desing2TopToolbarPinTitle"
+                        data-ma-unpin-title="@MasterArticles.StlPreview_Desing2TopToolbarUnpinTitle"
+                        title="@MasterArticles.StlPreview_Desing2TopToolbarPinTitle"
+                        aria-label="@MasterArticles.StlPreview_Desing2TopToolbarPinTitle"
+                        aria-pressed="false">
+                    <i class="icon-base ri ri-pushpin-line fs-6 desing2-stl-hover-top-toolbar__pin-icon" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="desing2-stl-hover-top-toolbar__body px-2 pb-2 pt-2">
+                <div class="d-flex flex-wrap align-items-center justify-content-center gap-2" role="toolbar" aria-label="@MasterArticles.StlPreview_Desing2TopToolbarAria">
+                    <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-hover-top-toolbar__tool-btn" id="ma-stl-tool-line" data-ma-stl-tool="line" title="@MasterArticles.StlPreview_Desing2TopToolLineaAria" aria-label="@MasterArticles.StlPreview_Desing2TopToolLineaAria">
+                        <i class="icon-base ri ri-pencil-line fs-6" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-hover-top-toolbar__tool-btn" id="ma-stl-tool-ortho-15"
+                            data-ma-stl-tool="ortho15"
+                            data-ma-stl-ortho15-title-on="@MasterArticles.StlPreview_Desing2TopToolOrtho15TitleOn"
+                            data-ma-stl-ortho15-title-off="@MasterArticles.StlPreview_Desing2TopToolOrtho15TitleOff"
+                            title="@MasterArticles.StlPreview_Desing2TopToolOrtho15TitleOn"
+                            aria-label="@MasterArticles.StlPreview_Desing2TopToolOrtho15TitleOn"
+                            aria-pressed="true">
+                        <i class="icon-base ri ri-grid-line fs-6" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-hover-top-toolbar__tool-btn" id="ma-stl-tool-offset" data-ma-stl-tool="offset" title="@MasterArticles.StlPreview_Desing2TopToolOffsetAria" aria-label="@MasterArticles.StlPreview_Desing2TopToolOffsetAria">
+                        <i class="icon-base ri ri-shape-line fs-6" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-hover-top-toolbar__tool-btn" id="ma-stl-tool-trim" data-ma-stl-tool="trim" title="@MasterArticles.StlPreview_Desing2TopToolRecortarAria" aria-label="@MasterArticles.StlPreview_Desing2TopToolRecortarAria">
+                        <i class="icon-base ri ri-scissors-cut-line fs-6" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-hover-top-toolbar__tool-btn" id="ma-stl-tool-extend" data-ma-stl-tool="extend" title="@MasterArticles.StlPreview_Desing2TopToolAlargarAria" aria-label="@MasterArticles.StlPreview_Desing2TopToolAlargarAria">
+                        <i class="icon-base ri ri-expand-horizontal-line fs-6" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-hover-top-toolbar__tool-btn" id="ma-stl-tool-delete" data-ma-stl-tool="delete" title="@MasterArticles.StlPreview_Desing2TopToolBorrarAria" aria-label="@MasterArticles.StlPreview_Desing2TopToolBorrarAria">
+                        <i class="icon-base ri ri-delete-bin-line fs-6" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</aside>

@@ -13,7 +13,7 @@
    data-ma-stl-source-units: vértices STL → m → mm escena (×1000; reglas/rejilla en mm).
    Persistencia vista: #ma-stl-save-viewer-state → cookie global; restauración tras primer refit (ver desing-2-stl-viewer-funciones.md). *@
 @* Opcional desarrollo en #ma-stl-viewer-shell: data-ma-stl-dev-auto-load="true", data-ma-stl-dev-default-stl="~/Files/.../3120270090P.stl" (URL resuelta con @Url.Content), data-ma-stl-dev-default-label="..." *@
-<div id="ma-stl-viewer-shell" class="desing2-stl-view-scope border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" data-ma-text-color1="@HttpUtility.HtmlAttributeEncode(textColor1Hex)" data-ma-text-color2="@HttpUtility.HtmlAttributeEncode(textColor2Hex)" data-ma-stl-show-rulers-toggle="true" data-ma-stl-desing2-persist-view="true" data-ma-stl-source-units="@HttpUtility.HtmlAttributeEncode(stlSrcUnits)">
+<div id="ma-stl-viewer-shell" class="desing2-stl-view-scope border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" data-ma-text-color1="@HttpUtility.HtmlAttributeEncode(textColor1Hex)" data-ma-text-color2="@HttpUtility.HtmlAttributeEncode(textColor2Hex)" data-ma-stl-show-rulers-toggle="true" data-ma-stl-desing2-persist-view="true" data-ma-stl-source-units="@HttpUtility.HtmlAttributeEncode(stlSrcUnits)" data-ma-stl-escape-cancel-toast="@MasterArticles.StlPreview_EscapeCancelToolsToast" data-ma-stl-user-floor-line-dim-edit-aria="@MasterArticles.StlPreview_UserFloorLineDimEditAria" data-ma-stl-user-floor-line-dim-edit-x-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaXAria" data-ma-stl-user-floor-line-dim-edit-z-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaZAria" data-ma-stl-user-floor-line-drag-handle-aria="@MasterArticles.StlPreview_UserFloorLineDragHandleAria">
     <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap px-2 py-2 border-bottom desing2-stl-actions-toolbar" id="master-article-stl-viewer-toolbar">
         <div class="d-flex align-items-center gap-2 min-w-0 flex-grow-1 desing2-stl-toolbar-leading">
             <span class="app-brand-logo demo flex-shrink-0">
@@ -59,9 +59,13 @@
                 <i class="icon-base ri ri-ruler-line" aria-hidden="true"></i>
                 <span class="visually-hidden">@MasterArticles.StlPreview_UcsRulersAria</span>
             </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect" id="ma-stl-ruler-anchor-pick-toggle" aria-pressed="false" title="@MasterArticles.StlPreview_RulerAnchorPickTitle" data-ma-stl-ruler-anchor-pick-mode-toast="@MasterArticles.StlPreview_RulerAnchorPickModeToast" data-ma-stl-ruler-anchor-pick-toast="@MasterArticles.StlPreview_RulerAnchorPickSelectedToast" data-ma-stl-ruler-anchor-pick-floor-toast="@MasterArticles.StlPreview_RulerAnchorPickFloorToast" data-ma-stl-ruler-anchor-pick-grid-toast="@MasterArticles.StlPreview_RulerAnchorGridIntersectionToast">
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect" id="ma-stl-ruler-anchor-pick-toggle" aria-pressed="false" title="@MasterArticles.StlPreview_RulerAnchorGridPickTitle" data-ma-stl-ruler-anchor-pick-mode-toast="@MasterArticles.StlPreview_RulerAnchorGridPickModeToast" data-ma-stl-ruler-anchor-grid-snap-required-toast="@MasterArticles.StlPreview_RulerAnchorGridSnapRequiredToast" data-ma-stl-ruler-anchor-pick-grid-toast="@MasterArticles.StlPreview_RulerAnchorGridIntersectionToast">
                 <i class="icon-base ri ri-crosshair-2-line" aria-hidden="true"></i>
-                <span class="visually-hidden">@MasterArticles.StlPreview_RulerAnchorPickAria</span>
+                <span class="visually-hidden">@MasterArticles.StlPreview_RulerAnchorGridPickAria</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect" id="ma-stl-ruler-anchor-object-pick-toggle" aria-pressed="false" title="@MasterArticles.StlPreview_RulerAnchorObjectPickTitle" data-ma-stl-ruler-anchor-object-mode-toast="@MasterArticles.StlPreview_RulerAnchorObjectPickModeToast" data-ma-stl-ruler-anchor-insertion-toast="@MasterArticles.StlPreview_RulerAnchorObjectInsertionToast" data-ma-stl-ruler-anchor-object-miss-toast="@MasterArticles.StlPreview_RulerAnchorObjectPickMissToast">
+                <i class="icon-base ri ri-cube-line" aria-hidden="true"></i>
+                <span class="visually-hidden">@MasterArticles.StlPreview_RulerAnchorObjectPickAria</span>
             </button>
             <a href="javascript:history.back()" class="btn btn-sm btn-outline-secondary waves-effect flex-shrink-0">@Common.Btn_Back</a>
         </div>
@@ -69,7 +73,102 @@
     <div id="master-article-details-stl-viewer-canvas" class="flex-grow-1 position-relative bg-white ma-stl-canvas--clips d-flex flex-column">
         @* inset edges (not h-100): percentage height on absolute children can collapse inside nested flex until layout settles *@
         <div id="ma-stl-viewer-gl-host" class="position-absolute top-0 bottom-0 start-0 end-0"></div>
+        <div id="ma-stl-line-dim-edit-overlay" class="desing2-stl-floor-dim-overlay" aria-hidden="true" hidden="hidden">
+            <button type="button" id="ma-stl-floor-dim-readout" class="desing2-stl-floor-dim-readout" hidden="hidden" aria-hidden="true"></button>
+            <button type="button" id="ma-stl-floor-dim-readout-dx" class="desing2-stl-floor-dim-readout desing2-stl-floor-dim-readout--compact" hidden="hidden" aria-hidden="true" aria-label="@MasterArticles.StlPreview_UserFloorLineDimReadoutDeltaXAria"></button>
+            <button type="button" id="ma-stl-floor-dim-readout-dz" class="desing2-stl-floor-dim-readout desing2-stl-floor-dim-readout--compact" hidden="hidden" aria-hidden="true" aria-label="@MasterArticles.StlPreview_UserFloorLineDimReadoutDeltaZAria"></button>
+            <input type="text" id="ma-stl-floor-dim-input" class="desing2-stl-floor-dim-input" hidden="hidden" autocomplete="off" aria-hidden="true" />
+            <input type="text" id="ma-stl-floor-dim-input-dx" class="desing2-stl-floor-dim-input desing2-stl-floor-dim-input--compact" hidden="hidden" autocomplete="off" aria-hidden="true" />
+            <input type="text" id="ma-stl-floor-dim-input-dz" class="desing2-stl-floor-dim-input desing2-stl-floor-dim-input--compact" hidden="hidden" autocomplete="off" aria-hidden="true" />
+            <button type="button" id="ma-stl-floor-line-drag-handle" class="desing2-stl-floor-line-drag-handle" hidden="hidden" aria-hidden="true" aria-label="@MasterArticles.StlPreview_UserFloorLineDragHandleAria"></button>
+        </div>
+        @* Barra superior centrada (hover / bloqueo); herramientas CAD — placeholders. *@
+        @Html.Partial("_Desing2TopToolBar")
+        @* Borde izq. hover + contraer manual; zona “peek” a la izquierda del strip (CSS). *@
+        <aside id="desing2-stl-hover-side-panel" class="desing2-stl-hover-side-panel" role="region" aria-label="@MasterArticles.StlPreview_Desing2SideMenuAria">
+            <div class="desing2-stl-hover-side-panel__hover-zone">
+                <div class="desing2-stl-hover-side-panel__sheet border border-start-0 rounded-end shadow-sm">
+                    <div class="desing2-stl-hover-side-panel__toolbar d-flex justify-content-end align-items-center px-2 py-1 border-bottom border-light">
+                        <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-hover-side-panel__collapse rounded" id="desing2-stl-side-panel-collapse" title="@MasterArticles.StlPreview_Desing2SideMenuCollapseTitle" aria-label="@MasterArticles.StlPreview_Desing2SideMenuCollapseTitle">
+                            <i class="icon-base ri ri-menu-fold-line fs-6" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <div class="desing2-stl-hover-side-panel__body px-0 pb-2 pt-1">
+                        <div class="desing2-stl-hover-side-panel__tabs-bar px-2 pt-1">
+                            <ul class="nav nav-tabs mb-0 w-100 flex-nowrap overflow-x-auto tandem-desing2-hsp-tablist" role="tablist" style="min-width:0;" aria-label="@MasterArticles.StlPreview_Desing2SideMenuAria">
+                                <li class="nav-item flex-fill text-center" role="presentation">
+                                    <button type="button" class="nav-link w-100 rounded-0 py-2 active" id="desing2-stl-side-tab-entorno" data-bs-toggle="tab" data-bs-target="#desing2-stl-side-pane-entorno" role="tab" aria-controls="desing2-stl-side-pane-entorno" aria-selected="true">
+                                        @MasterArticles.StlPreview_Desing2SideMenuTabEntorno
+                                    </button>
+                                </li>
+                                <li class="nav-item flex-fill text-center" role="presentation">
+                                    <button type="button" class="nav-link w-100 rounded-0 py-2" id="desing2-stl-side-tab-config" data-bs-toggle="tab" data-bs-target="#desing2-stl-side-pane-config" role="tab" aria-controls="desing2-stl-side-pane-config" aria-selected="false">
+                                        @MasterArticles.StlPreview_Desing2SideMenuTabConfiguracion
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="tab-content desing2-stl-hover-side-panel__tab-content px-3 pt-2" id="desing2-stl-side-tab-panels">
+                            <div class="tab-pane fade show active" id="desing2-stl-side-pane-entorno" role="tabpanel" aria-labelledby="desing2-stl-side-tab-entorno" tabindex="0">
+                                <div class="vstack gap-3">
+                                    <div>
+                                        <label class="form-label mb-1" for="ma-stl-entorno-grid-snap-mm">@MasterArticles.StlPreview_Desing2EntornoGridSnapLabel</label>
+                                        <select class="form-select form-select-sm" id="ma-stl-entorno-grid-snap-mm" aria-label="@MasterArticles.StlPreview_Desing2EntornoGridSnapAria">
+                                            <option value="50">50 mm (0,05 m)</option>
+                                            <option value="100">100 mm (0,1 m)</option>
+                                            <option value="250">250 mm (0,25 m)</option>
+                                            <option value="500" selected>500 mm (0,5 m)</option>
+                                            <option value="1000">1000 mm (1 m)</option>
+                                            <option value="2000">2000 mm (2 m)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="form-label mb-1" for="ma-stl-entorno-ruler-extent-m">@MasterArticles.StlPreview_Desing2EntornoRulerExtentLabel</label>
+                                        <select class="form-select form-select-sm" id="ma-stl-entorno-ruler-extent-m" aria-label="@MasterArticles.StlPreview_Desing2EntornoRulerExtentAria">
+                                            <option value="5">5 m</option>
+                                            <option value="10">10 m</option>
+                                            <option value="15">15 m</option>
+                                            <option value="20">20 m</option>
+                                            <option value="25" selected>25 m</option>
+                                            <option value="30">30 m</option>
+                                            <option value="40">40 m</option>
+                                            <option value="50">50 m</option>
+                                            <option value="60">60 m</option>
+                                            <option value="80">80 m</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="desing2-stl-side-pane-config" role="tabpanel" aria-labelledby="desing2-stl-side-tab-config" tabindex="0">
+                                <div class="text-muted small lh-sm text-center fst-italic py-2" data-desing2-hsp-tab-placeholder>
+                                    @MasterArticles.StlPreview_Desing2SideMenuPlaceholder
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
         <div id="ma-stl-ruler-anchor-coords-hud" class="ma-stl-ruler-anchor-coords-hud d-none" aria-live="polite" aria-atomic="true" data-ma-stl-ruler-anchor-coords-template="@MasterArticles.StlPreview_RulerAnchorGridCoordsHud"></div>
+        <div id="ma-stl-line-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
+             data-ma-stl-line-tool-instruction-first="@MasterArticles.StlPreview_LineToolInstructionFirst"
+             data-ma-stl-line-tool-instruction-second="@MasterArticles.StlPreview_LineToolInstructionSecond"
+             data-ma-stl-line-tool-distance-preview-prefix="@MasterArticles.StlPreview_LineToolDistancePreviewApprox"
+             data-ma-stl-line-tool-distance-invalid-toast="@MasterArticles.StlPreview_LineToolDistanceInvalidToast">
+            <div id="ma-stl-line-tool-hud-instruction" class="ma-stl-line-tool-hud__instruction small fw-semibold text-body mb-1"></div>
+            <div id="ma-stl-line-tool-hud-coords" class="ma-stl-line-tool-hud__coords"
+                 data-ma-stl-line-tool-coords-template="@MasterArticles.StlPreview_RulerAnchorGridCoordsHud"></div>
+            <div id="ma-stl-line-tool-hud-distance-row" class="ma-stl-line-tool-hud__distance-row d-none mt-1">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <input id="ma-stl-line-tool-hud-distance" type="text" maxlength="48" tabindex="0" autocomplete="off"
+                           inputmode="decimal"
+                           aria-label="@MasterArticles.StlPreview_LineToolHudDistanceAria"
+                           placeholder="@MasterArticles.StlPreview_LineToolHudDistancePlaceholder"
+                           class="form-control form-control-sm ma-stl-line-tool-hud__distance-field" />
+                    <span id="ma-stl-line-tool-hud-distance-preview" class="small text-muted fw-semibold text-nowrap ma-stl-line-tool-hud__distance-preview" aria-hidden="true"></span>
+                </div>
+            </div>
+        </div>
         @Html.Partial("_Desing2CompassOverlay")
         <div class="ma-stl-clip-controls d-none" id="ma-stl-clip-controls" aria-hidden="true">
             <div class="ma-stl-clip-y-wrap" title="@MasterArticles.StlPreview_ClipYTitle">

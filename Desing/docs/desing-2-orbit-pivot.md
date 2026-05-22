@@ -11,15 +11,15 @@
 
 Este comportamiento se ha **corregido varias veces en mayo 2026** (~4× pivote raycast + ~10× cubo 90°). Las causas son distintas pero el síntoma es similar: tras TOP/zoom/rotar la órbita “se pierde” o el primer arrastre no parte de un polo cardinal.
 
-**Última corrección confirmada:** 2026-05-20 (usuario validó cubo 90° + órbita estable).
+**Última corrección confirmada:** 2026-05-22 (herramienta línea — al terminar segmento **no** `preserveView` hacia ruler; evita mismo salto que pan→orbit target desfasado).
 
 ---
 
 ## Regla maestra — anclaje de reglas
 
-En **Desing_2**, `OrbitControls.target` debe permanecer en el **anclaje de reglas** (`maStlRulerAnchorMm`, por defecto `(0, 0, 0)` en suelo Y=0). **No** raycastear el STL para mover el pivote al rotar.
+En **Desing_2**, tras **colocación de anclaje** (rejilla/objeto), el primer arrastre de **rotación** debe alinear `OrbitControls.target` con **`maStlRulerAnchorMm`** mediante `maStlApplyRulerAnchorOrbitPivotPreserveView` para no «teletransportar» el encuadre. **No obstante**, si el usuario **panea libremente** (órbita con botón PAN / equivalente fuera del pick-lock), el pivote de órbita **permanece donde quedó** el último paneo hasta que cambie el anclaje con pick, preset del cubo, `bindControls`, refit, o cookie restore: **no** forzar ese snap en cada `pointerdown` de rotate (causaba saltos «como si el pan nunca hubiera ocurrido»). **No** raycastear el STL para mover el pivote al rotar.
 
-El usuario coloca el anclaje con `#ma-stl-ruler-anchor-pick-toggle` (modo pick → acercar al **punto de inserción** del STL → recuadro activo → clic). Tras el pick, reglas, marca en suelo y órbita comparten ese punto.
+El usuario coloca el anclaje con `#ma-stl-ruler-anchor-pick-toggle` (**rejilla 500 mm**) o `#ma-stl-ruler-anchor-object-pick-toggle` (**punto de inserción** de la pieza STL clicada — esquina inferior izquierda de la huella en planta). Tras el pick, reglas, marca en suelo y órbita comparten ese punto.
 
 En el **visor maestro de artículos** (shell **sin** `data-ma-stl-show-rulers-toggle="true"`), el raycast bajo el cursor sigue siendo el comportamiento CAD deseado.
 
@@ -39,8 +39,33 @@ Al alejar la cámara (zoom out), un raycast desde el cursor al mesh STL devuelve
 
 En pointerdown de rotación (capture, **antes** de OrbitControls):
 
-1. Si `maStlUsesFixedOrbitPivotAtOrigin()` → `maStlResetOrbitTargetToRulerAnchor()` → **return** (sin raycast).
+1. Si `maStlUsesFixedOrbitPivotAtOrigin()`:
+   - si **`maStlDesing2OrbitDeferRulerPivotPreserveOnNextSync`** (paneo durante pick-lock): **omitir** `preserveView` — **`update`** + **`saveState`** + limpiar también el flag opcional **`maStlDesing2OrbitPreserveRulerPivotOnRotatePointerDown`** — **return** sin raycast. Persiste hasta **`maStlSyncDesing2OrbitPivotAfterPickOrbitUnlock`** (u otros resets).
+   - **cuando **`maStlDesing2OrbitPreserveRulerPivotOnRotatePointerDown`** (tras colocación reciente del anclaje en Desing_2, antes del primer LMB-rotate) → **`maStlApplyRulerAnchorOrbitPivotPreserveView()`**: alinea `controls.target` con `maStlRulerAnchorMm` compensando la cámara; el flag **se consume ahí**.
+   - en caso contrario (p. ej. el usuario paneó antes con órbita normal) → sólo **`controls.update()`** + **`saveState`** — sin reaplicar anclaje; **return** sin raycast.
 2. Else (maestro artículos) → raycast STL bajo cursor como CAD.
+
+### Pick de anclaje de reglas — orden de rehabilitación `OrbitControls`
+
+Los listeners de modo pick van en **capture** sobre el canvas (`onCanvasPointerDownRulerAnchorPick`). `OrbitControls` registra `pointerdown` en **bubble** (orden por defecto). Tras colocar el anclaje, `maStlExitRulerAnchorPickAfterPlacement` **no debe** rehabilitar Orbit hasta **después del `pointerup`/`pointercancel`** del mismo gesto más **unos frames** (`requestAnimationFrame` doble): un `queueMicrotask` llega **demasiado pronto** (antes de cerrar el gesto pointer) y Orbit puede quedar fuera de fase con la cámara. En Desing_2 el clic de colocación **no mueve `camera` ni `controls.target`**: sólo actualiza `maStlRulerAnchorMm` y geometría de reglas.
+
+**Línea (dos `click` simples tras `pointerdown` capturado)** y **pick rejilla/objeto**, con **`enableRotate=false`** pero **pan/zoom activos**, pueden dejar `controls.target` **desfasado** respecto a `maStlRulerAnchorMm`:
+
+- **Herramienta línea** no modifica **`maStlRulerAnchorMm`**. Tras colocar P2 (`maStlStopLineToolModesToolbar`), **`maStlSyncDesing2OrbitPivotAfterPickOrbitUnlock(true)`**: **no** ejecuta **`preserveView`** hacia el ruler — solo **`controls.update()`** + **`saveState()`** tras unlock; igual filosofía que no forzar pivote cuando el **`target`** quedó a propósito desalineado por paneo (**incluye** paneo **antes** de activar línea). Rehabilitación diferida: `queueMicrotask` + **2 RAF** (el **`click`** de P2 se entrega después de **`pointerup`**).
+
+- **Pick de anclaje (rejilla/objeto)** tras colocar: suele hacer falta **`maStlApplyRulerAnchorOrbitPivotPreserveView()`** tras **`maStlUnlockOrbitForRulerAnchorPickInner`**, antes de **`saveState()`** (`maStlSync*` sin skip; rutas `pointerup` + 2 RAF).
+
+- **El usuario panea** durante el lock sin mover el anclaje como dato (`maStlRulerAnchorMm` igual al inicio del lock): forzar **`preserveView`** en unlock sería un salto. **Mitigación:** baseline de **`controls.target`** al entrar en lock + listener **`change`**; si **`target`** se mueve más de **`MA_STL_DESING2_PICK_ORBIT_PAN_DETECTION_EPS_MM`** ⇒ **`maStlDesing2OrbitDeferRulerPivotPreserveOnNextSync`**. En **`maStlSyncDesing2OrbitPivotAfterPickOrbitUnlock`** (rama pick de anclaje): omitir **`preserveView`** si defer **y** anclaje **no** cambió; si **sí** cambió (colocación pick) → **`preserveView`** + limpiar defer. **`onCanvasPointerDownSetOrbitPivot`** omite **`preserveView`** mientras defer siga activo. **Solo zoom** no desplaza `target`; no marca defer.
+
+La primera rotación sin defer puede ejecutar **`preserveView`** sólo cuando el flag de «anclaje recién colocado» lo pide (`maStlDesing2OrbitPreserveRulerPivotOnRotatePointerDown`).
+
+### Causa raíz (2026-05-21 — pan → rotate saltaba atrás)
+
+`onCanvasPointerDownSetOrbitPivot` ejecutaba **`maStlApplyRulerAnchorOrbitPivotPreserveView()` en todo LMB-rotate** cuando no había defer de pick-lock. Eso **reasignaba** `controls.target` al anclaje de reglas antes de cada nuevo gesto de rotación. Para **zoom out + orbitar desde el anclaje** ese snap es estable; tras un **paneo libre**, el modelo correcto es orbitar sobre el **`target` actual** hasta cambiar anclaje o preset. Forzar repetidamente el realineado al anclaje (y la compensación interna que implica «vista preservada») producía una **fuerte sensación de salto**: el encuadre volvía a parecer anterior al último paneo (**mitigación:** gate con `maStlDesing2OrbitPreserveRulerPivotOnRotatePointerDown` marcado sólo tras `maStlSetRulerAnchor*` en Desing_2).
+
+### Causa raíz (2026-05-22 — segundo clic línea saltaba la cámara)
+
+Al completar el segmento, **`maStlSyncDesing2OrbitPivotAfterPickOrbitUnlock`** (sin modo línea) ejecutaba **`preserveView`** salvo la rama «defer + anclaje sin cambiar». Eso **re-alineaba** `controls.target` con **`maStlRulerAnchorMm`** tras **cualquier** sesión pick-lock incluida la **línea**, aunque la línea **no** actualice el anclaje. Si el usuario había paneado antes o durante la colocación (target intencionalmente lejos del ruler en datos), el encuadre **saltaba**. **Mitigación:** rama explícita **`skipRulerAnchorPreserveViewOnUnlock`** al salir solo de la herramienta línea (y `queueMicrotask` + 2 RAF para el unlock diferido tras `click`).
 
 ---
 
@@ -112,11 +137,12 @@ Caras (`front`, `top`, `right`, …) = ejes ±90°. Aristas/esquinas = direccion
 
 | Función | Momento |
 |---------|---------|
-| `onCanvasPointerDownSetOrbitPivot` | Pointerdown rotación: reset + early return Desing_2 — sin raycast |
+| `maStlSyncDesing2OrbitPivotAfterPickOrbitUnlock` | Tras `unlock inner`: con **`skipRulerAnchorPreserveViewOnUnlock`** (solo salida herramienta **línea**) → limpiar defer + `controls.update()`; sin skip: si defer por pan **y** anclaje sin cambiar → noop; si anchor cambió (pick rejilla/objeto) → `preserveView` + limpiar defer; si sin defer → `preserveView`. Antes de `saveState` en rutas diferidas. |
+| `maStlWireDesing2OrbitPickLockListener` | Tras **cada** `bindControls`; detecta paneo durante pick-lock (**`controls.change`** + baseline). |
 | `bindControls` | Al reutilizar o crear `OrbitControls` (siempre **después** de mover cámara en presets del cubo) |
 | `maStlFinalizeViewCubePreset` | Tras cada preset del cubo |
 | `placeCamerasForModel` | Tras colocar cámaras en refit de modelo |
-| `maStlSetRulerAnchorFromInsertionPoint` | Tras colocar anclaje en punto de inserción (pick) |
+| `maStlSetRulerAnchorFromGridSnap` / `maStlSetRulerAnchorFromInsertionPoint` | Colocar datos de anclaje (pick Desing_2: **no** toca `controls`/`camera`); en Desing_2 marca `maStlDesing2OrbitPreserveRulerPivotOnRotatePointerDown`; `maStlSync*` usa cambio vs `_maStlPickLockRulerAnchorStartMm` para decidir preserve tras pan. |
 | `maStlApplyDesing2ViewerStateFromCookie` | Tras restaurar cámara/toggles — **no** copiar `state.target` |
 
 `maStlResetOrbitTargetToRulerAnchor()` hace `controls.target.copy(maStlRulerAnchorMm)` en Desing_2; en maestro de artículos sigue `(0, 0, 0)`.
@@ -157,6 +183,11 @@ Tras restaurar cookie **o** preset del cubo, la órbita debe seguir el **anclaje
 - Omitir `maStlFinalizeViewCubePreset` o `saveState()` tras cubo.
 - Aplicar `state.target` de cookie en Desing_2.
 - Forzar `controls.target.set(0,0,0)` en Desing_2 tras un anclaje distinto del origen.
+- Rehabilitar `OrbitControls` con sólo `queueMicrotask` al salir del pick **colocado en pointerdown** (`pointerup`/Orbit pueden quedar desfasados): usar fin de gesto (`pointerup`/`pointercancel` en capture) + doble RAF (`maStlScheduleDeferRulerPickOrbitUnlockAfterPointerEnd`). **Línea** (colocación en `click`): `queueMicrotask` + doble RAF en `maStlSchedulePickOrbitUnlockAfterPlacement(false, true)` — no reutilizar el listener `pointerup` global (ya ocurrió antes del `click`).
+- Tras herramienta **línea**, llamar **`maStlApplyRulerAnchorOrbitPivotPreserveView`** en unlock «para encajar STL» → regresión (salto si `target` ≠ ruler tras pan).
+- Ejecutar `maStlApplyRulerAnchorOrbitPivotPreserveView()` en el **mismo** `pointerdown` que **coloca** el anclaje en Desing_2 (preferir mover sólo `maStlRulerAnchorMm` + geometría; el siguiente `pointerdown` de rotación aplica `preserveView` desde `onCanvasPointerDownSetOrbitPivot`).
+- Llamar `controls.saveState()` al cerrar modo pick/regla/línea **antes** de ejecutar **`maStlSyncDesing2OrbitPivotAfterPickOrbitUnlock`** (tras `unlock inner`, antes de `saveState`; salvo regress intencional de orden).
+- Quitar **`maStlWireDesing2OrbitPickLockListener()`** tras crear `OrbitControls` → regresión: salto al rotar después de paneo en herramienta línea/regla.
 
 **Do not remove the `maStlUsesFixedOrbitPivotAtOrigin` early return without testing zoom-out rotate.**
 
@@ -165,9 +196,19 @@ Tras restaurar cookie **o** preset del cubo, la órbita debe seguir el **anclaje
 ## Prueba manual — pivote fijo (anclaje)
 
 1. Ctrl+F5 en `/Desing_2/Viewer`.
-2. Activar pick de anclaje (`ri-crosshair-2-line`); clic en una esquina del panel: reglas y cruz cyan se mueven al punto (proyectado a Y=suelo).
+2. Activar pick de anclaje (`ri-crosshair-2-line`); clic en una esquina del panel: reglas, cruz cyan y esfera roja del cruce siguen el anclaje (proyectado a Y=suelo). Con `#ma-stl-ucs-rulers-toggle` se ocultan trazos y etiquetas y la cruz cyan, **no** la esfera roja.
 3. Alejar zoom al mínimo permitido.
-4. Arrastrar con botón izquierdo para rotar: el modelo debe orbitar estable alrededor del **anclaje**, no del origen de escena.
-5. Guardar vista → recargar: anclaje y órbita restaurados desde cookie `rulerAnchor` (no `target`).
+4. Arrastrar con botón izquierdo para rotar: el modelo debe orbitar estable alrededor del **punto focal actual** cuando procede desde el último navegador (según último paneo/target), manteniendo anclaje de reglas en el suelo sólo como referencia de datos.
+5. **Pan libre:** panel derecho para paneo (o combinación habitual de OrbitControls); mover la vista notablemente → **primer arrastre de rotación (LMB)** sin salto que deshaga el último paneo.
+6. Guardar vista → recargar: anclaje y órbita restaurados desde cookie `rulerAnchor` (no `target`).
 
 Para cubo 90°, usar la **Prueba manual — cubo 90° + órbita** arriba.
+
+### Prueba manual — línea + paneo + rotar (anti-regresión 2026-05-21)
+
+1. Activar herramienta **línea**; hacer **primer clic** (pasa a `picking2` / línea de caucho).
+2. Paneer la vista (**no** debe haber sido paneo sólo-zoom con `target` inmóvil en casos donde el problema se reprodujo con pan real).
+3. **Segundo clic** para terminar segmento — u operación equivalente que desbloquee órbita.
+4. **Primer clic** de rotar (LMB drag): sin salto perceptible respecto del encuadre previo.
+
+Reglas y líneas siguen en **espacio mundo** sobre `maStlRulerAnchorMm`; el pivote de órbita puede estar desalineado con el anclaje hasta que el usuario mueva el anclaje o use **cubo**/`bindControls`.

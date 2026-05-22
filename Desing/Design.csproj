@@ -3234,6 +3234,7 @@
     <Content Include="Views\MasterArticles\Edit.cshtml" />
     <Content Include="Views\MasterArticles\Index.cshtml" />
     <Content Include="Views\Desing_2\Viewer.cshtml" />
+    <Content Include="Views\Desing_2\_Desing2TopToolBar.cshtml" />
     <Content Include="Views\Desing_2\_Desing2StlViewerWorkspace.cshtml" />
     <Content Include="Views\DesignTools\_MaterialList.cshtml" />
     <Content Include="Views\DesignTools\Index.cshtml" />

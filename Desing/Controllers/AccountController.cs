@@ -57,8 +57,13 @@ namespace Desing.Controllers
         [AllowAnonymous]
         public ActionResult Login()
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
             // Si llega aqui con ReturnUrl, venia de una ruta protegida sin sesion valida.
-            if (!User.Identity.IsAuthenticated && !string.IsNullOrWhiteSpace(Request["ReturnUrl"]))
+            if (!string.IsNullOrWhiteSpace(Request["ReturnUrl"]))
             {
                 ViewBag.ErrorMessage = Common.Account_Err_LoginRequired;
             }

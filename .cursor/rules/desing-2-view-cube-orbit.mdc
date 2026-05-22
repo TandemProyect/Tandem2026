@@ -18,7 +18,7 @@ Antes de tocar cubo de vistas, `OrbitControls`, cookie Desing_2 o `onCanvasPoint
 
 1. **`applyDirectionToOrthoCam`:** `camera.up` **siempre** `(0, 1, 0)` — **nunca** `(0, 0, ±1)` para TOP/BOTTOM.
 2. **Orden cubo:** `applyDirectionToOrthoCam` → `bindControls` (reutilizar si misma cámara) → `maStlFinalizeViewCubePreset` (`update` + `saveState`).
-3. **Desing_2 rotar:** `maStlUsesFixedOrbitPivotAtOrigin()` → early return **sin** raycast STL; pivote = `maStlRulerAnchorMm`.
+3. **Desing_2 rotar:** `maStlUsesFixedOrbitPivotAtOrigin()` → early return **sin** raycast STL; **primer** LMB-rotate tras colocación de reglas opcionalmente alinea pivote al anclaje (flag dedicado); con paneo normal libre orbitar desde el `controls.target` actual.
 4. **Cookie restore:** aplicar `rulerAnchor` y cámaras; **no** aplicar `state.target`.
 
 ## Detección Desing_2

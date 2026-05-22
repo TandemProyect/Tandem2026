@@ -11,6 +11,7 @@
     var lockedTitle = string.IsNullOrEmpty(currentLabel)
         ? Common.LanguageSwitcher_LockedSuffix
         : currentLabel + " " + Common.LanguageSwitcher_LockedSuffix;
+    var antiForgeryToken = Html.AntiForgeryToken();
 }
 
 @helper FlagCell(LanguageNavItem row)
@@ -55,7 +56,7 @@ else
             {
                 <li>
                     <form method="post" action="@Url.Action("SetCulturePost", "UiLanguage")" style="display:contents" autocomplete="off">
-                        @Html.AntiForgeryToken()
+                        @antiForgeryToken
                         <input type="hidden" name="c" value="@lang.TextCode" />
                         <input type="hidden" name="id" value="@lang.IdObject" />
                         <input type="hidden" name="returnUrl" value="@returnUrl" />
