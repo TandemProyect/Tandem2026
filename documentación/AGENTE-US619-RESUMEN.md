@@ -16,7 +16,7 @@ Y el CUI debe usar solo el nombre: `<LargeImage>SelectLines.png</LargeImage>`
 3. Copiar PNG a: `C:\Program Files\ZWSOFT\ZWCAD 2026\Support\SelectLines.png`
 
 ## Documentación Completa
-- **Archivo detallado:** `C:\00_Tandem2026\AGENTE-US619-INFO.md` (leer primero)
+- **Archivo detallado:** `C:\00_Tandem2026\documentación\AGENTE-US619-INFO.md` (leer primero)
 - **Investigación:** `Docs/Proyectos/ZwcadPlugin/INVESTIGACION_ICONOS_US619.md`
 - **Gestión Azure DevOps:** `Docs/General/GESTION-PANEL-AZURE-DEVOPS.md`
 

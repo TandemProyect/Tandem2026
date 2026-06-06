@@ -11,7 +11,8 @@ C:\00_Tandem2026\
 ├── Common/                 # Código compartido entre proyectos
 ├── DAL/                    # Data Access Layer
 ├── Desing/                 # Lógica de diseño
-├── Docs/                   # Documentación
+├── documentación/          # Docs de agentes, handovers y guías
+├── Docs/                   # Documentación técnica del proyecto
 │   ├── General/           # Documentación común
 │   └── Proyectos/         # Documentación específica
 ├── IA/                     # Inteligencia Artificial

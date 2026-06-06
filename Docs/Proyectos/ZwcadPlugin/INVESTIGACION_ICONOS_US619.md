@@ -27,7 +27,7 @@ Se creó un CUI de prueba mínimo (`TestIconoV2.cui`) con un icono PNG simple.
 
 **Archivo de prueba:**
 ```
-C:\00_Tandem2026\test_icons\TestIconoV2.cui
+C:\00_Tandem2026\TamdenZwcadPluging\test_icons\TestIconoV2.cui
 ```
 
 **Icono de prueba:**
@@ -247,11 +247,11 @@ El target de compilación no copia la carpeta `img\`:
    - Checklist paso a paso
    - Problemas comunes y soluciones
 
-2. **`test_icons\TestIconoV2.cui`**
+2. **`TamdenZwcadPluging/test_icons/TestIconoV2.cui`**
    - CUI de prueba que **SÍ funciona** con iconos
    - Referencia para estructura correcta
 
-3. **`test_icons\simple_square.png`**
+3. **`TamdenZwcadPluging\test_icons\simple_square.png`**
    - Icono de prueba funcional
    - Copiado a `C:\Program Files\ZWSOFT\ZWCAD 2026\Support\`
 
@@ -321,7 +321,7 @@ Select-String -Path "TamdenZwcadPluging\ZwcadPlugin\CuixBuilder.cs" -Pattern "Se
 
 # Abrir documentación
 code TamdenZwcadPluging\ZwcadPlugin\INSTRUCCIONES_AGREGAR_ICONOS.md
-code C:\00_Tandem2026\test_icons\TestIconoV2.cui
+code C:\00_Tandem2026\TamdenZwcadPluging\test_icons\TestIconoV2.cui
 ```
 
 ---

@@ -34,7 +34,7 @@ $Descripcion = @"
 <ul>
 <li>US-619: Detección de esquinas en L (completada)</li>
 <li>Documentación: SISTEMA-ATK60.md</li>
-<li>Documentación: AGENTE-US619-INFO.md</li>
+<li>Documentación: documentación/AGENTE-US619-INFO.md</li>
 </ul>
 "@
 $StoryPoints = 8

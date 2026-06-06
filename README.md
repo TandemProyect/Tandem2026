@@ -7,7 +7,7 @@ Sistema de gestión de proyectos integrado con ZWCAD 2026.
 ## 🤖 PARA AGENTES IA / FUTUROS CHATS
 
 **👉 SI ERES UN AGENTE IA CONTINUANDO ESTE PROYECTO:**
-**LEE PRIMERO → [`CONTINUITY.md`](CONTINUITY.md) ← LEE PRIMERO**
+**LEE PRIMERO → [`documentación/CONTINUITY.md`](documentación/CONTINUITY.md) ← LEE PRIMERO**
 
 Este documento contiene:
 - ✅ Todo el contexto de sesiones anteriores
@@ -85,7 +85,8 @@ Tandem-2026/
 ├── TamdenZwcadPluging/
 │   └── ZwcadPlugin/       # Plugin ZWCAD 2026
 ├── Scripts/                # Scripts PowerShell
-├── Docs/                   # 📚 Documentación
+├── documentación/          # 📚 Docs de agentes, handovers y guías
+├── Docs/                   # 📚 Documentación técnica del proyecto
 │   ├── General/           # Docs comunes
 │   └── Proyectos/         # Docs específicas
 └── Design.sln              # Solución principal

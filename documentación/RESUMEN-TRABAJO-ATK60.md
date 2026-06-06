@@ -45,7 +45,7 @@
 - ✅ Marcada US-619 como completada
 - ✅ Añadida sección "Próxima Fase - US-638"
 - ✅ Referencia cruzada a SISTEMA-ATK60.md
-- 📍 **Ubicación:** `C:\00_Tandem2026\AGENTE-US619-INFO.md`
+- 📍 **Ubicación:** `C:\00_Tandem2026\documentación\AGENTE-US619-INFO.md`
 
 ### SISTEMA-ATK60.md (Creado previamente)
 - ✅ Descripción completa del sistema ATK60

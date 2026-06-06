@@ -27,11 +27,19 @@ Write-Host ""
 
 # 2. Verificar documentacion critica
 Write-Host "[2/5] Verificando documentacion..." -ForegroundColor Yellow
+$docFolder = Get-ChildItem -Directory -ErrorAction SilentlyContinue |
+	Where-Object { $_.Name -like 'documentaci*' -and $_.Name -ne 'Docs' } |
+	Select-Object -First 1
+$continuityDoc = if ($docFolder) {
+	Join-Path $docFolder.Name 'CONTINUITY.md'
+} else {
+	'documentacion\CONTINUITY.md'
+}
 $criticalDocs = @(
-	"CONTINUITY.md",
-	"README.md",
-	"Docs\README.md",
-	"Docs\General\Azure-DevOps.md"
+	$continuityDoc,
+	'README.md',
+	'Docs\README.md',
+	'Docs\General\Azure-DevOps.md'
 )
 $docsOK = $true
 foreach ($doc in $criticalDocs) {
@@ -111,7 +119,7 @@ if ($allGood) {
 	Write-Host " RESULTADO: TODO OK" -ForegroundColor Green
 	Write-Host ""
 	Write-Host "El proyecto esta listo para trabajar." -ForegroundColor Green
-	Write-Host "Lee CONTINUITY.md para entender el contexto." -ForegroundColor Cyan
+	Write-Host "Lee $continuityDoc para entender el contexto." -ForegroundColor Cyan
 } else {
 	Write-Host " RESULTADO: REVISAR WARNINGS/ERRORES" -ForegroundColor Yellow
 	Write-Host ""
@@ -123,7 +131,7 @@ Write-Host ""
 
 # Informacion adicional
 Write-Host "Proximos pasos sugeridos:" -ForegroundColor Cyan
-Write-Host "  1. Leer CONTINUITY.md" -ForegroundColor White
+Write-Host "  1. Leer $continuityDoc" -ForegroundColor White
 Write-Host "  2. Ejecutar .\Scripts\Verificar-Board.ps1" -ForegroundColor White
 Write-Host "  3. Revisar git log --oneline -10" -ForegroundColor White
 Write-Host ""

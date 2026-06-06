@@ -30,7 +30,7 @@ Y el CUI usa **solo el nombre** del archivo:
 Creamos un CUI de prueba (`TestIconoV2.cui`) que **SÍ funciona**.
 
 **Archivo de prueba:**
-- `C:\00_Tandem2026\test_icons\TestIconoV2.cui`
+- `C:\00_Tandem2026\TamdenZwcadPluging\test_icons\TestIconoV2.cui`
 - Icono: `C:\Program Files\ZWSOFT\ZWCAD 2026\Support\simple_square.png`
 
 ---

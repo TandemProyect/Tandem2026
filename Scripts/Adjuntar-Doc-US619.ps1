@@ -1,7 +1,7 @@
 # Script simplificado para adjuntar documentación a US-619
 param(
 	[int]$WorkItemId = 619,
-	[string]$FilePath = "C:\00_Tandem2026\AGENTE-US619-INFO.md"
+	[string]$FilePath = "C:\00_Tandem2026\documentación\AGENTE-US619-INFO.md"
 )
 
 $PAT = "7iXv8E4C8xK90U3zPRV1GrpNyfTf0piLOt1I5xhxkoIWMtvZ0elmJQQJ99CDACAAAAAAAAAAAAASAZDO1BX0"

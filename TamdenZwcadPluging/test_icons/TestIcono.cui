@@ -7,8 +7,8 @@
 		  <Name>Test Comando</Name>
 		  <Command>^c^cLINE</Command>
 		  <HelpString>Comando de prueba con icono</HelpString>
-		  <LargeImage>C:\00_Tandem2026\test_icons\simple_square.png</LargeImage>
-		  <SmallImage>C:\00_Tandem2026\test_icons\simple_square.png</SmallImage>
+		  <LargeImage>C:\00_Tandem2026\TamdenZwcadPluging\test_icons\simple_square.png</LargeImage>
+		  <SmallImage>C:\00_Tandem2026\TamdenZwcadPluging\test_icons\simple_square.png</SmallImage>
 		</Macro>
 	  </MenuMacro>
 	</MacroGroup>

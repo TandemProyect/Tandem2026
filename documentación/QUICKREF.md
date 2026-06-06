@@ -86,7 +86,7 @@ git log --oneline -- ruta/archivo.cs
 
 ### Leer documentación de continuidad
 ```powershell
-Get-Content CONTINUITY.md | more
+Get-Content documentación\CONTINUITY.md | more
 ```
 
 ### Buscar en documentación
@@ -192,7 +192,7 @@ function check { .\Scripts\HealthCheck.ps1 }
 
 | Documento | Para qué sirve |
 |-----------|----------------|
-| `CONTINUITY.md` | Contexto completo para futuros agentes |
+| `documentación/CONTINUITY.md` | Contexto completo para futuros agentes |
 | `README.md` | Descripción general del proyecto |
 | `Docs/README.md` | Índice de documentación |
 | `Docs/General/Azure-DevOps.md` | Proceso y automatización Azure DevOps |
@@ -265,10 +265,10 @@ git status
 ### Workflow 3: Actualizar documentación
 ```powershell
 # 1. Editar archivo
-code CONTINUITY.md
+code documentación\CONTINUITY.md
 
 # 2. Commit
-git add CONTINUITY.md
+git add documentación\CONTINUITY.md
 git commit -m "docs: Actualizar contexto de continuidad AB#613"
 git push origin master
 ```
