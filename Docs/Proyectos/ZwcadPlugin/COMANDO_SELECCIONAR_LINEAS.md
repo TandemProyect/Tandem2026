@@ -275,7 +275,7 @@ No. El comando requiere conexión al servidor MVC. Si no hay conexión, el coman
 ## 📞 Soporte
 
 Para problemas o preguntas, consulta:
-- `TECHNICAL_GUIDE.md` - Guía técnica del plugin
+- [`TECHNICAL_GUIDE.md`](./TECHNICAL_GUIDE.md) - Guía técnica del plugin
 - `README.md` - Documentación general
 - Logs del servidor MVC en Visual Studio Output
 

@@ -94,7 +94,7 @@ La **US-638** "Detectar puntos para sistema ATK 60" (8 story points) continuará
 ### Validación Realizada
 
 Se creó un CUI de prueba (`TestIconoV2.cui`) que **SÍ funciona:**
-- **Archivo:** `C:\00_Tandem2026\TamdenZwcadPluging\test_icons\TestIconoV2.cui`
+- **Archivo:** `C:\00_Tandem2026\Docs\Proyectos\ZwcadPlugin\test_icons\TestIconoV2.cui`
 - **Icono:** `C:\Program Files\ZWSOFT\ZWCAD 2026\Support\simple_square.png`
 - **Resultado:** ✅ Icono visible en ribbon
 

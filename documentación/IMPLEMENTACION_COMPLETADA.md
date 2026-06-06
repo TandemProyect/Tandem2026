@@ -74,8 +74,8 @@ Respuesta del servidor: Longitud total: 2543.75 unidades | Layers: 0, Muros, Est
 
 | Archivo | Contenido |
 |---------|-----------|
-| `COMANDO_SELECCIONAR_LINEAS.md` | 📖 Guía completa de usuario (cómo usar, FAQ, troubleshooting) |
-| `RESUMEN_CAMBIOS_SELECCIONAR_LINEAS.md` | 🔧 Resumen técnico detallado (diagrama, testing checklist) |
+| `Docs/Proyectos/ZwcadPlugin/COMANDO_SELECCIONAR_LINEAS.md` | 📖 Guía completa de usuario (cómo usar, FAQ, troubleshooting) |
+| `Docs/Proyectos/ZwcadPlugin/RESUMEN_CAMBIOS_SELECCIONAR_LINEAS.md` | 🔧 Resumen técnico detallado (diagrama, testing checklist) |
 | `README.md` (actualizado) | 📋 Tabla de comandos actualizada |
 
 ---
@@ -99,7 +99,7 @@ Respuesta del servidor: Longitud total: 2543.75 unidades | Layers: 0, Muros, Est
 - [ ] Verificar datos recibidos en el servidor MVC
 - [ ] Probar con muchas líneas (performance)
 
-**Para ejecutar los tests**, sigue el checklist en `RESUMEN_CAMBIOS_SELECCIONAR_LINEAS.md`
+**Para ejecutar los tests**, sigue el checklist en `Docs/Proyectos/ZwcadPlugin/RESUMEN_CAMBIOS_SELECCIONAR_LINEAS.md`
 
 ---
 
@@ -241,7 +241,7 @@ public ActionResult ProcesarLineasZwcad(SeleccionLineasDTO seleccion)
 - [ ] Abrir ZWCAD
 - [ ] Cargar el plugin con `NETLOAD`
 - [ ] Ejecutar `TANDEM_SELECCIONAR_LINEAS`
-- [ ] Probar los 7 casos del checklist en `RESUMEN_CAMBIOS_SELECCIONAR_LINEAS.md`
+- [ ] Probar los 7 casos del checklist en `Docs/Proyectos/ZwcadPlugin/RESUMEN_CAMBIOS_SELECCIONAR_LINEAS.md`
 
 ### 2. Verificar Servidor MVC (Hoy)
 - [ ] Abrir Visual Studio con proyecto Design
@@ -267,10 +267,10 @@ public ActionResult ProcesarLineasZwcad(SeleccionLineasDTO seleccion)
 
 Para más detalles, consulta:
 
-- **`COMANDO_SELECCIONAR_LINEAS.md`** → Guía de usuario completa
-- **`RESUMEN_CAMBIOS_SELECCIONAR_LINEAS.md`** → Documentación técnica detallada
+- **`Docs/Proyectos/ZwcadPlugin/COMANDO_SELECCIONAR_LINEAS.md`** → Guía de usuario completa
+- **`Docs/Proyectos/ZwcadPlugin/RESUMEN_CAMBIOS_SELECCIONAR_LINEAS.md`** → Documentación técnica detallada
 - **`README.md`** → Documentación general del plugin
-- **`TECHNICAL_GUIDE.md`** → Guía técnica avanzada
+- **`Docs/Proyectos/ZwcadPlugin/TECHNICAL_GUIDE.md`** → Guía técnica avanzada
 
 ---
 

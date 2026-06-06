@@ -270,7 +270,7 @@ Este script verifica en 5 pasos el estado completo del proyecto y te dice qué f
 
 ### Si Necesitas Trabajar en el Plugin ZWCAD
 1. Lee `Docs/Proyectos/ZwcadPlugin/README.md`
-2. Revisa `TamdenZwcadPluging/ZwcadPlugin/TECHNICAL_GUIDE.md`
+2. Revisa `Docs/Proyectos/ZwcadPlugin/TECHNICAL_GUIDE.md`
 3. Sigue convenciones en `Docs/General/Convenciones.md`
 
 ### Si Necesitas Entender el Proyecto

@@ -18,7 +18,7 @@ $stateBody = @(
 
 Invoke-RestMethod -Uri $url -Headers $headers -Method Patch -Body ([System.Text.Encoding]::UTF8.GetBytes($stateBody)) -ContentType "application/json-patch+json; charset=utf-8" | Out-Null
 
-$filePath = "C:\00_Tandem2026\TamdenZwcadPluging\ZwcadPlugin\UI\HANDOVER-US-IMG-MUROS.md"
+$filePath = "C:\00_Tandem2026\documentación\HANDOVER-US-IMG-MUROS.md"
 if (!(Test-Path $filePath)) {
   throw "No existe el archivo handover: $filePath"
 }

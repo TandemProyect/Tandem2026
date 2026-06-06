@@ -538,9 +538,19 @@ NETLOAD → Seleccionar ZwcadPlugin.dll
 ## 🔗 Referencias Importantes
 
 ### **Documentación del Plugin:**
-- **README Principal:** [`TamdenZwcadPluging/ZwcadPlugin/README.md`](../../../TamdenZwcadPluging/ZwcadPlugin/README.md)
-- **Guía Técnica:** [`TamdenZwcadPluging/ZwcadPlugin/TECHNICAL_GUIDE.md`](../../../TamdenZwcadPluging/ZwcadPlugin/TECHNICAL_GUIDE.md)
-- **Iconos:** [`TamdenZwcadPluging/ZwcadPlugin/MNU/Iconos/README_ICONOS.md`](../../../TamdenZwcadPluging/ZwcadPlugin/MNU/Iconos/README_ICONOS.md)
+- **README del código:** [`TamdenZwcadPluging/ZwcadPlugin/README.md`](../../../TamdenZwcadPluging/ZwcadPlugin/README.md)
+- **Guía Técnica:** [`TECHNICAL_GUIDE.md`](./TECHNICAL_GUIDE.md)
+- **Iconos:** [`Iconos/README_ICONOS.md`](./Iconos/README_ICONOS.md)
+- **Pruebas de iconos (US-619):** [`test_icons/`](./test_icons/)
+
+### **Guías y User Stories:**
+- [`COMANDO_SELECCIONAR_LINEAS.md`](./COMANDO_SELECCIONAR_LINEAS.md) — Comando SELECCIONARLINEAS
+- [`RESUMEN_CAMBIOS_SELECCIONAR_LINEAS.md`](./RESUMEN_CAMBIOS_SELECCIONAR_LINEAS.md) — Cambios técnicos US seleccionar líneas
+- [`INSTRUCCIONES_AGREGAR_ICONOS.md`](./INSTRUCCIONES_AGREGAR_ICONOS.md) — Agregar iconos al ribbon
+- [`INVESTIGACION_ICONOS_US619.md`](./INVESTIGACION_ICONOS_US619.md) — Investigación iconos US-619
+- [`US-613-INSTRUCCIONES.md`](./US-613-INSTRUCCIONES.md) — Integración plugin con servidor MVC
+- [`MENU_INSTRUCCIONES.md`](./MENU_INSTRUCCIONES.md) — Sistema de menús del plugin
+- [`README_INSTALACION.md`](./README_INSTALACION.md) — Instalación y configuración inicial
 
 ### **Documentación General:**
 - **Desing:** [`Docs/Proyectos/Desing/`](../Desing/)

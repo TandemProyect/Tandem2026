@@ -122,17 +122,9 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <None Include="COMANDO_SELECCIONAR_LINEAS.md" />
-    <None Include="DIAGNOSTICO_COMPILACION.md" />
-    <None Include="INSTRUCCIONES_AGREGAR_ICONOS.md" />
-    <None Include="MNU\Tandem2026_NEW.cui" />
     <None Include="MNU\Tandem2026.cui">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="README.md" />
-    <None Include="RESUMEN_CAMBIOS_SELECCIONAR_LINEAS.md" />
-    <None Include="TECHNICAL_GUIDE.md" />
-    <None Include="US-613-INSTRUCCIONES.md" />
   </ItemGroup>
   <!-- Copia la carpeta MNU al directorio de salida manteniendo la estructura -->
   <ItemGroup>

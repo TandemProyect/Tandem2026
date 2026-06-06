@@ -85,8 +85,8 @@ C:\00_Tandem2026\
 - `Helpers/` - Utilidades del plugin
 
 **Documentación:** 
-- [`TamdenZwcadPluging/ZwcadPlugin/README.md`](../../TamdenZwcadPluging/ZwcadPlugin/README.md)
-- [`TamdenZwcadPluging/ZwcadPlugin/TECHNICAL_GUIDE.md`](../../TamdenZwcadPluging/ZwcadPlugin/TECHNICAL_GUIDE.md)
+- [`TamdenZwcadPluging/ZwcadPlugin/README.md`](../../TamdenZwcadPluging/ZwcadPlugin/README.md) — puntero al código
+- [`Docs/Proyectos/ZwcadPlugin/`](../Proyectos/ZwcadPlugin/) — documentación completa
 
 ---
 

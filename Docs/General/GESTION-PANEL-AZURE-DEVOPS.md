@@ -976,7 +976,7 @@ git push origin master
 cd C:\00_Tandem2026\Scripts
 
 # Adjuntar un archivo a un Work Item
-.\Attach-Document.ps1 -WorkItemId 613 -FilePath "C:\00_Tandem2026\TamdenZwcadPluging\ZwcadPlugin\US-613-INSTRUCCIONES.md" -Comment "Documentación completa de implementación"
+.\Attach-Document.ps1 -WorkItemId 613 -FilePath "C:\00_Tandem2026\Docs\Proyectos\ZwcadPlugin\US-613-INSTRUCCIONES.md" -Comment "Documentación completa de implementación"
 ```
 
 **Parámetros:**
@@ -1013,7 +1013,7 @@ cd Scripts
 # 4. ⭐ ADJUNTAR DOCUMENTACIÓN (PASO CRÍTICO)
 .\Attach-Document.ps1 `
     -WorkItemId 613 `
-    -FilePath "C:\00_Tandem2026\TamdenZwcadPluging\ZwcadPlugin\US-613-INSTRUCCIONES.md" `
+    -FilePath "C:\00_Tandem2026\Docs\Proyectos\ZwcadPlugin\US-613-INSTRUCCIONES.md" `
     -Comment "Documentación completa US-613: Solución error 404, configuración de puertos, instrucciones de ejecución y troubleshooting"
 
 # 5. Verificar en Azure DevOps que el archivo esté adjunto

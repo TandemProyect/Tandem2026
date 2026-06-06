@@ -27,7 +27,7 @@ Se creó un CUI de prueba mínimo (`TestIconoV2.cui`) con un icono PNG simple.
 
 **Archivo de prueba:**
 ```
-C:\00_Tandem2026\TamdenZwcadPluging\test_icons\TestIconoV2.cui
+C:\00_Tandem2026\Docs\Proyectos\ZwcadPlugin\test_icons\TestIconoV2.cui
 ```
 
 **Icono de prueba:**
@@ -242,16 +242,16 @@ El target de compilación no copia la carpeta `img\`:
 
 ### Archivos Creados Durante la Investigación
 
-1. **`TamdenZwcadPluging\ZwcadPlugin\INSTRUCCIONES_AGREGAR_ICONOS.md`**
+1. **`Docs\Proyectos\ZwcadPlugin\INSTRUCCIONES_AGREGAR_ICONOS.md`**
    - Guía completa para añadir iconos a nuevos comandos
    - Checklist paso a paso
    - Problemas comunes y soluciones
 
-2. **`TamdenZwcadPluging/test_icons/TestIconoV2.cui`**
+2. **`Docs/Proyectos/ZwcadPlugin/test_icons/TestIconoV2.cui`**
    - CUI de prueba que **SÍ funciona** con iconos
    - Referencia para estructura correcta
 
-3. **`TamdenZwcadPluging\test_icons\simple_square.png`**
+3. **`Docs/Proyectos/ZwcadPlugin/test_icons/simple_square.png`**
    - Icono de prueba funcional
    - Copiado a `C:\Program Files\ZWSOFT\ZWCAD 2026\Support\`
 
@@ -320,8 +320,8 @@ Get-ChildItem "C:\Program Files\ZWSOFT\ZWCAD 2026\Support\*.png"
 Select-String -Path "TamdenZwcadPluging\ZwcadPlugin\CuixBuilder.cs" -Pattern "SelectLines" -Context 2
 
 # Abrir documentación
-code TamdenZwcadPluging\ZwcadPlugin\INSTRUCCIONES_AGREGAR_ICONOS.md
-code C:\00_Tandem2026\TamdenZwcadPluging\test_icons\TestIconoV2.cui
+code Docs\Proyectos\ZwcadPlugin\INSTRUCCIONES_AGREGAR_ICONOS.md
+code C:\00_Tandem2026\Docs\Proyectos\ZwcadPlugin\test_icons\TestIconoV2.cui
 ```
 
 ---
@@ -340,7 +340,7 @@ La US #619 estará **completa** cuando:
 ## 🔗 Referencias
 
 - **Bootstrap Icons:** `TamdenZwcadPluging\ZwcadPlugin\MNU\Iconos\bootstrap-icons-1.13.1\`
-- **Guía de Iconos:** `TamdenZwcadPluging\ZwcadPlugin\MNU\Iconos\README_ICONOS.md`
+- **Guía de Iconos:** `Docs\Proyectos\ZwcadPlugin\Iconos\README_ICONOS.md`
 - **Documentación ZWCAD CUI:** (buscar en documentación oficial de ZWSOFT)
 
 ---

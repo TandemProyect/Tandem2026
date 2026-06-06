@@ -200,8 +200,8 @@ TamdenZwcadPluging/ZwcadPlugin/
 ## 📚 Referencias
 
 - **Iconos disponibles:** `MNU\Iconos\bootstrap-icons-1.13.1\`
-- **Documentación de iconos:** `MNU\Iconos\README_ICONOS.md`
-- **Guía de integración:** `MNU\Iconos\INSTRUCCIONES_CSPROJ.md`
+- **Documentación de iconos:** `Docs\Proyectos\ZwcadPlugin\Iconos\README_ICONOS.md`
+- **Guía de integración:** `Docs\Proyectos\ZwcadPlugin\Iconos\INSTRUCCIONES_CSPROJ.md`
 
 ---
 

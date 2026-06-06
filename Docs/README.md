@@ -90,8 +90,8 @@ Contiene documentación **específica de implementación** para cada proyecto:
 
 **Documentación adicional:**
 - [Plugin README](../TamdenZwcadPluging/ZwcadPlugin/README.md)
-- [Guía Técnica](../TamdenZwcadPluging/ZwcadPlugin/TECHNICAL_GUIDE.md)
-- [Sistema de Iconos](../TamdenZwcadPluging/ZwcadPlugin/MNU/Iconos/README_ICONOS.md)
+- [Guía Técnica](Proyectos/ZwcadPlugin/TECHNICAL_GUIDE.md)
+- [Sistema de Iconos](Proyectos/ZwcadPlugin/Iconos/README_ICONOS.md)
 
 ---
 

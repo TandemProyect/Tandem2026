@@ -16,7 +16,7 @@ if (-not $id) {
 
 .\Attach-Document.ps1 `
   -WorkItemId $id `
-  -FilePath "C:\00_Tandem2026\TamdenZwcadPluging\ZwcadPlugin\UI\HANDOVER-US-IMG-MUROS.md" `
+  -FilePath "C:\00_Tandem2026\documentación\HANDOVER-US-IMG-MUROS.md" `
   -Comment "Handover tecnico completo para continuidad de agentes"
 
 Write-Output "US_ID=$id"

@@ -118,8 +118,9 @@ Tandem-2026/
 
 **También disponible:**
 - [ZwcadPlugin README](TamdenZwcadPluging/ZwcadPlugin/README.md)
-- [ZwcadPlugin Guía Técnica](TamdenZwcadPluging/ZwcadPlugin/TECHNICAL_GUIDE.md)
-- [Sistema de Iconos](TamdenZwcadPluging/ZwcadPlugin/MNU/Iconos/README_ICONOS.md)
+- [ZwcadPlugin — Documentación](Docs/Proyectos/ZwcadPlugin/README.md)
+- [ZwcadPlugin Guía Técnica](Docs/Proyectos/ZwcadPlugin/TECHNICAL_GUIDE.md)
+- [Sistema de Iconos](Docs/Proyectos/ZwcadPlugin/Iconos/README_ICONOS.md)
 
 ---
 

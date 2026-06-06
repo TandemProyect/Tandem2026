@@ -324,7 +324,7 @@ Implementación completa del comando `TANDEM_SELECCIONAR_LINEAS` que permite:
 ## 📚 Referencias
 
 - `COMANDO_SELECCIONAR_LINEAS.md` - Documentación de usuario
-- `TECHNICAL_GUIDE.md` - Guía técnica general
+- [`TECHNICAL_GUIDE.md`](./TECHNICAL_GUIDE.md) - Guía técnica general
 - `README.md` - Documentación principal del plugin
 - ZWCAD API Reference - Documentación oficial de ZWCAD
 
