@@ -30,6 +30,16 @@ Este directorio contiene scripts PowerShell para automatizar la gestión de User
 .\Attach-Document.ps1 -WorkItemId 637 -FilePath "docs.md" -Comment "Documentación técnica"
 ```
 
+### 📦 Sincronizar repo completo a Azure DevOps Repos
+Si en **Azure > Repos > Files** solo ves `ZwcadPlugin`, el monorepo está en GitHub. Para publicarlo en Azure:
+
+```powershell
+$env:AZDO_PAT = "<pat-con-scope-Code>"
+.\Sync-Repo-To-Azure.ps1 -Force
+```
+
+Guía: [Docs/General/SYNC-AZURE-REPOS.md](../Docs/General/SYNC-AZURE-REPOS.md)
+
 ---
 
 ## 📚 Documentación Completa
