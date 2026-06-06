@@ -14,26 +14,38 @@ namespace ZwcadPlugin
         private readonly HttpClient _httpClient;
         private readonly string _baseUrl;
 
+        public string BaseUrl => _baseUrl;
+
         public MVCApiService()
         {
             _httpClient = new HttpClient();
-            // Para testing local, usa localhost. Para producción, usa el servidor remoto.
-            _baseUrl = "https://localhost:44384/"; // ✅ Puerto IIS Express del proyecto Desing
-            // _baseUrl = "http://ccvallecano-002-site1.rtempurl.com/"; // Producción
+            _baseUrl = PluginExceptionHelper.ResolveBaseUrlFromEnv();
             _httpClient.BaseAddress = new Uri(_baseUrl);
-            _httpClient.Timeout = TimeSpan.FromSeconds(30);
+            _httpClient.Timeout = TimeSpan.FromSeconds(120);
 
-            // ⚠️ SOLO PARA DESARROLLO: Ignorar errores de certificado SSL en localhost
-            // Quitar en producción o cuando uses un certificado válido
+            // SOLO DESARROLLO: ignorar errores de certificado SSL en localhost
             ServicePointManager.ServerCertificateValidationCallback +=
                 (sender, certificate, chain, sslPolicyErrors) => true;
         }
 
+        /// <summary>
+        /// Prueba conectividad HTTP con el servidor MVC (GET raíz).
+        /// </summary>
+        public async Task<string> ProbarConexionAsync()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync(string.Empty);
+                return $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}";
+            }
+            catch (Exception ex)
+            {
+                throw PluginExceptionHelper.Wrap("Prueba de conexión fallida", ex, _baseUrl);
+            }
+        }
+
         #region Diseños
 
-        /// <summary>
-        /// Obtiene la lista de todos los diseños
-        /// </summary>
         public async Task<List<DisenoResumenDTO>> ObtenerDisenosAsync()
         {
             try
@@ -48,13 +60,10 @@ namespace ZwcadPlugin
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error al obtener diseños: {ex.Message}", ex);
+                throw PluginExceptionHelper.Wrap("Error al obtener diseños", ex, _baseUrl);
             }
         }
 
-        /// <summary>
-        /// Obtiene un diseño específico por su ID
-        /// </summary>
         public async Task<DisenoDTO> ObtenerDisenoAsync(int id)
         {
             try
@@ -69,13 +78,10 @@ namespace ZwcadPlugin
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error al obtener diseño {id}: {ex.Message}", ex);
+                throw PluginExceptionHelper.Wrap($"Error al obtener diseño {id}", ex, _baseUrl);
             }
         }
 
-        /// <summary>
-        /// Crea un nuevo diseño en el servidor
-        /// </summary>
         public async Task<DisenoDTO> CrearDisenoAsync(DisenoDTO diseno)
         {
             try
@@ -93,13 +99,10 @@ namespace ZwcadPlugin
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error al crear diseño: {ex.Message}", ex);
+                throw PluginExceptionHelper.Wrap("Error al crear diseño", ex, _baseUrl);
             }
         }
 
-        /// <summary>
-        /// Actualiza un diseño existente
-        /// </summary>
         public async Task<DisenoDTO> ActualizarDisenoAsync(int id, DisenoDTO diseno)
         {
             try
@@ -117,7 +120,7 @@ namespace ZwcadPlugin
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error al actualizar diseño {id}: {ex.Message}", ex);
+                throw PluginExceptionHelper.Wrap($"Error al actualizar diseño {id}", ex, _baseUrl);
             }
         }
 
@@ -125,9 +128,6 @@ namespace ZwcadPlugin
 
         #region Bloques
 
-        /// <summary>
-        /// Obtiene la lista de bloques disponibles en el servidor
-        /// </summary>
         public async Task<List<BloqueDTO>> ObtenerBloquesAsync()
         {
             try
@@ -142,13 +142,10 @@ namespace ZwcadPlugin
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error al obtener bloques: {ex.Message}", ex);
+                throw PluginExceptionHelper.Wrap("Error al obtener bloques", ex, _baseUrl);
             }
         }
 
-        /// <summary>
-        /// Descarga el archivo de un bloque específico
-        /// </summary>
         public async Task<byte[]> DescargarBloqueAsync(string nombreBloque)
         {
             try
@@ -161,7 +158,7 @@ namespace ZwcadPlugin
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error al descargar bloque {nombreBloque}: {ex.Message}", ex);
+                throw PluginExceptionHelper.Wrap($"Error al descargar bloque {nombreBloque}", ex, _baseUrl);
             }
         }
 
@@ -169,9 +166,6 @@ namespace ZwcadPlugin
 
         #region Seguridad Plugin
 
-        /// <summary>
-        /// Valida si el equipo actual está autorizado para ejecutar el plugin.
-        /// </summary>
         public async Task<ApiResponse<PluginAuthResultDTO>> ValidarEquipoPluginAsync(PluginAuthRequestDTO request)
         {
             try
@@ -188,7 +182,7 @@ namespace ZwcadPlugin
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error validando autorización del equipo: {ex.Message}", ex);
+                throw PluginExceptionHelper.Wrap("Error validando autorización del equipo", ex, _baseUrl);
             }
         }
 
@@ -196,9 +190,6 @@ namespace ZwcadPlugin
 
         #region Líneas y Polilíneas
 
-        /// <summary>
-        /// Envía una colección de líneas y polilíneas seleccionadas al servidor MVC
-        /// </summary>
         public async Task<ApiResponse<DeteccionEsquinasLDTO>> EnviarLineasSeleccionadasAsync(SeleccionLineasDTO seleccion)
         {
             try
@@ -215,7 +206,13 @@ namespace ZwcadPlugin
                 var response = await _httpClient.PostAsync("DesignToolsAutocad/ProcesarLineasZwcad", content);
                 System.Diagnostics.Debug.WriteLine($"🔴 [MVCApiService] Status Code: {response.StatusCode}");
 
-                response.EnsureSuccessStatusCode();
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorBody = await response.Content.ReadAsStringAsync();
+                    var apiMsg = TryExtractApiMensaje(errorBody);
+                    var detail = apiMsg ?? errorBody;
+                    throw new Exception($"Error del servidor ({(int)response.StatusCode}): {detail}");
+                }
 
                 var responseJson = await response.Content.ReadAsStringAsync();
                 System.Diagnostics.Debug.WriteLine($"🔴 [MVCApiService] Respuesta recibida: {responseJson.Length} caracteres");
@@ -229,7 +226,7 @@ namespace ZwcadPlugin
             {
                 System.Diagnostics.Debug.WriteLine($"❌ [MVCApiService] ERROR: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"❌ [MVCApiService] StackTrace: {ex.StackTrace}");
-                throw new Exception($"Error al enviar líneas: {ex.Message}", ex);
+                throw PluginExceptionHelper.Wrap("Error al enviar líneas", ex, _baseUrl);
             }
         }
 
@@ -237,9 +234,6 @@ namespace ZwcadPlugin
 
         #region Imagen
 
-        /// <summary>
-        /// Envía una imagen al servidor MVC para analizar esquinas L con GPT-4o
-        /// </summary>
         public async Task<ApiResponse<DeteccionEsquinasLDTO>> AnalizarImagenAsync(byte[] imagenBytes, string nombreArchivo)
         {
             try
@@ -253,10 +247,29 @@ namespace ZwcadPlugin
 
                 var response = await _httpClient.PostAsync("DesignToolsAutocad/DetectarEsquinasImagen", content);
                 System.Diagnostics.Debug.WriteLine($"[MVCApiService] Status: {response.StatusCode}");
-                response.EnsureSuccessStatusCode();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorBody = await response.Content.ReadAsStringAsync();
+                    var apiMsg = TryExtractApiMensaje(errorBody);
+                    var detail = !string.IsNullOrWhiteSpace(apiMsg)
+                        ? apiMsg
+                        : (!string.IsNullOrWhiteSpace(errorBody) ? errorBody : response.ReasonPhrase);
+                    throw new Exception($"Error del servidor al analizar imagen ({(int)response.StatusCode}): {detail}");
+                }
 
                 var responseJson = await response.Content.ReadAsStringAsync();
+                if (string.IsNullOrWhiteSpace(responseJson) ||
+                    responseJson.TrimStart().StartsWith("<", StringComparison.Ordinal))
+                {
+                    throw new Exception(
+                        "El servidor devolvió HTML en lugar de JSON. ¿Sesión expirada o endpoint sin [AllowAnonymous]? Reinicie Desing tras actualizar el código.");
+                }
+
                 var resultado = JsonConvert.DeserializeObject<ApiResponse<DeteccionEsquinasLDTO>>(responseJson);
+                if (resultado == null)
+                    throw new Exception("Respuesta vacía o JSON inválido del servidor MVC.");
+
                 System.Diagnostics.Debug.WriteLine($"[MVCApiService] Imagen analizada. Éxito: {resultado.Exito}");
 
                 return resultado;
@@ -264,10 +277,25 @@ namespace ZwcadPlugin
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"❌ [MVCApiService] ERROR imagen: {ex.Message}");
-                throw new Exception($"Error al enviar imagen: {ex.Message}", ex);
+                throw PluginExceptionHelper.Wrap("Error al enviar imagen", ex, _baseUrl);
             }
         }
 
         #endregion
+
+        private static string TryExtractApiMensaje(string responseBody)
+        {
+            if (string.IsNullOrWhiteSpace(responseBody)) return null;
+
+            try
+            {
+                var apiResp = JsonConvert.DeserializeObject<ApiResponse<object>>(responseBody);
+                return apiResp?.Mensaje;
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 }

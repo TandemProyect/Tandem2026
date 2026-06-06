@@ -406,6 +406,108 @@
   <data name="StlPreview_DarkBgTitle" xml:space="preserve">
     <value>Activar fondo negro</value>
   </data>
+  <data name="StlPreview_DeleteToolInstruction" xml:space="preserve">
+    <value>Seleccione líneas u objetos STL para borrar (clic o selección por ventana). Enter/Espacio/Supr para borrar, Esc cancelar</value>
+  </data>
+  <data name="StlPreview_Desing2BottomToolbarAria" xml:space="preserve">
+    <value>Barra inferior del visor STL (deshacer, orto, reglas)</value>
+  </data>
+  <data name="StlPreview_Desing2BottomToolbarCollapseTitle" xml:space="preserve">
+    <value>Ocultar barra hasta acercar de nuevo el puntero al borde inferior izquierdo</value>
+  </data>
+  <data name="StlPreview_Desing2BottomToolbarPinTitle" xml:space="preserve">
+    <value>Fijar barra inferior abierta (siempre expandida hasta desanclar)</value>
+  </data>
+  <data name="StlPreview_Desing2BottomToolbarUnpinTitle" xml:space="preserve">
+    <value>Desanclar barra inferior y volver al modo expansión al pasar el puntero</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEx1Aria" xml:space="preserve">
+    <value>Espesor del muro izquierdo medido en planta, en metros (p. ej. 0,30).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEx1Label" xml:space="preserve">
+    <value>Espesor muro izquierdo (Ex1)</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEx1Placeholder" xml:space="preserve">
+    <value>p. ej. 0,30 · 300 mm</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEx2Aria" xml:space="preserve">
+    <value>Espesor del muro derecho medido en planta, en metros (p. ej. 0,30).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEx2Label" xml:space="preserve">
+    <value>Espesor muro derecho (Ex2)</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEx2Placeholder" xml:space="preserve">
+    <value>p. ej. 0,30 · 300 mm</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEy1Aria" xml:space="preserve">
+    <value>Espesor del muro inferior medido en planta, en metros (p. ej. 0,30).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEy1Label" xml:space="preserve">
+    <value>Espesor muro inferior (Ey1)</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEy1Placeholder" xml:space="preserve">
+    <value>p. ej. 0,30 · 300 mm</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEy2Aria" xml:space="preserve">
+    <value>Espesor del muro superior medido en planta, en metros (p. ej. 0,30).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEy2Label" xml:space="preserve">
+    <value>Espesor muro superior (Ey2)</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEy2Placeholder" xml:space="preserve">
+    <value>p. ej. 0,30 · 300 mm</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureLAria" xml:space="preserve">
+    <value>Longitud exterior total del recinto en planta, en metros (p. ej. 6,00).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureLLabel" xml:space="preserve">
+    <value>Longitud exterior (L)</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureLPlaceholder" xml:space="preserve">
+    <value>p. ej. 6,00 · 6000 mm</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureSectionTitle" xml:space="preserve">
+    <value>Recinto rectangular — dimensiones en planta</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureWAria" xml:space="preserve">
+    <value>Anchura exterior total del recinto en planta, en metros (p. ej. 4,00).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureWLabel" xml:space="preserve">
+    <value>Anchura exterior (W)</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureWPlaceholder" xml:space="preserve">
+    <value>p. ej. 4,00 · 4000 mm</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigOffsetDefaultAria" xml:space="preserve">
+    <value>Distancia por defecto para la herramienta offset, en metros (p. ej. 0,30).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigOffsetDefaultLabel" xml:space="preserve">
+    <value>Distancia por defecto del offset</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigOffsetDefaultPlaceholder" xml:space="preserve">
+    <value>p. ej. 0,30 · 300 mm</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallSectionTitle" xml:space="preserve">
+    <value>Sección en L — espesores</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallWidthXAria" xml:space="preserve">
+    <value>Espesor del muro medido en el eje X del plano, en metros (p. ej. 0,30).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallWidthXLabel" xml:space="preserve">
+    <value>Ancho de muro en X</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallWidthXPlaceholder" xml:space="preserve">
+    <value>p. ej. 0,30 · 300 mm</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallWidthYAria" xml:space="preserve">
+    <value>Espesor del muro medido en el eje Y del plano, en metros (p. ej. 0,30).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallWidthYLabel" xml:space="preserve">
+    <value>Ancho de muro en Y</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallWidthYPlaceholder" xml:space="preserve">
+    <value>p. ej. 0,30 · 300 mm</value>
+  </data>
   <data name="StlPreview_Desing2EntornoGridSnapAria" xml:space="preserve">
     <value>Espaciado menor de rejilla en planta y paso del snap en modo punto de rejilla para las cotas.</value>
   </data>
@@ -417,6 +519,39 @@
   </data>
   <data name="StlPreview_Desing2EntornoRulerExtentLabel" xml:space="preserve">
     <value>Alcance máximo del trazado de reglas</value>
+  </data>
+  <data name="StlPreview_Desing2RedoAria" xml:space="preserve">
+    <value>Rehacer acción deshecha</value>
+  </data>
+  <data name="StlPreview_Desing2RedoTitle" xml:space="preserve">
+    <value>Rehacer (Ctrl+Y)</value>
+  </data>
+  <data name="StlPreview_Desing2RightMenuAria" xml:space="preserve">
+    <value>Menú lateral derecho del visor STL — muros</value>
+  </data>
+  <data name="StlPreview_Desing2RightMenuCollapseTitle" xml:space="preserve">
+    <value>Ocultar panel hasta acercar de nuevo el puntero al borde derecho</value>
+  </data>
+  <data name="StlPreview_Desing2RightMenuImageSketchAria" xml:space="preserve">
+    <value>Importar boceto desde imagen — analizar y convertir a líneas de planta</value>
+  </data>
+  <data name="StlPreview_Desing2RightMenuPlaceholder" xml:space="preserve">
+    <value>Pulse el icono de muro para seleccionar líneas y extruir a 2,70 m.</value>
+  </data>
+  <data name="StlPreview_Desing2RightMenuWall3dAria" xml:space="preserve">
+    <value>Generar muro 3D — seleccione líneas de planta y confirme con Enter</value>
+  </data>
+  <data name="StlPreview_Desing2RightMenuWallMapAria" xml:space="preserve">
+    <value>Activar o desactivar mapeo de hormigón en muros 3D</value>
+  </data>
+  <data name="StlPreview_Desing2RulersFlyoutAria" xml:space="preserve">
+    <value>Abrir menú de reglas, rejilla y anclaje</value>
+  </data>
+  <data name="StlPreview_Desing2RulersFlyoutPanelAria" xml:space="preserve">
+    <value>Reglas, rejilla y anclaje</value>
+  </data>
+  <data name="StlPreview_Desing2RulersFlyoutTitle" xml:space="preserve">
+    <value>Reglas, rejilla y anclaje</value>
   </data>
   <data name="StlPreview_Desing2SideMenuAria" xml:space="preserve">
     <value>Menú lateral del visor STL</value>
@@ -433,6 +568,12 @@
   <data name="StlPreview_Desing2SideMenuTabEntorno" xml:space="preserve">
     <value>Entorno</value>
   </data>
+  <data name="StlPreview_Desing2ToolPolyline" xml:space="preserve">
+    <value>Polilínea</value>
+  </data>
+  <data name="StlPreview_Desing2ToolPolylineAria" xml:space="preserve">
+    <value>Polilínea en planta: encadenar segmentos con clics sucesivos; Intro o Escape termina; cada tramo es una línea independiente</value>
+  </data>
   <data name="StlPreview_Desing2TopToolAlargar" xml:space="preserve">
     <value>Alargar</value>
   </data>
@@ -443,7 +584,19 @@
     <value>Borrar</value>
   </data>
   <data name="StlPreview_Desing2TopToolBorrarAria" xml:space="preserve">
-    <value>Herramienta borrar — próximamente (solo interfaz)</value>
+    <value>Borrar líneas de planta y objetos STL — seleccione (clic o ventana) y confirme con Enter, Espacio o Supr</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolInsertCorner" xml:space="preserve">
+    <value>Insertar esquina</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolInsertCornerAria" xml:space="preserve">
+    <value>Insertar esquina L en planta — primer clic en la esquina exterior; segundo clic define la orientación (orto 15° con F8)</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolInsertEnclosure" xml:space="preserve">
+    <value>Insertar recinto</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolInsertEnclosureAria" xml:space="preserve">
+    <value>Insertar recinto rectangular en planta — primer clic en esquina exterior; segundo clic fija orientación (orto 15° con F8)</value>
   </data>
   <data name="StlPreview_Desing2TopToolLinea" xml:space="preserve">
     <value>Línea</value>
@@ -455,7 +608,7 @@
     <value>Offset</value>
   </data>
   <data name="StlPreview_Desing2TopToolOffsetAria" xml:space="preserve">
-    <value>Herramienta offset — próximamente (solo interfaz)</value>
+    <value>Offset en planta — copiar línea paralela a distancia configurable</value>
   </data>
   <data name="StlPreview_Desing2TopToolOrtho15TitleOff" xml:space="preserve">
     <value>Ortogonal 15° desactivado — ángulo libre hacia el segundo punto. Pulse o F8 para activar.</value>
@@ -481,6 +634,30 @@
   <data name="StlPreview_Desing2TopToolbarUnpinTitle" xml:space="preserve">
     <value>Desanclar barra y volver al modo expansión al pasar el puntero</value>
   </data>
+  <data name="StlPreview_Desing2UndoAria" xml:space="preserve">
+    <value>Deshacer última acción</value>
+  </data>
+  <data name="StlPreview_Desing2UndoTitle" xml:space="preserve">
+    <value>Deshacer (Ctrl+Z)</value>
+  </data>
+  <data name="StlPreview_Desing2WallDimToolAria" xml:space="preserve">
+    <value>Cota espesor de muro en planta: líneas paralelas usuario, espesor entre caras</value>
+  </data>
+  <data name="StlPreview_Desing2WallDimToolTitle" xml:space="preserve">
+    <value>Cotar muro — longitudes, global y espesor (estilo construcción)</value>
+  </data>
+  <data name="StlPreview_EdgeRulersToggleAria" xml:space="preserve">
+    <value>Reglas de borde del visor</value>
+  </data>
+  <data name="StlPreview_EdgeRulersToggleTitle" xml:space="preserve">
+    <value>Mostrar u ocultar reglas de borde del visor (+X arriba, +Z derecha)</value>
+  </data>
+  <data name="StlPreview_EdgeRulersToggleTitleOff" xml:space="preserve">
+    <value>Mostrar reglas de borde del visor</value>
+  </data>
+  <data name="StlPreview_EdgeRulersToggleTitleOn" xml:space="preserve">
+    <value>Ocultar reglas de borde del visor</value>
+  </data>
   <data name="StlPreview_EscapeCancelToolsToast" xml:space="preserve">
     <value>Cancelado</value>
   </data>
@@ -505,11 +682,62 @@
   <data name="StlPreview_GridToggleTitle" xml:space="preserve">
     <value>Mostrar rejilla de fondo</value>
   </data>
+  <data name="StlPreview_GridToggleTitleOff" xml:space="preserve">
+    <value>Mostrar rejilla de fondo</value>
+  </data>
+  <data name="StlPreview_GridToggleTitleOn" xml:space="preserve">
+    <value>Ocultar rejilla de fondo</value>
+  </data>
   <data name="StlPreview_GroundShadowAria" xml:space="preserve">
     <value>Sombra en el suelo</value>
   </data>
   <data name="StlPreview_GroundShadowTitle" xml:space="preserve">
     <value>Mostrar sombra en el suelo</value>
+  </data>
+  <data name="StlPreview_ImageSketchError" xml:space="preserve">
+    <value>No se pudo analizar la imagen: {0}</value>
+  </data>
+  <data name="StlPreview_ImageSketchFormAccept" xml:space="preserve">
+    <value>Analizar e insertar</value>
+  </data>
+  <data name="StlPreview_ImageSketchFormCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="StlPreview_ImageSketchFormChooseFile" xml:space="preserve">
+    <value>Seleccionar imagen…</value>
+  </data>
+  <data name="StlPreview_ImageSketchFormHint" xml:space="preserve">
+    <value>Adjunte un plano o boceto (JPG/PNG) con líneas de muro y cotas E/e y H/h.</value>
+  </data>
+  <data name="StlPreview_ImageSketchFormNoFile" xml:space="preserve">
+    <value>Seleccione una imagen</value>
+  </data>
+  <data name="StlPreview_ImageSketchFormTitle" xml:space="preserve">
+    <value>Boceto desde imagen</value>
+  </data>
+  <data name="StlPreview_ImageSketchPickInstruction" xml:space="preserve">
+    <value>Clic en planta para insertar el boceto como líneas. Esc cancelar</value>
+  </data>
+  <data name="StlPreview_ImageSketchProcessing" xml:space="preserve">
+    <value>Analizando imagen…</value>
+  </data>
+  <data name="StlPreview_ImageSketchSuccess" xml:space="preserve">
+    <value>Se insertaron {0} línea(s) desde el boceto</value>
+  </data>
+  <data name="StlPreview_InsertCornerToolInstructionFirst" xml:space="preserve">
+    <value>Clic en la rejilla para la esquina exterior de la L (punto de inserción).</value>
+  </data>
+  <data name="StlPreview_InsertCornerToolInstructionSecond" xml:space="preserve">
+    <value>Segundo clic para orientar la esquina (orto 15° si está activo). Escape cancela.</value>
+  </data>
+  <data name="StlPreview_InsertEnclosureToolInstructionFirst" xml:space="preserve">
+    <value>Clic en la rejilla para la esquina exterior del recinto (punto de inserción).</value>
+  </data>
+  <data name="StlPreview_InsertEnclosureToolInstructionSecond" xml:space="preserve">
+    <value>Segundo clic para orientar el recinto (orto 15° si está activo). Escape cancela.</value>
+  </data>
+  <data name="StlPreview_InsertEnclosureToolInvalidDimsToast" xml:space="preserve">
+    <value>Dimensiones del recinto no válidas. Revise L, W y espesores Ex1, Ex2, Ey1, Ey2 en Configuración.</value>
   </data>
   <data name="StlPreview_LineToolDistanceInvalidToast" xml:space="preserve">
     <value>Introduzca una distancia válida (p. ej. 5, 5,5 ó 5000 mm) o pulse clic para el segundo punto.</value>
@@ -546,6 +774,27 @@
   </data>
   <data name="StlPreview_NoStlInViewerTooltip" xml:space="preserve">
     <value>Sin STL en el visor</value>
+  </data>
+  <data name="StlPreview_OffsetToolDistanceInvalidToast" xml:space="preserve">
+    <value>Distancia de offset no válida. Use metros o milímetros (p. ej. 0,30 o 300 mm).</value>
+  </data>
+  <data name="StlPreview_OffsetToolHudDistanceAria" xml:space="preserve">
+    <value>Distancia del offset en metros o milímetros (p. ej. 0,30 · 300 mm)</value>
+  </data>
+  <data name="StlPreview_OffsetToolHudDistancePlaceholder" xml:space="preserve">
+    <value>p. ej. 0,30 · 300 mm</value>
+  </data>
+  <data name="StlPreview_OffsetToolInstructionPickDirection" xml:space="preserve">
+    <value>Clic en planta hacia el lado del offset (vista previa discontinua). Escape cancela.</value>
+  </data>
+  <data name="StlPreview_OffsetToolInstructionPickLine" xml:space="preserve">
+    <value>Clic en la línea a copiar; doble clic para editar la distancia del offset.</value>
+  </data>
+  <data name="StlPreview_PolylineToolInstructionFirst" xml:space="preserve">
+    <value>Clic para el primer vértice (mueva el ratón para la vista previa del primer tramo).</value>
+  </data>
+  <data name="StlPreview_PolylineToolInstructionSecond" xml:space="preserve">
+    <value>Siguiente vértice: clic en planta, o distancia + Intro para cerrar la polilínea. Escape cancela el tramo en curso.</value>
   </data>
   <data name="StlPreview_RowLabel3D" xml:space="preserve">
     <value>3D</value>
@@ -611,10 +860,16 @@
     <value>Seleccione un bloque con STL disponible (botón naranja) para verlo aquí.</value>
   </data>
   <data name="StlPreview_UcsRulersAria" xml:space="preserve">
-    <value>Reglas de plano</value>
+    <value>Reglas de plano en suelo</value>
   </data>
   <data name="StlPreview_UcsRulersToggleTitle" xml:space="preserve">
     <value>Mostrar u ocultar reglas de plano desde el anclaje (+X / +Z)</value>
+  </data>
+  <data name="StlPreview_UcsRulersToggleTitleOff" xml:space="preserve">
+    <value>Mostrar reglas de plano en suelo (+X / +Z)</value>
+  </data>
+  <data name="StlPreview_UcsRulersToggleTitleOn" xml:space="preserve">
+    <value>Ocultar reglas de plano en suelo (+X / +Z)</value>
   </data>
   <data name="StlPreview_UserFloorLineDimEditAria" xml:space="preserve">
     <value>Longitud del segmento de línea en planta en metros (o mm con sufijo). Intro para aplicar, Escape cancela.</value>
@@ -633,6 +888,45 @@
   </data>
   <data name="StlPreview_UserFloorLineDragHandleAria" xml:space="preserve">
     <value>Arrastrar para mover el segmento en planta (eje X y Z)</value>
+  </data>
+  <data name="StlPreview_UserFloorLineP1HandleAria" xml:space="preserve">
+    <value>Arrastrar el punto inicial del segmento para alargarlo o acortarlo a lo largo del eje; se conecta al soltar sobre otro extremo</value>
+  </data>
+  <data name="StlPreview_UserFloorLineP2HandleAria" xml:space="preserve">
+    <value>Arrastrar el punto final del segmento para alargarlo o acortarlo a lo largo del eje; se conecta al soltar sobre otro extremo</value>
+  </data>
+  <data name="StlPreview_Wall3dMapError" xml:space="preserve">
+    <value>No se pudo cargar la textura: {0}</value>
+  </data>
+  <data name="StlPreview_Wall3dMapNoWalls" xml:space="preserve">
+    <value>No hay muros 3D para mapear</value>
+  </data>
+  <data name="StlPreview_Wall3dMapProcessing" xml:space="preserve">
+    <value>Cargando textura de hormigón…</value>
+  </data>
+  <data name="StlPreview_Wall3dMapSuccess" xml:space="preserve">
+    <value>Textura de hormigón aplicada a {0} pieza(s)</value>
+  </data>
+  <data name="StlPreview_Wall3dToolError" xml:space="preserve">
+    <value>No se pudieron generar los muros: {0}</value>
+  </data>
+  <data name="StlPreview_Wall3dToolInstruction" xml:space="preserve">
+    <value>Seleccione líneas de planta (clic o ventana). Enter para generar muros 3D (altura 2,70 m), Esc cancelar</value>
+  </data>
+  <data name="StlPreview_Wall3dToolNoLines" xml:space="preserve">
+    <value>Seleccione al menos una línea de planta</value>
+  </data>
+  <data name="StlPreview_Wall3dToolProcessing" xml:space="preserve">
+    <value>Generando muros 3D…</value>
+  </data>
+  <data name="StlPreview_Wall3dToolSuccess" xml:space="preserve">
+    <value>Se generaron {0} muro(s) 3D (altura 2,70 m)</value>
+  </data>
+  <data name="StlPreview_WallDimToolNoPairsToast" xml:space="preserve">
+    <value>No se detectó espesor de muro. Dibuje el contorno y el offset interior, o haga clic en una línea del muro con la herramienta activa.</value>
+  </data>
+  <data name="StlPreview_WindowSelectionHint" xml:space="preserve">
+    <value>Arrastre en lienzo vacío: izquierda→derecha ventana, derecha→izquierda cruce</value>
   </data>
   <data name="StlPreview_XyzAxesAria" xml:space="preserve">
     <value>Ejes XYZ</value>

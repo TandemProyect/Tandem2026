@@ -406,6 +406,108 @@
   <data name="StlPreview_DarkBgTitle" xml:space="preserve">
     <value>Enable dark background</value>
   </data>
+  <data name="StlPreview_DeleteToolInstruction" xml:space="preserve">
+    <value>Select floor lines or STL objects to delete (click or window selection). Enter/Space/Delete to delete, Esc to cancel</value>
+  </data>
+  <data name="StlPreview_Desing2BottomToolbarAria" xml:space="preserve">
+    <value>STL viewer bottom bar (undo, ortho, rulers)</value>
+  </data>
+  <data name="StlPreview_Desing2BottomToolbarCollapseTitle" xml:space="preserve">
+    <value>Collapse bar until you move the pointer near the bottom-left strip again</value>
+  </data>
+  <data name="StlPreview_Desing2BottomToolbarPinTitle" xml:space="preserve">
+    <value>Pin bottom toolbar open (stay expanded until unpinned)</value>
+  </data>
+  <data name="StlPreview_Desing2BottomToolbarUnpinTitle" xml:space="preserve">
+    <value>Unpin bottom toolbar and return to hover-to-expand mode</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEx1Aria" xml:space="preserve">
+    <value>Left wall thickness measured in plan view, in meters (e.g. 0.30).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEx1Label" xml:space="preserve">
+    <value>Left wall thickness (Ex1)</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEx1Placeholder" xml:space="preserve">
+    <value>e.g. 0.30 · 300 mm</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEx2Aria" xml:space="preserve">
+    <value>Right wall thickness measured in plan view, in meters (e.g. 0.30).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEx2Label" xml:space="preserve">
+    <value>Right wall thickness (Ex2)</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEx2Placeholder" xml:space="preserve">
+    <value>e.g. 0.30 · 300 mm</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEy1Aria" xml:space="preserve">
+    <value>Bottom wall thickness measured in plan view, in meters (e.g. 0.30).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEy1Label" xml:space="preserve">
+    <value>Bottom wall thickness (Ey1)</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEy1Placeholder" xml:space="preserve">
+    <value>e.g. 0.30 · 300 mm</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEy2Aria" xml:space="preserve">
+    <value>Top wall thickness measured in plan view, in meters (e.g. 0.30).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEy2Label" xml:space="preserve">
+    <value>Top wall thickness (Ey2)</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureEy2Placeholder" xml:space="preserve">
+    <value>e.g. 0.30 · 300 mm</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureLAria" xml:space="preserve">
+    <value>Total external length of the enclosure in plan view, in meters (e.g. 6.00).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureLLabel" xml:space="preserve">
+    <value>External length (L)</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureLPlaceholder" xml:space="preserve">
+    <value>e.g. 6.00 · 6000 mm</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureSectionTitle" xml:space="preserve">
+    <value>Rectangular enclosure — plan dimensions</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureWAria" xml:space="preserve">
+    <value>Total external width of the enclosure in plan view, in meters (e.g. 4.00).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureWLabel" xml:space="preserve">
+    <value>External width (W)</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigEnclosureWPlaceholder" xml:space="preserve">
+    <value>e.g. 4.00 · 4000 mm</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigOffsetDefaultAria" xml:space="preserve">
+    <value>Default distance for the offset tool, in meters (e.g. 0.30).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigOffsetDefaultLabel" xml:space="preserve">
+    <value>Default offset distance</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigOffsetDefaultPlaceholder" xml:space="preserve">
+    <value>e.g. 0.30 · 300 mm</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallSectionTitle" xml:space="preserve">
+    <value>L-section — wall thickness</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallWidthXAria" xml:space="preserve">
+    <value>Wall thickness measured on the plan X axis, in meters (e.g. 0.30).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallWidthXLabel" xml:space="preserve">
+    <value>Wall width on X</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallWidthXPlaceholder" xml:space="preserve">
+    <value>e.g. 0.30 · 300 mm</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallWidthYAria" xml:space="preserve">
+    <value>Wall thickness measured on the plan Y axis, in meters (e.g. 0.30).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallWidthYLabel" xml:space="preserve">
+    <value>Wall width on Y</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallWidthYPlaceholder" xml:space="preserve">
+    <value>e.g. 0.30 · 300 mm</value>
+  </data>
   <data name="StlPreview_Desing2EntornoGridSnapAria" xml:space="preserve">
     <value>Minor grid spacing on the floor plane and snap step in grid pick mode for ruler placement.</value>
   </data>
@@ -417,6 +519,39 @@
   </data>
   <data name="StlPreview_Desing2EntornoRulerExtentLabel" xml:space="preserve">
     <value>Maximum ruler drawing reach</value>
+  </data>
+  <data name="StlPreview_Desing2RedoAria" xml:space="preserve">
+    <value>Redo undone action</value>
+  </data>
+  <data name="StlPreview_Desing2RedoTitle" xml:space="preserve">
+    <value>Redo (Ctrl+Y)</value>
+  </data>
+  <data name="StlPreview_Desing2RightMenuAria" xml:space="preserve">
+    <value>STL viewer right side menu — walls</value>
+  </data>
+  <data name="StlPreview_Desing2RightMenuCollapseTitle" xml:space="preserve">
+    <value>Hide panel until you move the pointer near the right edge again</value>
+  </data>
+  <data name="StlPreview_Desing2RightMenuImageSketchAria" xml:space="preserve">
+    <value>Import sketch from image — analyze and convert to plan lines</value>
+  </data>
+  <data name="StlPreview_Desing2RightMenuPlaceholder" xml:space="preserve">
+    <value>Click the wall icon to select lines and extrude to 2.70 m.</value>
+  </data>
+  <data name="StlPreview_Desing2RightMenuWall3dAria" xml:space="preserve">
+    <value>Generate 3D wall — select plan lines and confirm with Enter</value>
+  </data>
+  <data name="StlPreview_Desing2RightMenuWallMapAria" xml:space="preserve">
+    <value>Toggle concrete mapping on 3D walls</value>
+  </data>
+  <data name="StlPreview_Desing2RulersFlyoutAria" xml:space="preserve">
+    <value>Open rulers, grid and anchor menu</value>
+  </data>
+  <data name="StlPreview_Desing2RulersFlyoutPanelAria" xml:space="preserve">
+    <value>Rulers, grid and anchor</value>
+  </data>
+  <data name="StlPreview_Desing2RulersFlyoutTitle" xml:space="preserve">
+    <value>Rulers, grid and anchor</value>
   </data>
   <data name="StlPreview_Desing2SideMenuAria" xml:space="preserve">
     <value>STL viewer side menu</value>
@@ -433,6 +568,12 @@
   <data name="StlPreview_Desing2SideMenuTabEntorno" xml:space="preserve">
     <value>Environment</value>
   </data>
+  <data name="StlPreview_Desing2ToolPolyline" xml:space="preserve">
+    <value>Polyline</value>
+  </data>
+  <data name="StlPreview_Desing2ToolPolylineAria" xml:space="preserve">
+    <value>Floor-plan polyline: chain segments with successive clicks; Enter or Escape finishes; each segment is an independent line</value>
+  </data>
   <data name="StlPreview_Desing2TopToolAlargar" xml:space="preserve">
     <value>Extend</value>
   </data>
@@ -443,7 +584,19 @@
     <value>Delete</value>
   </data>
   <data name="StlPreview_Desing2TopToolBorrarAria" xml:space="preserve">
-    <value>Delete tool — coming soon (UI placeholder only)</value>
+    <value>Delete floor lines and STL objects — pick (click or window) and confirm with Enter, Space or Delete</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolInsertCorner" xml:space="preserve">
+    <value>Insert corner</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolInsertCornerAria" xml:space="preserve">
+    <value>Insert L corner on the floor plan — first click at the outer corner; second click sets orientation (15° ortho with F8)</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolInsertEnclosure" xml:space="preserve">
+    <value>Insert enclosure</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolInsertEnclosureAria" xml:space="preserve">
+    <value>Insert rectangular enclosure on the floor plan — first click at outer corner; second click sets orientation (15° ortho with F8)</value>
   </data>
   <data name="StlPreview_Desing2TopToolLinea" xml:space="preserve">
     <value>Line</value>
@@ -455,7 +608,7 @@
     <value>Offset</value>
   </data>
   <data name="StlPreview_Desing2TopToolOffsetAria" xml:space="preserve">
-    <value>Offset tool — coming soon (UI placeholder only)</value>
+    <value>Plan offset — copy a line parallel at a configurable distance</value>
   </data>
   <data name="StlPreview_Desing2TopToolOrtho15TitleOff" xml:space="preserve">
     <value>15° floor ortho off — free angle to the second point. Click or F8 to turn on.</value>
@@ -481,6 +634,30 @@
   <data name="StlPreview_Desing2TopToolbarUnpinTitle" xml:space="preserve">
     <value>Unpin toolbar and return to hover-to-expand mode</value>
   </data>
+  <data name="StlPreview_Desing2UndoAria" xml:space="preserve">
+    <value>Undo last action</value>
+  </data>
+  <data name="StlPreview_Desing2UndoTitle" xml:space="preserve">
+    <value>Undo (Ctrl+Z)</value>
+  </data>
+  <data name="StlPreview_Desing2WallDimToolAria" xml:space="preserve">
+    <value>Wall thickness dimension on plan: parallel user lines, face-to-face thickness</value>
+  </data>
+  <data name="StlPreview_Desing2WallDimToolTitle" xml:space="preserve">
+    <value>Dimension walls — segment lengths, overall span, and thickness (construction style)</value>
+  </data>
+  <data name="StlPreview_EdgeRulersToggleAria" xml:space="preserve">
+    <value>Viewer edge rulers</value>
+  </data>
+  <data name="StlPreview_EdgeRulersToggleTitle" xml:space="preserve">
+    <value>Show or hide viewer edge rulers (+X top, +Z right)</value>
+  </data>
+  <data name="StlPreview_EdgeRulersToggleTitleOff" xml:space="preserve">
+    <value>Show viewer edge rulers</value>
+  </data>
+  <data name="StlPreview_EdgeRulersToggleTitleOn" xml:space="preserve">
+    <value>Hide viewer edge rulers</value>
+  </data>
   <data name="StlPreview_EscapeCancelToolsToast" xml:space="preserve">
     <value>Canceled</value>
   </data>
@@ -505,11 +682,62 @@
   <data name="StlPreview_GridToggleTitle" xml:space="preserve">
     <value>Show background grid</value>
   </data>
+  <data name="StlPreview_GridToggleTitleOff" xml:space="preserve">
+    <value>Show background grid</value>
+  </data>
+  <data name="StlPreview_GridToggleTitleOn" xml:space="preserve">
+    <value>Hide background grid</value>
+  </data>
   <data name="StlPreview_GroundShadowAria" xml:space="preserve">
     <value>Ground shadow</value>
   </data>
   <data name="StlPreview_GroundShadowTitle" xml:space="preserve">
     <value>Show ground shadow</value>
+  </data>
+  <data name="StlPreview_ImageSketchError" xml:space="preserve">
+    <value>Could not analyze image: {0}</value>
+  </data>
+  <data name="StlPreview_ImageSketchFormAccept" xml:space="preserve">
+    <value>Analyze and insert</value>
+  </data>
+  <data name="StlPreview_ImageSketchFormCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="StlPreview_ImageSketchFormChooseFile" xml:space="preserve">
+    <value>Choose image…</value>
+  </data>
+  <data name="StlPreview_ImageSketchFormHint" xml:space="preserve">
+    <value>Attach a plan or sketch (JPG/PNG) with wall lines and E/e and H/h dimensions.</value>
+  </data>
+  <data name="StlPreview_ImageSketchFormNoFile" xml:space="preserve">
+    <value>Select an image</value>
+  </data>
+  <data name="StlPreview_ImageSketchFormTitle" xml:space="preserve">
+    <value>Sketch from image</value>
+  </data>
+  <data name="StlPreview_ImageSketchPickInstruction" xml:space="preserve">
+    <value>Click on the floor plan to insert the sketch as lines. Esc to cancel</value>
+  </data>
+  <data name="StlPreview_ImageSketchProcessing" xml:space="preserve">
+    <value>Analyzing image…</value>
+  </data>
+  <data name="StlPreview_ImageSketchSuccess" xml:space="preserve">
+    <value>Inserted {0} line(s) from sketch</value>
+  </data>
+  <data name="StlPreview_InsertCornerToolInstructionFirst" xml:space="preserve">
+    <value>Click on the grid for the outer corner of the L (insertion point).</value>
+  </data>
+  <data name="StlPreview_InsertCornerToolInstructionSecond" xml:space="preserve">
+    <value>Second click to orient the corner (15° ortho when enabled). Escape cancels.</value>
+  </data>
+  <data name="StlPreview_InsertEnclosureToolInstructionFirst" xml:space="preserve">
+    <value>Click on the grid for the outer corner of the enclosure (insertion point).</value>
+  </data>
+  <data name="StlPreview_InsertEnclosureToolInstructionSecond" xml:space="preserve">
+    <value>Second click to orient the enclosure (15° ortho when enabled). Escape cancels.</value>
+  </data>
+  <data name="StlPreview_InsertEnclosureToolInvalidDimsToast" xml:space="preserve">
+    <value>Invalid enclosure dimensions. Check L, W and thicknesses Ex1, Ex2, Ey1, Ey2 in Configuration.</value>
   </data>
   <data name="StlPreview_LineToolDistanceInvalidToast" xml:space="preserve">
     <value>Enter a valid distance (e.g. 5, 5.5 or 5000 mm) or click for the second point.</value>
@@ -546,6 +774,27 @@
   </data>
   <data name="StlPreview_NoStlInViewerTooltip" xml:space="preserve">
     <value>No STL in the viewer</value>
+  </data>
+  <data name="StlPreview_OffsetToolDistanceInvalidToast" xml:space="preserve">
+    <value>Invalid offset distance. Use meters or millimeters (e.g. 0.30 or 300 mm).</value>
+  </data>
+  <data name="StlPreview_OffsetToolHudDistanceAria" xml:space="preserve">
+    <value>Offset distance in meters or millimeters (e.g. 0.30 · 300 mm)</value>
+  </data>
+  <data name="StlPreview_OffsetToolHudDistancePlaceholder" xml:space="preserve">
+    <value>e.g. 0.30 · 300 mm</value>
+  </data>
+  <data name="StlPreview_OffsetToolInstructionPickDirection" xml:space="preserve">
+    <value>Click on the floor toward the offset side (dashed preview). Escape cancels.</value>
+  </data>
+  <data name="StlPreview_OffsetToolInstructionPickLine" xml:space="preserve">
+    <value>Click the line to copy; double-click to edit the offset distance.</value>
+  </data>
+  <data name="StlPreview_PolylineToolInstructionFirst" xml:space="preserve">
+    <value>Click for the first vertex (move the mouse for the first segment preview).</value>
+  </data>
+  <data name="StlPreview_PolylineToolInstructionSecond" xml:space="preserve">
+    <value>Next vertex: click on the floor, or type distance + Enter to finish the polyline. Escape cancels the current segment.</value>
   </data>
   <data name="StlPreview_RowLabel3D" xml:space="preserve">
     <value>3D</value>
@@ -611,10 +860,16 @@
     <value>Select a block with available STL (orange button) to view it here.</value>
   </data>
   <data name="StlPreview_UcsRulersAria" xml:space="preserve">
-    <value>Plan rulers</value>
+    <value>Floor plan rulers</value>
   </data>
   <data name="StlPreview_UcsRulersToggleTitle" xml:space="preserve">
-    <value>Show or hide plan rulers from anchor (+X / +Z)</value>
+    <value>Show or hide floor plan rulers from anchor (+X / +Z)</value>
+  </data>
+  <data name="StlPreview_UcsRulersToggleTitleOff" xml:space="preserve">
+    <value>Show floor plan rulers (+X / +Z)</value>
+  </data>
+  <data name="StlPreview_UcsRulersToggleTitleOn" xml:space="preserve">
+    <value>Hide floor plan rulers (+X / +Z)</value>
   </data>
   <data name="StlPreview_UserFloorLineDimEditAria" xml:space="preserve">
     <value>Floor line segment length in metres (or type mm suffix). Enter to apply, Escape cancels.</value>
@@ -633,6 +888,45 @@
   </data>
   <data name="StlPreview_UserFloorLineDragHandleAria" xml:space="preserve">
     <value>Drag to move the segment on the floor plan (X and Z axes)</value>
+  </data>
+  <data name="StlPreview_UserFloorLineP1HandleAria" xml:space="preserve">
+    <value>Drag the segment start point to lengthen or shorten along the segment axis; snaps to another endpoint on release</value>
+  </data>
+  <data name="StlPreview_UserFloorLineP2HandleAria" xml:space="preserve">
+    <value>Drag the segment end point to lengthen or shorten along the segment axis; snaps to another endpoint on release</value>
+  </data>
+  <data name="StlPreview_Wall3dMapError" xml:space="preserve">
+    <value>Could not load texture: {0}</value>
+  </data>
+  <data name="StlPreview_Wall3dMapNoWalls" xml:space="preserve">
+    <value>No 3D walls to map</value>
+  </data>
+  <data name="StlPreview_Wall3dMapProcessing" xml:space="preserve">
+    <value>Loading concrete texture…</value>
+  </data>
+  <data name="StlPreview_Wall3dMapSuccess" xml:space="preserve">
+    <value>Concrete texture applied to {0} piece(s)</value>
+  </data>
+  <data name="StlPreview_Wall3dToolError" xml:space="preserve">
+    <value>Could not generate walls: {0}</value>
+  </data>
+  <data name="StlPreview_Wall3dToolInstruction" xml:space="preserve">
+    <value>Select plan lines (click or window). Enter to generate 3D walls (height 2.70 m), Esc to cancel</value>
+  </data>
+  <data name="StlPreview_Wall3dToolNoLines" xml:space="preserve">
+    <value>Select at least one plan line</value>
+  </data>
+  <data name="StlPreview_Wall3dToolProcessing" xml:space="preserve">
+    <value>Generating 3D walls…</value>
+  </data>
+  <data name="StlPreview_Wall3dToolSuccess" xml:space="preserve">
+    <value>Generated {0} 3D wall(s) (height 2.70 m)</value>
+  </data>
+  <data name="StlPreview_WallDimToolNoPairsToast" xml:space="preserve">
+    <value>No wall thickness detected. Draw the outline and inner offset, or click a wall line while the tool is active.</value>
+  </data>
+  <data name="StlPreview_WindowSelectionHint" xml:space="preserve">
+    <value>Drag on empty canvas: left-to-right window, right-to-left crossing</value>
   </data>
   <data name="StlPreview_XyzAxesAria" xml:space="preserve">
     <value>XYZ axes</value>

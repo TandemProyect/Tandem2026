@@ -96,6 +96,7 @@
     <Compile Include="MenuManager.cs" />
     <Compile Include="Models.cs" />
     <Compile Include="MVCApiService.cs" />
+    <Compile Include="PluginExceptionHelper.cs" />
     <Compile Include="ZwcadHelper.cs" />
     <Compile Include="FormPrincipal.cs">
       <SubType>Form</SubType>

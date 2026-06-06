@@ -1,0 +1,115 @@
+@using Desing.Resources
+
+@*
+    Desing_2 — barra inferior derecha sobre el lienzo (siempre visible, discreta).
+    Deshacer / rehacer, orto 15° y submenú flyout de reglas/rejilla/anclaje.
+*@
+
+<aside id="desing2-stl-bottom-toolbar" class="desing2-stl-bottom-toolbar desing2-stl-floating-toolbar" role="region" aria-label="@MasterArticles.StlPreview_Desing2BottomToolbarAria">
+
+    <div class="desing2-stl-floating-toolbar__inner d-flex align-items-center gap-1" role="toolbar" aria-label="@MasterArticles.StlPreview_Desing2BottomToolbarAria">
+
+        <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-undo"
+                title="@MasterArticles.StlPreview_Desing2UndoTitle"
+                aria-label="@MasterArticles.StlPreview_Desing2UndoAria"
+                disabled="disabled">
+            <i class="icon-base ri ri-arrow-go-back-line" aria-hidden="true"></i>
+        </button>
+
+        <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-redo"
+                title="@MasterArticles.StlPreview_Desing2RedoTitle"
+                aria-label="@MasterArticles.StlPreview_Desing2RedoAria"
+                disabled="disabled">
+            <i class="icon-base ri ri-arrow-go-forward-line" aria-hidden="true"></i>
+        </button>
+
+        <span class="desing2-stl-floating-toolbar__sep" aria-hidden="true"></span>
+
+        <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-ortho-15"
+                data-ma-stl-tool="ortho15"
+                data-ma-stl-ortho15-title-on="@MasterArticles.StlPreview_Desing2TopToolOrtho15TitleOn"
+                data-ma-stl-ortho15-title-off="@MasterArticles.StlPreview_Desing2TopToolOrtho15TitleOff"
+                title="@MasterArticles.StlPreview_Desing2TopToolOrtho15TitleOn"
+                aria-label="@MasterArticles.StlPreview_Desing2TopToolOrtho15TitleOn"
+                aria-pressed="true">
+            <i class="icon-base ri ri-grid-line" aria-hidden="true"></i>
+        </button>
+
+        <span class="desing2-stl-floating-toolbar__sep" aria-hidden="true"></span>
+
+        <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-wall-dim"
+                title="@MasterArticles.StlPreview_Desing2WallDimToolTitle"
+                aria-label="@MasterArticles.StlPreview_Desing2WallDimToolAria"
+                aria-pressed="false"
+                data-ma-stl-wall-dim-no-pairs-toast="@MasterArticles.StlPreview_WallDimToolNoPairsToast">
+            <i class="icon-base ri ri-pencil-ruler-2-line" aria-hidden="true"></i>
+        </button>
+
+        <div class="desing2-stl-floating-toolbar__flyout" id="desing2-stl-rulers-flyout">
+            <button type="button"
+                    class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn desing2-stl-floating-toolbar__flyout-toggle"
+                    id="desing2-stl-rulers-flyout-toggle"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                    aria-controls="desing2-stl-rulers-flyout-panel"
+                    title="@MasterArticles.StlPreview_Desing2RulersFlyoutTitle"
+                    aria-label="@MasterArticles.StlPreview_Desing2RulersFlyoutAria">
+                <i class="icon-base ri ri-ruler-2-line desing2-stl-floating-toolbar__flyout-toggle-icon" aria-hidden="true"></i>
+            </button>
+            <div class="desing2-stl-floating-toolbar__flyout-panel"
+                 id="desing2-stl-rulers-flyout-panel"
+                 role="group"
+                 aria-label="@MasterArticles.StlPreview_Desing2RulersFlyoutPanelAria"
+                 hidden="hidden">
+                <div class="desing2-stl-floating-toolbar__flyout-label">@MasterArticles.StlPreview_Desing2RulersFlyoutPanelAria</div>
+                <div class="desing2-stl-floating-toolbar__flyout-items d-flex align-items-center gap-1">
+                    <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn active" id="ma-stl-grid-toggle"
+                            aria-pressed="true"
+                            data-ma-grid-title-on="@MasterArticles.StlPreview_GridToggleTitleOn"
+                            data-ma-grid-title-off="@MasterArticles.StlPreview_GridToggleTitleOff"
+                            title="@MasterArticles.StlPreview_GridToggleTitleOn">
+                        <i class="icon-base ri ri-layout-grid-line" aria-hidden="true"></i>
+                        <span class="visually-hidden">@MasterArticles.StlPreview_GridToggleAria</span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn active" id="ma-stl-ucs-rulers-toggle"
+                            aria-pressed="true"
+                            data-ma-floor-rulers-title-on="@MasterArticles.StlPreview_UcsRulersToggleTitleOn"
+                            data-ma-floor-rulers-title-off="@MasterArticles.StlPreview_UcsRulersToggleTitleOff"
+                            title="@MasterArticles.StlPreview_UcsRulersToggleTitleOn">
+                        <i class="icon-base ri ri-ruler-line" aria-hidden="true"></i>
+                        <span class="visually-hidden">@MasterArticles.StlPreview_UcsRulersAria</span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn active" id="ma-stl-edge-rulers-toggle"
+                            aria-pressed="true"
+                            data-ma-edge-rulers-title-on="@MasterArticles.StlPreview_EdgeRulersToggleTitleOn"
+                            data-ma-edge-rulers-title-off="@MasterArticles.StlPreview_EdgeRulersToggleTitleOff"
+                            title="@MasterArticles.StlPreview_EdgeRulersToggleTitleOn">
+                        <i class="icon-base ri ri-ruler-2-line" aria-hidden="true"></i>
+                        <span class="visually-hidden">@MasterArticles.StlPreview_EdgeRulersToggleAria</span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-ruler-anchor-pick-toggle"
+                            aria-pressed="false"
+                            title="@MasterArticles.StlPreview_RulerAnchorGridPickTitle"
+                            data-ma-stl-ruler-anchor-pick-mode-toast="@MasterArticles.StlPreview_RulerAnchorGridPickModeToast"
+                            data-ma-stl-ruler-anchor-grid-snap-required-toast="@MasterArticles.StlPreview_RulerAnchorGridSnapRequiredToast"
+                            data-ma-stl-ruler-anchor-pick-grid-toast="@MasterArticles.StlPreview_RulerAnchorGridIntersectionToast">
+                        <i class="icon-base ri ri-crosshair-2-line" aria-hidden="true"></i>
+                        <span class="visually-hidden">@MasterArticles.StlPreview_RulerAnchorGridPickAria</span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-ruler-anchor-object-pick-toggle"
+                            aria-pressed="false"
+                            title="@MasterArticles.StlPreview_RulerAnchorObjectPickTitle"
+                            data-ma-stl-ruler-anchor-object-mode-toast="@MasterArticles.StlPreview_RulerAnchorObjectPickModeToast"
+                            data-ma-stl-ruler-anchor-insertion-toast="@MasterArticles.StlPreview_RulerAnchorObjectInsertionToast"
+                            data-ma-stl-ruler-anchor-object-miss-toast="@MasterArticles.StlPreview_RulerAnchorObjectPickMissToast">
+                        <i class="icon-base ri ri-cube-line" aria-hidden="true"></i>
+                        <span class="visually-hidden">@MasterArticles.StlPreview_RulerAnchorObjectPickAria</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</aside>
+

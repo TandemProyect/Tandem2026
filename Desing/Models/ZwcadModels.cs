@@ -161,6 +161,11 @@ namespace Desing.Models
         public List<PolilineaDTO> PolilineasADibujar { get; set; }
 
         /// <summary>
+        /// Líneas eje de muro extraídas de imagen (mm, plano CAD X/Y) — inserción en cliente Desing_2.
+        /// </summary>
+        public List<LineaDTO> LineasEje { get; set; }
+
+        /// <summary>
         /// Mensaje descriptivo del resultado
         /// </summary>
         public string Mensaje { get; set; }

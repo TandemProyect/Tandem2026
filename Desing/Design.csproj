@@ -3227,6 +3227,7 @@
     <Content Include="Views\MasterArticles\_DetailsDwgSlot.cshtml" />
     <Content Include="Scripts\MasterArticles\master-article-preview.js" />
     <Content Include="Scripts\MasterArticles\master-article-details-stl-viewer.js" />
+    <Content Include="Scripts\Desing2\desing2-stl-viewer-toolbar-wiring.js" />
     <Content Include="Scripts\MasterArticles\infinite-grid-helper.module.js" />
     <Content Include="Scripts\ThreejsDesing\README.md" />
     <Content Include="Scripts\MasterArticles\master-article-aps-dwg-viewer-boot.js" />
@@ -3235,6 +3236,7 @@
     <Content Include="Views\MasterArticles\Index.cshtml" />
     <Content Include="Views\Desing_2\Viewer.cshtml" />
     <Content Include="Views\Desing_2\_Desing2TopToolBar.cshtml" />
+    <Content Include="Views\Desing_2\_Desing2BottomToolBar.cshtml" />
     <Content Include="Views\Desing_2\_Desing2StlViewerWorkspace.cshtml" />
     <Content Include="Views\DesignTools\_MaterialList.cshtml" />
     <Content Include="Views\DesignTools\Index.cshtml" />

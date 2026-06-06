@@ -362,6 +362,48 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     z-index: 21;
 }
 
+.desing2-stl-view-scope .desing2-stl-wall-dim-overlay .desing2-stl-wall-dim-readout {
+    pointer-events: none;
+    cursor: default;
+}
+
+.desing2-stl-view-scope .desing2-stl-wall-dim-readout--thickness {
+    font-weight: 600;
+}
+
+/* Desing_2 STL — reglas borde visor (superior +X, derecha +Z); inset dentro del lienzo */
+.desing2-stl-view-scope {
+    --ma-stl-edge-ruler-thickness: 26px;
+}
+
+.desing2-stl-view-scope .ma-stl-edge-rulers-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 8;
+    pointer-events: none;
+    --ma-stl-edge-ruler-thickness: 26px;
+}
+
+.desing2-stl-view-scope .ma-stl-edge-ruler {
+    position: absolute;
+    display: block;
+    pointer-events: none;
+}
+
+.desing2-stl-view-scope .ma-stl-edge-ruler--top {
+    top: 0;
+    left: 0;
+    right: var(--ma-stl-edge-ruler-thickness);
+    height: var(--ma-stl-edge-ruler-thickness);
+}
+
+.desing2-stl-view-scope .ma-stl-edge-ruler--right {
+    top: var(--ma-stl-edge-ruler-thickness);
+    right: 0;
+    bottom: 0;
+    width: var(--ma-stl-edge-ruler-thickness);
+}
+
 .desing2-stl-view-scope .desing2-stl-floor-dim-readout {
     pointer-events: auto;
     min-width: 0;
@@ -462,6 +504,98 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
 .desing2-stl-view-scope .desing2-stl-floor-line-drag-handle.desing2-stl-floor-line-drag-handle--dragging {
     cursor: grabbing;
     background: #60a5fa;
+}
+
+/* Desing_2 STL — asas azules P1/P2 segmento usuario (estirar a lo largo del eje; ocultas si conectadas) */
+.desing2-stl-view-scope .desing2-stl-floor-line-endpoint-handle {
+    pointer-events: auto;
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    cursor: grab;
+    transform: translate(-50%, -50%);
+    z-index: 23;
+    touch-action: none;
+}
+
+.desing2-stl-view-scope .desing2-stl-floor-line-endpoint-handle::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 11px;
+    height: 11px;
+    transform: translate(-50%, -50%);
+    border: 1px solid rgba(255, 255, 255, 0.92);
+    border-radius: 50%;
+    background: #2563eb;
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.45);
+    pointer-events: none;
+}
+
+.desing2-stl-view-scope .desing2-stl-floor-line-p1-handle:hover,
+.desing2-stl-view-scope .desing2-stl-floor-line-p1-handle.desing2-stl-floor-line-p1-handle--hot,
+.desing2-stl-view-scope .desing2-stl-floor-line-p2-handle:hover,
+.desing2-stl-view-scope .desing2-stl-floor-line-p2-handle.desing2-stl-floor-line-p2-handle--hot {
+    cursor: grab;
+}
+
+.desing2-stl-view-scope .desing2-stl-floor-line-p1-handle:hover::after,
+.desing2-stl-view-scope .desing2-stl-floor-line-p1-handle.desing2-stl-floor-line-p1-handle--hot::after,
+.desing2-stl-view-scope .desing2-stl-floor-line-p2-handle:hover::after,
+.desing2-stl-view-scope .desing2-stl-floor-line-p2-handle.desing2-stl-floor-line-p2-handle--hot::after {
+    background: #3b82f6;
+    box-shadow:
+        0 0 0 2px rgba(59, 130, 246, 0.55),
+        0 0 8px rgba(59, 130, 246, 0.65);
+}
+
+.desing2-stl-view-scope .desing2-stl-floor-line-p1-handle.desing2-stl-floor-line-p1-handle--dragging,
+.desing2-stl-view-scope .desing2-stl-floor-line-p2-handle.desing2-stl-floor-line-p2-handle--dragging {
+    cursor: grabbing;
+    will-change: left, top;
+}
+
+.desing2-stl-view-scope .desing2-stl-floor-line-p1-handle.desing2-stl-floor-line-p1-handle--dragging::after,
+.desing2-stl-view-scope .desing2-stl-floor-line-p2-handle.desing2-stl-floor-line-p2-handle--dragging::after {
+    background: #60a5fa;
+}
+
+/* Desing_2 STL — marquee selección por ventana/cruce (genérico; herramientas opt-in) */
+.desing2-stl-window-selection-marquee {
+    position: fixed;
+    z-index: 10050;
+    pointer-events: none;
+    box-sizing: border-box;
+    border: 1px solid #2563eb;
+    background: rgba(37, 99, 235, 0.1);
+}
+.desing2-stl-window-selection-marquee.desing2-stl-window-selection-marquee--crossing {
+    border-style: dashed;
+}
+
+/* Desing_2 STL — HUD ángulo snap conexión línea (junto a esfera cian/verde) */
+.desing2-stl-view-scope .ma-stl-line-snap-angle-hud {
+    position: absolute;
+    z-index: 14;
+    pointer-events: none;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    color: #0f172a;
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(0, 229, 255, 0.45);
+    border-radius: 0.375rem;
+    padding: 0.2rem 0.45rem;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.14);
 }
 
 /* Desing_2 STL — panel lateral izquierdo hover (compacto ↔ menú espacio futuro); no mueve lienzo Three.js */
@@ -632,93 +766,126 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     -webkit-overflow-scrolling: touch;
 }
 
-/* Desing_2 — barra superior centrada sobre el lienzo (hover / bloqueo), espejo horizontal del panel izq. */
-.desing2-stl-hover-top-toolbar {
+/* Desing_2 STL — panel lateral derecho (muros); centrado vertical, hover desplegable como el izquierdo */
+.desing2-stl-hover-right-panel {
     position: absolute;
-    left: 50%;
-    top: 0;
-    transform: translateX(-50%);
-    z-index: 10;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 9;
     max-width: 100%;
     pointer-events: none;
-    --d2-ttp-peek: 20px;
-    --d2-ttp-collapsed-w: 76px;
-    --d2-ttp-expanded-w: min(560px, 92vw);
-    margin-top: calc(-1 * var(--d2-ttp-peek));
-    padding-top: var(--d2-ttp-peek);
+    --d2-hrp-peek: 20px;
+    --d2-hrp-collapsed: 48px;
+    --d2-hrp-expanded: min(260px, 78vw);
+    margin-right: calc(-1 * var(--d2-hrp-peek));
+    padding-right: var(--d2-hrp-peek);
 }
 
-.desing2-stl-hover-top-toolbar__hover-zone {
+.desing2-stl-hover-right-panel__hover-zone {
     pointer-events: auto;
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    align-items: stretch;
 }
 
-.desing2-stl-hover-top-toolbar__sheet {
-    width: var(--d2-ttp-collapsed-w);
+.desing2-stl-hover-right-panel__sheet {
+    width: var(--d2-hrp-collapsed);
     min-height: 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     background: #fff;
-    box-shadow: inset 0 -3px 0 rgba(var(--bs-primary-rgb), 0.08), 0 10px 28px rgba(15, 23, 42, 0.1);
+    box-shadow: inset 3px 0 0 rgba(var(--bs-primary-rgb), 0.08), 0 8px 24px rgba(15, 23, 42, 0.08);
     border-color: rgba(var(--bs-black-rgb), 0.1) !important;
     transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1) 0s, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.desing2-stl-hover-top-toolbar:not(.is-hover-locked) .desing2-stl-hover-top-toolbar__hover-zone:hover > .desing2-stl-hover-top-toolbar__sheet,
-.desing2-stl-hover-top-toolbar .desing2-stl-hover-top-toolbar__sheet:focus-within,
-.desing2-stl-hover-top-toolbar.is-pinned .desing2-stl-hover-top-toolbar__sheet {
-    width: var(--d2-ttp-expanded-w);
+.desing2-stl-hover-right-panel:not(.is-hover-locked) .desing2-stl-hover-right-panel__hover-zone:hover > .desing2-stl-hover-right-panel__sheet,
+.desing2-stl-hover-right-panel .desing2-stl-hover-right-panel__sheet:focus-within {
+    width: var(--d2-hrp-expanded);
     background: rgba(var(--bs-paper-bg-rgb), 0.94);
-    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
-    transition-delay: 0.08s;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+    transition-delay: 0.1s;
 }
 
-.desing2-stl-hover-top-toolbar.is-hover-locked:not(.is-pinned) .desing2-stl-hover-top-toolbar__sheet:not(:focus-within) {
-    width: var(--d2-ttp-collapsed-w) !important;
+.desing2-stl-hover-right-panel.is-hover-locked .desing2-stl-hover-right-panel__sheet:not(:focus-within) {
+    width: var(--d2-hrp-collapsed) !important;
     background: #fff !important;
-    box-shadow: inset 0 -3px 0 rgba(var(--bs-primary-rgb), 0.08), 0 10px 28px rgba(15, 23, 42, 0.1);
+    box-shadow: inset 3px 0 0 rgba(var(--bs-primary-rgb), 0.08), 0 8px 24px rgba(15, 23, 42, 0.08);
     transition-delay: 0s !important;
 }
 
-.desing2-stl-hover-top-toolbar__toolbar {
+.desing2-stl-hover-right-panel__toolbar {
     flex-shrink: 0;
     background-color: inherit;
-    min-height: 34px;
+    min-height: 52px;
 }
 
-.desing2-stl-hover-top-toolbar__toolbar .btn {
-    opacity: 0.82;
+.desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__wall3d-btn,
+.desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__wallmap-btn,
+.desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__imagesketch-btn {
+    padding: 0.35rem !important;
 }
 
-.desing2-stl-hover-top-toolbar:not(.is-hover-locked) .desing2-stl-hover-top-toolbar__hover-zone:hover .desing2-stl-hover-top-toolbar__toolbar .btn,
-.desing2-stl-hover-top-toolbar .desing2-stl-hover-top-toolbar__sheet:focus-within .desing2-stl-hover-top-toolbar__toolbar .btn,
-.desing2-stl-hover-top-toolbar.is-pinned .desing2-stl-hover-top-toolbar__toolbar .btn,
-.desing2-stl-hover-top-toolbar__toolbar .btn:hover,
-.desing2-stl-hover-top-toolbar__toolbar .btn:focus-visible {
+.desing2-stl-hover-right-panel__collapse .icon-base {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.desing2-stl-hover-right-panel__toolbar .btn {
+    opacity: 0.78;
+}
+
+.desing2-stl-hover-right-panel:not(.is-hover-locked)
+    .desing2-stl-hover-right-panel__hover-zone:hover
+    .desing2-stl-hover-right-panel__toolbar
+    .btn,
+.desing2-stl-hover-right-panel .desing2-stl-hover-right-panel__sheet:focus-within .desing2-stl-hover-right-panel__toolbar .btn,
+.desing2-stl-hover-right-panel__toolbar .btn:hover,
+.desing2-stl-hover-right-panel__toolbar .btn:focus-visible {
     opacity: 1;
 }
 
-/* Icono fold: mismo glyph que lateral; barras horizontales encajan mejor arriba */
-.desing2-stl-hover-top-toolbar__collapse-icon {
-    transform: rotate(-90deg);
+.desing2-stl-hover-right-panel__collapse:focus-visible {
+    box-shadow: 0 0 0 2px rgba(var(--bs-black-rgb), 0.2);
+}
+
+.desing2-stl-view-scope .desing2-stl-right-panel__wall-icon {
     display: block;
+    width: 1.9rem;
+    height: 1.9rem;
+    color: rgba(15, 23, 42, 0.82);
 }
 
-.desing2-stl-hover-top-toolbar__collapse:focus-visible {
-    box-shadow: 0 0 0 2px rgba(var(--bs-black-rgb), 0.2);
+.desing2-stl-hover-right-panel__strip-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
 }
 
-.desing2-stl-hover-top-toolbar__pin:focus-visible {
-    box-shadow: 0 0 0 2px rgba(var(--bs-black-rgb), 0.2);
+/* Colapsado: sólo icono muro en la tira; botón plegar oculto hasta expandir */
+.desing2-stl-hover-right-panel:not(.is-hover-locked)
+    .desing2-stl-hover-right-panel__hover-zone:not(:hover)
+    > .desing2-stl-hover-right-panel__sheet:not(:focus-within)
+    .desing2-stl-hover-right-panel__collapse,
+.desing2-stl-hover-right-panel.is-hover-locked
+    .desing2-stl-hover-right-panel__sheet:not(:focus-within)
+    .desing2-stl-hover-right-panel__collapse {
+    opacity: 0;
+    visibility: hidden;
+    width: 0;
+    min-width: 0;
+    padding: 0 !important;
+    margin: 0;
+    overflow: hidden;
+    pointer-events: none;
 }
 
-.desing2-stl-hover-top-toolbar__body {
+.desing2-stl-hover-right-panel__body {
     flex: 1 1 auto;
     min-height: 0;
-    max-height: 100%;
+    max-height: min(50vh, 320px);
     display: flex;
     flex-direction: column;
     opacity: 1;
@@ -729,13 +896,13 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
         flex-basis 0.28s cubic-bezier(0.4, 0, 0.2, 1) 0.08s, min-height 0.28s cubic-bezier(0.4, 0, 0.2, 1) 0.08s;
 }
 
-.desing2-stl-hover-top-toolbar:not(.is-hover-locked):not(.is-pinned)
-    .desing2-stl-hover-top-toolbar__hover-zone:not(:hover)
-    > .desing2-stl-hover-top-toolbar__sheet:not(:focus-within)
-    .desing2-stl-hover-top-toolbar__body,
-.desing2-stl-hover-top-toolbar.is-hover-locked:not(.is-pinned)
-    .desing2-stl-hover-top-toolbar__sheet:not(:focus-within)
-    .desing2-stl-hover-top-toolbar__body {
+.desing2-stl-hover-right-panel:not(.is-hover-locked)
+    .desing2-stl-hover-right-panel__hover-zone:not(:hover)
+    > .desing2-stl-hover-right-panel__sheet:not(:focus-within)
+    .desing2-stl-hover-right-panel__body,
+.desing2-stl-hover-right-panel.is-hover-locked
+    .desing2-stl-hover-right-panel__sheet:not(:focus-within)
+    .desing2-stl-hover-right-panel__body {
     opacity: 0;
     visibility: hidden;
     flex-grow: 0;
@@ -752,54 +919,211 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
         min-height 0.22s ease;
 }
 
-.desing2-stl-hover-top-toolbar:not(.is-hover-locked) .desing2-stl-hover-top-toolbar__hover-zone:hover > .desing2-stl-hover-top-toolbar__sheet .desing2-stl-hover-top-toolbar__body,
-.desing2-stl-hover-top-toolbar .desing2-stl-hover-top-toolbar__sheet:focus-within .desing2-stl-hover-top-toolbar__body,
-.desing2-stl-hover-top-toolbar.is-pinned .desing2-stl-hover-top-toolbar__body {
+.desing2-stl-hover-right-panel:not(.is-hover-locked) .desing2-stl-hover-right-panel__hover-zone:hover > .desing2-stl-hover-right-panel__sheet
+    .desing2-stl-hover-right-panel__body,
+.desing2-stl-hover-right-panel .desing2-stl-hover-right-panel__sheet:focus-within .desing2-stl-hover-right-panel__body {
     flex-grow: 1;
     flex-basis: auto;
-    max-height: none;
+    max-height: min(50vh, 320px);
     min-height: 0;
-    overflow: visible;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
-.desing2-stl-hover-top-toolbar:not(.is-hover-locked):not(.is-pinned)
-    .desing2-stl-hover-top-toolbar__hover-zone:not(:hover)
-    > .desing2-stl-hover-top-toolbar__sheet:not(:focus-within)
-    .desing2-stl-hover-top-toolbar__toolbar,
-.desing2-stl-hover-top-toolbar.is-hover-locked:not(.is-pinned)
-    .desing2-stl-hover-top-toolbar__sheet:not(:focus-within)
-    .desing2-stl-hover-top-toolbar__toolbar {
+.desing2-stl-hover-right-panel:not(.is-hover-locked)
+    .desing2-stl-hover-right-panel__hover-zone:not(:hover)
+    > .desing2-stl-hover-right-panel__sheet:not(:focus-within)
+    .desing2-stl-hover-right-panel__toolbar,
+.desing2-stl-hover-right-panel.is-hover-locked
+    .desing2-stl-hover-right-panel__sheet:not(:focus-within)
+    .desing2-stl-hover-right-panel__toolbar {
     border-bottom-color: transparent;
 }
 
-/* Botones — mismo tratamiento compacto que cámara bajo cubo (Viewer.cshtml scoped) */
-.desing2-stl-view-scope .desing2-stl-hover-top-toolbar .ma-stl-viewer-toolbar-btn.btn-outline-secondary {
-    color: #334155;
-    border-color: rgba(51, 65, 85, 0.35);
-    font-size: 0.8125rem;
+.desing2-stl-view-scope .desing2-stl-right-panel__wall3d-btn.active,
+.desing2-stl-view-scope .desing2-stl-right-panel__wall3d-btn[aria-pressed='true'],
+.desing2-stl-view-scope .desing2-stl-right-panel__wallmap-btn.active,
+.desing2-stl-view-scope .desing2-stl-right-panel__wallmap-btn[aria-pressed='true'],
+.desing2-stl-view-scope .desing2-stl-right-panel__imagesketch-btn.active,
+.desing2-stl-view-scope .desing2-stl-right-panel__imagesketch-btn[aria-pressed='true'] {
+    background: rgba(var(--bs-primary-rgb), 0.12);
+    color: rgba(var(--bs-primary-rgb), 1);
 }
 
-.desing2-stl-view-scope .desing2-stl-hover-top-toolbar .desing2-stl-hover-top-toolbar__tool-btn.btn-outline-secondary {
-    padding: 0.375rem 0.5rem;
-    line-height: 1;
-    min-width: 2.125rem;
+.desing2-stl-view-scope .desing2-stl-right-panel__wallmap-btn:disabled {
+    opacity: 0.55;
+    pointer-events: none;
 }
 
-.desing2-stl-view-scope .desing2-stl-hover-top-toolbar .desing2-stl-hover-top-toolbar__tool-btn.btn-outline-secondary .icon-base {
+.desing2-stl-image-sketch-form__preview-wrap {
+    max-height: min(52vh, 420px);
+    overflow: auto;
+    background: rgba(var(--bs-black-rgb), 0.03);
+}
+
+.desing2-stl-image-sketch-modal .modal-body {
+    min-height: 8rem;
+}
+
+.desing2-stl-image-sketch-form__preview {
     display: block;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
 }
 
-.desing2-stl-view-scope .desing2-stl-hover-top-toolbar .ma-stl-viewer-toolbar-btn.btn-outline-secondary:hover,
-.desing2-stl-view-scope .desing2-stl-hover-top-toolbar .ma-stl-viewer-toolbar-btn.btn-outline-secondary:focus {
-    background: rgba(51, 65, 85, 0.08);
-    color: #0f172a;
+/* Desing_2 — Configuración: sección L (espesores X / Y) */
+.desing2-config-wall-section,
+.desing2-config-enclosure-section {
+    padding-top: 0.15rem;
+    border-top: 1px solid rgba(var(--bs-border-color-rgb, 76, 78, 100), 0.35);
 }
 
-.desing2-stl-view-scope .desing2-stl-hover-top-toolbar .ma-stl-viewer-toolbar-btn.btn-outline-secondary.active,
-.desing2-stl-view-scope .desing2-stl-hover-top-toolbar .ma-stl-viewer-toolbar-btn.btn-check:checked + .ma-stl-viewer-toolbar-btn.btn-outline-secondary {
-    background: rgba(51, 65, 85, 0.15);
-    color: #0f172a;
-    border-color: #334155;
+.desing2-config-wall-section__figure,
+.desing2-config-enclosure-section__figure {
+    margin: 0;
+    padding: 0.35rem 0.25rem 0.15rem;
+    text-align: center;
+    background: rgba(var(--bs-body-bg-rgb, 255, 255, 255), 0.65);
+    border-radius: 0.375rem;
+}
+
+.desing2-config-wall-section__svg,
+.desing2-config-enclosure-section__svg {
+    display: block;
+    width: 100%;
+    max-width: 220px;
+    height: auto;
+    margin: 0 auto;
+}
+
+/* Desing_2 — barras flotantes del lienzo (superior e inferior); siempre visibles, discretas */
+.desing2-stl-top-toolbar {
+    position: absolute;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    pointer-events: none;
+}
+
+.desing2-stl-bottom-toolbar {
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+    left: auto;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.desing2-stl-floating-toolbar__inner {
+    pointer-events: auto;
+    padding: 0.2rem 0.3rem;
+    background: rgba(255, 255, 255, 0.68);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(51, 65, 85, 0.1);
+    border-radius: 0.375rem;
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.05);
+}
+
+.desing2-stl-floating-toolbar__sep {
+    display: inline-block;
+    width: 1px;
+    height: 1rem;
+    margin: 0 0.1rem;
+    background: rgba(51, 65, 85, 0.16);
+    flex-shrink: 0;
+}
+
+.desing2-stl-view-scope .desing2-stl-floating-toolbar .ma-stl-viewer-toolbar-btn.btn-outline-secondary {
+    color: rgba(51, 65, 85, 0.72);
+    border-color: rgba(51, 65, 85, 0.18);
+    background: transparent;
+    font-size: 0.75rem;
+    opacity: 0.82;
+}
+
+.desing2-stl-view-scope .desing2-stl-floating-toolbar .desing2-stl-floating-toolbar__tool-btn.btn-outline-secondary {
+    padding: 0.2rem 0.35rem;
+    line-height: 1;
+    min-width: 1.625rem;
+}
+
+.desing2-stl-view-scope .desing2-stl-floating-toolbar .desing2-stl-floating-toolbar__tool-btn.btn-outline-secondary .icon-base {
+    display: block;
+    font-size: 0.95rem;
+}
+
+.desing2-stl-view-scope .desing2-stl-floating-toolbar .desing2-stl-tool-icon--insert-corner,
+.desing2-stl-view-scope .desing2-stl-floating-toolbar .desing2-stl-tool-icon--insert-enclosure {
+    width: 0.95rem;
+    height: 0.95rem;
+}
+
+.desing2-stl-view-scope .desing2-stl-floating-toolbar .ma-stl-viewer-toolbar-btn.btn-outline-secondary:hover,
+.desing2-stl-view-scope .desing2-stl-floating-toolbar .ma-stl-viewer-toolbar-btn.btn-outline-secondary:focus-visible {
+    background: rgba(51, 65, 85, 0.07);
+    color: rgba(15, 23, 42, 0.88);
+    border-color: rgba(51, 65, 85, 0.28);
+    opacity: 1;
+}
+
+.desing2-stl-view-scope .desing2-stl-floating-toolbar .ma-stl-viewer-toolbar-btn.btn-outline-secondary:disabled {
+    opacity: 0.35;
+}
+
+.desing2-stl-view-scope .desing2-stl-floating-toolbar .ma-stl-viewer-toolbar-btn.btn-outline-secondary.active:not(:disabled) {
+    background: rgba(51, 65, 85, 0.1);
+    color: rgba(15, 23, 42, 0.9);
+    border-color: rgba(51, 65, 85, 0.32);
+    opacity: 1;
+}
+
+/* Desing_2 — flyout submenú reglas/rejilla (barra inferior derecha) */
+.desing2-stl-floating-toolbar__flyout {
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+}
+
+.desing2-stl-floating-toolbar__flyout-toggle.is-open,
+.desing2-stl-floating-toolbar__flyout-toggle.has-active-children:not(:disabled) {
+    background: rgba(51, 65, 85, 0.1);
+    color: rgba(15, 23, 42, 0.9);
+    border-color: rgba(51, 65, 85, 0.32);
+    opacity: 1;
+}
+
+.desing2-stl-floating-toolbar__flyout-panel {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 0.35rem);
+    z-index: 20;
+    min-width: max-content;
+    padding: 0.35rem 0.4rem 0.4rem;
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(51, 65, 85, 0.12);
+    border-radius: 0.375rem;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.08);
+}
+
+.desing2-stl-floating-toolbar__flyout-label {
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: rgba(51, 65, 85, 0.55);
+    margin-bottom: 0.3rem;
+    padding: 0 0.05rem;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.desing2-stl-floating-toolbar__flyout-items {
+    flex-wrap: nowrap;
 }
 
 .desing2-stl-view-scope .ma-stl-compass-overlay {

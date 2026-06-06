@@ -13,7 +13,7 @@
    data-ma-stl-source-units: vértices STL → m → mm escena (×1000; reglas/rejilla en mm).
    Persistencia vista: #ma-stl-save-viewer-state → cookie global; restauración tras primer refit (ver desing-2-stl-viewer-funciones.md). *@
 @* Opcional desarrollo en #ma-stl-viewer-shell: data-ma-stl-dev-auto-load="true", data-ma-stl-dev-default-stl="~/Files/.../3120270090P.stl" (URL resuelta con @Url.Content), data-ma-stl-dev-default-label="..." *@
-<div id="ma-stl-viewer-shell" class="desing2-stl-view-scope border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" data-ma-text-color1="@HttpUtility.HtmlAttributeEncode(textColor1Hex)" data-ma-text-color2="@HttpUtility.HtmlAttributeEncode(textColor2Hex)" data-ma-stl-show-rulers-toggle="true" data-ma-stl-desing2-persist-view="true" data-ma-stl-source-units="@HttpUtility.HtmlAttributeEncode(stlSrcUnits)" data-ma-stl-escape-cancel-toast="@MasterArticles.StlPreview_EscapeCancelToolsToast" data-ma-stl-user-floor-line-dim-edit-aria="@MasterArticles.StlPreview_UserFloorLineDimEditAria" data-ma-stl-user-floor-line-dim-edit-x-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaXAria" data-ma-stl-user-floor-line-dim-edit-z-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaZAria" data-ma-stl-user-floor-line-drag-handle-aria="@MasterArticles.StlPreview_UserFloorLineDragHandleAria">
+<div id="ma-stl-viewer-shell" class="desing2-stl-view-scope border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" data-ma-text-color1="@HttpUtility.HtmlAttributeEncode(textColor1Hex)" data-ma-text-color2="@HttpUtility.HtmlAttributeEncode(textColor2Hex)" data-ma-stl-show-rulers-toggle="true" data-ma-stl-desing2-persist-view="true" data-ma-stl-source-units="@HttpUtility.HtmlAttributeEncode(stlSrcUnits)" data-ma-stl-wall3d-api-url="@Url.Action("ProcesarLineasZwcad", "DesignToolsAutocad")" data-ma-stl-image-sketch-api-url="@Url.Action("DetectarEsquinasImagen", "DesignToolsAutocad")" data-ma-stl-wall3d-mat-wall="@Url.Content("~/Content/DesignTools/Material/concrete.png")" data-ma-stl-escape-cancel-toast="@MasterArticles.StlPreview_EscapeCancelToolsToast" data-ma-stl-user-floor-line-dim-edit-aria="@MasterArticles.StlPreview_UserFloorLineDimEditAria" data-ma-stl-user-floor-line-dim-edit-x-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaXAria" data-ma-stl-user-floor-line-dim-edit-z-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaZAria" data-ma-stl-user-floor-line-drag-handle-aria="@MasterArticles.StlPreview_UserFloorLineDragHandleAria" data-ma-stl-user-floor-line-p1-handle-aria="@MasterArticles.StlPreview_UserFloorLineP1HandleAria" data-ma-stl-user-floor-line-p2-handle-aria="@MasterArticles.StlPreview_UserFloorLineP2HandleAria">
     <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap px-2 py-2 border-bottom desing2-stl-actions-toolbar" id="master-article-stl-viewer-toolbar">
         <div class="d-flex align-items-center gap-2 min-w-0 flex-grow-1 desing2-stl-toolbar-leading">
             <span class="app-brand-logo demo flex-shrink-0">
@@ -30,10 +30,6 @@
             <button type="button" class="btn btn-sm btn-outline-secondary waves-effect" id="ma-stl-save-viewer-state" title="@MasterArticles.StlPreview_SaveViewTitle" data-ma-stl-save-view-title="@MasterArticles.StlPreview_SaveViewTitle" data-ma-stl-save-view-saved="@MasterArticles.StlPreview_SaveViewSavedTitle" data-ma-stl-save-view-toast="@MasterArticles.StlPreview_SaveViewSavedToast" aria-label="@MasterArticles.StlPreview_SaveViewAria">
                 <i class="icon-base ri ri-save-3-line" aria-hidden="true"></i>
                 <span class="visually-hidden">@MasterArticles.StlPreview_SaveViewAria</span>
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect active" id="ma-stl-grid-toggle" aria-pressed="true" title="@MasterArticles.StlPreview_GridToggleTitle">
-                <i class="icon-base ri ri-grid-line" aria-hidden="true"></i>
-                <span class="visually-hidden">@MasterArticles.StlPreview_GridToggleAria</span>
             </button>
             <button type="button" class="btn btn-sm btn-outline-secondary waves-effect" id="ma-stl-sky-toggle" aria-pressed="false" title="@MasterArticles.StlPreview_SkyToggleTitle">
                 <i class="icon-base ri ri-cloud-line" aria-hidden="true"></i>
@@ -55,24 +51,16 @@
                 <i class="icon-base ri ri-compass-3-line" aria-hidden="true"></i>
                 <span class="visually-hidden">@MasterArticles.StlPreview_XyzAxesAria</span>
             </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect active" id="ma-stl-ucs-rulers-toggle" aria-pressed="true" title="@MasterArticles.StlPreview_UcsRulersToggleTitle">
-                <i class="icon-base ri ri-ruler-line" aria-hidden="true"></i>
-                <span class="visually-hidden">@MasterArticles.StlPreview_UcsRulersAria</span>
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect" id="ma-stl-ruler-anchor-pick-toggle" aria-pressed="false" title="@MasterArticles.StlPreview_RulerAnchorGridPickTitle" data-ma-stl-ruler-anchor-pick-mode-toast="@MasterArticles.StlPreview_RulerAnchorGridPickModeToast" data-ma-stl-ruler-anchor-grid-snap-required-toast="@MasterArticles.StlPreview_RulerAnchorGridSnapRequiredToast" data-ma-stl-ruler-anchor-pick-grid-toast="@MasterArticles.StlPreview_RulerAnchorGridIntersectionToast">
-                <i class="icon-base ri ri-crosshair-2-line" aria-hidden="true"></i>
-                <span class="visually-hidden">@MasterArticles.StlPreview_RulerAnchorGridPickAria</span>
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect" id="ma-stl-ruler-anchor-object-pick-toggle" aria-pressed="false" title="@MasterArticles.StlPreview_RulerAnchorObjectPickTitle" data-ma-stl-ruler-anchor-object-mode-toast="@MasterArticles.StlPreview_RulerAnchorObjectPickModeToast" data-ma-stl-ruler-anchor-insertion-toast="@MasterArticles.StlPreview_RulerAnchorObjectInsertionToast" data-ma-stl-ruler-anchor-object-miss-toast="@MasterArticles.StlPreview_RulerAnchorObjectPickMissToast">
-                <i class="icon-base ri ri-cube-line" aria-hidden="true"></i>
-                <span class="visually-hidden">@MasterArticles.StlPreview_RulerAnchorObjectPickAria</span>
-            </button>
             <a href="javascript:history.back()" class="btn btn-sm btn-outline-secondary waves-effect flex-shrink-0">@Common.Btn_Back</a>
         </div>
     </div>
     <div id="master-article-details-stl-viewer-canvas" class="flex-grow-1 position-relative bg-white ma-stl-canvas--clips d-flex flex-column">
         @* inset edges (not h-100): percentage height on absolute children can collapse inside nested flex until layout settles *@
         <div id="ma-stl-viewer-gl-host" class="position-absolute top-0 bottom-0 start-0 end-0"></div>
+        <div id="ma-stl-edge-rulers-overlay" class="ma-stl-edge-rulers-overlay d-none" aria-hidden="true">
+            <canvas id="ma-stl-edge-ruler-top" class="ma-stl-edge-ruler ma-stl-edge-ruler--top" aria-hidden="true"></canvas>
+            <canvas id="ma-stl-edge-ruler-right" class="ma-stl-edge-ruler ma-stl-edge-ruler--right" aria-hidden="true"></canvas>
+        </div>
         <div id="ma-stl-line-dim-edit-overlay" class="desing2-stl-floor-dim-overlay" aria-hidden="true" hidden="hidden">
             <button type="button" id="ma-stl-floor-dim-readout" class="desing2-stl-floor-dim-readout" hidden="hidden" aria-hidden="true"></button>
             <button type="button" id="ma-stl-floor-dim-readout-dx" class="desing2-stl-floor-dim-readout desing2-stl-floor-dim-readout--compact" hidden="hidden" aria-hidden="true" aria-label="@MasterArticles.StlPreview_UserFloorLineDimReadoutDeltaXAria"></button>
@@ -81,9 +69,13 @@
             <input type="text" id="ma-stl-floor-dim-input-dx" class="desing2-stl-floor-dim-input desing2-stl-floor-dim-input--compact" hidden="hidden" autocomplete="off" aria-hidden="true" />
             <input type="text" id="ma-stl-floor-dim-input-dz" class="desing2-stl-floor-dim-input desing2-stl-floor-dim-input--compact" hidden="hidden" autocomplete="off" aria-hidden="true" />
             <button type="button" id="ma-stl-floor-line-drag-handle" class="desing2-stl-floor-line-drag-handle" hidden="hidden" aria-hidden="true" aria-label="@MasterArticles.StlPreview_UserFloorLineDragHandleAria"></button>
+            <button type="button" id="ma-stl-floor-line-p1-handle" class="desing2-stl-floor-line-endpoint-handle desing2-stl-floor-line-p1-handle" hidden="hidden" aria-hidden="true" aria-label="@MasterArticles.StlPreview_UserFloorLineP1HandleAria"></button>
+            <button type="button" id="ma-stl-floor-line-p2-handle" class="desing2-stl-floor-line-endpoint-handle desing2-stl-floor-line-p2-handle" hidden="hidden" aria-hidden="true" aria-label="@MasterArticles.StlPreview_UserFloorLineP2HandleAria"></button>
         </div>
+        <div id="ma-stl-wall-dim-overlay" class="desing2-stl-floor-dim-overlay desing2-stl-wall-dim-overlay" aria-hidden="true" hidden="hidden"></div>
         @* Barra superior centrada (hover / bloqueo); herramientas CAD — placeholders. *@
         @Html.Partial("_Desing2TopToolBar")
+        @Html.Partial("_Desing2BottomToolBar")
         @* Borde izq. hover + contraer manual; zona “peek” a la izquierda del strip (CSS). *@
         <aside id="desing2-stl-hover-side-panel" class="desing2-stl-hover-side-panel" role="region" aria-label="@MasterArticles.StlPreview_Desing2SideMenuAria">
             <div class="desing2-stl-hover-side-panel__hover-zone">
@@ -140,8 +132,151 @@
                                 </div>
                             </div>
                             <div class="tab-pane fade" id="desing2-stl-side-pane-config" role="tabpanel" aria-labelledby="desing2-stl-side-tab-config" tabindex="0">
-                                <div class="text-muted small lh-sm text-center fst-italic py-2" data-desing2-hsp-tab-placeholder>
-                                    @MasterArticles.StlPreview_Desing2SideMenuPlaceholder
+                                <div class="vstack gap-3">
+                                    <div>
+                                        <label class="form-label mb-1" for="ma-stl-config-offset-default">@MasterArticles.StlPreview_Desing2ConfigOffsetDefaultLabel</label>
+                                        <input type="text" class="form-control form-control-sm" id="ma-stl-config-offset-default" maxlength="48" autocomplete="off"
+                                               inputmode="decimal"
+                                               value="0,30"
+                                               aria-label="@MasterArticles.StlPreview_Desing2ConfigOffsetDefaultAria"
+                                               placeholder="@MasterArticles.StlPreview_Desing2ConfigOffsetDefaultPlaceholder" />
+                                    </div>
+                                    <div class="desing2-config-wall-section">
+                                        <p class="form-label mb-2 small text-body-secondary mb-0">@MasterArticles.StlPreview_Desing2ConfigWallSectionTitle</p>
+                                        <figure class="desing2-config-wall-section__figure mb-2" aria-hidden="true">
+                                            <svg class="desing2-config-wall-section__svg" viewBox="0 0 220 170" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                                                <defs>
+                                                    <pattern id="desing2-wall-section-hatch" width="6" height="6" patternUnits="userSpaceOnUse">
+                                                        <circle cx="1.2" cy="1.2" r="0.65" fill="#555" opacity="0.55" />
+                                                        <circle cx="4.5" cy="4.2" r="0.55" fill="#555" opacity="0.45" />
+                                                    </pattern>
+                                                    <marker id="desing2-wall-dim-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                                                        <path d="M0,0 L6,3 L0,6 Z" fill="#ff9800" />
+                                                    </marker>
+                                                </defs>
+                                                <path d="M 28 118 L 28 42 L 78 42 L 78 118 L 168 118 L 168 148 L 28 148 Z"
+                                                      fill="url(#desing2-wall-section-hatch)" stroke="#111" stroke-width="2.2" stroke-linejoin="miter" />
+                                                <line x1="22" y1="42" x2="22" y2="148" stroke="#111" stroke-width="1" />
+                                                <line x1="28" y1="36" x2="78" y2="36" stroke="#111" stroke-width="1" />
+                                                <line x1="84" y1="148" x2="168" y2="148" stroke="#111" stroke-width="1" />
+                                                <line x1="174" y1="118" x2="174" y2="148" stroke="#111" stroke-width="1" />
+                                                <line x1="28" y1="28" x2="78" y2="28" stroke="#ff9800" stroke-width="1.6"
+                                                      marker-start="url(#desing2-wall-dim-arrow)" marker-end="url(#desing2-wall-dim-arrow)" />
+                                                <text x="53" y="22" text-anchor="middle" fill="#ff9800" font-size="15" font-weight="700" font-family="system-ui,sans-serif">X</text>
+                                                <line x1="186" y1="118" x2="186" y2="148" stroke="#ff9800" stroke-width="1.6"
+                                                      marker-start="url(#desing2-wall-dim-arrow)" marker-end="url(#desing2-wall-dim-arrow)" />
+                                                <text x="198" y="136" text-anchor="start" fill="#ff9800" font-size="15" font-weight="700" font-family="system-ui,sans-serif">Y</text>
+                                            </svg>
+                                        </figure>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <label class="form-label mb-1" for="ma-stl-config-wall-width-x">@MasterArticles.StlPreview_Desing2ConfigWallWidthXLabel</label>
+                                                <input type="text" class="form-control form-control-sm" id="ma-stl-config-wall-width-x" maxlength="48" autocomplete="off"
+                                                       inputmode="decimal"
+                                                       value="0,30"
+                                                       aria-label="@MasterArticles.StlPreview_Desing2ConfigWallWidthXAria"
+                                                       placeholder="@MasterArticles.StlPreview_Desing2ConfigWallWidthXPlaceholder" />
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="form-label mb-1" for="ma-stl-config-wall-width-y">@MasterArticles.StlPreview_Desing2ConfigWallWidthYLabel</label>
+                                                <input type="text" class="form-control form-control-sm" id="ma-stl-config-wall-width-y" maxlength="48" autocomplete="off"
+                                                       inputmode="decimal"
+                                                       value="0,30"
+                                                       aria-label="@MasterArticles.StlPreview_Desing2ConfigWallWidthYAria"
+                                                       placeholder="@MasterArticles.StlPreview_Desing2ConfigWallWidthYPlaceholder" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="desing2-config-enclosure-section">
+                                        <p class="form-label mb-2 small text-body-secondary mb-0">@MasterArticles.StlPreview_Desing2ConfigEnclosureSectionTitle</p>
+                                        <figure class="desing2-config-enclosure-section__figure mb-2" aria-hidden="true">
+                                            <svg class="desing2-config-enclosure-section__svg" viewBox="0 0 240 200" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                                                <defs>
+                                                    <pattern id="desing2-enclosure-hatch" width="6" height="6" patternUnits="userSpaceOnUse">
+                                                        <circle cx="1.2" cy="1.2" r="0.65" fill="#555" opacity="0.55" />
+                                                        <circle cx="4.5" cy="4.2" r="0.55" fill="#555" opacity="0.45" />
+                                                    </pattern>
+                                                    <marker id="desing2-enclosure-dim-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                                                        <path d="M0,0 L6,3 L0,6 Z" fill="#ff9800" />
+                                                    </marker>
+                                                </defs>
+                                                <rect x="52" y="38" width="136" height="100" fill="none" stroke="#111" stroke-width="2.2" />
+                                                <rect x="52" y="38" width="136" height="12" fill="url(#desing2-enclosure-hatch)" stroke="#111" stroke-width="1.2" />
+                                                <rect x="52" y="126" width="136" height="12" fill="url(#desing2-enclosure-hatch)" stroke="#111" stroke-width="1.2" />
+                                                <rect x="52" y="50" width="14" height="76" fill="url(#desing2-enclosure-hatch)" stroke="#111" stroke-width="1.2" />
+                                                <rect x="174" y="50" width="14" height="76" fill="url(#desing2-enclosure-hatch)" stroke="#111" stroke-width="1.2" />
+                                                <rect x="66" y="50" width="108" height="76" fill="#fff" stroke="none" />
+                                                <line x1="52" y1="24" x2="188" y2="24" stroke="#ff9800" stroke-width="1.6"
+                                                      marker-start="url(#desing2-enclosure-dim-arrow)" marker-end="url(#desing2-enclosure-dim-arrow)" />
+                                                <text x="120" y="18" text-anchor="middle" fill="#ff9800" font-size="14" font-weight="700" font-family="system-ui,sans-serif">L</text>
+                                                <line x1="38" y1="38" x2="38" y2="138" stroke="#ff9800" stroke-width="1.6"
+                                                      marker-start="url(#desing2-enclosure-dim-arrow)" marker-end="url(#desing2-enclosure-dim-arrow)" />
+                                                <text x="28" y="92" text-anchor="middle" fill="#ff9800" font-size="14" font-weight="700" font-family="system-ui,sans-serif" transform="rotate(-90 28 92)">W</text>
+                                                <line x1="52" y1="88" x2="66" y2="88" stroke="#ff9800" stroke-width="1.6"
+                                                      marker-start="url(#desing2-enclosure-dim-arrow)" marker-end="url(#desing2-enclosure-dim-arrow)" />
+                                                <text x="59" y="80" text-anchor="middle" fill="#ff9800" font-size="13" font-weight="700" font-family="system-ui,sans-serif">Ex1</text>
+                                                <line x1="174" y1="88" x2="188" y2="88" stroke="#ff9800" stroke-width="1.6"
+                                                      marker-start="url(#desing2-enclosure-dim-arrow)" marker-end="url(#desing2-enclosure-dim-arrow)" />
+                                                <text x="181" y="80" text-anchor="middle" fill="#ff9800" font-size="13" font-weight="700" font-family="system-ui,sans-serif">Ex2</text>
+                                                <line x1="120" y1="38" x2="120" y2="50" stroke="#ff9800" stroke-width="1.6"
+                                                      marker-start="url(#desing2-enclosure-dim-arrow)" marker-end="url(#desing2-enclosure-dim-arrow)" />
+                                                <text x="132" y="46" text-anchor="start" fill="#ff9800" font-size="13" font-weight="700" font-family="system-ui,sans-serif">Ey2</text>
+                                                <line x1="120" y1="126" x2="120" y2="138" stroke="#ff9800" stroke-width="1.6"
+                                                      marker-start="url(#desing2-enclosure-dim-arrow)" marker-end="url(#desing2-enclosure-dim-arrow)" />
+                                                <text x="132" y="136" text-anchor="start" fill="#ff9800" font-size="13" font-weight="700" font-family="system-ui,sans-serif">Ey1</text>
+                                            </svg>
+                                        </figure>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <label class="form-label mb-1" for="ma-stl-config-enclosure-l">@MasterArticles.StlPreview_Desing2ConfigEnclosureLLabel</label>
+                                                <input type="text" class="form-control form-control-sm" id="ma-stl-config-enclosure-l" maxlength="48" autocomplete="off"
+                                                       inputmode="decimal"
+                                                       value="6,00"
+                                                       aria-label="@MasterArticles.StlPreview_Desing2ConfigEnclosureLAria"
+                                                       placeholder="@MasterArticles.StlPreview_Desing2ConfigEnclosureLPlaceholder" />
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="form-label mb-1" for="ma-stl-config-enclosure-w">@MasterArticles.StlPreview_Desing2ConfigEnclosureWLabel</label>
+                                                <input type="text" class="form-control form-control-sm" id="ma-stl-config-enclosure-w" maxlength="48" autocomplete="off"
+                                                       inputmode="decimal"
+                                                       value="4,00"
+                                                       aria-label="@MasterArticles.StlPreview_Desing2ConfigEnclosureWAria"
+                                                       placeholder="@MasterArticles.StlPreview_Desing2ConfigEnclosureWPlaceholder" />
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="form-label mb-1" for="ma-stl-config-enclosure-ex1">@MasterArticles.StlPreview_Desing2ConfigEnclosureEx1Label</label>
+                                                <input type="text" class="form-control form-control-sm" id="ma-stl-config-enclosure-ex1" maxlength="48" autocomplete="off"
+                                                       inputmode="decimal"
+                                                       value="0,30"
+                                                       aria-label="@MasterArticles.StlPreview_Desing2ConfigEnclosureEx1Aria"
+                                                       placeholder="@MasterArticles.StlPreview_Desing2ConfigEnclosureEx1Placeholder" />
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="form-label mb-1" for="ma-stl-config-enclosure-ex2">@MasterArticles.StlPreview_Desing2ConfigEnclosureEx2Label</label>
+                                                <input type="text" class="form-control form-control-sm" id="ma-stl-config-enclosure-ex2" maxlength="48" autocomplete="off"
+                                                       inputmode="decimal"
+                                                       value="0,30"
+                                                       aria-label="@MasterArticles.StlPreview_Desing2ConfigEnclosureEx2Aria"
+                                                       placeholder="@MasterArticles.StlPreview_Desing2ConfigEnclosureEx2Placeholder" />
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="form-label mb-1" for="ma-stl-config-enclosure-ey1">@MasterArticles.StlPreview_Desing2ConfigEnclosureEy1Label</label>
+                                                <input type="text" class="form-control form-control-sm" id="ma-stl-config-enclosure-ey1" maxlength="48" autocomplete="off"
+                                                       inputmode="decimal"
+                                                       value="0,30"
+                                                       aria-label="@MasterArticles.StlPreview_Desing2ConfigEnclosureEy1Aria"
+                                                       placeholder="@MasterArticles.StlPreview_Desing2ConfigEnclosureEy1Placeholder" />
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="form-label mb-1" for="ma-stl-config-enclosure-ey2">@MasterArticles.StlPreview_Desing2ConfigEnclosureEy2Label</label>
+                                                <input type="text" class="form-control form-control-sm" id="ma-stl-config-enclosure-ey2" maxlength="48" autocomplete="off"
+                                                       inputmode="decimal"
+                                                       value="0,30"
+                                                       aria-label="@MasterArticles.StlPreview_Desing2ConfigEnclosureEy2Aria"
+                                                       placeholder="@MasterArticles.StlPreview_Desing2ConfigEnclosureEy2Placeholder" />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -149,10 +284,53 @@
                 </div>
             </div>
         </aside>
+        @* Borde derecho — menú muros (hover desplegable + plegar manual; espejo del panel izquierdo). *@
+        <aside id="desing2-stl-hover-right-panel" class="desing2-stl-hover-right-panel" role="region" aria-label="@MasterArticles.StlPreview_Desing2RightMenuAria">
+            <div class="desing2-stl-hover-right-panel__hover-zone">
+                <div class="desing2-stl-hover-right-panel__sheet border border-end-0 rounded-start shadow-sm">
+                    <div class="desing2-stl-hover-right-panel__toolbar d-flex justify-content-between align-items-center px-2 py-1 border-bottom border-light">
+                        <div class="d-flex align-items-center gap-1">
+                            <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-right-panel__wall3d-btn rounded flex-shrink-0" id="desing2-stl-right-panel-wall-3d" title="@MasterArticles.StlPreview_Desing2RightMenuWall3dAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuWall3dAria" aria-pressed="false">
+                                <svg class="desing2-stl-right-panel__wall-icon" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                    <rect x="3.5" y="5.5" width="17" height="13" fill="none" stroke="currentColor" stroke-width="2" />
+                                    <rect x="6.5" y="8.5" width="11" height="7" fill="none" stroke="currentColor" stroke-width="1.5" />
+                                </svg>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-right-panel__wallmap-btn rounded flex-shrink-0" id="desing2-stl-right-panel-wall-map" title="@MasterArticles.StlPreview_Desing2RightMenuWallMapAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuWallMapAria" aria-pressed="false"
+                                    data-ma-stl-wall3d-map-no-walls="@MasterArticles.StlPreview_Wall3dMapNoWalls"
+                                    data-ma-stl-wall3d-map-processing="@MasterArticles.StlPreview_Wall3dMapProcessing"
+                                    data-ma-stl-wall3d-map-success="@MasterArticles.StlPreview_Wall3dMapSuccess"
+                                    data-ma-stl-wall3d-map-error="@MasterArticles.StlPreview_Wall3dMapError">
+                                <svg class="desing2-stl-right-panel__wall-icon" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                    <rect x="4" y="4" width="16" height="16" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.75" />
+                                    <path d="M6 9h12M6 12.5h12M6 16h8" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" />
+                                </svg>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-right-panel__imagesketch-btn rounded flex-shrink-0" id="desing2-stl-right-panel-image-sketch" title="@MasterArticles.StlPreview_Desing2RightMenuImageSketchAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuImageSketchAria" aria-pressed="false">
+                                <svg class="desing2-stl-right-panel__wall-icon" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                    <rect x="3.5" y="5" width="17" height="14" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.75" />
+                                    <circle cx="8.5" cy="9.5" r="1.75" fill="none" stroke="currentColor" stroke-width="1.25" />
+                                    <path d="M5 17l4.5-4.5 3 3L14 10l5 5" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </button>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-hover-right-panel__collapse rounded" id="desing2-stl-right-panel-collapse" title="@MasterArticles.StlPreview_Desing2RightMenuCollapseTitle" aria-label="@MasterArticles.StlPreview_Desing2RightMenuCollapseTitle">
+                            <i class="icon-base ri ri-menu-fold-line fs-6" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <div class="desing2-stl-hover-right-panel__body px-3 pb-2 pt-2" id="desing2-stl-right-panel-body">
+                        <p class="small text-body-secondary mb-0" id="desing2-stl-right-panel-placeholder">@MasterArticles.StlPreview_Desing2RightMenuPlaceholder</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
         <div id="ma-stl-ruler-anchor-coords-hud" class="ma-stl-ruler-anchor-coords-hud d-none" aria-live="polite" aria-atomic="true" data-ma-stl-ruler-anchor-coords-template="@MasterArticles.StlPreview_RulerAnchorGridCoordsHud"></div>
+        <div id="ma-stl-line-snap-angle-hud" class="ma-stl-line-snap-angle-hud d-none" aria-live="polite" aria-atomic="true"></div>
         <div id="ma-stl-line-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
              data-ma-stl-line-tool-instruction-first="@MasterArticles.StlPreview_LineToolInstructionFirst"
              data-ma-stl-line-tool-instruction-second="@MasterArticles.StlPreview_LineToolInstructionSecond"
+             data-ma-stl-polyline-tool-instruction-first="@MasterArticles.StlPreview_PolylineToolInstructionFirst"
+             data-ma-stl-polyline-tool-instruction-second="@MasterArticles.StlPreview_PolylineToolInstructionSecond"
              data-ma-stl-line-tool-distance-preview-prefix="@MasterArticles.StlPreview_LineToolDistancePreviewApprox"
              data-ma-stl-line-tool-distance-invalid-toast="@MasterArticles.StlPreview_LineToolDistanceInvalidToast">
             <div id="ma-stl-line-tool-hud-instruction" class="ma-stl-line-tool-hud__instruction small fw-semibold text-body mb-1"></div>
@@ -168,6 +346,54 @@
                     <span id="ma-stl-line-tool-hud-distance-preview" class="small text-muted fw-semibold text-nowrap ma-stl-line-tool-hud__distance-preview" aria-hidden="true"></span>
                 </div>
             </div>
+        </div>
+        <div id="ma-stl-offset-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
+             data-ma-stl-offset-tool-instruction-pick-line="@MasterArticles.StlPreview_OffsetToolInstructionPickLine"
+             data-ma-stl-offset-tool-instruction-pick-direction="@MasterArticles.StlPreview_OffsetToolInstructionPickDirection"
+             data-ma-stl-offset-tool-distance-invalid-toast="@MasterArticles.StlPreview_OffsetToolDistanceInvalidToast">
+            <div id="ma-stl-offset-tool-hud-instruction" class="ma-stl-line-tool-hud__instruction small fw-semibold text-body mb-1"></div>
+            <div id="ma-stl-offset-tool-hud-distance-row" class="ma-stl-line-tool-hud__distance-row d-none mt-1">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <input id="ma-stl-offset-tool-hud-distance" type="text" maxlength="48" tabindex="0" autocomplete="off"
+                           inputmode="decimal"
+                           aria-label="@MasterArticles.StlPreview_OffsetToolHudDistanceAria"
+                           placeholder="@MasterArticles.StlPreview_OffsetToolHudDistancePlaceholder"
+                           class="form-control form-control-sm ma-stl-line-tool-hud__distance-field" />
+                </div>
+            </div>
+        </div>
+        <div id="ma-stl-delete-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
+             data-ma-stl-delete-tool-instruction="@MasterArticles.StlPreview_DeleteToolInstruction">
+            <div id="ma-stl-delete-tool-hud-instruction" class="ma-stl-line-tool-hud__instruction small fw-semibold text-body mb-1"></div>
+        </div>
+        <div id="ma-stl-wall3d-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
+             data-ma-stl-wall3d-tool-instruction="@MasterArticles.StlPreview_Wall3dToolInstruction"
+             data-ma-stl-wall3d-tool-processing="@MasterArticles.StlPreview_Wall3dToolProcessing"
+             data-ma-stl-wall3d-tool-no-lines="@MasterArticles.StlPreview_Wall3dToolNoLines"
+             data-ma-stl-wall3d-tool-error="@MasterArticles.StlPreview_Wall3dToolError"
+             data-ma-stl-wall3d-tool-success="@MasterArticles.StlPreview_Wall3dToolSuccess">
+            <div id="ma-stl-wall3d-tool-hud-instruction" class="ma-stl-line-tool-hud__instruction small fw-semibold text-body mb-1"></div>
+        </div>
+        <div id="ma-stl-image-sketch-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
+             data-ma-stl-image-sketch-pick-instruction="@MasterArticles.StlPreview_ImageSketchPickInstruction">
+            <div id="ma-stl-image-sketch-tool-hud-instruction" class="ma-stl-line-tool-hud__instruction small fw-semibold text-body mb-1"></div>
+            <div id="ma-stl-image-sketch-tool-hud-coords" class="ma-stl-line-tool-hud__coords"
+                 data-ma-stl-line-tool-coords-template="@MasterArticles.StlPreview_RulerAnchorGridCoordsHud"></div>
+        </div>
+        <div id="ma-stl-insert-corner-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
+             data-ma-stl-insert-corner-instruction-first="@MasterArticles.StlPreview_InsertCornerToolInstructionFirst"
+             data-ma-stl-insert-corner-instruction-second="@MasterArticles.StlPreview_InsertCornerToolInstructionSecond">
+            <div id="ma-stl-insert-corner-tool-hud-instruction" class="ma-stl-line-tool-hud__instruction small fw-semibold text-body mb-1"></div>
+            <div id="ma-stl-insert-corner-tool-hud-coords" class="ma-stl-line-tool-hud__coords"
+                 data-ma-stl-line-tool-coords-template="@MasterArticles.StlPreview_RulerAnchorGridCoordsHud"></div>
+        </div>
+        <div id="ma-stl-insert-enclosure-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
+             data-ma-stl-insert-enclosure-instruction-first="@MasterArticles.StlPreview_InsertEnclosureToolInstructionFirst"
+             data-ma-stl-insert-enclosure-instruction-second="@MasterArticles.StlPreview_InsertEnclosureToolInstructionSecond"
+             data-ma-stl-insert-enclosure-invalid-dims-toast="@MasterArticles.StlPreview_InsertEnclosureToolInvalidDimsToast">
+            <div id="ma-stl-insert-enclosure-tool-hud-instruction" class="ma-stl-line-tool-hud__instruction small fw-semibold text-body mb-1"></div>
+            <div id="ma-stl-insert-enclosure-tool-hud-coords" class="ma-stl-line-tool-hud__coords"
+                 data-ma-stl-line-tool-coords-template="@MasterArticles.StlPreview_RulerAnchorGridCoordsHud"></div>
         </div>
         @Html.Partial("_Desing2CompassOverlay")
         <div class="ma-stl-clip-controls d-none" id="ma-stl-clip-controls" aria-hidden="true">
@@ -289,4 +515,36 @@
         <button type="button" class="d-none master-article-stl-load" id="desing2-initial-stl-boot" data-stl-url="@stlUrlAttr" data-slot-label="@stlLabelAttr"></button>
     }
     <div id="ma-stl-desing2-toast-container" class="toast-container position-fixed top-0 end-0 p-3 ma-stl-desing2-toast-container" aria-live="polite" aria-atomic="true"></div>
+    <div class="modal fade desing2-stl-image-sketch-modal" id="ma-stl-image-sketch-modal" tabindex="-1" aria-labelledby="ma-stl-image-sketch-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ma-stl-image-sketch-modal-title">@MasterArticles.StlPreview_ImageSketchFormTitle</h5>
+                    <button type="button" class="btn-close" id="ma-stl-image-sketch-modal-close" data-bs-dismiss="modal" aria-label="@MasterArticles.StlPreview_ImageSketchFormCancel"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-body-secondary mb-3">@MasterArticles.StlPreview_ImageSketchFormHint</p>
+                    <label class="btn btn-sm btn-outline-secondary w-100 mb-3" for="ma-stl-image-sketch-file-input">
+                        @MasterArticles.StlPreview_ImageSketchFormChooseFile
+                    </label>
+                    <input type="file" id="ma-stl-image-sketch-file-input" class="d-none" accept="image/jpeg,image/png,.jpg,.jpeg,.png" />
+                    <div id="ma-stl-image-sketch-preview-wrap" class="desing2-stl-image-sketch-form__preview-wrap d-none mb-0">
+                        <img id="ma-stl-image-sketch-preview" class="desing2-stl-image-sketch-form__preview img-fluid rounded border" alt="" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" id="ma-stl-image-sketch-cancel" data-bs-dismiss="modal">
+                        @MasterArticles.StlPreview_ImageSketchFormCancel
+                    </button>
+                    <button type="button" class="btn btn-primary" id="ma-stl-image-sketch-accept" disabled
+                            data-ma-stl-image-sketch-no-file="@MasterArticles.StlPreview_ImageSketchFormNoFile"
+                            data-ma-stl-image-sketch-processing="@MasterArticles.StlPreview_ImageSketchProcessing"
+                            data-ma-stl-image-sketch-error="@MasterArticles.StlPreview_ImageSketchError"
+                            data-ma-stl-image-sketch-success="@MasterArticles.StlPreview_ImageSketchSuccess">
+                        @MasterArticles.StlPreview_ImageSketchFormAccept
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

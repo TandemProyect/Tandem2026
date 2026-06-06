@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copiar este archivo a Web.GoogleMaps.config (misma carpeta que Web.config).
+  Web.GoogleMaps.config está en .gitignore — no commitear claves reales.
+
+  Web.config usa: <appSettings file="Web.GoogleMaps.config">
+  Las claves aquí sustituyen las de Web.config con el mismo nombre.
+-->
+<appSettings>
+  <add key="GoogleMaps:ApiKey" value="YOUR_BROWSER_API_KEY_HERE" />
+  <!-- Análisis de planos (ZWCAD TANDEM_ANALIZAR_IMAGEN, visor Desing_2 boceto imagen) -->
+  <add key="OPENAI_APIKEY" value="sk-proj-YOUR_OPENAI_KEY_HERE" />
+</appSettings>

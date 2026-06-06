@@ -30,6 +30,11 @@ namespace ZwcadPlugin
             _apiService = new MVCApiService();
         }
 
+        private string FormatPluginError(System.Exception ex)
+        {
+            return PluginExceptionHelper.Format(ex, _apiService.BaseUrl);
+        }
+
         /// <summary>
         /// Comando principal que abre el formulario de conexión MVC
         /// </summary>
@@ -56,7 +61,7 @@ namespace ZwcadPlugin
             catch (System.Exception ex)
             {
                 if (ed != null)
-                    ed.WriteMessage($"\nError al abrir ventana: {ex.Message}\n");
+                    ed.WriteMessage($"\nError al abrir ventana: {FormatPluginError(ex)}\n");
             }
         }
 
@@ -86,7 +91,7 @@ namespace ZwcadPlugin
             catch (System.Exception ex)
             {
                 if (ed != null)
-                    ed.WriteMessage($"\nError: {ex.Message}\n");
+                    ed.WriteMessage($"\nError: {FormatPluginError(ex)}\n");
             }
         }
 
@@ -147,7 +152,7 @@ namespace ZwcadPlugin
             }
             catch (System.Exception ex)
             {
-                ed.WriteMessage($"\nError al leer diseÃ±o: {ex.Message}\n");
+                ed.WriteMessage($"\nError al leer diseÃ±o: {FormatPluginError(ex)}\n");
             }
         }
 
@@ -215,7 +220,7 @@ namespace ZwcadPlugin
             }
             catch (System.Exception ex)
             {
-                ed.WriteMessage($"\nError al guardar diseÃ±o: {ex.Message}\n");
+                ed.WriteMessage($"\nError al guardar diseÃ±o: {FormatPluginError(ex)}\n");
             }
         }
 
@@ -234,7 +239,7 @@ namespace ZwcadPlugin
             try
             {
                 var deviceId = ObtenerDeviceId();
-                var url = $"https://localhost:44384/DesignTools/CreateFromZwcad?deviceId={Uri.EscapeDataString(deviceId)}";
+                var url = $"{_apiService.BaseUrl}DesignTools/CreateFromZwcad?deviceId={Uri.EscapeDataString(deviceId)}";
                 var window = new CreateDesignWindow(url);
                 window.SetOwnerHandle(ZwcadApp.MainWindow.Handle);
                 window.ShowDialog();
@@ -242,7 +247,7 @@ namespace ZwcadPlugin
             }
             catch (System.Exception ex)
             {
-                ed.WriteMessage($"\nNo se pudo abrir el formulario WPF embebido: {ex.Message}");
+                ed.WriteMessage($"\nNo se pudo abrir el formulario WPF embebido: {FormatPluginError(ex)}");
                 ed.WriteMessage("\nComo alternativa, se ejecutará el flujo por consola.\n");
                 GuardarDisenoMVC();
             }
@@ -449,8 +454,7 @@ namespace ZwcadPlugin
             }
             catch (System.Exception ex)
             {
-                ed.WriteMessage($"\n❌ Error: {ex.Message}");
-                ed.WriteMessage($"\nDetalles: {ex.StackTrace}\n");
+                ed.WriteMessage($"\n❌ Error: {FormatPluginError(ex)}\n");
             }
         }
 
@@ -578,7 +582,7 @@ namespace ZwcadPlugin
             }
             catch (System.Exception ex)
             {
-                ed.WriteMessage($"\n❌ Error de autorización de plugin: {ex.Message}\n");
+                ed.WriteMessage($"\n❌ Error de autorización de plugin: {FormatPluginError(ex)}\n");
                 return false;
             }
         }
@@ -643,12 +647,15 @@ namespace ZwcadPlugin
             ed.WriteMessage("\n                      (Extrae todas las entidades del dibujo)");
             ed.WriteMessage("\n");
             ed.WriteMessage("\n  TANDEM_SELECCIONAR_LINEAS - Selecciona líneas y polilíneas");
-            ed.WriteMessage("\n                              (En desarrollo)");
+            ed.WriteMessage("\n  TANDEM_ANALIZAR_IMAGEN     - Analiza imagen de plano (GPT-4o)");
+            ed.WriteMessage("\n  TANDEM_PROBAR_CONEXION     - Prueba conectividad con el servidor MVC");
+            ed.WriteMessage("\n  TANDEM_DEVICE_ID           - Muestra DeviceId para autorización");
             ed.WriteMessage("\n");
             ed.WriteMessage("\n  HOLA              - Muestra esta ayuda");
             ed.WriteMessage("\n");
             ed.WriteMessage("\nâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€");
-            ed.WriteMessage("\nServidor MVC: http://ccvallecano-002-site1.rtempurl.com/");
+            ed.WriteMessage($"\nServidor MVC: {_apiService.BaseUrl}");
+            ed.WriteMessage("\nVariable opcional: TANDEM_MVC_BASE_URL");
             ed.WriteMessage("\nâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€\n");
         }
 
@@ -664,6 +671,7 @@ namespace ZwcadPlugin
             Document doc = ZwcadApp.DocumentManager.MdiActiveDocument;
             if (doc == null) return;
             Editor ed = doc.Editor;
+            if (!ValidarAccesoPlugin(ed)) return;
 
             try
             {
@@ -706,7 +714,31 @@ namespace ZwcadPlugin
             }
             catch (System.Exception ex)
             {
-                ed.WriteMessage($"\n❌ Error: {ex.Message}\n");
+                ed.WriteMessage($"\n❌ Error: {FormatPluginError(ex)}\n");
+            }
+        }
+
+        /// <summary>
+        /// Prueba conectividad HTTP con el servidor MVC (diagnóstico).
+        /// </summary>
+        [CommandMethod("TANDEM_PROBAR_CONEXION")]
+        public void ProbarConexion()
+        {
+            Document doc = ZwcadApp.DocumentManager.MdiActiveDocument;
+            if (doc == null) return;
+            Editor ed = doc.Editor;
+
+            ed.WriteMessage("\n=== Tandem: Prueba de conexión MVC ===");
+            ed.WriteMessage($"\nURL base: {_apiService.BaseUrl}");
+
+            try
+            {
+                var result = Task.Run(() => _apiService.ProbarConexionAsync()).Result;
+                ed.WriteMessage($"\n✅ Conexión OK — {result}\n");
+            }
+            catch (System.Exception ex)
+            {
+                ed.WriteMessage($"\n❌ {FormatPluginError(ex)}\n");
             }
         }
 

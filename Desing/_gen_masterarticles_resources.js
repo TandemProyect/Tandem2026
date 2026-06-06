@@ -207,6 +207,8 @@ const es = Object.fromEntries(
     StlPreview_SaveViewSavedToast: "Vista guardada",
     StlPreview_EscapeCancelToolsToast: "Cancelado",
     StlPreview_GridToggleTitle: "Mostrar rejilla de fondo",
+    StlPreview_GridToggleTitleOn: "Ocultar rejilla de fondo",
+    StlPreview_GridToggleTitleOff: "Mostrar rejilla de fondo",
     StlPreview_GridToggleAria: "Rejilla de fondo",
     StlPreview_SkyToggleTitle: "Mostrar u ocultar cielo",
     StlPreview_SkyToggleAria: "Cielo STL",
@@ -219,7 +221,13 @@ const es = Object.fromEntries(
     StlPreview_XyzAxesToggleTitle: "Mostrar u ocultar vectores de ejes X, Y y Z (verdes, con flecha)",
     StlPreview_XyzAxesAria: "Ejes XYZ",
     StlPreview_UcsRulersToggleTitle: "Mostrar u ocultar reglas de plano desde el anclaje (+X / +Z)",
-    StlPreview_UcsRulersAria: "Reglas de plano",
+    StlPreview_UcsRulersToggleTitleOn: "Ocultar reglas de plano en suelo (+X / +Z)",
+    StlPreview_UcsRulersToggleTitleOff: "Mostrar reglas de plano en suelo (+X / +Z)",
+    StlPreview_UcsRulersAria: "Reglas de plano en suelo",
+    StlPreview_EdgeRulersToggleTitle: "Mostrar u ocultar reglas de borde del visor (+X arriba, +Z derecha)",
+    StlPreview_EdgeRulersToggleTitleOn: "Ocultar reglas de borde del visor",
+    StlPreview_EdgeRulersToggleTitleOff: "Mostrar reglas de borde del visor",
+    StlPreview_EdgeRulersToggleAria: "Reglas de borde del visor",
     StlPreview_RulerAnchorGridPickTitle: "Colocar reglas en cruce de rejilla (500 mm)",
     StlPreview_RulerAnchorGridPickAria: "Modo rejilla: solo cruces activos del retículo menor (500 mm)",
     StlPreview_RulerAnchorGridPickModeToast:
@@ -254,6 +262,26 @@ const es = Object.fromEntries(
       "Fijar barra abierta (siempre expandida hasta desanclar)",
     StlPreview_Desing2TopToolbarUnpinTitle:
       "Desanclar barra y volver al modo expansión al pasar el puntero",
+    StlPreview_Desing2BottomToolbarAria: "Barra inferior del visor STL (deshacer, orto, reglas)",
+    StlPreview_Desing2RulersFlyoutTitle: "Reglas, rejilla y anclaje",
+    StlPreview_Desing2RulersFlyoutAria: "Abrir menú de reglas, rejilla y anclaje",
+    StlPreview_Desing2RulersFlyoutPanelAria: "Reglas, rejilla y anclaje",
+    StlPreview_Desing2BottomToolbarCollapseTitle:
+      "Ocultar barra hasta acercar de nuevo el puntero al borde inferior izquierdo",
+    StlPreview_Desing2BottomToolbarPinTitle:
+      "Fijar barra inferior abierta (siempre expandida hasta desanclar)",
+    StlPreview_Desing2BottomToolbarUnpinTitle:
+      "Desanclar barra inferior y volver al modo expansión al pasar el puntero",
+    StlPreview_Desing2UndoTitle: "Deshacer (Ctrl+Z)",
+    StlPreview_Desing2UndoAria: "Deshacer última acción",
+    StlPreview_Desing2RedoTitle: "Rehacer (Ctrl+Y)",
+    StlPreview_Desing2RedoAria: "Rehacer acción deshecha",
+    StlPreview_Desing2WallDimToolTitle:
+      "Cotar muro — longitudes, global y espesor (estilo construcción)",
+    StlPreview_Desing2WallDimToolAria:
+      "Cota espesor de muro en planta: líneas paralelas usuario, espesor entre caras",
+    StlPreview_WallDimToolNoPairsToast:
+      "No se detectó espesor de muro. Dibuje el contorno y el offset interior, o haga clic en una línea del muro con la herramienta activa.",
     StlPreview_LineToolInstructionFirst: "Clic para el primer punto (mueva el ratón para situar la vista previa).",
     StlPreview_LineToolInstructionSecond:
         "Segundo punto: clic en planta, o escriba la distancia y pulse Intro.",
@@ -275,9 +303,20 @@ const es = Object.fromEntries(
         "ΔZ desde el cruce de reglas hasta el extremo libre del segmento (metros, con signo). Doble clic para editar.",
     StlPreview_UserFloorLineDragHandleAria:
         "Arrastrar para mover el segmento en planta (eje X y Z)",
+    StlPreview_UserFloorLineP1HandleAria:
+        "Arrastrar el punto inicial del segmento para alargarlo o acortarlo a lo largo del eje; se conecta al soltar sobre otro extremo",
+    StlPreview_UserFloorLineP2HandleAria:
+        "Arrastrar el punto final del segmento para alargarlo o acortarlo a lo largo del eje; se conecta al soltar sobre otro extremo",
     StlPreview_Desing2TopToolLinea: "Línea",
     StlPreview_Desing2TopToolLineaAria:
         "Segmento en el plano del suelo: segundo punto por clic o distancia por teclado (+ Intro); snap de rejilla informativo",
+    StlPreview_Desing2ToolPolyline: "Polilínea",
+    StlPreview_Desing2ToolPolylineAria:
+        "Polilínea en planta: encadenar segmentos con clics sucesivos; Intro o Escape termina; cada tramo es una línea independiente",
+    StlPreview_PolylineToolInstructionFirst:
+        "Clic para el primer vértice (mueva el ratón para la vista previa del primer tramo).",
+    StlPreview_PolylineToolInstructionSecond:
+        "Siguiente vértice: clic en planta, o distancia + Intro para cerrar la polilínea. Escape cancela el tramo en curso.",
     StlPreview_Desing2TopToolOrtho15TitleOn:
       "Ortogonal 15° en planta activo — segundo punto en múltiplos de 15° (0° = eje +X). Pulse o F8 para desactivar.",
     StlPreview_Desing2TopToolOrtho15TitleOff:
@@ -286,7 +325,32 @@ const es = Object.fromEntries(
     StlPreview_LineToolOrthoToastOff: "Ortogonal 15° desactivado (F8).",
     StlPreview_Desing2TopToolOffset: "Offset",
     StlPreview_Desing2TopToolOffsetAria:
-      "Herramienta offset — próximamente (solo interfaz)",
+      "Offset en planta — copiar línea paralela a distancia configurable",
+    StlPreview_OffsetToolInstructionPickLine:
+      "Clic en la línea a copiar; doble clic para editar la distancia del offset.",
+    StlPreview_OffsetToolInstructionPickDirection:
+      "Clic en planta hacia el lado del offset (vista previa discontinua). Escape cancela.",
+    StlPreview_OffsetToolHudDistanceAria:
+      "Distancia del offset en metros o milímetros (p. ej. 0,30 · 300 mm)",
+    StlPreview_OffsetToolHudDistancePlaceholder: "p. ej. 0,30 · 300 mm",
+    StlPreview_OffsetToolDistanceInvalidToast:
+      "Distancia de offset no válida. Use metros o milímetros (p. ej. 0,30 o 300 mm).",
+    StlPreview_Desing2TopToolInsertCorner: "Insertar esquina",
+    StlPreview_Desing2TopToolInsertCornerAria:
+      "Insertar esquina L en planta — primer clic en la esquina exterior; segundo clic define la orientación (orto 15° con F8)",
+    StlPreview_InsertCornerToolInstructionFirst:
+      "Clic en la rejilla para la esquina exterior de la L (punto de inserción).",
+    StlPreview_InsertCornerToolInstructionSecond:
+      "Segundo clic para orientar la esquina (orto 15° si está activo). Escape cancela.",
+    StlPreview_Desing2TopToolInsertEnclosure: "Insertar recinto",
+    StlPreview_Desing2TopToolInsertEnclosureAria:
+      "Insertar recinto rectangular en planta — primer clic en esquina exterior; segundo clic fija orientación (orto 15° con F8)",
+    StlPreview_InsertEnclosureToolInstructionFirst:
+      "Clic en la rejilla para la esquina exterior del recinto (punto de inserción).",
+    StlPreview_InsertEnclosureToolInstructionSecond:
+      "Segundo clic para orientar el recinto (orto 15° si está activo). Escape cancela.",
+    StlPreview_InsertEnclosureToolInvalidDimsToast:
+      "Dimensiones del recinto no válidas. Revise L, W y espesores Ex1, Ex2, Ey1, Ey2 en Configuración.",
     StlPreview_Desing2TopToolRecortar: "Recortar",
     StlPreview_Desing2TopToolRecortarAria:
       "Herramienta recortar — próximamente (solo interfaz)",
@@ -295,18 +359,93 @@ const es = Object.fromEntries(
       "Herramienta alargar — próximamente (solo interfaz)",
     StlPreview_Desing2TopToolBorrar: "Borrar",
     StlPreview_Desing2TopToolBorrarAria:
-      "Herramienta borrar — próximamente (solo interfaz)",
+      "Borrar líneas de planta y objetos STL — seleccione (clic o ventana) y confirme con Enter, Espacio o Supr",
+    StlPreview_DeleteToolInstruction:
+      "Seleccione líneas u objetos STL para borrar (clic o selección por ventana). Enter/Espacio/Supr para borrar, Esc cancelar",
+    StlPreview_WindowSelectionHint:
+      "Arrastre en lienzo vacío: izquierda→derecha ventana, derecha→izquierda cruce",
     StlPreview_Desing2SideMenuCollapseTitle:
       "Ocultar panel hasta acercar de nuevo el puntero al borde izquierdo",
     StlPreview_Desing2SideMenuTabEntorno: "Entorno",
     StlPreview_Desing2SideMenuTabConfiguracion: "Configuración",
     StlPreview_Desing2SideMenuPlaceholder: "Menú (próximamente)",
+    StlPreview_Desing2RightMenuAria: "Menú lateral derecho del visor STL — muros",
+    StlPreview_Desing2RightMenuWall3dAria:
+      "Generar muro 3D — seleccione líneas de planta y confirme con Enter",
+    StlPreview_Desing2RightMenuWallMapAria:
+      "Activar o desactivar mapeo de hormigón en muros 3D",
+    StlPreview_Desing2RightMenuImageSketchAria:
+      "Importar boceto desde imagen — analizar y convertir a líneas de planta",
+    StlPreview_Desing2RightMenuCollapseTitle:
+      "Ocultar panel hasta acercar de nuevo el puntero al borde derecho",
+    StlPreview_Desing2RightMenuPlaceholder:
+      "Pulse el icono de muro para seleccionar líneas y extruir a 2,70 m.",
+    StlPreview_Wall3dToolInstruction:
+      "Seleccione líneas de planta (clic o ventana). Enter para generar muros 3D (altura 2,70 m), Esc cancelar",
+    StlPreview_Wall3dToolProcessing: "Generando muros 3D…",
+    StlPreview_Wall3dToolNoLines: "Seleccione al menos una línea de planta",
+    StlPreview_Wall3dToolError: "No se pudieron generar los muros: {0}",
+    StlPreview_Wall3dToolSuccess: "Se generaron {0} muro(s) 3D (altura 2,70 m)",
+    StlPreview_Wall3dMapNoWalls: "No hay muros 3D para mapear",
+    StlPreview_Wall3dMapProcessing: "Cargando textura de hormigón…",
+    StlPreview_Wall3dMapSuccess: "Textura de hormigón aplicada a {0} pieza(s)",
+    StlPreview_Wall3dMapError: "No se pudo cargar la textura: {0}",
+    StlPreview_ImageSketchFormTitle: "Boceto desde imagen",
+    StlPreview_ImageSketchFormHint:
+      "Adjunte un plano o boceto (JPG/PNG) con líneas de muro y cotas E/e y H/h.",
+    StlPreview_ImageSketchFormChooseFile: "Seleccionar imagen…",
+    StlPreview_ImageSketchFormAccept: "Analizar e insertar",
+    StlPreview_ImageSketchFormCancel: "Cancelar",
+    StlPreview_ImageSketchFormNoFile: "Seleccione una imagen",
+    StlPreview_ImageSketchProcessing: "Analizando imagen…",
+    StlPreview_ImageSketchError: "No se pudo analizar la imagen: {0}",
+    StlPreview_ImageSketchPickInstruction:
+      "Clic en planta para insertar el boceto como líneas. Esc cancelar",
+    StlPreview_ImageSketchSuccess: "Se insertaron {0} línea(s) desde el boceto",
     StlPreview_Desing2EntornoGridSnapLabel: "Incremental de rejilla y snap",
     StlPreview_Desing2EntornoGridSnapAria:
       "Espaciado menor de rejilla en planta y paso del snap en modo punto de rejilla para las cotas.",
     StlPreview_Desing2EntornoRulerExtentLabel: "Alcance máximo del trazado de reglas",
     StlPreview_Desing2EntornoRulerExtentAria:
-      "Distancia física máxima de los trazados de cotas desde el punto de referencia."
+      "Distancia física máxima de los trazados de cotas desde el punto de referencia.",
+    StlPreview_Desing2ConfigOffsetDefaultLabel: "Distancia por defecto del offset",
+    StlPreview_Desing2ConfigOffsetDefaultAria:
+      "Distancia por defecto para la herramienta offset, en metros (p. ej. 0,30).",
+    StlPreview_Desing2ConfigOffsetDefaultPlaceholder: "p. ej. 0,30 · 300 mm",
+    StlPreview_Desing2ConfigWallSectionTitle: "Sección en L — espesores",
+    StlPreview_Desing2ConfigWallWidthXLabel: "Ancho de muro en X",
+    StlPreview_Desing2ConfigWallWidthXAria:
+      "Espesor del muro medido en el eje X del plano, en metros (p. ej. 0,30).",
+    StlPreview_Desing2ConfigWallWidthXPlaceholder: "p. ej. 0,30 · 300 mm",
+    StlPreview_Desing2ConfigWallWidthYLabel: "Ancho de muro en Y",
+    StlPreview_Desing2ConfigWallWidthYAria:
+      "Espesor del muro medido en el eje Y del plano, en metros (p. ej. 0,30).",
+    StlPreview_Desing2ConfigWallWidthYPlaceholder: "p. ej. 0,30 · 300 mm",
+    StlPreview_Desing2ConfigEnclosureSectionTitle: "Recinto rectangular — dimensiones en planta",
+    StlPreview_Desing2ConfigEnclosureLLabel: "Longitud exterior (L)",
+    StlPreview_Desing2ConfigEnclosureLAria:
+      "Longitud exterior total del recinto en planta, en metros (p. ej. 6,00).",
+    StlPreview_Desing2ConfigEnclosureLPlaceholder: "p. ej. 6,00 · 6000 mm",
+    StlPreview_Desing2ConfigEnclosureWLabel: "Anchura exterior (W)",
+    StlPreview_Desing2ConfigEnclosureWAria:
+      "Anchura exterior total del recinto en planta, en metros (p. ej. 4,00).",
+    StlPreview_Desing2ConfigEnclosureWPlaceholder: "p. ej. 4,00 · 4000 mm",
+    StlPreview_Desing2ConfigEnclosureEx1Label: "Espesor muro izquierdo (Ex1)",
+    StlPreview_Desing2ConfigEnclosureEx1Aria:
+      "Espesor del muro izquierdo medido en planta, en metros (p. ej. 0,30).",
+    StlPreview_Desing2ConfigEnclosureEx1Placeholder: "p. ej. 0,30 · 300 mm",
+    StlPreview_Desing2ConfigEnclosureEx2Label: "Espesor muro derecho (Ex2)",
+    StlPreview_Desing2ConfigEnclosureEx2Aria:
+      "Espesor del muro derecho medido en planta, en metros (p. ej. 0,30).",
+    StlPreview_Desing2ConfigEnclosureEx2Placeholder: "p. ej. 0,30 · 300 mm",
+    StlPreview_Desing2ConfigEnclosureEy1Label: "Espesor muro inferior (Ey1)",
+    StlPreview_Desing2ConfigEnclosureEy1Aria:
+      "Espesor del muro inferior medido en planta, en metros (p. ej. 0,30).",
+    StlPreview_Desing2ConfigEnclosureEy1Placeholder: "p. ej. 0,30 · 300 mm",
+    StlPreview_Desing2ConfigEnclosureEy2Label: "Espesor muro superior (Ey2)",
+    StlPreview_Desing2ConfigEnclosureEy2Aria:
+      "Espesor del muro superior medido en planta, en metros (p. ej. 0,30).",
+    StlPreview_Desing2ConfigEnclosureEy2Placeholder: "p. ej. 0,30 · 300 mm"
   })
 );
 
@@ -515,6 +654,8 @@ const en = Object.assign({}, es, {
   StlPreview_SaveViewSavedToast: "View saved",
   StlPreview_EscapeCancelToolsToast: "Canceled",
   StlPreview_GridToggleTitle: "Show background grid",
+  StlPreview_GridToggleTitleOn: "Hide background grid",
+  StlPreview_GridToggleTitleOff: "Show background grid",
   StlPreview_GridToggleAria: "Background grid",
   StlPreview_SkyToggleTitle: "Show or hide sky",
   StlPreview_SkyToggleAria: "STL sky",
@@ -526,8 +667,14 @@ const en = Object.assign({}, es, {
   StlPreview_ClipToggleAria: "STL clipping",
   StlPreview_XyzAxesToggleTitle: "Show or hide X, Y, and Z axis vectors (green, with arrowheads)",
   StlPreview_XyzAxesAria: "XYZ axes",
-  StlPreview_UcsRulersToggleTitle: "Show or hide plan rulers from anchor (+X / +Z)",
-  StlPreview_UcsRulersAria: "Plan rulers",
+  StlPreview_UcsRulersToggleTitle: "Show or hide floor plan rulers from anchor (+X / +Z)",
+  StlPreview_UcsRulersToggleTitleOn: "Hide floor plan rulers (+X / +Z)",
+  StlPreview_UcsRulersToggleTitleOff: "Show floor plan rulers (+X / +Z)",
+  StlPreview_UcsRulersAria: "Floor plan rulers",
+  StlPreview_EdgeRulersToggleTitle: "Show or hide viewer edge rulers (+X top, +Z right)",
+  StlPreview_EdgeRulersToggleTitleOn: "Hide viewer edge rulers",
+  StlPreview_EdgeRulersToggleTitleOff: "Show viewer edge rulers",
+  StlPreview_EdgeRulersToggleAria: "Viewer edge rulers",
   StlPreview_RulerAnchorGridPickTitle: "Place rulers on a grid intersection (500 mm)",
   StlPreview_RulerAnchorGridPickAria: "Grid mode: only activated minor-grid intersections",
   StlPreview_RulerAnchorGridPickModeToast:
@@ -561,6 +708,26 @@ const en = Object.assign({}, es, {
     "Pin toolbar open (stay expanded until unpinned)",
   StlPreview_Desing2TopToolbarUnpinTitle:
     "Unpin toolbar and return to hover-to-expand mode",
+  StlPreview_Desing2BottomToolbarAria: "STL viewer bottom bar (undo, ortho, rulers)",
+  StlPreview_Desing2RulersFlyoutTitle: "Rulers, grid and anchor",
+  StlPreview_Desing2RulersFlyoutAria: "Open rulers, grid and anchor menu",
+  StlPreview_Desing2RulersFlyoutPanelAria: "Rulers, grid and anchor",
+  StlPreview_Desing2BottomToolbarCollapseTitle:
+    "Collapse bar until you move the pointer near the bottom-left strip again",
+  StlPreview_Desing2BottomToolbarPinTitle:
+    "Pin bottom toolbar open (stay expanded until unpinned)",
+  StlPreview_Desing2BottomToolbarUnpinTitle:
+    "Unpin bottom toolbar and return to hover-to-expand mode",
+  StlPreview_Desing2UndoTitle: "Undo (Ctrl+Z)",
+  StlPreview_Desing2UndoAria: "Undo last action",
+  StlPreview_Desing2RedoTitle: "Redo (Ctrl+Y)",
+  StlPreview_Desing2RedoAria: "Redo undone action",
+  StlPreview_Desing2WallDimToolTitle:
+    "Dimension walls — segment lengths, overall span, and thickness (construction style)",
+  StlPreview_Desing2WallDimToolAria:
+    "Wall thickness dimension on plan: parallel user lines, face-to-face thickness",
+  StlPreview_WallDimToolNoPairsToast:
+    "No wall thickness detected. Draw the outline and inner offset, or click a wall line while the tool is active.",
   StlPreview_LineToolInstructionFirst: "Click for the first point (move the mouse for preview).",
   StlPreview_LineToolInstructionSecond:
     "Second point: click on the floor, or type the distance and press Enter.",
@@ -582,9 +749,20 @@ const en = Object.assign({}, es, {
     "ΔZ from ruler intersection to the free end of the segment (signed metres). Double-click to edit.",
   StlPreview_UserFloorLineDragHandleAria:
     "Drag to move the segment on the floor plan (X and Z axes)",
+  StlPreview_UserFloorLineP1HandleAria:
+    "Drag the segment start point to lengthen or shorten along the segment axis; snaps to another endpoint on release",
+  StlPreview_UserFloorLineP2HandleAria:
+    "Drag the segment end point to lengthen or shorten along the segment axis; snaps to another endpoint on release",
   StlPreview_Desing2TopToolLinea: "Line",
   StlPreview_Desing2TopToolLineaAria:
     "Floor-plan segment: place the second point with a click or by typing a distance (+ Enter); optional grid snap hints",
+  StlPreview_Desing2ToolPolyline: "Polyline",
+  StlPreview_Desing2ToolPolylineAria:
+    "Floor-plan polyline: chain segments with successive clicks; Enter or Escape finishes; each segment is an independent line",
+  StlPreview_PolylineToolInstructionFirst:
+    "Click for the first vertex (move the mouse for the first segment preview).",
+  StlPreview_PolylineToolInstructionSecond:
+    "Next vertex: click on the floor, or type distance + Enter to finish the polyline. Escape cancels the current segment.",
   StlPreview_Desing2TopToolOrtho15TitleOn:
     "15° floor ortho on — second point snaps to 15° steps (0° = +X axis). Click or F8 to turn off.",
   StlPreview_Desing2TopToolOrtho15TitleOff:
@@ -593,7 +771,32 @@ const en = Object.assign({}, es, {
   StlPreview_LineToolOrthoToastOff: "15° ortho off (F8).",
   StlPreview_Desing2TopToolOffset: "Offset",
   StlPreview_Desing2TopToolOffsetAria:
-    "Offset tool — coming soon (UI placeholder only)",
+    "Plan offset — copy a line parallel at a configurable distance",
+  StlPreview_OffsetToolInstructionPickLine:
+    "Click the line to copy; double-click to edit the offset distance.",
+  StlPreview_OffsetToolInstructionPickDirection:
+    "Click on the floor toward the offset side (dashed preview). Escape cancels.",
+  StlPreview_OffsetToolHudDistanceAria:
+    "Offset distance in meters or millimeters (e.g. 0.30 · 300 mm)",
+  StlPreview_OffsetToolHudDistancePlaceholder: "e.g. 0.30 · 300 mm",
+  StlPreview_OffsetToolDistanceInvalidToast:
+    "Invalid offset distance. Use meters or millimeters (e.g. 0.30 or 300 mm).",
+  StlPreview_Desing2TopToolInsertCorner: "Insert corner",
+  StlPreview_Desing2TopToolInsertCornerAria:
+    "Insert L corner on the floor plan — first click at the outer corner; second click sets orientation (15° ortho with F8)",
+  StlPreview_InsertCornerToolInstructionFirst:
+    "Click on the grid for the outer corner of the L (insertion point).",
+  StlPreview_InsertCornerToolInstructionSecond:
+    "Second click to orient the corner (15° ortho when enabled). Escape cancels.",
+  StlPreview_Desing2TopToolInsertEnclosure: "Insert enclosure",
+  StlPreview_Desing2TopToolInsertEnclosureAria:
+    "Insert rectangular enclosure on the floor plan — first click at outer corner; second click sets orientation (15° ortho with F8)",
+  StlPreview_InsertEnclosureToolInstructionFirst:
+    "Click on the grid for the outer corner of the enclosure (insertion point).",
+  StlPreview_InsertEnclosureToolInstructionSecond:
+    "Second click to orient the enclosure (15° ortho when enabled). Escape cancels.",
+  StlPreview_InsertEnclosureToolInvalidDimsToast:
+    "Invalid enclosure dimensions. Check L, W and thicknesses Ex1, Ex2, Ey1, Ey2 in Configuration.",
   StlPreview_Desing2TopToolRecortar: "Trim",
   StlPreview_Desing2TopToolRecortarAria:
     "Trim tool — coming soon (UI placeholder only)",
@@ -602,18 +805,93 @@ const en = Object.assign({}, es, {
     "Extend tool — coming soon (UI placeholder only)",
   StlPreview_Desing2TopToolBorrar: "Delete",
   StlPreview_Desing2TopToolBorrarAria:
-    "Delete tool — coming soon (UI placeholder only)",
+    "Delete floor lines and STL objects — pick (click or window) and confirm with Enter, Space or Delete",
+  StlPreview_DeleteToolInstruction:
+    "Select floor lines or STL objects to delete (click or window selection). Enter/Space/Delete to delete, Esc to cancel",
+  StlPreview_WindowSelectionHint:
+    "Drag on empty canvas: left-to-right window, right-to-left crossing",
   StlPreview_Desing2SideMenuCollapseTitle:
     "Hide panel until you move the pointer near the left edge again",
   StlPreview_Desing2SideMenuTabEntorno: "Environment",
   StlPreview_Desing2SideMenuTabConfiguracion: "Configuration",
   StlPreview_Desing2SideMenuPlaceholder: "Menu (coming soon)",
+  StlPreview_Desing2RightMenuAria: "STL viewer right side menu — walls",
+  StlPreview_Desing2RightMenuWall3dAria:
+    "Generate 3D wall — select plan lines and confirm with Enter",
+  StlPreview_Desing2RightMenuWallMapAria:
+    "Toggle concrete mapping on 3D walls",
+  StlPreview_Desing2RightMenuImageSketchAria:
+    "Import sketch from image — analyze and convert to plan lines",
+  StlPreview_Desing2RightMenuCollapseTitle:
+    "Hide panel until you move the pointer near the right edge again",
+  StlPreview_Desing2RightMenuPlaceholder:
+    "Click the wall icon to select lines and extrude to 2.70 m.",
+  StlPreview_Wall3dToolInstruction:
+    "Select plan lines (click or window). Enter to generate 3D walls (height 2.70 m), Esc to cancel",
+  StlPreview_Wall3dToolProcessing: "Generating 3D walls…",
+  StlPreview_Wall3dToolNoLines: "Select at least one plan line",
+  StlPreview_Wall3dToolError: "Could not generate walls: {0}",
+  StlPreview_Wall3dToolSuccess: "Generated {0} 3D wall(s) (height 2.70 m)",
+  StlPreview_Wall3dMapNoWalls: "No 3D walls to map",
+  StlPreview_Wall3dMapProcessing: "Loading concrete texture…",
+  StlPreview_Wall3dMapSuccess: "Concrete texture applied to {0} piece(s)",
+  StlPreview_Wall3dMapError: "Could not load texture: {0}",
+  StlPreview_ImageSketchFormTitle: "Sketch from image",
+  StlPreview_ImageSketchFormHint:
+    "Attach a plan or sketch (JPG/PNG) with wall lines and E/e and H/h dimensions.",
+  StlPreview_ImageSketchFormChooseFile: "Choose image…",
+  StlPreview_ImageSketchFormAccept: "Analyze and insert",
+  StlPreview_ImageSketchFormCancel: "Cancel",
+  StlPreview_ImageSketchFormNoFile: "Select an image",
+  StlPreview_ImageSketchProcessing: "Analyzing image…",
+  StlPreview_ImageSketchError: "Could not analyze image: {0}",
+  StlPreview_ImageSketchPickInstruction:
+    "Click on the floor plan to insert the sketch as lines. Esc to cancel",
+  StlPreview_ImageSketchSuccess: "Inserted {0} line(s) from sketch",
   StlPreview_Desing2EntornoGridSnapLabel: "Grid increment and snap",
   StlPreview_Desing2EntornoGridSnapAria:
     "Minor grid spacing on the floor plane and snap step in grid pick mode for ruler placement.",
   StlPreview_Desing2EntornoRulerExtentLabel: "Maximum ruler drawing reach",
   StlPreview_Desing2EntornoRulerExtentAria:
-    "Maximum physical distance of ruler tick marks from the reference point."
+    "Maximum physical distance of ruler tick marks from the reference point.",
+  StlPreview_Desing2ConfigOffsetDefaultLabel: "Default offset distance",
+  StlPreview_Desing2ConfigOffsetDefaultAria:
+    "Default distance for the offset tool, in meters (e.g. 0.30).",
+  StlPreview_Desing2ConfigOffsetDefaultPlaceholder: "e.g. 0.30 · 300 mm",
+  StlPreview_Desing2ConfigWallSectionTitle: "L-section — wall thickness",
+  StlPreview_Desing2ConfigWallWidthXLabel: "Wall width on X",
+  StlPreview_Desing2ConfigWallWidthXAria:
+    "Wall thickness measured on the plan X axis, in meters (e.g. 0.30).",
+  StlPreview_Desing2ConfigWallWidthXPlaceholder: "e.g. 0.30 · 300 mm",
+  StlPreview_Desing2ConfigWallWidthYLabel: "Wall width on Y",
+  StlPreview_Desing2ConfigWallWidthYAria:
+    "Wall thickness measured on the plan Y axis, in meters (e.g. 0.30).",
+  StlPreview_Desing2ConfigWallWidthYPlaceholder: "e.g. 0.30 · 300 mm",
+  StlPreview_Desing2ConfigEnclosureSectionTitle: "Rectangular enclosure — plan dimensions",
+  StlPreview_Desing2ConfigEnclosureLLabel: "External length (L)",
+  StlPreview_Desing2ConfigEnclosureLAria:
+    "Total external length of the enclosure in plan view, in meters (e.g. 6.00).",
+  StlPreview_Desing2ConfigEnclosureLPlaceholder: "e.g. 6.00 · 6000 mm",
+  StlPreview_Desing2ConfigEnclosureWLabel: "External width (W)",
+  StlPreview_Desing2ConfigEnclosureWAria:
+    "Total external width of the enclosure in plan view, in meters (e.g. 4.00).",
+  StlPreview_Desing2ConfigEnclosureWPlaceholder: "e.g. 4.00 · 4000 mm",
+  StlPreview_Desing2ConfigEnclosureEx1Label: "Left wall thickness (Ex1)",
+  StlPreview_Desing2ConfigEnclosureEx1Aria:
+    "Left wall thickness measured in plan view, in meters (e.g. 0.30).",
+  StlPreview_Desing2ConfigEnclosureEx1Placeholder: "e.g. 0.30 · 300 mm",
+  StlPreview_Desing2ConfigEnclosureEx2Label: "Right wall thickness (Ex2)",
+  StlPreview_Desing2ConfigEnclosureEx2Aria:
+    "Right wall thickness measured in plan view, in meters (e.g. 0.30).",
+  StlPreview_Desing2ConfigEnclosureEx2Placeholder: "e.g. 0.30 · 300 mm",
+  StlPreview_Desing2ConfigEnclosureEy1Label: "Bottom wall thickness (Ey1)",
+  StlPreview_Desing2ConfigEnclosureEy1Aria:
+    "Bottom wall thickness measured in plan view, in meters (e.g. 0.30).",
+  StlPreview_Desing2ConfigEnclosureEy1Placeholder: "e.g. 0.30 · 300 mm",
+  StlPreview_Desing2ConfigEnclosureEy2Label: "Top wall thickness (Ey2)",
+  StlPreview_Desing2ConfigEnclosureEy2Aria:
+    "Top wall thickness measured in plan view, in meters (e.g. 0.30).",
+  StlPreview_Desing2ConfigEnclosureEy2Placeholder: "e.g. 0.30 · 300 mm"
 });
 
 function xmlEsc(s) {

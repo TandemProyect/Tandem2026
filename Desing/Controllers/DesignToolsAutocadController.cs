@@ -150,6 +150,7 @@ namespace Desing.Controllers
         /// <param name="seleccion">Datos de las líneas y polilíneas seleccionadas</param>
         /// <returns>Respuesta JSON con el resultado del procesamiento</returns>
         [HttpPost]
+        [AllowAnonymous]
         public ActionResult ProcesarLineasZwcad(SeleccionLineasDTO seleccion)
         {
             try
@@ -242,6 +243,7 @@ namespace Desing.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<ActionResult> DetectarEsquinasImagen()
         {
             try
@@ -284,6 +286,7 @@ namespace Desing.Controllers
                 double alturaMuroMm = (alturaMuro ?? 2.70) * 1000.0;
                 var resultado = detector.DetectarEsquinasL(lineasCarasMuro, alturaMuroMm);
                 AgregarLineasDetectadasDesdeImagen(resultado, lineasCarasMuro);
+                resultado.LineasEje = lineasSimples;
 
                 var alturaMsg = alturaMuro.HasValue
                     ? $"{alturaMuro.Value:0.##}m"
@@ -318,6 +321,7 @@ namespace Desing.Controllers
         /// Espera tabla dbo.TSql_PluginDeviceAuth con columna DeviceId y (opcionalmente) LinAspNetUsert.
         /// </summary>
         [HttpPost]
+        [AllowAnonymous]
         public ActionResult ValidarEquipoPlugin(PluginAuthRequestDTO request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.DeviceId))

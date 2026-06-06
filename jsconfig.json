@@ -20,6 +20,7 @@
   "include": [
     "./Desing/Scripts/types/**/*.d.ts",
     "./Desing/Scripts/MasterArticles/**/*.js",
+    "./Desing/Scripts/Desing2/**/*.js",
     "./Desing/Scripts/Design/build/three.module.js",
     "./Desing/Scripts/Design/jsm/**/*.js"
   ],

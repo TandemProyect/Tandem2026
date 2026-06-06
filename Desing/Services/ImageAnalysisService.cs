@@ -60,8 +60,23 @@ Rules:
             if (string.IsNullOrWhiteSpace(_apiKey))
                 _apiKey = ConfigurationManager.AppSettings["OPENAI_APIKEY"];
 
-            if (string.IsNullOrWhiteSpace(_apiKey) || _apiKey == "INSERTAR_API_KEY_AQUI")
-                throw new InvalidOperationException("OPENAI_APIKEY no configurada en variable de entorno ni en Web.config");
+            if (IsPlaceholderOrMissingApiKey(_apiKey))
+            {
+                throw new InvalidOperationException(
+                    "OPENAI_APIKEY no configurada. Opciones: (1) copiar Web.GoogleMaps.config.example → Web.GoogleMaps.config " +
+                    "y poner su clave sk-… en OPENAI_APIKEY; (2) variable de entorno OPENAI_APIKEY antes de iniciar IIS Express; " +
+                    "(3) Web.config local sin commitear. https://platform.openai.com/account/api-keys");
+            }
+        }
+
+        private static bool IsPlaceholderOrMissingApiKey(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return true;
+            var k = key.Trim();
+            if (string.Equals(k, "INSERTAR_API_KEY_AQUI", StringComparison.OrdinalIgnoreCase)) return true;
+            if (k.StartsWith("REPLACE_", StringComparison.OrdinalIgnoreCase)) return true;
+            if (k.IndexOf("LOCAL_SECRET", StringComparison.OrdinalIgnoreCase) >= 0) return true;
+            return false;
         }
 
         public async Task<(List<LineaDTO> Lineas, double? EspesorMuro, double? AlturaMuro)> AnalizarImagenAsync(byte[] imagenBytes, string mimeType = "image/jpeg")
@@ -99,7 +114,15 @@ Rules:
             var responseBody = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
-                throw new Exception($"OpenAI error {response.StatusCode}: {responseBody}");
+            {
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    throw new InvalidOperationException(
+                        "Clave de OpenAI inválida o caducada. Revise OPENAI_APIKEY en Web.config o variable de entorno " +
+                        "(https://platform.openai.com/account/api-keys).");
+                }
+                throw new Exception($"OpenAI error {response.StatusCode}");
+            }
 
             var parsed = JObject.Parse(responseBody);
             var content = parsed["choices"]?[0]?["message"]?["content"]?.ToString();
