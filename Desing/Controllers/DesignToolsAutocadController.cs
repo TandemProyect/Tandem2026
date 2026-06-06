@@ -280,23 +280,28 @@ namespace Desing.Controllers
                     });
                 }
 
-                var lineasCarasMuro = ExpandirLineasCentroACaras(lineasSimples, espesorMuro.Value);
-
-                var detector = new LCornerDetector();
-                double alturaMuroMm = (alturaMuro ?? 2.70) * 1000.0;
-                var resultado = detector.DetectarEsquinasL(lineasCarasMuro, alturaMuroMm);
-                AgregarLineasDetectadasDesdeImagen(resultado, lineasCarasMuro);
-                resultado.LineasEje = lineasSimples;
-
-                var alturaMsg = alturaMuro.HasValue
-                    ? $"{alturaMuro.Value:0.##}m"
-                    : "2.70m (default)";
-
-                resultado.Mensaje = $"Imagen analizada: {lineasSimples.Count} líneas eje, {lineasCarasMuro.Count} líneas de cara (interior/exterior), espesor {espesorMuro.Value * 1000}mm, altura {alturaMsg}. {resultado.Mensaje}";
-                if (!alturaMuro.HasValue)
+                // Modo boceto: preparación suave (cotas/vertices ya vienen ordenados; no fusionar ni filtrar).
+                var lineasEje = SketchWallBuilder.PrepararLineasEjeBoceto(lineasSimples);
+                if (lineasEje.Count == 0)
                 {
-                    resultado.Mensaje += " Aviso: no se detectó cota de altura (H/h), se usó altura por defecto 2.70m.";
+                    return Json(new ApiResponse<DeteccionEsquinasLDTO>
+                    {
+                        Exito = false,
+                        Mensaje = "Tras filtrar cotas y ruido no quedaron tramos de muro. Revisa que el boceto tenga solo líneas gruesas de perímetro.",
+                        Datos = null
+                    });
                 }
+
+                // Fase 1: solo perímetro exterior en planta (espesor/altura en pasos posteriores).
+                var resultado = SketchWallBuilder.ConstruirBocetoSoloEje(lineasEje);
+                resultado.LineasEje = lineasEje;
+
+                SketchWallBuilder.ObtenerBoundsPublico(lineasEje, out _, out _, out double maxX, out double maxY);
+                resultado.Mensaje =
+                    $"Imagen analizada ({file.FileName}): {lineasEje.Count} tramos, " +
+                    $"{maxX / 1000.0:0.##}×{maxY / 1000.0:0.##} m. " +
+                    $"E={espesorMuro.Value * 1000:0} mm. " +
+                    resultado.Mensaje;
 
                 return Json(new ApiResponse<DeteccionEsquinasLDTO>
                 {

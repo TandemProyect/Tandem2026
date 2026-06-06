@@ -486,6 +486,7 @@
     <Compile Include="Services\ImageAnalysisService.cs" />
     <Compile Include="Services\MasterArticleViewerDxfConverter.cs" />
     <Compile Include="Services\LCornerDetector.cs" />
+    <Compile Include="Services\SketchWallBuilder.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="System\Data\Common\NotificationHelper.cs" />
   </ItemGroup>
@@ -1058,6 +1059,9 @@
     <Content Include="Content\DesignTools\MenuIcon\TapeS9.png" />
     <Content Include="Content\DesignTools\MenuIcon\test.png" />
     <Content Include="Content\DesignTools\MenuIcon\WALL.png" />
+    <Content Include="Content\DesignTools\MenuIcon\images.jpg" />
+    <Content Include="Content\DesignTools\MenuIcon\muro.jpg" />
+    <Content Include="Content\DesignTools\MenuIcon\SelectLines.png" />
     <Content Include="Content\DesignTools\MenuIcon\VWALL.png" />
     <Content Include="Content\DesignTools\MenuIcon\wizarAccesor.png" />
     <Content Include="Content\DesignTools\MenuIcon\worker.png" />

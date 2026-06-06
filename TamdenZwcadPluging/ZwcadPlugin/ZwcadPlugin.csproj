@@ -126,14 +126,28 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <!-- Copia la carpeta MNU al directorio de salida manteniendo la estructura -->
   <ItemGroup>
+    <Content Include="MNU\img\images.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="MNU\img\muro.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="MNU\img\SelectLines.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="MNU\SelectLines.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <Target Name="CopiarMNU" AfterTargets="Build">
     <Copy SourceFiles="MNU\Tandem2026.cui" DestinationFolder="$(OutputPath)MNU\" SkipUnchangedFiles="true" />
+    <ItemGroup>
+      <ImgFiles Include="MNU\img\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ImgFiles)" DestinationFolder="$(OutputPath)MNU\img\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="MNU\SelectLines.png" DestinationFolder="$(OutputPath)MNU\" SkipUnchangedFiles="true" Condition="Exists('MNU\SelectLines.png')" />
+    <Copy SourceFiles="MNU\img\SelectLines.png" DestinationFolder="$(ZwCadApiRoot)\Support\" SkipUnchangedFiles="true" Condition="Exists('$(ZwCadApiRoot)\Support')" />
   </Target>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

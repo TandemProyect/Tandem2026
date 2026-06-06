@@ -855,6 +855,7 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     width: 1.9rem;
     height: 1.9rem;
     color: rgba(15, 23, 42, 0.82);
+    object-fit: contain;
 }
 
 .desing2-stl-hover-right-panel__strip-icon {

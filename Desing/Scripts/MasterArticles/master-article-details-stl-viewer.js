@@ -7936,37 +7936,67 @@ function bootMasterArticleDetailsStlViewer() {
         maStlImageSketchToolHud.classList.remove('d-none');
     }
 
+    /** Mismo perímetro que ZWCAD DibujarResultado: PolilineasADibujar (ObjetoDB2d) antes que LineasEje. */
     function maStlImageSketchExtractLinesFromDatos(datos) {
         const segs = [];
         if (!datos) return segs;
-        const src = datos.LineasEje;
+
+        function pushSeg(ax, ay, bx, by) {
+            const inicioX = Number(ax);
+            const inicioY = Number(ay);
+            const finX = Number(bx);
+            const finY = Number(by);
+            if (
+                !Number.isFinite(inicioX) ||
+                !Number.isFinite(inicioY) ||
+                !Number.isFinite(finX) ||
+                !Number.isFinite(finY)
+            ) {
+                return;
+            }
+            segs.push({ inicioX: inicioX, inicioY: inicioY, finX: finX, finY: finY });
+        }
+
+        function readVert(v) {
+            if (!v) return null;
+            return {
+                x: Number(v.X != null ? v.X : v.x),
+                y: Number(v.Y != null ? v.Y : v.y),
+            };
+        }
+
+        const polys = datos.PolilineasADibujar || datos.polilineasADibujar;
+        if (polys && polys.length) {
+            for (let pi = 0; pi < polys.length; pi++) {
+                const poly = polys[pi];
+                if (!poly || !poly.Vertices || poly.Vertices.length < 2) continue;
+                const capa = poly.Capa || poly.capa || 'ObjetoDB2d';
+                if (capa !== 'ObjetoDB2d') continue;
+                const verts = poly.Vertices;
+                const n = verts.length;
+                const cerrada = !!(poly.Cerrada || poly.cerrada);
+                const edgeCount = cerrada ? n : n - 1;
+                for (let vi = 0; vi < edgeCount; vi++) {
+                    const v0 = readVert(verts[vi]);
+                    const v1 = readVert(verts[(vi + 1) % n]);
+                    if (!v0 || !v1) continue;
+                    pushSeg(v0.x, v0.y, v1.x, v1.y);
+                }
+            }
+            if (segs.length) return segs;
+        }
+
+        const src = datos.LineasEje || datos.lineasEje;
         if (src && src.length) {
             for (let i = 0; i < src.length; i++) {
                 const ln = src[i];
                 if (!ln) continue;
-                segs.push({
-                    inicioX: Number(ln.InicioX),
-                    inicioY: Number(ln.InicioY),
-                    finX: Number(ln.FinX),
-                    finY: Number(ln.FinY),
-                });
-            }
-            return segs;
-        }
-        const polys = datos.PolilineasADibujar;
-        if (!polys || !polys.length) return segs;
-        for (let pi = 0; pi < polys.length; pi++) {
-            const poly = polys[pi];
-            if (!poly || poly.Capa !== 'ObjetoDB2d' || !poly.Vertices || poly.Vertices.length < 2) continue;
-            for (let vi = 1; vi < poly.Vertices.length; vi++) {
-                const v0 = poly.Vertices[vi - 1];
-                const v1 = poly.Vertices[vi];
-                segs.push({
-                    inicioX: Number(v0.X),
-                    inicioY: Number(v0.Y),
-                    finX: Number(v1.X),
-                    finY: Number(v1.Y),
-                });
+                pushSeg(
+                    ln.InicioX != null ? ln.InicioX : ln.inicioX,
+                    ln.InicioY != null ? ln.InicioY : ln.inicioY,
+                    ln.FinX != null ? ln.FinX : ln.finX,
+                    ln.FinY != null ? ln.FinY : ln.finY
+                );
             }
         }
         return segs;
@@ -7985,19 +8015,31 @@ function bootMasterArticleDetailsStlViewer() {
         return { x: minX, y: minY };
     }
 
+    /** ZWCAD/API: Y↑ → Desing_2 planta: −Z (arriba en papel). Ver maStlBuildPlanRulers. */
+    function maStlImageSketchCadYToWorldZ(cadY, originCadY, insertWorldZ) {
+        return insertWorldZ - (cadY - originCadY);
+    }
+
     function maStlImageSketchCommitAtPointMm(insertPt) {
         if (!maStlImageSketchPendingLines || !maStlImageSketchPendingLines.length || !insertPt) return 0;
         const floorY = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM;
         const ox = maStlImageSketchOriginMinMm.x;
         const oy = maStlImageSketchOriginMinMm.y;
         const dx = insertPt.x - ox;
-        const dz = insertPt.z - oy;
         const undoBefore = maStlDesingV2Viewer ? maStlDesing2SerializeEditSnapshot() : null;
         let n = 0;
         for (let i = 0; i < maStlImageSketchPendingLines.length; i++) {
             const s = maStlImageSketchPendingLines[i];
-            const a = new THREE.Vector3(s.inicioX + dx, floorY, s.inicioY + dz);
-            const b = new THREE.Vector3(s.finX + dx, floorY, s.finY + dz);
+            const a = new THREE.Vector3(
+                s.inicioX + dx,
+                floorY,
+                maStlImageSketchCadYToWorldZ(s.inicioY, oy, insertPt.z)
+            );
+            const b = new THREE.Vector3(
+                s.finX + dx,
+                floorY,
+                maStlImageSketchCadYToWorldZ(s.finY, oy, insertPt.z)
+            );
             if (a.distanceToSquared(b) < maStlUserFloorSegmentMinMm() * maStlUserFloorSegmentMinMm()) continue;
             maStlCommitUserPlanLineSegmentMm(a, b, true);
             n++;
