@@ -129,8 +129,239 @@ namespace Desing.Services
         }
 
         /// <summary>
-        /// Reconstruye perímetro cuando GPT leyó bien las cotas pero ordenó mal el recorrido.
-        /// Espera cotasVisibles en orden de lectura: pared izq, tramos superiores izq→der, pared der.
+        /// Reconstruye el perímetro desde cotas en orden (eje H/V) probando direcciones N/S/E/W hasta cerrar en (0,0).
+        /// </summary>
+        public static bool TryLineasDesdeCotasEtiquetadasJson(JToken cotasToken, out List<LineaDTO> lineas)
+        {
+            lineas = null;
+            var segs = LeerCotasEtiquetadas(cotasToken);
+            if (segs == null || segs.Count < 3)
+                return false;
+
+            if (TryConstruirDesdeEtiquetas(segs, out lineas))
+                return true;
+
+            var alternado = new List<EtiquetaSeg>();
+            for (int i = 0; i < segs.Count; i++)
+            {
+                alternado.Add(new EtiquetaSeg
+                {
+                    Len = segs[i].Len,
+                    IsHorizontal = i % 2 == 0
+                });
+            }
+
+            return TryConstruirDesdeEtiquetas(alternado, out lineas);
+        }
+
+        /// <summary>
+        /// Usa el recorrido GPT y añade hasta 2 tramos ortogonales para cerrar si falta poco.
+        /// </summary>
+        public static bool TryLineasDesdeRecorridoCompletadoJson(JToken recorridoToken, out List<LineaDTO> lineas)
+        {
+            lineas = null;
+            var arr = recorridoToken as JArray;
+            if (arr == null || arr.Count < 3)
+                return false;
+
+            var rec = new JArray();
+            foreach (var seg in arr)
+            {
+                var dir = seg["dir"]?.ToString()?.Trim().ToUpperInvariant();
+                double len = seg["len"]?.Value<double>() ?? seg["longitud"]?.Value<double>() ?? 0;
+                if (string.IsNullOrEmpty(dir) || len <= 0)
+                    return false;
+                rec.Add(SegmentoRecorrido(dir, len));
+            }
+
+            if (!TryAnexarCierreOrtogonal(rec, out _))
+                return false;
+
+            if (!RecorridoJsonCierra(rec))
+                return false;
+
+            if (!TryLineasDesdeRecorridoJson(rec, out lineas))
+                return false;
+
+            lineas = TrasladarLineasAlOrigen(lineas);
+            System.Diagnostics.Debug.WriteLine("[SketchWallBuilder] Perímetro desde recorrido + cierre automático.");
+            return lineas != null && lineas.Count > 0;
+        }
+
+        private static bool TryConstruirDesdeEtiquetas(List<EtiquetaSeg> segs, out List<LineaDTO> lineas)
+        {
+            lineas = null;
+            var dirs = new List<string>();
+            if (!BacktrackRecorridoEtiquetado(segs, 0, 0, 0, dirs))
+                return false;
+
+            var rec = new JArray();
+            for (int i = 0; i < segs.Count; i++)
+                rec.Add(SegmentoRecorrido(dirs[i], segs[i].Len));
+
+            if (!RecorridoJsonCierra(rec))
+                return false;
+
+            if (!TryLineasDesdeRecorridoJson(rec, out lineas))
+                return false;
+
+            lineas = TrasladarLineasAlOrigen(lineas);
+            System.Diagnostics.Debug.WriteLine("[SketchWallBuilder] Perímetro ortogonal genérico (" + segs.Count + " tramos).");
+            return lineas != null && lineas.Count > 0;
+        }
+
+        private static List<LineaDTO> TrasladarLineasAlOrigen(List<LineaDTO> lineas)
+        {
+            if (lineas == null || lineas.Count == 0)
+                return lineas;
+
+            ObtenerBounds(lineas, out double minX, out double minY, out _, out _);
+            if (minX >= -0.5 && minY >= -0.5)
+                return lineas;
+
+            var salida = new List<LineaDTO>();
+            foreach (var l in lineas)
+            {
+                salida.Add(new LineaDTO
+                {
+                    Tipo = "Line",
+                    InicioX = l.InicioX - minX,
+                    InicioY = l.InicioY - minY,
+                    FinX = l.FinX - minX,
+                    FinY = l.FinY - minY,
+                    InicioZ = l.InicioZ,
+                    FinZ = l.FinZ,
+                    Vertices = l.Vertices
+                });
+            }
+
+            return salida;
+        }
+
+        private static bool TryAnexarCierreOrtogonal(JArray rec, out double xFinal)
+        {
+            xFinal = 0;
+            if (rec == null)
+                return false;
+
+            const double tol = 0.25;
+            int extra = 0;
+            const int maxExtra = 2;
+
+            SimularRecorrido(rec, out double x, out double y);
+
+            while (extra < maxExtra && (Math.Abs(x) > tol || Math.Abs(y) > tol))
+            {
+                if (Math.Abs(x) > tol)
+                {
+                    rec.Add(SegmentoRecorrido(x > 0 ? "W" : "E", Math.Abs(x)));
+                }
+                else if (Math.Abs(y) > tol)
+                {
+                    rec.Add(SegmentoRecorrido(y > 0 ? "S" : "N", Math.Abs(y)));
+                }
+
+                SimularRecorrido(rec, out x, out y);
+                extra++;
+            }
+
+            xFinal = x;
+            return Math.Abs(x) <= tol && Math.Abs(y) <= tol;
+        }
+
+        private static void SimularRecorrido(JArray rec, out double x, out double y)
+        {
+            x = y = 0;
+            foreach (var seg in rec)
+            {
+                if (!TryLeerDesplazamientoRecorrido(seg, out double dx, out double dy))
+                    return;
+                x += dx;
+                y += dy;
+            }
+        }
+
+        /// <summary>
+        /// Usa direcciones del recorrido GPT y longitudes de cotasEtiquetadas (mismo número de tramos).
+        /// </summary>
+        public static bool TryLineasDesdeRecorridoConCotasEtiquetadas(
+            JToken recorridoToken, JToken cotasToken, out List<LineaDTO> lineas)
+        {
+            lineas = null;
+            var segs = LeerCotasEtiquetadas(cotasToken);
+            var arr = recorridoToken as JArray;
+            if (segs == null || arr == null || segs.Count < 3 || segs.Count != arr.Count)
+                return false;
+
+            var rec = new JArray();
+            for (int i = 0; i < segs.Count; i++)
+            {
+                if (!TryLeerDesplazamientoRecorrido(arr[i], out _, out _))
+                    return false;
+
+                var dir = arr[i]["dir"]?.ToString()?.Trim().ToUpperInvariant();
+                if (string.IsNullOrEmpty(dir))
+                    return false;
+
+                rec.Add(SegmentoRecorrido(dir, segs[i].Len));
+            }
+
+            if (!RecorridoJsonCierra(rec))
+                return false;
+
+            return TryLineasDesdeRecorridoJson(rec, out lineas);
+        }
+
+        /// <summary>Usa direcciones del recorrido GPT y una lista de longitudes (cotasVisibles filtradas).</summary>
+        public static bool TryLineasDesdeRecorridoConLongitudes(
+            JToken recorridoToken, IReadOnlyList<double> longitudes, out List<LineaDTO> lineas)
+        {
+            lineas = null;
+            var arr = recorridoToken as JArray;
+            if (arr == null || longitudes == null || arr.Count < 3 || arr.Count != longitudes.Count)
+                return false;
+
+            var rec = new JArray();
+            for (int i = 0; i < arr.Count; i++)
+            {
+                var dir = arr[i]["dir"]?.ToString()?.Trim().ToUpperInvariant();
+                if (string.IsNullOrEmpty(dir) || longitudes[i] <= 0)
+                    return false;
+                rec.Add(SegmentoRecorrido(dir, longitudes[i]));
+            }
+
+            if (!RecorridoJsonCierra(rec))
+                return false;
+
+            return TryLineasDesdeRecorridoJson(rec, out lineas);
+        }
+
+        /// <summary>
+        /// Fallback genérico: cotas del perímetro en orden horario (sin eje H/V).
+        /// Asume alternancia H,V,H,V… empezando por horizontal en la base (polígono ortogonal cerrado).
+        /// </summary>
+        public static bool TryLineasDesdeCotasVisiblesPerimetro(JToken cotasToken, out List<LineaDTO> lineas)
+        {
+            lineas = null;
+            var dims = FiltrarCotasPerimetro(cotasToken);
+            if (dims.Count < 4)
+                return false;
+
+            var segs = new List<EtiquetaSeg>();
+            for (int i = 0; i < dims.Count; i++)
+            {
+                segs.Add(new EtiquetaSeg
+                {
+                    Len = dims[i],
+                    IsHorizontal = i % 2 == 0
+                });
+            }
+
+            return TryConstruirDesdeEtiquetas(segs, out lineas);
+        }
+
+        /// <summary>
+        /// Plantilla de UN saliente en el techo. No usar en flujo de imagen (cada boceto es distinto).
         /// </summary>
         public static bool TryLineasDesdeCotasVisiblesOrdenadas(JToken cotasToken, out List<LineaDTO> lineas)
         {
@@ -254,6 +485,89 @@ namespace Desing.Services
             }
 
             return -1;
+        }
+
+        private sealed class EtiquetaSeg
+        {
+            public double Len;
+            public bool IsHorizontal;
+        }
+
+        private static List<EtiquetaSeg> LeerCotasEtiquetadas(JToken cotasToken)
+        {
+            var arr = cotasToken as JArray;
+            if (arr == null || arr.Count == 0)
+                return null;
+
+            var segs = new List<EtiquetaSeg>();
+            foreach (var item in arr)
+            {
+                double len = LeerNumeroCota(item["len"]) ?? LeerNumeroCota(item["longitud"]) ?? LeerNumeroCota(item["cota"]) ?? 0;
+                if (len <= 0)
+                    return null;
+
+                if (len >= 0.08 && len <= 0.55)
+                    continue;
+
+                var eje = item["eje"]?.ToString()?.Trim().ToUpperInvariant();
+                if (string.IsNullOrEmpty(eje))
+                    return null;
+
+                bool isH = eje == "H" || eje == "HORIZONTAL";
+                bool isV = eje == "V" || eje == "VERTICAL";
+                if (!isH && !isV)
+                    return null;
+
+                segs.Add(new EtiquetaSeg { Len = len, IsHorizontal = isH });
+            }
+
+            return segs.Count >= 3 ? segs : null;
+        }
+
+        private static bool BacktrackRecorridoEtiquetado(
+            List<EtiquetaSeg> segs, int idx, double x, double y, List<string> dirs)
+        {
+            if (idx >= segs.Count)
+                return Math.Abs(x) <= 0.2 && Math.Abs(y) <= 0.2;
+
+            if (Math.Abs(x) > 25 || Math.Abs(y) > 25)
+                return false;
+
+            var seg = segs[idx];
+            string[] options = OpcionesDireccionPreferida(seg, idx);
+
+            foreach (var dir in options)
+            {
+                if (!TryDesplazamientoRecorridoDir(dir, seg.Len, out double dx, out double dy))
+                    continue;
+
+                dirs.Add(dir);
+                if (BacktrackRecorridoEtiquetado(segs, idx + 1, x + dx, y + dy, dirs))
+                    return true;
+                dirs.RemoveAt(dirs.Count - 1);
+            }
+
+            return false;
+        }
+
+        private static string[] OpcionesDireccionPreferida(EtiquetaSeg seg, int idx)
+        {
+            if (seg.IsHorizontal)
+                return (idx % 4 == 0 || idx % 4 == 3) ? new[] { "E", "W" } : new[] { "W", "E" };
+            return (idx % 4 == 1) ? new[] { "N", "S" } : new[] { "S", "N" };
+        }
+
+        private static bool TryDesplazamientoRecorridoDir(string dir, double len, out double dx, out double dy)
+        {
+            dx = dy = 0;
+            switch (dir?.ToUpperInvariant())
+            {
+                case "E": dx = len; return true;
+                case "W": dx = -len; return true;
+                case "N": dy = len; return true;
+                case "S": dy = -len; return true;
+                default: return false;
+            }
         }
 
         /// <summary>
@@ -1412,6 +1726,87 @@ namespace Desing.Services
 
         public static void ObtenerBoundsPublico(List<LineaDTO> lineas, out double minX, out double minY, out double maxX, out double maxY)
             => ObtenerBounds(lineas, out minX, out minY, out maxX, out maxY);
+
+        /// <summary>Valida perímetro reconstruido antes de dibujar (evita aceptar JSON alucinado de GPT).</summary>
+        public static bool ValidarPerimetroBoceto(List<LineaDTO> lineas, out string motivo)
+        {
+            motivo = null;
+            if (lineas == null || lineas.Count < 4)
+            {
+                motivo = "Menos de 4 tramos";
+                return false;
+            }
+
+            if (lineas.Count > 28)
+            {
+                motivo = "Demasiados tramos (" + lineas.Count + ")";
+                return false;
+            }
+
+            ObtenerBounds(lineas, out double minX, out double minY, out double maxX, out double maxY);
+            if (minX < -150 || minY < -150)
+            {
+                motivo = "Coordenadas negativas en el perímetro";
+                return false;
+            }
+
+            double anchoM = (maxX - minX) / METROS_A_MM;
+            double altoM = (maxY - minY) / METROS_A_MM;
+            if (anchoM < 1.5 || altoM < 1.5 || anchoM > 60 || altoM > 60)
+            {
+                motivo = $"Tamaño improbable ({anchoM:0.#}×{altoM:0.#} m)";
+                return false;
+            }
+
+            for (int i = 0; i < lineas.Count - 1; i++)
+            {
+                var a = lineas[i];
+                var b = lineas[i + 1];
+                if (Dist2d(a.FinX, a.FinY, b.InicioX, b.InicioY) > TOLERANCIA_EXTREMO_MM)
+                {
+                    motivo = "Tramos desconectados";
+                    return false;
+                }
+            }
+
+            var primero = lineas[0];
+            var ultimo = lineas[lineas.Count - 1];
+            bool cerrada = Dist2d(primero.InicioX, primero.InicioY, ultimo.FinX, ultimo.FinY) <= TOLERANCIA_EXTREMO_MM;
+            if (!cerrada)
+            {
+                motivo = "Perímetro no cerrado";
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>Cuenta de cotas del perímetro en cotasEtiquetadas vs cotasVisibles (tolerancia ±1).</summary>
+        public static bool CotasPerimetroCoherentes(JToken cotasEtiquetadas, JToken cotasVisibles)
+        {
+            int nEt = (cotasEtiquetadas as JArray)?.Count ?? 0;
+            if (nEt == 0)
+                return true;
+
+            var vis = new List<double>();
+            if (cotasVisibles is JArray arr)
+            {
+                foreach (var item in arr)
+                {
+                    var v = LeerNumeroCota(item);
+                    if (!v.HasValue || v.Value <= 0)
+                        continue;
+                    if (v.Value >= 0.12 && v.Value <= 0.55)
+                        continue;
+                    vis.Add(v.Value);
+                }
+            }
+
+            if (vis.Count == 0)
+                return true;
+
+            return Math.Abs(vis.Count - nEt) <= 1;
+        }
 
         private static void ObtenerBounds(List<LineaDTO> lineas, out double minX, out double minY, out double maxX, out double maxY)
         {

@@ -120,8 +120,6 @@ namespace Desing.Controllers
 
             FillOfferDesignContext(model, offerId, designId);
 
-            TryAttachDevSampleStlForEmptyViewer(model);
-
 
 
             ViewBag.BodyHtmlClass = "desing2-stl-fullpage";
@@ -293,54 +291,6 @@ namespace Desing.Controllers
 
 
             model.ContextSubtitleLine = parts.Count > 0 ? string.Join(" — ", parts) : null;
-
-        }
-
-
-
-        /// <summary>
-
-        /// Sin STL en query ni oferta: si existe un bloque de prueba en disco, el visor lo carga al abrir (solo desarrollo).
-
-        /// </summary>
-
-        private void TryAttachDevSampleStlForEmptyViewer(Desing2ViewerPageModel model)
-
-        {
-
-            if (model == null || model.AutoLoadInitialStl || !string.IsNullOrWhiteSpace(model.InitialStlUrl))
-
-            {
-
-                return;
-
-            }
-
-
-
-            const string sampleVirt = "~/Files/MasterArticles/blocks/3120270090P.stl";
-
-            var phys = Server.MapPath(sampleVirt);
-
-            if (!System.IO.File.Exists(phys))
-
-            {
-
-                return;
-
-            }
-
-
-
-            model.InitialStlUrl = Url.Content(sampleVirt);
-
-            model.InitialStlLabel = "STL de prueba (3120270090P)";
-
-            model.AutoLoadInitialStl = true;
-
-            model.StlSourceUnits = "m";
-
-            model.InitialStatusFooter = Jobside.OfferWorkspace_Designs_ViewerAutoLoadPending;
 
         }
 

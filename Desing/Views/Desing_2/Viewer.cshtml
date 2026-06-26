@@ -6,7 +6,7 @@
 }
 @*
     Desing_2 / Viewer — Three.js STL. Barra única: logo plantilla + contexto obra/oferta/diseño (izq.);
-    fullscreen, rejilla, cielo, sombra, fondo oscuro, cortes, reglas UCS (Desing_2), Volver. Cubo vistas + radio cámara.
+    fullscreen, rejilla, cielo, sombra, fondo oscuro, cortes, reglas UCS (Desing_2), rosa náutica, cubo vistas, Volver.
 *@
 @section Styles
 {
@@ -37,7 +37,7 @@
         .desing2-stl-toolbar-leading {
             flex-basis: 12rem;
         }
-        /* Cubo de vistas arriba; controles de cámara debajo */
+        /* Cubo de vistas: esquina superior derecha; contenedor sin fondo (solo el toggle orto/iso lleva pastilla) */
         .desing2-stl-cube-camera-stack {
             position: absolute;
             top: 10px;
@@ -47,7 +47,8 @@
             flex-direction: column;
             align-items: flex-end;
             gap: 4px;
-            max-width: min(280px, 92vw);
+            width: max-content;
+            max-width: none;
             pointer-events: none;
         }
         .desing2-stl-cube-camera-stack > * {
@@ -57,7 +58,13 @@
             position: relative !important;
             top: auto !important;
             right: auto !important;
-            max-width: 100%;
+            width: auto;
+            max-width: none;
+        }
+        .desing2-stl-view-scope .desing2-stl-cube-camera-stack .ma-stl-vc-scene {
+            width: auto;
+            min-height: 0;
+            margin: 0;
         }
         .desing2-stl-camera-below-cube {
             background: rgba(255, 255, 255, 0.94);

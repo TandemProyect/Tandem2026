@@ -1,18 +1,93 @@
 @using Desing.Resources
 
 @*
-
     Desing_2 — barra superior centrada sobre el lienzo (siempre visible, discreta).
-
-    Insertar esquina, polilínea, recinto rectangular, offset y borrar; infraestructura vía ids ma-stl-tool-*.
-
+    Dos grupos: dibujar (polilínea, muro 2D, recuadro) y modificar (copiar, desplazar, recortar, alargar, estirar, offset, borrar).
 *@
 
 <aside id="desing2-stl-top-toolbar" class="desing2-stl-top-toolbar desing2-stl-floating-toolbar" role="region" aria-label="@MasterArticles.StlPreview_Desing2TopToolbarAria">
 
-    <div class="desing2-stl-floating-toolbar__inner d-flex align-items-center gap-1" role="toolbar" aria-label="@MasterArticles.StlPreview_Desing2TopToolbarAria">
+    <div class="desing2-stl-floating-toolbar__inner d-flex align-items-center" role="toolbar" aria-label="@MasterArticles.StlPreview_Desing2TopToolbarAria">
 
-        <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-insert-corner" data-ma-stl-tool="insert-corner" title="@MasterArticles.StlPreview_Desing2TopToolInsertCornerAria" aria-label="@MasterArticles.StlPreview_Desing2TopToolInsertCornerAria">
+        <div class="desing2-stl-floating-toolbar__group desing2-stl-floating-toolbar__group--draw" role="group" aria-label="@MasterArticles.StlPreview_Desing2TopToolbarDrawGroupAria">
+
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-polyline" data-ma-stl-tool="polyline" title="@MasterArticles.StlPreview_Desing2ToolPolylineAria" aria-label="@MasterArticles.StlPreview_Desing2ToolPolylineAria">
+
+                <i class="icon-base ri ri-route-line" aria-hidden="true"></i>
+
+            </button>
+
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-wall-2d" data-ma-stl-tool="wall-2d" title="@MasterArticles.StlPreview_Desing2ToolWall2dAria" aria-label="@MasterArticles.StlPreview_Desing2ToolWall2dAria">
+
+                <svg class="icon-base desing2-stl-tool-icon desing2-stl-tool-icon--wall-2d" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M3 8.5h18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                    <path d="M4 12h16" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" />
+                    <path d="M3 15.5h18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                </svg>
+
+            </button>
+
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-insert-enclosure" data-ma-stl-tool="insert-enclosure" title="@MasterArticles.StlPreview_Desing2TopToolInsertEnclosureAria" aria-label="@MasterArticles.StlPreview_Desing2TopToolInsertEnclosureAria">
+
+                <svg class="icon-base desing2-stl-tool-icon desing2-stl-tool-icon--insert-enclosure" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <rect x="3.5" y="5.5" width="17" height="13" fill="none" stroke="currentColor" stroke-width="2" />
+                    <rect x="6.5" y="8.5" width="11" height="7" fill="none" stroke="currentColor" stroke-width="1.5" />
+                </svg>
+
+            </button>
+
+        </div>
+
+        <span class="desing2-stl-floating-toolbar__group-gap" aria-hidden="true"></span>
+
+        <div class="desing2-stl-floating-toolbar__group desing2-stl-floating-toolbar__group--modify" role="group" aria-label="@MasterArticles.StlPreview_Desing2TopToolbarModifyGroupAria">
+
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-copy" data-ma-stl-tool="copy" title="@MasterArticles.StlPreview_Desing2TopToolCopiarAria" aria-label="@MasterArticles.StlPreview_Desing2TopToolCopiarAria" disabled="disabled">
+
+                <i class="icon-base ri ri-file-copy-2-line" aria-hidden="true"></i>
+
+            </button>
+
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-move" data-ma-stl-tool="move" title="@MasterArticles.StlPreview_Desing2TopToolDesplazarAria" aria-label="@MasterArticles.StlPreview_Desing2TopToolDesplazarAria" disabled="disabled">
+
+                <i class="icon-base ri ri-drag-move-2-line" aria-hidden="true"></i>
+
+            </button>
+
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-trim" data-ma-stl-tool="trim" title="@MasterArticles.StlPreview_Desing2TopToolRecortarAria" aria-label="@MasterArticles.StlPreview_Desing2TopToolRecortarAria" disabled="disabled">
+
+                <i class="icon-base ri ri-scissors-cut-line" aria-hidden="true"></i>
+
+            </button>
+
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-extend" data-ma-stl-tool="extend" title="@MasterArticles.StlPreview_Desing2TopToolAlargarAria" aria-label="@MasterArticles.StlPreview_Desing2TopToolAlargarAria" disabled="disabled">
+
+                <i class="icon-base ri ri-expand-right-line" aria-hidden="true"></i>
+
+            </button>
+
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-stretch" data-ma-stl-tool="stretch" title="@MasterArticles.StlPreview_Desing2TopToolEstirarAria" aria-label="@MasterArticles.StlPreview_Desing2TopToolEstirarAria" disabled="disabled">
+
+                <i class="icon-base ri ri-expand-width-line" aria-hidden="true"></i>
+
+            </button>
+
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-offset" data-ma-stl-tool="offset" title="@MasterArticles.StlPreview_Desing2TopToolOffsetAria" aria-label="@MasterArticles.StlPreview_Desing2TopToolOffsetAria">
+
+                <i class="icon-base ri ri-shape-line" aria-hidden="true"></i>
+
+            </button>
+
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-delete" data-ma-stl-tool="delete" title="@MasterArticles.StlPreview_Desing2TopToolBorrarAria" aria-label="@MasterArticles.StlPreview_Desing2TopToolBorrarAria">
+
+                <i class="icon-base ri ri-delete-bin-line" aria-hidden="true"></i>
+
+            </button>
+
+        </div>
+
+        @* Esquina L: fuera de la barra visible; el atajo y el JS siguen usando este id. *@
+        <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn d-none" id="ma-stl-tool-insert-corner" data-ma-stl-tool="insert-corner" title="@MasterArticles.StlPreview_Desing2TopToolInsertCornerAria" aria-label="@MasterArticles.StlPreview_Desing2TopToolInsertCornerAria" tabindex="-1" aria-hidden="true">
 
             <svg class="icon-base desing2-stl-tool-icon desing2-stl-tool-icon--insert-corner" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                 <path fill="currentColor" d="M4 3h5v13h12v5H4z" />
@@ -20,34 +95,6 @@
 
         </button>
 
-        <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-polyline" data-ma-stl-tool="polyline" title="@MasterArticles.StlPreview_Desing2ToolPolylineAria" aria-label="@MasterArticles.StlPreview_Desing2ToolPolylineAria">
-
-            <i class="icon-base ri ri-route-line" aria-hidden="true"></i>
-
-        </button>
-
-        <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-insert-enclosure" data-ma-stl-tool="insert-enclosure" title="@MasterArticles.StlPreview_Desing2TopToolInsertEnclosureAria" aria-label="@MasterArticles.StlPreview_Desing2TopToolInsertEnclosureAria">
-
-            <svg class="icon-base desing2-stl-tool-icon desing2-stl-tool-icon--insert-enclosure" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <rect x="3.5" y="5.5" width="17" height="13" fill="none" stroke="currentColor" stroke-width="2" />
-                <rect x="6.5" y="8.5" width="11" height="7" fill="none" stroke="currentColor" stroke-width="1.5" />
-            </svg>
-
-        </button>
-
-        <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-offset" data-ma-stl-tool="offset" title="@MasterArticles.StlPreview_Desing2TopToolOffsetAria" aria-label="@MasterArticles.StlPreview_Desing2TopToolOffsetAria">
-
-            <i class="icon-base ri ri-shape-line" aria-hidden="true"></i>
-
-        </button>
-
-        <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-delete" data-ma-stl-tool="delete" title="@MasterArticles.StlPreview_Desing2TopToolBorrarAria" aria-label="@MasterArticles.StlPreview_Desing2TopToolBorrarAria">
-
-            <i class="icon-base ri ri-delete-bin-line" aria-hidden="true"></i>
-
-        </button>
-
     </div>
 
 </aside>
-

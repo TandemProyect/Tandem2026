@@ -574,11 +574,35 @@
   <data name="StlPreview_Desing2ToolPolylineAria" xml:space="preserve">
     <value>Floor-plan polyline: chain segments with successive clicks; Enter or Escape finishes; each segment is an independent line</value>
   </data>
+  <data name="StlPreview_Desing2ToolWall2d" xml:space="preserve">
+    <value>Wall</value>
+  </data>
+  <data name="StlPreview_Desing2ToolWall2dAria" xml:space="preserve">
+    <value>Draw a floor-plan wall (like a polyline with symmetric thickness above and below); the wall is one selectable group</value>
+  </data>
   <data name="StlPreview_Desing2TopToolAlargar" xml:space="preserve">
     <value>Extend</value>
   </data>
   <data name="StlPreview_Desing2TopToolAlargarAria" xml:space="preserve">
     <value>Extend tool — coming soon (UI placeholder only)</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolCopiar" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolCopiarAria" xml:space="preserve">
+    <value>Copy tool — coming soon (UI placeholder only)</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolDesplazar" xml:space="preserve">
+    <value>Move</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolDesplazarAria" xml:space="preserve">
+    <value>Move tool — coming soon (UI placeholder only)</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolEstirar" xml:space="preserve">
+    <value>Stretch</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolEstirarAria" xml:space="preserve">
+    <value>Stretch tool — coming soon (UI placeholder only)</value>
   </data>
   <data name="StlPreview_Desing2TopToolBorrar" xml:space="preserve">
     <value>Delete</value>
@@ -624,6 +648,12 @@
   </data>
   <data name="StlPreview_Desing2TopToolbarAria" xml:space="preserve">
     <value>STL canvas tool bar</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolbarDrawGroupAria" xml:space="preserve">
+    <value>Draw</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolbarModifyGroupAria" xml:space="preserve">
+    <value>Modify</value>
   </data>
   <data name="StlPreview_Desing2TopToolbarCollapseTitle" xml:space="preserve">
     <value>Collapse bar until you move the pointer near the top center strip again</value>
@@ -697,6 +727,12 @@
   <data name="StlPreview_ImageSketchError" xml:space="preserve">
     <value>Could not analyze image: {0}</value>
   </data>
+  <data name="StlPreview_ImageSketchErrorModalTitle" xml:space="preserve">
+    <value>Sketch analysis error</value>
+  </data>
+  <data name="StlPreview_ImageSketchErrorModalAccept" xml:space="preserve">
+    <value>OK</value>
+  </data>
   <data name="StlPreview_ImageSketchFormAccept" xml:space="preserve">
     <value>Analyze and insert</value>
   </data>
@@ -707,7 +743,7 @@
     <value>Choose image…</value>
   </data>
   <data name="StlPreview_ImageSketchFormHint" xml:space="preserve">
-    <value>Attach a plan or sketch (JPG/PNG) with wall lines and E/e and H/h dimensions.</value>
+    <value>Thick line = outer perimeter. One number per segment, parallel to the wall. E=0.30 on the thickness dimension (between the two wall lines). H in a corner if applicable.</value>
   </data>
   <data name="StlPreview_ImageSketchFormNoFile" xml:space="preserve">
     <value>Select an image</value>
@@ -795,6 +831,12 @@
   </data>
   <data name="StlPreview_PolylineToolInstructionSecond" xml:space="preserve">
     <value>Next vertex: click on the floor, or type distance + Enter to finish the polyline. Escape cancels the current segment.</value>
+  </data>
+  <data name="StlPreview_Wall2dToolInstructionFirst" xml:space="preserve">
+    <value>Click for the first wall axis vertex (preview shows half thickness on each side).</value>
+  </data>
+  <data name="StlPreview_Wall2dToolInstructionSecond" xml:space="preserve">
+    <value>Next axis vertex: click on the floor or type distance + Enter. Corners miter when you turn. Escape finishes.</value>
   </data>
   <data name="StlPreview_RowLabel3D" xml:space="preserve">
     <value>3D</value>

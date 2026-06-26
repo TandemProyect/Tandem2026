@@ -275,7 +275,7 @@ namespace Desing.Controllers
                     return Json(new ApiResponse<DeteccionEsquinasLDTO>
                     {
                         Exito = false,
-                        Mensaje = "Falta la cota de espesor. Añade una etiqueta de espesor junto a un muro usando E/e (ej: E 0,30 o e=0.30) y vuelve a intentarlo.",
+                        Mensaje = "Falta la cota de espesor. Añade E=0,30 en la línea de cota del espesor (entre las dos líneas del muro) y vuelve a intentarlo.",
                         Datos = null
                     });
                 }

@@ -574,11 +574,35 @@
   <data name="StlPreview_Desing2ToolPolylineAria" xml:space="preserve">
     <value>Polilínea en planta: encadenar segmentos con clics sucesivos; Intro o Escape termina; cada tramo es una línea independiente</value>
   </data>
+  <data name="StlPreview_Desing2ToolWall2d" xml:space="preserve">
+    <value>Muro</value>
+  </data>
+  <data name="StlPreview_Desing2ToolWall2dAria" xml:space="preserve">
+    <value>Dibujar muro en planta (como polilínea con espesor simétrico arriba y abajo); el muro forma un conjunto seleccionable</value>
+  </data>
   <data name="StlPreview_Desing2TopToolAlargar" xml:space="preserve">
     <value>Alargar</value>
   </data>
   <data name="StlPreview_Desing2TopToolAlargarAria" xml:space="preserve">
     <value>Herramienta alargar — próximamente (solo interfaz)</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolCopiar" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolCopiarAria" xml:space="preserve">
+    <value>Herramienta copiar — próximamente (solo interfaz)</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolDesplazar" xml:space="preserve">
+    <value>Desplazar</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolDesplazarAria" xml:space="preserve">
+    <value>Herramienta desplazar — próximamente (solo interfaz)</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolEstirar" xml:space="preserve">
+    <value>Estirar</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolEstirarAria" xml:space="preserve">
+    <value>Herramienta estirar — próximamente (solo interfaz)</value>
   </data>
   <data name="StlPreview_Desing2TopToolBorrar" xml:space="preserve">
     <value>Borrar</value>
@@ -624,6 +648,12 @@
   </data>
   <data name="StlPreview_Desing2TopToolbarAria" xml:space="preserve">
     <value>Barra de herramientas del lienzo STL</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolbarDrawGroupAria" xml:space="preserve">
+    <value>Dibujar</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolbarModifyGroupAria" xml:space="preserve">
+    <value>Modificar</value>
   </data>
   <data name="StlPreview_Desing2TopToolbarCollapseTitle" xml:space="preserve">
     <value>Ocultar barra hasta acercar de nuevo el puntero al borde superior centrado</value>
@@ -697,6 +727,12 @@
   <data name="StlPreview_ImageSketchError" xml:space="preserve">
     <value>No se pudo analizar la imagen: {0}</value>
   </data>
+  <data name="StlPreview_ImageSketchErrorModalTitle" xml:space="preserve">
+    <value>Error al analizar el boceto</value>
+  </data>
+  <data name="StlPreview_ImageSketchErrorModalAccept" xml:space="preserve">
+    <value>Aceptar</value>
+  </data>
   <data name="StlPreview_ImageSketchFormAccept" xml:space="preserve">
     <value>Analizar e insertar</value>
   </data>
@@ -707,7 +743,7 @@
     <value>Seleccionar imagen…</value>
   </data>
   <data name="StlPreview_ImageSketchFormHint" xml:space="preserve">
-    <value>Adjunte un plano o boceto (JPG/PNG) con líneas de muro y cotas E/e y H/h.</value>
+    <value>Línea gruesa = perímetro exterior. Un número por tramo, paralelo al muro. E=0,30 en la cota del espesor (entre las dos líneas del muro). H en un rincón si aplica.</value>
   </data>
   <data name="StlPreview_ImageSketchFormNoFile" xml:space="preserve">
     <value>Seleccione una imagen</value>
@@ -795,6 +831,12 @@
   </data>
   <data name="StlPreview_PolylineToolInstructionSecond" xml:space="preserve">
     <value>Siguiente vértice: clic en planta, o distancia + Intro para cerrar la polilínea. Escape cancela el tramo en curso.</value>
+  </data>
+  <data name="StlPreview_Wall2dToolInstructionFirst" xml:space="preserve">
+    <value>Clic para el primer vértice del eje del muro (vista previa con espesor arriba y abajo).</value>
+  </data>
+  <data name="StlPreview_Wall2dToolInstructionSecond" xml:space="preserve">
+    <value>Siguiente vértice del eje: clic en planta o distancia + Intro. Al girar, las esquinas se ajustan. Escape termina.</value>
   </data>
   <data name="StlPreview_RowLabel3D" xml:space="preserve">
     <value>3D</value>

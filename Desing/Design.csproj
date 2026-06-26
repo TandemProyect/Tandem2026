@@ -3242,6 +3242,8 @@
     <Content Include="Views\Desing_2\_Desing2TopToolBar.cshtml" />
     <Content Include="Views\Desing_2\_Desing2BottomToolBar.cshtml" />
     <Content Include="Views\Desing_2\_Desing2StlViewerWorkspace.cshtml" />
+    <Content Include="Views\Desing_2\_Desing2ViewCubeOverlay.cshtml" />
+    <Content Include="Views\Desing_2\_Desing2CompassOverlay.cshtml" />
     <Content Include="Views\DesignTools\_MaterialList.cshtml" />
     <Content Include="Views\DesignTools\Index.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />

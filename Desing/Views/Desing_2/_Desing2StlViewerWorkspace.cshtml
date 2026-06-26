@@ -324,6 +324,8 @@
              data-ma-stl-line-tool-instruction-second="@MasterArticles.StlPreview_LineToolInstructionSecond"
              data-ma-stl-polyline-tool-instruction-first="@MasterArticles.StlPreview_PolylineToolInstructionFirst"
              data-ma-stl-polyline-tool-instruction-second="@MasterArticles.StlPreview_PolylineToolInstructionSecond"
+             data-ma-stl-wall2d-tool-instruction-first="@MasterArticles.StlPreview_Wall2dToolInstructionFirst"
+             data-ma-stl-wall2d-tool-instruction-second="@MasterArticles.StlPreview_Wall2dToolInstructionSecond"
              data-ma-stl-line-tool-distance-preview-prefix="@MasterArticles.StlPreview_LineToolDistancePreviewApprox"
              data-ma-stl-line-tool-distance-invalid-toast="@MasterArticles.StlPreview_LineToolDistanceInvalidToast">
             <div id="ma-stl-line-tool-hud-instruction" class="ma-stl-line-tool-hud__instruction small fw-semibold text-body mb-1"></div>
@@ -392,113 +394,14 @@
         <div class="ma-stl-clip-controls d-none" id="ma-stl-clip-controls" aria-hidden="true">
             <div class="ma-stl-clip-y-wrap" title="@MasterArticles.StlPreview_ClipYTitle">
                 <span class="ma-stl-clip-label">Y</span>
-                <input type="range" id="ma-stl-clip-y" min="0" max="1000" value="1000" step="1" aria-label="@MasterArticles.StlPreview_ClipYAria" />
+                <input type="range" class="form-range" id="ma-stl-clip-y" min="0" max="1000" value="1000" step="1" aria-label="@MasterArticles.StlPreview_ClipYAria" />
             </div>
             <div class="ma-stl-clip-x-wrap" title="@MasterArticles.StlPreview_ClipXTitle">
-                <input type="range" id="ma-stl-clip-x" min="0" max="1000" value="1000" step="1" aria-label="@MasterArticles.StlPreview_ClipXAria" />
+                <input type="range" class="form-range" id="ma-stl-clip-x" min="0" max="1000" value="1000" step="1" aria-label="@MasterArticles.StlPreview_ClipXAria" />
                 <span class="ma-stl-clip-label ma-stl-clip-label--x">X</span>
             </div>
         </div>
-        <div class="desing2-stl-cube-camera-stack">
-            <div id="ma-stl-view-cube-ortho-wrap" class="ma-stl-vc-wrap">
-                <div class="ma-stl-vc-scene">
-                    <div class="ma-stl-vc-cube">
-                        <div class="ma-stl-vc-face ma-stl-vc-face--front">
-                            <div class="ma-stl-vc-corner tl" data-ortho-view="front-top-left" title="Frente–arriba–izquierda"></div>
-                            <div class="ma-stl-vc-corner tr" data-ortho-view="front-top-right" title="Frente–arriba–derecha"></div>
-                            <div class="ma-stl-vc-corner bl" data-ortho-view="front-bottom-left" title="Frente–abajo–izquierda"></div>
-                            <div class="ma-stl-vc-corner br" data-ortho-view="front-bottom-right" title="Frente–abajo–derecha"></div>
-                            <div class="ma-stl-vc-edge-v top" data-ortho-view="front-top" title="Frente–arriba"></div>
-                            <div class="ma-stl-vc-edge-v bottom" data-ortho-view="front-bottom" title="Frente–abajo"></div>
-                            <div class="ma-stl-vc-edge-h left" data-ortho-view="front-left" title="Frente–izquierda"></div>
-                            <div class="ma-stl-vc-edge-h right" data-ortho-view="front-right" title="Frente–derecha"></div>
-                            <div class="ma-stl-vc-face-inside" data-face="front" title="Front (+Z)">FRONT</div>
-                        </div>
-                        <div class="ma-stl-vc-face ma-stl-vc-face--back">
-                            <div class="ma-stl-vc-corner tl" data-ortho-view="top-back-right" title=""></div>
-                            <div class="ma-stl-vc-corner tr" data-ortho-view="top-back-left" title=""></div>
-                            <div class="ma-stl-vc-corner bl" data-ortho-view="bottom-back-right" title=""></div>
-                            <div class="ma-stl-vc-corner br" data-ortho-view="bottom-back-left" title=""></div>
-                            <div class="ma-stl-vc-edge-v top" data-ortho-view="top-back" title=""></div>
-                            <div class="ma-stl-vc-edge-v bottom" data-ortho-view="back-bottom" title=""></div>
-                            <div class="ma-stl-vc-edge-h left" data-ortho-view="back-right" title=""></div>
-                            <div class="ma-stl-vc-edge-h right" data-ortho-view="back-left" title=""></div>
-                            <div class="ma-stl-vc-face-inside" data-face="back" title="Back (−Z)">BACK</div>
-                        </div>
-                        <div class="ma-stl-vc-face ma-stl-vc-face--top">
-                            <div class="ma-stl-vc-corner tl" data-ortho-view="top-back-left" title=""></div>
-                            <div class="ma-stl-vc-corner tr" data-ortho-view="top-back-right" title=""></div>
-                            <div class="ma-stl-vc-corner bl" data-ortho-view="front-top-left" title=""></div>
-                            <div class="ma-stl-vc-corner br" data-ortho-view="front-top-right" title=""></div>
-                            <div class="ma-stl-vc-edge-v bottom" data-ortho-view="front-top" title=""></div>
-                            <div class="ma-stl-vc-edge-v top" data-ortho-view="top-back" title=""></div>
-                            <div class="ma-stl-vc-edge-h left" data-ortho-view="left-top" title=""></div>
-                            <div class="ma-stl-vc-edge-h right" data-ortho-view="right-top" title=""></div>
-                            <div class="ma-stl-vc-face-inside" data-face="top" title="Top (+Y)">TOP</div>
-                        </div>
-                        <div class="ma-stl-vc-face ma-stl-vc-face--bottom">
-                            <div class="ma-stl-vc-corner tl" data-ortho-view="front-bottom-left" title=""></div>
-                            <div class="ma-stl-vc-corner tr" data-ortho-view="front-bottom-right" title=""></div>
-                            <div class="ma-stl-vc-corner bl" data-ortho-view="bottom-back-left" title=""></div>
-                            <div class="ma-stl-vc-corner br" data-ortho-view="bottom-back-right" title=""></div>
-                            <div class="ma-stl-vc-edge-v top" data-ortho-view="front-bottom" title=""></div>
-                            <div class="ma-stl-vc-edge-v bottom" data-ortho-view="back-bottom" title=""></div>
-                            <div class="ma-stl-vc-edge-h left" data-ortho-view="left-bottom" title=""></div>
-                            <div class="ma-stl-vc-edge-h right" data-ortho-view="right-bottom" title=""></div>
-                            <div class="ma-stl-vc-face-inside" data-face="bottom" title="Bottom (−Y)">BOTT.</div>
-                        </div>
-                        <div class="ma-stl-vc-face ma-stl-vc-face--right">
-                            <div class="ma-stl-vc-corner tl" data-ortho-view="front-top-right" title=""></div>
-                            <div class="ma-stl-vc-corner tr" data-ortho-view="top-back-right" title=""></div>
-                            <div class="ma-stl-vc-corner bl" data-ortho-view="front-bottom-right" title=""></div>
-                            <div class="ma-stl-vc-corner br" data-ortho-view="bottom-back-right" title=""></div>
-                            <div class="ma-stl-vc-edge-v top" data-ortho-view="right-top" title=""></div>
-                            <div class="ma-stl-vc-edge-v bottom" data-ortho-view="right-bottom" title=""></div>
-                            <div class="ma-stl-vc-edge-h left" data-ortho-view="front-right" title=""></div>
-                            <div class="ma-stl-vc-edge-h right" data-ortho-view="back-right" title=""></div>
-                            <div class="ma-stl-vc-face-inside" data-face="right" title="Right (+X)">RIGHT</div>
-                        </div>
-                        <div class="ma-stl-vc-face ma-stl-vc-face--left">
-                            <div class="ma-stl-vc-corner tl" data-ortho-view="top-back-left" title=""></div>
-                            <div class="ma-stl-vc-corner tr" data-ortho-view="front-top-left" title=""></div>
-                            <div class="ma-stl-vc-corner bl" data-ortho-view="bottom-back-left" title=""></div>
-                            <div class="ma-stl-vc-corner br" data-ortho-view="front-bottom-left" title=""></div>
-                            <div class="ma-stl-vc-edge-v top" data-ortho-view="left-top" title=""></div>
-                            <div class="ma-stl-vc-edge-v bottom" data-ortho-view="left-bottom" title=""></div>
-                            <div class="ma-stl-vc-edge-h left" data-ortho-view="back-left" title=""></div>
-                            <div class="ma-stl-vc-edge-h right" data-ortho-view="front-left" title=""></div>
-                            <div class="ma-stl-vc-face-inside" data-face="left" title="Left (−X)">LEFT</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div id="ma-stl-view-cube-iso-wrap" class="ma-stl-vc-wrap d-none">
-                <div class="ma-stl-vc-scene">
-                    <div class="ma-stl-vc-cube ma-stl-vc-cube--iso">
-                        <div class="ma-stl-vc-face ma-stl-vc-face--front" data-face="front" title="Front">FRONT</div>
-                        <div class="ma-stl-vc-face ma-stl-vc-face--back" data-face="back" title="Back">BACK</div>
-                        <div class="ma-stl-vc-face ma-stl-vc-face--right" data-face="right" title="Right">RIGHT</div>
-                        <div class="ma-stl-vc-face ma-stl-vc-face--left" data-face="left" title="Left">LEFT</div>
-                        <div class="ma-stl-vc-face ma-stl-vc-face--top" data-face="top" title="Top">TOP</div>
-                        <div class="ma-stl-vc-face ma-stl-vc-face--bottom" data-face="bottom" title="Bottom">BOTT.</div>
-                    </div>
-                </div>
-            </div>
-            <div class="desing2-stl-camera-below-cube d-flex align-items-center justify-content-center flex-wrap gap-2">
-                <div class="btn-group btn-group-sm" role="group" aria-label="@MasterArticles.StlPreview_CameraModeAria" id="master-article-stl-camera-modes">
-                    <input type="radio" class="btn-check" name="ma-stl-cam-mode" id="ma-stl-cam-ortho" value="ortho" autocomplete="off" checked>
-                    <label class="btn btn-outline-secondary waves-effect" for="ma-stl-cam-ortho" title="@MasterArticles.StlPreview_CameraOrthoTitle">
-                        <i class="icon-base ri ri-layout-4-line" aria-hidden="true"></i>
-                        <span class="visually-hidden">@MasterArticles.StlPreview_CameraOrtho</span>
-                    </label>
-                    <input type="radio" class="btn-check" name="ma-stl-cam-mode" id="ma-stl-cam-iso" value="iso" autocomplete="off">
-                    <label class="btn btn-outline-secondary waves-effect" for="ma-stl-cam-iso" title="@MasterArticles.StlPreview_CameraIsoTitle">
-                        <i class="icon-base ri ri-box-3-line" aria-hidden="true"></i>
-                        <span class="visually-hidden">@MasterArticles.StlPreview_CameraIso</span>
-                    </label>
-                </div>
-            </div>
-        </div>
+        @Html.Partial("~/Views/Desing_2/_Desing2ViewCubeOverlay.cshtml")
     </div>
     <div id="master-article-details-stl-viewer-status" class="small text-muted px-2 py-2 border-top bg-light">
         @HttpUtility.HtmlEncode(Model.InitialStatusFooter ?? string.Empty)
@@ -508,6 +411,23 @@
         <button type="button" class="d-none master-article-stl-load" id="desing2-initial-stl-boot" data-stl-url="@stlUrlAttr" data-slot-label="@stlLabelAttr"></button>
     }
     <div id="ma-stl-desing2-toast-container" class="toast-container position-fixed top-0 end-0 p-3 ma-stl-desing2-toast-container" aria-live="polite" aria-atomic="true"></div>
+    <div class="modal fade desing2-stl-image-sketch-error-modal" id="ma-stl-image-sketch-error-modal" tabindex="-1" aria-labelledby="ma-stl-image-sketch-error-modal-title" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border border-danger border-2">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="ma-stl-image-sketch-error-modal-title">@MasterArticles.StlPreview_ImageSketchErrorModalTitle</h5>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0 text-danger fw-medium" id="ma-stl-image-sketch-error-modal-message"></p>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-danger" id="ma-stl-image-sketch-error-modal-accept" data-bs-dismiss="modal">
+                        @MasterArticles.StlPreview_ImageSketchErrorModalAccept
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="modal fade desing2-stl-image-sketch-modal" id="ma-stl-image-sketch-modal" tabindex="-1" aria-labelledby="ma-stl-image-sketch-modal-title" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
             <div class="modal-content">

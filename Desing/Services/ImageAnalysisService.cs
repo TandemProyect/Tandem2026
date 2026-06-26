@@ -19,21 +19,31 @@ namespace Desing.Services
         private readonly string _apiKey;
 
         private const string PROMPT = @"
-Analiza ÚNICAMENTE la imagen adjunta (cada imagen es distinta; no uses ejemplos de otros bocetos).
+Analiza ÚNICAMENTE la imagen adjunta. CADA imagen es un boceto distinto: no reutilices medidas ni formas de peticiones anteriores.
 
-Planta de muros manuscrita (doble línea = espesor). Extrae la geometría EXTERIOR del trazo grueso.
+FORMATO DE BOLETO (si la imagen lo sigue): una línea gruesa = perímetro EXTERIOR; cada tramo tiene UN número al lado (sin flechas ni líneas de cota); E=espesor y H=altura en un rincón.
+   ORIENTACIÓN DE LA COTA (regla clave): el número se escribe PARALELO al muro que mide.
+   - Número en horizontal → cota de tramo horizontal (E o W en recorrido).
+   - Número en vertical → cota de tramo vertical (N o S en recorrido).
+   Usa la orientación del texto para asignar cada cota al tramo correcto y al eje H/V.
 
 1) Cotas globales:
-   - espesorMuro: E/e en metros (uniforme).
+   - espesorMuro: leer la anotación E=… de la línea de cota DEL ESPESOR (entre las dos líneas paralelas del muro). Ej: E=0,30 → 0.3. No confundir con cotas del perímetro (0,4 / 0,5).
    - alturaMuro: H/h en metros (uniforme), o null.
 
-2) Geometría en METROS. Origen (0,0) = esquina inferior izquierda del perímetro exterior.
-   Método preferido — recorre el perímetro en sentido horario empezando por la base inferior:
-   - Lee CADA número escrito junto a cada arista (5,50 → 5.5; 8,30 → 8.3).
-   - Cada arista = un elemento de ""recorrido"" con la cota exacta de esa arista.
-   - Salientes: sube (N), tramo horizontal (E/W), baja (S) como tramos separados.
-   - Comprueba: la suma de tramos horizontales superiores debe coincidir con el ancho inferior.
-   - Ignora flechas, ticks y líneas finas de cota.
+2) Geometría EXTERIOR en METROS. Origen (0,0) = esquina inferior izquierda exterior.
+   Recorre el perímetro en SENTIDO HORARIO empezando por la BASE INFERIOR (primer tramo = E):
+   - Un elemento de ""recorrido"" por cada arista, con la cota de ESE tramo (5,50 → 5.5).
+   - Ignora líneas finas de cota, flechas y ticks; solo el trazo grueso exterior y los números.
+
+   ESCALONES / MUESCAS (trazo exterior, sentido horario):
+   - Borde INFERIOR: muesca hacia abajo → S, E, N (3 tramos).
+   - Borde SUPERIOR: muesca hacia abajo (dentro del recinto) → al ir en W: S, W, S o secuencia equivalente.
+   - Borde IZQUIERDO: muesca hacia dentro → E, N, W (o equivalente en orden horario).
+   - Cada escalón = 3 tramos separados (vertical + horizontal + vertical).
+
+   ""cotasEtiquetadas"" es OBLIGATORIO: lista TODAS las cotas del perímetro en orden horario desde base inferior izquierda.
+   Cada entrada: {""len"":5.0,""eje"":""H""} o ""V"" según orientación del número en la imagen. No incluyas E=0,30 en esta lista.
 
 Responde SOLO JSON (sin markdown):
 {
@@ -41,27 +51,30 @@ Responde SOLO JSON (sin markdown):
   ""espesorMuro"": null,
   ""alturaMuro"": null,
   ""recorrido"": [{""dir"":""E"",""len"":0},{""dir"":""N"",""len"":0}],
+  ""cotasEtiquetadas"": [{""len"":5.5,""eje"":""V""},{""len"":5,""eje"":""H""}],
   ""vertices"": [[x,y],...],
   ""lineas"": [{""inicioX"":0,""inicioY"":0,""finX"":0,""finY"":0}]
 }
 
-Obligatorio: ""recorrido"" con TODAS las aristas en orden (una entrada por cada cota del dibujo).
-También incluye ""cotasVisibles"": [lista de todos los números que leas en la imagen, en metros].
+Obligatorio: ""cotasEtiquetadas"" (todas las cotas del perímetro, en orden, con eje H/V).
+También ""recorrido"" con dir+len si puedes; debe CERRAR en (0,0).
+También ""cotasVisibles"": [todos los números en metros].
 No repitas el punto inicial al cerrar. No incluyas bloque ""cotas"". No simplifiques la forma.
 ";
 
         private const string RETRY_PROMPT = @"
-Revisa de nuevo la imagen adjunta. La geometría anterior era incorrecta.
+La geometría anterior era incorrecta (salientes al revés o tramos omitidos). Revisa la imagen.
 
-1) Escribe en ""cotasVisibles"" TODOS los números del boceto (ej: 5.5, 5, 2, 3, 2, 7, 8.3, 7, 0.3, 3).
-2) Construye ""recorrido"": cada arista del perímetro EXTERIOR, sentido horario desde esquina inferior izquierda.
-   Formato: [{""dir"":""E"",""len"":23.3},{""dir"":""N"",""len"":7},...]
-   - E/W = horizontal, N/S = vertical.
-   - Saliente: N (sube), E o W (techo), S (baja) = 3 tramos separados.
-3) La suma de tramos horizontales del techo = ancho de la base inferior.
-4) espesorMuro (E) y alturaMuro (H) si aparecen.
+1) ""cotasEtiquetadas"": cada número en orden del perímetro con ""eje"":""H"" si el texto está horizontal, ""V"" si está vertical (paralelo al muro).
+2) ""recorrido"": cada arista del trazo GRUESO EXTERIOR, horario desde esquina inferior izquierda, primer tramo E (base).
+   La dirección E/W/N/S debe ser coherente con ""eje"" H/V de cada cota.
+   Formato: [{""dir"":""E"",""len"":0},{""dir"":""S"",""len"":0},...]
+   - Escalón en borde inferior hacia afuera: S, E/W, N (no al revés).
+   - Escalón en borde superior hacia afuera: N, E/W, S (no al revés).
+3) El recorrido debe CERRAR en (0,0): suma de dx = 0 y suma de dy = 0.
+4) espesorMuro y alturaMuro si aparecen.
 
-Responde SOLO JSON con ""recorrido"" obligatorio (no uses vertices ni lineas).
+Responde SOLO JSON con ""cotasEtiquetadas"" obligatorio y ""recorrido"" que cierre (sin vertices ni lineas).
 ";
 
         public ImageAnalysisService()
@@ -97,9 +110,24 @@ Responde SOLO JSON con ""recorrido"" obligatorio (no uses vertices ni lineas).
 
             if (DebeReintentar(info, resultado.Lineas))
             {
-                System.Diagnostics.Debug.WriteLine($"[ImageAnalysis] Reintento GPT: {info}");
+                System.Diagnostics.Debug.WriteLine($"[ImageAnalysis] Reintento GPT: {info?.MotivoRechazo}");
                 content = await LlamarGptVisionAsync(imagenBytes, mimeType, RETRY_PROMPT, "intento-2");
-                resultado = ParseLineasDesdeRespuesta(content, out info);
+                var resultado2 = ParseLineasDesdeRespuesta(content, out info);
+                resultado = (
+                    resultado2.Lineas,
+                    resultado2.EspesorMuro ?? resultado.EspesorMuro,
+                    resultado2.AlturaMuro ?? resultado.AlturaMuro);
+            }
+
+            string motivoFinal = null;
+            bool perimetroOk = resultado.Lineas != null
+                && SketchWallBuilder.ValidarPerimetroBoceto(resultado.Lineas, out motivoFinal);
+            if (!perimetroOk)
+            {
+                throw new Exception(
+                    "No se pudo reconstruir un perímetro cerrado válido desde la imagen. " +
+                    (motivoFinal ?? info?.MotivoRechazo ?? "GPT leyó mal las cotas") +
+                    ". Revise el boceto (números paralelos al muro, E=0,30) o c:\\temp\\gpt4o_debug.json");
             }
 
             return resultado;
@@ -168,40 +196,38 @@ Responde SOLO JSON con ""recorrido"" obligatorio (no uses vertices ni lineas).
 
         private static bool DebeReintentar(ParseInfo info, List<LineaDTO> lineas)
         {
-            if (info == null)
+            if (info == null || lineas == null || lineas.Count < 3)
                 return true;
 
-            if (!info.UsoRecorrido)
-                return true;
-
-            if (lineas == null || lineas.Count < 3)
-                return true;
-
-            if (!info.RecorridoCierra)
-                return true;
-
-            SketchWallBuilder.ObtenerBoundsPublico(lineas, out double minX, out _, out double maxX, out _);
-            double anchoM = (maxX - minX) / 1000.0;
-
-            if (info.CotasVisibles != null && info.CotasVisibles.Count >= 3)
-            {
-                var horizontales = info.CotasVisibles.Where(c => c >= 3.0 && c <= 50.0).OrderByDescending(c => c).ToList();
-                if (horizontales.Count >= 2)
-                {
-                    double sumaTop = horizontales.Take(4).Sum();
-                    if (sumaTop > anchoM * 1.25)
-                        return true;
-                }
-            }
-
-            return false;
+            return !info.PerimetroValido;
         }
 
         private sealed class ParseInfo
         {
+            public string Fuente { get; set; }
             public bool UsoRecorrido { get; set; }
             public bool RecorridoCierra { get; set; }
+            public bool PerimetroValido { get; set; }
+            public string MotivoRechazo { get; set; }
             public List<double> CotasVisibles { get; set; }
+        }
+
+        private static bool AceptarLineas(List<LineaDTO> candidatas, string fuente, out List<LineaDTO> lineas, ParseInfo info)
+        {
+            lineas = null;
+            if (candidatas == null || candidatas.Count == 0)
+                return false;
+
+            if (!SketchWallBuilder.ValidarPerimetroBoceto(candidatas, out var motivo))
+            {
+                info.MotivoRechazo = fuente + ": " + motivo;
+                return false;
+            }
+
+            lineas = candidatas;
+            info.Fuente = fuente;
+            info.PerimetroValido = true;
+            return true;
         }
 
         private (List<LineaDTO> Lineas, double? EspesorMuro, double? AlturaMuro) ParseLineasDesdeRespuesta(string content)
@@ -236,70 +262,100 @@ Responde SOLO JSON con ""recorrido"" obligatorio (no uses vertices ni lineas).
             var jsonStr = content.Substring(start, end - start + 1);
             var obj = JObject.Parse(jsonStr);
 
-            double? espesorMuro = ExtractMetricValue(obj["espesorMuro"]);
-            double? alturaMuro = ExtractMetricValue(obj["alturaMuro"]);
+            double? espesorMuro = ExtractEspesorMuro(obj, content);
+            double? alturaMuro = ExtractAlturaMuro(obj, content);
             info.CotasVisibles = ExtraerCotasVisibles(obj["cotasVisibles"]);
 
             List<LineaDTO> lineas = null;
-            string fuente = null;
 
             info.RecorridoCierra = SketchWallBuilder.RecorridoJsonCierra(obj["recorrido"]);
+            bool cotasCoherentes = SketchWallBuilder.CotasPerimetroCoherentes(
+                obj["cotasEtiquetadas"], obj["cotasVisibles"]);
+            var rechazos = new List<string>();
+            if (!cotasCoherentes)
+                rechazos.Add("cotasEtiquetadas y cotasVisibles difieren en cantidad (se intentan otras rutas)");
 
-            // Prioridad: recorrido GPT válido → reconstrucción desde cotasVisibles → lineas → vertices.
-            if (obj["recorrido"] != null
-                && info.RecorridoCierra
-                && SketchWallBuilder.TryLineasDesdeRecorridoJson(obj["recorrido"], out var desdeRecorrido)
-                && desdeRecorrido != null && desdeRecorrido.Count > 0)
+            var dimsPerimetro = FiltrarCotasPerimetroParaImagen(obj["cotasVisibles"]);
+
+            // Probar todas las rutas; la incoherencia de cotas no bloquea el resto.
+            if (lineas == null
+                && obj["cotasEtiquetadas"] != null
+                && SketchWallBuilder.TryLineasDesdeCotasEtiquetadasJson(obj["cotasEtiquetadas"], out var desdeEtiquetas)
+                && AceptarLineas(desdeEtiquetas, "cotasEtiquetadas", out lineas, info))
             {
-                lineas = desdeRecorrido;
-                fuente = "recorrido";
-                info.UsoRecorrido = true;
-            }
-            else if (obj["cotasVisibles"] != null
-                && SketchWallBuilder.TryLineasDesdeCotasVisiblesOrdenadas(obj["cotasVisibles"], out var desdeCotas)
-                && desdeCotas != null && desdeCotas.Count > 0)
-            {
-                lineas = desdeCotas;
-                fuente = "cotasVisibles";
                 info.UsoRecorrido = true;
                 info.RecorridoCierra = true;
             }
-            else if (obj["recorrido"] != null
-                && SketchWallBuilder.TryLineasDesdeRecorridoJson(obj["recorrido"], out desdeRecorrido)
-                && desdeRecorrido != null && desdeRecorrido.Count > 0)
+
+            if (lineas == null
+                && obj["recorrido"] != null
+                && info.RecorridoCierra
+                && SketchWallBuilder.TryLineasDesdeRecorridoJson(obj["recorrido"], out var desdeRecorrido)
+                && AceptarLineas(desdeRecorrido, "recorrido", out lineas, info))
             {
-                lineas = desdeRecorrido;
-                fuente = "recorrido-incompleto";
                 info.UsoRecorrido = true;
             }
-            else
-            {
-                var desdeLineas = ParseLineasArray(obj["lineas"] as JArray);
-                List<LineaDTO> desdeVertices = null;
-                if (SketchWallBuilder.TryLineasDesdeVerticesJson(obj["vertices"], out var verts))
-                    desdeVertices = verts;
 
-                if (desdeLineas != null && desdeLineas.Count > 0)
-                {
-                    lineas = desdeLineas;
-                    fuente = "lineas";
-                }
-                else if (desdeVertices != null && desdeVertices.Count > 0)
-                {
-                    lineas = desdeVertices;
-                    fuente = "vertices";
-                }
+            bool recorridoCompletadoOk = false;
+            if (lineas == null
+                && obj["recorrido"] != null
+                && SketchWallBuilder.TryLineasDesdeRecorridoCompletadoJson(obj["recorrido"], out var desdeRecCompleto)
+                && AceptarLineas(desdeRecCompleto, "recorrido+cierre", out lineas, info))
+            {
+                info.UsoRecorrido = true;
+                info.RecorridoCierra = true;
+                recorridoCompletadoOk = true;
+            }
+
+            if (lineas == null && obj["recorrido"] != null && !info.RecorridoCierra && !recorridoCompletadoOk)
+            {
+                rechazos.Add("recorrido: no cierra en el origen");
+            }
+
+            if (lineas == null
+                && obj["recorrido"] != null && obj["cotasEtiquetadas"] != null
+                && SketchWallBuilder.TryLineasDesdeRecorridoConCotasEtiquetadas(
+                    obj["recorrido"], obj["cotasEtiquetadas"], out var desdeMixto)
+                && AceptarLineas(desdeMixto, "recorrido+cotasEtiquetadas", out lineas, info))
+            {
+                info.UsoRecorrido = true;
+                info.RecorridoCierra = true;
+            }
+
+            if (lineas == null
+                && obj["recorrido"] != null
+                && dimsPerimetro != null
+                && SketchWallBuilder.TryLineasDesdeRecorridoConLongitudes(
+                    obj["recorrido"], dimsPerimetro, out var desdeRecLong)
+                && AceptarLineas(desdeRecLong, "recorrido+cotasVisibles", out lineas, info))
+            {
+                info.UsoRecorrido = true;
+                info.RecorridoCierra = true;
+            }
+
+            if (lineas == null
+                && obj["cotasVisibles"] != null
+                && SketchWallBuilder.TryLineasDesdeCotasVisiblesPerimetro(obj["cotasVisibles"], out var desdeCotas)
+                && AceptarLineas(desdeCotas, "cotasVisibles", out lineas, info))
+            {
+                info.UsoRecorrido = true;
+                info.RecorridoCierra = true;
             }
 
             if (lineas == null || lineas.Count == 0)
             {
+                if (!string.IsNullOrEmpty(info.MotivoRechazo))
+                    rechazos.Add(info.MotivoRechazo);
+                info.MotivoRechazo = rechazos.Count > 0
+                    ? string.Join("; ", rechazos.Distinct())
+                    : "Ninguna estrategia produjo un perímetro cerrado válido";
                 throw new Exception(
-                    "GPT no devolvió geometría utilizable (vertices o lineas). " +
-                    "Reintente con un boceto más claro o revise c:\\temp\\gpt4o_debug.json");
+                    "GPT no devolvió un perímetro válido. " + info.MotivoRechazo +
+                    ". Revise c:\\temp\\gpt4o_debug.json");
             }
 
             System.Diagnostics.Debug.WriteLine(
-                $"[ImageAnalysis] Imagen actual → {fuente}, {lineas.Count} tramos (sin plantilla cotas).");
+                $"[ImageAnalysis] Imagen actual → {info.Fuente}, {lineas.Count} tramos (validado).");
             return (lineas, espesorMuro, alturaMuro);
         }
 
@@ -325,6 +381,121 @@ Responde SOLO JSON con ""recorrido"" obligatorio (no uses vertices ni lineas).
             return lineas;
         }
 
+        private static double? ExtractEspesorMuro(JObject obj, string rawContent)
+        {
+            var token = obj["espesorMuro"];
+            if (token != null && token.Type != JTokenType.Null)
+            {
+                double? directo = token.Type == JTokenType.Float || token.Type == JTokenType.Integer
+                    ? token.Value<double>()
+                    : ParseNumeroBoceto(token.ToString());
+                if (EsEspesorRazonable(directo))
+                    return directo;
+            }
+
+            if (!string.IsNullOrEmpty(rawContent))
+            {
+                var norm = NormalizarTextoBoceto(rawContent);
+
+                var jsonMatch = System.Text.RegularExpressions.Regex.Match(
+                    norm,
+                    @"""espesorMuro""\s*:\s*([\d][\d.,]*)",
+                    System.Text.RegularExpressions.RegexOptions.CultureInvariant | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                if (jsonMatch.Success)
+                {
+                    var parsed = ParseDecimalInvariant(jsonMatch.Groups[1].Value);
+                    if (EsEspesorRazonable(parsed))
+                        return parsed;
+                }
+
+                var eMatch = System.Text.RegularExpressions.Regex.Match(
+                    norm,
+                    @"\b[Ee]\s*[=:]\s*([\d][\d.,]*)",
+                    System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+                if (eMatch.Success)
+                {
+                    var parsed = ParseNumeroBoceto(eMatch.Groups[1].Value);
+                    if (EsEspesorRazonable(parsed))
+                        return parsed;
+                }
+            }
+
+            var cotas = ExtraerCotasVisibles(obj["cotasVisibles"]);
+            foreach (var c in cotas.Where(c => EsEspesorRazonable(c)).OrderBy(v => v))
+                return c;
+
+            return null;
+        }
+
+        private static double? ExtractAlturaMuro(JObject obj, string rawContent)
+        {
+            var fromField = ExtractMetricValue(obj["alturaMuro"]);
+            if (fromField.HasValue && fromField.Value >= 1.5 && fromField.Value <= 6.0)
+                return fromField;
+
+            if (!string.IsNullOrEmpty(rawContent))
+            {
+                var norm = NormalizarTextoBoceto(rawContent);
+                var hMatch = System.Text.RegularExpressions.Regex.Match(
+                    norm,
+                    @"\b[Hh]\s*[=:]\s*([\d][\d.,]*)",
+                    System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+                if (hMatch.Success)
+                {
+                    var parsed = ParseNumeroBoceto(hMatch.Groups[1].Value);
+                    if (parsed.HasValue && parsed.Value >= 1.5 && parsed.Value <= 6.0)
+                        return parsed;
+                }
+            }
+
+            return null;
+        }
+
+        private static bool EsEspesorRazonable(double? metros)
+        {
+            return metros.HasValue && metros.Value >= 0.08 && metros.Value <= 0.55;
+        }
+
+        private static string NormalizarTextoBoceto(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text;
+            return text
+                .Replace('ø', '0').Replace('Ø', '0').Replace('∅', '0')
+                .Replace('º', '0').Replace('°', '0');
+        }
+
+        private static double? ParseNumeroBoceto(string fragment)
+        {
+            if (string.IsNullOrWhiteSpace(fragment))
+                return null;
+
+            fragment = NormalizarTextoBoceto(fragment.Trim());
+            var match = System.Text.RegularExpressions.Regex.Match(
+                fragment,
+                @"\d+(?:[.,]\d+)?",
+                System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+            if (!match.Success)
+                return null;
+
+            return ParseDecimalInvariant(match.Value);
+        }
+
+        private static double? ParseDecimalInvariant(string value)
+        {
+            var normalized = value.Replace(',', '.');
+            if (double.TryParse(
+                normalized,
+                System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out var parsed))
+            {
+                return parsed;
+            }
+
+            return null;
+        }
+
         private static double? ExtractMetricValue(JToken token)
         {
             if (token == null || token.Type == JTokenType.Null)
@@ -337,26 +508,25 @@ Responde SOLO JSON con ""recorrido"" obligatorio (no uses vertices ni lineas).
             if (string.IsNullOrWhiteSpace(text))
                 return null;
 
-            // Permite textos como: "E 0,30", "h=2.70", "altura: 2,70 m"
-            var match = System.Text.RegularExpressions.Regex.Match(
-                text,
-                @"[-+]?\d+(?:[.,]\d+)?",
-                System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+            text = NormalizarTextoBoceto(text);
+            return ParseNumeroBoceto(text);
+        }
 
-            if (!match.Success)
+        private static List<double> FiltrarCotasPerimetroParaImagen(JToken cotasToken)
+        {
+            var lista = ExtraerCotasVisibles(cotasToken);
+            if (lista == null || lista.Count == 0)
                 return null;
 
-            var normalized = match.Value.Replace(',', '.');
-            if (double.TryParse(
-                normalized,
-                System.Globalization.NumberStyles.Float,
-                System.Globalization.CultureInfo.InvariantCulture,
-                out var value))
+            var filtrada = new List<double>();
+            foreach (var c in lista)
             {
-                return value;
+                if (c >= 0.12 && c <= 0.55)
+                    continue;
+                filtrada.Add(c);
             }
 
-            return null;
+            return filtrada.Count >= 4 ? filtrada : null;
         }
 
         private static List<double> ExtraerCotasVisibles(JToken token)

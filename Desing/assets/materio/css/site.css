@@ -1028,6 +1028,19 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     box-shadow: 0 1px 6px rgba(15, 23, 42, 0.05);
 }
 
+.desing2-stl-floating-toolbar__group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+.desing2-stl-floating-toolbar__group-gap {
+    display: inline-block;
+    width: 4.875rem;
+    flex-shrink: 0;
+}
+
 .desing2-stl-floating-toolbar__sep {
     display: inline-block;
     width: 1px;
@@ -1046,20 +1059,19 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
 }
 
 .desing2-stl-view-scope .desing2-stl-floating-toolbar .desing2-stl-floating-toolbar__tool-btn.btn-outline-secondary {
-    padding: 0.2rem 0.35rem;
+    padding: 0.28rem 0.45rem;
     line-height: 1;
-    min-width: 1.625rem;
+    min-width: 2.4375rem;
 }
 
 .desing2-stl-view-scope .desing2-stl-floating-toolbar .desing2-stl-floating-toolbar__tool-btn.btn-outline-secondary .icon-base {
     display: block;
-    font-size: 0.95rem;
+    font-size: 1.425rem;
 }
 
-.desing2-stl-view-scope .desing2-stl-floating-toolbar .desing2-stl-tool-icon--insert-corner,
-.desing2-stl-view-scope .desing2-stl-floating-toolbar .desing2-stl-tool-icon--insert-enclosure {
-    width: 0.95rem;
-    height: 0.95rem;
+.desing2-stl-view-scope .desing2-stl-floating-toolbar .desing2-stl-tool-icon {
+    width: 1.425rem;
+    height: 1.425rem;
 }
 
 .desing2-stl-view-scope .desing2-stl-floating-toolbar .ma-stl-viewer-toolbar-btn.btn-outline-secondary:hover,
@@ -1078,6 +1090,30 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     background: rgba(51, 65, 85, 0.1);
     color: rgba(15, 23, 42, 0.9);
     border-color: rgba(51, 65, 85, 0.32);
+    opacity: 1;
+}
+
+/* Barra superior Desing_2 — hover naranja, herramienta activa en color plantilla */
+.desing2-stl-view-scope .desing2-stl-top-toolbar .ma-stl-viewer-toolbar-btn.btn-outline-secondary:hover:not(:disabled):not(.active),
+.desing2-stl-view-scope .desing2-stl-top-toolbar .ma-stl-viewer-toolbar-btn.btn-outline-secondary:focus-visible:not(:disabled):not(.active) {
+    color: #ff6600;
+    border-color: rgba(255, 102, 0, 0.45);
+    background: rgba(255, 102, 0, 0.08);
+    opacity: 1;
+}
+
+.desing2-stl-view-scope .desing2-stl-top-toolbar .ma-stl-viewer-toolbar-btn.btn-outline-secondary.active:not(:disabled) {
+    color: var(--tandem-primary, var(--bs-primary));
+    border-color: var(--tandem-primary, var(--bs-primary));
+    background: color-mix(in srgb, var(--tandem-primary, var(--bs-primary)) 14%, transparent);
+    opacity: 1;
+}
+
+.desing2-stl-view-scope .desing2-stl-top-toolbar .ma-stl-viewer-toolbar-btn.btn-outline-secondary.active:not(:disabled):hover,
+.desing2-stl-view-scope .desing2-stl-top-toolbar .ma-stl-viewer-toolbar-btn.btn-outline-secondary.active:not(:disabled):focus-visible {
+    color: var(--tandem-primary, var(--bs-primary));
+    border-color: var(--tandem-primary, var(--bs-primary));
+    background: color-mix(in srgb, var(--tandem-primary, var(--bs-primary)) 20%, transparent);
     opacity: 1;
 }
 
@@ -1146,6 +1182,27 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     display: block;
     width: 100%;
     height: 100%;
+}
+
+/* Desing_2 STL — cortes: barra Y (vertical) a la derecha del strip lateral; z-index por encima del panel */
+.desing2-stl-view-scope .ma-stl-clip-controls {
+    position: absolute;
+    inset: 0;
+    z-index: 12;
+}
+
+.desing2-stl-view-scope .ma-stl-clip-y-wrap {
+    left: calc(var(--desing2-stl-hsp-sheet-collapsed, 32px) + var(--desing2-stl-compass-gap-from-collapsed-strip, 10px));
+    z-index: 12;
+}
+
+.desing2-stl-view-scope .ma-stl-clip-x-wrap {
+    left: 50%;
+    right: auto;
+    width: var(--ma-stl-clip-bar-span, 52%);
+    max-width: var(--ma-stl-clip-bar-max, 280px);
+    transform: translateX(-50%);
+    z-index: 12;
 }
 
 .tandem-jobside-workspace-toolbar {

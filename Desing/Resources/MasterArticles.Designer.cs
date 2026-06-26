@@ -214,8 +214,16 @@ namespace Desing.Resources
         public static string StlPreview_Desing2SideMenuTabEntorno => ResourceManager.GetString(nameof(StlPreview_Desing2SideMenuTabEntorno), resourceCulture);
         public static string StlPreview_Desing2ToolPolyline => ResourceManager.GetString(nameof(StlPreview_Desing2ToolPolyline), resourceCulture);
         public static string StlPreview_Desing2ToolPolylineAria => ResourceManager.GetString(nameof(StlPreview_Desing2ToolPolylineAria), resourceCulture);
+        public static string StlPreview_Desing2ToolWall2d => ResourceManager.GetString(nameof(StlPreview_Desing2ToolWall2d), resourceCulture);
+        public static string StlPreview_Desing2ToolWall2dAria => ResourceManager.GetString(nameof(StlPreview_Desing2ToolWall2dAria), resourceCulture);
         public static string StlPreview_Desing2TopToolAlargar => ResourceManager.GetString(nameof(StlPreview_Desing2TopToolAlargar), resourceCulture);
         public static string StlPreview_Desing2TopToolAlargarAria => ResourceManager.GetString(nameof(StlPreview_Desing2TopToolAlargarAria), resourceCulture);
+        public static string StlPreview_Desing2TopToolCopiar => ResourceManager.GetString(nameof(StlPreview_Desing2TopToolCopiar), resourceCulture);
+        public static string StlPreview_Desing2TopToolCopiarAria => ResourceManager.GetString(nameof(StlPreview_Desing2TopToolCopiarAria), resourceCulture);
+        public static string StlPreview_Desing2TopToolDesplazar => ResourceManager.GetString(nameof(StlPreview_Desing2TopToolDesplazar), resourceCulture);
+        public static string StlPreview_Desing2TopToolDesplazarAria => ResourceManager.GetString(nameof(StlPreview_Desing2TopToolDesplazarAria), resourceCulture);
+        public static string StlPreview_Desing2TopToolEstirar => ResourceManager.GetString(nameof(StlPreview_Desing2TopToolEstirar), resourceCulture);
+        public static string StlPreview_Desing2TopToolEstirarAria => ResourceManager.GetString(nameof(StlPreview_Desing2TopToolEstirarAria), resourceCulture);
         public static string StlPreview_Desing2TopToolBorrar => ResourceManager.GetString(nameof(StlPreview_Desing2TopToolBorrar), resourceCulture);
         public static string StlPreview_Desing2TopToolBorrarAria => ResourceManager.GetString(nameof(StlPreview_Desing2TopToolBorrarAria), resourceCulture);
         public static string StlPreview_Desing2TopToolInsertCorner => ResourceManager.GetString(nameof(StlPreview_Desing2TopToolInsertCorner), resourceCulture);
@@ -231,6 +239,8 @@ namespace Desing.Resources
         public static string StlPreview_Desing2TopToolRecortar => ResourceManager.GetString(nameof(StlPreview_Desing2TopToolRecortar), resourceCulture);
         public static string StlPreview_Desing2TopToolRecortarAria => ResourceManager.GetString(nameof(StlPreview_Desing2TopToolRecortarAria), resourceCulture);
         public static string StlPreview_Desing2TopToolbarAria => ResourceManager.GetString(nameof(StlPreview_Desing2TopToolbarAria), resourceCulture);
+        public static string StlPreview_Desing2TopToolbarDrawGroupAria => ResourceManager.GetString(nameof(StlPreview_Desing2TopToolbarDrawGroupAria), resourceCulture);
+        public static string StlPreview_Desing2TopToolbarModifyGroupAria => ResourceManager.GetString(nameof(StlPreview_Desing2TopToolbarModifyGroupAria), resourceCulture);
         public static string StlPreview_Desing2TopToolbarCollapseTitle => ResourceManager.GetString(nameof(StlPreview_Desing2TopToolbarCollapseTitle), resourceCulture);
         public static string StlPreview_Desing2TopToolbarPinTitle => ResourceManager.GetString(nameof(StlPreview_Desing2TopToolbarPinTitle), resourceCulture);
         public static string StlPreview_Desing2TopToolbarUnpinTitle => ResourceManager.GetString(nameof(StlPreview_Desing2TopToolbarUnpinTitle), resourceCulture);
@@ -255,6 +265,8 @@ namespace Desing.Resources
         public static string StlPreview_GroundShadowAria => ResourceManager.GetString(nameof(StlPreview_GroundShadowAria), resourceCulture);
         public static string StlPreview_GroundShadowTitle => ResourceManager.GetString(nameof(StlPreview_GroundShadowTitle), resourceCulture);
         public static string StlPreview_ImageSketchError => ResourceManager.GetString(nameof(StlPreview_ImageSketchError), resourceCulture);
+        public static string StlPreview_ImageSketchErrorModalAccept => ResourceManager.GetString(nameof(StlPreview_ImageSketchErrorModalAccept), resourceCulture);
+        public static string StlPreview_ImageSketchErrorModalTitle => ResourceManager.GetString(nameof(StlPreview_ImageSketchErrorModalTitle), resourceCulture);
         public static string StlPreview_ImageSketchFormAccept => ResourceManager.GetString(nameof(StlPreview_ImageSketchFormAccept), resourceCulture);
         public static string StlPreview_ImageSketchFormCancel => ResourceManager.GetString(nameof(StlPreview_ImageSketchFormCancel), resourceCulture);
         public static string StlPreview_ImageSketchFormChooseFile => ResourceManager.GetString(nameof(StlPreview_ImageSketchFormChooseFile), resourceCulture);
@@ -288,6 +300,8 @@ namespace Desing.Resources
         public static string StlPreview_OffsetToolInstructionPickLine => ResourceManager.GetString(nameof(StlPreview_OffsetToolInstructionPickLine), resourceCulture);
         public static string StlPreview_PolylineToolInstructionFirst => ResourceManager.GetString(nameof(StlPreview_PolylineToolInstructionFirst), resourceCulture);
         public static string StlPreview_PolylineToolInstructionSecond => ResourceManager.GetString(nameof(StlPreview_PolylineToolInstructionSecond), resourceCulture);
+        public static string StlPreview_Wall2dToolInstructionFirst => ResourceManager.GetString(nameof(StlPreview_Wall2dToolInstructionFirst), resourceCulture);
+        public static string StlPreview_Wall2dToolInstructionSecond => ResourceManager.GetString(nameof(StlPreview_Wall2dToolInstructionSecond), resourceCulture);
         public static string StlPreview_RowLabel3D => ResourceManager.GetString(nameof(StlPreview_RowLabel3D), resourceCulture);
         public static string StlPreview_RowLabelMockup => ResourceManager.GetString(nameof(StlPreview_RowLabelMockup), resourceCulture);
         public static string StlPreview_RowLabelStl => ResourceManager.GetString(nameof(StlPreview_RowLabelStl), resourceCulture);

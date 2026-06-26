@@ -256,6 +256,8 @@ const es = Object.fromEntries(
       "Corte en planta (X): 1000 vista completa; al bajar, recorta desde la derecha hacia la izquierda",
     StlPreview_Desing2SideMenuAria: "Menú lateral del visor STL",
     StlPreview_Desing2TopToolbarAria: "Barra de herramientas del lienzo STL",
+    StlPreview_Desing2TopToolbarDrawGroupAria: "Dibujar",
+    StlPreview_Desing2TopToolbarModifyGroupAria: "Modificar",
     StlPreview_Desing2TopToolbarCollapseTitle:
       "Ocultar barra hasta acercar de nuevo el puntero al borde superior centrado",
     StlPreview_Desing2TopToolbarPinTitle:
@@ -313,10 +315,17 @@ const es = Object.fromEntries(
     StlPreview_Desing2ToolPolyline: "Polilínea",
     StlPreview_Desing2ToolPolylineAria:
         "Polilínea en planta: encadenar segmentos con clics sucesivos; Intro o Escape termina; cada tramo es una línea independiente",
+    StlPreview_Desing2ToolWall2d: "Muro",
+    StlPreview_Desing2ToolWall2dAria:
+        "Dibujar muro en planta (como polilínea con espesor simétrico arriba y abajo); el muro forma un conjunto seleccionable",
     StlPreview_PolylineToolInstructionFirst:
         "Clic para el primer vértice (mueva el ratón para la vista previa del primer tramo).",
     StlPreview_PolylineToolInstructionSecond:
         "Siguiente vértice: clic en planta, o distancia + Intro para cerrar la polilínea. Escape cancela el tramo en curso.",
+    StlPreview_Wall2dToolInstructionFirst:
+        "Clic para el primer vértice del eje del muro (vista previa con espesor arriba y abajo).",
+    StlPreview_Wall2dToolInstructionSecond:
+        "Siguiente vértice del eje: clic en planta o distancia + Intro. Al girar, las esquinas se ajustan. Escape termina.",
     StlPreview_Desing2TopToolOrtho15TitleOn:
       "Ortogonal 15° en planta activo — segundo punto en múltiplos de 15° (0° = eje +X). Pulse o F8 para desactivar.",
     StlPreview_Desing2TopToolOrtho15TitleOff:
@@ -351,12 +360,21 @@ const es = Object.fromEntries(
       "Segundo clic para orientar el recinto (orto 15° si está activo). Escape cancela.",
     StlPreview_InsertEnclosureToolInvalidDimsToast:
       "Dimensiones del recinto no válidas. Revise L, W y espesores Ex1, Ex2, Ey1, Ey2 en Configuración.",
+    StlPreview_Desing2TopToolCopiar: "Copiar",
+    StlPreview_Desing2TopToolCopiarAria:
+      "Herramienta copiar — próximamente (solo interfaz)",
+    StlPreview_Desing2TopToolDesplazar: "Desplazar",
+    StlPreview_Desing2TopToolDesplazarAria:
+      "Herramienta desplazar — próximamente (solo interfaz)",
     StlPreview_Desing2TopToolRecortar: "Recortar",
     StlPreview_Desing2TopToolRecortarAria:
       "Herramienta recortar — próximamente (solo interfaz)",
     StlPreview_Desing2TopToolAlargar: "Alargar",
     StlPreview_Desing2TopToolAlargarAria:
       "Herramienta alargar — próximamente (solo interfaz)",
+    StlPreview_Desing2TopToolEstirar: "Estirar",
+    StlPreview_Desing2TopToolEstirarAria:
+      "Herramienta estirar — próximamente (solo interfaz)",
     StlPreview_Desing2TopToolBorrar: "Borrar",
     StlPreview_Desing2TopToolBorrarAria:
       "Borrar líneas de planta y objetos STL — seleccione (clic o ventana) y confirme con Enter, Espacio o Supr",
@@ -702,6 +720,8 @@ const en = Object.assign({}, es, {
     "Plan clipping (X): 1000 full view; lowering it clips from right to left",
   StlPreview_Desing2SideMenuAria: "STL viewer side menu",
   StlPreview_Desing2TopToolbarAria: "STL canvas tool bar",
+  StlPreview_Desing2TopToolbarDrawGroupAria: "Draw",
+  StlPreview_Desing2TopToolbarModifyGroupAria: "Modify",
   StlPreview_Desing2TopToolbarCollapseTitle:
     "Collapse bar until you move the pointer near the top center strip again",
   StlPreview_Desing2TopToolbarPinTitle:
@@ -759,10 +779,17 @@ const en = Object.assign({}, es, {
   StlPreview_Desing2ToolPolyline: "Polyline",
   StlPreview_Desing2ToolPolylineAria:
     "Floor-plan polyline: chain segments with successive clicks; Enter or Escape finishes; each segment is an independent line",
+  StlPreview_Desing2ToolWall2d: "Wall",
+  StlPreview_Desing2ToolWall2dAria:
+    "Draw a floor-plan wall (like a polyline with symmetric thickness above and below); the wall is one selectable group",
   StlPreview_PolylineToolInstructionFirst:
     "Click for the first vertex (move the mouse for the first segment preview).",
   StlPreview_PolylineToolInstructionSecond:
     "Next vertex: click on the floor, or type distance + Enter to finish the polyline. Escape cancels the current segment.",
+  StlPreview_Wall2dToolInstructionFirst:
+    "Click for the first wall axis vertex (preview shows half thickness on each side).",
+  StlPreview_Wall2dToolInstructionSecond:
+    "Next axis vertex: click on the floor or type distance + Enter. Corners miter when you turn. Escape finishes.",
   StlPreview_Desing2TopToolOrtho15TitleOn:
     "15° floor ortho on — second point snaps to 15° steps (0° = +X axis). Click or F8 to turn off.",
   StlPreview_Desing2TopToolOrtho15TitleOff:
@@ -797,12 +824,21 @@ const en = Object.assign({}, es, {
     "Second click to orient the enclosure (15° ortho when enabled). Escape cancels.",
   StlPreview_InsertEnclosureToolInvalidDimsToast:
     "Invalid enclosure dimensions. Check L, W and thicknesses Ex1, Ex2, Ey1, Ey2 in Configuration.",
+  StlPreview_Desing2TopToolCopiar: "Copy",
+  StlPreview_Desing2TopToolCopiarAria:
+    "Copy tool — coming soon (UI placeholder only)",
+  StlPreview_Desing2TopToolDesplazar: "Move",
+  StlPreview_Desing2TopToolDesplazarAria:
+    "Move tool — coming soon (UI placeholder only)",
   StlPreview_Desing2TopToolRecortar: "Trim",
   StlPreview_Desing2TopToolRecortarAria:
     "Trim tool — coming soon (UI placeholder only)",
   StlPreview_Desing2TopToolAlargar: "Extend",
   StlPreview_Desing2TopToolAlargarAria:
     "Extend tool — coming soon (UI placeholder only)",
+  StlPreview_Desing2TopToolEstirar: "Stretch",
+  StlPreview_Desing2TopToolEstirarAria:
+    "Stretch tool — coming soon (UI placeholder only)",
   StlPreview_Desing2TopToolBorrar: "Delete",
   StlPreview_Desing2TopToolBorrarAria:
     "Delete floor lines and STL objects — pick (click or window) and confirm with Enter, Space or Delete",
