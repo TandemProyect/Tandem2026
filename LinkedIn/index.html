@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>trdesing.net - LinkedIn Lab</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f3f6f8;
+      --card: #ffffff;
+      --text: #1f2933;
+      --muted: #5f6b7a;
+      --brand: #0a66c2;
+      --line: #d9e2ec;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.5;
+    }
+
+    .page {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 32px 20px;
+    }
+
+    .hero {
+      overflow: hidden;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    .banner {
+      min-height: 190px;
+      padding: 34px;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(10, 102, 194, 0.20), transparent 30%),
+        linear-gradient(135deg, #0a66c2, #1f2933);
+      color: #ffffff;
+    }
+
+    .banner p {
+      max-width: 560px;
+      margin: 8px 0 0;
+      color: rgba(255, 255, 255, 0.84);
+      font-size: 18px;
+    }
+
+    .brand {
+      display: flex;
+      gap: 18px;
+      align-items: flex-end;
+      padding: 0 34px 28px;
+      transform: translateY(-30px);
+    }
+
+    .logo {
+      display: grid;
+      width: 96px;
+      height: 96px;
+      flex: 0 0 auto;
+      place-items: center;
+      background: #ffffff;
+      border: 4px solid #ffffff;
+      border-radius: 22px;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+      color: var(--brand);
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    h1,
+    h2 {
+      margin: 0;
+    }
+
+    .brand h1 {
+      margin-top: 30px;
+      font-size: 32px;
+    }
+
+    .brand p,
+    .section p {
+      color: var(--muted);
+    }
+
+    .status {
+      display: inline-flex;
+      margin-top: 8px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #e7f0fb;
+      color: var(--brand);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 18px;
+      margin-top: 22px;
+    }
+
+    .section {
+      margin-top: 22px;
+      padding: 24px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+    }
+
+    .section ul {
+      margin: 14px 0 0;
+      padding-left: 20px;
+    }
+
+    .post {
+      white-space: pre-line;
+      padding: 18px;
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+
+    .note {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="banner">
+        <h2>Laboratorio de diseno y producto</h2>
+        <p>Explorando comentarios en video para webs, apps y productos digitales.</p>
+      </div>
+
+      <div class="brand">
+        <div class="logo">TR</div>
+        <div>
+          <h1>trdesing.net</h1>
+          <p>Pagina interna de preparacion para LinkedIn.</p>
+          <span class="status">Fase temprana · Sin clientes · Demo conceptual</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="section">
+        <h2>Objetivo</h2>
+        <p>Preparar una pagina de LinkedIn para presentar el proyecto como laboratorio durante aproximadamente dos anos.</p>
+      </article>
+
+      <article class="section">
+        <h2>Privacidad</h2>
+        <p>Usar datos ficticios, evitar nombres personales y publicar solo cuando la pagina definitiva este revisada.</p>
+      </article>
+
+      <article class="section">
+        <h2>Contenido</h2>
+        <p>Posts, guiones, videos cortos, demos conceptuales y aprendizajes del proceso.</p>
+      </article>
+    </section>
+
+    <section class="section">
+      <h2>Primer post propuesto</h2>
+      <div class="post">Estamos empezando a explorar trdesing.net, un laboratorio de diseno y producto en fase temprana.
+
+La idea nace de una pregunta sencilla:
+¿se puede explicar mejor un bug, una mejora o una idea de diseno hablando sobre la pantalla en lugar de escribir largos mensajes?
+
+Durante los proximos dos anos queremos investigar, prototipar y aprender sobre nuevas formas de recoger comentarios en video para webs, apps y productos digitales.
+
+De momento no hay clientes ni lanzamiento oficial. Compartiremos ideas, pruebas, demos conceptuales y aprendizajes del proceso, siempre con datos ficticios.
+
+¿Usarias video para explicar feedback sobre una web, app o producto digital?</div>
+    </section>
+
+    <section class="section">
+      <h2>Antes de publicar</h2>
+      <ul>
+        <li>Crear logo y banner definitivos.</li>
+        <li>Grabar una demo conceptual de 30 a 60 segundos.</li>
+        <li>Revisar que no aparezcan datos personales o sensibles.</li>
+        <li>Decidir si se publica desde perfil personal o desde pagina de proyecto.</li>
+      </ul>
+      <p class="note">Este index es solo una vista interna para preparar el lanzamiento. No es la pagina publica final.</p>
+    </section>
+  </main>
+</body>
+</html>

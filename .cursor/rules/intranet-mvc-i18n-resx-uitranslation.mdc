@@ -9,8 +9,8 @@ Antes de dar por cerrado un cambio que toque texto de UI (vistas `.cshtml`, `Con
 
 ## 1. Módulo CRUD / pantalla (`Company`, `Branch`, `ClientV2`, …)
 
-- Añadir o cambiar claves en el generador `Desing/_gen_<modulo>_resources.js` (no editar a mano `.resx` ni `Designer.cs`).
-- Desde `Desing/`: `node _gen_<modulo>_resources.js`.
+- Añadir o cambiar claves en el generador `Desing/Scripts/ResourceGenerators/_gen_<modulo>_resources.js` (no editar a mano `.resx` ni `Designer.cs`).
+- Desde `Desing/`: `node Scripts/ResourceGenerators/_gen_<modulo>_resources.js`.
 - Mantener **paridad `es` / `en`** en el objeto `en` del script.
 - Si el módulo es nuevo: registrar `Tuple.Create("<Modulo>", typeof(Desing.Resources.<Modulo>))` en `UiTranslationController.ResxBackedModules`.
 - **BD / Language:** las filas en `TSql_UiTranslation` **no sustituyen** la obligación del `.resx`; opcionalmente, tras desplegar, quien traduzca puede **Exportar Excel** en `/UiTranslation` para ver claves faltantes y **Importar**. No volcar catálogos enteros a SQL salvo decisión explícita del equipo.

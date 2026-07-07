@@ -82,6 +82,7 @@ Tandem-2026/
 ├── Common/                 # Código compartido
 ├── DAL/                    # Data Access Layer
 ├── Desing/                 # Business Logic Layer
+├── LinkedIn/               # Presencia publica de trdesing.net
 ├── TamdenZwcadPluging/
 │   └── ZwcadPlugin/       # Plugin ZWCAD 2026
 ├── Scripts/                # Scripts PowerShell
@@ -115,6 +116,7 @@ Tandem-2026/
 | **DAL** | [Docs/Proyectos/DAL/](Docs/Proyectos/DAL/) |
 | **Desing** | [Docs/Proyectos/Desing/](Docs/Proyectos/Desing/) |
 | **ZwcadPlugin** | [Docs/Proyectos/ZwcadPlugin/](Docs/Proyectos/ZwcadPlugin/) |
+| **LinkedIn / trdesing.net** | [Docs/Proyectos/LinkedIn/](Docs/Proyectos/LinkedIn/) |
 
 **También disponible:**
 - [ZwcadPlugin README](TamdenZwcadPluging/ZwcadPlugin/README.md)
@@ -171,6 +173,20 @@ Tandem-2026/
 - Integración con ZWCAD API
 
 **📖 [Ver documentación completa](Docs/Proyectos/ZwcadPlugin/)**
+
+---
+
+### **5. LinkedIn / trdesing.net** - Laboratorio de diseño y producto
+**Propósito:** Preparar la presencia pública de `trdesing.net` en LinkedIn
+
+**Características:**
+- Página de proyecto administrada desde cuenta personal
+- Posicionamiento como laboratorio de diseño/producto
+- Calendario de publicaciones y demos conceptuales
+- Checklist de privacidad antes de publicar videos
+- Carpeta operativa en [`LinkedIn/`](LinkedIn/) para posts, guiones, assets y seguimiento
+
+**📖 [Ver documentación completa](Docs/Proyectos/LinkedIn/)**
 
 ---
 

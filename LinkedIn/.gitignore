@@ -1,0 +1,6 @@
+# Raw and exported videos can be large or contain accidental sensitive data.
+media/raw/*
+media/exports/*
+
+!media/raw/README.md
+!media/exports/README.md

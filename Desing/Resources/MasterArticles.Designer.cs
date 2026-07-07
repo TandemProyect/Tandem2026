@@ -343,6 +343,7 @@ namespace Desing.Resources
         public static string StlPreview_Wall3dToolInstruction => ResourceManager.GetString(nameof(StlPreview_Wall3dToolInstruction), resourceCulture);
         public static string StlPreview_Wall3dToolNoLines => ResourceManager.GetString(nameof(StlPreview_Wall3dToolNoLines), resourceCulture);
         public static string StlPreview_Wall3dToolProcessing => ResourceManager.GetString(nameof(StlPreview_Wall3dToolProcessing), resourceCulture);
+        public static string StlPreview_WallModelRendering => ResourceManager.GetString(nameof(StlPreview_WallModelRendering), resourceCulture);
         public static string StlPreview_Wall3dToolSuccess => ResourceManager.GetString(nameof(StlPreview_Wall3dToolSuccess), resourceCulture);
         public static string StlPreview_WallDimToolNoPairsToast => ResourceManager.GetString(nameof(StlPreview_WallDimToolNoPairsToast), resourceCulture);
         public static string StlPreview_WindowSelectionHint => ResourceManager.GetString(nameof(StlPreview_WindowSelectionHint), resourceCulture);

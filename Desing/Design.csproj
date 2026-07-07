@@ -780,6 +780,11 @@
     <Content Include="Files\RRHH\User\AttPhotoMenu\0.1.jpg" />
     <Content Include="Files\RRHH\User\AttPhotoMenu\0.1.png" />
     <Content Include="Files\RRHH\User\AttPhotoMenu\55.1.png" />
+    <Content Include="IA\Examples\imagenes\resutado.png" />
+    <Content Include="IA\Examples\imagenes\USMuroRecto.png" />
+    <Content Include="IA\img\image %281%29.png" />
+    <Content Include="IA\img\image %282%29.png" />
+    <Content Include="IA\img\image.png" />
     <Content Include="Scripts\datatables-resize.css" />
     <Content Include="Scripts\datatables-state.js" />
     <Content Include="Scripts\datatables-tandem.css" />
@@ -2337,6 +2342,33 @@
     <Content Include="Files\MasterArticles\blocks\3120270090P.stl" />
     <Content Include="Files\MasterArticles\blocks\3120270090P2.stl" />
     <Content Include="Files\Jobside\2\07669da8a8e14ffcb7c49f4e32879081_27104219P.dwg" />
+    <Content Include="IA\chat\2026-04-22-chat-inicio-proyecto.md" />
+    <Content Include="IA\docs\00-resumen.md" />
+    <Content Include="IA\docs\01-requisitos-y-alcance-v1.md" />
+    <Content Include="IA\docs\02-modelo-topologico.md" />
+    <Content Include="IA\docs\03-sistemas-de-encofrado.md" />
+    <Content Include="IA\docs\04-pipeline-2d-a-3d.md" />
+    <Content Include="IA\docs\05-pendientes-y-preguntas.md" />
+    <Content Include="IA\docs\AGENTE-US619-INFO.md" />
+    <Content Include="IA\docs\AGENTE-US619-RESUMEN.md" />
+    <Content Include="IA\docs\CHEATSHEET-AZURE-DEVOPS.md" />
+    <Content Include="IA\docs\CONTINUITY.md" />
+    <Content Include="IA\docs\DOCUMENTACION-AZURE-DEVOPS-ACTUALIZADA.md" />
+    <Content Include="IA\docs\GUIA-AGENTE-AZURE-DEVOPS.md" />
+    <Content Include="IA\docs\HANDOVER-LCornerDetector.md" />
+    <Content Include="IA\docs\HANDOVER-PLUGIN-DEVICE-AUTH.md" />
+    <Content Include="IA\docs\HANDOVER-US-IMG-MUROS.md" />
+    <Content Include="IA\docs\IMPLEMENTACION_COMPLETADA.md" />
+    <Content Include="IA\docs\QUICKREF.md" />
+    <Content Include="IA\docs\README.md" />
+    <Content Include="IA\docs\RESUMEN-TRABAJO-ATK60.md" />
+    <Content Include="IA\docs\SECURITY-INCIDENT-RESPONSE.md" />
+    <Content Include="IA\docs\SISTEMA-ATK60.md" />
+    <Content Include="IA\docs\TEST-COMMIT-MANUAL.md" />
+    <Content Include="IA\docs\TEST-SELECCIONAR-LINEAS.md" />
+    <Content Include="IA\docs\US619_RESUMEN_ICONOS.md" />
+    <Content Include="IA\Examples\README.md" />
+    <Content Include="IA\readme.md" />
     <None Include="Properties\PublishProfiles\atenko Develop.pubxml" />
     <None Include="Properties\PublishProfiles\atenko.net.pubxml" />
     <None Include="Properties\PublishProfiles\Athosstaging.pubxml" />
@@ -2677,6 +2709,7 @@
     <Content Include="Scripts\bootstrap.bundle.js.map" />
     <Content Include="Scripts\jquery-ui.js.js" />
     <None Include="Scripts\jquery.validate-vsdoc.js" />
+    <None Include="Scripts\types\jquery-global.d.ts" />
     <Content Include="Scripts\jquery.validate.js" />
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
@@ -3232,6 +3265,19 @@
     <Content Include="Scripts\MasterArticles\master-article-preview.js" />
     <Content Include="Scripts\MasterArticles\master-article-details-stl-viewer.js" />
     <Content Include="Scripts\Desing2\desing2-stl-viewer-toolbar-wiring.js" />
+    <Content Include="Scripts\ResourceGenerators\_gen_branch_resources.js" />
+    <Content Include="Scripts\ResourceGenerators\_gen_clientv2_resources.js" />
+    <Content Include="Scripts\ResourceGenerators\_gen_common_resources.js" />
+    <Content Include="Scripts\ResourceGenerators\_gen_company_resources.js" />
+    <Content Include="Scripts\ResourceGenerators\_gen_country_catalog_resources.js" />
+    <Content Include="Scripts\ResourceGenerators\_gen_documenttype_resources.js" />
+    <Content Include="Scripts\ResourceGenerators\_gen_employee_resources.js" />
+    <Content Include="Scripts\ResourceGenerators\_gen_extension_resources.js" />
+    <Content Include="Scripts\ResourceGenerators\_gen_jobside_resources.js" />
+    <Content Include="Scripts\ResourceGenerators\_gen_language_resources.js" />
+    <Content Include="Scripts\ResourceGenerators\_gen_masterarticles_resources.js" />
+    <Content Include="Scripts\ResourceGenerators\_gen_offerstate_resources.js" />
+    <Content Include="Scripts\ResourceGenerators\_gen_plantilla_resources.js" />
     <Content Include="Scripts\MasterArticles\infinite-grid-helper.module.js" />
     <Content Include="Scripts\ThreejsDesing\README.md" />
     <Content Include="Scripts\MasterArticles\master-article-aps-dwg-viewer-boot.js" />
@@ -3353,6 +3399,8 @@
     <VisualStudio>
       <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
         <WebProjectProperties>
+          <StartPageUrl>Account/Login</StartPageUrl>
+          <StartAction>SpecificPage</StartAction>
           <UseIIS>True</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>55506</DevelopmentServerPort>
@@ -3551,6 +3599,7 @@
     <Folder Include="Content\DesignTools\img\" />
     <Folder Include="Content\Documents\Fotos\" />
     <Folder Include="Files\RRHH\User\AttPhotoMenu\Temp\" />
+    <Folder Include="IA\Communication\" />
     <Folder Include="LibraryBlock\dxf\" />
     <Folder Include="Repositories\Atk60\Wall\WallTapeSolape\NewFolder1\" />
   </ItemGroup>

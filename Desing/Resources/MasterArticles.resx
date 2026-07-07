@@ -961,6 +961,9 @@
   <data name="StlPreview_Wall3dToolProcessing" xml:space="preserve">
     <value>Generando muros 3D…</value>
   </data>
+  <data name="StlPreview_WallModelRendering" xml:space="preserve">
+    <value>Renderizando</value>
+  </data>
   <data name="StlPreview_Wall3dToolSuccess" xml:space="preserve">
     <value>Se generaron {0} muro(s) 3D (altura 2,70 m)</value>
   </data>

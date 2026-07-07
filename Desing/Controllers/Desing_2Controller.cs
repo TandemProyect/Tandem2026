@@ -6,6 +6,10 @@ using Desing.Models;
 
 using Desing.Resources;
 
+using Newtonsoft.Json;
+
+using Newtonsoft.Json.Linq;
+
 using System;
 
 using System.Collections.Generic;
@@ -17,6 +21,8 @@ using System.Globalization;
 using System.IO;
 
 using System.Linq;
+
+using System.Text;
 
 using System.Web.Mvc;
 
@@ -128,6 +134,54 @@ namespace Desing.Controllers
 
             return View(model);
 
+        }
+
+
+
+        /// <summary>
+        /// Guarda el estado topológico de muros/polilíneas que prepara el visor Desing_2.
+        /// </summary>
+        [HttpPost]
+        public JsonResult SaveWallConnections()
+        {
+            try
+            {
+                if (Request.InputStream.CanSeek)
+                {
+                    Request.InputStream.Position = 0;
+                }
+                string rawJson;
+                using (var reader = new StreamReader(Request.InputStream, Encoding.UTF8))
+                {
+                    rawJson = reader.ReadToEnd();
+                }
+
+                if (string.IsNullOrWhiteSpace(rawJson))
+                {
+                    return Json(new { Exito = false, Mensaje = "JSON vacío." });
+                }
+
+                var parsed = JToken.Parse(rawJson);
+                var dir = Server.MapPath("~/IA/Communication");
+                if (!Directory.Exists(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
+
+                var targetPath = Path.Combine(dir, "WallConnections.json");
+                var formatted = JsonConvert.SerializeObject(parsed, Formatting.Indented);
+                System.IO.File.WriteAllText(targetPath, formatted, new UTF8Encoding(false));
+
+                return Json(new { Exito = true, Path = targetPath });
+            }
+            catch (JsonReaderException ex)
+            {
+                return Json(new { Exito = false, Mensaje = "JSON inválido: " + ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Exito = false, Mensaje = ex.Message });
+            }
         }
 
 

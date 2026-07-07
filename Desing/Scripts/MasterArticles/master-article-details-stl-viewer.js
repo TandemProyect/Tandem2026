@@ -92,6 +92,9 @@ const MA_STL_WALL3D_DEFAULT_HEIGHT_MM = 2.7 * MA_STL_SCENE_MM_PER_PHYSICAL_METER
 /** Opacidad muro recto / esquina L (MeshStandardMaterial). */
 const MA_STL_WALL3D_OPACITY_WALL = 0.7;
 const MA_STL_WALL3D_OPACITY_CORNER = 1;
+/** Colores compartidos Modelo Muro / Muro 3D. */
+const MA_STL_WALL_MODEL_COLOR_WALL = 0xb8d7ee;
+const MA_STL_WALL_MODEL_COLOR_CORNER = 0xffc107;
 /** Recinto rectangular — longitud exterior L por defecto (6 m físicos → mm escena). */
 const MA_STL_DESING2_ENCLOSURE_L_DEFAULT_MM = 6 * MA_STL_SCENE_MM_PER_PHYSICAL_METER;
 /** Recinto rectangular — anchura exterior W por defecto (4 m físicos → mm escena). */
@@ -2503,6 +2506,10 @@ function bootMasterArticleDetailsStlViewer() {
     );
     const maStlPolylineToolToggleBtn = document.getElementById('ma-stl-tool-polyline');
     const maStlWall2dToolToggleBtn = document.getElementById('ma-stl-tool-wall-2d');
+    const maStlModeLinesToggleBtn = document.getElementById('ma-stl-mode-lines');
+    const maStlModeWall2dToggleBtn = document.getElementById('ma-stl-mode-wall-2d');
+    const maStlModeWall3dToggleBtn = document.getElementById('ma-stl-mode-wall-3d');
+    const maStlWallModelRenderOverlay = document.getElementById('ma-stl-wall-model-render-overlay');
     const maStlLineToolOrtho15ToggleBtn = document.getElementById('ma-stl-tool-ortho-15');
     const maStlDesing2UndoBtn = document.getElementById('ma-stl-tool-undo');
     const maStlDesing2RedoBtn = document.getElementById('ma-stl-tool-redo');
@@ -2583,6 +2590,7 @@ function bootMasterArticleDetailsStlViewer() {
     /** Desing_2 — herramienta muro 3D (panel derecho): selección de líneas + extrusión vía API común. */
     let maStlWall3dToolActive = false;
     let maStlWall3dToolBusy = false;
+    let maStlDesing2ModelMode = 'lines';
     const maStlWall3dToolSelectedLines = new Set();
     let maStlWall3dToolHoverLine = null;
     const maStlWall3dToolToggleBtn = document.getElementById('desing2-stl-right-panel-wall-3d');
@@ -2592,6 +2600,11 @@ function bootMasterArticleDetailsStlViewer() {
     const maStlWall3dMeshesGroup = new THREE.Group();
     maStlWall3dMeshesGroup.name = 'maStlWall3dMeshes';
     maStlWall3dMeshesGroup.renderOrder = 120;
+    const maStlWall2dModelMeshesGroup = new THREE.Group();
+    maStlWall2dModelMeshesGroup.name = 'maStlWall2dModelMeshes';
+    maStlWall2dModelMeshesGroup.renderOrder = 119;
+    let maStlDesing2WallModelBusy = false;
+    let maStlDesing2LastWallModelDetection = null;
     /** @type {{ wall: THREE.MeshStandardMaterial|null, corner: THREE.MeshStandardMaterial|null }} */
     const maStlWall3dSharedMaterials = { wall: null, corner: null };
     /** Textura hormigón compartida (concrete.png). */
@@ -3587,6 +3600,389 @@ function bootMasterArticleDetailsStlViewer() {
         };
     }
 
+    let maStlWallConnectionsLastStableJson = '';
+
+    function maStlDesing2WallConnectionsApiUrl() {
+        return viewerShell ? viewerShell.getAttribute('data-ma-stl-wall-connections-api-url') || '' : '';
+    }
+
+    function maStlWallConnectionsPointDtoMm(p) {
+        return {
+            xMm: p && Number.isFinite(p.x) ? p.x : 0,
+            yMm: p && Number.isFinite(p.y) ? p.y : 0,
+            zMm: p && Number.isFinite(p.z) ? p.z : 0,
+            xM: p && Number.isFinite(p.x) ? p.x / 1000 : 0,
+            yM: p && Number.isFinite(p.y) ? p.y / 1000 : 0,
+            zM: p && Number.isFinite(p.z) ? p.z / 1000 : 0,
+        };
+    }
+
+    function maStlWallConnectionsSegmentKind(row) {
+        if (row && row.wallRole === 'axis') return 'wallAxis';
+        if (row && row.wallRole === 'face') return 'wallFace';
+        if (row && row.polylineGroupId != null) return 'polylineSegment';
+        return 'userLine';
+    }
+
+    function maStlWallConnectionsFindNode(nodes, pt, eps) {
+        for (let i = 0; i < nodes.length; i++) {
+            const n = nodes[i];
+            if (maStlUserFloorPlanPointNearXzMm(n.pointMm, pt, eps)) return n;
+        }
+        return null;
+    }
+
+    function maStlWallConnectionsNodeForPoint(nodes, pt, eps) {
+        let node = maStlWallConnectionsFindNode(nodes, pt, eps);
+        if (node) return node;
+        node = {
+            id: 'N' + (nodes.length + 1),
+            pointMm: { x: pt.x, y: pt.y, z: pt.z },
+            point: maStlWallConnectionsPointDtoMm(pt),
+            incidentEndpoints: [],
+            junctionType: 'Free',
+        };
+        nodes.push(node);
+        return node;
+    }
+
+    function maStlWallConnectionsDirectionFromNode(row, endpointKey) {
+        const from = endpointKey === 'p2' ? row.p2Mm : row.p1Mm;
+        const to = endpointKey === 'p2' ? row.p1Mm : row.p2Mm;
+        const dx = to.x - from.x;
+        const dz = to.z - from.z;
+        const len = Math.hypot(dx, dz);
+        if (!(len > 0)) return null;
+        return { x: dx / len, z: dz / len };
+    }
+
+    function maStlWallConnectionsUniqueDirectionCount(dirs) {
+        const unique = [];
+        for (let i = 0; i < dirs.length; i++) {
+            const d = dirs[i];
+            if (!d) continue;
+            let exists = false;
+            for (let j = 0; j < unique.length; j++) {
+                const u = unique[j];
+                if (Math.abs(d.x * u.x + d.z * u.z) > 0.985) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) unique.push(d);
+        }
+        return unique.length;
+    }
+
+    function maStlWallConnectionsClassifyNode(node, rowsById) {
+        const endpoints = node.incidentEndpoints || [];
+        const axisDirs = [];
+        for (let i = 0; i < endpoints.length; i++) {
+            const ep = endpoints[i];
+            const row = rowsById[ep.lineId];
+            if (!row || row.wallRole !== 'axis') continue;
+            axisDirs.push(maStlWallConnectionsDirectionFromNode(row, ep.endpoint));
+        }
+        const axisCount = axisDirs.length;
+        const uniqueDirCount = maStlWallConnectionsUniqueDirectionCount(axisDirs);
+        if (axisCount <= 1) return endpoints.length > 1 ? 'Connection' : 'Free';
+        if (axisCount === 2) return uniqueDirCount <= 1 ? 'Collinear' : 'L';
+        if (axisCount === 3) return 'T';
+        if (axisCount === 4) return 'Cross';
+        return 'Multi';
+    }
+
+    function maStlWallConnectionsEndpointOnSegmentBody(endpointPt, row, eps) {
+        if (!endpointPt || !row || !row.p1Mm || !row.p2Mm) return null;
+        if (
+            maStlUserFloorPlanPointNearXzMm(endpointPt, row.p1Mm, eps) ||
+            maStlUserFloorPlanPointNearXzMm(endpointPt, row.p2Mm, eps)
+        ) {
+            return null;
+        }
+        const proj = maStlProjectPointOntoUserFloorSegmentBodyXzMm(
+            endpointPt,
+            row.p1Mm,
+            row.p2Mm,
+            _maStlUserFloorSegmentBodyProj
+        );
+        if (!proj || proj.distXZ > eps) return null;
+        return {
+            point: maStlWallConnectionsPointDtoMm(_maStlUserFloorSegmentBodyProj),
+            t: proj.t,
+            distXZMm: proj.distXZ,
+        };
+    }
+
+    function maStlWallConnectionsEndpointKeyNearNode(row, nodePt, eps) {
+        if (!row || !nodePt || !row.p1Mm || !row.p2Mm) return null;
+        const d1 = maStlUserFloorPlanPointDistSqXzMm(row.p1Mm, nodePt);
+        const d2 = maStlUserFloorPlanPointDistSqXzMm(row.p2Mm, nodePt);
+        const e2 = eps * eps;
+        if (d1 <= e2 && d2 <= e2) return d1 <= d2 ? 'p1' : 'p2';
+        if (d1 <= e2) return 'p1';
+        if (d2 <= e2) return 'p2';
+        return null;
+    }
+
+    function maStlWallConnectionsBuildJunctionDiagnostics(nodes, rowsById, rows) {
+        const out = [];
+        const eps =
+            typeof maStlWall2dToolJunctionClusterEpsMm === 'function'
+                ? maStlWall2dToolJunctionClusterEpsMm()
+                : maStlUserFloorLineMergeEndpointEpsMm();
+        for (let ni = 0; ni < nodes.length; ni++) {
+            const node = nodes[ni];
+            if (!node || !node.pointMm) continue;
+            const axisRefs = [];
+            const faceRefs = [];
+            const endpoints = node.incidentEndpoints || [];
+            for (let ei = 0; ei < endpoints.length; ei++) {
+                const ep = endpoints[ei];
+                const row = rowsById[ep.lineId];
+                if (!row || row.wallRole !== 'axis') continue;
+                const dir = maStlWallConnectionsDirectionFromNode(row, ep.endpoint);
+                axisRefs.push({
+                    lineId: row.id,
+                    wallGroupId: row.wallGroupId,
+                    endpoint: ep.endpoint,
+                    directionFromNode: dir,
+                });
+            }
+            for (let ri = 0; ri < rows.length; ri++) {
+                const row = rows[ri];
+                if (!row || row.wallRole !== 'face') continue;
+                const endpoint = maStlWallConnectionsEndpointKeyNearNode(row, node.pointMm, eps);
+                if (!endpoint) continue;
+                faceRefs.push({
+                    lineId: row.id,
+                    wallGroupId: row.wallGroupId,
+                    linkOffsetFromLineId: row.linkOffsetFromLineId,
+                    numberWallFaceSideSign: row.numberWallFaceSideSign,
+                    endpoint: endpoint,
+                    point: maStlWallConnectionsPointDtoMm(endpoint === 'p2' ? row.p2Mm : row.p1Mm),
+                });
+            }
+
+            const tCandidates = [];
+            if (axisRefs.length >= 3) {
+                for (let ai = 0; ai < axisRefs.length; ai++) {
+                    for (let aj = ai + 1; aj < axisRefs.length; aj++) {
+                        const a = rowsById[axisRefs[ai].lineId];
+                        const b = rowsById[axisRefs[aj].lineId];
+                        const da = axisRefs[ai].directionFromNode;
+                        const db = axisRefs[aj].directionFromNode;
+                        if (!a || !b || !da || !db) continue;
+                        const opposite = da.x * db.x + da.z * db.z < -0.85;
+                        if (!opposite || !maStlUserFloorPlanLinesCollinearParallelXz(a, b)) continue;
+                        for (let bk = 0; bk < axisRefs.length; bk++) {
+                            if (bk === ai || bk === aj) continue;
+                            const branch = rowsById[axisRefs[bk].lineId];
+                            if (!branch || maStlUserFloorPlanLinesCollinearParallelXz(branch, a)) continue;
+                            tCandidates.push({
+                                throughAxisSegmentIds: [a.id, b.id],
+                                branchAxisSegmentId: branch.id,
+                                throughWallGroupIds: [a.wallGroupId, b.wallGroupId],
+                                branchWallGroupId: branch.wallGroupId,
+                            });
+                        }
+                    }
+                }
+            }
+
+            if (axisRefs.length || faceRefs.length || tCandidates.length) {
+                out.push({
+                    nodeId: node.id,
+                    point: node.point,
+                    junctionType: node.junctionType,
+                    axisEndpoints: axisRefs,
+                    faceEndpointsNearNode: faceRefs,
+                    tCandidates: tCandidates,
+                });
+            }
+        }
+        return out;
+    }
+
+    function maStlBuildWallConnectionsPayload() {
+        const snapshot = maStlDesing2SerializeEditSnapshot();
+        const rows = (snapshot.lines || []).slice().sort(function (a, b) {
+            return (a.id || 0) - (b.id || 0);
+        });
+        const eps = maStlUserFloorLineMergeEndpointEpsMm();
+        const nodes = [];
+        const rowsById = Object.create(null);
+        const lineDtos = [];
+        const polylines = Object.create(null);
+        const walls = Object.create(null);
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            if (!row || !row.p1Mm || !row.p2Mm || row.id == null) continue;
+            rowsById[row.id] = row;
+            const n1 = maStlWallConnectionsNodeForPoint(nodes, row.p1Mm, eps);
+            const n2 = maStlWallConnectionsNodeForPoint(nodes, row.p2Mm, eps);
+            n1.incidentEndpoints.push({ lineId: row.id, endpoint: 'p1' });
+            n2.incidentEndpoints.push({ lineId: row.id, endpoint: 'p2' });
+            const lineDto = {
+                id: row.id,
+                kind: maStlWallConnectionsSegmentKind(row),
+                p1NodeId: n1.id,
+                p2NodeId: n2.id,
+                p1: maStlWallConnectionsPointDtoMm(row.p1Mm),
+                p2: maStlWallConnectionsPointDtoMm(row.p2Mm),
+                lengthMm: maStlUserFloorLineLengthMm(row),
+            };
+            if (row.polylineGroupId != null) lineDto.polylineGroupId = row.polylineGroupId;
+            if (row.wallGroupId != null) lineDto.wallGroupId = row.wallGroupId;
+            if (row.wallRole) lineDto.wallRole = row.wallRole;
+            if (row.linkOffsetFromLineId != null) lineDto.linkOffsetFromLineId = row.linkOffsetFromLineId;
+            if (row.numberOffsetMm != null) lineDto.numberOffsetMm = row.numberOffsetMm;
+            if (row.numberWallFaceSideSign != null) lineDto.numberWallFaceSideSign = row.numberWallFaceSideSign;
+            lineDtos.push(lineDto);
+
+            if (row.polylineGroupId != null) {
+                const pgKey = String(row.polylineGroupId);
+                if (!polylines[pgKey]) polylines[pgKey] = { id: row.polylineGroupId, segmentIds: [] };
+                polylines[pgKey].segmentIds.push(row.id);
+            }
+            if (row.wallGroupId != null) {
+                const wgKey = String(row.wallGroupId);
+                if (!walls[wgKey]) walls[wgKey] = { id: row.wallGroupId, axisSegmentIds: [], faceSegmentIds: [] };
+                if (row.wallRole === 'axis') walls[wgKey].axisSegmentIds.push(row.id);
+                else if (row.wallRole === 'face') walls[wgKey].faceSegmentIds.push(row.id);
+            }
+        }
+
+        const nodeConnections = [];
+        for (let ni = 0; ni < nodes.length; ni++) {
+            const node = nodes[ni];
+            node.junctionType = maStlWallConnectionsClassifyNode(node, rowsById);
+            if (node.incidentEndpoints.length >= 2) {
+                nodeConnections.push({
+                    kind: 'endpoint-node',
+                    nodeId: node.id,
+                    junctionType: node.junctionType,
+                    endpoints: node.incidentEndpoints.slice(),
+                    point: node.point,
+                });
+            }
+        }
+
+        const junctionDiagnostics = maStlWallConnectionsBuildJunctionDiagnostics(nodes, rowsById, rows);
+
+        for (let ni = 0; ni < nodes.length; ni++) {
+            delete nodes[ni].pointMm;
+        }
+
+        const bodyConnections = [];
+        for (let ai = 0; ai < rows.length; ai++) {
+            const a = rows[ai];
+            if (!a || a.id == null) continue;
+            const endpoints = [
+                { key: 'p1', pt: a.p1Mm },
+                { key: 'p2', pt: a.p2Mm },
+            ];
+            for (let ei = 0; ei < endpoints.length; ei++) {
+                const ep = endpoints[ei];
+                for (let bi = 0; bi < rows.length; bi++) {
+                    const b = rows[bi];
+                    if (!b || b.id == null || b.id === a.id) continue;
+                    const hit = maStlWallConnectionsEndpointOnSegmentBody(ep.pt, b, eps);
+                    if (!hit) continue;
+                    bodyConnections.push({
+                        kind: 'endpoint-segment',
+                        sourceLineId: a.id,
+                        sourceEndpoint: ep.key,
+                        targetLineId: b.id,
+                        targetKind: maStlWallConnectionsSegmentKind(b),
+                        point: hit.point,
+                        t: hit.t,
+                        distXZMm: hit.distXZMm,
+                    });
+                }
+            }
+        }
+
+        const stable = {
+            schema: 'WallConnections.v1',
+            source: 'Desing_2',
+            units: {
+                scene: 'mm',
+                display: 'm',
+                plane: 'XZ',
+            },
+            tolerances: {
+                endpointMergeMm: eps,
+            },
+            rulerAnchor: maStlWallConnectionsPointDtoMm(snapshot.rulerAnchor || maStlRulerAnchorMm),
+            counts: {
+                lines: lineDtos.length,
+                nodes: nodes.length,
+                endpointConnections: nodeConnections.length,
+                bodyConnections: bodyConnections.length,
+                polylines: Object.keys(polylines).length,
+                walls: Object.keys(walls).length,
+                wallJunctionDiagnostics: junctionDiagnostics.length,
+            },
+            lines: lineDtos,
+            polylines: Object.keys(polylines)
+                .sort(function (a, b) { return Number(a) - Number(b); })
+                .map(function (key) { return polylines[key]; }),
+            walls: Object.keys(walls)
+                .sort(function (a, b) { return Number(a) - Number(b); })
+                .map(function (key) { return walls[key]; }),
+            nodes: nodes,
+            connections: nodeConnections.concat(bodyConnections),
+            wallJunctionDiagnostics: junctionDiagnostics,
+            generatedWallModel: maStlDesing2LastWallModelDetection,
+        };
+        return {
+            stableJson: JSON.stringify(stable),
+            payload: Object.assign(
+                {
+                    generatedAtUtc: new Date().toISOString(),
+                    pageUrl: window.location.href,
+                },
+                stable
+            ),
+        };
+    }
+
+    function maStlSaveWallConnectionsNow(options) {
+        if (!maStlDesingV2Viewer) return;
+        const apiUrl = maStlDesing2WallConnectionsApiUrl();
+        if (!apiUrl) return;
+        const force = !!(options && options.force);
+        const built = maStlBuildWallConnectionsPayload();
+        if (!built || (!force && built.stableJson === maStlWallConnectionsLastStableJson)) return;
+        maStlWallConnectionsLastStableJson = built.stableJson;
+        if (options && options.reason) {
+            built.payload.saveReason = options.reason;
+        }
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify(built.payload),
+            credentials: 'same-origin',
+        })
+            .then(function (res) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            })
+            .then(function (resp) {
+                if (!resp || !resp.Exito) {
+                    throw new Error((resp && resp.Mensaje) || 'No se pudo guardar WallConnections.json');
+                }
+            })
+            .catch(function (err) {
+                maStlWallConnectionsLastStableJson = '';
+                if (window.console && console.warn) {
+                    console.warn('[Desing_2] WallConnections.json no guardado', err);
+                }
+            });
+    }
+
     function maStlDesing2EditSnapshotsEqual(a, b) {
         if (!a || !b) return false;
         return JSON.stringify(a) === JSON.stringify(b);
@@ -3846,6 +4242,531 @@ function bootMasterArticleDetailsStlViewer() {
             });
             group.remove(ch);
         }
+    }
+
+    function maStlDesing2SetSourceLinesVisible(visible) {
+        if (maStlUserLinesGroup) maStlUserLinesGroup.visible = !!visible;
+        if (maStlUserFloorLineDimHudGroup) maStlUserFloorLineDimHudGroup.visible = !!visible;
+        maStlWall2dToolHideFaceRubberBands();
+        maStlLineToolHidePreviewDimHud();
+        maStlHideUserFloorLineDimHud(true);
+    }
+
+    function maStlWall2dModelClearGenerated() {
+        maStlStripOverlayMeshes(maStlWall2dModelMeshesGroup);
+    }
+
+    function maStlWall3dModelClearGenerated() {
+        if (!maStlWall3dMeshesGroup) return;
+        const generated = [];
+        maStlWall3dMeshesGroup.traverse(function (obj) {
+            if (obj && obj.isMesh && obj.userData && obj.userData.maStlWall3dGenerated) {
+                generated.push(obj);
+            }
+        });
+        for (let i = 0; i < generated.length; i++) {
+            const mesh = generated[i];
+            const idx = clipStlMeshes.indexOf(mesh);
+            if (idx >= 0) clipStlMeshes.splice(idx, 1);
+        }
+        maStlStripOverlayMeshes(maStlWall3dMeshesGroup);
+        maStlWall3dConcreteMapActive = false;
+        maStlSyncWall3dMapBtnUi();
+        updateClipPlanes();
+        syncGroundShadowToggleUi();
+    }
+
+    function maStlDesing2ClearGeneratedWallModels() {
+        maStlWall2dModelClearGenerated();
+        maStlWall3dModelClearGenerated();
+    }
+
+    function maStlDesing2SetWallModelRenderingVisible(visible) {
+        if (!maStlWallModelRenderOverlay) return;
+        maStlWallModelRenderOverlay.classList.toggle('d-none', !visible);
+        maStlWallModelRenderOverlay.setAttribute('aria-hidden', visible ? 'false' : 'true');
+    }
+
+    function maStlDesing2CollectWallModelSourceLines() {
+        const faces = [];
+        const plain = [];
+        if (!maStlUserLinesGroup) return plain;
+        const ch = maStlUserLinesGroup.children;
+        for (let i = 0; i < ch.length; i++) {
+            const line = ch[i];
+            if (!maStlIsUserFloorPlanLineObject(line)) continue;
+            const ud = line.userData && line.userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            if (ud.wallRole === 'axis') continue;
+            if (ud.wallRole === 'face') faces.push(line);
+            else plain.push(line);
+        }
+        return faces.length ? faces : plain;
+    }
+
+    function maStlDesing2BuildWallModelDetectionPayload() {
+        const sourceLines = maStlDesing2CollectWallModelSourceLines();
+        const lineas = [];
+        for (let i = 0; i < sourceLines.length; i++) {
+            const dto = maStlWall3dUserLineToDto(sourceLines[i]);
+            if (dto) lineas.push(dto);
+        }
+        return {
+            payload: {
+                Lineas: lineas,
+                TotalSeleccionados: lineas.length,
+                TotalLineas: lineas.length,
+                TotalPolilineas: 0,
+                FechaSeleccion: new Date().toISOString(),
+                Usuario: 'Desing_2',
+                AlturaMuroMm: MA_STL_WALL3D_DEFAULT_HEIGHT_MM,
+            },
+            sourceCount: sourceLines.length,
+        };
+    }
+
+    function maStlDesing2SummarizeWallModelDetection(mode, payload, datos, generatedCount) {
+        return {
+            mode: mode,
+            system: 'Atk-60',
+            generatedAtUtc: new Date().toISOString(),
+            source: {
+                totalLineas: payload && payload.Lineas ? payload.Lineas.length : 0,
+                lineas: payload && payload.Lineas ? payload.Lineas : [],
+            },
+            result: datos || null,
+            counts: {
+                generatedMeshes: generatedCount || 0,
+                polilineas: datos && datos.PolilineasADibujar ? datos.PolilineasADibujar.length : 0,
+                murosRectos: datos && datos.TotalMurosRectos != null ? datos.TotalMurosRectos : 0,
+                esquinas: datos && datos.TotalEsquinasDetectadas != null ? datos.TotalEsquinasDetectadas : 0,
+            },
+        };
+    }
+
+    function maStlDesing2RequestWallModelDetection(mode, onSuccess, onError) {
+        const apiUrl = maStlWall3dGetApiUrl();
+        if (!apiUrl) {
+            const err = new Error('API muros no configurada');
+            maStlDesing2SetWallModelRenderingVisible(false);
+            if (onError) onError(err);
+            return;
+        }
+        const built = maStlDesing2BuildWallModelDetectionPayload();
+        if (!built.payload.Lineas.length) {
+            const noLines = new Error('No hay líneas fuente para generar el modelo');
+            maStlDesing2SetWallModelRenderingVisible(false);
+            if (onError) onError(noLines);
+            return;
+        }
+        maStlDesing2WallModelBusy = true;
+        maStlDesing2SetWallModelRenderingVisible(true);
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify(built.payload),
+            credentials: 'same-origin',
+        })
+            .then(function (res) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            })
+            .then(function (resp) {
+                maStlDesing2WallModelBusy = false;
+                if (!resp || !resp.Exito || !resp.Datos) {
+                    throw new Error((resp && resp.Mensaje) || 'Error desconocido');
+                }
+                if (onSuccess) onSuccess(resp.Datos, built.payload);
+                maStlDesing2SetWallModelRenderingVisible(false);
+            })
+            .catch(function (err) {
+                maStlDesing2WallModelBusy = false;
+                maStlDesing2SetWallModelRenderingVisible(false);
+                if (onError) onError(err);
+            });
+    }
+
+    function maStlWall2dModelMaterial(colorHex, opacity) {
+        return new THREE.MeshBasicMaterial({
+            color: colorHex,
+            opacity: opacity,
+            transparent: opacity < 1,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+        });
+    }
+
+    function maStlWall2dModelAddPolygon(points, colorHex, opacity, kind) {
+        if (!points || points.length < 3 || !maStlWall2dModelMeshesGroup) return null;
+        const y = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM + (kind === 'cornerL' ? 3 : 2);
+        const shape = new THREE.Shape();
+        shape.moveTo(points[0].x, -points[0].z);
+        for (let i = 1; i < points.length; i++) {
+            shape.lineTo(points[i].x, -points[i].z);
+        }
+        shape.closePath();
+        const geo = new THREE.ShapeGeometry(shape);
+        geo.rotateX(-Math.PI / 2);
+        geo.translate(0, y, 0);
+        geo.computeBoundingSphere();
+        const mesh = new THREE.Mesh(geo, maStlWall2dModelMaterial(colorHex, opacity));
+        mesh.renderOrder = kind === 'cornerL' ? 120 : 119;
+        mesh.userData.maStlWall2dModelGenerated = true;
+        mesh.userData.maStlWall2dModelKind = kind || 'wall';
+        maStlDisableRaycastOnOverlay(mesh);
+        maStlWall2dModelMeshesGroup.add(mesh);
+        return mesh;
+    }
+
+    function maStlWall2dModelAddFlatPolylineDto(poly) {
+        if (!poly || poly.Capa !== 'ModelDesing' || !(poly.AlturaExtrusion > 0)) return null;
+        const verts = poly.Vertices;
+        if (!verts || verts.length < 3) return null;
+        const kind = maStlWall3dClassifyPolyline(poly);
+        const points = [];
+        for (let i = 0; i < verts.length; i++) {
+            if (!verts[i]) continue;
+            points.push({ x: verts[i].X, z: verts[i].Y });
+        }
+        return maStlWall2dModelAddPolygon(
+            points,
+            kind === 'corner' ? MA_STL_WALL_MODEL_COLOR_CORNER : MA_STL_WALL_MODEL_COLOR_WALL,
+            1,
+            kind === 'corner' ? 'cornerL' : 'straight'
+        );
+    }
+
+    function maStlWall2dModelAddFlatPolylinesFromDetection(datos) {
+        if (!datos || !datos.PolilineasADibujar) return 0;
+        let n = 0;
+        for (let i = 0; i < datos.PolilineasADibujar.length; i++) {
+            if (maStlWall2dModelAddFlatPolylineDto(datos.PolilineasADibujar[i])) n++;
+        }
+        maStlWall2dModelMeshesGroup.visible = true;
+        return n;
+    }
+
+    function maStlWall2dModelCollectSourceSegments() {
+        const out = [];
+        if (!maStlUserLinesGroup) return out;
+        const minLen = maStlUserFloorSegmentMinMm();
+        const ch = maStlUserLinesGroup.children;
+        for (let i = 0; i < ch.length; i++) {
+            const line = ch[i];
+            if (!maStlIsUserFloorPlanLineObject(line)) continue;
+            const ud = line.userData && line.userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            if (ud.wallRole && ud.wallRole !== 'axis') continue;
+            const len = maStlUserFloorLineLengthMm(ud);
+            if (!(len >= minLen)) continue;
+            out.push({
+                id: ud.id != null ? ud.id : i + 1,
+                p1Mm: maStlDesing2ClonePlanPointMm(ud.p1Mm),
+                p2Mm: maStlDesing2ClonePlanPointMm(ud.p2Mm),
+                ud: ud,
+            });
+        }
+        return out;
+    }
+
+    function maStlWall2dModelCollectWallFaceStrips() {
+        const stripsByAxisId = new Map();
+        if (!maStlUserLinesGroup) return [];
+        const ch = maStlUserLinesGroup.children;
+        for (let i = 0; i < ch.length; i++) {
+            const line = ch[i];
+            if (!maStlIsUserFloorPlanLineObject(line)) continue;
+            const ud = line.userData && line.userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            if (ud.wallRole === 'axis' && ud.id != null) {
+                const key = Number(ud.id);
+                const row = stripsByAxisId.get(key) || { axis: null, facePos: null, faceNeg: null };
+                row.axis = ud;
+                stripsByAxisId.set(key, row);
+                continue;
+            }
+            if (ud.wallRole === 'face' && ud.linkOffsetFromLineId != null) {
+                const key = Number(ud.linkOffsetFromLineId);
+                const row = stripsByAxisId.get(key) || { axis: null, facePos: null, faceNeg: null };
+                if (ud.numberWallFaceSideSign === -1) row.faceNeg = ud;
+                else row.facePos = ud;
+                stripsByAxisId.set(key, row);
+            }
+        }
+        const out = [];
+        stripsByAxisId.forEach(function (row) {
+            if (!row || !row.axis || !row.facePos || !row.faceNeg) return;
+            if (!row.facePos.p1Mm || !row.facePos.p2Mm || !row.faceNeg.p1Mm || !row.faceNeg.p2Mm) return;
+            out.push(row);
+        });
+        out.sort(function (a, b) {
+            return (a.axis.id || 0) - (b.axis.id || 0);
+        });
+        return out;
+    }
+
+    function maStlWall2dModelFaceEndpointTowardAxis(facePtA, facePtB, axisPt) {
+        const da = maStlUserFloorPlanPointDistSqXzMm(facePtA, axisPt);
+        const db = maStlUserFloorPlanPointDistSqXzMm(facePtB, axisPt);
+        return da <= db ? facePtA : facePtB;
+    }
+
+    function maStlWall2dModelAddStripFromWallFaces(strip) {
+        if (!strip || !strip.axis || !strip.facePos || !strip.faceNeg) return false;
+        const axis = strip.axis;
+        const pos = strip.facePos;
+        const neg = strip.faceNeg;
+        const posStart = maStlWall2dModelFaceEndpointTowardAxis(pos.p1Mm, pos.p2Mm, axis.p1Mm);
+        const posEnd = maStlWall2dModelFaceEndpointTowardAxis(pos.p1Mm, pos.p2Mm, axis.p2Mm);
+        const negEnd = maStlWall2dModelFaceEndpointTowardAxis(neg.p1Mm, neg.p2Mm, axis.p2Mm);
+        const negStart = maStlWall2dModelFaceEndpointTowardAxis(neg.p1Mm, neg.p2Mm, axis.p1Mm);
+        if (
+            maStlUserFloorPlanPointNearXzMm(posStart, posEnd, 1e-6) ||
+            maStlUserFloorPlanPointNearXzMm(negStart, negEnd, 1e-6)
+        ) {
+            return false;
+        }
+        maStlWall2dModelAddPolygon(
+            [
+                { x: posStart.x, z: posStart.z },
+                { x: posEnd.x, z: posEnd.z },
+                { x: negEnd.x, z: negEnd.z },
+                { x: negStart.x, z: negStart.z },
+            ],
+            MA_STL_WALL_MODEL_COLOR_WALL,
+            1,
+            'straight'
+        );
+        return true;
+    }
+
+    function maStlWall2dModelNodeForPoint(nodes, pt, eps) {
+        for (let i = 0; i < nodes.length; i++) {
+            if (maStlUserFloorPlanPointNearXzMm(nodes[i].pointMm, pt, eps)) return nodes[i];
+        }
+        const node = { pointMm: maStlDesing2ClonePlanPointMm(pt), incident: [] };
+        nodes.push(node);
+        return node;
+    }
+
+    function maStlWall2dModelBuildGraph(segments) {
+        const eps = Math.max(maStlUserFloorLineMergeEndpointEpsMm(), maStlWall2dToolJunctionClusterEpsMm());
+        const nodes = [];
+        for (let si = 0; si < segments.length; si++) {
+            const seg = segments[si];
+            const n1 = maStlWall2dModelNodeForPoint(nodes, seg.p1Mm, eps);
+            const n2 = maStlWall2dModelNodeForPoint(nodes, seg.p2Mm, eps);
+            n1.incident.push({ segment: seg, endpoint: 'p1' });
+            n2.incident.push({ segment: seg, endpoint: 'p2' });
+        }
+        return nodes;
+    }
+
+    function maStlWall2dModelDirFromNode(incident) {
+        const seg = incident && incident.segment;
+        if (!seg) return null;
+        const from = incident.endpoint === 'p2' ? seg.p2Mm : seg.p1Mm;
+        const to = incident.endpoint === 'p2' ? seg.p1Mm : seg.p2Mm;
+        const dx = to.x - from.x;
+        const dz = to.z - from.z;
+        const len = Math.hypot(dx, dz);
+        if (!(len > 1e-9)) return null;
+        return { x: dx / len, z: dz / len };
+    }
+
+    function maStlWall2dModelDirsCollinear(a, b) {
+        return !!(a && b && Math.abs(a.x * b.x + a.z * b.z) > 0.985);
+    }
+
+    function maStlWall2dModelLineIntersectionXz(p1, d1, p2, d2) {
+        const det = d1.x * d2.z - d1.z * d2.x;
+        if (Math.abs(det) < 1e-9) return null;
+        const dx = p2.x - p1.x;
+        const dz = p2.z - p1.z;
+        const t = (dx * d2.z - dz * d2.x) / det;
+        return { x: p1.x + d1.x * t, z: p1.z + d1.z * t };
+    }
+
+    function maStlWall2dModelAddStraightSegment(seg, halfT) {
+        const dx = seg.p2Mm.x - seg.p1Mm.x;
+        const dz = seg.p2Mm.z - seg.p1Mm.z;
+        const len = Math.hypot(dx, dz);
+        if (!(len > 1e-9)) return;
+        const ux = dx / len;
+        const uz = dz / len;
+        const nx = -uz * halfT;
+        const nz = ux * halfT;
+        maStlWall2dModelAddPolygon(
+            [
+                { x: seg.p1Mm.x + nx, z: seg.p1Mm.z + nz },
+                { x: seg.p2Mm.x + nx, z: seg.p2Mm.z + nz },
+                { x: seg.p2Mm.x - nx, z: seg.p2Mm.z - nz },
+                { x: seg.p1Mm.x - nx, z: seg.p1Mm.z - nz },
+            ],
+            MA_STL_WALL_MODEL_COLOR_WALL,
+            1,
+            'straight'
+        );
+    }
+
+    function maStlWall2dModelAddLCorner(node, halfT) {
+        const inc = (node && node.incident) || [];
+        if (inc.length !== 2) return;
+        const d1 = maStlWall2dModelDirFromNode(inc[0]);
+        const d2 = maStlWall2dModelDirFromNode(inc[1]);
+        if (!d1 || !d2 || maStlWall2dModelDirsCollinear(d1, d2)) return;
+        const p = node.pointMm;
+        const cross = d1.x * d2.z - d1.z * d2.x;
+        if (Math.abs(cross) < 1e-9) return;
+
+        const n1 = { x: -d1.z, z: d1.x };
+        const n2 = { x: -d2.z, z: d2.x };
+        const exteriorSign1 = cross > 0 ? -1 : 1;
+        const exteriorSign2 = cross > 0 ? 1 : -1;
+        const exteriorP1 = {
+            x: p.x + n1.x * halfT * exteriorSign1,
+            z: p.z + n1.z * halfT * exteriorSign1,
+        };
+        const exteriorP2 = {
+            x: p.x + n2.x * halfT * exteriorSign2,
+            z: p.z + n2.z * halfT * exteriorSign2,
+        };
+        const outer = maStlWall2dModelLineIntersectionXz(exteriorP1, d1, exteriorP2, d2);
+        if (!outer) return;
+
+        const moduleLen = halfT * 2;
+        const wallWidth = halfT * 2;
+        const q1Outer = { x: outer.x + d1.x * moduleLen, z: outer.z + d1.z * moduleLen };
+        const q1Inner = {
+            x: q1Outer.x - n1.x * wallWidth * exteriorSign1,
+            z: q1Outer.z - n1.z * wallWidth * exteriorSign1,
+        };
+        const innerCorner = {
+            x: outer.x - n1.x * wallWidth * exteriorSign1 - n2.x * wallWidth * exteriorSign2,
+            z: outer.z - n1.z * wallWidth * exteriorSign1 - n2.z * wallWidth * exteriorSign2,
+        };
+        const q2Inner = {
+            x: outer.x + d2.x * moduleLen - n2.x * wallWidth * exteriorSign2,
+            z: outer.z + d2.z * moduleLen - n2.z * wallWidth * exteriorSign2,
+        };
+        const q2Outer = { x: outer.x + d2.x * moduleLen, z: outer.z + d2.z * moduleLen };
+        maStlWall2dModelAddPolygon(
+            [outer, q1Outer, q1Inner, innerCorner, q2Inner, q2Outer],
+            MA_STL_WALL_MODEL_COLOR_CORNER,
+            1,
+            'cornerL'
+        );
+    }
+
+    function maStlWall2dModelRegenerateFromSourceLines() {
+        maStlWall2dModelClearGenerated();
+        const faceStrips = maStlWall2dModelCollectWallFaceStrips();
+        if (faceStrips.length) {
+            for (let fi = 0; fi < faceStrips.length; fi++) {
+                maStlWall2dModelAddStripFromWallFaces(faceStrips[fi]);
+            }
+            maStlWall2dModelMeshesGroup.visible = true;
+            return true;
+        }
+
+        const segments = maStlWall2dModelCollectSourceSegments();
+        const halfT = maStlWall2dToolThicknessHalfMm();
+        for (let si = 0; si < segments.length; si++) {
+            maStlWall2dModelAddStraightSegment(segments[si], halfT);
+        }
+        maStlWall2dModelMeshesGroup.visible = true;
+        return segments.length > 0;
+    }
+
+    function maStlDesing2SetModelModeLines() {
+        maStlDesing2ModelMode = 'lines';
+        maStlDesing2SetWallModelRenderingVisible(false);
+        if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
+        if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
+        if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
+        if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        maStlDesing2ClearGeneratedWallModels();
+        maStlDesing2LastWallModelDetection = null;
+        if (maStlWall2dModelMeshesGroup) maStlWall2dModelMeshesGroup.visible = false;
+        if (maStlWall3dMeshesGroup) maStlWall3dMeshesGroup.visible = true;
+        maStlDesing2SetSourceLinesVisible(true);
+        maStlSyncDesing2ModeToolbarUi();
+        maStlSaveWallConnectionsNow({
+            force: true,
+            reason: 'wall-model-mode-lines',
+        });
+    }
+
+    function maStlDesing2ApplyWall2dModelMode() {
+        if (maStlDesing2WallModelBusy) return;
+        maStlDesing2ModelMode = 'wall2d';
+        if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
+        if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
+        if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
+        if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
+        if (maStlIsInsertEnclosureToolActive()) maStlStopInsertEnclosureToolModesToolbar(false);
+        maStlDisposeUserFloorLineDimEdit(false);
+        maStlClearUserFloorLineSelection();
+        maStlDesing2ClearGeneratedWallModels();
+        maStlDesing2LastWallModelDetection = null;
+        maStlDesing2SetSourceLinesVisible(false);
+        maStlSyncDesing2ModeToolbarUi();
+        maStlDesing2RequestWallModelDetection('wall2d', function (datos, payload) {
+            if (maStlDesing2ModelMode !== 'wall2d') return;
+            const count = maStlWall2dModelAddFlatPolylinesFromDetection(datos);
+            maStlDesing2LastWallModelDetection = maStlDesing2SummarizeWallModelDetection(
+                'wall2d',
+                payload,
+                datos,
+                count
+            );
+            maStlSaveWallConnectionsNow({
+                force: true,
+                reason: 'wall2d-model-mode-regenerate',
+            });
+        }, function (err) {
+            maStlDesing2SetSourceLinesVisible(true);
+            maStlDesing2ModelMode = 'lines';
+            maStlSyncDesing2ModeToolbarUi();
+            maStlDesing2ShowSaveViewToast(err && err.message ? err.message : String(err || 'Error modelo muro'));
+        });
+    }
+
+    function maStlDesing2ApplyWall3dModelMode() {
+        if (maStlDesing2WallModelBusy) return;
+        maStlDesing2ModelMode = 'wall3d';
+        if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
+        if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
+        if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
+        if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
+        if (maStlIsInsertEnclosureToolActive()) maStlStopInsertEnclosureToolModesToolbar(false);
+        maStlDisposeUserFloorLineDimEdit(false);
+        maStlClearUserFloorLineSelection();
+        maStlDesing2ClearGeneratedWallModels();
+        maStlDesing2LastWallModelDetection = null;
+        maStlDesing2SetSourceLinesVisible(false);
+        maStlSyncDesing2ModeToolbarUi();
+        maStlDesing2RequestWallModelDetection('wall3d', function (datos, payload) {
+            if (maStlDesing2ModelMode !== 'wall3d') return;
+            const count = maStlWall3dAddMeshesFromDetection(datos);
+            maStlDesing2LastWallModelDetection = maStlDesing2SummarizeWallModelDetection(
+                'wall3d',
+                payload,
+                datos,
+                count
+            );
+            maStlSaveWallConnectionsNow({
+                force: true,
+                reason: 'wall3d-model-mode-regenerate',
+            });
+        }, function (err) {
+            maStlDesing2SetSourceLinesVisible(true);
+            maStlDesing2ModelMode = 'lines';
+            maStlSyncDesing2ModeToolbarUi();
+            maStlDesing2ShowSaveViewToast(err && err.message ? err.message : String(err || 'Error modelo 3D'));
+        });
     }
 
     function syncMaStlUcsOverlayVisibility() {
@@ -4705,7 +5626,41 @@ function bootMasterArticleDetailsStlViewer() {
             maStlWall2dToolToggleBtn.setAttribute('aria-pressed', onWall2d ? 'true' : 'false');
             maStlWall2dToolToggleBtn.classList.toggle('active', onWall2d);
         }
+        maStlSyncDesing2ModeToolbarUi();
         maStlSyncWallDimToolToggleBtnUi();
+    }
+
+    function maStlSyncDesing2ModeToolbarUi() {
+        const mode = maStlIsWall3dToolActive() ? 'wall3d' : maStlDesing2ModelMode || 'lines';
+        const rows = [
+            { btn: maStlModeLinesToggleBtn, mode: 'lines' },
+            { btn: maStlModeWall2dToggleBtn, mode: 'wall2d' },
+            { btn: maStlModeWall3dToggleBtn, mode: 'wall3d' },
+        ];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            if (!row.btn) continue;
+            const on = row.mode === mode;
+            row.btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+            row.btn.classList.toggle('active', on);
+        }
+    }
+
+    function maStlActivateDesing2ModeToolbarMode(mode) {
+        if (!maStlDesingV2Viewer) return false;
+        switch (mode) {
+            case 'lines':
+                maStlDesing2SetModelModeLines();
+                return true;
+            case 'wall2d':
+                maStlDesing2ApplyWall2dModelMode();
+                return true;
+            case 'wall3d':
+                maStlDesing2ApplyWall3dModelMode();
+                return true;
+            default:
+                return false;
+        }
     }
 
     function maStlSyncLineToolOrtho15ToggleUi() {
@@ -4803,8 +5758,51 @@ function bootMasterArticleDetailsStlViewer() {
         return vi || vb;
     }
 
+    function maStlParseAngleInputValueDeg(text) {
+        if (text == null) return null;
+        let s = String(text).trim().replace(/[\u00a0\u202f\u2009\u2028\u2029]/g, ' ');
+        if (!s) return null;
+        s = s.replace(/[^\d,.+\-]/g, '');
+        if (!s) return null;
+        const comma = s.lastIndexOf(',');
+        const dot = s.lastIndexOf('.');
+        let numTok = s;
+        if (comma >= 0 && dot >= 0) {
+            if (dot > comma) numTok = numTok.replace(/,/g, '');
+            else numTok = numTok.replace(/\./g, '').replace(',', '.');
+        } else if (comma >= 0) {
+            numTok = numTok.replace(/,/g, '.');
+        }
+        const val = Number(numTok);
+        return Number.isFinite(val) ? val : null;
+    }
+
+    function maStlLineToolParsePolarDistanceAngleMm(raw) {
+        if (raw == null) return null;
+        const s = String(raw).trim();
+        if (!s || s.charAt(0) !== '@') return null;
+        const lt = s.indexOf('<');
+        if (lt <= 1 || lt >= s.length - 1) return null;
+        const lenMm = maStlParseLengthInputValueToMm(s.slice(1, lt));
+        const angleDeg = maStlParseAngleInputValueDeg(s.slice(lt + 1));
+        if (lenMm == null || !Number.isFinite(lenMm) || angleDeg == null || !Number.isFinite(angleDeg)) {
+            return null;
+        }
+        const rad = THREE.MathUtils.degToRad(angleDeg);
+        return {
+            lenMm: lenMm,
+            angleDeg: maStlNormalizeAzimuthDeg(angleDeg),
+            ux: Math.cos(rad),
+            /* En planta Desing_2, arriba en pantalla es -Z; los ángulos CAD positivos van antihorario en pantalla. */
+            uz: -Math.sin(rad),
+        };
+    }
+
     function maStlLineToolParsedPreviewLenMm() {
-        return maStlParseLengthInputValueToMm(maStlLineToolRawDistanceTypingTrimmed());
+        const raw = maStlLineToolRawDistanceTypingTrimmed();
+        const polar = maStlLineToolParsePolarDistanceAngleMm(raw);
+        if (polar) return polar.lenMm;
+        return maStlParseLengthInputValueToMm(raw);
     }
 
     function maStlLineToolSyncTypingPreviewUi() {
@@ -4829,8 +5827,13 @@ function bootMasterArticleDetailsStlViewer() {
                 (maStlLineToolHud &&
                     maStlLineToolHud.getAttribute('data-ma-stl-line-tool-distance-preview-prefix')) ||
                 '\u2248';
+            const polar = maStlLineToolParsePolarDistanceAngleMm(maStlLineToolRawDistanceTypingTrimmed());
             maStlLineToolHudDistancePreview.textContent =
-                String(pfx) + '\u00A0' + d + '\u00A0m';
+                String(pfx) +
+                '\u00A0' +
+                d +
+                '\u00A0m' +
+                (polar ? '\u00A0<\u00A0' + maStlFormatFloorPlanAngleDegDisplay(polar.angleDeg) : '');
         } else {
             maStlLineToolHudDistancePreview.textContent = '';
         }
@@ -4888,7 +5891,8 @@ function bootMasterArticleDetailsStlViewer() {
             const maxMm = Math.max(minMm, lastMaxDim * 25);
             lenMm = THREE.MathUtils.clamp(lenMm, minMm, maxMm);
             lenMm = maStlDesing2LengthMmRoundedEditableFromMm(lenMm);
-            const u = maStlLineToolComputeFloorDirUnitXz();
+            const polar = maStlLineToolParsePolarDistanceAngleMm(maStlLineToolRawDistanceTypingTrimmed());
+            const u = polar ? { x: polar.ux, z: polar.uz } : maStlLineToolComputeFloorDirUnitXz();
             const y = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM;
             maStlLineToolTypedEndRubberMm.set(
                 maStlLineToolPoint1Mm.x + u.x * lenMm,
@@ -4949,6 +5953,10 @@ function bootMasterArticleDetailsStlViewer() {
                 }
                 const raw = maStlLineToolRawDistanceTypingTrimmed();
                 if (raw) {
+                    if (/^c$/i.test(raw) && maStlIsWall2dToolPlacementActive()) {
+                        ev.preventDefault();
+                        return maStlWall2dToolTryCloseActiveGroupFromCommand();
+                    }
                     const ok = maStlLineToolTryTypedCommitDistanceOrbitDefer();
                     if (ok) ev.preventDefault();
                     return ok;
@@ -4970,7 +5978,7 @@ function bootMasterArticleDetailsStlViewer() {
             if (!next.length) return false;
             ev.preventDefault();
             next = '';
-        } else if (k.length === 1 && /^[0-9.,\sMm]$/.test(k)) {
+        } else if (k.length === 1 && /^[0-9.,\sMm@<>\-+°ºCc]$/.test(k)) {
             ev.preventDefault();
             next += k;
         } else {
@@ -4994,11 +6002,15 @@ function bootMasterArticleDetailsStlViewer() {
     /**
      * Activa un comando de barra superior (no alterna apagado). Placeholders: cancelan modos transitorios.
      * @param {string} btnId
+     * @param {{ resume?: boolean }} [options]
      * @returns {boolean} true si aplicó activación
      */
-    function maStlDesing2ActivateToolbarCommandById(btnId) {
+    function maStlDesing2ActivateToolbarCommandById(btnId, options) {
         if (!btnId || !maStlDesingV2Viewer) return false;
         if (btnId === 'ma-stl-tool-line') btnId = 'ma-stl-tool-polyline';
+        if (maStlDesing2ModelMode !== 'lines') {
+            maStlDesing2SetModelModeLines();
+        }
         switch (btnId) {
             case 'ma-stl-tool-polyline':
                 if (maStlIsLineToolPlacementActive()) return false;
@@ -5007,7 +6019,7 @@ function bootMasterArticleDetailsStlViewer() {
             case 'ma-stl-tool-wall-2d':
                 if (maStlIsWall2dToolActive()) return false;
                 maStlStartWall2dToolModesToolbar({
-                    resume: maStlWall2dToolResumeState != null,
+                    resume: !!(options && options.resume && maStlWall2dToolResumeState != null),
                 });
                 return true;
             case 'ma-stl-tool-offset':
@@ -5044,7 +6056,9 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlIsUserFloorLineDimEditOverlayActive()) return false;
         if (maStlDesingV2AvoidKeyboardShortcutSteal(ae)) return false;
         if (ae && ae.closest && ae.closest('button, a[href], [role="button"], label')) return false;
-        const ok = maStlDesing2ActivateToolbarCommandById(maStlDesing2LastToolbarCommandId);
+        const ok = maStlDesing2ActivateToolbarCommandById(maStlDesing2LastToolbarCommandId, {
+            resume: maStlDesing2LastToolbarCommandId === 'ma-stl-tool-wall-2d',
+        });
         if (ok) ev.preventDefault();
         return ok;
     }
@@ -5058,7 +6072,11 @@ function bootMasterArticleDetailsStlViewer() {
     function maStlLineToolTryTypedCommitDistanceOrbitDefer() {
         const raw = maStlLineToolRawDistanceTypingTrimmed();
         maStlLineToolDistanceTypeBuffer = raw;
-        const lenMmRaw = maStlParseLengthInputValueToMm(raw);
+        if (/^c$/i.test(raw) && maStlIsWall2dToolPlacementActive()) {
+            return maStlWall2dToolTryCloseActiveGroupFromCommand();
+        }
+        const polar = maStlLineToolParsePolarDistanceAngleMm(raw);
+        const lenMmRaw = polar ? polar.lenMm : maStlParseLengthInputValueToMm(raw);
         const minMm = maStlUserFloorSegmentMinMm();
         const maxMm = Math.max(minMm, lastMaxDim * 25);
         if (lenMmRaw == null || !Number.isFinite(lenMmRaw)) {
@@ -5070,7 +6088,7 @@ function bootMasterArticleDetailsStlViewer() {
         }
         let lenMm = THREE.MathUtils.clamp(lenMmRaw, minMm, maxMm);
         lenMm = maStlDesing2LengthMmRoundedEditableFromMm(lenMm);
-        const u = maStlLineToolComputeFloorDirUnitXz();
+        const u = polar ? { x: polar.ux, z: polar.uz } : maStlLineToolComputeFloorDirUnitXz();
         const y = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM;
         const end = {
             x: maStlLineToolPoint1Mm.x + u.x * lenMm,
@@ -6008,6 +7026,43 @@ function bootMasterArticleDetailsStlViewer() {
         return bestUd ? maStlDesing2ClonePlanPointMm(bestUd.p2Mm) : null;
     }
 
+    function maStlWall2dToolAxisSegmentsInGroup(wallGroupId) {
+        const axes = [];
+        if (wallGroupId == null) return axes;
+        const group = maStlUserFloorPlanLinesInWallGroup(wallGroupId);
+        for (let gi = 0; gi < group.length; gi++) {
+            const ud = group[gi].userData && group[gi].userData.maStlUserPlanLine;
+            if (ud && ud.wallRole === 'axis' && ud.id != null && ud.p1Mm && ud.p2Mm) {
+                axes.push({ line: group[gi], ud: ud });
+            }
+        }
+        axes.sort(function (a, b) {
+            return a.ud.id - b.ud.id;
+        });
+        return axes;
+    }
+
+    function maStlWall2dToolFindGroupChainStartMm(wallGroupId) {
+        const axes = maStlWall2dToolAxisSegmentsInGroup(wallGroupId);
+        return axes.length ? maStlDesing2ClonePlanPointMm(axes[0].ud.p1Mm) : null;
+    }
+
+    function maStlWall2dToolCanCloseActiveGroup() {
+        if (!maStlIsWall2dToolPlacementActive() || maStlLineToolState !== 'picking2') return false;
+        const axes = maStlWall2dToolAxisSegmentsInGroup(maStlWall2dToolActiveGroupId);
+        return axes.length >= 2;
+    }
+
+    function maStlWall2dToolTryCloseActiveGroupFromCommand() {
+        if (!maStlWall2dToolCanCloseActiveGroup()) return true;
+        const first = maStlWall2dToolFindGroupChainStartMm(maStlWall2dToolActiveGroupId);
+        if (!first) return true;
+        maStlWall2dToolCommitWallSegmentMm(maStlLineToolPoint1Mm, first);
+        maStlStopLineToolModesToolbar(false);
+        maStlWall2dToolResumeState = null;
+        return true;
+    }
+
     function maStlWall2dToolCaptureResumeState() {
         const gid = maStlWall2dToolActiveGroupId;
         if (gid == null || !maStlWall2dToolGroupHasAxisSegments(gid)) return;
@@ -6100,6 +7155,32 @@ function bootMasterArticleDetailsStlViewer() {
         if (!ud || ud.wallGroupId == null) return [line];
         const group = maStlUserFloorPlanLinesInWallGroup(ud.wallGroupId);
         return group.length > 0 ? group : [line];
+    }
+
+    /**
+     * Paquete indivisible de un tramo de muro 2D: eje + sus dos caras.
+     * El eje no se selecciona directamente, pero una operación sobre cualquier cara
+     * debe afectar a todo el tramo asociado.
+     */
+    function maStlResolveWallSegmentLinesForLine(line) {
+        if (!line || !maStlIsUserFloorPlanLineObject(line)) return [];
+        const ud = line.userData && line.userData.maStlUserPlanLine;
+        if (!ud || ud.wallGroupId == null || !ud.wallRole) return [line];
+        let axisLine = null;
+        if (ud.wallRole === 'axis') {
+            axisLine = line;
+        } else if (ud.wallRole === 'face' && ud.linkOffsetFromLineId != null) {
+            axisLine = maStlWall2dToolFindLineByPlanId(ud.linkOffsetFromLineId);
+        }
+        if (!axisLine) return [line];
+        const axisUd = axisLine.userData && axisLine.userData.maStlUserPlanLine;
+        if (!axisUd || axisUd.id == null) return [line];
+        const out = [axisLine];
+        const faces = maStlWall2dToolFindFaceLinesForCenterId(axisUd.id);
+        for (let fi = 0; fi < faces.length; fi++) {
+            if (faces[fi] && out.indexOf(faces[fi]) < 0) out.push(faces[fi]);
+        }
+        return out.length > 0 ? out : [line];
     }
 
     /** @param {number} lineId */
@@ -6442,6 +7523,113 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     /**
+     * Parte todos los ejes que se cruzan por el cuerpo (caso +): ambos ejes deben
+     * tener un extremo en el cruce para que el refactor pueda clasificar `Cross`.
+     */
+    function maStlWall2dToolSplitAllAxisInteriorCrossingsMm() {
+        if (!maStlUserLinesGroup) return false;
+        const endpointTol = Math.max(
+            maStlUserFloorLineMergeEndpointEpsMm(),
+            maStlWall2dToolJunctionClusterEpsMm()
+        );
+        const minSeg = maStlUserFloorSegmentMinMm();
+        let changedAny = false;
+        let changed = true;
+        let guard = 0;
+        while (changed && guard++ < 64) {
+            changed = false;
+            const axes = maStlWall2dToolCollectAllAxisLines();
+            for (let i = 0; i < axes.length; i++) {
+                const endpointAxis = axes[i];
+                const endpointUd =
+                    endpointAxis &&
+                    endpointAxis.userData &&
+                    endpointAxis.userData.maStlUserPlanLine;
+                if (!endpointUd || !endpointUd.p1Mm || !endpointUd.p2Mm) continue;
+                const endpointPts = [endpointUd.p1Mm, endpointUd.p2Mm];
+                for (let pi = 0; pi < endpointPts.length; pi++) {
+                    const pt = endpointPts[pi];
+                    for (let j = 0; j < axes.length; j++) {
+                        const bodyAxis = axes[j];
+                        if (bodyAxis === endpointAxis) continue;
+                        const bodyUd =
+                            bodyAxis &&
+                            bodyAxis.userData &&
+                            bodyAxis.userData.maStlUserPlanLine;
+                        if (!bodyUd || !bodyUd.p1Mm || !bodyUd.p2Mm) continue;
+                        if (maStlUserFloorPlanLinesCollinearParallelXz(endpointUd, bodyUd)) continue;
+                        if (
+                            maStlUserFloorPlanPointNearXzMm(bodyUd.p1Mm, pt, endpointTol) ||
+                            maStlUserFloorPlanPointNearXzMm(bodyUd.p2Mm, pt, endpointTol)
+                        ) {
+                            continue;
+                        }
+                        const proj = maStlProjectPointOntoUserFloorSegmentBodyXzMm(
+                            pt,
+                            bodyUd.p1Mm,
+                            bodyUd.p2Mm,
+                            _maStlUserFloorSegmentBodyProj
+                        );
+                        if (!proj || proj.distXZ > endpointTol) continue;
+                        const span = Math.hypot(
+                            bodyUd.p2Mm.x - bodyUd.p1Mm.x,
+                            bodyUd.p2Mm.z - bodyUd.p1Mm.z
+                        );
+                        const minT = span > minSeg ? minSeg / span : 0.05;
+                        if (proj.t <= minT || proj.t >= 1 - minT) continue;
+                        const splitPt = { x: pt.x, y: bodyUd.p1Mm.y, z: pt.z };
+                        if (maStlWall2dToolSplitAxisAtInteriorPointMm(bodyAxis, splitPt)) {
+                            changed = true;
+                            changedAny = true;
+                            break;
+                        }
+                    }
+                    if (changed) break;
+                }
+                if (changed) break;
+            }
+            if (changed) continue;
+            for (let i = 0; i < axes.length; i++) {
+                const axisA = axes[i];
+                const udA = axisA && axisA.userData && axisA.userData.maStlUserPlanLine;
+                if (!udA || !udA.p1Mm || !udA.p2Mm) continue;
+                for (let j = i + 1; j < axes.length; j++) {
+                    const axisB = axes[j];
+                    const udB = axisB && axisB.userData && axisB.userData.maStlUserPlanLine;
+                    if (!udB || !udB.p1Mm || !udB.p2Mm) continue;
+                    if (maStlUserFloorPlanLinesCollinearParallelXz(udA, udB)) continue;
+                    const spanA = Math.hypot(udA.p2Mm.x - udA.p1Mm.x, udA.p2Mm.z - udA.p1Mm.z);
+                    const spanB = Math.hypot(udB.p2Mm.x - udB.p1Mm.x, udB.p2Mm.z - udB.p1Mm.z);
+                    const minTA = spanA > minSeg ? minSeg / spanA : 0.05;
+                    const minTB = spanB > minSeg ? minSeg / spanB : 0.05;
+                    const hit = maStlWall2dToolIntersectSegmentPairInteriorMm(
+                        udA.p1Mm,
+                        udA.p2Mm,
+                        udB.p1Mm,
+                        udB.p2Mm,
+                        minTB,
+                        1 - minTB
+                    );
+                    if (!hit || hit.tSeg <= minTA || hit.tSeg >= 1 - minTA) continue;
+                    const splitPtA = { x: hit.x, y: udA.p1Mm.y, z: hit.z };
+                    const splitPtB = { x: hit.x, y: udB.p1Mm.y, z: hit.z };
+                    const splitA = maStlWall2dToolSplitAxisAtInteriorPointMm(axisA, splitPtA);
+                    const splitB =
+                        axisB.parent === maStlUserLinesGroup &&
+                        maStlWall2dToolSplitAxisAtInteriorPointMm(axisB, splitPtB);
+                    if (splitA || splitB) {
+                        changed = true;
+                        changedAny = true;
+                        break;
+                    }
+                }
+                if (changed) break;
+            }
+        }
+        return changedAny;
+    }
+
+    /**
      * Vecino de eje en vértice (cualquier muro; no colineal).
      * @returns {{ line: THREE.Line2, ud: *, onA: string, onB: string, uNeighFromV: { ux: number, uz: number } }|null}
      */
@@ -6473,6 +7661,279 @@ function bootMasterArticleDetailsStlViewer() {
         ep.x = pt.x;
         ep.y = pt.y;
         ep.z = pt.z;
+    }
+
+    function maStlWall2dToolAxisEndpointKeyNearVertexMm(axisUd, vertexMm) {
+        if (!axisUd || !axisUd.p1Mm || !axisUd.p2Mm || !vertexMm) return null;
+        const eps = maStlWall2dToolJunctionClusterEpsMm();
+        const d1 = maStlUserFloorPlanPointDistSqXzMm(axisUd.p1Mm, vertexMm);
+        const d2 = maStlUserFloorPlanPointDistSqXzMm(axisUd.p2Mm, vertexMm);
+        const e2 = eps * eps;
+        if (d1 <= e2 && d2 <= e2) return d1 <= d2 ? 'p1' : 'p2';
+        if (d1 <= e2) return 'p1';
+        if (d2 <= e2) return 'p2';
+        return d1 <= d2 ? 'p1' : 'p2';
+    }
+
+    /** Dirección desde el vértice de unión hacia el cuerpo real del eje. */
+    function maStlWall2dToolDirFromVertexIntoAxisMm(axisUd, endpointKey) {
+        const d = maStlUserFloorPlanLineDirUnitXz(axisUd);
+        if (!d || !endpointKey) return null;
+        if (endpointKey === 'p1') return { ux: d.ux, uz: d.uz };
+        return { ux: -d.ux, uz: -d.uz };
+    }
+
+    function maStlWall2dToolApplyFaceEndpointMm(faceLine, vertexMm, pt) {
+        const faceUd = faceLine && faceLine.userData && faceLine.userData.maStlUserPlanLine;
+        if (!faceUd || !pt) return;
+        const key = maStlWall2dToolFaceEndpointKeyNearVertexMm(faceUd, vertexMm);
+        if (!key) return;
+        maStlWall2dToolSetFaceEndpointMm(faceUd, key, pt);
+        maStlApplyUserFloorLineSegmentGeometryFromMm(faceLine);
+    }
+
+    /**
+     * Cierra una T real: dos ejes colineales atravesados + un eje entrante.
+     * La cara del muro atravesado por donde entra la rama se abre solo en el ancho de la rama.
+     */
+    function maStlWall2dToolApplyTJunctionMm(throughA, throughB, branch, vertexMm) {
+        if (!throughA || !throughB || !branch || !vertexMm) return false;
+        const halfT = maStlWall2dToolThicknessHalfMm();
+        if (!(halfT > 0)) return false;
+        const branchEndKey = maStlWall2dToolAxisEndpointKeyNearVertexMm(branch, vertexMm);
+        const throughAEndKey = maStlWall2dToolAxisEndpointKeyNearVertexMm(throughA, vertexMm);
+        const throughBEndKey = maStlWall2dToolAxisEndpointKeyNearVertexMm(throughB, vertexMm);
+        if (!branchEndKey || !throughAEndKey || !throughBEndKey) return false;
+        const uBranchInto = maStlWall2dToolDirFromVertexIntoAxisMm(branch, branchEndKey);
+        const uThroughAInto = maStlWall2dToolDirFromVertexIntoAxisMm(throughA, throughAEndKey);
+        const uThroughBInto = maStlWall2dToolDirFromVertexIntoAxisMm(throughB, throughBEndKey);
+        const uThroughA = maStlUserFloorPlanLineDirUnitXz(throughA);
+        if (!uBranchInto || !uThroughAInto || !uThroughBInto || !uThroughA) return false;
+
+        const nearSignA =
+            maStlOffsetToolNormalFromDirSignMm(uThroughA.ux, uThroughA.uz, 1).nx * uBranchInto.ux +
+                maStlOffsetToolNormalFromDirSignMm(uThroughA.ux, uThroughA.uz, 1).nz * uBranchInto.uz >=
+            0
+                ? 1
+                : -1;
+        const throughAFaces = {
+            near: maStlWall2dToolFindFaceForCenterAndSide(throughA.id, nearSignA),
+            far: maStlWall2dToolFindFaceForCenterAndSide(throughA.id, -nearSignA),
+        };
+        if (!throughAFaces.near || !throughAFaces.far) return false;
+
+        const nearFaceUdA = throughAFaces.near.userData.maStlUserPlanLine;
+        const uNearFaceA = maStlUserFloorPlanLineDirUnitXz(nearFaceUdA);
+        const nearAnchorA = maStlWall2dToolFaceOffsetPointAtAxisPointMm(throughA, vertexMm, halfT, nearSignA);
+        if (!uNearFaceA || !nearAnchorA) return false;
+
+        const nearBranchJoints = [];
+        for (let si = 0; si < 2; si++) {
+            const branchSideSign = si === 0 ? 1 : -1;
+            const branchFace = maStlWall2dToolFindFaceForCenterAndSide(branch.id, branchSideSign);
+            const branchFaceUd = branchFace && branchFace.userData && branchFace.userData.maStlUserPlanLine;
+            const uBranchFace = maStlUserFloorPlanLineDirUnitXz(branchFaceUd);
+            const branchAnchor = maStlWall2dToolFaceOffsetPointAtAxisPointMm(branch, vertexMm, halfT, branchSideSign);
+            if (!branchFace || !branchFaceUd || !uBranchFace || !branchAnchor) continue;
+            const hit = maStlPlanXzInfiniteLinesIntersectMm(
+                branchAnchor,
+                uBranchFace.ux,
+                uBranchFace.uz,
+                nearAnchorA,
+                uNearFaceA.ux,
+                uNearFaceA.uz
+            );
+            if (!hit) continue;
+            maStlWall2dToolApplyFaceEndpointMm(
+                branchFace,
+                vertexMm,
+                { x: hit.x, y: vertexMm.y, z: hit.z }
+            );
+            nearBranchJoints.push({ x: hit.x, y: vertexMm.y, z: hit.z });
+        }
+        if (nearBranchJoints.length !== 2) return false;
+
+        const applyThrough = function (axisUd, outDir) {
+            const uAxis = maStlUserFloorPlanLineDirUnitXz(axisUd);
+            if (!uAxis || !outDir) return;
+            const nearSign =
+                maStlOffsetToolNormalFromDirSignMm(uAxis.ux, uAxis.uz, 1).nx * uBranchInto.ux +
+                    maStlOffsetToolNormalFromDirSignMm(uAxis.ux, uAxis.uz, 1).nz * uBranchInto.uz >=
+                0
+                    ? 1
+                    : -1;
+            let bestJoint = nearBranchJoints[0];
+            let bestScore =
+                (nearBranchJoints[0].x - vertexMm.x) * outDir.ux +
+                (nearBranchJoints[0].z - vertexMm.z) * outDir.uz;
+            for (let ji = 1; ji < nearBranchJoints.length; ji++) {
+                const score =
+                    (nearBranchJoints[ji].x - vertexMm.x) * outDir.ux +
+                    (nearBranchJoints[ji].z - vertexMm.z) * outDir.uz;
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestJoint = nearBranchJoints[ji];
+                }
+            }
+            for (let si = 0; si < 2; si++) {
+                const sideSign = si === 0 ? 1 : -1;
+                const face = maStlWall2dToolFindFaceForCenterAndSide(axisUd.id, sideSign);
+                const pt =
+                    sideSign === nearSign
+                        ? bestJoint
+                        : maStlWall2dToolFaceOffsetPointAtAxisPointMm(axisUd, vertexMm, halfT, sideSign);
+                maStlWall2dToolApplyFaceEndpointMm(face, vertexMm, pt);
+            }
+        };
+
+        void throughAEndKey;
+        void throughBEndKey;
+        applyThrough(throughA, uThroughAInto);
+        applyThrough(throughB, uThroughBInto);
+        return true;
+    }
+
+    function maStlWall2dToolWallFaceSideTowardDirMm(axisUd, dir) {
+        const u = maStlUserFloorPlanLineDirUnitXz(axisUd);
+        if (!u || !dir) return 1;
+        const nPos = maStlOffsetToolNormalFromDirSignMm(u.ux, u.uz, 1);
+        const nNeg = maStlOffsetToolNormalFromDirSignMm(u.ux, u.uz, -1);
+        const dotPos = nPos.nx * dir.ux + nPos.nz * dir.uz;
+        const dotNeg = nNeg.nx * dir.ux + nNeg.nz * dir.uz;
+        return dotPos >= dotNeg ? 1 : -1;
+    }
+
+    function maStlWall2dToolCutAxisFacesAgainstBlockingWallMm(axisUd, endpointKey, blockingAxisUd, vertexMm) {
+        if (!axisUd || !blockingAxisUd || !vertexMm || !endpointKey) return false;
+        const halfT = maStlWall2dToolThicknessHalfMm();
+        if (!(halfT > 0)) return false;
+        const moveDir = maStlWall2dToolDirFromVertexIntoAxisMm(axisUd, endpointKey);
+        const uBlocking = maStlUserFloorPlanLineDirUnitXz(blockingAxisUd);
+        if (!moveDir || !uBlocking) return false;
+        const blockingSideSign = maStlWall2dToolWallFaceSideTowardDirMm(blockingAxisUd, moveDir);
+        const blockingAnchor = maStlWall2dToolFaceOffsetPointAtAxisPointMm(
+            blockingAxisUd,
+            vertexMm,
+            halfT,
+            blockingSideSign
+        );
+        if (!blockingAnchor) return false;
+        let changed = false;
+        for (let si = 0; si < 2; si++) {
+            const faceSideSign = si === 0 ? 1 : -1;
+            const faceLine = maStlWall2dToolFindFaceForCenterAndSide(axisUd.id, faceSideSign);
+            const faceUd = faceLine && faceLine.userData && faceLine.userData.maStlUserPlanLine;
+            const uFace = maStlUserFloorPlanLineDirUnitXz(faceUd);
+            const faceAnchor = maStlWall2dToolFaceOffsetPointAtAxisPointMm(axisUd, vertexMm, halfT, faceSideSign);
+            if (!faceLine || !faceUd || !uFace || !faceAnchor) continue;
+            const hit = maStlPlanXzInfiniteLinesIntersectMm(
+                faceAnchor,
+                uFace.ux,
+                uFace.uz,
+                blockingAnchor,
+                uBlocking.ux,
+                uBlocking.uz
+            );
+            if (!hit) continue;
+            maStlWall2dToolApplyFaceEndpointMm(faceLine, vertexMm, {
+                x: hit.x,
+                y: vertexMm.y,
+                z: hit.z,
+            });
+            changed = true;
+        }
+        return changed;
+    }
+
+    function maStlWall2dToolApplyCrossJunctionMm(axisA1, axisA2, axisB1, axisB2, vertexMm) {
+        if (!axisA1 || !axisA2 || !axisB1 || !axisB2 || !vertexMm) return false;
+        const pairs = [
+            { axis: axisA1, blocker: axisB1 },
+            { axis: axisA2, blocker: axisB1 },
+            { axis: axisB1, blocker: axisA1 },
+            { axis: axisB2, blocker: axisA1 },
+        ];
+        let changed = false;
+        for (let i = 0; i < pairs.length; i++) {
+            const endpointKey = maStlWall2dToolAxisEndpointKeyNearVertexMm(pairs[i].axis, vertexMm);
+            if (!endpointKey) continue;
+            if (
+                maStlWall2dToolCutAxisFacesAgainstBlockingWallMm(
+                    pairs[i].axis,
+                    endpointKey,
+                    pairs[i].blocker,
+                    vertexMm
+                )
+            ) {
+                changed = true;
+            }
+        }
+        return changed;
+    }
+
+    function maStlWall2dToolTryApplyCrossJunctionMm(axes, vertexMm) {
+        if (!axes || axes.length < 4 || !vertexMm) return false;
+        for (let i = 0; i < axes.length; i++) {
+            for (let j = i + 1; j < axes.length; j++) {
+                const a1 = axes[i];
+                const a2 = axes[j];
+                if (!maStlUserFloorPlanLinesCollinearParallelXz(a1, a2)) continue;
+                const a1End = maStlWall2dToolAxisEndpointKeyNearVertexMm(a1, vertexMm);
+                const a2End = maStlWall2dToolAxisEndpointKeyNearVertexMm(a2, vertexMm);
+                const a1Into = maStlWall2dToolDirFromVertexIntoAxisMm(a1, a1End);
+                const a2Into = maStlWall2dToolDirFromVertexIntoAxisMm(a2, a2End);
+                if (!a1Into || !a2Into || a1Into.ux * a2Into.ux + a1Into.uz * a2Into.uz > -0.85) continue;
+                for (let k = 0; k < axes.length; k++) {
+                    if (k === i || k === j) continue;
+                    for (let l = k + 1; l < axes.length; l++) {
+                        if (l === i || l === j) continue;
+                        const b1 = axes[k];
+                        const b2 = axes[l];
+                        if (!maStlUserFloorPlanLinesCollinearParallelXz(b1, b2)) continue;
+                        if (maStlUserFloorPlanLinesCollinearParallelXz(a1, b1)) continue;
+                        const b1End = maStlWall2dToolAxisEndpointKeyNearVertexMm(b1, vertexMm);
+                        const b2End = maStlWall2dToolAxisEndpointKeyNearVertexMm(b2, vertexMm);
+                        const b1Into = maStlWall2dToolDirFromVertexIntoAxisMm(b1, b1End);
+                        const b2Into = maStlWall2dToolDirFromVertexIntoAxisMm(b2, b2End);
+                        if (!b1Into || !b2Into || b1Into.ux * b2Into.ux + b1Into.uz * b2Into.uz > -0.85) continue;
+                        return maStlWall2dToolApplyCrossJunctionMm(a1, a2, b1, b2, vertexMm);
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    function maStlWall2dToolRefactorTJunctionsFromBucket(bucket) {
+        if (!bucket) return;
+        for (const bkey in bucket) {
+            const junction = bucket[bkey];
+            if (!junction || !junction.axes || junction.axes.length < 3) continue;
+            const axes = junction.axes.map(function (entry) {
+                return entry && entry.axisUd;
+            }).filter(Boolean);
+            if (maStlWall2dToolTryApplyCrossJunctionMm(axes, junction.vertexMm)) {
+                continue;
+            }
+            for (let i = 0; i < axes.length; i++) {
+                for (let j = i + 1; j < axes.length; j++) {
+                    const a = axes[i];
+                    const b = axes[j];
+                    if (!maStlUserFloorPlanLinesCollinearParallelXz(a, b)) continue;
+                    const aEnd = maStlWall2dToolAxisEndpointKeyNearVertexMm(a, junction.vertexMm);
+                    const bEnd = maStlWall2dToolAxisEndpointKeyNearVertexMm(b, junction.vertexMm);
+                    const aInto = maStlWall2dToolDirFromVertexIntoAxisMm(a, aEnd);
+                    const bInto = maStlWall2dToolDirFromVertexIntoAxisMm(b, bEnd);
+                    if (!aInto || !bInto || aInto.ux * bInto.ux + aInto.uz * bInto.uz > -0.85) continue;
+                    for (let k = 0; k < axes.length; k++) {
+                        if (k === i || k === j) continue;
+                        const branch = axes[k];
+                        if (maStlUserFloorPlanLinesCollinearParallelXz(branch, a)) continue;
+                        maStlWall2dToolApplyTJunctionMm(a, b, branch, junction.vertexMm);
+                    }
+                }
+            }
+        }
     }
 
     /** Inglete cara± de dos ejes que se encuentran en `vertexMm`. */
@@ -6557,6 +8018,7 @@ function bootMasterArticleDetailsStlViewer() {
                 }
             }
         }
+        maStlWall2dToolRefactorTJunctionsFromBucket(bucket);
     }
 
     /**
@@ -6748,6 +8210,8 @@ function bootMasterArticleDetailsStlViewer() {
             );
         }
         maStlWall2dToolRefactorAllWallJunctionsMm();
+        maStlWall2dToolSplitAllAxisInteriorCrossingsMm();
+        maStlWall2dToolRefactorAllWallJunctionsMm();
         maStlWeldAllUserFloorLineEndpointsMm();
         maStlWall2dToolRefactorAllWallJunctionsMm();
         maStlWall2dToolResumeState = {
@@ -6845,7 +8309,7 @@ function bootMasterArticleDetailsStlViewer() {
         }
     }
 
-    /** Expande líneas de muro 2D al conjunto completo (eje + caras) para borrado. */
+    /** Expande líneas de muro 2D al tramo completo (eje + caras) para borrado. */
     function maStlDesing2ExpandLinesWithWallGroups(lines) {
         const out = [];
         const seen = new Set();
@@ -6854,9 +8318,9 @@ function bootMasterArticleDetailsStlViewer() {
             if (!ln) continue;
             const ud = ln.userData && ln.userData.maStlUserPlanLine;
             if (ud && ud.wallGroupId != null) {
-                const group = maStlResolveWallGroupLinesForLine(ln);
-                for (let gi = 0; gi < group.length; gi++) {
-                    const gl = group[gi];
+                const segment = maStlResolveWallSegmentLinesForLine(ln);
+                for (let gi = 0; gi < segment.length; gi++) {
+                    const gl = segment[gi];
                     if (!seen.has(gl.uuid)) {
                         seen.add(gl.uuid);
                         out.push(gl);
@@ -6876,6 +8340,11 @@ function bootMasterArticleDetailsStlViewer() {
         return line;
     }
 
+    function maStlIsUserFloorWallFacePlanLine(line) {
+        const ud = line && line.userData && line.userData.maStlUserPlanLine;
+        return !!(ud && ud.wallRole === 'face' && ud.linkOffsetFromLineId != null);
+    }
+
     /**
      * @param {boolean} deferOrbitUnlock reservado; salida completa siempre rehabilita órbita al instante.
      */
@@ -6886,6 +8355,9 @@ function bootMasterArticleDetailsStlViewer() {
             maStlWall2dToolCaptureResumeState();
         }
         maStlRefactorUserFloorLinesMergeCollinear();
+        if (wasWall2d) {
+            maStlWall2dToolSplitAllAxisInteriorCrossingsMm();
+        }
         maStlWall2dToolRefactorAllWallJunctionsMm();
         maStlPolylineToolActiveGroupId = null;
         maStlWall2dToolActiveGroupId = null;
@@ -6908,6 +8380,10 @@ function bootMasterArticleDetailsStlViewer() {
         }
         /* Línea no mueve anclaje de reglas → nunca preserveView→ruler en unlock (misma filosofía que defer tras pan). */
         maStlUnlockOrbitForRulerAnchorPick(true);
+        maStlSaveWallConnectionsNow({
+            force: wasWall2d,
+            reason: wasWall2d ? 'wall2d-stop-escape-or-toolbar' : 'line-tool-stop',
+        });
     }
 
     function maStlOffsetToolClearTransientOverlays() {
@@ -8466,14 +9942,26 @@ function bootMasterArticleDetailsStlViewer() {
         maStlDesing2EndWindowSelection();
     }
 
-    function maStlDeleteToolAddLineSelection(line) {
+    function maStlDeleteToolAddSingleLineSelection(line) {
         if (!line || !maStlIsUserFloorPlanLineObject(line) || maStlDeleteToolSelectedLines.has(line)) return;
         maStlDeleteToolSelectedLines.add(line);
-        if (line.material) {
+        if (line.material && maStlIsUserFloorPlanLineSelectable(line)) {
             maStlApplyUserFloorLineDeletePickMaterial(
                 line.material,
                 maStlPlanUdForLineMaterial(line)
             );
+        }
+    }
+
+    function maStlDeleteToolAddLineSelection(line) {
+        if (!line || !maStlIsUserFloorPlanLineObject(line)) return;
+        const ud = line.userData && line.userData.maStlUserPlanLine;
+        const targets =
+            ud && ud.wallGroupId != null
+                ? maStlResolveWallSegmentLinesForLine(line)
+                : [line];
+        for (let ti = 0; ti < targets.length; ti++) {
+            maStlDeleteToolAddSingleLineSelection(targets[ti]);
         }
     }
 
@@ -8527,7 +10015,7 @@ function bootMasterArticleDetailsStlViewer() {
         const ud = line.userData && line.userData.maStlUserPlanLine;
         const targets =
             ud && ud.wallGroupId != null
-                ? maStlResolveWallGroupLinesForLine(line)
+                ? maStlResolveWallSegmentLinesForLine(line)
                 : [line];
         const anySelected = targets.some(function (ln) {
             return maStlDeleteToolSelectedLines.has(ln);
@@ -8595,8 +10083,12 @@ function bootMasterArticleDetailsStlViewer() {
         const meshList = [];
         for (let li = 0; li < linesToRemove.length; li++) {
             const ln = linesToRemove[li];
-            if (ln && ln.parent === maStlUserLinesGroup && lineList.indexOf(ln) < 0) {
-                lineList.push(ln);
+            const expanded = maStlDesing2ExpandLinesWithWallGroups([ln]);
+            for (let ei = 0; ei < expanded.length; ei++) {
+                const exLine = expanded[ei];
+                if (exLine && exLine.parent === maStlUserLinesGroup && lineList.indexOf(exLine) < 0) {
+                    lineList.push(exLine);
+                }
             }
         }
         for (let mi = 0; mi < meshesToRemove.length; mi++) {
@@ -8979,10 +10471,12 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     function maStlSyncWall3dToolToggleBtnUi() {
-        if (!maStlWall3dToolToggleBtn) return;
         const on = maStlIsWall3dToolActive();
-        maStlWall3dToolToggleBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
-        maStlWall3dToolToggleBtn.classList.toggle('active', on);
+        if (maStlWall3dToolToggleBtn) {
+            maStlWall3dToolToggleBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+            maStlWall3dToolToggleBtn.classList.toggle('active', on);
+        }
+        maStlSyncDesing2ModeToolbarUi();
     }
 
     function maStlWall3dFormatToast(tpl, arg0) {
@@ -9033,10 +10527,14 @@ function bootMasterArticleDetailsStlViewer() {
         mat.needsUpdate = true;
     }
 
-    function maStlWall3dClearConcreteFromMaterial(mat) {
+    function maStlWall3dColorForKind(kind) {
+        return kind === 'corner' ? MA_STL_WALL_MODEL_COLOR_CORNER : MA_STL_WALL_MODEL_COLOR_WALL;
+    }
+
+    function maStlWall3dClearConcreteFromMaterial(mat, kind) {
         if (!mat) return;
         mat.map = null;
-        mat.color.setHex(0xb8bcc2);
+        mat.color.setHex(maStlWall3dColorForKind(kind));
         mat.needsUpdate = true;
     }
 
@@ -9055,7 +10553,7 @@ function bootMasterArticleDetailsStlViewer() {
 
     function maStlWall3dRemoveConcreteFromMesh(mesh) {
         if (!mesh || !mesh.isMesh || !mesh.material) return;
-        maStlWall3dClearConcreteFromMaterial(mesh.material);
+        maStlWall3dClearConcreteFromMaterial(mesh.material, mesh.userData && mesh.userData.maStlWall3dKind);
         mesh.userData.maStlWall3dMapped = false;
     }
 
@@ -9237,6 +10735,7 @@ function bootMasterArticleDetailsStlViewer() {
         const opacity = key === 'corner' ? MA_STL_WALL3D_OPACITY_CORNER : MA_STL_WALL3D_OPACITY_WALL;
         if (maStlWall3dSharedMaterials[key]) {
             const cached = maStlWall3dSharedMaterials[key];
+            if (!cached.map) cached.color.setHex(maStlWall3dColorForKind(key));
             cached.opacity = opacity;
             cached.transparent = opacity < 1;
             cached.depthWrite = opacity >= 1;
@@ -9244,7 +10743,7 @@ function bootMasterArticleDetailsStlViewer() {
             return cached;
         }
         const mat = new THREE.MeshStandardMaterial({
-            color: 0xb8bcc2,
+            color: maStlWall3dColorForKind(key),
             roughness: 0.88,
             metalness: 0.04,
             side: THREE.DoubleSide,
@@ -9378,13 +10877,24 @@ function bootMasterArticleDetailsStlViewer() {
                     maStlSyncWall3dToolHud();
                     return;
                 }
+                maStlWall3dModelClearGenerated();
                 const wallCount = maStlWall3dAddMeshesFromDetection(resp.Datos);
+                maStlDesing2LastWallModelDetection = maStlDesing2SummarizeWallModelDetection(
+                    'wall3d',
+                    payload,
+                    resp.Datos,
+                    wallCount
+                );
                 const okTpl =
                     (maStlWall3dToolHud && maStlWall3dToolHud.getAttribute('data-ma-stl-wall3d-tool-success')) ||
                     '';
                 maStlDesing2ShowSaveViewToast(
                     maStlWall3dFormatToast(okTpl, resp.Datos.TotalMurosRectos || wallCount || 0)
                 );
+                maStlSaveWallConnectionsNow({
+                    force: true,
+                    reason: 'wall3d-tool-regenerate',
+                });
                 maStlWall3dToolClearSelection();
                 maStlStopWall3dToolModesToolbar(false);
             })
@@ -10244,8 +11754,9 @@ function bootMasterArticleDetailsStlViewer() {
         if (tpl) maStlDesing2ShowSaveViewToast(tpl);
     }
 
-    function maStlInsertEnclosureToolEnsurePreviewLines() {
-        while (maStlInsertEnclosureToolPreviewLines.length < 8) {
+    function maStlInsertEnclosureToolEnsurePreviewLines(count) {
+        const needed = Math.max(count || 0, 0);
+        while (maStlInsertEnclosureToolPreviewLines.length < needed) {
             const geo = new LineGeometry();
             geo.setPositions(new Float32Array(6));
             const mat = maStlMakeUserFloorLineMaterial();
@@ -10280,6 +11791,40 @@ function bootMasterArticleDetailsStlViewer() {
         }
     }
 
+    function maStlInsertEnclosureToolWallDimsValidMm(lMm, wMm, halfT) {
+        const minSeg = maStlUserFloorSegmentMinMm();
+        return lMm > halfT * 2 + minSeg && wMm > halfT * 2 + minSeg;
+    }
+
+    function maStlInsertEnclosureToolBuildWallAxisSegmentsMm(p0, ux, uz, lMm, wMm, halfT) {
+        const pt = function (alongU, alongV) {
+            return maStlInsertCornerToolPointFromOriginMm(p0, ux, uz, alongU, alongV);
+        };
+        const a = pt(halfT, halfT);
+        const b = pt(lMm - halfT, halfT);
+        const c = pt(lMm - halfT, wMm - halfT);
+        const d = pt(halfT, wMm - halfT);
+        return [
+            { a: a, b: b },
+            { a: b, b: c },
+            { a: c, b: d },
+            { a: d, b: a },
+        ];
+    }
+
+    function maStlInsertEnclosureToolBuildWallPreviewSegmentsMm(axisSegs, halfT) {
+        const preview = [];
+        for (let i = 0; i < axisSegs.length; i++) {
+            const s = axisSegs[i];
+            preview.push(s);
+            const plus = maStlOffsetToolParallelEndpointsMm(s.a, s.b, halfT, 1);
+            if (plus) preview.push({ a: plus.p1, b: plus.p2 });
+            const minus = maStlOffsetToolParallelEndpointsMm(s.a, s.b, halfT, -1);
+            if (minus) preview.push({ a: minus.p1, b: minus.p2 });
+        }
+        return preview;
+    }
+
     /**
      * @param {{ x: number, z: number }} p0
      * @param {number} ux
@@ -10293,20 +11838,22 @@ function bootMasterArticleDetailsStlViewer() {
         applyDesing2ConfigEnclosureFromInputs();
         const lMm = desing2EnvEnclosureLMm;
         const wMm = desing2EnvEnclosureWMm;
-        const ex1 = desing2EnvEnclosureEx1Mm;
-        const ex2 = desing2EnvEnclosureEx2Mm;
-        const ey1 = desing2EnvEnclosureEy1Mm;
-        const ey2 = desing2EnvEnclosureEy2Mm;
-        if (!maStlInsertEnclosureToolDimsValidMm(lMm, wMm, ex1, ex2, ey1, ey2)) {
+        const halfT = maStlWall2dToolThicknessHalfMm();
+        if (!maStlInsertEnclosureToolWallDimsValidMm(lMm, wMm, halfT)) {
             maStlInsertEnclosureToolHidePreview();
             return;
         }
-        const segs = maStlInsertEnclosureToolBuildOutlineSegmentsMm(p0, ux, uz, lMm, wMm, ex1, ex2, ey1, ey2);
-        maStlInsertEnclosureToolEnsurePreviewLines();
-        for (let i = 0; i < 8; i++) {
+        const axisSegs = maStlInsertEnclosureToolBuildWallAxisSegmentsMm(p0, ux, uz, lMm, wMm, halfT);
+        const segs = maStlInsertEnclosureToolBuildWallPreviewSegmentsMm(axisSegs, halfT);
+        maStlInsertEnclosureToolEnsurePreviewLines(segs.length);
+        for (let i = 0; i < maStlInsertEnclosureToolPreviewLines.length; i++) {
             const line = maStlInsertEnclosureToolPreviewLines[i];
             const s = segs[i];
-            if (!line || !s) continue;
+            if (!line) continue;
+            if (!s) {
+                line.visible = false;
+                continue;
+            }
             maStlSetUserFloorLineGeometryMm(line, s.a, s.b);
             line.visible = true;
         }
@@ -10316,19 +11863,32 @@ function bootMasterArticleDetailsStlViewer() {
         applyDesing2ConfigEnclosureFromInputs();
         const lMm = desing2EnvEnclosureLMm;
         const wMm = desing2EnvEnclosureWMm;
-        const ex1 = desing2EnvEnclosureEx1Mm;
-        const ex2 = desing2EnvEnclosureEx2Mm;
-        const ey1 = desing2EnvEnclosureEy1Mm;
-        const ey2 = desing2EnvEnclosureEy2Mm;
-        if (!maStlInsertEnclosureToolDimsValidMm(lMm, wMm, ex1, ex2, ey1, ey2)) {
+        const halfT = maStlWall2dToolThicknessHalfMm();
+        if (!maStlInsertEnclosureToolWallDimsValidMm(lMm, wMm, halfT)) {
             maStlInsertEnclosureToolShowInvalidDimsToast();
             return false;
         }
-        const segs = maStlInsertEnclosureToolBuildOutlineSegmentsMm(p0, ux, uz, lMm, wMm, ex1, ex2, ey1, ey2);
+        const segs = maStlInsertEnclosureToolBuildWallAxisSegmentsMm(p0, ux, uz, lMm, wMm, halfT);
         const undoBefore = maStlDesingV2Viewer ? maStlDesing2SerializeEditSnapshot() : null;
+        const previousWallGroupId = maStlWall2dToolActiveGroupId;
+        const previousWallResumeState = maStlWall2dToolResumeState;
+        const wallGroupId = maStlUserFloorLineNextWallGroupId++;
+        maStlWall2dToolActiveGroupId = wallGroupId;
+        let ok = true;
         for (let i = 0; i < segs.length; i++) {
-            maStlCommitUserPlanLineSegmentMm(segs[i].a, segs[i].b, true);
+            if (!maStlWall2dToolCommitWallSegmentMm(segs[i].a, segs[i].b, true)) {
+                ok = false;
+                break;
+            }
         }
+        maStlWall2dToolActiveGroupId = previousWallGroupId;
+        maStlWall2dToolResumeState = previousWallResumeState;
+        if (!ok) return false;
+        maStlWall2dToolSplitAllAxisInteriorCrossingsMm();
+        maStlWall2dToolRefactorAllWallJunctionsMm();
+        maStlWeldAllUserFloorLineEndpointsMm();
+        maStlWall2dToolRefactorAllWallJunctionsMm();
+        maStlReapplyAllUserFloorWallAxisLineStyles();
         if (undoBefore) {
             maStlDesing2PushEditSnapshotUndo(
                 'insertEnclosure',
@@ -10336,8 +11896,10 @@ function bootMasterArticleDetailsStlViewer() {
                 maStlDesing2SerializeEditSnapshot()
             );
         }
-        maStlRefactorUserFloorLinesMergeCollinear();
-        maStlWeldAllUserFloorLineEndpointsMm();
+        maStlSaveWallConnectionsNow({
+            force: true,
+            reason: 'insert-enclosure-wall2d',
+        });
         return true;
     }
 
@@ -11563,6 +13125,7 @@ function bootMasterArticleDetailsStlViewer() {
         return (
             !!line &&
             maStlIsUserFloorPlanLineSelectable(line) &&
+            !maStlIsUserFloorWallFacePlanLine(line) &&
             !maStlUserFloorDimDomHudEditing &&
             !maStlIsDesing2FloorDrawToolActive() &&
             !maStlIsRulerAnchorPickModeActive() &&
@@ -12333,6 +13896,9 @@ function bootMasterArticleDetailsStlViewer() {
             !h ||
             !h.dragHandle
         ) {
+            return;
+        }
+        if (maStlIsUserFloorWallFacePlanLine(line)) {
             return;
         }
         ev.preventDefault();
@@ -14326,6 +15892,10 @@ function bootMasterArticleDetailsStlViewer() {
             maStlUserFloorLineDimEditKind = 'length';
             return;
         }
+        if (maStlIsUserFloorWallFacePlanLine(line)) {
+            maStlUserFloorLineDimEditKind = 'length';
+            return;
+        }
         if (isAll && (!hdom.inputDxEl || !hdom.inputDzEl)) {
             maStlUserFloorLineDimEditKind = 'length';
             editKindOpt = 'length';
@@ -15526,6 +17096,7 @@ function bootMasterArticleDetailsStlViewer() {
         scene.add(maStlUserLinesGroup);
         scene.add(maStlUserFloorLineDimHudGroup);
         scene.add(maStlWallDimGroup);
+        scene.add(maStlWall2dModelMeshesGroup);
         scene.add(maStlWall3dMeshesGroup);
         maStlDisableRaycastOnOverlay(maStlUserLinesGroup);
     }
@@ -15577,6 +17148,25 @@ function bootMasterArticleDetailsStlViewer() {
             syncMaStlRulerPickToolbarUi();
             syncMaStlRulerAnchorPickCursor();
         });
+    }
+    if (maStlDesingV2Viewer) {
+        const modeButtons = [
+            { btn: maStlModeLinesToggleBtn, mode: 'lines' },
+            { btn: maStlModeWall2dToggleBtn, mode: 'wall2d' },
+            { btn: maStlModeWall3dToggleBtn, mode: 'wall3d' },
+        ];
+        for (let mbi = 0; mbi < modeButtons.length; mbi++) {
+            const row = modeButtons[mbi];
+            if (!row.btn) continue;
+            row.btn.addEventListener('click', function (ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                maStlActivateDesing2ModeToolbarMode(row.mode);
+                maStlSyncDesing2ModeToolbarUi();
+                if (document.activeElement === row.btn) row.btn.blur();
+            });
+        }
+        maStlSyncDesing2ModeToolbarUi();
     }
     if (maStlDesingV2Viewer && maStlPolylineToolToggleBtn) {
         maStlPolylineToolToggleBtn.addEventListener(
@@ -15638,7 +17228,7 @@ function bootMasterArticleDetailsStlViewer() {
             }
             maStlDesing2SetLastToolbarCommandId('ma-stl-tool-wall-2d');
             maStlStartWall2dToolModesToolbar({
-                resume: maStlWall2dToolResumeState != null,
+                resume: false,
             });
         });
     }
