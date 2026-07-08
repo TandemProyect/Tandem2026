@@ -279,14 +279,15 @@ const es = Object.fromEntries(
     StlPreview_Desing2RedoTitle: "Rehacer (Ctrl+Y)",
     StlPreview_Desing2RedoAria: "Rehacer acción deshecha",
     StlPreview_Desing2WallDimToolTitle:
-      "Cotar muro — longitudes, global y espesor (estilo construcción)",
+      "Acotar muro — longitudes, global y espesor (estilo construcción)",
     StlPreview_Desing2WallDimToolAria:
       "Cota espesor de muro en planta: líneas paralelas usuario, espesor entre caras",
     StlPreview_WallDimToolNoPairsToast:
       "No se detectó espesor de muro. Dibuje el contorno y el offset interior, o haga clic en una línea del muro con la herramienta activa.",
-    StlPreview_LineToolInstructionFirst: "Clic para el primer punto (mueva el ratón para situar la vista previa).",
+    StlPreview_LineToolInstructionFirst:
+        "Clic o teclee X,Z en metros (p. ej. 0,0) + Intro para el primer punto.",
     StlPreview_LineToolInstructionSecond:
-        "Segundo punto: clic en planta, o escriba la distancia y pulse Intro.",
+        "Siguiente punto: clic en planta, distancia + Intro, o #X,Z en metros (p. ej. #0,0).",
     StlPreview_LineToolHudDistanceAria:
         "Longitud hasta el segundo punto (metros o milímetros). Intro termina el segmento; Escape cancela el modo línea.",
     StlPreview_LineToolHudDistancePlaceholder: "p. ej. 5 · 5,5 · 5000 mm",
@@ -319,13 +320,13 @@ const es = Object.fromEntries(
     StlPreview_Desing2ToolWall2dAria:
         "Dibujar muro en planta (como polilínea con espesor simétrico arriba y abajo); el muro forma un conjunto seleccionable",
     StlPreview_PolylineToolInstructionFirst:
-        "Clic para el primer vértice (mueva el ratón para la vista previa del primer tramo).",
+        "Clic o teclee X,Z en metros (p. ej. 0,0) + Intro para el primer vértice.",
     StlPreview_PolylineToolInstructionSecond:
-        "Siguiente vértice: clic en planta, o distancia + Intro para cerrar la polilínea. Escape cancela el tramo en curso.",
+        "Siguiente vértice: clic, distancia + Intro, o #X,Z en metros. Escape cancela el tramo en curso.",
     StlPreview_Wall2dToolInstructionFirst:
-        "Clic para el primer vértice del eje del muro (vista previa con espesor arriba y abajo).",
+        "Clic o teclee X,Z en metros (p. ej. 0,0) + Intro para el primer vértice del eje.",
     StlPreview_Wall2dToolInstructionSecond:
-        "Siguiente vértice del eje: clic en planta o distancia + Intro. Al girar, las esquinas se ajustan. Escape termina.",
+        "Siguiente vértice del eje: clic, distancia + Intro, o #X,Z en metros. Escape termina.",
     StlPreview_Desing2TopToolOrtho15TitleOn:
       "Ortogonal 15° en planta activo — segundo punto en múltiplos de 15° (0° = eje +X). Pulse o F8 para desactivar.",
     StlPreview_Desing2TopToolOrtho15TitleOff:
@@ -362,10 +363,22 @@ const es = Object.fromEntries(
       "Dimensiones del recinto no válidas. Revise L, W y espesores Ex1, Ex2, Ey1, Ey2 en Configuración.",
     StlPreview_Desing2TopToolCopiar: "Copiar",
     StlPreview_Desing2TopToolCopiarAria:
-      "Herramienta copiar — próximamente (solo interfaz)",
+      "Copiar líneas de planta y objetos STL — selección por clic o ventana, punto base y desplazamiento",
+    StlPreview_CopyToolInstructionSelecting:
+      "Seleccione qué copiar: clic simple o arrastre (izq→der ventana, der→izq cruce). Intro para continuar, Esc cancelar.",
+    StlPreview_CopyToolInstructionBasePoint:
+      "Punto base: clic en planta o teclee X,Z (p. ej. 0,0) + Intro.",
+    StlPreview_CopyToolInstructionDisplacement:
+      "Segundo punto (desplazamiento): clic, #X,Z, o @distancia<grados + Intro. Repita para más copias; Esc para terminar.",
+    StlPreview_MoveToolInstructionSelecting:
+      "Seleccione qué mover: clic simple o arrastre (izq→der ventana, der→izq cruce). Intro para continuar, Esc cancelar.",
+    StlPreview_MoveToolInstructionBasePoint:
+      "Punto base: clic en planta o teclee X,Z (p. ej. 0,0) + Intro.",
+    StlPreview_MoveToolInstructionDisplacement:
+      "Segundo punto (desplazamiento): clic, #X,Z, o @distancia<grados + Intro. Repita para más movimientos; Esc para terminar.",
     StlPreview_Desing2TopToolDesplazar: "Desplazar",
     StlPreview_Desing2TopToolDesplazarAria:
-      "Herramienta desplazar — próximamente (solo interfaz)",
+      "Desplazar líneas de planta y objetos STL — selección por clic o ventana, punto base y desplazamiento",
     StlPreview_Desing2TopToolRecortar: "Recortar",
     StlPreview_Desing2TopToolRecortarAria:
       "Herramienta recortar — próximamente (solo interfaz)",
@@ -743,14 +756,15 @@ const en = Object.assign({}, es, {
   StlPreview_Desing2RedoTitle: "Redo (Ctrl+Y)",
   StlPreview_Desing2RedoAria: "Redo undone action",
   StlPreview_Desing2WallDimToolTitle:
-    "Dimension walls — segment lengths, overall span, and thickness (construction style)",
+    "Annotate walls — segment lengths, overall span, and thickness (construction style)",
   StlPreview_Desing2WallDimToolAria:
     "Wall thickness dimension on plan: parallel user lines, face-to-face thickness",
   StlPreview_WallDimToolNoPairsToast:
     "No wall thickness detected. Draw the outline and inner offset, or click a wall line while the tool is active.",
-  StlPreview_LineToolInstructionFirst: "Click for the first point (move the mouse for preview).",
+  StlPreview_LineToolInstructionFirst:
+    "Click or type X,Z in metres (e.g. 0,0) + Enter for the first point.",
   StlPreview_LineToolInstructionSecond:
-    "Second point: click on the floor, or type the distance and press Enter.",
+    "Next point: click on the floor, type distance + Enter, or #X,Z in metres (e.g. #0,0).",
   StlPreview_LineToolHudDistanceAria:
     "Length to the second point (metres or millimetres). Enter completes the segment; Escape cancels line mode.",
   StlPreview_LineToolHudDistancePlaceholder: "e.g. 5 · 5.5 · 5000 mm",
@@ -783,13 +797,13 @@ const en = Object.assign({}, es, {
   StlPreview_Desing2ToolWall2dAria:
     "Draw a floor-plan wall (like a polyline with symmetric thickness above and below); the wall is one selectable group",
   StlPreview_PolylineToolInstructionFirst:
-    "Click for the first vertex (move the mouse for the first segment preview).",
+    "Click or type X,Z in metres (e.g. 0,0) + Enter for the first vertex.",
   StlPreview_PolylineToolInstructionSecond:
-    "Next vertex: click on the floor, or type distance + Enter to finish the polyline. Escape cancels the current segment.",
+    "Next vertex: click, distance + Enter, or #X,Z in metres. Escape cancels the current segment.",
   StlPreview_Wall2dToolInstructionFirst:
-    "Click for the first wall axis vertex (preview shows half thickness on each side).",
+    "Click or type X,Z in metres (e.g. 0,0) + Enter for the first wall axis vertex.",
   StlPreview_Wall2dToolInstructionSecond:
-    "Next axis vertex: click on the floor or type distance + Enter. Corners miter when you turn. Escape finishes.",
+    "Next axis vertex: click, distance + Enter, or #X,Z in metres. Escape finishes.",
   StlPreview_Desing2TopToolOrtho15TitleOn:
     "15° floor ortho on — second point snaps to 15° steps (0° = +X axis). Click or F8 to turn off.",
   StlPreview_Desing2TopToolOrtho15TitleOff:
@@ -826,10 +840,22 @@ const en = Object.assign({}, es, {
     "Invalid enclosure dimensions. Check L, W and thicknesses Ex1, Ex2, Ey1, Ey2 in Configuration.",
   StlPreview_Desing2TopToolCopiar: "Copy",
   StlPreview_Desing2TopToolCopiarAria:
-    "Copy tool — coming soon (UI placeholder only)",
+    "Copy floor-plan lines and STL meshes — click or window selection, base point and displacement",
+  StlPreview_CopyToolInstructionSelecting:
+    "Select what to copy: single click or drag (L→R window, R→L crossing). Enter to continue, Esc to cancel.",
+  StlPreview_CopyToolInstructionBasePoint:
+    "Base point: click on the floor or type X,Z (e.g. 0,0) + Enter.",
+  StlPreview_CopyToolInstructionDisplacement:
+    "Second point (displacement): click, #X,Z, or @distance<angle + Enter. Repeat for more copies; Esc to finish.",
+  StlPreview_MoveToolInstructionSelecting:
+    "Select what to move: single click or drag (L→R window, R→L crossing). Enter to continue, Esc to cancel.",
+  StlPreview_MoveToolInstructionBasePoint:
+    "Base point: click on the floor or type X,Z (e.g. 0,0) + Enter.",
+  StlPreview_MoveToolInstructionDisplacement:
+    "Second point (displacement): click, #X,Z, or @distance<angle + Enter. Repeat for more moves; Esc to finish.",
   StlPreview_Desing2TopToolDesplazar: "Move",
   StlPreview_Desing2TopToolDesplazarAria:
-    "Move tool — coming soon (UI placeholder only)",
+    "Move floor-plan lines and STL meshes — click or window selection, base point and displacement",
   StlPreview_Desing2TopToolRecortar: "Trim",
   StlPreview_Desing2TopToolRecortarAria:
     "Trim tool — coming soon (UI placeholder only)",

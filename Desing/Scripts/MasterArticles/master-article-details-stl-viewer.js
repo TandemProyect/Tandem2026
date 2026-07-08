@@ -332,6 +332,19 @@ function maStlDesing2DimEditableMetersDisplayFromMm(lengthMm, localeTag) {
     }
 }
 
+function maStlDesing2DimEditableMetersInputDisplayFromMm(lengthMm, localeTag) {
+    const m = Math.max(0, Number(lengthMm) || 0) / MA_STL_SCENE_MM_PER_PHYSICAL_METER;
+    try {
+        const fmt = new Intl.NumberFormat(localeTag || undefined, {
+            minimumFractionDigits: MA_STL_DESING2_DIM_EDITABLE_METERS_DECIMALS,
+            maximumFractionDigits: MA_STL_DESING2_DIM_EDITABLE_METERS_DECIMALS,
+        });
+        return fmt.format(m);
+    } catch (_eIntl) {
+        return m.toFixed(MA_STL_DESING2_DIM_EDITABLE_METERS_DECIMALS);
+    }
+}
+
 /** `true` sólo desarrollo típico (parse fallido cotas línea usuario). */
 function maStlStlViewerIsLocalDevHost() {
     if (typeof location === 'undefined' || !location.hostname) return false;
@@ -897,6 +910,14 @@ const MA_STL_OFFSET_TOOL_SOURCE_TINT_HEX = 0xff8833;
 const MA_STL_OFFSET_TOOL_PREVIEW_COLOR_HEX = 0xffeedd;
 const MA_STL_OFFSET_TOOL_PREVIEW_OPACITY = 0.88;
 const MA_STL_OFFSET_TOOL_PREVIEW_LINEWIDTH_PX = 2;
+/** Herramienta copiar: fantasma líneas + STL durante desplazamiento. */
+const MA_STL_COPY_TOOL_PREVIEW_COLOR_HEX = 0x66bbff;
+const MA_STL_MOVE_TOOL_PREVIEW_COLOR_HEX = 0x66dd88;
+const MA_STL_COPY_TOOL_PREVIEW_OPACITY = 0.72;
+const MA_STL_COPY_TOOL_PREVIEW_LINEWIDTH_PX = 2;
+const MA_STL_COPY_TOOL_PREVIEW_MESH_OPACITY = 0.42;
+/** Herramienta copiar con orto activo: solo ejes 90° (no 15° de la herramienta línea). */
+const MA_STL_COPY_TOOL_ORTHO_STEP_RAD = Math.PI / 2;
 /** Herramienta borrar: líneas marcadas para eliminación (naranja base a 50 %). */
 const MA_STL_DELETE_TOOL_PICK_OPACITY = 0.5;
 /** Arrastre mínimo (px) antes de mostrar marquee selección ventana/cruce (clic en entidad sigue siendo pick). */
@@ -996,6 +1017,54 @@ function maStlParseLengthInputValueToMm(text) {
     return val * unitMult;
 }
 
+/** Una coma como decimal europeo (`1,5` m), no par X,Z. */
+function maStlLooksLikeEuropeanDecimalLengthInput(text) {
+    if (text == null) return false;
+    return /^\s*[+-]?\d+,\d{1,3}\s*(mm|m)?\s*$/i.test(String(text).trim());
+}
+
+/**
+ * Coordenadas absolutas en planta (m / mm por componente), mismo criterio que el HUD X/Z.
+ * `0,0`, `#3,5`, `3;5` o `3 5` (picking1). En picking2, `10,5` sigue siendo longitud europea salvo `#`/`;`.
+ * @param {string} raw
+ * @param {'picking1'|'picking2'|null} [lineToolState]
+ * @returns {{ x: number, y: number, z: number }|null}
+ */
+function maStlLineToolTryParseAbsoluteFloorCoordsMm(raw, lineToolState) {
+    if (raw == null) return null;
+    let s = String(raw).trim().replace(/[\u00a0\u202f\u2009\u2028\u2029]/g, ' ');
+    if (!s || s.indexOf('<') >= 0 || s.indexOf('@') >= 0) return null;
+    if (s.charAt(0) === '#') s = s.slice(1).trim();
+    if (!s) return null;
+    let parts = null;
+    if (s.indexOf(';') >= 0) {
+        parts = s.split(';');
+    } else if (lineToolState === 'picking1' && s.indexOf(',') >= 0) {
+        parts = s.split(',');
+    } else if (s.indexOf(',') >= 0) {
+        if (!maStlLooksLikeEuropeanDecimalLengthInput(s)) {
+            parts = s.split(',');
+        } else {
+            const testParts = s.split(',');
+            if (
+                testParts.length === 2 &&
+                testParts[0].trim() === '0' &&
+                testParts[1].trim() === '0'
+            ) {
+                parts = testParts;
+            }
+        }
+    } else {
+        const ws = s.split(/\s+/).filter(Boolean);
+        if (ws.length === 2 && lineToolState === 'picking1') parts = ws;
+    }
+    if (!parts || parts.length !== 2) return null;
+    const xMm = maStlParseLengthInputValueToMm(parts[0].trim());
+    const zMm = maStlParseLengthInputValueToMm(parts[1].trim());
+    if (xMm == null || zMm == null || !Number.isFinite(xMm) || !Number.isFinite(zMm)) return null;
+    return { x: xMm, y: MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM, z: zMm };
+}
+
 function maStlDesing2LengthMmRoundedEditableFromMm(lengthMm) {
     const m = Math.max(0, Number(lengthMm) || 0) / MA_STL_SCENE_MM_PER_PHYSICAL_METER;
     const f = Math.pow(10, MA_STL_DESING2_DIM_EDITABLE_METERS_DECIMALS);
@@ -1022,6 +1091,24 @@ function maStlDesing2SignedDeltaMetersDisplayFromMm(deltaMm, localeTag) {
             return '0';
         }
         return String(r);
+    }
+}
+
+function maStlDesing2SignedDeltaMetersInputDisplayFromMm(deltaMm, localeTag) {
+    const m = (Number(deltaMm) || 0) / MA_STL_SCENE_MM_PER_PHYSICAL_METER;
+    try {
+        const fmt = new Intl.NumberFormat(localeTag || undefined, {
+            minimumFractionDigits: MA_STL_DESING2_DIM_EDITABLE_METERS_DECIMALS,
+            maximumFractionDigits: MA_STL_DESING2_DIM_EDITABLE_METERS_DECIMALS,
+            signDisplay: 'exceptZero',
+        });
+        return fmt.format(m);
+    } catch (_eIntl) {
+        const r = Number.isFinite(m) ? m : 0;
+        if (Math.abs(r) < Math.pow(10, -MA_STL_DESING2_DIM_EDITABLE_METERS_DECIMALS)) {
+            return '0.' + '0'.repeat(MA_STL_DESING2_DIM_EDITABLE_METERS_DECIMALS);
+        }
+        return r.toFixed(MA_STL_DESING2_DIM_EDITABLE_METERS_DECIMALS);
     }
 }
 
@@ -2595,6 +2682,42 @@ function bootMasterArticleDetailsStlViewer() {
     const maStlDeleteToolToggleBtn = document.getElementById('ma-stl-tool-delete');
     const maStlDeleteToolHud = document.getElementById('ma-stl-delete-tool-hud');
     const maStlDeleteToolHudInstruction = document.getElementById('ma-stl-delete-tool-hud-instruction');
+    let maStlCopyToolActive = false;
+    /** @type {'copy'|'move'} */
+    let maStlCopyToolKind = 'copy';
+    /** @type {null|'selecting'|'basePoint'|'displacement'} */
+    let maStlCopyToolState = null;
+    const maStlCopyToolSelectedLines = new Set();
+    const maStlCopyToolSelectedMeshes = new Set();
+    const maStlCopyToolStlMeshMaterialSnapshots = new Map();
+    let maStlCopyToolHoverLine = null;
+    let maStlCopyToolHoverMesh = null;
+    const maStlCopyToolBasePointMm = new THREE.Vector3();
+    const maStlCopyToolLastPointerClientXY = new THREE.Vector2(Number.NaN, Number.NaN);
+    const maStlCopyToolLastHoverDirUnitXz = new THREE.Vector2(1, 0);
+    let maStlCopyToolDistanceTypeBuffer = '';
+    let maStlCopyToolAngleTypeBuffer = '';
+    const maStlCopyToolToggleBtn = document.getElementById('ma-stl-tool-copy');
+    const maStlCopyToolHud = document.getElementById('ma-stl-copy-tool-hud');
+    const maStlCopyToolHudInstruction = document.getElementById('ma-stl-copy-tool-hud-instruction');
+    const maStlCopyToolHudCoords = document.getElementById('ma-stl-copy-tool-hud-coords');
+    const maStlCopyToolHudDistanceRow = document.getElementById('ma-stl-copy-tool-hud-distance-row');
+    const maStlCopyToolHudDistanceInput = document.getElementById('ma-stl-copy-tool-hud-distance');
+    const maStlCopyToolHudAngleInput = document.getElementById('ma-stl-copy-tool-hud-angle');
+    const maStlCopyToolHudDistancePreview = document.getElementById('ma-stl-copy-tool-hud-distance-preview');
+    const maStlMoveToolToggleBtn = document.getElementById('ma-stl-tool-move');
+    const maStlMoveToolHud = document.getElementById('ma-stl-move-tool-hud');
+    const maStlMoveToolHudInstruction = document.getElementById('ma-stl-move-tool-hud-instruction');
+    const maStlMoveToolHudCoords = document.getElementById('ma-stl-move-tool-hud-coords');
+    const maStlMoveToolHudDistanceRow = document.getElementById('ma-stl-move-tool-hud-distance-row');
+    const maStlMoveToolHudDistanceInput = document.getElementById('ma-stl-move-tool-hud-distance');
+    const maStlMoveToolHudAngleInput = document.getElementById('ma-stl-move-tool-hud-angle');
+    const maStlMoveToolHudDistancePreview = document.getElementById('ma-stl-move-tool-hud-distance-preview');
+    const maStlCopyToolPreviewLines = [];
+    /** @type {{ mesh: THREE.Mesh, baseX: number, baseZ: number, scale: number }[]} */
+    const maStlCopyToolPreviewMeshSlots = [];
+    /** @type {null|{ p1: { x: number, y: number, z: number }, p2: { x: number, y: number, z: number }, wallRole: string|null }[]} */
+    let maStlCopyToolPreviewSegments = null;
     /** Desing_2 — herramienta muro 3D (panel derecho): selección de líneas + extrusión vía API común. */
     let maStlWall3dToolActive = false;
     let maStlWall3dToolBusy = false;
@@ -2736,6 +2859,74 @@ function bootMasterArticleDetailsStlViewer() {
         return maStlDeleteToolActive === true;
     }
 
+    function maStlIsCopyToolActive() {
+        return maStlCopyToolActive === true && maStlCopyToolKind === 'copy';
+    }
+
+    function maStlIsMoveToolActive() {
+        return maStlCopyToolActive === true && maStlCopyToolKind === 'move';
+    }
+
+    function maStlIsDupMoveToolActive() {
+        return maStlCopyToolActive === true;
+    }
+
+    function maStlIsCopyToolPlacementPhaseActive() {
+        return (
+            maStlIsCopyToolActive() &&
+            (maStlCopyToolState === 'basePoint' || maStlCopyToolState === 'displacement')
+        );
+    }
+
+    function maStlIsDupMoveToolPlacementPhaseActive() {
+        return (
+            maStlIsDupMoveToolActive() &&
+            (maStlCopyToolState === 'basePoint' || maStlCopyToolState === 'displacement')
+        );
+    }
+
+    function maStlDupMoveToolHud() {
+        return maStlCopyToolKind === 'move' ? maStlMoveToolHud : maStlCopyToolHud;
+    }
+
+    function maStlDupMoveToolHudInstruction() {
+        return maStlCopyToolKind === 'move' ? maStlMoveToolHudInstruction : maStlCopyToolHudInstruction;
+    }
+
+    function maStlDupMoveToolHudCoords() {
+        return maStlCopyToolKind === 'move' ? maStlMoveToolHudCoords : maStlCopyToolHudCoords;
+    }
+
+    function maStlDupMoveToolHudDistanceRow() {
+        return maStlCopyToolKind === 'move' ? maStlMoveToolHudDistanceRow : maStlCopyToolHudDistanceRow;
+    }
+
+    function maStlDupMoveToolHudDistanceInput() {
+        return maStlCopyToolKind === 'move' ? maStlMoveToolHudDistanceInput : maStlCopyToolHudDistanceInput;
+    }
+
+    function maStlDupMoveToolHudAngleInput() {
+        return maStlCopyToolKind === 'move' ? maStlMoveToolHudAngleInput : maStlCopyToolHudAngleInput;
+    }
+
+    function maStlDupMoveToolHudDistancePreview() {
+        return maStlCopyToolKind === 'move'
+            ? maStlMoveToolHudDistancePreview
+            : maStlCopyToolHudDistancePreview;
+    }
+
+    function maStlDupMoveToolInstructionDataAttr(phase) {
+        const prefix =
+            maStlCopyToolKind === 'move' ? 'data-ma-stl-move-tool-instruction-' : 'data-ma-stl-copy-tool-instruction-';
+        return prefix + phase;
+    }
+
+    function maStlDupMoveToolDistanceInvalidToastAttr() {
+        return maStlCopyToolKind === 'move'
+            ? 'data-ma-stl-move-tool-distance-invalid-toast'
+            : 'data-ma-stl-copy-tool-distance-invalid-toast';
+    }
+
     function maStlIsWall3dToolActive() {
         return maStlWall3dToolActive === true;
     }
@@ -2774,6 +2965,7 @@ function bootMasterArticleDetailsStlViewer() {
             maStlIsWall2dToolActive() ||
             maStlIsOffsetToolActive() ||
             maStlIsDeleteToolActive() ||
+            maStlIsDupMoveToolActive() ||
             maStlIsWall3dToolActive() ||
             maStlIsImageSketchToolPlacementActive() ||
             maStlIsInsertCornerToolPlacementActive() ||
@@ -3619,6 +3811,10 @@ function bootMasterArticleDetailsStlViewer() {
         return viewerShell ? viewerShell.getAttribute('data-ma-stl-wall-connections-api-url') || '' : '';
     }
 
+    function maStlDesing2WallDiagnosticsApiUrl() {
+        return viewerShell ? viewerShell.getAttribute('data-ma-stl-wall-diagnostics-api-url') || '' : '';
+    }
+
     function maStlWallConnectionsPointDtoMm(p) {
         return {
             xMm: p && Number.isFinite(p.x) ? p.x : 0,
@@ -3962,6 +4158,59 @@ function bootMasterArticleDetailsStlViewer() {
         };
     }
 
+    function maStlBuildWallDiagnosticsPayload(reason) {
+        const built = maStlBuildWallConnectionsPayload();
+        if (!built || !built.payload) return null;
+        const payload = Object.assign({}, built.payload);
+        payload.schema = 'WallDiagnostics.v1';
+        payload.reason = reason || 'wall-dim-tool';
+        payload.outputPath = 'C:\\temp\\WallDiagnostics.json';
+        payload.wallAxisSegments = (payload.lines || []).filter(function (line) {
+            return line && line.wallRole === 'axis';
+        });
+        payload.wallFaceSegments = (payload.lines || []).filter(function (line) {
+            return line && line.wallRole === 'face';
+        });
+        return payload;
+    }
+
+    function maStlSaveWallDiagnosticsNow(reason) {
+        if (!maStlDesingV2Viewer) return;
+        const apiUrl = maStlDesing2WallDiagnosticsApiUrl();
+        if (!apiUrl) return;
+        const payload = maStlBuildWallDiagnosticsPayload(reason);
+        if (!payload) return;
+        try {
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify(payload),
+            })
+                .then(function (r) {
+                    return r
+                        .json()
+                        .catch(function () {
+                            return null;
+                        });
+                })
+                .then(function (resp) {
+                    if (!resp || resp.Exito !== true) {
+                        throw new Error((resp && resp.Mensaje) || 'No se pudo guardar WallDiagnostics.json');
+                    }
+                })
+                .catch(function (err) {
+                    if (maStlStlViewerIsLocalDevHost() && window.console && console.warn) {
+                        console.warn('[Desing_2] WallDiagnostics.json no guardado', err);
+                    }
+                });
+        } catch (err) {
+            if (maStlStlViewerIsLocalDevHost() && window.console && console.warn) {
+                console.warn('[Desing_2] WallDiagnostics.json no guardado', err);
+            }
+        }
+    }
+
     function maStlSaveWallConnectionsNow(options) {
         if (!maStlDesingV2Viewer) return;
         const apiUrl = maStlDesing2WallConnectionsApiUrl();
@@ -4228,6 +4477,12 @@ function bootMasterArticleDetailsStlViewer() {
             const opl = maStlOffsetToolPreviewLines[opi];
             if (opl && opl.material) {
                 maStlApplyUserFloorLineMaterialResolution(opl.material, widthPx, heightPx);
+            }
+        }
+        for (let cpi = 0; cpi < maStlCopyToolPreviewLines.length; cpi++) {
+            const cpl = maStlCopyToolPreviewLines[cpi];
+            if (cpl && cpl.material) {
+                maStlApplyUserFloorLineMaterialResolution(cpl.material, widthPx, heightPx);
             }
         }
     }
@@ -4698,6 +4953,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
         if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
         if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
         maStlDesing2ClearGeneratedWallModels();
         maStlDesing2LastWallModelDetection = null;
         if (maStlWall2dModelMeshesGroup) maStlWall2dModelMeshesGroup.visible = false;
@@ -4717,6 +4973,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
         if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
         if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
         if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
         if (maStlIsInsertEnclosureToolActive()) maStlStopInsertEnclosureToolModesToolbar(false);
         maStlDisposeUserFloorLineDimEdit(false);
@@ -4753,6 +5010,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
         if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
         if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
         if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
         if (maStlIsInsertEnclosureToolActive()) maStlStopInsertEnclosureToolModesToolbar(false);
         maStlDisposeUserFloorLineDimEdit(false);
@@ -5025,6 +5283,7 @@ function bootMasterArticleDetailsStlViewer() {
         const hadLinePlacement = maStlIsLineToolPlacementActive();
         const hadOffsetTool = maStlIsOffsetToolActive();
         const hadDeleteTool = maStlIsDeleteToolActive();
+        const hadCopyTool = maStlIsDupMoveToolActive();
         const hadWall3dTool = maStlIsWall3dToolActive();
         const hadImageSketchTool = maStlIsImageSketchToolActive();
         const hadInsertCornerTool = maStlIsInsertCornerToolActive();
@@ -5036,6 +5295,7 @@ function bootMasterArticleDetailsStlViewer() {
             hadLinePlacement ||
             hadOffsetTool ||
             hadDeleteTool ||
+            hadCopyTool ||
             hadWall3dTool ||
             hadImageSketchTool ||
             hadInsertCornerTool ||
@@ -5054,6 +5314,9 @@ function bootMasterArticleDetailsStlViewer() {
         }
         if (hadDeleteTool) {
             maStlStopDeleteToolModesToolbar(false);
+        }
+        if (hadCopyTool) {
+            maStlStopCopyToolModesToolbar(false);
         }
         if (hadWall3dTool) {
             maStlStopWall3dToolModesToolbar(false);
@@ -5090,6 +5353,7 @@ function bootMasterArticleDetailsStlViewer() {
         maStlSyncLineToolHud();
         maStlSyncOffsetToolHud();
         maStlSyncDeleteToolHud();
+        maStlCopyToolSyncHud();
         maStlSyncWall3dToolHud();
         maStlSyncImageSketchToolHud();
         maStlSyncInsertCornerToolHud();
@@ -5585,7 +5849,17 @@ function bootMasterArticleDetailsStlViewer() {
             (maStlLineToolVertexSnapHighlightGroup && maStlLineToolVertexSnapHighlightGroup.visible)
         );
         if (maStlLineToolHudCoords) {
-            if (showCoords && tpl) {
+            const typedRaw = maStlLineToolRawDistanceTypingTrimmed();
+            const typedPt = typedRaw
+                ? maStlLineToolTryParseAbsoluteFloorCoordsMm(typedRaw, maStlLineToolState)
+                : null;
+            if (typedPt && tpl) {
+                maStlLineToolHudCoords.textContent = maStlFormatRulerAnchorGridIntersectionToast(
+                    tpl,
+                    typedPt.x,
+                    typedPt.z
+                );
+            } else if (showCoords && tpl) {
                 const snapX = maStlLineToolVertexSnapHighlightGroup.visible
                     ? _maStlLineToolVertexSnapMm.x
                     : _maStlGridIntersectionSnapMm.x;
@@ -5623,6 +5897,16 @@ function bootMasterArticleDetailsStlViewer() {
             const onDelete = maStlIsDeleteToolActive();
             maStlDeleteToolToggleBtn.setAttribute('aria-pressed', onDelete ? 'true' : 'false');
             maStlDeleteToolToggleBtn.classList.toggle('active', onDelete);
+        }
+        if (maStlCopyToolToggleBtn) {
+            const onCopy = maStlIsCopyToolActive();
+            maStlCopyToolToggleBtn.setAttribute('aria-pressed', onCopy ? 'true' : 'false');
+            maStlCopyToolToggleBtn.classList.toggle('active', onCopy);
+        }
+        if (maStlMoveToolToggleBtn) {
+            const onMove = maStlIsMoveToolActive();
+            maStlMoveToolToggleBtn.setAttribute('aria-pressed', onMove ? 'true' : 'false');
+            maStlMoveToolToggleBtn.classList.toggle('active', onMove);
         }
         if (maStlInsertCornerToolToggleBtn) {
             const onInsertCorner = maStlIsInsertCornerToolActive();
@@ -5710,6 +5994,9 @@ function bootMasterArticleDetailsStlViewer() {
         maStlSyncLineToolOrtho15ToggleUi();
         if (maStlLineToolState === 'picking2') {
             maStlLineToolRefreshPicking2RubberBand();
+        }
+        if (maStlCopyToolState === 'displacement') {
+            maStlCopyToolRefreshDisplacementRubberBand();
         }
     }
 
@@ -5993,6 +6280,15 @@ function bootMasterArticleDetailsStlViewer() {
         return maStlLineToolState === 'picking2' && len != null && Number.isFinite(len) && len >= minMm - 1e-9;
     }
 
+    function maStlLineToolTypingBufferedCoordOkForRubberMm() {
+        if (maStlLineToolState !== 'picking2') return false;
+        const raw = maStlLineToolRawDistanceTypingTrimmed();
+        const pt = raw ? maStlLineToolTryParseAbsoluteFloorCoordsMm(raw, 'picking2') : null;
+        if (!pt) return false;
+        const lenMm = Math.hypot(pt.x - maStlLineToolPoint1Mm.x, pt.z - maStlLineToolPoint1Mm.z);
+        return lenMm >= maStlUserFloorSegmentMinMm() - 1e-9;
+    }
+
     /**
      * Extremo P2 del caucho en `picking2` (cursor, snap vértice u longitud tecleada + orto 15°).
      * @param {{ x: number, y: number, z: number }} out
@@ -6000,6 +6296,16 @@ function bootMasterArticleDetailsStlViewer() {
      */
     function maStlLineToolComputeRubberBandEndMm(out) {
         if (maStlLineToolState !== 'picking2') return null;
+        if (maStlLineToolTypingBufferedCoordOkForRubberMm()) {
+            const raw = maStlLineToolRawDistanceTypingTrimmed();
+            const pt = maStlLineToolTryParseAbsoluteFloorCoordsMm(raw, 'picking2');
+            if (pt) {
+                out.x = pt.x;
+                out.y = pt.y;
+                out.z = pt.z;
+                return out;
+            }
+        }
         if (maStlLineToolTypingBufferedLenOkForRubberMm()) {
             out.x = maStlLineToolTypedEndRubberMm.x;
             out.y = maStlLineToolTypedEndRubberMm.y;
@@ -6079,9 +6385,9 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlLineToolHudAngleInput && el === maStlLineToolHudAngleInput) return false;
         if (maStlIsUserFloorLineDimEditOverlayActive()) return false;
         if (maStlDesingV2AvoidKeyboardShortcutSteal(el)) return false;
-        /* picking2: el botón polilínea suele mantener foco tras el clic — sin esto los dígitos no entran en buffer. */
+        /* picking1/2: el botón polilínea/muro suele mantener foco tras el clic — sin esto los dígitos no entran en buffer. */
         if (
-            maStlLineToolState === 'picking2' &&
+            (maStlLineToolState === 'picking1' || maStlLineToolState === 'picking2') &&
             ((maStlPolylineToolToggleBtn && el === maStlPolylineToolToggleBtn) ||
                 (maStlWall2dToolToggleBtn && el === maStlWall2dToolToggleBtn))
         ) {
@@ -6101,11 +6407,6 @@ function bootMasterArticleDetailsStlViewer() {
         if (ev.key === 'Escape' || ev.code === 'Escape') return false;
         if (ev.key === 'Enter' || ev.code === 'Enter' || ev.key === 'NumpadEnter') {
             if (maStlIsPolylineToolPlacementActive() || maStlIsWall2dToolPlacementActive()) {
-                if (maStlLineToolState === 'picking1') {
-                    maStlStopLineToolModesToolbar(false);
-                    ev.preventDefault();
-                    return true;
-                }
                 const raw = maStlLineToolRawDistanceTypingTrimmed();
                 if (raw) {
                     if (/^c$/i.test(raw) && maStlIsWall2dToolPlacementActive()) {
@@ -6122,7 +6423,7 @@ function bootMasterArticleDetailsStlViewer() {
             }
             return false;
         }
-        if (maStlLineToolState !== 'picking2') return false;
+        if (maStlLineToolState !== 'picking1' && maStlLineToolState !== 'picking2') return false;
         let next = maStlLineToolDistanceTypeBuffer;
         const k = ev.key;
         if (k === 'Backspace') {
@@ -6133,7 +6434,7 @@ function bootMasterArticleDetailsStlViewer() {
             if (!next.length) return false;
             ev.preventDefault();
             next = '';
-        } else if (k.length === 1 && /^[0-9.,\sMm@<>\-+°ºCc]$/.test(k)) {
+        } else if (k.length === 1 && /^[0-9.,;\sMm#@<>\-+°ºCc]$/.test(k)) {
             ev.preventDefault();
             next += k;
         } else {
@@ -6144,6 +6445,7 @@ function bootMasterArticleDetailsStlViewer() {
             maStlLineToolHudDistanceInput.value = next;
         }
         maStlLineToolSyncTypingPreviewUi();
+        maStlSyncLineToolHud();
         maStlLineToolRefreshPicking2RubberBand();
         return true;
     }
@@ -6185,6 +6487,14 @@ function bootMasterArticleDetailsStlViewer() {
                 if (maStlIsDeleteToolActive()) return false;
                 maStlStartDeleteToolModesToolbar();
                 return true;
+            case 'ma-stl-tool-copy':
+                if (maStlIsCopyToolActive()) return false;
+                maStlStartCopyToolModesToolbar();
+                return true;
+            case 'ma-stl-tool-move':
+                if (maStlIsMoveToolActive()) return false;
+                maStlStartMoveToolModesToolbar();
+                return true;
             case 'ma-stl-tool-insert-corner':
                 if (maStlIsInsertCornerToolActive()) return false;
                 maStlStartInsertCornerToolModesToolbar();
@@ -6224,6 +6534,63 @@ function bootMasterArticleDetailsStlViewer() {
         return maStlDesing2ApplyWindowEnterToRepeatLastToolbarCommand(ev);
     }
 
+    function maStlLineToolAdvancePicking1ToPicking2Mm(pSnap) {
+        maStlQuantizeUserFloorPlanPointToGridMm(pSnap);
+        maStlLineToolPoint1Mm.set(pSnap.x, pSnap.y, pSnap.z);
+        maStlLineToolState = 'picking2';
+        maStlResetLineToolDistanceTypingState();
+        maStlLineToolRefreshPicking2RubberBand();
+        maStlSyncLineToolHud();
+        queueMicrotask(function () {
+            if (maStlLineToolState !== 'picking2' || !maStlLineToolHudDistanceInput) return;
+            try {
+                maStlLineToolHudDistanceInput.focus({ preventScroll: true });
+            } catch (_e) {
+                maStlLineToolHudDistanceInput.focus();
+            }
+        });
+    }
+
+    /** @returns {boolean} true si colocó vértice por coordenadas absolutas X,Z. */
+    function maStlLineToolTryTypedCommitAbsoluteCoordOrbitDefer() {
+        const raw = maStlLineToolRawDistanceTypingTrimmed();
+        maStlLineToolDistanceTypeBuffer = raw;
+        const pt = maStlLineToolTryParseAbsoluteFloorCoordsMm(raw, maStlLineToolState);
+        if (!pt) return false;
+        if (maStlLineToolState === 'picking1') {
+            maStlLineToolAdvancePicking1ToPicking2Mm(pt);
+            return true;
+        }
+        if (maStlLineToolState === 'picking2') {
+            const end = {
+                x: pt.x,
+                y: pt.y,
+                z: pt.z,
+            };
+            maStlQuantizeUserFloorPlanPointToGridMm(end);
+            const lenMm = Math.hypot(
+                end.x - maStlLineToolPoint1Mm.x,
+                end.z - maStlLineToolPoint1Mm.z
+            );
+            if (lenMm < maStlUserFloorSegmentMinMm() - 1e-9) {
+                const toastTpl =
+                    maStlLineToolHud &&
+                    maStlLineToolHud.getAttribute('data-ma-stl-line-tool-distance-invalid-toast');
+                if (toastTpl) maStlDesing2ShowSaveViewToast(toastTpl);
+                return false;
+            }
+            if (maStlIsWall2dToolPlacementActive()) {
+                maStlWall2dToolCommitWallSegmentMm(maStlLineToolPoint1Mm, end);
+                maStlWall2dToolAdvanceAfterSegmentMm(end);
+            } else {
+                maStlCommitUserPlanLineSegmentMm(maStlLineToolPoint1Mm, end);
+                maStlPolylineToolAdvanceAfterSegmentMm(end);
+            }
+            return true;
+        }
+        return false;
+    }
+
     /** @returns {boolean} true si aplicó segmento completo (`true` igual que segundo clic). */
     function maStlLineToolTryTypedCommitDistanceOrbitDefer() {
         const raw = maStlLineToolRawDistanceTypingTrimmed();
@@ -6232,6 +6599,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (/^c$/i.test(raw) && maStlIsWall2dToolPlacementActive()) {
             return maStlWall2dToolTryCloseActiveGroupFromCommand();
         }
+        if (maStlLineToolTryTypedCommitAbsoluteCoordOrbitDefer()) return true;
         const polar = maStlLineToolParsePolarDistanceAngleMm(raw);
         const lenMmRaw = polar ? polar.lenMm : maStlParseLengthInputValueToMm(raw);
         const minMm = maStlUserFloorSegmentMinMm();
@@ -7261,6 +7629,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
         if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
         if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
         if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
         if (maStlIsImageSketchToolActive()) maStlStopImageSketchToolModesToolbar(false);
         if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
@@ -7290,6 +7659,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlIsPolylineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
         if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
         if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
         if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
         if (maStlIsImageSketchToolActive()) maStlStopImageSketchToolModesToolbar(false);
         if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
@@ -8784,6 +9154,17 @@ function bootMasterArticleDetailsStlViewer() {
         return Math.abs(a.dx - b.dx) <= 1e-6 && Math.abs(a.dz - b.dz) <= 1e-6;
     }
 
+    function maStlWall2dToolPropagationEdgeAlignedWithDelta(edge, delta) {
+        if (!edge || !edge.rec || !delta) return false;
+        const ex = edge.rec.p2Mm.x - edge.rec.p1Mm.x;
+        const ez = edge.rec.p2Mm.z - edge.rec.p1Mm.z;
+        const el = Math.hypot(ex, ez);
+        const dl = Math.hypot(delta.dx, delta.dz);
+        if (!(el > 1e-9) || !(dl > 1e-9)) return false;
+        const crossNorm = Math.abs((ex * delta.dz - ez * delta.dx) / (el * dl));
+        return crossNorm <= 0.08;
+    }
+
     function maStlWall2dToolAssignPropagationDelta(nodeDeltas, nodeIdx, delta, queue, fixedNodes) {
         if (nodeIdx == null || nodeIdx < 0 || !delta) return;
         if (fixedNodes[nodeIdx]) return;
@@ -8800,7 +9181,12 @@ function bootMasterArticleDetailsStlViewer() {
         const oldEdited = maStlWall2dToolOldAxisStateById(snapshot, axisUd.id);
         if (!oldEdited || !axisUd.p1Mm || !axisUd.p2Mm) return false;
 
-        const eps = Math.max(maStlUserFloorLineMergeEndpointEpsMm(), MA_STL_WALL_DIM_LENGTH_VALUE_TOL_MM);
+        const eps = Math.max(
+            maStlUserFloorLineMergeEndpointEpsMm(),
+            MA_STL_WALL_DIM_LENGTH_VALUE_TOL_MM,
+            maStlWall2dToolJunctionClusterEpsMm(),
+            maStlWall2dToolThicknessHalfMm() * 2.5
+        );
         const changed = [];
         const fixedOldPts = [];
         const dP1 = {
@@ -8851,6 +9237,9 @@ function bootMasterArticleDetailsStlViewer() {
                 const edge = edges[ei];
                 if (edge.rec.id === axisUd.id) continue;
                 const otherIdx = edge.n1 === nodeIdx ? edge.n2 : edge.n1;
+                if (maStlWall2dToolPropagationEdgeAlignedWithDelta(edge, delta)) {
+                    continue;
+                }
                 maStlWall2dToolAssignPropagationDelta(nodeDeltas, otherIdx, delta, queue, fixedNodes);
             }
         }
@@ -8896,6 +9285,19 @@ function bootMasterArticleDetailsStlViewer() {
         maStlWeldAllUserFloorLineEndpointsMm();
         maStlWall2dToolRefactorAllWallJunctionsMm();
         maStlReapplyAllUserFloorWallAxisLineStyles();
+        return true;
+    }
+
+    function maStlWall2dToolReapplyAxisLengthWithPropagation(axisLine, targetLenMm) {
+        const axisUd = axisLine && axisLine.userData && axisLine.userData.maStlUserPlanLine;
+        if (!axisLine || !axisUd || axisUd.wallRole !== 'axis' || !(targetLenMm > 0)) return false;
+        const currentLen = maStlUserFloorLineLengthMm(axisUd);
+        if (Math.abs(currentLen - targetLenMm) <= MA_STL_WALL_DIM_LENGTH_VALUE_TOL_MM) return false;
+        const snapshot = maStlWall2dToolCaptureAxisEditPropagationState(axisLine);
+        maStlResizeUserFloorLineToLengthMm(axisLine, targetLenMm);
+        if (!maStlWall2dToolApplyAxisEditPropagation(axisLine, snapshot)) {
+            maStlWall2dToolRefreshFacesAfterEditableAxisChange(axisLine);
+        }
         return true;
     }
 
@@ -9878,6 +10280,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlIsWall2dToolActive()) maStlStopWall2dToolModesToolbar(false);
         if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
         if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
         if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
         if (maStlIsImageSketchToolActive()) maStlStopImageSketchToolModesToolbar(false);
         if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
@@ -10768,6 +11171,8 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlIsUserFloorLineDimEditOverlayActive()) return false;
         if (maStlDesingV2AvoidKeyboardShortcutSteal(ae)) return false;
 
+        if (maStlIsDupMoveToolActive()) return false;
+
         if (maStlIsDeleteToolActive()) {
             if (
                 maStlDeleteToolSelectedLines.size === 0 &&
@@ -10808,6 +11213,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlIsWall2dToolActive()) maStlStopWall2dToolModesToolbar(false);
         if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
         if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
+        if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
         if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
         if (maStlIsInsertEnclosureToolActive()) maStlStopInsertEnclosureToolModesToolbar(false);
         if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
@@ -10843,6 +11249,1199 @@ function bootMasterArticleDetailsStlViewer() {
         maStlDeleteToolClearHoverLine();
         maStlDeleteToolClearHoverMesh();
         maStlSyncDeleteToolHud();
+        maStlSyncLineToolToggleBtnUi();
+        maStlLineToolPickCursorSync();
+        syncMaStlRulerAnchorPickCursor();
+        maStlUnlockOrbitForRulerAnchorPick(true);
+    }
+
+    function maStlCopyToolEnsureStlMeshMaterialSnapshot(mesh) {
+        if (!mesh || !mesh.material || maStlCopyToolStlMeshMaterialSnapshots.has(mesh)) return;
+        maStlCopyToolStlMeshMaterialSnapshots.set(mesh, {
+            opacity: mesh.material.opacity,
+            transparent: mesh.material.transparent,
+            emissive: mesh.material.emissive ? mesh.material.emissive.clone() : null,
+            emissiveIntensity: mesh.material.emissiveIntensity,
+            color: mesh.material.color ? mesh.material.color.clone() : null,
+        });
+    }
+
+    function maStlCopyToolRestoreStlMeshMaterial(mesh) {
+        const snap = maStlCopyToolStlMeshMaterialSnapshots.get(mesh);
+        if (!mesh || !mesh.material || !snap) return;
+        mesh.material.opacity = snap.opacity;
+        mesh.material.transparent = snap.transparent;
+        if (snap.emissive && mesh.material.emissive) mesh.material.emissive.copy(snap.emissive);
+        if (snap.color && mesh.material.color) mesh.material.color.copy(snap.color);
+        mesh.material.emissiveIntensity = snap.emissiveIntensity;
+        mesh.material.needsUpdate = true;
+        maStlCopyToolStlMeshMaterialSnapshots.delete(mesh);
+    }
+
+    function maStlCopyToolApplyStlMeshPickMaterial(mesh) {
+        if (!mesh || !mesh.material) return;
+        maStlCopyToolEnsureStlMeshMaterialSnapshot(mesh);
+        mesh.material.opacity = MA_STL_DELETE_TOOL_PICK_OPACITY;
+        mesh.material.transparent = true;
+        mesh.material.needsUpdate = true;
+    }
+
+    function maStlCopyToolApplyStlMeshHoverMaterial(mesh) {
+        if (!mesh || !mesh.material) return;
+        maStlCopyToolEnsureStlMeshMaterialSnapshot(mesh);
+        mesh.material.emissive.setHex(MA_STL_PICK_HOVER_EMISSIVE_HEX);
+        mesh.material.emissiveIntensity = MA_STL_PICK_HOVER_EMISSIVE_INTENSITY;
+        mesh.material.color.lerp(_maStlPickHoverColor, MA_STL_PICK_HOVER_COLOR_LERP);
+        mesh.material.needsUpdate = true;
+    }
+
+    function maStlCopyToolLineIsSelected(line) {
+        return !!(line && maStlCopyToolSelectedLines.has(line));
+    }
+
+    function maStlCopyToolMeshIsSelected(mesh) {
+        return !!(mesh && maStlCopyToolSelectedMeshes.has(mesh));
+    }
+
+    function maStlCopyToolClearHoverLine() {
+        if (
+            maStlCopyToolHoverLine &&
+            !maStlCopyToolLineIsSelected(maStlCopyToolHoverLine) &&
+            maStlCopyToolHoverLine.material
+        ) {
+            maStlApplyUserFloorLineBaseMaterialForLine(maStlCopyToolHoverLine);
+        }
+        maStlCopyToolHoverLine = null;
+    }
+
+    function maStlCopyToolClearHoverMesh() {
+        if (maStlCopyToolHoverMesh && !maStlCopyToolMeshIsSelected(maStlCopyToolHoverMesh)) {
+            maStlCopyToolRestoreStlMeshMaterial(maStlCopyToolHoverMesh);
+        }
+        maStlCopyToolHoverMesh = null;
+    }
+
+    function maStlCopyToolSetHoverLine(line) {
+        if (!maStlIsUserFloorPlanLineSelectable(line)) return;
+        if (line === maStlCopyToolHoverLine) return;
+        maStlCopyToolClearHoverLine();
+        maStlCopyToolHoverLine = line;
+        if (
+            maStlCopyToolHoverLine &&
+            !maStlCopyToolLineIsSelected(maStlCopyToolHoverLine) &&
+            maStlCopyToolHoverLine.material
+        ) {
+            maStlApplyUserFloorLineHoverBrightMaterialForLine(maStlCopyToolHoverLine);
+        }
+    }
+
+    function maStlCopyToolSetHoverMesh(mesh) {
+        if (mesh === maStlCopyToolHoverMesh) return;
+        maStlCopyToolClearHoverMesh();
+        maStlCopyToolHoverMesh = mesh;
+        if (maStlCopyToolHoverMesh && !maStlCopyToolMeshIsSelected(maStlCopyToolHoverMesh)) {
+            maStlCopyToolApplyStlMeshHoverMaterial(maStlCopyToolHoverMesh);
+        }
+    }
+
+    function maStlCopyToolClearSelection() {
+        maStlCopyToolSelectedLines.forEach(function (line) {
+            if (line && line.material) maStlApplyUserFloorLineBaseMaterialForLine(line);
+        });
+        maStlCopyToolSelectedLines.clear();
+        maStlCopyToolSelectedMeshes.forEach(function (mesh) {
+            maStlCopyToolRestoreStlMeshMaterial(mesh);
+        });
+        maStlCopyToolSelectedMeshes.clear();
+    }
+
+    function maStlCopyToolAddSingleLineSelection(line) {
+        if (!line || !maStlIsUserFloorPlanLineObject(line) || maStlCopyToolSelectedLines.has(line)) return;
+        maStlCopyToolSelectedLines.add(line);
+        if (line.material && maStlIsUserFloorPlanLineSelectable(line)) {
+            maStlApplyUserFloorLineDeletePickMaterial(line.material, maStlPlanUdForLineMaterial(line));
+        }
+    }
+
+    function maStlCopyToolAddLineSelection(line) {
+        if (!line || !maStlIsUserFloorPlanLineObject(line)) return;
+        const ud = line.userData && line.userData.maStlUserPlanLine;
+        const targets =
+            ud && ud.wallGroupId != null ? maStlResolveWallSegmentLinesForLine(line) : [line];
+        for (let ti = 0; ti < targets.length; ti++) {
+            maStlCopyToolAddSingleLineSelection(targets[ti]);
+        }
+    }
+
+    function maStlCopyToolAddMeshSelection(mesh) {
+        if (!maStlIsDeletableStlMesh(mesh) || maStlCopyToolSelectedMeshes.has(mesh)) return;
+        maStlCopyToolSelectedMeshes.add(mesh);
+        maStlCopyToolApplyStlMeshPickMaterial(mesh);
+    }
+
+    function maStlCopyToolToggleLineSelection(line) {
+        if (!line || !maStlIsUserFloorPlanLineSelectable(line)) return;
+        const ud = line.userData && line.userData.maStlUserPlanLine;
+        const targets =
+            ud && ud.wallGroupId != null ? maStlResolveWallSegmentLinesForLine(line) : [line];
+        const anySelected = targets.some(function (ln) {
+            return maStlCopyToolSelectedLines.has(ln);
+        });
+        if (anySelected) {
+            for (let ti = 0; ti < targets.length; ti++) {
+                const ln = targets[ti];
+                maStlCopyToolSelectedLines.delete(ln);
+                if (ln.material) {
+                    if (ln === maStlCopyToolHoverLine) {
+                        maStlApplyUserFloorLineHoverBrightMaterialForLine(ln);
+                    } else {
+                        maStlApplyUserFloorLineBaseMaterialForLine(ln);
+                    }
+                }
+            }
+            return;
+        }
+        for (let aj = 0; aj < targets.length; aj++) {
+            maStlCopyToolAddSingleLineSelection(targets[aj]);
+        }
+    }
+
+    function maStlCopyToolToggleMeshSelection(mesh) {
+        if (!maStlIsDeletableStlMesh(mesh)) return;
+        if (maStlCopyToolSelectedMeshes.has(mesh)) {
+            maStlCopyToolSelectedMeshes.delete(mesh);
+            if (mesh === maStlCopyToolHoverMesh) {
+                maStlCopyToolApplyStlMeshHoverMaterial(mesh);
+            } else {
+                maStlCopyToolRestoreStlMeshMaterial(mesh);
+            }
+            return;
+        }
+        maStlCopyToolAddMeshSelection(mesh);
+    }
+
+    function maStlCopyToolPickTargetAtPointer(clientX, clientY) {
+        const ln = maStlPickUserFloorLineForCanvasInteraction(clientX, clientY, 4);
+        if (ln) return { kind: 'line', target: ln };
+        const mesh = maStlRaycastClipStlMeshFirst(clientX, clientY);
+        if (mesh && maStlIsDeletableStlMesh(mesh)) return { kind: 'mesh', target: mesh };
+        return null;
+    }
+
+    function maStlCopyToolPointerDownBlocksMarquee(clientX, clientY) {
+        return maStlCopyToolPickTargetAtPointer(clientX, clientY) != null;
+    }
+
+    function maStlCopyToolWireWindowSelection() {
+        maStlDesing2BeginWindowSelection({
+            enabled: function () {
+                return maStlIsDupMoveToolActive() && maStlCopyToolState === 'selecting';
+            },
+            additive: true,
+            blocksMarqueeAt: maStlCopyToolPointerDownBlocksMarquee,
+            filterLine: function (line) {
+                return maStlIsUserFloorPlanLineSelectable(line);
+            },
+            filterMesh: maStlIsDeletableStlMesh,
+            onMarqueeDragStart: function () {
+                maStlCopyToolClearHoverLine();
+                maStlCopyToolClearHoverMesh();
+            },
+            onSelectionComplete: function (selectedLines, selectedMeshes) {
+                for (let i = 0; i < selectedLines.length; i++) {
+                    maStlCopyToolAddLineSelection(selectedLines[i]);
+                }
+                for (let j = 0; j < selectedMeshes.length; j++) {
+                    maStlCopyToolAddMeshSelection(selectedMeshes[j]);
+                }
+            },
+        });
+    }
+
+    function maStlCopyToolUnwireWindowSelection() {
+        maStlDesing2EndWindowSelection();
+    }
+
+    function maStlCopyToolResetTypingState() {
+        maStlCopyToolDistanceTypeBuffer = '';
+        maStlCopyToolAngleTypeBuffer = '';
+        const distInput = maStlDupMoveToolHudDistanceInput();
+        const angleInput = maStlDupMoveToolHudAngleInput();
+        const distPreview = maStlDupMoveToolHudDistancePreview();
+        if (distInput) distInput.value = '';
+        if (angleInput) angleInput.value = '';
+        if (distPreview) distPreview.textContent = '';
+    }
+
+    function maStlCopyToolRawTypingTrimmed() {
+        const distInput = maStlDupMoveToolHudDistanceInput();
+        const vi = distInput ? String(distInput.value || '').trim() : '';
+        const vb = String(maStlCopyToolDistanceTypeBuffer || '').trim();
+        return vi || vb;
+    }
+
+    function maStlCopyToolRawAngleTypingTrimmed() {
+        const angleInput = maStlDupMoveToolHudAngleInput();
+        const vi = angleInput ? String(angleInput.value || '').trim() : '';
+        const vb = String(maStlCopyToolAngleTypeBuffer || '').trim();
+        return vi || vb;
+    }
+
+    function maStlCopyToolParsedAngleDeg() {
+        const rawAngle = maStlCopyToolRawAngleTypingTrimmed();
+        if (rawAngle) {
+            const deg = maStlParseAngleInputValueDeg(rawAngle);
+            return deg == null || !Number.isFinite(deg) ? null : maStlNormalizeAzimuthDeg(deg);
+        }
+        const polar = maStlLineToolParsePolarDistanceAngleMm(maStlCopyToolRawTypingTrimmed());
+        return polar ? polar.angleDeg : null;
+    }
+
+    function maStlCopyToolComputeFloorDirUnitXz() {
+        const angleDeg = maStlCopyToolParsedAngleDeg();
+        if (angleDeg != null && Number.isFinite(angleDeg)) {
+            const rad = THREE.MathUtils.degToRad(angleDeg);
+            return { x: Math.cos(rad), z: -Math.sin(rad) };
+        }
+        const polar = maStlLineToolParsePolarDistanceAngleMm(maStlCopyToolRawTypingTrimmed());
+        if (polar) return { x: polar.ux, z: polar.uz };
+        if (
+            Number.isFinite(maStlCopyToolLastHoverDirUnitXz.x) &&
+            Number.isFinite(maStlCopyToolLastHoverDirUnitXz.y)
+        ) {
+            return { x: maStlCopyToolLastHoverDirUnitXz.x, z: maStlCopyToolLastHoverDirUnitXz.y };
+        }
+        return { x: 1, z: 0 };
+    }
+
+    /**
+     * Dirección y longitud de desplazamiento en planta. Con orto activo: solo ejes 90° (0°/90°/180°/270°).
+     * @returns {{ x: number, z: number, len: number } | null}
+     */
+    function maStlCopyToolFloorDirLenFromDeltaMm(dxMm, dzMm) {
+        const h = Math.hypot(dxMm, dzMm);
+        if (h < MA_STL_LINE_TOOL_DIR_EPS_MM) return null;
+        if (!maStlLineToolOrtho15Enabled) {
+            return { x: dxMm / h, z: dzMm / h, len: h };
+        }
+        const ang = Math.atan2(dzMm, dxMm);
+        const snapped =
+            Math.round(ang / MA_STL_COPY_TOOL_ORTHO_STEP_RAD) * MA_STL_COPY_TOOL_ORTHO_STEP_RAD;
+        const ux = Math.cos(snapped);
+        const uz = Math.sin(snapped);
+        const t = dxMm * ux + dzMm * uz;
+        if (t < MA_STL_LINE_TOOL_DIR_EPS_MM) return null;
+        return { x: ux, z: uz, len: t };
+    }
+
+    /** @param {{ x: number, y: number, z: number }} p @param {{ x: number, y: number, z: number }} out */
+    function maStlCopyToolSnapDisplacementFloorPointMm(p, out) {
+        const dx = p.x - maStlCopyToolBasePointMm.x;
+        const dz = p.z - maStlCopyToolBasePointMm.z;
+        const r = maStlCopyToolFloorDirLenFromDeltaMm(dx, dz);
+        if (!r) return null;
+        out.x = maStlCopyToolBasePointMm.x + r.x * r.len;
+        out.y = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM;
+        out.z = maStlCopyToolBasePointMm.z + r.z * r.len;
+        return out;
+    }
+
+    function maStlCopyToolMaybeUpdateHoverDirFromCandidate(p) {
+        if (!p) return;
+        const dx = p.x - maStlCopyToolBasePointMm.x;
+        const dz = p.z - maStlCopyToolBasePointMm.z;
+        const r = maStlCopyToolFloorDirLenFromDeltaMm(dx, dz);
+        if (r) {
+            maStlCopyToolLastHoverDirUnitXz.set(r.x, r.z);
+        }
+    }
+
+    function maStlCopyToolSyncTypingPreviewUi() {
+        const distPreview = maStlDupMoveToolHudDistancePreview();
+        if (!distPreview || maStlCopyToolState !== 'displacement') {
+            if (distPreview) distPreview.textContent = '';
+            return;
+        }
+        const raw = maStlCopyToolRawTypingTrimmed();
+        const polar = maStlLineToolParsePolarDistanceAngleMm(raw);
+        const lenParsed = polar ? polar.lenMm : maStlParseLengthInputValueToMm(raw);
+        if (lenParsed != null && lenParsed > 0) {
+            const d = maStlDesing2DimEditableMetersDisplayFromMm(
+                maStlDesing2LengthMmRoundedEditableFromMm(lenParsed)
+            );
+            const hud = maStlDupMoveToolHud();
+            const pfx =
+                (hud && hud.getAttribute('data-ma-stl-line-tool-distance-preview-prefix')) || '\u2248';
+            const angleDeg = maStlCopyToolParsedAngleDeg();
+            distPreview.textContent =
+                String(pfx) +
+                '\u00A0' +
+                d +
+                '\u00A0m' +
+                (angleDeg != null ? '\u00A0<\u00A0' + maStlFormatFloorPlanAngleDegDisplay(angleDeg) : '');
+        } else {
+            distPreview.textContent = '';
+        }
+    }
+
+    function maStlCopyToolSyncHud() {
+        const activeHud = maStlDupMoveToolHud();
+        if (!activeHud || !maStlDesingV2Viewer) return;
+        if (!maStlIsDupMoveToolActive()) {
+            if (maStlCopyToolHud) maStlCopyToolHud.classList.add('d-none');
+            if (maStlMoveToolHud) maStlMoveToolHud.classList.add('d-none');
+            if (maStlCopyToolHudInstruction) maStlCopyToolHudInstruction.textContent = '';
+            if (maStlMoveToolHudInstruction) maStlMoveToolHudInstruction.textContent = '';
+            if (maStlCopyToolHudCoords) maStlCopyToolHudCoords.textContent = '';
+            if (maStlMoveToolHudCoords) maStlMoveToolHudCoords.textContent = '';
+            if (maStlCopyToolHudDistanceRow) maStlCopyToolHudDistanceRow.classList.add('d-none');
+            if (maStlMoveToolHudDistanceRow) maStlMoveToolHudDistanceRow.classList.add('d-none');
+            return;
+        }
+        if (maStlCopyToolKind === 'copy') {
+            if (maStlMoveToolHud) maStlMoveToolHud.classList.add('d-none');
+        } else if (maStlCopyToolHud) {
+            maStlCopyToolHud.classList.add('d-none');
+        }
+        let insTpl = '';
+        if (maStlCopyToolState === 'selecting') {
+            insTpl = activeHud.getAttribute(maStlDupMoveToolInstructionDataAttr('selecting')) || '';
+        } else if (maStlCopyToolState === 'basePoint') {
+            insTpl = activeHud.getAttribute(maStlDupMoveToolInstructionDataAttr('base')) || '';
+        } else if (maStlCopyToolState === 'displacement') {
+            insTpl = activeHud.getAttribute(maStlDupMoveToolInstructionDataAttr('displacement')) || '';
+        }
+        const hudInstruction = maStlDupMoveToolHudInstruction();
+        if (hudInstruction) hudInstruction.textContent = insTpl;
+        const hudCoords = maStlDupMoveToolHudCoords();
+        const tpl =
+            (hudCoords && hudCoords.getAttribute('data-ma-stl-line-tool-coords-template')) || '';
+        const typedRaw = maStlCopyToolRawTypingTrimmed();
+        const typedPt =
+            maStlCopyToolState === 'basePoint'
+                ? typedRaw
+                    ? maStlLineToolTryParseAbsoluteFloorCoordsMm(typedRaw, 'picking1')
+                    : null
+                : maStlCopyToolState === 'displacement'
+                  ? typedRaw
+                      ? maStlLineToolTryParseAbsoluteFloorCoordsMm(typedRaw, 'picking2') ||
+                        (function () {
+                            const end = { x: 0, y: 0, z: 0 };
+                            return maStlCopyToolComputeDisplacementEndMm(end) ? end : null;
+                        })()
+                      : null
+                  : null;
+        if (hudCoords) {
+            if (typedPt && tpl) {
+                hudCoords.textContent = maStlFormatRulerAnchorGridIntersectionToast(
+                    tpl,
+                    typedPt.x,
+                    typedPt.z
+                );
+            } else if (
+                maStlCopyToolState !== 'selecting' &&
+                (maStlGridIntersectionPickHighlightGroup.visible ||
+                    maStlLineToolVertexSnapHighlightGroup.visible)
+            ) {
+                const snapX = maStlLineToolVertexSnapHighlightGroup.visible
+                    ? _maStlLineToolVertexSnapMm.x
+                    : _maStlGridIntersectionSnapMm.x;
+                const snapZ = maStlLineToolVertexSnapHighlightGroup.visible
+                    ? _maStlLineToolVertexSnapMm.z
+                    : _maStlGridIntersectionSnapMm.z;
+                hudCoords.textContent = maStlFormatRulerAnchorGridIntersectionToast(
+                    tpl,
+                    snapX,
+                    snapZ
+                );
+            } else {
+                hudCoords.textContent = '';
+            }
+        }
+        const hudDistanceRow = maStlDupMoveToolHudDistanceRow();
+        if (hudDistanceRow) {
+            hudDistanceRow.classList.toggle(
+                'd-none',
+                maStlCopyToolState !== 'basePoint' && maStlCopyToolState !== 'displacement'
+            );
+        }
+        maStlCopyToolSyncTypingPreviewUi();
+        activeHud.classList.remove('d-none');
+    }
+
+    function maStlCopyToolApplyPreviewLineMaterialStyle(mat, wallRole) {
+        if (!mat || !mat.isLineMaterial) return;
+        if (wallRole === 'axis') {
+            maStlApplyUserFloorWallAxisLineStyleToMaterial(mat);
+            mat.opacity = MA_STL_COPY_TOOL_PREVIEW_OPACITY;
+            mat.transparent = true;
+        } else {
+            mat.dashed = true;
+            mat.dashSize = 12;
+            mat.gapSize = 8;
+            mat.linewidth = MA_STL_COPY_TOOL_PREVIEW_LINEWIDTH_PX;
+            mat.color.setHex(
+                maStlCopyToolKind === 'move'
+                    ? MA_STL_MOVE_TOOL_PREVIEW_COLOR_HEX
+                    : MA_STL_COPY_TOOL_PREVIEW_COLOR_HEX
+            );
+            mat.opacity = MA_STL_COPY_TOOL_PREVIEW_OPACITY;
+            mat.transparent = true;
+        }
+        mat.needsUpdate = true;
+    }
+
+    function maStlCopyToolEnsurePreviewLineAtIndex(idx) {
+        while (maStlCopyToolPreviewLines.length <= idx) {
+            const geo = new LineGeometry();
+            geo.setPositions(new Float32Array(6));
+            const mat = maStlMakeUserFloorLineMaterial();
+            maStlCopyToolApplyPreviewLineMaterialStyle(mat, null);
+            if (renderer && renderer.domElement) {
+                maStlApplyUserFloorLineMaterialResolution(
+                    mat,
+                    renderer.domElement.clientWidth,
+                    renderer.domElement.clientHeight
+                );
+            }
+            const pl = new Line2(geo, mat);
+            pl.renderOrder = 168;
+            pl.visible = false;
+            maStlDisableRaycastOnOverlay(pl);
+            scene.add(pl);
+            maStlCopyToolPreviewLines.push(pl);
+        }
+        return maStlCopyToolPreviewLines[idx];
+    }
+
+    function maStlCopyToolHidePreview() {
+        for (let i = 0; i < maStlCopyToolPreviewLines.length; i++) {
+            if (maStlCopyToolPreviewLines[i]) maStlCopyToolPreviewLines[i].visible = false;
+        }
+        for (let mi = 0; mi < maStlCopyToolPreviewMeshSlots.length; mi++) {
+            if (maStlCopyToolPreviewMeshSlots[mi].mesh) {
+                maStlCopyToolPreviewMeshSlots[mi].mesh.visible = false;
+            }
+        }
+    }
+
+    function maStlCopyToolDisposePreviewMeshes() {
+        for (let mi = 0; mi < maStlCopyToolPreviewMeshSlots.length; mi++) {
+            const slot = maStlCopyToolPreviewMeshSlots[mi];
+            const m = slot && slot.mesh;
+            if (!m) continue;
+            if (m.parent) m.parent.remove(m);
+            const mats = Array.isArray(m.material) ? m.material : m.material ? [m.material] : [];
+            for (let mati = 0; mati < mats.length; mati++) {
+                if (mats[mati]) mats[mati].dispose();
+            }
+        }
+        maStlCopyToolPreviewMeshSlots.length = 0;
+    }
+
+    function maStlCopyToolDisposePreview() {
+        maStlCopyToolHidePreview();
+        for (let i = 0; i < maStlCopyToolPreviewLines.length; i++) {
+            const pl = maStlCopyToolPreviewLines[i];
+            if (!pl) continue;
+            if (pl.parent) pl.parent.remove(pl);
+            if (pl.geometry) pl.geometry.dispose();
+            if (pl.material) pl.material.dispose();
+        }
+        maStlCopyToolPreviewLines.length = 0;
+        maStlCopyToolDisposePreviewMeshes();
+        maStlCopyToolPreviewSegments = null;
+    }
+
+    function maStlCopyToolClonePreviewMeshMaterial(srcMat) {
+        if (!srcMat) return srcMat;
+        const clone = srcMat.clone();
+        clone.transparent = true;
+        clone.opacity = MA_STL_COPY_TOOL_PREVIEW_MESH_OPACITY;
+        clone.depthWrite = false;
+        clone.needsUpdate = true;
+        return clone;
+    }
+
+    function maStlCopyToolBuildPreviewSnapshot() {
+        maStlCopyToolDisposePreviewMeshes();
+        const expanded = maStlDesing2ExpandLinesWithWallGroups(Array.from(maStlCopyToolSelectedLines));
+        const seen = new Set();
+        const segments = [];
+        for (let ei = 0; ei < expanded.length; ei++) {
+            const ln = expanded[ei];
+            if (!ln || seen.has(ln.uuid)) continue;
+            seen.add(ln.uuid);
+            const ud = ln.userData && ln.userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            segments.push({
+                p1: { x: ud.p1Mm.x, y: ud.p1Mm.y, z: ud.p1Mm.z },
+                p2: { x: ud.p2Mm.x, y: ud.p2Mm.y, z: ud.p2Mm.z },
+                wallRole: ud.wallRole || null,
+            });
+        }
+        maStlCopyToolPreviewSegments = segments;
+
+        const scale = stlVertexToSceneScale || 1;
+        const meshes = Array.from(maStlCopyToolSelectedMeshes);
+        for (let mi = 0; mi < meshes.length; mi++) {
+            const src = meshes[mi];
+            if (!src) continue;
+            const clone = src.clone();
+            clone.geometry = src.geometry;
+            clone.position.copy(src.position);
+            if (Array.isArray(clone.material)) {
+                clone.material = clone.material.map(maStlCopyToolClonePreviewMeshMaterial);
+            } else if (clone.material) {
+                clone.material = maStlCopyToolClonePreviewMeshMaterial(clone.material);
+            }
+            clone.renderOrder = 167;
+            maStlDisableRaycastOnOverlay(clone);
+            const parent = src.parent || currentRoot || scene;
+            parent.add(clone);
+            maStlCopyToolPreviewMeshSlots.push({
+                mesh: clone,
+                baseX: src.position.x,
+                baseZ: src.position.z,
+                scale: scale,
+            });
+        }
+    }
+
+    function maStlCopyToolSyncPreviewAtDisplacement(dx, dy, dz) {
+        if (!maStlCopyToolPreviewSegments || maStlCopyToolPreviewSegments.length === 0) {
+            maStlCopyToolHidePreview();
+            return;
+        }
+        const minLen = maStlUserFloorSegmentMinMm();
+        const show = Math.hypot(dx, dz) >= 1e-6;
+        let visibleCount = 0;
+        for (let si = 0; si < maStlCopyToolPreviewSegments.length; si++) {
+            const seg = maStlCopyToolPreviewSegments[si];
+            const p1 = { x: seg.p1.x + dx, y: seg.p1.y + dy, z: seg.p1.z + dz };
+            const p2 = { x: seg.p2.x + dx, y: seg.p2.y + dy, z: seg.p2.z + dz };
+            const pl = maStlCopyToolEnsurePreviewLineAtIndex(si);
+            if (!show || Math.hypot(p2.x - p1.x, p2.z - p1.z) < minLen) {
+                pl.visible = false;
+                continue;
+            }
+            maStlCopyToolApplyPreviewLineMaterialStyle(pl.material, seg.wallRole);
+            maStlSetUserFloorLineGeometryMm(pl, p1, p2);
+            if (typeof pl.computeLineDistances === 'function') {
+                pl.computeLineDistances();
+            }
+            pl.visible = true;
+            visibleCount++;
+        }
+        for (let hi = maStlCopyToolPreviewSegments.length; hi < maStlCopyToolPreviewLines.length; hi++) {
+            maStlCopyToolPreviewLines[hi].visible = false;
+        }
+        for (let mi = 0; mi < maStlCopyToolPreviewMeshSlots.length; mi++) {
+            const slot = maStlCopyToolPreviewMeshSlots[mi];
+            if (!slot.mesh) continue;
+            slot.mesh.position.x = slot.baseX + dx / slot.scale;
+            slot.mesh.position.z = slot.baseZ + dz / slot.scale;
+            slot.mesh.visible = show;
+        }
+        if (visibleCount === 0) maStlCopyToolHidePreview();
+    }
+
+    function maStlCopyToolHideRubberBand() {
+        if (maStlLineToolRubberBandLine) maStlLineToolRubberBandLine.visible = false;
+    }
+
+    /** @param {{ x: number, y: number, z: number }} out */
+    function maStlCopyToolComputeDisplacementEndMm(out) {
+        if (maStlCopyToolState !== 'displacement') return null;
+        const raw = maStlCopyToolRawTypingTrimmed();
+        const absPt = raw ? maStlLineToolTryParseAbsoluteFloorCoordsMm(raw, 'picking2') : null;
+        if (absPt) {
+            out.x = absPt.x;
+            out.y = absPt.y;
+            out.z = absPt.z;
+            return out;
+        }
+        const polar = maStlLineToolParsePolarDistanceAngleMm(raw);
+        const lenMmRaw = polar ? polar.lenMm : maStlParseLengthInputValueToMm(raw);
+        if (lenMmRaw != null && Number.isFinite(lenMmRaw) && lenMmRaw > 0) {
+            const u = polar
+                ? { x: polar.ux, z: polar.uz }
+                : maStlCopyToolComputeFloorDirUnitXz();
+            const lenMm = maStlDesing2LengthMmRoundedEditableFromMm(lenMmRaw);
+            out.x = maStlCopyToolBasePointMm.x + u.x * lenMm;
+            out.y = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM;
+            out.z = maStlCopyToolBasePointMm.z + u.z * lenMm;
+            return out;
+        }
+        if (!Number.isFinite(maStlCopyToolLastPointerClientXY.x) || !renderer) return null;
+        const p = maStlResolveLineToolFloorPointMm(
+            maStlCopyToolLastPointerClientXY.x,
+            maStlCopyToolLastPointerClientXY.y
+        );
+        if (!p) return null;
+        return maStlCopyToolSnapDisplacementFloorPointMm(p, out);
+    }
+
+    function maStlCopyToolAdvanceToNextDisplacementAfterCommit() {
+        if (maStlCopyToolState !== 'displacement') return;
+        maStlCopyToolResetTypingState();
+        maStlCopyToolLastHoverDirUnitXz.set(1, 0);
+        maStlCopyToolLastPointerClientXY.set(Number.NaN, Number.NaN);
+        maStlCopyToolBuildPreviewSnapshot();
+        maStlCopyToolHideRubberBand();
+        maStlCopyToolHidePreview();
+        maStlCopyToolSyncHud();
+        queueMicrotask(function () {
+            if (maStlCopyToolState !== 'displacement' || !maStlDupMoveToolHudDistanceInput()) return;
+            const distInput = maStlDupMoveToolHudDistanceInput();
+            try {
+                distInput.focus({ preventScroll: true });
+            } catch (_e) {
+                distInput.focus();
+            }
+        });
+    }
+
+    function maStlCopyToolRefreshDisplacementRubberBand() {
+        if (maStlCopyToolState !== 'displacement') {
+            maStlCopyToolHideRubberBand();
+            maStlCopyToolHidePreview();
+            return;
+        }
+        const end = maStlCopyToolComputeDisplacementEndMm({ x: 0, y: 0, z: 0 });
+        if (!end) {
+            maStlCopyToolHideRubberBand();
+            maStlCopyToolHidePreview();
+            return;
+        }
+        maStlEnsureLineToolRubberBand();
+        if (!maStlLineToolRubberBandLine) return;
+        const y = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM;
+        const positions = [
+            maStlCopyToolBasePointMm.x,
+            y,
+            maStlCopyToolBasePointMm.z,
+            end.x,
+            y,
+            end.z,
+        ];
+        maStlLineToolRubberBandLine.geometry.setPositions(positions);
+        maStlLineToolRubberBandLine.visible = true;
+        const dx = end.x - maStlCopyToolBasePointMm.x;
+        const dy = end.y - maStlCopyToolBasePointMm.y;
+        const dz = end.z - maStlCopyToolBasePointMm.z;
+        if (Math.hypot(dx, dz) >= 1e-6) {
+            maStlCopyToolSyncPreviewAtDisplacement(dx, dy, dz);
+        } else {
+            maStlCopyToolHidePreview();
+        }
+    }
+
+    function maStlCopyToolAdvanceToBasePointPhase() {
+        maStlCopyToolUnwireWindowSelection();
+        maStlCopyToolState = 'basePoint';
+        maStlCopyToolResetTypingState();
+        maStlCopyToolClearHoverLine();
+        maStlCopyToolClearHoverMesh();
+        maStlCopyToolSyncHud();
+        queueMicrotask(function () {
+            if (maStlCopyToolState !== 'basePoint' || !maStlDupMoveToolHudDistanceInput()) return;
+            const distInput = maStlDupMoveToolHudDistanceInput();
+            try {
+                distInput.focus({ preventScroll: true });
+            } catch (_e) {
+                distInput.focus();
+            }
+        });
+    }
+
+    function maStlCopyToolAdvanceToDisplacementPhase(pBase) {
+        maStlQuantizeUserFloorPlanPointToGridMm(pBase);
+        maStlCopyToolBasePointMm.set(pBase.x, pBase.y, pBase.z);
+        maStlCopyToolState = 'displacement';
+        maStlCopyToolResetTypingState();
+        maStlCopyToolLastHoverDirUnitXz.set(1, 0);
+        maStlCopyToolBuildPreviewSnapshot();
+        maStlCopyToolSyncHud();
+        maStlCopyToolRefreshDisplacementRubberBand();
+        queueMicrotask(function () {
+            if (maStlCopyToolState !== 'displacement' || !maStlDupMoveToolHudDistanceInput()) return;
+            const distInput = maStlDupMoveToolHudDistanceInput();
+            try {
+                distInput.focus({ preventScroll: true });
+            } catch (_e) {
+                distInput.focus();
+            }
+        });
+    }
+
+    function maStlCopyToolTryCommitBasePointFromTyping() {
+        const raw = maStlCopyToolRawTypingTrimmed();
+        maStlCopyToolDistanceTypeBuffer = raw;
+        const pt = maStlLineToolTryParseAbsoluteFloorCoordsMm(raw, 'picking1');
+        if (!pt) return false;
+        maStlCopyToolAdvanceToDisplacementPhase(pt);
+        return true;
+    }
+
+    function maStlCopyToolPartitionLinesForDuplicate(sourceLines) {
+        const plainLines = [];
+        const axisSeen = new Set();
+        const wallAxisLines = [];
+        for (let i = 0; i < sourceLines.length; i++) {
+            const ln = sourceLines[i];
+            const ud = ln.userData && ln.userData.maStlUserPlanLine;
+            if (!ud) continue;
+            if (ud.wallGroupId != null) {
+                if (ud.wallRole === 'axis' && ud.id != null && !axisSeen.has(ud.id)) {
+                    axisSeen.add(ud.id);
+                    wallAxisLines.push(ln);
+                }
+                continue;
+            }
+            plainLines.push(ln);
+        }
+        return { plainLines: plainLines, wallAxisLines: wallAxisLines };
+    }
+
+    function maStlCopyToolOffsetPlanPointMm(src, dx, dy, dz) {
+        return {
+            x: src.x + dx,
+            y: src.y + dy,
+            z: src.z + dz,
+        };
+    }
+
+    function maStlCopyToolCommitDuplicateMm(dx, dy, dz) {
+        const expanded = maStlDesing2ExpandLinesWithWallGroups(Array.from(maStlCopyToolSelectedLines));
+        const meshes = Array.from(maStlCopyToolSelectedMeshes);
+        const parts = maStlCopyToolPartitionLinesForDuplicate(expanded);
+        if (parts.plainLines.length === 0 && parts.wallAxisLines.length === 0 && meshes.length === 0) {
+            return false;
+        }
+        const undoBefore = maStlDesing2SerializeEditSnapshot();
+        const wallGroupMap = new Map();
+        const polylineGroupMap = new Map();
+        const weldEps = Math.max(
+            maStlUserFloorLineMergeEndpointEpsMm(),
+            MA_STL_WALL_DIM_LENGTH_VALUE_TOL_MM
+        );
+        let hadWall = false;
+
+        for (let pi = 0; pi < parts.plainLines.length; pi++) {
+            const ud = parts.plainLines[pi].userData && parts.plainLines[pi].userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            const a = maStlCopyToolOffsetPlanPointMm(ud.p1Mm, dx, dy, dz);
+            const b = maStlCopyToolOffsetPlanPointMm(ud.p2Mm, dx, dy, dz);
+            let polyId = ud.polylineGroupId;
+            if (polyId != null) {
+                if (!polylineGroupMap.has(polyId)) {
+                    polylineGroupMap.set(polyId, maStlUserFloorLineNextPolylineGroupId++);
+                }
+                polyId = polylineGroupMap.get(polyId);
+            }
+            maStlCommitUserPlanLineSegmentMm(a, b, true, polyId, null);
+        }
+
+        for (let wi = 0; wi < parts.wallAxisLines.length; wi++) {
+            const src = parts.wallAxisLines[wi];
+            const ud = src.userData && src.userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm || ud.wallGroupId == null) continue;
+            hadWall = true;
+            if (!wallGroupMap.has(ud.wallGroupId)) {
+                wallGroupMap.set(ud.wallGroupId, maStlUserFloorLineNextWallGroupId++);
+            }
+            const wallGroupId = wallGroupMap.get(ud.wallGroupId);
+            const halfT = maStlWall2dToolAxisFaceHalfThicknessMm(src);
+            const a = maStlCopyToolOffsetPlanPointMm(ud.p1Mm, dx, dy, dz);
+            const b = maStlCopyToolOffsetPlanPointMm(ud.p2Mm, dx, dy, dz);
+            maStlQuantizeUserFloorPlanPointToGridMm(a);
+            maStlQuantizeUserFloorPlanPointToGridMm(b);
+            maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(a);
+            maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(b);
+            maStlWall2dToolSplitAxesAtInteriorHitsMm([a, b], a, b);
+            maStlWeldUserFloorPlanPointToExistingEndpointsMm(a, weldEps);
+            maStlWeldUserFloorPlanPointToExistingEndpointsMm(b, weldEps);
+            maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(a);
+            maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(b);
+            const centerLine = maStlWall2dToolAddSegmentMm(
+                a,
+                b,
+                { wallGroupId: wallGroupId, wallRole: 'axis', skipCollinearMerge: true },
+                true
+            );
+            if (!centerLine) continue;
+            maStlUserFloorLineSyncAxisDashDistances(centerLine);
+            const centerUd = centerLine.userData && centerLine.userData.maStlUserPlanLine;
+            if (!centerUd || centerUd.id == null) continue;
+            for (let si = 0; si < 2; si++) {
+                const sideSign = si === 0 ? 1 : -1;
+                const ends = maStlWall2dToolParallelFaceEndpointsWithMitersMm(centerLine, halfT, sideSign);
+                if (!ends) continue;
+                maStlWall2dToolAddSegmentMm(
+                    ends.p1,
+                    ends.p2,
+                    {
+                        wallGroupId: wallGroupId,
+                        wallRole: 'face',
+                        linkOffsetFromLineId: centerUd.id,
+                        numberOffsetMm: halfT,
+                        numberWallFaceSideSign: sideSign,
+                        skipCollinearMerge: true,
+                    },
+                    true
+                );
+            }
+        }
+
+        if (hadWall) {
+            maStlWall2dToolRefactorAllWallJunctionsMm();
+            maStlWall2dToolSplitAllAxisInteriorCrossingsMm();
+            maStlWall2dToolRefactorAllWallJunctionsMm();
+            maStlWeldAllUserFloorLineEndpointsMm();
+            maStlWall2dToolRefactorAllWallJunctionsMm();
+            maStlReapplyAllUserFloorWallAxisLineStyles();
+            maStlSaveWallConnectionsNow({
+                force: true,
+                reason: 'copy-tool-displacement-commit',
+            });
+        } else {
+            maStlWeldAllUserFloorLineEndpointsMm();
+        }
+
+        const scale = stlVertexToSceneScale || 1;
+        for (let mi = 0; mi < meshes.length; mi++) {
+            const mesh = meshes[mi];
+            if (!mesh) continue;
+            const clone = mesh.clone();
+            clone.position.copy(mesh.position);
+            clone.position.x += dx / scale;
+            clone.position.z += dz / scale;
+            const parent = mesh.parent || currentRoot;
+            if (parent) parent.add(clone);
+            if (clipStlMeshes.indexOf(clone) < 0) clipStlMeshes.push(clone);
+        }
+        updateClipPlanes();
+        syncGroundShadowToggleUi();
+        maStlDesing2PushEditSnapshotUndo(
+            'copyUserFloorLinesAndStlMeshes',
+            undoBefore,
+            maStlDesing2SerializeEditSnapshot()
+        );
+        return true;
+    }
+
+    function maStlCopyToolCommitMoveMm(dx, dy, dz) {
+        const expanded = maStlDesing2ExpandLinesWithWallGroups(Array.from(maStlCopyToolSelectedLines));
+        const meshes = Array.from(maStlCopyToolSelectedMeshes);
+        const parts = maStlCopyToolPartitionLinesForDuplicate(expanded);
+        if (parts.plainLines.length === 0 && parts.wallAxisLines.length === 0 && meshes.length === 0) {
+            return false;
+        }
+        const undoBefore = maStlDesing2SerializeEditSnapshot();
+        let hadWall = false;
+
+        for (let pi = 0; pi < parts.plainLines.length; pi++) {
+            const line = parts.plainLines[pi];
+            if (!maStlTranslateUserFloorLineSegmentPlanMm(line, dx, dz)) continue;
+            const ud = line.userData && line.userData.maStlUserPlanLine;
+            if (ud && ud.p1Mm && ud.p2Mm) {
+                maStlQuantizeUserFloorPlanPointToGridMm(ud.p1Mm);
+                maStlQuantizeUserFloorPlanPointToGridMm(ud.p2Mm);
+                maStlApplyUserFloorLineSegmentGeometryFromMm(line);
+            }
+        }
+
+        for (let wi = 0; wi < parts.wallAxisLines.length; wi++) {
+            const axisLine = parts.wallAxisLines[wi];
+            hadWall = true;
+            if (!maStlTranslateUserFloorLineSegmentPlanMm(axisLine, dx, dz)) continue;
+            const ud = axisLine.userData && axisLine.userData.maStlUserPlanLine;
+            if (ud && ud.p1Mm && ud.p2Mm) {
+                maStlQuantizeUserFloorPlanPointToGridMm(ud.p1Mm);
+                maStlQuantizeUserFloorPlanPointToGridMm(ud.p2Mm);
+                maStlApplyUserFloorLineSegmentGeometryFromMm(axisLine);
+            }
+        }
+
+        if (hadWall) {
+            for (let wj = 0; wj < parts.wallAxisLines.length; wj++) {
+                maStlWall2dToolRefreshAxisFaceOffsetsNoJunction(parts.wallAxisLines[wj]);
+            }
+            maStlWall2dToolRefactorAllWallJunctionsMm();
+            maStlWall2dToolSplitAllAxisInteriorCrossingsMm();
+            maStlWall2dToolRefactorAllWallJunctionsMm();
+            maStlWeldAllUserFloorLineEndpointsMm();
+            maStlWall2dToolRefactorAllWallJunctionsMm();
+            maStlReapplyAllUserFloorWallAxisLineStyles();
+            maStlSaveWallConnectionsNow({
+                force: true,
+                reason: 'move-tool-displacement-commit',
+            });
+        } else {
+            maStlWeldAllUserFloorLineEndpointsMm();
+        }
+
+        const scale = stlVertexToSceneScale || 1;
+        for (let mi = 0; mi < meshes.length; mi++) {
+            const mesh = meshes[mi];
+            if (!mesh) continue;
+            mesh.position.x += dx / scale;
+            mesh.position.z += dz / scale;
+        }
+        updateClipPlanes();
+        syncGroundShadowToggleUi();
+        maStlDesing2PushEditSnapshotUndo(
+            'moveUserFloorLinesAndStlMeshes',
+            undoBefore,
+            maStlDesing2SerializeEditSnapshot()
+        );
+        return true;
+    }
+
+    function maStlCopyToolTryCommitDisplacement() {
+        const end = maStlCopyToolComputeDisplacementEndMm({ x: 0, y: 0, z: 0 });
+        if (!end) {
+            const hud = maStlDupMoveToolHud();
+            const toastTpl = hud && hud.getAttribute(maStlDupMoveToolDistanceInvalidToastAttr());
+            if (toastTpl) maStlDesing2ShowSaveViewToast(toastTpl);
+            return false;
+        }
+        maStlQuantizeUserFloorPlanPointToGridMm(end);
+        const dx = end.x - maStlCopyToolBasePointMm.x;
+        const dy = end.y - maStlCopyToolBasePointMm.y;
+        const dz = end.z - maStlCopyToolBasePointMm.z;
+        if (Math.hypot(dx, dz) < 1e-6) {
+            const hud = maStlDupMoveToolHud();
+            const toastTpl = hud && hud.getAttribute(maStlDupMoveToolDistanceInvalidToastAttr());
+            if (toastTpl) maStlDesing2ShowSaveViewToast(toastTpl);
+            return false;
+        }
+        const ok =
+            maStlCopyToolKind === 'move'
+                ? maStlCopyToolCommitMoveMm(dx, dy, dz)
+                : maStlCopyToolCommitDuplicateMm(dx, dy, dz);
+        if (ok) maStlCopyToolAdvanceToNextDisplacementAfterCommit();
+        return ok;
+    }
+
+    function maStlCopyToolHasSelection() {
+        return maStlCopyToolSelectedLines.size > 0 || maStlCopyToolSelectedMeshes.size > 0;
+    }
+
+    function maStlCopyToolApplyWindowKeydownConfirm(ev) {
+        if (!maStlIsDupMoveToolActive() || !maStlDesingV2Viewer) return false;
+        if (!maStlIsDesing2ViewerShellVisibleForKeyboardShortcuts()) return false;
+        if (ev.defaultPrevented) return false;
+        const isEnter = ev.key === 'Enter' || ev.code === 'Enter' || ev.key === 'NumpadEnter';
+        if (!isEnter || ev.shiftKey || ev.ctrlKey || ev.metaKey || ev.altKey) return false;
+        const ae = document.activeElement;
+        if (maStlIsUserFloorLineDimEditOverlayActive()) return false;
+        const distInput = maStlDupMoveToolHudDistanceInput();
+        const angleInput = maStlDupMoveToolHudAngleInput();
+        if (
+            ae !== distInput &&
+            ae !== angleInput &&
+            maStlDesingV2AvoidKeyboardShortcutSteal(ae)
+        ) {
+            return false;
+        }
+        if (maStlCopyToolState === 'selecting') {
+            if (!maStlCopyToolHasSelection()) return false;
+            ev.preventDefault();
+            maStlCopyToolAdvanceToBasePointPhase();
+            return true;
+        }
+        if (maStlCopyToolState === 'basePoint') {
+            if (maStlCopyToolTryCommitBasePointFromTyping()) {
+                ev.preventDefault();
+                return true;
+            }
+            return false;
+        }
+        if (maStlCopyToolState === 'displacement') {
+            const ok = maStlCopyToolTryCommitDisplacement();
+            if (ok) ev.preventDefault();
+            return ok;
+        }
+        return false;
+    }
+
+    /** Escape cancela copiar/mover en cualquier fase (selección, base, desplazamiento). */
+    function maStlCopyToolApplyWindowKeydownEscape(ev) {
+        if (ev.key !== 'Escape' && ev.code !== 'Escape') return false;
+        if (!maStlIsDupMoveToolActive() || !maStlDesingV2Viewer) return false;
+        if (!maStlIsDesing2ViewerShellVisibleForKeyboardShortcuts()) return false;
+        if (ev.defaultPrevented) return false;
+        ev.preventDefault();
+        ev.stopPropagation();
+        maStlStopCopyToolModesToolbar(false);
+        return true;
+    }
+
+    function maStlCopyToolApplyWindowKeydownToInputBuffer(ev) {
+        if (!maStlIsDupMoveToolPlacementPhaseActive() || !maStlDesingV2Viewer) return false;
+        if (!maStlIsDesing2ViewerShellVisibleForKeyboardShortcuts()) return false;
+        if (ev.defaultPrevented) return false;
+        if (ev.ctrlKey || ev.metaKey || ev.altKey) return false;
+        if (ev.key === 'Escape' || ev.code === 'Escape') return false;
+        if (ev.key === 'Enter' || ev.code === 'Enter' || ev.key === 'NumpadEnter') {
+            if (maStlCopyToolState === 'basePoint') {
+                const ok = maStlCopyToolTryCommitBasePointFromTyping();
+                if (ok) ev.preventDefault();
+                return ok;
+            }
+            if (maStlCopyToolState === 'displacement') {
+                const ok = maStlCopyToolTryCommitDisplacement();
+                if (ok) ev.preventDefault();
+                return ok;
+            }
+            return false;
+        }
+        const ae = document.activeElement;
+        const distInput = maStlDupMoveToolHudDistanceInput();
+        const angleInput = maStlDupMoveToolHudAngleInput();
+        if (distInput && ae === distInput) return false;
+        if (angleInput && ae === angleInput) return false;
+        if (maStlIsUserFloorLineDimEditOverlayActive()) return false;
+        if (maStlDesingV2AvoidKeyboardShortcutSteal(ae)) return false;
+        if (
+            (maStlCopyToolToggleBtn && ae === maStlCopyToolToggleBtn) ||
+            (maStlMoveToolToggleBtn && ae === maStlMoveToolToggleBtn)
+        ) {
+            return true;
+        }
+        if (ae && ae.closest && ae.closest('button, a[href], [role="button"], label')) return false;
+        let next = maStlCopyToolDistanceTypeBuffer;
+        const k = ev.key;
+        if (k === 'Backspace') {
+            if (!next.length) return false;
+            ev.preventDefault();
+            next = next.slice(0, -1);
+        } else if (k === 'Delete') {
+            if (!next.length) return false;
+            ev.preventDefault();
+            next = '';
+        } else if (k.length === 1 && /^[0-9.,;\sMm#@<>\-+°º]$/.test(k)) {
+            ev.preventDefault();
+            next += k;
+        } else {
+            return false;
+        }
+        maStlCopyToolDistanceTypeBuffer = next;
+        if (distInput && ae !== distInput) {
+            distInput.value = next;
+        }
+        maStlCopyToolSyncTypingPreviewUi();
+        maStlCopyToolSyncHud();
+        maStlCopyToolRefreshDisplacementRubberBand();
+        return true;
+    }
+
+    function maStlStartCopyToolModesToolbar() {
+        if (maStlIsCopyToolActive()) return;
+        maStlWall2dToolResumeState = null;
+        if (maStlIsWall2dToolActive()) maStlStopWall2dToolModesToolbar(false);
+        if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
+        if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
+        if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
+        if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
+        if (maStlIsInsertEnclosureToolActive()) maStlStopInsertEnclosureToolModesToolbar(false);
+        if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
+        maStlStopWallDimToolModesToolbar();
+        maStlDesing2SetLastToolbarCommandId('ma-stl-tool-copy');
+        maStlStopRulerAnchorPickModesToolbar();
+        maStlTeardownPickHighlightsOnly();
+        maStlDisposeUserFloorLineDimEdit(false);
+        maStlClearUserFloorLineSelection();
+        maStlHideUserFloorLineDimHud(true);
+        maStlCopyToolClearSelection();
+        maStlCopyToolClearHoverLine();
+        maStlCopyToolClearHoverMesh();
+        maStlCopyToolResetTypingState();
+        maStlCopyToolKind = 'copy';
+        maStlCopyToolActive = true;
+        maStlCopyToolState = 'selecting';
+        maStlCopyToolLastPointerClientXY.set(Number.NaN, Number.NaN);
+        maStlLockOrbitForRulerAnchorPick();
+        maStlSyncLineToolToggleBtnUi();
+        maStlLineToolPickCursorSync();
+        maStlCopyToolSyncHud();
+        maStlCopyToolWireWindowSelection();
+        if (maStlCopyToolToggleBtn && document.activeElement === maStlCopyToolToggleBtn) {
+            maStlCopyToolToggleBtn.blur();
+        }
+    }
+
+    function maStlStartMoveToolModesToolbar() {
+        if (maStlIsMoveToolActive()) return;
+        maStlWall2dToolResumeState = null;
+        if (maStlIsWall2dToolActive()) maStlStopWall2dToolModesToolbar(false);
+        if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
+        if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
+        if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
+        if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
+        if (maStlIsInsertEnclosureToolActive()) maStlStopInsertEnclosureToolModesToolbar(false);
+        if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
+        maStlStopWallDimToolModesToolbar();
+        maStlDesing2SetLastToolbarCommandId('ma-stl-tool-move');
+        maStlStopRulerAnchorPickModesToolbar();
+        maStlTeardownPickHighlightsOnly();
+        maStlDisposeUserFloorLineDimEdit(false);
+        maStlClearUserFloorLineSelection();
+        maStlHideUserFloorLineDimHud(true);
+        maStlCopyToolClearSelection();
+        maStlCopyToolClearHoverLine();
+        maStlCopyToolClearHoverMesh();
+        maStlCopyToolResetTypingState();
+        maStlCopyToolKind = 'move';
+        maStlCopyToolActive = true;
+        maStlCopyToolState = 'selecting';
+        maStlCopyToolLastPointerClientXY.set(Number.NaN, Number.NaN);
+        maStlLockOrbitForRulerAnchorPick();
+        maStlSyncLineToolToggleBtnUi();
+        maStlLineToolPickCursorSync();
+        maStlCopyToolSyncHud();
+        maStlCopyToolWireWindowSelection();
+        if (maStlMoveToolToggleBtn && document.activeElement === maStlMoveToolToggleBtn) {
+            maStlMoveToolToggleBtn.blur();
+        }
+    }
+
+    function maStlStopCopyToolModesToolbar(deferOrbitUnlock) {
+        void deferOrbitUnlock;
+        if (!maStlIsDupMoveToolActive()) return;
+        maStlCopyToolActive = false;
+        maStlCopyToolState = null;
+        maStlCopyToolUnwireWindowSelection();
+        maStlDesing2WindowSelectionClearClickSuppression();
+        maStlCopyToolClearSelection();
+        maStlCopyToolClearHoverLine();
+        maStlCopyToolClearHoverMesh();
+        maStlCopyToolResetTypingState();
+        maStlCopyToolHideRubberBand();
+        maStlCopyToolDisposePreview();
+        if (maStlCopyToolHudDistanceInput && document.activeElement === maStlCopyToolHudDistanceInput) {
+            maStlCopyToolHudDistanceInput.blur();
+        }
+        if (maStlCopyToolHudAngleInput && document.activeElement === maStlCopyToolHudAngleInput) {
+            maStlCopyToolHudAngleInput.blur();
+        }
+        if (maStlMoveToolHudDistanceInput && document.activeElement === maStlMoveToolHudDistanceInput) {
+            maStlMoveToolHudDistanceInput.blur();
+        }
+        if (maStlMoveToolHudAngleInput && document.activeElement === maStlMoveToolHudAngleInput) {
+            maStlMoveToolHudAngleInput.blur();
+        }
+        if (maStlCopyToolToggleBtn && document.activeElement === maStlCopyToolToggleBtn) {
+            maStlCopyToolToggleBtn.blur();
+        }
+        if (maStlMoveToolToggleBtn && document.activeElement === maStlMoveToolToggleBtn) {
+            maStlMoveToolToggleBtn.blur();
+        }
+        maStlCopyToolSyncHud();
         maStlSyncLineToolToggleBtnUi();
         maStlLineToolPickCursorSync();
         syncMaStlRulerAnchorPickCursor();
@@ -11483,6 +13082,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
         if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
         if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
         if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
         if (maStlIsInsertEnclosureToolActive()) maStlStopInsertEnclosureToolModesToolbar(false);
         if (maStlIsImageSketchToolActive()) maStlStopImageSketchToolModesToolbar(false);
@@ -11778,6 +13378,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
         if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
         if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
         if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
         if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
         if (maStlIsInsertEnclosureToolActive()) maStlStopInsertEnclosureToolModesToolbar(false);
@@ -11955,6 +13556,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
         if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
         if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
         if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
         if (maStlIsInsertEnclosureToolActive()) maStlStopInsertEnclosureToolModesToolbar(false);
         if (maStlIsImageSketchToolActive()) maStlStopImageSketchToolModesToolbar(false);
@@ -12573,6 +14175,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
         if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
         if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
         if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
         if (maStlIsImageSketchToolActive()) maStlStopImageSketchToolModesToolbar(false);
         if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
@@ -13386,6 +14989,47 @@ function bootMasterArticleDetailsStlViewer() {
         return placements.length;
     }
 
+    function maStlWallDimAppendAxisIdLabels() {
+        if (!maStlWallDimOverlayRoot) return 0;
+        const axes = maStlWall2dToolCollectAllAxisLines();
+        if (!axes.length) return 0;
+        maStlWallDimOverlayRoot.hidden = false;
+        maStlWallDimOverlayRoot.removeAttribute('hidden');
+        maStlWallDimOverlayRoot.setAttribute('aria-hidden', 'false');
+        let count = 0;
+        for (let i = 0; i < axes.length; i++) {
+            const axisLine = axes[i];
+            const ud = axisLine && axisLine.userData && axisLine.userData.maStlUserPlanLine;
+            if (!ud || ud.id == null || !ud.p1Mm || !ud.p2Mm) continue;
+            const dir = maStlUserFloorPlanLineDirUnitXz(ud);
+            if (!dir) continue;
+            const normal = maStlOffsetToolNormalFromDirSignMm(dir.ux, dir.uz, 1);
+            const offsetMm = Math.max(maStlWall2dToolAxisFaceHalfThicknessMm(axisLine) * 1.9, 180);
+            const labelMid = {
+                x: (ud.p1Mm.x + ud.p2Mm.x) * 0.5 + normal.nx * offsetMm,
+                z: (ud.p1Mm.z + ud.p2Mm.z) * 0.5 + normal.nz * offsetMm,
+            };
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className =
+                'desing2-stl-floor-dim-readout desing2-stl-wall-dim-readout desing2-stl-floor-dim-readout--compact';
+            btn.textContent = 'ID ' + ud.id;
+            btn.setAttribute('aria-hidden', 'false');
+            btn.tabIndex = -1;
+            maStlWallDimOverlayRoot.appendChild(btn);
+            maStlWallDimEntries.push({
+                labelMm: maStlUserFloorLineLengthMm(ud),
+                labelMid: labelMid,
+                kind: 'wall-id',
+                wallAxisId: ud.id,
+                readoutEl: btn,
+            });
+            count++;
+        }
+        maStlWallDimApplyGuideLineColors();
+        return count;
+    }
+
     function maStlWallDimRebuildFromDetectedPairs(representatives) {
         return maStlWallDimRebuildFromPlacements(maStlWallDimCollectAllPlacements(representatives));
     }
@@ -13401,11 +15045,13 @@ function bootMasterArticleDetailsStlViewer() {
         const pairs = maStlWallDimDetectWallPairsMm();
         const reps = maStlWallDimSelectRepresentativePairs(pairs);
         const count = maStlWallDimRebuildFromPlacements(maStlWallDimCollectAllPlacements(reps));
-        if (count === 0) {
+        const idLabelCount = maStlWallDimAppendAxisIdLabels();
+        maStlSaveWallDiagnosticsNow('wall-dim-refresh-scan');
+        if (count === 0 && idLabelCount === 0) {
             maStlWallDimShowNoPairsToast();
         }
         maStlSyncWallDimReadoutScreens();
-        return count;
+        return count + idLabelCount;
     }
 
     function maStlWallDimRefreshFromPickedLine(pickedLine) {
@@ -13416,11 +15062,13 @@ function bootMasterArticleDetailsStlViewer() {
         }
         const reps = maStlWallDimSelectRepresentativePairs(pairs);
         const count = maStlWallDimRebuildFromPlacements(maStlWallDimCollectAllPlacements(reps));
-        if (count === 0) {
+        const idLabelCount = maStlWallDimAppendAxisIdLabels();
+        maStlSaveWallDiagnosticsNow('wall-dim-refresh-picked-line');
+        if (count === 0 && idLabelCount === 0) {
             maStlWallDimShowNoPairsToast();
         }
         maStlSyncWallDimReadoutScreens();
-        return count;
+        return count + idLabelCount;
     }
 
     function maStlSyncWallDimReadoutScreens() {
@@ -13471,6 +15119,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
         if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
         if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
         if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
         if (maStlIsImageSketchToolActive()) maStlStopImageSketchToolModesToolbar(false);
         if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
@@ -13500,6 +15149,7 @@ function bootMasterArticleDetailsStlViewer() {
         maStlStopLineToolModesToolbar(false);
         maStlStopOffsetToolModesToolbar(false);
         maStlStopDeleteToolModesToolbar(false);
+        maStlStopCopyToolModesToolbar(false);
         maStlStopWall3dToolModesToolbar(false);
         maStlStopImageSketchToolModesToolbar(false);
         maStlStopInsertCornerToolModesToolbar(false);
@@ -13519,6 +15169,7 @@ function bootMasterArticleDetailsStlViewer() {
         maStlSyncLineToolHud();
         maStlSyncOffsetToolHud();
         maStlSyncDeleteToolHud();
+        maStlCopyToolSyncHud();
         maStlSyncWall3dToolHud();
         maStlSyncImageSketchToolHud();
         maStlSyncRulerAnchorCoordsHud();
@@ -13664,7 +15315,8 @@ function bootMasterArticleDetailsStlViewer() {
 
     /** Línea activa para cotas/asas: selección por clic prevalece sobre hover. */
     function maStlUserFloorLineHudTargetLine() {
-        return maStlUserFloorLineSelected || maStlHoveredUserFloorLine;
+        const line = maStlUserFloorLineSelected || maStlHoveredUserFloorLine;
+        return maStlWall2dToolEditableAxisLineForDimension(line) || line;
     }
 
     /** true ⇒ sólo cota longitud (+ guías longitud); false ⇒ longitud + ΔX + ΔZ. */
@@ -14977,6 +16629,10 @@ function bootMasterArticleDetailsStlViewer() {
     /** Texto de cota herramienta línea para UI (metros, Intl; entrada sin sufijo ⇒ metros). */
     function maStlUserFloorLineDimensionLabelMm(ud) {
         return maStlDesing2DimEditableMetersDisplayFromMm(maStlUserFloorPlanLineLengthDisplayMm(ud));
+    }
+
+    function maStlUserFloorLineDimensionInputValueMm(ud) {
+        return maStlDesing2DimEditableMetersInputDisplayFromMm(maStlUserFloorLineLengthMm(ud));
     }
 
     function maStlApplyUserFloorLineBaseMaterial(mat, planUd) {
@@ -16374,13 +18030,20 @@ function bootMasterArticleDetailsStlViewer() {
             maStlInvalidateUserFloorDimGuideGeomCache();
             let commitOk = false;
             let logDev = false;
+            let requestedAxisLenMm = null;
+            const dimensionLineWas = maStlWall2dToolEditableAxisLineForDimension(lineWas) || lineWas;
             const dimUndoBefore =
                 _maStlDesing2DimEditUndoBeforeSnapshot || maStlDesing2SerializeEditSnapshot();
             const wallAxisPropagationBefore =
-                lineWas && lineWas.userData && lineWas.userData.maStlUserPlanLine
-                    ? maStlWall2dToolCaptureAxisEditPropagationState(lineWas)
+                dimensionLineWas && dimensionLineWas.userData && dimensionLineWas.userData.maStlUserPlanLine
+                    ? maStlWall2dToolCaptureAxisEditPropagationState(dimensionLineWas)
                     : null;
-            if (snapDimKind === 'all' && lineWas && lineWas.userData && lineWas.userData.maStlUserPlanLine) {
+            if (
+                snapDimKind === 'all' &&
+                dimensionLineWas &&
+                dimensionLineWas.userData &&
+                dimensionLineWas.userData.maStlUserPlanLine
+            ) {
                 const hdomSnap = maStlEnsureUserFloorDimDomHud();
                 const inpLen =
                     (capt && capt.inputLenEl) ||
@@ -16395,48 +18058,67 @@ function bootMasterArticleDetailsStlViewer() {
                 const rawLen = String(inpLen && inpLen.value != null ? inpLen.value : '').trim();
                 const rawDx = String(inpDx && inpDx.value != null ? inpDx.value : '').trim();
                 const rawDz = String(inpDz && inpDz.value != null ? inpDz.value : '').trim();
+                const requestedPolar = maStlParseEditedLineLengthAngleMm(rawLen);
+                const requestedLenParsed = requestedPolar
+                    ? requestedPolar.lenMm
+                    : maStlParseLengthInputValueToMm(rawLen);
+                if (requestedLenParsed != null && requestedLenParsed >= maStlUserFloorSegmentMinMm() - 1e-9) {
+                    requestedAxisLenMm = maStlDesing2LengthMmRoundedEditableFromMm(requestedLenParsed);
+                }
                 logDev = maStlStlViewerIsLocalDevHost() && (rawLen.length > 0 || rawDx.length > 0 || rawDz.length > 0);
-                commitOk = maStlCommitUserFloorLineDimensionMulti(lineWas, rawLen, rawDx, rawDz);
+                commitOk = maStlCommitUserFloorLineDimensionMulti(dimensionLineWas, rawLen, rawDx, rawDz);
             } else {
                 const raw = String(elWas.value != null ? elWas.value : '').trim();
                 logDev = maStlStlViewerIsLocalDevHost() && raw.length > 0;
                 if (
                     snapDimKind === 'deltaX' &&
-                    lineWas &&
-                    lineWas.userData &&
-                    lineWas.userData.maStlUserPlanLine
+                    dimensionLineWas &&
+                    dimensionLineWas.userData &&
+                    dimensionLineWas.userData.maStlUserPlanLine
                 ) {
                     const pv = maStlParseLengthInputValueToMm(raw);
                     commitOk =
-                        pv != null && maStlResizeUserFloorLinePlanDeltaXMm(lineWas, pv);
+                        pv != null && maStlResizeUserFloorLinePlanDeltaXMm(dimensionLineWas, pv);
                 } else if (
                     snapDimKind === 'deltaZ' &&
-                    lineWas &&
-                    lineWas.userData &&
-                    lineWas.userData.maStlUserPlanLine
+                    dimensionLineWas &&
+                    dimensionLineWas.userData &&
+                    dimensionLineWas.userData.maStlUserPlanLine
                 ) {
                     const pv = maStlParseLengthInputValueToMm(raw);
                     commitOk =
-                        pv != null && maStlResizeUserFloorLinePlanDeltaZMm(lineWas, pv);
-                } else if (lineWas && lineWas.userData && lineWas.userData.maStlUserPlanLine) {
-                    const polarOk = maStlApplyEditedUserFloorLineLengthAngleMm(lineWas, raw);
+                        pv != null && maStlResizeUserFloorLinePlanDeltaZMm(dimensionLineWas, pv);
+                } else if (
+                    dimensionLineWas &&
+                    dimensionLineWas.userData &&
+                    dimensionLineWas.userData.maStlUserPlanLine
+                ) {
+                    const polarOk = maStlApplyEditedUserFloorLineLengthAngleMm(dimensionLineWas, raw);
                     const lenMmParsed = polarOk ? null : maStlParseLengthInputValueToMm(raw);
                     const minAllowed = maStlUserFloorSegmentMinMm();
                     const planOk = lenMmParsed != null && lenMmParsed >= minAllowed - 1e-9;
                     if (polarOk) {
+                        const polarLen = maStlParseEditedLineLengthAngleMm(raw);
+                        if (polarLen && polarLen.lenMm >= minAllowed - 1e-9) {
+                            requestedAxisLenMm = maStlDesing2LengthMmRoundedEditableFromMm(polarLen.lenMm);
+                        }
                         commitOk = true;
                     } else if (planOk) {
+                        requestedAxisLenMm = maStlDesing2LengthMmRoundedEditableFromMm(lenMmParsed);
                         maStlResizeUserFloorLineToLengthMm(
-                            lineWas,
-                            maStlDesing2LengthMmRoundedEditableFromMm(lenMmParsed)
+                            dimensionLineWas,
+                            requestedAxisLenMm
                         );
                         commitOk = true;
                     }
                 }
             }
             if (commitOk) {
-                if (!maStlWall2dToolApplyAxisEditPropagation(lineWas, wallAxisPropagationBefore)) {
-                    maStlWall2dToolRefreshFacesAfterEditableAxisChange(lineWas);
+                if (!maStlWall2dToolApplyAxisEditPropagation(dimensionLineWas, wallAxisPropagationBefore)) {
+                    maStlWall2dToolRefreshFacesAfterEditableAxisChange(dimensionLineWas);
+                }
+                if (requestedAxisLenMm != null) {
+                    maStlWall2dToolReapplyAxisLengthWithPropagation(dimensionLineWas, requestedAxisLenMm);
                 }
                 maStlDesing2PushEditSnapshotUndo(
                     'editUserFloorLineDimension',
@@ -16602,9 +18284,9 @@ function bootMasterArticleDetailsStlViewer() {
             if (tplLength) inpLen.setAttribute('aria-label', tplLength);
             if (tplDx) inpDx.setAttribute('aria-label', tplDx);
             if (tplDz) inpDz.setAttribute('aria-label', tplDz);
-            inpLen.value = maStlUserFloorLineDimensionLabelMm(ud);
-            inpDx.value = maStlDesing2SignedDeltaMetersDisplayFromMm(dxHud);
-            inpDz.value = maStlDesing2SignedDeltaMetersDisplayFromMm(dzHud);
+            inpLen.value = maStlUserFloorLineDimensionInputValueMm(ud);
+            inpDx.value = maStlDesing2SignedDeltaMetersInputDisplayFromMm(dxHud);
+            inpDz.value = maStlDesing2SignedDeltaMetersInputDisplayFromMm(dzHud);
             const allInputs = [inpLen, inpDx, inpDz];
             const capExtra = {
                 inputLenEl: inpLen,
@@ -16649,10 +18331,10 @@ function bootMasterArticleDetailsStlViewer() {
         else if (kindSingle === 'deltaZ' && tplDz) inp.setAttribute('aria-label', tplDz);
         else if (tplLength) inp.setAttribute('aria-label', tplLength);
         if (kindSingle === 'deltaX') {
-            inp.value = maStlDesing2SignedDeltaMetersDisplayFromMm(dxHud);
+            inp.value = maStlDesing2SignedDeltaMetersInputDisplayFromMm(dxHud);
         } else if (kindSingle === 'deltaZ') {
-            inp.value = maStlDesing2SignedDeltaMetersDisplayFromMm(dzHud);
-        } else inp.value = maStlUserFloorLineDimensionLabelMm(ud);
+            inp.value = maStlDesing2SignedDeltaMetersInputDisplayFromMm(dzHud);
+        } else inp.value = maStlUserFloorLineDimensionInputValueMm(ud);
         const wired = wireDimInput(inp, kindSingle, null);
         maStlUserFloorLineDimEditDispose = function () {
             inp.removeEventListener('blur', wired.onBlur);
@@ -16976,6 +18658,165 @@ function bootMasterArticleDetailsStlViewer() {
         const ln = maStlPickUserFloorLineForCanvasInteraction(ev.clientX, ev.clientY, 8);
         if (!ln) return;
         maStlWallDimRefreshFromPickedLine(ln);
+    }
+
+    function maStlUpdateCopyToolFloorHover(clientX, clientY) {
+        if (!maStlIsDupMoveToolPlacementPhaseActive() || !maStlDesingV2Viewer || !renderer) {
+            return false;
+        }
+        const canvas = renderer.domElement;
+        const cam = activeCamera();
+        const floorHit = maStlClientRayToWorkspaceFloor(
+            clientX,
+            clientY,
+            canvas,
+            cam,
+            orbitPivotNdc,
+            orbitPivotRaycaster,
+            _maStlInsertionFloorProbe
+        );
+        if (!floorHit) {
+            maStlClearGridIntersectionPickHighlight();
+            maStlClearLineToolVertexSnapHighlight();
+            maStlCopyToolSyncHud();
+            if (maStlCopyToolState === 'displacement') {
+                maStlCopyToolRefreshDisplacementRubberBand();
+            }
+            return false;
+        }
+        const floorHitObj = { x: _maStlInsertionFloorProbe.x, z: _maStlInsertionFloorProbe.z };
+        const lineSnap = maStlFindFloorLineVertexSnapAtPointer(
+            clientX,
+            clientY,
+            MA_STL_LINE_TOOL_GRID_PICK_SCREEN_PX_BOOST
+        );
+        if (lineSnap) {
+            const onMajor = maStlIsOnDisplayedMajorGridLineAtMm(lineSnap.x, lineSnap.z);
+            maStlSetLineToolVertexSnapHighlight(lineSnap, true, onMajor);
+            maStlClearGridIntersectionPickHighlight();
+            return true;
+        }
+        maStlClearLineToolVertexSnapHighlight();
+        const proximity = {
+            clientX: clientX,
+            clientY: clientY,
+            camera: cam,
+            canvas: canvas,
+            maxDim: lastMaxDim,
+            pickScreenPxBoost: MA_STL_LINE_TOOL_GRID_PICK_SCREEN_PX_BOOST,
+        };
+        const gridSnap = maStlSnapFloorToGridFeatures(floorHitObj, proximity, desing2EnvGridSnapMm);
+        const onMajor = maStlIsOnDisplayedMajorGridLineAtMm(gridSnap.x, gridSnap.z);
+        maStlSetGridIntersectionPickHighlight(
+            gridSnap.active ? 'connected' : 'idle',
+            gridSnap,
+            onMajor
+        );
+        return true;
+    }
+
+    function onCanvasPointerMoveCopyToolSync(ev) {
+        if (!maStlIsDupMoveToolActive()) return;
+        if (maStlCopyToolState === 'selecting') {
+            if (maStlDesing2IsWindowSelectionBusy()) return;
+            const ln = maStlPickUserFloorLineForCanvasInteraction(ev.clientX, ev.clientY, 4);
+            if (ln) {
+                maStlCopyToolClearHoverMesh();
+                maStlCopyToolSetHoverLine(ln);
+                return;
+            }
+            maStlCopyToolClearHoverLine();
+            const mesh = maStlRaycastClipStlMeshFirst(ev.clientX, ev.clientY);
+            if (mesh && maStlIsDeletableStlMesh(mesh)) {
+                maStlCopyToolSetHoverMesh(mesh);
+            } else {
+                maStlCopyToolClearHoverMesh();
+            }
+            return;
+        }
+        if (maStlIsDupMoveToolPlacementPhaseActive()) {
+            maStlCopyToolLastPointerClientXY.set(ev.clientX, ev.clientY);
+            maStlUpdateCopyToolFloorHover(ev.clientX, ev.clientY);
+            if (maStlCopyToolState === 'displacement') {
+                const p = maStlResolveLineToolFloorPointMm(ev.clientX, ev.clientY);
+                if (p) maStlCopyToolMaybeUpdateHoverDirFromCandidate(p);
+                maStlCopyToolRefreshDisplacementRubberBand();
+            }
+            maStlCopyToolSyncHud();
+        }
+    }
+
+    function onCanvasPointerDownCopyTool(ev) {
+        if (!maStlIsDupMoveToolActive() || !maStlDesingV2Viewer) return;
+        if (ev.button !== 0) return;
+        const canvas = renderer.domElement;
+        if (ev.currentTarget !== canvas) return;
+        const rawTarget = ev.target;
+        if (rawTarget && typeof rawTarget.closest === 'function') {
+            if (rawTarget.closest('button, input, select, textarea, [role="button"], label')) return;
+        }
+        if (maStlCopyToolState === 'selecting') {
+            maStlDesing2WindowSelectionPointerDown(ev);
+        }
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+    }
+
+    function onCanvasClickCopyTool(ev) {
+        if (!maStlIsDupMoveToolActive() || !maStlDesingV2Viewer) return;
+        if (ev.button !== 0) return;
+        const canvas = renderer.domElement;
+        if (ev.currentTarget !== canvas) return;
+        const rawTarget = ev.target;
+        if (rawTarget && typeof rawTarget.closest === 'function') {
+            if (rawTarget.closest('button, input, select, textarea, [role="button"], label')) return;
+        }
+        if (maStlDesing2WindowSelectionShouldSuppressClick()) {
+            maStlDesing2WindowSelectionClearClickSuppression();
+            ev.preventDefault();
+            ev.stopPropagation();
+            ev.stopImmediatePropagation();
+            return;
+        }
+        if (maStlDesing2IsWindowSelectionBusy()) {
+            maStlDesing2CancelWindowSelectionDrag(true);
+        }
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+        if (maStlCopyToolState === 'selecting') {
+            maStlClearUserFloorLineClickSelectTimer();
+            const ln = maStlPickUserFloorLineForCanvasInteraction(ev.clientX, ev.clientY, 4);
+            if (ln) {
+                maStlCopyToolToggleLineSelection(ln);
+                return;
+            }
+            const mesh = maStlRaycastClipStlMeshFirst(ev.clientX, ev.clientY);
+            if (mesh && maStlIsDeletableStlMesh(mesh)) {
+                maStlCopyToolToggleMeshSelection(mesh);
+            }
+            return;
+        }
+        const p = maStlResolveLineToolFloorPointMm(ev.clientX, ev.clientY);
+        if (!p) return;
+        const pSnap = maStlApplyLineToolVertexSnapOnClickMm(ev.clientX, ev.clientY, p);
+        if (maStlCopyToolState === 'basePoint') {
+            maStlCopyToolAdvanceToDisplacementPhase(pSnap);
+            return;
+        }
+        if (maStlCopyToolState === 'displacement') {
+            maStlCopyToolLastPointerClientXY.set(ev.clientX, ev.clientY);
+            maStlCopyToolMaybeUpdateHoverDirFromCandidate(pSnap);
+            const end = { x: 0, y: 0, z: 0 };
+            if (!maStlCopyToolSnapDisplacementFloorPointMm(pSnap, end)) return;
+            maStlQuantizeUserFloorPlanPointToGridMm(end);
+            const dx = end.x - maStlCopyToolBasePointMm.x;
+            const dy = end.y - maStlCopyToolBasePointMm.y;
+            const dz = end.z - maStlCopyToolBasePointMm.z;
+            if (Math.hypot(dx, dz) < 1e-6) return;
+            maStlCopyToolTryCommitDisplacement();
+        }
     }
 
     function onCanvasClickDeleteTool(ev) {
@@ -17480,22 +19321,9 @@ function bootMasterArticleDetailsStlViewer() {
         }
         const pSnap = maStlApplyLineToolVertexSnapOnClickMm(ev.clientX, ev.clientY, p);
         if (maStlLineToolState === 'picking1') {
-            maStlQuantizeUserFloorPlanPointToGridMm(pSnap);
-            maStlLineToolPoint1Mm.set(pSnap.x, pSnap.y, pSnap.z);
-            maStlLineToolState = 'picking2';
-            maStlResetLineToolDistanceTypingState();
             maStlLineToolLastPointerClientXY.set(ev.clientX, ev.clientY);
             maStlLineToolMaybeUpdateHoverDirFromP2Candidate(pSnap);
-            maStlSyncLineToolHud();
-            maStlLineToolRefreshPicking2RubberBand();
-            queueMicrotask(function () {
-                if (maStlLineToolState !== 'picking2' || !maStlLineToolHudDistanceInput) return;
-                try {
-                    maStlLineToolHudDistanceInput.focus({ preventScroll: true });
-                } catch (_e) {
-                    maStlLineToolHudDistanceInput.focus();
-                }
-            });
+            maStlLineToolAdvancePicking1ToPicking2Mm(pSnap);
             return;
         }
         if (maStlLineToolState === 'picking2') {
@@ -17588,6 +19416,14 @@ function bootMasterArticleDetailsStlViewer() {
             maStlSyncLineToolHud();
             if (maStlLineToolState === 'picking2') {
                 maStlLineToolRefreshPicking2RubberBand();
+            }
+        }
+        if (maStlIsDupMoveToolPlacementPhaseActive()) {
+            maStlClearGridIntersectionPickHighlight();
+            maStlClearLineToolVertexSnapHighlight();
+            maStlCopyToolSyncHud();
+            if (maStlCopyToolState === 'displacement') {
+                maStlCopyToolRefreshDisplacementRubberBand();
             }
         }
         if (maStlIsInsertCornerToolPlacementActive()) {
@@ -17883,6 +19719,28 @@ function bootMasterArticleDetailsStlViewer() {
             }
             maStlDesing2SetLastToolbarCommandId('ma-stl-tool-delete');
             maStlDesing2ActivateToolbarCommandById('ma-stl-tool-delete');
+        });
+    }
+    if (maStlDesingV2Viewer && maStlCopyToolToggleBtn) {
+        maStlCopyToolToggleBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            if (maStlIsCopyToolActive()) {
+                maStlStopCopyToolModesToolbar(false);
+                return;
+            }
+            maStlDesing2SetLastToolbarCommandId('ma-stl-tool-copy');
+            maStlDesing2ActivateToolbarCommandById('ma-stl-tool-copy');
+        });
+    }
+    if (maStlDesingV2Viewer && maStlMoveToolToggleBtn) {
+        maStlMoveToolToggleBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            if (maStlIsMoveToolActive()) {
+                maStlStopCopyToolModesToolbar(false);
+                return;
+            }
+            maStlDesing2SetLastToolbarCommandId('ma-stl-tool-move');
+            maStlDesing2ActivateToolbarCommandById('ma-stl-tool-move');
         });
     }
     if (maStlDesingV2Viewer && maStlWall3dToolToggleBtn) {
@@ -18814,6 +20672,7 @@ function bootMasterArticleDetailsStlViewer() {
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownInsertEnclosureTool, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownOffsetTool, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownDeleteTool, true);
+    renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownCopyTool, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownWall3dTool, true);
     renderer.domElement.addEventListener('click', onCanvasClickLineTool, true);
     renderer.domElement.addEventListener('click', onCanvasClickInsertCornerTool, true);
@@ -18822,6 +20681,7 @@ function bootMasterArticleDetailsStlViewer() {
     renderer.domElement.addEventListener('click', onCanvasClickOffsetTool, true);
     renderer.domElement.addEventListener('click', onCanvasClickWallDimTool, true);
     renderer.domElement.addEventListener('click', onCanvasClickDeleteTool, true);
+    renderer.domElement.addEventListener('click', onCanvasClickCopyTool, true);
     renderer.domElement.addEventListener('click', onCanvasClickWall3dTool, true);
     renderer.domElement.addEventListener('click', onCanvasClickUserFloorLineSelect, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownRulerAnchorPick, true);
@@ -18831,6 +20691,7 @@ function bootMasterArticleDetailsStlViewer() {
     renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveInsertEnclosureToolSync);
     renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveOffsetToolSync);
     renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveDeleteToolSync);
+    renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveCopyToolSync);
     renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveWall3dToolSync);
     renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveRulerAnchorPick);
     const hudPointerMoveHost =
@@ -18872,9 +20733,10 @@ function bootMasterArticleDetailsStlViewer() {
     if (maStlDesingV2Viewer && maStlLineToolHudDistanceInput) {
         maStlLineToolHudDistanceInput.autocomplete = 'off';
         maStlLineToolHudDistanceInput.addEventListener('input', function () {
-            if (maStlLineToolState !== 'picking2') return;
+            if (maStlLineToolState !== 'picking1' && maStlLineToolState !== 'picking2') return;
             maStlLineToolDistanceTypeBuffer = String(maStlLineToolHudDistanceInput.value || '');
             maStlLineToolSyncTypingPreviewUi();
+            maStlSyncLineToolHud();
             maStlLineToolRefreshPicking2RubberBand();
         });
         maStlLineToolHudDistanceInput.addEventListener('keydown', (ev) => {
@@ -18895,6 +20757,74 @@ function bootMasterArticleDetailsStlViewer() {
             if (!(ev.key === 'Enter' || ev.code === 'Enter' || ev.key === 'NumpadEnter') || ev.shiftKey) return;
             ev.preventDefault();
             maStlLineToolTryTypedCommitDistanceOrbitDefer();
+        });
+    }
+
+    if (maStlDesingV2Viewer && maStlCopyToolHudDistanceInput) {
+        maStlCopyToolHudDistanceInput.autocomplete = 'off';
+        maStlCopyToolHudDistanceInput.addEventListener('input', function () {
+            if (!maStlIsCopyToolPlacementPhaseActive()) return;
+            maStlCopyToolDistanceTypeBuffer = String(maStlCopyToolHudDistanceInput.value || '');
+            maStlCopyToolSyncTypingPreviewUi();
+            maStlCopyToolSyncHud();
+            maStlCopyToolRefreshDisplacementRubberBand();
+        });
+        maStlCopyToolHudDistanceInput.addEventListener('keydown', (ev) => {
+            if (!(ev.key === 'Enter' || ev.code === 'Enter' || ev.key === 'NumpadEnter') || ev.shiftKey) return;
+            ev.preventDefault();
+            if (maStlCopyToolState === 'basePoint') {
+                maStlCopyToolTryCommitBasePointFromTyping();
+            } else if (maStlCopyToolState === 'displacement') {
+                maStlCopyToolTryCommitDisplacement();
+            }
+        });
+    }
+    if (maStlDesingV2Viewer && maStlCopyToolHudAngleInput) {
+        maStlCopyToolHudAngleInput.autocomplete = 'off';
+        maStlCopyToolHudAngleInput.addEventListener('input', function () {
+            if (!maStlIsCopyToolPlacementPhaseActive()) return;
+            maStlCopyToolAngleTypeBuffer = String(maStlCopyToolHudAngleInput.value || '');
+            maStlCopyToolSyncTypingPreviewUi();
+            maStlCopyToolRefreshDisplacementRubberBand();
+        });
+        maStlCopyToolHudAngleInput.addEventListener('keydown', (ev) => {
+            if (!(ev.key === 'Enter' || ev.code === 'Enter' || ev.key === 'NumpadEnter') || ev.shiftKey) return;
+            ev.preventDefault();
+            maStlCopyToolTryCommitDisplacement();
+        });
+    }
+
+    if (maStlDesingV2Viewer && maStlMoveToolHudDistanceInput) {
+        maStlMoveToolHudDistanceInput.autocomplete = 'off';
+        maStlMoveToolHudDistanceInput.addEventListener('input', function () {
+            if (!maStlIsDupMoveToolPlacementPhaseActive() || maStlCopyToolKind !== 'move') return;
+            maStlCopyToolDistanceTypeBuffer = String(maStlMoveToolHudDistanceInput.value || '');
+            maStlCopyToolSyncTypingPreviewUi();
+            maStlCopyToolSyncHud();
+            maStlCopyToolRefreshDisplacementRubberBand();
+        });
+        maStlMoveToolHudDistanceInput.addEventListener('keydown', (ev) => {
+            if (!(ev.key === 'Enter' || ev.code === 'Enter' || ev.key === 'NumpadEnter') || ev.shiftKey) return;
+            ev.preventDefault();
+            if (maStlCopyToolState === 'basePoint') {
+                maStlCopyToolTryCommitBasePointFromTyping();
+            } else if (maStlCopyToolState === 'displacement') {
+                maStlCopyToolTryCommitDisplacement();
+            }
+        });
+    }
+    if (maStlDesingV2Viewer && maStlMoveToolHudAngleInput) {
+        maStlMoveToolHudAngleInput.autocomplete = 'off';
+        maStlMoveToolHudAngleInput.addEventListener('input', function () {
+            if (maStlCopyToolKind !== 'move' || maStlCopyToolState !== 'displacement') return;
+            maStlCopyToolAngleTypeBuffer = String(maStlMoveToolHudAngleInput.value || '');
+            maStlCopyToolSyncTypingPreviewUi();
+            maStlCopyToolRefreshDisplacementRubberBand();
+        });
+        maStlMoveToolHudAngleInput.addEventListener('keydown', (ev) => {
+            if (!(ev.key === 'Enter' || ev.code === 'Enter' || ev.key === 'NumpadEnter') || ev.shiftKey) return;
+            ev.preventDefault();
+            maStlCopyToolTryCommitDisplacement();
         });
     }
 
@@ -18968,7 +20898,13 @@ function bootMasterArticleDetailsStlViewer() {
                 maStlLineToolHudDistanceInput &&
                 ae === maStlLineToolHudDistanceInput &&
                 maStlLineToolState === 'picking2';
-            if (maStlDesingV2AvoidKeyboardShortcutSteal(ae) && !lineDistFocused) return;
+            const dupMoveHudFocused =
+                maStlIsDupMoveToolActive() &&
+                (ae === maStlCopyToolHudDistanceInput ||
+                    ae === maStlCopyToolHudAngleInput ||
+                    ae === maStlMoveToolHudDistanceInput ||
+                    ae === maStlMoveToolHudAngleInput);
+            if (maStlDesingV2AvoidKeyboardShortcutSteal(ae) && !lineDistFocused && !dupMoveHudFocused) return;
             if (maStlCancelAllViewerInteractionModes()) {
                 ev.preventDefault();
                 ev.stopPropagation();
@@ -18982,6 +20918,8 @@ function bootMasterArticleDetailsStlViewer() {
         maStlDisposeDesingV2LineToolDistanceKeyListener();
         if (!maStlDesingV2Viewer || !viewerShell) return;
         _maStlDesingV2LineToolDistanceKeyHandler = (ev) => {
+            if (maStlCopyToolApplyWindowKeydownEscape(ev)) return;
+            if (maStlCopyToolApplyWindowKeydownToInputBuffer(ev)) return;
             maStlLineToolApplyWindowKeydownToDistanceBuffer(ev);
         };
         window.addEventListener('keydown', _maStlDesingV2LineToolDistanceKeyHandler);
@@ -18993,6 +20931,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (!maStlDesingV2Viewer || !viewerShell) return;
         _maStlDesingV2LineToolEnterActivateKeyHandler = (ev) => {
             if (maStlApplyWindowKeydownDeleteKey(ev)) return;
+            if (maStlCopyToolApplyWindowKeydownConfirm(ev)) return;
             if (maStlWall3dToolApplyWindowKeydownConfirm(ev)) return;
             if (maStlDeleteToolApplyWindowKeydownConfirm(ev)) return;
             maStlDesing2ApplyWindowEnterToRepeatLastToolbarCommand(ev);
@@ -19568,6 +21507,15 @@ function bootMasterArticleDetailsStlViewer() {
                     return false;
                 }
                 if (
+                    (formField.id === 'ma-stl-copy-tool-hud-distance' ||
+                        formField.id === 'ma-stl-copy-tool-hud-angle' ||
+                        formField.id === 'ma-stl-move-tool-hud-distance' ||
+                        formField.id === 'ma-stl-move-tool-hud-angle') &&
+                    maStlIsDupMoveToolActive()
+                ) {
+                    return false;
+                }
+                if (
                     tp === 'button' ||
                     tp === 'submit' ||
                     tp === 'reset' ||
@@ -19590,6 +21538,7 @@ function bootMasterArticleDetailsStlViewer() {
                 maStlLineToolState != null ||
                 maStlOffsetToolState != null ||
                 maStlIsDeleteToolActive() ||
+                maStlIsDupMoveToolActive() ||
                 maStlRulerAnchorPickMode !== null ||
                 !!maStlRulerAnchorPickOrbitLockSnapshot ||
                 !!maStlDeferredRulerPickUnlockPointerEnded ||

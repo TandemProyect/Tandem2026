@@ -159,6 +159,12 @@ namespace Desing.Resources
         public static string StlPreview_DarkBgAria => ResourceManager.GetString(nameof(StlPreview_DarkBgAria), resourceCulture);
         public static string StlPreview_DarkBgTitle => ResourceManager.GetString(nameof(StlPreview_DarkBgTitle), resourceCulture);
         public static string StlPreview_DeleteToolInstruction => ResourceManager.GetString(nameof(StlPreview_DeleteToolInstruction), resourceCulture);
+        public static string StlPreview_CopyToolInstructionSelecting => ResourceManager.GetString(nameof(StlPreview_CopyToolInstructionSelecting), resourceCulture);
+        public static string StlPreview_CopyToolInstructionBasePoint => ResourceManager.GetString(nameof(StlPreview_CopyToolInstructionBasePoint), resourceCulture);
+        public static string StlPreview_CopyToolInstructionDisplacement => ResourceManager.GetString(nameof(StlPreview_CopyToolInstructionDisplacement), resourceCulture);
+        public static string StlPreview_MoveToolInstructionSelecting => ResourceManager.GetString(nameof(StlPreview_MoveToolInstructionSelecting), resourceCulture);
+        public static string StlPreview_MoveToolInstructionBasePoint => ResourceManager.GetString(nameof(StlPreview_MoveToolInstructionBasePoint), resourceCulture);
+        public static string StlPreview_MoveToolInstructionDisplacement => ResourceManager.GetString(nameof(StlPreview_MoveToolInstructionDisplacement), resourceCulture);
         public static string StlPreview_Desing2BottomToolbarAria => ResourceManager.GetString(nameof(StlPreview_Desing2BottomToolbarAria), resourceCulture);
         public static string StlPreview_Desing2BottomToolbarCollapseTitle => ResourceManager.GetString(nameof(StlPreview_Desing2BottomToolbarCollapseTitle), resourceCulture);
         public static string StlPreview_Desing2BottomToolbarPinTitle => ResourceManager.GetString(nameof(StlPreview_Desing2BottomToolbarPinTitle), resourceCulture);

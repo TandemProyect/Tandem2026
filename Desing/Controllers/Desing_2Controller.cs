@@ -184,6 +184,53 @@ namespace Desing.Controllers
             }
         }
 
+        /// <summary>
+        /// Guarda un diagnóstico ampliado de muros en una ruta local estable para análisis con agentes.
+        /// </summary>
+        [HttpPost]
+        public JsonResult SaveWallDiagnostics()
+        {
+            try
+            {
+                if (Request.InputStream.CanSeek)
+                {
+                    Request.InputStream.Position = 0;
+                }
+
+                string rawJson;
+                using (var reader = new StreamReader(Request.InputStream, Encoding.UTF8))
+                {
+                    rawJson = reader.ReadToEnd();
+                }
+
+                if (string.IsNullOrWhiteSpace(rawJson))
+                {
+                    return Json(new { Exito = false, Mensaje = "JSON vacío." });
+                }
+
+                var parsed = JToken.Parse(rawJson);
+                var dir = @"C:\temp";
+                if (!Directory.Exists(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
+
+                var targetPath = Path.Combine(dir, "WallDiagnostics.json");
+                var formatted = JsonConvert.SerializeObject(parsed, Formatting.Indented);
+                System.IO.File.WriteAllText(targetPath, formatted, new UTF8Encoding(false));
+
+                return Json(new { Exito = true, Path = targetPath });
+            }
+            catch (JsonReaderException ex)
+            {
+                return Json(new { Exito = false, Mensaje = "JSON inválido: " + ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Exito = false, Mensaje = ex.Message });
+            }
+        }
+
 
 
         private static string ResolvePlantillaLogoUrl(UrlHelper url, string plantillaLogoRaw)

@@ -13,7 +13,7 @@
    data-ma-stl-source-units: vértices STL → m → mm escena (×1000; reglas/rejilla en mm).
    Persistencia vista: #ma-stl-save-viewer-state → cookie global; restauración tras primer refit (ver desing-2-stl-viewer-funciones.md). *@
 @* Opcional desarrollo en #ma-stl-viewer-shell: data-ma-stl-dev-auto-load="true", data-ma-stl-dev-default-stl="~/Files/.../3120270090P.stl" (URL resuelta con @Url.Content), data-ma-stl-dev-default-label="..." *@
-<div id="ma-stl-viewer-shell" class="desing2-stl-view-scope border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" data-ma-text-color1="@HttpUtility.HtmlAttributeEncode(textColor1Hex)" data-ma-text-color2="@HttpUtility.HtmlAttributeEncode(textColor2Hex)" data-ma-stl-show-rulers-toggle="true" data-ma-stl-desing2-persist-view="true" data-ma-stl-source-units="@HttpUtility.HtmlAttributeEncode(stlSrcUnits)" data-ma-stl-wall3d-api-url="@Url.Action("ProcesarLineasZwcad", "DesignToolsAutocad")" data-ma-stl-image-sketch-api-url="@Url.Action("DetectarEsquinasImagen", "DesignToolsAutocad")" data-ma-stl-wall-connections-api-url="@Url.Action("SaveWallConnections", "Desing_2")" data-ma-stl-wall3d-mat-wall="@Url.Content("~/Content/DesignTools/Material/concrete.png")" data-ma-stl-escape-cancel-toast="@MasterArticles.StlPreview_EscapeCancelToolsToast" data-ma-stl-user-floor-line-dim-edit-aria="@MasterArticles.StlPreview_UserFloorLineDimEditAria" data-ma-stl-user-floor-line-dim-edit-x-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaXAria" data-ma-stl-user-floor-line-dim-edit-z-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaZAria" data-ma-stl-user-floor-line-drag-handle-aria="@MasterArticles.StlPreview_UserFloorLineDragHandleAria" data-ma-stl-user-floor-line-p1-handle-aria="@MasterArticles.StlPreview_UserFloorLineP1HandleAria" data-ma-stl-user-floor-line-p2-handle-aria="@MasterArticles.StlPreview_UserFloorLineP2HandleAria">
+<div id="ma-stl-viewer-shell" class="desing2-stl-view-scope border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" data-ma-text-color1="@HttpUtility.HtmlAttributeEncode(textColor1Hex)" data-ma-text-color2="@HttpUtility.HtmlAttributeEncode(textColor2Hex)" data-ma-stl-show-rulers-toggle="true" data-ma-stl-desing2-persist-view="true" data-ma-stl-source-units="@HttpUtility.HtmlAttributeEncode(stlSrcUnits)" data-ma-stl-wall3d-api-url="@Url.Action("ProcesarLineasZwcad", "DesignToolsAutocad")" data-ma-stl-image-sketch-api-url="@Url.Action("DetectarEsquinasImagen", "DesignToolsAutocad")" data-ma-stl-wall-connections-api-url="@Url.Action("SaveWallConnections", "Desing_2")" data-ma-stl-wall-diagnostics-api-url="@Url.Action("SaveWallDiagnostics", "Desing_2")" data-ma-stl-wall3d-mat-wall="@Url.Content("~/Content/DesignTools/Material/concrete.png")" data-ma-stl-escape-cancel-toast="@MasterArticles.StlPreview_EscapeCancelToolsToast" data-ma-stl-user-floor-line-dim-edit-aria="@MasterArticles.StlPreview_UserFloorLineDimEditAria" data-ma-stl-user-floor-line-dim-edit-x-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaXAria" data-ma-stl-user-floor-line-dim-edit-z-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaZAria" data-ma-stl-user-floor-line-drag-handle-aria="@MasterArticles.StlPreview_UserFloorLineDragHandleAria" data-ma-stl-user-floor-line-p1-handle-aria="@MasterArticles.StlPreview_UserFloorLineP1HandleAria" data-ma-stl-user-floor-line-p2-handle-aria="@MasterArticles.StlPreview_UserFloorLineP2HandleAria">
     <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap px-2 py-2 border-bottom desing2-stl-actions-toolbar" id="master-article-stl-viewer-toolbar">
         <div class="d-flex align-items-center gap-2 min-w-0 flex-grow-1 desing2-stl-toolbar-leading">
             <span class="app-brand-logo demo flex-shrink-0">
@@ -403,6 +403,56 @@
         <div id="ma-stl-delete-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
              data-ma-stl-delete-tool-instruction="@MasterArticles.StlPreview_DeleteToolInstruction">
             <div id="ma-stl-delete-tool-hud-instruction" class="ma-stl-line-tool-hud__instruction small fw-semibold text-body mb-1"></div>
+        </div>
+        <div id="ma-stl-copy-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
+             data-ma-stl-copy-tool-instruction-selecting="@MasterArticles.StlPreview_CopyToolInstructionSelecting"
+             data-ma-stl-copy-tool-instruction-base="@MasterArticles.StlPreview_CopyToolInstructionBasePoint"
+             data-ma-stl-copy-tool-instruction-displacement="@MasterArticles.StlPreview_CopyToolInstructionDisplacement"
+             data-ma-stl-copy-tool-distance-invalid-toast="@MasterArticles.StlPreview_LineToolDistanceInvalidToast"
+             data-ma-stl-line-tool-distance-preview-prefix="@MasterArticles.StlPreview_LineToolDistancePreviewApprox">
+            <div id="ma-stl-copy-tool-hud-instruction" class="ma-stl-line-tool-hud__instruction small fw-semibold text-body mb-1"></div>
+            <div id="ma-stl-copy-tool-hud-coords" class="ma-stl-line-tool-hud__coords"
+                 data-ma-stl-line-tool-coords-template="@MasterArticles.StlPreview_RulerAnchorGridCoordsHud"></div>
+            <div id="ma-stl-copy-tool-hud-distance-row" class="ma-stl-line-tool-hud__distance-row d-none mt-1">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <input id="ma-stl-copy-tool-hud-distance" type="text" maxlength="48" tabindex="0" autocomplete="off"
+                           inputmode="text"
+                           aria-label="@MasterArticles.StlPreview_LineToolHudDistanceAria"
+                           placeholder="@MasterArticles.StlPreview_LineToolHudDistancePlaceholder"
+                           class="form-control form-control-sm ma-stl-line-tool-hud__distance-field" />
+                    <input id="ma-stl-copy-tool-hud-angle" type="text" maxlength="16" tabindex="0" autocomplete="off"
+                           inputmode="decimal"
+                           aria-label="°"
+                           placeholder="°"
+                           class="form-control form-control-sm ma-stl-line-tool-hud__distance-field ma-stl-line-tool-hud__angle-field" />
+                    <span id="ma-stl-copy-tool-hud-distance-preview" class="small text-muted fw-semibold text-nowrap ma-stl-line-tool-hud__distance-preview" aria-hidden="true"></span>
+                </div>
+            </div>
+        </div>
+        <div id="ma-stl-move-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
+             data-ma-stl-move-tool-instruction-selecting="@MasterArticles.StlPreview_MoveToolInstructionSelecting"
+             data-ma-stl-move-tool-instruction-base="@MasterArticles.StlPreview_MoveToolInstructionBasePoint"
+             data-ma-stl-move-tool-instruction-displacement="@MasterArticles.StlPreview_MoveToolInstructionDisplacement"
+             data-ma-stl-move-tool-distance-invalid-toast="@MasterArticles.StlPreview_LineToolDistanceInvalidToast"
+             data-ma-stl-line-tool-distance-preview-prefix="@MasterArticles.StlPreview_LineToolDistancePreviewApprox">
+            <div id="ma-stl-move-tool-hud-instruction" class="ma-stl-line-tool-hud__instruction small fw-semibold text-body mb-1"></div>
+            <div id="ma-stl-move-tool-hud-coords" class="ma-stl-line-tool-hud__coords"
+                 data-ma-stl-line-tool-coords-template="@MasterArticles.StlPreview_RulerAnchorGridCoordsHud"></div>
+            <div id="ma-stl-move-tool-hud-distance-row" class="ma-stl-line-tool-hud__distance-row d-none mt-1">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <input id="ma-stl-move-tool-hud-distance" type="text" maxlength="48" tabindex="0" autocomplete="off"
+                           inputmode="text"
+                           aria-label="@MasterArticles.StlPreview_LineToolHudDistanceAria"
+                           placeholder="@MasterArticles.StlPreview_LineToolHudDistancePlaceholder"
+                           class="form-control form-control-sm ma-stl-line-tool-hud__distance-field" />
+                    <input id="ma-stl-move-tool-hud-angle" type="text" maxlength="16" tabindex="0" autocomplete="off"
+                           inputmode="decimal"
+                           aria-label="°"
+                           placeholder="°"
+                           class="form-control form-control-sm ma-stl-line-tool-hud__distance-field ma-stl-line-tool-hud__angle-field" />
+                    <span id="ma-stl-move-tool-hud-distance-preview" class="small text-muted fw-semibold text-nowrap ma-stl-line-tool-hud__distance-preview" aria-hidden="true"></span>
+                </div>
+            </div>
         </div>
         <div id="ma-stl-wall3d-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
              data-ma-stl-wall3d-tool-instruction="@MasterArticles.StlPreview_Wall3dToolInstruction"

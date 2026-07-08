@@ -409,6 +409,24 @@
   <data name="StlPreview_DeleteToolInstruction" xml:space="preserve">
     <value>Select floor lines or STL objects to delete (click or window selection). Enter/Space/Delete to delete, Esc to cancel</value>
   </data>
+  <data name="StlPreview_CopyToolInstructionSelecting" xml:space="preserve">
+    <value>Select what to copy: single click or drag (L→R window, R→L crossing). Enter to continue, Esc to cancel.</value>
+  </data>
+  <data name="StlPreview_CopyToolInstructionBasePoint" xml:space="preserve">
+    <value>Base point: click on the floor or type X,Z (e.g. 0,0) + Enter.</value>
+  </data>
+  <data name="StlPreview_CopyToolInstructionDisplacement" xml:space="preserve">
+    <value>Second point (displacement): click, #X,Z, or @distance&lt;angle + Enter. Repeat for more copies; Esc to finish.</value>
+  </data>
+  <data name="StlPreview_MoveToolInstructionSelecting" xml:space="preserve">
+    <value>Select what to move: single click or drag (L→R window, R→L crossing). Enter to continue, Esc to cancel.</value>
+  </data>
+  <data name="StlPreview_MoveToolInstructionBasePoint" xml:space="preserve">
+    <value>Base point: click on the floor or type X,Z (e.g. 0,0) + Enter.</value>
+  </data>
+  <data name="StlPreview_MoveToolInstructionDisplacement" xml:space="preserve">
+    <value>Second point (displacement): click, #X,Z, or @distance&lt;angle + Enter. Repeat for more moves; Esc to finish.</value>
+  </data>
   <data name="StlPreview_Desing2BottomToolbarAria" xml:space="preserve">
     <value>STL viewer bottom bar (undo, ortho, rulers)</value>
   </data>
@@ -590,13 +608,13 @@
     <value>Copy</value>
   </data>
   <data name="StlPreview_Desing2TopToolCopiarAria" xml:space="preserve">
-    <value>Copy tool — coming soon (UI placeholder only)</value>
+    <value>Copy floor-plan lines and STL meshes — click or window selection, base point and displacement</value>
   </data>
   <data name="StlPreview_Desing2TopToolDesplazar" xml:space="preserve">
     <value>Move</value>
   </data>
   <data name="StlPreview_Desing2TopToolDesplazarAria" xml:space="preserve">
-    <value>Move tool — coming soon (UI placeholder only)</value>
+    <value>Move floor-plan lines and STL meshes — click or window selection, base point and displacement</value>
   </data>
   <data name="StlPreview_Desing2TopToolEstirar" xml:space="preserve">
     <value>Stretch</value>
@@ -674,7 +692,7 @@
     <value>Wall thickness dimension on plan: parallel user lines, face-to-face thickness</value>
   </data>
   <data name="StlPreview_Desing2WallDimToolTitle" xml:space="preserve">
-    <value>Dimension walls — segment lengths, overall span, and thickness (construction style)</value>
+    <value>Annotate walls — segment lengths, overall span, and thickness (construction style)</value>
   </data>
   <data name="StlPreview_EdgeRulersToggleAria" xml:space="preserve">
     <value>Viewer edge rulers</value>
@@ -788,10 +806,10 @@
     <value>e.g. 5 · 5.5 · 5000 mm</value>
   </data>
   <data name="StlPreview_LineToolInstructionFirst" xml:space="preserve">
-    <value>Click for the first point (move the mouse for preview).</value>
+    <value>Click or type X,Z in metres (e.g. 0,0) + Enter for the first point.</value>
   </data>
   <data name="StlPreview_LineToolInstructionSecond" xml:space="preserve">
-    <value>Second point: click on the floor, or type the distance and press Enter.</value>
+    <value>Next point: click on the floor, type distance + Enter, or #X,Z in metres (e.g. #0,0).</value>
   </data>
   <data name="StlPreview_LineToolOrthoToastOff" xml:space="preserve">
     <value>15° ortho off (F8).</value>
@@ -827,16 +845,16 @@
     <value>Click the line to copy; double-click to edit the offset distance.</value>
   </data>
   <data name="StlPreview_PolylineToolInstructionFirst" xml:space="preserve">
-    <value>Click for the first vertex (move the mouse for the first segment preview).</value>
+    <value>Click or type X,Z in metres (e.g. 0,0) + Enter for the first vertex.</value>
   </data>
   <data name="StlPreview_PolylineToolInstructionSecond" xml:space="preserve">
-    <value>Next vertex: click on the floor, or type distance + Enter to finish the polyline. Escape cancels the current segment.</value>
+    <value>Next vertex: click, distance + Enter, or #X,Z in metres. Escape cancels the current segment.</value>
   </data>
   <data name="StlPreview_Wall2dToolInstructionFirst" xml:space="preserve">
-    <value>Click for the first wall axis vertex (preview shows half thickness on each side).</value>
+    <value>Click or type X,Z in metres (e.g. 0,0) + Enter for the first wall axis vertex.</value>
   </data>
   <data name="StlPreview_Wall2dToolInstructionSecond" xml:space="preserve">
-    <value>Next axis vertex: click on the floor or type distance + Enter. Corners miter when you turn. Escape finishes.</value>
+    <value>Next axis vertex: click, distance + Enter, or #X,Z in metres. Escape finishes.</value>
   </data>
   <data name="StlPreview_RowLabel3D" xml:space="preserve">
     <value>3D</value>

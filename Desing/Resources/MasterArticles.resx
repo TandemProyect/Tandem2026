@@ -409,6 +409,24 @@
   <data name="StlPreview_DeleteToolInstruction" xml:space="preserve">
     <value>Seleccione líneas u objetos STL para borrar (clic o selección por ventana). Enter/Espacio/Supr para borrar, Esc cancelar</value>
   </data>
+  <data name="StlPreview_CopyToolInstructionSelecting" xml:space="preserve">
+    <value>Seleccione qué copiar: clic simple o arrastre (izq→der ventana, der→izq cruce). Intro para continuar, Esc cancelar.</value>
+  </data>
+  <data name="StlPreview_CopyToolInstructionBasePoint" xml:space="preserve">
+    <value>Punto base: clic en planta o teclee X,Z (p. ej. 0,0) + Intro.</value>
+  </data>
+  <data name="StlPreview_CopyToolInstructionDisplacement" xml:space="preserve">
+    <value>Segundo punto (desplazamiento): clic, #X,Z, o @distancia&lt;grados + Intro. Repita para más copias; Esc para terminar.</value>
+  </data>
+  <data name="StlPreview_MoveToolInstructionSelecting" xml:space="preserve">
+    <value>Seleccione qué mover: clic simple o arrastre (izq→der ventana, der→izq cruce). Intro para continuar, Esc cancelar.</value>
+  </data>
+  <data name="StlPreview_MoveToolInstructionBasePoint" xml:space="preserve">
+    <value>Punto base: clic en planta o teclee X,Z (p. ej. 0,0) + Intro.</value>
+  </data>
+  <data name="StlPreview_MoveToolInstructionDisplacement" xml:space="preserve">
+    <value>Segundo punto (desplazamiento): clic, #X,Z, o @distancia&lt;grados + Intro. Repita para más movimientos; Esc para terminar.</value>
+  </data>
   <data name="StlPreview_Desing2BottomToolbarAria" xml:space="preserve">
     <value>Barra inferior del visor STL (deshacer, orto, reglas)</value>
   </data>
@@ -590,13 +608,13 @@
     <value>Copiar</value>
   </data>
   <data name="StlPreview_Desing2TopToolCopiarAria" xml:space="preserve">
-    <value>Herramienta copiar — próximamente (solo interfaz)</value>
+    <value>Copiar líneas de planta y objetos STL — selección por clic o ventana, punto base y desplazamiento</value>
   </data>
   <data name="StlPreview_Desing2TopToolDesplazar" xml:space="preserve">
     <value>Desplazar</value>
   </data>
   <data name="StlPreview_Desing2TopToolDesplazarAria" xml:space="preserve">
-    <value>Herramienta desplazar — próximamente (solo interfaz)</value>
+    <value>Desplazar líneas de planta y objetos STL — selección por clic o ventana, punto base y desplazamiento</value>
   </data>
   <data name="StlPreview_Desing2TopToolEstirar" xml:space="preserve">
     <value>Estirar</value>
@@ -674,7 +692,7 @@
     <value>Cota espesor de muro en planta: líneas paralelas usuario, espesor entre caras</value>
   </data>
   <data name="StlPreview_Desing2WallDimToolTitle" xml:space="preserve">
-    <value>Cotar muro — longitudes, global y espesor (estilo construcción)</value>
+    <value>Acotar muro — longitudes, global y espesor (estilo construcción)</value>
   </data>
   <data name="StlPreview_EdgeRulersToggleAria" xml:space="preserve">
     <value>Reglas de borde del visor</value>
@@ -788,10 +806,10 @@
     <value>p. ej. 5 · 5,5 · 5000 mm</value>
   </data>
   <data name="StlPreview_LineToolInstructionFirst" xml:space="preserve">
-    <value>Clic para el primer punto (mueva el ratón para situar la vista previa).</value>
+    <value>Clic o teclee X,Z en metros (p. ej. 0,0) + Intro para el primer punto.</value>
   </data>
   <data name="StlPreview_LineToolInstructionSecond" xml:space="preserve">
-    <value>Segundo punto: clic en planta, o escriba la distancia y pulse Intro.</value>
+    <value>Siguiente punto: clic en planta, distancia + Intro, o #X,Z en metros (p. ej. #0,0).</value>
   </data>
   <data name="StlPreview_LineToolOrthoToastOff" xml:space="preserve">
     <value>Ortogonal 15° desactivado (F8).</value>
@@ -827,16 +845,16 @@
     <value>Clic en la línea a copiar; doble clic para editar la distancia del offset.</value>
   </data>
   <data name="StlPreview_PolylineToolInstructionFirst" xml:space="preserve">
-    <value>Clic para el primer vértice (mueva el ratón para la vista previa del primer tramo).</value>
+    <value>Clic o teclee X,Z en metros (p. ej. 0,0) + Intro para el primer vértice.</value>
   </data>
   <data name="StlPreview_PolylineToolInstructionSecond" xml:space="preserve">
-    <value>Siguiente vértice: clic en planta, o distancia + Intro para cerrar la polilínea. Escape cancela el tramo en curso.</value>
+    <value>Siguiente vértice: clic, distancia + Intro, o #X,Z en metros. Escape cancela el tramo en curso.</value>
   </data>
   <data name="StlPreview_Wall2dToolInstructionFirst" xml:space="preserve">
-    <value>Clic para el primer vértice del eje del muro (vista previa con espesor arriba y abajo).</value>
+    <value>Clic o teclee X,Z en metros (p. ej. 0,0) + Intro para el primer vértice del eje.</value>
   </data>
   <data name="StlPreview_Wall2dToolInstructionSecond" xml:space="preserve">
-    <value>Siguiente vértice del eje: clic en planta o distancia + Intro. Al girar, las esquinas se ajustan. Escape termina.</value>
+    <value>Siguiente vértice del eje: clic, distancia + Intro, o #X,Z en metros. Escape termina.</value>
   </data>
   <data name="StlPreview_RowLabel3D" xml:space="preserve">
     <value>3D</value>
