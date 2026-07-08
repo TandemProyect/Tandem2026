@@ -39,6 +39,7 @@ namespace Desing.Helpers
         public const string ItemKeyCompanyLanguageLocked = "TandemCompanyLanguageLocked";
 
         private const string CacheKeyPrefix = "TandemLangCode_Id_";
+        private const string CacheKeyLanguageIdByCodePrefix = "TandemLangId_Code_";
 
         /// <summary>
         /// Convierte rutas tipo content/images/... a ~/Content/... para Url.Content.
@@ -338,10 +339,21 @@ namespace Desing.Helpers
             var code = ReadResolvedUiCultureCode(request);
             try
             {
+                var cache = HttpRuntime.Cache;
+                var cacheKey = CacheKeyLanguageIdByCodePrefix + (code ?? "").Trim().ToLowerInvariant();
+                var cached = cache[cacheKey];
+                if (cached is long)
+                    return (long)cached;
+
                 var id = db.TSql_language
+                    .AsNoTracking()
                     .Where(l => l.TextCode == code && !l.Is_Delete && l.Is_Active)
                     .Select(l => (long?)l.IdObject)
                     .FirstOrDefault();
+                if (id.HasValue)
+                {
+                    cache.Insert(cacheKey, id.Value, null, Cache.NoAbsoluteExpiration, TimeSpan.FromMinutes(15));
+                }
                 return id;
             }
             catch

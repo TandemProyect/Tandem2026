@@ -355,6 +355,7 @@
             </div>
         </aside>
         <div id="ma-stl-ruler-anchor-coords-hud" class="ma-stl-ruler-anchor-coords-hud d-none" aria-live="polite" aria-atomic="true" data-ma-stl-ruler-anchor-coords-template="@MasterArticles.StlPreview_RulerAnchorGridCoordsHud"></div>
+        <div id="ma-stl-line-tool-ortho-status-hud" class="ma-stl-line-tool-ortho-status-hud d-none" role="button" tabindex="0" aria-live="polite" aria-atomic="true"></div>
         <div id="ma-stl-line-snap-angle-hud" class="ma-stl-line-snap-angle-hud d-none" aria-live="polite" aria-atomic="true"></div>
         <div id="ma-stl-line-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
              data-ma-stl-line-tool-instruction-first="@MasterArticles.StlPreview_LineToolInstructionFirst"
@@ -375,6 +376,11 @@
                            aria-label="@MasterArticles.StlPreview_LineToolHudDistanceAria"
                            placeholder="@MasterArticles.StlPreview_LineToolHudDistancePlaceholder"
                            class="form-control form-control-sm ma-stl-line-tool-hud__distance-field" />
+                    <input id="ma-stl-line-tool-hud-angle" type="text" maxlength="16" tabindex="0" autocomplete="off"
+                           inputmode="decimal"
+                           aria-label="°"
+                           placeholder="°"
+                           class="form-control form-control-sm ma-stl-line-tool-hud__distance-field ma-stl-line-tool-hud__angle-field" />
                     <span id="ma-stl-line-tool-hud-distance-preview" class="small text-muted fw-semibold text-nowrap ma-stl-line-tool-hud__distance-preview" aria-hidden="true"></span>
                 </div>
             </div>

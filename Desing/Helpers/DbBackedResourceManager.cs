@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data.Entity;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -27,6 +29,8 @@ namespace Desing.Helpers
         // Cache: (module, normalized textCode) -> { resourceKey -> textValue }
         private static readonly ConcurrentDictionary<string, Dictionary<string, string>> _cache =
             new ConcurrentDictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
+        private static readonly ConcurrentDictionary<string, long> _languageIdCache =
+            new ConcurrentDictionary<string, long>(StringComparer.OrdinalIgnoreCase);
 
         public DbBackedResourceManager(string baseName, Assembly assembly, string textModule)
             : base(baseName, assembly)
@@ -41,6 +45,7 @@ namespace Desing.Helpers
         public static void Invalidate()
         {
             _cache.Clear();
+            _languageIdCache.Clear();
         }
 
         public override string GetString(string name, CultureInfo culture)
@@ -96,26 +101,13 @@ namespace Desing.Helpers
 
         private static Dictionary<string, string> Load(string module, string code)
         {
+            var sw = Stopwatch.StartNew();
             var result = new Dictionary<string, string>(StringComparer.Ordinal);
             try
             {
                 using (var db = new ConexionData())
                 {
-                    long? langId;
-                    if (string.IsNullOrEmpty(code))
-                    {
-                        langId = db.TSql_language
-                            .Where(l => l.Is_Default && !l.Is_Delete && l.Is_Active)
-                            .Select(l => (long?)l.IdObject)
-                            .FirstOrDefault();
-                    }
-                    else
-                    {
-                        langId = db.TSql_language
-                            .Where(l => l.TextCode == code && !l.Is_Delete && l.Is_Active)
-                            .Select(l => (long?)l.IdObject)
-                            .FirstOrDefault();
-                    }
+                    var langId = ResolveLanguageId(db, code);
 
                     if (!langId.HasValue)
                         return result;
@@ -144,7 +136,47 @@ namespace Desing.Helpers
                 /* devolver lo cargado hasta ahora; en peor caso, diccionario vacio */
             }
 
+            sw.Stop();
+            TraceStartupTiming(
+                "DbBackedResourceManager.Load module=" + module + " code=" + (code ?? "") + " rows=" + result.Count,
+                sw.ElapsedMilliseconds);
             return result;
+        }
+
+        private static long? ResolveLanguageId(ConexionData db, string code)
+        {
+            var normalizedCode = (code ?? "").Trim().ToLowerInvariant();
+            var cacheKey = string.IsNullOrEmpty(normalizedCode) ? "__default__" : normalizedCode;
+            long cached;
+            if (_languageIdCache.TryGetValue(cacheKey, out cached))
+                return cached > 0 ? (long?)cached : null;
+
+            long? langId;
+            if (string.IsNullOrEmpty(normalizedCode))
+            {
+                langId = db.TSql_language.AsNoTracking()
+                    .Where(l => l.Is_Default && !l.Is_Delete && l.Is_Active)
+                    .Select(l => (long?)l.IdObject)
+                    .FirstOrDefault();
+            }
+            else
+            {
+                langId = db.TSql_language.AsNoTracking()
+                    .Where(l => l.TextCode == normalizedCode && !l.Is_Delete && l.Is_Active)
+                    .Select(l => (long?)l.IdObject)
+                    .FirstOrDefault();
+            }
+
+            _languageIdCache[cacheKey] = langId.GetValueOrDefault();
+            return langId;
+        }
+
+        private static void TraceStartupTiming(string label, long elapsedMs)
+        {
+            if (!string.Equals(ConfigurationManager.AppSettings["TandemStartupTiming"], "true", StringComparison.OrdinalIgnoreCase))
+                return;
+
+            Debug.WriteLine("[TandemStartupTiming] " + label + " = " + elapsedMs + " ms");
         }
     }
 }

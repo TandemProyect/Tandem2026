@@ -1092,6 +1092,11 @@ function maStlFormatFloorPlanAngleDegDisplay(deg, localeTag) {
     }
 }
 
+/** Ángulo CAD informativo para dibujo: 0° = +X, positivo antihorario en pantalla (hacia arriba = -Z). */
+function maStlFloorPlanCadAngleDegFromDeltaMm(dxMm, dzMm) {
+    return maStlNormalizeAzimuthDeg(THREE.MathUtils.radToDeg(Math.atan2(-dzMm, dxMm)));
+}
+
 /**
  * Tema líneas {@link maStlBuildPlanRulers} sólo Desing_2: fondo negro → cian/azul heredado; fondo claro → gris ~70 % opacity.
  * @param {THREE.LineBasicMaterial|null|undefined} mat
@@ -2499,8 +2504,10 @@ function bootMasterArticleDetailsStlViewer() {
     const maStlLineToolHudCoords = document.getElementById('ma-stl-line-tool-hud-coords');
     const maStlLineToolHudDistanceRow = document.getElementById('ma-stl-line-tool-hud-distance-row');
     const maStlLineToolHudDistanceInput = document.getElementById('ma-stl-line-tool-hud-distance');
+    const maStlLineToolHudAngleInput = document.getElementById('ma-stl-line-tool-hud-angle');
     const maStlLineToolHudDistancePreview = document.getElementById('ma-stl-line-tool-hud-distance-preview');
     const maStlLineSnapAngleHud = document.getElementById('ma-stl-line-snap-angle-hud');
+    const maStlLineToolOrthoStatusHud = document.getElementById('ma-stl-line-tool-ortho-status-hud');
     const maStlLineSnapAngleHudCanvasWrap = document.getElementById(
         'master-article-details-stl-viewer-canvas'
     );
@@ -2529,6 +2536,7 @@ function bootMasterArticleDetailsStlViewer() {
     const maStlLineToolLastHoverDirUnitXz = new THREE.Vector2(1, 0);
     const maStlLineToolTypedEndRubberMm = new THREE.Vector3();
     let maStlLineToolDistanceTypeBuffer = '';
+    let maStlLineToolAngleTypeBuffer = '';
     /** @type {THREE.Line|null} */
     let maStlLineToolRubberBandLine = null;
     /** Cotas CAD + overlay DOM en vivo durante `picking2` (P1→cursor/caucho). */
@@ -3335,6 +3343,7 @@ function bootMasterArticleDetailsStlViewer() {
     const _maStlLineToolVertexSnapMm = new THREE.Vector3();
     /** @type {'p1'|'p2'|'mid'|'segment'|null} */
     let _maStlLineToolVertexSnapKind = null;
+    let maStlLineToolVertexSnapActiveCandidate = null;
     const _maStlLineToolVertexSnapWorldScratch = new THREE.Vector3();
     /** Cotas CAD en planta (+ overlay HTML pantalla): fuera del grupo raycast-off de las líneas. */
     const maStlUserFloorLineDimHudGroup = new THREE.Group();
@@ -3343,6 +3352,10 @@ function bootMasterArticleDetailsStlViewer() {
     let maStlUserFloorDimGuideLinesMesh = null;
     /** Triángulos transparentes cotas CAD (flechas en extremos líneas cotas planta XZ). */
     let maStlUserFloorDimArrowMesh = null;
+    /** Arco angular temporal mientras se dibuja una polilínea/muro desde un vértice existente. */
+    let maStlLineToolAngleArcMesh = null;
+    /** Etiqueta DOM del arco angular temporal de dibujo. */
+    let maStlLineToolAngleArcLabelEl = null;
     /** @type {{ floorY:number, midLen:{x:number,z:number}|null,midDx:{x:number,z:number}|null,midDz:{x:number,z:number}|null, drawDx:boolean, drawDz:boolean, validLen:boolean, validDx:boolean, validDz:boolean, chLenA:{x:number,z:number}|null, chLenB:{x:number,z:number}|null, chLnA:{x:number,z:number}|null, chLnB:{x:number,z:number}|null, chDxA:{x:number,z:number}|null, chDxB:{x:number,z:number}|null, chDzA:{x:number,z:number}|null, chDzB:{x:number,z:number}|null }} */
     let maStlUserFloorDimHudWorldMid = {
         floorY: 0,
@@ -5664,15 +5677,31 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     function maStlSyncLineToolOrtho15ToggleUi() {
-        if (!maStlLineToolOrtho15ToggleBtn) return;
-        maStlLineToolOrtho15ToggleBtn.setAttribute('aria-pressed', maStlLineToolOrtho15Enabled ? 'true' : 'false');
-        maStlLineToolOrtho15ToggleBtn.classList.toggle('active', maStlLineToolOrtho15Enabled);
-        const onTitle = maStlLineToolOrtho15ToggleBtn.getAttribute('data-ma-stl-ortho15-title-on') || '';
-        const offTitle = maStlLineToolOrtho15ToggleBtn.getAttribute('data-ma-stl-ortho15-title-off') || '';
-        const t = maStlLineToolOrtho15Enabled ? onTitle : offTitle;
-        if (t) {
-            maStlLineToolOrtho15ToggleBtn.setAttribute('title', t);
-            maStlLineToolOrtho15ToggleBtn.setAttribute('aria-label', t);
+        if (maStlLineToolOrtho15ToggleBtn) {
+            maStlLineToolOrtho15ToggleBtn.setAttribute('aria-pressed', maStlLineToolOrtho15Enabled ? 'true' : 'false');
+            maStlLineToolOrtho15ToggleBtn.classList.toggle('active', maStlLineToolOrtho15Enabled);
+            const onTitle = maStlLineToolOrtho15ToggleBtn.getAttribute('data-ma-stl-ortho15-title-on') || '';
+            const offTitle = maStlLineToolOrtho15ToggleBtn.getAttribute('data-ma-stl-ortho15-title-off') || '';
+            const t = maStlLineToolOrtho15Enabled ? onTitle : offTitle;
+            if (t) {
+                maStlLineToolOrtho15ToggleBtn.setAttribute('title', t);
+                maStlLineToolOrtho15ToggleBtn.setAttribute('aria-label', t);
+            }
+        }
+        if (maStlLineToolOrthoStatusHud) {
+            maStlLineToolOrthoStatusHud.textContent = maStlLineToolOrtho15Enabled
+                ? '(F8) Act'
+                : '(F8) Des';
+            maStlLineToolOrthoStatusHud.setAttribute(
+                'aria-label',
+                maStlLineToolOrtho15Enabled ? 'Orto activado. Click para desactivar.' : 'Orto desactivado. Click para activar.'
+            );
+            maStlLineToolOrthoStatusHud.setAttribute(
+                'title',
+                maStlLineToolOrtho15Enabled ? 'Orto activado. Click para desactivar.' : 'Orto desactivado. Click para activar.'
+            );
+            maStlLineToolOrthoStatusHud.classList.remove('d-none', 'is-on', 'is-off');
+            maStlLineToolOrthoStatusHud.classList.add(maStlLineToolOrtho15Enabled ? 'is-on' : 'is-off');
         }
     }
 
@@ -5682,6 +5711,57 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlLineToolState === 'picking2') {
             maStlLineToolRefreshPicking2RubberBand();
         }
+    }
+
+    function maStlLineToolResolveWallAxisLineFromSnapLine(line) {
+        if (!line || !line.userData) return null;
+        const ud = line.userData.maStlUserPlanLine;
+        if (!ud) return null;
+        if (ud.wallRole === 'axis') return line;
+        if (ud.wallRole === 'face' && ud.linkOffsetFromLineId != null) {
+            return maStlWall2dToolFindLineByPlanId(ud.linkOffsetFromLineId);
+        }
+        return null;
+    }
+
+    function maStlLineToolNormalizeWallSnapCandidate(snap) {
+        if (!snap || !maStlIsWall2dToolPlacementActive()) return snap;
+        const axisLine = maStlLineToolResolveWallAxisLineFromSnapLine(snap.segLine);
+        const axisUd = axisLine && axisLine.userData && axisLine.userData.maStlUserPlanLine;
+        if (!axisUd || axisUd.wallRole !== 'axis' || !axisUd.p1Mm || !axisUd.p2Mm) return snap;
+
+        const out = Object.assign({}, snap, {
+            segLine: axisLine,
+            segP1: axisUd.p1Mm,
+            segP2: axisUd.p2Mm,
+        });
+        const yFloor = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM;
+        if (snap.kind === 'p1') {
+            out.x = axisUd.p1Mm.x;
+            out.y = axisUd.p1Mm.y != null ? axisUd.p1Mm.y : yFloor;
+            out.z = axisUd.p1Mm.z;
+        } else if (snap.kind === 'p2') {
+            out.x = axisUd.p2Mm.x;
+            out.y = axisUd.p2Mm.y != null ? axisUd.p2Mm.y : yFloor;
+            out.z = axisUd.p2Mm.z;
+        } else if (snap.kind === 'mid') {
+            out.x = (axisUd.p1Mm.x + axisUd.p2Mm.x) * 0.5;
+            out.y = yFloor;
+            out.z = (axisUd.p1Mm.z + axisUd.p2Mm.z) * 0.5;
+        } else if (snap.kind === 'segment') {
+            const proj = maStlProjectPointOntoUserFloorSegmentBodyXzMm(
+                snap,
+                axisUd.p1Mm,
+                axisUd.p2Mm,
+                _maStlUserFloorSegmentBodyProj
+            );
+            if (proj) {
+                out.x = _maStlUserFloorSegmentBodyProj.x;
+                out.y = yFloor;
+                out.z = _maStlUserFloorSegmentBodyProj.z;
+            }
+        }
+        return out;
     }
 
     function maStlLineToolPickCursorSync() {
@@ -5695,8 +5775,12 @@ function bootMasterArticleDetailsStlViewer() {
 
     function maStlResetLineToolDistanceTypingState() {
         maStlLineToolDistanceTypeBuffer = '';
+        maStlLineToolAngleTypeBuffer = '';
         if (maStlLineToolHudDistanceInput) {
             maStlLineToolHudDistanceInput.value = '';
+        }
+        if (maStlLineToolHudAngleInput) {
+            maStlLineToolHudAngleInput.value = '';
         }
         if (maStlLineToolHudDistancePreview) {
             maStlLineToolHudDistancePreview.textContent = '';
@@ -5751,10 +5835,52 @@ function bootMasterArticleDetailsStlViewer() {
         return { x: 1, z: 0 };
     }
 
+    function maStlLineToolTryOrthoTPerpendicularEndMm(snap, out) {
+        if (
+            !maStlLineToolOrtho15Enabled ||
+            !maStlIsWall2dToolPlacementActive() ||
+            !snap ||
+            snap.kind !== 'segment' ||
+            !snap.segLine ||
+            !out
+        ) {
+            return false;
+        }
+        const targetLine = maStlLineToolResolveWallAxisLineFromSnapLine(snap.segLine);
+        const targetUd = targetLine && targetLine.userData && targetLine.userData.maStlUserPlanLine;
+        if (!targetUd || targetUd.wallRole !== 'axis' || !targetUd.p1Mm || !targetUd.p2Mm) return false;
+        const proj = maStlProjectPointOntoUserFloorSegmentBodyXzMm(
+            maStlLineToolPoint1Mm,
+            targetUd.p1Mm,
+            targetUd.p2Mm,
+            _maStlUserFloorSegmentBodyProj
+        );
+        if (!proj) return false;
+        const span = Math.hypot(targetUd.p2Mm.x - targetUd.p1Mm.x, targetUd.p2Mm.z - targetUd.p1Mm.z);
+        const minSeg = maStlUserFloorSegmentMinMm();
+        const minT = span > minSeg ? minSeg / span : 0.05;
+        if (proj.t <= minT || proj.t >= 1 - minT) return false;
+        const len = Math.hypot(
+            _maStlUserFloorSegmentBodyProj.x - maStlLineToolPoint1Mm.x,
+            _maStlUserFloorSegmentBodyProj.z - maStlLineToolPoint1Mm.z
+        );
+        if (len < minSeg - 1e-9) return false;
+        out.x = _maStlUserFloorSegmentBodyProj.x;
+        out.y = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM;
+        out.z = _maStlUserFloorSegmentBodyProj.z;
+        return true;
+    }
+
     /** Texto de distancia: HUD y buffer global pueden desalinearse (Input vs keydown ventana); unificar antes de parseo. */
     function maStlLineToolRawDistanceTypingTrimmed() {
         const vi = maStlLineToolHudDistanceInput ? String(maStlLineToolHudDistanceInput.value || '').trim() : '';
         const vb = String(maStlLineToolDistanceTypeBuffer || '').trim();
+        return vi || vb;
+    }
+
+    function maStlLineToolRawAngleTypingTrimmed() {
+        const vi = maStlLineToolHudAngleInput ? String(maStlLineToolHudAngleInput.value || '').trim() : '';
+        const vb = String(maStlLineToolAngleTypeBuffer || '').trim();
         return vi || vb;
     }
 
@@ -5780,11 +5906,12 @@ function bootMasterArticleDetailsStlViewer() {
     function maStlLineToolParsePolarDistanceAngleMm(raw) {
         if (raw == null) return null;
         const s = String(raw).trim();
-        if (!s || s.charAt(0) !== '@') return null;
-        const lt = s.indexOf('<');
-        if (lt <= 1 || lt >= s.length - 1) return null;
-        const lenMm = maStlParseLengthInputValueToMm(s.slice(1, lt));
-        const angleDeg = maStlParseAngleInputValueDeg(s.slice(lt + 1));
+        if (!s) return null;
+        const body = s.charAt(0) === '@' ? s.slice(1).trim() : s;
+        const lt = body.indexOf('<');
+        if (lt <= 0 || lt >= body.length - 1) return null;
+        const lenMm = maStlParseLengthInputValueToMm(body.slice(0, lt));
+        const angleDeg = maStlParseAngleInputValueDeg(body.slice(lt + 1));
         if (lenMm == null || !Number.isFinite(lenMm) || angleDeg == null || !Number.isFinite(angleDeg)) {
             return null;
         }
@@ -5803,6 +5930,27 @@ function bootMasterArticleDetailsStlViewer() {
         const polar = maStlLineToolParsePolarDistanceAngleMm(raw);
         if (polar) return polar.lenMm;
         return maStlParseLengthInputValueToMm(raw);
+    }
+
+    function maStlLineToolParsedAngleDeg() {
+        const rawAngle = maStlLineToolRawAngleTypingTrimmed();
+        if (rawAngle) {
+            const deg = maStlParseAngleInputValueDeg(rawAngle);
+            return deg == null || !Number.isFinite(deg) ? null : maStlNormalizeAzimuthDeg(deg);
+        }
+        const polar = maStlLineToolParsePolarDistanceAngleMm(maStlLineToolRawDistanceTypingTrimmed());
+        return polar ? polar.angleDeg : null;
+    }
+
+    function maStlLineToolDirectionUnitXzForTypedInput() {
+        const angleDeg = maStlLineToolParsedAngleDeg();
+        if (angleDeg != null && Number.isFinite(angleDeg)) {
+            const rad = THREE.MathUtils.degToRad(angleDeg);
+            return { x: Math.cos(rad), z: -Math.sin(rad) };
+        }
+        const polar = maStlLineToolParsePolarDistanceAngleMm(maStlLineToolRawDistanceTypingTrimmed());
+        if (polar) return { x: polar.ux, z: polar.uz };
+        return maStlLineToolComputeFloorDirUnitXz();
     }
 
     function maStlLineToolSyncTypingPreviewUi() {
@@ -5827,13 +5975,13 @@ function bootMasterArticleDetailsStlViewer() {
                 (maStlLineToolHud &&
                     maStlLineToolHud.getAttribute('data-ma-stl-line-tool-distance-preview-prefix')) ||
                 '\u2248';
-            const polar = maStlLineToolParsePolarDistanceAngleMm(maStlLineToolRawDistanceTypingTrimmed());
+            const angleDeg = maStlLineToolParsedAngleDeg();
             maStlLineToolHudDistancePreview.textContent =
                 String(pfx) +
                 '\u00A0' +
                 d +
                 '\u00A0m' +
-                (polar ? '\u00A0<\u00A0' + maStlFormatFloorPlanAngleDegDisplay(polar.angleDeg) : '');
+                (angleDeg != null ? '\u00A0<\u00A0' + maStlFormatFloorPlanAngleDegDisplay(angleDeg) : '');
         } else {
             maStlLineToolHudDistancePreview.textContent = '';
         }
@@ -5865,6 +6013,13 @@ function bootMasterArticleDetailsStlViewer() {
         );
         if (!p) return null;
         const yFl = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM;
+        if (
+            maStlLineToolVertexSnapHighlightGroup &&
+            maStlLineToolVertexSnapHighlightGroup.visible &&
+            maStlLineToolTryOrthoTPerpendicularEndMm(maStlLineToolVertexSnapActiveCandidate, out)
+        ) {
+            return out;
+        }
         const dx = p.x - maStlLineToolPoint1Mm.x;
         const dz = p.z - maStlLineToolPoint1Mm.z;
         const r = maStlLineToolFloorDirLenFromDeltaMm(dx, dz, maStlLineToolOrtho15Enabled);
@@ -5891,8 +6046,7 @@ function bootMasterArticleDetailsStlViewer() {
             const maxMm = Math.max(minMm, lastMaxDim * 25);
             lenMm = THREE.MathUtils.clamp(lenMm, minMm, maxMm);
             lenMm = maStlDesing2LengthMmRoundedEditableFromMm(lenMm);
-            const polar = maStlLineToolParsePolarDistanceAngleMm(maStlLineToolRawDistanceTypingTrimmed());
-            const u = polar ? { x: polar.ux, z: polar.uz } : maStlLineToolComputeFloorDirUnitXz();
+            const u = maStlLineToolDirectionUnitXzForTypedInput();
             const y = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM;
             maStlLineToolTypedEndRubberMm.set(
                 maStlLineToolPoint1Mm.x + u.x * lenMm,
@@ -5922,6 +6076,7 @@ function bootMasterArticleDetailsStlViewer() {
     function maStlLineToolGloballyConsumeDistanceKeys() {
         const el = document.activeElement;
         if (maStlLineToolHudDistanceInput && el === maStlLineToolHudDistanceInput) return false;
+        if (maStlLineToolHudAngleInput && el === maStlLineToolHudAngleInput) return false;
         if (maStlIsUserFloorLineDimEditOverlayActive()) return false;
         if (maStlDesingV2AvoidKeyboardShortcutSteal(el)) return false;
         /* picking2: el botón polilínea suele mantener foco tras el clic — sin esto los dígitos no entran en buffer. */
@@ -6052,6 +6207,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (ev.ctrlKey || ev.metaKey || ev.altKey) return false;
         const ae = document.activeElement;
         if (maStlLineToolHudDistanceInput && ae === maStlLineToolHudDistanceInput) return false;
+        if (maStlLineToolHudAngleInput && ae === maStlLineToolHudAngleInput) return false;
         if (maStlOffsetToolHudDistanceInput && ae === maStlOffsetToolHudDistanceInput) return false;
         if (maStlIsUserFloorLineDimEditOverlayActive()) return false;
         if (maStlDesingV2AvoidKeyboardShortcutSteal(ae)) return false;
@@ -6072,6 +6228,7 @@ function bootMasterArticleDetailsStlViewer() {
     function maStlLineToolTryTypedCommitDistanceOrbitDefer() {
         const raw = maStlLineToolRawDistanceTypingTrimmed();
         maStlLineToolDistanceTypeBuffer = raw;
+        maStlLineToolAngleTypeBuffer = maStlLineToolRawAngleTypingTrimmed();
         if (/^c$/i.test(raw) && maStlIsWall2dToolPlacementActive()) {
             return maStlWall2dToolTryCloseActiveGroupFromCommand();
         }
@@ -6088,7 +6245,7 @@ function bootMasterArticleDetailsStlViewer() {
         }
         let lenMm = THREE.MathUtils.clamp(lenMmRaw, minMm, maxMm);
         lenMm = maStlDesing2LengthMmRoundedEditableFromMm(lenMm);
-        const u = polar ? { x: polar.ux, z: polar.uz } : maStlLineToolComputeFloorDirUnitXz();
+        const u = maStlLineToolDirectionUnitXzForTypedInput();
         const y = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM;
         const end = {
             x: maStlLineToolPoint1Mm.x + u.x * lenMm,
@@ -6108,6 +6265,10 @@ function bootMasterArticleDetailsStlViewer() {
     /** Segundo vértice / clic en planta: extremo del segmento desde {@link maStlLineToolPoint1Mm}. */
     function maStlLineToolComputeSegmentEndMmFromFloorPointMm(pSnap) {
         const y = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM;
+        const orthoTEnd = { x: 0, y: y, z: 0 };
+        if (maStlLineToolTryOrthoTPerpendicularEndMm(pSnap, orthoTEnd)) {
+            return orthoTEnd;
+        }
         if (pSnap.maStlLineVertexSnap) {
             return { x: pSnap.x, y: pSnap.y, z: pSnap.z };
         }
@@ -6285,6 +6446,7 @@ function bootMasterArticleDetailsStlViewer() {
     function maStlClearLineToolVertexSnapHighlight() {
         maStlLineToolVertexSnapHighlightGroup.visible = false;
         _maStlLineToolVertexSnapKind = null;
+        maStlLineToolVertexSnapActiveCandidate = null;
         if (maStlLineToolVertexSnapBallMesh) {
             maStlLineToolVertexSnapBallMesh.scale.setScalar(1);
         }
@@ -6312,6 +6474,7 @@ function bootMasterArticleDetailsStlViewer() {
             snapSnap.kind === 'segment'
                 ? snapSnap.kind
                 : null;
+        maStlLineToolVertexSnapActiveCandidate = snapSnap;
         maStlLineToolVertexSnapHighlightGroup.position.set(snapSnap.x, snapSnap.y, snapSnap.z);
         if (maStlLineToolVertexSnapBallMesh && maStlLineToolVertexSnapBallMesh.material) {
             const mat = maStlLineToolVertexSnapBallMesh.material;
@@ -6439,7 +6602,7 @@ function bootMasterArticleDetailsStlViewer() {
                 };
             }
         }
-        return best;
+        return maStlLineToolNormalizeWallSnapCandidate(best);
     }
 
     /**
@@ -6497,7 +6660,6 @@ function bootMasterArticleDetailsStlViewer() {
             if (!maStlIsUserFloorPlanLineObject(line)) continue;
             const ud = line.userData && line.userData.maStlUserPlanLine;
             if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
-            if (maStlIsWall2dToolPlacementActive() && ud.wallRole === 'face') continue;
             const p1 = ud.p1Mm;
             const p2 = ud.p2Mm;
             const vtxCandidates = [
@@ -6592,7 +6754,7 @@ function bootMasterArticleDetailsStlViewer() {
             const dP1 = Math.hypot(best.x - maStlLineToolPoint1Mm.x, best.z - maStlLineToolPoint1Mm.z);
             if (dP1 < minSegMm) return null;
         }
-        return best;
+        return maStlLineToolNormalizeWallSnapCandidate(best);
     }
 
     /**
@@ -6698,6 +6860,10 @@ function bootMasterArticleDetailsStlViewer() {
                 y: vertexSnap.y,
                 z: vertexSnap.z,
                 maStlLineVertexSnap: true,
+                kind: vertexSnap.kind,
+                segLine: vertexSnap.segLine || null,
+                segP1: vertexSnap.segP1 || null,
+                segP2: vertexSnap.segP2 || null,
             };
         }
         if (
@@ -6729,6 +6895,16 @@ function bootMasterArticleDetailsStlViewer() {
                     y: _maStlLineToolVertexSnapMm.y,
                     z: _maStlLineToolVertexSnapMm.z,
                     maStlLineVertexSnap: true,
+                    kind: _maStlLineToolVertexSnapKind,
+                    segLine: maStlLineToolVertexSnapActiveCandidate
+                        ? maStlLineToolVertexSnapActiveCandidate.segLine
+                        : null,
+                    segP1: maStlLineToolVertexSnapActiveCandidate
+                        ? maStlLineToolVertexSnapActiveCandidate.segP1
+                        : null,
+                    segP2: maStlLineToolVertexSnapActiveCandidate
+                        ? maStlLineToolVertexSnapActiveCandidate.segP2
+                        : null,
                 };
             }
         }
@@ -6847,11 +7023,170 @@ function bootMasterArticleDetailsStlViewer() {
     function maStlLineToolHidePreviewDimHud() {
         if (!maStlLineToolPreviewDimActive) return;
         maStlLineToolPreviewDimActive = false;
+        maStlLineToolHideAngleArcHud();
         const h = maStlEnsureUserFloorDimDomHud();
         if (h && h.root) {
             h.root.classList.remove('desing2-stl-floor-dim-overlay--line-tool-preview');
         }
         maStlHideUserFloorLineDimHud(true);
+    }
+
+    function maStlLineToolEnsureAngleArcMesh() {
+        if (maStlLineToolAngleArcMesh) return maStlLineToolAngleArcMesh;
+        const geo = new THREE.BufferGeometry();
+        const mat = new THREE.LineBasicMaterial({
+            color: 0x8fb3ff,
+            transparent: true,
+            opacity: 0.95,
+            depthTest: false,
+            depthWrite: false,
+        });
+        const mesh = new THREE.Line(geo, mat);
+        mesh.visible = false;
+        mesh.renderOrder = 175;
+        maStlDisableRaycastOnOverlay(mesh);
+        maStlUserFloorLineDimHudGroup.add(mesh);
+        maStlLineToolAngleArcMesh = mesh;
+        return mesh;
+    }
+
+    function maStlLineToolEnsureAngleArcLabelEl() {
+        if (maStlLineToolAngleArcLabelEl) return maStlLineToolAngleArcLabelEl;
+        const h = maStlEnsureUserFloorDimDomHud();
+        const wrap = h && h.canvasWrap;
+        if (!wrap) return null;
+        const el = document.createElement('div');
+        el.className = 'ma-stl-line-snap-angle-hud d-none';
+        el.setAttribute('aria-hidden', 'true');
+        wrap.appendChild(el);
+        maStlLineToolAngleArcLabelEl = el;
+        return el;
+    }
+
+    function maStlLineToolHideAngleArcHud() {
+        if (maStlLineToolAngleArcMesh) {
+            maStlLineToolAngleArcMesh.visible = false;
+        }
+        if (maStlLineToolAngleArcLabelEl) {
+            maStlLineToolAngleArcLabelEl.classList.add('d-none');
+            maStlLineToolAngleArcLabelEl.setAttribute('aria-hidden', 'true');
+            maStlLineToolAngleArcLabelEl.textContent = '';
+        }
+    }
+
+    function maStlLineToolFindPreviousSegmentAtCurrentPointMm() {
+        if (!maStlUserLinesGroup || maStlLineToolState !== 'picking2') return null;
+        const eps = maStlUserFloorLineMergeEndpointEpsMm();
+        const pt = maStlLineToolPoint1Mm;
+        const ch = maStlUserLinesGroup.children;
+        for (let i = ch.length - 1; i >= 0; i--) {
+            const line = ch[i];
+            if (!maStlIsUserFloorPlanLineObject(line)) continue;
+            const ud = line.userData && line.userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            if (maStlIsWall2dToolPlacementActive()) {
+                if (ud.wallRole !== 'axis' || ud.wallGroupId !== maStlWall2dToolActiveGroupId) continue;
+            } else if (maStlIsPolylineToolPlacementActive()) {
+                if (ud.polylineGroupId !== maStlPolylineToolActiveGroupId) continue;
+            } else {
+                continue;
+            }
+            if (maStlUserFloorPlanPointNearXzMm(ud.p2Mm, pt, eps)) {
+                return {
+                    dx: ud.p2Mm.x - ud.p1Mm.x,
+                    dz: ud.p2Mm.z - ud.p1Mm.z,
+                    len: maStlUserFloorLineLengthMm(ud),
+                };
+            }
+            if (maStlUserFloorPlanPointNearXzMm(ud.p1Mm, pt, eps)) {
+                return {
+                    dx: ud.p1Mm.x - ud.p2Mm.x,
+                    dz: ud.p1Mm.z - ud.p2Mm.z,
+                    len: maStlUserFloorLineLengthMm(ud),
+                };
+            }
+        }
+        return null;
+    }
+
+    function maStlLineToolPositiveIncludedAngleDeg(baseDx, baseDz, outDx, outDz) {
+        const baseAng = maStlFloorPlanCadAngleDegFromDeltaMm(baseDx, baseDz);
+        const outAng = maStlFloorPlanCadAngleDegFromDeltaMm(outDx, outDz);
+        let d = maStlNormalizeAzimuthDeg(outAng - baseAng);
+        if (d > 180) d = 360 - d;
+        return d;
+    }
+
+    function maStlLineToolUpdateAngleArcHud(currentUd) {
+        if (!currentUd || !currentUd.p1Mm || !currentUd.p2Mm) {
+            maStlLineToolHideAngleArcHud();
+            return false;
+        }
+        const prev = maStlLineToolFindPreviousSegmentAtCurrentPointMm();
+        const outDx = currentUd.p2Mm.x - currentUd.p1Mm.x;
+        const outDz = currentUd.p2Mm.z - currentUd.p1Mm.z;
+        const outLen = Math.hypot(outDx, outDz);
+        if (!prev || !(prev.len > 0) || !(outLen > maStlUserFloorSegmentMinMm())) {
+            maStlLineToolHideAngleArcHud();
+            return false;
+        }
+        const angleDeg = maStlLineToolPositiveIncludedAngleDeg(prev.dx, prev.dz, outDx, outDz);
+        if (!Number.isFinite(angleDeg) || angleDeg < 0.5 || angleDeg > 179.5) {
+            maStlLineToolHideAngleArcHud();
+            return false;
+        }
+
+        const baseAng = maStlFloorPlanCadAngleDegFromDeltaMm(prev.dx, prev.dz);
+        const outAng = maStlFloorPlanCadAngleDegFromDeltaMm(outDx, outDz);
+        const ccw = maStlNormalizeAzimuthDeg(outAng - baseAng);
+        const dir = ccw <= 180 ? 1 : -1;
+        const sweep = ccw <= 180 ? ccw : 360 - ccw;
+        const radius = THREE.MathUtils.clamp(
+            Math.min(prev.len, outLen) * 0.38,
+            Math.max(desing2EnvGridSnapMm * 0.85, 460),
+            Math.min(3600, lastMaxDim * 0.35)
+        );
+        const floorYB = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM + MA_STL_USER_FLOOR_LINE_DIM_DRAW_Y_EPS_MM * 2.2;
+        const segs = Math.max(16, Math.ceil(sweep / 5));
+        const pts = [];
+        for (let i = 0; i <= segs; i++) {
+            const a = baseAng + dir * sweep * (i / segs);
+            const rad = THREE.MathUtils.degToRad(a);
+            pts.push(
+                new THREE.Vector3(
+                    currentUd.p1Mm.x + Math.cos(rad) * radius,
+                    floorYB,
+                    currentUd.p1Mm.z - Math.sin(rad) * radius
+                )
+            );
+        }
+        const mesh = maStlLineToolEnsureAngleArcMesh();
+        mesh.geometry.dispose();
+        mesh.geometry = new THREE.BufferGeometry().setFromPoints(pts);
+        mesh.geometry.computeBoundingSphere();
+        mesh.visible = true;
+
+        const labelEl = maStlLineToolEnsureAngleArcLabelEl();
+        const labelScr = { x: 0, y: 0, valid: false };
+        const midAng = baseAng + dir * sweep * 0.5;
+        const midRad = THREE.MathUtils.degToRad(midAng);
+        const lx = currentUd.p1Mm.x + Math.cos(midRad) * radius * 1.08;
+        const lz = currentUd.p1Mm.z - Math.sin(midRad) * radius * 1.08;
+        if (!labelEl || !maStlWorldMmToScreenPx(lx, floorYB, lz, labelScr)) {
+            if (labelEl) labelEl.classList.add('d-none');
+            return true;
+        }
+        const h = maStlEnsureUserFloorDimDomHud();
+        const wrap = h && h.canvasWrap;
+        if (!wrap) return true;
+        const rr = wrap.getBoundingClientRect();
+        labelEl.textContent = maStlFormatFloorPlanAngleDegDisplay(angleDeg);
+        labelEl.style.left = labelScr.x - rr.left + 'px';
+        labelEl.style.top = labelScr.y - rr.top + 'px';
+        labelEl.style.transform = 'translate(-50%, -50%)';
+        labelEl.classList.remove('d-none');
+        labelEl.setAttribute('aria-hidden', 'false');
+        return true;
     }
 
     /** Cotas CAD + readouts DOM en vivo (`picking2`): sólo longitud P1→P2 (sin ΔX/ΔZ). */
@@ -6902,6 +7237,7 @@ function bootMasterArticleDetailsStlViewer() {
         hdom.readoutBtn.removeAttribute('hidden');
         hdom.readoutBtn.setAttribute('aria-hidden', 'false');
         hdom.readoutBtn.textContent = maStlUserFloorLineDimensionLabelMm(dimUd);
+        maStlLineToolUpdateAngleArcHud(ud);
         maStlApplyFloorDimHudLengthOnlyMode(hdom, true);
         maStlPlaceAllFloorDimHudReadouts(true);
         maStlApplyFloorDimHudReadoutBrightClass(null);
@@ -8343,6 +8679,224 @@ function bootMasterArticleDetailsStlViewer() {
     function maStlIsUserFloorWallFacePlanLine(line) {
         const ud = line && line.userData && line.userData.maStlUserPlanLine;
         return !!(ud && ud.wallRole === 'face' && ud.linkOffsetFromLineId != null);
+    }
+
+    function maStlWall2dToolEditableAxisLineForDimension(line) {
+        if (!line || !maStlIsUserFloorPlanLineObject(line)) return null;
+        const ud = line.userData && line.userData.maStlUserPlanLine;
+        if (!ud) return null;
+        if (ud.wallRole === 'axis') return line;
+        if (ud.wallRole === 'face' && ud.linkOffsetFromLineId != null) {
+            return maStlWall2dToolFindLineByPlanId(ud.linkOffsetFromLineId);
+        }
+        return line;
+    }
+
+    function maStlWall2dToolRefreshFacesAfterEditableAxisChange(line) {
+        const axisLine = maStlWall2dToolEditableAxisLineForDimension(line);
+        const axisUd = axisLine && axisLine.userData && axisLine.userData.maStlUserPlanLine;
+        if (!axisLine || !axisUd || axisUd.wallRole !== 'axis') return;
+        const faces = maStlWall2dToolFindFaceLinesForCenterId(axisUd.id);
+        let halfT = maStlWall2dToolThicknessHalfMm();
+        for (let fi = 0; fi < faces.length; fi++) {
+            const fUd = faces[fi].userData && faces[fi].userData.maStlUserPlanLine;
+            if (fUd && fUd.numberOffsetMm != null && Number.isFinite(fUd.numberOffsetMm)) {
+                halfT = Math.abs(fUd.numberOffsetMm);
+                break;
+            }
+        }
+        maStlWall2dToolRefactorCenterFaceOffsets(axisLine, halfT, axisUd.wallGroupId);
+        maStlWall2dToolSplitAllAxisInteriorCrossingsMm();
+        maStlWall2dToolRefactorAllWallJunctionsMm();
+        maStlWeldAllUserFloorLineEndpointsMm();
+        maStlWall2dToolRefactorAllWallJunctionsMm();
+        maStlReapplyAllUserFloorWallAxisLineStyles();
+    }
+
+    function maStlWall2dToolAxisFaceHalfThicknessMm(axisLine) {
+        const axisUd = axisLine && axisLine.userData && axisLine.userData.maStlUserPlanLine;
+        if (!axisUd || axisUd.id == null) return maStlWall2dToolThicknessHalfMm();
+        const faces = maStlWall2dToolFindFaceLinesForCenterId(axisUd.id);
+        for (let fi = 0; fi < faces.length; fi++) {
+            const fUd = faces[fi].userData && faces[fi].userData.maStlUserPlanLine;
+            if (fUd && fUd.numberOffsetMm != null && Number.isFinite(fUd.numberOffsetMm)) {
+                return Math.abs(fUd.numberOffsetMm);
+            }
+        }
+        return maStlWall2dToolThicknessHalfMm();
+    }
+
+    function maStlWall2dToolRefreshAxisFaceOffsetsNoJunction(axisLine) {
+        const axisUd = axisLine && axisLine.userData && axisLine.userData.maStlUserPlanLine;
+        if (!axisLine || !axisUd || axisUd.wallRole !== 'axis') return;
+        maStlWall2dToolRefactorCenterFaceOffsets(
+            axisLine,
+            maStlWall2dToolAxisFaceHalfThicknessMm(axisLine),
+            null
+        );
+    }
+
+    function maStlWall2dToolCaptureAxisEditPropagationState(line) {
+        const axisLine = maStlWall2dToolEditableAxisLineForDimension(line);
+        const axisUd = axisLine && axisLine.userData && axisLine.userData.maStlUserPlanLine;
+        if (!axisLine || !axisUd || axisUd.wallRole !== 'axis' || axisUd.id == null) return null;
+        if (!maStlUserLinesGroup) return null;
+        const axes = [];
+        const ch = maStlUserLinesGroup.children;
+        for (let i = 0; i < ch.length; i++) {
+            const ln = ch[i];
+            if (!maStlIsUserFloorPlanLineObject(ln)) continue;
+            const ud = ln.userData && ln.userData.maStlUserPlanLine;
+            if (!ud || ud.wallRole !== 'axis' || ud.id == null || !ud.p1Mm || !ud.p2Mm) continue;
+            axes.push({
+                line: ln,
+                id: ud.id,
+                p1Mm: maStlDesing2ClonePlanPointMm(ud.p1Mm),
+                p2Mm: maStlDesing2ClonePlanPointMm(ud.p2Mm),
+            });
+        }
+        return axes.length
+            ? {
+                  editedAxisId: axisUd.id,
+                  axes: axes,
+              }
+            : null;
+    }
+
+    function maStlWall2dToolOldAxisStateById(snapshot, axisId) {
+        if (!snapshot || axisId == null) return null;
+        for (let i = 0; i < snapshot.axes.length; i++) {
+            if (snapshot.axes[i].id === axisId) return snapshot.axes[i];
+        }
+        return null;
+    }
+
+    function maStlWall2dToolPropagationFindNode(nodes, pt, eps) {
+        for (let i = 0; i < nodes.length; i++) {
+            if (maStlUserFloorPlanPointNearXzMm(nodes[i].pt, pt, eps)) return i;
+        }
+        nodes.push({ pt: maStlDesing2ClonePlanPointMm(pt), edges: [] });
+        return nodes.length - 1;
+    }
+
+    function maStlWall2dToolPropagationDeltaNear(a, b) {
+        if (!a || !b) return false;
+        return Math.abs(a.dx - b.dx) <= 1e-6 && Math.abs(a.dz - b.dz) <= 1e-6;
+    }
+
+    function maStlWall2dToolAssignPropagationDelta(nodeDeltas, nodeIdx, delta, queue, fixedNodes) {
+        if (nodeIdx == null || nodeIdx < 0 || !delta) return;
+        if (fixedNodes[nodeIdx]) return;
+        const existing = nodeDeltas[nodeIdx];
+        if (existing) return;
+        nodeDeltas[nodeIdx] = delta;
+        queue.push(nodeIdx);
+    }
+
+    function maStlWall2dToolApplyAxisEditPropagation(line, snapshot) {
+        const axisLine = maStlWall2dToolEditableAxisLineForDimension(line);
+        const axisUd = axisLine && axisLine.userData && axisLine.userData.maStlUserPlanLine;
+        if (!axisLine || !axisUd || axisUd.wallRole !== 'axis' || axisUd.id == null || !snapshot) return false;
+        const oldEdited = maStlWall2dToolOldAxisStateById(snapshot, axisUd.id);
+        if (!oldEdited || !axisUd.p1Mm || !axisUd.p2Mm) return false;
+
+        const eps = Math.max(maStlUserFloorLineMergeEndpointEpsMm(), MA_STL_WALL_DIM_LENGTH_VALUE_TOL_MM);
+        const changed = [];
+        const fixedOldPts = [];
+        const dP1 = {
+            dx: axisUd.p1Mm.x - oldEdited.p1Mm.x,
+            dz: axisUd.p1Mm.z - oldEdited.p1Mm.z,
+        };
+        const dP2 = {
+            dx: axisUd.p2Mm.x - oldEdited.p2Mm.x,
+            dz: axisUd.p2Mm.z - oldEdited.p2Mm.z,
+        };
+        if (Math.hypot(dP1.dx, dP1.dz) > eps * 0.05) changed.push({ pt: oldEdited.p1Mm, delta: dP1 });
+        else fixedOldPts.push(oldEdited.p1Mm);
+        if (Math.hypot(dP2.dx, dP2.dz) > eps * 0.05) changed.push({ pt: oldEdited.p2Mm, delta: dP2 });
+        else fixedOldPts.push(oldEdited.p2Mm);
+        if (!changed.length) return false;
+
+        const nodes = [];
+        const edgeRefs = [];
+        for (let ai = 0; ai < snapshot.axes.length; ai++) {
+            const rec = snapshot.axes[ai];
+            const n1 = maStlWall2dToolPropagationFindNode(nodes, rec.p1Mm, eps);
+            const n2 = maStlWall2dToolPropagationFindNode(nodes, rec.p2Mm, eps);
+            const edge = { rec: rec, n1: n1, n2: n2 };
+            edgeRefs.push(edge);
+            nodes[n1].edges.push(edge);
+            nodes[n2].edges.push(edge);
+        }
+
+        const fixedNodes = {};
+        for (let fi = 0; fi < fixedOldPts.length; fi++) {
+            const fn = maStlWall2dToolPropagationFindNode(nodes, fixedOldPts[fi], eps);
+            fixedNodes[fn] = true;
+        }
+
+        const nodeDeltas = {};
+        const queue = [];
+        for (let ci = 0; ci < changed.length; ci++) {
+            const cn = maStlWall2dToolPropagationFindNode(nodes, changed[ci].pt, eps);
+            maStlWall2dToolAssignPropagationDelta(nodeDeltas, cn, changed[ci].delta, queue, fixedNodes);
+        }
+
+        for (let qi = 0; qi < queue.length; qi++) {
+            const nodeIdx = queue[qi];
+            const delta = nodeDeltas[nodeIdx];
+            if (!delta) continue;
+            const edges = nodes[nodeIdx].edges;
+            for (let ei = 0; ei < edges.length; ei++) {
+                const edge = edges[ei];
+                if (edge.rec.id === axisUd.id) continue;
+                const otherIdx = edge.n1 === nodeIdx ? edge.n2 : edge.n1;
+                maStlWall2dToolAssignPropagationDelta(nodeDeltas, otherIdx, delta, queue, fixedNodes);
+            }
+        }
+
+        const movedAxes = [];
+        for (let ri = 0; ri < edgeRefs.length; ri++) {
+            const edge = edgeRefs[ri];
+            const rec = edge.rec;
+            if (rec.id === axisUd.id) {
+                movedAxes.push(axisLine);
+                continue;
+            }
+            const ud = rec.line && rec.line.userData && rec.line.userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            const d1 = nodeDeltas[edge.n1];
+            const d2 = nodeDeltas[edge.n2];
+            let changedLine = false;
+            if (d1 && !fixedNodes[edge.n1]) {
+                ud.p1Mm.x = rec.p1Mm.x + d1.dx;
+                ud.p1Mm.z = rec.p1Mm.z + d1.dz;
+                changedLine = true;
+            }
+            if (d2 && !fixedNodes[edge.n2]) {
+                ud.p2Mm.x = rec.p2Mm.x + d2.dx;
+                ud.p2Mm.z = rec.p2Mm.z + d2.dz;
+                changedLine = true;
+            }
+            if (changedLine) {
+                if (d1 && d2 && !maStlWall2dToolPropagationDeltaNear(d1, d2)) {
+                    maStlQuantizeUserFloorPlanPointToGridMm(ud.p1Mm);
+                    maStlQuantizeUserFloorPlanPointToGridMm(ud.p2Mm);
+                }
+                maStlApplyUserFloorLineSegmentGeometryFromMm(rec.line);
+                movedAxes.push(rec.line);
+            }
+        }
+
+        for (let mi = 0; mi < movedAxes.length; mi++) {
+            maStlWall2dToolRefreshAxisFaceOffsetsNoJunction(movedAxes[mi]);
+        }
+        maStlWall2dToolSplitAllAxisInteriorCrossingsMm();
+        maStlWall2dToolRefactorAllWallJunctionsMm();
+        maStlWeldAllUserFloorLineEndpointsMm();
+        maStlWall2dToolRefactorAllWallJunctionsMm();
+        maStlReapplyAllUserFloorWallAxisLineStyles();
+        return true;
     }
 
     /**
@@ -13655,6 +14209,31 @@ function bootMasterArticleDetailsStlViewer() {
         maStlApplyUserFloorLineSegmentGeometryFromMm(line);
     }
 
+    function maStlParseEditedLineLengthAngleMm(raw) {
+        if (raw == null) return null;
+        const s = String(raw).trim();
+        if (!s || s.indexOf('<') < 0) return null;
+        return maStlLineToolParsePolarDistanceAngleMm(s.charAt(0) === '@' ? s : '@' + s);
+    }
+
+    function maStlApplyEditedUserFloorLineLengthAngleMm(line, raw) {
+        if (!line || !line.userData || !line.userData.maStlUserPlanLine) return false;
+        const polar = maStlParseEditedLineLengthAngleMm(raw);
+        if (!polar) return false;
+        const minAllowed = maStlUserFloorSegmentMinMm();
+        if (!(polar.lenMm >= minAllowed - 1e-9)) return false;
+        const ud = line.userData.maStlUserPlanLine;
+        const p1 = ud.p1Mm;
+        const p2 = ud.p2Mm;
+        if (!p1 || !p2) return false;
+        const targetLenMm = maStlDesing2LengthMmRoundedEditableFromMm(polar.lenMm);
+        p2.x = p1.x + polar.ux * targetLenMm;
+        p2.y = p1.y;
+        p2.z = p1.z + polar.uz * targetLenMm;
+        maStlApplyUserFloorLineSegmentGeometryFromMm(line);
+        return true;
+    }
+
     /** Tope habitual ~25 m físicos desde reglas/extent (mm escena). */
     function maStlUserFloorPlanLineCapMm() {
         return lastMaxDim * 25;
@@ -14812,12 +15391,14 @@ function bootMasterArticleDetailsStlViewer() {
         if (!line || !line.userData || !line.userData.maStlUserPlanLine) return false;
         maStlInvalidateUserFloorDimGuideGeomCache();
         let anyOk = false;
-        const lenMm = maStlParseLengthInputValueToMm(rawLen);
+        const polarOk = maStlApplyEditedUserFloorLineLengthAngleMm(line, rawLen);
+        const lenMm = polarOk ? null : maStlParseLengthInputValueToMm(rawLen);
         const dxMm = maStlParseLengthInputValueToMm(rawDx);
         const dzMm = maStlParseLengthInputValueToMm(rawDz);
         const minAllowed = maStlUserFloorSegmentMinMm();
         if (dxMm != null && maStlResizeUserFloorLinePlanDeltaXMm(line, dxMm)) anyOk = true;
         if (dzMm != null && maStlResizeUserFloorLinePlanDeltaZMm(line, dzMm)) anyOk = true;
+        if (polarOk) anyOk = true;
         if (lenMm != null && lenMm >= minAllowed - 1e-9) {
             maStlResizeUserFloorLineToLengthMm(
                 line,
@@ -15647,6 +16228,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlUserFloorDimArrowMesh) {
             maStlUserFloorDimArrowMesh.visible = false;
         }
+        maStlLineToolHideAngleArcHud();
         const h = maStlEnsureUserFloorDimDomHud();
         if (h && h.root) {
             h.root.hidden = true;
@@ -15794,6 +16376,10 @@ function bootMasterArticleDetailsStlViewer() {
             let logDev = false;
             const dimUndoBefore =
                 _maStlDesing2DimEditUndoBeforeSnapshot || maStlDesing2SerializeEditSnapshot();
+            const wallAxisPropagationBefore =
+                lineWas && lineWas.userData && lineWas.userData.maStlUserPlanLine
+                    ? maStlWall2dToolCaptureAxisEditPropagationState(lineWas)
+                    : null;
             if (snapDimKind === 'all' && lineWas && lineWas.userData && lineWas.userData.maStlUserPlanLine) {
                 const hdomSnap = maStlEnsureUserFloorDimDomHud();
                 const inpLen =
@@ -15833,10 +16419,13 @@ function bootMasterArticleDetailsStlViewer() {
                     commitOk =
                         pv != null && maStlResizeUserFloorLinePlanDeltaZMm(lineWas, pv);
                 } else if (lineWas && lineWas.userData && lineWas.userData.maStlUserPlanLine) {
-                    const lenMmParsed = maStlParseLengthInputValueToMm(raw);
+                    const polarOk = maStlApplyEditedUserFloorLineLengthAngleMm(lineWas, raw);
+                    const lenMmParsed = polarOk ? null : maStlParseLengthInputValueToMm(raw);
                     const minAllowed = maStlUserFloorSegmentMinMm();
                     const planOk = lenMmParsed != null && lenMmParsed >= minAllowed - 1e-9;
-                    if (planOk) {
+                    if (polarOk) {
+                        commitOk = true;
+                    } else if (planOk) {
                         maStlResizeUserFloorLineToLengthMm(
                             lineWas,
                             maStlDesing2LengthMmRoundedEditableFromMm(lenMmParsed)
@@ -15846,6 +16435,9 @@ function bootMasterArticleDetailsStlViewer() {
                 }
             }
             if (commitOk) {
+                if (!maStlWall2dToolApplyAxisEditPropagation(lineWas, wallAxisPropagationBefore)) {
+                    maStlWall2dToolRefreshFacesAfterEditableAxisChange(lineWas);
+                }
                 maStlDesing2PushEditSnapshotUndo(
                     'editUserFloorLineDimension',
                     dimUndoBefore,
@@ -15872,6 +16464,8 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     function maStlBeginUserFloorLineDimensionEdit(line, editKindOpt) {
+        const editableLine = maStlWall2dToolEditableAxisLineForDimension(line);
+        line = editableLine || line;
         const isAll = editKindOpt === 'all';
         maStlUserFloorLineDimEditKind = isAll
             ? 'all'
@@ -15889,10 +16483,6 @@ function bootMasterArticleDetailsStlViewer() {
             !hdom.inputEl ||
             !viewerShell
         ) {
-            maStlUserFloorLineDimEditKind = 'length';
-            return;
-        }
-        if (maStlIsUserFloorWallFacePlanLine(line)) {
             maStlUserFloorLineDimEditKind = 'length';
             return;
         }
@@ -16764,6 +17354,10 @@ function bootMasterArticleDetailsStlViewer() {
      */
     function onCanvasPointerDownUserFloorLineRefactorRmb(ev) {
         if (!maStlDesingV2Viewer || ev.button !== 2) return;
+        if (maStlLineToolOpenPolarInputFromCurrentRubberBand(ev)) {
+            _maStlUserFloorLineRefactorRmbGesture = null;
+            return;
+        }
         const canvas = renderer.domElement;
         if (ev.currentTarget !== canvas) return;
         const rawTarget = ev.target;
@@ -16811,6 +17405,54 @@ function bootMasterArticleDetailsStlViewer() {
     function onWindowPointerCancelUserFloorLineRefactorRmb(ev) {
         if (ev.button !== 2) return;
         _maStlUserFloorLineRefactorRmbGesture = null;
+    }
+
+    function maStlLineToolOpenPolarInputFromCurrentRubberBand(ev) {
+        if (!maStlIsLineToolPlacementActive() || maStlLineToolState !== 'picking2' || !maStlDesingV2Viewer) {
+            return false;
+        }
+        const end = maStlLineToolComputeRubberBandEndMm(_maStlLineToolRubberEndMm);
+        if (!end || !maStlLineToolHudDistanceInput) return false;
+        const dx = end.x - maStlLineToolPoint1Mm.x;
+        const dz = end.z - maStlLineToolPoint1Mm.z;
+        const lenMm = Math.hypot(dx, dz);
+        if (!(lenMm >= maStlUserFloorSegmentMinMm())) return false;
+        const lenText = maStlDesing2DimEditableMetersDisplayFromMm(
+            maStlDesing2LengthMmRoundedEditableFromMm(lenMm)
+        );
+        const angleText = maStlFormatFloorPlanAngleDegDisplay(
+            maStlFloorPlanCadAngleDegFromDeltaMm(dx, dz)
+        ).replace('\u00B0', '');
+        if (ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation();
+        }
+        maStlLineToolDistanceTypeBuffer = lenText;
+        maStlLineToolAngleTypeBuffer = angleText;
+        maStlLineToolHudDistanceInput.value = lenText;
+        if (maStlLineToolHudAngleInput) {
+            maStlLineToolHudAngleInput.value = angleText;
+        }
+        maStlLineToolSyncTypingPreviewUi();
+        maStlLineToolRefreshPicking2RubberBand();
+        maStlSyncLineToolHud();
+        try {
+            maStlLineToolHudDistanceInput.focus({ preventScroll: true });
+            maStlLineToolHudDistanceInput.select();
+        } catch (_eFocusPolar) {
+            maStlLineToolHudDistanceInput.focus();
+        }
+        return true;
+    }
+
+    function onCanvasContextMenuLineToolPolarInput(ev) {
+        if (maStlLineToolOpenPolarInputFromCurrentRubberBand(ev)) return;
+        if (maStlLineToolState === 'picking2' || maStlIsUserFloorLineDimEditOverlayActive()) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation();
+        }
     }
 
     /**
@@ -17325,6 +17967,19 @@ function bootMasterArticleDetailsStlViewer() {
     }
     if (maStlDesingV2Viewer && maStlLineToolOrtho15ToggleBtn) {
         maStlLineToolOrtho15ToggleBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            maStlToggleLineToolOrtho15FromUi();
+        });
+    }
+    if (maStlDesingV2Viewer && maStlLineToolOrthoStatusHud) {
+        maStlLineToolOrthoStatusHud.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            maStlToggleLineToolOrtho15FromUi();
+        });
+        maStlLineToolOrthoStatusHud.addEventListener('keydown', (ev) => {
+            if (!(ev.key === 'Enter' || ev.code === 'Enter' || ev.key === ' ' || ev.code === 'Space')) return;
+            ev.preventDefault();
             ev.stopPropagation();
             maStlToggleLineToolOrtho15FromUi();
         });
@@ -18185,6 +18840,7 @@ function bootMasterArticleDetailsStlViewer() {
     hudPointerMoveHost.addEventListener('pointermove', onCanvasPointerMoveUserFloorLineHover);
     renderer.domElement.addEventListener('dblclick', onCanvasDblClickOffsetToolDistance, true);
     renderer.domElement.addEventListener('dblclick', onCanvasDblClickUserFloorLineDimension, true);
+    renderer.domElement.addEventListener('contextmenu', onCanvasContextMenuLineToolPolarInput, true);
     renderer.domElement.addEventListener('pointerleave', onCanvasPointerLeaveInsertionPick);
 
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownSetOrbitPivot, true);
@@ -18222,6 +18878,20 @@ function bootMasterArticleDetailsStlViewer() {
             maStlLineToolRefreshPicking2RubberBand();
         });
         maStlLineToolHudDistanceInput.addEventListener('keydown', (ev) => {
+            if (!(ev.key === 'Enter' || ev.code === 'Enter' || ev.key === 'NumpadEnter') || ev.shiftKey) return;
+            ev.preventDefault();
+            maStlLineToolTryTypedCommitDistanceOrbitDefer();
+        });
+    }
+    if (maStlDesingV2Viewer && maStlLineToolHudAngleInput) {
+        maStlLineToolHudAngleInput.autocomplete = 'off';
+        maStlLineToolHudAngleInput.addEventListener('input', function () {
+            if (maStlLineToolState !== 'picking2') return;
+            maStlLineToolAngleTypeBuffer = String(maStlLineToolHudAngleInput.value || '');
+            maStlLineToolSyncTypingPreviewUi();
+            maStlLineToolRefreshPicking2RubberBand();
+        });
+        maStlLineToolHudAngleInput.addEventListener('keydown', (ev) => {
             if (!(ev.key === 'Enter' || ev.code === 'Enter' || ev.key === 'NumpadEnter') || ev.shiftKey) return;
             ev.preventDefault();
             maStlLineToolTryTypedCommitDistanceOrbitDefer();
@@ -18276,7 +18946,7 @@ function bootMasterArticleDetailsStlViewer() {
 
     function maStlDisposeDesingV2F8OrthoKeyListener() {
         if (!_maStlDesingV2F8OrthoKeydownHandler) return;
-        window.removeEventListener('keydown', _maStlDesingV2F8OrthoKeydownHandler);
+        window.removeEventListener('keydown', _maStlDesingV2F8OrthoKeydownHandler, true);
         _maStlDesingV2F8OrthoKeydownHandler = null;
     }
 
@@ -18330,7 +19000,7 @@ function bootMasterArticleDetailsStlViewer() {
         window.addEventListener('keydown', _maStlDesingV2LineToolEnterActivateKeyHandler);
     }
 
-    /** F8 (Desing_2): alterna orto 15°; no cuando el foco está en campos de texto o edición IME. */
+    /** F8 (Desing_2): alterna orto 15° incluso si el foco está en distancia/ángulo del dibujo. */
     function maStlWireDesingV2F8OrthoKeyListener() {
         maStlDisposeDesingV2F8OrthoKeyListener();
         if (!maStlDesingV2Viewer || !viewerShell) return;
@@ -18338,13 +19008,12 @@ function bootMasterArticleDetailsStlViewer() {
             if (ev.code !== 'F8' && ev.key !== 'F8') return;
             if (!maStlIsDesing2ViewerShellVisibleForKeyboardShortcuts()) return;
             if (ev.defaultPrevented) return;
-            const ae = document.activeElement;
-            if (maStlDesingV2AvoidKeyboardShortcutSteal(ae)) return;
+            if (ev.repeat) return;
             ev.preventDefault();
             ev.stopPropagation();
             maStlToggleLineToolOrtho15FromUi();
         };
-        window.addEventListener('keydown', _maStlDesingV2F8OrthoKeydownHandler);
+        window.addEventListener('keydown', _maStlDesingV2F8OrthoKeydownHandler, true);
     }
 
     /** Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z — undo/redo edición Desing_2 (no en inputs de texto). */

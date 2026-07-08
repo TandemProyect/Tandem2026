@@ -2,9 +2,12 @@ using DAL;
 using Microsoft.AspNet.Identity;
 using Desing.Helpers;
 using System;
+using System.Configuration;
 using System.Data.Entity;
+using System.Diagnostics;
 using System.Linq;
 using System.Web;
+using System.Web.Caching;
 using System.Web.Mvc;
 namespace Desing.Controllers
 {
@@ -16,8 +19,39 @@ namespace Desing.Controllers
         /// pintar el Login con el color/logo correcto antes de autenticar.
         /// </summary>
         public const string PlantillaCookieName = "tandem_plantilla";
+        private const string PlantillaCacheKeyPrefix = "TandemPlantilla_";
+        private const string PlantillaDefaultCacheKey = "TandemPlantilla_Default";
+        private const string LanguageByIdCacheKeyPrefix = "TandemLanguage_ById_";
+        private const string UserChromeCacheKeyPrefix = "TandemUserChrome_";
+        private static readonly TimeSpan SharedLookupCacheDuration = TimeSpan.FromMinutes(15);
+        private static readonly TimeSpan UserChromeCacheDuration = TimeSpan.FromMinutes(5);
 
         private ConexionData _db;
+
+        private sealed class PlantillaViewData
+        {
+            public long Id { get; set; }
+            public string Color { get; set; }
+            public string Logo { get; set; }
+            public string Favicon { get; set; }
+            public string BrandText { get; set; }
+            public string BrandTextColor { get; set; }
+            public string BrandAccentColor { get; set; }
+        }
+
+        private sealed class LanguageViewData
+        {
+            public long Id { get; set; }
+            public string TextCode { get; set; }
+        }
+
+        private sealed class UserChromeViewData
+        {
+            public string Avatar { get; set; }
+            public string UserName { get; set; }
+            public long? PlantillaId { get; set; }
+            public long? LanguageId { get; set; }
+        }
 
         protected ConexionData db
         {
@@ -36,6 +70,7 @@ namespace Desing.Controllers
 
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
+            var swAction = Stopwatch.StartNew();
             base.OnActionExecuting(filterContext);
 
             // Plantilla por defecto del sitio (color + logo + favicon) - fallback si no hay usuario.
@@ -49,41 +84,34 @@ namespace Desing.Controllers
             // Disponibilizar avatar, userName y plantilla en todas las vistas (navbar Materio).
             try
             {
-                TSql_Plantilla plantilla = null;
+                PlantillaViewData plantilla = null;
 
                 if (User != null && User.Identity != null && User.Identity.IsAuthenticated)
                 {
                     var idUser = User.Identity.GetUserId();
                     if (!string.IsNullOrEmpty(idUser))
                     {
-                        var employee = db.TSql_Employee.FirstOrDefault(n => n.LinAspNetUsert == idUser);
-                        if (employee != null)
+                        var userChrome = GetCachedUserChromeByAspNetUserId(idUser);
+                        if (userChrome != null)
                         {
-                            ViewBag.avatar = employee.AttPhotoMenu;
-                            ViewBag.userName = (employee.AttName + " " + employee.AttSurname).Trim();
-                            var company = db.TSql_Company.FirstOrDefault(c =>
-                                c.SysObjectID == employee.LinCompany && !c.BitIsDeleted);
-                            if (company != null)
+                            ViewBag.avatar = userChrome.Avatar;
+                            ViewBag.userName = userChrome.UserName;
+                            if (userChrome.PlantillaId.HasValue)
                             {
-                                if (company.LinPlantilla.HasValue)
-                                {
-                                    plantilla = db.TSql_Plantilla.FirstOrDefault(p =>
-                                        p.SysObjectID == company.LinPlantilla.Value && !p.AttIsDeleted);
-                                }
+                                plantilla = GetCachedPlantillaById(userChrome.PlantillaId.Value);
+                            }
 
-                                if (company.LinkLanguage.HasValue)
+                            if (userChrome.LanguageId.HasValue)
+                            {
+                                var langRow = GetCachedLanguageById(userChrome.LanguageId.Value);
+                                if (langRow != null && !string.IsNullOrWhiteSpace(langRow.TextCode))
                                 {
-                                    var langRow = db.TSql_language.AsNoTracking().FirstOrDefault(l =>
-                                        l.IdObject == company.LinkLanguage.Value && !l.Is_Delete && l.Is_Active);
-                                    if (langRow != null && !string.IsNullOrWhiteSpace(langRow.TextCode))
-                                    {
-                                        var code = langRow.TextCode.Trim();
-                                        HttpContext.Items[LanguageUiHelper.ItemKeyCompanyLanguageId] = langRow.IdObject;
-                                        HttpContext.Items[LanguageUiHelper.ItemKeyCompanyLanguageCode] = code;
-                                        HttpContext.Items[LanguageUiHelper.ItemKeyCompanyLanguageLocked] = true;
-                                        LanguageUiHelper.WriteLanguageCookies(Response, code);
-                                        LanguageUiHelper.ApplyCultureExplicit(code);
-                                    }
+                                    var code = langRow.TextCode.Trim();
+                                    HttpContext.Items[LanguageUiHelper.ItemKeyCompanyLanguageId] = langRow.Id;
+                                    HttpContext.Items[LanguageUiHelper.ItemKeyCompanyLanguageCode] = code;
+                                    HttpContext.Items[LanguageUiHelper.ItemKeyCompanyLanguageLocked] = true;
+                                    LanguageUiHelper.WriteLanguageCookies(Response, code);
+                                    LanguageUiHelper.ApplyCultureExplicit(code);
                                 }
                             }
                         }
@@ -95,35 +123,33 @@ namespace Desing.Controllers
                     long? cookiePlantillaId = ReadPlantillaCookie();
                     if (cookiePlantillaId.HasValue)
                     {
-                        plantilla = db.TSql_Plantilla
-                                      .FirstOrDefault(p => p.SysObjectID == cookiePlantillaId.Value && !p.AttIsDeleted);
+                        plantilla = GetCachedPlantillaById(cookiePlantillaId.Value);
                     }
                 }
 
                 // Fallback: plantilla marcada como por defecto.
                 if (plantilla == null)
                 {
-                    plantilla = db.TSql_Plantilla
-                                  .FirstOrDefault(p => p.AttIsDefault && !p.AttIsDeleted);
+                    plantilla = GetCachedDefaultPlantilla();
                 }
 
                 if (plantilla != null)
                 {
-                    if (!string.IsNullOrWhiteSpace(plantilla.AttColor))
-                        ViewBag.PlantillaColor = plantilla.AttColor;
-                    if (!string.IsNullOrWhiteSpace(plantilla.AttLogo))
-                        ViewBag.PlantillaLogo = plantilla.AttLogo;
-                    if (!string.IsNullOrWhiteSpace(plantilla.AttFavicon))
-                        ViewBag.PlantillaFavicon = plantilla.AttFavicon;
-                    ViewBag.PlantillaBrandText = string.IsNullOrWhiteSpace(plantilla.AttBrandText)
+                    if (!string.IsNullOrWhiteSpace(plantilla.Color))
+                        ViewBag.PlantillaColor = plantilla.Color;
+                    if (!string.IsNullOrWhiteSpace(plantilla.Logo))
+                        ViewBag.PlantillaLogo = plantilla.Logo;
+                    if (!string.IsNullOrWhiteSpace(plantilla.Favicon))
+                        ViewBag.PlantillaFavicon = plantilla.Favicon;
+                    ViewBag.PlantillaBrandText = string.IsNullOrWhiteSpace(plantilla.BrandText)
                         ? "T Desing.net"
-                        : plantilla.AttBrandText.Trim();
-                    ViewBag.PlantillaBrandTextColor = plantilla.AttBrandTextColor != null
-                        ? plantilla.AttBrandTextColor.Trim()
+                        : plantilla.BrandText.Trim();
+                    ViewBag.PlantillaBrandTextColor = plantilla.BrandTextColor != null
+                        ? plantilla.BrandTextColor.Trim()
                         : "";
-                    ViewBag.PlantillaBrandAccentColor = string.IsNullOrWhiteSpace(plantilla.AttBrandAccentColor)
+                    ViewBag.PlantillaBrandAccentColor = string.IsNullOrWhiteSpace(plantilla.BrandAccentColor)
                         ? "#f29100"
-                        : plantilla.AttBrandAccentColor.Trim();
+                        : plantilla.BrandAccentColor.Trim();
                 }
             }
             catch
@@ -135,6 +161,11 @@ namespace Desing.Controllers
             ViewBag.TandemLanguageIdObject = LanguageUiHelper.TryResolveLanguageId(db, Request);
             ViewBag.TandemCompanyLanguageLocked =
                 HttpContext.Items[LanguageUiHelper.ItemKeyCompanyLanguageLocked] as bool? == true;
+            swAction.Stop();
+            TraceStartupTiming(
+                "BaseController.OnActionExecuting " +
+                (Request != null ? Request.RawUrl : ""),
+                swAction.ElapsedMilliseconds);
         }
 
         /// <summary>
@@ -153,6 +184,141 @@ namespace Desing.Controllers
             return null;
         }
 
+        private PlantillaViewData GetCachedPlantillaById(long plantillaId)
+        {
+            if (plantillaId <= 0) return null;
+            var key = PlantillaCacheKeyPrefix + plantillaId;
+            var cached = HttpRuntime.Cache[key] as PlantillaViewData;
+            if (cached != null) return cached;
+
+            var plantilla = db.TSql_Plantilla
+                .AsNoTracking()
+                .Where(p => p.SysObjectID == plantillaId && !p.AttIsDeleted)
+                .Select(p => new PlantillaViewData
+                {
+                    Id = p.SysObjectID,
+                    Color = p.AttColor,
+                    Logo = p.AttLogo,
+                    Favicon = p.AttFavicon,
+                    BrandText = p.AttBrandText,
+                    BrandTextColor = p.AttBrandTextColor,
+                    BrandAccentColor = p.AttBrandAccentColor
+                })
+                .FirstOrDefault();
+
+            if (plantilla != null)
+            {
+                HttpRuntime.Cache.Insert(key, plantilla, null, DateTime.UtcNow.Add(SharedLookupCacheDuration), System.Web.Caching.Cache.NoSlidingExpiration);
+            }
+            return plantilla;
+        }
+
+        private PlantillaViewData GetCachedDefaultPlantilla()
+        {
+            var cached = HttpRuntime.Cache[PlantillaDefaultCacheKey] as PlantillaViewData;
+            if (cached != null) return cached;
+
+            var plantilla = db.TSql_Plantilla
+                .AsNoTracking()
+                .Where(p => p.AttIsDefault && !p.AttIsDeleted)
+                .Select(p => new PlantillaViewData
+                {
+                    Id = p.SysObjectID,
+                    Color = p.AttColor,
+                    Logo = p.AttLogo,
+                    Favicon = p.AttFavicon,
+                    BrandText = p.AttBrandText,
+                    BrandTextColor = p.AttBrandTextColor,
+                    BrandAccentColor = p.AttBrandAccentColor
+                })
+                .FirstOrDefault();
+
+            if (plantilla != null)
+            {
+                HttpRuntime.Cache.Insert(PlantillaDefaultCacheKey, plantilla, null, DateTime.UtcNow.Add(SharedLookupCacheDuration), System.Web.Caching.Cache.NoSlidingExpiration);
+            }
+            return plantilla;
+        }
+
+        private LanguageViewData GetCachedLanguageById(long languageId)
+        {
+            if (languageId <= 0) return null;
+            var key = LanguageByIdCacheKeyPrefix + languageId;
+            var cached = HttpRuntime.Cache[key] as LanguageViewData;
+            if (cached != null) return cached;
+
+            var lang = db.TSql_language
+                .AsNoTracking()
+                .Where(l => l.IdObject == languageId && !l.Is_Delete && l.Is_Active)
+                .Select(l => new LanguageViewData
+                {
+                    Id = l.IdObject,
+                    TextCode = l.TextCode
+                })
+                .FirstOrDefault();
+
+            if (lang != null)
+            {
+                HttpRuntime.Cache.Insert(key, lang, null, DateTime.UtcNow.Add(SharedLookupCacheDuration), System.Web.Caching.Cache.NoSlidingExpiration);
+            }
+            return lang;
+        }
+
+        private UserChromeViewData GetCachedUserChromeByAspNetUserId(string aspNetUserId)
+        {
+            if (string.IsNullOrWhiteSpace(aspNetUserId)) return null;
+            var key = UserChromeCacheKeyPrefix + aspNetUserId;
+            var cached = HttpRuntime.Cache[key] as UserChromeViewData;
+            if (cached != null) return cached;
+
+            var employee = db.TSql_Employee
+                .AsNoTracking()
+                .Where(n => n.LinAspNetUsert == aspNetUserId)
+                .Select(n => new
+                {
+                    n.AttPhotoMenu,
+                    n.AttName,
+                    n.AttSurname,
+                    n.LinCompany
+                })
+                .FirstOrDefault();
+
+            if (employee == null) return null;
+
+            var userChrome = new UserChromeViewData
+            {
+                Avatar = employee.AttPhotoMenu,
+                UserName = ((employee.AttName ?? "") + " " + (employee.AttSurname ?? "")).Trim()
+            };
+
+            var company = db.TSql_Company
+                .AsNoTracking()
+                .Where(c => c.SysObjectID == employee.LinCompany && !c.BitIsDeleted)
+                .Select(c => new
+                {
+                    c.LinPlantilla,
+                    c.LinkLanguage
+                })
+                .FirstOrDefault();
+
+            if (company != null)
+            {
+                userChrome.PlantillaId = company.LinPlantilla;
+                userChrome.LanguageId = company.LinkLanguage;
+            }
+
+            HttpRuntime.Cache.Insert(key, userChrome, null, DateTime.UtcNow.Add(UserChromeCacheDuration), System.Web.Caching.Cache.NoSlidingExpiration);
+            return userChrome;
+        }
+
+        private static void TraceStartupTiming(string label, long elapsedMs)
+        {
+            if (!string.Equals(ConfigurationManager.AppSettings["TandemStartupTiming"], "true", StringComparison.OrdinalIgnoreCase))
+                return;
+
+            Debug.WriteLine("[TandemStartupTiming] " + label + " = " + elapsedMs + " ms");
+        }
+
         /// <summary>
         /// Guarda en cookie persistente (1 año) el ID de plantilla del usuario que acaba de loguearse.
         /// Si plantillaId es null, se intenta usar la plantilla por defecto.
@@ -163,10 +329,8 @@ namespace Desing.Controllers
             {
                 if (!plantillaId.HasValue)
                 {
-                    plantillaId = db.TSql_Plantilla
-                                    .Where(p => p.AttIsDefault && !p.AttIsDeleted)
-                                    .Select(p => (long?)p.SysObjectID)
-                                    .FirstOrDefault();
+                    var plantilla = GetCachedDefaultPlantilla();
+                    plantillaId = plantilla != null ? (long?)plantilla.Id : null;
                 }
                 if (!plantillaId.HasValue) return;
 

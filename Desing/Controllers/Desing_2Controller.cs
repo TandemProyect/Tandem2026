@@ -231,13 +231,9 @@ namespace Desing.Controllers
             string offerName = null;
 
             string designPart = null;
-
-
-
             if (offerId.HasValue)
 
             {
-
                 var offer = db.TSql_Offers.AsNoTracking().FirstOrDefault(o => o.IdObject == offerId.Value && !o.Is_Delete);
 
                 if (offer != null)

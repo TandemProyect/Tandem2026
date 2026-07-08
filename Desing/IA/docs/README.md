@@ -34,6 +34,7 @@ Documentos de continuidad, handovers, guías para agentes IA y notas de trabajo.
 | [HANDOVER-LCornerDetector.md](HANDOVER-LCornerDetector.md) | Handover US-664 LCornerDetector |
 | [HANDOVER-US-IMG-MUROS.md](HANDOVER-US-IMG-MUROS.md) | Handover análisis de imagen / muros |
 | [HANDOVER-PLUGIN-DEVICE-AUTH.md](HANDOVER-PLUGIN-DEVICE-AUTH.md) | Handover autenticación de dispositivo |
+| [HANDOVER-DESING2-MUROS-ARRANQUE.md](HANDOVER-DESING2-MUROS-ARRANQUE.md) | Handover visor Desing 2, muros, Ortho/F8 y arranque local |
 | [SECURITY-INCIDENT-RESPONSE.md](SECURITY-INCIDENT-RESPONSE.md) | Respuesta a incidente de seguridad |
 
 ---
