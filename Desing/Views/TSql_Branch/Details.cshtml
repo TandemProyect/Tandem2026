@@ -8,7 +8,7 @@
     var companyId = Model.LinCompany;
     var backUrl = Url.Action("Details", "TSql_Company", new { id = companyId });
     var fmt = string.IsNullOrWhiteSpace(Model.Loc_Formatted_Address) ? Branch.Branch_Details_NoValue : Model.Loc_Formatted_Address;
-    var swatch = BranchColorHelper.BadgeInlineStyle(model.AttColor);
+    var swatch = BranchColorHelper.BadgeInlineStyle(Model.AttColor);
 }
 <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
     <h4 class="py-3 mb-0">
@@ -57,7 +57,7 @@
 
             <dt class="col-sm-3">@Branch.Branch_Details_Field_Color</dt>
             <dd class="col-sm-9">
-                @if (BranchColorHelper.TryNormalizeAttcolor(model.AttColor, out var hx))
+                @if (BranchColorHelper.TryNormalizeAttcolor(Model.AttColor, out var hx))
                 {
                     <code>@hx</code>
                 }

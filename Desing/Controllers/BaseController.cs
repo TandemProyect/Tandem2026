@@ -161,6 +161,7 @@ namespace Desing.Controllers
             ViewBag.TandemLanguageIdObject = LanguageUiHelper.TryResolveLanguageId(db, Request);
             ViewBag.TandemCompanyLanguageLocked =
                 HttpContext.Items[LanguageUiHelper.ItemKeyCompanyLanguageLocked] as bool? == true;
+            ViewBag.TandemReleaseNumber = ReleaseVersionHelper.CurrentReleaseNumber;
             swAction.Stop();
             TraceStartupTiming(
                 "BaseController.OnActionExecuting " +

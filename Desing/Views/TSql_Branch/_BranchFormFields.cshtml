@@ -3,7 +3,7 @@
 @using Desing.Models
 @using Desing.Resources
 @{
-    var pickerHex = BranchColorHelper.HexForColorInput(model.AttColor);
+    var pickerHex = BranchColorHelper.HexForColorInput(Model.AttColor);
 }
 <div class="col-md-12">
     <label class="form-label" for="AttLabel">@Branch.Branch_Lbl_NameRequiredModal</label>
@@ -24,9 +24,9 @@
     <label class="form-label" for="branchAttcolorText">@Branch.Branch_Lbl_AccentColor</label>
     <div class="d-flex align-items-center gap-2">
         <input type="color" id="branchAttcolorPicker" value="@pickerHex" class="form-control form-control-color p-1" style="width:3.25rem;height:2.5rem" title="@Branch.Branch_Lbl_AccentColor" />
-        @Html.TextBoxFor(m => m.Attcolor, new { @class = "form-control", id = "branchAttcolorText", maxlength = "7", placeholder = "#RRGGBB" })
+        @Html.TextBoxFor(m => m.AttColor, new { @class = "form-control", id = "branchAttcolorText", maxlength = "7", placeholder = "#RRGGBB" })
     </div>
-    @Html.ValidationMessageFor(m => m.Attcolor, "", new { @class = "text-danger" })
+    @Html.ValidationMessageFor(m => m.AttColor, "", new { @class = "text-danger" })
 </div>
 <div class="col-12">
     @Html.Partial("~/Views/Shared/_GooglePlacesAddressBlock.cshtml", GooglePlacesAddressBlockModel.FromBranch(Model, "Loc", Company.Lbl_AddressGooglePlaces))

@@ -2,7 +2,7 @@
 @using Desing.Resources
 @{
     ViewBag.Title = Model.AttName;
-    var color = string.IsNullOrWhiteSpace(model.AttColor) ? "#349d7d" : model.AttColor;
+    var color = string.IsNullOrWhiteSpace(Model.AttColor) ? "#349d7d" : Model.AttColor;
     var accent = string.IsNullOrWhiteSpace(Model.AttBrandAccentColor) ? "#f29100" : Model.AttBrandAccentColor;
     var textCol = Model.AttBrandTextColor ?? "";
     var brand = string.IsNullOrWhiteSpace(Model.AttBrandText) ? "T Desing.net" : Model.AttBrandText;

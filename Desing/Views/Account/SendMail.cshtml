@@ -1,35 +1,6 @@
-﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@import namespace="System.Net"%>
-<%@import namespace="System.Net.Mail"%>
-<script language="C#" runat="server">
-        protected void Page_Load(object sender, EventArgs e)
-        {
-            MailMessage m = new MailMessage();
-            SmtpClient sc = new SmtpClient();
-            try {
-                m.From = new MailAddress("demouser@gmail.com");
-                m.To.Add("test@test.com");
-                m.Subject = "This is a Test Mail";
-                m.IsBodyHtml = true;
-                m.Body = "test gmail";
-                sc.Host = "smtp.gmail.com";
-                sc.Port = 587;
-                sc.Credentials = new System.Net.NetworkCredential("demouser@gmail.com", "******");
+﻿@{
+    ViewBag.Title = "Send mail";
+}
 
-                sc.EnableSsl = true;
-                sc.Send(m);
-                Response.Write("Email Send successfully");
-            }
-            catch (Exception ex)
-            {
-                Response.Write(ex.Message);
-            }
-        }
-</script>
-<html>
-<body>
-    <form runat="server">
-        <asp:Label id="lblMessage" runat="server"></asp:Label>
-    </form>
-</body>
-</html>
+<h2>Send mail</h2>
+<p>Esta vista antigua ya no ejecuta envío directo de correo.</p>

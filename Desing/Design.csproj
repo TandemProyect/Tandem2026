@@ -311,6 +311,7 @@
     <Compile Include="Helpers\IntranetAuditHelper.cs" />
     <Compile Include="Helpers\JobsideCodeHelper.cs" />
     <Compile Include="Helpers\OfferNumberHelper.cs" />
+    <Compile Include="Helpers\ReleaseVersionHelper.cs" />
     <Compile Include="Helpers\ApplicationStlUrlHelper.cs" />
     <Compile Include="Helpers\OfferDesignWorkspaceHelper.cs" />
     <Compile Include="Helpers\OfferDisplayHelper.cs" />

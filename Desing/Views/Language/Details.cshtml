@@ -53,8 +53,14 @@
                     @if (!string.IsNullOrEmpty(boot.Iso2) || !string.IsNullOrEmpty(boot.Iso3))
                     {
                         var parts = new List<string>();
-                        if (!string.IsNullOrEmpty(boot.Iso2)) parts.Add(boot.Iso2);
-                        if (!string.IsNullOrEmpty(boot.Iso3)) parts.Add(boot.Iso3);
+                        if (!string.IsNullOrEmpty(boot.Iso2))
+                        {
+                            parts.Add(boot.Iso2);
+                        }
+                        if (!string.IsNullOrEmpty(boot.Iso3))
+                        {
+                            parts.Add(boot.Iso3);
+                        }
                         <small class="text-body-secondary">@string.Join(" · ", parts)</small>
                     }
                 </div>
