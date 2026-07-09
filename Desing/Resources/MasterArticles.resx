@@ -427,6 +427,15 @@
   <data name="StlPreview_MoveToolInstructionDisplacement" xml:space="preserve">
     <value>Segundo punto (desplazamiento): clic, #X,Z, o @distancia&lt;grados + Intro. Repita para más movimientos; Esc para terminar.</value>
   </data>
+  <data name="StlPreview_StretchToolInstructionSelecting" xml:space="preserve">
+    <value>Seleccione el muro o línea a estirar: clic simple o arrastre (izq→der ventana, der→izq cruce). Intro para continuar, Esc cancelar.</value>
+  </data>
+  <data name="StlPreview_StretchToolInstructionBasePoint" xml:space="preserve">
+    <value>Punto base (extremo fijo): clic cerca del vértice que no se moverá o teclee X,Z + Intro.</value>
+  </data>
+  <data name="StlPreview_StretchToolInstructionDisplacement" xml:space="preserve">
+    <value>Segundo punto (nueva longitud): clic, #X,Z, o @distancia&lt;grados + Intro. El otro extremo se alarga; Esc para terminar.</value>
+  </data>
   <data name="StlPreview_Desing2BottomToolbarAria" xml:space="preserve">
     <value>Barra inferior del visor STL (deshacer, orto, reglas)</value>
   </data>
@@ -620,7 +629,7 @@
     <value>Estirar</value>
   </data>
   <data name="StlPreview_Desing2TopToolEstirarAria" xml:space="preserve">
-    <value>Herramienta estirar — próximamente (solo interfaz)</value>
+    <value>Estirar muros y líneas — selección, punto base en el extremo fijo y segundo punto para alargar</value>
   </data>
   <data name="StlPreview_Desing2TopToolBorrar" xml:space="preserve">
     <value>Borrar</value>

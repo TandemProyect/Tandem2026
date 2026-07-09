@@ -276,6 +276,7 @@
     <Compile Include="Controllers\DesignToolsAutocadController.cs" />
     <Compile Include="Controllers\DesignToolsController.cs" />
     <Compile Include="Controllers\Desing_2Controller.cs" />
+    <Compile Include="Controllers\TandemXrApiController.cs" />
     <Compile Include="Controllers\HelpDesingController.cs" />
     <Compile Include="Controllers\SendMailerController.cs" />
     <Compile Include="Controllers\TSql_BranchController.cs" />
@@ -374,6 +375,7 @@
     <Compile Include="Models\EmployeeViewModel.cs" />
     <Compile Include="Models\PlantillaViewModel.cs" />
     <Compile Include="Models\Desing2ViewModels.cs" />
+    <Compile Include="Models\TandemXr\TandemXrDesignManifestDto.cs" />
     <Compile Include="Models\IntranetViewModels.cs" />
     <Compile Include="Models\GooglePlacesAddressBlockModel.cs" />
     <Compile Include="ModelBinders\CultureFallbackDecimalModelBinder.cs" />

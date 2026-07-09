@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Tandem Extended Experience</title>
+    <link rel="stylesheet" href="/src/ui.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="txr-header">
+        <div class="txr-brand">
+          <span class="txr-brand__title">Tandem Extended Experience</span>
+          <span class="txr-brand__subtitle">Visualiza y valida soluciones antes de ejecutarlas en obra</span>
+        </div>
+        <div id="txr-xr-buttons" class="txr-xr-buttons"></div>
+      </header>
+
+      <main class="txr-main">
+        <canvas id="txr-canvas"></canvas>
+        <aside id="txr-hud" class="txr-hud" aria-live="polite">
+          <p class="txr-hud__mode" id="txr-mode-label">Modo escritorio</p>
+          <p class="txr-hud__hint" id="txr-hint">
+            Orbita con ratón. En móvil compatible: <strong>START AR</strong> para colocar el modelo en el entorno real.
+          </p>
+          <p class="txr-hud__model" id="txr-model-label"></p>
+        </aside>
+      </main>
+
+      <footer class="txr-footer">
+        <span>Inspirado en <a href="https://www.peri.es/productos/peri-extended-experience.html" target="_blank" rel="noopener">PERI Extended Experience</a></span>
+        <span class="txr-footer__sep">·</span>
+        <span>Integración Desing: <code>?stl=/Content/DesignTools/Stl/...</code></span>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

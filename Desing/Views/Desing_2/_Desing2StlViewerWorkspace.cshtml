@@ -454,6 +454,31 @@
                 </div>
             </div>
         </div>
+        <div id="ma-stl-stretch-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
+             data-ma-stl-stretch-tool-instruction-selecting="@MasterArticles.StlPreview_StretchToolInstructionSelecting"
+             data-ma-stl-stretch-tool-instruction-base="@MasterArticles.StlPreview_StretchToolInstructionBasePoint"
+             data-ma-stl-stretch-tool-instruction-displacement="@MasterArticles.StlPreview_StretchToolInstructionDisplacement"
+             data-ma-stl-stretch-tool-distance-invalid-toast="@MasterArticles.StlPreview_LineToolDistanceInvalidToast"
+             data-ma-stl-line-tool-distance-preview-prefix="@MasterArticles.StlPreview_LineToolDistancePreviewApprox">
+            <div id="ma-stl-stretch-tool-hud-instruction" class="ma-stl-line-tool-hud__instruction small fw-semibold text-body mb-1"></div>
+            <div id="ma-stl-stretch-tool-hud-coords" class="ma-stl-line-tool-hud__coords"
+                 data-ma-stl-line-tool-coords-template="@MasterArticles.StlPreview_RulerAnchorGridCoordsHud"></div>
+            <div id="ma-stl-stretch-tool-hud-distance-row" class="ma-stl-line-tool-hud__distance-row d-none mt-1">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <input id="ma-stl-stretch-tool-hud-distance" type="text" maxlength="48" tabindex="0" autocomplete="off"
+                           inputmode="text"
+                           aria-label="@MasterArticles.StlPreview_LineToolHudDistanceAria"
+                           placeholder="@MasterArticles.StlPreview_LineToolHudDistancePlaceholder"
+                           class="form-control form-control-sm ma-stl-line-tool-hud__distance-field" />
+                    <input id="ma-stl-stretch-tool-hud-angle" type="text" maxlength="16" tabindex="0" autocomplete="off"
+                           inputmode="decimal"
+                           aria-label="°"
+                           placeholder="°"
+                           class="form-control form-control-sm ma-stl-line-tool-hud__distance-field ma-stl-line-tool-hud__angle-field" />
+                    <span id="ma-stl-stretch-tool-hud-distance-preview" class="small text-muted fw-semibold text-nowrap ma-stl-line-tool-hud__distance-preview" aria-hidden="true"></span>
+                </div>
+            </div>
+        </div>
         <div id="ma-stl-wall3d-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
              data-ma-stl-wall3d-tool-instruction="@MasterArticles.StlPreview_Wall3dToolInstruction"
              data-ma-stl-wall3d-tool-processing="@MasterArticles.StlPreview_Wall3dToolProcessing"

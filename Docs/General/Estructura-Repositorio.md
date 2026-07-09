@@ -19,6 +19,8 @@ C:\00_Tandem2026\
 ├── Language/               # Gestión de idiomas
 ├── Linq/                   # Extensiones LINQ
 ├── Scripts/                # Scripts PowerShell
+├── TandemXR/               # Prototipo WebXR (navegador, opcional)
+├── TandemXR-Unity/         # App instalable Quest 3S + tablet Android
 ├── TamdenZwcadPluging/     # Plugin de ZWCAD
 │   └── ZwcadPlugin/
 │       ├── Commands/      # Comandos ZWCAD

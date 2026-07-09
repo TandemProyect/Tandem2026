@@ -165,6 +165,9 @@ namespace Desing.Resources
         public static string StlPreview_MoveToolInstructionSelecting => ResourceManager.GetString(nameof(StlPreview_MoveToolInstructionSelecting), resourceCulture);
         public static string StlPreview_MoveToolInstructionBasePoint => ResourceManager.GetString(nameof(StlPreview_MoveToolInstructionBasePoint), resourceCulture);
         public static string StlPreview_MoveToolInstructionDisplacement => ResourceManager.GetString(nameof(StlPreview_MoveToolInstructionDisplacement), resourceCulture);
+        public static string StlPreview_StretchToolInstructionSelecting => ResourceManager.GetString(nameof(StlPreview_StretchToolInstructionSelecting), resourceCulture);
+        public static string StlPreview_StretchToolInstructionBasePoint => ResourceManager.GetString(nameof(StlPreview_StretchToolInstructionBasePoint), resourceCulture);
+        public static string StlPreview_StretchToolInstructionDisplacement => ResourceManager.GetString(nameof(StlPreview_StretchToolInstructionDisplacement), resourceCulture);
         public static string StlPreview_Desing2BottomToolbarAria => ResourceManager.GetString(nameof(StlPreview_Desing2BottomToolbarAria), resourceCulture);
         public static string StlPreview_Desing2BottomToolbarCollapseTitle => ResourceManager.GetString(nameof(StlPreview_Desing2BottomToolbarCollapseTitle), resourceCulture);
         public static string StlPreview_Desing2BottomToolbarPinTitle => ResourceManager.GetString(nameof(StlPreview_Desing2BottomToolbarPinTitle), resourceCulture);

@@ -913,6 +913,7 @@ const MA_STL_OFFSET_TOOL_PREVIEW_LINEWIDTH_PX = 2;
 /** Herramienta copiar: fantasma líneas + STL durante desplazamiento. */
 const MA_STL_COPY_TOOL_PREVIEW_COLOR_HEX = 0x66bbff;
 const MA_STL_MOVE_TOOL_PREVIEW_COLOR_HEX = 0x66dd88;
+const MA_STL_STRETCH_TOOL_PREVIEW_COLOR_HEX = 0xffaa44;
 const MA_STL_COPY_TOOL_PREVIEW_OPACITY = 0.72;
 const MA_STL_COPY_TOOL_PREVIEW_LINEWIDTH_PX = 2;
 const MA_STL_COPY_TOOL_PREVIEW_MESH_OPACITY = 0.42;
@@ -2683,7 +2684,7 @@ function bootMasterArticleDetailsStlViewer() {
     const maStlDeleteToolHud = document.getElementById('ma-stl-delete-tool-hud');
     const maStlDeleteToolHudInstruction = document.getElementById('ma-stl-delete-tool-hud-instruction');
     let maStlCopyToolActive = false;
-    /** @type {'copy'|'move'} */
+    /** @type {'copy'|'move'|'stretch'} */
     let maStlCopyToolKind = 'copy';
     /** @type {null|'selecting'|'basePoint'|'displacement'} */
     let maStlCopyToolState = null;
@@ -2694,6 +2695,10 @@ function bootMasterArticleDetailsStlViewer() {
     let maStlCopyToolHoverMesh = null;
     const maStlCopyToolBasePointMm = new THREE.Vector3();
     const maStlCopyToolLastPointerClientXY = new THREE.Vector2(Number.NaN, Number.NaN);
+    const maStlCopyToolPlacementPointerDownXY = new THREE.Vector2(Number.NaN, Number.NaN);
+    let maStlCopyToolPlacementPointerId = -1;
+    let maStlCopyToolPlacementTapHandledAt = 0;
+    const MA_STL_COPY_TOOL_PLACEMENT_TAP_MAX_PX = 4;
     const maStlCopyToolLastHoverDirUnitXz = new THREE.Vector2(1, 0);
     let maStlCopyToolDistanceTypeBuffer = '';
     let maStlCopyToolAngleTypeBuffer = '';
@@ -2713,6 +2718,14 @@ function bootMasterArticleDetailsStlViewer() {
     const maStlMoveToolHudDistanceInput = document.getElementById('ma-stl-move-tool-hud-distance');
     const maStlMoveToolHudAngleInput = document.getElementById('ma-stl-move-tool-hud-angle');
     const maStlMoveToolHudDistancePreview = document.getElementById('ma-stl-move-tool-hud-distance-preview');
+    const maStlStretchToolToggleBtn = document.getElementById('ma-stl-tool-stretch');
+    const maStlStretchToolHud = document.getElementById('ma-stl-stretch-tool-hud');
+    const maStlStretchToolHudInstruction = document.getElementById('ma-stl-stretch-tool-hud-instruction');
+    const maStlStretchToolHudCoords = document.getElementById('ma-stl-stretch-tool-hud-coords');
+    const maStlStretchToolHudDistanceRow = document.getElementById('ma-stl-stretch-tool-hud-distance-row');
+    const maStlStretchToolHudDistanceInput = document.getElementById('ma-stl-stretch-tool-hud-distance');
+    const maStlStretchToolHudAngleInput = document.getElementById('ma-stl-stretch-tool-hud-angle');
+    const maStlStretchToolHudDistancePreview = document.getElementById('ma-stl-stretch-tool-hud-distance-preview');
     const maStlCopyToolPreviewLines = [];
     /** @type {{ mesh: THREE.Mesh, baseX: number, baseZ: number, scale: number }[]} */
     const maStlCopyToolPreviewMeshSlots = [];
@@ -2867,8 +2880,85 @@ function bootMasterArticleDetailsStlViewer() {
         return maStlCopyToolActive === true && maStlCopyToolKind === 'move';
     }
 
+    function maStlIsStretchToolActive() {
+        return maStlCopyToolActive === true && maStlCopyToolKind === 'stretch';
+    }
+
     function maStlIsDupMoveToolActive() {
         return maStlCopyToolActive === true;
+    }
+
+    /** @param {'copy'|'move'|'stretch'} [kind] */
+    function maStlXformToolHudSpec(kind) {
+        const k = kind || maStlCopyToolKind;
+        if (k === 'move') {
+            return {
+                hud: maStlMoveToolHud,
+                instruction: maStlMoveToolHudInstruction,
+                coords: maStlMoveToolHudCoords,
+                distanceRow: maStlMoveToolHudDistanceRow,
+                distanceInput: maStlMoveToolHudDistanceInput,
+                angleInput: maStlMoveToolHudAngleInput,
+                distancePreview: maStlMoveToolHudDistancePreview,
+                instructionPrefix: 'data-ma-stl-move-tool-instruction-',
+                toastAttr: 'data-ma-stl-move-tool-distance-invalid-toast',
+                toggleBtn: maStlMoveToolToggleBtn,
+            };
+        }
+        if (k === 'stretch') {
+            return {
+                hud: maStlStretchToolHud,
+                instruction: maStlStretchToolHudInstruction,
+                coords: maStlStretchToolHudCoords,
+                distanceRow: maStlStretchToolHudDistanceRow,
+                distanceInput: maStlStretchToolHudDistanceInput,
+                angleInput: maStlStretchToolHudAngleInput,
+                distancePreview: maStlStretchToolHudDistancePreview,
+                instructionPrefix: 'data-ma-stl-stretch-tool-instruction-',
+                toastAttr: 'data-ma-stl-stretch-tool-distance-invalid-toast',
+                toggleBtn: maStlStretchToolToggleBtn,
+            };
+        }
+        return {
+            hud: maStlCopyToolHud,
+            instruction: maStlCopyToolHudInstruction,
+            coords: maStlCopyToolHudCoords,
+            distanceRow: maStlCopyToolHudDistanceRow,
+            distanceInput: maStlCopyToolHudDistanceInput,
+            angleInput: maStlCopyToolHudAngleInput,
+            distancePreview: maStlCopyToolHudDistancePreview,
+            instructionPrefix: 'data-ma-stl-copy-tool-instruction-',
+            toastAttr: 'data-ma-stl-copy-tool-distance-invalid-toast',
+            toggleBtn: maStlCopyToolToggleBtn,
+        };
+    }
+
+    function maStlXformToolHideAllHuds() {
+        const specs = [
+            maStlXformToolHudSpec('copy'),
+            maStlXformToolHudSpec('move'),
+            maStlXformToolHudSpec('stretch'),
+        ];
+        for (let si = 0; si < specs.length; si++) {
+            const sp = specs[si];
+            if (sp.hud) sp.hud.classList.add('d-none');
+            if (sp.instruction) sp.instruction.textContent = '';
+            if (sp.coords) sp.coords.textContent = '';
+            if (sp.distanceRow) sp.distanceRow.classList.add('d-none');
+        }
+    }
+
+    function maStlXformToolHideInactiveHuds() {
+        const active = maStlCopyToolKind;
+        if (maStlCopyToolHud) maStlCopyToolHud.classList.toggle('d-none', active !== 'copy');
+        if (maStlMoveToolHud) maStlMoveToolHud.classList.toggle('d-none', active !== 'move');
+        if (maStlStretchToolHud) maStlStretchToolHud.classList.toggle('d-none', active !== 'stretch');
+    }
+
+    function maStlCopyToolPreviewColorHex() {
+        if (maStlCopyToolKind === 'move') return MA_STL_MOVE_TOOL_PREVIEW_COLOR_HEX;
+        if (maStlCopyToolKind === 'stretch') return MA_STL_STRETCH_TOOL_PREVIEW_COLOR_HEX;
+        return MA_STL_COPY_TOOL_PREVIEW_COLOR_HEX;
     }
 
     function maStlIsCopyToolPlacementPhaseActive() {
@@ -2886,45 +2976,39 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     function maStlDupMoveToolHud() {
-        return maStlCopyToolKind === 'move' ? maStlMoveToolHud : maStlCopyToolHud;
+        return maStlXformToolHudSpec().hud;
     }
 
     function maStlDupMoveToolHudInstruction() {
-        return maStlCopyToolKind === 'move' ? maStlMoveToolHudInstruction : maStlCopyToolHudInstruction;
+        return maStlXformToolHudSpec().instruction;
     }
 
     function maStlDupMoveToolHudCoords() {
-        return maStlCopyToolKind === 'move' ? maStlMoveToolHudCoords : maStlCopyToolHudCoords;
+        return maStlXformToolHudSpec().coords;
     }
 
     function maStlDupMoveToolHudDistanceRow() {
-        return maStlCopyToolKind === 'move' ? maStlMoveToolHudDistanceRow : maStlCopyToolHudDistanceRow;
+        return maStlXformToolHudSpec().distanceRow;
     }
 
     function maStlDupMoveToolHudDistanceInput() {
-        return maStlCopyToolKind === 'move' ? maStlMoveToolHudDistanceInput : maStlCopyToolHudDistanceInput;
+        return maStlXformToolHudSpec().distanceInput;
     }
 
     function maStlDupMoveToolHudAngleInput() {
-        return maStlCopyToolKind === 'move' ? maStlMoveToolHudAngleInput : maStlCopyToolHudAngleInput;
+        return maStlXformToolHudSpec().angleInput;
     }
 
     function maStlDupMoveToolHudDistancePreview() {
-        return maStlCopyToolKind === 'move'
-            ? maStlMoveToolHudDistancePreview
-            : maStlCopyToolHudDistancePreview;
+        return maStlXformToolHudSpec().distancePreview;
     }
 
     function maStlDupMoveToolInstructionDataAttr(phase) {
-        const prefix =
-            maStlCopyToolKind === 'move' ? 'data-ma-stl-move-tool-instruction-' : 'data-ma-stl-copy-tool-instruction-';
-        return prefix + phase;
+        return maStlXformToolHudSpec().instructionPrefix + phase;
     }
 
     function maStlDupMoveToolDistanceInvalidToastAttr() {
-        return maStlCopyToolKind === 'move'
-            ? 'data-ma-stl-move-tool-distance-invalid-toast'
-            : 'data-ma-stl-copy-tool-distance-invalid-toast';
+        return maStlXformToolHudSpec().toastAttr;
     }
 
     function maStlIsWall3dToolActive() {
@@ -5498,6 +5582,23 @@ function bootMasterArticleDetailsStlViewer() {
         controls.enableZoom = true;
     }
 
+    /** Desing_2: bloquea totalmente órbita/pan durante selección ventana/cruce (copiar/mover/estirar/borrar). */
+    function maStlLockOrbitFullyForToolSelection() {
+        maStlLockOrbitForRulerAnchorPick();
+        if (controls) {
+            controls.enabled = false;
+        }
+    }
+
+    /** Tras confirmar selección — pick-lock sin rotación (pan/zoom opcional en desplazamiento). */
+    function maStlReenableOrbitForDupMovePlacementAfterSelection() {
+        if (!controls || !maStlRulerAnchorPickOrbitLockSnapshot) return;
+        controls.enabled = true;
+        controls.enableRotate = false;
+        controls.enablePan = true;
+        controls.enableZoom = true;
+    }
+
     function maStlClearDeferredRulerPickOrbitUnlock() {
         if (!maStlDeferredRulerPickUnlockPointerEnded) return;
         window.removeEventListener('pointerup', maStlDeferredRulerPickUnlockPointerEnded, true);
@@ -5907,6 +6008,11 @@ function bootMasterArticleDetailsStlViewer() {
             const onMove = maStlIsMoveToolActive();
             maStlMoveToolToggleBtn.setAttribute('aria-pressed', onMove ? 'true' : 'false');
             maStlMoveToolToggleBtn.classList.toggle('active', onMove);
+        }
+        if (maStlStretchToolToggleBtn) {
+            const onStretch = maStlIsStretchToolActive();
+            maStlStretchToolToggleBtn.setAttribute('aria-pressed', onStretch ? 'true' : 'false');
+            maStlStretchToolToggleBtn.classList.toggle('active', onStretch);
         }
         if (maStlInsertCornerToolToggleBtn) {
             const onInsertCorner = maStlIsInsertCornerToolActive();
@@ -6494,6 +6600,10 @@ function bootMasterArticleDetailsStlViewer() {
             case 'ma-stl-tool-move':
                 if (maStlIsMoveToolActive()) return false;
                 maStlStartMoveToolModesToolbar();
+                return true;
+            case 'ma-stl-tool-stretch':
+                if (maStlIsStretchToolActive()) return false;
+                maStlStartStretchToolModesToolbar();
                 return true;
             case 'ma-stl-tool-insert-corner':
                 if (maStlIsInsertCornerToolActive()) return false;
@@ -10739,6 +10849,7 @@ function bootMasterArticleDetailsStlViewer() {
             if (!pending && !active) return;
             const pid = pending ? pending.pointerId : active.pointerId;
             if (ev.pointerId !== pid) return;
+            ev.preventDefault();
             if (pending && !active) {
                 const dx = ev.clientX - pending.x0;
                 const dy = ev.clientY - pending.y0;
@@ -10853,6 +10964,7 @@ function bootMasterArticleDetailsStlViewer() {
                 y0: ev.clientY,
                 pointerId: ev.pointerId,
             };
+            ev.preventDefault();
             maStlDesing2WireWindowSelectionWindowListeners();
         }
         return true;
@@ -11228,7 +11340,7 @@ function bootMasterArticleDetailsStlViewer() {
         maStlDeleteToolClearHoverLine();
         maStlDeleteToolClearHoverMesh();
         maStlDeleteToolActive = true;
-        maStlLockOrbitForRulerAnchorPick();
+        maStlLockOrbitFullyForToolSelection();
         maStlSyncLineToolToggleBtnUi();
         maStlLineToolPickCursorSync();
         maStlSyncDeleteToolHud();
@@ -11588,21 +11700,10 @@ function bootMasterArticleDetailsStlViewer() {
         const activeHud = maStlDupMoveToolHud();
         if (!activeHud || !maStlDesingV2Viewer) return;
         if (!maStlIsDupMoveToolActive()) {
-            if (maStlCopyToolHud) maStlCopyToolHud.classList.add('d-none');
-            if (maStlMoveToolHud) maStlMoveToolHud.classList.add('d-none');
-            if (maStlCopyToolHudInstruction) maStlCopyToolHudInstruction.textContent = '';
-            if (maStlMoveToolHudInstruction) maStlMoveToolHudInstruction.textContent = '';
-            if (maStlCopyToolHudCoords) maStlCopyToolHudCoords.textContent = '';
-            if (maStlMoveToolHudCoords) maStlMoveToolHudCoords.textContent = '';
-            if (maStlCopyToolHudDistanceRow) maStlCopyToolHudDistanceRow.classList.add('d-none');
-            if (maStlMoveToolHudDistanceRow) maStlMoveToolHudDistanceRow.classList.add('d-none');
+            maStlXformToolHideAllHuds();
             return;
         }
-        if (maStlCopyToolKind === 'copy') {
-            if (maStlMoveToolHud) maStlMoveToolHud.classList.add('d-none');
-        } else if (maStlCopyToolHud) {
-            maStlCopyToolHud.classList.add('d-none');
-        }
+        maStlXformToolHideInactiveHuds();
         let insTpl = '';
         if (maStlCopyToolState === 'selecting') {
             insTpl = activeHud.getAttribute(maStlDupMoveToolInstructionDataAttr('selecting')) || '';
@@ -11680,11 +11781,7 @@ function bootMasterArticleDetailsStlViewer() {
             mat.dashSize = 12;
             mat.gapSize = 8;
             mat.linewidth = MA_STL_COPY_TOOL_PREVIEW_LINEWIDTH_PX;
-            mat.color.setHex(
-                maStlCopyToolKind === 'move'
-                    ? MA_STL_MOVE_TOOL_PREVIEW_COLOR_HEX
-                    : MA_STL_COPY_TOOL_PREVIEW_COLOR_HEX
-            );
+            mat.color.setHex(maStlCopyToolPreviewColorHex());
             mat.opacity = MA_STL_COPY_TOOL_PREVIEW_OPACITY;
             mat.transparent = true;
         }
@@ -11806,6 +11903,25 @@ function bootMasterArticleDetailsStlViewer() {
                 scale: scale,
             });
         }
+    }
+
+    function maStlCopyToolStretchSegmentEndpointsMm(p1Mm, p2Mm, baseMm, targetMm, outP1, outP2) {
+        if (!p1Mm || !p2Mm || !baseMm || !targetMm || !outP1 || !outP2) return false;
+        const distP1 = Math.hypot(p1Mm.x - baseMm.x, p1Mm.z - baseMm.z);
+        const distP2 = Math.hypot(p2Mm.x - baseMm.x, p2Mm.z - baseMm.z);
+        const minLen = maStlUserFloorSegmentMinMm();
+        if (distP1 <= distP2) {
+            outP1.x = p1Mm.x;
+            outP1.y = p1Mm.y;
+            outP1.z = p1Mm.z;
+            if (!maStlProjectPointOntoSegmentAxisMm(targetMm, p1Mm, p2Mm, minLen, outP2)) return false;
+        } else {
+            outP2.x = p2Mm.x;
+            outP2.y = p2Mm.y;
+            outP2.z = p2Mm.z;
+            if (!maStlProjectPointOntoSegmentAxisMm(targetMm, p2Mm, p1Mm, minLen, outP1)) return false;
+        }
+        return Math.hypot(outP2.x - outP1.x, outP2.z - outP1.z) >= minLen - 1e-6;
     }
 
     function maStlCopyToolSyncPreviewAtDisplacement(dx, dy, dz) {
@@ -11940,6 +12056,7 @@ function bootMasterArticleDetailsStlViewer() {
     function maStlCopyToolAdvanceToBasePointPhase() {
         maStlCopyToolUnwireWindowSelection();
         maStlCopyToolState = 'basePoint';
+        maStlReenableOrbitForDupMovePlacementAfterSelection();
         maStlCopyToolResetTypingState();
         maStlCopyToolClearHoverLine();
         maStlCopyToolClearHoverMesh();
@@ -12131,7 +12248,7 @@ function bootMasterArticleDetailsStlViewer() {
         return true;
     }
 
-    function maStlCopyToolCommitMoveMm(dx, dy, dz) {
+    function maStlCopyToolCommitMoveMm(dx, dy, dz, undoLabel, saveReason) {
         const expanded = maStlDesing2ExpandLinesWithWallGroups(Array.from(maStlCopyToolSelectedLines));
         const meshes = Array.from(maStlCopyToolSelectedMeshes);
         const parts = maStlCopyToolPartitionLinesForDuplicate(expanded);
@@ -12140,6 +12257,8 @@ function bootMasterArticleDetailsStlViewer() {
         }
         const undoBefore = maStlDesing2SerializeEditSnapshot();
         let hadWall = false;
+        const undoKey = undoLabel || 'moveUserFloorLinesAndStlMeshes';
+        const saveKey = saveReason || 'move-tool-displacement-commit';
 
         for (let pi = 0; pi < parts.plainLines.length; pi++) {
             const line = parts.plainLines[pi];
@@ -12176,7 +12295,7 @@ function bootMasterArticleDetailsStlViewer() {
             maStlReapplyAllUserFloorWallAxisLineStyles();
             maStlSaveWallConnectionsNow({
                 force: true,
-                reason: 'move-tool-displacement-commit',
+                reason: saveKey,
             });
         } else {
             maStlWeldAllUserFloorLineEndpointsMm();
@@ -12192,37 +12311,403 @@ function bootMasterArticleDetailsStlViewer() {
         updateClipPlanes();
         syncGroundShadowToggleUi();
         maStlDesing2PushEditSnapshotUndo(
-            'moveUserFloorLinesAndStlMeshes',
+            undoKey,
             undoBefore,
             maStlDesing2SerializeEditSnapshot()
         );
         return true;
     }
 
-    function maStlCopyToolTryCommitDisplacement() {
-        const end = maStlCopyToolComputeDisplacementEndMm({ x: 0, y: 0, z: 0 });
-        if (!end) {
-            const hud = maStlDupMoveToolHud();
-            const toastTpl = hud && hud.getAttribute(maStlDupMoveToolDistanceInvalidToastAttr());
-            if (toastTpl) maStlDesing2ShowSaveViewToast(toastTpl);
+    /**
+     * Tras estirar un eje de muro: conectar el extremo móvil al vecino (misma lógica que asas P1/P2).
+     * @param {THREE.Line2} axisLine
+     * @param {'p1'|'p2'} movedEndpoint
+     * @param {number} clientX
+     * @param {number} clientY
+     */
+    function maStlCopyToolStretchWallAxisEndpointSnapConnect(axisLine, movedEndpoint, clientX, clientY) {
+        const ud = axisLine && axisLine.userData && axisLine.userData.maStlUserPlanLine;
+        if (!ud || !ud.p1Mm || !ud.p2Mm) return;
+        const isP1 = movedEndpoint === 'p1';
+        const fixedPt = isP1 ? ud.p2Mm : ud.p1Mm;
+        const dirAnchorPt = isP1 ? ud.p1Mm : ud.p2Mm;
+        const axisPt = isP1 ? ud.p1Mm : ud.p2Mm;
+        const snap = maStlFindUserFloorEndpointDragSnapCandidate(
+            clientX,
+            clientY,
+            axisLine,
+            movedEndpoint,
+            axisPt,
+            fixedPt,
+            dirAnchorPt
+        );
+        if (snap) {
+            maStlApplyUserFloorEndpointStretchSnapConnect(axisLine, movedEndpoint, snap);
+        }
+    }
+
+    /** @param {{ x: number, y: number, z: number }} targetMm @param {number} [clientX] @param {number} [clientY] */
+    function maStlCopyToolCommitStretchAtTargetMm(targetMm, clientX, clientY) {
+        const expanded = maStlDesing2ExpandLinesWithWallGroups(Array.from(maStlCopyToolSelectedLines));
+        const meshes = Array.from(maStlCopyToolSelectedMeshes);
+        const parts = maStlCopyToolPartitionLinesForDuplicate(expanded);
+        if (parts.plainLines.length === 0 && parts.wallAxisLines.length === 0 && meshes.length === 0) {
             return false;
         }
+        const baseMm = maStlCopyToolBasePointMm;
+        const undoBefore = maStlDesing2SerializeEditSnapshot();
+        let hadWall = false;
+        let anyLineChanged = false;
+        const outP1 = { x: 0, y: 0, z: 0 };
+        const outP2 = { x: 0, y: 0, z: 0 };
+        /** @type {Array<{ axisLine: THREE.Line2, movedEndpoint: 'p1'|'p2' }>} */
+        const stretchedWallAxes = [];
+
+        for (let pi = 0; pi < parts.plainLines.length; pi++) {
+            const line = parts.plainLines[pi];
+            const ud = line.userData && line.userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            if (
+                !maStlCopyToolStretchSegmentEndpointsMm(
+                    ud.p1Mm,
+                    ud.p2Mm,
+                    baseMm,
+                    targetMm,
+                    outP1,
+                    outP2
+                )
+            ) {
+                continue;
+            }
+            ud.p1Mm.x = outP1.x;
+            ud.p1Mm.y = outP1.y;
+            ud.p1Mm.z = outP1.z;
+            ud.p2Mm.x = outP2.x;
+            ud.p2Mm.y = outP2.y;
+            ud.p2Mm.z = outP2.z;
+            maStlQuantizeUserFloorPlanPointToGridMm(ud.p1Mm);
+            maStlQuantizeUserFloorPlanPointToGridMm(ud.p2Mm);
+            maStlApplyUserFloorLineSegmentGeometryFromMm(line);
+            anyLineChanged = true;
+        }
+
+        for (let wi = 0; wi < parts.wallAxisLines.length; wi++) {
+            const axisLine = parts.wallAxisLines[wi];
+            const axisUd = axisLine.userData && axisLine.userData.maStlUserPlanLine;
+            if (!axisUd || !axisUd.p1Mm || !axisUd.p2Mm) continue;
+            const plan = maStlCopyToolStretchPlanFromBaseMm(axisUd, baseMm);
+            let applied = false;
+            if (plan.movedEndpoint === 'p1') {
+                applied = maStlSetUserFloorLineP1PlanMm(
+                    axisLine,
+                    targetMm.x,
+                    targetMm.y,
+                    targetMm.z
+                );
+            } else {
+                applied = maStlSetUserFloorLineP2PlanMm(
+                    axisLine,
+                    targetMm.x,
+                    targetMm.y,
+                    targetMm.z
+                );
+            }
+            if (!applied) continue;
+            maStlQuantizeUserFloorPlanPointToGridMm(axisUd.p1Mm);
+            maStlQuantizeUserFloorPlanPointToGridMm(axisUd.p2Mm);
+            hadWall = true;
+            maStlWall2dToolRefreshFacesAfterEditableAxisChange(axisLine);
+            stretchedWallAxes.push({
+                axisLine: axisLine,
+                movedEndpoint: plan.movedEndpoint,
+            });
+            anyLineChanged = true;
+        }
+
+        if (!anyLineChanged && meshes.length === 0) return false;
+
+        if (
+            hadWall &&
+            Number.isFinite(clientX) &&
+            Number.isFinite(clientY)
+        ) {
+            for (let sc = 0; sc < stretchedWallAxes.length; sc++) {
+                const item = stretchedWallAxes[sc];
+                maStlCopyToolStretchWallAxisEndpointSnapConnect(
+                    item.axisLine,
+                    item.movedEndpoint,
+                    clientX,
+                    clientY
+                );
+            }
+        }
+
+        if (hadWall) {
+            for (let wj = 0; wj < parts.wallAxisLines.length; wj++) {
+                maStlWall2dToolRefreshAxisFaceOffsetsNoJunction(parts.wallAxisLines[wj]);
+            }
+            maStlWall2dToolRefactorAllWallJunctionsMm();
+            maStlWall2dToolSplitAllAxisInteriorCrossingsMm();
+            maStlWall2dToolRefactorAllWallJunctionsMm();
+            maStlWeldAllUserFloorLineEndpointsMm();
+            maStlWall2dToolRefactorAllWallJunctionsMm();
+            maStlReapplyAllUserFloorWallAxisLineStyles();
+            maStlSaveWallConnectionsNow({
+                force: true,
+                reason: 'stretch-tool-displacement-commit',
+            });
+        } else if (anyLineChanged) {
+            maStlWeldAllUserFloorLineEndpointsMm();
+        }
+
+        const scale = stlVertexToSceneScale || 1;
+        for (let mi = 0; mi < meshes.length; mi++) {
+            const mesh = meshes[mi];
+            if (!mesh) continue;
+            const dx = targetMm.x - baseMm.x;
+            const dz = targetMm.z - baseMm.z;
+            mesh.position.x += dx / scale;
+            mesh.position.z += dz / scale;
+        }
+        updateClipPlanes();
+        syncGroundShadowToggleUi();
+        maStlDesing2PushEditSnapshotUndo(
+            'stretchUserFloorLinesAndStlMeshes',
+            undoBefore,
+            maStlDesing2SerializeEditSnapshot()
+        );
+        return true;
+    }
+
+    /** @param {number} dx @param {number} dy @param {number} dz @param {number} [clientX] @param {number} [clientY] */
+    function maStlCopyToolCommitStretchMm(dx, dy, dz, clientX, clientY) {
+        const targetMm = {
+            x: maStlCopyToolBasePointMm.x + dx,
+            y: maStlCopyToolBasePointMm.y + dy,
+            z: maStlCopyToolBasePointMm.z + dz,
+        };
+        return maStlCopyToolCommitStretchAtTargetMm(targetMm, clientX, clientY);
+    }
+
+    function maStlCopyToolBlurDupMoveHudInputs() {
+        const distInput = maStlDupMoveToolHudDistanceInput();
+        const angleInput = maStlDupMoveToolHudAngleInput();
+        if (distInput && document.activeElement === distInput) distInput.blur();
+        if (angleInput && document.activeElement === angleInput) angleInput.blur();
+    }
+
+    function maStlCopyToolResetPlacementTapGesture() {
+        maStlCopyToolPlacementPointerId = -1;
+        maStlCopyToolPlacementPointerDownXY.set(Number.NaN, Number.NaN);
+    }
+
+    /** @param {PointerEvent} ev */
+    function maStlCopyToolPlacementWasTap(ev) {
+        if (!Number.isFinite(maStlCopyToolPlacementPointerDownXY.x)) return false;
+        if (ev.pointerId !== maStlCopyToolPlacementPointerId) return false;
+        const dx = ev.clientX - maStlCopyToolPlacementPointerDownXY.x;
+        const dy = ev.clientY - maStlCopyToolPlacementPointerDownXY.y;
+        return Math.hypot(dx, dy) <= MA_STL_COPY_TOOL_PLACEMENT_TAP_MAX_PX;
+    }
+
+    function maStlCopyToolPrimaryStretchAxisLine() {
+        const expanded = maStlDesing2ExpandLinesWithWallGroups(Array.from(maStlCopyToolSelectedLines));
+        const parts = maStlCopyToolPartitionLinesForDuplicate(expanded);
+        if (parts.wallAxisLines.length > 0) return parts.wallAxisLines[0];
+        if (parts.plainLines.length > 0) return parts.plainLines[0];
+        return null;
+    }
+
+    /** @param {{ p1Mm: object, p2Mm: object }} ud @param {{ x: number, y: number, z: number }} baseMm */
+    function maStlCopyToolStretchPlanFromBaseMm(ud, baseMm) {
+        const distP1 = Math.hypot(ud.p1Mm.x - baseMm.x, ud.p1Mm.z - baseMm.z);
+        const distP2 = Math.hypot(ud.p2Mm.x - baseMm.x, ud.p2Mm.z - baseMm.z);
+        const moveP2 = distP1 <= distP2;
+        return {
+            movedEndpoint: moveP2 ? 'p2' : 'p1',
+            fixedPt: moveP2 ? ud.p1Mm : ud.p2Mm,
+            dirAnchorPt: moveP2 ? ud.p2Mm : ud.p1Mm,
+        };
+    }
+
+    /** @param {number} clientX @param {number} clientY @param {{ x: number, y: number, z: number }} out */
+    function maStlCopyToolComputeStretchCommitEndMm(clientX, clientY, out) {
+        const axisLine = maStlCopyToolPrimaryStretchAxisLine();
+        if (!axisLine) return null;
+        const ud = axisLine.userData && axisLine.userData.maStlUserPlanLine;
+        if (!ud || !ud.p1Mm || !ud.p2Mm) return null;
+        const plan = maStlCopyToolStretchPlanFromBaseMm(ud, maStlCopyToolBasePointMm);
+        const pt = maStlResolveUserFloorLineEndpointDragPointMm(
+            clientX,
+            clientY,
+            axisLine,
+            plan.movedEndpoint,
+            plan.fixedPt,
+            plan.dirAnchorPt
+        );
+        if (!pt) return null;
+        const snap = maStlFindUserFloorEndpointDragSnapCandidate(
+            clientX,
+            clientY,
+            axisLine,
+            plan.movedEndpoint,
+            pt,
+            plan.fixedPt,
+            plan.dirAnchorPt
+        );
+        const use = snap || pt;
+        out.x = use.x;
+        out.y = use.y;
+        out.z = use.z;
+        return out;
+    }
+
+    /**
+     * Estirar: el segundo punto define el extremo móvil (no un desplazamiento desde el punto base).
+     * @param {{ x: number, y: number, z: number }} targetMm
+     * @returns {boolean}
+     */
+    function maStlCopyToolStretchWouldChangeAtTargetMm(targetMm) {
+        const expanded = maStlDesing2ExpandLinesWithWallGroups(Array.from(maStlCopyToolSelectedLines));
+        const parts = maStlCopyToolPartitionLinesForDuplicate(expanded);
+        const baseMm = maStlCopyToolBasePointMm;
+        const minLen = maStlUserFloorSegmentMinMm();
+        const outP1 = { x: 0, y: 0, z: 0 };
+        const outP2 = { x: 0, y: 0, z: 0 };
+        for (let wi = 0; wi < parts.wallAxisLines.length; wi++) {
+            const axisUd =
+                parts.wallAxisLines[wi].userData && parts.wallAxisLines[wi].userData.maStlUserPlanLine;
+            if (!axisUd || !axisUd.p1Mm || !axisUd.p2Mm) continue;
+            const plan = maStlCopyToolStretchPlanFromBaseMm(axisUd, baseMm);
+            const moving = plan.movedEndpoint === 'p2' ? axisUd.p2Mm : axisUd.p1Mm;
+            const fixed = plan.fixedPt;
+            if (Math.hypot(targetMm.x - moving.x, targetMm.z - moving.z) >= 1e-6) {
+                if (Math.hypot(targetMm.x - fixed.x, targetMm.z - fixed.z) >= minLen - 1e-6) {
+                    return true;
+                }
+            }
+        }
+        for (let pi = 0; pi < parts.plainLines.length; pi++) {
+            const ud = parts.plainLines[pi].userData && parts.plainLines[pi].userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            if (
+                maStlCopyToolStretchSegmentEndpointsMm(
+                    ud.p1Mm,
+                    ud.p2Mm,
+                    baseMm,
+                    targetMm,
+                    outP1,
+                    outP2
+                )
+            ) {
+                if (
+                    Math.hypot(outP1.x - ud.p1Mm.x, outP1.z - ud.p1Mm.z) >= 1e-6 ||
+                    Math.hypot(outP2.x - ud.p2Mm.x, outP2.z - ud.p2Mm.z) >= 1e-6
+                ) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Punto base o confirmación de desplazamiento (tap corto). Compartido por click y pointerup:
+     * en este visor el segundo clic a veces no llega tras preventDefault en pointerdown.
+     * @param {number} clientX @param {number} clientY @returns {boolean}
+     */
+    function maStlCopyToolHandlePlacementTap(clientX, clientY) {
+        if (!maStlIsDupMoveToolPlacementPhaseActive()) return false;
+        const now = performance.now();
+        if (now - maStlCopyToolPlacementTapHandledAt < 80) return false;
+        const p = maStlResolveLineToolFloorPointMm(clientX, clientY);
+        if (!p) return false;
+        const pSnap = maStlApplyLineToolVertexSnapOnClickMm(clientX, clientY, p);
+        if (maStlCopyToolState === 'basePoint') {
+            maStlCopyToolLastPointerClientXY.set(clientX, clientY);
+            maStlCopyToolAdvanceToDisplacementPhase(pSnap);
+            maStlCopyToolPlacementTapHandledAt = now;
+            return true;
+        }
+        if (maStlCopyToolState === 'displacement') {
+            maStlCopyToolBlurDupMoveHudInputs();
+            maStlCopyToolLastPointerClientXY.set(clientX, clientY);
+            maStlCopyToolMaybeUpdateHoverDirFromCandidate(pSnap);
+            const end = { x: 0, y: 0, z: 0 };
+            let hasEnd = false;
+            if (maStlIsStretchToolActive()) {
+                hasEnd = !!maStlCopyToolComputeStretchCommitEndMm(clientX, clientY, end);
+            }
+            if (!hasEnd) {
+                hasEnd = !!maStlCopyToolSnapDisplacementFloorPointMm(pSnap, end);
+            }
+            if (!hasEnd) {
+                hasEnd = !!maStlCopyToolComputeDisplacementEndMm(end);
+            }
+            if (!hasEnd) {
+                maStlCopyToolShowDisplacementInvalidToast();
+                return false;
+            }
+            const ok = maStlCopyToolTryCommitDisplacementAtEndMm(end, clientX, clientY);
+            if (!ok) maStlCopyToolShowDisplacementInvalidToast();
+            if (ok) maStlCopyToolPlacementTapHandledAt = now;
+            return ok;
+        }
+        return false;
+    }
+
+    function maStlCopyToolShowDisplacementInvalidToast() {
+        const hud = maStlDupMoveToolHud();
+        const toastTpl = hud && hud.getAttribute(maStlDupMoveToolDistanceInvalidToastAttr());
+        if (toastTpl) maStlDesing2ShowSaveViewToast(toastTpl);
+    }
+
+    /** @param {{ x: number, y: number, z: number }} end @param {number} [clientX] @param {number} [clientY] */
+    function maStlCopyToolTryCommitDisplacementAtEndMm(end, clientX, clientY) {
+        if (!end || maStlCopyToolState !== 'displacement') return false;
         maStlQuantizeUserFloorPlanPointToGridMm(end);
         const dx = end.x - maStlCopyToolBasePointMm.x;
         const dy = end.y - maStlCopyToolBasePointMm.y;
         const dz = end.z - maStlCopyToolBasePointMm.z;
-        if (Math.hypot(dx, dz) < 1e-6) {
-            const hud = maStlDupMoveToolHud();
-            const toastTpl = hud && hud.getAttribute(maStlDupMoveToolDistanceInvalidToastAttr());
-            if (toastTpl) maStlDesing2ShowSaveViewToast(toastTpl);
+        if (maStlCopyToolKind === 'stretch') {
+            if (!maStlCopyToolStretchWouldChangeAtTargetMm(end)) {
+                maStlCopyToolShowDisplacementInvalidToast();
+                return false;
+            }
+        } else if (Math.hypot(dx, dz) < 1e-6) {
+            maStlCopyToolShowDisplacementInvalidToast();
             return false;
         }
         const ok =
-            maStlCopyToolKind === 'move'
-                ? maStlCopyToolCommitMoveMm(dx, dy, dz)
-                : maStlCopyToolCommitDuplicateMm(dx, dy, dz);
+            maStlCopyToolKind === 'copy'
+                ? maStlCopyToolCommitDuplicateMm(dx, dy, dz)
+                : maStlCopyToolKind === 'stretch'
+                  ? maStlCopyToolCommitStretchAtTargetMm(end, clientX, clientY)
+                  : maStlCopyToolCommitMoveMm(dx, dy, dz);
         if (ok) maStlCopyToolAdvanceToNextDisplacementAfterCommit();
         return ok;
+    }
+
+    function maStlCopyToolTryCommitDisplacement() {
+        const end = { x: 0, y: 0, z: 0 };
+        const cx = Number.isFinite(maStlCopyToolLastPointerClientXY.x)
+            ? maStlCopyToolLastPointerClientXY.x
+            : Number.NaN;
+        const cy = Number.isFinite(maStlCopyToolLastPointerClientXY.y)
+            ? maStlCopyToolLastPointerClientXY.y
+            : Number.NaN;
+        let hasEnd = false;
+        if (maStlIsStretchToolActive() && Number.isFinite(cx) && Number.isFinite(cy)) {
+            hasEnd = !!maStlCopyToolComputeStretchCommitEndMm(cx, cy, end);
+        }
+        if (!hasEnd) {
+            hasEnd = !!maStlCopyToolComputeDisplacementEndMm(end);
+        }
+        if (!hasEnd) {
+            maStlCopyToolShowDisplacementInvalidToast();
+            return false;
+        }
+        return maStlCopyToolTryCommitDisplacementAtEndMm(end, cx, cy);
     }
 
     function maStlCopyToolHasSelection() {
@@ -12237,6 +12722,13 @@ function bootMasterArticleDetailsStlViewer() {
         if (!isEnter || ev.shiftKey || ev.ctrlKey || ev.metaKey || ev.altKey) return false;
         const ae = document.activeElement;
         if (maStlIsUserFloorLineDimEditOverlayActive()) return false;
+        if (maStlCopyToolState === 'selecting') {
+            if (!maStlCopyToolHasSelection()) return false;
+            if (maStlDesingV2AvoidKeyboardShortcutSteal(ae)) return false;
+            ev.preventDefault();
+            maStlCopyToolAdvanceToBasePointPhase();
+            return true;
+        }
         const distInput = maStlDupMoveToolHudDistanceInput();
         const angleInput = maStlDupMoveToolHudAngleInput();
         if (
@@ -12245,12 +12737,6 @@ function bootMasterArticleDetailsStlViewer() {
             maStlDesingV2AvoidKeyboardShortcutSteal(ae)
         ) {
             return false;
-        }
-        if (maStlCopyToolState === 'selecting') {
-            if (!maStlCopyToolHasSelection()) return false;
-            ev.preventDefault();
-            maStlCopyToolAdvanceToBasePointPhase();
-            return true;
         }
         if (maStlCopyToolState === 'basePoint') {
             if (maStlCopyToolTryCommitBasePointFromTyping()) {
@@ -12364,7 +12850,7 @@ function bootMasterArticleDetailsStlViewer() {
         maStlCopyToolActive = true;
         maStlCopyToolState = 'selecting';
         maStlCopyToolLastPointerClientXY.set(Number.NaN, Number.NaN);
-        maStlLockOrbitForRulerAnchorPick();
+        maStlLockOrbitFullyForToolSelection();
         maStlSyncLineToolToggleBtnUi();
         maStlLineToolPickCursorSync();
         maStlCopyToolSyncHud();
@@ -12400,13 +12886,49 @@ function bootMasterArticleDetailsStlViewer() {
         maStlCopyToolActive = true;
         maStlCopyToolState = 'selecting';
         maStlCopyToolLastPointerClientXY.set(Number.NaN, Number.NaN);
-        maStlLockOrbitForRulerAnchorPick();
+        maStlLockOrbitFullyForToolSelection();
         maStlSyncLineToolToggleBtnUi();
         maStlLineToolPickCursorSync();
         maStlCopyToolSyncHud();
         maStlCopyToolWireWindowSelection();
         if (maStlMoveToolToggleBtn && document.activeElement === maStlMoveToolToggleBtn) {
             maStlMoveToolToggleBtn.blur();
+        }
+    }
+
+    function maStlStartStretchToolModesToolbar() {
+        if (maStlIsStretchToolActive()) return;
+        maStlWall2dToolResumeState = null;
+        if (maStlIsWall2dToolActive()) maStlStopWall2dToolModesToolbar(false);
+        if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
+        if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
+        if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
+        if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
+        if (maStlIsInsertEnclosureToolActive()) maStlStopInsertEnclosureToolModesToolbar(false);
+        if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
+        maStlStopWallDimToolModesToolbar();
+        maStlDesing2SetLastToolbarCommandId('ma-stl-tool-stretch');
+        maStlStopRulerAnchorPickModesToolbar();
+        maStlTeardownPickHighlightsOnly();
+        maStlDisposeUserFloorLineDimEdit(false);
+        maStlClearUserFloorLineSelection();
+        maStlHideUserFloorLineDimHud(true);
+        maStlCopyToolClearSelection();
+        maStlCopyToolClearHoverLine();
+        maStlCopyToolClearHoverMesh();
+        maStlCopyToolResetTypingState();
+        maStlCopyToolKind = 'stretch';
+        maStlCopyToolActive = true;
+        maStlCopyToolState = 'selecting';
+        maStlCopyToolLastPointerClientXY.set(Number.NaN, Number.NaN);
+        maStlLockOrbitFullyForToolSelection();
+        maStlSyncLineToolToggleBtnUi();
+        maStlLineToolPickCursorSync();
+        maStlCopyToolSyncHud();
+        maStlCopyToolWireWindowSelection();
+        if (maStlStretchToolToggleBtn && document.activeElement === maStlStretchToolToggleBtn) {
+            maStlStretchToolToggleBtn.blur();
         }
     }
 
@@ -12421,6 +12943,7 @@ function bootMasterArticleDetailsStlViewer() {
         maStlCopyToolClearHoverLine();
         maStlCopyToolClearHoverMesh();
         maStlCopyToolResetTypingState();
+        maStlCopyToolResetPlacementTapGesture();
         maStlCopyToolHideRubberBand();
         maStlCopyToolDisposePreview();
         if (maStlCopyToolHudDistanceInput && document.activeElement === maStlCopyToolHudDistanceInput) {
@@ -12435,11 +12958,20 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlMoveToolHudAngleInput && document.activeElement === maStlMoveToolHudAngleInput) {
             maStlMoveToolHudAngleInput.blur();
         }
+        if (maStlStretchToolHudDistanceInput && document.activeElement === maStlStretchToolHudDistanceInput) {
+            maStlStretchToolHudDistanceInput.blur();
+        }
+        if (maStlStretchToolHudAngleInput && document.activeElement === maStlStretchToolHudAngleInput) {
+            maStlStretchToolHudAngleInput.blur();
+        }
         if (maStlCopyToolToggleBtn && document.activeElement === maStlCopyToolToggleBtn) {
             maStlCopyToolToggleBtn.blur();
         }
         if (maStlMoveToolToggleBtn && document.activeElement === maStlMoveToolToggleBtn) {
             maStlMoveToolToggleBtn.blur();
+        }
+        if (maStlStretchToolToggleBtn && document.activeElement === maStlStretchToolToggleBtn) {
+            maStlStretchToolToggleBtn.blur();
         }
         maStlCopyToolSyncHud();
         maStlSyncLineToolToggleBtnUi();
@@ -18757,12 +19289,48 @@ function bootMasterArticleDetailsStlViewer() {
         }
         if (maStlCopyToolState === 'selecting') {
             maStlDesing2WindowSelectionPointerDown(ev);
+            ev.preventDefault();
+        } else if (maStlIsDupMoveToolPlacementPhaseActive()) {
+            maStlCopyToolPlacementPointerId = ev.pointerId;
+            maStlCopyToolPlacementPointerDownXY.set(ev.clientX, ev.clientY);
+            ev.preventDefault();
         }
-        ev.preventDefault();
         ev.stopPropagation();
         ev.stopImmediatePropagation();
     }
 
+    function onCanvasPointerUpCopyTool(ev) {
+        if (!maStlIsDupMoveToolActive() || !maStlDesingV2Viewer) return;
+        if (ev.button !== 0) return;
+        if (!maStlIsDupMoveToolPlacementPhaseActive()) {
+            maStlCopyToolResetPlacementTapGesture();
+            return;
+        }
+        const canvas = renderer.domElement;
+        if (ev.currentTarget !== canvas) return;
+        const rawTarget = ev.target;
+        if (rawTarget && typeof rawTarget.closest === 'function') {
+            if (rawTarget.closest('button, input, select, textarea, [role="button"], label')) {
+                maStlCopyToolResetPlacementTapGesture();
+                return;
+            }
+        }
+        if (!maStlCopyToolPlacementWasTap(ev)) {
+            maStlCopyToolResetPlacementTapGesture();
+            return;
+        }
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+        maStlCopyToolHandlePlacementTap(ev.clientX, ev.clientY);
+        maStlCopyToolResetPlacementTapGesture();
+    }
+
+    /**
+     * Dos clics simples: punto base y segundo punto. Se usa `click` (no `pointerdown`) para no colocar si el usuario
+     * arrastró el botón izquierdo; el {@link onCanvasPointerDownCopyTool} en captura evita que OrbitControls inicie rotación.
+     * El segundo punto también confirma en {@link onCanvasPointerUpCopyTool} porque el `click` puede no dispararse.
+     */
     function onCanvasClickCopyTool(ev) {
         if (!maStlIsDupMoveToolActive() || !maStlDesingV2Viewer) return;
         if (ev.button !== 0) return;
@@ -18798,24 +19366,9 @@ function bootMasterArticleDetailsStlViewer() {
             }
             return;
         }
-        const p = maStlResolveLineToolFloorPointMm(ev.clientX, ev.clientY);
-        if (!p) return;
-        const pSnap = maStlApplyLineToolVertexSnapOnClickMm(ev.clientX, ev.clientY, p);
-        if (maStlCopyToolState === 'basePoint') {
-            maStlCopyToolAdvanceToDisplacementPhase(pSnap);
+        if (maStlCopyToolState === 'basePoint' || maStlCopyToolState === 'displacement') {
+            maStlCopyToolHandlePlacementTap(ev.clientX, ev.clientY);
             return;
-        }
-        if (maStlCopyToolState === 'displacement') {
-            maStlCopyToolLastPointerClientXY.set(ev.clientX, ev.clientY);
-            maStlCopyToolMaybeUpdateHoverDirFromCandidate(pSnap);
-            const end = { x: 0, y: 0, z: 0 };
-            if (!maStlCopyToolSnapDisplacementFloorPointMm(pSnap, end)) return;
-            maStlQuantizeUserFloorPlanPointToGridMm(end);
-            const dx = end.x - maStlCopyToolBasePointMm.x;
-            const dy = end.y - maStlCopyToolBasePointMm.y;
-            const dz = end.z - maStlCopyToolBasePointMm.z;
-            if (Math.hypot(dx, dz) < 1e-6) return;
-            maStlCopyToolTryCommitDisplacement();
         }
     }
 
@@ -19741,6 +20294,17 @@ function bootMasterArticleDetailsStlViewer() {
             }
             maStlDesing2SetLastToolbarCommandId('ma-stl-tool-move');
             maStlDesing2ActivateToolbarCommandById('ma-stl-tool-move');
+        });
+    }
+    if (maStlDesingV2Viewer && maStlStretchToolToggleBtn) {
+        maStlStretchToolToggleBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            if (maStlIsStretchToolActive()) {
+                maStlStopCopyToolModesToolbar(false);
+                return;
+            }
+            maStlDesing2SetLastToolbarCommandId('ma-stl-tool-stretch');
+            maStlDesing2ActivateToolbarCommandById('ma-stl-tool-stretch');
         });
     }
     if (maStlDesingV2Viewer && maStlWall3dToolToggleBtn) {
@@ -20673,6 +21237,7 @@ function bootMasterArticleDetailsStlViewer() {
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownOffsetTool, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownDeleteTool, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownCopyTool, true);
+    renderer.domElement.addEventListener('pointerup', onCanvasPointerUpCopyTool, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownWall3dTool, true);
     renderer.domElement.addEventListener('click', onCanvasClickLineTool, true);
     renderer.domElement.addEventListener('click', onCanvasClickInsertCornerTool, true);
@@ -20827,6 +21392,39 @@ function bootMasterArticleDetailsStlViewer() {
             maStlCopyToolTryCommitDisplacement();
         });
     }
+    if (maStlDesingV2Viewer && maStlStretchToolHudDistanceInput) {
+        maStlStretchToolHudDistanceInput.autocomplete = 'off';
+        maStlStretchToolHudDistanceInput.addEventListener('input', function () {
+            if (!maStlIsDupMoveToolPlacementPhaseActive() || maStlCopyToolKind !== 'stretch') return;
+            maStlCopyToolDistanceTypeBuffer = String(maStlStretchToolHudDistanceInput.value || '');
+            maStlCopyToolSyncTypingPreviewUi();
+            maStlCopyToolSyncHud();
+            maStlCopyToolRefreshDisplacementRubberBand();
+        });
+        maStlStretchToolHudDistanceInput.addEventListener('keydown', (ev) => {
+            if (!(ev.key === 'Enter' || ev.code === 'Enter' || ev.key === 'NumpadEnter') || ev.shiftKey) return;
+            ev.preventDefault();
+            if (maStlCopyToolState === 'basePoint') {
+                maStlCopyToolTryCommitBasePointFromTyping();
+            } else if (maStlCopyToolState === 'displacement') {
+                maStlCopyToolTryCommitDisplacement();
+            }
+        });
+    }
+    if (maStlDesingV2Viewer && maStlStretchToolHudAngleInput) {
+        maStlStretchToolHudAngleInput.autocomplete = 'off';
+        maStlStretchToolHudAngleInput.addEventListener('input', function () {
+            if (maStlCopyToolKind !== 'stretch' || maStlCopyToolState !== 'displacement') return;
+            maStlCopyToolAngleTypeBuffer = String(maStlStretchToolHudAngleInput.value || '');
+            maStlCopyToolSyncTypingPreviewUi();
+            maStlCopyToolRefreshDisplacementRubberBand();
+        });
+        maStlStretchToolHudAngleInput.addEventListener('keydown', (ev) => {
+            if (!(ev.key === 'Enter' || ev.code === 'Enter' || ev.key === 'NumpadEnter') || ev.shiftKey) return;
+            ev.preventDefault();
+            maStlCopyToolTryCommitDisplacement();
+        });
+    }
 
     function maStlIsDesing2ViewerShellVisibleForKeyboardShortcuts() {
         if (!viewerShell || !maStlDesingV2Viewer) return false;
@@ -20903,7 +21501,9 @@ function bootMasterArticleDetailsStlViewer() {
                 (ae === maStlCopyToolHudDistanceInput ||
                     ae === maStlCopyToolHudAngleInput ||
                     ae === maStlMoveToolHudDistanceInput ||
-                    ae === maStlMoveToolHudAngleInput);
+                    ae === maStlMoveToolHudAngleInput ||
+                    ae === maStlStretchToolHudDistanceInput ||
+                    ae === maStlStretchToolHudAngleInput);
             if (maStlDesingV2AvoidKeyboardShortcutSteal(ae) && !lineDistFocused && !dupMoveHudFocused) return;
             if (maStlCancelAllViewerInteractionModes()) {
                 ev.preventDefault();
@@ -21510,7 +22110,9 @@ function bootMasterArticleDetailsStlViewer() {
                     (formField.id === 'ma-stl-copy-tool-hud-distance' ||
                         formField.id === 'ma-stl-copy-tool-hud-angle' ||
                         formField.id === 'ma-stl-move-tool-hud-distance' ||
-                        formField.id === 'ma-stl-move-tool-hud-angle') &&
+                        formField.id === 'ma-stl-move-tool-hud-angle' ||
+                        formField.id === 'ma-stl-stretch-tool-hud-distance' ||
+                        formField.id === 'ma-stl-stretch-tool-hud-angle') &&
                     maStlIsDupMoveToolActive()
                 ) {
                     return false;

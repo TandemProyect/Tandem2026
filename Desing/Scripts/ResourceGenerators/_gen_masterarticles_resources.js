@@ -376,6 +376,12 @@ const es = Object.fromEntries(
       "Punto base: clic en planta o teclee X,Z (p. ej. 0,0) + Intro.",
     StlPreview_MoveToolInstructionDisplacement:
       "Segundo punto (desplazamiento): clic, #X,Z, o @distancia<grados + Intro. Repita para más movimientos; Esc para terminar.",
+    StlPreview_StretchToolInstructionSelecting:
+      "Seleccione el muro o línea a estirar: clic simple o arrastre (izq→der ventana, der→izq cruce). Intro para continuar, Esc cancelar.",
+    StlPreview_StretchToolInstructionBasePoint:
+      "Punto base (extremo fijo): clic cerca del vértice que no se moverá o teclee X,Z + Intro.",
+    StlPreview_StretchToolInstructionDisplacement:
+      "Segundo punto (nueva longitud): clic, #X,Z, o @distancia<grados + Intro. El otro extremo se alarga; Esc para terminar.",
     StlPreview_Desing2TopToolDesplazar: "Desplazar",
     StlPreview_Desing2TopToolDesplazarAria:
       "Desplazar líneas de planta y objetos STL — selección por clic o ventana, punto base y desplazamiento",
@@ -387,7 +393,7 @@ const es = Object.fromEntries(
       "Herramienta alargar — próximamente (solo interfaz)",
     StlPreview_Desing2TopToolEstirar: "Estirar",
     StlPreview_Desing2TopToolEstirarAria:
-      "Herramienta estirar — próximamente (solo interfaz)",
+      "Estirar muros y líneas — selección, punto base en el extremo fijo y segundo punto para alargar",
     StlPreview_Desing2TopToolBorrar: "Borrar",
     StlPreview_Desing2TopToolBorrarAria:
       "Borrar líneas de planta y objetos STL — seleccione (clic o ventana) y confirme con Enter, Espacio o Supr",
@@ -853,6 +859,12 @@ const en = Object.assign({}, es, {
     "Base point: click on the floor or type X,Z (e.g. 0,0) + Enter.",
   StlPreview_MoveToolInstructionDisplacement:
     "Second point (displacement): click, #X,Z, or @distance<angle + Enter. Repeat for more moves; Esc to finish.",
+  StlPreview_StretchToolInstructionSelecting:
+    "Select the wall or line to stretch: single click or drag (L→R window, R→L crossing). Enter to continue, Esc to cancel.",
+  StlPreview_StretchToolInstructionBasePoint:
+    "Base point (fixed end): click near the vertex that stays put, or type X,Z + Enter.",
+  StlPreview_StretchToolInstructionDisplacement:
+    "Second point (new length): click, #X,Z, or @distance<angle + Enter. The other end extends; Esc to finish.",
   StlPreview_Desing2TopToolDesplazar: "Move",
   StlPreview_Desing2TopToolDesplazarAria:
     "Move floor-plan lines and STL meshes — click or window selection, base point and displacement",
@@ -864,7 +876,7 @@ const en = Object.assign({}, es, {
     "Extend tool — coming soon (UI placeholder only)",
   StlPreview_Desing2TopToolEstirar: "Stretch",
   StlPreview_Desing2TopToolEstirarAria:
-    "Stretch tool — coming soon (UI placeholder only)",
+    "Stretch walls and lines — selection, base point on the fixed end, second point sets new length",
   StlPreview_Desing2TopToolBorrar: "Delete",
   StlPreview_Desing2TopToolBorrarAria:
     "Delete floor lines and STL objects — pick (click or window) and confirm with Enter, Space or Delete",

@@ -427,6 +427,15 @@
   <data name="StlPreview_MoveToolInstructionDisplacement" xml:space="preserve">
     <value>Second point (displacement): click, #X,Z, or @distance&lt;angle + Enter. Repeat for more moves; Esc to finish.</value>
   </data>
+  <data name="StlPreview_StretchToolInstructionSelecting" xml:space="preserve">
+    <value>Select the wall or line to stretch: single click or drag (L→R window, R→L crossing). Enter to continue, Esc to cancel.</value>
+  </data>
+  <data name="StlPreview_StretchToolInstructionBasePoint" xml:space="preserve">
+    <value>Base point (fixed end): click near the vertex that stays put, or type X,Z + Enter.</value>
+  </data>
+  <data name="StlPreview_StretchToolInstructionDisplacement" xml:space="preserve">
+    <value>Second point (new length): click, #X,Z, or @distance&lt;angle + Enter. The other end extends; Esc to finish.</value>
+  </data>
   <data name="StlPreview_Desing2BottomToolbarAria" xml:space="preserve">
     <value>STL viewer bottom bar (undo, ortho, rulers)</value>
   </data>
@@ -620,7 +629,7 @@
     <value>Stretch</value>
   </data>
   <data name="StlPreview_Desing2TopToolEstirarAria" xml:space="preserve">
-    <value>Stretch tool — coming soon (UI placeholder only)</value>
+    <value>Stretch walls and lines — selection, base point on the fixed end, second point sets new length</value>
   </data>
   <data name="StlPreview_Desing2TopToolBorrar" xml:space="preserve">
     <value>Delete</value>
