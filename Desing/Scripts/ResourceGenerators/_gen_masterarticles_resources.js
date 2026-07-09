@@ -377,11 +377,11 @@ const es = Object.fromEntries(
     StlPreview_MoveToolInstructionDisplacement:
       "Segundo punto (desplazamiento): clic, #X,Z, o @distancia<grados + Intro. Repita para más movimientos; Esc para terminar.",
     StlPreview_StretchToolInstructionSelecting:
-      "Seleccione el muro o línea a estirar: clic simple o arrastre (izq→der ventana, der→izq cruce). Intro para continuar, Esc cancelar.",
+      "Seleccione el muro o línea a estirar: clic o ventana. Intro para el primer punto, Esc cancelar.",
     StlPreview_StretchToolInstructionBasePoint:
-      "Punto base (extremo fijo): clic cerca del vértice que no se moverá o teclee X,Z + Intro.",
+      "Primer punto: clic en planta o teclee X,Z + Intro.",
     StlPreview_StretchToolInstructionDisplacement:
-      "Segundo punto (nueva longitud): clic, #X,Z, o @distancia<grados + Intro. El otro extremo se alarga; Esc para terminar.",
+      "Segundo punto: clic o @distancia<ángulos + Intro. Al confirmar se aplica el estiramiento y termina la herramienta.",
     StlPreview_Desing2TopToolDesplazar: "Desplazar",
     StlPreview_Desing2TopToolDesplazarAria:
       "Desplazar líneas de planta y objetos STL — selección por clic o ventana, punto base y desplazamiento",
@@ -860,11 +860,11 @@ const en = Object.assign({}, es, {
   StlPreview_MoveToolInstructionDisplacement:
     "Second point (displacement): click, #X,Z, or @distance<angle + Enter. Repeat for more moves; Esc to finish.",
   StlPreview_StretchToolInstructionSelecting:
-    "Select the wall or line to stretch: single click or drag (L→R window, R→L crossing). Enter to continue, Esc to cancel.",
+    "Select the wall or line to stretch: click or window. Enter for the first point, Esc to cancel.",
   StlPreview_StretchToolInstructionBasePoint:
-    "Base point (fixed end): click near the vertex that stays put, or type X,Z + Enter.",
+    "First point: click on the floor or type X,Z + Enter.",
   StlPreview_StretchToolInstructionDisplacement:
-    "Second point (new length): click, #X,Z, or @distance<angle + Enter. The other end extends; Esc to finish.",
+    "Second point: click or @distance<angle + Enter. Stretch is applied on confirm and the tool ends.",
   StlPreview_Desing2TopToolDesplazar: "Move",
   StlPreview_Desing2TopToolDesplazarAria:
     "Move floor-plan lines and STL meshes — click or window selection, base point and displacement",

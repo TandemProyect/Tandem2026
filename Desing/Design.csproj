@@ -3266,6 +3266,7 @@
     <Content Include="Views\MasterArticles\_MasterArticleStlPreviewStyles.cshtml" />
     <Content Include="Views\MasterArticles\_DetailsDwgSlot.cshtml" />
     <Content Include="Scripts\MasterArticles\master-article-preview.js" />
+    <Content Include="Scripts\MasterArticles\ma-stl-wall-edit-finalize.js" />
     <Content Include="Scripts\MasterArticles\master-article-details-stl-viewer.js" />
     <Content Include="Scripts\Desing2\desing2-stl-viewer-toolbar-wiring.js" />
     <Content Include="Scripts\ResourceGenerators\_gen_branch_resources.js" />

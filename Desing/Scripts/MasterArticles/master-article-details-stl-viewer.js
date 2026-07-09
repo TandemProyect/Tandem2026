@@ -5,6 +5,7 @@ import { InfiniteGridHelper } from '@masterarticles/InfiniteGridHelper';
 import { Line2 } from '../Design/jsm/lines/Line2.js';
 import { LineGeometry } from '../Design/jsm/lines/LineGeometry.js';
 import { LineMaterial } from '../Design/jsm/lines/LineMaterial.js';
+import { MaStlWallEditFinalize, MaStlWallStretchMath } from './ma-stl-wall-edit-finalize.js';
 
 /** Zenith → horizon gradient as `scene.background` (same module Three as import map `three.module.js`). */
 function createMasterArticleStlSkyBackgroundTexture() {
@@ -9216,6 +9217,23 @@ function bootMasterArticleDetailsStlViewer() {
         );
     }
 
+    /** Post-procesado único de muros tras estirar / editar eje (evita duplicados). */
+    let _maStlWallEditFinalize = null;
+    function maStlWallEditFinalize() {
+        if (!_maStlWallEditFinalize) {
+            _maStlWallEditFinalize = new MaStlWallEditFinalize({
+                refreshAxisFaceOffsetsNoJunction: maStlWall2dToolRefreshAxisFaceOffsetsNoJunction,
+                refactorAllWallJunctionsMm: maStlWall2dToolRefactorAllWallJunctionsMm,
+                splitAllAxisInteriorCrossingsMm: maStlWall2dToolSplitAllAxisInteriorCrossingsMm,
+                weldAllUserFloorLineEndpointsMm: maStlWeldAllUserFloorLineEndpointsMm,
+                reapplyAllUserFloorWallAxisLineStyles: maStlReapplyAllUserFloorWallAxisLineStyles,
+                saveWallConnections: maStlSaveWallConnectionsNow,
+                editableAxisLineForDimension: maStlWall2dToolEditableAxisLineForDimension,
+            });
+        }
+        return _maStlWallEditFinalize;
+    }
+
     function maStlWall2dToolCaptureAxisEditPropagationState(line) {
         const axisLine = maStlWall2dToolEditableAxisLineForDimension(line);
         const axisUd = axisLine && axisLine.userData && axisLine.userData.maStlUserPlanLine;
@@ -11668,8 +11686,49 @@ function bootMasterArticleDetailsStlViewer() {
         }
     }
 
+    function maStlCopyToolStretchPrimaryAxisDeltaMm(dx, dz) {
+        const axisLine = maStlCopyToolPrimaryStretchAxisLine();
+        if (!axisLine) return Math.hypot(dx, dz);
+        const ud = axisLine.userData && axisLine.userData.maStlUserPlanLine;
+        if (!ud || !ud.p1Mm || !ud.p2Mm) return Math.hypot(dx, dz);
+        const plan = MaStlWallStretchMath.planFromDisplacementMm(ud.p1Mm, ud.p2Mm, dx, dz);
+        return plan ? plan.axisDeltaMm : 0;
+    }
+
+    function maStlCopyToolFormatStretchAxisDeltaHudMm(deltaMm) {
+        if (!Number.isFinite(deltaMm) || Math.abs(deltaMm) < 1e-6) return '';
+        const sign = deltaMm >= 0 ? '+' : '\u2212';
+        const d = maStlDesing2DimEditableMetersDisplayFromMm(
+            maStlDesing2LengthMmRoundedEditableFromMm(Math.abs(deltaMm))
+        );
+        return sign + '\u00A0' + d + '\u00A0m';
+    }
+
+    function maStlCopyToolSyncStretchDeltaHud() {
+        const hudCoords = maStlDupMoveToolHudCoords();
+        if (!hudCoords || !maStlIsStretchToolActive()) return;
+        if (maStlCopyToolState !== 'displacement') {
+            hudCoords.textContent = '';
+            return;
+        }
+        const end = { x: 0, y: 0, z: 0 };
+        if (!maStlCopyToolComputeDisplacementEndMm(end)) {
+            hudCoords.textContent = '';
+            return;
+        }
+        const dx = end.x - maStlCopyToolBasePointMm.x;
+        const dz = end.z - maStlCopyToolBasePointMm.z;
+        hudCoords.textContent = maStlCopyToolFormatStretchAxisDeltaHudMm(
+            maStlCopyToolStretchPrimaryAxisDeltaMm(dx, dz)
+        );
+    }
+
     function maStlCopyToolSyncTypingPreviewUi() {
         const distPreview = maStlDupMoveToolHudDistancePreview();
+        if (maStlIsStretchToolActive()) {
+            if (distPreview) distPreview.textContent = '';
+            return;
+        }
         if (!distPreview || maStlCopyToolState !== 'displacement') {
             if (distPreview) distPreview.textContent = '';
             return;
@@ -11715,6 +11774,9 @@ function bootMasterArticleDetailsStlViewer() {
         const hudInstruction = maStlDupMoveToolHudInstruction();
         if (hudInstruction) hudInstruction.textContent = insTpl;
         const hudCoords = maStlDupMoveToolHudCoords();
+        if (maStlIsStretchToolActive()) {
+            maStlCopyToolSyncStretchDeltaHud();
+        } else if (hudCoords) {
         const tpl =
             (hudCoords && hudCoords.getAttribute('data-ma-stl-line-tool-coords-template')) || '';
         const typedRaw = maStlCopyToolRawTypingTrimmed();
@@ -11758,6 +11820,7 @@ function bootMasterArticleDetailsStlViewer() {
             } else {
                 hudCoords.textContent = '';
             }
+        }
         }
         const hudDistanceRow = maStlDupMoveToolHudDistanceRow();
         if (hudDistanceRow) {
@@ -11871,6 +11934,7 @@ function bootMasterArticleDetailsStlViewer() {
             seen.add(ln.uuid);
             const ud = ln.userData && ln.userData.maStlUserPlanLine;
             if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            if (ud.wallGroupId != null && ud.wallRole !== 'axis') continue;
             segments.push({
                 p1: { x: ud.p1Mm.x, y: ud.p1Mm.y, z: ud.p1Mm.z },
                 p2: { x: ud.p2Mm.x, y: ud.p2Mm.y, z: ud.p2Mm.z },
@@ -11905,23 +11969,68 @@ function bootMasterArticleDetailsStlViewer() {
         }
     }
 
-    function maStlCopyToolStretchSegmentEndpointsMm(p1Mm, p2Mm, baseMm, targetMm, outP1, outP2) {
-        if (!p1Mm || !p2Mm || !baseMm || !targetMm || !outP1 || !outP2) return false;
-        const distP1 = Math.hypot(p1Mm.x - baseMm.x, p1Mm.z - baseMm.z);
-        const distP2 = Math.hypot(p2Mm.x - baseMm.x, p2Mm.z - baseMm.z);
-        const minLen = maStlUserFloorSegmentMinMm();
-        if (distP1 <= distP2) {
-            outP1.x = p1Mm.x;
-            outP1.y = p1Mm.y;
-            outP1.z = p1Mm.z;
-            if (!maStlProjectPointOntoSegmentAxisMm(targetMm, p1Mm, p2Mm, minLen, outP2)) return false;
-        } else {
-            outP2.x = p2Mm.x;
-            outP2.y = p2Mm.y;
-            outP2.z = p2Mm.z;
-            if (!maStlProjectPointOntoSegmentAxisMm(targetMm, p2Mm, p1Mm, minLen, outP1)) return false;
+    function maStlCopyToolStretchPlanFromDisplacementMm(p1Mm, p2Mm, dx, dz) {
+        return MaStlWallStretchMath.planFromDisplacementMm(p1Mm, p2Mm, dx, dz);
+    }
+
+    /** @returns {boolean} */
+    function maStlCopyToolStretchSegmentEndpointsByDisplacementMm(p1Mm, p2Mm, dx, dz, outP1, outP2) {
+        return MaStlWallStretchMath.segmentEndpointsByDisplacementMm(
+            p1Mm,
+            p2Mm,
+            dx,
+            dz,
+            outP1,
+            outP2,
+            maStlUserFloorSegmentMinMm()
+        );
+    }
+
+    function maStlCopyToolSyncPreviewAtStretchDisplacement(dx, dy, dz) {
+        if (!maStlCopyToolPreviewSegments || maStlCopyToolPreviewSegments.length === 0) {
+            maStlCopyToolHidePreview();
+            return;
         }
-        return Math.hypot(outP2.x - outP1.x, outP2.z - outP1.z) >= minLen - 1e-6;
+        const minLen = maStlUserFloorSegmentMinMm();
+        const show = Math.hypot(dx, dz) >= 1e-6;
+        const stretchedP1 = { x: 0, y: 0, z: 0 };
+        const stretchedP2 = { x: 0, y: 0, z: 0 };
+        let visibleCount = 0;
+        for (let si = 0; si < maStlCopyToolPreviewSegments.length; si++) {
+            const seg = maStlCopyToolPreviewSegments[si];
+            const pl = maStlCopyToolEnsurePreviewLineAtIndex(si);
+            if (
+                !show ||
+                !maStlCopyToolStretchSegmentEndpointsByDisplacementMm(
+                    seg.p1,
+                    seg.p2,
+                    dx,
+                    dz,
+                    stretchedP1,
+                    stretchedP2
+                ) ||
+                Math.hypot(stretchedP2.x - stretchedP1.x, stretchedP2.z - stretchedP1.z) < minLen
+            ) {
+                pl.visible = false;
+                continue;
+            }
+            maStlCopyToolApplyPreviewLineMaterialStyle(pl.material, seg.wallRole);
+            maStlSetUserFloorLineGeometryMm(pl, stretchedP1, stretchedP2);
+            if (typeof pl.computeLineDistances === 'function') {
+                pl.computeLineDistances();
+            }
+            pl.visible = true;
+            visibleCount++;
+        }
+        for (let hi = maStlCopyToolPreviewSegments.length; hi < maStlCopyToolPreviewLines.length; hi++) {
+            maStlCopyToolPreviewLines[hi].visible = false;
+        }
+        for (let mi = 0; mi < maStlCopyToolPreviewMeshSlots.length; mi++) {
+            if (maStlCopyToolPreviewMeshSlots[mi].mesh) {
+                maStlCopyToolPreviewMeshSlots[mi].mesh.visible = false;
+            }
+        }
+        if (visibleCount === 0) maStlCopyToolHidePreview();
     }
 
     function maStlCopyToolSyncPreviewAtDisplacement(dx, dy, dz) {
@@ -12047,7 +12156,11 @@ function bootMasterArticleDetailsStlViewer() {
         const dy = end.y - maStlCopyToolBasePointMm.y;
         const dz = end.z - maStlCopyToolBasePointMm.z;
         if (Math.hypot(dx, dz) >= 1e-6) {
-            maStlCopyToolSyncPreviewAtDisplacement(dx, dy, dz);
+            if (maStlIsStretchToolActive()) {
+                maStlCopyToolSyncPreviewAtStretchDisplacement(dx, dy, dz);
+            } else {
+                maStlCopyToolSyncPreviewAtDisplacement(dx, dy, dz);
+            }
         } else {
             maStlCopyToolHidePreview();
         }
@@ -12319,60 +12432,49 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     /**
-     * Tras estirar un eje de muro: conectar el extremo móvil al vecino (misma lógica que asas P1/P2).
-     * @param {THREE.Line2} axisLine
-     * @param {'p1'|'p2'} movedEndpoint
-     * @param {number} clientX
-     * @param {number} clientY
+     * Tras estirar: conectar sólo si el extremo móvil (no el cursor) está a ≤ ε de un vecino.
+     * @returns {boolean} true si se aplicó snap/conexión
      */
-    function maStlCopyToolStretchWallAxisEndpointSnapConnect(axisLine, movedEndpoint, clientX, clientY) {
+    function maStlCopyToolStretchWallAxisEndpointSnapConnect(axisLine, movedEndpoint) {
         const ud = axisLine && axisLine.userData && axisLine.userData.maStlUserPlanLine;
-        if (!ud || !ud.p1Mm || !ud.p2Mm) return;
-        const isP1 = movedEndpoint === 'p1';
-        const fixedPt = isP1 ? ud.p2Mm : ud.p1Mm;
-        const dirAnchorPt = isP1 ? ud.p1Mm : ud.p2Mm;
-        const axisPt = isP1 ? ud.p1Mm : ud.p2Mm;
-        const snap = maStlFindUserFloorEndpointDragSnapCandidate(
-            clientX,
-            clientY,
-            axisLine,
-            movedEndpoint,
-            axisPt,
-            fixedPt,
-            dirAnchorPt
-        );
-        if (snap) {
-            maStlApplyUserFloorEndpointStretchSnapConnect(axisLine, movedEndpoint, snap);
-        }
+        if (!ud || !ud.p1Mm || !ud.p2Mm) return false;
+        const axisPt = movedEndpoint === 'p1' ? ud.p1Mm : ud.p2Mm;
+        const threshMm = MA_STL_USER_FLOOR_ENDPOINT_STRETCH_SNAP_MM;
+        const snap = maStlFindNearestUserFloorLineSegmentSnapMm(axisPt, axisLine, threshMm);
+        if (!snap) return false;
+        const distXZ = Math.hypot(axisPt.x - snap.x, axisPt.z - snap.z);
+        if (distXZ > threshMm) return false;
+        return maStlApplyUserFloorEndpointStretchSnapConnect(axisLine, movedEndpoint, snap);
     }
 
-    /** @param {{ x: number, y: number, z: number }} targetMm @param {number} [clientX] @param {number} [clientY] */
-    function maStlCopyToolCommitStretchAtTargetMm(targetMm, clientX, clientY) {
+    /** @param {number} dx @param {number} dy @param {number} dz @param {number} [clientX] @param {number} [clientY] */
+    function maStlCopyToolCommitStretchByDisplacementMm(dx, dy, dz, clientX, clientY) {
         const expanded = maStlDesing2ExpandLinesWithWallGroups(Array.from(maStlCopyToolSelectedLines));
         const meshes = Array.from(maStlCopyToolSelectedMeshes);
         const parts = maStlCopyToolPartitionLinesForDuplicate(expanded);
         if (parts.plainLines.length === 0 && parts.wallAxisLines.length === 0 && meshes.length === 0) {
             return false;
         }
-        const baseMm = maStlCopyToolBasePointMm;
         const undoBefore = maStlDesing2SerializeEditSnapshot();
         let hadWall = false;
         let anyLineChanged = false;
         const outP1 = { x: 0, y: 0, z: 0 };
         const outP2 = { x: 0, y: 0, z: 0 };
+        const movedTarget = { x: 0, y: 0, z: 0 };
         /** @type {Array<{ axisLine: THREE.Line2, movedEndpoint: 'p1'|'p2' }>} */
         const stretchedWallAxes = [];
+        let anySnapConnect = false;
 
         for (let pi = 0; pi < parts.plainLines.length; pi++) {
             const line = parts.plainLines[pi];
             const ud = line.userData && line.userData.maStlUserPlanLine;
             if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
             if (
-                !maStlCopyToolStretchSegmentEndpointsMm(
+                !maStlCopyToolStretchSegmentEndpointsByDisplacementMm(
                     ud.p1Mm,
                     ud.p2Mm,
-                    baseMm,
-                    targetMm,
+                    dx,
+                    dz,
                     outP1,
                     outP2
                 )
@@ -12395,28 +12497,46 @@ function bootMasterArticleDetailsStlViewer() {
             const axisLine = parts.wallAxisLines[wi];
             const axisUd = axisLine.userData && axisLine.userData.maStlUserPlanLine;
             if (!axisUd || !axisUd.p1Mm || !axisUd.p2Mm) continue;
-            const plan = maStlCopyToolStretchPlanFromBaseMm(axisUd, baseMm);
+            const plan = maStlCopyToolStretchPlanFromDisplacementMm(axisUd.p1Mm, axisUd.p2Mm, dx, dz);
+            if (!plan) continue;
+            const ax = axisUd.p2Mm.x - axisUd.p1Mm.x;
+            const az = axisUd.p2Mm.z - axisUd.p1Mm.z;
+            const axisLen = Math.hypot(ax, az);
+            const ux = ax / axisLen;
+            const uz = az / axisLen;
+            const newLen =
+                plan.movedEndpoint === 'p2' ? axisLen + plan.axisDeltaMm : axisLen - plan.axisDeltaMm;
+            if (newLen < maStlUserFloorSegmentMinMm() - 1e-6) continue;
+            if (plan.movedEndpoint === 'p2') {
+                movedTarget.x = axisUd.p1Mm.x + ux * newLen;
+                movedTarget.y = axisUd.p2Mm.y;
+                movedTarget.z = axisUd.p1Mm.z + uz * newLen;
+            } else {
+                movedTarget.x = axisUd.p2Mm.x - ux * newLen;
+                movedTarget.y = axisUd.p1Mm.y;
+                movedTarget.z = axisUd.p2Mm.z - uz * newLen;
+            }
             let applied = false;
             if (plan.movedEndpoint === 'p1') {
                 applied = maStlSetUserFloorLineP1PlanMm(
                     axisLine,
-                    targetMm.x,
-                    targetMm.y,
-                    targetMm.z
+                    movedTarget.x,
+                    movedTarget.y,
+                    movedTarget.z
                 );
             } else {
                 applied = maStlSetUserFloorLineP2PlanMm(
                     axisLine,
-                    targetMm.x,
-                    targetMm.y,
-                    targetMm.z
+                    movedTarget.x,
+                    movedTarget.y,
+                    movedTarget.z
                 );
             }
             if (!applied) continue;
             maStlQuantizeUserFloorPlanPointToGridMm(axisUd.p1Mm);
             maStlQuantizeUserFloorPlanPointToGridMm(axisUd.p2Mm);
+            maStlApplyUserFloorLineSegmentGeometryFromMm(axisLine);
             hadWall = true;
-            maStlWall2dToolRefreshFacesAfterEditableAxisChange(axisLine);
             stretchedWallAxes.push({
                 axisLine: axisLine,
                 movedEndpoint: plan.movedEndpoint,
@@ -12426,35 +12546,21 @@ function bootMasterArticleDetailsStlViewer() {
 
         if (!anyLineChanged && meshes.length === 0) return false;
 
-        if (
-            hadWall &&
-            Number.isFinite(clientX) &&
-            Number.isFinite(clientY)
-        ) {
+        if (hadWall) {
             for (let sc = 0; sc < stretchedWallAxes.length; sc++) {
                 const item = stretchedWallAxes[sc];
-                maStlCopyToolStretchWallAxisEndpointSnapConnect(
-                    item.axisLine,
-                    item.movedEndpoint,
-                    clientX,
-                    clientY
-                );
+                if (
+                    maStlCopyToolStretchWallAxisEndpointSnapConnect(
+                        item.axisLine,
+                        item.movedEndpoint
+                    )
+                ) {
+                    anySnapConnect = true;
+                }
             }
-        }
-
-        if (hadWall) {
-            for (let wj = 0; wj < parts.wallAxisLines.length; wj++) {
-                maStlWall2dToolRefreshAxisFaceOffsetsNoJunction(parts.wallAxisLines[wj]);
-            }
-            maStlWall2dToolRefactorAllWallJunctionsMm();
-            maStlWall2dToolSplitAllAxisInteriorCrossingsMm();
-            maStlWall2dToolRefactorAllWallJunctionsMm();
-            maStlWeldAllUserFloorLineEndpointsMm();
-            maStlWall2dToolRefactorAllWallJunctionsMm();
-            maStlReapplyAllUserFloorWallAxisLineStyles();
-            maStlSaveWallConnectionsNow({
-                force: true,
-                reason: 'stretch-tool-displacement-commit',
+            maStlWallEditFinalize().finalizeWallAxes(parts.wallAxisLines, {
+                allowWeld: anySnapConnect,
+                saveReason: 'stretch-tool-displacement-commit',
             });
         } else if (anyLineChanged) {
             maStlWeldAllUserFloorLineEndpointsMm();
@@ -12464,8 +12570,6 @@ function bootMasterArticleDetailsStlViewer() {
         for (let mi = 0; mi < meshes.length; mi++) {
             const mesh = meshes[mi];
             if (!mesh) continue;
-            const dx = targetMm.x - baseMm.x;
-            const dz = targetMm.z - baseMm.z;
             mesh.position.x += dx / scale;
             mesh.position.z += dz / scale;
         }
@@ -12481,12 +12585,7 @@ function bootMasterArticleDetailsStlViewer() {
 
     /** @param {number} dx @param {number} dy @param {number} dz @param {number} [clientX] @param {number} [clientY] */
     function maStlCopyToolCommitStretchMm(dx, dy, dz, clientX, clientY) {
-        const targetMm = {
-            x: maStlCopyToolBasePointMm.x + dx,
-            y: maStlCopyToolBasePointMm.y + dy,
-            z: maStlCopyToolBasePointMm.z + dz,
-        };
-        return maStlCopyToolCommitStretchAtTargetMm(targetMm, clientX, clientY);
+        return maStlCopyToolCommitStretchByDisplacementMm(dx, dy, dz, clientX, clientY);
     }
 
     function maStlCopyToolBlurDupMoveHudInputs() {
@@ -12518,84 +12617,43 @@ function bootMasterArticleDetailsStlViewer() {
         return null;
     }
 
-    /** @param {{ p1Mm: object, p2Mm: object }} ud @param {{ x: number, y: number, z: number }} baseMm */
-    function maStlCopyToolStretchPlanFromBaseMm(ud, baseMm) {
-        const distP1 = Math.hypot(ud.p1Mm.x - baseMm.x, ud.p1Mm.z - baseMm.z);
-        const distP2 = Math.hypot(ud.p2Mm.x - baseMm.x, ud.p2Mm.z - baseMm.z);
-        const moveP2 = distP1 <= distP2;
-        return {
-            movedEndpoint: moveP2 ? 'p2' : 'p1',
-            fixedPt: moveP2 ? ud.p1Mm : ud.p2Mm,
-            dirAnchorPt: moveP2 ? ud.p2Mm : ud.p1Mm,
-        };
-    }
-
-    /** @param {number} clientX @param {number} clientY @param {{ x: number, y: number, z: number }} out */
-    function maStlCopyToolComputeStretchCommitEndMm(clientX, clientY, out) {
-        const axisLine = maStlCopyToolPrimaryStretchAxisLine();
-        if (!axisLine) return null;
-        const ud = axisLine.userData && axisLine.userData.maStlUserPlanLine;
-        if (!ud || !ud.p1Mm || !ud.p2Mm) return null;
-        const plan = maStlCopyToolStretchPlanFromBaseMm(ud, maStlCopyToolBasePointMm);
-        const pt = maStlResolveUserFloorLineEndpointDragPointMm(
-            clientX,
-            clientY,
-            axisLine,
-            plan.movedEndpoint,
-            plan.fixedPt,
-            plan.dirAnchorPt
-        );
-        if (!pt) return null;
-        const snap = maStlFindUserFloorEndpointDragSnapCandidate(
-            clientX,
-            clientY,
-            axisLine,
-            plan.movedEndpoint,
-            pt,
-            plan.fixedPt,
-            plan.dirAnchorPt
-        );
-        const use = snap || pt;
-        out.x = use.x;
-        out.y = use.y;
-        out.z = use.z;
-        return out;
-    }
-
     /**
-     * Estirar: el segundo punto define el extremo móvil (no un desplazamiento desde el punto base).
-     * @param {{ x: number, y: number, z: number }} targetMm
+     * Estirar AutoCAD: ¿el vector base→segundo punto cambia algún segmento?
+     * @param {number} dx
+     * @param {number} dz
      * @returns {boolean}
      */
-    function maStlCopyToolStretchWouldChangeAtTargetMm(targetMm) {
+    function maStlCopyToolStretchWouldChangeByDisplacementMm(dx, dz) {
+        if (Math.hypot(dx, dz) < 1e-6) return false;
         const expanded = maStlDesing2ExpandLinesWithWallGroups(Array.from(maStlCopyToolSelectedLines));
         const parts = maStlCopyToolPartitionLinesForDuplicate(expanded);
-        const baseMm = maStlCopyToolBasePointMm;
-        const minLen = maStlUserFloorSegmentMinMm();
         const outP1 = { x: 0, y: 0, z: 0 };
         const outP2 = { x: 0, y: 0, z: 0 };
         for (let wi = 0; wi < parts.wallAxisLines.length; wi++) {
             const axisUd =
                 parts.wallAxisLines[wi].userData && parts.wallAxisLines[wi].userData.maStlUserPlanLine;
             if (!axisUd || !axisUd.p1Mm || !axisUd.p2Mm) continue;
-            const plan = maStlCopyToolStretchPlanFromBaseMm(axisUd, baseMm);
-            const moving = plan.movedEndpoint === 'p2' ? axisUd.p2Mm : axisUd.p1Mm;
-            const fixed = plan.fixedPt;
-            if (Math.hypot(targetMm.x - moving.x, targetMm.z - moving.z) >= 1e-6) {
-                if (Math.hypot(targetMm.x - fixed.x, targetMm.z - fixed.z) >= minLen - 1e-6) {
-                    return true;
-                }
+            const plan = maStlCopyToolStretchPlanFromDisplacementMm(axisUd.p1Mm, axisUd.p2Mm, dx, dz);
+            if (!plan) continue;
+            const axisLen = Math.hypot(
+                axisUd.p2Mm.x - axisUd.p1Mm.x,
+                axisUd.p2Mm.z - axisUd.p1Mm.z
+            );
+            const newLen =
+                plan.movedEndpoint === 'p2' ? axisLen + plan.axisDeltaMm : axisLen - plan.axisDeltaMm;
+            if (newLen >= maStlUserFloorSegmentMinMm() - 1e-6 && Math.abs(plan.axisDeltaMm) >= 1e-6) {
+                return true;
             }
         }
         for (let pi = 0; pi < parts.plainLines.length; pi++) {
             const ud = parts.plainLines[pi].userData && parts.plainLines[pi].userData.maStlUserPlanLine;
             if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
             if (
-                maStlCopyToolStretchSegmentEndpointsMm(
+                maStlCopyToolStretchSegmentEndpointsByDisplacementMm(
                     ud.p1Mm,
                     ud.p2Mm,
-                    baseMm,
-                    targetMm,
+                    dx,
+                    dz,
                     outP1,
                     outP2
                 )
@@ -12608,7 +12666,7 @@ function bootMasterArticleDetailsStlViewer() {
                 }
             }
         }
-        return false;
+        return maStlCopyToolSelectedMeshes.size > 0;
     }
 
     /**
@@ -12623,24 +12681,19 @@ function bootMasterArticleDetailsStlViewer() {
         const p = maStlResolveLineToolFloorPointMm(clientX, clientY);
         if (!p) return false;
         const pSnap = maStlApplyLineToolVertexSnapOnClickMm(clientX, clientY, p);
+        const placementPt = maStlIsStretchToolActive() ? p : pSnap;
         if (maStlCopyToolState === 'basePoint') {
             maStlCopyToolLastPointerClientXY.set(clientX, clientY);
-            maStlCopyToolAdvanceToDisplacementPhase(pSnap);
+            maStlCopyToolAdvanceToDisplacementPhase(placementPt);
             maStlCopyToolPlacementTapHandledAt = now;
             return true;
         }
         if (maStlCopyToolState === 'displacement') {
             maStlCopyToolBlurDupMoveHudInputs();
             maStlCopyToolLastPointerClientXY.set(clientX, clientY);
-            maStlCopyToolMaybeUpdateHoverDirFromCandidate(pSnap);
+            maStlCopyToolMaybeUpdateHoverDirFromCandidate(placementPt);
             const end = { x: 0, y: 0, z: 0 };
-            let hasEnd = false;
-            if (maStlIsStretchToolActive()) {
-                hasEnd = !!maStlCopyToolComputeStretchCommitEndMm(clientX, clientY, end);
-            }
-            if (!hasEnd) {
-                hasEnd = !!maStlCopyToolSnapDisplacementFloorPointMm(pSnap, end);
-            }
+            let hasEnd = !!maStlCopyToolSnapDisplacementFloorPointMm(placementPt, end);
             if (!hasEnd) {
                 hasEnd = !!maStlCopyToolComputeDisplacementEndMm(end);
             }
@@ -12670,7 +12723,7 @@ function bootMasterArticleDetailsStlViewer() {
         const dy = end.y - maStlCopyToolBasePointMm.y;
         const dz = end.z - maStlCopyToolBasePointMm.z;
         if (maStlCopyToolKind === 'stretch') {
-            if (!maStlCopyToolStretchWouldChangeAtTargetMm(end)) {
+            if (!maStlCopyToolStretchWouldChangeByDisplacementMm(dx, dz)) {
                 maStlCopyToolShowDisplacementInvalidToast();
                 return false;
             }
@@ -12682,9 +12735,15 @@ function bootMasterArticleDetailsStlViewer() {
             maStlCopyToolKind === 'copy'
                 ? maStlCopyToolCommitDuplicateMm(dx, dy, dz)
                 : maStlCopyToolKind === 'stretch'
-                  ? maStlCopyToolCommitStretchAtTargetMm(end, clientX, clientY)
+                  ? maStlCopyToolCommitStretchByDisplacementMm(dx, dy, dz, clientX, clientY)
                   : maStlCopyToolCommitMoveMm(dx, dy, dz);
-        if (ok) maStlCopyToolAdvanceToNextDisplacementAfterCommit();
+        if (ok) {
+            if (maStlCopyToolKind === 'stretch') {
+                maStlStopCopyToolModesToolbar();
+            } else {
+                maStlCopyToolAdvanceToNextDisplacementAfterCommit();
+            }
+        }
         return ok;
     }
 
@@ -12696,13 +12755,7 @@ function bootMasterArticleDetailsStlViewer() {
         const cy = Number.isFinite(maStlCopyToolLastPointerClientXY.y)
             ? maStlCopyToolLastPointerClientXY.y
             : Number.NaN;
-        let hasEnd = false;
-        if (maStlIsStretchToolActive() && Number.isFinite(cx) && Number.isFinite(cy)) {
-            hasEnd = !!maStlCopyToolComputeStretchCommitEndMm(cx, cy, end);
-        }
-        if (!hasEnd) {
-            hasEnd = !!maStlCopyToolComputeDisplacementEndMm(end);
-        }
+        const hasEnd = !!maStlCopyToolComputeDisplacementEndMm(end);
         if (!hasEnd) {
             maStlCopyToolShowDisplacementInvalidToast();
             return false;

@@ -428,13 +428,13 @@
     <value>Second point (displacement): click, #X,Z, or @distance&lt;angle + Enter. Repeat for more moves; Esc to finish.</value>
   </data>
   <data name="StlPreview_StretchToolInstructionSelecting" xml:space="preserve">
-    <value>Select the wall or line to stretch: single click or drag (L→R window, R→L crossing). Enter to continue, Esc to cancel.</value>
+    <value>Select the wall or line to stretch: click or window. Enter for the first point, Esc to cancel.</value>
   </data>
   <data name="StlPreview_StretchToolInstructionBasePoint" xml:space="preserve">
-    <value>Base point (fixed end): click near the vertex that stays put, or type X,Z + Enter.</value>
+    <value>First point: click on the floor or type X,Z + Enter.</value>
   </data>
   <data name="StlPreview_StretchToolInstructionDisplacement" xml:space="preserve">
-    <value>Second point (new length): click, #X,Z, or @distance&lt;angle + Enter. The other end extends; Esc to finish.</value>
+    <value>Second point: click or @distance&lt;angle + Enter. Stretch is applied on confirm and the tool ends.</value>
   </data>
   <data name="StlPreview_Desing2BottomToolbarAria" xml:space="preserve">
     <value>STL viewer bottom bar (undo, ortho, rulers)</value>

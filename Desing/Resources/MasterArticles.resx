@@ -428,13 +428,13 @@
     <value>Segundo punto (desplazamiento): clic, #X,Z, o @distancia&lt;grados + Intro. Repita para más movimientos; Esc para terminar.</value>
   </data>
   <data name="StlPreview_StretchToolInstructionSelecting" xml:space="preserve">
-    <value>Seleccione el muro o línea a estirar: clic simple o arrastre (izq→der ventana, der→izq cruce). Intro para continuar, Esc cancelar.</value>
+    <value>Seleccione el muro o línea a estirar: clic o ventana. Intro para el primer punto, Esc cancelar.</value>
   </data>
   <data name="StlPreview_StretchToolInstructionBasePoint" xml:space="preserve">
-    <value>Punto base (extremo fijo): clic cerca del vértice que no se moverá o teclee X,Z + Intro.</value>
+    <value>Primer punto: clic en planta o teclee X,Z + Intro.</value>
   </data>
   <data name="StlPreview_StretchToolInstructionDisplacement" xml:space="preserve">
-    <value>Segundo punto (nueva longitud): clic, #X,Z, o @distancia&lt;grados + Intro. El otro extremo se alarga; Esc para terminar.</value>
+    <value>Segundo punto: clic o @distancia&lt;ángulos + Intro. Al confirmar se aplica el estiramiento y termina la herramienta.</value>
   </data>
   <data name="StlPreview_Desing2BottomToolbarAria" xml:space="preserve">
     <value>Barra inferior del visor STL (deshacer, orto, reglas)</value>
