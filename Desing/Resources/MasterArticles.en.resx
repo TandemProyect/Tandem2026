@@ -955,6 +955,12 @@
   <data name="StlPreview_UserFloorLineDimReadoutDeltaZAria" xml:space="preserve">
     <value>ΔZ from ruler intersection to the free end of the segment (signed metres). Double-click to edit.</value>
   </data>
+  <data name="StlPreview_UserFloorLineDimEditThicknessAria" xml:space="preserve">
+    <value>Total thickness of the selected wall in metres (or type mm suffix). Symmetric about the axis; connected walls adapt at junctions. Enter to apply; Escape cancels.</value>
+  </data>
+  <data name="StlPreview_UserFloorLineDimReadoutThicknessAria" xml:space="preserve">
+    <value>Total thickness of the selected wall (metres). Click to edit.</value>
+  </data>
   <data name="StlPreview_UserFloorLineDragHandleAria" xml:space="preserve">
     <value>Drag to move the segment on the floor plan (X and Z axes)</value>
   </data>

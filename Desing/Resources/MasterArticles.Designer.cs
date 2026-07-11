@@ -341,6 +341,8 @@ namespace Desing.Resources
         public static string StlPreview_UserFloorLineDimEditDeltaZAria => ResourceManager.GetString(nameof(StlPreview_UserFloorLineDimEditDeltaZAria), resourceCulture);
         public static string StlPreview_UserFloorLineDimReadoutDeltaXAria => ResourceManager.GetString(nameof(StlPreview_UserFloorLineDimReadoutDeltaXAria), resourceCulture);
         public static string StlPreview_UserFloorLineDimReadoutDeltaZAria => ResourceManager.GetString(nameof(StlPreview_UserFloorLineDimReadoutDeltaZAria), resourceCulture);
+        public static string StlPreview_UserFloorLineDimEditThicknessAria => ResourceManager.GetString(nameof(StlPreview_UserFloorLineDimEditThicknessAria), resourceCulture);
+        public static string StlPreview_UserFloorLineDimReadoutThicknessAria => ResourceManager.GetString(nameof(StlPreview_UserFloorLineDimReadoutThicknessAria), resourceCulture);
         public static string StlPreview_UserFloorLineDragHandleAria => ResourceManager.GetString(nameof(StlPreview_UserFloorLineDragHandleAria), resourceCulture);
         public static string StlPreview_UserFloorLineP1HandleAria => ResourceManager.GetString(nameof(StlPreview_UserFloorLineP1HandleAria), resourceCulture);
         public static string StlPreview_UserFloorLineP2HandleAria => ResourceManager.GetString(nameof(StlPreview_UserFloorLineP2HandleAria), resourceCulture);

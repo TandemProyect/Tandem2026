@@ -304,6 +304,10 @@ const es = Object.fromEntries(
         "ΔX desde el cruce de reglas hasta el extremo libre del segmento (metros, con signo). Doble clic para editar.",
     StlPreview_UserFloorLineDimReadoutDeltaZAria:
         "ΔZ desde el cruce de reglas hasta el extremo libre del segmento (metros, con signo). Doble clic para editar.",
+    StlPreview_UserFloorLineDimEditThicknessAria:
+        "Espesor total del muro seleccionado en metros (o mm con sufijo). Simétrico respecto al eje; los muros conectados adaptan la unión. Intro para aplicar; Escape cancela.",
+    StlPreview_UserFloorLineDimReadoutThicknessAria:
+        "Espesor total del muro seleccionado (metros). Clic para editar.",
     StlPreview_UserFloorLineDragHandleAria:
         "Arrastrar para mover el segmento en planta (eje X y Z)",
     StlPreview_UserFloorLineP1HandleAria:
@@ -787,6 +791,10 @@ const en = Object.assign({}, es, {
     "ΔX from ruler intersection to the free end of the segment (signed metres). Double-click to edit.",
   StlPreview_UserFloorLineDimReadoutDeltaZAria:
     "ΔZ from ruler intersection to the free end of the segment (signed metres). Double-click to edit.",
+  StlPreview_UserFloorLineDimEditThicknessAria:
+    "Total thickness of the selected wall in metres (or type mm suffix). Symmetric about the axis; connected walls adapt at junctions. Enter to apply; Escape cancels.",
+  StlPreview_UserFloorLineDimReadoutThicknessAria:
+    "Total thickness of the selected wall (metres). Click to edit.",
   StlPreview_UserFloorLineDragHandleAria:
     "Drag to move the segment on the floor plan (X and Z axes)",
   StlPreview_UserFloorLineP1HandleAria:

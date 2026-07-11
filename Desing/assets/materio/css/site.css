@@ -371,6 +371,16 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     font-weight: 600;
 }
 
+.desing2-stl-view-scope .desing2-stl-wall-dim-readout--atk60-panel {
+    font-weight: 600;
+    color: #0891b2;
+}
+
+.desing2-stl-view-scope .desing2-stl-wall-dim-readout--atk60-remate {
+    font-weight: 500;
+    color: #ca8a04;
+}
+
 /* Desing_2 STL — reglas borde visor (superior +X, derecha +Z); inset dentro del lienzo */
 .desing2-stl-view-scope {
     --ma-stl-edge-ruler-thickness: 26px;

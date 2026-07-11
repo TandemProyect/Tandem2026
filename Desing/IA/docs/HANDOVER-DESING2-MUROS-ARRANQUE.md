@@ -88,6 +88,8 @@ Cambios previos integrados en el flujo:
   - Las líneas fuente se ocultan, pero no se borran.
   - El modelo generado se limpia y se regenera cada vez.
   - Se muestra overlay de carga con mensaje `Renderizando`.
+- **Ciclo de vida:** la línea fuente conserva atributos (`numberOffsetMm`, cotas); las mallas/polígonos generados (`maStlWall3dGenerated`) se eliminan al volver a Líneas o al cambiar de modo Muro 2D/3D.
+- **Encofrado AT-60:** esquinas L y uniones T se resuelven en cliente (`ma-stl-atk60-formwork.js`); ver [`ENCOFRADO-AT60-IMPLEMENTACION.md`](ENCOFRADO-AT60-IMPLEMENTACION.md).
 - `Muro 3D` usa la misma lógica de color que `Muro 2D`.
 - El sistema activo se muestra como `Atk-60`.
 - El selector de sistema es desplegable; los sistemas no activos quedan deshabilitados.

@@ -1,5 +1,5 @@
 {
-  "generatedAtUtc": "2026-07-09T11:11:34.595Z",
+  "generatedAtUtc": "2026-07-11T07:30:51.999Z",
   "pageUrl": "https://localhost:44384/Desing_2/Viewer?offerId=1&designId=1",
   "schema": "WallConnections.v1",
   "source": "Desing_2",
@@ -20,13 +20,13 @@
     "zM": 0
   },
   "counts": {
-    "lines": 15,
-    "nodes": 16,
-    "endpointConnections": 13,
+    "lines": 21,
+    "nodes": 20,
+    "endpointConnections": 20,
     "bodyConnections": 0,
     "polylines": 0,
-    "walls": 1,
-    "wallJunctionDiagnostics": 16
+    "walls": 2,
+    "wallJunctionDiagnostics": 20
   },
   "lines": [
     {
@@ -35,22 +35,22 @@
       "p1NodeId": "N1",
       "p2NodeId": "N2",
       "p1": {
-        "xMm": 0,
+        "xMm": -150,
         "yMm": 0,
-        "zMm": 0,
-        "xM": 0,
+        "zMm": -10150,
+        "xM": -0.15,
         "yM": 0,
-        "zM": 0
+        "zM": -10.15
       },
       "p2": {
-        "xMm": 10000,
+        "xMm": -149.99999999999972,
         "yMm": 0,
-        "zMm": 0,
-        "xM": 10,
+        "zMm": -15000,
+        "xM": -0.14999999999999972,
         "yM": 0,
-        "zM": 0
+        "zM": -15
       },
-      "lengthMm": 10000,
+      "lengthMm": 4850,
       "wallGroupId": 1,
       "wallRole": "axis"
     },
@@ -60,22 +60,22 @@
       "p1NodeId": "N3",
       "p2NodeId": "N4",
       "p1": {
-        "xMm": 0,
+        "xMm": -8.7902194114651573E-15,
         "yMm": 0,
-        "zMm": 150,
-        "xM": 0,
+        "zMm": -10000,
+        "xM": -8.7902194114651578E-18,
         "yM": 0,
-        "zM": 0.15
+        "zM": -10
       },
       "p2": {
-        "xMm": 10000,
+        "xMm": 2.8421709430404007E-13,
         "yMm": 0,
-        "zMm": 150,
-        "xM": 10,
+        "zMm": -15000,
+        "xM": 2.8421709430404008E-16,
         "yM": 0,
-        "zM": 0.15
+        "zM": -15
       },
-      "lengthMm": 10000,
+      "lengthMm": 5000,
       "wallGroupId": 1,
       "wallRole": "face",
       "linkOffsetFromLineId": 1,
@@ -88,22 +88,22 @@
       "p1NodeId": "N5",
       "p2NodeId": "N6",
       "p1": {
-        "xMm": 0,
+        "xMm": -300,
         "yMm": 0,
-        "zMm": -150,
-        "xM": 0,
+        "zMm": -10300,
+        "xM": -0.3,
         "yM": 0,
-        "zM": -0.15
+        "zM": -10.3
       },
       "p2": {
-        "xMm": 9850,
+        "xMm": -299.99999999999972,
         "yMm": 0,
-        "zMm": -150,
-        "xM": 9.85,
+        "zMm": -14850,
+        "xM": -0.29999999999999971,
         "yM": 0,
-        "zM": -0.15
+        "zM": -14.85
       },
-      "lengthMm": 9850,
+      "lengthMm": 4550,
       "wallGroupId": 1,
       "wallRole": "face",
       "linkOffsetFromLineId": 1,
@@ -116,22 +116,22 @@
       "p1NodeId": "N7",
       "p2NodeId": "N8",
       "p1": {
-        "xMm": 29500,
+        "xMm": -149.9999999999994,
         "yMm": 0,
-        "zMm": 0,
-        "xM": 29.5,
+        "zMm": -19850,
+        "xM": -0.14999999999999941,
         "yM": 0,
-        "zM": 0
+        "zM": -19.85
       },
       "p2": {
-        "xMm": 29500,
+        "xMm": -9850,
         "yMm": 0,
-        "zMm": -20000,
-        "xM": 29.5,
+        "zMm": -19850,
+        "xM": -9.85,
         "yM": 0,
-        "zM": -20
+        "zM": -19.85
       },
-      "lengthMm": 20000,
+      "lengthMm": 9700,
       "wallGroupId": 1,
       "wallRole": "axis"
     },
@@ -141,22 +141,22 @@
       "p1NodeId": "N9",
       "p2NodeId": "N10",
       "p1": {
-        "xMm": 29650,
+        "xMm": 6.0652513939109579E-13,
         "yMm": 0,
-        "zMm": 150,
-        "xM": 29.65,
+        "zMm": -20000,
+        "xM": 6.0652513939109582E-16,
         "yM": 0,
-        "zM": 0.15
+        "zM": -20
       },
       "p2": {
-        "xMm": 29650,
+        "xMm": -10000,
         "yMm": 0,
-        "zMm": -20150,
-        "xM": 29.65,
+        "zMm": -20000,
+        "xM": -10,
         "yM": 0,
-        "zM": -20.15
+        "zM": -20
       },
-      "lengthMm": 20300,
+      "lengthMm": 10000,
       "wallGroupId": 1,
       "wallRole": "face",
       "linkOffsetFromLineId": 4,
@@ -169,22 +169,22 @@
       "p1NodeId": "N11",
       "p2NodeId": "N12",
       "p1": {
-        "xMm": 29350,
+        "xMm": -299.99999999999943,
         "yMm": 0,
-        "zMm": -150,
-        "xM": 29.35,
+        "zMm": -19700,
+        "xM": -0.29999999999999943,
         "yM": 0,
-        "zM": -0.15
+        "zM": -19.7
       },
       "p2": {
-        "xMm": 29350,
+        "xMm": -9700,
         "yMm": 0,
-        "zMm": -19850,
-        "xM": 29.35,
+        "zMm": -19700,
+        "xM": -9.7,
         "yM": 0,
-        "zM": -19.85
+        "zM": -19.7
       },
-      "lengthMm": 19700,
+      "lengthMm": 9400,
       "wallGroupId": 1,
       "wallRole": "face",
       "linkOffsetFromLineId": 4,
@@ -197,22 +197,22 @@
       "p1NodeId": "N8",
       "p2NodeId": "N13",
       "p1": {
-        "xMm": 29500,
+        "xMm": -9850,
         "yMm": 0,
-        "zMm": -20000,
-        "xM": 29.5,
+        "zMm": -19850,
+        "xM": -9.85,
         "yM": 0,
-        "zM": -20
+        "zM": -19.85
       },
       "p2": {
-        "xMm": 10000,
+        "xMm": -9850,
         "yMm": 0,
-        "zMm": -20000,
-        "xM": 10,
+        "zMm": -15000,
+        "xM": -9.85,
         "yM": 0,
-        "zM": -20
+        "zM": -15
       },
-      "lengthMm": 19500,
+      "lengthMm": 4850,
       "wallGroupId": 1,
       "wallRole": "axis"
     },
@@ -222,22 +222,22 @@
       "p1NodeId": "N10",
       "p2NodeId": "N14",
       "p1": {
-        "xMm": 29650,
+        "xMm": -10000,
         "yMm": 0,
-        "zMm": -20150,
-        "xM": 29.65,
+        "zMm": -20000,
+        "xM": -10,
         "yM": 0,
-        "zM": -20.15
+        "zM": -20
       },
       "p2": {
-        "xMm": 9850,
+        "xMm": -10000,
         "yMm": 0,
-        "zMm": -20150,
-        "xM": 9.85,
+        "zMm": -15000,
+        "xM": -10,
         "yM": 0,
-        "zM": -20.15
+        "zM": -15
       },
-      "lengthMm": 19800,
+      "lengthMm": 5000,
       "wallGroupId": 1,
       "wallRole": "face",
       "linkOffsetFromLineId": 7,
@@ -250,22 +250,22 @@
       "p1NodeId": "N12",
       "p2NodeId": "N15",
       "p1": {
-        "xMm": 29350,
+        "xMm": -9700,
         "yMm": 0,
-        "zMm": -19850,
-        "xM": 29.35,
+        "zMm": -19700,
+        "xM": -9.7,
         "yM": 0,
-        "zM": -19.85
+        "zM": -19.7
       },
       "p2": {
-        "xMm": 10150,
+        "xMm": -9700,
         "yMm": 0,
-        "zMm": -19850,
-        "xM": 10.15,
+        "zMm": -15150,
+        "xM": -9.7,
         "yM": 0,
-        "zM": -19.85
+        "zM": -15.15
       },
-      "lengthMm": 19200,
+      "lengthMm": 4550,
       "wallGroupId": 1,
       "wallRole": "face",
       "linkOffsetFromLineId": 7,
@@ -275,50 +275,50 @@
     {
       "id": 10,
       "kind": "wallAxis",
-      "p1NodeId": "N13",
-      "p2NodeId": "N2",
+      "p1NodeId": "N16",
+      "p2NodeId": "N1",
       "p1": {
-        "xMm": 10000,
+        "xMm": -9850,
         "yMm": 0,
-        "zMm": -20000,
-        "xM": 10,
+        "zMm": -10150,
+        "xM": -9.85,
         "yM": 0,
-        "zM": -20
+        "zM": -10.15
       },
       "p2": {
-        "xMm": 10000,
+        "xMm": -150,
         "yMm": 0,
-        "zMm": 0,
-        "xM": 10,
+        "zMm": -10150,
+        "xM": -0.15,
         "yM": 0,
-        "zM": 0
+        "zM": -10.15
       },
-      "lengthMm": 20000,
+      "lengthMm": 9700,
       "wallGroupId": 1,
       "wallRole": "axis"
     },
     {
       "id": 11,
       "kind": "wallFace",
-      "p1NodeId": "N14",
-      "p2NodeId": "N6",
+      "p1NodeId": "N17",
+      "p2NodeId": "N3",
       "p1": {
-        "xMm": 9850,
+        "xMm": -10000,
         "yMm": 0,
-        "zMm": -20150,
-        "xM": 9.85,
+        "zMm": -10000,
+        "xM": -10,
         "yM": 0,
-        "zM": -20.15
+        "zM": -10
       },
       "p2": {
-        "xMm": 9850,
+        "xMm": -8.7902194114651573E-15,
         "yMm": 0,
-        "zMm": -150,
-        "xM": 9.85,
+        "zMm": -10000,
+        "xM": -8.7902194114651578E-18,
         "yM": 0,
-        "zM": -0.15
+        "zM": -10
       },
-      "lengthMm": 20000,
+      "lengthMm": 10000,
       "wallGroupId": 1,
       "wallRole": "face",
       "linkOffsetFromLineId": 10,
@@ -328,25 +328,25 @@
     {
       "id": 12,
       "kind": "wallFace",
-      "p1NodeId": "N15",
-      "p2NodeId": "N16",
+      "p1NodeId": "N18",
+      "p2NodeId": "N5",
       "p1": {
-        "xMm": 10150,
+        "xMm": -9700,
         "yMm": 0,
-        "zMm": -19850,
-        "xM": 10.15,
+        "zMm": -10300,
+        "xM": -9.7,
         "yM": 0,
-        "zM": -19.85
+        "zM": -10.3
       },
       "p2": {
-        "xMm": 10150,
+        "xMm": -300,
         "yMm": 0,
-        "zMm": -150,
-        "xM": 10.15,
+        "zMm": -10300,
+        "xM": -0.3,
         "yM": 0,
-        "zM": -0.15
+        "zM": -10.3
       },
-      "lengthMm": 19700,
+      "lengthMm": 9400,
       "wallGroupId": 1,
       "wallRole": "face",
       "linkOffsetFromLineId": 10,
@@ -359,22 +359,22 @@
       "p1NodeId": "N2",
       "p2NodeId": "N7",
       "p1": {
-        "xMm": 10000,
+        "xMm": -149.99999999999972,
         "yMm": 0,
-        "zMm": 0,
-        "xM": 10,
+        "zMm": -15000,
+        "xM": -0.14999999999999972,
         "yM": 0,
-        "zM": 0
+        "zM": -15
       },
       "p2": {
-        "xMm": 29500,
+        "xMm": -149.9999999999994,
         "yMm": 0,
-        "zMm": 0,
-        "xM": 29.5,
+        "zMm": -19850,
+        "xM": -0.14999999999999941,
         "yM": 0,
-        "zM": 0
+        "zM": -19.85
       },
-      "lengthMm": 19500,
+      "lengthMm": 4850,
       "wallGroupId": 1,
       "wallRole": "axis"
     },
@@ -384,22 +384,22 @@
       "p1NodeId": "N4",
       "p2NodeId": "N9",
       "p1": {
-        "xMm": 10000,
+        "xMm": 2.8421709430404007E-13,
         "yMm": 0,
-        "zMm": 150,
-        "xM": 10,
+        "zMm": -15000,
+        "xM": 2.8421709430404008E-16,
         "yM": 0,
-        "zM": 0.15
+        "zM": -15
       },
       "p2": {
-        "xMm": 29650,
+        "xMm": 6.0652513939109579E-13,
         "yMm": 0,
-        "zMm": 150,
-        "xM": 29.65,
+        "zMm": -20000,
+        "xM": 6.0652513939109582E-16,
         "yM": 0,
-        "zM": 0.15
+        "zM": -20
       },
-      "lengthMm": 19650,
+      "lengthMm": 5000,
       "wallGroupId": 1,
       "wallRole": "face",
       "linkOffsetFromLineId": 13,
@@ -409,28 +409,190 @@
     {
       "id": 15,
       "kind": "wallFace",
-      "p1NodeId": "N16",
+      "p1NodeId": "N19",
       "p2NodeId": "N11",
       "p1": {
-        "xMm": 10150,
+        "xMm": -299.99999999999972,
         "yMm": 0,
-        "zMm": -150,
-        "xM": 10.15,
+        "zMm": -15150,
+        "xM": -0.29999999999999971,
         "yM": 0,
-        "zM": -0.15
+        "zM": -15.15
       },
       "p2": {
-        "xMm": 29350,
+        "xMm": -299.99999999999943,
         "yMm": 0,
-        "zMm": -150,
-        "xM": 29.35,
+        "zMm": -19700,
+        "xM": -0.29999999999999943,
         "yM": 0,
-        "zM": -0.15
+        "zM": -19.7
       },
-      "lengthMm": 19200,
+      "lengthMm": 4550,
       "wallGroupId": 1,
       "wallRole": "face",
       "linkOffsetFromLineId": 13,
+      "numberOffsetMm": 150,
+      "numberWallFaceSideSign": -1
+    },
+    {
+      "id": 16,
+      "kind": "wallAxis",
+      "p1NodeId": "N13",
+      "p2NodeId": "N16",
+      "p1": {
+        "xMm": -9850,
+        "yMm": 0,
+        "zMm": -15000,
+        "xM": -9.85,
+        "yM": 0,
+        "zM": -15
+      },
+      "p2": {
+        "xMm": -9850,
+        "yMm": 0,
+        "zMm": -10150,
+        "xM": -9.85,
+        "yM": 0,
+        "zM": -10.15
+      },
+      "lengthMm": 4850,
+      "wallGroupId": 1,
+      "wallRole": "axis"
+    },
+    {
+      "id": 17,
+      "kind": "wallFace",
+      "p1NodeId": "N14",
+      "p2NodeId": "N17",
+      "p1": {
+        "xMm": -10000,
+        "yMm": 0,
+        "zMm": -15000,
+        "xM": -10,
+        "yM": 0,
+        "zM": -15
+      },
+      "p2": {
+        "xMm": -10000,
+        "yMm": 0,
+        "zMm": -10000,
+        "xM": -10,
+        "yM": 0,
+        "zM": -10
+      },
+      "lengthMm": 5000,
+      "wallGroupId": 1,
+      "wallRole": "face",
+      "linkOffsetFromLineId": 16,
+      "numberOffsetMm": 150,
+      "numberWallFaceSideSign": 1
+    },
+    {
+      "id": 18,
+      "kind": "wallFace",
+      "p1NodeId": "N20",
+      "p2NodeId": "N18",
+      "p1": {
+        "xMm": -9700,
+        "yMm": 0,
+        "zMm": -14850,
+        "xM": -9.7,
+        "yM": 0,
+        "zM": -14.85
+      },
+      "p2": {
+        "xMm": -9700,
+        "yMm": 0,
+        "zMm": -10300,
+        "xM": -9.7,
+        "yM": 0,
+        "zM": -10.3
+      },
+      "lengthMm": 4550,
+      "wallGroupId": 1,
+      "wallRole": "face",
+      "linkOffsetFromLineId": 16,
+      "numberOffsetMm": 150,
+      "numberWallFaceSideSign": -1
+    },
+    {
+      "id": 19,
+      "kind": "wallAxis",
+      "p1NodeId": "N2",
+      "p2NodeId": "N13",
+      "p1": {
+        "xMm": -149.99999999999972,
+        "yMm": 0,
+        "zMm": -15000,
+        "xM": -0.14999999999999972,
+        "yM": 0,
+        "zM": -15
+      },
+      "p2": {
+        "xMm": -9850,
+        "yMm": 0,
+        "zMm": -15000,
+        "xM": -9.85,
+        "yM": 0,
+        "zM": -15
+      },
+      "lengthMm": 9700,
+      "wallGroupId": 2,
+      "wallRole": "axis"
+    },
+    {
+      "id": 20,
+      "kind": "wallFace",
+      "p1NodeId": "N19",
+      "p2NodeId": "N15",
+      "p1": {
+        "xMm": -299.99999999999972,
+        "yMm": 0,
+        "zMm": -15150,
+        "xM": -0.29999999999999971,
+        "yM": 0,
+        "zM": -15.15
+      },
+      "p2": {
+        "xMm": -9700,
+        "yMm": 0,
+        "zMm": -15150,
+        "xM": -9.7,
+        "yM": 0,
+        "zM": -15.15
+      },
+      "lengthMm": 9400,
+      "wallGroupId": 2,
+      "wallRole": "face",
+      "linkOffsetFromLineId": 19,
+      "numberOffsetMm": 150,
+      "numberWallFaceSideSign": 1
+    },
+    {
+      "id": 21,
+      "kind": "wallFace",
+      "p1NodeId": "N6",
+      "p2NodeId": "N20",
+      "p1": {
+        "xMm": -299.99999999999972,
+        "yMm": 0,
+        "zMm": -14850,
+        "xM": -0.29999999999999971,
+        "yM": 0,
+        "zM": -14.85
+      },
+      "p2": {
+        "xMm": -9700,
+        "yMm": 0,
+        "zMm": -14850,
+        "xM": -9.7,
+        "yM": 0,
+        "zM": -14.85
+      },
+      "lengthMm": 9400,
+      "wallGroupId": 2,
+      "wallRole": "face",
+      "linkOffsetFromLineId": 19,
       "numberOffsetMm": 150,
       "numberWallFaceSideSign": -1
     }
@@ -444,7 +606,8 @@
         4,
         7,
         10,
-        13
+        13,
+        16
       ],
       "faceSegmentIds": [
         2,
@@ -456,7 +619,19 @@
         11,
         12,
         14,
-        15
+        15,
+        17,
+        18
+      ]
+    },
+    {
+      "id": 2,
+      "axisSegmentIds": [
+        19
+      ],
+      "faceSegmentIds": [
+        20,
+        21
       ]
     }
   ],
@@ -464,30 +639,34 @@
     {
       "id": "N1",
       "point": {
-        "xMm": 0,
+        "xMm": -150,
         "yMm": 0,
-        "zMm": 0,
-        "xM": 0,
+        "zMm": -10150,
+        "xM": -0.15,
         "yM": 0,
-        "zM": 0
+        "zM": -10.15
       },
       "incidentEndpoints": [
         {
           "lineId": 1,
           "endpoint": "p1"
+        },
+        {
+          "lineId": 10,
+          "endpoint": "p2"
         }
       ],
-      "junctionType": "Free"
+      "junctionType": "L"
     },
     {
       "id": "N2",
       "point": {
-        "xMm": 10000,
+        "xMm": -149.99999999999972,
         "yMm": 0,
-        "zMm": 0,
-        "xM": 10,
+        "zMm": -15000,
+        "xM": -0.14999999999999972,
         "yM": 0,
-        "zM": 0
+        "zM": -15
       },
       "incidentEndpoints": [
         {
@@ -495,11 +674,11 @@
           "endpoint": "p2"
         },
         {
-          "lineId": 10,
-          "endpoint": "p2"
+          "lineId": 13,
+          "endpoint": "p1"
         },
         {
-          "lineId": 13,
+          "lineId": 19,
           "endpoint": "p1"
         }
       ],
@@ -508,30 +687,34 @@
     {
       "id": "N3",
       "point": {
-        "xMm": 0,
+        "xMm": -8.7902194114651573E-15,
         "yMm": 0,
-        "zMm": 150,
-        "xM": 0,
+        "zMm": -10000,
+        "xM": -8.7902194114651578E-18,
         "yM": 0,
-        "zM": 0.15
+        "zM": -10
       },
       "incidentEndpoints": [
         {
           "lineId": 2,
           "endpoint": "p1"
+        },
+        {
+          "lineId": 11,
+          "endpoint": "p2"
         }
       ],
-      "junctionType": "Free"
+      "junctionType": "Connection"
     },
     {
       "id": "N4",
       "point": {
-        "xMm": 10000,
+        "xMm": 2.8421709430404007E-13,
         "yMm": 0,
-        "zMm": 150,
-        "xM": 10,
+        "zMm": -15000,
+        "xM": 2.8421709430404008E-16,
         "yM": 0,
-        "zM": 0.15
+        "zM": -15
       },
       "incidentEndpoints": [
         {
@@ -548,30 +731,34 @@
     {
       "id": "N5",
       "point": {
-        "xMm": 0,
+        "xMm": -300,
         "yMm": 0,
-        "zMm": -150,
-        "xM": 0,
+        "zMm": -10300,
+        "xM": -0.3,
         "yM": 0,
-        "zM": -0.15
+        "zM": -10.3
       },
       "incidentEndpoints": [
         {
           "lineId": 3,
           "endpoint": "p1"
+        },
+        {
+          "lineId": 12,
+          "endpoint": "p2"
         }
       ],
-      "junctionType": "Free"
+      "junctionType": "Connection"
     },
     {
       "id": "N6",
       "point": {
-        "xMm": 9850,
+        "xMm": -299.99999999999972,
         "yMm": 0,
-        "zMm": -150,
-        "xM": 9.85,
+        "zMm": -14850,
+        "xM": -0.29999999999999971,
         "yM": 0,
-        "zM": -0.15
+        "zM": -14.85
       },
       "incidentEndpoints": [
         {
@@ -579,8 +766,8 @@
           "endpoint": "p2"
         },
         {
-          "lineId": 11,
-          "endpoint": "p2"
+          "lineId": 21,
+          "endpoint": "p1"
         }
       ],
       "junctionType": "Connection"
@@ -588,12 +775,12 @@
     {
       "id": "N7",
       "point": {
-        "xMm": 29500,
+        "xMm": -149.9999999999994,
         "yMm": 0,
-        "zMm": 0,
-        "xM": 29.5,
+        "zMm": -19850,
+        "xM": -0.14999999999999941,
         "yM": 0,
-        "zM": 0
+        "zM": -19.85
       },
       "incidentEndpoints": [
         {
@@ -610,12 +797,12 @@
     {
       "id": "N8",
       "point": {
-        "xMm": 29500,
+        "xMm": -9850,
         "yMm": 0,
-        "zMm": -20000,
-        "xM": 29.5,
+        "zMm": -19850,
+        "xM": -9.85,
         "yM": 0,
-        "zM": -20
+        "zM": -19.85
       },
       "incidentEndpoints": [
         {
@@ -632,12 +819,12 @@
     {
       "id": "N9",
       "point": {
-        "xMm": 29650,
+        "xMm": 6.0652513939109579E-13,
         "yMm": 0,
-        "zMm": 150,
-        "xM": 29.65,
+        "zMm": -20000,
+        "xM": 6.0652513939109582E-16,
         "yM": 0,
-        "zM": 0.15
+        "zM": -20
       },
       "incidentEndpoints": [
         {
@@ -654,12 +841,12 @@
     {
       "id": "N10",
       "point": {
-        "xMm": 29650,
+        "xMm": -10000,
         "yMm": 0,
-        "zMm": -20150,
-        "xM": 29.65,
+        "zMm": -20000,
+        "xM": -10,
         "yM": 0,
-        "zM": -20.15
+        "zM": -20
       },
       "incidentEndpoints": [
         {
@@ -676,12 +863,12 @@
     {
       "id": "N11",
       "point": {
-        "xMm": 29350,
+        "xMm": -299.99999999999943,
         "yMm": 0,
-        "zMm": -150,
-        "xM": 29.35,
+        "zMm": -19700,
+        "xM": -0.29999999999999943,
         "yM": 0,
-        "zM": -0.15
+        "zM": -19.7
       },
       "incidentEndpoints": [
         {
@@ -698,12 +885,12 @@
     {
       "id": "N12",
       "point": {
-        "xMm": 29350,
+        "xMm": -9700,
         "yMm": 0,
-        "zMm": -19850,
-        "xM": 29.35,
+        "zMm": -19700,
+        "xM": -9.7,
         "yM": 0,
-        "zM": -19.85
+        "zM": -19.7
       },
       "incidentEndpoints": [
         {
@@ -720,12 +907,12 @@
     {
       "id": "N13",
       "point": {
-        "xMm": 10000,
+        "xMm": -9850,
         "yMm": 0,
-        "zMm": -20000,
-        "xM": 10,
+        "zMm": -15000,
+        "xM": -9.85,
         "yM": 0,
-        "zM": -20
+        "zM": -15
       },
       "incidentEndpoints": [
         {
@@ -733,21 +920,25 @@
           "endpoint": "p2"
         },
         {
-          "lineId": 10,
+          "lineId": 16,
           "endpoint": "p1"
+        },
+        {
+          "lineId": 19,
+          "endpoint": "p2"
         }
       ],
-      "junctionType": "L"
+      "junctionType": "T"
     },
     {
       "id": "N14",
       "point": {
-        "xMm": 9850,
+        "xMm": -10000,
         "yMm": 0,
-        "zMm": -20150,
-        "xM": 9.85,
+        "zMm": -15000,
+        "xM": -10,
         "yM": 0,
-        "zM": -20.15
+        "zM": -15
       },
       "incidentEndpoints": [
         {
@@ -755,7 +946,7 @@
           "endpoint": "p2"
         },
         {
-          "lineId": 11,
+          "lineId": 17,
           "endpoint": "p1"
         }
       ],
@@ -764,12 +955,12 @@
     {
       "id": "N15",
       "point": {
-        "xMm": 10150,
+        "xMm": -9700,
         "yMm": 0,
-        "zMm": -19850,
-        "xM": 10.15,
+        "zMm": -15150,
+        "xM": -9.7,
         "yM": 0,
-        "zM": -19.85
+        "zM": -15.15
       },
       "incidentEndpoints": [
         {
@@ -777,8 +968,8 @@
           "endpoint": "p2"
         },
         {
-          "lineId": 12,
-          "endpoint": "p1"
+          "lineId": 20,
+          "endpoint": "p2"
         }
       ],
       "junctionType": "Connection"
@@ -786,27 +977,138 @@
     {
       "id": "N16",
       "point": {
-        "xMm": 10150,
+        "xMm": -9850,
         "yMm": 0,
-        "zMm": -150,
-        "xM": 10.15,
+        "zMm": -10150,
+        "xM": -9.85,
         "yM": 0,
-        "zM": -0.15
+        "zM": -10.15
+      },
+      "incidentEndpoints": [
+        {
+          "lineId": 10,
+          "endpoint": "p1"
+        },
+        {
+          "lineId": 16,
+          "endpoint": "p2"
+        }
+      ],
+      "junctionType": "L"
+    },
+    {
+      "id": "N17",
+      "point": {
+        "xMm": -10000,
+        "yMm": 0,
+        "zMm": -10000,
+        "xM": -10,
+        "yM": 0,
+        "zM": -10
+      },
+      "incidentEndpoints": [
+        {
+          "lineId": 11,
+          "endpoint": "p1"
+        },
+        {
+          "lineId": 17,
+          "endpoint": "p2"
+        }
+      ],
+      "junctionType": "Connection"
+    },
+    {
+      "id": "N18",
+      "point": {
+        "xMm": -9700,
+        "yMm": 0,
+        "zMm": -10300,
+        "xM": -9.7,
+        "yM": 0,
+        "zM": -10.3
       },
       "incidentEndpoints": [
         {
           "lineId": 12,
-          "endpoint": "p2"
+          "endpoint": "p1"
         },
+        {
+          "lineId": 18,
+          "endpoint": "p2"
+        }
+      ],
+      "junctionType": "Connection"
+    },
+    {
+      "id": "N19",
+      "point": {
+        "xMm": -299.99999999999972,
+        "yMm": 0,
+        "zMm": -15150,
+        "xM": -0.29999999999999971,
+        "yM": 0,
+        "zM": -15.15
+      },
+      "incidentEndpoints": [
         {
           "lineId": 15,
           "endpoint": "p1"
+        },
+        {
+          "lineId": 20,
+          "endpoint": "p1"
+        }
+      ],
+      "junctionType": "Connection"
+    },
+    {
+      "id": "N20",
+      "point": {
+        "xMm": -9700,
+        "yMm": 0,
+        "zMm": -14850,
+        "xM": -9.7,
+        "yM": 0,
+        "zM": -14.85
+      },
+      "incidentEndpoints": [
+        {
+          "lineId": 18,
+          "endpoint": "p1"
+        },
+        {
+          "lineId": 21,
+          "endpoint": "p2"
         }
       ],
       "junctionType": "Connection"
     }
   ],
   "connections": [
+    {
+      "kind": "endpoint-node",
+      "nodeId": "N1",
+      "junctionType": "L",
+      "endpoints": [
+        {
+          "lineId": 1,
+          "endpoint": "p1"
+        },
+        {
+          "lineId": 10,
+          "endpoint": "p2"
+        }
+      ],
+      "point": {
+        "xMm": -150,
+        "yMm": 0,
+        "zMm": -10150,
+        "xM": -0.15,
+        "yM": 0,
+        "zM": -10.15
+      }
+    },
     {
       "kind": "endpoint-node",
       "nodeId": "N2",
@@ -817,21 +1119,44 @@
           "endpoint": "p2"
         },
         {
-          "lineId": 10,
-          "endpoint": "p2"
+          "lineId": 13,
+          "endpoint": "p1"
         },
         {
-          "lineId": 13,
+          "lineId": 19,
           "endpoint": "p1"
         }
       ],
       "point": {
-        "xMm": 10000,
+        "xMm": -149.99999999999972,
         "yMm": 0,
-        "zMm": 0,
-        "xM": 10,
+        "zMm": -15000,
+        "xM": -0.14999999999999972,
         "yM": 0,
-        "zM": 0
+        "zM": -15
+      }
+    },
+    {
+      "kind": "endpoint-node",
+      "nodeId": "N3",
+      "junctionType": "Connection",
+      "endpoints": [
+        {
+          "lineId": 2,
+          "endpoint": "p1"
+        },
+        {
+          "lineId": 11,
+          "endpoint": "p2"
+        }
+      ],
+      "point": {
+        "xMm": -8.7902194114651573E-15,
+        "yMm": 0,
+        "zMm": -10000,
+        "xM": -8.7902194114651578E-18,
+        "yM": 0,
+        "zM": -10
       }
     },
     {
@@ -849,12 +1174,35 @@
         }
       ],
       "point": {
-        "xMm": 10000,
+        "xMm": 2.8421709430404007E-13,
         "yMm": 0,
-        "zMm": 150,
-        "xM": 10,
+        "zMm": -15000,
+        "xM": 2.8421709430404008E-16,
         "yM": 0,
-        "zM": 0.15
+        "zM": -15
+      }
+    },
+    {
+      "kind": "endpoint-node",
+      "nodeId": "N5",
+      "junctionType": "Connection",
+      "endpoints": [
+        {
+          "lineId": 3,
+          "endpoint": "p1"
+        },
+        {
+          "lineId": 12,
+          "endpoint": "p2"
+        }
+      ],
+      "point": {
+        "xMm": -300,
+        "yMm": 0,
+        "zMm": -10300,
+        "xM": -0.3,
+        "yM": 0,
+        "zM": -10.3
       }
     },
     {
@@ -867,17 +1215,17 @@
           "endpoint": "p2"
         },
         {
-          "lineId": 11,
-          "endpoint": "p2"
+          "lineId": 21,
+          "endpoint": "p1"
         }
       ],
       "point": {
-        "xMm": 9850,
+        "xMm": -299.99999999999972,
         "yMm": 0,
-        "zMm": -150,
-        "xM": 9.85,
+        "zMm": -14850,
+        "xM": -0.29999999999999971,
         "yM": 0,
-        "zM": -0.15
+        "zM": -14.85
       }
     },
     {
@@ -895,12 +1243,12 @@
         }
       ],
       "point": {
-        "xMm": 29500,
+        "xMm": -149.9999999999994,
         "yMm": 0,
-        "zMm": 0,
-        "xM": 29.5,
+        "zMm": -19850,
+        "xM": -0.14999999999999941,
         "yM": 0,
-        "zM": 0
+        "zM": -19.85
       }
     },
     {
@@ -918,12 +1266,12 @@
         }
       ],
       "point": {
-        "xMm": 29500,
+        "xMm": -9850,
         "yMm": 0,
-        "zMm": -20000,
-        "xM": 29.5,
+        "zMm": -19850,
+        "xM": -9.85,
         "yM": 0,
-        "zM": -20
+        "zM": -19.85
       }
     },
     {
@@ -941,12 +1289,12 @@
         }
       ],
       "point": {
-        "xMm": 29650,
+        "xMm": 6.0652513939109579E-13,
         "yMm": 0,
-        "zMm": 150,
-        "xM": 29.65,
+        "zMm": -20000,
+        "xM": 6.0652513939109582E-16,
         "yM": 0,
-        "zM": 0.15
+        "zM": -20
       }
     },
     {
@@ -964,12 +1312,12 @@
         }
       ],
       "point": {
-        "xMm": 29650,
+        "xMm": -10000,
         "yMm": 0,
-        "zMm": -20150,
-        "xM": 29.65,
+        "zMm": -20000,
+        "xM": -10,
         "yM": 0,
-        "zM": -20.15
+        "zM": -20
       }
     },
     {
@@ -987,12 +1335,12 @@
         }
       ],
       "point": {
-        "xMm": 29350,
+        "xMm": -299.99999999999943,
         "yMm": 0,
-        "zMm": -150,
-        "xM": 29.35,
+        "zMm": -19700,
+        "xM": -0.29999999999999943,
         "yM": 0,
-        "zM": -0.15
+        "zM": -19.7
       }
     },
     {
@@ -1010,35 +1358,39 @@
         }
       ],
       "point": {
-        "xMm": 29350,
+        "xMm": -9700,
         "yMm": 0,
-        "zMm": -19850,
-        "xM": 29.35,
+        "zMm": -19700,
+        "xM": -9.7,
         "yM": 0,
-        "zM": -19.85
+        "zM": -19.7
       }
     },
     {
       "kind": "endpoint-node",
       "nodeId": "N13",
-      "junctionType": "L",
+      "junctionType": "T",
       "endpoints": [
         {
           "lineId": 7,
           "endpoint": "p2"
         },
         {
-          "lineId": 10,
+          "lineId": 16,
           "endpoint": "p1"
+        },
+        {
+          "lineId": 19,
+          "endpoint": "p2"
         }
       ],
       "point": {
-        "xMm": 10000,
+        "xMm": -9850,
         "yMm": 0,
-        "zMm": -20000,
-        "xM": 10,
+        "zMm": -15000,
+        "xM": -9.85,
         "yM": 0,
-        "zM": -20
+        "zM": -15
       }
     },
     {
@@ -1051,17 +1403,17 @@
           "endpoint": "p2"
         },
         {
-          "lineId": 11,
+          "lineId": 17,
           "endpoint": "p1"
         }
       ],
       "point": {
-        "xMm": 9850,
+        "xMm": -10000,
         "yMm": 0,
-        "zMm": -20150,
-        "xM": 9.85,
+        "zMm": -15000,
+        "xM": -10,
         "yM": 0,
-        "zM": -20.15
+        "zM": -15
       }
     },
     {
@@ -1074,40 +1426,132 @@
           "endpoint": "p2"
         },
         {
-          "lineId": 12,
-          "endpoint": "p1"
+          "lineId": 20,
+          "endpoint": "p2"
         }
       ],
       "point": {
-        "xMm": 10150,
+        "xMm": -9700,
         "yMm": 0,
-        "zMm": -19850,
-        "xM": 10.15,
+        "zMm": -15150,
+        "xM": -9.7,
         "yM": 0,
-        "zM": -19.85
+        "zM": -15.15
       }
     },
     {
       "kind": "endpoint-node",
       "nodeId": "N16",
+      "junctionType": "L",
+      "endpoints": [
+        {
+          "lineId": 10,
+          "endpoint": "p1"
+        },
+        {
+          "lineId": 16,
+          "endpoint": "p2"
+        }
+      ],
+      "point": {
+        "xMm": -9850,
+        "yMm": 0,
+        "zMm": -10150,
+        "xM": -9.85,
+        "yM": 0,
+        "zM": -10.15
+      }
+    },
+    {
+      "kind": "endpoint-node",
+      "nodeId": "N17",
+      "junctionType": "Connection",
+      "endpoints": [
+        {
+          "lineId": 11,
+          "endpoint": "p1"
+        },
+        {
+          "lineId": 17,
+          "endpoint": "p2"
+        }
+      ],
+      "point": {
+        "xMm": -10000,
+        "yMm": 0,
+        "zMm": -10000,
+        "xM": -10,
+        "yM": 0,
+        "zM": -10
+      }
+    },
+    {
+      "kind": "endpoint-node",
+      "nodeId": "N18",
       "junctionType": "Connection",
       "endpoints": [
         {
           "lineId": 12,
-          "endpoint": "p2"
+          "endpoint": "p1"
         },
         {
+          "lineId": 18,
+          "endpoint": "p2"
+        }
+      ],
+      "point": {
+        "xMm": -9700,
+        "yMm": 0,
+        "zMm": -10300,
+        "xM": -9.7,
+        "yM": 0,
+        "zM": -10.3
+      }
+    },
+    {
+      "kind": "endpoint-node",
+      "nodeId": "N19",
+      "junctionType": "Connection",
+      "endpoints": [
+        {
           "lineId": 15,
+          "endpoint": "p1"
+        },
+        {
+          "lineId": 20,
           "endpoint": "p1"
         }
       ],
       "point": {
-        "xMm": 10150,
+        "xMm": -299.99999999999972,
         "yMm": 0,
-        "zMm": -150,
-        "xM": 10.15,
+        "zMm": -15150,
+        "xM": -0.29999999999999971,
         "yM": 0,
-        "zM": -0.15
+        "zM": -15.15
+      }
+    },
+    {
+      "kind": "endpoint-node",
+      "nodeId": "N20",
+      "junctionType": "Connection",
+      "endpoints": [
+        {
+          "lineId": 18,
+          "endpoint": "p1"
+        },
+        {
+          "lineId": 21,
+          "endpoint": "p2"
+        }
+      ],
+      "point": {
+        "xMm": -9700,
+        "yMm": 0,
+        "zMm": -14850,
+        "xM": -9.7,
+        "yM": 0,
+        "zM": -14.85
       }
     }
   ],
@@ -1115,68 +1559,46 @@
     {
       "nodeId": "N1",
       "point": {
-        "xMm": 0,
+        "xMm": -150,
         "yMm": 0,
-        "zMm": 0,
-        "xM": 0,
+        "zMm": -10150,
+        "xM": -0.15,
         "yM": 0,
-        "zM": 0
+        "zM": -10.15
       },
-      "junctionType": "Free",
+      "junctionType": "L",
       "axisEndpoints": [
         {
           "lineId": 1,
           "wallGroupId": 1,
           "endpoint": "p1",
           "directionFromNode": {
-            "x": 1,
+            "x": 5.8601462743101048E-17,
+            "z": -1
+          }
+        },
+        {
+          "lineId": 10,
+          "wallGroupId": 1,
+          "endpoint": "p2",
+          "directionFromNode": {
+            "x": -1,
             "z": 0
           }
         }
       ],
-      "faceEndpointsNearNode": [
-        {
-          "lineId": 2,
-          "wallGroupId": 1,
-          "linkOffsetFromLineId": 1,
-          "numberWallFaceSideSign": 1,
-          "endpoint": "p1",
-          "point": {
-            "xMm": 0,
-            "yMm": 0,
-            "zMm": 150,
-            "xM": 0,
-            "yM": 0,
-            "zM": 0.15
-          }
-        },
-        {
-          "lineId": 3,
-          "wallGroupId": 1,
-          "linkOffsetFromLineId": 1,
-          "numberWallFaceSideSign": -1,
-          "endpoint": "p1",
-          "point": {
-            "xMm": 0,
-            "yMm": 0,
-            "zMm": -150,
-            "xM": 0,
-            "yM": 0,
-            "zM": -0.15
-          }
-        }
-      ],
+      "faceEndpointsNearNode": [],
       "tCandidates": []
     },
     {
       "nodeId": "N2",
       "point": {
-        "xMm": 10000,
+        "xMm": -149.99999999999972,
         "yMm": 0,
-        "zMm": 0,
-        "xM": 10,
+        "zMm": -15000,
+        "xM": -0.14999999999999972,
         "yM": 0,
-        "zM": 0
+        "zM": -15
       },
       "junctionType": "T",
       "axisEndpoints": [
@@ -1185,17 +1607,8 @@
           "wallGroupId": 1,
           "endpoint": "p2",
           "directionFromNode": {
-            "x": -1,
-            "z": 0
-          }
-        },
-        {
-          "lineId": 10,
-          "wallGroupId": 1,
-          "endpoint": "p2",
-          "directionFromNode": {
-            "x": 0,
-            "z": -1
+            "x": -5.8601462743101048E-17,
+            "z": 1
           }
         },
         {
@@ -1203,7 +1616,16 @@
           "wallGroupId": 1,
           "endpoint": "p1",
           "directionFromNode": {
-            "x": 1,
+            "x": 6.4461609017411149E-17,
+            "z": -1
+          }
+        },
+        {
+          "lineId": 19,
+          "wallGroupId": 2,
+          "endpoint": "p1",
+          "directionFromNode": {
+            "x": -1,
             "z": 0
           }
         }
@@ -1216,12 +1638,12 @@
           "numberWallFaceSideSign": 1,
           "endpoint": "p2",
           "point": {
-            "xMm": 10000,
+            "xMm": 2.8421709430404007E-13,
             "yMm": 0,
-            "zMm": 150,
-            "xM": 10,
+            "zMm": -15000,
+            "xM": 2.8421709430404008E-16,
             "yM": 0,
-            "zM": 0.15
+            "zM": -15
           }
         },
         {
@@ -1231,12 +1653,12 @@
           "numberWallFaceSideSign": 1,
           "endpoint": "p1",
           "point": {
-            "xMm": 10000,
+            "xMm": 2.8421709430404007E-13,
             "yMm": 0,
-            "zMm": 150,
-            "xM": 10,
+            "zMm": -15000,
+            "xM": 2.8421709430404008E-16,
             "yM": 0,
-            "zM": 0.15
+            "zM": -15
           }
         }
       ],
@@ -1246,55 +1668,24 @@
             1,
             13
           ],
-          "branchAxisSegmentId": 10,
+          "branchAxisSegmentId": 19,
           "throughWallGroupIds": [
             1,
             1
           ],
-          "branchWallGroupId": 1
+          "branchWallGroupId": 2
         }
       ]
     },
     {
       "nodeId": "N3",
       "point": {
-        "xMm": 0,
+        "xMm": -8.7902194114651573E-15,
         "yMm": 0,
-        "zMm": 150,
-        "xM": 0,
+        "zMm": -10000,
+        "xM": -8.7902194114651578E-18,
         "yM": 0,
-        "zM": 0.15
-      },
-      "junctionType": "Free",
-      "axisEndpoints": [],
-      "faceEndpointsNearNode": [
-        {
-          "lineId": 2,
-          "wallGroupId": 1,
-          "linkOffsetFromLineId": 1,
-          "numberWallFaceSideSign": 1,
-          "endpoint": "p1",
-          "point": {
-            "xMm": 0,
-            "yMm": 0,
-            "zMm": 150,
-            "xM": 0,
-            "yM": 0,
-            "zM": 0.15
-          }
-        }
-      ],
-      "tCandidates": []
-    },
-    {
-      "nodeId": "N4",
-      "point": {
-        "xMm": 10000,
-        "yMm": 0,
-        "zMm": 150,
-        "xM": 10,
-        "yM": 0,
-        "zM": 0.15
+        "zM": -10
       },
       "junctionType": "Connection",
       "axisEndpoints": [],
@@ -1304,91 +1695,14 @@
           "wallGroupId": 1,
           "linkOffsetFromLineId": 1,
           "numberWallFaceSideSign": 1,
-          "endpoint": "p2",
-          "point": {
-            "xMm": 10000,
-            "yMm": 0,
-            "zMm": 150,
-            "xM": 10,
-            "yM": 0,
-            "zM": 0.15
-          }
-        },
-        {
-          "lineId": 14,
-          "wallGroupId": 1,
-          "linkOffsetFromLineId": 13,
-          "numberWallFaceSideSign": 1,
           "endpoint": "p1",
           "point": {
-            "xMm": 10000,
+            "xMm": -8.7902194114651573E-15,
             "yMm": 0,
-            "zMm": 150,
-            "xM": 10,
+            "zMm": -10000,
+            "xM": -8.7902194114651578E-18,
             "yM": 0,
-            "zM": 0.15
-          }
-        }
-      ],
-      "tCandidates": []
-    },
-    {
-      "nodeId": "N5",
-      "point": {
-        "xMm": 0,
-        "yMm": 0,
-        "zMm": -150,
-        "xM": 0,
-        "yM": 0,
-        "zM": -0.15
-      },
-      "junctionType": "Free",
-      "axisEndpoints": [],
-      "faceEndpointsNearNode": [
-        {
-          "lineId": 3,
-          "wallGroupId": 1,
-          "linkOffsetFromLineId": 1,
-          "numberWallFaceSideSign": -1,
-          "endpoint": "p1",
-          "point": {
-            "xMm": 0,
-            "yMm": 0,
-            "zMm": -150,
-            "xM": 0,
-            "yM": 0,
-            "zM": -0.15
-          }
-        }
-      ],
-      "tCandidates": []
-    },
-    {
-      "nodeId": "N6",
-      "point": {
-        "xMm": 9850,
-        "yMm": 0,
-        "zMm": -150,
-        "xM": 9.85,
-        "yM": 0,
-        "zM": -0.15
-      },
-      "junctionType": "Connection",
-      "axisEndpoints": [],
-      "faceEndpointsNearNode": [
-        {
-          "lineId": 3,
-          "wallGroupId": 1,
-          "linkOffsetFromLineId": 1,
-          "numberWallFaceSideSign": -1,
-          "endpoint": "p2",
-          "point": {
-            "xMm": 9850,
-            "yMm": 0,
-            "zMm": -150,
-            "xM": 9.85,
-            "yM": 0,
-            "zM": -0.15
+            "zM": -10
           }
         },
         {
@@ -1398,12 +1712,150 @@
           "numberWallFaceSideSign": 1,
           "endpoint": "p2",
           "point": {
-            "xMm": 9850,
+            "xMm": -8.7902194114651573E-15,
             "yMm": 0,
-            "zMm": -150,
-            "xM": 9.85,
+            "zMm": -10000,
+            "xM": -8.7902194114651578E-18,
             "yM": 0,
-            "zM": -0.15
+            "zM": -10
+          }
+        }
+      ],
+      "tCandidates": []
+    },
+    {
+      "nodeId": "N4",
+      "point": {
+        "xMm": 2.8421709430404007E-13,
+        "yMm": 0,
+        "zMm": -15000,
+        "xM": 2.8421709430404008E-16,
+        "yM": 0,
+        "zM": -15
+      },
+      "junctionType": "Connection",
+      "axisEndpoints": [],
+      "faceEndpointsNearNode": [
+        {
+          "lineId": 2,
+          "wallGroupId": 1,
+          "linkOffsetFromLineId": 1,
+          "numberWallFaceSideSign": 1,
+          "endpoint": "p2",
+          "point": {
+            "xMm": 2.8421709430404007E-13,
+            "yMm": 0,
+            "zMm": -15000,
+            "xM": 2.8421709430404008E-16,
+            "yM": 0,
+            "zM": -15
+          }
+        },
+        {
+          "lineId": 14,
+          "wallGroupId": 1,
+          "linkOffsetFromLineId": 13,
+          "numberWallFaceSideSign": 1,
+          "endpoint": "p1",
+          "point": {
+            "xMm": 2.8421709430404007E-13,
+            "yMm": 0,
+            "zMm": -15000,
+            "xM": 2.8421709430404008E-16,
+            "yM": 0,
+            "zM": -15
+          }
+        }
+      ],
+      "tCandidates": []
+    },
+    {
+      "nodeId": "N5",
+      "point": {
+        "xMm": -300,
+        "yMm": 0,
+        "zMm": -10300,
+        "xM": -0.3,
+        "yM": 0,
+        "zM": -10.3
+      },
+      "junctionType": "Connection",
+      "axisEndpoints": [],
+      "faceEndpointsNearNode": [
+        {
+          "lineId": 3,
+          "wallGroupId": 1,
+          "linkOffsetFromLineId": 1,
+          "numberWallFaceSideSign": -1,
+          "endpoint": "p1",
+          "point": {
+            "xMm": -300,
+            "yMm": 0,
+            "zMm": -10300,
+            "xM": -0.3,
+            "yM": 0,
+            "zM": -10.3
+          }
+        },
+        {
+          "lineId": 12,
+          "wallGroupId": 1,
+          "linkOffsetFromLineId": 10,
+          "numberWallFaceSideSign": -1,
+          "endpoint": "p2",
+          "point": {
+            "xMm": -300,
+            "yMm": 0,
+            "zMm": -10300,
+            "xM": -0.3,
+            "yM": 0,
+            "zM": -10.3
+          }
+        }
+      ],
+      "tCandidates": []
+    },
+    {
+      "nodeId": "N6",
+      "point": {
+        "xMm": -299.99999999999972,
+        "yMm": 0,
+        "zMm": -14850,
+        "xM": -0.29999999999999971,
+        "yM": 0,
+        "zM": -14.85
+      },
+      "junctionType": "Connection",
+      "axisEndpoints": [],
+      "faceEndpointsNearNode": [
+        {
+          "lineId": 3,
+          "wallGroupId": 1,
+          "linkOffsetFromLineId": 1,
+          "numberWallFaceSideSign": -1,
+          "endpoint": "p2",
+          "point": {
+            "xMm": -299.99999999999972,
+            "yMm": 0,
+            "zMm": -14850,
+            "xM": -0.29999999999999971,
+            "yM": 0,
+            "zM": -14.85
+          }
+        },
+        {
+          "lineId": 21,
+          "wallGroupId": 2,
+          "linkOffsetFromLineId": 19,
+          "numberWallFaceSideSign": -1,
+          "endpoint": "p1",
+          "point": {
+            "xMm": -299.99999999999972,
+            "yMm": 0,
+            "zMm": -14850,
+            "xM": -0.29999999999999971,
+            "yM": 0,
+            "zM": -14.85
           }
         }
       ],
@@ -1412,12 +1864,12 @@
     {
       "nodeId": "N7",
       "point": {
-        "xMm": 29500,
+        "xMm": -149.9999999999994,
         "yMm": 0,
-        "zMm": 0,
-        "xM": 29.5,
+        "zMm": -19850,
+        "xM": -0.14999999999999941,
         "yM": 0,
-        "zM": 0
+        "zM": -19.85
       },
       "junctionType": "L",
       "axisEndpoints": [
@@ -1426,8 +1878,8 @@
           "wallGroupId": 1,
           "endpoint": "p1",
           "directionFromNode": {
-            "x": 0,
-            "z": -1
+            "x": -1,
+            "z": 0
           }
         },
         {
@@ -1435,8 +1887,8 @@
           "wallGroupId": 1,
           "endpoint": "p2",
           "directionFromNode": {
-            "x": -1,
-            "z": 0
+            "x": -6.4461609017411149E-17,
+            "z": 1
           }
         }
       ],
@@ -1446,12 +1898,12 @@
     {
       "nodeId": "N8",
       "point": {
-        "xMm": 29500,
+        "xMm": -9850,
         "yMm": 0,
-        "zMm": -20000,
-        "xM": 29.5,
+        "zMm": -19850,
+        "xM": -9.85,
         "yM": 0,
-        "zM": -20
+        "zM": -19.85
       },
       "junctionType": "L",
       "axisEndpoints": [
@@ -1460,8 +1912,8 @@
           "wallGroupId": 1,
           "endpoint": "p2",
           "directionFromNode": {
-            "x": 0,
-            "z": 1
+            "x": 1,
+            "z": 0
           }
         },
         {
@@ -1469,8 +1921,8 @@
           "wallGroupId": 1,
           "endpoint": "p1",
           "directionFromNode": {
-            "x": -1,
-            "z": 0
+            "x": 0,
+            "z": 1
           }
         }
       ],
@@ -1480,12 +1932,12 @@
     {
       "nodeId": "N9",
       "point": {
-        "xMm": 29650,
+        "xMm": 6.0652513939109579E-13,
         "yMm": 0,
-        "zMm": 150,
-        "xM": 29.65,
+        "zMm": -20000,
+        "xM": 6.0652513939109582E-16,
         "yM": 0,
-        "zM": 0.15
+        "zM": -20
       },
       "junctionType": "Connection",
       "axisEndpoints": [],
@@ -1497,12 +1949,12 @@
           "numberWallFaceSideSign": 1,
           "endpoint": "p1",
           "point": {
-            "xMm": 29650,
+            "xMm": 6.0652513939109579E-13,
             "yMm": 0,
-            "zMm": 150,
-            "xM": 29.65,
+            "zMm": -20000,
+            "xM": 6.0652513939109582E-16,
             "yM": 0,
-            "zM": 0.15
+            "zM": -20
           }
         },
         {
@@ -1512,12 +1964,12 @@
           "numberWallFaceSideSign": 1,
           "endpoint": "p2",
           "point": {
-            "xMm": 29650,
+            "xMm": 6.0652513939109579E-13,
             "yMm": 0,
-            "zMm": 150,
-            "xM": 29.65,
+            "zMm": -20000,
+            "xM": 6.0652513939109582E-16,
             "yM": 0,
-            "zM": 0.15
+            "zM": -20
           }
         }
       ],
@@ -1526,12 +1978,12 @@
     {
       "nodeId": "N10",
       "point": {
-        "xMm": 29650,
+        "xMm": -10000,
         "yMm": 0,
-        "zMm": -20150,
-        "xM": 29.65,
+        "zMm": -20000,
+        "xM": -10,
         "yM": 0,
-        "zM": -20.15
+        "zM": -20
       },
       "junctionType": "Connection",
       "axisEndpoints": [],
@@ -1543,12 +1995,12 @@
           "numberWallFaceSideSign": 1,
           "endpoint": "p2",
           "point": {
-            "xMm": 29650,
+            "xMm": -10000,
             "yMm": 0,
-            "zMm": -20150,
-            "xM": 29.65,
+            "zMm": -20000,
+            "xM": -10,
             "yM": 0,
-            "zM": -20.15
+            "zM": -20
           }
         },
         {
@@ -1558,12 +2010,12 @@
           "numberWallFaceSideSign": 1,
           "endpoint": "p1",
           "point": {
-            "xMm": 29650,
+            "xMm": -10000,
             "yMm": 0,
-            "zMm": -20150,
-            "xM": 29.65,
+            "zMm": -20000,
+            "xM": -10,
             "yM": 0,
-            "zM": -20.15
+            "zM": -20
           }
         }
       ],
@@ -1572,12 +2024,12 @@
     {
       "nodeId": "N11",
       "point": {
-        "xMm": 29350,
+        "xMm": -299.99999999999943,
         "yMm": 0,
-        "zMm": -150,
-        "xM": 29.35,
+        "zMm": -19700,
+        "xM": -0.29999999999999943,
         "yM": 0,
-        "zM": -0.15
+        "zM": -19.7
       },
       "junctionType": "Connection",
       "axisEndpoints": [],
@@ -1589,12 +2041,12 @@
           "numberWallFaceSideSign": -1,
           "endpoint": "p1",
           "point": {
-            "xMm": 29350,
+            "xMm": -299.99999999999943,
             "yMm": 0,
-            "zMm": -150,
-            "xM": 29.35,
+            "zMm": -19700,
+            "xM": -0.29999999999999943,
             "yM": 0,
-            "zM": -0.15
+            "zM": -19.7
           }
         },
         {
@@ -1604,12 +2056,12 @@
           "numberWallFaceSideSign": -1,
           "endpoint": "p2",
           "point": {
-            "xMm": 29350,
+            "xMm": -299.99999999999943,
             "yMm": 0,
-            "zMm": -150,
-            "xM": 29.35,
+            "zMm": -19700,
+            "xM": -0.29999999999999943,
             "yM": 0,
-            "zM": -0.15
+            "zM": -19.7
           }
         }
       ],
@@ -1618,12 +2070,12 @@
     {
       "nodeId": "N12",
       "point": {
-        "xMm": 29350,
+        "xMm": -9700,
         "yMm": 0,
-        "zMm": -19850,
-        "xM": 29.35,
+        "zMm": -19700,
+        "xM": -9.7,
         "yM": 0,
-        "zM": -19.85
+        "zM": -19.7
       },
       "junctionType": "Connection",
       "axisEndpoints": [],
@@ -1635,12 +2087,12 @@
           "numberWallFaceSideSign": -1,
           "endpoint": "p2",
           "point": {
-            "xMm": 29350,
+            "xMm": -9700,
             "yMm": 0,
-            "zMm": -19850,
-            "xM": 29.35,
+            "zMm": -19700,
+            "xM": -9.7,
             "yM": 0,
-            "zM": -19.85
+            "zM": -19.7
           }
         },
         {
@@ -1650,12 +2102,12 @@
           "numberWallFaceSideSign": -1,
           "endpoint": "p1",
           "point": {
-            "xMm": 29350,
+            "xMm": -9700,
             "yMm": 0,
-            "zMm": -19850,
-            "xM": 29.35,
+            "zMm": -19700,
+            "xM": -9.7,
             "yM": 0,
-            "zM": -19.85
+            "zM": -19.7
           }
         }
       ],
@@ -1664,46 +2116,99 @@
     {
       "nodeId": "N13",
       "point": {
-        "xMm": 10000,
+        "xMm": -9850,
         "yMm": 0,
-        "zMm": -20000,
-        "xM": 10,
+        "zMm": -15000,
+        "xM": -9.85,
         "yM": 0,
-        "zM": -20
+        "zM": -15
       },
-      "junctionType": "L",
+      "junctionType": "T",
       "axisEndpoints": [
         {
           "lineId": 7,
           "wallGroupId": 1,
           "endpoint": "p2",
           "directionFromNode": {
-            "x": 1,
-            "z": 0
+            "x": 0,
+            "z": -1
           }
         },
         {
-          "lineId": 10,
+          "lineId": 16,
           "wallGroupId": 1,
           "endpoint": "p1",
           "directionFromNode": {
             "x": 0,
             "z": 1
           }
+        },
+        {
+          "lineId": 19,
+          "wallGroupId": 2,
+          "endpoint": "p2",
+          "directionFromNode": {
+            "x": 1,
+            "z": 0
+          }
         }
       ],
-      "faceEndpointsNearNode": [],
-      "tCandidates": []
+      "faceEndpointsNearNode": [
+        {
+          "lineId": 8,
+          "wallGroupId": 1,
+          "linkOffsetFromLineId": 7,
+          "numberWallFaceSideSign": 1,
+          "endpoint": "p2",
+          "point": {
+            "xMm": -10000,
+            "yMm": 0,
+            "zMm": -15000,
+            "xM": -10,
+            "yM": 0,
+            "zM": -15
+          }
+        },
+        {
+          "lineId": 17,
+          "wallGroupId": 1,
+          "linkOffsetFromLineId": 16,
+          "numberWallFaceSideSign": 1,
+          "endpoint": "p1",
+          "point": {
+            "xMm": -10000,
+            "yMm": 0,
+            "zMm": -15000,
+            "xM": -10,
+            "yM": 0,
+            "zM": -15
+          }
+        }
+      ],
+      "tCandidates": [
+        {
+          "throughAxisSegmentIds": [
+            7,
+            16
+          ],
+          "branchAxisSegmentId": 19,
+          "throughWallGroupIds": [
+            1,
+            1
+          ],
+          "branchWallGroupId": 2
+        }
+      ]
     },
     {
       "nodeId": "N14",
       "point": {
-        "xMm": 9850,
+        "xMm": -10000,
         "yMm": 0,
-        "zMm": -20150,
-        "xM": 9.85,
+        "zMm": -15000,
+        "xM": -10,
         "yM": 0,
-        "zM": -20.15
+        "zM": -15
       },
       "junctionType": "Connection",
       "axisEndpoints": [],
@@ -1715,27 +2220,27 @@
           "numberWallFaceSideSign": 1,
           "endpoint": "p2",
           "point": {
-            "xMm": 9850,
+            "xMm": -10000,
             "yMm": 0,
-            "zMm": -20150,
-            "xM": 9.85,
+            "zMm": -15000,
+            "xM": -10,
             "yM": 0,
-            "zM": -20.15
+            "zM": -15
           }
         },
         {
-          "lineId": 11,
+          "lineId": 17,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 10,
+          "linkOffsetFromLineId": 16,
           "numberWallFaceSideSign": 1,
           "endpoint": "p1",
           "point": {
-            "xMm": 9850,
+            "xMm": -10000,
             "yMm": 0,
-            "zMm": -20150,
-            "xM": 9.85,
+            "zMm": -15000,
+            "xM": -10,
             "yM": 0,
-            "zM": -20.15
+            "zM": -15
           }
         }
       ],
@@ -1744,12 +2249,12 @@
     {
       "nodeId": "N15",
       "point": {
-        "xMm": 10150,
+        "xMm": -9700,
         "yMm": 0,
-        "zMm": -19850,
-        "xM": 10.15,
+        "zMm": -15150,
+        "xM": -9.7,
         "yM": 0,
-        "zM": -19.85
+        "zM": -15.15
       },
       "junctionType": "Connection",
       "axisEndpoints": [],
@@ -1761,27 +2266,27 @@
           "numberWallFaceSideSign": -1,
           "endpoint": "p2",
           "point": {
-            "xMm": 10150,
+            "xMm": -9700,
             "yMm": 0,
-            "zMm": -19850,
-            "xM": 10.15,
+            "zMm": -15150,
+            "xM": -9.7,
             "yM": 0,
-            "zM": -19.85
+            "zM": -15.15
           }
         },
         {
-          "lineId": 12,
-          "wallGroupId": 1,
-          "linkOffsetFromLineId": 10,
-          "numberWallFaceSideSign": -1,
-          "endpoint": "p1",
+          "lineId": 20,
+          "wallGroupId": 2,
+          "linkOffsetFromLineId": 19,
+          "numberWallFaceSideSign": 1,
+          "endpoint": "p2",
           "point": {
-            "xMm": 10150,
+            "xMm": -9700,
             "yMm": 0,
-            "zMm": -19850,
-            "xM": 10.15,
+            "zMm": -15150,
+            "xM": -9.7,
             "yM": 0,
-            "zM": -19.85
+            "zM": -15.15
           }
         }
       ],
@@ -1790,12 +2295,92 @@
     {
       "nodeId": "N16",
       "point": {
-        "xMm": 10150,
+        "xMm": -9850,
         "yMm": 0,
-        "zMm": -150,
-        "xM": 10.15,
+        "zMm": -10150,
+        "xM": -9.85,
         "yM": 0,
-        "zM": -0.15
+        "zM": -10.15
+      },
+      "junctionType": "L",
+      "axisEndpoints": [
+        {
+          "lineId": 10,
+          "wallGroupId": 1,
+          "endpoint": "p1",
+          "directionFromNode": {
+            "x": 1,
+            "z": 0
+          }
+        },
+        {
+          "lineId": 16,
+          "wallGroupId": 1,
+          "endpoint": "p2",
+          "directionFromNode": {
+            "x": 0,
+            "z": -1
+          }
+        }
+      ],
+      "faceEndpointsNearNode": [],
+      "tCandidates": []
+    },
+    {
+      "nodeId": "N17",
+      "point": {
+        "xMm": -10000,
+        "yMm": 0,
+        "zMm": -10000,
+        "xM": -10,
+        "yM": 0,
+        "zM": -10
+      },
+      "junctionType": "Connection",
+      "axisEndpoints": [],
+      "faceEndpointsNearNode": [
+        {
+          "lineId": 11,
+          "wallGroupId": 1,
+          "linkOffsetFromLineId": 10,
+          "numberWallFaceSideSign": 1,
+          "endpoint": "p1",
+          "point": {
+            "xMm": -10000,
+            "yMm": 0,
+            "zMm": -10000,
+            "xM": -10,
+            "yM": 0,
+            "zM": -10
+          }
+        },
+        {
+          "lineId": 17,
+          "wallGroupId": 1,
+          "linkOffsetFromLineId": 16,
+          "numberWallFaceSideSign": 1,
+          "endpoint": "p2",
+          "point": {
+            "xMm": -10000,
+            "yMm": 0,
+            "zMm": -10000,
+            "xM": -10,
+            "yM": 0,
+            "zM": -10
+          }
+        }
+      ],
+      "tCandidates": []
+    },
+    {
+      "nodeId": "N18",
+      "point": {
+        "xMm": -9700,
+        "yMm": 0,
+        "zMm": -10300,
+        "xM": -9.7,
+        "yM": 0,
+        "zM": -10.3
       },
       "junctionType": "Connection",
       "axisEndpoints": [],
@@ -1805,16 +2390,47 @@
           "wallGroupId": 1,
           "linkOffsetFromLineId": 10,
           "numberWallFaceSideSign": -1,
-          "endpoint": "p2",
+          "endpoint": "p1",
           "point": {
-            "xMm": 10150,
+            "xMm": -9700,
             "yMm": 0,
-            "zMm": -150,
-            "xM": 10.15,
+            "zMm": -10300,
+            "xM": -9.7,
             "yM": 0,
-            "zM": -0.15
+            "zM": -10.3
           }
         },
+        {
+          "lineId": 18,
+          "wallGroupId": 1,
+          "linkOffsetFromLineId": 16,
+          "numberWallFaceSideSign": -1,
+          "endpoint": "p2",
+          "point": {
+            "xMm": -9700,
+            "yMm": 0,
+            "zMm": -10300,
+            "xM": -9.7,
+            "yM": 0,
+            "zM": -10.3
+          }
+        }
+      ],
+      "tCandidates": []
+    },
+    {
+      "nodeId": "N19",
+      "point": {
+        "xMm": -299.99999999999972,
+        "yMm": 0,
+        "zMm": -15150,
+        "xM": -0.29999999999999971,
+        "yM": 0,
+        "zM": -15.15
+      },
+      "junctionType": "Connection",
+      "axisEndpoints": [],
+      "faceEndpointsNearNode": [
         {
           "lineId": 15,
           "wallGroupId": 1,
@@ -1822,18 +2438,1588 @@
           "numberWallFaceSideSign": -1,
           "endpoint": "p1",
           "point": {
-            "xMm": 10150,
+            "xMm": -299.99999999999972,
             "yMm": 0,
-            "zMm": -150,
-            "xM": 10.15,
+            "zMm": -15150,
+            "xM": -0.29999999999999971,
             "yM": 0,
-            "zM": -0.15
+            "zM": -15.15
+          }
+        },
+        {
+          "lineId": 20,
+          "wallGroupId": 2,
+          "linkOffsetFromLineId": 19,
+          "numberWallFaceSideSign": 1,
+          "endpoint": "p1",
+          "point": {
+            "xMm": -299.99999999999972,
+            "yMm": 0,
+            "zMm": -15150,
+            "xM": -0.29999999999999971,
+            "yM": 0,
+            "zM": -15.15
+          }
+        }
+      ],
+      "tCandidates": []
+    },
+    {
+      "nodeId": "N20",
+      "point": {
+        "xMm": -9700,
+        "yMm": 0,
+        "zMm": -14850,
+        "xM": -9.7,
+        "yM": 0,
+        "zM": -14.85
+      },
+      "junctionType": "Connection",
+      "axisEndpoints": [],
+      "faceEndpointsNearNode": [
+        {
+          "lineId": 18,
+          "wallGroupId": 1,
+          "linkOffsetFromLineId": 16,
+          "numberWallFaceSideSign": -1,
+          "endpoint": "p1",
+          "point": {
+            "xMm": -9700,
+            "yMm": 0,
+            "zMm": -14850,
+            "xM": -9.7,
+            "yM": 0,
+            "zM": -14.85
+          }
+        },
+        {
+          "lineId": 21,
+          "wallGroupId": 2,
+          "linkOffsetFromLineId": 19,
+          "numberWallFaceSideSign": -1,
+          "endpoint": "p2",
+          "point": {
+            "xMm": -9700,
+            "yMm": 0,
+            "zMm": -14850,
+            "xM": -9.7,
+            "yM": 0,
+            "zM": -14.85
           }
         }
       ],
       "tCandidates": []
     }
   ],
-  "generatedWallModel": null,
-  "saveReason": "stretch-tool-displacement-commit"
+  "generatedWallModel": {
+    "mode": "wall3d",
+    "system": "Atk-60",
+    "generatedAtUtc": "2026-07-11T07:30:51.995Z",
+    "source": {
+      "totalLineas": 14,
+      "lineas": [
+        {
+          "Tipo": "Line",
+          "InicioX": -8.7902194114651573E-15,
+          "InicioY": -10000,
+          "InicioZ": 0,
+          "FinX": 2.8421709430404007E-13,
+          "FinY": -15000,
+          "FinZ": 0,
+          "Layer": "0",
+          "Color": "",
+          "Longitud": 5000,
+          "Vertices": null
+        },
+        {
+          "Tipo": "Line",
+          "InicioX": -300,
+          "InicioY": -10300,
+          "InicioZ": 0,
+          "FinX": -299.99999999999972,
+          "FinY": -14850,
+          "FinZ": 0,
+          "Layer": "0",
+          "Color": "",
+          "Longitud": 4550,
+          "Vertices": null
+        },
+        {
+          "Tipo": "Line",
+          "InicioX": 6.0652513939109579E-13,
+          "InicioY": -20000,
+          "InicioZ": 0,
+          "FinX": -10000,
+          "FinY": -20000,
+          "FinZ": 0,
+          "Layer": "0",
+          "Color": "",
+          "Longitud": 10000,
+          "Vertices": null
+        },
+        {
+          "Tipo": "Line",
+          "InicioX": -299.99999999999943,
+          "InicioY": -19700,
+          "InicioZ": 0,
+          "FinX": -9700,
+          "FinY": -19700,
+          "FinZ": 0,
+          "Layer": "0",
+          "Color": "",
+          "Longitud": 9400,
+          "Vertices": null
+        },
+        {
+          "Tipo": "Line",
+          "InicioX": -10000,
+          "InicioY": -20000,
+          "InicioZ": 0,
+          "FinX": -10000,
+          "FinY": -15000,
+          "FinZ": 0,
+          "Layer": "0",
+          "Color": "",
+          "Longitud": 5000,
+          "Vertices": null
+        },
+        {
+          "Tipo": "Line",
+          "InicioX": -9700,
+          "InicioY": -19700,
+          "InicioZ": 0,
+          "FinX": -9700,
+          "FinY": -15150,
+          "FinZ": 0,
+          "Layer": "0",
+          "Color": "",
+          "Longitud": 4550,
+          "Vertices": null
+        },
+        {
+          "Tipo": "Line",
+          "InicioX": -10000,
+          "InicioY": -10000,
+          "InicioZ": 0,
+          "FinX": -8.7902194114651573E-15,
+          "FinY": -10000,
+          "FinZ": 0,
+          "Layer": "0",
+          "Color": "",
+          "Longitud": 10000,
+          "Vertices": null
+        },
+        {
+          "Tipo": "Line",
+          "InicioX": -9700,
+          "InicioY": -10300,
+          "InicioZ": 0,
+          "FinX": -300,
+          "FinY": -10300,
+          "FinZ": 0,
+          "Layer": "0",
+          "Color": "",
+          "Longitud": 9400,
+          "Vertices": null
+        },
+        {
+          "Tipo": "Line",
+          "InicioX": 2.8421709430404007E-13,
+          "InicioY": -15000,
+          "InicioZ": 0,
+          "FinX": 6.0652513939109579E-13,
+          "FinY": -20000,
+          "FinZ": 0,
+          "Layer": "0",
+          "Color": "",
+          "Longitud": 5000,
+          "Vertices": null
+        },
+        {
+          "Tipo": "Line",
+          "InicioX": -299.99999999999972,
+          "InicioY": -15150,
+          "InicioZ": 0,
+          "FinX": -299.99999999999943,
+          "FinY": -19700,
+          "FinZ": 0,
+          "Layer": "0",
+          "Color": "",
+          "Longitud": 4550,
+          "Vertices": null
+        },
+        {
+          "Tipo": "Line",
+          "InicioX": -10000,
+          "InicioY": -15000,
+          "InicioZ": 0,
+          "FinX": -10000,
+          "FinY": -10000,
+          "FinZ": 0,
+          "Layer": "0",
+          "Color": "",
+          "Longitud": 5000,
+          "Vertices": null
+        },
+        {
+          "Tipo": "Line",
+          "InicioX": -9700,
+          "InicioY": -14850,
+          "InicioZ": 0,
+          "FinX": -9700,
+          "FinY": -10300,
+          "FinZ": 0,
+          "Layer": "0",
+          "Color": "",
+          "Longitud": 4550,
+          "Vertices": null
+        },
+        {
+          "Tipo": "Line",
+          "InicioX": -299.99999999999972,
+          "InicioY": -15150,
+          "InicioZ": 0,
+          "FinX": -9700,
+          "FinY": -15150,
+          "FinZ": 0,
+          "Layer": "0",
+          "Color": "",
+          "Longitud": 9400,
+          "Vertices": null
+        },
+        {
+          "Tipo": "Line",
+          "InicioX": -299.99999999999972,
+          "InicioY": -14850,
+          "InicioZ": 0,
+          "FinX": -9700,
+          "FinY": -14850,
+          "FinZ": 0,
+          "Layer": "0",
+          "Color": "",
+          "Longitud": 9400,
+          "Vertices": null
+        }
+      ]
+    },
+    "result": {
+      "Esquinas": [
+        {
+          "Vertice": {
+            "X": 0,
+            "Y": -10000,
+            "Z": 0,
+            "TipoPunto": null,
+            "ColorIndex": 0,
+            "Forma": "Circulo",
+            "Tamano": 0
+          },
+          "IndiceLinea1": 0,
+          "IndiceLinea2": 6,
+          "Angulo": 90,
+          "Orientacion": 0
+        },
+        {
+          "Vertice": {
+            "X": -300,
+            "Y": -10300,
+            "Z": 0,
+            "TipoPunto": null,
+            "ColorIndex": 0,
+            "Forma": "Circulo",
+            "Tamano": 0
+          },
+          "IndiceLinea1": 1,
+          "IndiceLinea2": 7,
+          "Angulo": 90,
+          "Orientacion": 0
+        },
+        {
+          "Vertice": {
+            "X": -300,
+            "Y": -14850,
+            "Z": 0,
+            "TipoPunto": null,
+            "ColorIndex": 0,
+            "Forma": "Circulo",
+            "Tamano": 0
+          },
+          "IndiceLinea1": 1,
+          "IndiceLinea2": 13,
+          "Angulo": 90,
+          "Orientacion": 0
+        },
+        {
+          "Vertice": {
+            "X": -10000,
+            "Y": -20000,
+            "Z": 0,
+            "TipoPunto": null,
+            "ColorIndex": 0,
+            "Forma": "Circulo",
+            "Tamano": 0
+          },
+          "IndiceLinea1": 2,
+          "IndiceLinea2": 4,
+          "Angulo": 90,
+          "Orientacion": 0
+        },
+        {
+          "Vertice": {
+            "X": 0,
+            "Y": -20000,
+            "Z": 0,
+            "TipoPunto": null,
+            "ColorIndex": 0,
+            "Forma": "Circulo",
+            "Tamano": 0
+          },
+          "IndiceLinea1": 2,
+          "IndiceLinea2": 8,
+          "Angulo": 90,
+          "Orientacion": 0
+        },
+        {
+          "Vertice": {
+            "X": -9700,
+            "Y": -19700,
+            "Z": 0,
+            "TipoPunto": null,
+            "ColorIndex": 0,
+            "Forma": "Circulo",
+            "Tamano": 0
+          },
+          "IndiceLinea1": 3,
+          "IndiceLinea2": 5,
+          "Angulo": 90,
+          "Orientacion": 0
+        },
+        {
+          "Vertice": {
+            "X": -300,
+            "Y": -19700,
+            "Z": 0,
+            "TipoPunto": null,
+            "ColorIndex": 0,
+            "Forma": "Circulo",
+            "Tamano": 0
+          },
+          "IndiceLinea1": 3,
+          "IndiceLinea2": 9,
+          "Angulo": 90,
+          "Orientacion": 0
+        },
+        {
+          "Vertice": {
+            "X": -9700,
+            "Y": -15150,
+            "Z": 0,
+            "TipoPunto": null,
+            "ColorIndex": 0,
+            "Forma": "Circulo",
+            "Tamano": 0
+          },
+          "IndiceLinea1": 5,
+          "IndiceLinea2": 12,
+          "Angulo": 90,
+          "Orientacion": 0
+        },
+        {
+          "Vertice": {
+            "X": -10000,
+            "Y": -10000,
+            "Z": 0,
+            "TipoPunto": null,
+            "ColorIndex": 0,
+            "Forma": "Circulo",
+            "Tamano": 0
+          },
+          "IndiceLinea1": 6,
+          "IndiceLinea2": 10,
+          "Angulo": 90,
+          "Orientacion": 0
+        },
+        {
+          "Vertice": {
+            "X": -9700,
+            "Y": -10300,
+            "Z": 0,
+            "TipoPunto": null,
+            "ColorIndex": 0,
+            "Forma": "Circulo",
+            "Tamano": 0
+          },
+          "IndiceLinea1": 7,
+          "IndiceLinea2": 11,
+          "Angulo": 90,
+          "Orientacion": 0
+        },
+        {
+          "Vertice": {
+            "X": -300,
+            "Y": -15150,
+            "Z": 0,
+            "TipoPunto": null,
+            "ColorIndex": 0,
+            "Forma": "Circulo",
+            "Tamano": 0
+          },
+          "IndiceLinea1": 9,
+          "IndiceLinea2": 12,
+          "Angulo": 90,
+          "Orientacion": 0
+        },
+        {
+          "Vertice": {
+            "X": -9700,
+            "Y": -14850,
+            "Z": 0,
+            "TipoPunto": null,
+            "ColorIndex": 0,
+            "Forma": "Circulo",
+            "Tamano": 0
+          },
+          "IndiceLinea1": 11,
+          "IndiceLinea2": 13,
+          "Angulo": 90,
+          "Orientacion": 0
+        }
+      ],
+      "TotalEsquinasDetectadas": 24,
+      "TotalMurosRectos": 3,
+      "PuntosADibujar": [
+        {
+          "X": -300,
+          "Y": -10300,
+          "Z": 0,
+          "TipoPunto": "PtEInterior",
+          "ColorIndex": 5,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -300,
+          "Y": -14850,
+          "Z": 0,
+          "TipoPunto": "PtEInterior",
+          "ColorIndex": 5,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -300,
+          "Y": -19700,
+          "Z": 0,
+          "TipoPunto": "PtEInterior",
+          "ColorIndex": 5,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -9700,
+          "Y": -19700,
+          "Z": 0,
+          "TipoPunto": "PtEInterior",
+          "ColorIndex": 5,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -9700,
+          "Y": -15150,
+          "Z": 0,
+          "TipoPunto": "PtEInterior",
+          "ColorIndex": 5,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -9700,
+          "Y": -10300,
+          "Z": 0,
+          "TipoPunto": "PtEInterior",
+          "ColorIndex": 5,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -300,
+          "Y": -15150,
+          "Z": 0,
+          "TipoPunto": "PtEInterior",
+          "ColorIndex": 5,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -9700,
+          "Y": -14850,
+          "Z": 0,
+          "TipoPunto": "PtEInterior",
+          "ColorIndex": 5,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": 0,
+          "Y": -10000,
+          "Z": 0,
+          "TipoPunto": "PtEExteriro",
+          "ColorIndex": 1,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": 0,
+          "Y": -20000,
+          "Z": 0,
+          "TipoPunto": "PtEExteriro",
+          "ColorIndex": 1,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -10000,
+          "Y": -20000,
+          "Z": 0,
+          "TipoPunto": "PtEExteriro",
+          "ColorIndex": 1,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -10000,
+          "Y": -10000,
+          "Z": 0,
+          "TipoPunto": "PtEExteriro",
+          "ColorIndex": 1,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -600,
+          "Y": -10300,
+          "Z": 0,
+          "TipoPunto": "PtEInt300H",
+          "ColorIndex": 3,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -9400,
+          "Y": -19700,
+          "Z": 0,
+          "TipoPunto": "PtEInt300H",
+          "ColorIndex": 3,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -600,
+          "Y": -19700,
+          "Z": 0,
+          "TipoPunto": "PtEInt300H",
+          "ColorIndex": 3,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -9400,
+          "Y": -10300,
+          "Z": 0,
+          "TipoPunto": "PtEInt300H",
+          "ColorIndex": 3,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -300,
+          "Y": -10600,
+          "Z": 0,
+          "TipoPunto": "PtEInt300V",
+          "ColorIndex": 2,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -9700,
+          "Y": -19400,
+          "Z": 0,
+          "TipoPunto": "PtEInt300V",
+          "ColorIndex": 2,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -300,
+          "Y": -19400,
+          "Z": 0,
+          "TipoPunto": "PtEInt300V",
+          "ColorIndex": 2,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -9700,
+          "Y": -10600,
+          "Z": 0,
+          "TipoPunto": "PtEInt300V",
+          "ColorIndex": 2,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -600,
+          "Y": -10000,
+          "Z": 0,
+          "TipoPunto": "PtEExt300H",
+          "ColorIndex": 7,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -9400,
+          "Y": -20000,
+          "Z": 0,
+          "TipoPunto": "PtEExt300H",
+          "ColorIndex": 7,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -600,
+          "Y": -20000,
+          "Z": 0,
+          "TipoPunto": "PtEExt300H",
+          "ColorIndex": 7,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -9400,
+          "Y": -10000,
+          "Z": 0,
+          "TipoPunto": "PtEExt300H",
+          "ColorIndex": 7,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": 0,
+          "Y": -10600,
+          "Z": 0,
+          "TipoPunto": "PtEExt300V",
+          "ColorIndex": 4,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -10000,
+          "Y": -19400,
+          "Z": 0,
+          "TipoPunto": "PtEExt300V",
+          "ColorIndex": 4,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": 0,
+          "Y": -19400,
+          "Z": 0,
+          "TipoPunto": "PtEExt300V",
+          "ColorIndex": 4,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -10000,
+          "Y": -10600,
+          "Z": 0,
+          "TipoPunto": "PtEExt300V",
+          "ColorIndex": 4,
+          "Forma": "Circulo",
+          "Tamano": 0
+        },
+        {
+          "X": -600,
+          "Y": -20000,
+          "Z": 0,
+          "TipoPunto": "VerticeMuro",
+          "ColorIndex": 30,
+          "Forma": "Cuadrado",
+          "Tamano": 20
+        },
+        {
+          "X": -9400,
+          "Y": -20000,
+          "Z": 0,
+          "TipoPunto": "VerticeMuro",
+          "ColorIndex": 140,
+          "Forma": "Cuadrado",
+          "Tamano": 20
+        },
+        {
+          "X": -9400,
+          "Y": -19700,
+          "Z": 0,
+          "TipoPunto": "VerticeMuro",
+          "ColorIndex": 210,
+          "Forma": "Cuadrado",
+          "Tamano": 20
+        },
+        {
+          "X": -600,
+          "Y": -19700,
+          "Z": 0,
+          "TipoPunto": "VerticeMuro",
+          "ColorIndex": 90,
+          "Forma": "Cuadrado",
+          "Tamano": 20
+        },
+        {
+          "X": -9400,
+          "Y": -10000,
+          "Z": 0,
+          "TipoPunto": "VerticeMuro",
+          "ColorIndex": 30,
+          "Forma": "Cuadrado",
+          "Tamano": 20
+        },
+        {
+          "X": -600,
+          "Y": -10000,
+          "Z": 0,
+          "TipoPunto": "VerticeMuro",
+          "ColorIndex": 140,
+          "Forma": "Cuadrado",
+          "Tamano": 20
+        },
+        {
+          "X": -600,
+          "Y": -10300,
+          "Z": 0,
+          "TipoPunto": "VerticeMuro",
+          "ColorIndex": 210,
+          "Forma": "Cuadrado",
+          "Tamano": 20
+        },
+        {
+          "X": -9400,
+          "Y": -10300,
+          "Z": 0,
+          "TipoPunto": "VerticeMuro",
+          "ColorIndex": 90,
+          "Forma": "Cuadrado",
+          "Tamano": 20
+        },
+        {
+          "X": -300,
+          "Y": -15150,
+          "Z": 0,
+          "TipoPunto": "VerticeMuro",
+          "ColorIndex": 30,
+          "Forma": "Cuadrado",
+          "Tamano": 20
+        },
+        {
+          "X": -9700,
+          "Y": -15150,
+          "Z": 0,
+          "TipoPunto": "VerticeMuro",
+          "ColorIndex": 140,
+          "Forma": "Cuadrado",
+          "Tamano": 20
+        },
+        {
+          "X": -9700,
+          "Y": -14850,
+          "Z": 0,
+          "TipoPunto": "VerticeMuro",
+          "ColorIndex": 210,
+          "Forma": "Cuadrado",
+          "Tamano": 20
+        },
+        {
+          "X": -300,
+          "Y": -14850,
+          "Z": 0,
+          "TipoPunto": "VerticeMuro",
+          "ColorIndex": 90,
+          "Forma": "Cuadrado",
+          "Tamano": 20
+        }
+      ],
+      "PolilineasADibujar": [
+        {
+          "Vertices": [
+            {
+              "X": -600,
+              "Y": -10300,
+              "Z": 0,
+              "TipoPunto": "PtEInt300H",
+              "ColorIndex": 3,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -300,
+              "Y": -10300,
+              "Z": 0,
+              "TipoPunto": "PtEInterior",
+              "ColorIndex": 5,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -300,
+              "Y": -10600,
+              "Z": 0,
+              "TipoPunto": "PtEInt300V",
+              "ColorIndex": 2,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": 0,
+              "Y": -10600,
+              "Z": 0,
+              "TipoPunto": "PtEExt300V",
+              "ColorIndex": 4,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": 0,
+              "Y": -10000,
+              "Z": 0,
+              "TipoPunto": "PtEExteriro",
+              "ColorIndex": 1,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -600,
+              "Y": -10000,
+              "Z": 0,
+              "TipoPunto": "PtEExt300H",
+              "ColorIndex": 7,
+              "Forma": "Circulo",
+              "Tamano": 0
+            }
+          ],
+          "Cerrada": true,
+          "Capa": "ObjetoDB2d",
+          "ColorIndex": 256,
+          "AlturaExtrusion": 0
+        },
+        {
+          "Vertices": [
+            {
+              "X": -600,
+              "Y": -10300,
+              "Z": 0,
+              "TipoPunto": "PtEInt300H",
+              "ColorIndex": 3,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -300,
+              "Y": -10300,
+              "Z": 0,
+              "TipoPunto": "PtEInterior",
+              "ColorIndex": 5,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -300,
+              "Y": -10600,
+              "Z": 0,
+              "TipoPunto": "PtEInt300V",
+              "ColorIndex": 2,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": 0,
+              "Y": -10600,
+              "Z": 0,
+              "TipoPunto": "PtEExt300V",
+              "ColorIndex": 4,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": 0,
+              "Y": -10000,
+              "Z": 0,
+              "TipoPunto": "PtEExteriro",
+              "ColorIndex": 1,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -600,
+              "Y": -10000,
+              "Z": 0,
+              "TipoPunto": "PtEExt300H",
+              "ColorIndex": 7,
+              "Forma": "Circulo",
+              "Tamano": 0
+            }
+          ],
+          "Cerrada": true,
+          "Capa": "ModelDesing",
+          "ColorIndex": 256,
+          "AlturaExtrusion": 2700
+        },
+        {
+          "Vertices": [
+            {
+              "X": -9400,
+              "Y": -19700,
+              "Z": 0,
+              "TipoPunto": "PtEInt300H",
+              "ColorIndex": 3,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9700,
+              "Y": -19700,
+              "Z": 0,
+              "TipoPunto": "PtEInterior",
+              "ColorIndex": 5,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9700,
+              "Y": -19400,
+              "Z": 0,
+              "TipoPunto": "PtEInt300V",
+              "ColorIndex": 2,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -10000,
+              "Y": -19400,
+              "Z": 0,
+              "TipoPunto": "PtEExt300V",
+              "ColorIndex": 4,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -10000,
+              "Y": -20000,
+              "Z": 0,
+              "TipoPunto": "PtEExteriro",
+              "ColorIndex": 1,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9400,
+              "Y": -20000,
+              "Z": 0,
+              "TipoPunto": "PtEExt300H",
+              "ColorIndex": 7,
+              "Forma": "Circulo",
+              "Tamano": 0
+            }
+          ],
+          "Cerrada": true,
+          "Capa": "ObjetoDB2d",
+          "ColorIndex": 256,
+          "AlturaExtrusion": 0
+        },
+        {
+          "Vertices": [
+            {
+              "X": -9400,
+              "Y": -19700,
+              "Z": 0,
+              "TipoPunto": "PtEInt300H",
+              "ColorIndex": 3,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9700,
+              "Y": -19700,
+              "Z": 0,
+              "TipoPunto": "PtEInterior",
+              "ColorIndex": 5,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9700,
+              "Y": -19400,
+              "Z": 0,
+              "TipoPunto": "PtEInt300V",
+              "ColorIndex": 2,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -10000,
+              "Y": -19400,
+              "Z": 0,
+              "TipoPunto": "PtEExt300V",
+              "ColorIndex": 4,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -10000,
+              "Y": -20000,
+              "Z": 0,
+              "TipoPunto": "PtEExteriro",
+              "ColorIndex": 1,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9400,
+              "Y": -20000,
+              "Z": 0,
+              "TipoPunto": "PtEExt300H",
+              "ColorIndex": 7,
+              "Forma": "Circulo",
+              "Tamano": 0
+            }
+          ],
+          "Cerrada": true,
+          "Capa": "ModelDesing",
+          "ColorIndex": 256,
+          "AlturaExtrusion": 2700
+        },
+        {
+          "Vertices": [
+            {
+              "X": -600,
+              "Y": -19700,
+              "Z": 0,
+              "TipoPunto": "PtEInt300H",
+              "ColorIndex": 3,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -300,
+              "Y": -19700,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -300,
+              "Y": -19400,
+              "Z": 0,
+              "TipoPunto": "PtEInt300V",
+              "ColorIndex": 2,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": 0,
+              "Y": -19400,
+              "Z": 0,
+              "TipoPunto": "PtEExt300V",
+              "ColorIndex": 4,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": 0,
+              "Y": -20000,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -600,
+              "Y": -20000,
+              "Z": 0,
+              "TipoPunto": "PtEExt300H",
+              "ColorIndex": 7,
+              "Forma": "Circulo",
+              "Tamano": 0
+            }
+          ],
+          "Cerrada": true,
+          "Capa": "ObjetoDB2d",
+          "ColorIndex": 256,
+          "AlturaExtrusion": 0
+        },
+        {
+          "Vertices": [
+            {
+              "X": -600,
+              "Y": -19700,
+              "Z": 0,
+              "TipoPunto": "PtEInt300H",
+              "ColorIndex": 3,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -300,
+              "Y": -19700,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -300,
+              "Y": -19400,
+              "Z": 0,
+              "TipoPunto": "PtEInt300V",
+              "ColorIndex": 2,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": 0,
+              "Y": -19400,
+              "Z": 0,
+              "TipoPunto": "PtEExt300V",
+              "ColorIndex": 4,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": 0,
+              "Y": -20000,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -600,
+              "Y": -20000,
+              "Z": 0,
+              "TipoPunto": "PtEExt300H",
+              "ColorIndex": 7,
+              "Forma": "Circulo",
+              "Tamano": 0
+            }
+          ],
+          "Cerrada": true,
+          "Capa": "ModelDesing",
+          "ColorIndex": 256,
+          "AlturaExtrusion": 2700
+        },
+        {
+          "Vertices": [
+            {
+              "X": -9400,
+              "Y": -10300,
+              "Z": 0,
+              "TipoPunto": "PtEInt300H",
+              "ColorIndex": 3,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9700,
+              "Y": -10300,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9700,
+              "Y": -10600,
+              "Z": 0,
+              "TipoPunto": "PtEInt300V",
+              "ColorIndex": 2,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -10000,
+              "Y": -10600,
+              "Z": 0,
+              "TipoPunto": "PtEExt300V",
+              "ColorIndex": 4,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -10000,
+              "Y": -10000,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9400,
+              "Y": -10000,
+              "Z": 0,
+              "TipoPunto": "PtEExt300H",
+              "ColorIndex": 7,
+              "Forma": "Circulo",
+              "Tamano": 0
+            }
+          ],
+          "Cerrada": true,
+          "Capa": "ObjetoDB2d",
+          "ColorIndex": 256,
+          "AlturaExtrusion": 0
+        },
+        {
+          "Vertices": [
+            {
+              "X": -9400,
+              "Y": -10300,
+              "Z": 0,
+              "TipoPunto": "PtEInt300H",
+              "ColorIndex": 3,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9700,
+              "Y": -10300,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9700,
+              "Y": -10600,
+              "Z": 0,
+              "TipoPunto": "PtEInt300V",
+              "ColorIndex": 2,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -10000,
+              "Y": -10600,
+              "Z": 0,
+              "TipoPunto": "PtEExt300V",
+              "ColorIndex": 4,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -10000,
+              "Y": -10000,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9400,
+              "Y": -10000,
+              "Z": 0,
+              "TipoPunto": "PtEExt300H",
+              "ColorIndex": 7,
+              "Forma": "Circulo",
+              "Tamano": 0
+            }
+          ],
+          "Cerrada": true,
+          "Capa": "ModelDesing",
+          "ColorIndex": 256,
+          "AlturaExtrusion": 2700
+        },
+        {
+          "Vertices": [
+            {
+              "X": -600,
+              "Y": -20000,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9400,
+              "Y": -20000,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9400,
+              "Y": -19700,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -600,
+              "Y": -19700,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            }
+          ],
+          "Cerrada": true,
+          "Capa": "ObjetoDB2d",
+          "ColorIndex": 256,
+          "AlturaExtrusion": 0
+        },
+        {
+          "Vertices": [
+            {
+              "X": -600,
+              "Y": -20000,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9400,
+              "Y": -20000,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9400,
+              "Y": -19700,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -600,
+              "Y": -19700,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            }
+          ],
+          "Cerrada": true,
+          "Capa": "ModelDesing",
+          "ColorIndex": 256,
+          "AlturaExtrusion": 2700
+        },
+        {
+          "Vertices": [
+            {
+              "X": -9400,
+              "Y": -10000,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -600,
+              "Y": -10000,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -600,
+              "Y": -10300,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9400,
+              "Y": -10300,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            }
+          ],
+          "Cerrada": true,
+          "Capa": "ObjetoDB2d",
+          "ColorIndex": 256,
+          "AlturaExtrusion": 0
+        },
+        {
+          "Vertices": [
+            {
+              "X": -9400,
+              "Y": -10000,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -600,
+              "Y": -10000,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -600,
+              "Y": -10300,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9400,
+              "Y": -10300,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            }
+          ],
+          "Cerrada": true,
+          "Capa": "ModelDesing",
+          "ColorIndex": 256,
+          "AlturaExtrusion": 2700
+        },
+        {
+          "Vertices": [
+            {
+              "X": -300,
+              "Y": -15150,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9700,
+              "Y": -15150,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9700,
+              "Y": -14850,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -300,
+              "Y": -14850,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            }
+          ],
+          "Cerrada": true,
+          "Capa": "ObjetoDB2d",
+          "ColorIndex": 256,
+          "AlturaExtrusion": 0
+        },
+        {
+          "Vertices": [
+            {
+              "X": -300,
+              "Y": -15150,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9700,
+              "Y": -15150,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -9700,
+              "Y": -14850,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            },
+            {
+              "X": -300,
+              "Y": -14850,
+              "Z": 0,
+              "TipoPunto": null,
+              "ColorIndex": 0,
+              "Forma": "Circulo",
+              "Tamano": 0
+            }
+          ],
+          "Cerrada": true,
+          "Capa": "ModelDesing",
+          "ColorIndex": 256,
+          "AlturaExtrusion": 2700
+        }
+      ],
+      "LineasEje": null,
+      "Mensaje": "Se detectaron 24 esquina(s) en L, 24 panel(es) válido(s), 396 panel(es) inválido(s)"
+    },
+    "counts": {
+      "generatedMeshes": 13,
+      "polilineas": 14,
+      "murosRectos": 3,
+      "esquinas": 24
+    }
+  },
+  "saveReason": "wall3d-model-mode-regenerate"
 }

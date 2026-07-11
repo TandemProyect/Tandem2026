@@ -955,6 +955,12 @@
   <data name="StlPreview_UserFloorLineDimReadoutDeltaZAria" xml:space="preserve">
     <value>ΔZ desde el cruce de reglas hasta el extremo libre del segmento (metros, con signo). Doble clic para editar.</value>
   </data>
+  <data name="StlPreview_UserFloorLineDimEditThicknessAria" xml:space="preserve">
+    <value>Espesor total del muro seleccionado en metros (o mm con sufijo). Simétrico respecto al eje; los muros conectados adaptan la unión. Intro para aplicar; Escape cancela.</value>
+  </data>
+  <data name="StlPreview_UserFloorLineDimReadoutThicknessAria" xml:space="preserve">
+    <value>Espesor total del muro seleccionado (metros). Clic para editar.</value>
+  </data>
   <data name="StlPreview_UserFloorLineDragHandleAria" xml:space="preserve">
     <value>Arrastrar para mover el segmento en planta (eje X y Z)</value>
   </data>
