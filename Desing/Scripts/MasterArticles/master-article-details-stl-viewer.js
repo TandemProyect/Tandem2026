@@ -8,6 +8,7 @@ import { LineMaterial } from '../Design/jsm/lines/LineMaterial.js';
 import { MaStlWallEditFinalize, MaStlWallStretchMath } from './ma-stl-wall-edit-finalize.js';
 import {
     maAtk60BuildFootprintDimPlacements,
+    maAtk60BuildCrossFootprintMm,
     maAtk60BuildLFootprintMm,
     maAtk60BuildTFootprintMm,
     maAtk60ClassifyFootprintKind,
@@ -4913,7 +4914,7 @@ function bootMasterArticleDetailsStlViewer() {
 
     function maStlWall2dModelAddPolygon(points, colorHex, opacity, kind) {
         if (!points || points.length < 3 || !maStlWall2dModelMeshesGroup) return null;
-        const isCornerKind = kind === 'cornerL' || kind === 'cornerT';
+        const isCornerKind = kind === 'cornerL' || kind === 'cornerT' || kind === 'cornerX';
         const y = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM + (isCornerKind ? 3 : 2);
         const shape = new THREE.Shape();
         shape.moveTo(points[0].x, -points[0].z);
@@ -5170,6 +5171,62 @@ function bootMasterArticleDetailsStlViewer() {
         return { x: ux / len, z: uz / len };
     }
 
+    function maStlAtk60TryBuildCrossFootprintAtJunction(vertex, axisUds) {
+        if (!vertex || !axisUds || axisUds.length < 4) return null;
+        const entries = [];
+        for (let i = 0; i < axisUds.length; i++) {
+            const axisUd = axisUds[i];
+            const endKey = maStlWall2dToolAxisEndpointKeyNearVertexMm(axisUd, vertex);
+            const into = maStlWall2dToolDirFromVertexIntoAxisMm(axisUd, endKey);
+            if (!axisUd || !endKey || !into) continue;
+            entries.push({
+                axisUd: axisUd,
+                endKey: endKey,
+                into: into,
+                thicknessMm: maStlWall2dModelAxisThicknessMm(axisUd),
+            });
+        }
+        if (entries.length < 4) return null;
+
+        for (let i = 0; i < entries.length; i++) {
+            for (let j = i + 1; j < entries.length; j++) {
+                const a = entries[i];
+                const b = entries[j];
+                if (!maStlUserFloorPlanLinesCollinearParallelXz(a.axisUd, b.axisUd)) continue;
+                if (a.into.ux * b.into.ux + a.into.uz * b.into.uz > -0.85) continue;
+
+                for (let k = 0; k < entries.length; k++) {
+                    if (k === i || k === j) continue;
+                    for (let l = k + 1; l < entries.length; l++) {
+                        if (l === i || l === j) continue;
+                        const c = entries[k];
+                        const d = entries[l];
+                        if (!maStlUserFloorPlanLinesCollinearParallelXz(c.axisUd, d.axisUd)) continue;
+                        if (c.into.ux * d.into.ux + c.into.uz * d.into.uz > -0.85) continue;
+                        if (maStlUserFloorPlanLinesCollinearParallelXz(a.axisUd, c.axisUd)) continue;
+
+                        const eU = (a.thicknessMm + b.thicknessMm) * 0.5;
+                        const eV = (c.thicknessMm + d.thicknessMm) * 0.5;
+                        const fp = maAtk60BuildCrossFootprintMm(
+                            vertex,
+                            { x: a.into.ux, z: a.into.uz },
+                            { x: c.into.ux, z: c.into.uz },
+                            eU,
+                            eV,
+                            { x: a.into.ux, z: a.into.uz }
+                        );
+                        if (!fp) continue;
+                        return {
+                            footprint: fp,
+                            entries: [a, b, c, d],
+                        };
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     function maStlAtk60BuildAxisEndpointTrimMap() {
         const trimMap = new Map();
         const bucket = maStlAtk60BuildJunctionBucket();
@@ -5199,6 +5256,22 @@ function bootMasterArticleDetailsStlViewer() {
                 continue;
             }
             if (axisUds.length < 3) continue;
+            const cross = maStlAtk60TryBuildCrossFootprintAtJunction(vertex, axisUds);
+            if (cross && cross.footprint && cross.entries && cross.entries.length) {
+                for (let ci = 0; ci < cross.entries.length; ci++) {
+                    const entry = cross.entries[ci];
+                    if (!entry || !entry.axisUd || entry.axisUd.id == null || !entry.endKey || !entry.into) continue;
+                    const trimFromShape = maStlAtk60RayPolygonFirstHitMm(
+                        vertex,
+                        entry.into,
+                        cross.footprint.points
+                    );
+                    if (trimFromShape != null) {
+                        trimMap.set(entry.axisUd.id + '|' + entry.endKey, trimFromShape);
+                    }
+                }
+                continue;
+            }
             for (let i = 0; i < axisUds.length; i++) {
                 for (let j = i + 1; j < axisUds.length; j++) {
                     const a = axisUds[i];
@@ -5384,7 +5457,10 @@ function bootMasterArticleDetailsStlViewer() {
     function maStlWall2dModelAddAtk60Footprint2d(footprint) {
         if (!footprint || !footprint.points || footprint.points.length < 3) return false;
         const kind = (footprint.meta && footprint.meta.kind) || maAtk60ClassifyFootprintKind(footprint.points.length);
-        const color = kind === 'cornerL' || kind === 'cornerT' ? MA_STL_WALL_MODEL_COLOR_CORNER : MA_STL_WALL_MODEL_COLOR_WALL;
+        const color =
+            kind === 'cornerL' || kind === 'cornerT' || kind === 'cornerX'
+                ? MA_STL_WALL_MODEL_COLOR_CORNER
+                : MA_STL_WALL_MODEL_COLOR_WALL;
         const flat = footprint.points.map(function (pt) {
             return { x: pt.x, z: pt.z };
         });
@@ -5410,7 +5486,7 @@ function bootMasterArticleDetailsStlViewer() {
         });
         geo.rotateX(-Math.PI / 2);
         geo.computeVertexNormals();
-        const pieceKind = kind === 'cornerT' || kind === 'cornerL' ? 'corner' : 'wall';
+        const pieceKind = kind === 'cornerT' || kind === 'cornerL' || kind === 'cornerX' ? 'corner' : 'wall';
         const baseMat = maStlWall3dEnsureSharedMaterial(pieceKind);
         const mat = baseMat.clone ? baseMat.clone() : baseMat;
         const mesh = new THREE.Mesh(geo, mat);
@@ -5549,6 +5625,103 @@ function bootMasterArticleDetailsStlViewer() {
         return true;
     }
 
+    function maStlAtk60AddXFootprintPointGuide(footprint, useWall3dGroup) {
+        if (!footprint || !footprint.points || footprint.points.length < 3) return false;
+        const pts = footprint.points;
+        const labels =
+            (footprint.meta && footprint.meta.pointLabels) ||
+            pts.map(function (_p, i) {
+                return 'X-' + (i + 1);
+            });
+        const floorY = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM + 12;
+        const root = new THREE.Group();
+        root.userData.maStlWall3dGenerated = true;
+        root.userData.maStlAtk60XFootprintGuide = true;
+        root.renderOrder = 200;
+
+        let cx = 0;
+        let cz = 0;
+        for (let pi = 0; pi < pts.length; pi++) {
+            cx += pts[pi].x;
+            cz += pts[pi].z;
+        }
+        cx /= pts.length;
+        cz /= pts.length;
+
+        const markHalf = 42;
+        const markThickness = 10;
+        const labelScale = 112;
+        const labelOffset = 165;
+
+        for (let li = 0; li < pts.length; li++) {
+            const pt = pts[li];
+            const markMat = new THREE.MeshBasicMaterial({
+                color: 0x111111,
+                depthTest: false,
+                depthWrite: false,
+            });
+            const armA = new THREE.Mesh(
+                new THREE.BoxGeometry(markHalf * 2, 2, markThickness),
+                markMat
+            );
+            armA.position.set(pt.x, floorY, pt.z);
+            armA.rotation.y = Math.PI / 4;
+            armA.renderOrder = 200;
+            root.add(armA);
+            const armB = new THREE.Mesh(
+                new THREE.BoxGeometry(markHalf * 2, 2, markThickness),
+                markMat
+            );
+            armB.position.set(pt.x, floorY, pt.z);
+            armB.rotation.y = -Math.PI / 4;
+            armB.renderOrder = 200;
+            root.add(armB);
+
+            let dirX = pt.x - cx;
+            let dirZ = pt.z - cz;
+            let dirLen = Math.hypot(dirX, dirZ);
+            if (dirLen <= 1e-6) {
+                dirX = 1;
+                dirZ = 0;
+                dirLen = 1;
+            }
+            dirX /= dirLen;
+            dirZ /= dirLen;
+
+            const displayLabel = labels[li] || 'X-' + (li + 1);
+            const sp = maStlMakeTextSprite(displayLabel, labelScale, {
+                thinFillOnly: true,
+                fillColor: '#111111',
+                fontPx: 16,
+                fontWeight: 600,
+                canvasPad: 2,
+                thinPillFill: null,
+                thinPillStroke: null,
+                strokeRatio: 0,
+            });
+            if (sp) {
+                sp.position.set(
+                    pt.x + dirX * labelOffset,
+                    floorY + labelScale * 0.25,
+                    pt.z + dirZ * labelOffset
+                );
+                sp.renderOrder = 201;
+                root.add(sp);
+            }
+        }
+
+        maStlDisableRaycastOnOverlay(root);
+        if (useWall3dGroup && maStlWall3dMeshesGroup) {
+            maStlWall3dMeshesGroup.add(root);
+        } else if (maStlWall2dModelMeshesGroup) {
+            maStlWall2dModelMeshesGroup.add(root);
+            maStlWall2dModelMeshesGroup.visible = true;
+        } else {
+            return false;
+        }
+        return true;
+    }
+
     /** Encofrado T: guía activa; extrusión opcional. */
     const MA_STL_ATK60_RENDER_T_JUNCTION = true;
 
@@ -5574,6 +5747,16 @@ function bootMasterArticleDetailsStlViewer() {
             return maStlWall3dAddMeshFromAtk60Footprint(fp) ? 1 : 0;
         }
         if (axisUds.length < 3) return 0;
+        if (axisUds.length >= 4) {
+            const cross = maStlAtk60TryBuildCrossFootprintAtJunction(vertex, axisUds);
+            if (cross && cross.footprint) {
+                if (render2d) {
+                    maStlAtk60AddXFootprintPointGuide(cross.footprint, false);
+                    return maStlWall2dModelAddAtk60Footprint2d(cross.footprint) ? 1 : 0;
+                }
+                return maStlWall3dAddMeshFromAtk60Footprint(cross.footprint) ? 1 : 0;
+            }
+        }
         for (let i = 0; i < axisUds.length; i++) {
             for (let j = i + 1; j < axisUds.length; j++) {
                 const a = axisUds[i];
@@ -5663,6 +5846,12 @@ function bootMasterArticleDetailsStlViewer() {
                     maStlWall2dModelAxisThicknessMm(axisUds[1])
                 );
             } else if (axisUds.length >= 3) {
+                if (axisUds.length >= 4) {
+                    const cross = maStlAtk60TryBuildCrossFootprintAtJunction(vertex, axisUds);
+                    if (cross && cross.footprint) {
+                        footprint = cross.footprint;
+                    }
+                }
                 for (let i = 0; i < axisUds.length && !footprint; i++) {
                     for (let j = i + 1; j < axisUds.length && !footprint; j++) {
                         const a = axisUds[i];

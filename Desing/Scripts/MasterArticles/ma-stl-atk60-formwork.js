@@ -254,6 +254,106 @@ export function maAtk60BuildTFootprintMm(
 }
 
 /**
+ * Unión en cruz (X / +) AT-60 — huella 12 vértices CCW en planta.
+ *
+ * Regla de negocio clave: constante de esquina 0,30 m en cada hombro.
+ * Para cada eje, desde la cara del muro al extremo de la huella: 300 mm.
+ */
+export function maAtk60BuildCrossFootprintMm(
+    vertex,
+    axisUInto,
+    axisVInto,
+    eUMm,
+    eVMm,
+    axisUDir
+) {
+    if (!vertex || !axisVInto) return null;
+    const axisSrc = axisUDir || axisUInto;
+    if (!axisSrc) return null;
+
+    const uUnit = maAtk60UnitXz({ x: 0, z: 0 }, { x: axisSrc.x, z: axisSrc.z });
+    const vUnit = maAtk60UnitXz({ x: 0, z: 0 }, { x: axisVInto.x, z: axisVInto.z });
+    if (!uUnit || !vUnit) return null;
+    const dot = uUnit.x * vUnit.x + uUnit.z * vUnit.z;
+    if (Math.abs(dot) > 0.15) return null;
+
+    const eU = Math.max(0, Number(eUMm) || 0);
+    const eV = Math.max(0, Number(eVMm) || 0);
+    const halfU = eU * 0.5;
+    const halfV = eV * 0.5;
+
+    // Extensión total desde el centro hasta punta de cada brazo.
+    const spanU = halfU + MA_ATK60_CORNER_PANEL_MM;
+    const spanV = halfV + MA_ATK60_CORNER_PANEL_MM;
+
+    const armUNeedMm = eU + 2 * MA_ATK60_CORNER_PANEL_MM;
+    const armVNeedMm = eV + 2 * MA_ATK60_CORNER_PANEL_MM;
+    const armUPanel = maAtk60SelectPanelMm(armUNeedMm);
+    const armVPanel = maAtk60SelectPanelMm(armVNeedMm);
+
+    const u = { x: uUnit.x, z: uUnit.z };
+    const v = { x: vUnit.x, z: vUnit.z };
+    const y = vertex.y;
+    const pLocal = function (au, av) {
+        return {
+            x: vertex.x + u.x * au + v.x * av,
+            y: y,
+            z: vertex.z + u.z * au + v.z * av,
+        };
+    };
+
+    const points = [
+        pLocal(-halfV, spanU),
+        pLocal(-halfV, halfU),
+        pLocal(-spanV, halfU),
+        pLocal(-spanV, -halfU),
+        pLocal(-halfV, -halfU),
+        pLocal(-halfV, -spanU),
+        pLocal(halfV, -spanU),
+        pLocal(halfV, -halfU),
+        pLocal(spanV, -halfU),
+        pLocal(spanV, halfU),
+        pLocal(halfV, halfU),
+        pLocal(halfV, spanU),
+    ];
+
+    return {
+        points: points,
+        meta: {
+            kind: 'cornerX',
+            system: 'Atk-60',
+            eUMm: eU,
+            eVMm: eV,
+            cornerConstMm: MA_ATK60_CORNER_PANEL_MM,
+            armUNeedMm: armUNeedMm,
+            armVNeedMm: armVNeedMm,
+            armUPanelMm: armUPanel.panelMm,
+            armVPanelMm: armVPanel.panelMm,
+            armUWoodTacoMm: armUPanel.woodTacoMm,
+            armVWoodTacoMm: armVPanel.woodTacoMm,
+            halfUMm: halfU,
+            halfVMm: halfV,
+            spanUMm: spanU,
+            spanVMm: spanV,
+            pointLabels: [
+                'X-1',
+                'X-2',
+                'X-3',
+                'X-4',
+                'X-5',
+                'X-6',
+                'X-7',
+                'X-8',
+                'X-9',
+                'X-10',
+                'X-11',
+                'X-12',
+            ],
+        },
+    };
+}
+
+/**
  * Recortes de tramo recto en unión T (mm escena) — restar en cada pata del atravesado y en la rama.
  * @returns {{ throughHalfMm: number, branchStemMm: number }}
  */
@@ -532,6 +632,7 @@ export function maAtk60BuildFootprintDimPlacements(footprint, floorY, panelOffse
  * @param {number} vertexCount
  */
 export function maAtk60ClassifyFootprintKind(vertexCount) {
+    if (vertexCount >= 12) return 'cornerX';
     if (vertexCount >= 8) return 'cornerT';
     if (vertexCount >= 6) return 'cornerL';
     return 'wall';
