@@ -66,6 +66,16 @@ namespace Desing.Models
         /// Si es 0, el cliente usa su default.
         /// </summary>
         public double Tamano { get; set; } = 0;
+
+        /// <summary>
+        /// Etiqueta opcional para el punto (ej: "R-1", "R-2" para muros rectos)
+        /// </summary>
+        public string Etiqueta { get; set; }
+
+        /// <summary>
+        /// Indica si el punto debe ser dibujado. Permite ocultar puntos de esquinas T de momento.
+        /// </summary>
+        public bool Visible { get; set; } = true;
     }
 
     /// <summary>
@@ -119,6 +129,36 @@ namespace Desing.Models
     }
 
     /// <summary>
+    /// DTO para representar una esquina tipo T detectada (3 ramas)
+    /// </summary>
+    public class EsquinaTDTO
+    {
+        /// <summary>
+        /// Punto del vértice central donde se forma la esquina T
+        /// </summary>
+        public PuntoDTO Vertice { get; set; }
+
+        /// <summary>
+        /// Índices de las 3 líneas que forman la esquina T
+        /// </summary>
+        public int IndiceLinea1 { get; set; }
+        public int IndiceLinea2 { get; set; }
+        public int IndiceLinea3 { get; set; }
+
+        /// <summary>
+        /// Índice de la línea principal (la rama más larga o de referencia)
+        /// </summary>
+        public int IndiceLineaPrincipal { get; set; }
+
+        /// <summary>
+        /// Puntos calculados para las 3 ramas (interior, exterior, verde)
+        /// </summary>
+        public List<PuntoDTO> PuntosRama1 { get; set; }
+        public List<PuntoDTO> PuntosRama2 { get; set; }
+        public List<PuntoDTO> PuntosRama3 { get; set; }
+    }
+
+    /// <summary>
     /// Polilínea a dibujar en ZWCAD (ObjetoDB2d)
     /// </summary>
     public class PolilineaDTO
@@ -149,6 +189,16 @@ namespace Desing.Models
         /// US-697 — Total de muros rectos detectados (B/C entre esquinas, A/D con extremo libre, E/F aislados).
         /// </summary>
         public int TotalMurosRectos { get; set; }
+
+        /// <summary>
+        /// Lista de esquinas tipo T detectadas
+        /// </summary>
+        public List<EsquinaTDTO> EsquinasT { get; set; }
+
+        /// <summary>
+        /// Total de esquinas tipo T detectadas
+        /// </summary>
+        public int TotalEsquinasTDetectadas { get; set; }
 
         /// <summary>
         /// Puntos a dibujar en ZWCAD para visualización

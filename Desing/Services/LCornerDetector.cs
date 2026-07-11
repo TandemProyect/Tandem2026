@@ -85,8 +85,10 @@ namespace Desing.Services
             var resultado = new DeteccionEsquinasLDTO
             {
                 Esquinas = new List<EsquinaLDTO>(),
+                EsquinasT = new List<EsquinaTDTO>(),
                 PuntosADibujar = new List<PuntoDTO>(),
-                PolilineasADibujar = new List<PolilineaDTO>()
+                PolilineasADibujar = new List<PolilineaDTO>(),
+                TotalEsquinasTDetectadas = 0
             };
 
             if (lineas == null || lineas.Count < 2)
@@ -1297,16 +1299,16 @@ namespace Desing.Services
         }
 
         /// <summary>
-        /// US-688 T1 — Emite 4 marcadores tipo "Cuadrado" (uno por vértice del muro recto).
-        /// Tamaño = 100 mm (la mitad del radio del círculo por defecto = 200 mm).
-        /// Cada posición usa un ColorIndex distintivo que NO colisiona con los colores de los
-        /// puntos de esquina (5=azul, 1=rojo, 3=verde, 2=amarillo, 7=blanco, 4=cian, 6=magenta, 9=gris).
+        /// US-688 T1 — Emite 4 marcadores tipo "Cruz" roja (uno por vértice del muro recto).
+        /// Forma: Cruz (X), Color: Rojo (ColorIndex=1), Tamaño: 20 mm.
+        /// Etiquetas: R-1, R-2, R-3, R-4 (en sentido horario desde abajo-izquierda).
         /// </summary>
         private void AgregarMarcadoresVerticesMuro(DeteccionEsquinasLDTO resultado, List<PuntoDTO> verticesMuro)
         {
-            // 4 colores distintivos por posición de vértice del muro (paleta ZWCAD)
-            int[] coloresVerticeMuro = { 30, 140, 210, 90 }; // naranja, púrpura, magenta-oscuro, turquesa
-            const double LADO_SEMI = 20.0; // 20% del original (100 mm) — coherente con cliente
+            // Etiquetas para los 4 vértices (sentido horario)
+            string[] etiquetas = { "R-1", "R-2", "R-3", "R-4" };
+            const double TAMAÑO_CRUZ = 20.0; // mm
+            const int COLOR_ROJO = 1; // ZWCAD
 
             for (int k = 0; k < verticesMuro.Count && k < 4; k++)
             {
@@ -1318,9 +1320,10 @@ namespace Desing.Services
                     Y          = v.Y,
                     Z          = v.Z,
                     TipoPunto  = "VerticeMuro",
-                    ColorIndex = coloresVerticeMuro[k],
-                    Forma      = "Cuadrado",
-                    Tamano     = LADO_SEMI
+                    ColorIndex = COLOR_ROJO,
+                    Forma      = "Cruz",
+                    Tamano     = TAMAÑO_CRUZ,
+                    Etiqueta   = etiquetas[k]
                 });
             }
         }

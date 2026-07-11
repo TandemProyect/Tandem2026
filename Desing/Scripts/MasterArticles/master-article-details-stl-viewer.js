@@ -4794,6 +4794,123 @@ function bootMasterArticleDetailsStlViewer() {
         });
     }
 
+    function maStlWall2dModelSignedAreaXz(points) {
+        if (!points || points.length < 3) return 0;
+        let sum = 0;
+        for (let i = 0; i < points.length; i++) {
+            const a = points[i];
+            const b = points[(i + 1) % points.length];
+            sum += a.x * b.z - b.x * a.z;
+        }
+        return sum * 0.5;
+    }
+
+    function maStlWall2dModelOrderClockwiseXz(points) {
+        if (!points || points.length < 3) return points || [];
+        const out = points.map(function (p) {
+            return { x: p.x, z: p.z };
+        });
+        if (maStlWall2dModelSignedAreaXz(out) > 0) out.reverse();
+        return out;
+    }
+
+    function maStlWall2dModelAddRectVertexRefs(points, baseY) {
+        if (!points || points.length !== 4 || !maStlWall2dModelMeshesGroup) return false;
+        const ordered = maStlWall2dModelOrderClockwiseXz(points);
+        const root = new THREE.Group();
+        root.userData.maStlWall2dModelGenerated = true;
+        root.userData.maStlWall2dRectRefs = true;
+        root.renderOrder = 130;
+        let cx = 0;
+        let cz = 0;
+        for (let ci = 0; ci < ordered.length; ci++) {
+            cx += ordered[ci].x;
+            cz += ordered[ci].z;
+        }
+        cx /= ordered.length;
+        cz /= ordered.length;
+        const markHalf = 42;
+        const markThickness = 10;
+        const labelScale = 112;
+        const labelOffset = 150;
+        const labels = ['R-1', 'R-2', 'R-3', 'R-4'];
+        for (let i = 0; i < ordered.length; i++) {
+            const pt = ordered[i];
+            const markMat = new THREE.MeshBasicMaterial({
+                color: 0xff2d2d,
+                depthTest: false,
+                depthWrite: false,
+            });
+            const armA = new THREE.Mesh(
+                new THREE.BoxGeometry(markHalf * 2, 2, markThickness),
+                markMat
+            );
+            armA.position.set(pt.x, baseY + 2, pt.z);
+            armA.rotation.y = Math.PI / 4;
+            armA.renderOrder = 130;
+            root.add(armA);
+            const armB = new THREE.Mesh(
+                new THREE.BoxGeometry(markHalf * 2, 2, markThickness),
+                markMat
+            );
+            armB.position.set(pt.x, baseY + 2, pt.z);
+            armB.rotation.y = -Math.PI / 4;
+            armB.renderOrder = 130;
+            root.add(armB);
+
+            const prev = ordered[(i + ordered.length - 1) % ordered.length];
+            const next = ordered[(i + 1) % ordered.length];
+            let prevX = prev.x - pt.x;
+            let prevZ = prev.z - pt.z;
+            let nextX = next.x - pt.x;
+            let nextZ = next.z - pt.z;
+            const prevLen = Math.hypot(prevX, prevZ);
+            const nextLen = Math.hypot(nextX, nextZ);
+            if (prevLen > 1e-6) {
+                prevX /= prevLen;
+                prevZ /= prevLen;
+            }
+            if (nextLen > 1e-6) {
+                nextX /= nextLen;
+                nextZ /= nextLen;
+            }
+            let dirX = prevX + nextX;
+            let dirZ = prevZ + nextZ;
+            let dirLen = Math.hypot(dirX, dirZ);
+            if (dirLen <= 1e-6) {
+                dirX = cx - pt.x;
+                dirZ = cz - pt.z;
+                dirLen = Math.hypot(dirX, dirZ);
+            }
+            if (dirLen > 1e-6) {
+                dirX /= dirLen;
+                dirZ /= dirLen;
+            } else {
+                dirX = 1;
+                dirZ = 0;
+            }
+
+            const sp = maStlMakeTextSprite(labels[i], labelScale, {
+                thinFillOnly: true,
+                fillColor: '#ff2d2d',
+                fontPx: 16,
+                fontWeight: 600,
+                canvasPad: 2,
+                thinPillFill: null,
+                thinPillStroke: null,
+                strokeRatio: 0,
+            });
+            if (sp) {
+                sp.position.set(pt.x + dirX * labelOffset, baseY + labelScale * 0.25, pt.z + dirZ * labelOffset);
+                sp.renderOrder = 131;
+                root.add(sp);
+            }
+        }
+        maStlDisableRaycastOnOverlay(root);
+        maStlWall2dModelMeshesGroup.add(root);
+        return true;
+    }
+
     function maStlWall2dModelAddPolygon(points, colorHex, opacity, kind) {
         if (!points || points.length < 3 || !maStlWall2dModelMeshesGroup) return null;
         const y = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM + (kind === 'cornerL' || kind === 'cornerT' ? 3 : 2);
@@ -4813,6 +4930,9 @@ function bootMasterArticleDetailsStlViewer() {
         mesh.userData.maStlWall2dModelKind = kind || 'wall';
         maStlDisableRaycastOnOverlay(mesh);
         maStlWall2dModelMeshesGroup.add(mesh);
+        if ((kind || 'wall') === 'straight' && points.length === 4) {
+            maStlWall2dModelAddRectVertexRefs(points, y);
+        }
         return mesh;
     }
 
@@ -5325,81 +5445,91 @@ function bootMasterArticleDetailsStlViewer() {
         root.userData.maStlAtk60TFootprintGuide = true;
         root.renderOrder = 200;
 
-        const linePos = [];
-        for (let i = 0; i < pts.length; i++) {
-            linePos.push(pts[i].x, floorY, pts[i].z);
+        let cx = 0;
+        let cz = 0;
+        for (let pi = 0; pi < pts.length; pi++) {
+            cx += pts[pi].x;
+            cz += pts[pi].z;
         }
-        linePos.push(pts[0].x, floorY, pts[0].z);
-        const lineGeo = new THREE.BufferGeometry();
-        lineGeo.setAttribute(
-            'position',
-            new THREE.Float32BufferAttribute(new Float32Array(linePos), 3)
-        );
-        const lineMat = new THREE.LineBasicMaterial({
-            color: 0xffffff,
-            transparent: true,
-            opacity: 0.95,
-            depthTest: false,
-            depthWrite: false,
-        });
-        const loop = new THREE.LineLoop(lineGeo, lineMat);
-        loop.renderOrder = 200;
-        root.add(loop);
+        cx /= pts.length;
+        cz /= pts.length;
 
-        /** Colores por vértice P-1…P-8 (punto + texto mismo tono). */
-        const pointColors = [
-            0xff5252, // P-1 rojo
-            0xff9800, // P-8 naranja
-            0xffeb3b, // P-7 amarillo
-            0x8bc34a, // P-6 verde
-            0x00bcd4, // P-5 cian
-            0x2196f3, // P-4 azul
-            0x9c27b0, // P-3 violeta
-            0xe91e63, // P-2 rosa
-        ];
-        const labelScale = 85;
-        const dotRadius = 60;
+        const markHalf = 42;
+        const markThickness = 10;
+        const labelScale = 112;
+        const labelOffsetDefault = 150;
+        const labelOffsetFarOutside = 210;
+        const labelOffsetInside = 120;
+
         for (let li = 0; li < pts.length; li++) {
-            const col = pointColors[li % pointColors.length];
-            const colHex = '#' + col.toString(16).padStart(6, '0');
-            const sp = maStlMakeTextSprite(labels[li] || 'P-' + (li + 1), labelScale, {
+            const pt = pts[li];
+            const markMat = new THREE.MeshBasicMaterial({
+                color: 0x111111,
+                depthTest: false,
+                depthWrite: false,
+            });
+            const armA = new THREE.Mesh(
+                new THREE.BoxGeometry(markHalf * 2, 2, markThickness),
+                markMat
+            );
+            armA.position.set(pt.x, floorY, pt.z);
+            armA.rotation.y = Math.PI / 4;
+            armA.renderOrder = 200;
+            root.add(armA);
+            const armB = new THREE.Mesh(
+                new THREE.BoxGeometry(markHalf * 2, 2, markThickness),
+                markMat
+            );
+            armB.position.set(pt.x, floorY, pt.z);
+            armB.rotation.y = -Math.PI / 4;
+            armB.renderOrder = 200;
+            root.add(armB);
+
+            const rawLabel = labels[li] || 'P-' + (li + 1);
+            const labelNumMatch = /([0-9]+)/.exec(String(rawLabel));
+            const labelNum = labelNumMatch ? Number(labelNumMatch[1]) : li + 1;
+
+            let dirX = pt.x - cx;
+            let dirZ = pt.z - cz;
+            let dirLen = Math.hypot(dirX, dirZ);
+            if (dirLen <= 1e-6) {
+                dirX = 1;
+                dirZ = 0;
+                dirLen = 1;
+            }
+            dirX /= dirLen;
+            dirZ /= dirLen;
+
+            let labelDirSign = 1;
+            let labelOffset = labelOffsetDefault;
+            if (labelNum === 3 || labelNum === 8) {
+                labelDirSign = -1;
+                labelOffset = labelOffsetInside;
+            } else if (labelNum === 1 || labelNum === 2 || labelNum === 4 || labelNum === 7) {
+                labelDirSign = 1;
+                labelOffset = labelOffsetFarOutside;
+            }
+
+            const displayLabel = 'T-' + labelNum;
+            const sp = maStlMakeTextSprite(displayLabel, labelScale, {
                 thinFillOnly: true,
-                fillColor: colHex,
-                fontPx: 8,
+                fillColor: '#111111',
+                fontPx: 16,
                 fontWeight: 600,
                 canvasPad: 2,
-                thinPillFill: 'rgba(0,0,0,0.6)',
-                thinPillRadiusPx: 3,
+                thinPillFill: null,
+                thinPillStroke: null,
+                strokeRatio: 0,
             });
             if (sp) {
-                sp.position.set(pts[li].x, floorY + labelScale * 0.45, pts[li].z);
+                sp.position.set(
+                    pt.x + dirX * labelOffset * labelDirSign,
+                    floorY + labelScale * 0.25,
+                    pt.z + dirZ * labelOffset * labelDirSign
+                );
                 sp.renderOrder = 201;
                 root.add(sp);
             }
-            const dot = new THREE.Mesh(
-                new THREE.SphereGeometry(dotRadius, 14, 12),
-                new THREE.MeshBasicMaterial({
-                    color: col,
-                    depthTest: false,
-                    depthWrite: false,
-                })
-            );
-            dot.position.set(pts[li].x, floorY, pts[li].z);
-            dot.renderOrder = 199;
-            root.add(dot);
-            const ring = new THREE.Mesh(
-                new THREE.RingGeometry(dotRadius * 1.15, dotRadius * 1.45, 24),
-                new THREE.MeshBasicMaterial({
-                    color: 0xffffff,
-                    side: THREE.DoubleSide,
-                    depthTest: false,
-                    depthWrite: false,
-                })
-            );
-            ring.rotation.x = -Math.PI / 2;
-            ring.position.set(pts[li].x, floorY + 1, pts[li].z);
-            ring.renderOrder = 198;
-            root.add(ring);
         }
 
         maStlDisableRaycastOnOverlay(root);
@@ -5473,7 +5603,7 @@ function bootMasterArticleDetailsStlViewer() {
                         { x: uThrough.x, z: uThrough.z }
                     );
                     if (!fp) return 0;
-                    maStlAtk60AddTFootprintPointGuide(fp, !render2d);
+                    if (render2d) maStlAtk60AddTFootprintPointGuide(fp, false);
                     if (!MA_STL_ATK60_T_EXTRUDE_3D) return 1;
                     if (render2d) return maStlWall2dModelAddAtk60Footprint2d(fp) ? 1 : 0;
                     return maStlWall3dAddMeshFromAtk60Footprint(fp) ? 1 : 0;
