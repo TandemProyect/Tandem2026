@@ -4913,7 +4913,8 @@ function bootMasterArticleDetailsStlViewer() {
 
     function maStlWall2dModelAddPolygon(points, colorHex, opacity, kind) {
         if (!points || points.length < 3 || !maStlWall2dModelMeshesGroup) return null;
-        const y = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM + (kind === 'cornerL' || kind === 'cornerT' ? 3 : 2);
+        const isCornerKind = kind === 'cornerL' || kind === 'cornerT';
+        const y = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM + (isCornerKind ? 3 : 2);
         const shape = new THREE.Shape();
         shape.moveTo(points[0].x, -points[0].z);
         for (let i = 1; i < points.length; i++) {
@@ -4925,7 +4926,7 @@ function bootMasterArticleDetailsStlViewer() {
         geo.translate(0, y, 0);
         geo.computeBoundingSphere();
         const mesh = new THREE.Mesh(geo, maStlWall2dModelMaterial(colorHex, opacity));
-        mesh.renderOrder = kind === 'cornerL' || kind === 'cornerT' ? 120 : 119;
+        mesh.renderOrder = isCornerKind ? 120 : 119;
         mesh.userData.maStlWall2dModelGenerated = true;
         mesh.userData.maStlWall2dModelKind = kind || 'wall';
         maStlDisableRaycastOnOverlay(mesh);
@@ -5222,18 +5223,17 @@ function bootMasterArticleDetailsStlViewer() {
                         const intoBr = maStlWall2dToolDirFromVertexIntoAxisMm(branch, endBr);
                         const throughDir = maStlAtk60CanonicalThroughDirFromTJunction(intoA, intoB, intoBr);
                         if (!throughDir) continue;
+                        const throughThicknessMm = maStlWall2dModelAxisThicknessMm(a);
+                        const branchThicknessMm = maStlWall2dModelAxisThicknessMm(branch);
                         const fp = maAtk60BuildTFootprintMm(
                             vertex,
                             intoA,
                             intoBr,
-                            maStlWall2dModelAxisThicknessMm(a),
-                            maStlWall2dModelAxisThicknessMm(branch),
+                            throughThicknessMm,
+                            branchThicknessMm,
                             throughDir
                         );
-                        const trims = maAtk60GetTJunctionTrimMm(
-                            maStlWall2dModelAxisThicknessMm(a),
-                            maStlWall2dModelAxisThicknessMm(branch)
-                        );
+                        const trims = maAtk60GetTJunctionTrimMm(throughThicknessMm, branchThicknessMm);
                         const trimAFromShape = fp && fp.points ? maStlAtk60RayPolygonFirstHitMm(vertex, intoA, fp.points) : null;
                         const trimBFromShape = fp && fp.points ? maStlAtk60RayPolygonFirstHitMm(vertex, intoB, fp.points) : null;
                         const trimBrFromShape =
@@ -5253,9 +5253,14 @@ function bootMasterArticleDetailsStlViewer() {
                             );
                         }
                         if (branch.id != null && endBr) {
+                            const baseBranchTrim =
+                                trimBrFromShape != null ? trimBrFromShape : trims.branchStemMm;
+                            // Crecer solo el muro rama hasta conectar mejor con la esquina T,
+                            // sin modificar la geometría de la esquina encofrado.
+                            const grownBranchTrim = Math.max(0, baseBranchTrim - throughThicknessMm * 0.5);
                             trimMap.set(
                                 branch.id + '|' + endBr,
-                                trimBrFromShape != null ? trimBrFromShape : trims.branchStemMm
+                                grownBranchTrim
                             );
                         }
                         break;
