@@ -2759,6 +2759,9 @@ function bootMasterArticleDetailsStlViewer() {
     let maStlDesing2ModelMode = 'lines';
     const maStlWall3dToolSelectedLines = new Set();
     let maStlWall3dToolHoverLine = null;
+    const MA_STL_WALL3D_INSPECT_HOVER_HEX = 0x00e5ff;
+    let maStlWall3dInspectHoverMesh = null;
+    let maStlWall3dInspectHoverState = null;
     const maStlWall3dToolToggleBtn = document.getElementById('desing2-stl-right-panel-wall-3d');
     const maStlWall3dMapBtn = document.getElementById('desing2-stl-right-panel-wall-map');
     const maStlWall3dToolHud = document.getElementById('ma-stl-wall3d-tool-hud');
@@ -3035,6 +3038,14 @@ function bootMasterArticleDetailsStlViewer() {
 
     function maStlIsWall3dToolActive() {
         return maStlWall3dToolActive === true;
+    }
+
+    function maStlWall3dInspectInteractionEnabled() {
+        return maStlDesing2ModelMode === 'wall3d' && maStlLineToolKind === 'wall2d';
+    }
+
+    function maStlSuppressUserFloorLineDimInteractions() {
+        return maStlWall3dInspectInteractionEnabled();
     }
 
     function maStlIsInsertCornerToolActive() {
@@ -4758,6 +4769,7 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     function maStlWall3dModelClearGenerated() {
+        maStlWall3dInspectClearHoverMesh();
         if (!maStlWall3dMeshesGroup) return;
         const generated = [];
         maStlWall3dMeshesGroup.traverse(function (obj) {
@@ -21385,6 +21397,11 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     function onCanvasPointerMoveUserFloorLineHover(ev) {
+        if (maStlSuppressUserFloorLineDimInteractions()) {
+            maStlClearUserFloorLineHover();
+            maStlWall3dInspectSyncHoverAtPointer(ev.clientX, ev.clientY);
+            return;
+        }
         if (!maStlDesingV2Viewer || !renderer || maStlIsDesing2FloorDrawToolActive()) {
             maStlClearUserFloorLineHover();
             return;
@@ -21474,6 +21491,22 @@ function bootMasterArticleDetailsStlViewer() {
 
     /** Clic simple: selecciona segmento; longitud + ΔX + ΔZ + asas P1/P2 (sin inputs). */
     function onCanvasClickUserFloorLineSelect(ev) {
+        if (maStlSuppressUserFloorLineDimInteractions()) {
+            if (!maStlDesingV2Viewer) return;
+            if (ev.button !== 0) return;
+            const canvas = renderer && renderer.domElement;
+            if (!canvas || ev.currentTarget !== canvas) return;
+            const rawTarget = ev.target;
+            if (rawTarget && typeof rawTarget.closest === 'function') {
+                if (rawTarget.closest('button, input, select, textarea, [role="button"], label')) return;
+            }
+            if (maStlWall3dInspectTryAlertAtPointer(ev.clientX, ev.clientY)) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                ev.stopImmediatePropagation();
+            }
+            return;
+        }
         if (!maStlDesingV2Viewer || maStlIsDesing2FloorDrawToolActive()) return;
         if (maStlIsRulerAnchorPickModeActive()) return;
         if (maStlIsUserFloorLineDimEditOverlayActive()) return;
@@ -21543,6 +21576,7 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     function onCanvasDblClickUserFloorLineDimension(ev) {
+        if (maStlSuppressUserFloorLineDimInteractions()) return;
         if (!maStlDesingV2Viewer || maStlIsDesing2FloorDrawToolActive()) return;
         if (maStlIsRulerAnchorPickModeActive()) return;
         if (maStlIsUserFloorLineDimEditOverlayActive()) return;
@@ -22256,6 +22290,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (!maStlIsLineToolPlacementActive()) return;
         maStlLineToolLastPointerClientXY.set(ev.clientX, ev.clientY);
         maStlUpdateLineToolFloorHover(ev.clientX, ev.clientY);
+        maStlWall3dInspectSyncHoverAtPointer(ev.clientX, ev.clientY);
         const p = maStlResolveLineToolFloorPointMm(ev.clientX, ev.clientY);
         if (p && maStlLineToolState === 'picking2') {
             maStlLineToolMaybeUpdateHoverDirFromP2Candidate(p);
@@ -22400,6 +22435,12 @@ function bootMasterArticleDetailsStlViewer() {
         if (rawTarget && typeof rawTarget.closest === 'function') {
             if (rawTarget.closest('button, input, select, textarea, [role="button"], label')) return;
         }
+        if (maStlWall3dInspectTryAlertAtPointer(ev.clientX, ev.clientY)) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            ev.stopImmediatePropagation();
+            return;
+        }
         ev.preventDefault();
         ev.stopPropagation();
         ev.stopImmediatePropagation();
@@ -22501,6 +22542,7 @@ function bootMasterArticleDetailsStlViewer() {
 
     function onCanvasPointerLeaveInsertionPick() {
         onCanvasPointerLeaveUserFloorLineHover();
+        maStlWall3dInspectClearHoverMesh();
         if (maStlIsLineToolPlacementActive()) {
             maStlClearGridIntersectionPickHighlight();
             maStlClearLineToolVertexSnapHighlight();
@@ -22543,6 +22585,150 @@ function bootMasterArticleDetailsStlViewer() {
         maStlClearInsertionPickHighlight();
         maStlClearGridIntersectionPickHighlight();
         maStlClearLineToolVertexSnapHighlight();
+    }
+
+    function maStlWall3dInspectClearHoverMesh() {
+        if (!maStlWall3dInspectHoverMesh || !maStlWall3dInspectHoverState) {
+            maStlWall3dInspectHoverMesh = null;
+            maStlWall3dInspectHoverState = null;
+            return;
+        }
+        const st = maStlWall3dInspectHoverState;
+        const mat = st.material;
+        if (mat && mat.color) {
+            mat.color.setHex(st.colorHex);
+        }
+        if (mat && mat.emissive && st.emissiveHex != null) {
+            mat.emissive.setHex(st.emissiveHex);
+        }
+        maStlWall3dInspectHoverMesh = null;
+        maStlWall3dInspectHoverState = null;
+    }
+
+    function maStlWall3dInspectSetHoverMesh(mesh) {
+        if (mesh === maStlWall3dInspectHoverMesh) return;
+        maStlWall3dInspectClearHoverMesh();
+        if (!mesh || !mesh.isMesh || !mesh.material) return;
+        const mat = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
+        if (!mat || !mat.color) return;
+        maStlWall3dInspectHoverMesh = mesh;
+        maStlWall3dInspectHoverState = {
+            material: mat,
+            colorHex: mat.color.getHex(),
+            emissiveHex: mat.emissive ? mat.emissive.getHex() : null,
+        };
+        mat.color.setHex(MA_STL_WALL3D_INSPECT_HOVER_HEX);
+        if (mat.emissive) {
+            mat.emissive.setHex(0x1a1200);
+        }
+    }
+
+    function maStlWall3dInspectPickMeshHitAtPointer(clientX, clientY) {
+        if (!renderer || !maStlWall3dMeshesGroup || !maStlWall3dMeshesGroup.visible) return null;
+        const canvas = renderer.domElement;
+        const rect = canvas.getBoundingClientRect();
+        const rw = Math.max(rect.width, 1);
+        const rh = Math.max(rect.height, 1);
+        _maStlFloorPickNdc.set(
+            ((clientX - rect.left) / rw) * 2 - 1,
+            -((clientY - rect.top) / rh) * 2 + 1
+        );
+        const cam = activeCamera();
+        if (!cam) return null;
+        cam.updateMatrixWorld(true);
+        orbitPivotRaycaster.setFromCamera(_maStlFloorPickNdc, cam);
+        const hits = orbitPivotRaycaster.intersectObject(maStlWall3dMeshesGroup, true);
+        for (let i = 0; i < hits.length; i++) {
+            const obj = hits[i] && hits[i].object;
+            if (!obj || !obj.isMesh || !obj.userData || !obj.userData.maStlWall3dGenerated) continue;
+            if (obj.userData.maStlAtk60TFootprintGuide || obj.userData.maStlAtk60XFootprintGuide) continue;
+            return hits[i];
+        }
+        return null;
+    }
+
+    function maStlWall3dInspectResolveAxisUdFromPoint(hitPoint) {
+        if (!hitPoint) return null;
+        const axes = maStlWall2dToolCollectAllAxisLines();
+        if (!axes || !axes.length) return null;
+        let bestUd = null;
+        let bestDist = Infinity;
+        for (let i = 0; i < axes.length; i++) {
+            const axis = axes[i];
+            const ud = axis && axis.userData && axis.userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            const proj = maStlProjectPointOntoUserFloorSegmentBodyXzMm(
+                hitPoint,
+                ud.p1Mm,
+                ud.p2Mm,
+                _maStlUserFloorSegmentBodyProj
+            );
+            if (!proj) continue;
+            if (proj.distXZ < bestDist) {
+                bestDist = proj.distXZ;
+                bestUd = ud;
+            }
+        }
+        return bestUd;
+    }
+
+    function maStlWall3dInspectBuildAttrsAlertText(ud, mesh) {
+        const lines = ['Atributos del muro'];
+        if (ud) {
+            const keys = [
+                '_idObject',
+                '_TypeMesh',
+                '_Datalong',
+                '_DataWith',
+                '_DataHeight',
+                '_IsUniversalPanel',
+                '_XCoordinate',
+                '_YCoordinate',
+                '_ZCoordinate',
+                '_Tape_1',
+                '_Tape_2',
+                '_Idconnection_1',
+                '_Idconnection_2',
+                '_CHeckBracketInside',
+                '_CHeckBracketOutside',
+                '_CHeckRijiInside',
+                '_CHeckRijiOutside',
+                '_CHeckPropInside',
+                '_CHeckPropOutside',
+                '_CHeckPropInsideInf',
+                '_CHeckPropOutsideInf',
+            ];
+            for (let i = 0; i < keys.length; i++) {
+                const k = keys[i];
+                const v = ud[k];
+                lines.push(k + ': ' + (v == null ? 'null' : String(v)));
+            }
+        } else {
+            lines.push('No se encontro maStlUserPlanLine asociado.');
+            if (mesh && mesh.userData) {
+                lines.push('kind: ' + String(mesh.userData.maStlWall3dKind || 'wall'));
+                lines.push('atk60Kind: ' + String(mesh.userData.maStlWall3dAtk60Kind || 'n/a'));
+            }
+        }
+        return lines.join('\n');
+    }
+
+    function maStlWall3dInspectSyncHoverAtPointer(clientX, clientY) {
+        if (!maStlWall3dInspectInteractionEnabled()) {
+            maStlWall3dInspectClearHoverMesh();
+            return;
+        }
+        const hit = maStlWall3dInspectPickMeshHitAtPointer(clientX, clientY);
+        maStlWall3dInspectSetHoverMesh(hit ? hit.object : null);
+    }
+
+    function maStlWall3dInspectTryAlertAtPointer(clientX, clientY) {
+        if (!maStlWall3dInspectInteractionEnabled()) return false;
+        const hit = maStlWall3dInspectPickMeshHitAtPointer(clientX, clientY);
+        if (!hit || !hit.object) return false;
+        const ud = maStlWall3dInspectResolveAxisUdFromPoint(hit.point || null);
+        window.alert(maStlWall3dInspectBuildAttrsAlertText(ud, hit.object));
+        return true;
     }
 
     /**
