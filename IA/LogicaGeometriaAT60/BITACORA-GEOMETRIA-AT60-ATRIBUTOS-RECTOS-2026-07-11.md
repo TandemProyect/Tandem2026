@@ -118,3 +118,61 @@ Se considera correcto cuando:
 - El contrato de atributos existe en todas las lineas de muro activas.
 - Los atributos sobreviven crear, editar, split, undo/redo y serializacion.
 - Las reglas L/T/X mantienen consistencia de cotas y no degradan rectos.
+
+## 9) Convencion de lenguaje y nombres de modelo
+
+Convencion activa para esta linea de trabajo:
+- Idioma de comunicacion: Espanol.
+- Nombre de modos en conversacion:
+	- Modelo Linea
+	- Modelo Muro
+	- Modelo 3D
+
+Regla de interpretacion:
+- Si se habla de Modelo Linea, se refiere al boton de modo linea en toolbar.
+- Si se habla de Modelo Muro, se refiere al boton de modo muro en toolbar.
+- Si se habla de Modelo 3D, se refiere al boton de modo 3D en toolbar.
+
+## 10) Plantilla JSON de comunicacion (draft)
+
+Objetivo:
+- Estandarizar solicitudes de comportamiento UI por modo.
+
+Ejemplo minimo:
+
+```json
+{
+	"idioma": "es",
+	"modo": "Modelo Muro",
+	"acciones": {
+		"hover": {
+			"activo": true,
+			"color": "#00E5FF"
+		},
+		"click": {
+			"activo": true,
+			"resultado": "alert"
+		}
+	},
+	"alcance": "Desing_2_ThreeJs"
+}
+```
+
+Valores esperados:
+- modo: Modelo Linea | Modelo Muro | Modelo 3D
+- resultado.click: alert | formulario_lateral
+
+## 11) Registro de cambios (actualizacion)
+
+### 2026-07-12 - Bloque B: Lenguaje comun + contrato JSON
+
+Objetivo:
+- Documentar un lenguaje comun para nombrar modos y una base JSON para intercambio de requisitos.
+
+Implementado:
+- Seccion de convencion de lenguaje en Espanol.
+- Mapeo explicito de nombres Modelo Linea/Modelo Muro/Modelo 3D.
+- Plantilla JSON base para definir hover/click por modo.
+
+Abierto:
+- Confirmar version oficial de esquema JSON para guardar historial de acciones por tarea.
