@@ -3881,6 +3881,87 @@ function bootMasterArticleDetailsStlViewer() {
         return { x: p.x, y: p.y, z: p.z };
     }
 
+    const MA_STL_WALL_LINE_ATTR_KEYS = [
+        '_idObject',
+        '_TypeMesh',
+        '_Datalong',
+        '_DataWith',
+        '_DataHeight',
+        '_IsUniversalPanel',
+        '_XCoordinate',
+        '_YCoordinate',
+        '_ZCoordinate',
+        '_Tape_1',
+        '_Tape_2',
+        '_Idconnection_1',
+        '_Idconnection_2',
+        '_CHeckBracketInside',
+        '_CHeckBracketOutside',
+        '_CHeckRijiInside',
+        '_CHeckRijiOutside',
+        '_CHeckPropInside',
+        '_CHeckPropOutside',
+        '_CHeckPropInsideInf',
+        '_CHeckPropOutsideInf',
+    ];
+
+    function maStlWallLineCopyAttrs(fromObj, toObj) {
+        if (!fromObj || !toObj) return;
+        for (let i = 0; i < MA_STL_WALL_LINE_ATTR_KEYS.length; i++) {
+            const key = MA_STL_WALL_LINE_ATTR_KEYS[i];
+            if (Object.prototype.hasOwnProperty.call(fromObj, key)) {
+                toObj[key] = fromObj[key];
+            }
+        }
+    }
+
+    function maStlRoundMeters3(valueM) {
+        return Math.round((Number(valueM) || 0) * 1000) / 1000;
+    }
+
+    function maStlWallLineResolveWidthMm(ud) {
+        if (!ud) return MA_STL_DESING2_WALL_WIDTH_DEFAULT_MM;
+        if (ud.wallRole === 'axis') {
+            return maStlWall2dToolAxisHalfThicknessFromAxisUd(ud) * 2;
+        }
+        if (ud.numberOffsetMm != null && Number.isFinite(ud.numberOffsetMm)) {
+            return Math.abs(ud.numberOffsetMm) * 2;
+        }
+        return MA_STL_DESING2_WALL_WIDTH_DEFAULT_MM;
+    }
+
+    function maStlWallLineEnsureAttrs(ud) {
+        if (!ud || !ud.p1Mm || !ud.p2Mm) return;
+        const wallId = ud.wallId != null ? ud.wallId : ud.wallGroupId;
+        const lenMm = maStlUserFloorLineLengthMm(ud);
+        const widthMm = maStlWallLineResolveWidthMm(ud);
+        const midX = (ud.p1Mm.x + ud.p2Mm.x) * 0.5;
+        const midY = (ud.p1Mm.y + ud.p2Mm.y) * 0.5;
+        const midZ = (ud.p1Mm.z + ud.p2Mm.z) * 0.5;
+
+        ud._idObject = wallId != null ? wallId : ud.id;
+        ud._TypeMesh = 'Wall';
+        ud._Datalong = maStlRoundMeters3(lenMm / 1000);
+        ud._DataWith = maStlRoundMeters3(widthMm / 1000);
+        ud._DataHeight = maStlRoundMeters3(MA_STL_WALL3D_DEFAULT_HEIGHT_MM / 1000);
+        if (ud._IsUniversalPanel == null) ud._IsUniversalPanel = true;
+        ud._XCoordinate = midX;
+        ud._YCoordinate = midY;
+        ud._ZCoordinate = midZ;
+        if (ud._Tape_1 == null) ud._Tape_1 = 'Tipo 1';
+        if (ud._Tape_2 == null) ud._Tape_2 = 'Tipo 1';
+        if (ud._Idconnection_1 === undefined) ud._Idconnection_1 = null;
+        if (ud._Idconnection_2 === undefined) ud._Idconnection_2 = null;
+        if (ud._CHeckBracketInside == null) ud._CHeckBracketInside = true;
+        if (ud._CHeckBracketOutside == null) ud._CHeckBracketOutside = true;
+        if (ud._CHeckRijiInside == null) ud._CHeckRijiInside = true;
+        if (ud._CHeckRijiOutside == null) ud._CHeckRijiOutside = true;
+        if (ud._CHeckPropInside == null) ud._CHeckPropInside = true;
+        if (ud._CHeckPropOutside == null) ud._CHeckPropOutside = true;
+        if (ud._CHeckPropInsideInf == null) ud._CHeckPropInsideInf = true;
+        if (ud._CHeckPropOutsideInf == null) ud._CHeckPropOutsideInf = true;
+    }
+
     /** Serializa líneas usuario (p1Mm/p2Mm) + anclaje reglas + uuids mallas STL visibles para undo/redo. */
     function maStlDesing2SerializeEditSnapshot() {
         const lines = [];
@@ -3891,6 +3972,7 @@ function bootMasterArticleDetailsStlViewer() {
                 if (!maStlIsUserFloorPlanLineObject(ln)) continue;
                 const ud = ln.userData && ln.userData.maStlUserPlanLine;
                 if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+                maStlWallLineEnsureAttrs(ud);
                 const row = {
                     id: ud.id,
                     p1Mm: maStlDesing2ClonePlanPointMm(ud.p1Mm),
@@ -3901,6 +3983,11 @@ function bootMasterArticleDetailsStlViewer() {
                 }
                 if (ud.wallGroupId != null) {
                     row.wallGroupId = ud.wallGroupId;
+                }
+                if (ud.wallId != null) {
+                    row.wallId = ud.wallId;
+                } else if (ud.wallGroupId != null) {
+                    row.wallId = ud.wallGroupId;
                 }
                 if (ud.wallRole) {
                     row.wallRole = ud.wallRole;
@@ -3914,6 +4001,7 @@ function bootMasterArticleDetailsStlViewer() {
                 if (ud.numberWallFaceSideSign != null) {
                     row.numberWallFaceSideSign = ud.numberWallFaceSideSign;
                 }
+                maStlWallLineCopyAttrs(ud, row);
                 lines.push(row);
             }
         }
@@ -4175,10 +4263,13 @@ function bootMasterArticleDetailsStlViewer() {
             };
             if (row.polylineGroupId != null) lineDto.polylineGroupId = row.polylineGroupId;
             if (row.wallGroupId != null) lineDto.wallGroupId = row.wallGroupId;
+            if (row.wallId != null) lineDto.wallId = row.wallId;
+            else if (row.wallGroupId != null) lineDto.wallId = row.wallGroupId;
             if (row.wallRole) lineDto.wallRole = row.wallRole;
             if (row.linkOffsetFromLineId != null) lineDto.linkOffsetFromLineId = row.linkOffsetFromLineId;
             if (row.numberOffsetMm != null) lineDto.numberOffsetMm = row.numberOffsetMm;
             if (row.numberWallFaceSideSign != null) lineDto.numberWallFaceSideSign = row.numberWallFaceSideSign;
+            maStlWallLineCopyAttrs(row, lineDto);
             lineDtos.push(lineDto);
 
             if (row.polylineGroupId != null) {
@@ -4189,6 +4280,10 @@ function bootMasterArticleDetailsStlViewer() {
             if (row.wallGroupId != null) {
                 const wgKey = String(row.wallGroupId);
                 if (!walls[wgKey]) walls[wgKey] = { id: row.wallGroupId, axisSegmentIds: [], faceSegmentIds: [] };
+                if (row.wallId != null) walls[wgKey].wallId = row.wallId;
+                else if (row.wallGroupId != null && walls[wgKey].wallId == null) {
+                    walls[wgKey].wallId = row.wallGroupId;
+                }
                 if (row.wallRole === 'axis') walls[wgKey].axisSegmentIds.push(row.id);
                 else if (row.wallRole === 'face') walls[wgKey].faceSegmentIds.push(row.id);
             }
@@ -4437,6 +4532,11 @@ function bootMasterArticleDetailsStlViewer() {
                         maxWallGroupId = row.wallGroupId;
                     }
                 }
+                if (row.wallId != null) {
+                    planUd.wallId = row.wallId;
+                } else if (row.wallGroupId != null) {
+                    planUd.wallId = row.wallGroupId;
+                }
                 if (row.wallRole) {
                     planUd.wallRole = row.wallRole;
                 }
@@ -4449,6 +4549,8 @@ function bootMasterArticleDetailsStlViewer() {
                 if (row.numberWallFaceSideSign != null) {
                     planUd.numberWallFaceSideSign = row.numberWallFaceSideSign;
                 }
+                maStlWallLineCopyAttrs(row, planUd);
+                maStlWallLineEnsureAttrs(planUd);
                 line.userData.maStlUserPlanLine = planUd;
                 maStlDisableRaycastOnOverlay(line);
                 maStlUserLinesGroup.add(line);
@@ -9189,6 +9291,7 @@ function bootMasterArticleDetailsStlViewer() {
         ud.p2Mm.x = J.x;
         ud.p2Mm.y = J.y;
         ud.p2Mm.z = J.z;
+        maStlWallLineEnsureAttrs(ud);
         maStlApplyUserFloorLineSegmentGeometryFromMm(axisLine);
         maStlUserFloorLineSyncAxisDashDistances(axisLine);
 
@@ -9202,10 +9305,17 @@ function bootMasterArticleDetailsStlViewer() {
             if (!fj) continue;
             const key = maStlWall2dToolFaceEndpointKeyNearVertexMm(fUd, oldP2);
             maStlWall2dToolSetFaceEndpointMm(fUd, key, fj);
+            maStlWallLineEnsureAttrs(fUd);
             maStlApplyUserFloorLineSegmentGeometryFromMm(faceLine);
         }
 
-        const wallExtras = { wallGroupId: wallGroupId, wallRole: 'axis', skipCollinearMerge: true };
+        const wallId = ud.wallId != null ? ud.wallId : wallGroupId;
+        const wallExtras = {
+            wallGroupId: wallGroupId,
+            wallId: wallId,
+            wallRole: 'axis',
+            skipCollinearMerge: true,
+        };
         const tailAxis = maStlWall2dToolAddSegmentMm(J, oldP2, wallExtras, true);
         if (!tailAxis) return true;
         const tailUd = tailAxis.userData && tailAxis.userData.maStlUserPlanLine;
@@ -9219,6 +9329,7 @@ function bootMasterArticleDetailsStlViewer() {
                 ends.p2,
                 {
                     wallGroupId: wallGroupId,
+                    wallId: wallId,
                     wallRole: 'face',
                     linkOffsetFromLineId: tailUd.id,
                     numberOffsetMm: halfT,
@@ -9973,7 +10084,12 @@ function bootMasterArticleDetailsStlViewer() {
         maStlWeldUserFloorPlanPointToExistingEndpointsMm(b, weldEps);
         maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(a);
         maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(b);
-        const wallExtras = { wallGroupId: wallGroupId, wallRole: 'axis', skipCollinearMerge: true };
+        const wallExtras = {
+            wallGroupId: wallGroupId,
+            wallId: wallGroupId,
+            wallRole: 'axis',
+            skipCollinearMerge: true,
+        };
         const centerLine = maStlWall2dToolAddSegmentMm(a, b, wallExtras, true);
         if (!centerLine) return false;
         maStlUserFloorLineSyncAxisDashDistances(centerLine);
@@ -9988,6 +10104,7 @@ function bootMasterArticleDetailsStlViewer() {
                 ends.p2,
                 {
                     wallGroupId: wallGroupId,
+                    wallId: wallGroupId,
                     wallRole: 'face',
                     linkOffsetFromLineId: centerUd.id,
                     numberOffsetMm: halfT,
@@ -17394,6 +17511,12 @@ function bootMasterArticleDetailsStlViewer() {
         }
         if (planExtras) {
             if (planExtras.wallGroupId != null) planUd.wallGroupId = planExtras.wallGroupId;
+            if (planExtras.wallId != null) {
+                planUd.wallId = planExtras.wallId;
+            } else if (planExtras.wallGroupId != null) {
+                // Paso 1 atributos de muro: wallId inmutable por muro.
+                planUd.wallId = planExtras.wallGroupId;
+            }
             if (planExtras.wallRole) planUd.wallRole = planExtras.wallRole;
             if (planExtras.linkOffsetFromLineId != null) {
                 planUd.linkOffsetFromLineId = planExtras.linkOffsetFromLineId;
@@ -17403,6 +17526,7 @@ function bootMasterArticleDetailsStlViewer() {
                 planUd.numberWallFaceSideSign = planExtras.numberWallFaceSideSign;
             }
         }
+        maStlWallLineEnsureAttrs(planUd);
         line.userData.maStlUserPlanLine = planUd;
         maStlDisableRaycastOnOverlay(line);
         maStlUserLinesGroup.add(line);
