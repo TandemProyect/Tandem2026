@@ -143,6 +143,10 @@ function DrawDesign() {
         meshWall.TypeWall_270 = ListWalls[i].TypeWall_270;
         meshWall.IsTypeConexion = null;
         meshWall.IdTypeFormworkMode = ListWalls[i].IdTypeFormworkMode;
+        meshWall.IsFormwork = ListWalls[i].IsFormwork;
+        if (meshWall.IsFormwork === undefined || meshWall.IsFormwork === null || meshWall.IsFormwork === "") {
+            meshWall.IsFormwork = true;
+        }
         if (addMesh0 === true) { insertwall_00(meshWall); addMesh0 = false; }
         if (addMesh90 === true) { insertwall_90(meshWall); addMesh90 = false; }
         if (addMeshWorker === true) { insertWorker_00(meshWall); addMesh90 = false; }
@@ -566,6 +570,7 @@ function AddWall_R000(
 
 
         meshWall.Grupo = 0;
+        meshWall.IsFormwork = true;
         if (OldWall === false) {
             OldWall = undefined;
         }
@@ -589,6 +594,11 @@ function AddWall_R000(
             meshWall.Tape_180 = OldWall.Tape_180;
             meshWall.name = OldWall.name;
             meshWall.idWall = OldWall.idWall;
+            meshWall.IsFormwork = OldWall.IsFormwork;
+        }
+
+        if (meshWall.IsFormwork === undefined) {
+            meshWall.IsFormwork = true;
         }
 
         if (meshWall.IdWall_0 !== "0") {
@@ -711,6 +721,7 @@ function AddWall_R900(
         meshWall.CHeckPropInsideInf = document.getElementById("CHeckPropInsideInf").checked;
         meshWall.CHeckPropOutsideInf = document.getElementById("CHeckPropOutsideInf").checked;
         meshWall.CHeck750R = document.getElementById("CHeck750R").checked;
+        meshWall.IsFormwork = true;
         if (OldWall === false)
         {
             OldWall = undefined;
@@ -735,6 +746,10 @@ function AddWall_R900(
             meshWall.Tape_270 = OldWall.Tape_270;
             meshWall.name = OldWall.name;
             meshWall.idWall = OldWall.idWall;
+            meshWall.IsFormwork = OldWall.IsFormwork;
+        }
+        if (meshWall.IsFormwork === undefined) {
+            meshWall.IsFormwork = true;
         }
         meshWall.LongLeft = 0;
         meshWall.LongRight = 0;

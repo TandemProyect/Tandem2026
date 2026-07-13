@@ -97,17 +97,20 @@
                     <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-mode-wall-3d" data-ma-stl-mode="wall-3d" title="@MasterArticles.StlPreview_Desing2RightMenuWall3dAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuWall3dAria" aria-pressed="false">
                         <i class="icon-base ri ri-building-2-line" aria-hidden="true"></i>
                     </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-mode-formwork" data-ma-stl-mode="formwork" data-ma-formwork-url-atk60="@Url.Action("GetWallsAtk-60", "Desing_2")" title="Encofrar" aria-label="Encofrar" aria-pressed="false">
+                        Encofrar
+                    </button>
                 </div>
                 <div class="dropdown desing2-stl-mode-toolbar__systems">
                     <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle desing2-stl-mode-toolbar__systems-toggle" id="ma-stl-mode-system-dropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="@MasterArticles.Col_System">
                         Atk-60
                     </button>
                     <ul class="dropdown-menu desing2-stl-mode-toolbar__systems-menu" aria-labelledby="ma-stl-mode-system-dropdown">
-                        <li><button type="button" class="dropdown-item active" aria-current="true">Atk-60</button></li>
-                        <li><button type="button" class="dropdown-item disabled" disabled="disabled" aria-disabled="true">Sistema 2</button></li>
-                        <li><button type="button" class="dropdown-item disabled" disabled="disabled" aria-disabled="true">Sistema 3</button></li>
-                        <li><button type="button" class="dropdown-item disabled" disabled="disabled" aria-disabled="true">Sistema 4</button></li>
-                        <li><button type="button" class="dropdown-item disabled" disabled="disabled" aria-disabled="true">Sistema 5</button></li>
+                        <li><button type="button" class="dropdown-item active" data-ma-system="Atk-60" aria-current="true">Atk-60</button></li>
+                        <li><button type="button" class="dropdown-item disabled" data-ma-system="Sistema 2" disabled="disabled" aria-disabled="true">Sistema 2</button></li>
+                        <li><button type="button" class="dropdown-item disabled" data-ma-system="Sistema 3" disabled="disabled" aria-disabled="true">Sistema 3</button></li>
+                        <li><button type="button" class="dropdown-item disabled" data-ma-system="Sistema 4" disabled="disabled" aria-disabled="true">Sistema 4</button></li>
+                        <li><button type="button" class="dropdown-item disabled" data-ma-system="Sistema 5" disabled="disabled" aria-disabled="true">Sistema 5</button></li>
                     </ul>
                 </div>
             </div>

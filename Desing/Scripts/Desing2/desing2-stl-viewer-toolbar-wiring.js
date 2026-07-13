@@ -154,8 +154,138 @@
         syncParentActiveState();
     }
 
+    function wireModeSystemDropdown() {
+        const toggle = document.getElementById('ma-stl-mode-system-dropdown');
+        if (!toggle) return;
+        const menu = document.querySelector('.desing2-stl-mode-toolbar__systems-menu');
+        if (!menu) return;
+
+        const items = Array.prototype.slice.call(menu.querySelectorAll('.dropdown-item'));
+        if (!items.length) return;
+
+        function setActiveItem(item) {
+            if (!item || item.classList.contains('disabled') || item.disabled) return;
+            items.forEach(function (it) {
+                it.classList.remove('active');
+                it.removeAttribute('aria-current');
+            });
+            item.classList.add('active');
+            item.setAttribute('aria-current', 'true');
+            const label = (item.getAttribute('data-ma-system') || item.textContent || '').trim();
+            if (label) {
+                toggle.textContent = label;
+            }
+        }
+
+        items.forEach(function (item) {
+            item.addEventListener('click', function (ev) {
+                if (item.classList.contains('disabled') || item.disabled) {
+                    ev.preventDefault();
+                    return;
+                }
+                setActiveItem(item);
+            });
+        });
+    }
+
+    function wireFormworkButton() {
+        const btn = document.getElementById('ma-stl-mode-formwork');
+        if (!btn) return;
+
+        const systemToggle = document.getElementById('ma-stl-mode-system-dropdown');
+
+        btn.addEventListener('click', function () {
+            const selectedSystem = ((systemToggle && systemToggle.textContent) || '').trim();
+
+            if (selectedSystem !== 'Atk-60') {
+                window.alert('Sistema no soportado por ahora: ' + selectedSystem);
+                return;
+            }
+
+            const atk60Url = btn.getAttribute('data-ma-formwork-url-atk60');
+            if (!atk60Url) {
+                window.alert('No existe URL configurada para Encofrar ATK-60.');
+                return;
+            }
+
+            const payload = {
+                system: selectedSystem,
+                walls: [],
+                meta: {
+                    generatedAtUtc: new Date().toISOString(),
+                    pageUrl: window.location.href,
+                },
+            };
+
+            fetch(atk60Url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(payload),
+            })
+                .then(function (res) {
+                    return res
+                        .json()
+                        .catch(function () {
+                            return null;
+                        });
+                })
+                .then(function (resp) {
+                    if (!resp || resp.Exito !== true) {
+                        throw new Error((resp && resp.Mensaje) || 'No se pudo iniciar Encofrar ATK-60.');
+                    }
+                    window.alert(resp.Mensaje || 'Encofrar ATK-60 listo.');
+                })
+                .catch(function (err) {
+                    window.alert('Error al encofrar: ' + err.message);
+                });
+        });
+    }
+
+    function wireFormworkVisibilityByMode() {
+        const formworkBtn = document.getElementById('ma-stl-mode-formwork');
+        const wall3dBtn = document.getElementById('ma-stl-mode-wall-3d');
+        const modeBar = document.getElementById('desing2-stl-mode-toolbar');
+        if (!formworkBtn || !wall3dBtn || !modeBar) return;
+
+        function isWall3dActive() {
+            return wall3dBtn.classList.contains('active') || wall3dBtn.getAttribute('aria-pressed') === 'true';
+        }
+
+        function syncVisibility() {
+            const visible = isWall3dActive();
+            formworkBtn.classList.toggle('d-none', !visible);
+            formworkBtn.setAttribute('aria-hidden', visible ? 'false' : 'true');
+            if (visible) {
+                formworkBtn.removeAttribute('tabindex');
+            } else {
+                formworkBtn.setAttribute('tabindex', '-1');
+            }
+        }
+
+        modeBar.addEventListener('click', function () {
+            window.setTimeout(syncVisibility, 0);
+        });
+
+        if (typeof MutationObserver !== 'undefined') {
+            const observer = new MutationObserver(syncVisibility);
+            observer.observe(wall3dBtn, {
+                attributes: true,
+                attributeFilter: ['class', 'aria-pressed'],
+            });
+        }
+
+        syncVisibility();
+    }
+
     wireHoverLockPanel('#desing2-stl-hover-side-panel', 'desing2-stl-side-panel-collapse', '.desing2-stl-hover-side-panel__hover-zone');
     wireHoverLockPanel('#desing2-stl-hover-right-panel', 'desing2-stl-right-panel-collapse', '.desing2-stl-hover-right-panel__hover-zone');
     wireRulersFlyout();
+    wireModeSystemDropdown();
+    wireFormworkButton();
+    wireFormworkVisibilityByMode();
     wireInitialStlBoot();
 })();

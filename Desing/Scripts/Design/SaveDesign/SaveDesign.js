@@ -76,6 +76,7 @@
                         Sub_Long_90: objectToSave.Sub_Long_90,
                         Sub_Long_270: objectToSave.Sub_Long_270,
                         IdTypeFormworkMode: objectToSave.IdTypeFormworkMode,
+                        IsFormwork: objectToSave.IsFormwork,
                     });
         }
     }

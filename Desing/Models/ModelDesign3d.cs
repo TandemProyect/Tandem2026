@@ -76,6 +76,7 @@ namespace Desing.Models
         public string TypeWall_90 { get; set; }
         public string TypeWall_270 { get; set; }
         public bool IdTypeFormworkMode { get; set; }
+        public bool IsFormwork { get; set; }
 
         public static implicit operator List<object>(ModelDesing v)
         {

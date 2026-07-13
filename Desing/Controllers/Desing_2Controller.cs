@@ -3,27 +3,16 @@ using DAL;
 using Desing.Helpers;
 
 using Desing.Models;
-
 using Desing.Resources;
-
 using Newtonsoft.Json;
-
 using Newtonsoft.Json.Linq;
-
 using System;
-
 using System.Collections.Generic;
-
 using System.Data.Entity;
-
 using System.Globalization;
-
 using System.IO;
-
 using System.Linq;
-
 using System.Text;
-
 using System.Web.Mvc;
 
 
@@ -231,6 +220,66 @@ namespace Desing.Controllers
             }
         }
 
+        /// <summary>
+        /// Primer endpoint de encofrado por sistema (ATK-60).
+        /// Recibe lista de muros con atributos dinámicos para preparar la lógica de materiales.
+        /// </summary>
+        [HttpPost]
+        [ActionName("GetWallsAtk-60")]
+        public JsonResult GetWallsAtk60()
+        {
+            try
+            {
+                if (Request.InputStream.CanSeek)
+                {
+                    Request.InputStream.Position = 0;
+                }
+
+                var rawJson = string.Empty;
+                using (var reader = new StreamReader(Request.InputStream, Encoding.UTF8))
+                {
+                    rawJson = reader.ReadToEnd();
+                }
+
+                Desing2FormworkRequest payload;
+                if (string.IsNullOrWhiteSpace(rawJson))
+                {
+                    payload = new Desing2FormworkRequest
+                    {
+                        System = "Atk-60",
+                        Walls = new List<Desing2FormworkWallDto>()
+                    };
+                }
+                else
+                {
+                    var parsed = JToken.Parse(rawJson);
+                    payload = parsed.ToObject<Desing2FormworkRequest>() ?? new Desing2FormworkRequest();
+                    payload.System = string.IsNullOrWhiteSpace(payload.System) ? "Atk-60" : payload.System.Trim();
+                    payload.Walls = payload.Walls ?? new List<Desing2FormworkWallDto>();
+                }
+
+                var wallCount = payload.Walls.Count;
+                var attributeCount = payload.Walls.Sum(w => w.Attributes != null ? w.Attributes.Count : 0);
+
+                return Json(new
+                {
+                    Exito = true,
+                    Sistema = payload.System,
+                    MurosRecibidos = wallCount,
+                    AtributosRecibidos = attributeCount,
+                    Mensaje = "Encofrar ATK-60: endpoint listo (fase 1)."
+                });
+            }
+            catch (JsonReaderException ex)
+            {
+                return Json(new { Exito = false, Mensaje = "JSON invalido: " + ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Exito = false, Mensaje = ex.Message });
+            }
+        }
+
 
 
         private static string ResolvePlantillaLogoUrl(UrlHelper url, string plantillaLogoRaw)
@@ -391,6 +440,23 @@ namespace Desing.Controllers
 
         }
 
+    }
+
+    public sealed class Desing2FormworkRequest
+    {
+        public string System { get; set; }
+        public List<Desing2FormworkWallDto> Walls { get; set; }
+
+        [JsonExtensionData]
+        public IDictionary<string, JToken> Extra { get; set; }
+    }
+
+    public sealed class Desing2FormworkWallDto
+    {
+        public string Id { get; set; }
+
+        [JsonExtensionData]
+        public IDictionary<string, JToken> Attributes { get; set; }
     }
 
 }

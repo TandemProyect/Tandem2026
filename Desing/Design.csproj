@@ -755,6 +755,7 @@
     <Content Include="assets\js\lib\datatables\dataTables.tableTools.min.js" />
     <Content Include="assets\js\lib\datatables\jquery.dataTables.js" />
     <Content Include="assets\js\lib\datatables\jquery.dataTables.min.js" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\LISTA.TXT" />
     <Content Include="Content\images\brand\t-desing-net.svg" />
     <Content Include="Content\images\ico\Logo.ico" />
     <Content Include="Content\images\tDesing\Logo_TDesing_450.png" />
@@ -2372,6 +2373,56 @@
     <Content Include="IA\docs\US619_RESUMEN_ICONOS.md" />
     <Content Include="IA\Examples\README.md" />
     <Content Include="IA\readme.md" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\DWG\27904209.stl" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\DWG\27904209_F.stl" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\12304211.glb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\12454212.glb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\12604213.glb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\24304244.glb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\24454243.glb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\24604242.glb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\27304205.glb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\27454206.glb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\27904209.glb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\batch_log.csv" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\JSON\27904209.stl" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\JSON\27904209_F.stl" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\12304211.stl" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\12304211_F.stl" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\12454212.stl" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\12454212_F.stl" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\12604213.stl" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\12604213_F.stl" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\24304244.stl" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\24304244_F.stl" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\24454243.stl" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\24454243_F.stl" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\24604242.stl" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\24604242_F.stl" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\27304205.stl" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\27304205_F.stl" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\27454206.stl" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\27454206_F.stl" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\27904209.stl" />
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\27904209_F.stl" />
     <None Include="Properties\PublishProfiles\atenko Develop.pubxml" />
     <None Include="Properties\PublishProfiles\atenko.net.pubxml" />
     <None Include="Properties\PublishProfiles\Athosstaging.pubxml" />

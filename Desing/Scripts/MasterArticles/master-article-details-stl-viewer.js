@@ -3912,6 +3912,7 @@ function bootMasterArticleDetailsStlViewer() {
         '_Datalong',
         '_DataWith',
         '_DataHeight',
+        '_IsFormwork',
         '_IsUniversalPanel',
         '_XCoordinate',
         '_YCoordinate',
@@ -3969,6 +3970,7 @@ function bootMasterArticleDetailsStlViewer() {
         ud._Datalong = maStlRoundMeters3(lenMm / 1000);
         ud._DataWith = maStlRoundMeters3(widthMm / 1000);
         ud._DataHeight = maStlRoundMeters3(MA_STL_WALL3D_DEFAULT_HEIGHT_MM / 1000);
+        if (ud._IsFormwork == null) ud._IsFormwork = true;
         if (ud._IsUniversalPanel == null) ud._IsUniversalPanel = true;
         ud._XCoordinate = midX;
         ud._YCoordinate = midY;
@@ -22808,6 +22810,7 @@ function bootMasterArticleDetailsStlViewer() {
                 '_Datalong',
                 '_DataWith',
                 '_DataHeight',
+                '_IsFormwork',
                 '_IsUniversalPanel',
                 '_XCoordinate',
                 '_YCoordinate',
