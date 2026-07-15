@@ -242,7 +242,7 @@ namespace Desing.Controllers
                 var walls = payload.Walls;
                 var modulos = repository.GetWallsForCadSystems(walls);
                 var elementsForThreeJs = repository.BuildThreeJsPaintPayload(walls, modulos);
-                SaveAtk60RequestDebugToTem(jsonRaw, walls, buildStamp);
+                SaveAtk60RequestDebugToTemp(jsonRaw, walls, modulos, elementsForThreeJs, buildStamp);
 
                 // Aqui insertaremos la logica de encofrado ATK-60 a partir de la lista de muros rectos.
                 // Cada item ya llega con su Id y con sus atributos dinamicos.
@@ -269,9 +269,14 @@ namespace Desing.Controllers
             }
         }
 
-        private static string SaveAtk60RequestDebugToTem(string jsonRaw, List<Desing2FormworkWallDto> walls, string buildStamp)
+        private static string SaveAtk60RequestDebugToTemp(
+            string jsonRaw,
+            List<Desing2FormworkWallDto> walls,
+            List<ModulosAtk60Wall> modulos,
+            Atk60ThreeJsPaintPayload elementsForThreeJs,
+            string buildStamp)
         {
-            var dir = @"C:\tem";
+            var dir = @"C:\temp";
             if (!Directory.Exists(dir))
             {
                 Directory.CreateDirectory(dir);
@@ -279,6 +284,7 @@ namespace Desing.Controllers
 
             var walls3d = BuildAtk60Walls3dDebug(walls);
             var corners3d = BuildAtk60CornersDebug(walls);
+            var panels3d = BuildAtk60PanelsDebug(elementsForThreeJs);
             var debug = new
             {
                 GeneratedAtUtc = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture),
@@ -286,15 +292,81 @@ namespace Desing.Controllers
                 BuildStamp = buildStamp,
                 RawIdsJsonLength = string.IsNullOrWhiteSpace(jsonRaw) ? 0 : jsonRaw.Length,
                 WallsCount = walls != null ? walls.Count : 0,
+                ModulosCount = modulos != null ? modulos.Count : 0,
+                PanelsCount = panels3d != null ? panels3d.Count : 0,
                 Walls = walls ?? new List<Desing2FormworkWallDto>(),
+                Modulos = modulos ?? new List<ModulosAtk60Wall>(),
                 Walls3D = walls3d,
                 Corners3D = corners3d,
+                ElementsForThreeJs = elementsForThreeJs ?? new Atk60ThreeJsPaintPayload(),
+                Panels3D = panels3d,
             };
 
             var targetPath = Path.Combine(dir, "Atk60RequestWallsDebug.json");
             var formatted = JsonConvert.SerializeObject(debug, Formatting.Indented);
             System.IO.File.WriteAllText(targetPath, formatted, new UTF8Encoding(false));
+
+            var panelsOnlyPath = Path.Combine(dir, "Atk60PanelsDebug.json");
+            var panelsOnly = new
+            {
+                GeneratedAtUtc = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture),
+                Source = "Desing_2Controller.GetWallsAtk60",
+                BuildStamp = buildStamp,
+                PanelsCount = panels3d != null ? panels3d.Count : 0,
+                Panels3D = panels3d,
+            };
+            var panelsFormatted = JsonConvert.SerializeObject(panelsOnly, Formatting.Indented);
+            System.IO.File.WriteAllText(panelsOnlyPath, panelsFormatted, new UTF8Encoding(false));
+
             return targetPath;
+        }
+
+        private static List<object> BuildAtk60PanelsDebug(Atk60ThreeJsPaintPayload elementsForThreeJs)
+        {
+            var result = new List<object>();
+            if (elementsForThreeJs == null || elementsForThreeJs.Elements == null || elementsForThreeJs.Elements.Count == 0)
+            {
+                return result;
+            }
+
+            for (var i = 0; i < elementsForThreeJs.Elements.Count; i++)
+            {
+                var item = elementsForThreeJs.Elements[i];
+                if (item == null)
+                {
+                    continue;
+                }
+
+                result.Add(new
+                {
+                    Index = i + 1,
+                    item.IdWall,
+                    item.ElementType,
+                    item.ElementCode,
+                    item.Orientation,
+                    item.ImportPath,
+                    item.ModuleIndex,
+                    item.ModuleCountInWall,
+                    item.PieceIndexInModule,
+                    item.PieceCountInModule,
+                    item.CatalogHeightMm,
+                    item.WallLengthMm,
+                    item.WallHeightMm,
+                    item.WallThicknessMm,
+                    item.PieceWidthMm,
+                    item.PieceHeightMm,
+                    item.LocalAlongMm,
+                    item.LocalUpMm,
+                    item.X,
+                    item.Y,
+                    item.Z,
+                    item.RotX,
+                    item.RotY,
+                    item.RotZ,
+                });
+            }
+
+            return result;
         }
 
         private static List<object> BuildAtk60Walls3dDebug(List<Desing2FormworkWallDto> walls)

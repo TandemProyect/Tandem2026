@@ -78,6 +78,9 @@ namespace Desing.Repositories.RepositoryCommun
         public double RotX { get; set; }
         public double RotY { get; set; }
         public double RotZ { get; set; }
+        public double NormalX { get; set; }
+        public double NormalZ { get; set; }
+        public double FaceSign { get; set; }
         public Atk60WallPaintAnchorDebug Debug { get; set; }
     }
 
@@ -94,7 +97,9 @@ namespace Desing.Repositories.RepositoryCommun
     public sealed class Atk60ElementPaintItem
     {
         public string IdWall { get; set; }
+        public string ElementType { get; set; }
         public string ElementCode { get; set; }
+        public string Orientation { get; set; }
         public string ImportPath { get; set; }
         public string Color { get; set; }
         public double X { get; set; }
@@ -103,6 +108,22 @@ namespace Desing.Repositories.RepositoryCommun
         public double RotX { get; set; }
         public double RotY { get; set; }
         public double RotZ { get; set; }
+        public double NormalX { get; set; }
+        public double NormalZ { get; set; }
+        public double FaceSign { get; set; }
+        public double ModuleLengthMm { get; set; }
+        public int ModuleIndex { get; set; }
+        public int ModuleCountInWall { get; set; }
+        public double WallHeightMm { get; set; }
+        public double WallThicknessMm { get; set; }
+        public double WallLengthMm { get; set; }
+        public double PieceWidthMm { get; set; }
+        public double PieceHeightMm { get; set; }
+        public double LocalAlongMm { get; set; }
+        public double LocalUpMm { get; set; }
+        public int PieceIndexInModule { get; set; }
+        public int PieceCountInModule { get; set; }
+        public double CatalogHeightMm { get; set; }
     }
 
 

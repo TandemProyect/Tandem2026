@@ -565,10 +565,16 @@
                     }
 
                     const renderAnchors = window.maStlDesing2RenderAtk60AnchorPoints;
+                    const renderElements = window.maStlDesing2RenderAtk60Elements;
                     const anchorWalls = resp
                         && resp.ElementsForThreeJs
                         && Array.isArray(resp.ElementsForThreeJs.Walls)
                         ? resp.ElementsForThreeJs.Walls
+                        : [];
+                    const elementItems = resp
+                        && resp.ElementsForThreeJs
+                        && Array.isArray(resp.ElementsForThreeJs.Elements)
+                        ? resp.ElementsForThreeJs.Elements
                         : [];
 
                     if (typeof renderAnchors === 'function') {
@@ -578,6 +584,21 @@
                         console.info('ATK-60 puntos ancla pintados:', inserted + '/' + requested);
                     } else {
                         console.error('No existe API maStlDesing2RenderAtk60AnchorPoints.');
+                    }
+
+                    if (typeof renderElements === 'function') {
+                        renderElements(elementItems, { clearPrevious: false })
+                            .then(function (result) {
+                                const inserted = result && result.inserted != null ? result.inserted : 0;
+                                const requested = result && result.requested != null ? result.requested : 0;
+                                console.info('ATK-60 paneles pintados:', inserted + '/' + requested);
+                            })
+                            .catch(function (err) {
+                                const msg = err && err.message ? err.message : String(err || 'Error al pintar paneles');
+                                console.error('ATK-60 error al pintar paneles:', msg);
+                            });
+                    } else {
+                        console.error('No existe API maStlDesing2RenderAtk60Elements.');
                     }
 
                     const wallsReturned = Array.isArray(resp.Walls) ? resp.Walls : [];

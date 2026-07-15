@@ -115,7 +115,8 @@ namespace Desing.Repositories.RepositoryAtk60
             }
 
             var resolvedById = new Dictionary<string, Atk60ResolvedWallGeom>(StringComparer.OrdinalIgnoreCase);
-            var centroid = ComputeWallsCentroidXz(walls, resolvedById);
+            var centroidByGroup = new Dictionary<string, Atk60CentroidXz>(StringComparer.OrdinalIgnoreCase);
+            var centroid = ComputeWallsCentroidXz(walls, resolvedById, centroidByGroup);
 
             foreach (var wall in walls)
             {
@@ -218,7 +219,15 @@ namespace Desing.Repositories.RepositoryAtk60
                 if (!geom.EndZ.HasValue) geom.EndZ = ez;
 
                 var widthMm = ResolveWallWidthMm(attrs);
-                var faceSign = ResolveFaceSign(attrs, centroid, geom);
+                var centroidForFace = centroid;
+                var groupId = !string.IsNullOrWhiteSpace(wall.WallGroupId) ? wall.WallGroupId : null;
+                Atk60CentroidXz groupCentroid;
+                if (!string.IsNullOrWhiteSpace(groupId) && centroidByGroup.TryGetValue(groupId, out groupCentroid) && groupCentroid != null)
+                {
+                    centroidForFace = groupCentroid;
+                }
+
+                var faceSign = ResolveFaceSign(attrs, centroidForFace, geom);
                 var thicknessHalfGlobal = Math.Max(widthMm, 1d) * 0.5;
 
                 var hasExplicitStart = startX.HasValue && startZ.HasValue;
@@ -271,6 +280,9 @@ namespace Desing.Repositories.RepositoryAtk60
                     RotX = ResolveDouble(attrs != null ? attrs._XRotation : null),
                     RotY = yawRad,
                     RotZ = ResolveDouble(attrs != null ? attrs._ZRotation : null),
+                    NormalX = nx * faceSign,
+                    NormalZ = nz * faceSign,
+                    FaceSign = faceSign,
                     Debug = new Atk60WallPaintAnchorDebug
                     {
                         StartX = sx,
@@ -285,10 +297,64 @@ namespace Desing.Repositories.RepositoryAtk60
 
                 payload.Walls.Add(anchor);
             }
-            // Fase actual: enviar sólo punto inicial dinámico por muro. El desglose de elementos se mantiene para próxima fase.
-            payload.Elements = new List<Atk60ElementPaintItem>();
+            payload.Elements = BuildPanel270ElementsForThreeJs(walls, modulos, payload.Walls);
 
             return payload;
+        }
+
+        private List<Atk60ElementPaintItem> BuildPanel270ElementsForThreeJs(
+            List<Desing2FormworkWallDto> walls,
+            List<ModulosAtk60Wall> modulos,
+            List<Atk60WallPaintAnchor> anchors)
+        {
+            var outElements = new List<Atk60ElementPaintItem>();
+            if (walls == null || walls.Count == 0 || modulos == null || modulos.Count == 0 || anchors == null || anchors.Count == 0)
+            {
+                return outElements;
+            }
+
+            var wallById = walls
+                .Where(w => w != null)
+                .Select(w => new
+                {
+                    Key = !string.IsNullOrWhiteSpace(w.WallId)
+                        ? w.WallId
+                        : (!string.IsNullOrWhiteSpace(w.Id) ? w.Id : w.LineId),
+                    Wall = w
+                })
+                .Where(x => !string.IsNullOrWhiteSpace(x.Key))
+                .GroupBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.First().Wall, StringComparer.OrdinalIgnoreCase);
+
+            var anchorById = anchors
+                .Where(a => a != null && !string.IsNullOrWhiteSpace(a.IdWall))
+                .GroupBy(a => a.IdWall, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
+            foreach (var moduloWall in modulos)
+            {
+                if (moduloWall == null || string.IsNullOrWhiteSpace(moduloWall.IdWall) || moduloWall.M_270 <= 0)
+                {
+                    continue;
+                }
+
+                Atk60WallPaintAnchor anchor;
+                if (!anchorById.TryGetValue(moduloWall.IdWall, out anchor) || anchor == null)
+                {
+                    continue;
+                }
+
+                Desing2FormworkWallDto wall;
+                if (!wallById.TryGetValue(moduloWall.IdWall, out wall) || wall == null)
+                {
+                    continue;
+                }
+
+                outElements.AddRange(
+                    Modulo270PanelElementGenerator.Build(wall, anchor, moduloWall.M_270));
+            }
+
+            return outElements;
         }
 
         private static Atk60ResolvedWallGeom ResolveWallGeom(Desing2FormworkWallDto wall)
@@ -361,7 +427,8 @@ namespace Desing.Repositories.RepositoryAtk60
 
         private static Atk60CentroidXz ComputeWallsCentroidXz(
             List<Desing2FormworkWallDto> walls,
-            Dictionary<string, Atk60ResolvedWallGeom> outResolved)
+            Dictionary<string, Atk60ResolvedWallGeom> outResolved,
+            Dictionary<string, Atk60CentroidXz> outGroupCentroids)
         {
             if (walls == null || walls.Count == 0)
             {
@@ -371,6 +438,7 @@ namespace Desing.Repositories.RepositoryAtk60
             var sx = 0d;
             var sz = 0d;
             var count = 0;
+            var groupAccum = new Dictionary<string, Atk60CentroidAccum>(StringComparer.OrdinalIgnoreCase);
 
             for (var i = 0; i < walls.Count; i++)
             {
@@ -395,9 +463,44 @@ namespace Desing.Repositories.RepositoryAtk60
                     continue;
                 }
 
-                sx += (geom.StartX.Value + geom.EndX.Value) * 0.5;
-                sz += (geom.StartZ.Value + geom.EndZ.Value) * 0.5;
+                var cx = (geom.StartX.Value + geom.EndX.Value) * 0.5;
+                var cz = (geom.StartZ.Value + geom.EndZ.Value) * 0.5;
+
+                sx += cx;
+                sz += cz;
                 count++;
+
+                var groupId = !string.IsNullOrWhiteSpace(wall.WallGroupId) ? wall.WallGroupId : null;
+                if (!string.IsNullOrWhiteSpace(groupId))
+                {
+                    Atk60CentroidAccum accum;
+                    if (!groupAccum.TryGetValue(groupId, out accum) || accum == null)
+                    {
+                        accum = new Atk60CentroidAccum();
+                        groupAccum[groupId] = accum;
+                    }
+
+                    accum.Sx += cx;
+                    accum.Sz += cz;
+                    accum.Count++;
+                }
+            }
+
+            if (outGroupCentroids != null)
+            {
+                foreach (var kv in groupAccum)
+                {
+                    if (kv.Value == null || kv.Value.Count <= 0)
+                    {
+                        continue;
+                    }
+
+                    outGroupCentroids[kv.Key] = new Atk60CentroidXz
+                    {
+                        X = kv.Value.Sx / kv.Value.Count,
+                        Z = kv.Value.Sz / kv.Value.Count,
+                    };
+                }
             }
 
             if (count <= 0)
@@ -803,6 +906,13 @@ namespace Desing.Repositories.RepositoryAtk60
         {
             public double X { get; set; }
             public double Z { get; set; }
+        }
+
+        private sealed class Atk60CentroidAccum
+        {
+            public double Sx { get; set; }
+            public double Sz { get; set; }
+            public int Count { get; set; }
         }
 
     }

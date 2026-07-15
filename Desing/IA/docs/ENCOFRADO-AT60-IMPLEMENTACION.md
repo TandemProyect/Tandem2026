@@ -212,6 +212,23 @@ leg2 = selectPanel(e2Mm + 0,30)
 
 ## 4. Integración en `master-article-details-stl-viewer.js`
 
+### 4.0 Estado operativo actual (2026-07-15)
+
+#### Punto de insercion
+- El punto de insercion final para ATK60 se calcula en backend (`Atk60WallsRepository`) y se consume en frontend solo para pintado.
+- Regla aplicada: ancla en inicio explicito de muro + desplazamiento a cara exterior por normal de eje (`E/2`).
+- Objetivo: evitar punto en centro de eje o interior de muro.
+
+#### Fuente de datos de muro para encofrado
+- Prioridad 1: muros 3D (`wallModelSource`, `_TypeMesh: Wall`).
+- Fallback: ejes 3D de escena si la fuente de solidos no esta disponible.
+- En `desing2-stl-viewer-toolbar-wiring.js`, `idsDetailed` reescribe atributos para C# con geometria 3D real (`Inicio*`, `Fin*`, `_Datalong`, `_DataWith`, `__Geom3D`).
+- Longitud util: trim en extremos conectados (caso validado 9.70 -> 8.80).
+
+#### JSON de auditoria de request
+- El backend deja traza de request + muros normalizados + esquinas L/T/X/I en:
+  - `C:\temp\Atk60RequestWallsDebug.json`
+
 ### 4.1 Espesor E por eje
 
 ```javascript

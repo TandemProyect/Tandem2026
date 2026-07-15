@@ -94,6 +94,25 @@ Cambios clave:
 - La logica ATK-60 y la logica comun ya estan aisladas en clases independientes.
 - Insercion de panel GLB y posicionamiento estan en fase fina de ajuste visual (iterativo).
 
+## Actualizacion tecnica (2026-07-15)
+
+### Punto de insercion por muro (criterio final aplicado)
+1. El calculo se hace en C# en `Atk60WallsRepository.BuildThreeJsPaintPayload`.
+2. Se toma el inicio explicito del muro cuando existe (`Inicio/p1`) y no el centro como ancla principal.
+3. Se calcula normal al eje y se aplica offset de cara exterior de `E/2` para sacar el punto del eje central del muro.
+4. El frontend no recalcula geometria de anclaje; solo pinta el punto que llega en `ElementsForThreeJs`.
+
+### De donde cogemos los datos de muro
+1. Fuente prioritaria: muros 3D de `wallModelSource` (`_TypeMesh: Wall`) desde `maStlDesing2GetStraightWallsFromWallModelSource`.
+2. Fallback: ejes 3D de escena (`maStlDesing2GetStraightWallsFromScene`) si no hay `wallModelSource`.
+3. Antes de enviar a C#, en el wiring se normaliza `IdsJson` con `idsDetailed` y se sobreescriben atributos clave por geometria real 3D (`InicioX/FinX`, `_Datalong`, `_DataWith`, `__Geom3D`).
+4. La longitud util enviada al backend se ajusta con trim en extremos conectados (`trimStartMm/trimEndMm`), dejando casos como 9.70 -> 8.80 cuando aplica.
+
+### Trazabilidad JSON de comunicacion
+- Se mantiene export de diagnostico de request/resolucion en:
+  - `C:\temp\Atk60RequestWallsDebug.json`
+- Se alinea con los otros JSON de comunicacion ya usados por el equipo en `C:\temp`.
+
 ## Riesgos/pendientes detectados
 1. Afinar al 100% el criterio de clasificacion de materiales del GLB (marco/fenolico) segun nombres reales internos del modelo.
 2. Afinar criterio geometrico final de esquina de insercion para todos los casos de orientacion.
