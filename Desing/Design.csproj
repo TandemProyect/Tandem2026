@@ -395,6 +395,10 @@
     <Compile Include="Models\ZwcadModels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\Atk60\Atk60Element.cs" />
+    <Compile Include="Repositories\RepositoryAtk60\Atk60WallsRepository.cs" />
+    <Compile Include="Repositories\RepositoryAtk60\ModulosATK60\ModuloAtk60ElementBuilders.cs" />
+    <Compile Include="Repositories\RepositoryCommun\FormworkDtos.cs" />
+    <Compile Include="Repositories\RepositoryCommun\FormworkJsonCommonRepository.cs" />
     <Compile Include="Repositories\Atk60\Wall\Bracket_0.cs" />
     <Compile Include="Repositories\Atk60\Wall\Bracket_180.cs" />
     <Compile Include="Repositories\Atk60\Wall\Bracket_90.cs" />

@@ -198,50 +198,396 @@
             const selectedSystem = ((systemToggle && systemToggle.textContent) || '').trim();
 
             if (selectedSystem !== 'Atk-60') {
-                window.alert('Sistema no soportado por ahora: ' + selectedSystem);
+                console.warn('Sistema no soportado por ahora:', selectedSystem);
                 return;
             }
 
             const atk60Url = btn.getAttribute('data-ma-formwork-url-atk60');
             if (!atk60Url) {
-                window.alert('No existe URL configurada para Encofrar ATK-60.');
+                console.error('No existe URL configurada para Encofrar ATK-60.');
                 return;
             }
 
+            function normalizeWall(raw) {
+                if (!raw) return null;
+                const lineId = raw.LineId != null ? raw.LineId : raw.id;
+                const wallGroupId = raw.WallGroupId != null ? raw.WallGroupId : raw.wallGroupId;
+                const wallId = lineId != null
+                    ? lineId
+                    : (raw.Id != null ? raw.Id : (raw.wallId != null ? raw.wallId : wallGroupId));
+                const attrs = raw.Attributes && typeof raw.Attributes === 'object'
+                    ? raw.Attributes
+                    : Object.assign({}, raw);
+
+                return Object.assign({}, raw, {
+                    Id: wallId,
+                    LineId: lineId,
+                    WallGroupId: wallGroupId != null ? wallGroupId : null,
+                    Attributes: attrs,
+                });
+            }
+
+            function mergeWallsUnique(sources) {
+                const out = [];
+                const seen = Object.create(null);
+                for (let si = 0; si < sources.length; si++) {
+                    const src = sources[si];
+                    if (!Array.isArray(src)) continue;
+                    for (let i = 0; i < src.length; i++) {
+                        const w = normalizeWall(src[i]);
+                        if (!w) continue;
+                        const key = String(w.LineId != null ? w.LineId : w.Id);
+                        if (!key || seen[key]) continue;
+                        seen[key] = true;
+                        out.push(w);
+                    }
+                }
+                return out;
+            }
+
+            const getWallsFromScene = window.maStlDesing2GetStraightWallsFromScene;
+            const wallsFromScene = typeof getWallsFromScene === 'function' ? getWallsFromScene() : [];
+
+            const getWallsForFormwork = window.maStlDesing2GetStraightWallsForFormwork;
+            const wallsFromFormwork = typeof getWallsForFormwork === 'function' ? getWallsForFormwork() : [];
+
+            const getWallsFromWallModelSource = window.maStlDesing2GetStraightWallsFromWallModelSource;
+            const wallsFromWallModelSource = typeof getWallsFromWallModelSource === 'function'
+                ? getWallsFromWallModelSource()
+                : [];
+
+            const buildConnections = window.maStlDesing2BuildWallConnectionsPayload;
+            const builtConnections = typeof buildConnections === 'function' ? buildConnections() : null;
+            const wallConnections = builtConnections && builtConnections.payload ? builtConnections.payload : null;
+
+            // Fuente estricta: solo sólidos 3D dibujados.
+            // Si no hay sólidos, no enviamos líneas 2D al backend.
+            let walls = mergeWallsUnique([
+                wallsFromWallModelSource,
+            ]);
+
+            if (!Array.isArray(walls)) walls = [];
+            if (!walls.length) {
+                // Fallback 3D seguro: ejes de muro en escena (misma fuente del inspector de atributos).
+                walls = mergeWallsUnique([wallsFromScene]);
+                if (!walls.length) {
+                    window.alert('ATK60: no hay muros 3D disponibles (sólidos ni ejes).');
+                    console.error('ATK60 abortado: sin muros 3D.');
+                    return;
+                }
+                console.warn('ATK60 fallback: usando ejes 3D de escena por wallModelSource vacío.');
+            }
+
+            // Flujo legacy (ayer): inserta panel GLB + marcas.
+            // Se deja comentado para referencia, pero desactivado en esta fase
+            // porque debemos pintar unicamente el punto inicial desde C#.
+            // function insertAtk60SampleOnWalls(rawWalls) {
+            //     const insertFn = window.maStlDesing2InsertAtk60SampleOnWalls;
+            //     if (typeof insertFn !== 'function') {
+            //         return Promise.reject(new Error('No existe API maStlDesing2InsertAtk60SampleOnWalls.'));
+            //     }
+            //     return insertFn(rawWalls, { clearPrevious: true });
+            // }
+            //
+            // insertAtk60SampleOnWalls(walls)
+            //     .then(function (result) {
+            //         const inserted = result && result.inserted != null ? result.inserted : 0;
+            //         const requested = result && result.requested != null ? result.requested : 0;
+            //         console.info('GLB ATK-60 insertado:', inserted + '/' + requested);
+            //     })
+            //     .catch(function (err) {
+            //         const msg = err && err.message ? err.message : String(err || 'Error al insertar GLB');
+            //         console.error('No se pudo insertar GLB ATK-60:', msg);
+            //     });
+
+            function toNum(v) {
+                const n = Number(v);
+                return Number.isFinite(n) ? n : null;
+            }
+
+            function pointXmm(p) {
+                if (!p || typeof p !== 'object') return null;
+                return toNum(p.xMm != null ? p.xMm : p.x);
+            }
+
+            function pointYmm(p) {
+                if (!p || typeof p !== 'object') return null;
+                return toNum(p.yMm != null ? p.yMm : p.y);
+            }
+
+            function pointZmm(p) {
+                if (!p || typeof p !== 'object') return null;
+                return toNum(p.zMm != null ? p.zMm : p.z);
+            }
+
+            function buildWallGeom(w) {
+                const attrs = (w && w.Attributes && typeof w.Attributes === 'object') ? w.Attributes : {};
+                const p1 = w && w.P1 ? w.P1 : attrs.p1;
+                const p2 = w && w.P2 ? w.P2 : attrs.p2;
+
+                const startXmm = pointXmm(p1) != null ? pointXmm(p1) : toNum(attrs.InicioX);
+                const startYmm = pointYmm(p1) != null ? pointYmm(p1) : toNum(attrs.InicioZ);
+                const startZmm = pointZmm(p1) != null ? pointZmm(p1) : toNum(attrs.InicioY);
+
+                const endXmm = pointXmm(p2) != null ? pointXmm(p2) : toNum(attrs.FinX);
+                const endYmm = pointYmm(p2) != null ? pointYmm(p2) : toNum(attrs.FinZ);
+                const endZmm = pointZmm(p2) != null ? pointZmm(p2) : toNum(attrs.FinY);
+
+                let lengthMm = null;
+                if (startXmm != null && startZmm != null && endXmm != null && endZmm != null) {
+                    const dx = endXmm - startXmm;
+                    const dz = endZmm - startZmm;
+                    lengthMm = Math.sqrt(dx * dx + dz * dz);
+                }
+
+                let widthMm = toNum(attrs._DataWith);
+                if (widthMm != null) widthMm = widthMm * 1000;
+                if (widthMm == null) widthMm = toNum(attrs.ThicknessMm);
+
+                let heightMm = toNum(attrs._DataHeight);
+                if (heightMm != null) heightMm = heightMm * 1000;
+                if (heightMm == null) heightMm = toNum(attrs.HeightMm);
+
+                return {
+                    Id: w && w.Id != null ? String(w.Id) : null,
+                    LineId: w && w.LineId != null ? String(w.LineId) : null,
+                    WallId: w && w.WallId != null ? String(w.WallId) : null,
+                    StartXmm: startXmm,
+                    StartYmm: startYmm,
+                    StartZmm: startZmm,
+                    EndXmm: endXmm,
+                    EndYmm: endYmm,
+                    EndZmm: endZmm,
+                    LengthMm: lengthMm,
+                    WidthMm: widthMm,
+                    HeightMm: heightMm,
+                };
+            }
+
+            const wallGeom = walls
+                .map(buildWallGeom)
+                .filter(function (g) {
+                    return g
+                        && (g.Id || g.LineId || g.WallId)
+                        && g.StartXmm != null
+                        && g.StartZmm != null
+                        && g.EndXmm != null
+                        && g.EndZmm != null;
+                });
+
+            function cornerKey(x, z) {
+                return String(Math.round(x)) + '|' + String(Math.round(z));
+            }
+
+            const nodeDegree = Object.create(null);
+            for (let i = 0; i < wallGeom.length; i++) {
+                const g = wallGeom[i];
+                const ks = cornerKey(g.StartXmm, g.StartZmm);
+                const ke = cornerKey(g.EndXmm, g.EndZmm);
+                nodeDegree[ks] = (nodeDegree[ks] || 0) + 1;
+                nodeDegree[ke] = (nodeDegree[ke] || 0) + 1;
+            }
+
+            const CONNECTED_END_TRIM_MM = 450;
+            for (let i = 0; i < wallGeom.length; i++) {
+                const g = wallGeom[i];
+                const dx = g.EndXmm - g.StartXmm;
+                const dz = g.EndZmm - g.StartZmm;
+                const len = Math.sqrt(dx * dx + dz * dz);
+                if (!(len > 1e-6)) continue;
+
+                const ux = dx / len;
+                const uz = dz / len;
+                const ks = cornerKey(g.StartXmm, g.StartZmm);
+                const ke = cornerKey(g.EndXmm, g.EndZmm);
+                const trimStart = (nodeDegree[ks] || 0) >= 2 ? CONNECTED_END_TRIM_MM : 0;
+                const trimEnd = (nodeDegree[ke] || 0) >= 2 ? CONNECTED_END_TRIM_MM : 0;
+
+                const trimmedLen = Math.max(0, len - trimStart - trimEnd);
+                const newStartX = g.StartXmm + ux * trimStart;
+                const newStartZ = g.StartZmm + uz * trimStart;
+                const newEndX = newStartX + ux * trimmedLen;
+                const newEndZ = newStartZ + uz * trimmedLen;
+
+                g.RawStartXmm = g.StartXmm;
+                g.RawStartZmm = g.StartZmm;
+                g.RawEndXmm = g.EndXmm;
+                g.RawEndZmm = g.EndZmm;
+                g.RawLengthMm = len;
+                g.TrimStartMm = trimStart;
+                g.TrimEndMm = trimEnd;
+
+                g.StartXmm = newStartX;
+                g.StartZmm = newStartZ;
+                g.EndXmm = newEndX;
+                g.EndZmm = newEndZ;
+                g.LengthMm = trimmedLen;
+            }
+
+            const wallGeomById = Object.create(null);
+            function indexGeomKey(key, geom) {
+                if (key == null) return;
+                const k = String(key).trim();
+                if (!k) return;
+                wallGeomById[k] = geom;
+            }
+            for (let i = 0; i < wallGeom.length; i++) {
+                const g = wallGeom[i];
+                indexGeomKey(g.Id, g);
+                indexGeomKey(g.LineId, g);
+                indexGeomKey(g.WallId, g);
+            }
+
+            // Lista de envío al controlador con atributos normalizados desde geometría 3D real.
+            const idsDetailed = walls
+                .map(function (w) {
+                    const id = w && w.LineId != null
+                        ? String(w.LineId)
+                        : (w && w.Id != null ? String(w.Id) : '');
+                    if (!id) return null;
+
+                    const lineId = w && w.LineId != null ? String(w.LineId) : null;
+                    const wallId = w && w.WallId != null ? String(w.WallId) : null;
+                    const geom = wallGeomById[id] || wallGeomById[lineId] || wallGeomById[wallId] || null;
+                    const baseAttrs = (w && w.Attributes && typeof w.Attributes === 'object')
+                        ? Object.assign({}, w.Attributes)
+                        : Object.assign({}, w || {});
+
+                    if (geom) {
+                        // Convención del backend: InicioY/FinY corresponden a Z en planta, InicioZ/FinZ a Y vertical.
+                        baseAttrs.InicioX = geom.StartXmm;
+                        baseAttrs.InicioY = geom.StartZmm;
+                        baseAttrs.InicioZ = geom.StartYmm != null ? geom.StartYmm : 0;
+                        baseAttrs.FinX = geom.EndXmm;
+                        baseAttrs.FinY = geom.EndZmm;
+                        baseAttrs.FinZ = geom.EndYmm != null ? geom.EndYmm : 0;
+
+                        // Mantener unidades legacy esperadas por C#.
+                        if (geom.LengthMm != null) baseAttrs._Datalong = geom.LengthMm / 1000;
+                        if (geom.WidthMm != null) baseAttrs._DataWith = geom.WidthMm / 1000;
+                        if (geom.HeightMm != null) baseAttrs._DataHeight = geom.HeightMm / 1000;
+
+                        const cx = (geom.StartXmm + geom.EndXmm) * 0.5;
+                        const cy = ((geom.StartYmm != null ? geom.StartYmm : 0) + (geom.EndYmm != null ? geom.EndYmm : 0)) * 0.5;
+                        const cz = (geom.StartZmm + geom.EndZmm) * 0.5;
+                        baseAttrs._XCoordinate = cx;
+                        baseAttrs._YCoordinate = cy;
+                        baseAttrs._ZCoordinate = cz;
+
+                        baseAttrs.__Source3D = true;
+                        baseAttrs.__Geom3D = {
+                            id: geom.Id,
+                            lineId: geom.LineId,
+                            wallId: geom.WallId,
+                            startXmm: geom.StartXmm,
+                            startYmm: geom.StartYmm,
+                            startZmm: geom.StartZmm,
+                            endXmm: geom.EndXmm,
+                            endYmm: geom.EndYmm,
+                            endZmm: geom.EndZmm,
+                            lengthMm: geom.LengthMm,
+                            rawStartXmm: geom.RawStartXmm,
+                            rawStartZmm: geom.RawStartZmm,
+                            rawEndXmm: geom.RawEndXmm,
+                            rawEndZmm: geom.RawEndZmm,
+                            rawLengthMm: geom.RawLengthMm,
+                            trimStartMm: geom.TrimStartMm,
+                            trimEndMm: geom.TrimEndMm,
+                        };
+                    }
+
+                    return {
+                        Id: id,
+                        LineId: lineId,
+                        WallGroupId: w && w.WallGroupId != null ? String(w.WallGroupId) : null,
+                        Attributes: baseAttrs,
+                    };
+                })
+                .filter(Boolean);
+
+            const geomMatchedCount = idsDetailed.reduce(function (acc, item) {
+                const attrs = item && item.Attributes ? item.Attributes : null;
+                return acc + (attrs && attrs.__Source3D === true ? 1 : 0);
+            }, 0);
+            console.info('ATK60 source3D matched walls:', geomMatchedCount + '/' + idsDetailed.length);
+            const lineLikeCount = idsDetailed.reduce(function (acc, item) {
+                const attrs = item && item.Attributes ? item.Attributes : null;
+                const tipo = attrs && attrs.Tipo != null ? String(attrs.Tipo) : '';
+                return acc + (tipo.toLowerCase() === 'line' ? 1 : 0);
+            }, 0);
+            console.info('ATK60 line-like payload walls:', lineLikeCount);
+            console.info('ATK60 wall sources:', {
+                wallModelSource: Array.isArray(wallsFromWallModelSource) ? wallsFromWallModelSource.length : 0,
+                scene: Array.isArray(wallsFromScene) ? wallsFromScene.length : 0,
+                formwork: Array.isArray(wallsFromFormwork) ? wallsFromFormwork.length : 0,
+                merged: walls.length,
+            });
+
+            walls = idsDetailed;
+
             const payload = {
+                id: 0,
+                list: walls,
                 system: selectedSystem,
-                walls: [],
+                walls: walls,
+                wallGeom: wallGeom,
+                wallConnections: wallConnections,
                 meta: {
                     generatedAtUtc: new Date().toISOString(),
                     pageUrl: window.location.href,
+                    counts: {
+                        scene: Array.isArray(wallsFromScene) ? wallsFromScene.length : 0,
+                        formwork: Array.isArray(wallsFromFormwork) ? wallsFromFormwork.length : 0,
+                        wallModelSource: Array.isArray(wallsFromWallModelSource) ? wallsFromWallModelSource.length : 0,
+                        connections: wallConnections && Array.isArray(wallConnections.Nodes) ? wallConnections.Nodes.length : 0,
+                        merged: walls.length,
+                        geom: wallGeom.length,
+                    },
                 },
             };
 
-            fetch(atk60Url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
+            if (typeof window.jQuery === 'undefined' || !window.jQuery.ajax) {
+                console.error('No existe jQuery.ajax disponible para encofrar.');
+                return;
+            }
+
+            window.jQuery.ajax({
+                type: 'POST',
+                url: atk60Url,
+                dataType: 'json',
+                data: {
+                    IdsJson: JSON.stringify(idsDetailed),
                 },
-                credentials: 'same-origin',
-                body: JSON.stringify(payload),
-            })
-                .then(function (res) {
-                    return res
-                        .json()
-                        .catch(function () {
-                            return null;
-                        });
-                })
-                .then(function (resp) {
+                success: function (resp) {
                     if (!resp || resp.Exito !== true) {
-                        throw new Error((resp && resp.Mensaje) || 'No se pudo iniciar Encofrar ATK-60.');
+                        console.error((resp && resp.Mensaje) || 'No se pudo iniciar Encofrar ATK-60.');
+                        return;
                     }
-                    window.alert(resp.Mensaje || 'Encofrar ATK-60 listo.');
-                })
-                .catch(function (err) {
-                    window.alert('Error al encofrar: ' + err.message);
-                });
+
+                    const renderAnchors = window.maStlDesing2RenderAtk60AnchorPoints;
+                    const anchorWalls = resp
+                        && resp.ElementsForThreeJs
+                        && Array.isArray(resp.ElementsForThreeJs.Walls)
+                        ? resp.ElementsForThreeJs.Walls
+                        : [];
+
+                    if (typeof renderAnchors === 'function') {
+                        const result = renderAnchors(anchorWalls, { clearPrevious: true });
+                        const inserted = result && result.inserted != null ? result.inserted : 0;
+                        const requested = result && result.requested != null ? result.requested : 0;
+                        console.info('ATK-60 puntos ancla pintados:', inserted + '/' + requested);
+                    } else {
+                        console.error('No existe API maStlDesing2RenderAtk60AnchorPoints.');
+                    }
+
+                    const wallsReturned = Array.isArray(resp.Walls) ? resp.Walls : [];
+                    console.info('Muros recibidos (' + wallsReturned.length + '):', wallsReturned);
+                },
+                error: function (xhr, _status, err) {
+                    const serverMsg = xhr && xhr.responseJSON && xhr.responseJSON.Mensaje;
+                    console.error('Error al encofrar:', (serverMsg || (err && err.message) || 'Error HTTP'));
+                },
+            });
         });
     }
 

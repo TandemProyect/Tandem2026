@@ -9,5 +9,6 @@
     ".claude/rules": false
   },
   "chat.requestQueuing.defaultAction": "queue",
-  "dotnet.preferCSharpExtension": true
+  "dotnet.preferCSharpExtension": true,
+  "dotnet.defaultSolution": "disable"
 }
