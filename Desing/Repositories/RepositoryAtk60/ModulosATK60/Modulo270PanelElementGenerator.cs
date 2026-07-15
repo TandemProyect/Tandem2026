@@ -44,6 +44,10 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
                 {
                     var piece = layout.Pieces[pi];
                     var alongMm = moduleBaseAlongMm + piece.AlongOffsetMm;
+                    var baseX = anchor.X + (ux * alongMm);
+                    var baseY = anchor.Y + piece.UpOffsetMm;
+                    var baseZ = anchor.Z + (uz * alongMm);
+
                     outElements.Add(new Atk60ElementPaintItem
                     {
                         IdWall = !string.IsNullOrWhiteSpace(idWall) ? idWall : anchor.IdWall,
@@ -52,15 +56,49 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
                         Orientation = piece.Orientation,
                         ImportPath = piece.ImportPath,
                         Color = "frame-yellow",
-                        X = anchor.X + (ux * alongMm),
-                        Y = anchor.Y + piece.UpOffsetMm,
-                        Z = anchor.Z + (uz * alongMm),
+                        X = baseX,
+                        Y = baseY,
+                        Z = baseZ,
                         RotX = anchor.RotX,
                         RotY = yawRad,
                         RotZ = anchor.RotZ,
                         NormalX = anchor.NormalX,
                         NormalZ = anchor.NormalZ,
                         FaceSign = anchor.FaceSign,
+                        ModuleLengthMm = ModuleLengthMm,
+                        ModuleIndex = i + 1,
+                        ModuleCountInWall = (int)module270Count,
+                        WallHeightMm = wallHeightMm,
+                        WallThicknessMm = wallThicknessMm,
+                        WallLengthMm = wallLengthMm,
+                        PieceWidthMm = piece.PieceWidthMm,
+                        PieceHeightMm = piece.PieceHeightMm,
+                        LocalAlongMm = alongMm,
+                        LocalUpMm = piece.UpOffsetMm,
+                        PieceIndexInModule = pi + 1,
+                        PieceCountInModule = layout.Pieces.Count,
+                        CatalogHeightMm = layout.CatalogHeightMm,
+                    });
+
+                    // Cara simetrica: mismo panel en la cara opuesta del muro.
+                    // Se traslada un espesor de muro y se invierte normal/signo para que JS pinte "hacia fuera" en ambos lados.
+                    outElements.Add(new Atk60ElementPaintItem
+                    {
+                        IdWall = !string.IsNullOrWhiteSpace(idWall) ? idWall : anchor.IdWall,
+                        ElementType = "Panel",
+                        ElementCode = piece.ElementCode,
+                        Orientation = piece.Orientation,
+                        ImportPath = piece.ImportPath,
+                        Color = "frame-yellow",
+                        X = baseX - (anchor.NormalX * wallThicknessMm),
+                        Y = baseY,
+                        Z = baseZ - (anchor.NormalZ * wallThicknessMm),
+                        RotX = anchor.RotX,
+                        RotY = yawRad,
+                        RotZ = anchor.RotZ,
+                        NormalX = -anchor.NormalX,
+                        NormalZ = -anchor.NormalZ,
+                        FaceSign = -anchor.FaceSign,
                         ModuleLengthMm = ModuleLengthMm,
                         ModuleIndex = i + 1,
                         ModuleCountInWall = (int)module270Count,

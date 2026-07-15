@@ -4938,6 +4938,18 @@ function bootMasterArticleDetailsStlViewer() {
             }
             mesh.material.needsUpdate = true;
         }
+
+        // Los paneles ATK60 deben usar los mismos planos de corte horizontal/vertical del visor.
+        for (let i = 0; i < meshes.length; i++) {
+            const mesh = meshes[i];
+            const mat = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+            for (let mi = 0; mi < mat.length; mi++) {
+                if (!mat[mi]) continue;
+                mat[mi].clippingPlanes = [clipPlaneY, clipPlaneX];
+                mat[mi].clipShadows = true;
+                mat[mi].needsUpdate = true;
+            }
+        }
     }
 
     function maStlDesing2FitAtk60CloneScaleAndAnchor(clone, placement) {
