@@ -3634,6 +3634,14 @@ function bootMasterArticleDetailsStlViewer() {
         desing2EnvGridSnapMm,
         desing2EnvGridMajorMm()
     );
+
+    // Rejilla de trabajo: debe respetar oclusion de mallas (paneles/muros) y no verse "a traves".
+    if (infiniteGrid && infiniteGrid.material) {
+        infiniteGrid.material.depthTest = true;
+        infiniteGrid.material.depthWrite = false;
+        infiniteGrid.material.transparent = true;
+        infiniteGrid.material.needsUpdate = true;
+    }
     scene.add(infiniteGrid);
 
     /** Origen: UCS clásico (maestro) o ejes XYZ verdes (Desing_2) + reglas plano (Desing_2, toggle aparte). */
@@ -3960,6 +3968,14 @@ function bootMasterArticleDetailsStlViewer() {
         return MA_STL_DESING2_WALL_WIDTH_DEFAULT_MM;
     }
 
+    function maStlWallLineResolveHeightMm(ud) {
+        const fallback = MA_STL_WALL3D_DEFAULT_HEIGHT_MM;
+        if (!ud) return fallback;
+        const hMeters = Number(ud._DataHeight);
+        if (!Number.isFinite(hMeters) || hMeters <= 0) return fallback;
+        return Math.max(300, hMeters * 1000);
+    }
+
     function maStlWallLineEnsureAttrs(ud) {
         if (!ud || !ud.p1Mm || !ud.p2Mm) return;
         const wallId = ud.id != null ? ud.id : (ud.wallId != null ? ud.wallId : ud.wallGroupId);
@@ -3976,7 +3992,11 @@ function bootMasterArticleDetailsStlViewer() {
         ud._TypeMesh = 'Wall';
         ud._Datalong = maStlRoundMeters3(lenMm / 1000);
         ud._DataWith = maStlRoundMeters3(widthMm / 1000);
-        ud._DataHeight = maStlRoundMeters3(MA_STL_WALL3D_DEFAULT_HEIGHT_MM / 1000);
+        if (ud._DataHeight == null || !Number.isFinite(Number(ud._DataHeight))) {
+            ud._DataHeight = maStlRoundMeters3(MA_STL_WALL3D_DEFAULT_HEIGHT_MM / 1000);
+        } else {
+            ud._DataHeight = maStlRoundMeters3(Number(ud._DataHeight));
+        }
         ud._XRotation = 0;
         ud._YrRtation = Math.round(yRotDeg * 1000) / 1000;
         ud._ZRotation = 0;
@@ -4889,6 +4909,8 @@ function bootMasterArticleDetailsStlViewer() {
             }
             mesh.material.transparent = false;
             mesh.material.opacity = 1;
+            mesh.material.depthTest = true;
+            mesh.material.depthWrite = true;
             if (mesh.material.alphaTest != null) mesh.material.alphaTest = 0;
             if (mesh.material.emissive) {
                 mesh.material.emissive.setHex(0x000000);
@@ -4931,6 +4953,8 @@ function bootMasterArticleDetailsStlViewer() {
             }
             mesh.material.transparent = false;
             mesh.material.opacity = 1;
+            mesh.material.depthTest = true;
+            mesh.material.depthWrite = true;
             if (mesh.material.alphaTest != null) mesh.material.alphaTest = 0;
             if (mesh.material.emissive) {
                 mesh.material.emissive.setHex(0x000000);
@@ -5759,9 +5783,14 @@ function bootMasterArticleDetailsStlViewer() {
     function maStlDesing2BuildWallModelDetectionPayload() {
         const sourceLines = maStlDesing2CollectWallModelSourceLines();
         const lineas = [];
+        let payloadHeightMm = MA_STL_WALL3D_DEFAULT_HEIGHT_MM;
         for (let i = 0; i < sourceLines.length; i++) {
             const dto = maStlWall3dUserLineToDto(sourceLines[i]);
             if (dto) lineas.push(dto);
+            const ud = sourceLines[i] && sourceLines[i].userData && sourceLines[i].userData.maStlUserPlanLine;
+            if (ud) {
+                payloadHeightMm = maStlWallLineResolveHeightMm(ud);
+            }
         }
         return {
             payload: {
@@ -5771,7 +5800,7 @@ function bootMasterArticleDetailsStlViewer() {
                 TotalPolilineas: 0,
                 FechaSeleccion: new Date().toISOString(),
                 Usuario: 'Desing_2',
-                AlturaMuroMm: MA_STL_WALL3D_DEFAULT_HEIGHT_MM,
+                AlturaMuroMm: payloadHeightMm,
             },
             sourceCount: sourceLines.length,
         };
@@ -16144,9 +16173,10 @@ function bootMasterArticleDetailsStlViewer() {
     function maStlWall3dAddMeshFromFaceStrip(strip, axisEndpointTrimMap) {
         const quad = maStlWall2dModelBuildStripQuadXzMm(strip, axisEndpointTrimMap);
         if (!quad || quad.length < 4 || !maStlWall3dMeshesGroup) return null;
+        const hMm = maStlWallLineResolveHeightMm(strip && strip.axis ? strip.axis : null);
         const poly = {
             Capa: 'ModelDesing',
-            AlturaExtrusion: MA_STL_WALL3D_DEFAULT_HEIGHT_MM,
+            AlturaExtrusion: hMm,
             Vertices: quad.map(function (pt) {
                 return { X: pt.x, Y: pt.z, Z: 0 };
             }),
@@ -16220,9 +16250,14 @@ function bootMasterArticleDetailsStlViewer() {
             return false;
         }
         const lineas = [];
+        let payloadHeightMm = MA_STL_WALL3D_DEFAULT_HEIGHT_MM;
         maStlWall3dToolSelectedLines.forEach(function (ln) {
             const dto = maStlWall3dUserLineToDto(ln);
             if (dto) lineas.push(dto);
+            const ud = ln && ln.userData && ln.userData.maStlUserPlanLine;
+            if (ud) {
+                payloadHeightMm = maStlWallLineResolveHeightMm(ud);
+            }
         });
         if (lineas.length === 0) return false;
 
@@ -16233,7 +16268,7 @@ function bootMasterArticleDetailsStlViewer() {
             TotalPolilineas: 0,
             FechaSeleccion: new Date().toISOString(),
             Usuario: 'Desing_2',
-            AlturaMuroMm: MA_STL_WALL3D_DEFAULT_HEIGHT_MM,
+            AlturaMuroMm: payloadHeightMm,
         };
 
         maStlWall3dToolBusy = true;
@@ -23377,6 +23412,10 @@ function bootMasterArticleDetailsStlViewer() {
 
     function onCanvasContextMenuLineToolPolarInput(ev) {
         if (maStlWall3dInspectInteractionEnabled()) {
+            if (maStlWallInspectActiveMode() === 'wall3d') {
+                // En modo 3D el formulario se abre con doble click, no con boton derecho.
+                return;
+            }
             const rawTarget = ev.target;
             if (rawTarget && typeof rawTarget.closest === 'function') {
                 if (rawTarget.closest('button, input, select, textarea, [role="button"], label')) return;
@@ -23515,6 +23554,21 @@ function bootMasterArticleDetailsStlViewer() {
 
     function onHudContextMenuWallInspectGlobal(ev) {
         if (!maStlDesingV2Viewer || !maStlWall3dInspectInteractionEnabled()) return;
+        if (maStlWallInspectActiveMode() === 'wall3d') return;
+        const rawTarget = ev.target;
+        if (rawTarget && typeof rawTarget.closest === 'function') {
+            if (rawTarget.closest('button, input, select, textarea, [role="button"], label')) return;
+        }
+        if (maStlWallInspectTryAlertAtPointer(ev.clientX, ev.clientY)) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation();
+        }
+    }
+
+    function onCanvasDblClickWallInspectGlobal(ev) {
+        if (!maStlDesingV2Viewer || !maStlWall3dInspectInteractionEnabled()) return;
+        if (maStlWallInspectActiveMode() !== 'wall3d') return;
         const rawTarget = ev.target;
         if (rawTarget && typeof rawTarget.closest === 'function') {
             if (rawTarget.closest('button, input, select, textarea, [role="button"], label')) return;
@@ -23960,13 +24014,366 @@ function bootMasterArticleDetailsStlViewer() {
         maStlWall3dInspectSetHoverMesh(hit ? hit.object : null);
     }
 
+    const maStlWallInspectFormState = {
+        root: null,
+        titleEl: null,
+        heightInput: null,
+        applyAllCheckbox: null,
+        acceptBtn: null,
+        cancelBtn: null,
+        closeBtn: null,
+        selectedUd: null,
+        selectedLine: null,
+        selectedMode: null,
+    };
+
+    function maStlWallInspectFindLineFromUd(ud) {
+        if (!ud) return null;
+        if (ud.wallRole === 'axis' && ud.id != null) {
+            return maStlWall2dToolFindLineByPlanId(ud.id);
+        }
+        if (ud.wallRole === 'face' && ud.linkOffsetFromLineId != null) {
+            return maStlWall2dToolFindLineByPlanId(ud.linkOffsetFromLineId);
+        }
+        if (ud.id != null) {
+            const lnById = maStlWall2dToolFindLineByPlanId(ud.id);
+            if (lnById) return lnById;
+        }
+        if (ud._idObject != null && maStlUserLinesGroup) {
+            const want = String(ud._idObject);
+            const ch = maStlUserLinesGroup.children;
+            for (let i = 0; i < ch.length; i++) {
+                const ln = ch[i];
+                if (!maStlIsUserFloorPlanLineObject(ln)) continue;
+                const lud = ln.userData && ln.userData.maStlUserPlanLine;
+                if (!lud) continue;
+                const oid = lud._idObject != null ? String(lud._idObject) : null;
+                if (oid === want && lud.wallRole === 'axis') return ln;
+            }
+        }
+        return null;
+    }
+
+    function maStlWallInspectCollectTargetLines(selectedLine, selectedUd, applyAll) {
+        const out = [];
+        if (!maStlUserLinesGroup) return out;
+
+        if (applyAll) {
+            const ch = maStlUserLinesGroup.children;
+            for (let i = 0; i < ch.length; i++) {
+                const ln = ch[i];
+                if (!maStlIsUserFloorPlanLineObject(ln)) continue;
+                const ud = ln.userData && ln.userData.maStlUserPlanLine;
+                if (!ud || !ud.wallRole) continue;
+                out.push(ln);
+            }
+            return out;
+        }
+
+        let axisLine = selectedLine;
+        if (!axisLine && selectedUd) {
+            axisLine = maStlWallInspectFindLineFromUd(selectedUd);
+        }
+        if (!axisLine) {
+            return out;
+        }
+
+        const seg = maStlResolveWallSegmentLinesForLine(axisLine);
+        for (let i = 0; i < seg.length; i++) {
+            if (seg[i] && out.indexOf(seg[i]) < 0) out.push(seg[i]);
+        }
+        return out;
+    }
+
+    function maStlWallInspectApplyHeightMeters(heightMeters, applyAll) {
+        const hMeters = maStlRoundMeters3(heightMeters);
+        if (!(hMeters > 0)) return false;
+
+        const targets = maStlWallInspectCollectTargetLines(
+            maStlWallInspectFormState.selectedLine,
+            maStlWallInspectFormState.selectedUd,
+            applyAll
+        );
+
+        if (!targets.length && maStlWallInspectFormState.selectedUd) {
+            maStlWallInspectFormState.selectedUd._DataHeight = hMeters;
+        }
+
+        for (let i = 0; i < targets.length; i++) {
+            const ln = targets[i];
+            const ud = ln.userData && ln.userData.maStlUserPlanLine;
+            if (!ud) continue;
+            maStlWallLineEnsureAttrs(ud);
+            ud._DataHeight = hMeters;
+        }
+
+        maStlSaveWallConnectionsNow({
+            force: true,
+            reason: applyAll ? 'wall-height-popup-apply-all' : 'wall-height-popup-apply-one',
+        });
+
+        if (maStlDesing2ModelMode === 'wall3d') {
+            maStlDesing2ApplyWall3dModelMode();
+        } else if (maStlDesing2ModelMode === 'wall2d') {
+            maStlDesing2ApplyWall2dModelMode();
+        }
+        return true;
+    }
+
+    function maStlWallInspectClosePopup() {
+        const root = maStlWallInspectFormState.root;
+        if (!root) return;
+        root.style.display = 'none';
+    }
+
+    function maStlWallInspectEnsurePopup() {
+        if (maStlWallInspectFormState.root) return maStlWallInspectFormState.root;
+
+        const root = document.createElement('div');
+        root.style.position = 'fixed';
+        root.style.zIndex = '2147483200';
+        root.style.width = '320px';
+        root.style.maxWidth = 'calc(100vw - 24px)';
+        root.style.background = '#ffffff';
+        root.style.border = '1px solid #cbd5e1';
+        root.style.borderRadius = '10px';
+        root.style.boxShadow = '0 16px 36px rgba(2,6,23,0.22)';
+        root.style.display = 'none';
+        root.style.fontFamily = "'Segoe UI', Tahoma, sans-serif";
+        root.style.userSelect = 'none';
+
+        const head = document.createElement('div');
+        head.style.padding = '10px 12px';
+        head.style.background = '#0f172a';
+        head.style.color = '#ffffff';
+        head.style.borderTopLeftRadius = '10px';
+        head.style.borderTopRightRadius = '10px';
+        head.style.display = 'flex';
+        head.style.alignItems = 'center';
+        head.style.justifyContent = 'space-between';
+        head.style.cursor = 'move';
+
+        const title = document.createElement('div');
+        title.textContent = 'Configurar muro';
+        title.style.fontSize = '13px';
+        title.style.fontWeight = '600';
+        head.appendChild(title);
+
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.textContent = 'x';
+        closeBtn.style.border = 'none';
+        closeBtn.style.background = 'transparent';
+        closeBtn.style.color = '#ffffff';
+        closeBtn.style.cursor = 'pointer';
+        closeBtn.style.fontSize = '15px';
+        closeBtn.style.padding = '0 4px';
+        head.appendChild(closeBtn);
+
+        const body = document.createElement('div');
+        body.style.padding = '12px';
+        body.style.userSelect = 'text';
+
+        const rowLabel = document.createElement('label');
+        rowLabel.textContent = 'Altura del muro (m)';
+        rowLabel.style.display = 'block';
+        rowLabel.style.fontSize = '12px';
+        rowLabel.style.fontWeight = '600';
+        rowLabel.style.color = '#334155';
+        rowLabel.style.marginBottom = '6px';
+        body.appendChild(rowLabel);
+
+        const heightInput = document.createElement('input');
+        heightInput.type = 'number';
+        heightInput.min = '0.30';
+        heightInput.max = '10.00';
+        heightInput.step = '0.15';
+        heightInput.value = '2.70';
+        heightInput.style.width = '100%';
+        heightInput.style.boxSizing = 'border-box';
+        heightInput.style.padding = '8px 10px';
+        heightInput.style.border = '1px solid #cbd5e1';
+        heightInput.style.borderRadius = '8px';
+        heightInput.style.marginBottom = '10px';
+        body.appendChild(heightInput);
+
+        const applyAllWrap = document.createElement('label');
+        applyAllWrap.style.display = 'flex';
+        applyAllWrap.style.alignItems = 'center';
+        applyAllWrap.style.gap = '8px';
+        applyAllWrap.style.fontSize = '12px';
+        applyAllWrap.style.color = '#334155';
+        applyAllWrap.style.marginBottom = '12px';
+        const applyAllCheckbox = document.createElement('input');
+        applyAllCheckbox.type = 'checkbox';
+        applyAllCheckbox.checked = true;
+        const applyAllText = document.createElement('span');
+        applyAllText.textContent = 'Aplicar altura a todos los muros';
+        applyAllWrap.appendChild(applyAllCheckbox);
+        applyAllWrap.appendChild(applyAllText);
+        body.appendChild(applyAllWrap);
+
+        const actions = document.createElement('div');
+        actions.style.display = 'flex';
+        actions.style.justifyContent = 'flex-end';
+        actions.style.gap = '8px';
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.type = 'button';
+        cancelBtn.textContent = 'Cancelar';
+        cancelBtn.style.padding = '7px 10px';
+        cancelBtn.style.border = '1px solid #cbd5e1';
+        cancelBtn.style.borderRadius = '8px';
+        cancelBtn.style.background = '#ffffff';
+        cancelBtn.style.cursor = 'pointer';
+
+        const acceptBtn = document.createElement('button');
+        acceptBtn.type = 'button';
+        acceptBtn.textContent = 'Aceptar';
+        acceptBtn.style.padding = '7px 12px';
+        acceptBtn.style.border = 'none';
+        acceptBtn.style.borderRadius = '8px';
+        acceptBtn.style.background = '#2563eb';
+        acceptBtn.style.color = '#ffffff';
+        acceptBtn.style.cursor = 'pointer';
+
+        actions.appendChild(cancelBtn);
+        actions.appendChild(acceptBtn);
+        body.appendChild(actions);
+
+        root.appendChild(head);
+        root.appendChild(body);
+        document.body.appendChild(root);
+
+        let dragState = null;
+        head.addEventListener('mousedown', function (ev) {
+            if (ev.button !== 0) return;
+            const rect = root.getBoundingClientRect();
+            dragState = {
+                dx: ev.clientX - rect.left,
+                dy: ev.clientY - rect.top,
+            };
+            ev.preventDefault();
+        });
+        window.addEventListener('mousemove', function (ev) {
+            if (!dragState || root.style.display === 'none') return;
+            const vw = window.innerWidth || document.documentElement.clientWidth || 1280;
+            const vh = window.innerHeight || document.documentElement.clientHeight || 720;
+            const w = Math.max(root.offsetWidth, 320);
+            const h = Math.max(root.offsetHeight, 160);
+            const left = THREE.MathUtils.clamp(ev.clientX - dragState.dx, 8, Math.max(8, vw - w - 8));
+            const top = THREE.MathUtils.clamp(ev.clientY - dragState.dy, 8, Math.max(8, vh - h - 8));
+            root.style.left = Math.round(left) + 'px';
+            root.style.top = Math.round(top) + 'px';
+        });
+        window.addEventListener('mouseup', function () {
+            dragState = null;
+        });
+
+        closeBtn.addEventListener('click', maStlWallInspectClosePopup);
+        cancelBtn.addEventListener('click', maStlWallInspectClosePopup);
+        acceptBtn.addEventListener('click', function () {
+            const h = Number.parseFloat(String(heightInput.value || '').trim());
+            if (!Number.isFinite(h) || h <= 0) {
+                maStlDesing2ShowSaveViewToast('Altura invalida');
+                return;
+            }
+            const ok = maStlWallInspectApplyHeightMeters(h, !!applyAllCheckbox.checked);
+            if (!ok) {
+                maStlDesing2ShowSaveViewToast('No se pudo aplicar la altura');
+                return;
+            }
+            maStlWallInspectClosePopup();
+        });
+
+        maStlWallInspectFormState.root = root;
+        maStlWallInspectFormState.titleEl = title;
+        maStlWallInspectFormState.heightInput = heightInput;
+        maStlWallInspectFormState.applyAllCheckbox = applyAllCheckbox;
+        maStlWallInspectFormState.acceptBtn = acceptBtn;
+        maStlWallInspectFormState.cancelBtn = cancelBtn;
+        maStlWallInspectFormState.closeBtn = closeBtn;
+
+        return root;
+    }
+
+    function maStlWallInspectOpenPopup(selection, clientX, clientY) {
+        if (!selection || !selection.ud) return false;
+        const root = maStlWallInspectEnsurePopup();
+        if (!root) return false;
+
+        maStlWallInspectFormState.selectedUd = selection.ud;
+        maStlWallInspectFormState.selectedLine = selection.axisLine || null;
+        maStlWallInspectFormState.selectedMode = selection.mode || null;
+
+        const hRaw = Number(selection.ud._DataHeight);
+        const hUse = Number.isFinite(hRaw) && hRaw > 0
+            ? maStlRoundMeters3(hRaw)
+            : maStlRoundMeters3(MA_STL_WALL3D_DEFAULT_HEIGHT_MM / 1000);
+        maStlWallInspectFormState.heightInput.value = String(hUse);
+        maStlWallInspectFormState.applyAllCheckbox.checked = true;
+
+        root.style.display = 'block';
+        const vw = window.innerWidth || document.documentElement.clientWidth || 1280;
+        const vh = window.innerHeight || document.documentElement.clientHeight || 720;
+        const w = Math.max(root.offsetWidth, 320);
+        const h = Math.max(root.offsetHeight, 160);
+        const left = THREE.MathUtils.clamp((clientX || 20) + 14, 8, Math.max(8, vw - w - 8));
+        const top = THREE.MathUtils.clamp((clientY || 20) + 14, 8, Math.max(8, vh - h - 8));
+        root.style.left = Math.round(left) + 'px';
+        root.style.top = Math.round(top) + 'px';
+
+        try {
+            maStlWallInspectFormState.heightInput.focus({ preventScroll: true });
+            maStlWallInspectFormState.heightInput.select();
+        } catch (_eFocusWallPopup) {
+            maStlWallInspectFormState.heightInput.focus();
+        }
+        return true;
+    }
+
+    function maStlWallInspectResolveSelectionAtPointer(clientX, clientY) {
+        const mode = maStlWallInspectActiveMode();
+        if (mode === 'wall3d') {
+            const hit = maStlWall3dInspectPickMeshHitAtPointer(clientX, clientY);
+            if (!hit || !hit.object) return null;
+            const ud = maStlWall3dInspectResolveAxisUdFromPoint(hit.point || null);
+            if (!ud) return null;
+            const axisLine = maStlWallInspectFindLineFromUd(ud);
+            return { mode: mode, ud: ud, axisLine: axisLine, mesh: hit.object };
+        }
+        if (mode === 'wall2d') {
+            const ln = maStlPickUserFloorLineForCanvasInteraction(clientX, clientY, 8);
+            const udFromLine = ln && ln.userData ? ln.userData.maStlUserPlanLine || null : null;
+            let hit = maStlWall2dInspectPickMeshHitAtPointer(clientX, clientY);
+            if ((!hit || !hit.object) && maStlWall2dModelMeshesGroup) {
+                const meshFromLine = ln ? maStlWall2dInspectResolveMeshFromLine(ln) : null;
+                if (meshFromLine) hit = { object: meshFromLine, point: null };
+            }
+            if (hit && hit.object) {
+                const ud = udFromLine || maStlWall3dInspectResolveAxisUdFromPoint(hit.point || null);
+                if (!ud) return null;
+                const axisLine = udFromLine
+                    ? (udFromLine.wallRole === 'axis' ? ln : maStlWallInspectFindLineFromUd(ud))
+                    : maStlWallInspectFindLineFromUd(ud);
+                return { mode: mode, ud: ud, axisLine: axisLine, mesh: hit.object };
+            }
+            if (!ln || !udFromLine) return null;
+            return {
+                mode: mode,
+                ud: udFromLine,
+                axisLine: udFromLine.wallRole === 'axis' ? ln : maStlWallInspectFindLineFromUd(udFromLine),
+                mesh: null,
+            };
+        }
+        return null;
+    }
+
     function maStlWall3dInspectTryAlertAtPointer(clientX, clientY) {
         if (maStlWallInspectActiveMode() !== 'wall3d') return false;
-        const hit = maStlWall3dInspectPickMeshHitAtPointer(clientX, clientY);
-        if (!hit || !hit.object) return false;
-        const ud = maStlWall3dInspectResolveAxisUdFromPoint(hit.point || null);
-        window.alert(maStlWall3dInspectBuildAttrsAlertText(ud, hit.object));
-        return true;
+        const sel = maStlWallInspectResolveSelectionAtPointer(clientX, clientY);
+        if (!sel || !sel.ud) return false;
+        return maStlWallInspectOpenPopup(sel, clientX, clientY);
     }
 
     function maStlWallInspectSyncHoverAtPointer(clientX, clientY) {
@@ -23998,29 +24405,9 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     function maStlWallInspectTryAlertAtPointer(clientX, clientY) {
-        const mode = maStlWallInspectActiveMode();
-        if (mode === 'wall3d') return maStlWall3dInspectTryAlertAtPointer(clientX, clientY);
-        if (mode === 'wall2d') {
-            const ln = maStlPickUserFloorLineForCanvasInteraction(clientX, clientY, 8);
-            const udFromLine = ln && ln.userData ? ln.userData.maStlUserPlanLine || null : null;
-            let hit = maStlWall2dInspectPickMeshHitAtPointer(clientX, clientY);
-            if ((!hit || !hit.object) && maStlWall2dModelMeshesGroup) {
-                const meshFromLine = ln ? maStlWall2dInspectResolveMeshFromLine(ln) : null;
-                if (meshFromLine) {
-                    hit = { object: meshFromLine, point: null };
-                }
-            }
-            if (hit && hit.object) {
-                const ud = udFromLine || maStlWall3dInspectResolveAxisUdFromPoint(hit.point || null);
-                window.alert(maStlWall3dInspectBuildAttrsAlertText(ud || null, hit.object));
-                return true;
-            }
-            if (!ln || !ln.userData) return false;
-            const ud = udFromLine;
-            window.alert(maStlWall3dInspectBuildAttrsAlertText(ud, null));
-            return true;
-        }
-        return false;
+        const sel = maStlWallInspectResolveSelectionAtPointer(clientX, clientY);
+        if (!sel || !sel.ud) return false;
+        return maStlWallInspectOpenPopup(sel, clientX, clientY);
     }
 
     /**
@@ -25283,6 +25670,7 @@ function bootMasterArticleDetailsStlViewer() {
             : renderer.domElement;
     hudPointerMoveHost.addEventListener('pointermove', onCanvasPointerMoveUserFloorLineHover);
     hudPointerMoveHost.addEventListener('contextmenu', onHudContextMenuWallInspectGlobal, true);
+    renderer.domElement.addEventListener('dblclick', onCanvasDblClickWallInspectGlobal, true);
     renderer.domElement.addEventListener('dblclick', onCanvasDblClickOffsetToolDistance, true);
     renderer.domElement.addEventListener('dblclick', onCanvasDblClickUserFloorLineDimension, true);
     renderer.domElement.addEventListener('contextmenu', onCanvasContextMenuLineToolPolarInput, true);
