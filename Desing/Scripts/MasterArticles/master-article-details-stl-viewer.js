@@ -17,6 +17,23 @@ import {
     maAtk60GetTJunctionTrimMm,
     maAtk60UnitXz,
 } from './ma-stl-atk60-formwork.js';
+import {
+    maStlFormworkEnvApplyCatalogLook,
+    maStlFormworkEnvApplyIblToScene,
+    maStlFormworkEnvApplySettings,
+    maStlFormworkEnvApplyShadowState,
+    maStlFormworkEnvSyncShadowFlags,
+    maStlFormworkEnvCreateAtk60Material,
+    maStlFormworkEnvCreateRig,
+    maStlFormworkEnvEnsureSsaoComposer,
+    maStlFormworkEnvFitShadowCamera,
+    maStlFormworkEnvReadUi,
+    maStlFormworkEnvResizeSiteFloor,
+    maStlFormworkEnvResizeSsao,
+    maStlFormworkEnvSerializeSettings,
+    maStlFormworkEnvSyncFog,
+    maStlFormworkEnvWriteUi,
+} from './ma-stl-formwork-environment.js';
 
 /** Zenith → horizon gradient as `scene.background` (same module Three as import map `three.module.js`). */
 function createMasterArticleStlSkyBackgroundTexture() {
@@ -309,8 +326,11 @@ function maStlRulerExtentFromMaxDimMm(maxDimMm) {
 
 /**
  * Longitud flechas UCS desde extensión del modelo.
+ * Desing_2: factor 1/3 respecto al cálculo base (petición UX — ejes X/Z menos intrusivos).
  * @param {boolean} desingMmScene Desing_2 con reglas: mundo en mm; maestro legacy: mismo criterio que antes (clamps en ~m).
  */
+const MA_STL_DESING2_XYZ_AXES_LENGTH_FACTOR = 1 / 3;
+
 function maStlWorldAxesLength(maxDim, desingMmScene) {
     const d = Math.max(maxDim, 1e-9);
     if (!desingMmScene) {
@@ -318,7 +338,7 @@ function maStlWorldAxesLength(maxDim, desingMmScene) {
     }
     const minArm = THREE.MathUtils.clamp(d * 0.08, 80, 400);
     const maxArm = Math.min(Math.max(d * 0.55, minArm), Math.max(d * 0.92, minArm));
-    return THREE.MathUtils.clamp(d * 0.22, minArm, maxArm);
+    return THREE.MathUtils.clamp(d * 0.22, minArm, maxArm) * MA_STL_DESING2_XYZ_AXES_LENGTH_FACTOR;
 }
 
 /** Etiquetas de reglas: solo metros enteros (`1`, `2`, `3`…). `tMeters` = coordenada en **metros** (geometría local Desing_2). */
@@ -2373,9 +2393,9 @@ function maStlCreateSceneLights(scene, useDesing2Design3dLights) {
         return { ambientLight, mainDirLight, fillDirLight: null };
     }
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.34);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambientLight);
-    const mainDirLight = new THREE.DirectionalLight(0xffffff, 1.05);
+    const mainDirLight = new THREE.DirectionalLight(0xffffff, 1.2);
     mainDirLight.position.set(4.5, 9, 6);
     mainDirLight.castShadow = false;
     mainDirLight.shadow.mapSize.set(2048, 2048);
@@ -2386,11 +2406,13 @@ function maStlCreateSceneLights(scene, useDesing2Design3dLights) {
     mainDirLight.shadow.normalBias = 0.045;
     scene.add(mainDirLight);
     scene.add(mainDirLight.target);
-    const fillDirLight = new THREE.DirectionalLight(0xe2eaf8, 0.45);
+    const fillDirLight = new THREE.DirectionalLight(0xe2eaf8, 0.58);
     fillDirLight.position.set(-6, 2.5, -4);
     fillDirLight.castShadow = false;
     scene.add(fillDirLight);
-    return { ambientLight, mainDirLight, fillDirLight };
+    const hemiLight = new THREE.HemisphereLight(0xf6faff, 0xc8d3e0, 0.3);
+    scene.add(hemiLight);
+    return { ambientLight, mainDirLight, fillDirLight, hemiLight };
 }
 
 /** Cookie global Desing_2: misma vista en cualquier diseño/oferta. */
@@ -3163,6 +3185,30 @@ function bootMasterArticleDetailsStlViewer() {
 
     const maStlEntornoGridSnapSelect = document.getElementById('ma-stl-entorno-grid-snap-mm');
     const maStlEntornoRulerExtentSelect = document.getElementById('ma-stl-entorno-ruler-extent-m');
+    /** Panel Entorno — iluminación encofrado (Desing_2). */
+    function maStlFormworkEnvUiElements() {
+        return {
+            sunAzimuth: document.getElementById('ma-stl-entorno-sun-azimuth'),
+            sunAzimuthLabel: document.getElementById('ma-stl-entorno-sun-azimuth-val'),
+            sunElevation: document.getElementById('ma-stl-entorno-sun-elevation'),
+            sunElevationLabel: document.getElementById('ma-stl-entorno-sun-elevation-val'),
+            sunIntensity: document.getElementById('ma-stl-entorno-sun-intensity'),
+            sunIntensityLabel: document.getElementById('ma-stl-entorno-sun-intensity-val'),
+            ambientIntensity: document.getElementById('ma-stl-entorno-ambient-intensity'),
+            ambientIntensityLabel: document.getElementById('ma-stl-entorno-ambient-intensity-val'),
+            iblIntensity: document.getElementById('ma-stl-entorno-ibl-intensity'),
+            iblIntensityLabel: document.getElementById('ma-stl-entorno-ibl-intensity-val'),
+            exposure: document.getElementById('ma-stl-entorno-exposure'),
+            exposureLabel: document.getElementById('ma-stl-entorno-exposure-val'),
+            fogStrength: document.getElementById('ma-stl-entorno-fog-strength'),
+            fogStrengthLabel: document.getElementById('ma-stl-entorno-fog-strength-val'),
+            shadowQuality: document.getElementById('ma-stl-entorno-shadow-quality'),
+            fogEnabled: document.getElementById('ma-stl-entorno-fog-enabled'),
+            shadowsEnabled: document.getElementById('ma-stl-entorno-shadows-enabled'),
+            ssaoEnabled: document.getElementById('ma-stl-entorno-ssao-enabled'),
+        };
+    }
+    let desing2EnvLightingSettings = null;
     const maStlConfigOffsetDefaultInput = document.getElementById('ma-stl-config-offset-default');
     const maStlConfigWallWidthXInput = document.getElementById('ma-stl-config-wall-width-x');
     const maStlConfigWallWidthYInput = document.getElementById('ma-stl-config-wall-width-y');
@@ -3371,6 +3417,9 @@ function bootMasterArticleDetailsStlViewer() {
         }
         if (Number.isFinite(ei.enclosureEy2Mm)) {
             desing2EnvEnclosureEy2Mm = maStlClampDesing2OffsetDefaultMm(ei.enclosureEy2Mm);
+        }
+        if (ei.lighting && typeof ei.lighting === 'object') {
+            desing2EnvLightingSettings = ei.lighting;
         }
     } else if (maStlDesingV2Viewer && maStlEntornoGridSnapSelect instanceof HTMLSelectElement) {
         desing2EnvGridSnapMm = maStlClampAllowedDesing2GridSnapMm(maStlEntornoGridSnapSelect.value);
@@ -3643,6 +3692,13 @@ function bootMasterArticleDetailsStlViewer() {
         infiniteGrid.material.needsUpdate = true;
     }
     scene.add(infiniteGrid);
+
+    function maStlSyncFormworkCatalogGridOpacity() {
+        if (!infiniteGrid || !infiniteGrid.material) return;
+        infiniteGrid.visible = gridVisible;
+        infiniteGrid.material.opacity = 0.56;
+        infiniteGrid.material.needsUpdate = true;
+    }
 
     /** Origen: UCS clásico (maestro) o ejes XYZ verdes (Desing_2) + reglas plano (Desing_2, toggle aparte). */
     const maStlUcsAxesGroup = new THREE.Group();
@@ -4630,8 +4686,8 @@ function bootMasterArticleDetailsStlViewer() {
     const MA_STL_DESING2_ATK60_ANCHOR_POINT_RADIUS_MM = 65;
     const MA_STL_DESING2_ATK60_ANCHOR_POINT_COLOR_HEX = 0x11c1ff;
     const MA_STL_DESING2_ATK60_SAMPLE_DEFAULT_HEIGHT_MM = MA_STL_WALL3D_DEFAULT_HEIGHT_MM;
-    const MA_STL_DESING2_ATK60_COLOR_FRAME_HEX = 0xcaa11b;
-    const MA_STL_DESING2_ATK60_COLOR_PHENOLIC_HEX = 0x24211c;
+    const MA_STL_DESING2_ATK60_COLOR_FRAME_HEX = 0xefb608;
+    const MA_STL_DESING2_ATK60_COLOR_PHENOLIC_HEX = 0x1a1816;
     let maStlDesing2Atk60SampleTemplatePromise = null;
     const maStlDesing2Atk60ElementTemplatePromises = Object.create(null);
     let maStlDesing2Atk60SampleGroup = null;
@@ -4880,6 +4936,35 @@ function bootMasterArticleDetailsStlViewer() {
         );
     }
 
+    function maStlDesing2ApplyAtk60MeshMaterial(mesh, targetHex, isFrame) {
+        mesh.material = maStlFormworkEnvCreateAtk60Material(
+            targetHex,
+            isFrame,
+            [clipPlaneY, clipPlaneX]
+        );
+        mesh.castShadow = groundShadowVisible;
+        mesh.receiveShadow = false;
+    }
+
+    function maStlDesing2SyncAtk60CastShadow(root) {
+        if (!root) return;
+        root.traverse(function (obj) {
+            if (obj && obj.isMesh) {
+                obj.castShadow = groundShadowVisible;
+            }
+        });
+    }
+
+    function maStlFormworkEnvRefreshAtk60PanelMaterials() {
+        if (!maStlDesing2Atk60SampleGroup) return;
+        for (let i = 0; i < maStlDesing2Atk60SampleGroup.children.length; i++) {
+            const child = maStlDesing2Atk60SampleGroup.children[i];
+            if (child && child.isGroup) {
+                maStlDesing2ApplyAtk60PanelColors(child);
+            }
+        }
+    }
+
     function maStlDesing2ApplyAtk60PanelColors(root) {
         if (!root) return;
         const meshes = [];
@@ -4901,23 +4986,11 @@ function bootMasterArticleDetailsStlViewer() {
             }
             if (targetHex == null) continue;
 
-            const mat = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
-            if (!mat) continue;
-            mesh.material = mat.clone();
-            if (mesh.material.color) {
-                mesh.material.color.setHex(targetHex);
-            }
-            mesh.material.transparent = false;
-            mesh.material.opacity = 1;
-            mesh.material.depthTest = true;
-            mesh.material.depthWrite = true;
-            if (mesh.material.alphaTest != null) mesh.material.alphaTest = 0;
-            if (mesh.material.emissive) {
-                mesh.material.emissive.setHex(0x000000);
-                mesh.material.emissiveIntensity = 0;
-            }
-            mesh.material.needsUpdate = true;
+            const isFrame = targetHex === MA_STL_DESING2_ATK60_COLOR_FRAME_HEX;
+            maStlDesing2ApplyAtk60MeshMaterial(mesh, targetHex, isFrame);
         }
+
+        maStlDesing2SyncAtk60CastShadow(root);
 
         if (taggedCount > 0) return;
 
@@ -4945,22 +5018,8 @@ function bootMasterArticleDetailsStlViewer() {
             const targetHex = i === maxAreaIdx
                 ? MA_STL_DESING2_ATK60_COLOR_FRAME_HEX
                 : MA_STL_DESING2_ATK60_COLOR_PHENOLIC_HEX;
-            const mat = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
-            if (!mat) continue;
-            mesh.material = mat.clone();
-            if (mesh.material.color) {
-                mesh.material.color.setHex(targetHex);
-            }
-            mesh.material.transparent = false;
-            mesh.material.opacity = 1;
-            mesh.material.depthTest = true;
-            mesh.material.depthWrite = true;
-            if (mesh.material.alphaTest != null) mesh.material.alphaTest = 0;
-            if (mesh.material.emissive) {
-                mesh.material.emissive.setHex(0x000000);
-                mesh.material.emissiveIntensity = 0;
-            }
-            mesh.material.needsUpdate = true;
+            const isFrame = targetHex === MA_STL_DESING2_ATK60_COLOR_FRAME_HEX;
+            maStlDesing2ApplyAtk60MeshMaterial(mesh, targetHex, isFrame);
         }
 
         // Los paneles ATK60 deben usar los mismos planos de corte horizontal/vertical del visor.
@@ -4970,7 +5029,7 @@ function bootMasterArticleDetailsStlViewer() {
             for (let mi = 0; mi < mat.length; mi++) {
                 if (!mat[mi]) continue;
                 mat[mi].clippingPlanes = [clipPlaneY, clipPlaneX];
-                mat[mi].clipShadows = true;
+                mat[mi].clipShadows = false;
                 mat[mi].needsUpdate = true;
             }
         }
@@ -5162,24 +5221,27 @@ function bootMasterArticleDetailsStlViewer() {
 
                 const pieceWidthMm = Math.max(10, maStlDesing2ToFiniteNumber(item.PieceWidthMm) || 900);
                 const pieceHeightMm = Math.max(10, maStlDesing2ToFiniteNumber(item.PieceHeightMm) || 2700);
+                const orientationRaw = item && item.Orientation != null ? String(item.Orientation).toLowerCase() : '';
+                const isTumbado = orientationRaw.indexOf('tumbado') >= 0;
+                const orientationRotZ = isTumbado ? (-Math.PI * 0.5) : 0;
 
                 // Insercion directa: escalar por altura de pieza y ubicar en ancla calculada por C#.
                 clone.position.set(0, 0, 0);
-                clone.rotation.set(0, 0, 0);
+                clone.rotation.set(0, 0, orientationRotZ);
+                clone.updateMatrixWorld(true);
                 const box = new THREE.Box3().setFromObject(clone);
                 const size = new THREE.Vector3();
                 box.getSize(size);
-                if (size.y > 1e-6) {
+                if (size.y > 1e-6 && size.x > 1e-6 && size.z > 1e-6) {
+                    // No estirar ancho: la modulación la resuelve orientación de pieza + escala uniforme por altura.
                     const s = pieceHeightMm / size.y;
                     clone.scale.setScalar(s);
                 }
 
-                // Compensa GLB cuyo eje largo viene en Z local para que RotY siga el eje del muro.
-                const yawAssetOffset = (size.z > (size.x * 1.25)) ? (-Math.PI * 0.5) : 0;
                 const ux = Math.cos(rotY);
                 const uz = Math.sin(rotY);
-                const rotX = maStlDesing2NormalizeAngleToRad(item.RotX);
-                const rotZ = maStlDesing2NormalizeAngleToRad(item.RotZ);
+                const panelRotX = 0;
+                const panelRotZ = orientationRotZ;
 
                 let nx = maStlDesing2ToFiniteNumber(item.NormalX);
                 let nz = maStlDesing2ToFiniteNumber(item.NormalZ);
@@ -5197,55 +5259,39 @@ function bootMasterArticleDetailsStlViewer() {
                     nz /= nn;
                 }
 
-                const thicknessIsX = size.x <= size.z;
-                const localOutSign = 1;
-                const evaluateYawByOutwardNormal = function (yawCandidate) {
-                    const localOut = thicknessIsX
-                        ? new THREE.Vector3(localOutSign, 0, 0)
-                        : new THREE.Vector3(0, 0, localOutSign);
-                    localOut.applyEuler(new THREE.Euler(rotX, yawCandidate, rotZ, 'XYZ'));
-                    return (localOut.x * nx) + (localOut.z * nz);
-                };
+                const isAxisAligned = Math.abs(Math.sin(rotY) * Math.cos(rotY)) < 1e-3;
+                const finalYaw = isAxisAligned ? rotY : (rotY + Math.PI * 0.5);
+                const isMirrored = item && item.IsMirrored === true;
+                const appliedYaw = isMirrored ? (finalYaw + Math.PI) : finalYaw;
 
-                const yawCandidateA = rotY + yawAssetOffset;
-                const yawCandidateB = yawCandidateA + Math.PI;
-                const outAlignA = evaluateYawByOutwardNormal(yawCandidateA);
-                const outAlignB = evaluateYawByOutwardNormal(yawCandidateB);
-                const finalYaw = outAlignB > outAlignA ? yawCandidateB : yawCandidateA;
-
-                clone.rotation.set(rotX, finalYaw, rotZ);
+                clone.rotation.set(panelRotX, appliedYaw, panelRotZ);
                 clone.position.set(x, y, z);
                 clone.updateMatrixWorld(true);
 
-                // 1) Anclaje robusto de arranque en eje del muro (evita desplazamientos +0,90 esporadicos).
-                const bottomCornersLocal = [
-                    new THREE.Vector3(box.min.x, box.min.y, box.min.z),
-                    new THREE.Vector3(box.max.x, box.min.y, box.min.z),
-                    new THREE.Vector3(box.max.x, box.min.y, box.max.z),
-                    new THREE.Vector3(box.min.x, box.min.y, box.max.z),
-                ];
-
-                let minAlong = Infinity;
-                for (let ci = 0; ci < bottomCornersLocal.length; ci++) {
-                    const wc = clone.localToWorld(bottomCornersLocal[ci].clone());
-                    const rx = wc.x - x;
-                    const rz = wc.z - z;
-                    const along = (rx * ux) + (rz * uz);
-                    if (along < minAlong) {
-                        minAlong = along;
-                    }
-                }
-                if (Number.isFinite(minAlong)) {
-                    clone.position.x += (-minAlong * ux);
-                    clone.position.z += (-minAlong * uz);
+                // Solo ortogonales: en cara simetrica desplazar una pieza sobre el eje del muro.
+                if (isAxisAligned && isMirrored) {
+                    clone.position.x += ux * pieceWidthMm;
+                    clone.position.z += uz * pieceWidthMm;
                     clone.updateMatrixWorld(true);
                 }
 
-                // 2) Ajuste estable solo en la normal exterior:
+                const getBottomCornersWorldFromBox = function (b) {
+                    return [
+                        new THREE.Vector3(b.min.x, b.min.y, b.min.z),
+                        new THREE.Vector3(b.max.x, b.min.y, b.min.z),
+                        new THREE.Vector3(b.max.x, b.min.y, b.max.z),
+                        new THREE.Vector3(b.min.x, b.min.y, b.max.z),
+                    ];
+                };
+
+                let placementBox = new THREE.Box3().setFromObject(clone);
+                let bottomCornersWorld = getBottomCornersWorldFromBox(placementBox);
+
+                // Ajuste estable solo en la normal exterior:
                 // evita meter paneles en cara interior sin alterar la progresion sobre el eje del muro.
                 let maxOut = -Infinity;
-                for (let ci = 0; ci < bottomCornersLocal.length; ci++) {
-                    const wc = clone.localToWorld(bottomCornersLocal[ci].clone());
+                for (let ci = 0; ci < bottomCornersWorld.length; ci++) {
+                    const wc = bottomCornersWorld[ci];
                     const rx = wc.x - x;
                     const rz = wc.z - z;
                     const out = (rx * nx) + (rz * nz);
@@ -5259,10 +5305,19 @@ function bootMasterArticleDetailsStlViewer() {
                     clone.position.z += (-maxOut * nz);
                 }
 
+                // 3) Anclaje vertical: la base de la pieza debe apoyar en Y objetivo del backend.
+                clone.updateMatrixWorld(true);
+                const worldBox = new THREE.Box3().setFromObject(clone);
+                if (Number.isFinite(worldBox.min.y)) {
+                    clone.position.y += (y - worldBox.min.y);
+                    clone.updateMatrixWorld(true);
+                }
+
                 // Regla de negocio solicitada:
                 // - Todos los muros: separar 0,12 m hacia exterior.
                 clone.position.x += nx * 120;
                 clone.position.z += nz * 120;
+
                 clone.userData = Object.assign({}, clone.userData || {}, {
                     maStlAtk60SamplePlaced: true,
                     maStlAtk60Element: true,
@@ -5280,10 +5335,17 @@ function bootMasterArticleDetailsStlViewer() {
             }
         }
 
+        maStlDesing2AfterAtk60SceneChange();
         return {
             inserted: inserted,
             requested: sourceElements.length,
         };
+    }
+
+    function maStlDesing2AfterAtk60SceneChange() {
+        if (!maStlFormworkEnvRig) return;
+        maStlFormworkEnvApplyFormworkShadowState();
+        if (groundShadowVisible) maStlFormworkEnvRefreshShadowFit();
     }
 
     async function maStlDesing2InsertAtk60SampleOnWalls(walls, opts) {
@@ -5342,6 +5404,7 @@ function bootMasterArticleDetailsStlViewer() {
             inserted++;
         }
 
+        maStlDesing2AfterAtk60SceneChange();
         return {
             inserted: inserted,
             requested: sourceWalls.length,
@@ -6578,8 +6641,8 @@ function bootMasterArticleDetailsStlViewer() {
         mesh.userData.maStlAtk60FormworkMeta = footprint.meta || null;
         mesh.userData.maStlWall3dMapped = false;
         mesh.renderOrder = pieceKind === 'corner' ? 121 : 120;
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
+        mesh.castShadow = false;
+        mesh.receiveShadow = false;
         if (maStlWall3dConcreteMapActive && maStlWall3dConcreteTexture) {
             maStlWall3dApplyConcreteToMesh(mesh);
         }
@@ -16155,8 +16218,8 @@ function bootMasterArticleDetailsStlViewer() {
         mesh.userData.maStlWall3dKind = pieceKind;
         mesh.userData.maStlWall3dMapped = false;
         mesh.renderOrder = pieceKind === 'corner' ? 121 : 120;
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
+        mesh.castShadow = false;
+        mesh.receiveShadow = false;
         if (maStlWall3dConcreteMapActive && maStlWall3dConcreteTexture) {
             maStlWall3dApplyConcreteToMesh(mesh);
         }
@@ -24901,7 +24964,10 @@ function bootMasterArticleDetailsStlViewer() {
 
     /** Plano receptor de sombras en Y=0 (solo con “sombra en suelo” activa). */
     const shadowGroundGeometry = new THREE.PlaneGeometry(1, 1);
-    const shadowGroundMaterial = new THREE.ShadowMaterial({ opacity: 0.42 });
+    const shadowGroundMaterial = new THREE.ShadowMaterial({ opacity: 0.58 });
+    shadowGroundMaterial.fog = false;
+    shadowGroundMaterial.transparent = true;
+    shadowGroundMaterial.depthWrite = false;
     const shadowGroundPlane = new THREE.Mesh(shadowGroundGeometry, shadowGroundMaterial);
     shadowGroundPlane.rotation.x = -0.5 * Math.PI;
     shadowGroundPlane.position.set(0, 0, 0);
@@ -24914,10 +24980,140 @@ function bootMasterArticleDetailsStlViewer() {
         const span = Math.max(lastMaxDim * 140, 2500);
         shadowGroundPlane.scale.set(span, span, 1);
     })();
-    let groundShadowVisible = false;
+    let groundShadowVisible = true;
+    /** Rig iluminación obra (Desing_2); null en visor maestro. */
+    let maStlFormworkEnvRig = null;
+
+    function maStlFormworkEnvHorizonColorHex() {
+        if (darkBgVisible) return 0x000000;
+        return skyVisible ? MA_STL_SKY_HORIZON_HEX : MA_STL_SKY_OFF_HEX;
+    }
+
+    function maStlFormworkEnvGetShadowRootGroups() {
+        const roots = [];
+        if (currentRoot) roots.push(currentRoot);
+        if (maStlDesing2Atk60SampleGroup) roots.push(maStlDesing2Atk60SampleGroup);
+        if (maStlWall3dMeshesGroup) roots.push(maStlWall3dMeshesGroup);
+        if (maStlWall2dModelMeshesGroup) roots.push(maStlWall2dModelMeshesGroup);
+        return roots;
+    }
+
+    function maStlFormworkEnvHasAtk60FormworkPanels() {
+        if (!maStlDesing2Atk60SampleGroup || !maStlDesing2Atk60SampleGroup.visible) return false;
+        for (let i = 0; i < maStlDesing2Atk60SampleGroup.children.length; i++) {
+            const child = maStlDesing2Atk60SampleGroup.children[i];
+            if (!child) continue;
+            const ud = child.userData || {};
+            if (ud.maStlAtk60SamplePlaced || ud.maStlAtk60Element) return true;
+        }
+        return false;
+    }
+
+    /** Encuadre sombra: solo paneles ATK-60 si hay encofrado (evita mancha del muro 3D). */
+    function maStlFormworkEnvGetShadowFitGroups() {
+        if (maStlFormworkEnvHasAtk60FormworkPanels()) {
+            return [maStlDesing2Atk60SampleGroup];
+        }
+        return maStlFormworkEnvGetShadowRootGroups();
+    }
+
+    function maStlFormworkEnvSyncShadowCasters() {
+        if (!maStlFormworkEnvRig) return [];
+        const formworkPanels = maStlFormworkEnvHasAtk60FormworkPanels();
+
+        if (maStlWall2dModelMeshesGroup) {
+            maStlFormworkEnvSyncShadowFlags(maStlWall2dModelMeshesGroup, false, false);
+        }
+        if (formworkPanels && currentRoot) {
+            maStlFormworkEnvSyncShadowFlags(currentRoot, false, false);
+        }
+
+        const castRoots = [];
+        if (maStlDesing2Atk60SampleGroup) castRoots.push(maStlDesing2Atk60SampleGroup);
+        if (!formworkPanels) {
+            if (currentRoot) castRoots.push(currentRoot);
+            if (maStlWall3dMeshesGroup) castRoots.push(maStlWall3dMeshesGroup);
+        }
+        return castRoots;
+    }
+
+    function maStlFormworkEnvSyncDesing2ShadowFloorAndReceivers() {
+        const enabled = !!groundShadowVisible;
+        shadowGroundPlane.visible = enabled;
+        shadowGroundPlane.receiveShadow = enabled;
+        if (maStlFormworkEnvRig) {
+            if (maStlFormworkEnvRig.shadowCatcher) {
+                maStlFormworkEnvRig.shadowCatcher.visible = false;
+                maStlFormworkEnvRig.shadowCatcher.receiveShadow = false;
+            }
+            if (enabled && maStlFormworkEnvRig.settings) {
+                shadowGroundMaterial.opacity = maStlFormworkEnvRig.settings.shadowOpacity || 0.35;
+                shadowGroundMaterial.needsUpdate = true;
+            }
+        }
+        const formworkPanels = maStlFormworkEnvHasAtk60FormworkPanels();
+        if (enabled && formworkPanels && maStlWall3dMeshesGroup) {
+            maStlFormworkEnvSyncShadowFlags(maStlWall3dMeshesGroup, false, true);
+        }
+    }
+
+    function maStlFormworkEnvApplyFormworkShadowState() {
+        if (!maStlFormworkEnvRig || !mainDirLight) return;
+        const castRoots = maStlFormworkEnvSyncShadowCasters();
+        maStlFormworkEnvApplyShadowState(
+            castRoots,
+            groundShadowVisible,
+            renderer,
+            mainDirLight,
+            maStlFormworkEnvRig
+        );
+        maStlFormworkEnvSyncDesing2ShadowFloorAndReceivers();
+    }
+
+    function maStlFormworkEnvRefreshShadowFit() {
+        if (!mainDirLight) return;
+        maStlFormworkEnvFitShadowCamera(
+            mainDirLight,
+            maStlFormworkEnvGetShadowFitGroups(),
+            maStlRulerAnchorMm,
+            maStlFormworkEnvRig,
+            shadowGroundPlane
+        );
+    }
+
+    function applyDesing2FormworkLightingLive() {
+        if (!maStlRulersGate || !maStlFormworkEnvRig || !renderer) return;
+        const settings = maStlFormworkEnvReadUi(maStlFormworkEnvUiElements());
+        maStlFormworkEnvWriteUi(maStlFormworkEnvUiElements(), settings);
+        maStlFormworkEnvApplySettings(maStlFormworkEnvRig, settings, scene, renderer);
+        groundShadowVisible = settings.shadowsEnabled;
+        maStlFormworkEnvApplyFormworkShadowState();
+        maStlFormworkEnvResizeSiteFloor(
+            maStlFormworkEnvRig,
+            Math.max(lastMaxDim * 140, 2500)
+        );
+        maStlFormworkEnvSyncFog(
+            scene,
+            maStlFormworkEnvRig.settings,
+            maStlFormworkEnvRig.sceneExtentMm,
+            maStlFormworkEnvHorizonColorHex()
+        );
+        if (settings.ssaoEnabled) {
+            maStlFormworkEnvEnsureSsaoComposer(renderer, scene, activeCamera(), maStlFormworkEnvRig);
+        } else if (maStlFormworkEnvRig.ssaoComposer) {
+            maStlFormworkEnvEnsureSsaoComposer(renderer, scene, activeCamera(), maStlFormworkEnvRig);
+        }
+        if (groundShadowVisible) maStlFormworkEnvRefreshShadowFit();
+        maStlFormworkEnvApplyIblToScene(scene, settings.iblIntensity);
+        maStlFormworkEnvApplyCatalogLook(scene, maStlFormworkEnvRig, settings.shadowsEnabled);
+        if (typeof maStlSyncFormworkCatalogGridOpacity === 'function') {
+            maStlSyncFormworkCatalogGridOpacity();
+        }
+        syncGroundShadowToggleUi();
+    }
 
     function maStlSyncShadowGroundMaterialVisual() {
-        shadowGroundMaterial.opacity = darkBgVisible ? 0.68 : 0.42;
+        shadowGroundMaterial.opacity = darkBgVisible ? 0.72 : 0.58;
         shadowGroundMaterial.needsUpdate = true;
     }
 
@@ -25252,6 +25448,18 @@ function bootMasterArticleDetailsStlViewer() {
         if (controls) {
             controls.update();
         }
+        if (maStlFormworkEnvRig) {
+            maStlFormworkEnvResizeSiteFloor(
+                maStlFormworkEnvRig,
+                Math.max(lastMaxDim * 140, 2500)
+            );
+            maStlFormworkEnvSyncFog(
+                scene,
+                maStlFormworkEnvRig.settings,
+                maStlFormworkEnvRig.sceneExtentMm,
+                maStlFormworkEnvHorizonColorHex()
+            );
+        }
     }
 
     /**
@@ -25326,7 +25534,7 @@ function bootMasterArticleDetailsStlViewer() {
     renderer.shadowMap.enabled = false;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
+    renderer.toneMappingExposure = 1.28;
     renderer.localClippingEnabled = true;
     canvasHost.innerHTML = '';
     canvasHost.appendChild(renderer.domElement);
@@ -26061,7 +26269,19 @@ function bootMasterArticleDetailsStlViewer() {
             scene.background = skyOffBackground;
             renderer.setClearColor(MA_STL_SKY_OFF_HEX, 1);
         }
-        skyFloorPlane.visible = skyVisible && !darkBgVisible;
+        skyFloorPlane.visible = skyVisible && !darkBgVisible && !(groundShadowVisible && maStlFormworkEnvRig);
+        if (maStlFormworkEnvRig) {
+            if (groundShadowVisible) {
+                scene.fog = null;
+            } else {
+                maStlFormworkEnvSyncFog(
+                    scene,
+                    maStlFormworkEnvRig.settings,
+                    maStlFormworkEnvRig.sceneExtentMm,
+                    maStlFormworkEnvHorizonColorHex()
+                );
+            }
+        }
     }
 
     function syncSkyToggleUi() {
@@ -26102,18 +26322,62 @@ function bootMasterArticleDetailsStlViewer() {
     }
     syncDarkBgToggleUi();
 
-    const { mainDirLight } = maStlCreateSceneLights(scene, maStlRulersGate);
+    let mainDirLight;
+    if (maStlRulersGate) {
+        maStlFormworkEnvRig = maStlFormworkEnvCreateRig(scene, renderer, {
+            mmPerMeter: MA_STL_SCENE_MM_PER_PHYSICAL_METER,
+            settings: desing2EnvLightingSettings,
+        });
+        mainDirLight = maStlFormworkEnvRig.keyLight;
+        groundShadowVisible = maStlFormworkEnvRig.settings.shadowsEnabled;
+        renderer.shadowMap.enabled = groundShadowVisible;
+        maStlFormworkEnvWriteUi(maStlFormworkEnvUiElements(), maStlFormworkEnvRig.settings);
+        maStlFormworkEnvResizeSiteFloor(
+            maStlFormworkEnvRig,
+            Math.max(lastMaxDim * 140, 2500)
+        );
+        maStlFormworkEnvSyncFog(
+            scene,
+            maStlFormworkEnvRig.settings,
+            maStlFormworkEnvRig.sceneExtentMm,
+            maStlFormworkEnvHorizonColorHex()
+        );
+        maStlFormworkEnvApplyIblToScene(scene, maStlFormworkEnvRig.settings.iblIntensity);
+    } else {
+        const legacyLights = maStlCreateSceneLights(scene, false);
+        mainDirLight = legacyLights.mainDirLight;
+    }
+    const maStlCameraHeadLight = new THREE.PointLight(0xffefc4, maStlRulersGate ? 0.18 : 0.75, 0, 2);
+    maStlCameraHeadLight.castShadow = false;
+    scene.add(maStlCameraHeadLight);
     const _maStlShadowTarget = new THREE.Vector3();
 
     function syncGroundShadowToggleUi() {
-        shadowGroundPlane.visible = groundShadowVisible;
-        mainDirLight.castShadow = groundShadowVisible;
-        renderer.shadowMap.enabled = groundShadowVisible;
+        const catalogActive = !!(groundShadowVisible && maStlFormworkEnvRig);
+        if (maStlFormworkEnvRig && mainDirLight) {
+            maStlFormworkEnvRig.settings.shadowsEnabled = groundShadowVisible;
+            const shadowsUi = maStlFormworkEnvUiElements().shadowsEnabled;
+            if (shadowsUi) shadowsUi.checked = groundShadowVisible;
+            if (groundShadowVisible) maStlFormworkEnvRefreshShadowFit();
+            maStlFormworkEnvApplyFormworkShadowState();
+            maStlFormworkEnvApplyCatalogLook(scene, maStlFormworkEnvRig, catalogActive);
+        } else {
+            shadowGroundPlane.visible = groundShadowVisible;
+            shadowGroundPlane.receiveShadow = groundShadowVisible;
+            mainDirLight.castShadow = groundShadowVisible;
+            renderer.shadowMap.enabled = groundShadowVisible;
+            clipStlMeshes.forEach(function (mesh) {
+                mesh.castShadow = groundShadowVisible;
+                mesh.receiveShadow = false;
+            });
+        }
         maStlSyncShadowGroundMaterialVisual();
-        clipStlMeshes.forEach(function (mesh) {
-            mesh.castShadow = groundShadowVisible;
-            mesh.receiveShadow = false;
-        });
+        if (typeof maStlSyncFormworkCatalogGridOpacity === 'function') {
+            maStlSyncFormworkCatalogGridOpacity();
+        }
+        if (!catalogActive) {
+            applySceneBackgroundAndClearColor();
+        }
         if (groundShadowToggleBtn) {
             groundShadowToggleBtn.setAttribute('aria-pressed', groundShadowVisible ? 'true' : 'false');
             groundShadowToggleBtn.classList.toggle('active', groundShadowVisible);
@@ -26130,6 +26394,13 @@ function bootMasterArticleDetailsStlViewer() {
         });
     }
     syncGroundShadowToggleUi();
+
+    function maStlFormworkEnvApplyInitialShadowMeshes() {
+        if (!maStlFormworkEnvRig) return;
+        maStlFormworkEnvApplyFormworkShadowState();
+        if (groundShadowVisible) maStlFormworkEnvRefreshShadowFit();
+    }
+    maStlFormworkEnvApplyInitialShadowMeshes();
 
     /**
      * Serializa cámara activa + toggles para cookie Desing_2 (sin URL STL ni datos de usuario).
@@ -26173,7 +26444,10 @@ function bootMasterArticleDetailsStlViewer() {
                 enclosureEx1Mm: desing2EnvEnclosureEx1Mm,
                 enclosureEx2Mm: desing2EnvEnclosureEx2Mm,
                 enclosureEy1Mm: desing2EnvEnclosureEy1Mm,
-                enclosureEy2Mm: desing2EnvEnclosureEy2Mm
+                enclosureEy2Mm: desing2EnvEnclosureEy2Mm,
+                lighting: maStlFormworkEnvRig
+                    ? maStlFormworkEnvSerializeSettings(maStlFormworkEnvRig.settings)
+                    : null,
             }
         };
         if (clipInputX) snap.clipX = Number.parseFloat(String(clipInputX.value).trim()) || 1000;
@@ -26309,6 +26583,20 @@ function bootMasterArticleDetailsStlViewer() {
                     desing2EnvEnclosureEy1Mm,
                     desing2EnvEnclosureEy2Mm
                 );
+                if (envIn.lighting && typeof envIn.lighting === 'object' && maStlFormworkEnvRig) {
+                    maStlFormworkEnvApplySettings(
+                        maStlFormworkEnvRig,
+                        envIn.lighting,
+                        scene,
+                        renderer
+                    );
+                    maStlFormworkEnvWriteUi(
+                        maStlFormworkEnvUiElements(),
+                        maStlFormworkEnvRig.settings
+                    );
+                    groundShadowVisible = maStlFormworkEnvRig.settings.shadowsEnabled;
+                    syncGroundShadowToggleUi();
+                }
             }
             if (state.rulerAnchor && typeof state.rulerAnchor === 'object') {
                 const ra = state.rulerAnchor;
@@ -26446,9 +26734,14 @@ function bootMasterArticleDetailsStlViewer() {
         function maStlOnDesing2EntornoSelectInput(ev) {
             const el = ev.target;
             const id = el instanceof Element ? el.id : '';
-            if (id !== 'ma-stl-entorno-grid-snap-mm' && id !== 'ma-stl-entorno-ruler-extent-m') return;
-            if (!(el instanceof HTMLSelectElement)) return;
-            applyDesing2EntornoLive();
+            if (id === 'ma-stl-entorno-grid-snap-mm' || id === 'ma-stl-entorno-ruler-extent-m') {
+                if (!(el instanceof HTMLSelectElement)) return;
+                applyDesing2EntornoLive();
+                return;
+            }
+            if (id && id.indexOf('ma-stl-entorno-') === 0) {
+                applyDesing2FormworkLightingLive();
+            }
         }
         viewerShell.addEventListener('change', maStlOnDesing2EntornoSelectInput);
         viewerShell.addEventListener('input', maStlOnDesing2EntornoSelectInput);
@@ -26653,7 +26946,35 @@ function bootMasterArticleDetailsStlViewer() {
         setViewCubeCssFromCamera(orthoCubeEl, cameraOrtho);
         setViewCubeCssFromCamera(isoCubeEl, cameraIso);
         const camMain = activeCamera();
-        renderer.render(scene, camMain);
+        maStlCameraHeadLight.position.copy(camMain.position);
+        maStlCameraHeadLight.visible = maStlDesing2ModelMode === 'wall3d';
+        if (maStlFormworkEnvRig) {
+            maStlFormworkEnvSyncFog(
+                scene,
+                maStlFormworkEnvRig.settings,
+                maStlFormworkEnvRig.sceneExtentMm,
+                maStlFormworkEnvHorizonColorHex()
+            );
+        }
+        if (
+            maStlFormworkEnvRig &&
+            maStlFormworkEnvRig.settings.ssaoEnabled
+        ) {
+            maStlFormworkEnvEnsureSsaoComposer(renderer, scene, camMain, maStlFormworkEnvRig);
+            if (maStlFormworkEnvRig.ssaoComposer) {
+                maStlFormworkEnvResizeSsao(
+                    maStlFormworkEnvRig,
+                    renderer.domElement.width,
+                    renderer.domElement.height,
+                    camMain
+                );
+                maStlFormworkEnvRig.ssaoComposer.render();
+            } else {
+                renderer.render(scene, camMain);
+            }
+        } else {
+            renderer.render(scene, camMain);
+        }
         if (compassDialEl && controls) {
             const orbitPivotHud = maStlDesingV2Viewer ? maStlRulerAnchorMm : controls.target;
             const deg = maStlSvgCompassDialRotationDeg(camMain, orbitPivotHud);
@@ -26712,6 +27033,9 @@ function bootMasterArticleDetailsStlViewer() {
         }
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         renderer.setSize(nw, nh, false);
+        if (maStlFormworkEnvRig) {
+            maStlFormworkEnvResizeSsao(maStlFormworkEnvRig, nw, nh, activeCamera());
+        }
         maStlSyncAllUserFloorLineMaterialResolutions(nw, nh);
         if (maStlRulersGate && maStlEdgeRulersManualOn) {
             maStlSyncEdgeRulersOverlay();
@@ -26903,15 +27227,20 @@ function bootMasterArticleDetailsStlViewer() {
             ? Math.max(overlayDim * 1.22, desing2EnvGridMajorMm() * 4)
             : Math.max(modelDim * 1.18, 1e-6);
         if (maStlRulersGate) {
-            mainDirLight.target.position.set(0, 0, 0);
-            mainDirLight.target.updateMatrixWorld();
-            const shadowCam = mainDirLight.shadow.camera;
-            const s = Math.max(overlayDim * 0.5, desing2EnvGridMajorMm() * 2);
-            shadowCam.left = -s;
-            shadowCam.right = s;
-            shadowCam.top = s;
-            shadowCam.bottom = -s;
-            shadowCam.updateProjectionMatrix();
+            if (maStlFormworkEnvRig) {
+                maStlFormworkEnvResizeSiteFloor(maStlFormworkEnvRig, Math.max(overlayDim * 1.4, 12000));
+                maStlFormworkEnvRefreshShadowFit();
+            } else {
+                mainDirLight.target.position.set(0, 0, 0);
+                mainDirLight.target.updateMatrixWorld();
+                const shadowCam = mainDirLight.shadow.camera;
+                const s = Math.max(overlayDim * 0.5, desing2EnvGridMajorMm() * 2);
+                shadowCam.left = -s;
+                shadowCam.right = s;
+                shadowCam.top = s;
+                shadowCam.bottom = -s;
+                shadowCam.updateProjectionMatrix();
+            }
         } else {
             box.getCenter(_maStlShadowTarget);
             mainDirLight.target.position.copy(_maStlShadowTarget);

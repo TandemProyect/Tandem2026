@@ -547,6 +547,81 @@
   <data name="StlPreview_Desing2EntornoRulerExtentLabel" xml:space="preserve">
     <value>Alcance máximo del trazado de reglas</value>
   </data>
+  <data name="StlPreview_Desing2EntornoLightingSectionTitle" xml:space="preserve">
+    <value>Iluminación encofrado</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoSunAzimuthLabel" xml:space="preserve">
+    <value>Azimut del sol</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoSunAzimuthAria" xml:space="preserve">
+    <value>Ángulo horizontal de la luz principal en grados.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoSunElevationLabel" xml:space="preserve">
+    <value>Elevación del sol</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoSunElevationAria" xml:space="preserve">
+    <value>Ángulo de elevación de la luz principal en grados.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoSunIntensityLabel" xml:space="preserve">
+    <value>Intensidad del sol</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoSunIntensityAria" xml:space="preserve">
+    <value>Intensidad de la luz direccional principal.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoAmbientIntensityLabel" xml:space="preserve">
+    <value>Luz ambiental</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoAmbientIntensityAria" xml:space="preserve">
+    <value>Intensidad de la luz ambiental global.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoIblIntensityLabel" xml:space="preserve">
+    <value>Reflejos ambiente (IBL)</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoIblIntensityAria" xml:space="preserve">
+    <value>Intensidad del mapa de entorno para materiales PBR.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoExposureLabel" xml:space="preserve">
+    <value>Exposición</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoExposureAria" xml:space="preserve">
+    <value>Exposición de la cámara (tone mapping).</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoFogStrengthLabel" xml:space="preserve">
+    <value>Niebla atmosférica</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoFogStrengthAria" xml:space="preserve">
+    <value>Intensidad de la niebla de profundidad.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoShadowQualityLabel" xml:space="preserve">
+    <value>Calidad de sombras</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoShadowQualityAria" xml:space="preserve">
+    <value>Resolución del mapa de sombras.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoShadowsEnabledLabel" xml:space="preserve">
+    <value>Sombras en suelo y paneles</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoShadowsEnabledAria" xml:space="preserve">
+    <value>Activa o desactiva sombras proyectadas.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoSiteFloorEnabledLabel" xml:space="preserve">
+    <value>Suelo de obra</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoSiteFloorEnabledAria" xml:space="preserve">
+    <value>Muestra un plano de suelo con textura de obra.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoFogEnabledLabel" xml:space="preserve">
+    <value>Niebla</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoFogEnabledAria" xml:space="preserve">
+    <value>Activa o desactiva la niebla atmosférica.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoSsaoEnabledLabel" xml:space="preserve">
+    <value>SSAO (contacto, más costoso)</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoSsaoEnabledAria" xml:space="preserve">
+    <value>Sombras de contacto en postprocesado; puede reducir FPS con muchos objetos.</value>
+  </data>
   <data name="StlPreview_Desing2RedoAria" xml:space="preserve">
     <value>Rehacer acción deshecha</value>
   </data>

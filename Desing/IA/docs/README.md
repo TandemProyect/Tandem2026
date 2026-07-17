@@ -45,6 +45,7 @@ Documentos de continuidad, handovers, guías para agentes IA y notas de trabajo.
 |-----------|-------------|
 | [ENCOFRADO-AT60-BASE.md](ENCOFRADO-AT60-BASE.md) | Catálogo AT-60, reglas negocio, bocetos L/T/+ |
 | [ENCOFRADO-AT60-IMPLEMENTACION.md](ENCOFRADO-AT60-IMPLEMENTACION.md) | **Handover código** — ciclo líneas/mallas, L/T cliente, pruebas |
+| [HANDOVER-ATK60-ESTABILIZACION-2026-07-16.md](HANDOVER-ATK60-ESTABILIZACION-2026-07-16.md) | Estado estable reciente, protocolo anti-regresiones y matriz de pruebas |
 | [HANDOVER-ENCOFRADO-AT60-SESION-T-2026-07-10.md](HANDOVER-ENCOFRADO-AT60-SESION-T-2026-07-10.md) | **Sesión 2026-07-10** — rectos, recorte, guía T P-1…P-8, pendientes |
 | [HANDOVER-MUROS-T-CRUCE.md](HANDOVER-MUROS-T-CRUCE.md) | Uniones T y cruce (+), topología 2D |
 | [SISTEMA-ATK60.md](SISTEMA-ATK60.md) | Sistema ATK60 |

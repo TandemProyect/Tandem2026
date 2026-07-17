@@ -18,13 +18,18 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
                 return layout;
             }
 
+            if (target > 2700d)
+            {
+                return BuildMixedVerticalPlusTumbadoLayout(target);
+            }
+
             return BuildGreedyTumbadoLayout(target);
         }
 
         private static double NormalizeTargetHeightMm(double wallHeightMm)
         {
-            var h = Math.Max(300d, Math.Min(2700d, wallHeightMm));
-            return Math.Round(h / 150d, MidpointRounding.AwayFromZero) * 150d;
+            var h = Math.Max(300d, Math.Min(6000d, wallHeightMm));
+            return Math.Ceiling(h / 150d) * 150d;
         }
 
         private static bool TryGetKnownLayout(double targetHeightMm, out Modulo270Layout layout)
@@ -157,6 +162,56 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
             if (pieces.Count == 0)
             {
                 pieces.Add(PieceTumbado("27304205", 300, 2700, 0));
+            }
+
+            return Build((int)targetHeightMm, pieces.ToArray());
+        }
+
+        private static Modulo270Layout BuildMixedVerticalPlusTumbadoLayout(double targetHeightMm)
+        {
+            var pieces = new List<Modulo270PieceLayout>();
+
+            var baseOptions = new[]
+            {
+                new { BaseH = 2700, Glb = "27904209" },
+                new { BaseH = 2400, Glb = "24904240" },
+                new { BaseH = 1200, Glb = "12904215" },
+            };
+
+            var selectedBase = baseOptions[0];
+            for (var i = 0; i < baseOptions.Length; i++)
+            {
+                var rem = targetHeightMm - baseOptions[i].BaseH;
+                if (Math.Abs(rem) < 0.5 || rem >= 299.5)
+                {
+                    selectedBase = baseOptions[i];
+                    break;
+                }
+            }
+
+            pieces.Add(PieceVertical(selectedBase.Glb, 900, selectedBase.BaseH, 0));
+            pieces.Add(PieceVertical(selectedBase.Glb, 900, selectedBase.BaseH, 900));
+            pieces.Add(PieceVertical(selectedBase.Glb, 900, selectedBase.BaseH, 1800));
+
+            var remaining = targetHeightMm - selectedBase.BaseH;
+            var up = selectedBase.BaseH;
+            var topOptions = new[]
+            {
+                new { H = 900, Glb = "27904209" },
+                new { H = 750, Glb = "27754219" },
+                new { H = 600, Glb = "27604207" },
+                new { H = 450, Glb = "27454206" },
+                new { H = 300, Glb = "27304205" },
+            };
+
+            for (var i = 0; i < topOptions.Length && remaining >= 299.5; i++)
+            {
+                while (remaining >= topOptions[i].H - 0.5)
+                {
+                    pieces.Add(PieceTumbado(topOptions[i].Glb, topOptions[i].H, 2700, up));
+                    remaining -= topOptions[i].H;
+                    up += topOptions[i].H;
+                }
             }
 
             return Build((int)targetHeightMm, pieces.ToArray());

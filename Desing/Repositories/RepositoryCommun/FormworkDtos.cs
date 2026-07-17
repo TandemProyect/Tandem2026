@@ -111,6 +111,7 @@ namespace Desing.Repositories.RepositoryCommun
         public double NormalX { get; set; }
         public double NormalZ { get; set; }
         public double FaceSign { get; set; }
+        public bool IsMirrored { get; set; }
         public double ModuleLengthMm { get; set; }
         public int ModuleIndex { get; set; }
         public int ModuleCountInWall { get; set; }

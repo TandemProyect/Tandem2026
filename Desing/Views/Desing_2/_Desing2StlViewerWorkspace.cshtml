@@ -171,6 +171,77 @@
                                             <option value="80">80 m</option>
                                         </select>
                                     </div>
+                                    <hr class="my-1" />
+                                    <p class="form-label mb-1 small fw-semibold">@MasterArticles.StlPreview_Desing2EntornoLightingSectionTitle</p>
+                                    <div>
+                                        <label class="form-label mb-1 d-flex justify-content-between" for="ma-stl-entorno-sun-azimuth">
+                                            <span>@MasterArticles.StlPreview_Desing2EntornoSunAzimuthLabel</span>
+                                            <span id="ma-stl-entorno-sun-azimuth-val" class="text-body-secondary">135°</span>
+                                        </label>
+                                        <input type="range" class="form-range" id="ma-stl-entorno-sun-azimuth" min="0" max="360" step="1" value="135" aria-label="@MasterArticles.StlPreview_Desing2EntornoSunAzimuthAria" />
+                                    </div>
+                                    <div>
+                                        <label class="form-label mb-1 d-flex justify-content-between" for="ma-stl-entorno-sun-elevation">
+                                            <span>@MasterArticles.StlPreview_Desing2EntornoSunElevationLabel</span>
+                                            <span id="ma-stl-entorno-sun-elevation-val" class="text-body-secondary">48°</span>
+                                        </label>
+                                        <input type="range" class="form-range" id="ma-stl-entorno-sun-elevation" min="5" max="85" step="1" value="48" aria-label="@MasterArticles.StlPreview_Desing2EntornoSunElevationAria" />
+                                    </div>
+                                    <div>
+                                        <label class="form-label mb-1 d-flex justify-content-between" for="ma-stl-entorno-sun-intensity">
+                                            <span>@MasterArticles.StlPreview_Desing2EntornoSunIntensityLabel</span>
+                                            <span id="ma-stl-entorno-sun-intensity-val" class="text-body-secondary">1.20</span>
+                                        </label>
+                                        <input type="range" class="form-range" id="ma-stl-entorno-sun-intensity" min="0.2" max="2.5" step="0.05" value="1.2" aria-label="@MasterArticles.StlPreview_Desing2EntornoSunIntensityAria" />
+                                    </div>
+                                    <div>
+                                        <label class="form-label mb-1 d-flex justify-content-between" for="ma-stl-entorno-ambient-intensity">
+                                            <span>@MasterArticles.StlPreview_Desing2EntornoAmbientIntensityLabel</span>
+                                            <span id="ma-stl-entorno-ambient-intensity-val" class="text-body-secondary">0.22</span>
+                                        </label>
+                                        <input type="range" class="form-range" id="ma-stl-entorno-ambient-intensity" min="0" max="0.8" step="0.02" value="0.22" aria-label="@MasterArticles.StlPreview_Desing2EntornoAmbientIntensityAria" />
+                                    </div>
+                                    <div>
+                                        <label class="form-label mb-1 d-flex justify-content-between" for="ma-stl-entorno-ibl-intensity">
+                                            <span>@MasterArticles.StlPreview_Desing2EntornoIblIntensityLabel</span>
+                                            <span id="ma-stl-entorno-ibl-intensity-val" class="text-body-secondary">0.65</span>
+                                        </label>
+                                        <input type="range" class="form-range" id="ma-stl-entorno-ibl-intensity" min="0" max="1.5" step="0.05" value="0.65" aria-label="@MasterArticles.StlPreview_Desing2EntornoIblIntensityAria" />
+                                    </div>
+                                    <div>
+                                        <label class="form-label mb-1 d-flex justify-content-between" for="ma-stl-entorno-exposure">
+                                            <span>@MasterArticles.StlPreview_Desing2EntornoExposureLabel</span>
+                                            <span id="ma-stl-entorno-exposure-val" class="text-body-secondary">1.22</span>
+                                        </label>
+                                        <input type="range" class="form-range" id="ma-stl-entorno-exposure" min="0.6" max="2.2" step="0.02" value="1.22" aria-label="@MasterArticles.StlPreview_Desing2EntornoExposureAria" />
+                                    </div>
+                                    <div>
+                                        <label class="form-label mb-1 d-flex justify-content-between" for="ma-stl-entorno-fog-strength">
+                                            <span>@MasterArticles.StlPreview_Desing2EntornoFogStrengthLabel</span>
+                                            <span id="ma-stl-entorno-fog-strength-val" class="text-body-secondary">35%</span>
+                                        </label>
+                                        <input type="range" class="form-range" id="ma-stl-entorno-fog-strength" min="0" max="1" step="0.05" value="0.35" aria-label="@MasterArticles.StlPreview_Desing2EntornoFogStrengthAria" />
+                                    </div>
+                                    <div>
+                                        <label class="form-label mb-1" for="ma-stl-entorno-shadow-quality">@MasterArticles.StlPreview_Desing2EntornoShadowQualityLabel</label>
+                                        <select class="form-select form-select-sm" id="ma-stl-entorno-shadow-quality" aria-label="@MasterArticles.StlPreview_Desing2EntornoShadowQualityAria">
+                                            <option value="512">512 px</option>
+                                            <option value="1024">1024 px</option>
+                                            <option value="2048" selected>2048 px</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="ma-stl-entorno-shadows-enabled" checked="checked" aria-label="@MasterArticles.StlPreview_Desing2EntornoShadowsEnabledAria" />
+                                        <label class="form-check-label" for="ma-stl-entorno-shadows-enabled">@MasterArticles.StlPreview_Desing2EntornoShadowsEnabledLabel</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="ma-stl-entorno-fog-enabled" aria-label="@MasterArticles.StlPreview_Desing2EntornoFogEnabledAria" />
+                                        <label class="form-check-label" for="ma-stl-entorno-fog-enabled">@MasterArticles.StlPreview_Desing2EntornoFogEnabledLabel</label>
+                                    </div>
+                                    <div class="form-check mb-0">
+                                        <input class="form-check-input" type="checkbox" id="ma-stl-entorno-ssao-enabled" aria-label="@MasterArticles.StlPreview_Desing2EntornoSsaoEnabledAria" />
+                                        <label class="form-check-label" for="ma-stl-entorno-ssao-enabled">@MasterArticles.StlPreview_Desing2EntornoSsaoEnabledLabel</label>
+                                    </div>
                                 </div>
                             </div>
                             <div class="tab-pane fade" id="desing2-stl-side-pane-config" role="tabpanel" aria-labelledby="desing2-stl-side-tab-config" tabindex="0">
