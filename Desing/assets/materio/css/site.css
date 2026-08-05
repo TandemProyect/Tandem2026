@@ -777,7 +777,8 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     pointer-events: none;
     --d2-hrp-peek: 20px;
     --d2-hrp-collapsed: 48px;
-    --d2-hrp-expanded: min(260px, 78vw);
+    /* 4 iconos herramienta + plegar; 260px recortaba el 4.º (mapa) */
+    --d2-hrp-expanded: min(320px, 88vw);
     margin-right: calc(-1 * var(--d2-hrp-peek));
     padding-right: var(--d2-hrp-peek);
 }
