@@ -730,6 +730,12 @@
   <data name="StlPreview_ImageSketchError" xml:space="preserve">
     <value>No se pudo analizar la imagen: {0}</value>
   </data>
+  <data name="StlPreview_ImageSketchErrorModalAccept" xml:space="preserve">
+    <value>Aceptar</value>
+  </data>
+  <data name="StlPreview_ImageSketchErrorModalTitle" xml:space="preserve">
+    <value>Error al analizar la imagen</value>
+  </data>
   <data name="StlPreview_ImageSketchFormAccept" xml:space="preserve">
     <value>Analizar e insertar</value>
   </data>
@@ -1014,6 +1020,9 @@
   </data>
   <data name="StlPreview_WallDimToolNoPairsToast" xml:space="preserve">
     <value>No se detectó espesor de muro. Dibuje el contorno y el offset interior, o haga clic en una línea del muro con la herramienta activa.</value>
+  </data>
+  <data name="StlPreview_WallModelRendering" xml:space="preserve">
+    <value>Generando modelo de muros…</value>
   </data>
   <data name="StlPreview_WindowSelectionHint" xml:space="preserve">
     <value>Arrastre en lienzo vacío: izquierda→derecha ventana, derecha→izquierda cruce</value>

@@ -410,6 +410,7 @@ const es = Object.fromEntries(
     StlPreview_Wall3dMapProcessing: "Cargando textura de hormigón…",
     StlPreview_Wall3dMapSuccess: "Textura de hormigón aplicada a {0} pieza(s)",
     StlPreview_Wall3dMapError: "No se pudo cargar la textura: {0}",
+    StlPreview_WallModelRendering: "Generando modelo de muros…",
     StlPreview_ImageSketchFormTitle: "Boceto desde imagen",
     StlPreview_ImageSketchFormHint:
       "Adjunte un plano o boceto (JPG/PNG) con líneas de muro y cotas E/e y H/h.",
@@ -419,6 +420,8 @@ const es = Object.fromEntries(
     StlPreview_ImageSketchFormNoFile: "Seleccione una imagen",
     StlPreview_ImageSketchProcessing: "Analizando imagen…",
     StlPreview_ImageSketchError: "No se pudo analizar la imagen: {0}",
+    StlPreview_ImageSketchErrorModalTitle: "Error al analizar la imagen",
+    StlPreview_ImageSketchErrorModalAccept: "Aceptar",
     StlPreview_ImageSketchPickInstruction:
       "Clic en planta para insertar el boceto como líneas. Esc cancelar",
     StlPreview_ImageSketchSuccess: "Se insertaron {0} línea(s) desde el boceto",
@@ -895,6 +898,7 @@ const en = Object.assign({}, es, {
   StlPreview_Wall3dMapProcessing: "Loading concrete texture…",
   StlPreview_Wall3dMapSuccess: "Concrete texture applied to {0} piece(s)",
   StlPreview_Wall3dMapError: "Could not load texture: {0}",
+  StlPreview_WallModelRendering: "Generating wall model…",
   StlPreview_ImageSketchFormTitle: "Sketch from image",
   StlPreview_ImageSketchFormHint:
     "Attach a plan or sketch (JPG/PNG) with wall lines and E/e and H/h dimensions.",
@@ -904,6 +908,8 @@ const en = Object.assign({}, es, {
   StlPreview_ImageSketchFormNoFile: "Select an image",
   StlPreview_ImageSketchProcessing: "Analyzing image…",
   StlPreview_ImageSketchError: "Could not analyze image: {0}",
+  StlPreview_ImageSketchErrorModalTitle: "Image analysis error",
+  StlPreview_ImageSketchErrorModalAccept: "OK",
   StlPreview_ImageSketchPickInstruction:
     "Click on the floor plan to insert the sketch as lines. Esc to cancel",
   StlPreview_ImageSketchSuccess: "Inserted {0} line(s) from sketch",
