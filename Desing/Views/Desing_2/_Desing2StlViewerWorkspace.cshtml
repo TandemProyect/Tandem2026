@@ -8,12 +8,33 @@
     var stlLabelAttr = HttpUtility.HtmlAttributeEncode(Model.InitialStlLabel ?? string.Empty);
     var logoUrl = Model.BrandLogoUrl ?? Url.Content("~/Content/images/Login/at.png");
     var stlSrcUnits = string.IsNullOrWhiteSpace(Model.StlSourceUnits) ? "m" : Model.StlSourceUnits.Trim();
-    // GetString evita CS0117 si el Designer local aún no tiene la propiedad regenerada.
+    // GetString + fallback: no usa propiedades del Designer (evita CS0117 con Designer viejo).
     Func<string, string, string> maStr = (key, fallback) =>
-        MasterArticles.ResourceManager.GetString(key) ?? fallback;
+    {
+        try { return MasterArticles.ResourceManager.GetString(key) ?? fallback; }
+        catch { return fallback; }
+    };
     var wallModelRenderingText = maStr("StlPreview_WallModelRendering", "Generando modelo de muros…");
     var imageSketchErrorModalTitle = maStr("StlPreview_ImageSketchErrorModalTitle", "Error al analizar la imagen");
     var imageSketchErrorModalAccept = maStr("StlPreview_ImageSketchErrorModalAccept", "Aceptar");
+    var mapBuildingMenuAria = maStr("StlPreview_Desing2RightMenuMapBuildingAria", "Importar edificio desde mapa 3D");
+    var mapBuildingPickInstruction = maStr("StlPreview_MapBuildingPickInstruction", "Clic en planta para insertar el edificio como muros con caras. Esc cancelar");
+    var mapBuildingFormTitle = maStr("StlPreview_MapBuildingFormTitle", "Edificio desde mapa");
+    var mapBuildingFormHint = maStr("StlPreview_MapBuildingFormHint", "Busque una dirección: el mapa muestra edificios en 3D. Seleccione uno e importe.");
+    var mapBuildingSearchPlaceholder = maStr("StlPreview_MapBuildingSearchPlaceholder", "Dirección o lugar…");
+    var mapBuildingSearchButton = maStr("StlPreview_MapBuildingSearchButton", "Buscar");
+    var mapBuildingLoadBuildings = maStr("StlPreview_MapBuildingLoadBuildings", "Buscar edificios");
+    var mapBuildingFormAccept = maStr("StlPreview_MapBuildingFormAccept", "Importar e insertar");
+    var mapBuildingFormCancel = maStr("StlPreview_MapBuildingFormCancel", "Cancelar");
+    var mapBuildingNoSelection = maStr("StlPreview_MapBuildingNoSelection", "Seleccione un edificio en el mapa");
+    var mapBuildingProcessing = maStr("StlPreview_MapBuildingProcessing", "Importando edificio…");
+    var mapBuildingLoadingBuildings = maStr("StlPreview_MapBuildingLoadingBuildings", "Cargando edificios del mapa…");
+    var mapBuildingSearching = maStr("StlPreview_MapBuildingSearching", "Buscando dirección…");
+    var mapBuildingError = maStr("StlPreview_MapBuildingError", "No se pudo importar el edificio: {0}");
+    var mapBuildingSuccess = maStr("StlPreview_MapBuildingSuccess", "Se insertaron {0} muro(s) con caras desde el edificio");
+    var mapBuildingSelectedLabel = maStr("StlPreview_MapBuildingSelectedLabel", "Seleccionado: {0}");
+    var mapBuildingNoneLoaded = maStr("StlPreview_MapBuildingNoneLoaded", "No hay edificios en esta vista. Acerque el zoom o pulse Buscar edificios.");
+    var mapBuildingAttribution = maStr("StlPreview_MapBuildingAttribution", "Mapa y datos © OpenStreetMap");
 }
 @* Solo Desing_2: clase desing2-stl-view-scope; barra única marca + contexto izq., herramientas + Volver derecha.
    data-ma-stl-source-units: vértices STL → m → mm escena (×1000; reglas/rejilla en mm).
@@ -334,7 +355,7 @@
                     <div class="desing2-stl-hover-right-panel__toolbar d-flex justify-content-between align-items-start px-2 py-1 border-bottom border-light">
                         @* Orden: MAPA 3D primero · boceto · mapeo hormigón. Sin muro.jpg aquí (encofrado 3D = barra superior). *@
                         <div class="desing2-stl-hover-right-panel__tools d-flex align-items-center gap-1 flex-wrap">
-                            <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-right-panel__mapbuilding-btn rounded flex-shrink-0" id="desing2-stl-right-panel-map-building" title="@MasterArticles.StlPreview_Desing2RightMenuMapBuildingAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuMapBuildingAria" aria-pressed="false">
+                            <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-right-panel__mapbuilding-btn rounded flex-shrink-0" id="desing2-stl-right-panel-map-building" title="@mapBuildingMenuAria" aria-label="@mapBuildingMenuAria" aria-pressed="false">
                                 <span class="desing2-stl-right-panel__mapbuilding-inner">
                                     <i class="icon-base ri ri-map-pin-2-fill desing2-stl-right-panel__map-icon" aria-hidden="true"></i>
                                     <span class="desing2-stl-right-panel__mapbuilding-label">Mapa</span>
@@ -429,7 +450,7 @@
                  data-ma-stl-line-tool-coords-template="@MasterArticles.StlPreview_RulerAnchorGridCoordsHud"></div>
         </div>
         <div id="ma-stl-map-building-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
-             data-ma-stl-map-building-pick-instruction="@MasterArticles.StlPreview_MapBuildingPickInstruction">
+             data-ma-stl-map-building-pick-instruction="@mapBuildingPickInstruction">
             <div id="ma-stl-map-building-tool-hud-instruction" class="ma-stl-line-tool-hud__instruction small fw-semibold text-body mb-1"></div>
             <div id="ma-stl-map-building-tool-hud-coords" class="ma-stl-line-tool-hud__coords"
                  data-ma-stl-line-tool-coords-template="@MasterArticles.StlPreview_RulerAnchorGridCoordsHud"></div>
@@ -523,38 +544,38 @@
         <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="ma-stl-map-building-modal-title">@MasterArticles.StlPreview_MapBuildingFormTitle</h5>
-                    <button type="button" class="btn-close" id="ma-stl-map-building-modal-close" data-bs-dismiss="modal" aria-label="@MasterArticles.StlPreview_MapBuildingFormCancel"></button>
+                    <h5 class="modal-title" id="ma-stl-map-building-modal-title">@mapBuildingFormTitle</h5>
+                    <button type="button" class="btn-close" id="ma-stl-map-building-modal-close" data-bs-dismiss="modal" aria-label="@mapBuildingFormCancel"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="small text-body-secondary mb-3">@MasterArticles.StlPreview_MapBuildingFormHint</p>
+                    <p class="small text-body-secondary mb-3">@mapBuildingFormHint</p>
                     <div class="d-flex flex-wrap gap-2 align-items-stretch mb-3">
                         <input type="text" class="form-control form-control-sm flex-grow-1" id="ma-stl-map-building-search-input" maxlength="200" autocomplete="street-address"
-                               placeholder="@MasterArticles.StlPreview_MapBuildingSearchPlaceholder"
-                               aria-label="@MasterArticles.StlPreview_MapBuildingSearchPlaceholder" />
-                        <button type="button" class="btn btn-sm btn-outline-secondary" id="ma-stl-map-building-search-btn">@MasterArticles.StlPreview_MapBuildingSearchButton</button>
-                        <button type="button" class="btn btn-sm btn-outline-primary" id="ma-stl-map-building-load-btn">@MasterArticles.StlPreview_MapBuildingLoadBuildings</button>
+                               placeholder="@mapBuildingSearchPlaceholder"
+                               aria-label="@mapBuildingSearchPlaceholder" />
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="ma-stl-map-building-search-btn">@mapBuildingSearchButton</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="ma-stl-map-building-load-btn">@mapBuildingLoadBuildings</button>
                     </div>
-                    <div id="ma-stl-map-building-map" class="desing2-stl-map-building-form__map border rounded" role="application" aria-label="@MasterArticles.StlPreview_MapBuildingFormTitle"></div>
+                    <div id="ma-stl-map-building-map" class="desing2-stl-map-building-form__map border rounded" role="application" aria-label="@mapBuildingFormTitle"></div>
                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2">
                         <p class="small text-body-secondary mb-0" id="ma-stl-map-building-selected-label"></p>
-                        <p class="small text-body-secondary mb-0">@MasterArticles.StlPreview_MapBuildingAttribution</p>
+                        <p class="small text-body-secondary mb-0">@mapBuildingAttribution</p>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" id="ma-stl-map-building-cancel" data-bs-dismiss="modal">
-                        @MasterArticles.StlPreview_MapBuildingFormCancel
+                        @mapBuildingFormCancel
                     </button>
                     <button type="button" class="btn btn-primary" id="ma-stl-map-building-accept" disabled
-                            data-ma-stl-map-building-no-selection="@MasterArticles.StlPreview_MapBuildingNoSelection"
-                            data-ma-stl-map-building-processing="@MasterArticles.StlPreview_MapBuildingProcessing"
-                            data-ma-stl-map-building-loading="@MasterArticles.StlPreview_MapBuildingLoadingBuildings"
-                            data-ma-stl-map-building-searching="@MasterArticles.StlPreview_MapBuildingSearching"
-                            data-ma-stl-map-building-error="@MasterArticles.StlPreview_MapBuildingError"
-                            data-ma-stl-map-building-success="@MasterArticles.StlPreview_MapBuildingSuccess"
-                            data-ma-stl-map-building-selected-tpl="@MasterArticles.StlPreview_MapBuildingSelectedLabel"
-                            data-ma-stl-map-building-none-loaded="@MasterArticles.StlPreview_MapBuildingNoneLoaded">
-                        @MasterArticles.StlPreview_MapBuildingFormAccept
+                            data-ma-stl-map-building-no-selection="@mapBuildingNoSelection"
+                            data-ma-stl-map-building-processing="@mapBuildingProcessing"
+                            data-ma-stl-map-building-loading="@mapBuildingLoadingBuildings"
+                            data-ma-stl-map-building-searching="@mapBuildingSearching"
+                            data-ma-stl-map-building-error="@mapBuildingError"
+                            data-ma-stl-map-building-success="@mapBuildingSuccess"
+                            data-ma-stl-map-building-selected-tpl="@mapBuildingSelectedLabel"
+                            data-ma-stl-map-building-none-loaded="@mapBuildingNoneLoaded">
+                        @mapBuildingFormAccept
                     </button>
                 </div>
             </div>
