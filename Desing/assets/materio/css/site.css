@@ -849,16 +849,44 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
 
 .desing2-stl-view-scope .desing2-stl-right-panel__map-icon {
     display: block;
-    width: 1.9rem;
-    height: 1.9rem;
-    font-size: 1.9rem;
+    width: 1.55rem;
+    height: 1.55rem;
+    font-size: 1.55rem;
     line-height: 1;
     color: #dc3545;
 }
 
 .desing2-stl-view-scope .desing2-stl-right-panel__mapbuilding-btn {
-    outline: 1px solid rgba(220, 53, 69, 0.35);
-    background: rgba(220, 53, 69, 0.08);
+    outline: 1px solid rgba(220, 53, 69, 0.45);
+    background: rgba(220, 53, 69, 0.12);
+    min-width: 2.6rem;
+}
+
+.desing2-stl-view-scope .desing2-stl-right-panel__mapbuilding-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.05rem;
+    line-height: 1;
+}
+
+.desing2-stl-view-scope .desing2-stl-right-panel__mapbuilding-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #dc3545;
+    text-transform: uppercase;
+}
+
+/* Colapsado: solo pin; al expandir se ve la etiqueta Mapa */
+.desing2-stl-hover-right-panel:not(.is-hover-locked)
+    .desing2-stl-hover-right-panel__hover-zone:not(:hover)
+    > .desing2-stl-hover-right-panel__sheet:not(:focus-within)
+    .desing2-stl-right-panel__mapbuilding-label,
+.desing2-stl-hover-right-panel.is-hover-locked
+    .desing2-stl-hover-right-panel__sheet:not(:focus-within)
+    .desing2-stl-right-panel__mapbuilding-label {
+    display: none;
 }
 
 .desing2-stl-hover-right-panel__collapse .icon-base {

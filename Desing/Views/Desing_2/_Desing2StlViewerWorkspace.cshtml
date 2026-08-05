@@ -326,8 +326,17 @@
             <div class="desing2-stl-hover-right-panel__hover-zone">
                 <div class="desing2-stl-hover-right-panel__sheet border border-end-0 rounded-start shadow-sm">
                     <div class="desing2-stl-hover-right-panel__toolbar d-flex justify-content-between align-items-start px-2 py-1 border-bottom border-light">
-                        @* Orden: mapeo · boceto · edificio/mapa (sin muro.jpg; encofrado 3D va arriba). *@
+                        @* Orden: MAPA 3D primero · boceto · mapeo hormigón. Sin muro.jpg aquí (encofrado 3D = barra superior). *@
                         <div class="desing2-stl-hover-right-panel__tools d-flex align-items-center gap-1 flex-wrap">
+                            <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-right-panel__mapbuilding-btn rounded flex-shrink-0" id="desing2-stl-right-panel-map-building" title="@MasterArticles.StlPreview_Desing2RightMenuMapBuildingAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuMapBuildingAria" aria-pressed="false">
+                                <span class="desing2-stl-right-panel__mapbuilding-inner">
+                                    <i class="icon-base ri ri-map-pin-2-fill desing2-stl-right-panel__map-icon" aria-hidden="true"></i>
+                                    <span class="desing2-stl-right-panel__mapbuilding-label">Mapa</span>
+                                </span>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-right-panel__imagesketch-btn rounded flex-shrink-0" id="desing2-stl-right-panel-image-sketch" title="@MasterArticles.StlPreview_Desing2RightMenuImageSketchAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuImageSketchAria" aria-pressed="false">
+                                <img class="desing2-stl-right-panel__wall-icon" src="@Url.Content("~/Content/DesignTools/MenuIcon/images.jpg")" alt="" aria-hidden="true" />
+                            </button>
                             <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-right-panel__wallmap-btn rounded flex-shrink-0" id="desing2-stl-right-panel-wall-map" title="@MasterArticles.StlPreview_Desing2RightMenuWallMapAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuWallMapAria" aria-pressed="false"
                                     data-ma-stl-wall3d-map-no-walls="@MasterArticles.StlPreview_Wall3dMapNoWalls"
                                     data-ma-stl-wall3d-map-processing="@MasterArticles.StlPreview_Wall3dMapProcessing"
@@ -337,12 +346,6 @@
                                     <rect x="4" y="4" width="16" height="16" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.75" />
                                     <path d="M6 9h12M6 12.5h12M6 16h8" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" />
                                 </svg>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-right-panel__imagesketch-btn rounded flex-shrink-0" id="desing2-stl-right-panel-image-sketch" title="@MasterArticles.StlPreview_Desing2RightMenuImageSketchAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuImageSketchAria" aria-pressed="false">
-                                <img class="desing2-stl-right-panel__wall-icon" src="@Url.Content("~/Content/DesignTools/MenuIcon/images.jpg")" alt="" aria-hidden="true" />
-                            </button>
-                            <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-right-panel__mapbuilding-btn rounded flex-shrink-0" id="desing2-stl-right-panel-map-building" title="@MasterArticles.StlPreview_Desing2RightMenuMapBuildingAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuMapBuildingAria" aria-pressed="false">
-                                <i class="icon-base ri ri-map-pin-2-fill desing2-stl-right-panel__map-icon" aria-hidden="true"></i>
                             </button>
                         </div>
                         <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-hover-right-panel__collapse rounded flex-shrink-0" id="desing2-stl-right-panel-collapse" title="@MasterArticles.StlPreview_Desing2RightMenuCollapseTitle" aria-label="@MasterArticles.StlPreview_Desing2RightMenuCollapseTitle">
