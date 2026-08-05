@@ -539,7 +539,7 @@
     <value>Import building from map — search address, select OSM footprint and insert plan lines</value>
   </data>
   <data name="StlPreview_Desing2RightMenuPlaceholder" xml:space="preserve">
-    <value>Click the wall icon to select lines and extrude to 2.70 m.</value>
+    <value>Import a sketch or a map building, or toggle concrete mapping.</value>
   </data>
   <data name="StlPreview_Desing2RightMenuWall3dAria" xml:space="preserve">
     <value>Generate 3D wall — select plan lines and confirm with Enter</value>

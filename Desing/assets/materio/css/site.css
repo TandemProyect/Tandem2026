@@ -822,7 +822,6 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     min-height: 52px;
 }
 
-.desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__wall3d-btn,
 .desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__wallmap-btn,
 .desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__imagesketch-btn,
 .desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__mapbuilding-btn {
@@ -867,7 +866,7 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     line-height: 0;
 }
 
-/* Colapsado: sólo icono muro en la tira; botón plegar oculto hasta expandir */
+/* Colapsado: primer icono de la tira; botón plegar oculto hasta expandir */
 .desing2-stl-hover-right-panel:not(.is-hover-locked)
     .desing2-stl-hover-right-panel__hover-zone:not(:hover)
     > .desing2-stl-hover-right-panel__sheet:not(:focus-within)
@@ -943,8 +942,6 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     border-bottom-color: transparent;
 }
 
-.desing2-stl-view-scope .desing2-stl-right-panel__wall3d-btn.active,
-.desing2-stl-view-scope .desing2-stl-right-panel__wall3d-btn[aria-pressed='true'],
 .desing2-stl-view-scope .desing2-stl-right-panel__wallmap-btn.active,
 .desing2-stl-view-scope .desing2-stl-right-panel__wallmap-btn[aria-pressed='true'],
 .desing2-stl-view-scope .desing2-stl-right-panel__imagesketch-btn.active,

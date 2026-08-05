@@ -399,7 +399,7 @@ const es = Object.fromEntries(
     StlPreview_Desing2RightMenuCollapseTitle:
       "Ocultar panel hasta acercar de nuevo el puntero al borde derecho",
     StlPreview_Desing2RightMenuPlaceholder:
-      "Pulse el icono de muro para seleccionar líneas y extruir a 2,70 m.",
+      "Importe un boceto o un edificio del mapa, o active el mapeo de hormigón.",
     StlPreview_Wall3dToolInstruction:
       "Seleccione líneas de planta (clic o ventana). Enter para generar muros 3D (altura 2,70 m), Esc cancelar",
     StlPreview_Wall3dToolProcessing: "Generando muros 3D…",
@@ -884,7 +884,7 @@ const en = Object.assign({}, es, {
   StlPreview_Desing2RightMenuCollapseTitle:
     "Hide panel until you move the pointer near the right edge again",
   StlPreview_Desing2RightMenuPlaceholder:
-    "Click the wall icon to select lines and extrude to 2.70 m.",
+    "Import a sketch or a map building, or toggle concrete mapping.",
   StlPreview_Wall3dToolInstruction:
     "Select plan lines (click or window). Enter to generate 3D walls (height 2.70 m), Esc to cancel",
   StlPreview_Wall3dToolProcessing: "Generating 3D walls…",

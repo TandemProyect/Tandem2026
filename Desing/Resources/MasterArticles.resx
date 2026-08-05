@@ -539,7 +539,7 @@
     <value>Importar edificio desde mapa — buscar dirección, seleccionar huella OSM e insertar líneas de planta</value>
   </data>
   <data name="StlPreview_Desing2RightMenuPlaceholder" xml:space="preserve">
-    <value>Pulse el icono de muro para seleccionar líneas y extruir a 2,70 m.</value>
+    <value>Importe un boceto o un edificio del mapa, o active el mapeo de hormigón.</value>
   </data>
   <data name="StlPreview_Desing2RightMenuWall3dAria" xml:space="preserve">
     <value>Generar muro 3D — seleccione líneas de planta y confirme con Enter</value>
