@@ -14,6 +14,15 @@
   var LAYER_FILL = 'desing2-osm-buildings-extrusion';
   var LAYER_OUTLINE = 'desing2-osm-buildings-outline';
   var STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
+  var MAPLIBRE_CSS = [
+    'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css',
+    'https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css',
+  ];
+  var MAPLIBRE_JS = [
+    'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js',
+    'https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js',
+  ];
+  var MAPLIBRE_LOAD_TIMEOUT_MS = 12000;
 
   var state = {
     map: null,
@@ -28,7 +37,119 @@
     onImported: null,
     onToast: null,
     suppressCloseCallback: false,
+    mapLibrePromise: null,
   };
+
+  function loadStylesheet(href) {
+    return new Promise(function (resolve, reject) {
+      var existing = document.querySelector('link[data-desing2-maplibre-css="1"]');
+      if (existing) {
+        resolve();
+        return;
+      }
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      link.setAttribute('data-desing2-maplibre-css', '1');
+      link.onload = function () {
+        resolve();
+      };
+      link.onerror = function () {
+        if (link.parentNode) link.parentNode.removeChild(link);
+        reject(new Error('CSS MapLibre: ' + href));
+      };
+      document.head.appendChild(link);
+    });
+  }
+
+  function loadScript(src) {
+    return new Promise(function (resolve, reject) {
+      if (global.maplibregl) {
+        resolve(global.maplibregl);
+        return;
+      }
+      var existing = document.querySelector('script[data-desing2-maplibre-js="1"]');
+      if (existing) {
+        existing.addEventListener('load', function () {
+          if (global.maplibregl) resolve(global.maplibregl);
+          else reject(new Error('MapLibre no disponible tras cargar script'));
+        });
+        existing.addEventListener('error', function () {
+          reject(new Error('JS MapLibre: ' + src));
+        });
+        return;
+      }
+      var script = document.createElement('script');
+      script.src = src;
+      script.async = true;
+      script.setAttribute('data-desing2-maplibre-js', '1');
+      script.onload = function () {
+        if (global.maplibregl) resolve(global.maplibregl);
+        else reject(new Error('MapLibre no expuso window.maplibregl'));
+      };
+      script.onerror = function () {
+        if (script.parentNode) script.parentNode.removeChild(script);
+        reject(new Error('JS MapLibre: ' + src));
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  function withTimeout(promise, ms, label) {
+    return new Promise(function (resolve, reject) {
+      var done = false;
+      var timer = setTimeout(function () {
+        if (done) return;
+        done = true;
+        reject(new Error((label || 'Timeout') + ' (' + ms + ' ms)'));
+      }, ms);
+      promise.then(
+        function (v) {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          resolve(v);
+        },
+        function (err) {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          reject(err);
+        }
+      );
+    });
+  }
+
+  function tryLoadFromList(list, loader) {
+    var chain = Promise.reject(new Error('empty'));
+    for (var i = 0; i < list.length; i++) {
+      (function (url) {
+        chain = chain.catch(function () {
+          return withTimeout(loader(url), MAPLIBRE_LOAD_TIMEOUT_MS, 'Carga MapLibre');
+        });
+      })(list[i]);
+    }
+    return chain;
+  }
+
+  /** Carga MapLibre solo al abrir el modal (no bloquea el arranque de Desing_2). */
+  function ensureMapLibre() {
+    if (global.maplibregl) return Promise.resolve(global.maplibregl);
+    if (state.mapLibrePromise) return state.mapLibrePromise;
+    state.mapLibrePromise = tryLoadFromList(MAPLIBRE_CSS, loadStylesheet)
+      .catch(function () {
+        /* CSS opcional: seguir con JS aunque falle un CDN */
+        return null;
+      })
+      .then(function () {
+        return tryLoadFromList(MAPLIBRE_JS, loadScript);
+      })
+      .catch(function (err) {
+        state.mapLibrePromise = null;
+        throw err;
+      });
+    return state.mapLibrePromise;
+  }
 
   function attr(el, name) {
     return el ? el.getAttribute(name) || '' : '';
