@@ -27,6 +27,7 @@ namespace Desing.Models
 
     /// <summary>
     /// Huella de edificio OSM (way con tag building=*).
+    /// HeightM/Levels alimentan la extrusión 3D del modal (cuando OSM los trae).
     /// </summary>
     public class OsmBuildingFootprintDTO
     {
@@ -34,6 +35,10 @@ namespace Desing.Models
         public string TextLabel { get; set; }
         public string BuildingType { get; set; }
         public List<OsmLatLngDTO> Ring { get; set; }
+        /// <summary>Altura en metros si OSM aporta height / building:levels.</summary>
+        public double? HeightM { get; set; }
+        /// <summary>Número de plantas (building:levels), si existe.</summary>
+        public int? Levels { get; set; }
     }
 
     /// <summary>
@@ -55,5 +60,6 @@ namespace Desing.Models
         public long? OsmId { get; set; }
         public string TextLabel { get; set; }
         public List<OsmLatLngDTO> Ring { get; set; }
+        public double? HeightM { get; set; }
     }
 }

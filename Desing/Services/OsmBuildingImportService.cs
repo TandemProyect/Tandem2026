@@ -192,6 +192,15 @@ namespace Desing.Services
 
                 var name = (string)tags["name"];
                 var building = (string)tags["building"];
+                int? levels = null;
+                double? heightM = null;
+                if (TryParseDouble(tags["building:levels"], out var levelsRaw) && levelsRaw > 0)
+                    levels = (int)Math.Round(levelsRaw);
+                if (TryParseHeightMeters(tags["height"], out var hParsed) && hParsed > 0.5)
+                    heightM = hParsed;
+                else if (levels.HasValue)
+                    heightM = Math.Max(levels.Value * 3.0, 4.0);
+
                 result.Add(new OsmBuildingFootprintDTO
                 {
                     OsmId = wayId,
@@ -199,7 +208,9 @@ namespace Desing.Services
                         ? ("Edificio OSM " + wayId.ToString(CultureInfo.InvariantCulture))
                         : name.Trim(),
                     BuildingType = string.IsNullOrWhiteSpace(building) ? "yes" : building.Trim(),
-                    Ring = ring
+                    Ring = ring,
+                    HeightM = heightM,
+                    Levels = levels
                 });
             }
 
@@ -328,6 +339,23 @@ namespace Desing.Services
                 NumberStyles.Float,
                 CultureInfo.InvariantCulture,
                 out value);
+        }
+
+        /// <summary>
+        /// OSM height puede ser "12", "12 m", "12.5m". Devuelve metros.
+        /// </summary>
+        private static bool TryParseHeightMeters(JToken token, out double meters)
+        {
+            meters = 0;
+            if (token == null || token.Type == JTokenType.Null) return false;
+            var raw = (token.Type == JTokenType.String ? (string)token : token.ToString()) ?? string.Empty;
+            raw = raw.Trim();
+            if (raw.Length == 0) return false;
+            raw = raw.Replace(',', '.');
+            // Quitar sufijo "m" / "m." habitual
+            if (raw.EndsWith("m", StringComparison.OrdinalIgnoreCase))
+                raw = raw.Substring(0, raw.Length - 1).Trim();
+            return double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out meters);
         }
 
         private static bool TryParseLong(JToken token, out long value)

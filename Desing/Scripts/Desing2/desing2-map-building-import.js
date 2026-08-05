@@ -1,17 +1,23 @@
 /**
- * Desing_2 — modal mapa OSM: buscar dirección, cargar huellas y devolver edificio seleccionado.
- * Depende de Leaflet (window.L). El visor STL orquesta inserción en planta.
+ * Desing_2 — modal mapa 3D OSM: buscar dirección, ver edificios extruidos,
+ * seleccionar uno e importar huella. Depende de MapLibre GL (window.maplibregl).
  */
 (function (global) {
   'use strict';
 
-  var DEFAULT_CENTER = [40.4168, -3.7038];
+  var DEFAULT_CENTER = [-3.7038, 40.4168]; // lng, lat (MapLibre)
   var DEFAULT_ZOOM = 17;
+  var DEFAULT_PITCH = 58;
+  var DEFAULT_BEARING = -20;
+  var DEFAULT_HEIGHT_M = 9;
+  var SOURCE_ID = 'desing2-osm-buildings';
+  var LAYER_FILL = 'desing2-osm-buildings-extrusion';
+  var LAYER_OUTLINE = 'desing2-osm-buildings-outline';
+  var STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
 
   var state = {
     map: null,
-    buildingsLayer: null,
-    selectedLayer: null,
+    buildingsById: {},
     selected: null,
     busy: false,
     modalEl: null,
@@ -48,39 +54,12 @@
 
   function clearSelection() {
     state.selected = null;
-    if (state.selectedLayer && state.buildingsLayer) {
-      try {
-        state.buildingsLayer.resetStyle(state.selectedLayer);
-      } catch (e) {
-        /* ignore */
-      }
-    }
-    state.selectedLayer = null;
     setSelectedLabel('');
     syncAcceptUi();
+    refreshBuildingPaint();
   }
 
-  function styleBuilding(feature) {
-    return {
-      color: '#0d6efd',
-      weight: 1.5,
-      opacity: 0.9,
-      fillColor: '#0d6efd',
-      fillOpacity: 0.22,
-    };
-  }
-
-  function styleSelected() {
-    return {
-      color: '#dc3545',
-      weight: 2.5,
-      opacity: 1,
-      fillColor: '#dc3545',
-      fillOpacity: 0.35,
-    };
-  }
-
-  function ringToLatLngs(ring) {
+  function ringToLngLat(ring) {
     var out = [];
     if (!ring || !ring.length) return out;
     for (var i = 0; i < ring.length; i++) {
@@ -89,29 +68,150 @@
       var lat = Number(p.Lat != null ? p.Lat : p.lat);
       var lng = Number(p.Lng != null ? p.Lng : p.lng);
       if (!isFinite(lat) || !isFinite(lng)) continue;
-      out.push([lat, lng]);
+      out.push([lng, lat]);
+    }
+    if (out.length >= 3) {
+      var a = out[0];
+      var b = out[out.length - 1];
+      if (a[0] !== b[0] || a[1] !== b[1]) out.push([a[0], a[1]]);
     }
     return out;
   }
 
+  function buildingHeightM(bldg) {
+    var h = Number(bldg.HeightM != null ? bldg.HeightM : bldg.heightM);
+    if (isFinite(h) && h > 1) return h;
+    var levels = Number(bldg.Levels != null ? bldg.Levels : bldg.levels);
+    if (isFinite(levels) && levels > 0) return Math.max(levels * 3, 4);
+    return DEFAULT_HEIGHT_M;
+  }
+
+  function refreshBuildingPaint() {
+    if (!state.map || !state.map.getSource(SOURCE_ID)) return;
+    var selId = state.selected
+      ? String(state.selected.OsmId != null ? state.selected.OsmId : state.selected.osmId)
+      : '';
+    var data = { type: 'FeatureCollection', features: [] };
+    var keys = Object.keys(state.buildingsById);
+    for (var i = 0; i < keys.length; i++) {
+      var b = state.buildingsById[keys[i]];
+      var coords = ringToLngLat(b.Ring || b.ring);
+      if (coords.length < 4) continue;
+      var id = String(b.OsmId != null ? b.OsmId : b.osmId);
+      data.features.push({
+        type: 'Feature',
+        id: id,
+        properties: {
+          osmId: id,
+          name: b.TextLabel || b.textLabel || ('OSM ' + id),
+          height: buildingHeightM(b),
+          selected: selId && selId === id ? 1 : 0,
+        },
+        geometry: { type: 'Polygon', coordinates: [coords] },
+      });
+    }
+    state.map.getSource(SOURCE_ID).setData(data);
+  }
+
+  function ensureBuildingLayers() {
+    if (!state.map) return;
+    if (!state.map.getSource(SOURCE_ID)) {
+      state.map.addSource(SOURCE_ID, {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+      });
+    }
+    if (!state.map.getLayer(LAYER_FILL)) {
+      state.map.addLayer({
+        id: LAYER_FILL,
+        type: 'fill-extrusion',
+        source: SOURCE_ID,
+        paint: {
+          'fill-extrusion-color': [
+            'case',
+            ['==', ['get', 'selected'], 1],
+            '#dc3545',
+            '#6c9bd1',
+          ],
+          'fill-extrusion-height': ['get', 'height'],
+          'fill-extrusion-base': 0,
+          'fill-extrusion-opacity': 0.88,
+        },
+      });
+    }
+    if (!state.map.getLayer(LAYER_OUTLINE)) {
+      state.map.addLayer({
+        id: LAYER_OUTLINE,
+        type: 'line',
+        source: SOURCE_ID,
+        paint: {
+          'line-color': [
+            'case',
+            ['==', ['get', 'selected'], 1],
+            '#9b1c2e',
+            '#2f5f8f',
+          ],
+          'line-width': [
+            'case',
+            ['==', ['get', 'selected'], 1],
+            3,
+            1.2,
+          ],
+        },
+      });
+    }
+  }
+
+  function selectBuilding(bldg) {
+    state.selected = bldg;
+    var tpl = attr(state.acceptBtn, 'data-ma-stl-map-building-selected-tpl');
+    var label = bldg.TextLabel || bldg.textLabel || ('OSM ' + (bldg.OsmId || bldg.osmId || ''));
+    setSelectedLabel(formatTpl(tpl, label));
+    syncAcceptUi();
+    refreshBuildingPaint();
+  }
+
+  function onMapClick(ev) {
+    if (!state.map) return;
+    var feats = state.map.queryRenderedFeatures(ev.point, { layers: [LAYER_FILL, LAYER_OUTLINE] });
+    if (!feats || !feats.length) return;
+    var osmId = String(
+      (feats[0].properties && (feats[0].properties.osmId || feats[0].properties.OsmId)) ||
+        feats[0].id ||
+        ''
+    );
+    var bldg = state.buildingsById[osmId];
+    if (bldg) selectBuilding(bldg);
+  }
+
   function ensureMap() {
-    if (state.map || typeof global.L === 'undefined') return state.map;
+    if (state.map) return state.map;
+    if (typeof global.maplibregl === 'undefined') return null;
     var mapEl = document.getElementById('ma-stl-map-building-map');
     if (!mapEl) return null;
 
-    state.map = global.L.map(mapEl, {
-      zoomControl: true,
+    state.map = new global.maplibregl.Map({
+      container: mapEl,
+      style: STYLE_URL,
+      center: DEFAULT_CENTER,
+      zoom: DEFAULT_ZOOM,
+      pitch: DEFAULT_PITCH,
+      bearing: DEFAULT_BEARING,
+      antialias: true,
       attributionControl: true,
-    }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
-
-    global.L
-      .tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap',
-      })
-      .addTo(state.map);
-
-    state.buildingsLayer = global.L.featureGroup().addTo(state.map);
+    });
+    state.map.addControl(new global.maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
+    state.map.on('load', function () {
+      ensureBuildingLayers();
+      refreshBuildingPaint();
+    });
+    state.map.on('click', onMapClick);
+    state.map.on('mouseenter', LAYER_FILL, function () {
+      state.map.getCanvas().style.cursor = 'pointer';
+    });
+    state.map.on('mouseleave', LAYER_FILL, function () {
+      state.map.getCanvas().style.cursor = '';
+    });
     return state.map;
   }
 
@@ -119,7 +219,7 @@
     if (!state.map) return;
     setTimeout(function () {
       try {
-        state.map.invalidateSize();
+        state.map.resize();
       } catch (e) {
         /* ignore */
       }
@@ -128,57 +228,52 @@
 
   function clearBuildings() {
     clearSelection();
-    if (state.buildingsLayer) state.buildingsLayer.clearLayers();
-  }
-
-  function selectBuilding(bldg, layer) {
-    if (state.selectedLayer && state.buildingsLayer) {
-      try {
-        state.buildingsLayer.resetStyle(state.selectedLayer);
-      } catch (e) {
-        /* ignore */
-      }
-    }
-    state.selected = bldg;
-    state.selectedLayer = layer || null;
-    if (layer && layer.setStyle) layer.setStyle(styleSelected());
-    var tpl = attr(state.acceptBtn, 'data-ma-stl-map-building-selected-tpl');
-    var label = bldg.TextLabel || bldg.textLabel || ('OSM ' + (bldg.OsmId || bldg.osmId || ''));
-    setSelectedLabel(formatTpl(tpl, label));
-    syncAcceptUi();
+    state.buildingsById = {};
+    refreshBuildingPaint();
   }
 
   function renderBuildings(list) {
     clearBuildings();
-    if (!state.map || !state.buildingsLayer || !list || !list.length) {
+    if (!state.map || !list || !list.length) {
       var noneTpl = attr(state.acceptBtn, 'data-ma-stl-map-building-none-loaded');
       if (noneTpl) toast(noneTpl);
       return;
     }
 
+    var bounds = null;
     for (var i = 0; i < list.length; i++) {
-      (function (bldg) {
-        var latlngs = ringToLatLngs(bldg.Ring || bldg.ring);
-        if (latlngs.length < 3) return;
-        var poly = global.L.polygon(latlngs, styleBuilding(bldg));
-        poly.on('click', function (ev) {
-          if (ev && ev.originalEvent) {
-            global.L.DomEvent.stopPropagation(ev.originalEvent);
-          }
-          selectBuilding(bldg, poly);
-        });
-        poly.bindTooltip(bldg.TextLabel || bldg.textLabel || '', { sticky: true });
-        state.buildingsLayer.addLayer(poly);
-      })(list[i]);
+      var bldg = list[i];
+      var id = String(bldg.OsmId != null ? bldg.OsmId : bldg.osmId || i);
+      state.buildingsById[id] = bldg;
+      var ring = bldg.Ring || bldg.ring || [];
+      for (var j = 0; j < ring.length; j++) {
+        var p = ring[j];
+        var lat = Number(p.Lat != null ? p.Lat : p.lat);
+        var lng = Number(p.Lng != null ? p.Lng : p.lng);
+        if (!isFinite(lat) || !isFinite(lng)) continue;
+        if (!bounds) {
+          bounds = new global.maplibregl.LngLatBounds([lng, lat], [lng, lat]);
+        } else {
+          bounds.extend([lng, lat]);
+        }
+      }
     }
 
-    try {
-      var bounds = state.buildingsLayer.getBounds();
-      if (bounds && bounds.isValid && bounds.isValid()) {
-        state.map.fitBounds(bounds.pad(0.08));
+    ensureBuildingLayers();
+    refreshBuildingPaint();
+
+    if (bounds) {
+      try {
+        state.map.fitBounds(bounds, {
+          padding: 48,
+          maxZoom: 19,
+          pitch: DEFAULT_PITCH,
+          bearing: state.map.getBearing(),
+          duration: 800,
+        });
+      } catch (e) {
+        /* ignore */
       }
-    } catch (e) {
-      /* ignore */
     }
   }
 
@@ -221,22 +316,41 @@
           var west = first.West != null ? Number(first.West) : Number(first.west);
           var north = first.North != null ? Number(first.North) : Number(first.north);
           var east = first.East != null ? Number(first.East) : Number(first.east);
-          if (
-            isFinite(south) &&
-            isFinite(west) &&
-            isFinite(north) &&
-            isFinite(east) &&
-            south < north &&
-            west < east
-          ) {
-            state.map.fitBounds([
-              [south, west],
-              [north, east],
-            ]);
-          } else {
-            state.map.setView([lat, lng], Math.max(state.map.getZoom(), 18));
-          }
-          loadBuildings();
+          var go = function () {
+            if (
+              isFinite(south) &&
+              isFinite(west) &&
+              isFinite(north) &&
+              isFinite(east) &&
+              south < north &&
+              west < east
+            ) {
+              state.map.fitBounds(
+                [
+                  [west, south],
+                  [east, north],
+                ],
+                {
+                  padding: 40,
+                  maxZoom: 18.5,
+                  pitch: DEFAULT_PITCH,
+                  bearing: DEFAULT_BEARING,
+                  duration: 900,
+                }
+              );
+            } else {
+              state.map.easeTo({
+                center: [lng, lat],
+                zoom: Math.max(state.map.getZoom(), 18),
+                pitch: DEFAULT_PITCH,
+                bearing: DEFAULT_BEARING,
+                duration: 900,
+              });
+            }
+            setTimeout(loadBuildings, 500);
+          };
+          if (state.map.isStyleLoaded()) go();
+          else state.map.once('load', go);
         }
       })
       .catch(function (err) {
@@ -257,11 +371,13 @@
     if (loadingTpl) toast(loadingTpl);
     state.busy = true;
     syncAcceptUi();
+    var sw = b.getSouthWest();
+    var ne = b.getNorthEast();
     var body = {
-      South: b.getSouth(),
-      West: b.getWest(),
-      North: b.getNorth(),
-      East: b.getEast(),
+      South: sw.lat,
+      West: sw.lng,
+      North: ne.lat,
+      East: ne.lng,
     };
     fetch(state.urls.buildings, {
       method: 'POST',
@@ -281,7 +397,12 @@
           toast(formatTpl(errTpl, (resp && resp.Mensaje) || 'Error'));
           return;
         }
-        renderBuildings(resp.Datos || []);
+        var apply = function () {
+          ensureBuildingLayers();
+          renderBuildings(resp.Datos || []);
+        };
+        if (state.map.isStyleLoaded()) apply();
+        else state.map.once('load', apply);
       })
       .catch(function (err) {
         state.busy = false;
@@ -307,6 +428,7 @@
       OsmId: state.selected.OsmId != null ? state.selected.OsmId : state.selected.osmId,
       TextLabel: state.selected.TextLabel || state.selected.textLabel || null,
       Ring: state.selected.Ring || state.selected.ring || [],
+      HeightM: buildingHeightM(state.selected),
     };
     fetch(state.urls.importUrl, {
       method: 'POST',
@@ -367,7 +489,6 @@
     state.searchInput = document.getElementById('ma-stl-map-building-search-input');
     var searchBtn = document.getElementById('ma-stl-map-building-search-btn');
     var loadBtn = document.getElementById('ma-stl-map-building-load-btn');
-    var cancelBtn = document.getElementById('ma-stl-map-building-cancel');
 
     if (searchBtn) {
       searchBtn.addEventListener('click', function (ev) {
@@ -393,11 +514,6 @@
       state.acceptBtn.addEventListener('click', function (ev) {
         ev.preventDefault();
         importSelected();
-      });
-    }
-    if (cancelBtn) {
-      cancelBtn.addEventListener('click', function () {
-        /* modal hide handled by data-bs-dismiss; viewer listens hidden */
       });
     }
     state.modalEl.addEventListener('shown.bs.modal', function () {

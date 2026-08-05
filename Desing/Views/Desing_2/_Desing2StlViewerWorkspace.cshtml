@@ -325,8 +325,9 @@
         <aside id="desing2-stl-hover-right-panel" class="desing2-stl-hover-right-panel" role="region" aria-label="@MasterArticles.StlPreview_Desing2RightMenuAria">
             <div class="desing2-stl-hover-right-panel__hover-zone">
                 <div class="desing2-stl-hover-right-panel__sheet border border-end-0 rounded-start shadow-sm">
-                    <div class="desing2-stl-hover-right-panel__toolbar d-flex justify-content-between align-items-center px-2 py-1 border-bottom border-light">
-                        <div class="d-flex align-items-center gap-1">
+                    <div class="desing2-stl-hover-right-panel__toolbar d-flex justify-content-between align-items-start px-2 py-1 border-bottom border-light">
+                        @* Orden: mapeo · boceto · edificio/mapa (sin muro.jpg; encofrado 3D va arriba). *@
+                        <div class="desing2-stl-hover-right-panel__tools d-flex align-items-center gap-1 flex-wrap">
                             <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-right-panel__wallmap-btn rounded flex-shrink-0" id="desing2-stl-right-panel-wall-map" title="@MasterArticles.StlPreview_Desing2RightMenuWallMapAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuWallMapAria" aria-pressed="false"
                                     data-ma-stl-wall3d-map-no-walls="@MasterArticles.StlPreview_Wall3dMapNoWalls"
                                     data-ma-stl-wall3d-map-processing="@MasterArticles.StlPreview_Wall3dMapProcessing"
@@ -341,15 +342,10 @@
                                 <img class="desing2-stl-right-panel__wall-icon" src="@Url.Content("~/Content/DesignTools/MenuIcon/images.jpg")" alt="" aria-hidden="true" />
                             </button>
                             <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-right-panel__mapbuilding-btn rounded flex-shrink-0" id="desing2-stl-right-panel-map-building" title="@MasterArticles.StlPreview_Desing2RightMenuMapBuildingAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuMapBuildingAria" aria-pressed="false">
-                                <svg class="desing2-stl-right-panel__wall-icon" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                                    <path d="M4 20V10l4-3 4 3 4-3 4 3v10H4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
-                                    <path d="M8 20v-5h3v5M13 20v-4h3v4" fill="none" stroke="currentColor" stroke-width="1.4" />
-                                    <circle cx="18.2" cy="5.2" r="2.4" fill="currentColor" />
-                                    <path d="M18.2 8.2c-1.7 2.1-2.6 3.5-2.6 4.2 0 .7.6 1.1 1.3 1.1h2.6c.7 0 1.3-.4 1.3-1.1 0-.7-.9-2.1-2.6-4.2z" fill="currentColor" opacity="0.85" />
-                                </svg>
+                                <i class="icon-base ri ri-map-pin-2-fill desing2-stl-right-panel__map-icon" aria-hidden="true"></i>
                             </button>
                         </div>
-                        <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-hover-right-panel__collapse rounded" id="desing2-stl-right-panel-collapse" title="@MasterArticles.StlPreview_Desing2RightMenuCollapseTitle" aria-label="@MasterArticles.StlPreview_Desing2RightMenuCollapseTitle">
+                        <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-hover-right-panel__collapse rounded flex-shrink-0" id="desing2-stl-right-panel-collapse" title="@MasterArticles.StlPreview_Desing2RightMenuCollapseTitle" aria-label="@MasterArticles.StlPreview_Desing2RightMenuCollapseTitle">
                             <i class="icon-base ri ri-menu-fold-line fs-6" aria-hidden="true"></i>
                         </button>
                     </div>

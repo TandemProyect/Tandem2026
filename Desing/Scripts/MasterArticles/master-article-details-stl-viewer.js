@@ -11978,7 +11978,12 @@ function bootMasterArticleDetailsStlViewer() {
         const oy = maStlMapBuildingOriginMinMm.y;
         const dx = insertPt.x - ox;
         const undoBefore = maStlDesingV2Viewer ? maStlDesing2SerializeEditSnapshot() : null;
+        const previousWallGroupId = maStlWall2dToolActiveGroupId;
+        const previousWallResumeState = maStlWall2dToolResumeState;
+        const wallGroupId = maStlUserFloorLineNextWallGroupId++;
+        maStlWall2dToolActiveGroupId = wallGroupId;
         let n = 0;
+        let ok = true;
         for (let i = 0; i < maStlMapBuildingPendingLines.length; i++) {
             const s = maStlMapBuildingPendingLines[i];
             const a = new THREE.Vector3(
@@ -11992,9 +11997,21 @@ function bootMasterArticleDetailsStlViewer() {
                 maStlImageSketchCadYToWorldZ(s.finY, oy, insertPt.z)
             );
             if (a.distanceToSquared(b) < maStlUserFloorSegmentMinMm() * maStlUserFloorSegmentMinMm()) continue;
-            maStlCommitUserPlanLineSegmentMm(a, b, true);
+            // Muros 2D con eje + caras (± espesor config), no solo líneas sueltas.
+            if (!maStlWall2dToolCommitWallSegmentMm(a, b, true)) {
+                ok = false;
+                break;
+            }
             n++;
         }
+        maStlWall2dToolActiveGroupId = previousWallGroupId;
+        maStlWall2dToolResumeState = previousWallResumeState;
+        if (!ok || n === 0) return 0;
+        maStlWall2dToolSplitAllAxisInteriorCrossingsMm();
+        maStlWall2dToolRefactorAllWallJunctionsMm();
+        maStlWeldAllUserFloorLineEndpointsMm();
+        maStlWall2dToolRefactorAllWallJunctionsMm();
+        maStlReapplyAllUserFloorWallAxisLineStyles();
         if (undoBefore && n > 0) {
             maStlDesing2PushEditSnapshotUndo(
                 'mapBuildingInsert',
@@ -12002,6 +12019,10 @@ function bootMasterArticleDetailsStlViewer() {
                 maStlDesing2SerializeEditSnapshot()
             );
         }
+        maStlSaveWallConnectionsNow({
+            force: true,
+            reason: 'map-building-wall2d',
+        });
         return n;
     }
 

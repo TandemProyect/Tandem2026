@@ -536,7 +536,7 @@
     <value>Import sketch from image — analyze and convert to plan lines</value>
   </data>
   <data name="StlPreview_Desing2RightMenuMapBuildingAria" xml:space="preserve">
-    <value>Import building from map — search address, select OSM footprint and insert plan lines</value>
+    <value>Import building from 3D map — search address, select a building and insert walls with faces</value>
   </data>
   <data name="StlPreview_Desing2RightMenuPlaceholder" xml:space="preserve">
     <value>Import a sketch or a map building, or toggle concrete mapping.</value>
@@ -812,7 +812,7 @@
     <value>Cancel</value>
   </data>
   <data name="StlPreview_MapBuildingFormHint" xml:space="preserve">
-    <value>Search an address, click Search buildings and select a footprint on the map (OpenStreetMap).</value>
+    <value>Search an address: the map shows 3D buildings (OpenStreetMap). Select one and import. If OSM has no height, a default is used.</value>
   </data>
   <data name="StlPreview_MapBuildingFormTitle" xml:space="preserve">
     <value>Building from map</value>
@@ -830,7 +830,7 @@
     <value>No buildings in this view. Zoom in or click Search buildings.</value>
   </data>
   <data name="StlPreview_MapBuildingPickInstruction" xml:space="preserve">
-    <value>Click on the floor plan to insert the building as lines. Esc to cancel</value>
+    <value>Click on the floor plan to insert the building as walls with faces. Esc to cancel</value>
   </data>
   <data name="StlPreview_MapBuildingProcessing" xml:space="preserve">
     <value>Importing building…</value>
@@ -848,7 +848,7 @@
     <value>Selected: {0}</value>
   </data>
   <data name="StlPreview_MapBuildingSuccess" xml:space="preserve">
-    <value>Inserted {0} line(s) from building</value>
+    <value>Inserted {0} wall(s) with faces from building</value>
   </data>
   <data name="StlPreview_NoFile" xml:space="preserve">
     <value>No file.</value>

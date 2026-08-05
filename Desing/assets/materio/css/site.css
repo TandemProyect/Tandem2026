@@ -776,9 +776,10 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     max-width: 100%;
     pointer-events: none;
     --d2-hrp-peek: 20px;
-    --d2-hrp-collapsed: 48px;
-    /* 4 iconos herramienta + plegar; 260px recortaba el 4.º (mapa) */
-    --d2-hrp-expanded: min(320px, 88vw);
+    /* Colapsado: tira vertical con los 3 iconos siempre visibles */
+    --d2-hrp-collapsed: 52px;
+    /* mapeo + boceto + mapa + plegar */
+    --d2-hrp-expanded: min(340px, 90vw);
     margin-right: calc(-1 * var(--d2-hrp-peek));
     padding-right: var(--d2-hrp-peek);
 }
@@ -820,12 +821,44 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     flex-shrink: 0;
     background-color: inherit;
     min-height: 52px;
+    gap: 0.25rem;
+}
+
+.desing2-stl-hover-right-panel__tools {
+    min-width: 0;
+}
+
+/* Colapsado: iconos en columna para que el de mapa no quede fuera de la tira */
+.desing2-stl-hover-right-panel:not(.is-hover-locked)
+    .desing2-stl-hover-right-panel__hover-zone:not(:hover)
+    > .desing2-stl-hover-right-panel__sheet:not(:focus-within)
+    .desing2-stl-hover-right-panel__tools,
+.desing2-stl-hover-right-panel.is-hover-locked
+    .desing2-stl-hover-right-panel__sheet:not(:focus-within)
+    .desing2-stl-hover-right-panel__tools {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
 }
 
 .desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__wallmap-btn,
 .desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__imagesketch-btn,
 .desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__mapbuilding-btn {
     padding: 0.35rem !important;
+}
+
+.desing2-stl-view-scope .desing2-stl-right-panel__map-icon {
+    display: block;
+    width: 1.9rem;
+    height: 1.9rem;
+    font-size: 1.9rem;
+    line-height: 1;
+    color: #dc3545;
+}
+
+.desing2-stl-view-scope .desing2-stl-right-panel__mapbuilding-btn {
+    outline: 1px solid rgba(220, 53, 69, 0.35);
+    background: rgba(220, 53, 69, 0.08);
 }
 
 .desing2-stl-hover-right-panel__collapse .icon-base {
@@ -976,9 +1009,15 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
 
 .desing2-stl-map-building-form__map {
     width: 100%;
-    height: min(52vh, 420px);
-    min-height: 280px;
+    height: min(58vh, 480px);
+    min-height: 320px;
     z-index: 0;
+}
+
+.desing2-stl-map-building-form__map .maplibregl-canvas,
+.desing2-stl-map-building-form__map .maplibregl-canvas-container {
+    width: 100% !important;
+    height: 100% !important;
 }
 
 .desing2-stl-map-building-modal .modal-body {

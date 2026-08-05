@@ -395,7 +395,7 @@ const es = Object.fromEntries(
     StlPreview_Desing2RightMenuImageSketchAria:
       "Importar boceto desde imagen — analizar y convertir a líneas de planta",
     StlPreview_Desing2RightMenuMapBuildingAria:
-      "Importar edificio desde mapa — buscar dirección, seleccionar huella OSM e insertar líneas de planta",
+      "Importar edificio desde mapa 3D — buscar dirección, seleccionar edificio e insertar muros con caras",
     StlPreview_Desing2RightMenuCollapseTitle:
       "Ocultar panel hasta acercar de nuevo el puntero al borde derecho",
     StlPreview_Desing2RightMenuPlaceholder:
@@ -424,7 +424,7 @@ const es = Object.fromEntries(
     StlPreview_ImageSketchSuccess: "Se insertaron {0} línea(s) desde el boceto",
     StlPreview_MapBuildingFormTitle: "Edificio desde mapa",
     StlPreview_MapBuildingFormHint:
-      "Busque una dirección, pulse Buscar edificios y seleccione la huella en el mapa (OpenStreetMap).",
+      "Busque una dirección: el mapa muestra edificios en 3D (OpenStreetMap). Seleccione uno e importe. Si OSM no trae altura, se usa una por defecto.",
     StlPreview_MapBuildingSearchPlaceholder: "Dirección o lugar…",
     StlPreview_MapBuildingSearchButton: "Buscar",
     StlPreview_MapBuildingLoadBuildings: "Buscar edificios",
@@ -436,8 +436,8 @@ const es = Object.fromEntries(
     StlPreview_MapBuildingSearching: "Buscando dirección…",
     StlPreview_MapBuildingError: "No se pudo importar el edificio: {0}",
     StlPreview_MapBuildingPickInstruction:
-      "Clic en planta para insertar el edificio como líneas. Esc cancelar",
-    StlPreview_MapBuildingSuccess: "Se insertaron {0} línea(s) desde el edificio",
+      "Clic en planta para insertar el edificio como muros con caras. Esc cancelar",
+    StlPreview_MapBuildingSuccess: "Se insertaron {0} muro(s) con caras desde el edificio",
     StlPreview_MapBuildingSelectedLabel: "Seleccionado: {0}",
     StlPreview_MapBuildingNoneLoaded: "No hay edificios en esta vista. Acerque el zoom o pulse Buscar edificios.",
     StlPreview_MapBuildingAttribution: "Mapa y datos © OpenStreetMap",
@@ -880,7 +880,7 @@ const en = Object.assign({}, es, {
   StlPreview_Desing2RightMenuImageSketchAria:
     "Import sketch from image — analyze and convert to plan lines",
   StlPreview_Desing2RightMenuMapBuildingAria:
-    "Import building from map — search address, select OSM footprint and insert plan lines",
+    "Import building from 3D map — search address, select a building and insert walls with faces",
   StlPreview_Desing2RightMenuCollapseTitle:
     "Hide panel until you move the pointer near the right edge again",
   StlPreview_Desing2RightMenuPlaceholder:
@@ -909,7 +909,7 @@ const en = Object.assign({}, es, {
   StlPreview_ImageSketchSuccess: "Inserted {0} line(s) from sketch",
   StlPreview_MapBuildingFormTitle: "Building from map",
   StlPreview_MapBuildingFormHint:
-    "Search an address, click Search buildings and select a footprint on the map (OpenStreetMap).",
+    "Search an address: the map shows 3D buildings (OpenStreetMap). Select one and import. If OSM has no height, a default is used.",
   StlPreview_MapBuildingSearchPlaceholder: "Address or place…",
   StlPreview_MapBuildingSearchButton: "Search",
   StlPreview_MapBuildingLoadBuildings: "Search buildings",
@@ -921,8 +921,8 @@ const en = Object.assign({}, es, {
   StlPreview_MapBuildingSearching: "Searching address…",
   StlPreview_MapBuildingError: "Could not import building: {0}",
   StlPreview_MapBuildingPickInstruction:
-    "Click on the floor plan to insert the building as lines. Esc to cancel",
-  StlPreview_MapBuildingSuccess: "Inserted {0} line(s) from building",
+    "Click on the floor plan to insert the building as walls with faces. Esc to cancel",
+  StlPreview_MapBuildingSuccess: "Inserted {0} wall(s) with faces from building",
   StlPreview_MapBuildingSelectedLabel: "Selected: {0}",
   StlPreview_MapBuildingNoneLoaded: "No buildings in this view. Zoom in or click Search buildings.",
   StlPreview_MapBuildingAttribution: "Map and data © OpenStreetMap",

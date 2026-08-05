@@ -536,7 +536,7 @@
     <value>Importar boceto desde imagen — analizar y convertir a líneas de planta</value>
   </data>
   <data name="StlPreview_Desing2RightMenuMapBuildingAria" xml:space="preserve">
-    <value>Importar edificio desde mapa — buscar dirección, seleccionar huella OSM e insertar líneas de planta</value>
+    <value>Importar edificio desde mapa 3D — buscar dirección, seleccionar edificio e insertar muros con caras</value>
   </data>
   <data name="StlPreview_Desing2RightMenuPlaceholder" xml:space="preserve">
     <value>Importe un boceto o un edificio del mapa, o active el mapeo de hormigón.</value>
@@ -812,7 +812,7 @@
     <value>Cancelar</value>
   </data>
   <data name="StlPreview_MapBuildingFormHint" xml:space="preserve">
-    <value>Busque una dirección, pulse Buscar edificios y seleccione la huella en el mapa (OpenStreetMap).</value>
+    <value>Busque una dirección: el mapa muestra edificios en 3D (OpenStreetMap). Seleccione uno e importe. Si OSM no trae altura, se usa una por defecto.</value>
   </data>
   <data name="StlPreview_MapBuildingFormTitle" xml:space="preserve">
     <value>Edificio desde mapa</value>
@@ -830,7 +830,7 @@
     <value>No hay edificios en esta vista. Acerque el zoom o pulse Buscar edificios.</value>
   </data>
   <data name="StlPreview_MapBuildingPickInstruction" xml:space="preserve">
-    <value>Clic en planta para insertar el edificio como líneas. Esc cancelar</value>
+    <value>Clic en planta para insertar el edificio como muros con caras. Esc cancelar</value>
   </data>
   <data name="StlPreview_MapBuildingProcessing" xml:space="preserve">
     <value>Importando edificio…</value>
@@ -848,7 +848,7 @@
     <value>Seleccionado: {0}</value>
   </data>
   <data name="StlPreview_MapBuildingSuccess" xml:space="preserve">
-    <value>Se insertaron {0} línea(s) desde el edificio</value>
+    <value>Se insertaron {0} muro(s) con caras desde el edificio</value>
   </data>
   <data name="StlPreview_NoFile" xml:space="preserve">
     <value>Sin archivo.</value>
