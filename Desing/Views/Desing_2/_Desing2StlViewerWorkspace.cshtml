@@ -8,6 +8,15 @@
     var stlLabelAttr = HttpUtility.HtmlAttributeEncode(Model.InitialStlLabel ?? string.Empty);
     var logoUrl = Model.BrandLogoUrl ?? Url.Content("~/Content/images/Login/at.png");
     var stlSrcUnits = string.IsNullOrWhiteSpace(Model.StlSourceUnits) ? "m" : Model.StlSourceUnits.Trim();
+    // Evita CS0117 si el Designer.cs local no tiene aún estas claves.
+    Func<string, string, string> maStr = (key, fallback) =>
+    {
+        try { return MasterArticles.ResourceManager.GetString(key) ?? fallback; }
+        catch { return fallback; }
+    };
+    var wallModelRenderingText = maStr("StlPreview_WallModelRendering", "Generando modelo de muros…");
+    var imageSketchErrorModalTitle = maStr("StlPreview_ImageSketchErrorModalTitle", "Error al analizar la imagen");
+    var imageSketchErrorModalAccept = maStr("StlPreview_ImageSketchErrorModalAccept", "Aceptar");
 }
 @* Solo Desing_2: clase desing2-stl-view-scope; barra única marca + contexto izq., herramientas + Volver derecha.
    data-ma-stl-source-units: vértices STL → m → mm escena (×1000; reglas/rejilla en mm).
@@ -60,7 +69,7 @@
         <div id="ma-stl-wall-model-render-overlay" class="desing2-stl-render-overlay d-none" aria-live="polite" aria-atomic="true">
             <div class="desing2-stl-render-overlay__card shadow-lg">
                 <div class="spinner-border text-primary desing2-stl-render-overlay__spinner" role="status" aria-hidden="true"></div>
-                <div class="desing2-stl-render-overlay__text">@MasterArticles.StlPreview_WallModelRendering</div>
+                <div class="desing2-stl-render-overlay__text">@wallModelRenderingText</div>
             </div>
         </div>
         <div id="ma-stl-edge-rulers-overlay" class="ma-stl-edge-rulers-overlay d-none" aria-hidden="true">
@@ -538,14 +547,14 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border border-danger border-2">
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="ma-stl-image-sketch-error-modal-title">@MasterArticles.StlPreview_ImageSketchErrorModalTitle</h5>
+                    <h5 class="modal-title" id="ma-stl-image-sketch-error-modal-title">@imageSketchErrorModalTitle</h5>
                 </div>
                 <div class="modal-body">
                     <p class="mb-0 text-danger fw-medium" id="ma-stl-image-sketch-error-modal-message"></p>
                 </div>
                 <div class="modal-footer border-0 pt-0">
                     <button type="button" class="btn btn-danger" id="ma-stl-image-sketch-error-modal-accept" data-bs-dismiss="modal">
-                        @MasterArticles.StlPreview_ImageSketchErrorModalAccept
+                        @imageSketchErrorModalAccept
                     </button>
                 </div>
             </div>
