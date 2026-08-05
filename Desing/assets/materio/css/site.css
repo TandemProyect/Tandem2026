@@ -823,7 +823,8 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
 
 .desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__wall3d-btn,
 .desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__wallmap-btn,
-.desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__imagesketch-btn {
+.desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__imagesketch-btn,
+.desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__mapbuilding-btn {
     padding: 0.35rem !important;
 }
 
@@ -946,7 +947,9 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
 .desing2-stl-view-scope .desing2-stl-right-panel__wallmap-btn.active,
 .desing2-stl-view-scope .desing2-stl-right-panel__wallmap-btn[aria-pressed='true'],
 .desing2-stl-view-scope .desing2-stl-right-panel__imagesketch-btn.active,
-.desing2-stl-view-scope .desing2-stl-right-panel__imagesketch-btn[aria-pressed='true'] {
+.desing2-stl-view-scope .desing2-stl-right-panel__imagesketch-btn[aria-pressed='true'],
+.desing2-stl-view-scope .desing2-stl-right-panel__mapbuilding-btn.active,
+.desing2-stl-view-scope .desing2-stl-right-panel__mapbuilding-btn[aria-pressed='true'] {
     background: rgba(var(--bs-primary-rgb), 0.12);
     color: rgba(var(--bs-primary-rgb), 1);
 }
@@ -971,6 +974,17 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     width: 100%;
     height: auto;
     object-fit: contain;
+}
+
+.desing2-stl-map-building-form__map {
+    width: 100%;
+    height: min(52vh, 420px);
+    min-height: 280px;
+    z-index: 0;
+}
+
+.desing2-stl-map-building-modal .modal-body {
+    min-height: 12rem;
 }
 
 /* Desing_2 — Configuración: sección L (espesores X / Y) */

@@ -322,6 +322,107 @@ namespace Desing.Controllers
         }
 
         /// <summary>
+        /// Geocodifica una dirección vía Nominatim (OpenStreetMap) para el modal de importación de edificios.
+        /// </summary>
+        [HttpGet]
+        [Authorize]
+        public async Task<ActionResult> BuscarDireccionOsm(string q)
+        {
+            try
+            {
+                var service = new OsmBuildingImportService();
+                var datos = await service.SearchAddressAsync(q).ConfigureAwait(false);
+                return Json(new ApiResponse<List<OsmGeocodeResultDTO>>
+                {
+                    Exito = true,
+                    Mensaje = datos.Count + " resultado(s)",
+                    Datos = datos
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new ApiResponse<List<OsmGeocodeResultDTO>>
+                {
+                    Exito = false,
+                    Mensaje = "Error al buscar dirección: " + ex.Message,
+                    Datos = null
+                }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
+        /// Lista huellas de edificios OSM en el bounding box visible del mapa.
+        /// </summary>
+        [HttpPost]
+        [Authorize]
+        public async Task<ActionResult> BuscarEdificiosOsm(OsmBuildingsBboxRequestDTO request)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    return Json(new ApiResponse<List<OsmBuildingFootprintDTO>>
+                    {
+                        Exito = false,
+                        Mensaje = "Solicitud inválida.",
+                        Datos = null
+                    });
+                }
+
+                var service = new OsmBuildingImportService();
+                var datos = await service.FetchBuildingsInBboxAsync(
+                    request.South, request.West, request.North, request.East).ConfigureAwait(false);
+
+                var ok = Json(new ApiResponse<List<OsmBuildingFootprintDTO>>
+                {
+                    Exito = true,
+                    Mensaje = datos.Count + " edificio(s)",
+                    Datos = datos
+                });
+                ok.MaxJsonLength = int.MaxValue;
+                return ok;
+            }
+            catch (Exception ex)
+            {
+                return Json(new ApiResponse<List<OsmBuildingFootprintDTO>>
+                {
+                    Exito = false,
+                    Mensaje = "Error al cargar edificios: " + ex.Message,
+                    Datos = null
+                });
+            }
+        }
+
+        /// <summary>
+        /// Convierte la huella OSM seleccionada a líneas de planta (mm) — mismo contrato que DetectarEsquinasImagen.
+        /// </summary>
+        [HttpPost]
+        [Authorize]
+        public ActionResult ImportarEdificioOsm(OsmBuildingImportRequestDTO request)
+        {
+            try
+            {
+                var service = new OsmBuildingImportService();
+                var resultado = service.BuildSketchFromFootprint(request);
+                return Json(new ApiResponse<DeteccionEsquinasLDTO>
+                {
+                    Exito = true,
+                    Mensaje = resultado.Mensaje,
+                    Datos = resultado
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new ApiResponse<DeteccionEsquinasLDTO>
+                {
+                    Exito = false,
+                    Mensaje = "Error al importar edificio: " + ex.Message,
+                    Datos = null
+                });
+            }
+        }
+
+        /// <summary>
         /// Valida si un equipo puede ejecutar el plugin según la tabla de autorización de dispositivos.
         /// Espera tabla dbo.TSql_PluginDeviceAuth con columna DeviceId y (opcionalmente) LinAspNetUsert.
         /// </summary>

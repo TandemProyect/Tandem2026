@@ -394,6 +394,8 @@ const es = Object.fromEntries(
       "Activar o desactivar mapeo de hormigón en muros 3D",
     StlPreview_Desing2RightMenuImageSketchAria:
       "Importar boceto desde imagen — analizar y convertir a líneas de planta",
+    StlPreview_Desing2RightMenuMapBuildingAria:
+      "Importar edificio desde mapa — buscar dirección, seleccionar huella OSM e insertar líneas de planta",
     StlPreview_Desing2RightMenuCollapseTitle:
       "Ocultar panel hasta acercar de nuevo el puntero al borde derecho",
     StlPreview_Desing2RightMenuPlaceholder:
@@ -420,6 +422,25 @@ const es = Object.fromEntries(
     StlPreview_ImageSketchPickInstruction:
       "Clic en planta para insertar el boceto como líneas. Esc cancelar",
     StlPreview_ImageSketchSuccess: "Se insertaron {0} línea(s) desde el boceto",
+    StlPreview_MapBuildingFormTitle: "Edificio desde mapa",
+    StlPreview_MapBuildingFormHint:
+      "Busque una dirección, pulse Buscar edificios y seleccione la huella en el mapa (OpenStreetMap).",
+    StlPreview_MapBuildingSearchPlaceholder: "Dirección o lugar…",
+    StlPreview_MapBuildingSearchButton: "Buscar",
+    StlPreview_MapBuildingLoadBuildings: "Buscar edificios",
+    StlPreview_MapBuildingFormAccept: "Importar e insertar",
+    StlPreview_MapBuildingFormCancel: "Cancelar",
+    StlPreview_MapBuildingNoSelection: "Seleccione un edificio en el mapa",
+    StlPreview_MapBuildingProcessing: "Importando edificio…",
+    StlPreview_MapBuildingLoadingBuildings: "Cargando edificios del mapa…",
+    StlPreview_MapBuildingSearching: "Buscando dirección…",
+    StlPreview_MapBuildingError: "No se pudo importar el edificio: {0}",
+    StlPreview_MapBuildingPickInstruction:
+      "Clic en planta para insertar el edificio como líneas. Esc cancelar",
+    StlPreview_MapBuildingSuccess: "Se insertaron {0} línea(s) desde el edificio",
+    StlPreview_MapBuildingSelectedLabel: "Seleccionado: {0}",
+    StlPreview_MapBuildingNoneLoaded: "No hay edificios en esta vista. Acerque el zoom o pulse Buscar edificios.",
+    StlPreview_MapBuildingAttribution: "Mapa y datos © OpenStreetMap",
     StlPreview_Desing2EntornoGridSnapLabel: "Incremental de rejilla y snap",
     StlPreview_Desing2EntornoGridSnapAria:
       "Espaciado menor de rejilla en planta y paso del snap en modo punto de rejilla para las cotas.",
@@ -858,6 +879,8 @@ const en = Object.assign({}, es, {
     "Toggle concrete mapping on 3D walls",
   StlPreview_Desing2RightMenuImageSketchAria:
     "Import sketch from image — analyze and convert to plan lines",
+  StlPreview_Desing2RightMenuMapBuildingAria:
+    "Import building from map — search address, select OSM footprint and insert plan lines",
   StlPreview_Desing2RightMenuCollapseTitle:
     "Hide panel until you move the pointer near the right edge again",
   StlPreview_Desing2RightMenuPlaceholder:
@@ -884,6 +907,25 @@ const en = Object.assign({}, es, {
   StlPreview_ImageSketchPickInstruction:
     "Click on the floor plan to insert the sketch as lines. Esc to cancel",
   StlPreview_ImageSketchSuccess: "Inserted {0} line(s) from sketch",
+  StlPreview_MapBuildingFormTitle: "Building from map",
+  StlPreview_MapBuildingFormHint:
+    "Search an address, click Search buildings and select a footprint on the map (OpenStreetMap).",
+  StlPreview_MapBuildingSearchPlaceholder: "Address or place…",
+  StlPreview_MapBuildingSearchButton: "Search",
+  StlPreview_MapBuildingLoadBuildings: "Search buildings",
+  StlPreview_MapBuildingFormAccept: "Import and insert",
+  StlPreview_MapBuildingFormCancel: "Cancel",
+  StlPreview_MapBuildingNoSelection: "Select a building on the map",
+  StlPreview_MapBuildingProcessing: "Importing building…",
+  StlPreview_MapBuildingLoadingBuildings: "Loading buildings from the map…",
+  StlPreview_MapBuildingSearching: "Searching address…",
+  StlPreview_MapBuildingError: "Could not import building: {0}",
+  StlPreview_MapBuildingPickInstruction:
+    "Click on the floor plan to insert the building as lines. Esc to cancel",
+  StlPreview_MapBuildingSuccess: "Inserted {0} line(s) from building",
+  StlPreview_MapBuildingSelectedLabel: "Selected: {0}",
+  StlPreview_MapBuildingNoneLoaded: "No buildings in this view. Zoom in or click Search buildings.",
+  StlPreview_MapBuildingAttribution: "Map and data © OpenStreetMap",
   StlPreview_Desing2EntornoGridSnapLabel: "Grid increment and snap",
   StlPreview_Desing2EntornoGridSnapAria:
     "Minor grid spacing on the floor plane and snap step in grid pick mode for ruler placement.",

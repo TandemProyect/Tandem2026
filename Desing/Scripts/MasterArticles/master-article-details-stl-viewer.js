@@ -2645,6 +2645,23 @@ function bootMasterArticleDetailsStlViewer() {
     const maStlImageSketchToolHudInstruction = document.getElementById('ma-stl-image-sketch-tool-hud-instruction');
     const maStlImageSketchToolHudCoords = document.getElementById('ma-stl-image-sketch-tool-hud-coords');
     let maStlImageSketchPreviewObjectUrl = null;
+
+    /** Desing_2 — edificio desde mapa OSM (ImportarEdificioOsm). */
+    let maStlMapBuildingToolActive = false;
+    /** @type {null|'form'|'picking'} */
+    let maStlMapBuildingToolState = null;
+    let maStlMapBuildingToolBusy = false;
+    /** @type {Array<{ inicioX: number, inicioY: number, finX: number, finY: number }>|null} */
+    let maStlMapBuildingPendingLines = null;
+    const maStlMapBuildingOriginMinMm = { x: 0, y: 0 };
+    const maStlMapBuildingToolLastPointerClientXY = new THREE.Vector2(Number.NaN, Number.NaN);
+    const maStlMapBuildingToolToggleBtn = document.getElementById('desing2-stl-right-panel-map-building');
+    const maStlMapBuildingModalEl = document.getElementById('ma-stl-map-building-modal');
+    const maStlMapBuildingAcceptBtn = document.getElementById('ma-stl-map-building-accept');
+    const maStlMapBuildingCancelBtn = document.getElementById('ma-stl-map-building-cancel');
+    const maStlMapBuildingToolHud = document.getElementById('ma-stl-map-building-tool-hud');
+    const maStlMapBuildingToolHudInstruction = document.getElementById('ma-stl-map-building-tool-hud-instruction');
+    const maStlMapBuildingToolHudCoords = document.getElementById('ma-stl-map-building-tool-hud-coords');
     let maStlInsertCornerToolActive = false;
     /** @type {null|'picking1'|'picking2'} */
     let maStlInsertCornerToolState = null;
@@ -2768,6 +2785,14 @@ function bootMasterArticleDetailsStlViewer() {
         return maStlIsImageSketchToolActive() && maStlImageSketchToolState === 'picking';
     }
 
+    function maStlIsMapBuildingToolActive() {
+        return maStlMapBuildingToolActive === true;
+    }
+
+    function maStlIsMapBuildingToolPlacementActive() {
+        return maStlIsMapBuildingToolActive() && maStlMapBuildingToolState === 'picking';
+    }
+
     function maStlIsDesing2FloorDrawToolActive() {
         return (
             maStlIsLineToolPlacementActive() ||
@@ -2776,6 +2801,7 @@ function bootMasterArticleDetailsStlViewer() {
             maStlIsDeleteToolActive() ||
             maStlIsWall3dToolActive() ||
             maStlIsImageSketchToolPlacementActive() ||
+            maStlIsMapBuildingToolPlacementActive() ||
             maStlIsInsertCornerToolPlacementActive() ||
             maStlIsInsertEnclosureToolPlacementActive()
         );
@@ -5027,6 +5053,7 @@ function bootMasterArticleDetailsStlViewer() {
         const hadDeleteTool = maStlIsDeleteToolActive();
         const hadWall3dTool = maStlIsWall3dToolActive();
         const hadImageSketchTool = maStlIsImageSketchToolActive();
+        const hadMapBuildingTool = maStlIsMapBuildingToolActive();
         const hadInsertCornerTool = maStlIsInsertCornerToolActive();
         const hadInsertEnclosureTool = maStlIsInsertEnclosureToolActive();
         const hadWall2dTool = maStlIsWall2dToolActive();
@@ -5038,6 +5065,7 @@ function bootMasterArticleDetailsStlViewer() {
             hadDeleteTool ||
             hadWall3dTool ||
             hadImageSketchTool ||
+            hadMapBuildingTool ||
             hadInsertCornerTool ||
             hadInsertEnclosureTool ||
             hadWall2dTool ||
@@ -5060,6 +5088,9 @@ function bootMasterArticleDetailsStlViewer() {
         }
         if (hadImageSketchTool) {
             maStlStopImageSketchToolModesToolbar(false);
+        }
+        if (hadMapBuildingTool) {
+            maStlStopMapBuildingToolModesToolbar(false);
         }
         if (hadInsertCornerTool) {
             maStlStopInsertCornerToolModesToolbar(false);
@@ -5092,6 +5123,7 @@ function bootMasterArticleDetailsStlViewer() {
         maStlSyncDeleteToolHud();
         maStlSyncWall3dToolHud();
         maStlSyncImageSketchToolHud();
+        maStlSyncMapBuildingToolHud();
         maStlSyncInsertCornerToolHud();
         maStlSyncInsertEnclosureToolHud();
         syncMaStlRulerPickToolbarUi();
@@ -10785,7 +10817,8 @@ function bootMasterArticleDetailsStlViewer() {
             maStlIsRulerAnchorPickModeActive() ||
             maStlIsInsertCornerToolPlacementActive() ||
             maStlIsInsertEnclosureToolPlacementActive() ||
-            maStlIsImageSketchToolPlacementActive()
+            maStlIsImageSketchToolPlacementActive() ||
+            maStlIsMapBuildingToolPlacementActive()
         ) {
             return false;
         }
@@ -11775,6 +11808,7 @@ function bootMasterArticleDetailsStlViewer() {
 
     function maStlStartImageSketchToolModesToolbar() {
         if (maStlIsImageSketchToolActive()) return;
+        if (maStlIsMapBuildingToolActive()) maStlStopMapBuildingToolModesToolbar(false);
         if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
         if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
         if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
@@ -11891,6 +11925,235 @@ function bootMasterArticleDetailsStlViewer() {
                     maStlWall3dFormatToast(errTpl, err && err.message ? err.message : err)
                 );
             });
+    }
+
+    function maStlSyncMapBuildingToolToggleBtnUi() {
+        if (!maStlMapBuildingToolToggleBtn) return;
+        const on = maStlIsMapBuildingToolActive();
+        maStlMapBuildingToolToggleBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        maStlMapBuildingToolToggleBtn.classList.toggle('active', on);
+    }
+
+    function maStlSyncMapBuildingToolHud() {
+        if (!maStlMapBuildingToolHud || !maStlDesingV2Viewer) return;
+        if (!maStlIsMapBuildingToolPlacementActive()) {
+            maStlMapBuildingToolHud.classList.add('d-none');
+            if (maStlMapBuildingToolHudInstruction) maStlMapBuildingToolHudInstruction.textContent = '';
+            if (maStlMapBuildingToolHudCoords) maStlMapBuildingToolHudCoords.textContent = '';
+            return;
+        }
+        const insTpl =
+            (maStlMapBuildingToolHud &&
+                maStlMapBuildingToolHud.getAttribute('data-ma-stl-map-building-pick-instruction')) ||
+            '';
+        if (maStlMapBuildingToolHudInstruction) {
+            maStlMapBuildingToolHudInstruction.textContent = maStlMapBuildingToolBusy ? '' : insTpl;
+        }
+        const coordsTpl =
+            (maStlMapBuildingToolHudCoords &&
+                maStlMapBuildingToolHudCoords.getAttribute('data-ma-stl-line-tool-coords-template')) ||
+            '';
+        if (maStlMapBuildingToolHudCoords) {
+            const pCur = maStlResolveLineToolFloorPointMm(
+                maStlMapBuildingToolLastPointerClientXY.x,
+                maStlMapBuildingToolLastPointerClientXY.y
+            );
+            if (coordsTpl && pCur && Number.isFinite(pCur.x) && Number.isFinite(pCur.z)) {
+                maStlMapBuildingToolHudCoords.textContent = maStlFormatRulerAnchorGridIntersectionToast(
+                    coordsTpl,
+                    pCur.x,
+                    pCur.z
+                );
+            } else {
+                maStlMapBuildingToolHudCoords.textContent = '';
+            }
+        }
+        maStlMapBuildingToolHud.classList.remove('d-none');
+    }
+
+    function maStlMapBuildingCommitAtPointMm(insertPt) {
+        if (!maStlMapBuildingPendingLines || !maStlMapBuildingPendingLines.length || !insertPt) return 0;
+        const floorY = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM;
+        const ox = maStlMapBuildingOriginMinMm.x;
+        const oy = maStlMapBuildingOriginMinMm.y;
+        const dx = insertPt.x - ox;
+        const undoBefore = maStlDesingV2Viewer ? maStlDesing2SerializeEditSnapshot() : null;
+        let n = 0;
+        for (let i = 0; i < maStlMapBuildingPendingLines.length; i++) {
+            const s = maStlMapBuildingPendingLines[i];
+            const a = new THREE.Vector3(
+                s.inicioX + dx,
+                floorY,
+                maStlImageSketchCadYToWorldZ(s.inicioY, oy, insertPt.z)
+            );
+            const b = new THREE.Vector3(
+                s.finX + dx,
+                floorY,
+                maStlImageSketchCadYToWorldZ(s.finY, oy, insertPt.z)
+            );
+            if (a.distanceToSquared(b) < maStlUserFloorSegmentMinMm() * maStlUserFloorSegmentMinMm()) continue;
+            maStlCommitUserPlanLineSegmentMm(a, b, true);
+            n++;
+        }
+        if (undoBefore && n > 0) {
+            maStlDesing2PushEditSnapshotUndo(
+                'mapBuildingInsert',
+                undoBefore,
+                maStlDesing2SerializeEditSnapshot()
+            );
+        }
+        return n;
+    }
+
+    function maStlStopMapBuildingToolModesToolbar(deferOrbitUnlock) {
+        void deferOrbitUnlock;
+        if (!maStlIsMapBuildingToolActive()) return;
+        maStlMapBuildingToolActive = false;
+        maStlMapBuildingToolState = null;
+        maStlMapBuildingToolBusy = false;
+        maStlMapBuildingPendingLines = null;
+        maStlMapBuildingOriginMinMm.x = 0;
+        maStlMapBuildingOriginMinMm.y = 0;
+        if (window.Desing2MapBuildingImport && typeof window.Desing2MapBuildingImport.close === 'function') {
+            window.Desing2MapBuildingImport.close();
+        }
+        maStlSyncMapBuildingToolToggleBtnUi();
+        maStlSyncMapBuildingToolHud();
+        maStlClearGridIntersectionPickHighlight();
+        maStlClearLineToolVertexSnapHighlight();
+        maStlLineToolPickCursorSync();
+        syncMaStlRulerAnchorPickCursor();
+        maStlUnlockOrbitForRulerAnchorPick(true);
+    }
+
+    function maStlMapBuildingBeginPickPlacement(datos) {
+        const segs = maStlImageSketchExtractLinesFromDatos(datos);
+        if (!segs.length) return false;
+        maStlMapBuildingPendingLines = segs;
+        const origin = maStlImageSketchComputeOriginMinMm(segs);
+        maStlMapBuildingOriginMinMm.x = origin.x;
+        maStlMapBuildingOriginMinMm.y = origin.y;
+        maStlMapBuildingToolState = 'picking';
+        maStlMapBuildingToolBusy = false;
+        maStlMapBuildingToolLastPointerClientXY.set(Number.NaN, Number.NaN);
+        maStlSyncMapBuildingToolToggleBtnUi();
+        maStlLockOrbitForRulerAnchorPick();
+        maStlLineToolPickCursorSync();
+        maStlSyncMapBuildingToolHud();
+        return true;
+    }
+
+    function maStlOpenMapBuildingModal() {
+        if (maStlIsMapBuildingToolPlacementActive()) return;
+        if (!maStlIsMapBuildingToolActive()) {
+            maStlStartMapBuildingToolModesToolbar();
+        }
+        if (!window.Desing2MapBuildingImport || typeof window.Desing2MapBuildingImport.open !== 'function') {
+            maStlDesing2ShowSaveViewToast('Mapa OSM no disponible');
+            maStlStopMapBuildingToolModesToolbar(false);
+            return;
+        }
+        window.Desing2MapBuildingImport.open({
+            shell: viewerShell,
+            onToast: function (msg) {
+                if (msg) maStlDesing2ShowSaveViewToast(msg);
+            },
+            onImported: function (datos) {
+                if (!maStlMapBuildingBeginPickPlacement(datos)) {
+                    const errTpl =
+                        (maStlMapBuildingAcceptBtn &&
+                            maStlMapBuildingAcceptBtn.getAttribute('data-ma-stl-map-building-error')) ||
+                        '';
+                    maStlDesing2ShowSaveViewToast(
+                        maStlWall3dFormatToast(errTpl, 'Sin líneas detectadas')
+                    );
+                    maStlStopMapBuildingToolModesToolbar(false);
+                }
+            },
+        });
+    }
+
+    function maStlStartMapBuildingToolModesToolbar() {
+        if (maStlIsMapBuildingToolActive()) return;
+        if (maStlIsImageSketchToolActive()) maStlStopImageSketchToolModesToolbar(false);
+        if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
+        if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
+        if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
+        if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
+        if (maStlIsInsertEnclosureToolActive()) maStlStopInsertEnclosureToolModesToolbar(false);
+        maStlStopWallDimToolModesToolbar();
+        maStlStopRulerAnchorPickModesToolbar();
+        maStlTeardownPickHighlightsOnly();
+        maStlDisposeUserFloorLineDimEdit(false);
+        maStlClearUserFloorLineSelection();
+        maStlHideUserFloorLineDimHud(true);
+        maStlMapBuildingToolActive = true;
+        maStlMapBuildingToolState = 'form';
+        maStlMapBuildingToolBusy = false;
+        maStlMapBuildingPendingLines = null;
+        maStlMapBuildingToolLastPointerClientXY.set(Number.NaN, Number.NaN);
+        maStlSyncLineToolToggleBtnUi();
+        maStlSyncMapBuildingToolToggleBtnUi();
+        maStlSyncMapBuildingToolHud();
+        if (maStlMapBuildingToolToggleBtn && document.activeElement === maStlMapBuildingToolToggleBtn) {
+            maStlMapBuildingToolToggleBtn.blur();
+        }
+    }
+
+    function maStlUpdateMapBuildingToolFloorHover(clientX, clientY) {
+        if (!maStlIsMapBuildingToolPlacementActive() || !maStlDesingV2Viewer || !renderer) {
+            return false;
+        }
+        maStlMapBuildingToolLastPointerClientXY.set(clientX, clientY);
+        const canvas = renderer.domElement;
+        const cam = activeCamera();
+        const floorHit = maStlClientRayToWorkspaceFloor(
+            clientX,
+            clientY,
+            canvas,
+            cam,
+            orbitPivotNdc,
+            orbitPivotRaycaster,
+            _maStlInsertionFloorProbe
+        );
+        if (!floorHit) {
+            maStlClearGridIntersectionPickHighlight();
+            maStlClearLineToolVertexSnapHighlight();
+            maStlSyncMapBuildingToolHud();
+            return false;
+        }
+        const floorHitObj = { x: _maStlInsertionFloorProbe.x, z: _maStlInsertionFloorProbe.z };
+        const lineSnap = maStlFindFloorLineVertexSnapAtPointer(
+            clientX,
+            clientY,
+            MA_STL_LINE_TOOL_GRID_PICK_SCREEN_PX_BOOST
+        );
+        if (lineSnap) {
+            const onMajor = maStlIsOnDisplayedMajorGridLineAtMm(lineSnap.x, lineSnap.z);
+            maStlSetLineToolVertexSnapHighlight(lineSnap, true, onMajor);
+            maStlClearGridIntersectionPickHighlight();
+            maStlSyncMapBuildingToolHud();
+            return true;
+        }
+        maStlClearLineToolVertexSnapHighlight();
+        const proximity = {
+            clientX: clientX,
+            clientY: clientY,
+            camera: cam,
+            canvas: canvas,
+            maxDim: lastMaxDim,
+            pickScreenPxBoost: MA_STL_LINE_TOOL_GRID_PICK_SCREEN_PX_BOOST,
+        };
+        const gridSnap = maStlSnapFloorToGridFeatures(floorHitObj, proximity, desing2EnvGridSnapMm);
+        const onMajor = maStlIsOnDisplayedMajorGridLineAtMm(gridSnap.x, gridSnap.z);
+        maStlSetGridIntersectionPickHighlight(
+            gridSnap.active ? 'connected' : 'idle',
+            gridSnap,
+            onMajor
+        );
+        maStlSyncMapBuildingToolHud();
+        return true;
     }
 
     function maStlUpdateImageSketchToolFloorHover(clientX, clientY) {
@@ -13502,6 +13765,7 @@ function bootMasterArticleDetailsStlViewer() {
         maStlStopDeleteToolModesToolbar(false);
         maStlStopWall3dToolModesToolbar(false);
         maStlStopImageSketchToolModesToolbar(false);
+        maStlStopMapBuildingToolModesToolbar(false);
         maStlStopInsertCornerToolModesToolbar(false);
         maStlStopInsertEnclosureToolModesToolbar(false);
         maStlStopWall2dToolModesToolbar(false);
@@ -17240,6 +17504,55 @@ function bootMasterArticleDetailsStlViewer() {
         maStlUpdateImageSketchToolFloorHover(ev.clientX, ev.clientY);
     }
 
+    function onCanvasPointerDownMapBuildingTool(ev) {
+        if (!maStlIsMapBuildingToolPlacementActive() || !maStlDesingV2Viewer) return;
+        if (ev.button !== 0) return;
+        const canvas = renderer.domElement;
+        if (ev.currentTarget !== canvas) return;
+        const rawTarget = ev.target;
+        if (rawTarget && typeof rawTarget.closest === 'function') {
+            if (rawTarget.closest('button, input, select, textarea, [role="button"], label')) return;
+        }
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+    }
+
+    function onCanvasClickMapBuildingTool(ev) {
+        if (!maStlIsMapBuildingToolPlacementActive() || !maStlDesingV2Viewer || maStlMapBuildingToolBusy) return;
+        if (ev.button !== 0) return;
+        const canvas = renderer.domElement;
+        if (ev.currentTarget !== canvas) return;
+        const rawTarget = ev.target;
+        if (rawTarget && typeof rawTarget.closest === 'function') {
+            if (rawTarget.closest('button, input, select, textarea, [role="button"], label')) return;
+        }
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+        const p = maStlResolveLineToolFloorPointMm(ev.clientX, ev.clientY);
+        if (!p) {
+            maStlStopMapBuildingToolModesToolbar(false);
+            return;
+        }
+        const pSnap = maStlApplyLineToolVertexSnapOnClickMm(ev.clientX, ev.clientY, p);
+        maStlQuantizeUserFloorPlanPointToGridMm(pSnap);
+        const count = maStlMapBuildingCommitAtPointMm(pSnap);
+        const okTpl =
+            (maStlMapBuildingAcceptBtn &&
+                maStlMapBuildingAcceptBtn.getAttribute('data-ma-stl-map-building-success')) ||
+            '';
+        if (okTpl && count > 0) {
+            maStlDesing2ShowSaveViewToast(maStlWall3dFormatToast(okTpl, count));
+        }
+        maStlStopMapBuildingToolModesToolbar(false);
+    }
+
+    function onCanvasPointerMoveMapBuildingToolSync(ev) {
+        if (!maStlIsMapBuildingToolPlacementActive()) return;
+        maStlUpdateMapBuildingToolFloorHover(ev.clientX, ev.clientY);
+    }
+
     function onCanvasPointerDownInsertEnclosureTool(ev) {
         if (!maStlIsInsertEnclosureToolPlacementActive() || !maStlDesingV2Viewer) return;
         if (ev.button !== 0) return;
@@ -17905,6 +18218,32 @@ function bootMasterArticleDetailsStlViewer() {
         maStlImageSketchToolToggleBtn.addEventListener('click', (ev) => {
             ev.stopPropagation();
             maStlOpenImageSketchModal();
+        });
+    }
+    if (maStlDesingV2Viewer && maStlMapBuildingToolToggleBtn) {
+        maStlMapBuildingToolToggleBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            maStlOpenMapBuildingModal();
+        });
+    }
+    if (maStlMapBuildingModalEl) {
+        maStlMapBuildingModalEl.addEventListener('hidden.bs.modal', function () {
+            if (
+                window.Desing2MapBuildingImport &&
+                typeof window.Desing2MapBuildingImport.consumeSuppressClose === 'function' &&
+                window.Desing2MapBuildingImport.consumeSuppressClose()
+            ) {
+                return;
+            }
+            if (maStlIsMapBuildingToolActive() && maStlMapBuildingToolState === 'form') {
+                maStlStopMapBuildingToolModesToolbar(false);
+            }
+        });
+    }
+    if (maStlMapBuildingCancelBtn) {
+        maStlMapBuildingCancelBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            maStlStopMapBuildingToolModesToolbar(false);
         });
     }
     if (maStlImageSketchModalEl) {
@@ -18811,6 +19150,7 @@ function bootMasterArticleDetailsStlViewer() {
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownLineTool, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownInsertCornerTool, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownImageSketchTool, true);
+    renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownMapBuildingTool, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownInsertEnclosureTool, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownOffsetTool, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownDeleteTool, true);
@@ -18818,6 +19158,7 @@ function bootMasterArticleDetailsStlViewer() {
     renderer.domElement.addEventListener('click', onCanvasClickLineTool, true);
     renderer.domElement.addEventListener('click', onCanvasClickInsertCornerTool, true);
     renderer.domElement.addEventListener('click', onCanvasClickImageSketchTool, true);
+    renderer.domElement.addEventListener('click', onCanvasClickMapBuildingTool, true);
     renderer.domElement.addEventListener('click', onCanvasClickInsertEnclosureTool, true);
     renderer.domElement.addEventListener('click', onCanvasClickOffsetTool, true);
     renderer.domElement.addEventListener('click', onCanvasClickWallDimTool, true);
@@ -18828,6 +19169,7 @@ function bootMasterArticleDetailsStlViewer() {
     renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveLineToolSync);
     renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveInsertCornerToolSync);
     renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveImageSketchToolSync);
+    renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveMapBuildingToolSync);
     renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveInsertEnclosureToolSync);
     renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveOffsetToolSync);
     renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveDeleteToolSync);
