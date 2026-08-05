@@ -8,6 +8,12 @@
     var stlLabelAttr = HttpUtility.HtmlAttributeEncode(Model.InitialStlLabel ?? string.Empty);
     var logoUrl = Model.BrandLogoUrl ?? Url.Content("~/Content/images/Login/at.png");
     var stlSrcUnits = string.IsNullOrWhiteSpace(Model.StlSourceUnits) ? "m" : Model.StlSourceUnits.Trim();
+    // GetString evita CS0117 si el Designer local aún no tiene la propiedad regenerada.
+    Func<string, string, string> maStr = (key, fallback) =>
+        MasterArticles.ResourceManager.GetString(key) ?? fallback;
+    var wallModelRenderingText = maStr("StlPreview_WallModelRendering", "Generando modelo de muros…");
+    var imageSketchErrorModalTitle = maStr("StlPreview_ImageSketchErrorModalTitle", "Error al analizar la imagen");
+    var imageSketchErrorModalAccept = maStr("StlPreview_ImageSketchErrorModalAccept", "Aceptar");
 }
 @* Solo Desing_2: clase desing2-stl-view-scope; barra única marca + contexto izq., herramientas + Volver derecha.
    data-ma-stl-source-units: vértices STL → m → mm escena (×1000; reglas/rejilla en mm).
