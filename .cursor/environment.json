@@ -1,0 +1,4 @@
+{
+  "name": "Tandem 2026 (.NET Framework 4.8 via Mono/MSBuild)",
+  "install": "bash .cursor/install.sh"
+}
