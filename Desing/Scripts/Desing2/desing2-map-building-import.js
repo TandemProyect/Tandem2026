@@ -638,8 +638,15 @@
       });
     }
     state.modalEl.addEventListener('shown.bs.modal', function () {
-      ensureMap();
-      invalidateMapSize();
+      ensureMapLibre()
+        .then(function () {
+          ensureMap();
+          invalidateMapSize();
+        })
+        .catch(function (err) {
+          var errTpl = attr(state.acceptBtn, 'data-ma-stl-map-building-error');
+          toast(formatTpl(errTpl, err && err.message ? err.message : err));
+        });
     });
   }
 
@@ -654,8 +661,16 @@
     state.busy = false;
     clearSelection();
     showModal();
-    ensureMap();
-    invalidateMapSize();
+    // MapLibre solo aquí (bajo demanda). No bloquea la carga inicial de Desing_2.
+    ensureMapLibre()
+      .then(function () {
+        ensureMap();
+        invalidateMapSize();
+      })
+      .catch(function (err) {
+        var errTpl = attr(state.acceptBtn, 'data-ma-stl-map-building-error');
+        toast(formatTpl(errTpl, err && err.message ? err.message : err));
+      });
     syncAcceptUi();
   }
 
