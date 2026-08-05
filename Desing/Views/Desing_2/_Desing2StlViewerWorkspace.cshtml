@@ -8,33 +8,28 @@
     var stlLabelAttr = HttpUtility.HtmlAttributeEncode(Model.InitialStlLabel ?? string.Empty);
     var logoUrl = Model.BrandLogoUrl ?? Url.Content("~/Content/images/Login/at.png");
     var stlSrcUnits = string.IsNullOrWhiteSpace(Model.StlSourceUnits) ? "m" : Model.StlSourceUnits.Trim();
-    // GetString + fallback: no usa propiedades del Designer (evita CS0117 con Designer viejo).
-    Func<string, string, string> maStr = (key, fallback) =>
-    {
-        try { return MasterArticles.ResourceManager.GetString(key) ?? fallback; }
-        catch { return fallback; }
-    };
-    var wallModelRenderingText = maStr("StlPreview_WallModelRendering", "Generando modelo de muros…");
-    var imageSketchErrorModalTitle = maStr("StlPreview_ImageSketchErrorModalTitle", "Error al analizar la imagen");
-    var imageSketchErrorModalAccept = maStr("StlPreview_ImageSketchErrorModalAccept", "Aceptar");
-    var mapBuildingMenuAria = maStr("StlPreview_Desing2RightMenuMapBuildingAria", "Importar edificio desde mapa 3D");
-    var mapBuildingPickInstruction = maStr("StlPreview_MapBuildingPickInstruction", "Clic en planta para insertar el edificio como muros con caras. Esc cancelar");
-    var mapBuildingFormTitle = maStr("StlPreview_MapBuildingFormTitle", "Edificio desde mapa");
-    var mapBuildingFormHint = maStr("StlPreview_MapBuildingFormHint", "Busque una dirección: el mapa muestra edificios en 3D. Seleccione uno e importe.");
-    var mapBuildingSearchPlaceholder = maStr("StlPreview_MapBuildingSearchPlaceholder", "Dirección o lugar…");
-    var mapBuildingSearchButton = maStr("StlPreview_MapBuildingSearchButton", "Buscar");
-    var mapBuildingLoadBuildings = maStr("StlPreview_MapBuildingLoadBuildings", "Buscar edificios");
-    var mapBuildingFormAccept = maStr("StlPreview_MapBuildingFormAccept", "Importar e insertar");
-    var mapBuildingFormCancel = maStr("StlPreview_MapBuildingFormCancel", "Cancelar");
-    var mapBuildingNoSelection = maStr("StlPreview_MapBuildingNoSelection", "Seleccione un edificio en el mapa");
-    var mapBuildingProcessing = maStr("StlPreview_MapBuildingProcessing", "Importando edificio…");
-    var mapBuildingLoadingBuildings = maStr("StlPreview_MapBuildingLoadingBuildings", "Cargando edificios del mapa…");
-    var mapBuildingSearching = maStr("StlPreview_MapBuildingSearching", "Buscando dirección…");
-    var mapBuildingError = maStr("StlPreview_MapBuildingError", "No se pudo importar el edificio: {0}");
-    var mapBuildingSuccess = maStr("StlPreview_MapBuildingSuccess", "Se insertaron {0} muro(s) con caras desde el edificio");
-    var mapBuildingSelectedLabel = maStr("StlPreview_MapBuildingSelectedLabel", "Seleccionado: {0}");
-    var mapBuildingNoneLoaded = maStr("StlPreview_MapBuildingNoneLoaded", "No hay edificios en esta vista. Acerque el zoom o pulse Buscar edificios.");
-    var mapBuildingAttribution = maStr("StlPreview_MapBuildingAttribution", "Mapa y datos © OpenStreetMap");
+    // SCANBUILDING_FIX_CS0117 — textos locales (NO usar MasterArticles.StlPreview_* aquí).
+    var wallModelRenderingText = "Generando modelo de muros…";
+    var imageSketchErrorModalTitle = "Error al analizar la imagen";
+    var imageSketchErrorModalAccept = "Aceptar";
+    var mapBuildingMenuAria = "Importar edificio desde mapa 3D";
+    var mapBuildingPickInstruction = "Clic en planta para insertar el edificio como muros con caras. Esc cancelar";
+    var mapBuildingFormTitle = "Edificio desde mapa";
+    var mapBuildingFormHint = "Busque una dirección: el mapa muestra edificios en 3D. Seleccione uno e importe.";
+    var mapBuildingSearchPlaceholder = "Dirección o lugar…";
+    var mapBuildingSearchButton = "Buscar";
+    var mapBuildingLoadBuildings = "Buscar edificios";
+    var mapBuildingFormAccept = "Importar e insertar";
+    var mapBuildingFormCancel = "Cancelar";
+    var mapBuildingNoSelection = "Seleccione un edificio en el mapa";
+    var mapBuildingProcessing = "Importando edificio…";
+    var mapBuildingLoadingBuildings = "Cargando edificios del mapa…";
+    var mapBuildingSearching = "Buscando dirección…";
+    var mapBuildingError = "No se pudo importar el edificio: {0}";
+    var mapBuildingSuccess = "Se insertaron {0} muro(s) con caras desde el edificio";
+    var mapBuildingSelectedLabel = "Seleccionado: {0}";
+    var mapBuildingNoneLoaded = "No hay edificios en esta vista. Acerque el zoom o pulse Buscar edificios.";
+    var mapBuildingAttribution = "Mapa y datos © OpenStreetMap";
 }
 @* Solo Desing_2: clase desing2-stl-view-scope; barra única marca + contexto izq., herramientas + Volver derecha.
    data-ma-stl-source-units: vértices STL → m → mm escena (×1000; reglas/rejilla en mm).
