@@ -417,10 +417,12 @@ const es = Object.fromEntries(
       "Activar o desactivar mapeo de hormigón en muros 3D",
     StlPreview_Desing2RightMenuImageSketchAria:
       "Importar boceto desde imagen — analizar y convertir a líneas de planta",
+    StlPreview_Desing2RightMenuMapBuildingAria:
+      "Importar edificio desde mapa 3D — buscar dirección, seleccionar edificio e insertar muros con caras",
     StlPreview_Desing2RightMenuCollapseTitle:
       "Ocultar panel hasta acercar de nuevo el puntero al borde derecho",
     StlPreview_Desing2RightMenuPlaceholder:
-      "Pulse el icono de muro para seleccionar líneas y extruir a 2,70 m.",
+      "Importe un boceto o un edificio del mapa, o active el mapeo de hormigón.",
     StlPreview_Wall3dToolInstruction:
       "Seleccione líneas de planta (clic o ventana). Enter para generar muros 3D (altura 2,70 m), Esc cancelar",
     StlPreview_Wall3dToolProcessing: "Generando muros 3D…",
@@ -440,9 +442,33 @@ const es = Object.fromEntries(
     StlPreview_ImageSketchFormNoFile: "Seleccione una imagen",
     StlPreview_ImageSketchProcessing: "Analizando imagen…",
     StlPreview_ImageSketchError: "No se pudo analizar la imagen: {0}",
+    StlPreview_ImageSketchErrorModalTitle: "Error al analizar la imagen",
+    StlPreview_ImageSketchErrorModalAccept: "Aceptar",
     StlPreview_ImageSketchPickInstruction:
       "Clic en planta para insertar el boceto como líneas. Esc cancelar",
     StlPreview_ImageSketchSuccess: "Se insertaron {0} línea(s) desde el boceto",
+    StlPreview_WallModelRendering: "Generando modelo de muros…",
+    StlPreview_MapBuildingFormTitle: "Edificio desde mapa",
+    StlPreview_MapBuildingFormHint:
+      "Buscar centra el mapa. Buscar edificios carga huellas seleccionables (Catastro/OSM). Luego seleccione uno e importe.",
+    StlPreview_MapBuildingSearchPlaceholder: "Dirección o lugar…",
+    StlPreview_MapBuildingSearchButton: "Buscar",
+    StlPreview_MapBuildingLoadBuildings: "Buscar edificios",
+    StlPreview_MapBuildingFormAccept: "Importar e insertar",
+    StlPreview_MapBuildingFormCancel: "Cancelar",
+    StlPreview_MapBuildingNoSelection: "Seleccione un edificio en el mapa",
+    StlPreview_MapBuildingProcessing: "Importando edificio…",
+    StlPreview_MapBuildingLoadingBuildings: "Cargando edificios del mapa…",
+    StlPreview_MapBuildingSearching: "Buscando dirección…",
+    StlPreview_MapBuildingError: "No se pudo importar el edificio: {0}",
+    StlPreview_MapBuildingPickInstruction:
+      "Clic en planta para insertar el edificio como muros con caras. Esc cancelar",
+    StlPreview_MapBuildingSuccess: "Se insertaron {0} muro(s) con caras desde el edificio",
+    StlPreview_MapBuildingSelectedLabel: "Seleccionado: {0}",
+    StlPreview_MapBuildingSelectedCatastroLabel: "Seleccionado: {0} — RC {1}",
+    StlPreview_MapBuildingLoadedCount: "{0} edificio(s) cargados (Catastro/OSM)",
+    StlPreview_MapBuildingNoneLoaded: "No hay edificios en esta vista. Acerque el zoom o pulse Buscar edificios.",
+    StlPreview_MapBuildingAttribution: "Mapa © OpenStreetMap · Edificios Catastro/OSM",
     StlPreview_Desing2EntornoGridSnapLabel: "Incremental de rejilla y snap",
     StlPreview_Desing2EntornoGridSnapAria:
       "Espaciado menor de rejilla en planta y paso del snap en modo punto de rejilla para las cotas.",
@@ -929,10 +955,12 @@ const en = Object.assign({}, es, {
     "Toggle concrete mapping on 3D walls",
   StlPreview_Desing2RightMenuImageSketchAria:
     "Import sketch from image — analyze and convert to plan lines",
+  StlPreview_Desing2RightMenuMapBuildingAria:
+    "Import building from 3D map — search address, select a building and insert walls with faces",
   StlPreview_Desing2RightMenuCollapseTitle:
     "Hide panel until you move the pointer near the right edge again",
   StlPreview_Desing2RightMenuPlaceholder:
-    "Click the wall icon to select lines and extrude to 2.70 m.",
+    "Import a sketch or a map building, or toggle concrete mapping.",
   StlPreview_Wall3dToolInstruction:
     "Select plan lines (click or window). Enter to generate 3D walls (height 2.70 m), Esc to cancel",
   StlPreview_Wall3dToolProcessing: "Generating 3D walls…",
@@ -952,9 +980,33 @@ const en = Object.assign({}, es, {
   StlPreview_ImageSketchFormNoFile: "Select an image",
   StlPreview_ImageSketchProcessing: "Analyzing image…",
   StlPreview_ImageSketchError: "Could not analyze image: {0}",
+  StlPreview_ImageSketchErrorModalTitle: "Error analyzing image",
+  StlPreview_ImageSketchErrorModalAccept: "OK",
   StlPreview_ImageSketchPickInstruction:
     "Click on the floor plan to insert the sketch as lines. Esc to cancel",
   StlPreview_ImageSketchSuccess: "Inserted {0} line(s) from sketch",
+  StlPreview_WallModelRendering: "Generating wall model…",
+  StlPreview_MapBuildingFormTitle: "Building from map",
+  StlPreview_MapBuildingFormHint:
+    "Search centers the map. Search buildings loads selectable footprints (Cadastre/OSM). Then select one and import.",
+  StlPreview_MapBuildingSearchPlaceholder: "Address or place…",
+  StlPreview_MapBuildingSearchButton: "Search",
+  StlPreview_MapBuildingLoadBuildings: "Search buildings",
+  StlPreview_MapBuildingFormAccept: "Import and insert",
+  StlPreview_MapBuildingFormCancel: "Cancel",
+  StlPreview_MapBuildingNoSelection: "Select a building on the map",
+  StlPreview_MapBuildingProcessing: "Importing building…",
+  StlPreview_MapBuildingLoadingBuildings: "Loading buildings from the map…",
+  StlPreview_MapBuildingSearching: "Searching address…",
+  StlPreview_MapBuildingError: "Could not import building: {0}",
+  StlPreview_MapBuildingPickInstruction:
+    "Click on the floor plan to insert the building as walls with faces. Esc to cancel",
+  StlPreview_MapBuildingSuccess: "Inserted {0} wall(s) with faces from building",
+  StlPreview_MapBuildingSelectedLabel: "Selected: {0}",
+  StlPreview_MapBuildingSelectedCatastroLabel: "Selected: {0} — CR {1}",
+  StlPreview_MapBuildingLoadedCount: "{0} building(s) loaded (Cadastre/OSM)",
+  StlPreview_MapBuildingNoneLoaded: "No buildings in this view. Zoom in or click Search buildings.",
+  StlPreview_MapBuildingAttribution: "Map © OpenStreetMap · Buildings Cadastre/OSM",
   StlPreview_Desing2EntornoGridSnapLabel: "Grid increment and snap",
   StlPreview_Desing2EntornoGridSnapAria:
     "Minor grid spacing on the floor plane and snap step in grid pick mode for ruler placement.",

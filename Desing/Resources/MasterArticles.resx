@@ -637,8 +637,11 @@
   <data name="StlPreview_Desing2RightMenuImageSketchAria" xml:space="preserve">
     <value>Importar boceto desde imagen — analizar y convertir a líneas de planta</value>
   </data>
+  <data name="StlPreview_Desing2RightMenuMapBuildingAria" xml:space="preserve">
+    <value>Importar edificio desde mapa 3D — buscar dirección, seleccionar edificio e insertar muros con caras</value>
+  </data>
   <data name="StlPreview_Desing2RightMenuPlaceholder" xml:space="preserve">
-    <value>Pulse el icono de muro para seleccionar líneas y extruir a 2,70 m.</value>
+    <value>Importe un boceto o un edificio del mapa, o active el mapeo de hormigón.</value>
   </data>
   <data name="StlPreview_Desing2RightMenuWall3dAria" xml:space="preserve">
     <value>Generar muro 3D — seleccione líneas de planta y confirme con Enter</value>
@@ -688,6 +691,12 @@
   <data name="StlPreview_Desing2TopToolAlargarAria" xml:space="preserve">
     <value>Herramienta alargar — próximamente (solo interfaz)</value>
   </data>
+  <data name="StlPreview_Desing2TopToolBorrar" xml:space="preserve">
+    <value>Borrar</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolBorrarAria" xml:space="preserve">
+    <value>Borrar líneas de planta y objetos STL — seleccione (clic o ventana) y confirme con Enter, Espacio o Supr</value>
+  </data>
   <data name="StlPreview_Desing2TopToolCopiar" xml:space="preserve">
     <value>Copiar</value>
   </data>
@@ -705,12 +714,6 @@
   </data>
   <data name="StlPreview_Desing2TopToolEstirarAria" xml:space="preserve">
     <value>Estirar muros y líneas — selección, punto base en el extremo fijo y segundo punto para alargar</value>
-  </data>
-  <data name="StlPreview_Desing2TopToolBorrar" xml:space="preserve">
-    <value>Borrar</value>
-  </data>
-  <data name="StlPreview_Desing2TopToolBorrarAria" xml:space="preserve">
-    <value>Borrar líneas de planta y objetos STL — seleccione (clic o ventana) y confirme con Enter, Espacio o Supr</value>
   </data>
   <data name="StlPreview_Desing2TopToolInsertCorner" xml:space="preserve">
     <value>Insertar esquina</value>
@@ -751,14 +754,14 @@
   <data name="StlPreview_Desing2TopToolbarAria" xml:space="preserve">
     <value>Barra de herramientas del lienzo STL</value>
   </data>
+  <data name="StlPreview_Desing2TopToolbarCollapseTitle" xml:space="preserve">
+    <value>Ocultar barra hasta acercar de nuevo el puntero al borde superior centrado</value>
+  </data>
   <data name="StlPreview_Desing2TopToolbarDrawGroupAria" xml:space="preserve">
     <value>Dibujar</value>
   </data>
   <data name="StlPreview_Desing2TopToolbarModifyGroupAria" xml:space="preserve">
     <value>Modificar</value>
-  </data>
-  <data name="StlPreview_Desing2TopToolbarCollapseTitle" xml:space="preserve">
-    <value>Ocultar barra hasta acercar de nuevo el puntero al borde superior centrado</value>
   </data>
   <data name="StlPreview_Desing2TopToolbarPinTitle" xml:space="preserve">
     <value>Fijar barra abierta (siempre expandida hasta desanclar)</value>
@@ -829,11 +832,11 @@
   <data name="StlPreview_ImageSketchError" xml:space="preserve">
     <value>No se pudo analizar la imagen: {0}</value>
   </data>
-  <data name="StlPreview_ImageSketchErrorModalTitle" xml:space="preserve">
-    <value>Error al analizar el boceto</value>
-  </data>
   <data name="StlPreview_ImageSketchErrorModalAccept" xml:space="preserve">
     <value>Aceptar</value>
+  </data>
+  <data name="StlPreview_ImageSketchErrorModalTitle" xml:space="preserve">
+    <value>Error al analizar la imagen</value>
   </data>
   <data name="StlPreview_ImageSketchFormAccept" xml:space="preserve">
     <value>Analizar e insertar</value>
@@ -845,7 +848,7 @@
     <value>Seleccionar imagen…</value>
   </data>
   <data name="StlPreview_ImageSketchFormHint" xml:space="preserve">
-    <value>Línea gruesa = perímetro exterior. Un número por tramo, paralelo al muro. E=0,30 en la cota del espesor (entre las dos líneas del muro). H en un rincón si aplica.</value>
+    <value>Adjunte un plano o boceto (JPG/PNG) con líneas de muro y cotas E/e y H/h.</value>
   </data>
   <data name="StlPreview_ImageSketchFormNoFile" xml:space="preserve">
     <value>Seleccione una imagen</value>
@@ -904,6 +907,63 @@
   <data name="StlPreview_LoadStlTooltip" xml:space="preserve">
     <value>Ver en el visor 3D</value>
   </data>
+  <data name="StlPreview_MapBuildingAttribution" xml:space="preserve">
+    <value>Mapa © OpenStreetMap · Edificios Catastro/OSM</value>
+  </data>
+  <data name="StlPreview_MapBuildingError" xml:space="preserve">
+    <value>No se pudo importar el edificio: {0}</value>
+  </data>
+  <data name="StlPreview_MapBuildingFormAccept" xml:space="preserve">
+    <value>Importar e insertar</value>
+  </data>
+  <data name="StlPreview_MapBuildingFormCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="StlPreview_MapBuildingFormHint" xml:space="preserve">
+    <value>Buscar centra el mapa. Buscar edificios carga huellas seleccionables (Catastro/OSM). Luego seleccione uno e importe.</value>
+  </data>
+  <data name="StlPreview_MapBuildingFormTitle" xml:space="preserve">
+    <value>Edificio desde mapa</value>
+  </data>
+  <data name="StlPreview_MapBuildingLoadBuildings" xml:space="preserve">
+    <value>Buscar edificios</value>
+  </data>
+  <data name="StlPreview_MapBuildingLoadedCount" xml:space="preserve">
+    <value>{0} edificio(s) cargados (Catastro/OSM)</value>
+  </data>
+  <data name="StlPreview_MapBuildingLoadingBuildings" xml:space="preserve">
+    <value>Cargando edificios del mapa…</value>
+  </data>
+  <data name="StlPreview_MapBuildingNoSelection" xml:space="preserve">
+    <value>Seleccione un edificio en el mapa</value>
+  </data>
+  <data name="StlPreview_MapBuildingNoneLoaded" xml:space="preserve">
+    <value>No hay edificios en esta vista. Acerque el zoom o pulse Buscar edificios.</value>
+  </data>
+  <data name="StlPreview_MapBuildingPickInstruction" xml:space="preserve">
+    <value>Clic en planta para insertar el edificio como muros con caras. Esc cancelar</value>
+  </data>
+  <data name="StlPreview_MapBuildingProcessing" xml:space="preserve">
+    <value>Importando edificio…</value>
+  </data>
+  <data name="StlPreview_MapBuildingSearchButton" xml:space="preserve">
+    <value>Buscar</value>
+  </data>
+  <data name="StlPreview_MapBuildingSearchPlaceholder" xml:space="preserve">
+    <value>Dirección o lugar…</value>
+  </data>
+  <data name="StlPreview_MapBuildingSearching" xml:space="preserve">
+    <value>Buscando dirección…</value>
+  </data>
+  <data name="StlPreview_MapBuildingSelectedCatastroLabel" xml:space="preserve">
+    <value>Seleccionado: {0} — RC {1}</value>
+  </data>
+  <data name="StlPreview_MapBuildingSelectedLabel" xml:space="preserve">
+    <value>Seleccionado: {0}</value>
+  </data>
+  <data name="StlPreview_MapBuildingSuccess" xml:space="preserve">
+    <value>Se insertaron {0} muro(s) con caras desde el edificio</value>
+  </data>
   <data name="StlPreview_NoFile" xml:space="preserve">
     <value>Sin archivo.</value>
   </data>
@@ -940,6 +1000,7 @@
   <data name="StlPreview_Wall2dToolInstructionSecond" xml:space="preserve">
     <value>Siguiente vértice del eje: clic, distancia + Intro, o #X,Z en metros. Escape termina.</value>
   </data>
+
   <data name="StlPreview_RowLabel3D" xml:space="preserve">
     <value>3D</value>
   </data>
@@ -1069,14 +1130,14 @@
   <data name="StlPreview_Wall3dToolProcessing" xml:space="preserve">
     <value>Generando muros 3D…</value>
   </data>
-  <data name="StlPreview_WallModelRendering" xml:space="preserve">
-    <value>Renderizando</value>
-  </data>
   <data name="StlPreview_Wall3dToolSuccess" xml:space="preserve">
     <value>Se generaron {0} muro(s) 3D (altura 2,70 m)</value>
   </data>
   <data name="StlPreview_WallDimToolNoPairsToast" xml:space="preserve">
     <value>No se detectó espesor de muro. Dibuje el contorno y el offset interior, o haga clic en una línea del muro con la herramienta activa.</value>
+  </data>
+  <data name="StlPreview_WallModelRendering" xml:space="preserve">
+    <value>Generando modelo de muros…</value>
   </data>
   <data name="StlPreview_WindowSelectionHint" xml:space="preserve">
     <value>Arrastre en lienzo vacío: izquierda→derecha ventana, derecha→izquierda cruce</value>

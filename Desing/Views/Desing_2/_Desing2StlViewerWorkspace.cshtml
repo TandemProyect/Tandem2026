@@ -8,12 +8,17 @@
     var stlLabelAttr = HttpUtility.HtmlAttributeEncode(Model.InitialStlLabel ?? string.Empty);
     var logoUrl = Model.BrandLogoUrl ?? Url.Content("~/Content/images/Login/at.png");
     var stlSrcUnits = string.IsNullOrWhiteSpace(Model.StlSourceUnits) ? "m" : Model.StlSourceUnits.Trim();
+    Func<string, string, string> maStr = (key, fallback) =>
+    MasterArticles.ResourceManager.GetString(key) ?? fallback;
+    var wallModelRenderingText = maStr("StlPreview_WallModelRendering", "Generando modelo de muros…");
+    var imageSketchErrorModalTitle = maStr("StlPreview_ImageSketchErrorModalTitle", "Error al analizar la imagen");
+    var imageSketchErrorModalAccept = maStr("StlPreview_ImageSketchErrorModalAccept", "Aceptar");
 }
 @* Solo Desing_2: clase desing2-stl-view-scope; barra única marca + contexto izq., herramientas + Volver derecha.
    data-ma-stl-source-units: vértices STL → m → mm escena (×1000; reglas/rejilla en mm).
    Persistencia vista: #ma-stl-save-viewer-state → cookie global; restauración tras primer refit (ver desing-2-stl-viewer-funciones.md). *@
 @* Opcional desarrollo en #ma-stl-viewer-shell: data-ma-stl-dev-auto-load="true", data-ma-stl-dev-default-stl="~/Files/.../3120270090P.stl" (URL resuelta con @Url.Content), data-ma-stl-dev-default-label="..." *@
-<div id="ma-stl-viewer-shell" class="desing2-stl-view-scope border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" data-ma-text-color1="@HttpUtility.HtmlAttributeEncode(textColor1Hex)" data-ma-text-color2="@HttpUtility.HtmlAttributeEncode(textColor2Hex)" data-ma-stl-show-rulers-toggle="true" data-ma-stl-desing2-persist-view="true" data-ma-stl-source-units="@HttpUtility.HtmlAttributeEncode(stlSrcUnits)" data-ma-stl-wall3d-api-url="@Url.Action("ProcesarLineasZwcad", "DesignToolsAutocad")" data-ma-stl-image-sketch-api-url="@Url.Action("DetectarEsquinasImagen", "DesignToolsAutocad")" data-ma-stl-wall-connections-api-url="@Url.Action("SaveWallConnections", "Desing_2")" data-ma-stl-wall-diagnostics-api-url="@Url.Action("SaveWallDiagnostics", "Desing_2")" data-ma-stl-wall3d-mat-wall="@Url.Content("~/Content/DesignTools/Material/concrete.png")" data-ma-stl-escape-cancel-toast="@MasterArticles.StlPreview_EscapeCancelToolsToast" data-ma-stl-user-floor-line-dim-edit-aria="@MasterArticles.StlPreview_UserFloorLineDimEditAria" data-ma-stl-user-floor-line-dim-edit-x-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaXAria" data-ma-stl-user-floor-line-dim-edit-z-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaZAria" data-ma-stl-user-floor-line-dim-edit-thickness-aria="@MasterArticles.StlPreview_UserFloorLineDimEditThicknessAria" data-ma-stl-user-floor-line-drag-handle-aria="@MasterArticles.StlPreview_UserFloorLineDragHandleAria" data-ma-stl-user-floor-line-p1-handle-aria="@MasterArticles.StlPreview_UserFloorLineP1HandleAria" data-ma-stl-user-floor-line-p2-handle-aria="@MasterArticles.StlPreview_UserFloorLineP2HandleAria">
+<div id="ma-stl-viewer-shell" class="desing2-stl-view-scope border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" data-ma-text-color1="@HttpUtility.HtmlAttributeEncode(textColor1Hex)" data-ma-text-color2="@HttpUtility.HtmlAttributeEncode(textColor2Hex)" data-ma-stl-show-rulers-toggle="true" data-ma-stl-desing2-persist-view="true" data-ma-stl-source-units="@HttpUtility.HtmlAttributeEncode(stlSrcUnits)" data-ma-stl-wall3d-api-url="@Url.Action("ProcesarLineasZwcad", "DesignToolsAutocad")" data-ma-stl-image-sketch-api-url="@Url.Action("DetectarEsquinasImagen", "DesignToolsAutocad")" data-ma-stl-map-building-search-url="@Url.Action("BuscarDireccionOsm", "DesignToolsAutocad")" data-ma-stl-map-building-buildings-url="@Url.Action("BuscarEdificiosOsm", "DesignToolsAutocad")" data-ma-stl-map-building-import-url="@Url.Action("ImportarEdificioOsm", "DesignToolsAutocad")" data-ma-stl-map-building-catastro-url="@Url.Action("ConsultarCatastroPorCoordenadas", "DesignToolsAutocad")" data-ma-stl-wall-connections-api-url="@Url.Action("SaveWallConnections", "Desing_2")" data-ma-stl-wall-diagnostics-api-url="@Url.Action("SaveWallDiagnostics", "Desing_2")" data-ma-stl-wall3d-mat-wall="@Url.Content("~/Content/DesignTools/Material/concrete.png")" data-ma-stl-escape-cancel-toast="@MasterArticles.StlPreview_EscapeCancelToolsToast" data-ma-stl-user-floor-line-dim-edit-aria="@MasterArticles.StlPreview_UserFloorLineDimEditAria" data-ma-stl-user-floor-line-dim-edit-x-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaXAria" data-ma-stl-user-floor-line-dim-edit-z-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaZAria" data-ma-stl-user-floor-line-dim-edit-thickness-aria="@MasterArticles.StlPreview_UserFloorLineDimEditThicknessAria" data-ma-stl-user-floor-line-drag-handle-aria="@MasterArticles.StlPreview_UserFloorLineDragHandleAria" data-ma-stl-user-floor-line-p1-handle-aria="@MasterArticles.StlPreview_UserFloorLineP1HandleAria" data-ma-stl-user-floor-line-p2-handle-aria="@MasterArticles.StlPreview_UserFloorLineP2HandleAria">
     <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap px-2 py-2 border-bottom desing2-stl-actions-toolbar" id="master-article-stl-viewer-toolbar">
         <div class="d-flex align-items-center gap-2 min-w-0 flex-grow-1 desing2-stl-toolbar-leading">
             <span class="app-brand-logo demo flex-shrink-0">
@@ -60,7 +65,7 @@
         <div id="ma-stl-wall-model-render-overlay" class="desing2-stl-render-overlay d-none" aria-live="polite" aria-atomic="true">
             <div class="desing2-stl-render-overlay__card shadow-lg">
                 <div class="spinner-border text-primary desing2-stl-render-overlay__spinner" role="status" aria-hidden="true"></div>
-                <div class="desing2-stl-render-overlay__text">@MasterArticles.StlPreview_WallModelRendering</div>
+                <div class="desing2-stl-render-overlay__text">@wallModelRenderingText</div>
             </div>
         </div>
         <div id="ma-stl-edge-rulers-overlay" class="ma-stl-edge-rulers-overlay d-none" aria-hidden="true">
@@ -401,10 +406,17 @@
         <aside id="desing2-stl-hover-right-panel" class="desing2-stl-hover-right-panel" role="region" aria-label="@MasterArticles.StlPreview_Desing2RightMenuAria">
             <div class="desing2-stl-hover-right-panel__hover-zone">
                 <div class="desing2-stl-hover-right-panel__sheet border border-end-0 rounded-start shadow-sm">
-                    <div class="desing2-stl-hover-right-panel__toolbar d-flex justify-content-between align-items-center px-2 py-1 border-bottom border-light">
-                        <div class="d-flex align-items-center gap-1">
-                            <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-right-panel__wall3d-btn rounded flex-shrink-0" id="desing2-stl-right-panel-wall-3d" title="@MasterArticles.StlPreview_Desing2RightMenuWall3dAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuWall3dAria" aria-pressed="false">
-                                <img class="desing2-stl-right-panel__wall-icon" src="@Url.Content("~/Content/DesignTools/MenuIcon/muro.jpg")" alt="" aria-hidden="true" />
+                    <div class="desing2-stl-hover-right-panel__toolbar d-flex justify-content-between align-items-start px-2 py-1 border-bottom border-light">
+                        @* Orden: MAPA 3D primero · boceto · mapeo hormigón. Sin muro.jpg aquí (encofrado 3D = barra superior). *@
+                        <div class="desing2-stl-hover-right-panel__tools d-flex align-items-center gap-1 flex-wrap">
+                            <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-right-panel__mapbuilding-btn rounded flex-shrink-0" id="desing2-stl-right-panel-map-building" title="@MasterArticles.StlPreview_Desing2RightMenuMapBuildingAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuMapBuildingAria" aria-pressed="false">
+                                <span class="desing2-stl-right-panel__mapbuilding-inner">
+                                    <i class="icon-base ri ri-map-pin-2-fill desing2-stl-right-panel__map-icon" aria-hidden="true"></i>
+                                    <span class="desing2-stl-right-panel__mapbuilding-label">Mapa</span>
+                                </span>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-right-panel__imagesketch-btn rounded flex-shrink-0" id="desing2-stl-right-panel-image-sketch" title="@MasterArticles.StlPreview_Desing2RightMenuImageSketchAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuImageSketchAria" aria-pressed="false">
+                                <img class="desing2-stl-right-panel__wall-icon" src="@Url.Content("~/Content/DesignTools/MenuIcon/images.jpg")" alt="" aria-hidden="true" />
                             </button>
                             <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-right-panel__wallmap-btn rounded flex-shrink-0" id="desing2-stl-right-panel-wall-map" title="@MasterArticles.StlPreview_Desing2RightMenuWallMapAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuWallMapAria" aria-pressed="false"
                                     data-ma-stl-wall3d-map-no-walls="@MasterArticles.StlPreview_Wall3dMapNoWalls"
@@ -416,11 +428,8 @@
                                     <path d="M6 9h12M6 12.5h12M6 16h8" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" />
                                 </svg>
                             </button>
-                            <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-right-panel__imagesketch-btn rounded flex-shrink-0" id="desing2-stl-right-panel-image-sketch" title="@MasterArticles.StlPreview_Desing2RightMenuImageSketchAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuImageSketchAria" aria-pressed="false">
-                                <img class="desing2-stl-right-panel__wall-icon" src="@Url.Content("~/Content/DesignTools/MenuIcon/images.jpg")" alt="" aria-hidden="true" />
-                            </button>
                         </div>
-                        <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-hover-right-panel__collapse rounded" id="desing2-stl-right-panel-collapse" title="@MasterArticles.StlPreview_Desing2RightMenuCollapseTitle" aria-label="@MasterArticles.StlPreview_Desing2RightMenuCollapseTitle">
+                        <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-hover-right-panel__collapse rounded flex-shrink-0" id="desing2-stl-right-panel-collapse" title="@MasterArticles.StlPreview_Desing2RightMenuCollapseTitle" aria-label="@MasterArticles.StlPreview_Desing2RightMenuCollapseTitle">
                             <i class="icon-base ri ri-menu-fold-line fs-6" aria-hidden="true"></i>
                         </button>
                     </div>
@@ -569,6 +578,12 @@
             <div id="ma-stl-image-sketch-tool-hud-coords" class="ma-stl-line-tool-hud__coords"
                  data-ma-stl-line-tool-coords-template="@MasterArticles.StlPreview_RulerAnchorGridCoordsHud"></div>
         </div>
+        <div id="ma-stl-map-building-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
+             data-ma-stl-map-building-pick-instruction="@MasterArticles.StlPreview_MapBuildingPickInstruction">
+            <div id="ma-stl-map-building-tool-hud-instruction" class="ma-stl-line-tool-hud__instruction small fw-semibold text-body mb-1"></div>
+            <div id="ma-stl-map-building-tool-hud-coords" class="ma-stl-line-tool-hud__coords"
+                 data-ma-stl-line-tool-coords-template="@MasterArticles.StlPreview_RulerAnchorGridCoordsHud"></div>
+        </div>
         <div id="ma-stl-insert-corner-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
              data-ma-stl-insert-corner-instruction-first="@MasterArticles.StlPreview_InsertCornerToolInstructionFirst"
              data-ma-stl-insert-corner-instruction-second="@MasterArticles.StlPreview_InsertCornerToolInstructionSecond">
@@ -609,14 +624,14 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border border-danger border-2">
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="ma-stl-image-sketch-error-modal-title">@MasterArticles.StlPreview_ImageSketchErrorModalTitle</h5>
+                    <h5 class="modal-title" id="ma-stl-image-sketch-error-modal-title">@imageSketchErrorModalTitle</h5>
                 </div>
                 <div class="modal-body">
                     <p class="mb-0 text-danger fw-medium" id="ma-stl-image-sketch-error-modal-message"></p>
                 </div>
                 <div class="modal-footer border-0 pt-0">
                     <button type="button" class="btn btn-danger" id="ma-stl-image-sketch-error-modal-accept" data-bs-dismiss="modal">
-                        @MasterArticles.StlPreview_ImageSketchErrorModalAccept
+                        @imageSketchErrorModalAccept
                     </button>
                 </div>
             </div>
@@ -649,6 +664,55 @@
                             data-ma-stl-image-sketch-error="@MasterArticles.StlPreview_ImageSketchError"
                             data-ma-stl-image-sketch-success="@MasterArticles.StlPreview_ImageSketchSuccess">
                         @MasterArticles.StlPreview_ImageSketchFormAccept
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade desing2-stl-map-building-modal" id="ma-stl-map-building-modal" tabindex="-1" aria-labelledby="ma-stl-map-building-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ma-stl-map-building-modal-title">@MasterArticles.StlPreview_MapBuildingFormTitle</h5>
+                    <button type="button" class="btn-close" id="ma-stl-map-building-modal-close" data-bs-dismiss="modal" aria-label="@MasterArticles.StlPreview_MapBuildingFormCancel"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-body-secondary mb-3">@MasterArticles.StlPreview_MapBuildingFormHint</p>
+                    <div class="d-flex flex-wrap gap-2 align-items-stretch mb-3">
+                        <input type="text" class="form-control form-control-sm flex-grow-1" id="ma-stl-map-building-search-input" maxlength="200" autocomplete="street-address"
+                               placeholder="@MasterArticles.StlPreview_MapBuildingSearchPlaceholder"
+                               aria-label="@MasterArticles.StlPreview_MapBuildingSearchPlaceholder" />
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="ma-stl-map-building-search-btn">@MasterArticles.StlPreview_MapBuildingSearchButton</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="ma-stl-map-building-load-btn">@MasterArticles.StlPreview_MapBuildingLoadBuildings</button>
+                    </div>
+                    <div class="desing2-stl-map-building-form__map-wrap position-relative border rounded overflow-hidden">
+                        <div id="ma-stl-map-building-map" class="desing2-stl-map-building-form__map" role="application" aria-label="@MasterArticles.StlPreview_MapBuildingFormTitle"></div>
+                        <div id="ma-stl-map-building-loading" class="desing2-stl-map-building-loading d-none" aria-live="polite" aria-busy="true" hidden>
+                            <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+                            <div class="small fw-semibold mt-2 text-center px-3" id="ma-stl-map-building-loading-text">@MasterArticles.StlPreview_MapBuildingLoadingBuildings</div>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2">
+                        <p class="small text-body-secondary mb-0" id="ma-stl-map-building-selected-label"></p>
+                        <p class="small text-body-secondary mb-0">@MasterArticles.StlPreview_MapBuildingAttribution</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" id="ma-stl-map-building-cancel" data-bs-dismiss="modal">
+                        @MasterArticles.StlPreview_MapBuildingFormCancel
+                    </button>
+                    <button type="button" class="btn btn-primary" id="ma-stl-map-building-accept" disabled
+                            data-ma-stl-map-building-no-selection="@MasterArticles.StlPreview_MapBuildingNoSelection"
+                            data-ma-stl-map-building-processing="@MasterArticles.StlPreview_MapBuildingProcessing"
+                            data-ma-stl-map-building-loading="@MasterArticles.StlPreview_MapBuildingLoadingBuildings"
+                            data-ma-stl-map-building-searching="@MasterArticles.StlPreview_MapBuildingSearching"
+                            data-ma-stl-map-building-error="@MasterArticles.StlPreview_MapBuildingError"
+                            data-ma-stl-map-building-success="@MasterArticles.StlPreview_MapBuildingSuccess"
+                            data-ma-stl-map-building-selected-tpl="@MasterArticles.StlPreview_MapBuildingSelectedLabel"
+                            data-ma-stl-map-building-selected-catastro-tpl="@MasterArticles.StlPreview_MapBuildingSelectedCatastroLabel"
+                            data-ma-stl-map-building-loaded-tpl="@MasterArticles.StlPreview_MapBuildingLoadedCount"
+                            data-ma-stl-map-building-none-loaded="@MasterArticles.StlPreview_MapBuildingNoneLoaded">
+                        @MasterArticles.StlPreview_MapBuildingFormAccept
                     </button>
                 </div>
             </div>

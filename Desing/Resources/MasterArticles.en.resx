@@ -637,8 +637,11 @@
   <data name="StlPreview_Desing2RightMenuImageSketchAria" xml:space="preserve">
     <value>Import sketch from image — analyze and convert to plan lines</value>
   </data>
+  <data name="StlPreview_Desing2RightMenuMapBuildingAria" xml:space="preserve">
+    <value>Import building from 3D map — search address, select a building and insert walls with faces</value>
+  </data>
   <data name="StlPreview_Desing2RightMenuPlaceholder" xml:space="preserve">
-    <value>Click the wall icon to select lines and extrude to 2.70 m.</value>
+    <value>Import a sketch or a map building, or toggle concrete mapping.</value>
   </data>
   <data name="StlPreview_Desing2RightMenuWall3dAria" xml:space="preserve">
     <value>Generate 3D wall — select plan lines and confirm with Enter</value>
@@ -688,6 +691,12 @@
   <data name="StlPreview_Desing2TopToolAlargarAria" xml:space="preserve">
     <value>Extend tool — coming soon (UI placeholder only)</value>
   </data>
+  <data name="StlPreview_Desing2TopToolBorrar" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="StlPreview_Desing2TopToolBorrarAria" xml:space="preserve">
+    <value>Delete floor lines and STL objects — pick (click or window) and confirm with Enter, Space or Delete</value>
+  </data>
   <data name="StlPreview_Desing2TopToolCopiar" xml:space="preserve">
     <value>Copy</value>
   </data>
@@ -705,12 +714,6 @@
   </data>
   <data name="StlPreview_Desing2TopToolEstirarAria" xml:space="preserve">
     <value>Stretch walls and lines — selection, base point on the fixed end, second point sets new length</value>
-  </data>
-  <data name="StlPreview_Desing2TopToolBorrar" xml:space="preserve">
-    <value>Delete</value>
-  </data>
-  <data name="StlPreview_Desing2TopToolBorrarAria" xml:space="preserve">
-    <value>Delete floor lines and STL objects — pick (click or window) and confirm with Enter, Space or Delete</value>
   </data>
   <data name="StlPreview_Desing2TopToolInsertCorner" xml:space="preserve">
     <value>Insert corner</value>
@@ -751,14 +754,14 @@
   <data name="StlPreview_Desing2TopToolbarAria" xml:space="preserve">
     <value>STL canvas tool bar</value>
   </data>
+  <data name="StlPreview_Desing2TopToolbarCollapseTitle" xml:space="preserve">
+    <value>Collapse bar until you move the pointer near the top center strip again</value>
+  </data>
   <data name="StlPreview_Desing2TopToolbarDrawGroupAria" xml:space="preserve">
     <value>Draw</value>
   </data>
   <data name="StlPreview_Desing2TopToolbarModifyGroupAria" xml:space="preserve">
     <value>Modify</value>
-  </data>
-  <data name="StlPreview_Desing2TopToolbarCollapseTitle" xml:space="preserve">
-    <value>Collapse bar until you move the pointer near the top center strip again</value>
   </data>
   <data name="StlPreview_Desing2TopToolbarPinTitle" xml:space="preserve">
     <value>Pin toolbar open (stay expanded until unpinned)</value>
@@ -829,11 +832,11 @@
   <data name="StlPreview_ImageSketchError" xml:space="preserve">
     <value>Could not analyze image: {0}</value>
   </data>
-  <data name="StlPreview_ImageSketchErrorModalTitle" xml:space="preserve">
-    <value>Sketch analysis error</value>
-  </data>
   <data name="StlPreview_ImageSketchErrorModalAccept" xml:space="preserve">
     <value>OK</value>
+  </data>
+  <data name="StlPreview_ImageSketchErrorModalTitle" xml:space="preserve">
+    <value>Error analyzing image</value>
   </data>
   <data name="StlPreview_ImageSketchFormAccept" xml:space="preserve">
     <value>Analyze and insert</value>
@@ -845,7 +848,7 @@
     <value>Choose image…</value>
   </data>
   <data name="StlPreview_ImageSketchFormHint" xml:space="preserve">
-    <value>Thick line = outer perimeter. One number per segment, parallel to the wall. E=0.30 on the thickness dimension (between the two wall lines). H in a corner if applicable.</value>
+    <value>Attach a plan or sketch (JPG/PNG) with wall lines and E/e and H/h dimensions.</value>
   </data>
   <data name="StlPreview_ImageSketchFormNoFile" xml:space="preserve">
     <value>Select an image</value>
@@ -904,6 +907,63 @@
   <data name="StlPreview_LoadStlTooltip" xml:space="preserve">
     <value>View in the 3D viewer</value>
   </data>
+  <data name="StlPreview_MapBuildingAttribution" xml:space="preserve">
+    <value>Map © OpenStreetMap · Buildings Cadastre/OSM</value>
+  </data>
+  <data name="StlPreview_MapBuildingError" xml:space="preserve">
+    <value>Could not import building: {0}</value>
+  </data>
+  <data name="StlPreview_MapBuildingFormAccept" xml:space="preserve">
+    <value>Import and insert</value>
+  </data>
+  <data name="StlPreview_MapBuildingFormCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="StlPreview_MapBuildingFormHint" xml:space="preserve">
+    <value>Search centers the map. Search buildings loads selectable footprints (Cadastre/OSM). Then select one and import.</value>
+  </data>
+  <data name="StlPreview_MapBuildingFormTitle" xml:space="preserve">
+    <value>Building from map</value>
+  </data>
+  <data name="StlPreview_MapBuildingLoadBuildings" xml:space="preserve">
+    <value>Search buildings</value>
+  </data>
+  <data name="StlPreview_MapBuildingLoadedCount" xml:space="preserve">
+    <value>{0} building(s) loaded (Cadastre/OSM)</value>
+  </data>
+  <data name="StlPreview_MapBuildingLoadingBuildings" xml:space="preserve">
+    <value>Loading buildings from the map…</value>
+  </data>
+  <data name="StlPreview_MapBuildingNoSelection" xml:space="preserve">
+    <value>Select a building on the map</value>
+  </data>
+  <data name="StlPreview_MapBuildingNoneLoaded" xml:space="preserve">
+    <value>No buildings in this view. Zoom in or click Search buildings.</value>
+  </data>
+  <data name="StlPreview_MapBuildingPickInstruction" xml:space="preserve">
+    <value>Click on the floor plan to insert the building as walls with faces. Esc to cancel</value>
+  </data>
+  <data name="StlPreview_MapBuildingProcessing" xml:space="preserve">
+    <value>Importing building…</value>
+  </data>
+  <data name="StlPreview_MapBuildingSearchButton" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="StlPreview_MapBuildingSearchPlaceholder" xml:space="preserve">
+    <value>Address or place…</value>
+  </data>
+  <data name="StlPreview_MapBuildingSearching" xml:space="preserve">
+    <value>Searching address…</value>
+  </data>
+  <data name="StlPreview_MapBuildingSelectedCatastroLabel" xml:space="preserve">
+    <value>Selected: {0} — CR {1}</value>
+  </data>
+  <data name="StlPreview_MapBuildingSelectedLabel" xml:space="preserve">
+    <value>Selected: {0}</value>
+  </data>
+  <data name="StlPreview_MapBuildingSuccess" xml:space="preserve">
+    <value>Inserted {0} wall(s) with faces from building</value>
+  </data>
   <data name="StlPreview_NoFile" xml:space="preserve">
     <value>No file.</value>
   </data>
@@ -940,6 +1000,7 @@
   <data name="StlPreview_Wall2dToolInstructionSecond" xml:space="preserve">
     <value>Next axis vertex: click, distance + Enter, or #X,Z in metres. Escape finishes.</value>
   </data>
+
   <data name="StlPreview_RowLabel3D" xml:space="preserve">
     <value>3D</value>
   </data>
@@ -1069,14 +1130,14 @@
   <data name="StlPreview_Wall3dToolProcessing" xml:space="preserve">
     <value>Generating 3D walls…</value>
   </data>
-  <data name="StlPreview_WallModelRendering" xml:space="preserve">
-    <value>Rendering</value>
-  </data>
   <data name="StlPreview_Wall3dToolSuccess" xml:space="preserve">
     <value>Generated {0} 3D wall(s) (height 2.70 m)</value>
   </data>
   <data name="StlPreview_WallDimToolNoPairsToast" xml:space="preserve">
     <value>No wall thickness detected. Draw the outline and inner offset, or click a wall line while the tool is active.</value>
+  </data>
+  <data name="StlPreview_WallModelRendering" xml:space="preserve">
+    <value>Generating wall model…</value>
   </data>
   <data name="StlPreview_WindowSelectionHint" xml:space="preserve">
     <value>Drag on empty canvas: left-to-right window, right-to-left crossing</value>

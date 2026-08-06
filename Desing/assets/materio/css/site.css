@@ -786,8 +786,10 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     max-width: 100%;
     pointer-events: none;
     --d2-hrp-peek: 20px;
-    --d2-hrp-collapsed: 48px;
-    --d2-hrp-expanded: min(260px, 78vw);
+    /* Colapsado: tira vertical con los 3 iconos siempre visibles */
+    --d2-hrp-collapsed: 52px;
+    /* mapeo + boceto + mapa + plegar */
+    --d2-hrp-expanded: min(340px, 90vw);
     margin-right: calc(-1 * var(--d2-hrp-peek));
     padding-right: var(--d2-hrp-peek);
 }
@@ -829,12 +831,72 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     flex-shrink: 0;
     background-color: inherit;
     min-height: 52px;
+    gap: 0.25rem;
 }
 
-.desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__wall3d-btn,
+.desing2-stl-hover-right-panel__tools {
+    min-width: 0;
+}
+
+/* Colapsado: iconos en columna para que el de mapa no quede fuera de la tira */
+.desing2-stl-hover-right-panel:not(.is-hover-locked)
+    .desing2-stl-hover-right-panel__hover-zone:not(:hover)
+    > .desing2-stl-hover-right-panel__sheet:not(:focus-within)
+    .desing2-stl-hover-right-panel__tools,
+.desing2-stl-hover-right-panel.is-hover-locked
+    .desing2-stl-hover-right-panel__sheet:not(:focus-within)
+    .desing2-stl-hover-right-panel__tools {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+}
+
 .desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__wallmap-btn,
-.desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__imagesketch-btn {
+.desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__imagesketch-btn,
+.desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__mapbuilding-btn {
     padding: 0.35rem !important;
+}
+
+.desing2-stl-view-scope .desing2-stl-right-panel__map-icon {
+    display: block;
+    width: 1.55rem;
+    height: 1.55rem;
+    font-size: 1.55rem;
+    line-height: 1;
+    color: #dc3545;
+}
+
+.desing2-stl-view-scope .desing2-stl-right-panel__mapbuilding-btn {
+    outline: 1px solid rgba(220, 53, 69, 0.45);
+    background: rgba(220, 53, 69, 0.12);
+    min-width: 2.6rem;
+}
+
+.desing2-stl-view-scope .desing2-stl-right-panel__mapbuilding-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.05rem;
+    line-height: 1;
+}
+
+.desing2-stl-view-scope .desing2-stl-right-panel__mapbuilding-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #dc3545;
+    text-transform: uppercase;
+}
+
+/* Colapsado: solo pin; al expandir se ve la etiqueta Mapa */
+.desing2-stl-hover-right-panel:not(.is-hover-locked)
+    .desing2-stl-hover-right-panel__hover-zone:not(:hover)
+    > .desing2-stl-hover-right-panel__sheet:not(:focus-within)
+    .desing2-stl-right-panel__mapbuilding-label,
+.desing2-stl-hover-right-panel.is-hover-locked
+    .desing2-stl-hover-right-panel__sheet:not(:focus-within)
+    .desing2-stl-right-panel__mapbuilding-label {
+    display: none;
 }
 
 .desing2-stl-hover-right-panel__collapse .icon-base {
@@ -875,7 +937,7 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     line-height: 0;
 }
 
-/* Colapsado: sólo icono muro en la tira; botón plegar oculto hasta expandir */
+/* Colapsado: primer icono de la tira; botón plegar oculto hasta expandir */
 .desing2-stl-hover-right-panel:not(.is-hover-locked)
     .desing2-stl-hover-right-panel__hover-zone:not(:hover)
     > .desing2-stl-hover-right-panel__sheet:not(:focus-within)
@@ -951,12 +1013,12 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     border-bottom-color: transparent;
 }
 
-.desing2-stl-view-scope .desing2-stl-right-panel__wall3d-btn.active,
-.desing2-stl-view-scope .desing2-stl-right-panel__wall3d-btn[aria-pressed='true'],
 .desing2-stl-view-scope .desing2-stl-right-panel__wallmap-btn.active,
 .desing2-stl-view-scope .desing2-stl-right-panel__wallmap-btn[aria-pressed='true'],
 .desing2-stl-view-scope .desing2-stl-right-panel__imagesketch-btn.active,
-.desing2-stl-view-scope .desing2-stl-right-panel__imagesketch-btn[aria-pressed='true'] {
+.desing2-stl-view-scope .desing2-stl-right-panel__imagesketch-btn[aria-pressed='true'],
+.desing2-stl-view-scope .desing2-stl-right-panel__mapbuilding-btn.active,
+.desing2-stl-view-scope .desing2-stl-right-panel__mapbuilding-btn[aria-pressed='true'] {
     background: rgba(var(--bs-primary-rgb), 0.12);
     color: rgba(var(--bs-primary-rgb), 1);
 }
@@ -981,6 +1043,44 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     width: 100%;
     height: auto;
     object-fit: contain;
+}
+
+.desing2-stl-map-building-form__map-wrap {
+    width: 100%;
+}
+
+.desing2-stl-map-building-form__map {
+    width: 100%;
+    height: min(58vh, 480px);
+    min-height: 320px;
+    z-index: 0;
+}
+
+.desing2-stl-map-building-form__map .maplibregl-canvas,
+.desing2-stl-map-building-form__map .maplibregl-canvas-container {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.desing2-stl-map-building-loading {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(1px);
+    pointer-events: all;
+}
+
+.desing2-stl-map-building-loading.d-none {
+    display: none !important;
+}
+
+.desing2-stl-map-building-modal .modal-body {
+    min-height: 12rem;
 }
 
 /* Desing_2 — Configuración: sección L (espesores X / Y) */

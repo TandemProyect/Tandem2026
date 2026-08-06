@@ -393,6 +393,7 @@
     <Compile Include="Models\ModelWalls.cs" />
     <Compile Include="Models\ToasterModel.cs" />
     <Compile Include="Models\ZwcadModels.cs" />
+    <Compile Include="Models\OsmBuildingModels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\Atk60\Atk60Element.cs" />
     <Compile Include="Repositories\RepositoryAtk60\Atk60WallsRepository.cs" />
@@ -496,6 +497,7 @@
     <Compile Include="Services\MasterArticleViewerDxfConverter.cs" />
     <Compile Include="Services\LCornerDetector.cs" />
     <Compile Include="Services\SketchWallBuilder.cs" />
+    <Compile Include="Services\OsmBuildingImportService.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="System\Data\Common\NotificationHelper.cs" />
   </ItemGroup>
@@ -3327,6 +3329,7 @@
     <Content Include="Scripts\MasterArticles\ma-stl-formwork-environment.js" />
     <Content Include="Scripts\MasterArticles\master-article-details-stl-viewer.js" />
     <Content Include="Scripts\Desing2\desing2-stl-viewer-toolbar-wiring.js" />
+    <Content Include="Scripts\Desing2\desing2-map-building-import.js" />
     <Content Include="Scripts\ResourceGenerators\_gen_branch_resources.js" />
     <Content Include="Scripts\ResourceGenerators\_gen_clientv2_resources.js" />
     <Content Include="Scripts\ResourceGenerators\_gen_common_resources.js" />
