@@ -35,7 +35,20 @@ Controlador: `Desing/Controllers/TandemXrApiController.cs`
 | Fase | Entregable |
 |------|------------|
 | v0 | API + Unity carga manifest (hecho) |
+| v0.5 | Dispositivos XR + Enviar a XR + cola Pending/Ack (hecho) |
 | v1 | STL real + lista instancias completa |
 | v2 | Interacción XRI (agarrar, mover) en Quest |
 | v3 | AR tablet (AR Foundation) |
 | v4 | Passthrough MR en Quest 3S |
+
+---
+
+## Dispositivos XR y «Enviar a XR»
+
+1. Ejecutar scripts:
+   - `Desing/Scripts/TemporalScript/2026-07-29_create_TSql_XrDevice.sql`
+   - `Desing/Scripts/TemporalScript/2026-07-29_create_TSql_XrPushJob.sql`
+   - `Desing/Scripts/TemporalScript/2026-07-29_seed_TSql_UiTranslation_Common_menu_XrDevices.sql`
+2. Intranet → **Configuración → Dispositivos XR**: crear gafas/tablet y copiar el **código de emparejamiento**.
+3. En el diseñador 3D: botón **Enviar a XR** → elegir dispositivo.
+4. En Unity (`TandemServerSettings`): pegar `pairingCode` + URL del servidor. La app consulta `/TandemXrApi/Pending` y carga el diseño.

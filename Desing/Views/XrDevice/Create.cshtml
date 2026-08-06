@@ -1,0 +1,34 @@
+@model Desing.Models.TandemXr.XrDeviceEntity
+@using Desing.Resources
+@{
+    ViewBag.Title = XrDevice.Page_CreateTitle;
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@XrDevice.Common_Home</a> /
+            @XrDevice.Common_Settings /
+            <a href="@Url.Action("Index", "XrDevice")">@XrDevice.Index_Breadcrumb</a> /
+        </span> @XrDevice.Page_CreateTitle
+    </h4>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        @using (Html.BeginForm("Create", "XrDevice", FormMethod.Post, new { @class = "row g-3", role = "form" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+            @Html.Partial("_XrDeviceFormFields", Model)
+            <div class="col-12 border-top pt-3 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
+                <a href="@Url.Action("Index", "XrDevice")" class="btn btn-outline-secondary">@Common.Btn_Cancel</a>
+                <button type="submit" class="btn btn-primary">@Common.Btn_Save</button>
+            </div>
+        }
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

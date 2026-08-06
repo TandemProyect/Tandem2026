@@ -42,8 +42,16 @@ Unity regenerará librerías al primer abrir (tarda varios minutos).
 2. Crear en escena un GameObject `TandemXR` con script `TandemXrBootstrap`
 3. En el Inspector, componente `TandemServerSettings`:
    - **Server Base Url:** `https://localhost:44384` (o IP de tu PC en red local)
-   - **Design Id / Offer Id:** IDs de prueba
+   - **Pairing Code:** el código del dispositivo en Intranet → Dispositivos XR
+   - **Design Id / Offer Id:** IDs de respaldo si no hay envío pendiente
 4. Arrancar **Desing** (F5 en Visual Studio) antes de probar la API
+
+### Flujo «Enviar a XR»
+
+1. En Desing: Configuración → Dispositivos XR → crear dispositivo → copiar código
+2. Pegar el código en `TandemServerSettings.pairingCode`
+3. Abrir un diseño en Desing → **Enviar a XR** → elegir dispositivo
+4. Play en Unity (o APK en Quest): carga el envío pendiente y hace ACK
 
 ---
 

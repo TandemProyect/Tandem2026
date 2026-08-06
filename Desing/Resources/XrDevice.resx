@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Col_Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Col_Paired" xml:space="preserve">
+    <value>Emparejado</value>
+  </data>
+  <data name="Col_Pairing" xml:space="preserve">
+    <value>Código emparejamiento</value>
+  </data>
+  <data name="Col_State" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Col_Type" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="Common_Home" xml:space="preserve">
+    <value>Inicio</value>
+  </data>
+  <data name="Common_Settings" xml:space="preserve">
+    <value>Configuración</value>
+  </data>
+  <data name="Details_Field_Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="Details_Field_LastSeen" xml:space="preserve">
+    <value>Última conexión</value>
+  </data>
+  <data name="Details_Field_Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Details_Field_Notes" xml:space="preserve">
+    <value>Notas</value>
+  </data>
+  <data name="Details_Field_Paired" xml:space="preserve">
+    <value>Emparejado</value>
+  </data>
+  <data name="Details_Field_Pairing" xml:space="preserve">
+    <value>Código emparejamiento</value>
+  </data>
+  <data name="Details_Field_Type" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="Details_NeverSeen" xml:space="preserve">
+    <value>Nunca</value>
+  </data>
+  <data name="Details_NoNotes" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="Err_NotFound" xml:space="preserve">
+    <value>Dispositivo XR no encontrado.</value>
+  </data>
+  <data name="Err_TablesMissing" xml:space="preserve">
+    <value>Faltan tablas XR en BD. Ejecute 2026-07-29_create_TSql_XrDevice.sql y 2026-07-29_create_TSql_XrPushJob.sql.</value>
+  </data>
+  <data name="Index_Breadcrumb" xml:space="preserve">
+    <value>Dispositivos XR</value>
+  </data>
+  <data name="Index_Create" xml:space="preserve">
+    <value>Nuevo dispositivo</value>
+  </data>
+  <data name="Js_ConfirmDelete" xml:space="preserve">
+    <value>¿Eliminar este dispositivo XR? (borrado lógico).</value>
+  </data>
+  <data name="Lbl_Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="Lbl_ActiveCheckbox" xml:space="preserve">
+    <value>Dispositivo activo</value>
+  </data>
+  <data name="Lbl_NameRequired" xml:space="preserve">
+    <value>Nombre *</value>
+  </data>
+  <data name="Lbl_Notes" xml:space="preserve">
+    <value>Notas</value>
+  </data>
+  <data name="Lbl_Pairing" xml:space="preserve">
+    <value>Código emparejamiento *</value>
+  </data>
+  <data name="Lbl_Type" xml:space="preserve">
+    <value>Tipo *</value>
+  </data>
+  <data name="List_LinkDeleteTooltip" xml:space="preserve">
+    <value>Eliminar dispositivo</value>
+  </data>
+  <data name="List_LinkEditTooltip" xml:space="preserve">
+    <value>Editar dispositivo</value>
+  </data>
+  <data name="List_LinkOpenTooltip" xml:space="preserve">
+    <value>Ver dispositivo</value>
+  </data>
+  <data name="Page_CreateTitle" xml:space="preserve">
+    <value>Crear dispositivo XR</value>
+  </data>
+  <data name="Page_DetailsTitle" xml:space="preserve">
+    <value>Detalle del dispositivo XR</value>
+  </data>
+  <data name="Page_EditTitle" xml:space="preserve">
+    <value>Editar dispositivo XR</value>
+  </data>
+  <data name="Ph_Name" xml:space="preserve">
+    <value>Ej.: Quest obra Madrid</value>
+  </data>
+  <data name="Ph_Notes" xml:space="preserve">
+    <value>Ubicación, responsable…</value>
+  </data>
+  <data name="Ph_Pairing" xml:space="preserve">
+    <value>Código para la app Unity</value>
+  </data>
+  <data name="State_Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="State_Inactive" xml:space="preserve">
+    <value>Inactivo</value>
+  </data>
+  <data name="State_Paired" xml:space="preserve">
+    <value>Sí</value>
+  </data>
+  <data name="State_Unpaired" xml:space="preserve">
+    <value>Pendiente</value>
+  </data>
+  <data name="ToastMessage_Created" xml:space="preserve">
+    <value>Dispositivo "{0}" creado correctamente.</value>
+  </data>
+  <data name="ToastMessage_Deleted" xml:space="preserve">
+    <value>Dispositivo "{0}" eliminado correctamente.</value>
+  </data>
+  <data name="ToastMessage_Updated" xml:space="preserve">
+    <value>Dispositivo "{0}" actualizado correctamente.</value>
+  </data>
+  <data name="ToastTitle_Create" xml:space="preserve">
+    <value>Crear dispositivo XR</value>
+  </data>
+  <data name="ToastTitle_Delete" xml:space="preserve">
+    <value>Eliminar dispositivo XR</value>
+  </data>
+  <data name="ToastTitle_Edit" xml:space="preserve">
+    <value>Editar dispositivo XR</value>
+  </data>
+  <data name="Type_Quest" xml:space="preserve">
+    <value>Quest (gafas)</value>
+  </data>
+  <data name="Type_Tablet" xml:space="preserve">
+    <value>Tablet</value>
+  </data>
+  <data name="Val_DuplicateNameCreate" xml:space="preserve">
+    <value>Ya existe un dispositivo con ese nombre.</value>
+  </data>
+  <data name="Val_DuplicateNameEdit" xml:space="preserve">
+    <value>Ya existe otro dispositivo con ese nombre.</value>
+  </data>
+  <data name="Val_DuplicatePairing" xml:space="preserve">
+    <value>Ese código de emparejamiento ya está en uso.</value>
+  </data>
+  <data name="Val_NameRequired" xml:space="preserve">
+    <value>El nombre del dispositivo es obligatorio.</value>
+  </data>
+  <data name="Val_NameTooLong" xml:space="preserve">
+    <value>El nombre no puede superar 500 caracteres.</value>
+  </data>
+  <data name="Val_PairingRequired" xml:space="preserve">
+    <value>El código de emparejamiento es obligatorio.</value>
+  </data>
+  <data name="Val_PairingTooLong" xml:space="preserve">
+    <value>El código no puede superar 50 caracteres.</value>
+  </data>
+</root>

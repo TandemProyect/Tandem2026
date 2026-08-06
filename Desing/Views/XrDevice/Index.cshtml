@@ -1,0 +1,147 @@
+@using Newtonsoft.Json
+@using Desing.Resources
+@using System.Globalization
+@{
+    ViewBag.Title = XrDevice.Index_Breadcrumb;
+    var ci = CultureInfo.CurrentUICulture?.TwoLetterISOLanguageName ?? "es";
+    var xrDeviceDt = JsonConvert.SerializeObject(new
+    {
+        culture = ci,
+        rowsSuffix = Common.Dt_Rows_N,
+        allRows = Common.Dt_Rows_All,
+        sectionRecords = Common.Dt_Section_Records,
+        sectionExport = Common.Dt_Section_Export,
+        sectionCols = Common.Dt_Section_ColumnsVisible,
+        confirmDelete = XrDevice.Js_ConfirmDelete,
+        ariaMenu = Common.Dt_MenuAria
+    });
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@XrDevice.Common_Home</a> /
+            @XrDevice.Common_Settings /
+        </span> @XrDevice.Index_Breadcrumb
+    </h4>
+    <a class="btn btn-primary text-white" href="@Url.Action("Create", "XrDevice")">
+        <i class="icon-base ri ri-add-line me-1"></i> @XrDevice.Index_Create
+    </a>
+</div>
+
+@if (!string.IsNullOrEmpty(TempData["ToastMessage"] as string))
+{
+    <div class="alert alert-success">@TempData["ToastMessage"]</div>
+}
+
+<div class="card mb-4">
+    <div class="card-body" style="padding:5px">
+        <table id="ListXrDevices" class="table table-hover" cellspacing="0" style="width: 100%">
+            <thead>
+                <tr>
+                    <th>@XrDevice.Col_Name</th>
+                    <th>@XrDevice.Col_Type</th>
+                    <th>@XrDevice.Col_Pairing</th>
+                    <th>@XrDevice.Col_Paired</th>
+                    <th>@XrDevice.Col_State</th>
+                    <th class="text-end text-nowrap" style="width:1%;"></th>
+                    <th>ID</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+
+@section scripts
+{
+    <script type="text/javascript">
+        var xrDeviceDt = @Html.Raw(xrDeviceDt);
+        var xrDeviceExportOpts = TandemDataTablesList.exportOptsPlainVisible;
+
+        $(document).ready(function () {
+            $('#ListXrDevices').DataTable(TandemDataTablesList.applyListDefaults({
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    ['10 ' + xrDeviceDt.rowsSuffix, '25 ' + xrDeviceDt.rowsSuffix, '50 ' + xrDeviceDt.rowsSuffix, xrDeviceDt.allRows]
+                ],
+                buttons: [{
+                    extend: 'collection',
+                    text: "<i class='fas fa-bars'></i>",
+                    attr: { 'aria-label': xrDeviceDt.ariaMenu },
+                    className: 'custom-html-collection',
+                    buttons: [
+                        '<h5>' + xrDeviceDt.sectionRecords + '</h5>',
+                        'pageLength',
+                        '<h5>' + xrDeviceDt.sectionExport + '</h5>',
+                        'print',
+                        'copy',
+                        'pdf',
+                        { extend: 'csv', exportOptions: xrDeviceExportOpts },
+                        { extend: 'excel', exportOptions: xrDeviceExportOpts },
+                        '<h5 class="not-top-heading">' + xrDeviceDt.sectionCols + '</h5>',
+                        'colvis'
+                    ]
+                }],
+                serverSide: true,
+                processing: true,
+                colReorder: { iFixedColumnsRight: 2 },
+                ajax: {
+                    url: '@Url.Action("ListXrDevices", "XrDevice")',
+                    type: 'POST'
+                },
+                order: [[0, 'asc']],
+                columns: [
+                    {
+                        data: 'TextLabel',
+                        name: 'TextLabel',
+                        render: function (data, type, row) {
+                            if (type === 'export') {
+                                return row.TextLabelPlain || '';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'deviceTypeBadge',
+                        name: 'TextDeviceType',
+                        render: function (data, type, row) {
+                            if (type === 'export' || type === 'sort' || type === 'filter') {
+                                return row.deviceTypePlain || '';
+                            }
+                            return data;
+                        }
+                    },
+                    { data: 'TextPairingCode', name: 'TextPairingCode' },
+                    { data: 'pairedBadge', name: 'Is_Paired', orderable: true, searchable: false },
+                    { data: 'activeBadge', name: 'Is_Active', orderable: true, searchable: false },
+                    {
+                        data: 'rowActions',
+                        orderable: false,
+                        searchable: false,
+                        className: 'tandem-col-actions text-end align-middle text-nowrap'
+                    },
+                    { data: 'IdObject', visible: false }
+                ],
+                drawCallback: function () {
+                    $('[title]').tooltip({
+                        delay: { show: 100, hide: 100 },
+                        placement: 'auto'
+                    });
+                }
+            }));
+        });
+
+        window.DeleteXrDevice = function (id) {
+            if (!confirm(xrDeviceDt.confirmDelete)) return;
+            $.post('@Url.Action("DeleteXrDevice", "XrDevice")',
+                { id: id, __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() },
+                function (res) {
+                    if (res && res.Message) { alert(res.Message); }
+                    if (res && res.IsOk) {
+                        $('#ListXrDevices').DataTable().ajax.reload(null, false);
+                    }
+                });
+        };
+    </script>
+    <div style="display:none;">@Html.AntiForgeryToken()</div>
+}

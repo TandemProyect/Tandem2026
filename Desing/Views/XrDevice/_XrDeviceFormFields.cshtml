@@ -1,0 +1,52 @@
+@model Desing.Models.TandemXr.XrDeviceEntity
+@using Desing.Resources
+@using Desing.Models.TandemXr
+<div class="col-md-6">
+    <label class="form-label" for="TextLabel">@XrDevice.Lbl_NameRequired</label>
+    @Html.TextBoxFor(m => m.TextLabel, new
+    {
+        @class = "form-control",
+        maxlength = "500",
+        required = "required",
+        placeholder = XrDevice.Ph_Name
+    })
+    @Html.ValidationMessageFor(m => m.TextLabel, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-3">
+    <label class="form-label" for="TextDeviceType">@XrDevice.Lbl_Type</label>
+    @Html.DropDownListFor(m => m.TextDeviceType, new SelectList(new[]
+    {
+        new { Value = XrDeviceTypes.Quest, Text = XrDevice.Type_Quest },
+        new { Value = XrDeviceTypes.Tablet, Text = XrDevice.Type_Tablet }
+    }, "Value", "Text", Model.TextDeviceType), new { @class = "form-select" })
+    @Html.ValidationMessageFor(m => m.TextDeviceType, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-3">
+    <label class="form-label">@XrDevice.Lbl_Active</label>
+    <div class="form-check mt-2">
+        @Html.CheckBoxFor(m => m.Is_Active, new { @class = "form-check-input" })
+        <label class="form-check-label" for="Is_Active">@XrDevice.Lbl_ActiveCheckbox</label>
+    </div>
+</div>
+<div class="col-md-6">
+    <label class="form-label" for="TextPairingCode">@XrDevice.Lbl_Pairing</label>
+    @Html.TextBoxFor(m => m.TextPairingCode, new
+    {
+        @class = "form-control",
+        maxlength = "50",
+        required = "required",
+        placeholder = XrDevice.Ph_Pairing,
+        autocomplete = "off"
+    })
+    @Html.ValidationMessageFor(m => m.TextPairingCode, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-6">
+    <label class="form-label" for="TextNotes">@XrDevice.Lbl_Notes</label>
+    @Html.TextBoxFor(m => m.TextNotes, new
+    {
+        @class = "form-control",
+        maxlength = "500",
+        placeholder = XrDevice.Ph_Notes
+    })
+    @Html.ValidationMessageFor(m => m.TextNotes, "", new { @class = "text-danger" })
+</div>

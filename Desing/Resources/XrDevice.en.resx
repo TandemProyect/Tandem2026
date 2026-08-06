@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Col_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Col_Paired" xml:space="preserve">
+    <value>Paired</value>
+  </data>
+  <data name="Col_Pairing" xml:space="preserve">
+    <value>Pairing code</value>
+  </data>
+  <data name="Col_State" xml:space="preserve">
+    <value>State</value>
+  </data>
+  <data name="Col_Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Common_Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Common_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Details_Field_Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Details_Field_LastSeen" xml:space="preserve">
+    <value>Last seen</value>
+  </data>
+  <data name="Details_Field_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Details_Field_Notes" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="Details_Field_Paired" xml:space="preserve">
+    <value>Paired</value>
+  </data>
+  <data name="Details_Field_Pairing" xml:space="preserve">
+    <value>Pairing code</value>
+  </data>
+  <data name="Details_Field_Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Details_NeverSeen" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="Details_NoNotes" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="Err_NotFound" xml:space="preserve">
+    <value>XR device not found.</value>
+  </data>
+  <data name="Err_TablesMissing" xml:space="preserve">
+    <value>XR tables missing. Run 2026-07-29_create_TSql_XrDevice.sql and 2026-07-29_create_TSql_XrPushJob.sql.</value>
+  </data>
+  <data name="Index_Breadcrumb" xml:space="preserve">
+    <value>XR devices</value>
+  </data>
+  <data name="Index_Create" xml:space="preserve">
+    <value>New device</value>
+  </data>
+  <data name="Js_ConfirmDelete" xml:space="preserve">
+    <value>Delete this XR device? (soft delete).</value>
+  </data>
+  <data name="Lbl_Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Lbl_ActiveCheckbox" xml:space="preserve">
+    <value>Active device</value>
+  </data>
+  <data name="Lbl_NameRequired" xml:space="preserve">
+    <value>Name *</value>
+  </data>
+  <data name="Lbl_Notes" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="Lbl_Pairing" xml:space="preserve">
+    <value>Pairing code *</value>
+  </data>
+  <data name="Lbl_Type" xml:space="preserve">
+    <value>Type *</value>
+  </data>
+  <data name="List_LinkDeleteTooltip" xml:space="preserve">
+    <value>Delete device</value>
+  </data>
+  <data name="List_LinkEditTooltip" xml:space="preserve">
+    <value>Edit device</value>
+  </data>
+  <data name="List_LinkOpenTooltip" xml:space="preserve">
+    <value>Open device</value>
+  </data>
+  <data name="Page_CreateTitle" xml:space="preserve">
+    <value>Create XR device</value>
+  </data>
+  <data name="Page_DetailsTitle" xml:space="preserve">
+    <value>XR device details</value>
+  </data>
+  <data name="Page_EditTitle" xml:space="preserve">
+    <value>Edit XR device</value>
+  </data>
+  <data name="Ph_Name" xml:space="preserve">
+    <value>E.g.: Quest Madrid site</value>
+  </data>
+  <data name="Ph_Notes" xml:space="preserve">
+    <value>Location, owner…</value>
+  </data>
+  <data name="Ph_Pairing" xml:space="preserve">
+    <value>Code for the Unity app</value>
+  </data>
+  <data name="State_Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="State_Inactive" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  <data name="State_Paired" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="State_Unpaired" xml:space="preserve">
+    <value>Pending</value>
+  </data>
+  <data name="ToastMessage_Created" xml:space="preserve">
+    <value>Device "{0}" created successfully.</value>
+  </data>
+  <data name="ToastMessage_Deleted" xml:space="preserve">
+    <value>Device "{0}" deleted successfully.</value>
+  </data>
+  <data name="ToastMessage_Updated" xml:space="preserve">
+    <value>Device "{0}" updated successfully.</value>
+  </data>
+  <data name="ToastTitle_Create" xml:space="preserve">
+    <value>Create XR device</value>
+  </data>
+  <data name="ToastTitle_Delete" xml:space="preserve">
+    <value>Delete XR device</value>
+  </data>
+  <data name="ToastTitle_Edit" xml:space="preserve">
+    <value>Edit XR device</value>
+  </data>
+  <data name="Type_Quest" xml:space="preserve">
+    <value>Quest (headset)</value>
+  </data>
+  <data name="Type_Tablet" xml:space="preserve">
+    <value>Tablet</value>
+  </data>
+  <data name="Val_DuplicateNameCreate" xml:space="preserve">
+    <value>A device with this name already exists.</value>
+  </data>
+  <data name="Val_DuplicateNameEdit" xml:space="preserve">
+    <value>Another device already uses this name.</value>
+  </data>
+  <data name="Val_DuplicatePairing" xml:space="preserve">
+    <value>That pairing code is already in use.</value>
+  </data>
+  <data name="Val_NameRequired" xml:space="preserve">
+    <value>Device name is required.</value>
+  </data>
+  <data name="Val_NameTooLong" xml:space="preserve">
+    <value>Name cannot exceed 500 characters.</value>
+  </data>
+  <data name="Val_PairingRequired" xml:space="preserve">
+    <value>Pairing code is required.</value>
+  </data>
+  <data name="Val_PairingTooLong" xml:space="preserve">
+    <value>Pairing code cannot exceed 50 characters.</value>
+  </data>
+</root>

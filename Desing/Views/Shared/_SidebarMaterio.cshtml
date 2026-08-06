@@ -45,6 +45,10 @@
 
 
 
+    bool isXrDeviceController = currentController.Equals("XrDevice", StringComparison.OrdinalIgnoreCase);
+
+
+
     bool isUiTranslationController = currentController.Equals("UiTranslation", StringComparison.OrdinalIgnoreCase);
 
 
@@ -67,7 +71,7 @@
 
         IconClass = "ri ri-settings-3-line",
 
-        IsOpen = isDocumentTypeController || isExtensionController || isOfferStateController || isUiTranslationController || isLanguageController || isCountryController,
+        IsOpen = isDocumentTypeController || isExtensionController || isOfferStateController || isXrDeviceController || isUiTranslationController || isLanguageController || isCountryController,
 
         Children = new List<SidebarMenuChildItem>
 
@@ -100,6 +104,16 @@
                 Controller = "OfferState",
 
                 Text = UiCommon("Menu.OfferStates", "Estados de oferta")
+
+            },
+
+            new SidebarMenuChildItem
+
+            {
+
+                Controller = "XrDevice",
+
+                Text = UiCommon("Menu.XrDevices", "Dispositivos XR")
 
             },
 

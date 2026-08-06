@@ -43,6 +43,7 @@ namespace Desing.Controllers
             Tuple.Create("Language", typeof(Desing.Resources.Language)),
             Tuple.Create("Country", typeof(Desing.Resources.Country)),
             Tuple.Create("OfferState", typeof(Desing.Resources.OfferState)),
+            Tuple.Create("XrDevice", typeof(Desing.Resources.XrDevice)),
             Tuple.Create("Common", typeof(Desing.Resources.Common))
         };
 

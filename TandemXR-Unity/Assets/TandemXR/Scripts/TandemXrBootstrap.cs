@@ -4,8 +4,8 @@ using UnityEngine;
 namespace TandemXR
 {
     /// <summary>
-    /// Punto de entrada: API Desing → carga escena → listo para XR Interaction Toolkit.
-    /// Añadir XR Origin + XRI a la escena según README.
+    /// Punto de entrada simple (Editor / Quest / tablet): API Desing → carga escena.
+    /// Compatible con el script que ya tienes en Unity (método Boot).
     /// </summary>
     public class TandemXrBootstrap : MonoBehaviour
     {
@@ -41,11 +41,11 @@ namespace TandemXR
                 yield break;
             }
 
-            Debug.Log("[TandemXR] Diseño: " + manifest.textLabel);
+            Debug.Log("[TandemXR] Diseño: " + (manifest != null ? manifest.TextLabel : "(null)"));
             yield return sceneLoader.LoadThumbnailPlaceholder(
-                manifest.thumbnailStlUrl,
+                manifest != null ? manifest.ThumbnailStlUrl : null,
                 settings != null ? settings.stlScale : 1000f,
-                manifest.textLabel);
+                manifest != null ? manifest.TextLabel : "Diseño");
         }
     }
 }

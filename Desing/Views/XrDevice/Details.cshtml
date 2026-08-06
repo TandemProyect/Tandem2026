@@ -1,0 +1,83 @@
+@model Desing.Models.TandemXr.XrDeviceEntity
+@using Desing.Resources
+@using Desing.Models.TandemXr
+@{
+    ViewBag.Title = Model.TextLabel;
+    var typeLabel = string.Equals(Model.TextDeviceType, XrDeviceTypes.Tablet, StringComparison.OrdinalIgnoreCase)
+        ? XrDevice.Type_Tablet
+        : XrDevice.Type_Quest;
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@XrDevice.Common_Home</a> /
+            @XrDevice.Common_Settings /
+            <a href="@Url.Action("Index", "XrDevice")">@XrDevice.Index_Breadcrumb</a> /
+        </span> @Model.TextLabel
+    </h4>
+    <a class="btn btn-warning" href="@Url.Action("Edit", "XrDevice", new { id = Model.IdObject })">
+        <i class="icon-base ri ri-pencil-line me-1"></i> @Common.Btn_Edit
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">@XrDevice.Details_Field_Name</dt>
+            <dd class="col-sm-9">@Model.TextLabel</dd>
+
+            <dt class="col-sm-3">@XrDevice.Details_Field_Type</dt>
+            <dd class="col-sm-9"><span class="badge bg-label-info">@typeLabel</span></dd>
+
+            <dt class="col-sm-3">@XrDevice.Details_Field_Pairing</dt>
+            <dd class="col-sm-9"><code>@Model.TextPairingCode</code></dd>
+
+            <dt class="col-sm-3">@XrDevice.Details_Field_Notes</dt>
+            <dd class="col-sm-9">
+                @if (string.IsNullOrWhiteSpace(Model.TextNotes))
+                {
+                    <span class="text-muted">@XrDevice.Details_NoNotes</span>
+                }
+                else
+                {
+                    @Model.TextNotes
+                }
+            </dd>
+
+            <dt class="col-sm-3">@XrDevice.Details_Field_Paired</dt>
+            <dd class="col-sm-9">
+                @if (Model.Is_Paired)
+                {
+                    <span class="badge bg-label-success">@XrDevice.State_Paired</span>
+                }
+                else
+                {
+                    <span class="badge bg-label-warning">@XrDevice.State_Unpaired</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">@XrDevice.Details_Field_LastSeen</dt>
+            <dd class="col-sm-9">
+                @(Model.DateLastSeen.HasValue ? Model.DateLastSeen.Value.ToString("g") : XrDevice.Details_NeverSeen)
+            </dd>
+
+            <dt class="col-sm-3">@XrDevice.Details_Field_Active</dt>
+            <dd class="col-sm-9">
+                @if (Model.Is_Active)
+                {
+                    <span class="badge bg-label-success">@XrDevice.State_Active</span>
+                }
+                else
+                {
+                    <span class="badge bg-label-secondary">@XrDevice.State_Inactive</span>
+                }
+            </dd>
+        </dl>
+    </div>
+</div>
+
+@if (ViewBag.Audit != null)
+{
+    @Html.Partial("_IntranetAuditSection", (Desing.Models.IntranetAuditDisplayModel)ViewBag.Audit)
+}

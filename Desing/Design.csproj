@@ -260,6 +260,10 @@
     <EmbeddedResource Include="Resources\OfferState.en.resx">
       <DependentUpon>OfferState.resx</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Resources\XrDevice.resx" />
+    <EmbeddedResource Include="Resources\XrDevice.en.resx">
+      <DependentUpon>XrDevice.resx</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Resources\Common.resx" />
     <EmbeddedResource Include="Resources\Common.en.resx">
       <DependentUpon>Common.resx</DependentUpon>
@@ -297,6 +301,7 @@
     <Compile Include="Controllers\LanguageController.cs" />
     <Compile Include="Controllers\CountryController.cs" />
     <Compile Include="Controllers\OfferStateController.cs" />
+    <Compile Include="Controllers\XrDeviceController.cs" />
     <Compile Include="Controllers\UiTranslationController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -310,6 +315,8 @@
     <Compile Include="Helpers\IntranetFileHelper.cs" />
     <Compile Include="Helpers\ExtensionPathIcoQueries.cs" />
     <Compile Include="Helpers\IntranetAuditHelper.cs" />
+    <Compile Include="Helpers\XrDeviceQueries.cs" />
+    <Compile Include="Helpers\XrPushJobQueries.cs" />
     <Compile Include="Helpers\JobsideCodeHelper.cs" />
     <Compile Include="Helpers\OfferNumberHelper.cs" />
     <Compile Include="Helpers\ReleaseVersionHelper.cs" />
@@ -366,6 +373,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>OfferState.resx</DependentUpon>
     </Compile>
+    <Compile Include="Resources\XrDevice.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>XrDevice.resx</DependentUpon>
+    </Compile>
     <Compile Include="Resources\Common.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Common.resx</DependentUpon>
@@ -376,6 +387,8 @@
     <Compile Include="Models\PlantillaViewModel.cs" />
     <Compile Include="Models\Desing2ViewModels.cs" />
     <Compile Include="Models\TandemXr\TandemXrDesignManifestDto.cs" />
+    <Compile Include="Models\TandemXr\XrDeviceEntity.cs" />
+    <Compile Include="Models\TandemXr\XrPushJobEntity.cs" />
     <Compile Include="Models\IntranetViewModels.cs" />
     <Compile Include="Models\GooglePlacesAddressBlockModel.cs" />
     <Compile Include="ModelBinders\CultureFallbackDecimalModelBinder.cs" />
@@ -1894,6 +1907,7 @@
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\Design\3D\Design-3d-Screenshot.js" />
+    <Content Include="Scripts\Design\3D\Design-3d-SendToXr.js" />
     <Content Include="Scripts\Design\3D\Design-3d-cameras.js" />
     <Content Include="Scripts\Design\3D\Design-3d-Dim.js" />
     <Content Include="Scripts\Design\3D\Design-3d-three.js" />
@@ -3342,6 +3356,7 @@
     <Content Include="Scripts\ResourceGenerators\_gen_language_resources.js" />
     <Content Include="Scripts\ResourceGenerators\_gen_masterarticles_resources.js" />
     <Content Include="Scripts\ResourceGenerators\_gen_offerstate_resources.js" />
+    <Content Include="Scripts\ResourceGenerators\_gen_xrdevice_resources.js" />
     <Content Include="Scripts\ResourceGenerators\_gen_plantilla_resources.js" />
     <Content Include="Scripts\MasterArticles\infinite-grid-helper.module.js" />
     <Content Include="Scripts\ThreejsDesing\README.md" />
@@ -3387,6 +3402,11 @@
     <Content Include="Views\Extension\Edit.cshtml" />
     <Content Include="Views\Extension\Details.cshtml" />
     <Content Include="Views\Extension\_ExtensionFormFields.cshtml" />
+    <Content Include="Views\XrDevice\Index.cshtml" />
+    <Content Include="Views\XrDevice\Create.cshtml" />
+    <Content Include="Views\XrDevice\Edit.cshtml" />
+    <Content Include="Views\XrDevice\Details.cshtml" />
+    <Content Include="Views\XrDevice\_XrDeviceFormFields.cshtml" />
     <Content Include="Views\Jobside\Index.cshtml" />
     <Content Include="Views\Jobside\Create.cshtml" />
     <Content Include="Views\Jobside\Edit.cshtml" />
