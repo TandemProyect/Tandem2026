@@ -8,8 +8,17 @@
     var stlLabelAttr = HttpUtility.HtmlAttributeEncode(Model.InitialStlLabel ?? string.Empty);
     var logoUrl = Model.BrandLogoUrl ?? Url.Content("~/Content/images/Login/at.png");
     var stlSrcUnits = string.IsNullOrWhiteSpace(Model.StlSourceUnits) ? "m" : Model.StlSourceUnits.Trim();
+<<<<<<< HEAD
     Func<string, string, string> maStr = (key, fallback) =>
     MasterArticles.ResourceManager.GetString(key) ?? fallback;
+=======
+    // Evita CS0117 si el Designer.cs local no tiene aún estas claves.
+    Func<string, string, string> maStr = (key, fallback) =>
+    {
+        try { return MasterArticles.ResourceManager.GetString(key) ?? fallback; }
+        catch { return fallback; }
+    };
+>>>>>>> 075977c972242719b2b3b582f174d539db509a7d
     var wallModelRenderingText = maStr("StlPreview_WallModelRendering", "Generando modelo de muros…");
     var imageSketchErrorModalTitle = maStr("StlPreview_ImageSketchErrorModalTitle", "Error al analizar la imagen");
     var imageSketchErrorModalAccept = maStr("StlPreview_ImageSketchErrorModalAccept", "Aceptar");
