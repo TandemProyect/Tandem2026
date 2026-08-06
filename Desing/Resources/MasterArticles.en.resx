@@ -730,6 +730,12 @@
   <data name="StlPreview_ImageSketchError" xml:space="preserve">
     <value>Could not analyze image: {0}</value>
   </data>
+  <data name="StlPreview_ImageSketchErrorModalAccept" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="StlPreview_ImageSketchErrorModalTitle" xml:space="preserve">
+    <value>Error analyzing image</value>
+  </data>
   <data name="StlPreview_ImageSketchFormAccept" xml:space="preserve">
     <value>Analyze and insert</value>
   </data>
@@ -800,7 +806,7 @@
     <value>View in the 3D viewer</value>
   </data>
   <data name="StlPreview_MapBuildingAttribution" xml:space="preserve">
-    <value>Map and data © OpenStreetMap</value>
+    <value>Map © OpenStreetMap · Buildings Cadastre/OSM</value>
   </data>
   <data name="StlPreview_MapBuildingError" xml:space="preserve">
     <value>Could not import building: {0}</value>
@@ -812,13 +818,16 @@
     <value>Cancel</value>
   </data>
   <data name="StlPreview_MapBuildingFormHint" xml:space="preserve">
-    <value>Search an address: the map shows 3D buildings (OpenStreetMap). Select one and import. If OSM has no height, a default is used.</value>
+    <value>Search centers the map. Search buildings loads selectable footprints (Cadastre/OSM). Then select one and import.</value>
   </data>
   <data name="StlPreview_MapBuildingFormTitle" xml:space="preserve">
     <value>Building from map</value>
   </data>
   <data name="StlPreview_MapBuildingLoadBuildings" xml:space="preserve">
     <value>Search buildings</value>
+  </data>
+  <data name="StlPreview_MapBuildingLoadedCount" xml:space="preserve">
+    <value>{0} building(s) loaded (Cadastre/OSM)</value>
   </data>
   <data name="StlPreview_MapBuildingLoadingBuildings" xml:space="preserve">
     <value>Loading buildings from the map…</value>
@@ -843,6 +852,9 @@
   </data>
   <data name="StlPreview_MapBuildingSearching" xml:space="preserve">
     <value>Searching address…</value>
+  </data>
+  <data name="StlPreview_MapBuildingSelectedCatastroLabel" xml:space="preserve">
+    <value>Selected: {0} — CR {1}</value>
   </data>
   <data name="StlPreview_MapBuildingSelectedLabel" xml:space="preserve">
     <value>Selected: {0}</value>
@@ -1014,6 +1026,9 @@
   </data>
   <data name="StlPreview_WallDimToolNoPairsToast" xml:space="preserve">
     <value>No wall thickness detected. Draw the outline and inner offset, or click a wall line while the tool is active.</value>
+  </data>
+  <data name="StlPreview_WallModelRendering" xml:space="preserve">
+    <value>Generating wall model…</value>
   </data>
   <data name="StlPreview_WindowSelectionHint" xml:space="preserve">
     <value>Drag on empty canvas: left-to-right window, right-to-left crossing</value>

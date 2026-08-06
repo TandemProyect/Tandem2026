@@ -16,6 +16,7 @@ using Desing.Services;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using Newtonsoft.Json;
 
 namespace Desing.Controllers
 {
@@ -351,20 +352,36 @@ namespace Desing.Controllers
         }
 
         /// <summary>
-        /// Lista huellas de edificios OSM en el bounding box visible del mapa.
+        /// Lista huellas de edificios (Catastro/OSM) en el bounding box visible del mapa.
+        /// Body JSON obligatorio (el model binder MVC a menudo deja el DTO en ceros).
         /// </summary>
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult> BuscarEdificiosOsm(OsmBuildingsBboxRequestDTO request)
+        public async Task<ActionResult> BuscarEdificiosOsm()
         {
             try
             {
-                if (request == null)
+                var request = ReadJsonBody<OsmBuildingsBboxRequestDTO>();
+                if (request == null ||
+                    (Math.Abs(request.South) < 1e-12 &&
+                     Math.Abs(request.North) < 1e-12 &&
+                     Math.Abs(request.West) < 1e-12 &&
+                     Math.Abs(request.East) < 1e-12))
                 {
                     return Json(new ApiResponse<List<OsmBuildingFootprintDTO>>
                     {
                         Exito = false,
-                        Mensaje = "Solicitud inválida.",
+                        Mensaje = "Solicitud inválida: bbox vacío o no recibido.",
+                        Datos = null
+                    });
+                }
+
+                if (!(request.South < request.North && request.West < request.East))
+                {
+                    return Json(new ApiResponse<List<OsmBuildingFootprintDTO>>
+                    {
+                        Exito = false,
+                        Mensaje = "Solicitud inválida: bbox incorrecto.",
                         Datos = null
                     });
                 }
@@ -394,14 +411,15 @@ namespace Desing.Controllers
         }
 
         /// <summary>
-        /// Convierte la huella OSM seleccionada a líneas de planta (mm) — mismo contrato que DetectarEsquinasImagen.
+        /// Convierte la huella OSM/Catastro seleccionada a líneas de planta (mm).
         /// </summary>
         [HttpPost]
         [Authorize]
-        public ActionResult ImportarEdificioOsm(OsmBuildingImportRequestDTO request)
+        public ActionResult ImportarEdificioOsm()
         {
             try
             {
+                var request = ReadJsonBody<OsmBuildingImportRequestDTO>();
                 var service = new OsmBuildingImportService();
                 var resultado = service.BuildSketchFromFootprint(request);
                 return Json(new ApiResponse<DeteccionEsquinasLDTO>
@@ -419,6 +437,60 @@ namespace Desing.Controllers
                     Mensaje = "Error al importar edificio: " + ex.Message,
                     Datos = null
                 });
+            }
+        }
+
+        /// <summary>
+        /// Referencia catastral + dirección por coordenadas WGS84 (Catastro Consulta_RCCOOR).
+        /// </summary>
+        [HttpGet]
+        [Authorize]
+        public async Task<ActionResult> ConsultarCatastroPorCoordenadas(double lat, double lng)
+        {
+            try
+            {
+                var service = new OsmBuildingImportService();
+                var datos = await service.LookupCatastroByCoordsAsync(lat, lng).ConfigureAwait(false);
+                return Json(new ApiResponse<CatastroRcLookupResultDTO>
+                {
+                    Exito = true,
+                    Mensaje = datos.CadastralRef,
+                    Datos = datos
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new ApiResponse<CatastroRcLookupResultDTO>
+                {
+                    Exito = false,
+                    Mensaje = "Catastro: " + ex.Message,
+                    Datos = null
+                }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
+        /// Fallback cuando el model binder de MVC no rellena el DTO desde application/json.
+        /// </summary>
+        private T ReadJsonBody<T>() where T : class
+        {
+            try
+            {
+                if (Request == null || Request.InputStream == null)
+                    return null;
+                if (Request.InputStream.CanSeek)
+                    Request.InputStream.Position = 0;
+                using (var reader = new StreamReader(Request.InputStream, Encoding.UTF8, true, 1024, true))
+                {
+                    var body = reader.ReadToEnd();
+                    if (string.IsNullOrWhiteSpace(body))
+                        return null;
+                    return JsonConvert.DeserializeObject<T>(body);
+                }
+            }
+            catch
+            {
+                return null;
             }
         }
 

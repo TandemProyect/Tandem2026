@@ -730,6 +730,12 @@
   <data name="StlPreview_ImageSketchError" xml:space="preserve">
     <value>No se pudo analizar la imagen: {0}</value>
   </data>
+  <data name="StlPreview_ImageSketchErrorModalAccept" xml:space="preserve">
+    <value>Aceptar</value>
+  </data>
+  <data name="StlPreview_ImageSketchErrorModalTitle" xml:space="preserve">
+    <value>Error al analizar la imagen</value>
+  </data>
   <data name="StlPreview_ImageSketchFormAccept" xml:space="preserve">
     <value>Analizar e insertar</value>
   </data>
@@ -800,7 +806,7 @@
     <value>Ver en el visor 3D</value>
   </data>
   <data name="StlPreview_MapBuildingAttribution" xml:space="preserve">
-    <value>Mapa y datos © OpenStreetMap</value>
+    <value>Mapa © OpenStreetMap · Edificios Catastro/OSM</value>
   </data>
   <data name="StlPreview_MapBuildingError" xml:space="preserve">
     <value>No se pudo importar el edificio: {0}</value>
@@ -812,13 +818,16 @@
     <value>Cancelar</value>
   </data>
   <data name="StlPreview_MapBuildingFormHint" xml:space="preserve">
-    <value>Busque una dirección: el mapa muestra edificios en 3D (OpenStreetMap). Seleccione uno e importe. Si OSM no trae altura, se usa una por defecto.</value>
+    <value>Buscar centra el mapa. Buscar edificios carga huellas seleccionables (Catastro/OSM). Luego seleccione uno e importe.</value>
   </data>
   <data name="StlPreview_MapBuildingFormTitle" xml:space="preserve">
     <value>Edificio desde mapa</value>
   </data>
   <data name="StlPreview_MapBuildingLoadBuildings" xml:space="preserve">
     <value>Buscar edificios</value>
+  </data>
+  <data name="StlPreview_MapBuildingLoadedCount" xml:space="preserve">
+    <value>{0} edificio(s) cargados (Catastro/OSM)</value>
   </data>
   <data name="StlPreview_MapBuildingLoadingBuildings" xml:space="preserve">
     <value>Cargando edificios del mapa…</value>
@@ -843,6 +852,9 @@
   </data>
   <data name="StlPreview_MapBuildingSearching" xml:space="preserve">
     <value>Buscando dirección…</value>
+  </data>
+  <data name="StlPreview_MapBuildingSelectedCatastroLabel" xml:space="preserve">
+    <value>Seleccionado: {0} — RC {1}</value>
   </data>
   <data name="StlPreview_MapBuildingSelectedLabel" xml:space="preserve">
     <value>Seleccionado: {0}</value>
@@ -1014,6 +1026,9 @@
   </data>
   <data name="StlPreview_WallDimToolNoPairsToast" xml:space="preserve">
     <value>No se detectó espesor de muro. Dibuje el contorno y el offset interior, o haga clic en una línea del muro con la herramienta activa.</value>
+  </data>
+  <data name="StlPreview_WallModelRendering" xml:space="preserve">
+    <value>Generando modelo de muros…</value>
   </data>
   <data name="StlPreview_WindowSelectionHint" xml:space="preserve">
     <value>Arrastre en lienzo vacío: izquierda→derecha ventana, derecha→izquierda cruce</value>

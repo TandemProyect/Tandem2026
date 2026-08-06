@@ -1035,6 +1035,10 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     object-fit: contain;
 }
 
+.desing2-stl-map-building-form__map-wrap {
+    width: 100%;
+}
+
 .desing2-stl-map-building-form__map {
     width: 100%;
     height: min(58vh, 480px);
@@ -1046,6 +1050,23 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
 .desing2-stl-map-building-form__map .maplibregl-canvas-container {
     width: 100% !important;
     height: 100% !important;
+}
+
+.desing2-stl-map-building-loading {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(1px);
+    pointer-events: all;
+}
+
+.desing2-stl-map-building-loading.d-none {
+    display: none !important;
 }
 
 .desing2-stl-map-building-modal .modal-body {

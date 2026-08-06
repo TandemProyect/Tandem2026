@@ -9,24 +9,34 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using System.Xml;
 
 namespace Desing.Services
 {
     /// <summary>
-    /// Importación de huellas de edificio desde OpenStreetMap (Nominatim + Overpass),
-    /// proyectadas a mm de planta CAD para Desing_2 (mismo contrato que boceto imagen).
+    /// Importación de huellas de edificio: Catastro INSPIRE (España) + OSM Nominatim/Overpass,
+    /// proyectadas a mm de planta CAD para Desing_2.
     /// </summary>
     public class OsmBuildingImportService
     {
         private const string UserAgent = "TandemDesingIntranet/1.0 (OsmBuildingImport; +https://trdesing.net)";
         private const string NominatimSearchUrl = "https://nominatim.openstreetmap.org/search";
-        private const string OverpassUrl = "https://overpass-api.de/api/interpreter";
+        private const string CatastroWfsBuUrl = "https://ovc.catastro.meh.es/INSPIRE/wfsBU.aspx";
+        private const string CatastroRcCoorJsonUrl =
+            "https://ovc.catastro.meh.es/OVCServWeb/OVCWcfCallejero/COVCCoordenadas.svc/json/Consulta_RCCOOR";
+
+        private static readonly string[] OverpassUrls =
+        {
+            "https://overpass-api.de/api/interpreter",
+            "https://overpass.kumi.systems/api/interpreter",
+            "https://overpass.openstreetmap.fr/api/interpreter"
+        };
 
         private static readonly HttpClient Http = CreateClient();
 
         static OsmBuildingImportService()
         {
-            // .NET Framework: forzar TLS 1.2 hacia Nominatim / Overpass.
+            // .NET Framework: forzar TLS 1.2 hacia Nominatim / Overpass / Catastro.
             try
             {
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
@@ -40,9 +50,9 @@ namespace Desing.Services
         private static HttpClient CreateClient()
         {
             var c = new HttpClient();
-            c.Timeout = TimeSpan.FromSeconds(45);
+            c.Timeout = TimeSpan.FromSeconds(60);
             c.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", UserAgent);
-            c.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json");
+            c.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json, application/xml, text/xml, */*");
             return c;
         }
 
@@ -96,28 +106,343 @@ namespace Desing.Services
             double south, double west, double north, double east)
         {
             NormalizeBbox(ref south, ref west, ref north, ref east);
+            // Evitar consultas enormes: recortar al centro (~2 km) en vez de fallar en silencio.
+            const double maxAreaDeg2 = 0.0008; // ~1–2 km según latitud
             var areaDeg2 = Math.Abs(north - south) * Math.Abs(east - west);
-            // Evitar consultas enormes a Overpass (~ciudad completa).
-            if (areaDeg2 > 0.04) // ~ ~20 km × 20 km en lat media
-                throw new InvalidOperationException("Amplíe el zoom: el área del mapa es demasiado grande para cargar edificios.");
+            if (areaDeg2 > maxAreaDeg2)
+            {
+                var midLat = (south + north) * 0.5;
+                var midLng = (west + east) * 0.5;
+                const double half = 0.012; // ~1.3 km
+                south = midLat - half;
+                north = midLat + half;
+                west = midLng - half;
+                east = midLng + half;
+                NormalizeBbox(ref south, ref west, ref north, ref east);
+            }
 
+            Exception lastError = null;
+
+            // 1) Catastro INSPIRE (España): más fiable que Overpass y trae referencia catastral.
+            if (LooksLikeSpainBbox(south, west, north, east))
+            {
+                try
+                {
+                    var catastro = await FetchBuildingsFromCatastroWfsAsync(south, west, north, east)
+                        .ConfigureAwait(false);
+                    if (catastro != null && catastro.Count > 0)
+                        return catastro;
+                }
+                catch (Exception ex)
+                {
+                    lastError = ex;
+                }
+            }
+
+            // 2) Overpass OSM (varios mirrors).
+            try
+            {
+                var osm = await FetchBuildingsFromOverpassAsync(south, west, north, east).ConfigureAwait(false);
+                if (osm != null && osm.Count > 0)
+                    return osm;
+            }
+            catch (Exception ex)
+            {
+                lastError = ex;
+            }
+
+            if (lastError != null)
+                throw new InvalidOperationException(
+                    "No se pudieron cargar edificios (Catastro/OSM): " + lastError.Message,
+                    lastError);
+
+            return new List<OsmBuildingFootprintDTO>();
+        }
+
+        /// <summary>
+        /// Consulta referencia catastral + dirección por coordenadas WGS84 (parcela bajo el punto).
+        /// </summary>
+        public async Task<CatastroRcLookupResultDTO> LookupCatastroByCoordsAsync(double lat, double lng)
+        {
+            var url =
+                CatastroRcCoorJsonUrl +
+                "?SRS=" + Uri.EscapeDataString("EPSG:4326") +
+                "&CoorX=" + lng.ToString(CultureInfo.InvariantCulture) +
+                "&CoorY=" + lat.ToString(CultureInfo.InvariantCulture);
+
+            var json = await Http.GetStringAsync(url).ConfigureAwait(false);
+            return ParseCatastroRcCoorJson(json, lat, lng);
+        }
+
+        private async Task<List<OsmBuildingFootprintDTO>> FetchBuildingsFromCatastroWfsAsync(
+            double south, double west, double north, double east)
+        {
+            // WFS bbox: minLat,minLon,maxLat,maxLon,EPSG:4326 — count acotado.
+            var bbox = string.Format(
+                CultureInfo.InvariantCulture,
+                "{0},{1},{2},{3},EPSG:4326",
+                south, west, north, east);
+            var url =
+                CatastroWfsBuUrl +
+                "?service=WFS&version=2.0.0&request=GetFeature" +
+                "&typenames=" + Uri.EscapeDataString("bu:Building") +
+                "&srsName=" + Uri.EscapeDataString("EPSG:4326") +
+                "&bbox=" + Uri.EscapeDataString(bbox) +
+                "&count=120";
+
+            using (var resp = await Http.GetAsync(url).ConfigureAwait(false))
+            {
+                resp.EnsureSuccessStatusCode();
+                var bytes = await resp.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+                // Catastro suele declarar ISO-8859-1; fallback Latin1 si no hay charset.
+                var charset = resp.Content.Headers.ContentType != null
+                    ? resp.Content.Headers.ContentType.CharSet
+                    : null;
+                Encoding enc;
+                try
+                {
+                    enc = !string.IsNullOrWhiteSpace(charset)
+                        ? Encoding.GetEncoding(charset)
+                        : Encoding.GetEncoding("ISO-8859-1");
+                }
+                catch
+                {
+                    enc = Encoding.GetEncoding("ISO-8859-1");
+                }
+
+                var xml = enc.GetString(bytes);
+                if (xml.IndexOf("ExceptionReport", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    xml.IndexOf("<Exception", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    throw new InvalidOperationException("Catastro WFS devolvió error en el área solicitada.");
+                }
+
+                return ParseCatastroBuildingGml(xml);
+            }
+        }
+
+        private async Task<List<OsmBuildingFootprintDTO>> FetchBuildingsFromOverpassAsync(
+            double south, double west, double north, double east)
+        {
             var query = new StringBuilder();
             query.Append("[out:json][timeout:25];");
             query.AppendFormat(
                 CultureInfo.InvariantCulture,
                 "(way[\"building\"]({0},{1},{2},{3}););out body;>;out skel qt;",
                 south, west, north, east);
+            var data = query.ToString();
 
-            using (var content = new FormUrlEncodedContent(new[]
+            Exception last = null;
+            foreach (var endpoint in OverpassUrls)
             {
-                new KeyValuePair<string, string>("data", query.ToString())
-            }))
-            using (var resp = await Http.PostAsync(OverpassUrl, content).ConfigureAwait(false))
-            {
-                resp.EnsureSuccessStatusCode();
-                var json = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
-                return ParseOverpassBuildings(json);
+                try
+                {
+                    using (var content = new FormUrlEncodedContent(new[]
+                    {
+                        new KeyValuePair<string, string>("data", data)
+                    }))
+                    using (var resp = await Http.PostAsync(endpoint, content).ConfigureAwait(false))
+                    {
+                        if (!resp.IsSuccessStatusCode)
+                        {
+                            last = new InvalidOperationException(
+                                endpoint + " HTTP " + (int)resp.StatusCode);
+                            continue;
+                        }
+
+                        var json = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        var list = ParseOverpassBuildings(json);
+                        if (list.Count > 0)
+                            return list;
+                        last = new InvalidOperationException(endpoint + " sin edificios en el área.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    last = ex;
+                }
             }
+
+            if (last != null) throw last;
+            return new List<OsmBuildingFootprintDTO>();
+        }
+
+        internal static List<OsmBuildingFootprintDTO> ParseCatastroBuildingGml(string xml)
+        {
+            var result = new List<OsmBuildingFootprintDTO>();
+            if (string.IsNullOrWhiteSpace(xml)) return result;
+
+            var doc = new XmlDocument();
+            doc.XmlResolver = null;
+            doc.LoadXml(xml);
+
+            foreach (XmlNode node in doc.GetElementsByTagName("*"))
+            {
+                if (node == null || node.LocalName != "Building") continue;
+
+                var localId = FirstChildLocalValue(node, "localId")
+                    ?? FirstChildLocalValue(node, "reference");
+                if (string.IsNullOrWhiteSpace(localId))
+                {
+                    var gmlId = node.Attributes != null
+                        ? (node.Attributes.GetNamedItem("gml:id") ?? node.Attributes.GetNamedItem("id"))
+                        : null;
+                    if (gmlId != null && !string.IsNullOrWhiteSpace(gmlId.Value))
+                    {
+                        localId = gmlId.Value;
+                        const string prefix = "ES.SDGC.BU.";
+                        if (localId.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                            localId = localId.Substring(prefix.Length);
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(localId)) continue;
+
+                var ring = ParseFirstPosListRing(node);
+                ring = NormalizeClosedRing(ring);
+                if (ring.Count < 3) continue;
+
+                int? levels = null;
+                double? heightM = null;
+                var floorsRaw = FirstChildLocalValue(node, "numberOfFloorsAboveGround");
+                if (TryParseDouble(floorsRaw, out var floors) && floors > 0)
+                {
+                    levels = (int)Math.Round(floors);
+                    heightM = Math.Max(levels.Value * 3.0, 4.0);
+                }
+
+                result.Add(new OsmBuildingFootprintDTO
+                {
+                    OsmId = StableIdFromText(localId),
+                    TextLabel = localId.Trim(),
+                    BuildingType = "catastro",
+                    Ring = ring,
+                    HeightM = heightM,
+                    Levels = levels,
+                    CadastralRef = localId.Trim(),
+                    Source = "Catastro"
+                });
+            }
+
+            return result;
+        }
+
+        internal static CatastroRcLookupResultDTO ParseCatastroRcCoorJson(string json, double lat, double lng)
+        {
+            var root = JObject.Parse(json ?? "{}");
+            var resultNode = root["Consulta_RCCOORResult"] as JObject ?? root;
+            var control = resultNode["control"] as JObject;
+            if (control != null && control["cuerr"] != null &&
+                TryParseLong(control["cuerr"], out var errCount) && errCount > 0)
+            {
+                var des = resultNode["lerr"]?.First?["des"]?.ToString();
+                throw new InvalidOperationException(
+                    string.IsNullOrWhiteSpace(des) ? "Catastro sin referencia en ese punto." : des.Trim());
+            }
+
+            var coord = resultNode["coordenadas_result"]?["coord"]?.First as JObject
+                ?? resultNode["coordenadas"]?["coord"]?.First as JObject;
+            if (coord == null)
+                throw new InvalidOperationException("Catastro no devolvió parcela para esas coordenadas.");
+
+            var pc = coord["pc"] as JObject;
+            var pc1 = (string)(pc?["pc1"] ?? coord["pc1"]);
+            var pc2 = (string)(pc?["pc2"] ?? coord["pc2"]);
+            var rc = ((pc1 ?? string.Empty) + (pc2 ?? string.Empty)).Trim();
+            if (rc.Length == 0)
+                throw new InvalidOperationException("Catastro devolvió parcela sin referencia.");
+
+            var address = ((string)coord["ldt"] ?? (string)coord["dir"] ?? string.Empty).Trim();
+            return new CatastroRcLookupResultDTO
+            {
+                CadastralRef = rc,
+                Address = address,
+                Lat = lat,
+                Lng = lng
+            };
+        }
+
+        private static List<OsmLatLngDTO> ParseFirstPosListRing(XmlNode buildingNode)
+        {
+            var ring = new List<OsmLatLngDTO>();
+            if (buildingNode == null) return ring;
+            var nodes = buildingNode.SelectNodes(".//*[local-name()='posList']");
+            if (nodes == null) return ring;
+            foreach (XmlNode n in nodes)
+            {
+                if (n == null || string.IsNullOrWhiteSpace(n.InnerText)) continue;
+                var parts = n.InnerText.Trim().Split(
+                    new[] { ' ', '\t', '\r', '\n' },
+                    StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length < 6) continue;
+                for (int i = 0; i + 1 < parts.Length; i += 2)
+                {
+                    if (!double.TryParse(parts[i], NumberStyles.Float, CultureInfo.InvariantCulture, out var a))
+                        continue;
+                    if (!double.TryParse(parts[i + 1], NumberStyles.Float, CultureInfo.InvariantCulture, out var b))
+                        continue;
+                    // INSPIRE Catastro EPSG:4326 en posList: lat lon
+                    double lat = a;
+                    double lng = b;
+                    if (Math.Abs(a) > 90 && Math.Abs(b) <= 90)
+                    {
+                        lng = a;
+                        lat = b;
+                    }
+                    ring.Add(new OsmLatLngDTO { Lat = lat, Lng = lng });
+                }
+                if (ring.Count >= 3) break;
+                ring.Clear();
+            }
+            return ring;
+        }
+
+        private static string FirstChildLocalValue(XmlNode root, string localName)
+        {
+            if (root == null || string.IsNullOrEmpty(localName)) return null;
+            var nodes = root.SelectNodes(".//*[local-name()='" + localName + "']");
+            if (nodes == null) return null;
+            foreach (XmlNode n in nodes)
+            {
+                if (n == null) continue;
+                var t = (n.InnerText ?? string.Empty).Trim();
+                if (t.Length > 0) return t;
+            }
+            return null;
+        }
+
+        private static long StableIdFromText(string text)
+        {
+            unchecked
+            {
+                long h = 1469598103934665603L; // FNV-ish
+                foreach (var ch in text ?? string.Empty)
+                {
+                    h ^= ch;
+                    h *= 1099511628211L;
+                }
+                if (h == 0) h = 1;
+                // Evitar colisión visual con OSM way ids positivos habituales: usar negativo.
+                return h > 0 ? -h : h;
+            }
+        }
+
+        private static bool LooksLikeSpainBbox(double south, double west, double north, double east)
+        {
+            var midLat = (south + north) * 0.5;
+            var midLng = (west + east) * 0.5;
+            return midLat >= 27.0 && midLat <= 44.5 && midLng >= -19.0 && midLng <= 5.5;
+        }
+
+        private static bool TryParseDouble(string raw, out double value)
+        {
+            value = 0;
+            if (string.IsNullOrWhiteSpace(raw)) return false;
+            return double.TryParse(
+                raw.Trim().Replace(',', '.'),
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out value);
         }
 
         public DeteccionEsquinasLDTO BuildSketchFromFootprint(OsmBuildingImportRequestDTO request)
@@ -210,7 +535,8 @@ namespace Desing.Services
                     BuildingType = string.IsNullOrWhiteSpace(building) ? "yes" : building.Trim(),
                     Ring = ring,
                     HeightM = heightM,
-                    Levels = levels
+                    Levels = levels,
+                    Source = "Osm"
                 });
             }
 
