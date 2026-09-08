@@ -193,8 +193,155 @@
         if (!btn) return;
 
         const systemToggle = document.getElementById('ma-stl-mode-system-dropdown');
+        const overlayRoot = document.getElementById('ma-stl-formwork-render-overlay');
+        const overlayTitle = document.getElementById('ma-stl-formwork-render-title');
+        const overlayStatus = document.getElementById('ma-stl-formwork-render-status');
+        const overlayEta = document.getElementById('ma-stl-formwork-render-eta');
+        const overlayBar = document.getElementById('ma-stl-formwork-render-bar');
+        const overlayProgress = overlayRoot
+            ? overlayRoot.querySelector('.desing2-stl-render-overlay__progress')
+            : null;
+        let formworkBusy = false;
+        let formworkTickTimer = null;
+        let formworkState = null;
+
+        function overlayAttr(name, fallback) {
+            if (!overlayRoot) return fallback;
+            const v = overlayRoot.getAttribute(name);
+            return v != null && String(v).trim() !== '' ? String(v) : fallback;
+        }
+
+        function overlayFill(tpl, value) {
+            return String(tpl || '').replace('{0}', String(value));
+        }
+
+        function formatFormworkEta(ms) {
+            const almost = overlayAttr(
+                'data-ma-stl-formwork-eta-almost',
+                'Casi listo…'
+            );
+            if (!(ms > 0) || ms < 1400) return almost;
+            const sec = Math.max(1, Math.ceil(ms / 1000));
+            if (sec < 55) {
+                return overlayFill(
+                    overlayAttr('data-ma-stl-formwork-eta-seconds', 'Quedan unos {0} s'),
+                    sec
+                );
+            }
+            const min = Math.max(1, Math.round(sec / 60));
+            if (min <= 1) {
+                return overlayAttr('data-ma-stl-formwork-eta-minute', 'Queda 1 min');
+            }
+            return overlayFill(
+                overlayAttr('data-ma-stl-formwork-eta-minutes', 'Quedan unos {0} min'),
+                min
+            );
+        }
+
+        function estimateServerMs(wallCount) {
+            const n = Math.max(1, wallCount || 1);
+            return 1600 + n * 420;
+        }
+
+        function stopFormworkTicker() {
+            if (formworkTickTimer) {
+                window.clearInterval(formworkTickTimer);
+                formworkTickTimer = null;
+            }
+        }
+
+        function refreshFormworkOverlay() {
+            if (!overlayRoot || !formworkState) return;
+            const now = Date.now();
+            let remainingMs;
+            let pct;
+            if (formworkState.phase === 'paint' && formworkState.total > 0) {
+                const done = Math.max(0, formworkState.done || 0);
+                const total = formworkState.total;
+                const elapsedPaint = Math.max(1, now - (formworkState.paintStartedAt || now));
+                const avgMs = done > 0 ? elapsedPaint / done : 70;
+                remainingMs = Math.max(500, (total - done) * avgMs);
+                pct = Math.max(8, Math.min(99, Math.round((done / total) * 100)));
+                if (overlayStatus) {
+                    overlayStatus.textContent = overlayAttr(
+                        'data-ma-stl-formwork-phase-paint',
+                        'Pintando paneles…'
+                    );
+                }
+            } else {
+                const predicted = formworkState.predictedMs || estimateServerMs(formworkState.wallCount);
+                const elapsed = now - formworkState.startedAt;
+                remainingMs = Math.max(1100, predicted - elapsed * 0.72);
+                pct = Math.max(6, Math.min(42, Math.round((elapsed / predicted) * 38)));
+                if (overlayStatus) {
+                    overlayStatus.textContent = overlayAttr(
+                        'data-ma-stl-formwork-phase-server',
+                        'Calculando módulos…'
+                    );
+                }
+            }
+            if (overlayEta) overlayEta.textContent = formatFormworkEta(remainingMs);
+            if (overlayBar) overlayBar.style.width = pct + '%';
+            if (overlayProgress) overlayProgress.setAttribute('aria-valuenow', String(pct));
+        }
+
+        function showFormworkOverlay(systemName, wallCount) {
+            if (!overlayRoot) return;
+            formworkState = {
+                phase: 'server',
+                startedAt: Date.now(),
+                wallCount: wallCount,
+                predictedMs: estimateServerMs(wallCount),
+                done: 0,
+                total: 0,
+                paintStartedAt: 0,
+            };
+            const titleTpl = overlayAttr(
+                'data-ma-stl-formwork-title',
+                'Renderizando sistema {0}'
+            );
+            if (overlayTitle) overlayTitle.textContent = overlayFill(titleTpl, systemName || 'ATK-60');
+            overlayRoot.classList.remove('d-none');
+            overlayRoot.setAttribute('aria-hidden', 'false');
+            overlayRoot.setAttribute('aria-busy', 'true');
+            refreshFormworkOverlay();
+            stopFormworkTicker();
+            formworkTickTimer = window.setInterval(refreshFormworkOverlay, 280);
+        }
+
+        function beginFormworkPaintPhase(total) {
+            if (!formworkState) return;
+            formworkState.phase = 'paint';
+            formworkState.total = Math.max(0, total || 0);
+            formworkState.done = 0;
+            formworkState.paintStartedAt = Date.now();
+            refreshFormworkOverlay();
+        }
+
+        function updateFormworkPaintProgress(done, total) {
+            if (!formworkState) return;
+            formworkState.phase = 'paint';
+            if (Number.isFinite(total)) formworkState.total = Math.max(0, total);
+            if (Number.isFinite(done)) formworkState.done = Math.max(0, done);
+            refreshFormworkOverlay();
+        }
+
+        function hideFormworkOverlay() {
+            stopFormworkTicker();
+            formworkState = null;
+            if (overlayBar) overlayBar.style.width = '100%';
+            if (overlayRoot) {
+                overlayRoot.classList.add('d-none');
+                overlayRoot.setAttribute('aria-hidden', 'true');
+                overlayRoot.setAttribute('aria-busy', 'false');
+            }
+            formworkBusy = false;
+            btn.disabled = false;
+            btn.classList.remove('disabled');
+        }
 
         btn.addEventListener('click', function () {
+            if (formworkBusy || btn.disabled) return;
             const selectedSystem = ((systemToggle && systemToggle.textContent) || '').trim();
 
             if (selectedSystem !== 'Atk-60') {
@@ -551,6 +698,11 @@
                 return;
             }
 
+            formworkBusy = true;
+            btn.disabled = true;
+            btn.classList.add('disabled');
+            showFormworkOverlay(selectedSystem === 'Atk-60' ? 'ATK-60' : (selectedSystem || 'ATK-60'), walls.length);
+
             window.jQuery.ajax({
                 type: 'POST',
                 url: atk60Url,
@@ -561,6 +713,7 @@
                 success: function (resp) {
                     if (!resp || resp.Exito !== true) {
                         console.error((resp && resp.Mensaje) || 'No se pudo iniciar Encofrar ATK-60.');
+                        hideFormworkOverlay();
                         return;
                     }
 
@@ -586,8 +739,16 @@
                         console.error('No existe API maStlDesing2RenderAtk60AnchorPoints.');
                     }
 
+                    let paintDone = Promise.resolve();
                     if (typeof renderElements === 'function') {
-                        renderElements(elementItems, { clearPrevious: false })
+                        beginFormworkPaintPhase(elementItems.length);
+                        paintDone = renderElements(elementItems, {
+                            clearPrevious: false,
+                            onProgress: function (info) {
+                                if (!info) return;
+                                updateFormworkPaintProgress(info.done, info.total);
+                            },
+                        })
                             .then(function (result) {
                                 const inserted = result && result.inserted != null ? result.inserted : 0;
                                 const requested = result && result.requested != null ? result.requested : 0;
@@ -603,10 +764,12 @@
 
                     const wallsReturned = Array.isArray(resp.Walls) ? resp.Walls : [];
                     console.info('Muros recibidos (' + wallsReturned.length + '):', wallsReturned);
+                    paintDone.then(hideFormworkOverlay, hideFormworkOverlay);
                 },
                 error: function (xhr, _status, err) {
                     const serverMsg = xhr && xhr.responseJSON && xhr.responseJSON.Mensaje;
                     console.error('Error al encofrar:', (serverMsg || (err && err.message) || 'Error HTTP'));
+                    hideFormworkOverlay();
                 },
             });
         });

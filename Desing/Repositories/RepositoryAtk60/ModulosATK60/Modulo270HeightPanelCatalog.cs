@@ -312,7 +312,9 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
                 var isTumbado = string.Equals(template.Orientation, "Tumbado", StringComparison.OrdinalIgnoreCase);
                 if (isTumbado)
                 {
-                    var glb = ExtractGlbCode(template.ElementCode);
+                    // Tumbado solo en 2,70 / 2,40 / 1,20. El GLB largo debe coincidir
+                    // con el modulo (si no, el de 2,70 se sale encima del 0,45).
+                    var glb = ResolveVerticalGlbCode(moduleLengthMm, template.PieceHeightMm);
                     pieces.Add(PieceTumbado(glb, template.PieceHeightMm, moduleLengthMm, template.UpOffsetMm));
                     continue;
                 }

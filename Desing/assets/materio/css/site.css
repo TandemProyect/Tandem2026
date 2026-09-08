@@ -376,6 +376,11 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     color: #0891b2;
 }
 
+.desing2-stl-view-scope .desing2-stl-wall-dim-readout--atk60-height {
+    font-weight: 600;
+    color: #0891b2;
+}
+
 .desing2-stl-view-scope .desing2-stl-wall-dim-readout--atk60-remate {
     font-weight: 500;
     color: #ca8a04;
@@ -1216,6 +1221,42 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     font-size: 0.95rem;
     font-weight: 700;
     letter-spacing: 0.01em;
+    text-align: center;
+}
+
+.desing2-stl-render-overlay__card--formwork {
+    min-width: 260px;
+    max-width: 360px;
+}
+
+.desing2-stl-render-overlay__status,
+.desing2-stl-render-overlay__eta {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #64748b;
+    text-align: center;
+    line-height: 1.35;
+}
+
+.desing2-stl-render-overlay__eta {
+    font-variant-numeric: tabular-nums;
+    color: #0f172a;
+}
+
+.desing2-stl-render-overlay__progress {
+    width: 100%;
+    height: 0.42rem;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.08);
+    overflow: hidden;
+}
+
+.desing2-stl-render-overlay__progress-bar {
+    height: 100%;
+    width: 8%;
+    border-radius: inherit;
+    background: var(--bs-primary, #696cff);
+    transition: width 0.28s ease;
 }
 
 .desing2-stl-bottom-toolbar {

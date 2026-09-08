@@ -15,6 +15,13 @@
         catch { return fallback; }
     };
     var wallModelRenderingText = maStr("StlPreview_WallModelRendering", "Generando modelo de muros…");
+    var formworkRenderingTitle = maStr("StlPreview_FormworkRenderingTitle", "Renderizando sistema {0}");
+    var formworkRenderingPhaseServer = maStr("StlPreview_FormworkRenderingPhaseServer", "Calculando módulos…");
+    var formworkRenderingPhasePaint = maStr("StlPreview_FormworkRenderingPhasePaint", "Pintando paneles…");
+    var formworkRenderingRemainingSeconds = maStr("StlPreview_FormworkRenderingRemainingSeconds", "Quedan unos {0} s");
+    var formworkRenderingRemainingMinute = maStr("StlPreview_FormworkRenderingRemainingMinute", "Queda 1 min");
+    var formworkRenderingRemainingMinutes = maStr("StlPreview_FormworkRenderingRemainingMinutes", "Quedan unos {0} min");
+    var formworkRenderingAlmostDone = maStr("StlPreview_FormworkRenderingAlmostDone", "Casi listo…");
     var imageSketchErrorModalTitle = maStr("StlPreview_ImageSketchErrorModalTitle", "Error al analizar la imagen");
     var imageSketchErrorModalAccept = maStr("StlPreview_ImageSketchErrorModalAccept", "Aceptar");
 }
@@ -70,6 +77,28 @@
             <div class="desing2-stl-render-overlay__card shadow-lg">
                 <div class="spinner-border text-primary desing2-stl-render-overlay__spinner" role="status" aria-hidden="true"></div>
                 <div class="desing2-stl-render-overlay__text">@wallModelRenderingText</div>
+            </div>
+        </div>
+        <div id="ma-stl-formwork-render-overlay"
+             class="desing2-stl-render-overlay d-none"
+             aria-live="polite"
+             aria-atomic="true"
+             aria-busy="false"
+             data-ma-stl-formwork-title="@HttpUtility.HtmlAttributeEncode(formworkRenderingTitle)"
+             data-ma-stl-formwork-phase-server="@HttpUtility.HtmlAttributeEncode(formworkRenderingPhaseServer)"
+             data-ma-stl-formwork-phase-paint="@HttpUtility.HtmlAttributeEncode(formworkRenderingPhasePaint)"
+             data-ma-stl-formwork-eta-seconds="@HttpUtility.HtmlAttributeEncode(formworkRenderingRemainingSeconds)"
+             data-ma-stl-formwork-eta-minute="@HttpUtility.HtmlAttributeEncode(formworkRenderingRemainingMinute)"
+             data-ma-stl-formwork-eta-minutes="@HttpUtility.HtmlAttributeEncode(formworkRenderingRemainingMinutes)"
+             data-ma-stl-formwork-eta-almost="@HttpUtility.HtmlAttributeEncode(formworkRenderingAlmostDone)">
+            <div class="desing2-stl-render-overlay__card desing2-stl-render-overlay__card--formwork shadow-lg">
+                <div class="spinner-border text-primary desing2-stl-render-overlay__spinner" role="status" aria-hidden="true"></div>
+                <div id="ma-stl-formwork-render-title" class="desing2-stl-render-overlay__text">@formworkRenderingTitle.Replace("{0}", "ATK-60")</div>
+                <div id="ma-stl-formwork-render-status" class="desing2-stl-render-overlay__status">@formworkRenderingPhaseServer</div>
+                <div id="ma-stl-formwork-render-eta" class="desing2-stl-render-overlay__eta">@formworkRenderingAlmostDone</div>
+                <div class="desing2-stl-render-overlay__progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="8">
+                    <div id="ma-stl-formwork-render-bar" class="desing2-stl-render-overlay__progress-bar"></div>
+                </div>
             </div>
         </div>
         <div id="ma-stl-edge-rulers-overlay" class="ma-stl-edge-rulers-overlay d-none" aria-hidden="true">
