@@ -7306,6 +7306,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
         if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
         if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
+        maStlStopWallDimToolModesToolbar();
         maStlDesing2ClearGeneratedWallModels();
         maStlDesing2LastWallModelDetection = null;
         if (maStlWall2dModelMeshesGroup) maStlWall2dModelMeshesGroup.visible = false;
@@ -7329,6 +7330,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
         if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
         if (maStlIsInsertEnclosureToolActive()) maStlStopInsertEnclosureToolModesToolbar(false);
+        maStlStopWallDimToolModesToolbar();
         maStlDisposeUserFloorLineDimEdit(false);
         maStlClearUserFloorLineSelection();
         maStlDesing2ClearGeneratedWallModels();
@@ -7374,6 +7376,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
         if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
         if (maStlIsInsertEnclosureToolActive()) maStlStopInsertEnclosureToolModesToolbar(false);
+        maStlStopWallDimToolModesToolbar();
         maStlDisposeUserFloorLineDimEdit(false);
         maStlClearUserFloorLineSelection();
         maStlDesing2ClearGeneratedWallModels();
