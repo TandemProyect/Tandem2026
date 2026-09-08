@@ -42,14 +42,13 @@ namespace Desing.Repositories.RepositoryAtk60
                 return modulos;
             }
 
-            var allowedFinalModulesM = new[]
-            {
-                2.70, 2.55, 2.40, 2.25, 2.10, 1.95, 1.80, 1.65, 1.50,
-                1.35, 1.20, 1.05, 0.90, 0.75, 0.60, 0.45, 0.30
-            };
-
-            const double baseModuleM = 2.70;
-            const double epsM = 0.0005; // 0.5 mm
+            // Modulos fisicos pintables: 2,70 en bucle y el resto greedy
+            // 2,40 / 1,20 / 0,90 / 0,75 / 0,60 / 0,45 / 0,30 + remate de madera.
+            // No se emite 1,65 ni otros pasos 0,15 intermedios: 1,75 restante
+            // se parte en 1,20 + remate 0,10 + 0,45 (el remate va siempre entre 1,20 y 0,45).
+            var fillAfter270Mm = new[] { 2400, 1200, 900, 750, 600, 450, 300 };
+            const int baseModuleMm = 2700;
+            const int epsMm = 1;
 
             foreach (var item in walls)
             {
@@ -71,33 +70,31 @@ namespace Desing.Repositories.RepositoryAtk60
                     IdWall = idWall
                 };
 
-                if (longM <= epsM)
+                var longMm = (int)Math.Round(longM * 1000d);
+                if (longMm <= epsMm)
                 {
                     modulos.Add(module);
                     continue;
                 }
 
-                var n270 = (long)Math.Floor((longM + epsM) / baseModuleM);
-                var coveredByLoop = n270 * baseModuleM;
-                var remainder1 = Math.Max(0, longM - coveredByLoop);
+                var n270 = longMm / baseModuleMm;
+                AddModuleCount(module, 2.70, n270);
+                var remainingMm = longMm - (n270 * baseModuleMm);
 
-                var finalModule = 0.0;
-                for (var i = 0; i < allowedFinalModulesM.Length; i++)
+                for (var i = 0; i < fillAfter270Mm.Length; i++)
                 {
-                    var candidate = allowedFinalModulesM[i];
-                    if (candidate <= remainder1 + epsM)
+                    var sizeMm = fillAfter270Mm[i];
+                    var n = remainingMm / sizeMm;
+                    if (n <= 0)
                     {
-                        finalModule = candidate;
-                        break;
+                        continue;
                     }
+
+                    AddModuleCount(module, sizeMm / 1000.0, n);
+                    remainingMm -= n * sizeMm;
                 }
 
-                var remate = Math.Max(0, remainder1 - finalModule);
-
-                AddModuleCount(module, 2.70, n270);
-                AddModuleCount(module, finalModule, 1);
-                module.M_Remate = Math.Round(remate, 3);
-
+                module.M_Remate = Math.Round(remainingMm / 1000.0, 3);
                 modulos.Add(module);
             }
 
@@ -287,9 +284,12 @@ namespace Desing.Repositories.RepositoryAtk60
                     {
                         StartX = sx,
                         StartZ = sz,
+                        EndX = ex,
+                        EndZ = ez,
                         // Base previo a offset normal (centro - L/2)
                         InsertX = insertX,
                         InsertZ = insertZ,
+                        YawRad = yawRad,
                         FaceSign = faceSign,
                         WidthMm = widthMm,
                     },
@@ -333,7 +333,7 @@ namespace Desing.Repositories.RepositoryAtk60
 
             foreach (var moduloWall in modulos)
             {
-                if (moduloWall == null || string.IsNullOrWhiteSpace(moduloWall.IdWall) || moduloWall.M_270 <= 0)
+                if (moduloWall == null || string.IsNullOrWhiteSpace(moduloWall.IdWall))
                 {
                     continue;
                 }
@@ -350,8 +350,53 @@ namespace Desing.Repositories.RepositoryAtk60
                     continue;
                 }
 
-                outElements.AddRange(
-                    Modulo270PanelElementGenerator.Build(wall, anchor, moduloWall.M_270));
+                var totalModules = 0;
+                for (var bi = 0; bi < _moduleBuilders.Count; bi++)
+                {
+                    totalModules += (int)_moduleBuilders[bi].GetCount(moduloWall);
+                }
+
+                var remateMm = Math.Round(moduloWall.M_Remate * 1000d, 3);
+                var rematePending = remateMm > 1d && remateMm < 150d;
+                var cursorMm = 0d;
+                var indexOffset = 0;
+                for (var bi = 0; bi < _moduleBuilders.Count; bi++)
+                {
+                    var builder = _moduleBuilders[bi];
+                    var count = builder.GetCount(moduloWall);
+                    if (count <= 0)
+                    {
+                        continue;
+                    }
+
+                    // Remate siempre entre el 1,20 y los paneles menores (0,45, etc.).
+                    if (rematePending && builder.ModuleLengthMm < 1200)
+                    {
+                        outElements.AddRange(
+                            Modulo270PanelElementGenerator.BuildRemate(wall, anchor, remateMm, cursorMm));
+                        cursorMm += remateMm;
+                        rematePending = false;
+                    }
+
+                    outElements.AddRange(
+                        Modulo270PanelElementGenerator.Build(
+                            wall,
+                            anchor,
+                            count,
+                            builder.ModuleLengthMm,
+                            cursorMm,
+                            indexOffset,
+                            totalModules > 0 ? totalModules : (int)count));
+
+                    cursorMm += count * builder.ModuleLengthMm;
+                    indexOffset += (int)count;
+                }
+
+                if (rematePending)
+                {
+                    outElements.AddRange(
+                        Modulo270PanelElementGenerator.BuildRemate(wall, anchor, remateMm, cursorMm));
+                }
             }
 
             return outElements;
@@ -633,6 +678,8 @@ namespace Desing.Repositories.RepositoryAtk60
                 var ux = Math.Cos(yawRad);
                 var uz = Math.Sin(yawRad);
                 var cursorMm = 0d;
+                var remateMm = Math.Round(moduloWall.M_Remate * 1000d, 3);
+                var rematePending = remateMm > 1d && remateMm < 150d;
 
                 for (var bi = 0; bi < _moduleBuilders.Count; bi++)
                 {
@@ -641,6 +688,27 @@ namespace Desing.Repositories.RepositoryAtk60
                     if (count <= 0)
                     {
                         continue;
+                    }
+
+                    if (rematePending && builder.ModuleLengthMm < 1200)
+                    {
+                        var remateX = anchor.X + (ux * cursorMm);
+                        var remateZ = anchor.Z + (uz * cursorMm);
+                        outElements.Add(new Atk60ElementPaintItem
+                        {
+                            IdWall = moduloWall.IdWall,
+                            ElementCode = "REMATE_WOOD",
+                            ImportPath = string.Empty,
+                            Color = "wood-remate",
+                            X = remateX,
+                            Y = anchor.Y,
+                            Z = remateZ,
+                            RotX = anchor.RotX,
+                            RotY = anchor.RotY,
+                            RotZ = anchor.RotZ,
+                        });
+                        cursorMm += remateMm;
+                        rematePending = false;
                     }
 
                     for (var i = 0; i < count; i++)
@@ -680,7 +748,7 @@ namespace Desing.Repositories.RepositoryAtk60
                     }
                 }
 
-                if (moduloWall.M_Remate > 0)
+                if (rematePending)
                 {
                     var posX = anchor.X + (ux * cursorMm);
                     var posZ = anchor.Z + (uz * cursorMm);

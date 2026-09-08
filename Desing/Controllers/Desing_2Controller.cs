@@ -235,7 +235,7 @@ namespace Desing.Controllers
             try
             {
                 var jsonRaw = idsRequest != null ? idsRequest.IdsJson : null;
-                const string buildStamp = "ATK60-BACKEND-2026-07-15-03:00";
+                const string buildStamp = "ATK60-BACKEND-2026-07-17-FACESIGN-POSE";
                 var repository = new Atk60WallsRepository(new FormworkJsonCommonRepository());
                 var payload = repository.BuildPayloadFromIdsJson(jsonRaw);
 

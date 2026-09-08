@@ -10,20 +10,80 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
 
         internal static Modulo270Layout Resolve(double wallHeightMm)
         {
+            return ResolveForModule(wallHeightMm, 2700);
+        }
+
+        internal static Modulo270Layout ResolveForModule(double wallHeightMm, int moduleLengthMm)
+        {
+            if (moduleLengthMm < 300)
+            {
+                moduleLengthMm = 2700;
+            }
+
             var target = NormalizeTargetHeightMm(wallHeightMm);
 
+            // Modulos estrechos (0,30..0,90): solo paneles verticales.
+            // Ejemplo H=3,00 y modulo 0,45: 2,70x0,45 + 1,20x0,45. Sin tumbados.
+            if (IsNarrowLengthModule(moduleLengthMm))
+            {
+                return BuildNarrowModuleVerticalStack((int)target, moduleLengthMm);
+            }
+
             Modulo270Layout layout;
-            if (TryGetKnownLayout(target, out layout))
+            if (!TryGetKnownLayout(target, out layout) || layout == null)
             {
-                return layout;
+                layout = target > 2700d
+                    ? BuildMixedVerticalPlusTumbadoLayout(target)
+                    : BuildGreedyTumbadoLayout(target);
             }
 
-            if (target > 2700d)
+            return RemapLayoutToModuleLength(layout, moduleLengthMm);
+        }
+
+        private static bool IsNarrowLengthModule(int moduleLengthMm)
+        {
+            return moduleLengthMm == 300
+                || moduleLengthMm == 450
+                || moduleLengthMm == 600
+                || moduleLengthMm == 750
+                || moduleLengthMm == 900;
+        }
+
+        private static Modulo270Layout BuildNarrowModuleVerticalStack(int targetHeightMm, int widthMm)
+        {
+            var pieces = new List<Modulo270PieceLayout>();
+            var remaining = targetHeightMm;
+            var up = 0;
+
+            while (remaining >= 299)
             {
-                return BuildMixedVerticalPlusTumbadoLayout(target);
+                int familyH;
+                if (remaining > 2400)
+                {
+                    familyH = 2700;
+                }
+                else if (remaining > 1200)
+                {
+                    familyH = 2400;
+                }
+                else
+                {
+                    familyH = 1200;
+                }
+
+                var glb = ResolveVerticalGlbCode(familyH, widthMm);
+                pieces.Add(PieceVertical(glb, widthMm, familyH, 0, up));
+                remaining -= familyH;
+                up += familyH;
             }
 
-            return BuildGreedyTumbadoLayout(target);
+            if (pieces.Count == 0)
+            {
+                var glb = ResolveVerticalGlbCode(1200, widthMm);
+                pieces.Add(PieceVertical(glb, widthMm, 1200, 0, 0));
+            }
+
+            return Build(targetHeightMm, pieces.ToArray());
         }
 
         private static double NormalizeTargetHeightMm(double wallHeightMm)
@@ -226,7 +286,140 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
             };
         }
 
+        private static Modulo270Layout RemapLayoutToModuleLength(Modulo270Layout source, int moduleLengthMm)
+        {
+            if (source == null || source.Pieces == null || source.Pieces.Count == 0)
+            {
+                return source;
+            }
+
+            var columns = DecomposeLengthToPanelWidths(moduleLengthMm);
+            if (columns.Count == 0)
+            {
+                columns.Add(Math.Max(300, moduleLengthMm));
+            }
+
+            var pieces = new List<Modulo270PieceLayout>();
+            var seenVerticalKeys = new HashSet<string>(StringComparer.Ordinal);
+            for (var i = 0; i < source.Pieces.Count; i++)
+            {
+                var template = source.Pieces[i];
+                if (template == null)
+                {
+                    continue;
+                }
+
+                var isTumbado = string.Equals(template.Orientation, "Tumbado", StringComparison.OrdinalIgnoreCase);
+                if (isTumbado)
+                {
+                    var glb = ExtractGlbCode(template.ElementCode);
+                    pieces.Add(PieceTumbado(glb, template.PieceHeightMm, moduleLengthMm, template.UpOffsetMm));
+                    continue;
+                }
+
+                var key = template.UpOffsetMm.ToString() + ":" + template.PieceHeightMm.ToString();
+                if (!seenVerticalKeys.Add(key))
+                {
+                    continue;
+                }
+
+                var along = 0;
+                for (var c = 0; c < columns.Count; c++)
+                {
+                    var width = columns[c];
+                    var glb = ResolveVerticalGlbCode(template.PieceHeightMm, width);
+                    pieces.Add(PieceVertical(glb, width, template.PieceHeightMm, along, template.UpOffsetMm));
+                    along += width;
+                }
+            }
+
+            return Build(source.CatalogHeightMm, pieces.ToArray());
+        }
+
+        private static List<int> DecomposeLengthToPanelWidths(int lengthMm)
+        {
+            var options = new[] { 900, 750, 600, 450, 300 };
+            var columns = new List<int>();
+            var remaining = Math.Max(0, lengthMm);
+            for (var i = 0; i < options.Length && remaining >= 299; i++)
+            {
+                while (remaining >= options[i])
+                {
+                    columns.Add(options[i]);
+                    remaining -= options[i];
+                }
+            }
+
+            return columns;
+        }
+
+        private static string ResolveVerticalGlbCode(int heightMm, int widthMm)
+        {
+            var family = 2700;
+            if (heightMm <= 1200)
+            {
+                family = 1200;
+            }
+            else if (heightMm <= 2400)
+            {
+                family = 2400;
+            }
+
+            if (family == 1200)
+            {
+                switch (widthMm)
+                {
+                    case 900: return "12904215";
+                    case 750: return "12754120";
+                    case 600: return "12604213";
+                    case 450: return "12454212";
+                    case 300: return "12304211";
+                }
+            }
+            else if (family == 2400)
+            {
+                switch (widthMm)
+                {
+                    case 900: return "24904240";
+                    case 750: return "24754224";
+                    case 600: return "24604242";
+                    case 450: return "24454243";
+                    case 300: return "24304244";
+                }
+            }
+
+            switch (widthMm)
+            {
+                case 750: return "27754219";
+                case 600: return "27604207";
+                case 450: return "27454206";
+                case 300: return "27304205";
+                default: return "27904209";
+            }
+        }
+
+        private static string ExtractGlbCode(string elementCode)
+        {
+            if (string.IsNullOrWhiteSpace(elementCode))
+            {
+                return "27904209";
+            }
+
+            const string prefix = "PANEL_";
+            if (elementCode.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                return elementCode.Substring(prefix.Length);
+            }
+
+            return elementCode;
+        }
+
         private static Modulo270PieceLayout PieceVertical(string glbCode, int widthMm, int heightMm, int alongOffsetMm)
+        {
+            return PieceVertical(glbCode, widthMm, heightMm, alongOffsetMm, 0);
+        }
+
+        private static Modulo270PieceLayout PieceVertical(string glbCode, int widthMm, int heightMm, int alongOffsetMm, int upOffsetMm)
         {
             return new Modulo270PieceLayout
             {
@@ -236,7 +429,14 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
                 PieceWidthMm = widthMm,
                 PieceHeightMm = heightMm,
                 AlongOffsetMm = alongOffsetMm,
-                UpOffsetMm = 0,
+                UpOffsetMm = upOffsetMm,
+                InsertOffsetX = 0,
+                InsertOffsetY = 0,
+                InsertOffsetZ = 0,
+                BaseRotX = 0,
+                BaseRotY = 0,
+                BaseRotZ = 0,
+                UseStrictPose = true,
             };
         }
 
@@ -251,6 +451,13 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
                 PieceHeightMm = heightMm,
                 AlongOffsetMm = 0,
                 UpOffsetMm = upOffsetMm,
+                InsertOffsetX = 0,
+                InsertOffsetY = 0,
+                InsertOffsetZ = 0,
+                BaseRotX = 0,
+                BaseRotY = 0,
+                BaseRotZ = -Math.PI * 0.5,
+                UseStrictPose = true,
             };
         }
     }
@@ -270,5 +477,12 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
         public int PieceHeightMm { get; set; }
         public int AlongOffsetMm { get; set; }
         public int UpOffsetMm { get; set; }
+        public double InsertOffsetX { get; set; }
+        public double InsertOffsetY { get; set; }
+        public double InsertOffsetZ { get; set; }
+        public double BaseRotX { get; set; }
+        public double BaseRotY { get; set; }
+        public double BaseRotZ { get; set; }
+        public bool UseStrictPose { get; set; }
     }
 }

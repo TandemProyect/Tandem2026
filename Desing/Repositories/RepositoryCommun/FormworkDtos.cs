@@ -88,8 +88,11 @@ namespace Desing.Repositories.RepositoryCommun
     {
         public double StartX { get; set; }
         public double StartZ { get; set; }
+        public double EndX { get; set; }
+        public double EndZ { get; set; }
         public double InsertX { get; set; }
         public double InsertZ { get; set; }
+        public double YawRad { get; set; }
         public double FaceSign { get; set; }
         public double WidthMm { get; set; }
     }
@@ -122,6 +125,13 @@ namespace Desing.Repositories.RepositoryCommun
         public double PieceHeightMm { get; set; }
         public double LocalAlongMm { get; set; }
         public double LocalUpMm { get; set; }
+        public double InsertOffsetX { get; set; }
+        public double InsertOffsetY { get; set; }
+        public double InsertOffsetZ { get; set; }
+        public double BaseRotX { get; set; }
+        public double BaseRotY { get; set; }
+        public double BaseRotZ { get; set; }
+        public bool UseStrictPose { get; set; }
         public int PieceIndexInModule { get; set; }
         public int PieceCountInModule { get; set; }
         public double CatalogHeightMm { get; set; }
