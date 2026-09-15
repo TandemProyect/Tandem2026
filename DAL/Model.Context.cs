@@ -67,5 +67,6 @@ namespace DAL
         public virtual DbSet<TSql_Jobside> TSql_Jobside { get; set; }
         public virtual DbSet<TSql_Design_V2> TSql_Design_V2 { get; set; }
         public virtual DbSet<TSql_Branch> TSql_Branch { get; set; }
+        public virtual DbSet<TSql_DesignWall> TSql_DesignWall { get; set; }
     }
 }

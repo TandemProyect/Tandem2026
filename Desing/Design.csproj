@@ -415,6 +415,7 @@
     <Compile Include="Repositories\RepositoryAtk60\ModulosATK60\Modulo270PanelElementGenerator.cs" />
     <Compile Include="Repositories\RepositoryCommun\FormworkDtos.cs" />
     <Compile Include="Repositories\RepositoryCommun\FormworkJsonCommonRepository.cs" />
+    <Compile Include="Repositories\RepositoryDesing2\DesignWallRepository.cs" />
     <Compile Include="Repositories\Atk60\Wall\Bracket_0.cs" />
     <Compile Include="Repositories\Atk60\Wall\Bracket_180.cs" />
     <Compile Include="Repositories\Atk60\Wall\Bracket_90.cs" />

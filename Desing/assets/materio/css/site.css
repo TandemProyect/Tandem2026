@@ -1259,6 +1259,17 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     transition: width 0.28s ease;
 }
 
+#ma-stl-viewer-shell {
+    position: relative;
+}
+
+.desing2-stl-persist-overlay {
+    z-index: 80;
+    background-color: rgba(15, 23, 42, 0.48);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+
 .desing2-stl-bottom-toolbar {
     position: absolute;
     right: 1rem;

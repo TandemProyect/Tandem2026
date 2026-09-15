@@ -343,6 +343,112 @@
           <Property Name="RematePosition270YMirror" Type="float" />
           <Property Name="IsPanel060" Type="bit" />
         </EntityType>
+        <EntityType Name="TSql_DesignWall">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TextLabel" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="LinkDesign_V2" Type="bigint" Nullable="false" />
+          <Property Name="TextClientWallId" Type="nvarchar" MaxLength="128" />
+          <Property Name="NumberLineId" Type="bigint" />
+          <Property Name="NumberWallGroupId" Type="bigint" />
+          <Property Name="NumberPolylineGroupId" Type="bigint" />
+          <Property Name="TextWallRole" Type="nvarchar" MaxLength="50" />
+          <Property Name="NumberLinkOffsetFromLineId" Type="bigint" />
+          <Property Name="NumberOffsetMm" Type="float" />
+          <Property Name="NumberWallFaceSideSign" Type="float" />
+          <Property Name="TextSystem" Type="nvarchar" MaxLength="50" />
+          <Property Name="NumberP1X" Type="float" Nullable="false" />
+          <Property Name="NumberP1Y" Type="float" Nullable="false" />
+          <Property Name="NumberP1Z" Type="float" Nullable="false" />
+          <Property Name="NumberP2X" Type="float" Nullable="false" />
+          <Property Name="NumberP2Y" Type="float" Nullable="false" />
+          <Property Name="NumberP2Z" Type="float" Nullable="false" />
+          <Property Name="NumberDrawP1X" Type="float" />
+          <Property Name="NumberDrawP1Y" Type="float" />
+          <Property Name="NumberDrawP1Z" Type="float" />
+          <Property Name="NumberDrawP2X" Type="float" />
+          <Property Name="NumberDrawP2Y" Type="float" />
+          <Property Name="NumberDrawP2Z" Type="float" />
+          <Property Name="TextTypeMesh" Type="nvarchar" MaxLength="50" />
+          <Property Name="NumberLong" Type="float" />
+          <Property Name="NumberWidth" Type="float" />
+          <Property Name="NumberHeight" Type="float" />
+          <Property Name="NumberXRotation" Type="float" />
+          <Property Name="NumberYRotation" Type="float" />
+          <Property Name="NumberZRotation" Type="float" />
+          <Property Name="NumberXCoordinate" Type="float" />
+          <Property Name="NumberYCoordinate" Type="float" />
+          <Property Name="NumberZCoordinate" Type="float" />
+          <Property Name="Is_Formwork" Type="bit" Nullable="false" />
+          <Property Name="Is_UniversalPanel" Type="bit" Nullable="false" />
+          <Property Name="TextTape_1" Type="nvarchar" MaxLength="50" />
+          <Property Name="TextTape_2" Type="nvarchar" MaxLength="50" />
+          <Property Name="TextIdConnection_1" Type="nvarchar" MaxLength="128" />
+          <Property Name="TextIdConnection_2" Type="nvarchar" MaxLength="128" />
+          <Property Name="Is_CheckBracketInside" Type="bit" Nullable="false" />
+          <Property Name="Is_CheckBracketOutside" Type="bit" Nullable="false" />
+          <Property Name="Is_CheckRijiInside" Type="bit" Nullable="false" />
+          <Property Name="Is_CheckRijiOutside" Type="bit" Nullable="false" />
+          <Property Name="Is_CheckPropInside" Type="bit" Nullable="false" />
+          <Property Name="Is_CheckPropOutside" Type="bit" Nullable="false" />
+          <Property Name="Is_CheckPropInsideInf" Type="bit" Nullable="false" />
+          <Property Name="Is_CheckPropOutsideInf" Type="bit" Nullable="false" />
+          <Property Name="TextTape_0" Type="nvarchar" MaxLength="50" />
+          <Property Name="TextTape_90" Type="nvarchar" MaxLength="50" />
+          <Property Name="TextTape_180" Type="nvarchar" MaxLength="50" />
+          <Property Name="TextTape_270" Type="nvarchar" MaxLength="50" />
+          <Property Name="TextTypeWall" Type="nvarchar" MaxLength="50" />
+          <Property Name="TextTypeWallLeft" Type="nvarchar" MaxLength="50" />
+          <Property Name="TextTypeWallRight" Type="nvarchar" MaxLength="50" />
+          <Property Name="TextTypeWall_0" Type="nvarchar" MaxLength="50" />
+          <Property Name="TextTypeWall_90" Type="nvarchar" MaxLength="50" />
+          <Property Name="TextTypeWall_180" Type="nvarchar" MaxLength="50" />
+          <Property Name="TextTypeWall_270" Type="nvarchar" MaxLength="50" />
+          <Property Name="TextSubLong_0" Type="nvarchar" MaxLength="50" />
+          <Property Name="TextSubLong_90" Type="nvarchar" MaxLength="50" />
+          <Property Name="TextSubLong_180" Type="nvarchar" MaxLength="50" />
+          <Property Name="TextSubLong_270" Type="nvarchar" MaxLength="50" />
+          <Property Name="TextIdWall_0" Type="nvarchar" MaxLength="128" />
+          <Property Name="TextIdWall_90" Type="nvarchar" MaxLength="128" />
+          <Property Name="TextIdWall_180" Type="nvarchar" MaxLength="128" />
+          <Property Name="TextIdWall_270" Type="nvarchar" MaxLength="128" />
+          <Property Name="TextGroup" Type="nvarchar" MaxLength="128" />
+          <Property Name="Is_PilarType" Type="bit" Nullable="false" />
+          <Property Name="Is_FormworkMode" Type="bit" Nullable="false" />
+          <Property Name="Is_Panel060" Type="bit" Nullable="false" />
+          <Property Name="Is_CheckDimWall" Type="bit" Nullable="false" />
+          <Property Name="Is_Check750R" Type="bit" Nullable="false" />
+          <Property Name="Is_SolutionCornerXUniversalPanelCorner" Type="bit" Nullable="false" />
+          <Property Name="Is_SolutionCornerYUniversalPanelCorner" Type="bit" Nullable="false" />
+          <Property Name="NumberRemate_0" Type="int" />
+          <Property Name="NumberRemate_90" Type="int" />
+          <Property Name="NumberRemate_180" Type="int" />
+          <Property Name="NumberRemate_270" Type="int" />
+          <Property Name="NumberRematePositionX" Type="float" />
+          <Property Name="NumberRematePositionXMirror" Type="float" />
+          <Property Name="NumberRematePosition90Y" Type="float" />
+          <Property Name="NumberRematePosition90YMirror" Type="float" />
+          <Property Name="NumberRematePosition180X" Type="float" />
+          <Property Name="NumberRematePosition180XMirror" Type="float" />
+          <Property Name="NumberRematePosition270Y" Type="float" />
+          <Property Name="NumberRematePosition270YMirror" Type="float" />
+          <Property Name="NumberLongLeft" Type="bigint" />
+          <Property Name="NumberLongRight" Type="bigint" />
+          <Property Name="NumberInitialWall" Type="bigint" />
+          <Property Name="NumberEndWall" Type="bigint" />
+          <Property Name="NumberIdCornerDown" Type="bigint" />
+          <Property Name="NumberIdCornerLeft" Type="bigint" />
+          <Property Name="NumberScaleEsqY" Type="bigint" />
+          <Property Name="Is_Delete" Type="bit" Nullable="false" />
+          <Property Name="Is_Active" Type="bit" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AddDateMade" Type="datetime" Nullable="false" />
+          <Property Name="AddLastDateChange" Type="datetime" />
+          <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
+        </EntityType>
         <EntityType Name="TSql_Document">
           <Key>
             <PropertyRef Name="IdObject" />
@@ -1298,6 +1404,18 @@
             </Principal>
             <Dependent Role="TSql_DesignDetails">
               <PropertyRef Name="LinDesaing" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_DesignWall_TSql_Design_V2">
+          <End Role="TSql_Design_V2" Type="Self.TSql_Design_V2" Multiplicity="1" />
+          <End Role="TSql_DesignWall" Type="Self.TSql_DesignWall" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Design_V2">
+              <PropertyRef Name="SysObjectID" />
+            </Principal>
+            <Dependent Role="TSql_DesignWall">
+              <PropertyRef Name="LinkDesign_V2" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -2263,6 +2381,7 @@
           <EntitySet Name="TSql_Design_V2" EntityType="Self.TSql_Design_V2" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_DesignCamera" EntityType="Self.TSql_DesignCamera" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_DesignDetails" EntityType="Self.TSql_DesignDetails" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_DesignWall" EntityType="Self.TSql_DesignWall" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_Document" EntityType="Self.TSql_Document" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_DocumentType" EntityType="Self.TSql_DocumentType" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_DocumentTypeExtension" EntityType="Self.TSql_DocumentTypeExtension" Schema="dbo" store:Type="Tables" />
@@ -2439,6 +2558,10 @@
           <AssociationSet Name="FK_TSql_DesignDetails_TSql_Design" Association="Self.FK_TSql_DesignDetails_TSql_Design">
             <End Role="TSql_Design" EntitySet="TSql_Design" />
             <End Role="TSql_DesignDetails" EntitySet="TSql_DesignDetails" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_DesignWall_TSql_Design_V2" Association="Self.FK_TSql_DesignWall_TSql_Design_V2">
+            <End Role="TSql_Design_V2" EntitySet="TSql_Design_V2" />
+            <End Role="TSql_DesignWall" EntitySet="TSql_DesignWall" />
           </AssociationSet>
           <AssociationSet Name="FK_TSql_Document_AspNetUsers" Association="Self.FK_TSql_Document_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
@@ -3275,6 +3398,11 @@
           <AssociationSet Name="FK_TSql_Jobside_TSql_Branch" Association="DesingEntity.FK_TSql_Jobside_TSql_Branch">
             <End Role="TSql_Branch" EntitySet="TSql_Branch" />
             <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
+          </AssociationSet>
+          <EntitySet Name="TSql_DesignWall" EntityType="DesingEntity.TSql_DesignWall" />
+          <AssociationSet Name="FK_TSql_DesignWall_TSql_Design_V2" Association="DesingEntity.FK_TSql_DesignWall_TSql_Design_V2">
+            <End Role="TSql_Design_V2" EntitySet="TSql_Design_V2" />
+            <End Role="TSql_DesignWall" EntitySet="TSql_DesignWall" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="TSql_Countrys">
@@ -5662,6 +5790,7 @@
           <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_Design_V2_AspNetUsers" FromRole="TSql_Design_V2" ToRole="AspNetUsers" />
           <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Design_V2_AspNetUsers1" FromRole="TSql_Design_V2" ToRole="AspNetUsers" />
           <NavigationProperty Name="TSql_Offers" Relationship="DesingEntity.FK_TSql_Design_V2_TSql_Offers" FromRole="TSql_Design_V2" ToRole="TSql_Offers" />
+          <NavigationProperty Name="TSql_DesignWall" Relationship="DesingEntity.FK_TSql_DesignWall_TSql_Design_V2" FromRole="TSql_Design_V2" ToRole="TSql_DesignWall" />
         </EntityType>
         <Association Name="FK_TSql_Design_V2_AspNetUsers">
           <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
@@ -5778,6 +5907,125 @@
             </Principal>
             <Dependent Role="TSql_Jobside">
               <PropertyRef Name="LinBranch" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="TSql_DesignWall">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TextLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="LinkDesign_V2" Type="Int64" Nullable="false" />
+          <Property Name="TextClientWallId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="NumberLineId" Type="Int64" />
+          <Property Name="NumberWallGroupId" Type="Int64" />
+          <Property Name="NumberPolylineGroupId" Type="Int64" />
+          <Property Name="TextWallRole" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="NumberLinkOffsetFromLineId" Type="Int64" />
+          <Property Name="NumberOffsetMm" Type="Double" />
+          <Property Name="NumberWallFaceSideSign" Type="Double" />
+          <Property Name="TextSystem" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="NumberP1X" Type="Double" Nullable="false" />
+          <Property Name="NumberP1Y" Type="Double" Nullable="false" />
+          <Property Name="NumberP1Z" Type="Double" Nullable="false" />
+          <Property Name="NumberP2X" Type="Double" Nullable="false" />
+          <Property Name="NumberP2Y" Type="Double" Nullable="false" />
+          <Property Name="NumberP2Z" Type="Double" Nullable="false" />
+          <Property Name="NumberDrawP1X" Type="Double" />
+          <Property Name="NumberDrawP1Y" Type="Double" />
+          <Property Name="NumberDrawP1Z" Type="Double" />
+          <Property Name="NumberDrawP2X" Type="Double" />
+          <Property Name="NumberDrawP2Y" Type="Double" />
+          <Property Name="NumberDrawP2Z" Type="Double" />
+          <Property Name="TextTypeMesh" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="NumberLong" Type="Double" />
+          <Property Name="NumberWidth" Type="Double" />
+          <Property Name="NumberHeight" Type="Double" />
+          <Property Name="NumberXRotation" Type="Double" />
+          <Property Name="NumberYRotation" Type="Double" />
+          <Property Name="NumberZRotation" Type="Double" />
+          <Property Name="NumberXCoordinate" Type="Double" />
+          <Property Name="NumberYCoordinate" Type="Double" />
+          <Property Name="NumberZCoordinate" Type="Double" />
+          <Property Name="Is_Formwork" Type="Boolean" Nullable="false" />
+          <Property Name="Is_UniversalPanel" Type="Boolean" Nullable="false" />
+          <Property Name="TextTape_1" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TextTape_2" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TextIdConnection_1" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="TextIdConnection_2" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Is_CheckBracketInside" Type="Boolean" Nullable="false" />
+          <Property Name="Is_CheckBracketOutside" Type="Boolean" Nullable="false" />
+          <Property Name="Is_CheckRijiInside" Type="Boolean" Nullable="false" />
+          <Property Name="Is_CheckRijiOutside" Type="Boolean" Nullable="false" />
+          <Property Name="Is_CheckPropInside" Type="Boolean" Nullable="false" />
+          <Property Name="Is_CheckPropOutside" Type="Boolean" Nullable="false" />
+          <Property Name="Is_CheckPropInsideInf" Type="Boolean" Nullable="false" />
+          <Property Name="Is_CheckPropOutsideInf" Type="Boolean" Nullable="false" />
+          <Property Name="TextTape_0" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TextTape_90" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TextTape_180" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TextTape_270" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TextTypeWall" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TextTypeWallLeft" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TextTypeWallRight" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TextTypeWall_0" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TextTypeWall_90" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TextTypeWall_180" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TextTypeWall_270" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TextSubLong_0" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TextSubLong_90" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TextSubLong_180" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TextSubLong_270" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TextIdWall_0" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="TextIdWall_90" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="TextIdWall_180" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="TextIdWall_270" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="TextGroup" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Is_PilarType" Type="Boolean" Nullable="false" />
+          <Property Name="Is_FormworkMode" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Panel060" Type="Boolean" Nullable="false" />
+          <Property Name="Is_CheckDimWall" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Check750R" Type="Boolean" Nullable="false" />
+          <Property Name="Is_SolutionCornerXUniversalPanelCorner" Type="Boolean" Nullable="false" />
+          <Property Name="Is_SolutionCornerYUniversalPanelCorner" Type="Boolean" Nullable="false" />
+          <Property Name="NumberRemate_0" Type="Int32" />
+          <Property Name="NumberRemate_90" Type="Int32" />
+          <Property Name="NumberRemate_180" Type="Int32" />
+          <Property Name="NumberRemate_270" Type="Int32" />
+          <Property Name="NumberRematePositionX" Type="Double" />
+          <Property Name="NumberRematePositionXMirror" Type="Double" />
+          <Property Name="NumberRematePosition90Y" Type="Double" />
+          <Property Name="NumberRematePosition90YMirror" Type="Double" />
+          <Property Name="NumberRematePosition180X" Type="Double" />
+          <Property Name="NumberRematePosition180XMirror" Type="Double" />
+          <Property Name="NumberRematePosition270Y" Type="Double" />
+          <Property Name="NumberRematePosition270YMirror" Type="Double" />
+          <Property Name="NumberLongLeft" Type="Int64" />
+          <Property Name="NumberLongRight" Type="Int64" />
+          <Property Name="NumberInitialWall" Type="Int64" />
+          <Property Name="NumberEndWall" Type="Int64" />
+          <Property Name="NumberIdCornerDown" Type="Int64" />
+          <Property Name="NumberIdCornerLeft" Type="Int64" />
+          <Property Name="NumberScaleEsqY" Type="Int64" />
+          <Property Name="Is_Delete" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Active" Type="Boolean" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AddLastDateChange" Type="DateTime" Precision="3" />
+          <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="TSql_Design_V2" Relationship="DesingEntity.FK_TSql_DesignWall_TSql_Design_V2" FromRole="TSql_DesignWall" ToRole="TSql_Design_V2" />
+        </EntityType>
+        <Association Name="FK_TSql_DesignWall_TSql_Design_V2">
+          <End Type="DesingEntity.TSql_Design_V2" Role="TSql_Design_V2" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_DesignWall" Role="TSql_DesignWall" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Design_V2">
+              <PropertyRef Name="SysObjectID" />
+            </Principal>
+            <Dependent Role="TSql_DesignWall">
+              <PropertyRef Name="LinkDesign_V2" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -6678,6 +6926,113 @@
                 <ScalarProperty Name="AddLetter" ColumnName="AddLetter" />
                 <ScalarProperty Name="AttLabel" ColumnName="AttLabel" />
                 <ScalarProperty Name="SysObjectID" ColumnName="SysObjectID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_DesignWall">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_DesignWall">
+              <MappingFragment StoreEntitySet="TSql_DesignWall">
+                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
+                <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
+                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
+                <ScalarProperty Name="Is_Delete" ColumnName="Is_Delete" />
+                <ScalarProperty Name="NumberScaleEsqY" ColumnName="NumberScaleEsqY" />
+                <ScalarProperty Name="NumberIdCornerLeft" ColumnName="NumberIdCornerLeft" />
+                <ScalarProperty Name="NumberIdCornerDown" ColumnName="NumberIdCornerDown" />
+                <ScalarProperty Name="NumberEndWall" ColumnName="NumberEndWall" />
+                <ScalarProperty Name="NumberInitialWall" ColumnName="NumberInitialWall" />
+                <ScalarProperty Name="NumberLongRight" ColumnName="NumberLongRight" />
+                <ScalarProperty Name="NumberLongLeft" ColumnName="NumberLongLeft" />
+                <ScalarProperty Name="NumberRematePosition270YMirror" ColumnName="NumberRematePosition270YMirror" />
+                <ScalarProperty Name="NumberRematePosition270Y" ColumnName="NumberRematePosition270Y" />
+                <ScalarProperty Name="NumberRematePosition180XMirror" ColumnName="NumberRematePosition180XMirror" />
+                <ScalarProperty Name="NumberRematePosition180X" ColumnName="NumberRematePosition180X" />
+                <ScalarProperty Name="NumberRematePosition90YMirror" ColumnName="NumberRematePosition90YMirror" />
+                <ScalarProperty Name="NumberRematePosition90Y" ColumnName="NumberRematePosition90Y" />
+                <ScalarProperty Name="NumberRematePositionXMirror" ColumnName="NumberRematePositionXMirror" />
+                <ScalarProperty Name="NumberRematePositionX" ColumnName="NumberRematePositionX" />
+                <ScalarProperty Name="NumberRemate_270" ColumnName="NumberRemate_270" />
+                <ScalarProperty Name="NumberRemate_180" ColumnName="NumberRemate_180" />
+                <ScalarProperty Name="NumberRemate_90" ColumnName="NumberRemate_90" />
+                <ScalarProperty Name="NumberRemate_0" ColumnName="NumberRemate_0" />
+                <ScalarProperty Name="Is_SolutionCornerYUniversalPanelCorner" ColumnName="Is_SolutionCornerYUniversalPanelCorner" />
+                <ScalarProperty Name="Is_SolutionCornerXUniversalPanelCorner" ColumnName="Is_SolutionCornerXUniversalPanelCorner" />
+                <ScalarProperty Name="Is_Check750R" ColumnName="Is_Check750R" />
+                <ScalarProperty Name="Is_CheckDimWall" ColumnName="Is_CheckDimWall" />
+                <ScalarProperty Name="Is_Panel060" ColumnName="Is_Panel060" />
+                <ScalarProperty Name="Is_FormworkMode" ColumnName="Is_FormworkMode" />
+                <ScalarProperty Name="Is_PilarType" ColumnName="Is_PilarType" />
+                <ScalarProperty Name="TextGroup" ColumnName="TextGroup" />
+                <ScalarProperty Name="TextIdWall_270" ColumnName="TextIdWall_270" />
+                <ScalarProperty Name="TextIdWall_180" ColumnName="TextIdWall_180" />
+                <ScalarProperty Name="TextIdWall_90" ColumnName="TextIdWall_90" />
+                <ScalarProperty Name="TextIdWall_0" ColumnName="TextIdWall_0" />
+                <ScalarProperty Name="TextSubLong_270" ColumnName="TextSubLong_270" />
+                <ScalarProperty Name="TextSubLong_180" ColumnName="TextSubLong_180" />
+                <ScalarProperty Name="TextSubLong_90" ColumnName="TextSubLong_90" />
+                <ScalarProperty Name="TextSubLong_0" ColumnName="TextSubLong_0" />
+                <ScalarProperty Name="TextTypeWall_270" ColumnName="TextTypeWall_270" />
+                <ScalarProperty Name="TextTypeWall_180" ColumnName="TextTypeWall_180" />
+                <ScalarProperty Name="TextTypeWall_90" ColumnName="TextTypeWall_90" />
+                <ScalarProperty Name="TextTypeWall_0" ColumnName="TextTypeWall_0" />
+                <ScalarProperty Name="TextTypeWallRight" ColumnName="TextTypeWallRight" />
+                <ScalarProperty Name="TextTypeWallLeft" ColumnName="TextTypeWallLeft" />
+                <ScalarProperty Name="TextTypeWall" ColumnName="TextTypeWall" />
+                <ScalarProperty Name="TextTape_270" ColumnName="TextTape_270" />
+                <ScalarProperty Name="TextTape_180" ColumnName="TextTape_180" />
+                <ScalarProperty Name="TextTape_90" ColumnName="TextTape_90" />
+                <ScalarProperty Name="TextTape_0" ColumnName="TextTape_0" />
+                <ScalarProperty Name="Is_CheckPropOutsideInf" ColumnName="Is_CheckPropOutsideInf" />
+                <ScalarProperty Name="Is_CheckPropInsideInf" ColumnName="Is_CheckPropInsideInf" />
+                <ScalarProperty Name="Is_CheckPropOutside" ColumnName="Is_CheckPropOutside" />
+                <ScalarProperty Name="Is_CheckPropInside" ColumnName="Is_CheckPropInside" />
+                <ScalarProperty Name="Is_CheckRijiOutside" ColumnName="Is_CheckRijiOutside" />
+                <ScalarProperty Name="Is_CheckRijiInside" ColumnName="Is_CheckRijiInside" />
+                <ScalarProperty Name="Is_CheckBracketOutside" ColumnName="Is_CheckBracketOutside" />
+                <ScalarProperty Name="Is_CheckBracketInside" ColumnName="Is_CheckBracketInside" />
+                <ScalarProperty Name="TextIdConnection_2" ColumnName="TextIdConnection_2" />
+                <ScalarProperty Name="TextIdConnection_1" ColumnName="TextIdConnection_1" />
+                <ScalarProperty Name="TextTape_2" ColumnName="TextTape_2" />
+                <ScalarProperty Name="TextTape_1" ColumnName="TextTape_1" />
+                <ScalarProperty Name="Is_UniversalPanel" ColumnName="Is_UniversalPanel" />
+                <ScalarProperty Name="Is_Formwork" ColumnName="Is_Formwork" />
+                <ScalarProperty Name="NumberZCoordinate" ColumnName="NumberZCoordinate" />
+                <ScalarProperty Name="NumberYCoordinate" ColumnName="NumberYCoordinate" />
+                <ScalarProperty Name="NumberXCoordinate" ColumnName="NumberXCoordinate" />
+                <ScalarProperty Name="NumberZRotation" ColumnName="NumberZRotation" />
+                <ScalarProperty Name="NumberYRotation" ColumnName="NumberYRotation" />
+                <ScalarProperty Name="NumberXRotation" ColumnName="NumberXRotation" />
+                <ScalarProperty Name="NumberHeight" ColumnName="NumberHeight" />
+                <ScalarProperty Name="NumberWidth" ColumnName="NumberWidth" />
+                <ScalarProperty Name="NumberLong" ColumnName="NumberLong" />
+                <ScalarProperty Name="TextTypeMesh" ColumnName="TextTypeMesh" />
+                <ScalarProperty Name="NumberDrawP2Z" ColumnName="NumberDrawP2Z" />
+                <ScalarProperty Name="NumberDrawP2Y" ColumnName="NumberDrawP2Y" />
+                <ScalarProperty Name="NumberDrawP2X" ColumnName="NumberDrawP2X" />
+                <ScalarProperty Name="NumberDrawP1Z" ColumnName="NumberDrawP1Z" />
+                <ScalarProperty Name="NumberDrawP1Y" ColumnName="NumberDrawP1Y" />
+                <ScalarProperty Name="NumberDrawP1X" ColumnName="NumberDrawP1X" />
+                <ScalarProperty Name="NumberP2Z" ColumnName="NumberP2Z" />
+                <ScalarProperty Name="NumberP2Y" ColumnName="NumberP2Y" />
+                <ScalarProperty Name="NumberP2X" ColumnName="NumberP2X" />
+                <ScalarProperty Name="NumberP1Z" ColumnName="NumberP1Z" />
+                <ScalarProperty Name="NumberP1Y" ColumnName="NumberP1Y" />
+                <ScalarProperty Name="NumberP1X" ColumnName="NumberP1X" />
+                <ScalarProperty Name="TextSystem" ColumnName="TextSystem" />
+                <ScalarProperty Name="NumberWallFaceSideSign" ColumnName="NumberWallFaceSideSign" />
+                <ScalarProperty Name="NumberOffsetMm" ColumnName="NumberOffsetMm" />
+                <ScalarProperty Name="NumberLinkOffsetFromLineId" ColumnName="NumberLinkOffsetFromLineId" />
+                <ScalarProperty Name="TextWallRole" ColumnName="TextWallRole" />
+                <ScalarProperty Name="NumberPolylineGroupId" ColumnName="NumberPolylineGroupId" />
+                <ScalarProperty Name="NumberWallGroupId" ColumnName="NumberWallGroupId" />
+                <ScalarProperty Name="NumberLineId" ColumnName="NumberLineId" />
+                <ScalarProperty Name="TextClientWallId" ColumnName="TextClientWallId" />
+                <ScalarProperty Name="LinkDesign_V2" ColumnName="LinkDesign_V2" />
+                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

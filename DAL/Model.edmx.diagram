@@ -163,6 +163,8 @@
         <AssociationConnector Association="DesingEntity.FK_TSql_Branch_AspNetUsers1" />
         <AssociationConnector Association="DesingEntity.FK_TSql_Branch_TSql_Company1" />
         <AssociationConnector Association="DesingEntity.FK_TSql_Jobside_TSql_Branch" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_DesignWall" Width="1.5" PointX="34" PointY="13.125" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_DesignWall_TSql_Design_V2" />
         </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

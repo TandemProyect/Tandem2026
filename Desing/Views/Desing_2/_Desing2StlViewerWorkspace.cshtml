@@ -22,6 +22,15 @@
     var formworkRenderingRemainingMinute = maStr("StlPreview_FormworkRenderingRemainingMinute", "Queda 1 min");
     var formworkRenderingRemainingMinutes = maStr("StlPreview_FormworkRenderingRemainingMinutes", "Quedan unos {0} min");
     var formworkRenderingAlmostDone = maStr("StlPreview_FormworkRenderingAlmostDone", "Casi listo…");
+    var saveWallsSavedToast = maStr("StlPreview_SaveWallsSavedToast", "Muros guardados");
+    var saveWallsNeedDesignToast = maStr("StlPreview_SaveWallsNeedDesignToast", "Abre un diseño para guardar los muros");
+    var saveWallsErrorToast = maStr("StlPreview_SaveWallsErrorToast", "No se pudieron guardar los muros");
+    var designSavingText = maStr("StlPreview_DesignSaving", "Guardando diseño…");
+    var designLoadingText = maStr("StlPreview_DesignLoading", "Cargando diseño…");
+    var leaveSaveTitle = maStr("StlPreview_LeaveSaveTitle", "Salir del diseño");
+    var leaveSaveMessage = maStr("StlPreview_LeaveSaveMessage", "¿Quieres guardar los muros antes de salir?");
+    var leaveSaveYes = maStr("StlPreview_LeaveSaveYes", "Sí");
+    var leaveSaveNo = maStr("StlPreview_LeaveSaveNo", "No");
     var imageSketchErrorModalTitle = maStr("StlPreview_ImageSketchErrorModalTitle", "Error al analizar la imagen");
     var imageSketchErrorModalAccept = maStr("StlPreview_ImageSketchErrorModalAccept", "Aceptar");
 }
@@ -29,7 +38,7 @@
    data-ma-stl-source-units: vértices STL → m → mm escena (×1000; reglas/rejilla en mm).
    Persistencia vista: #ma-stl-save-viewer-state → cookie global; restauración tras primer refit (ver desing-2-stl-viewer-funciones.md). *@
 @* Opcional desarrollo en #ma-stl-viewer-shell: data-ma-stl-dev-auto-load="true", data-ma-stl-dev-default-stl="~/Files/.../3120270090P.stl" (URL resuelta con @Url.Content), data-ma-stl-dev-default-label="..." *@
-<div id="ma-stl-viewer-shell" class="desing2-stl-view-scope border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" data-ma-text-color1="@HttpUtility.HtmlAttributeEncode(textColor1Hex)" data-ma-text-color2="@HttpUtility.HtmlAttributeEncode(textColor2Hex)" data-ma-stl-show-rulers-toggle="true" data-ma-stl-desing2-persist-view="true" data-ma-stl-source-units="@HttpUtility.HtmlAttributeEncode(stlSrcUnits)" data-ma-stl-wall3d-api-url="@Url.Action("ProcesarLineasZwcad", "DesignToolsAutocad")" data-ma-stl-image-sketch-api-url="@Url.Action("DetectarEsquinasImagen", "DesignToolsAutocad")" data-ma-stl-map-building-search-url="@Url.Action("BuscarDireccionOsm", "DesignToolsAutocad")" data-ma-stl-map-building-buildings-url="@Url.Action("BuscarEdificiosOsm", "DesignToolsAutocad")" data-ma-stl-map-building-import-url="@Url.Action("ImportarEdificioOsm", "DesignToolsAutocad")" data-ma-stl-map-building-catastro-url="@Url.Action("ConsultarCatastroPorCoordenadas", "DesignToolsAutocad")" data-ma-stl-wall-connections-api-url="@Url.Action("SaveWallConnections", "Desing_2")" data-ma-stl-wall-diagnostics-api-url="@Url.Action("SaveWallDiagnostics", "Desing_2")" data-ma-stl-wall3d-mat-wall="@Url.Content("~/Content/DesignTools/Material/concrete.png")" data-ma-stl-escape-cancel-toast="@MasterArticles.StlPreview_EscapeCancelToolsToast" data-ma-stl-user-floor-line-dim-edit-aria="@MasterArticles.StlPreview_UserFloorLineDimEditAria" data-ma-stl-user-floor-line-dim-edit-x-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaXAria" data-ma-stl-user-floor-line-dim-edit-z-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaZAria" data-ma-stl-user-floor-line-dim-edit-thickness-aria="@MasterArticles.StlPreview_UserFloorLineDimEditThicknessAria" data-ma-stl-user-floor-line-drag-handle-aria="@MasterArticles.StlPreview_UserFloorLineDragHandleAria" data-ma-stl-user-floor-line-p1-handle-aria="@MasterArticles.StlPreview_UserFloorLineP1HandleAria" data-ma-stl-user-floor-line-p2-handle-aria="@MasterArticles.StlPreview_UserFloorLineP2HandleAria">
+<div id="ma-stl-viewer-shell" class="desing2-stl-view-scope border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" data-ma-text-color1="@HttpUtility.HtmlAttributeEncode(textColor1Hex)" data-ma-text-color2="@HttpUtility.HtmlAttributeEncode(textColor2Hex)" data-ma-stl-show-rulers-toggle="true" data-ma-stl-desing2-persist-view="true" data-ma-stl-source-units="@HttpUtility.HtmlAttributeEncode(stlSrcUnits)" data-ma-stl-wall3d-api-url="@Url.Action("ProcesarLineasZwcad", "DesignToolsAutocad")" data-ma-stl-image-sketch-api-url="@Url.Action("DetectarEsquinasImagen", "DesignToolsAutocad")" data-ma-stl-map-building-search-url="@Url.Action("BuscarDireccionOsm", "DesignToolsAutocad")" data-ma-stl-map-building-buildings-url="@Url.Action("BuscarEdificiosOsm", "DesignToolsAutocad")" data-ma-stl-map-building-import-url="@Url.Action("ImportarEdificioOsm", "DesignToolsAutocad")" data-ma-stl-map-building-catastro-url="@Url.Action("ConsultarCatastroPorCoordenadas", "DesignToolsAutocad")" data-ma-stl-wall-connections-api-url="@Url.Action("SaveWallConnections", "Desing_2")" data-ma-stl-wall-diagnostics-api-url="@Url.Action("SaveWallDiagnostics", "Desing_2")" data-ma-stl-save-design-walls-api-url="@Url.Action("SaveDesignWalls", "Desing_2")" data-ma-stl-load-design-walls-api-url="@Url.Action("GetDesignWalls", "Desing_2")" data-ma-stl-design-id="@(Model.DesignId.HasValue ? Model.DesignId.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" data-ma-stl-wall3d-mat-wall="@Url.Content("~/Content/DesignTools/Material/concrete.png")" data-ma-stl-escape-cancel-toast="@MasterArticles.StlPreview_EscapeCancelToolsToast" data-ma-stl-user-floor-line-dim-edit-aria="@MasterArticles.StlPreview_UserFloorLineDimEditAria" data-ma-stl-user-floor-line-dim-edit-x-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaXAria" data-ma-stl-user-floor-line-dim-edit-z-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaZAria" data-ma-stl-user-floor-line-dim-edit-thickness-aria="@MasterArticles.StlPreview_UserFloorLineDimEditThicknessAria" data-ma-stl-user-floor-line-drag-handle-aria="@MasterArticles.StlPreview_UserFloorLineDragHandleAria" data-ma-stl-user-floor-line-p1-handle-aria="@MasterArticles.StlPreview_UserFloorLineP1HandleAria" data-ma-stl-user-floor-line-p2-handle-aria="@MasterArticles.StlPreview_UserFloorLineP2HandleAria">
     <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap px-2 py-2 border-bottom desing2-stl-actions-toolbar" id="master-article-stl-viewer-toolbar">
         <div class="d-flex align-items-center gap-2 min-w-0 flex-grow-1 desing2-stl-toolbar-leading">
             <span class="app-brand-logo demo flex-shrink-0">
@@ -43,7 +52,7 @@
             <button type="button" class="btn btn-sm btn-outline-secondary waves-effect" id="ma-stl-fullscreen-toggle" aria-pressed="false" title="@MasterArticles.StlPreview_FullscreenTitle">
                 <i class="icon-base ri ri-fullscreen-line" aria-hidden="true"></i>
             </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect" id="ma-stl-save-viewer-state" title="@MasterArticles.StlPreview_SaveViewTitle" data-ma-stl-save-view-title="@MasterArticles.StlPreview_SaveViewTitle" data-ma-stl-save-view-saved="@MasterArticles.StlPreview_SaveViewSavedTitle" data-ma-stl-save-view-toast="@MasterArticles.StlPreview_SaveViewSavedToast" aria-label="@MasterArticles.StlPreview_SaveViewAria">
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect" id="ma-stl-save-viewer-state" title="@MasterArticles.StlPreview_SaveViewTitle" data-ma-stl-save-view-title="@MasterArticles.StlPreview_SaveViewTitle" data-ma-stl-save-view-saved="@MasterArticles.StlPreview_SaveViewSavedTitle" data-ma-stl-save-view-toast="@MasterArticles.StlPreview_SaveViewSavedToast" data-ma-stl-save-walls-toast="@HttpUtility.HtmlAttributeEncode(saveWallsSavedToast)" data-ma-stl-save-walls-need-design="@HttpUtility.HtmlAttributeEncode(saveWallsNeedDesignToast)" data-ma-stl-save-walls-error="@HttpUtility.HtmlAttributeEncode(saveWallsErrorToast)" aria-label="@MasterArticles.StlPreview_SaveViewAria">
                 <i class="icon-base ri ri-save-3-line" aria-hidden="true"></i>
                 <span class="visually-hidden">@MasterArticles.StlPreview_SaveViewAria</span>
             </button>
@@ -67,7 +76,7 @@
                 <i class="icon-base ri ri-compass-3-line" aria-hidden="true"></i>
                 <span class="visually-hidden">@MasterArticles.StlPreview_XyzAxesAria</span>
             </button>
-            <a href="javascript:history.back()" class="btn btn-sm btn-outline-secondary waves-effect flex-shrink-0">@Common.Btn_Back</a>
+            <a href="#" class="btn btn-sm btn-outline-secondary waves-effect flex-shrink-0" id="ma-stl-leave-design">@Common.Btn_Back</a>
         </div>
     </div>
     <div id="master-article-details-stl-viewer-canvas" class="flex-grow-1 position-relative bg-white ma-stl-canvas--clips d-flex flex-column">
@@ -653,6 +662,23 @@
         <button type="button" class="d-none master-article-stl-load" id="desing2-initial-stl-boot" data-stl-url="@stlUrlAttr" data-slot-label="@stlLabelAttr"></button>
     }
     <div id="ma-stl-desing2-toast-container" class="toast-container position-fixed top-0 end-0 p-3 ma-stl-desing2-toast-container" aria-live="polite" aria-atomic="true"></div>
+    <div class="modal fade" id="ma-stl-leave-save-modal" tabindex="-1" aria-labelledby="ma-stl-leave-save-modal-title" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ma-stl-leave-save-modal-title">@leaveSaveTitle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@Common.Btn_Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">@leaveSaveMessage</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" id="ma-stl-leave-save-no">@leaveSaveNo</button>
+                    <button type="button" class="btn btn-primary" id="ma-stl-leave-save-yes" autofocus>@leaveSaveYes</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="modal fade desing2-stl-image-sketch-error-modal" id="ma-stl-image-sketch-error-modal" tabindex="-1" aria-labelledby="ma-stl-image-sketch-error-modal-title" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border border-danger border-2">
@@ -749,6 +775,19 @@
                     </button>
                 </div>
             </div>
+        </div>
+    </div>
+    <div id="ma-stl-design-persist-overlay"
+         class="desing2-stl-render-overlay desing2-stl-persist-overlay d-none"
+         aria-live="polite"
+         aria-atomic="true"
+         aria-hidden="true"
+         aria-busy="false"
+         data-ma-stl-saving="@HttpUtility.HtmlAttributeEncode(designSavingText)"
+         data-ma-stl-loading="@HttpUtility.HtmlAttributeEncode(designLoadingText)">
+        <div class="desing2-stl-render-overlay__card shadow-lg">
+            <div class="spinner-border text-primary desing2-stl-render-overlay__spinner" role="status" aria-hidden="true"></div>
+            <div id="ma-stl-design-persist-overlay-text" class="desing2-stl-render-overlay__text">@designSavingText</div>
         </div>
     </div>
 </div>

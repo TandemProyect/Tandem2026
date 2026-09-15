@@ -14,6 +14,12 @@ namespace DAL
     
     public partial class TSql_Design_V2
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public TSql_Design_V2()
+        {
+            this.TSql_DesignWall = new HashSet<TSql_DesignWall>();
+        }
+    
         public long SysObjectID { get; set; }
         public string AttLabel { get; set; }
         public string AttDescription { get; set; }
@@ -35,5 +41,7 @@ namespace DAL
         public virtual AspNetUsers AspNetUsers { get; set; }
         public virtual AspNetUsers AspNetUsers1 { get; set; }
         public virtual TSql_Offers TSql_Offers { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_DesignWall> TSql_DesignWall { get; set; }
     }
 }

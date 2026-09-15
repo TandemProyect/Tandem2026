@@ -5,6 +5,7 @@ using Desing.Helpers;
 using Desing.Models;
 using Desing.Repositories.RepositoryAtk60;
 using Desing.Repositories.RepositoryCommun;
+using Desing.Repositories.RepositoryDesing2;
 using Desing.Resources;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -221,6 +222,100 @@ namespace Desing.Controllers
             catch (Exception ex)
             {
                 return Json(new { Exito = false, Mensaje = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Persiste los muros del visor Desing_2 en dbo.TSql_DesignWall (borrado lógico + altas).
+        /// </summary>
+        [HttpPost]
+        public JsonResult SaveDesignWalls()
+        {
+            try
+            {
+                if (Request.InputStream.CanSeek)
+                {
+                    Request.InputStream.Position = 0;
+                }
+
+                string rawJson;
+                using (var reader = new StreamReader(Request.InputStream, Encoding.UTF8))
+                {
+                    rawJson = reader.ReadToEnd();
+                }
+
+                if (string.IsNullOrWhiteSpace(rawJson))
+                {
+                    return Json(new { Exito = false, Mensaje = "JSON vacío." });
+                }
+
+                var request = JsonConvert.DeserializeObject<Desing2DesignWallSaveRequest>(rawJson);
+                if (request == null || request.DesignId <= 0)
+                {
+                    return Json(new { Exito = false, Mensaje = "Diseño no indicado." });
+                }
+
+                var repository = new DesignWallRepository(db);
+                var design = repository.FindActiveDesign(request.DesignId);
+                if (design == null)
+                {
+                    return Json(new { Exito = false, Mensaje = "Diseño no encontrado." });
+                }
+
+                var userId = IntranetAuditHelper.ResolveCurrentUserId(User);
+                int saved;
+                using (var trans = db.Database.BeginTransaction())
+                {
+                    saved = repository.ReplaceWalls(request.DesignId, request.Lines, userId);
+                    db.SaveChanges();
+                    trans.Commit();
+                }
+
+                return Json(new { Exito = true, Count = saved, DesignId = request.DesignId });
+            }
+            catch (JsonReaderException ex)
+            {
+                return Json(new { Exito = false, Mensaje = "JSON inválido: " + ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Exito = false, Mensaje = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Devuelve el snapshot de muros activos de un diseño V2 para restaurar el visor.
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetDesignWalls(long designId)
+        {
+            try
+            {
+                if (designId <= 0)
+                {
+                    return Json(new { Exito = false, Mensaje = "Diseño no indicado." }, JsonRequestBehavior.AllowGet);
+                }
+
+                var repository = new DesignWallRepository(db);
+                var design = repository.FindActiveDesign(designId);
+                if (design == null)
+                {
+                    return Json(new { Exito = false, Mensaje = "Diseño no encontrado." }, JsonRequestBehavior.AllowGet);
+                }
+
+                var snapshot = repository.LoadSnapshot(designId);
+                var result = Json(new
+                {
+                    Exito = true,
+                    DesignId = designId,
+                    Snapshot = snapshot
+                }, JsonRequestBehavior.AllowGet);
+                result.MaxJsonLength = int.MaxValue;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Exito = false, Mensaje = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
 
