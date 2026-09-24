@@ -1,0 +1,31 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <?include $(sys.CURRENTDIR)Variables.wxi ?>
+  <Fragment>
+    <ComponentGroup Id="FolderInstall" Directory="INSTALLFOLDER">
+      <Component Id="c_tandem_addin" Guid="9F2B4E18-1C67-4A3D-8E90-B5D4C2A17638" Bitness="always64">
+        <File Id="f_tandem_addin" Source="$(var.BaseUrl)Tandem.addin" />
+      </Component>
+    </ComponentGroup>
+
+    <ComponentGroup Id="FolderAddin" Directory="ADDINFOLDER">
+      <Component Id="c_tandem_dll" Guid="5C8E2A91-4D13-4F70-B3A6-1E7C9D082445" Bitness="always64">
+        <File Id="f_tandem_dll" Source="$(var.AddInUrl)Tandem.Revit.dll" />
+      </Component>
+      <Component Id="c_newtonsoft_dll" Guid="6A1D3F80-2B94-4C5E-9F17-D8E0A4B25671" Bitness="always64">
+        <File Id="f_newtonsoft_dll" Source="$(var.AddInUrl)Newtonsoft.Json.dll" />
+      </Component>
+      <Component Id="c_webview2_core" Guid="A11B22C3-D44E-4F50-8A61-B7C8D9E0F123" Bitness="always64">
+        <File Id="f_webview2_core" Source="$(var.AddInUrl)Microsoft.Web.WebView2.Core.dll" />
+      </Component>
+      <Component Id="c_webview2_wpf" Guid="B22C33D4-E55F-4061-9B72-C8D9E0F12345" Bitness="always64">
+        <File Id="f_webview2_wpf" Source="$(var.AddInUrl)Microsoft.Web.WebView2.Wpf.dll" />
+      </Component>
+      <Component Id="c_webview2_winforms" Guid="D44E55F6-0772-4283-BD94-E0F123456789" Bitness="always64">
+        <File Id="f_webview2_winforms" Source="$(var.AddInUrl)Microsoft.Web.WebView2.WinForms.dll" />
+      </Component>
+      <Component Id="c_webview2_loader" Guid="C33D44E5-F661-4172-AC83-D9E0F1234567" Bitness="always64">
+        <File Id="f_webview2_loader" Source="$(var.AddInUrl)WebView2Loader.dll" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

@@ -13,6 +13,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DAL", "DAL\DAL.csproj", "{E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZwcadPlugin", "TamdenZwcadPluging\ZwcadPlugin\ZwcadPlugin.csproj", "{A8B5E6F2-3C4D-4E5F-8A9B-1C2D3E4F5A6B}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutocadPlugin", "TandemAutocadPlugin\AutocadPlugin\AutocadPlugin.csproj", "{B7C6F8A1-4D5E-4F6A-9B0C-2D3E4F5A6B7C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BricscadPlugin", "TandemBricscadPlugin\BricscadPlugin\BricscadPlugin.csproj", "{C8D7E9F2-5E6F-4A7B-8C1D-3E4F5A6B7C8D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tandem.Revit", "TandemRevitPlugin\Revit\Tandem.Revit.csproj", "{E1F2A3B4-5C6D-4E7F-8A9B-0C1D2E3F4A5B}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinkedIn", "LinkedIn\LinkedIn.csproj", "{D9E0E5C3-2F1A-4B7D-9B6C-1A2E3F4D5C6B}"
 EndProject
 Global
@@ -33,6 +39,18 @@ Global
 		{A8B5E6F2-3C4D-4E5F-8A9B-1C2D3E4F5A6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A8B5E6F2-3C4D-4E5F-8A9B-1C2D3E4F5A6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A8B5E6F2-3C4D-4E5F-8A9B-1C2D3E4F5A6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7C6F8A1-4D5E-4F6A-9B0C-2D3E4F5A6B7C}.Debug|Any CPU.ActiveCfg = Debug|AnyCPU
+		{B7C6F8A1-4D5E-4F6A-9B0C-2D3E4F5A6B7C}.Debug|Any CPU.Build.0 = Debug|AnyCPU
+		{B7C6F8A1-4D5E-4F6A-9B0C-2D3E4F5A6B7C}.Release|Any CPU.ActiveCfg = Release|AnyCPU
+		{B7C6F8A1-4D5E-4F6A-9B0C-2D3E4F5A6B7C}.Release|Any CPU.Build.0 = Release|AnyCPU
+		{C8D7E9F2-5E6F-4A7B-8C1D-3E4F5A6B7C8D}.Debug|Any CPU.ActiveCfg = Debug|AnyCPU
+		{C8D7E9F2-5E6F-4A7B-8C1D-3E4F5A6B7C8D}.Debug|Any CPU.Build.0 = Debug|AnyCPU
+		{C8D7E9F2-5E6F-4A7B-8C1D-3E4F5A6B7C8D}.Release|Any CPU.ActiveCfg = Release|AnyCPU
+		{C8D7E9F2-5E6F-4A7B-8C1D-3E4F5A6B7C8D}.Release|Any CPU.Build.0 = Release|AnyCPU
+		{E1F2A3B4-5C6D-4E7F-8A9B-0C1D2E3F4A5B}.Debug|Any CPU.ActiveCfg = Debug|AnyCPU
+		{E1F2A3B4-5C6D-4E7F-8A9B-0C1D2E3F4A5B}.Debug|Any CPU.Build.0 = Debug|AnyCPU
+		{E1F2A3B4-5C6D-4E7F-8A9B-0C1D2E3F4A5B}.Release|Any CPU.ActiveCfg = Release|AnyCPU
+		{E1F2A3B4-5C6D-4E7F-8A9B-0C1D2E3F4A5B}.Release|Any CPU.Build.0 = Release|AnyCPU
 		{D9E0E5C3-2F1A-4B7D-9B6C-1A2E3F4D5C6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D9E0E5C3-2F1A-4B7D-9B6C-1A2E3F4D5C6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D9E0E5C3-2F1A-4B7D-9B6C-1A2E3F4D5C6B}.Release|Any CPU.ActiveCfg = Release|Any CPU

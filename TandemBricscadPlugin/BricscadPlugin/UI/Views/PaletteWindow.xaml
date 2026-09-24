@@ -1,0 +1,22 @@
+<Window x:Class="BricscadPlugin.UI.Views.PaletteWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Topmost="True"
+        Background="#F4F7FA"
+        Width="360"
+        Height="58">
+    <Border Background="#F4F7FA"
+            BorderBrush="#D5DEE8"
+            BorderThickness="1"
+            CornerRadius="10"
+            Cursor="SizeAll"
+            MouseLeftButtonDown="OnDrag">
+        <wv2:WebView2 x:Name="Web"
+                      Margin="7,6,7,6"
+                      Cursor="Arrow" />
+    </Border>
+</Window>

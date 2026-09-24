@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<CustSection xml:lang="en-US">
+  <MenuGroup DisplayName="Tandem_2026" Name="TANDEM2026">
+    <MacroGroup Name="TD-Main">
+      <MenuMacro UID="td_menus">
+        <Macro>
+          <Name>Tandem 2026</Name>
+          <Command>^c^cTANDEM</Command>
+          <HelpString>Abre las paletas MVC de Tandem 2026</HelpString>
+        </Macro>
+      </MenuMacro>
+    </MacroGroup>
+    <MenuRoot>
+      <PopMenuRoot/>
+      <RibbonRoot>
+        <RibbonTabSourceCollection/>
+        <RibbonPanelSourceCollection/>
+        <RibbonTabSelectors/>
+      </RibbonRoot>
+    </MenuRoot>
+  </MenuGroup>
+</CustSection>

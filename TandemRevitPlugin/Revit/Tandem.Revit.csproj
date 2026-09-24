@@ -1,0 +1,64 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <PlatformTarget>x64</PlatformTarget>
+    <RootNamespace>TandemRevit</RootNamespace>
+    <AssemblyName>Tandem.Revit</AssemblyName>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <RevitApiRoot Condition="'$(REVIT_API_ROOT)' != ''">$(REVIT_API_ROOT)</RevitApiRoot>
+    <RevitApiRoot Condition="'$(RevitApiRoot)' == ''">C:\Program Files\Autodesk\Revit 2026</RevitApiRoot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="RevitAPI">
+      <HintPath>$(RevitApiRoot)\RevitAPI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="RevitAPIUI">
+      <HintPath>$(RevitApiRoot)\RevitAPIUI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2849.39" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Tandem.addin" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <Target Name="CopyWebView2LoaderToOutputRoot" AfterTargets="Build">
+    <PropertyGroup>
+      <_WebView2LoaderFromOutput>$(OutputPath)runtimes\win-x64\native\WebView2Loader.dll</_WebView2LoaderFromOutput>
+      <_WebView2LoaderFromPkg>$(NuGetPackageRoot)microsoft.web.webview2\1.0.2849.39\runtimes\win-x64\native\WebView2Loader.dll</_WebView2LoaderFromPkg>
+    </PropertyGroup>
+    <Copy SourceFiles="$(_WebView2LoaderFromOutput)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" Condition="Exists('$(_WebView2LoaderFromOutput)')" />
+    <Copy SourceFiles="$(_WebView2LoaderFromPkg)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" Condition="!Exists('$(_WebView2LoaderFromOutput)') and Exists('$(_WebView2LoaderFromPkg)')" />
+  </Target>
+
+  <Target Name="CopyToRevitAddinsAndBundle" AfterTargets="CopyWebView2LoaderToOutputRoot">
+    <PropertyGroup>
+      <_AddinsRoot>$(AppData)\Autodesk\Revit\Addins\2026</_AddinsRoot>
+      <_AddinDir>$(_AddinsRoot)\Tandem.Revit.Addin</_AddinDir>
+      <_BundleRoot>$(MSBuildThisFileDirectory)..\bundle</_BundleRoot>
+      <_BundleAddin>$(_BundleRoot)\Tandem.Revit.Addin</_BundleAddin>
+    </PropertyGroup>
+    <MakeDir Directories="$(_AddinDir);$(_BundleAddin)" />
+    <Copy SourceFiles="$(ProjectDir)Tandem.addin" DestinationFolder="$(_AddinsRoot)" />
+    <Copy SourceFiles="$(ProjectDir)Tandem.addin" DestinationFolder="$(_BundleRoot)" />
+    <ItemGroup>
+      <_PluginFiles Include="$(OutputPath)*.dll;$(OutputPath)*.json;$(OutputPath)WebView2Loader.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_PluginFiles)" DestinationFolder="$(_AddinDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_PluginFiles)" DestinationFolder="$(_BundleAddin)" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

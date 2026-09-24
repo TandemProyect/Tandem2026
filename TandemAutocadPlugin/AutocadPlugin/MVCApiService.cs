@@ -1,0 +1,179 @@
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using AutocadPlugin.Models;
+using Newtonsoft.Json;
+
+namespace AutocadPlugin
+{
+    public class MVCApiService
+    {
+        private readonly HttpClient _httpClient;
+        private readonly string _baseUrl;
+
+        public string BaseUrl => _baseUrl;
+
+        public MVCApiService()
+        {
+            var handler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (_, _, _, _) => true
+            };
+            _httpClient = new HttpClient(handler);
+            _baseUrl = PluginExceptionHelper.ResolveBaseUrlFromEnv();
+            _httpClient.BaseAddress = new Uri(_baseUrl);
+            _httpClient.Timeout = TimeSpan.FromSeconds(120);
+        }
+
+        public async Task<string> ProbarConexionAsync()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync(string.Empty);
+                return $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}";
+            }
+            catch (Exception ex)
+            {
+                throw PluginExceptionHelper.Wrap("Prueba de conexión fallida", ex, _baseUrl);
+            }
+        }
+
+        public async Task<List<DisenoResumenDTO>> ObtenerDisenosAsync()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync("api/disenos");
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<List<DisenoResumenDTO>>(json) ?? new List<DisenoResumenDTO>();
+            }
+            catch (Exception ex)
+            {
+                throw PluginExceptionHelper.Wrap("Error al obtener diseños", ex, _baseUrl);
+            }
+        }
+
+        public async Task<DisenoDTO> ObtenerDisenoAsync(int id)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"api/disenos/{id}");
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<DisenoDTO>(json);
+            }
+            catch (Exception ex)
+            {
+                throw PluginExceptionHelper.Wrap($"Error al obtener diseño {id}", ex, _baseUrl);
+            }
+        }
+
+        public async Task<DisenoDTO> CrearDisenoAsync(DisenoDTO diseno)
+        {
+            try
+            {
+                var json = JsonConvert.SerializeObject(diseno);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync("api/disenos", content);
+                response.EnsureSuccessStatusCode();
+                var responseJson = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<DisenoDTO>(responseJson);
+            }
+            catch (Exception ex)
+            {
+                throw PluginExceptionHelper.Wrap("Error al crear diseño", ex, _baseUrl);
+            }
+        }
+
+        public async Task<ApiResponse<PluginAuthResultDTO>> ValidarEquipoPluginAsync(PluginAuthRequestDTO request)
+        {
+            try
+            {
+                var json = JsonConvert.SerializeObject(request);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync("DesignToolsAutocad/ValidarEquipoPlugin", content);
+                response.EnsureSuccessStatusCode();
+                var responseJson = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<ApiResponse<PluginAuthResultDTO>>(responseJson);
+            }
+            catch (Exception ex)
+            {
+                throw PluginExceptionHelper.Wrap("Error validando autorización del equipo", ex, _baseUrl);
+            }
+        }
+
+        public async Task<ApiResponse<DeteccionEsquinasLDTO>> EnviarLineasSeleccionadasAsync(SeleccionLineasDTO seleccion)
+        {
+            try
+            {
+                var json = JsonConvert.SerializeObject(seleccion);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync("DesignToolsAutocad/ProcesarLineasZwcad", content);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorBody = await response.Content.ReadAsStringAsync();
+                    var apiMsg = TryExtractApiMensaje(errorBody);
+                    throw new Exception($"Error del servidor ({(int)response.StatusCode}): {apiMsg ?? errorBody}");
+                }
+
+                var responseJson = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<ApiResponse<DeteccionEsquinasLDTO>>(responseJson);
+            }
+            catch (Exception ex)
+            {
+                throw PluginExceptionHelper.Wrap("Error al enviar líneas", ex, _baseUrl);
+            }
+        }
+
+        public async Task<ApiResponse<DeteccionEsquinasLDTO>> AnalizarImagenAsync(byte[] imagenBytes, string nombreArchivo)
+        {
+            try
+            {
+                var content = new MultipartFormDataContent();
+                var imageContent = new ByteArrayContent(imagenBytes);
+                imageContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
+                content.Add(imageContent, "imagen", nombreArchivo);
+
+                var response = await _httpClient.PostAsync("DesignToolsAutocad/DetectarEsquinasImagen", content);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorBody = await response.Content.ReadAsStringAsync();
+                    var apiMsg = TryExtractApiMensaje(errorBody);
+                    throw new Exception($"Error del servidor al analizar imagen ({(int)response.StatusCode}): {apiMsg ?? errorBody}");
+                }
+
+                var responseJson = await response.Content.ReadAsStringAsync();
+                if (string.IsNullOrWhiteSpace(responseJson) ||
+                    responseJson.TrimStart().StartsWith("<", StringComparison.Ordinal))
+                {
+                    throw new Exception(
+                        "El servidor devolvió HTML en lugar de JSON. ¿Sesión expirada o endpoint sin [AllowAnonymous]? Reinicie Desing tras actualizar el código.");
+                }
+
+                var resultado = JsonConvert.DeserializeObject<ApiResponse<DeteccionEsquinasLDTO>>(responseJson);
+                if (resultado == null)
+                    throw new Exception("Respuesta vacía o JSON inválido del servidor MVC.");
+                return resultado;
+            }
+            catch (Exception ex)
+            {
+                throw PluginExceptionHelper.Wrap("Error al enviar imagen", ex, _baseUrl);
+            }
+        }
+
+        private static string TryExtractApiMensaje(string responseBody)
+        {
+            if (string.IsNullOrWhiteSpace(responseBody)) return null;
+            try
+            {
+                return JsonConvert.DeserializeObject<ApiResponse<object>>(responseBody)?.Mensaje;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+    }
+}

@@ -8,7 +8,9 @@ using Newtonsoft.Json;
 namespace Desing.Services
 {
     /// <summary>
-    /// Detector SIMPLE de conexiones entre líneas
+    /// Detector único de muros rectos y esquinas L (Desing_2, ZWCAD, AutoCAD, BricsCAD y Revit).
+    /// No duplicar esta lógica en los plugins: entrar por
+    /// DesignToolsAutocad/ProcesarLineasZwcad.
     /// </summary>
     public class LCornerDetector
     {

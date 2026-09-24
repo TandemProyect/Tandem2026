@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Revit/Tandem.Revit.csproj" Id="e1f2a3b4-5c6d-4e7f-8a9b-0c1d2e3f4a5b" />
+  <Project Path="Installer/Installer.wixproj" Id="f2a3b4c5-6d7e-4f80-9a0b-1c2d3e4f5a6c" />
+</Solution>

@@ -1,0 +1,70 @@
+@*
+    Layout mínimo para paletas flotantes del plugin AutoCAD (sin navbar/sidebar).
+*@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@(ViewBag.Title ?? "Tandem 2026")</title>
+    <link rel="stylesheet" href="@Url.Content("~/assets/materio/vendor/fonts/iconify-icons.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/assets/materio/vendor/css/core.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/assets/materio/css/site.css")" />
+    @Html.Partial("_PlantillaStyles")
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+            background: transparent;
+        }
+        .autocad-palette {
+            padding: 0;
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
+        .autocad-palette .desing2-stl-mode-toolbar,
+        .autocad-palette .desing2-stl-top-toolbar {
+            position: static;
+            transform: none;
+            left: auto;
+            top: auto;
+            pointer-events: auto;
+        }
+        .autocad-palette .desing2-stl-floating-toolbar__group-gap {
+            width: 0.45rem;
+        }
+    </style>
+    @RenderSection("Styles", required: false)
+</head>
+<body>
+    <div class="autocad-palette desing2-stl-view-scope">
+        @RenderBody()
+    </div>
+    <script src="@Url.Content("~/assets/materio/vendor/libs/jquery/jquery.js")"></script>
+    <script src="@Url.Content("~/assets/materio/vendor/libs/popper/popper.js")"></script>
+    <script src="@Url.Content("~/assets/materio/vendor/js/bootstrap.js")"></script>
+    <script>
+        (function () {
+            function post(payload) {
+                try {
+                    if (window.chrome && window.chrome.webview)
+                        window.chrome.webview.postMessage(JSON.stringify(payload));
+                } catch (e) { }
+            }
+            document.addEventListener('click', function (e) {
+                var el = e.target.closest('[data-ma-stl-tool],[data-ma-stl-mode],[data-ma-system]');
+                if (!el || el.disabled) return;
+                post({
+                    tool: el.getAttribute('data-ma-stl-tool'),
+                    mode: el.getAttribute('data-ma-stl-mode'),
+                    system: el.getAttribute('data-ma-system')
+                });
+            });
+        })();
+    </script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,11 @@
+<Include xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <?define ProductCode="*" ?>
+  <?define ProductVersion="26.0.0" ?>
+  <?define ProductName="Tandem 2026 for Revit" ?>
+  <?define UpgradeCode="B2E8C4A1-6F39-4D7E-9C15-A8B3E4F70126" ?>
+  <?define Manufacturer="Tandem" ?>
+  <?define Description="Instala el plugin Tandem 2026 en Revit 2026 (paletas MVC, muro 2D y generar 3D)." ?>
+  <?define ManufacturerUrl="https://localhost:44384/" ?>
+  <?define BaseUrl="$(var.SourceDLL)\" ?>
+  <?define AddInUrl="$(var.BaseUrl)Tandem.Revit.Addin\" ?>
+</Include>

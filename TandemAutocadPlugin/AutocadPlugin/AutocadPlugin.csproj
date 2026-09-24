@@ -1,0 +1,69 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <PlatformTarget>x64</PlatformTarget>
+    <RootNamespace>AutocadPlugin</RootNamespace>
+    <AssemblyName>AutocadPlugin</AssemblyName>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <AcadApiRoot Condition="'$(AUTOCAD_API_ROOT)' != ''">$(AUTOCAD_API_ROOT)</AcadApiRoot>
+    <AcadApiRoot Condition="'$(AcadApiRoot)' == ''">C:\Program Files\Autodesk\AutoCAD 2026</AcadApiRoot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="accoremgd">
+      <HintPath>$(AcadApiRoot)\accoremgd.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="acdbmgd">
+      <HintPath>$(AcadApiRoot)\acdbmgd.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="acmgd">
+      <HintPath>$(AcadApiRoot)\acmgd.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="AcCui">
+      <HintPath>$(AcadApiRoot)\AcCui.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="AdWindows">
+      <HintPath>$(AcadApiRoot)\AdWindows.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2849.39" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="MNU\Tandem2026.cui" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="MNU\SelectLines.png" CopyToOutputDirectory="PreserveNewest" Condition="Exists('MNU\SelectLines.png')" />
+  </ItemGroup>
+
+  <!-- AutoCAD NETLOAD no resuelve runtimes\win-x64\native; el loader tiene que estar junto a la DLL. -->
+  <Target Name="CopyWebView2LoaderToOutputRoot" AfterTargets="Build">
+    <PropertyGroup>
+      <_WebView2LoaderFromOutput>$(OutputPath)runtimes\win-x64\native\WebView2Loader.dll</_WebView2LoaderFromOutput>
+      <_WebView2LoaderFromPkg>$(NuGetPackageRoot)microsoft.web.webview2\1.0.2849.39\runtimes\win-x64\native\WebView2Loader.dll</_WebView2LoaderFromPkg>
+    </PropertyGroup>
+    <Copy SourceFiles="$(_WebView2LoaderFromOutput)"
+          DestinationFolder="$(OutputPath)"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(_WebView2LoaderFromOutput)')" />
+    <Copy SourceFiles="$(_WebView2LoaderFromPkg)"
+          DestinationFolder="$(OutputPath)"
+          SkipUnchangedFiles="true"
+          Condition="!Exists('$(_WebView2LoaderFromOutput)') and Exists('$(_WebView2LoaderFromPkg)')" />
+  </Target>
+</Project>

@@ -22,6 +22,26 @@ namespace Desing.Controllers
 {
     public class DesignToolsAutocadController : BaseController
     {
+        /// <summary>
+        /// Paleta izquierda: modo de dibujo + sistema Atk-60 (mismos botones que Desing_2).
+        /// </summary>
+        [HttpGet]
+        [AllowAnonymous]
+        public ActionResult PaletteMode()
+        {
+            return View();
+        }
+
+        /// <summary>
+        /// Paleta central: herramientas CAD de Desing_2 (polilínea, muro, copiar, borrar…).
+        /// </summary>
+        [HttpGet]
+        [AllowAnonymous]
+        public ActionResult PaletteTools()
+        {
+            return View();
+        }
+
         public ActionResult _SaveDwgFiles(string IdDesign, string NameDesign, IEnumerable<ImportBlock> ListMaterialExport)
         {
             try
@@ -146,7 +166,8 @@ namespace Desing.Controllers
         }
 
         /// <summary>
-        /// Procesa líneas y polilíneas enviadas desde ZWCAD
+        /// Procesa líneas/caras de muro (Desing_2, ZWCAD, AutoCAD, BricsCAD y Revit).
+        /// La geometría de muros y esquinas sale solo de LCornerDetector.
         /// </summary>
         /// <param name="seleccion">Datos de las líneas y polilíneas seleccionadas</param>
         /// <returns>Respuesta JSON con el resultado del procesamiento</returns>
@@ -160,6 +181,9 @@ namespace Desing.Controllers
                 string logInicio = $"🔴🔴🔴 ENDPOINT LLAMADO: ProcesarLineasZwcad - {DateTime.Now:HH:mm:ss} 🔴🔴🔴";
                 System.Diagnostics.Debug.WriteLine(logInicio);
                 System.Console.WriteLine(logInicio);
+
+                if (seleccion == null || seleccion.Lineas == null || seleccion.Lineas.Count == 0)
+                    seleccion = ReadJsonBody<SeleccionLineasDTO>() ?? seleccion;
 
                 // Validar datos recibidos
                 if (seleccion == null || seleccion.Lineas == null || seleccion.Lineas.Count == 0)
@@ -214,20 +238,27 @@ namespace Desing.Controllers
                     System.Diagnostics.Debug.WriteLine($"  Esquina {i + 1}: Vértice ({esquina.Vertice.X:F2}, {esquina.Vertice.Y:F2}) - Ángulo: {esquina.Angulo:F2}° - Líneas: [{esquina.IndiceLinea1}, {esquina.IndiceLinea2}]");
                 }
 
-                // Guardar en sesión para uso posterior
-                Session["UltimaSeleccionLineas"] = seleccion;
-                Session["ResultadoProcesamiento"] = estadisticas;
-                Session["EsquinasDetectadas"] = deteccionEsquinas;
+                try
+                {
+                    Session["UltimaSeleccionLineas"] = seleccion;
+                    Session["ResultadoProcesamiento"] = estadisticas;
+                    Session["EsquinasDetectadas"] = deteccionEsquinas;
+                }
+                catch
+                {
+                    // Plugin AutoCAD/ZWCAD: POST sin cookie de sesión.
+                }
 
                 System.Diagnostics.Debug.WriteLine($"Procesamiento completado: {estadisticas.TotalProcesadas} geometrías");
 
-                // Devolver respuesta con información de esquinas y puntos a dibujar
-                return Json(new ApiResponse<DeteccionEsquinasLDTO>
+                var ok = Json(new ApiResponse<DeteccionEsquinasLDTO>
                 {
                     Exito = true,
                     Mensaje = $"Se procesaron {estadisticas.TotalProcesadas} geometrías ({estadisticas.Lineas} líneas, {estadisticas.Polilineas} polilíneas). {deteccionEsquinas.Mensaje}",
                     Datos = deteccionEsquinas
                 });
+                ok.MaxJsonLength = int.MaxValue;
+                return ok;
             }
             catch (Exception ex)
             {

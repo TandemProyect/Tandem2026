@@ -1,0 +1,16 @@
+<Project Sdk="WixToolset.Sdk/4.0.0">
+  <PropertyGroup>
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+    <OutputName>Tandem.Revit.v2026.Installer</OutputName>
+    <SourceDLL Condition="$(SourceDLL) == '' ">$(MSBuildThisFileDirectory)..\bundle</SourceDLL>
+    <Configurations>Debug;Release;Installer</Configurations>
+    <Platforms>x64</Platforms>
+    <DefineConstants>SourceDLL=$(SourceDLL)</DefineConstants>
+    <SuppressValidation>true</SuppressValidation>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="Variables.wxi" />
+    <None Include="eula.rtf" />
+    <PackageReference Include="WixToolset.UI.wixext" Version="4.0.0" />
+  </ItemGroup>
+</Project>

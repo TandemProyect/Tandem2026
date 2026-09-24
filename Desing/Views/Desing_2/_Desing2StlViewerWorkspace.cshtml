@@ -128,40 +128,7 @@
             <button type="button" id="ma-stl-floor-line-p2-handle" class="desing2-stl-floor-line-endpoint-handle desing2-stl-floor-line-p2-handle" hidden="hidden" aria-hidden="true" aria-label="@MasterArticles.StlPreview_UserFloorLineP2HandleAria"></button>
         </div>
         <div id="ma-stl-wall-dim-overlay" class="desing2-stl-floor-dim-overlay desing2-stl-wall-dim-overlay" aria-hidden="true" hidden="hidden"></div>
-        <aside id="desing2-stl-mode-toolbar" class="desing2-stl-mode-toolbar desing2-stl-floating-toolbar" role="region" aria-label="@MasterArticles.StlPreview_Desing2TopToolbarAria">
-            <div class="desing2-stl-floating-toolbar__inner d-flex align-items-center" role="toolbar" aria-label="@MasterArticles.StlPreview_Desing2TopToolbarAria">
-                <div class="desing2-stl-floating-toolbar__group desing2-stl-floating-toolbar__group--mode" role="group" aria-label="@MasterArticles.StlPreview_Desing2TopToolbarDrawGroupAria">
-                    <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn active" id="ma-stl-mode-lines" data-ma-stl-mode="lines" title="@MasterArticles.StlPreview_Desing2ToolPolylineAria" aria-label="@MasterArticles.StlPreview_Desing2ToolPolylineAria" aria-pressed="true">
-                        <i class="icon-base ri ri-route-line" aria-hidden="true"></i>
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-mode-wall-2d" data-ma-stl-mode="wall-2d" title="@MasterArticles.StlPreview_Desing2ToolWall2dAria" aria-label="@MasterArticles.StlPreview_Desing2ToolWall2dAria" aria-pressed="false">
-                        <svg class="icon-base desing2-stl-tool-icon desing2-stl-tool-icon--wall-2d" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                            <path d="M3 8.5h18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                            <path d="M4 12h16" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" />
-                            <path d="M3 15.5h18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                        </svg>
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-mode-wall-3d" data-ma-stl-mode="wall-3d" title="@MasterArticles.StlPreview_Desing2RightMenuWall3dAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuWall3dAria" aria-pressed="false">
-                        <i class="icon-base ri ri-building-2-line" aria-hidden="true"></i>
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-mode-formwork" data-ma-stl-mode="formwork" data-ma-formwork-url-atk60="@Url.Action("GetWallsAtk-60", "Desing_2")" title="Encofrar" aria-label="Encofrar" aria-pressed="false">
-                        Encofrar
-                    </button>
-                </div>
-                <div class="dropdown desing2-stl-mode-toolbar__systems">
-                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle desing2-stl-mode-toolbar__systems-toggle" id="ma-stl-mode-system-dropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="@MasterArticles.Col_System">
-                        Atk-60
-                    </button>
-                    <ul class="dropdown-menu desing2-stl-mode-toolbar__systems-menu" aria-labelledby="ma-stl-mode-system-dropdown">
-                        <li><button type="button" class="dropdown-item active" data-ma-system="Atk-60" aria-current="true">Atk-60</button></li>
-                        <li><button type="button" class="dropdown-item disabled" data-ma-system="Sistema 2" disabled="disabled" aria-disabled="true">Sistema 2</button></li>
-                        <li><button type="button" class="dropdown-item disabled" data-ma-system="Sistema 3" disabled="disabled" aria-disabled="true">Sistema 3</button></li>
-                        <li><button type="button" class="dropdown-item disabled" data-ma-system="Sistema 4" disabled="disabled" aria-disabled="true">Sistema 4</button></li>
-                        <li><button type="button" class="dropdown-item disabled" data-ma-system="Sistema 5" disabled="disabled" aria-disabled="true">Sistema 5</button></li>
-                    </ul>
-                </div>
-            </div>
-        </aside>
+        @Html.Partial("_Desing2ModeToolBar")
         @* Barra superior centrada (hover / bloqueo); herramientas CAD — placeholders. *@
         @Html.Partial("_Desing2TopToolBar")
         @Html.Partial("_Desing2BottomToolBar")

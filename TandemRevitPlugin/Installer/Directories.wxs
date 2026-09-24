@@ -1,0 +1,16 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <?include $(sys.CURRENTDIR)Variables.wxi ?>
+  <Fragment>
+    <StandardDirectory Id="AppDataFolder">
+      <Directory Id="AutodeskFolder" Name="Autodesk">
+        <Directory Id="RevitFolder" Name="Revit">
+          <Directory Id="AddinsFolder" Name="Addins">
+            <Directory Id="INSTALLFOLDER" Name="2026">
+              <Directory Id="ADDINFOLDER" Name="Tandem.Revit.Addin" />
+            </Directory>
+          </Directory>
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+  </Fragment>
+</Wix>

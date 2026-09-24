@@ -27,6 +27,10 @@ C:\00_Tandem2026\
 │       ├── MNU/           # Menús y ribbons
 │       ├── UI/            # Interfaz WPF
 │       └── Models/        # Modelos de datos
+├── TandemAutocadPlugin/    # Plugin de AutoCAD 2026
+│   └── AutocadPlugin/
+│       ├── Commands.cs    # Comandos AutoCAD
+│       └── MNU/           # CUI y ribbon
 └── packages/               # NuGet packages (generado)
 ```
 
@@ -92,6 +96,15 @@ C:\00_Tandem2026\
 
 ---
 
+### **TandemAutocadPlugin/AutocadPlugin/** - Plugin AutoCAD
+**Propósito:** Plugin para AutoCAD 2026 (`net8.0-windows`)
+
+**Documentación:**
+- [`TandemAutocadPlugin/AutocadPlugin/README.md`](../../TandemAutocadPlugin/AutocadPlugin/README.md)
+- [`Docs/Proyectos/AutocadPlugin/`](../Proyectos/AutocadPlugin/)
+
+---
+
 ### **Scripts/** - Automatización
 **Propósito:** Scripts PowerShell para tareas comunes
 
@@ -121,7 +134,8 @@ Docs/
 └── Proyectos/            # Documentación específica
 	├── DAL/
 	├── Desing/
-	└── ZwcadPlugin/
+	├── ZwcadPlugin/
+	└── AutocadPlugin/
 ```
 
 ---
@@ -132,6 +146,7 @@ Docs/
 - `DAL/`
 - `Desing/`
 - `TamdenZwcadPluging/ZwcadPlugin/`
+- `TandemAutocadPlugin/AutocadPlugin/`
 - `Common/`
 
 ### **Soporte:**
@@ -206,7 +221,7 @@ Docs/
 
 ## 📊 Métricas
 
-**Proyectos activos:** 3 (DAL, Desing, ZwcadPlugin)  
+**Proyectos activos:** 4 (DAL, Desing, ZwcadPlugin, AutocadPlugin)  
 **Scripts PowerShell:** 7+  
 **Documentos:** 10+  
 **Target Framework:** .NET Framework 4.8  

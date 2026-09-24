@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>Tandem 2026</Name>
+    <Assembly>.\Tandem.Revit.Addin\Tandem.Revit.dll</Assembly>
+    <AddInId>7A3C1E5B-9D24-4F81-B6A2-E18C4D7F2A90</AddInId>
+    <FullClassName>TandemRevit.App</FullClassName>
+    <VendorId>TANDEM</VendorId>
+    <VendorDescription>Tandem 2026</VendorDescription>
+  </AddIn>
+</RevitAddIns>
