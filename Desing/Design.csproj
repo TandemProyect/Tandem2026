@@ -407,6 +407,7 @@
     <Compile Include="Models\ToasterModel.cs" />
     <Compile Include="Models\ZwcadModels.cs" />
     <Compile Include="Models\OsmBuildingModels.cs" />
+    <Compile Include="Models\PluginCadDesignRow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\Atk60\Atk60Element.cs" />
     <Compile Include="Repositories\RepositoryAtk60\Atk60WallsRepository.cs" />
@@ -3443,6 +3444,7 @@
     <Content Include="Views\DesignTools\Form\_Form_DesignGeneral.cshtml" />
     <Content Include="Views\DesignToolsAutocad\_SaveDwgFiles.cshtml" />
     <Content Include="Views\DesignToolsAutocad\PaletteMode.cshtml" />
+    <Content Include="Views\DesignToolsAutocad\PluginReady.cshtml" />
     <Content Include="Views\DesignToolsAutocad\PaletteTools.cshtml" />
     <Content Include="Views\Shared\_LayoutAutocadPalette.cshtml" />
     <Content Include="Views\Account\Login_Production.cshtml" />

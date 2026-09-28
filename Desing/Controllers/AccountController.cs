@@ -55,15 +55,18 @@ namespace Desing.Controllers
             }
         }
         [AllowAnonymous]
-        public ActionResult Login()
+        public ActionResult Login(string returnUrl)
         {
+            ViewBag.ReturnUrl = returnUrl;
             if (User.Identity.IsAuthenticated)
             {
-                return RedirectToAction("Index", "Home");
+                return RedirectToLocal(returnUrl);
             }
 
-            // Si llega aqui con ReturnUrl, venia de una ruta protegida sin sesion valida.
-            if (!string.IsNullOrWhiteSpace(Request["ReturnUrl"]))
+            // Plugins CAD usan ReturnUrl hacia PluginReady: no mostrar error de "sesión requerida".
+            var isPluginLogin = !string.IsNullOrWhiteSpace(returnUrl)
+                && returnUrl.IndexOf("/DesignToolsAutocad/PluginReady", StringComparison.OrdinalIgnoreCase) >= 0;
+            if (!string.IsNullOrWhiteSpace(returnUrl) && !isPluginLogin)
             {
                 ViewBag.ErrorMessage = Common.Account_Err_LoginRequired;
             }
@@ -185,9 +188,7 @@ namespace Desing.Controllers
             //    return View(model);
             //}
 
-            // This doesn't count login failures towards account lockout
-            // To enable password failures to trigger account lockout, change to shouldLockout: true
-            return RedirectToAction("Index", "Home");
+            return RedirectToLocal(returnUrl);
         }
 
         //

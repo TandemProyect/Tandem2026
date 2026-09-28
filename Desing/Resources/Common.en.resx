@@ -268,6 +268,27 @@
   <data name="Login_Welcome" xml:space="preserve">
     <value>Welcome to {0}</value>
   </data>
+  <data name="PluginCad_ConnectedAs" xml:space="preserve">
+    <value>Signed in: {0}</value>
+  </data>
+  <data name="PluginCad_DesignsTitle" xml:space="preserve">
+    <value>Designs</value>
+  </data>
+  <data name="PluginCad_LoadFailed" xml:space="preserve">
+    <value>Could not load walls.</value>
+  </data>
+  <data name="PluginCad_LoadingWalls" xml:space="preserve">
+    <value>Loading walls…</value>
+  </data>
+  <data name="PluginCad_NoDesigns" xml:space="preserve">
+    <value>No designs.</value>
+  </data>
+  <data name="PluginCad_OpenWalls" xml:space="preserve">
+    <value>Draw walls</value>
+  </data>
+  <data name="PluginCad_Search" xml:space="preserve">
+    <value>Search</value>
+  </data>
   <data name="Register_BreadcrumbEmployees" xml:space="preserve">
     <value>Employees</value>
   </data>

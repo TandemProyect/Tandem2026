@@ -72,7 +72,18 @@ Contiene documentación **específica de implementación** para cada proyecto:
 
 ---
 
-### **3. ZwcadPlugin - Plugin ZWCAD 2026**
+### **3. Plugins Tandem CAD (AutoCAD, BricsCAD, Revit)**
+📂 [`Docs/Proyectos/Plugins-CAD/`](Proyectos/Plugins-CAD/)
+
+**Propósito:** plugins Tandem 2026 alineados con Desing_2 (paletas MVC, muro 2D, generar 3D).
+
+**Continuar aquí:** [HANDOVER-2026-09-Plugins-Tandem-CAD.md](Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md)
+
+También: [AutocadPlugin](Proyectos/AutocadPlugin/), [BricscadPlugin](Proyectos/BricscadPlugin/), [RevitPlugin](Proyectos/RevitPlugin/).
+
+---
+
+### **4. ZwcadPlugin - Plugin ZWCAD 2026**
 📂 [`Docs/Proyectos/ZwcadPlugin/`](Proyectos/ZwcadPlugin/)
 
 **Propósito:** Plugin para ZWCAD con interfaz WPF

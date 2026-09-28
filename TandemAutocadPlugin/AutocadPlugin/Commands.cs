@@ -49,7 +49,7 @@ namespace AutocadPlugin
         [CommandMethod("LEERDISENOMVC")]
         public void LeerDisenoMvc()
         {
-            WriteStub("LEERDISENOMVC", "Lectura de diseño MVC pendiente de portar.");
+            PaletteHost.Show();
         }
 
         [CommandMethod("CREARDISENOMVC")]
@@ -84,7 +84,7 @@ namespace AutocadPlugin
 
             ed.WriteMessage("\n=== Plugin AutoCAD 2026 - Tandem ===");
             ed.WriteMessage("\nComandos: TANDEM, MVCCONEXION, TANDEM_MURO2D, TANDEM_MURO3D,");
-            ed.WriteMessage("\n          GENERAR3D, REGENERAR3D, DETECTARMUROS, CONFIGENCOFRADO,");
+            ed.WriteMessage("\n          GENERAR3D, REGENERAR3D, TANDEM_ABRIRDISENO,");
             ed.WriteMessage("\n          LEERDISENOMVC,");
             ed.WriteMessage("\n          CREARDISENOMVC, GUARDARDISENOMVC,");
             ed.WriteMessage("\n          TANDEM_SELECCIONAR_LINEAS, TANDEM_ANALIZAR_IMAGEN,");

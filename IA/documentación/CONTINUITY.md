@@ -1,7 +1,9 @@
 # 🤖 CONTINUITY GUIDE - Para Futuros Agentes/Chats
 
 > **PROPÓSITO:** Este documento permite que cualquier agente IA continúe el trabajo sin pérdida de contexto.
-> **ÚLTIMA ACTUALIZACIÓN:** 2026-04-25
+> **ÚLTIMA ACTUALIZACIÓN:** 2026-09-28
+>
+> **Plugins AutoCAD / BricsCAD / Revit (septiembre 2026):** continuar en [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md). Este CONTINUITY.md no cubre ese trabajo.
 
 ---
 

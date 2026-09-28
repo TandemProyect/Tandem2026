@@ -11,14 +11,17 @@ namespace AutocadPlugin.UI.Views
     {
         private readonly string _url;
         public event Action<string> MessageReceived;
+        public event Action<Uri> Navigated;
 
-        public PaletteWindow(string url, double width, double height)
+        public PaletteWindow(string url, double width, double height, bool allowResize = false)
         {
             InitializeComponent();
             Title = string.Empty;
             Width = width;
             Height = height;
             _url = url;
+            if (allowResize)
+                ResizeMode = ResizeMode.CanResizeWithGrip;
             Loaded += OnLoaded;
         }
 
@@ -30,6 +33,18 @@ namespace AutocadPlugin.UI.Views
             };
         }
 
+        public void SetSize(double width, double height)
+        {
+            Width = width;
+            Height = height;
+        }
+
+        public void Navigate(string url)
+        {
+            if (Web?.CoreWebView2 != null && !string.IsNullOrWhiteSpace(url))
+                Web.CoreWebView2.Navigate(url);
+        }
+
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             try
@@ -38,7 +53,7 @@ namespace AutocadPlugin.UI.Views
                 var userData = Path.Combine(Path.GetTempPath(), "TandemAutocadWebView2");
                 var env = await CoreWebView2Environment.CreateAsync(null, userData);
                 await Web.EnsureCoreWebView2Async(env);
-                Web.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
+                Web.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
                 Web.CoreWebView2.Settings.AreDevToolsEnabled = false;
                 Web.CoreWebView2.ServerCertificateErrorDetected += (_, args) =>
                 {
@@ -47,6 +62,10 @@ namespace AutocadPlugin.UI.Views
                 Web.CoreWebView2.WebMessageReceived += (_, args) =>
                 {
                     MessageReceived?.Invoke(args.TryGetWebMessageAsString());
+                };
+                Web.CoreWebView2.NavigationCompleted += (_, __) =>
+                {
+                    try { Navigated?.Invoke(Web.Source); } catch { }
                 };
                 Web.CoreWebView2.Navigate(_url);
             }

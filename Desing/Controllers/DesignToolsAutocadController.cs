@@ -5,17 +5,18 @@ using netDxf.Header;
 using netDxf.Tables;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Text;
-using System.Web.Mvc;
-using Desing.Models;
-using System.Linq;
-using System.Threading.Tasks;
-using Desing.Services;
 using System.Configuration;
 using System.Data;
+using System.Data.Entity;
 using System.Data.SqlClient;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web.Mvc;
+using Desing.Models;
+using Desing.Services;
 using Newtonsoft.Json;
 
 namespace Desing.Controllers
@@ -40,6 +41,31 @@ namespace Desing.Controllers
         public ActionResult PaletteTools()
         {
             return View();
+        }
+
+        /// <summary>
+        /// Paleta de sesión del plugin CAD: exige login (cookie Identity).
+        /// Lista los mismos diseños V2 que el dashboard de Desing.
+        /// </summary>
+        [HttpGet]
+        [Authorize]
+        public ActionResult PluginReady()
+        {
+            var rows = (from d in db.TSql_Design_V2.AsNoTracking()
+                        join o in db.TSql_Offers.AsNoTracking() on d.LinkOffers equals o.IdObject
+                        where !d.AttIsDeleted && !o.Is_Delete
+                        orderby d.AttChange descending, d.SysObjectID descending
+                        select new PluginCadDesignRow
+                        {
+                            Id = d.SysObjectID,
+                            Label = d.AttLabel,
+                            OfferNumber = o.AddOfferNumber
+                        })
+                .Take(80)
+                .ToList();
+
+            ViewBag.UserName = User.Identity.Name;
+            return View(rows);
         }
 
         public ActionResult _SaveDwgFiles(string IdDesign, string NameDesign, IEnumerable<ImportBlock> ListMaterialExport)

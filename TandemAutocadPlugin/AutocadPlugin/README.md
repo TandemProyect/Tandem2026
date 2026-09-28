@@ -1,16 +1,18 @@
 # AutocadPlugin — Plugin Tandem 2026 para AutoCAD
 
-Class Library (`net8.0-windows`) que expone comandos, ribbon y CUI para AutoCAD 2026.
+Class Library (`net8.0-windows`) para AutoCAD 2026. Paletas MVC, muro 2D y generar 3D.
+
+**Handover (continuar aquí):** [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md)
 
 ## Compilar
 
-Abrir `TandemAutocadPlugin/AutocadPlugin.slnx` o `Design.sln` y compilar AutocadPlugin.
-
-Requisito: AutoCAD 2026 en `C:\Program Files\Autodesk\AutoCAD 2026\` (o definir `AUTOCAD_API_ROOT`).
+Abrir `Design.sln` y compilar AutocadPlugin. Requisito: AutoCAD 2026 en `C:\Program Files\Autodesk\AutoCAD 2026\` (o `AUTOCAD_API_ROOT`).
 
 ```
 dotnet build TandemAutocadPlugin\AutocadPlugin\AutocadPlugin.csproj -c Debug
 ```
+
+Si AutoCAD deja la DLL bloqueada, usa otra carpeta: `-p:OutputPath=bin\Debug9\` y NETLOAD esa.
 
 ## Cargar en AutoCAD
 
@@ -18,34 +20,29 @@ dotnet build TandemAutocadPlugin\AutocadPlugin\AutocadPlugin.csproj -c Debug
 NETLOAD → TandemAutocadPlugin\AutocadPlugin\bin\Debug\AutocadPlugin.dll
 ```
 
-Tras NETLOAD: pestaña **Tandem 2026** → **Menús**, o comando `TANDEM`.
-Abre dos formularios MVC (Desing debe estar en IIS Express):
+Pestaña **Tandem 2026** o comando `TANDEM`. Desing en IIS Express (`https://localhost:44384/`).
+
+Si no hay sesión, aparece el **login de Desing**. Tras conectar, una paleta lista diseños; al elegir uno se dibujan los muros (`TSql_DesignWall`).
+
+Abre paletas (sin título, compactas, se mueven):
 
 - `DesignToolsAutocad/PaletteMode` — modo + Atk-60
 - `DesignToolsAutocad/PaletteTools` — herramientas CAD de Desing_2
 
-Barra clásica (opcional): `MENUBAR` = 1.
+No se usa el submenú CUI clásico (Panel / Detectar / …).
 
 ## Comandos
 
-| Comando | Estado |
-|---------|--------|
-| `TANDEM` | Lista de comandos |
-| `TANDEM_CARGAR_MENU` | Recarga ribbon + CUI |
+| Comando | Uso |
+|---------|-----|
+| `TANDEM` | Mostrar/ocultar paletas MVC |
+| `TANDEM_MURO2D` | Dibujar muro 2D (eje + caras 300 mm) |
+| `TANDEM_MURO3D` / `GENERAR3D` | Sólidos 3D vía `LCornerDetector` |
 | `TANDEM_PROBAR_CONEXION` | Ping al MVC |
-| `TANDEM_DEVICE_ID` | DeviceId de autorización |
-| `HOLA` | Ayuda |
-| Resto del menú ZWCAD | Registrados; lógica pendiente de portar |
+| `TANDEM_CARGAR_MENU` | Recarga ribbon |
 
-## Estructura
-
-```
-AutocadPlugin/
-├── Commands.cs, MenuManager.cs, CuixBuilder.cs
-├── MVCApiService.cs, Models.cs, PluginExceptionHelper.cs
-└── MNU/           CUI e iconos
-```
+Hay stubs heredados de ZWCAD (`INSERTARBLOQUE`, `DETECTARMUROS`, …) sin lógica de negocio; no hacen falta para el flujo actual.
 
 ## Documentación
 
-[`Docs/Proyectos/AutocadPlugin/`](../../Docs/Proyectos/AutocadPlugin/)
+[`Docs/Proyectos/Plugins-CAD/`](../../Docs/Proyectos/Plugins-CAD/)

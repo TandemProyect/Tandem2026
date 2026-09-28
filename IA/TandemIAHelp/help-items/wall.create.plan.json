@@ -1,0 +1,38 @@
+{
+  "id": "wall.create.plan",
+  "title": "Dibujar muro en planta",
+  "feature": "Muro 2D",
+  "ui": {
+    "buttonId": "ma-stl-tool-wall-2d",
+    "tool": "wall-2d",
+    "helpAttribute": "data-tandem-help-id"
+  },
+  "commands": {
+    "autocad": "TANDEM_MURO2D",
+    "bricscad": "TANDEM_MURO2D"
+  },
+  "purpose": "Permite dibujar un muro en planta creando una cadena de tramos con eje y caras laterales.",
+  "expectedUserFlow": [
+    "Pulsar el icono de dibujar muro en planta.",
+    "Seleccionar el punto inicial del muro.",
+    "Seleccionar el siguiente punto para crear el primer tramo.",
+    "Continuar marcando puntos para crear mas tramos o pulsar Enter para terminar.",
+    "Usar la opcion Cerrar cuando exista una cadena con suficientes tramos y se quiera cerrar el recinto."
+  ],
+  "videoNarrationHints": [
+    "Explicar que este boton activa el dibujo de muros 2D en planta.",
+    "Indicar que cada clic define el siguiente punto del muro.",
+    "Mencionar que Tandem genera el eje y las dos caras del muro en capas separadas.",
+    "Cerrar con el resultado visible: los tramos de muro quedan dibujados en el plano."
+  ],
+  "edgeCases": [
+    "Si se cancela antes de seleccionar un segundo punto, no se crea ningun tramo.",
+    "Si se selecciona dos veces el mismo punto, el tramo se ignora.",
+    "La opcion Cerrar solo tiene sentido cuando ya hay varios tramos dibujados."
+  ],
+  "sourceAnchors": [
+    "Desing/Views/Desing_2/_Desing2TopToolBar.cshtml",
+    "TandemAutocadPlugin/AutocadPlugin/PaletteHost.cs",
+    "TandemAutocadPlugin/AutocadPlugin/Wall2dCommand.cs"
+  ]
+}

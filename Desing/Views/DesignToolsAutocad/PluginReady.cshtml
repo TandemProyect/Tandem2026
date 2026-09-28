@@ -1,0 +1,109 @@
+@using Desing.Models
+@using Desing.Resources
+@model List<PluginCadDesignRow>
+@{
+    ViewBag.Title = Common.PluginCad_DesignsTitle;
+    Layout = "~/Views/Shared/_LayoutAutocadPalette.cshtml";
+    var userName = ViewBag.UserName as string ?? "";
+}
+@section Styles {
+    <style>
+        html, body { overflow: auto !important; height: 100%; }
+        .plugin-designs { display: flex; flex-direction: column; height: 100%; width: 100%; padding: 6px 8px 8px; box-sizing: border-box; }
+        .plugin-designs__meta { font-size: 11px; color: #5e6a75; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .plugin-designs__search { margin-bottom: 6px; }
+        .plugin-designs__search input { font-size: 12px; height: 30px; padding: 2px 8px; }
+        .plugin-designs__list { flex: 1; overflow: auto; display: flex; flex-direction: column; gap: 4px; }
+        .plugin-designs__item {
+            display: block; width: 100%; text-align: left; border: 1px solid #d5dee8; background: #fff;
+            border-radius: 8px; padding: 6px 8px; cursor: pointer;
+        }
+        .plugin-designs__item:hover { border-color: #5a8dee; background: #f4f7ff; }
+        .plugin-designs__label { display: block; font-size: 12px; font-weight: 600; color: #2c3340; }
+        .plugin-designs__offer { display: block; font-size: 11px; color: #6b7785; }
+        .plugin-designs__empty { font-size: 12px; color: #6b7785; padding: 8px 0; }
+        .plugin-designs__status { font-size: 11px; color: #5a8dee; min-height: 16px; margin-top: 4px; }
+    </style>
+}
+
+<div class="plugin-designs">
+    <div class="plugin-designs__meta">@string.Format(Common.PluginCad_ConnectedAs, userName)</div>
+    <div class="plugin-designs__search">
+        <input type="search" class="form-control" id="plugin-design-search" placeholder="@Common.PluginCad_Search" autocomplete="off" />
+    </div>
+    <div class="plugin-designs__list" id="plugin-design-list">
+        @if (Model == null || Model.Count == 0)
+        {
+            <div class="plugin-designs__empty">@Common.PluginCad_NoDesigns</div>
+        }
+        else
+        {
+            foreach (var row in Model)
+            {
+                var label = string.IsNullOrWhiteSpace(row.Label) ? ("#" + row.Id) : row.Label;
+                <button type="button" class="plugin-designs__item" data-plugin-open-design="@row.Id" data-label="@label">
+                    <span class="plugin-designs__label">@label</span>
+                    @if (!string.IsNullOrWhiteSpace(row.OfferNumber))
+                    {
+                        <span class="plugin-designs__offer">@row.OfferNumber</span>
+                    }
+                </button>
+            }
+        }
+    </div>
+    <div class="plugin-designs__status" id="plugin-design-status"></div>
+</div>
+
+@section scripts {
+    <script>
+        (function () {
+            var loadingText = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_LoadingWalls));
+            var failedText = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_LoadFailed));
+            var statusEl = document.getElementById('plugin-design-status');
+            var searchEl = document.getElementById('plugin-design-search');
+            var listEl = document.getElementById('plugin-design-list');
+
+            function post(payload) {
+                try {
+                    if (window.chrome && window.chrome.webview)
+                        window.chrome.webview.postMessage(JSON.stringify(payload));
+                } catch (e) { }
+            }
+
+            post({ action: 'session-ready' });
+
+            if (searchEl && listEl) {
+                searchEl.addEventListener('input', function () {
+                    var q = (searchEl.value || '').toLowerCase();
+                    var items = listEl.querySelectorAll('[data-plugin-open-design]');
+                    for (var i = 0; i < items.length; i++) {
+                        var text = (items[i].getAttribute('data-label') || '').toLowerCase() + ' ' + (items[i].textContent || '').toLowerCase();
+                        items[i].style.display = !q || text.indexOf(q) >= 0 ? '' : 'none';
+                    }
+                });
+            }
+
+            document.addEventListener('click', function (e) {
+                var btn = e.target.closest('[data-plugin-open-design]');
+                if (!btn) return;
+                var id = parseInt(btn.getAttribute('data-plugin-open-design'), 10);
+                if (!id) return;
+                if (statusEl) statusEl.textContent = loadingText;
+                fetch('@Url.Action("GetDesignWalls", "Desing_2")?designId=' + encodeURIComponent(id), {
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json' }
+                }).then(function (r) { return r.json(); }).then(function (data) {
+                    if (!data || !(data.Exito === true || data.exito === true)) {
+                        if (statusEl) statusEl.textContent = (data && (data.Mensaje || data.mensaje)) || failedText;
+                        return;
+                    }
+                    var snapshot = data.Snapshot || data.snapshot;
+                    post({ action: 'open-design', designId: id, snapshot: snapshot });
+                    if (statusEl) statusEl.textContent = '';
+                }).catch(function () {
+                    if (statusEl) statusEl.textContent = failedText;
+                });
+            });
+        })();
+    </script>
+}

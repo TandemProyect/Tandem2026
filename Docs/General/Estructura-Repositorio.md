@@ -27,10 +27,13 @@ C:\00_Tandem2026\
 │       ├── MNU/           # Menús y ribbons
 │       ├── UI/            # Interfaz WPF
 │       └── Models/        # Modelos de datos
-├── TandemAutocadPlugin/    # Plugin de AutoCAD 2026
+├── TandemAutocadPlugin/    # Plugin AutoCAD 2026 (NETLOAD + paletas MVC)
 │   └── AutocadPlugin/
-│       ├── Commands.cs    # Comandos AutoCAD
-│       └── MNU/           # CUI y ribbon
+├── TandemBricscadPlugin/   # Plugin BricsCAD V26 (mismo flujo AutoCAD)
+│   └── BricscadPlugin/
+├── TandemRevitPlugin/      # Plugin Revit 2026 + instalador WiX per-user
+│   ├── Revit/
+│   └── Installer/
 └── packages/               # NuGet packages (generado)
 ```
 
@@ -96,12 +99,16 @@ C:\00_Tandem2026\
 
 ---
 
-### **TandemAutocadPlugin/AutocadPlugin/** - Plugin AutoCAD
-**Propósito:** Plugin para AutoCAD 2026 (`net8.0-windows`)
+### **TandemAutocadPlugin / TandemBricscadPlugin / TandemRevitPlugin**
+**Propósito:** plugins Tandem 2026 (AutoCAD, BricsCAD, Revit): paletas MVC, muro 2D, generar 3D vía `LCornerDetector`.
+
+**Handover (continuar aquí):** [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md`](../Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md)
 
 **Documentación:**
 - [`TandemAutocadPlugin/AutocadPlugin/README.md`](../../TandemAutocadPlugin/AutocadPlugin/README.md)
-- [`Docs/Proyectos/AutocadPlugin/`](../Proyectos/AutocadPlugin/)
+- [`TandemBricscadPlugin/BricscadPlugin/README.md`](../../TandemBricscadPlugin/BricscadPlugin/README.md)
+- [`TandemRevitPlugin/README.md`](../../TandemRevitPlugin/README.md) — instalación Revit (add-in + MSI)
+- [`Docs/Proyectos/Plugins-CAD/`](../Proyectos/Plugins-CAD/)
 
 ---
 
@@ -135,7 +142,10 @@ Docs/
 	├── DAL/
 	├── Desing/
 	├── ZwcadPlugin/
-	└── AutocadPlugin/
+	├── AutocadPlugin/
+	├── BricscadPlugin/
+	├── RevitPlugin/
+	└── Plugins-CAD/          # handover AutoCAD + BricsCAD + Revit
 ```
 
 ---
@@ -147,6 +157,8 @@ Docs/
 - `Desing/`
 - `TamdenZwcadPluging/ZwcadPlugin/`
 - `TandemAutocadPlugin/AutocadPlugin/`
+- `TandemBricscadPlugin/BricscadPlugin/`
+- `TandemRevitPlugin/`
 - `Common/`
 
 ### **Soporte:**
@@ -221,10 +233,10 @@ Docs/
 
 ## 📊 Métricas
 
-**Proyectos activos:** 4 (DAL, Desing, ZwcadPlugin, AutocadPlugin)  
+**Proyectos activos:** DAL, Desing, ZwcadPlugin, AutocadPlugin, BricscadPlugin, Tandem.Revit  
 **Scripts PowerShell:** 7+  
 **Documentos:** 10+  
-**Target Framework:** .NET Framework 4.8  
+**Target Framework:** .NET Framework 4.8 (intranet); .NET 8 (plugins CAD)
 
 ---
 
@@ -236,4 +248,4 @@ Docs/
 
 ---
 
-**Última actualización:** 24/04/2026
+**Última actualización:** 28/09/2026

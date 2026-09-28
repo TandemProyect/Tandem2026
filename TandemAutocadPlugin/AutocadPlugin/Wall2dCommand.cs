@@ -190,7 +190,7 @@ namespace AutocadPlugin
             }
         }
 
-        private static void EnsureAppAndLayers(Transaction tr, Database db)
+        internal static void EnsureAppAndLayers(Transaction tr, Database db)
         {
             var apps = (RegAppTable)tr.GetObject(db.RegAppTableId, OpenMode.ForRead);
             if (!apps.Has(AppName))

@@ -1,5 +1,7 @@
 # BricscadPlugin — Plugin Tandem 2026 para BricsCAD V26
 
+**Handover:** [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md)
+
 Copia del plugin AutoCAD (paletas MVC, muro 2D, generar 3D, popup de espera).
 La geometría sale de `LCornerDetector` vía `DesignToolsAutocad/ProcesarLineasZwcad`.
 

@@ -113,6 +113,13 @@ namespace Desing.Resources
         public static string Login_PageTitle => ResourceManager.GetString(nameof(Login_PageTitle), resourceCulture);
         public static string Login_Subtitle => ResourceManager.GetString(nameof(Login_Subtitle), resourceCulture);
         public static string Login_Welcome => ResourceManager.GetString(nameof(Login_Welcome), resourceCulture);
+        public static string PluginCad_ConnectedAs => ResourceManager.GetString(nameof(PluginCad_ConnectedAs), resourceCulture);
+        public static string PluginCad_DesignsTitle => ResourceManager.GetString(nameof(PluginCad_DesignsTitle), resourceCulture);
+        public static string PluginCad_LoadFailed => ResourceManager.GetString(nameof(PluginCad_LoadFailed), resourceCulture);
+        public static string PluginCad_LoadingWalls => ResourceManager.GetString(nameof(PluginCad_LoadingWalls), resourceCulture);
+        public static string PluginCad_NoDesigns => ResourceManager.GetString(nameof(PluginCad_NoDesigns), resourceCulture);
+        public static string PluginCad_OpenWalls => ResourceManager.GetString(nameof(PluginCad_OpenWalls), resourceCulture);
+        public static string PluginCad_Search => ResourceManager.GetString(nameof(PluginCad_Search), resourceCulture);
         public static string Register_BreadcrumbEmployees => ResourceManager.GetString(nameof(Register_BreadcrumbEmployees), resourceCulture);
         public static string Register_BreadcrumbHome => ResourceManager.GetString(nameof(Register_BreadcrumbHome), resourceCulture);
         public static string Register_Btn_Cancel => ResourceManager.GetString(nameof(Register_Btn_Cancel), resourceCulture);

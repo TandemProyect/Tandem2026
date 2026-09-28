@@ -69,6 +69,15 @@ const es = Object.fromEntries(
     Login_Link_ForgotPassword: "¿Olvidé mi contraseña?",
     Login_Btn_SignIn: "Entrar",
 
+    /* ===== Plugin CAD (paleta de sesión AutoCAD / BricsCAD / Revit) ===== */
+    PluginCad_DesignsTitle: "Diseños",
+    PluginCad_ConnectedAs: "Conectado: {0}",
+    PluginCad_OpenWalls: "Dibujar muros",
+    PluginCad_Search: "Buscar",
+    PluginCad_NoDesigns: "No hay diseños.",
+    PluginCad_LoadingWalls: "Cargando muros…",
+    PluginCad_LoadFailed: "No se pudieron cargar los muros.",
+
     /* ===== Account / Register ===== */
     Register_PageTitle: "Crear cuenta",
     Register_BreadcrumbHome: "Inicio",
@@ -226,6 +235,15 @@ const en = Object.assign({}, es, {
   Login_Lbl_RememberMe: "Remember me",
   Login_Link_ForgotPassword: "Forgot password?",
   Login_Btn_SignIn: "Sign in",
+
+  /* Plugin CAD */
+  PluginCad_DesignsTitle: "Designs",
+  PluginCad_ConnectedAs: "Signed in: {0}",
+  PluginCad_OpenWalls: "Draw walls",
+  PluginCad_Search: "Search",
+  PluginCad_NoDesigns: "No designs.",
+  PluginCad_LoadingWalls: "Loading walls…",
+  PluginCad_LoadFailed: "Could not load walls.",
 
   /* Register */
   Register_PageTitle: "Create account",

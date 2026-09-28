@@ -1,5 +1,7 @@
 # Tandem 2026 — Plugin para Revit 2026
 
+**Continuar el trabajo de plugins:** [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md`](../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md)
+
 Mismo flujo que AutoCAD / BricsCAD: paletas MVC de Desing_2, muro 2D y **Generar muros 3D** con `LCornerDetector` (`DesignToolsAutocad/ProcesarLineasZwcad`).
 
 No incluye código del plugin de empresa. Solo se reutilizó la **forma de instalar** en Revit (add-in por usuario + MSI WiX).

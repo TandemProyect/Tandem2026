@@ -31,6 +31,7 @@ Documentos de continuidad, handovers, guías para agentes IA y notas de trabajo.
 
 | Documento | Descripción |
 |-----------|-------------|
+| [**HANDOVER plugins CAD (sep 2026)**](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md) | AutoCAD + BricsCAD + Revit: paletas MVC, muro 2D/3D, `LCornerDetector`. **Continuar aquí.** |
 | [HANDOVER-LCornerDetector.md](HANDOVER-LCornerDetector.md) | Handover US-664 LCornerDetector |
 | [HANDOVER-US-IMG-MUROS.md](HANDOVER-US-IMG-MUROS.md) | Handover análisis de imagen / muros |
 | [HANDOVER-PLUGIN-DEVICE-AUTH.md](HANDOVER-PLUGIN-DEVICE-AUTH.md) | Handover autenticación de dispositivo |

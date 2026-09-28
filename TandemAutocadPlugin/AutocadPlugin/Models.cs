@@ -51,6 +51,26 @@ namespace AutocadPlugin.Models
         public T Datos { get; set; }
     }
 
+    public class XyzMmDto
+    {
+        public double? X { get; set; }
+        public double? Y { get; set; }
+        public double? Z { get; set; }
+    }
+
+    public class WallLineDto
+    {
+        public long? Id { get; set; }
+        public XyzMmDto P1Mm { get; set; }
+        public XyzMmDto P2Mm { get; set; }
+        public string WallRole { get; set; }
+    }
+
+    public class WallSnapshotDto
+    {
+        public List<WallLineDto> Lines { get; set; }
+    }
+
     public class PluginAuthRequestDTO
     {
         public string DeviceId { get; set; }
