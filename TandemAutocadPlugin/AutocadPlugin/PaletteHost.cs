@@ -4,6 +4,7 @@ using AutocadPlugin.Models;
 using AutocadPlugin.UI.Views;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.EditorInput;
+using Newtonsoft.Json.Linq;
 using AcadApp = Autodesk.AutoCAD.ApplicationServices.Application;
 
 namespace AutocadPlugin
@@ -71,9 +72,9 @@ namespace AutocadPlugin
             ShowToolPalettes();
             if (_blocks != null && _blocks.IsVisible)
             {
-                if (_blocks.Height < 80)
+                if (_blocks.Width + 1 < BlocksWidth)
                 {
-                    try { _blocks.SetSize(BlocksWidth, BlocksHeight); } catch { }
+                    ApplyBlocksSize(expanded: true);
                     return;
                 }
                 HidePalette(_blocks);
@@ -112,8 +113,15 @@ namespace AutocadPlugin
             if (window == null) return;
             try
             {
-                if (window.IsVisible)
-                    window.Hide();
+                Action hide = () =>
+                {
+                    if (window.IsVisible)
+                        window.Hide();
+                };
+                if (window.Dispatcher.CheckAccess())
+                    hide();
+                else
+                    window.Dispatcher.Invoke(hide);
             }
             catch
             {
@@ -134,7 +142,7 @@ namespace AutocadPlugin
                 return;
             }
 
-            var created = new PaletteWindow(_sessionStartUrl, 320, 248, allowResize: false, authSplash: true);
+            var created = new PaletteWindow(_sessionStartUrl, 320, 292, allowResize: false, authSplash: true);
             created.MessageReceived += OnPaletteMessage;
             created.Navigated += OnSessionNavigated;
             created.Closed += (_, __) =>
@@ -231,7 +239,7 @@ namespace AutocadPlugin
         private static void ArmSplashFallback()
         {
             var gen = ++_splashWaitGen;
-            Task.Delay(12000).ContinueWith(_ =>
+            Task.Delay(ConnectEta.FallbackMs()).ContinueWith(_ =>
             {
                 if (gen != _splashWaitGen) return;
                 try
@@ -336,8 +344,7 @@ namespace AutocadPlugin
 
         private const double BlocksWidth = 320;
         private const double BlocksHeight = 680;
-        private const double BlocksCollapsedWidth = 56;
-        private const double BlocksCollapsedHeight = 40;
+        private const double BlocksCollapsedWidth = 32;
         private const double BlocksLeft = 80;
         private const double BlocksTop = 158;
 
@@ -352,6 +359,7 @@ namespace AutocadPlugin
                 {
                     if (!_blocks.IsVisible)
                         _blocks.Show();
+                    ApplyBlocksSize(expanded: true);
                     _blocks.Activate();
                     PositionOverAcad(_blocks, BlocksLeft, BlocksTop);
                 }
@@ -445,9 +453,16 @@ namespace AutocadPlugin
             }
         }
 
+        private static DateTime _ignoreBlocksExpandUntil = DateTime.MinValue;
+
         private static void OnPaletteMessage(string json)
         {
             if (string.IsNullOrWhiteSpace(json)) return;
+            var raw = json;
+            json = NormalizePaletteJson(json);
+
+            if (TryHandleBlocksChrome(raw) || TryHandleBlocksChrome(json))
+                return;
 
             if (TryHandleSessionMessage(json))
                 return;
@@ -462,6 +477,38 @@ namespace AutocadPlugin
             RunAcadCommand(command);
         }
 
+        private static bool HasToken(string text, string token)
+        {
+            return !string.IsNullOrEmpty(text)
+                && text.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool TryHandleBlocksChrome(string text)
+        {
+            if (HasToken(text, "hide-blocks"))
+            {
+                HidePalette(_blocks);
+                return true;
+            }
+
+            if (HasToken(text, "collapse-blocks"))
+            {
+                _ignoreBlocksExpandUntil = DateTime.UtcNow.AddMilliseconds(900);
+                ApplyBlocksSize(expanded: false);
+                return true;
+            }
+
+            if (HasToken(text, "expand-blocks"))
+            {
+                if (DateTime.UtcNow < _ignoreBlocksExpandUntil)
+                    return true;
+                ApplyBlocksSize(expanded: true);
+                return true;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Lanza un comando en AutoCAD desde la paleta (ventana modeless).
         /// No usar "\n": en la línea de comandos se escribe como letra n
@@ -474,34 +521,96 @@ namespace AutocadPlugin
             doc.SendStringToExecute("\x03\x03" + command.Trim() + " ", true, false, false);
         }
 
+        private static string NormalizePaletteJson(string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return raw;
+            var t = raw.Trim();
+            if (t.Length >= 2 && t[0] == '"')
+            {
+                try
+                {
+                    var unquoted = Newtonsoft.Json.JsonConvert.DeserializeObject<string>(t);
+                    if (!string.IsNullOrWhiteSpace(unquoted))
+                        t = unquoted.Trim();
+                }
+                catch
+                {
+                }
+            }
+
+            var start = t.IndexOf('{');
+            var end = t.LastIndexOf('}');
+            if (start >= 0 && end > start)
+                return t.Substring(start, end - start + 1);
+            return t;
+        }
+
+        private static void RunOnBlocks(Action action)
+        {
+            if (_blocks == null || action == null) return;
+            try
+            {
+                if (_blocks.Dispatcher.CheckAccess())
+                    action();
+                else
+                    _blocks.Dispatcher.Invoke(action);
+            }
+            catch
+            {
+            }
+        }
+
+        private static void ApplyBlocksSize(bool expanded)
+        {
+            RunOnBlocks(() =>
+            {
+                try
+                {
+                    if (!_blocks.IsVisible)
+                        _blocks.Show();
+                    _blocks.SetCollapsedChrome(!expanded);
+                    _blocks.SetSize(
+                        expanded ? BlocksWidth : BlocksCollapsedWidth,
+                        BlocksHeight);
+                }
+                catch
+                {
+                }
+            });
+        }
+
         private static bool TryHandleSessionMessage(string json)
         {
             try
             {
-                var msg = Newtonsoft.Json.JsonConvert.DeserializeAnonymousType(
-                    json, new { action = "", url = "", designId = 0L, id = 0L, dwg = "", caption = "", snapshot = (WallSnapshotDto)null });
-                if (msg == null || string.IsNullOrWhiteSpace(msg.action))
+                JObject obj;
+                try { obj = JObject.Parse(json); }
+                catch { return false; }
+
+                var action = (string)obj["action"];
+                if (string.IsNullOrWhiteSpace(action))
                     return false;
 
-                if (string.Equals(msg.action, "company-logo", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(action, "company-logo", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (string.IsNullOrWhiteSpace(msg.url))
+                    var url = (string)obj["url"];
+                    if (string.IsNullOrWhiteSpace(url))
                         PluginSplashBrand.Clear();
                     else
-                        _ = PluginSplashBrand.SaveFromUrlAsync(msg.url);
+                        _ = PluginSplashBrand.SaveFromUrlAsync(url);
                     return true;
                 }
 
-                if (string.Equals(msg.action, "session-ready", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(msg.action, "page-ready", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(action, "session-ready", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(action, "page-ready", StringComparison.OrdinalIgnoreCase))
                 {
                     RevealSessionPage();
-                    if (string.Equals(msg.action, "session-ready", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(action, "session-ready", StringComparison.OrdinalIgnoreCase))
                         MarkAuthenticated();
                     return true;
                 }
 
-                if (string.Equals(msg.action, "show-home", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(action, "show-home", StringComparison.OrdinalIgnoreCase))
                 {
                     if (_session != null && _session.IsVisible)
                         HideHome();
@@ -510,63 +619,47 @@ namespace AutocadPlugin
                     return true;
                 }
 
-                if (string.Equals(msg.action, "hide-home", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(action, "hide-home", StringComparison.OrdinalIgnoreCase))
                 {
                     HideHome();
                     return true;
                 }
 
-                if (string.Equals(msg.action, "show-blocks", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(action, "show-blocks", StringComparison.OrdinalIgnoreCase))
                 {
                     ShowBlocks();
                     return true;
                 }
 
-                if (string.Equals(msg.action, "hide-blocks", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(action, "hide-blocks", StringComparison.OrdinalIgnoreCase))
                 {
                     HidePalette(_blocks);
                     return true;
                 }
 
-                if (string.Equals(msg.action, "collapse-blocks", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(action, "collapse-blocks", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (_blocks != null)
-                    {
-                        try
-                        {
-                            if (!_blocks.IsVisible)
-                                _blocks.Show();
-                            _blocks.SetSize(BlocksCollapsedWidth, BlocksCollapsedHeight);
-                        }
-                        catch { }
-                    }
+                    ApplyBlocksSize(expanded: false);
                     return true;
                 }
 
-                if (string.Equals(msg.action, "expand-blocks", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(action, "expand-blocks", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (_blocks != null)
-                    {
-                        try
-                        {
-                            if (!_blocks.IsVisible)
-                                _blocks.Show();
-                            _blocks.SetSize(BlocksWidth, BlocksHeight);
-                        }
-                        catch { }
-                    }
+                    ApplyBlocksSize(expanded: true);
                     return true;
                 }
 
-                if (string.Equals(msg.action, "insert-block", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(action, "insert-block", StringComparison.OrdinalIgnoreCase))
                 {
                     WriteMessage("[Tandem] Biblioteca de bloques: formulario listo. La inserción en el dibujo llega en el siguiente paso.");
                     return true;
                 }
 
-                if (string.Equals(msg.action, "open-design", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(action, "open-design", StringComparison.OrdinalIgnoreCase))
                 {
-                    WallImportCommand.OpenFromPalette(msg.designId, msg.snapshot);
+                    var designId = obj["designId"] != null ? (long)obj["designId"] : 0L;
+                    var snapshot = obj["snapshot"]?.ToObject<WallSnapshotDto>();
+                    WallImportCommand.OpenFromPalette(designId, snapshot);
                     return true;
                 }
             }

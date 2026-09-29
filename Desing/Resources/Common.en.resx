@@ -28,6 +28,21 @@
   <data name="App_BootLoading" xml:space="preserve">
     <value>Loading TDesing…</value>
   </data>
+  <data name="App_BootEtaSeconds" xml:space="preserve">
+    <value>About {0} s left</value>
+  </data>
+  <data name="App_BootEtaMinute" xml:space="preserve">
+    <value>1 min left</value>
+  </data>
+  <data name="App_BootEtaMinutes" xml:space="preserve">
+    <value>About {0} min left</value>
+  </data>
+  <data name="App_BootEtaAlmost" xml:space="preserve">
+    <value>Almost ready…</value>
+  </data>
+  <data name="App_BootEtaCold" xml:space="preserve">
+    <value>Still connecting… first start after launch can take up to 2 min</value>
+  </data>
   <data name="App_EnvironmentLabel" xml:space="preserve">
     <value>Develop environment</value>
   </data>
@@ -298,11 +313,35 @@
   <data name="PluginCad_BlocksZoomOut" xml:space="preserve">
     <value>Zoom out</value>
   </data>
-  <data name="PluginCad_BlocksColorFrame" xml:space="preserve">
-    <value>Frame color</value>
+  <data name="PluginCad_BlocksViewLabel" xml:space="preserve">
+    <value>Type</value>
   </data>
-  <data name="PluginCad_BlocksColorPhenolic" xml:space="preserve">
-    <value>Phenolic color</value>
+  <data name="PluginCad_BlocksView3D" xml:space="preserve">
+    <value>3D</value>
+  </data>
+  <data name="PluginCad_BlocksView3DRef" xml:space="preserve">
+    <value>3DRef</value>
+  </data>
+  <data name="PluginCad_BlocksViewAlzado" xml:space="preserve">
+    <value>Elevation</value>
+  </data>
+  <data name="PluginCad_BlocksViewPlanta" xml:space="preserve">
+    <value>Plan</value>
+  </data>
+  <data name="PluginCad_BlocksViewSoon" xml:space="preserve">
+    <value>Available later.</value>
+  </data>
+  <data name="PluginCad_BlocksRotLabel" xml:space="preserve">
+    <value>Rotation</value>
+  </data>
+  <data name="PluginCad_BlocksRot0" xml:space="preserve">
+    <value>0°</value>
+  </data>
+  <data name="PluginCad_BlocksRot90" xml:space="preserve">
+    <value>90°</value>
+  </data>
+  <data name="PluginCad_BlocksRot90Title" xml:space="preserve">
+    <value>Laid down (90°)</value>
   </data>
   <data name="PluginCad_BlocksSearchLabel" xml:space="preserve">
     <value>Block.-</value>

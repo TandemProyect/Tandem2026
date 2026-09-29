@@ -8,7 +8,7 @@
     var items = Model != null && Model.Items != null ? Model.Items : new List<PluginCadBlockRow>();
     var brandLogoUrl = Url.Content("~/Content/images/ico/Logo.ico");
     var searchUrl = Url.Action("PluginSearchBlocks", "DesignToolsAutocad");
-    ViewBag.BootSplashHold = true;
+    ViewBag.BootSplashHold = false;
 }
 @Html.Partial("_TdesingBootSplash")
 @section Styles {
@@ -60,14 +60,20 @@
         .plugin-blocks__chip {
             display: none;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
+            flex-direction: column;
             width: 100%;
             height: 100%;
+            padding: 10px 0 0;
+            border: 0;
+            background: #fff;
             cursor: pointer;
+            box-shadow: inset -3px 0 0 rgba(21, 101, 192, 0.12);
         }
-        .plugin-blocks__chip img { width: 28px; height: 28px; object-fit: contain; }
+        .plugin-blocks__chip img { width: 18px; height: 18px; object-fit: contain; }
         .plugin-blocks.is-collapsed {
-            padding: 4px;
+            padding: 0;
+            background: #fff;
         }
         .plugin-blocks.is-collapsed > :not(.plugin-blocks__chip) { display: none !important; }
         .plugin-blocks.is-collapsed .plugin-blocks__chip { display: flex; }
@@ -87,12 +93,54 @@
         }
         .plugin-blocks__search input {
             flex: 1;
+            min-width: 0;
             height: 26px;
             font-size: 12px;
             padding: 2px 6px;
             border: 1px solid #90caf9;
             border-radius: 2px;
         }
+        .plugin-blocks__search-clock {
+            width: 16px;
+            height: 16px;
+            flex: 0 0 16px;
+            position: relative;
+            visibility: hidden;
+        }
+        .plugin-blocks__search.is-busy .plugin-blocks__search-clock { visibility: visible; }
+        .plugin-blocks__search-ring {
+            position: absolute; inset: 0;
+            border: 2px solid #F0E6D8;
+            border-top-color: #F29100;
+            border-radius: 50%;
+            animation: plugin-blocks-search-spin .85s linear infinite;
+        }
+        .plugin-blocks__search-hands {
+            position: absolute; inset: 0;
+            animation: plugin-blocks-search-spin 1.35s linear infinite;
+        }
+        .plugin-blocks__search-hands:before,
+        .plugin-blocks__search-hands:after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            background: #2C3340;
+            border-radius: 1px;
+            transform-origin: 50% 0;
+        }
+        .plugin-blocks__search-hands:before {
+            width: 1.4px; height: 5px; margin: -5px 0 0 -0.7px;
+        }
+        .plugin-blocks__search-hands:after {
+            width: 1.4px; height: 3.5px; margin: 0 0 0 -0.7px;
+            background: #F29100; transform: rotate(90deg); transform-origin: 50% 0;
+        }
+        .plugin-blocks__search-dot {
+            position: absolute; left: 50%; top: 50%; width: 3px; height: 3px;
+            margin: -1.5px 0 0 -1.5px; background: #F29100; border-radius: 50%;
+        }
+        @@keyframes plugin-blocks-search-spin { to { transform: rotate(360deg); } }
         .plugin-blocks__list {
             flex: 1;
             min-height: 72px;
@@ -242,15 +290,6 @@
         }
         .plugin-blocks__tool.is-on { background: #1565c0; color: #fff; border-color: #1565c0; }
         .plugin-blocks__tool svg { width: 15px; height: 15px; display: block; }
-        .plugin-blocks__tool-color {
-            width: 22px;
-            height: 22px;
-            padding: 0;
-            border: 1px solid #90caf9;
-            border-radius: 4px;
-            background: #fff;
-            cursor: pointer;
-        }
         .plugin-blocks__clip {
             display: none;
             pointer-events: none;
@@ -282,7 +321,58 @@
             pointer-events: auto;
         }
         .plugin-blocks__clip-x input { width: 100%; }
-        .plugin-blocks__actions { display: flex; justify-content: flex-end; }
+        .plugin-blocks__opts {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 8px;
+            margin: 6px 2px 0;
+        }
+        .plugin-blocks__opt-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            min-width: 0;
+        }
+        .plugin-blocks__opt-row--view { flex: 1 1 auto; }
+        .plugin-blocks__opt-row--rot { flex: 0 0 auto; }
+        .plugin-blocks__opt-row label {
+            flex: 0 0 auto;
+            margin: 0;
+            font-size: 10px;
+            font-weight: 700;
+            color: #1565c0;
+            white-space: nowrap;
+        }
+        .plugin-blocks__seg {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 2px;
+            min-width: 0;
+        }
+        .plugin-blocks__seg-btn {
+            height: 22px;
+            padding: 0 5px;
+            border: 1px solid #90caf9;
+            background: #fff;
+            color: #1565c0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 600;
+            line-height: 1;
+            white-space: nowrap;
+        }
+        .plugin-blocks__seg-btn.is-on { background: #1565c0; color: #fff; border-color: #1565c0; }
+        .plugin-blocks__seg-btn:disabled {
+            opacity: .38;
+            cursor: not-allowed;
+            background: #f5f5f5;
+            color: #90a4ae;
+            border-color: #cfd8dc;
+        }
+        .plugin-blocks__actions { display: flex; justify-content: flex-end; margin-top: 6px; }
         .plugin-blocks__insert {
             background: #1565c0;
             color: #fff;
@@ -309,9 +399,14 @@
     <button type="button" class="plugin-blocks__chip" id="plugin-blocks-chip" title="@Common.PluginCad_BlocksOpenTitle" aria-label="@Common.PluginCad_BlocksOpenTitle">
         <img src="@brandLogoUrl" alt="" />
     </button>
-    <div class="plugin-blocks__search">
+    <div class="plugin-blocks__search" id="plugin-blocks-search">
         <label for="plugin-blocks-q">@Common.PluginCad_BlocksSearchLabel</label>
         <input type="search" id="plugin-blocks-q" autocomplete="off" />
+        <div class="plugin-blocks__search-clock" id="plugin-blocks-search-clock" aria-hidden="true">
+            <div class="plugin-blocks__search-ring"></div>
+            <div class="plugin-blocks__search-hands"></div>
+            <div class="plugin-blocks__search-dot"></div>
+        </div>
     </div>
     <div class="plugin-blocks__list" id="plugin-blocks-list">
         @if (items.Count == 0)
@@ -328,6 +423,7 @@
                         data-stl="@row.StlUrl"
                         data-stl-phenolic="@row.StlPhenolicUrl"
                         data-dwg="@row.DwgUrl"
+                        data-code="@row.Code"
                         data-caption="@row.Caption">
                     @if (!string.IsNullOrWhiteSpace(row.IcoUrl))
                     {
@@ -358,8 +454,6 @@
         <button type="button" class="plugin-blocks__tool" id="plugin-blocks-tool-fit" title="@Common.PluginCad_BlocksZoomFit" data-tool="fit">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4M8 8h8v8H8z"/></svg>
         </button>
-        <input type="color" class="plugin-blocks__tool-color" id="plugin-blocks-color-frame" value="#efb608" title="@Common.PluginCad_BlocksColorFrame" />
-        <input type="color" class="plugin-blocks__tool-color" id="plugin-blocks-color-phenolic" value="#1a1816" title="@Common.PluginCad_BlocksColorPhenolic" />
         <button type="button" class="plugin-blocks__tool" id="plugin-blocks-tool-dark" title="@MasterArticles.StlPreview_DarkBgTitle" data-tool="dark">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M15 4.5A8 8 0 1 0 19.5 15 6.5 6.5 0 0 1 15 4.5z"/></svg>
         </button>
@@ -401,6 +495,24 @@
             </div>
         </div>
     </div>
+    <div class="plugin-blocks__opts" id="plugin-blocks-opts">
+        <div class="plugin-blocks__opt-row plugin-blocks__opt-row--view">
+            <label>@Common.PluginCad_BlocksViewLabel</label>
+            <div class="plugin-blocks__seg" id="plugin-blocks-view" role="group" aria-label="@Common.PluginCad_BlocksViewLabel">
+                <button type="button" class="plugin-blocks__seg-btn" data-view="3d">@Common.PluginCad_BlocksView3D</button>
+                <button type="button" class="plugin-blocks__seg-btn is-on" data-view="3dref">@Common.PluginCad_BlocksView3DRef</button>
+                <button type="button" class="plugin-blocks__seg-btn" data-view="alzado" disabled title="@Common.PluginCad_BlocksViewSoon">@Common.PluginCad_BlocksViewAlzado</button>
+                <button type="button" class="plugin-blocks__seg-btn" data-view="planta" disabled title="@Common.PluginCad_BlocksViewSoon">@Common.PluginCad_BlocksViewPlanta</button>
+            </div>
+        </div>
+        <div class="plugin-blocks__opt-row plugin-blocks__opt-row--rot">
+            <label>@Common.PluginCad_BlocksRotLabel</label>
+            <div class="plugin-blocks__seg" id="plugin-blocks-rot" role="group" aria-label="@Common.PluginCad_BlocksRotLabel">
+                <button type="button" class="plugin-blocks__seg-btn is-on" data-rot="0">@Common.PluginCad_BlocksRot0</button>
+                <button type="button" class="plugin-blocks__seg-btn" data-rot="90" title="@Common.PluginCad_BlocksRot90Title">@Common.PluginCad_BlocksRot90</button>
+            </div>
+        </div>
+    </div>
     <div class="plugin-blocks__actions">
         <button type="button" class="plugin-blocks__insert" id="plugin-blocks-insert" disabled>@Common.PluginCad_BlocksInsert</button>
     </div>
@@ -431,13 +543,34 @@
             var qEl = document.getElementById('plugin-blocks-q');
             var insertEl = document.getElementById('plugin-blocks-insert');
             var statusEl = document.getElementById('plugin-blocks-status');
+            var viewGroup = document.getElementById('plugin-blocks-view');
+            var rotGroup = document.getElementById('plugin-blocks-rot');
+            var searchBox = document.getElementById('plugin-blocks-search');
             var selected = null;
+            var insertView = '3dref';
+            var insertRot = 0;
             var timer = null;
+            var searchGen = 0;
+
+            function bindSeg(group, attr, onPick) {
+                if (!group) return;
+                group.addEventListener('click', function (e) {
+                    var btn = e.target.closest('.plugin-blocks__seg-btn');
+                    if (!btn || btn.disabled) return;
+                    Array.prototype.forEach.call(group.querySelectorAll('.plugin-blocks__seg-btn'), function (el) {
+                        el.classList.toggle('is-on', el === btn);
+                    });
+                    onPick(btn.getAttribute(attr));
+                });
+            }
+            bindSeg(viewGroup, 'data-view', function (v) { insertView = v || '3dref'; });
+            bindSeg(rotGroup, 'data-rot', function (v) { insertRot = parseInt(v || '0', 10) || 0; });
 
             function post(payload) {
                 try {
-                    if (window.chrome && window.chrome.webview)
-                        window.chrome.webview.postMessage(JSON.stringify(payload));
+                    if (!window.chrome || !window.chrome.webview) return;
+                    try { window.chrome.webview.postMessage(payload); }
+                    catch (e) { window.chrome.webview.postMessage(JSON.stringify(payload)); }
                 } catch (e) { }
             }
 
@@ -475,6 +608,7 @@
                     btn.setAttribute('data-stl', row.StlUrl || row.stlUrl || '');
                     btn.setAttribute('data-stl-phenolic', row.StlPhenolicUrl || row.stlPhenolicUrl || '');
                     btn.setAttribute('data-dwg', row.DwgUrl || row.dwgUrl || '');
+                    btn.setAttribute('data-code', row.Code || row.code || '');
                     btn.setAttribute('data-caption', row.Caption || row.caption || '');
                     btn.innerHTML = thumbHtml(row) + '<span class="plugin-blocks__caption"></span>';
                     btn.querySelector('.plugin-blocks__caption').textContent = row.Caption || row.caption || row.Label || row.label || '';
@@ -491,6 +625,7 @@
                     stl: btn.getAttribute('data-stl') || '',
                     stlPhenolic: btn.getAttribute('data-stl-phenolic') || '',
                     dwg: btn.getAttribute('data-dwg') || '',
+                    code: btn.getAttribute('data-code') || '',
                     caption: btn.getAttribute('data-caption') || ''
                 };
                 insertEl.disabled = !selected.id;
@@ -506,29 +641,72 @@
             });
 
             function loadList(q, dismissSplash) {
-                fetch(searchUrl + '?q=' + encodeURIComponent(q || ''), { credentials: 'same-origin' })
-                    .then(function (r) { return r.json(); })
-                    .then(function (rows) {
-                        renderRows(rows);
-                        if (dismissSplash && window.TdesingBootSplashDismiss)
-                            window.TdesingBootSplashDismiss();
+                var my = ++searchGen;
+                if (searchBox) {
+                    searchBox.classList.add('is-busy');
+                    searchBox.setAttribute('aria-busy', 'true');
+                }
+                function stopClock() {
+                    if (my !== searchGen) return false;
+                    if (searchBox) {
+                        searchBox.classList.remove('is-busy');
+                        searchBox.setAttribute('aria-busy', 'false');
+                    }
+                    return true;
+                }
+                function doneSplash() {
+                    if (dismissSplash && window.TdesingBootSplashDismiss)
+                        window.TdesingBootSplashDismiss();
+                }
+                fetch(searchUrl + '?q=' + encodeURIComponent(q || ''), {
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json' }
+                })
+                    .then(function (r) { return r.text(); })
+                    .then(function (text) {
+                        if (!stopClock()) return;
+                        var rows = [];
+                        try { rows = JSON.parse(text); } catch (e) { rows = []; }
+                        renderRows(Array.isArray(rows) ? rows : []);
+                        doneSplash();
                     })
                     .catch(function () {
+                        if (!stopClock()) return;
                         setStatus(emptyText, true);
-                        if (dismissSplash && window.TdesingBootSplashDismiss)
-                            window.TdesingBootSplashDismiss();
+                        doneSplash();
                     });
             }
 
-            qEl.addEventListener('input', function () {
+            function scheduleSearch() {
+                if (!qEl) return;
                 clearTimeout(timer);
-                timer = setTimeout(function () { loadList(qEl.value || '', false); }, 220);
-            });
+                timer = setTimeout(function () { loadList(qEl.value || '', false); }, 180);
+            }
+            if (qEl) {
+                qEl.addEventListener('input', scheduleSearch);
+                qEl.addEventListener('change', scheduleSearch);
+                qEl.addEventListener('search', scheduleSearch);
+                qEl.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        clearTimeout(timer);
+                        loadList(qEl.value || '', false);
+                    }
+                });
+            }
 
             insertEl.addEventListener('click', function () {
                 if (!selected || !selected.id) return;
                 setStatus(soonText);
-                post({ action: 'insert-block', id: selected.id, dwg: selected.dwg, caption: selected.caption });
+                post({
+                    action: 'insert-block',
+                    id: selected.id,
+                    code: selected.code || '',
+                    dwg: selected.dwg,
+                    caption: selected.caption,
+                    view: insertView,
+                    rotation: insertRot
+                });
             });
 
             var rootEl = document.getElementById('plugin-blocks-root');
@@ -554,12 +732,14 @@
             }
             if (chipEl) {
                 chipEl.addEventListener('mouseenter', tryExpand);
-                chipEl.addEventListener('click', function () { hoverArmed = true; tryExpand(); });
+                chipEl.addEventListener('click', function () {
+                    hoverArmed = true;
+                    tryExpand();
+                });
             }
-            if (rootEl) {
-                rootEl.addEventListener('mouseleave', function () { hoverArmed = true; });
-                rootEl.addEventListener('mouseenter', tryExpand);
-            }
+            document.documentElement.addEventListener('mouseleave', function () {
+                hoverArmed = true;
+            });
 
             loadList('', true);
         })();

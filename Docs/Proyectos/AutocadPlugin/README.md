@@ -2,8 +2,11 @@
 
 Código: `TandemAutocadPlugin/AutocadPlugin/`
 
-**Estado actual y cómo continuar:**  
-[HANDOVER-2026-09-Plugins-Tandem-CAD.md](../Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md)
+**Estado actual y cómo continuar:**
+
+- Muros / sesión: [HANDOVER-2026-09-Plugins-Tandem-CAD.md](../Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md)
+- Biblioteca de bloques: [HANDOVER-2026-09-29-Autocad-Bloquing.md](../Plugins-CAD/HANDOVER-2026-09-29-Autocad-Bloquing.md)
+- Inserción 3D/3DRef: [HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md](../Plugins-CAD/HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md)
 
 ## Cargar
 

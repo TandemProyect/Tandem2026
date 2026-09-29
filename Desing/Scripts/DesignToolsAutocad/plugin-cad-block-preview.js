@@ -30,15 +30,6 @@ const _vcM = new THREE.Matrix4();
 const clipPlaneY = new THREE.Plane();
 const clipPlaneX = new THREE.Plane();
 
-function parseCssHex(css, fallback) {
-    const n = parseInt(String(css || '').replace('#', ''), 16);
-    return Number.isFinite(n) ? n : fallback;
-}
-
-function toCssHex(n) {
-    return '#' + ((n >>> 0) & 0xffffff).toString(16).padStart(6, '0');
-}
-
 function dispose() {
     if (!state) return;
     try {
@@ -464,25 +455,6 @@ function bindViewerChrome() {
                 applyAxes();
                 syncToolButtons();
             }
-        });
-    }
-
-    const colorFrame = document.getElementById('plugin-blocks-color-frame');
-    const colorPhenolic = document.getElementById('plugin-blocks-color-phenolic');
-    if (colorFrame && !colorFrame.dataset.bound) {
-        colorFrame.dataset.bound = '1';
-        colorFrame.value = toCssHex(prefs.frameHex);
-        colorFrame.addEventListener('input', function () {
-            prefs.frameHex = parseCssHex(colorFrame.value, FRAME_HEX);
-            applyColors();
-        });
-    }
-    if (colorPhenolic && !colorPhenolic.dataset.bound) {
-        colorPhenolic.dataset.bound = '1';
-        colorPhenolic.value = toCssHex(prefs.phenolicHex);
-        colorPhenolic.addEventListener('input', function () {
-            prefs.phenolicHex = parseCssHex(colorPhenolic.value, PHENOLIC_HEX);
-            applyColors();
         });
     }
 

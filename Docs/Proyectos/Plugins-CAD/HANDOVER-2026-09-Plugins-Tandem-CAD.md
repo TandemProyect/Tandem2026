@@ -4,6 +4,8 @@ Documento para **continuar** AutoCAD, BricsCAD y Revit. No es el plugin ZWCAD ni
 
 **Estado:** muro 2D + generar 3D usable; **sesión Desing + abrir diseño (muros) en AutoCAD**; uniones al terminar el 2D y encofrado, pendientes. BricsCAD/Revit aún no tienen el login.
 
+**Biblioteca de bloques (2026-09-29):** formulario listo en AutoCAD; inserción pendiente. Ver [HANDOVER-2026-09-29-Autocad-Bloquing.md](./HANDOVER-2026-09-29-Autocad-Bloquing.md).
+
 ---
 
 ## 1. Qué se hizo
@@ -72,9 +74,20 @@ Comportamiento:
 - Comandos nativos de AutoCAD/BricsCAD en **inglés** con prefijo internacional: `._MOVE`, `._EXTEND`, `._STRETCH`, …
 - En Revit no hay `._MOVE`: se usa `PostableCommand` (Move, Copy, Offset, Delete, ModelLine).
 
-**Requisito:** Desing en IIS Express. URL por defecto `https://localhost:44384/` (override `TANDEM_MVC_BASE_URL`).
+**Requisito:** Desing en IIS Express para develop. Destino por defecto `https://localhost:44384/`.
 
-WebView2: `WebView2Loader.dll` se copia a la raíz del output (`NETLOAD` / add-in no resuelven `runtimes\win-x64\native`).
+### Local vs producción (AutoCAD)
+
+No hay doble conexión simultánea: un `baseUrl` para paletas y API.
+
+| Destino | URL | Comando |
+|---------|-----|---------|
+| Develop | `https://localhost:44384/` | `TANDEM_LOCAL` (default) |
+| Servidor | `https://tdesing.net/` | `TANDEM_PRODUCCION` |
+
+Consultar destino: `TANDEM_SERVIDOR` o `HOLA`. Override: env `TANDEM_MVC_BASE_URL` (gana sobre el fichero). Persistencia: `%AppData%\Tandem\AutocadPlugin\mvc-target.txt` (sobrevive NETLOAD). Al cambiar: cierra paletas y relanza sesión (`ReconnectToCurrentServer`). Detalle: [HANDOVER-2026-09-29-Autocad-Bloquing.md](./HANDOVER-2026-09-29-Autocad-Bloquing.md) §14.
+
+WebView2: `WebView2Loader.dll` se copia a la raíz del output (`NETLOAD` / add-in no resuelven `runtimes\win-x64\native`). Perfil cookies: `%TEMP%\TandemAutocadWebView2`.
 
 ### Sesión Desing y diseños (AutoCAD, 2026-09-28)
 
@@ -207,11 +220,12 @@ Orden sugerido:
 1. **Probar login + abrir diseño en AutoCAD** (Desing arrancado, pestaña Tandem 2026).
 2. Portar la misma sesión a **BricsCAD** y **Revit** (mismo MVC `PluginReady`).
 3. **Uniones al terminar muro 2D** (el usuario lo dejó para después; AutoCAD STRETCH/EXTEND es el motivo de dibujar líneas nativas).
-4. **Encofrar / ATK-60** en CAD: el botón existe en la paleta; no hay lógica. Debe reutilizar el mismo backend que Desing_2, no un clon.
-5. Quitar stubs de `AutocadPlugin/Commands.cs` (ya limpios en BricsCAD) o portar de verdad lo que haga falta.
-6. Uniones / limpieza de caras **después** de estirar en CAD, luego regenerar 3D.
-7. Altura de muro configurable (ZWCAD tiene formulario 2,70 m; CAD ahora fija 2700 mm).
-8. Instaladores AutoCAD/BricsCAD (hoy solo Revit tiene MSI). Bundle/NETLOAD documentado basta para desarrollo.
+4. **Biblioteca de bloques AutoCAD:** formulario listo. **Inserción:** contrato 3D/3DRef en [HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md](./HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md); no implementar hasta cerrar debate.
+5. **Encofrar / ATK-60** sobre muros: el botón existe en la paleta de modo; no hay lógica de generación. Reutilizar el backend de Desing_2. El visor de bloques ya usa el par STL `Atk60Element`.
+6. Quitar stubs restantes de `AutocadPlugin/Commands.cs` (ya limpios en BricsCAD) o portar de verdad lo que haga falta. `INSERTARBLOQUE` ahora abre el formulario.
+7. Uniones / limpieza de caras **después** de estirar en CAD, luego regenerar 3D.
+8. Altura de muro configurable (ZWCAD tiene formulario 2,70 m; CAD ahora fija 2700 mm).
+9. Instaladores AutoCAD/BricsCAD (hoy solo Revit tiene MSI). Bundle/NETLOAD documentado basta para desarrollo.
 
 ---
 
@@ -234,7 +248,8 @@ Probar: Desing up → dibujar 2D → Generar 3D → debe aparecer el popup y só
 |-------|------|
 | Detector | `Desing/Services/LCornerDetector.cs` |
 | API | `Desing/Controllers/DesignToolsAutocadController.cs` |
-| Paletas MVC | `PaletteMode.cshtml`, `PaletteTools.cshtml`, `PluginReady.cshtml` |
+| Paletas MVC | `PaletteMode.cshtml`, `PaletteTools.cshtml`, `PluginReady.cshtml`, `PluginBlocks.cshtml` |
+| Biblioteca bloques | [HANDOVER-2026-09-29-Autocad-Bloquing.md](./HANDOVER-2026-09-29-Autocad-Bloquing.md) |
 | Sesión plugin | `Account/Login` (ReturnUrl) → `DesignToolsAutocad/PluginReady` → `Desing_2/GetDesignWalls` |
 | Import muros AutoCAD | `TandemAutocadPlugin/AutocadPlugin/WallImportCommand.cs` |
 | Layout paleta | `Desing/Views/Shared/_LayoutAutocadPalette.cshtml` |

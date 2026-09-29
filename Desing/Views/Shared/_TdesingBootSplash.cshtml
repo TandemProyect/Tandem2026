@@ -22,6 +22,31 @@
     {
         loadingText = "Cargando TDesing…";
     }
+    var etaSeconds = Common.App_BootEtaSeconds;
+    if (string.IsNullOrWhiteSpace(etaSeconds))
+    {
+        etaSeconds = "Quedan unos {0} s";
+    }
+    var etaMinute = Common.App_BootEtaMinute;
+    if (string.IsNullOrWhiteSpace(etaMinute))
+    {
+        etaMinute = "Queda 1 min";
+    }
+    var etaMinutes = Common.App_BootEtaMinutes;
+    if (string.IsNullOrWhiteSpace(etaMinutes))
+    {
+        etaMinutes = "Quedan unos {0} min";
+    }
+    var etaAlmost = Common.App_BootEtaAlmost;
+    if (string.IsNullOrWhiteSpace(etaAlmost))
+    {
+        etaAlmost = "Casi listo…";
+    }
+    var etaCold = Common.App_BootEtaCold;
+    if (string.IsNullOrWhiteSpace(etaCold))
+    {
+        etaCold = "Sigue conectando… el primero tras arrancar puede tardar hasta 2 min";
+    }
 }
 <style>
     #tdesing-boot-splash {
@@ -86,6 +111,19 @@
         margin: 16px 20px 0;
         font-size: 15px; font-weight: 600; color: #2C3340;
     }
+    #tdesing-boot-splash .tdesing-boot-eta {
+        margin: 8px 20px 0;
+        font-size: 13px; font-weight: 600; color: #0f172a;
+        font-variant-numeric: tabular-nums;
+    }
+    #tdesing-boot-splash .tdesing-boot-progress {
+        width: 200px; height: 6px; margin: 12px auto 0;
+        background: #F0E6D8; border-radius: 999px; overflow: hidden;
+    }
+    #tdesing-boot-splash .tdesing-boot-progress-bar {
+        height: 100%; width: 8%; background: #F29100; border-radius: 999px;
+        transition: width .28s linear;
+    }
     @@keyframes tdesing-boot-spin { to { transform: rotate(360deg); } }
 </style>
 <div id="tdesing-boot-splash" role="status" aria-live="polite">
@@ -98,6 +136,10 @@
             <div class="tdesing-boot-dot"></div>
         </div>
         <p>@loadingText</p>
+        <div id="tdesing-boot-eta" class="tdesing-boot-eta">@etaAlmost</div>
+        <div class="tdesing-boot-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="8">
+            <div id="tdesing-boot-progress-bar" class="tdesing-boot-progress-bar"></div>
+        </div>
     </div>
 </div>
 <script>
@@ -106,16 +148,72 @@
         if (!el) return;
         var onceKey = @Html.Raw(JsonConvert.SerializeObject(onceKey ?? ""));
         var hold = @Html.Raw(((ViewBag.BootSplashHold as bool?) == true).ToString().ToLowerInvariant());
+        var tplSeconds = @Html.Raw(JsonConvert.SerializeObject(etaSeconds));
+        var tplMinute = @Html.Raw(JsonConvert.SerializeObject(etaMinute));
+        var tplMinutes = @Html.Raw(JsonConvert.SerializeObject(etaMinutes));
+        var tplAlmost = @Html.Raw(JsonConvert.SerializeObject(etaAlmost));
+        var tplCold = @Html.Raw(JsonConvert.SerializeObject(etaCold));
+        var etaEl = document.getElementById('tdesing-boot-eta');
+        var barEl = document.getElementById('tdesing-boot-progress-bar');
+        var storeKey = 'tdesing-boot-eta-ms';
+        var startedAt = Date.now();
+        var predicted = hold ? 15000 : 8000;
+        var coldMs = 120000;
+        var cold = false;
+        var tickTimer = null;
         try {
             if (onceKey && window.sessionStorage && sessionStorage.getItem(onceKey)) {
                 el.parentNode.removeChild(el);
                 return;
             }
         } catch (e) { }
+        try {
+            if (window.sessionStorage) {
+                var last = parseInt(sessionStorage.getItem(storeKey) || '0', 10);
+                if (last >= 2500) predicted = last;
+            }
+        } catch (e4) { }
+
+        function formatEta(ms, coldHang) {
+            if (coldHang) return tplCold;
+            if (!(ms > 0) || ms < 1400) return tplAlmost;
+            var sec = Math.max(1, Math.ceil(ms / 1000));
+            if (sec < 55) return String(tplSeconds || '').replace('{0}', String(sec));
+            var min = Math.max(1, Math.round(sec / 60));
+            if (min <= 1) return tplMinute;
+            return String(tplMinutes || '').replace('{0}', String(min));
+        }
+
+        function refreshEta() {
+            var elapsed = Date.now() - startedAt;
+            if (!cold && elapsed > predicted + 1500) {
+                cold = true;
+                predicted = coldMs;
+            }
+            var remaining = Math.max(1100, predicted - elapsed * 0.72);
+            var coldHang = cold && elapsed > predicted;
+            if (etaEl) etaEl.textContent = formatEta(remaining, coldHang);
+            var pct;
+            if (coldHang) pct = Math.min(96, 78 + (elapsed - predicted) / 4000);
+            else pct = Math.max(6, Math.min(92, (elapsed / Math.max(1, predicted)) * 88));
+            if (barEl) barEl.style.width = pct + '%';
+        }
+
+        function stopEta() {
+            if (tickTimer) {
+                window.clearInterval(tickTimer);
+                tickTimer = null;
+            }
+        }
 
         function dismiss() {
             if (!el || el.getAttribute('data-done') === '1') return;
             el.setAttribute('data-done', '1');
+            stopEta();
+            try {
+                if (window.sessionStorage)
+                    sessionStorage.setItem(storeKey, String(Math.max(2500, Date.now() - startedAt)));
+            } catch (e5) { }
             el.classList.add('is-done');
             try {
                 if (onceKey && window.sessionStorage) sessionStorage.setItem(onceKey, '1');
@@ -130,6 +228,8 @@
         }
 
         window.TdesingBootSplashDismiss = dismiss;
+        refreshEta();
+        tickTimer = window.setInterval(refreshEta, 280);
         if (!hold) {
             if (document.readyState === 'complete') dismiss();
             else window.addEventListener('load', dismiss);

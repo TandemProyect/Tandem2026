@@ -1,5 +1,5 @@
 {
-  "generatedAtUtc": "2026-09-28T09:31:13.354Z",
+  "generatedAtUtc": "2026-09-29T11:33:20.275Z",
   "pageUrl": "https://localhost:44384/Desing_2/Viewer?offerId=1&designId=1",
   "schema": "WallConnections.v1",
   "source": "Desing_2",
@@ -52,7 +52,7 @@
       },
       "lengthMm": 15750,
       "wallGroupId": 1,
-      "wallId": 1,
+      "wallId": "1",
       "wallRole": "axis",
       "_idObject": 1,
       "_TypeMesh": "Wall",
@@ -103,7 +103,7 @@
       },
       "lengthMm": 15900,
       "wallGroupId": 1,
-      "wallId": 1,
+      "wallId": "2",
       "wallRole": "face",
       "linkOffsetFromLineId": 1,
       "numberOffsetMm": 150,
@@ -157,7 +157,7 @@
       },
       "lengthMm": 15600,
       "wallGroupId": 1,
-      "wallId": 1,
+      "wallId": "3",
       "wallRole": "face",
       "linkOffsetFromLineId": 1,
       "numberOffsetMm": 150,
@@ -211,7 +211,7 @@
       },
       "lengthMm": 11500,
       "wallGroupId": 1,
-      "wallId": 1,
+      "wallId": "4",
       "wallRole": "axis",
       "_idObject": 4,
       "_TypeMesh": "Wall",
@@ -262,7 +262,7 @@
       },
       "lengthMm": 11500,
       "wallGroupId": 1,
-      "wallId": 1,
+      "wallId": "5",
       "wallRole": "face",
       "linkOffsetFromLineId": 4,
       "numberOffsetMm": 150,
@@ -316,7 +316,7 @@
       },
       "lengthMm": 11500,
       "wallGroupId": 1,
-      "wallId": 1,
+      "wallId": "6",
       "wallRole": "face",
       "linkOffsetFromLineId": 4,
       "numberOffsetMm": 150,
@@ -370,7 +370,7 @@
       },
       "lengthMm": 10500,
       "wallGroupId": 1,
-      "wallId": 1,
+      "wallId": "7",
       "wallRole": "axis",
       "_idObject": 7,
       "_TypeMesh": "Wall",
@@ -421,7 +421,7 @@
       },
       "lengthMm": 10350,
       "wallGroupId": 1,
-      "wallId": 1,
+      "wallId": "8",
       "wallRole": "face",
       "linkOffsetFromLineId": 7,
       "numberOffsetMm": 150,
@@ -475,7 +475,7 @@
       },
       "lengthMm": 10650,
       "wallGroupId": 1,
-      "wallId": 1,
+      "wallId": "9",
       "wallRole": "face",
       "linkOffsetFromLineId": 7,
       "numberOffsetMm": 150,
@@ -524,7 +524,7 @@
         8,
         9
       ],
-      "wallId": 1
+      "wallId": "9"
     }
   ],
   "nodes": [
@@ -1522,5 +1522,5 @@
     }
   ],
   "generatedWallModel": null,
-  "saveReason": "wall2d-stop-escape-or-toolbar"
+  "saveReason": "wall-model-mode-lines"
 }

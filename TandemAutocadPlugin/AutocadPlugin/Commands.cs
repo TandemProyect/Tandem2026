@@ -85,7 +85,8 @@ namespace AutocadPlugin
             ed.WriteMessage("\n          GENERAR3D, REGENERAR3D, TANDEM_ABRIRDISENO, INSERTARBLOQUE,");
             ed.WriteMessage("\n          TANDEM_LOCAL, TANDEM_PRODUCCION, TANDEM_SERVIDOR,");
             ed.WriteMessage("\n          TANDEM_PROBAR_CONEXION, TANDEM_DEVICE_ID, TANDEM_CARGAR_MENU");
-            ed.WriteMessage($"\nServidor MVC: {MvcServerSettings.CurrentLabel()} — {MvcServerSettings.CurrentUrl()}\n");
+            ed.WriteMessage($"\nServidor MVC: {MvcServerSettings.CurrentLabel()} — {MvcServerSettings.CurrentUrl()}");
+            ed.WriteMessage($"\nDLL: {System.Reflection.Assembly.GetExecutingAssembly().Location}\n");
         }
 
         [CommandMethod("TANDEM_PROBAR_CONEXION")]

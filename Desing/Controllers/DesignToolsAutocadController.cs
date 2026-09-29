@@ -233,7 +233,16 @@ namespace Desing.Controllers
             if (!EnsurePluginCadUser())
                 return new HttpUnauthorizedResult();
 
-            return Json(QueryPluginBlocks(q), JsonRequestBehavior.AllowGet);
+            try
+            {
+                var json = Json(QueryPluginBlocks(q), JsonRequestBehavior.AllowGet);
+                json.MaxJsonLength = int.MaxValue;
+                return json;
+            }
+            catch
+            {
+                return Json(new List<PluginCadBlockRow>(), JsonRequestBehavior.AllowGet);
+            }
         }
 
         private bool EnsurePluginCadUser()
@@ -265,7 +274,11 @@ namespace Desing.Controllers
                 query = query.Where(a =>
                     (a.AddAtenkoCode != null && a.AddAtenkoCode.Contains(term))
                     || (a.TextCode != null && a.TextCode.Contains(term))
-                    || (a.TextLabel != null && a.TextLabel.Contains(term)));
+                    || (a.TextLabel != null && a.TextLabel.Contains(term))
+                    || (a.TextStlNumber != null && a.TextStlNumber.Contains(term))
+                    || (a.TextBlockNumber != null && a.TextBlockNumber.Contains(term))
+                    || (a.LinkBlockDwgPlantStl != null && a.LinkBlockDwgPlantStl.Contains(term))
+                    || (a.LinkBlockDwgPlant3D != null && a.LinkBlockDwgPlant3D.Contains(term)));
             }
 
             var rows = query
@@ -274,16 +287,34 @@ namespace Desing.Controllers
                 .Take(80)
                 .ToList();
 
-            var icoById = LoadMasterArticleIcoMap();
+            if (term.Length >= 4 && rows.Count == 0)
+            {
+                var panels = db.Tsql_Master_Articles.AsNoTracking()
+                    .Where(a => a.AddIsActive && a.AddAtenkoCode != null && a.AddAtenkoCode.StartsWith("3120"))
+                    .Take(200)
+                    .ToList();
+                rows = panels
+                    .Where(a => ArticleMatchesCodeName(a, term))
+                    .OrderBy(a => a.TextLabel)
+                    .ThenBy(a => a.AddAtenkoCode)
+                    .Take(80)
+                    .ToList();
+            }
+
+            var icoById = LoadMasterArticleIcoMap(rows.Select(a => a.IdObject));
             return rows.Select(a => MapPluginBlock(a, icoById)).ToList();
         }
 
-        private Dictionary<long, string> LoadMasterArticleIcoMap()
+        private Dictionary<long, string> LoadMasterArticleIcoMap(IEnumerable<long> ids)
         {
+            var idList = ids != null ? ids.Distinct().ToList() : new List<long>();
+            if (idList.Count == 0)
+                return new Dictionary<long, string>();
             try
             {
+                var inList = string.Join(",", idList.Select(id => id.ToString(CultureInfo.InvariantCulture)));
                 return db.Database.SqlQuery<PluginCadArticleIcoRow>(
-                        "SELECT IdObject, ImgIco FROM dbo.Tsql_Master_Articles WHERE ImgIco IS NOT NULL AND LTRIM(RTRIM(ImgIco)) <> ''")
+                        "SELECT IdObject, ImgIco FROM dbo.Tsql_Master_Articles WHERE IdObject IN (" + inList + ") AND ImgIco IS NOT NULL AND LTRIM(RTRIM(ImgIco)) <> ''")
                     .ToDictionary(x => x.IdObject, x => x.ImgIco);
             }
             catch
@@ -319,30 +350,31 @@ namespace Desing.Controllers
             };
         }
 
+        private static bool ArticleMatchesCodeName(DAL.Tsql_Master_Articles a, string term)
+        {
+            string frame;
+            string phenolic;
+            if (!PluginCadAtk60PanelStlHelper.TryResolve(a, out frame, out phenolic))
+                return false;
+            return (!string.IsNullOrWhiteSpace(frame) && frame.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0)
+                || (!string.IsNullOrWhiteSpace(phenolic) && phenolic.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0);
+        }
+
         private string ResolveIcoUrl(DAL.Tsql_Master_Articles a, string storedIco)
         {
             var fromDb = ToPublicUrl(storedIco);
-            if (!string.IsNullOrWhiteSpace(fromDb) && VirtualFileExists(storedIco))
+            if (!string.IsNullOrWhiteSpace(fromDb))
                 return fromDb;
 
             var code = FirstNonEmpty(a.AddAtenkoCode, a.TextCode);
             if (!string.IsNullOrWhiteSpace(code))
-            {
-                var byCode = "~/Files/MaterialIco/" + code.Trim() + ".png";
-                if (VirtualFileExists(byCode))
-                    return ToPublicUrl(byCode);
-            }
+                return ToPublicUrl("~/Files/MaterialIco/" + code.Trim() + ".png");
 
             var label = (a.TextLabel ?? "").ToLowerInvariant();
             if (label.Contains("atk") || label.Contains("panel"))
-            {
-                const string panel = "~/Files/MaterialIco/panel.png";
-                if (VirtualFileExists(panel))
-                    return ToPublicUrl(panel);
-            }
+                return ToPublicUrl("~/Files/MaterialIco/panel.png");
 
-            const string fallback = "~/Files/MaterialIco/SinArticulo.png";
-            return VirtualFileExists(fallback) ? ToPublicUrl(fallback) : null;
+            return ToPublicUrl("~/Files/MaterialIco/SinArticulo.png");
         }
 
         private void ResolveStlPair(DAL.Tsql_Master_Articles a, out string stlUrl, out string stlPhenolicUrl)
@@ -353,10 +385,8 @@ namespace Desing.Controllers
             string catalogPhenolic;
             if (PluginCadAtk60PanelStlHelper.TryResolve(a, out catalogFrame, out catalogPhenolic))
             {
-                if (VirtualFileExists(catalogFrame))
-                    stlUrl = ToPublicUrl(catalogFrame);
-                if (VirtualFileExists(catalogPhenolic))
-                    stlPhenolicUrl = ToPublicUrl(catalogPhenolic);
+                stlUrl = ToPublicUrl(catalogFrame);
+                stlPhenolicUrl = ToPublicUrl(catalogPhenolic);
                 if (!string.IsNullOrWhiteSpace(stlUrl))
                     return;
             }
@@ -375,16 +405,18 @@ namespace Desing.Controllers
             };
             foreach (var p in candidates)
             {
-                if (VirtualFileExists(p))
-                    return ToPublicUrl(p);
+                var url = ToPublicUrl(p);
+                if (!string.IsNullOrWhiteSpace(url))
+                    return url;
             }
 
             var dwg = a.LinkBlockDwgPlant3D;
             if (!string.IsNullOrWhiteSpace(dwg))
             {
                 var sibling = Path.ChangeExtension(dwg.Trim().Replace('\\', '/'), ".stl");
-                if (VirtualFileExists(sibling))
-                    return ToPublicUrl(sibling);
+                var siblingUrl = ToPublicUrl(sibling);
+                if (!string.IsNullOrWhiteSpace(siblingUrl))
+                    return siblingUrl;
             }
 
             return ToPublicUrl(FirstNonEmpty(candidates));
@@ -412,7 +444,7 @@ namespace Desing.Controllers
                 siblingVirtual = ToAppRelativePath(path.Substring(0, path.Length - 4) + "_F.stl");
             }
 
-            return VirtualFileExists(siblingVirtual) ? ToPublicUrl(siblingVirtual) : null;
+            return ToPublicUrl(siblingVirtual);
         }
 
         private bool VirtualFileExists(string virtualPath)

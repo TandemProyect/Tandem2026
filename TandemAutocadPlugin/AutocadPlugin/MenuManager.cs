@@ -34,7 +34,10 @@ namespace AutocadPlugin
                     ComponentManager.ItemInitialized += OnRibbonReady;
 
                 AcadApp.Idle += OnIdle;
-                WriteMessage("\nTandem 2026 cargado (" + MvcServerSettings.CurrentLabel() + "). Pestaña 'Tandem 2026' o TANDEM_LOCAL / TANDEM_PRODUCCION.\n");
+                var dll = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                WriteMessage("\nTandem 2026 cargado (" + MvcServerSettings.CurrentLabel() + ").");
+                WriteMessage("\nDLL: " + dll);
+                WriteMessage("\nPestaña 'Tandem 2026' o TANDEM_LOCAL / TANDEM_PRODUCCION.\n");
             }
             catch (System.Exception ex)
             {

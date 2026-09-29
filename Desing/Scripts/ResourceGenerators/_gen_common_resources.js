@@ -37,6 +37,11 @@ const es = Object.fromEntries(
     /* ===== Layout / branding (textos cuando no hay plantilla configurada) ===== */
     App_BrandFallback: "T Desing.net",
     App_BootLoading: "Cargando TDesing…",
+    App_BootEtaSeconds: "Quedan unos {0} s",
+    App_BootEtaMinute: "Queda 1 min",
+    App_BootEtaMinutes: "Quedan unos {0} min",
+    App_BootEtaAlmost: "Casi listo…",
+    App_BootEtaCold: "Sigue conectando… el primero tras arrancar puede tardar hasta 2 min",
     App_EnvironmentLabel: "Entorno Develop",
 
     /* ===== Footer ===== */
@@ -99,8 +104,16 @@ const es = Object.fromEntries(
     PluginCad_BlocksZoomIn: "Acercar",
     PluginCad_BlocksZoomOut: "Alejar",
     PluginCad_BlocksZoomFit: "Encajar vista",
-    PluginCad_BlocksColorFrame: "Color estructura",
-    PluginCad_BlocksColorPhenolic: "Color fenólico",
+    PluginCad_BlocksViewLabel: "Tipo",
+    PluginCad_BlocksView3D: "3D",
+    PluginCad_BlocksView3DRef: "3DRef",
+    PluginCad_BlocksViewAlzado: "Alzado",
+    PluginCad_BlocksViewPlanta: "Planta",
+    PluginCad_BlocksViewSoon: "Disponible más adelante.",
+    PluginCad_BlocksRotLabel: "Rotación",
+    PluginCad_BlocksRot0: "0°",
+    PluginCad_BlocksRot90: "90°",
+    PluginCad_BlocksRot90Title: "Tumbado (90°)",
 
     /* ===== Account / Register ===== */
     Register_PageTitle: "Crear cuenta",
@@ -228,6 +241,11 @@ const en = Object.assign({}, es, {
   /* Layout / branding */
   App_BrandFallback: "T Desing.net",
   App_BootLoading: "Loading TDesing…",
+  App_BootEtaSeconds: "About {0} s left",
+  App_BootEtaMinute: "1 min left",
+  App_BootEtaMinutes: "About {0} min left",
+  App_BootEtaAlmost: "Almost ready…",
+  App_BootEtaCold: "Still connecting… first start after launch can take up to 2 min",
   App_EnvironmentLabel: "Develop environment",
 
   /* Footer */
@@ -290,8 +308,16 @@ const en = Object.assign({}, es, {
   PluginCad_BlocksZoomIn: "Zoom in",
   PluginCad_BlocksZoomOut: "Zoom out",
   PluginCad_BlocksZoomFit: "Fit view",
-  PluginCad_BlocksColorFrame: "Frame color",
-  PluginCad_BlocksColorPhenolic: "Phenolic color",
+  PluginCad_BlocksViewLabel: "Type",
+  PluginCad_BlocksView3D: "3D",
+  PluginCad_BlocksView3DRef: "3DRef",
+  PluginCad_BlocksViewAlzado: "Elevation",
+  PluginCad_BlocksViewPlanta: "Plan",
+  PluginCad_BlocksViewSoon: "Available later.",
+  PluginCad_BlocksRotLabel: "Rotation",
+  PluginCad_BlocksRot0: "0°",
+  PluginCad_BlocksRot90: "90°",
+  PluginCad_BlocksRot90Title: "Laid down (90°)",
   PluginCad_BlocksCollapse: "Collapse",
   PluginCad_BlocksExpand: "Expand block library",
 

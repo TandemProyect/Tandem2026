@@ -1,0 +1,23 @@
+{
+  "codeName": "27904209",
+  "articleCode": "3120270090",
+  "family": "panel-rect",
+  "units": "m",
+  "origin": "insbase-0-0-0",
+  "comment": "Medido 2026-09-29 en 3DRef/27904209R.dwg (parte del 3D). Caja X=0..0.9 Y=-0.12..0 Z=0..2.70. INSUNITS=4 (mm) pero la geometría está en metros. Marcas: 4 círculos capa ATK-60.",
+  "box": {
+    "width": 0.9,
+    "height": 2.7,
+    "thickness": 0.12,
+    "axisWidth": "X",
+    "axisHeight": "Z",
+    "axisThickness": "Y"
+  },
+  "insbase": [0, 0, 0],
+  "snaps": [
+    { "id": "L055", "role": "GRAPA_V", "x": 0.0437138, "y": -0.119128, "z": 0.55, "rzDeg": 180 },
+    { "id": "L215", "role": "GRAPA_V", "x": 0.0437138, "y": -0.119128, "z": 2.15, "rzDeg": 180 },
+    { "id": "R055", "role": "GRAPA_V", "x": 0.856286, "y": -0.119128, "z": 0.55, "rzDeg": 0 },
+    { "id": "R215", "role": "GRAPA_V", "x": 0.856286, "y": -0.119128, "z": 2.15, "rzDeg": 0 }
+  ]
+}

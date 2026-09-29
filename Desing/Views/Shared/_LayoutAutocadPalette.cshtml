@@ -50,8 +50,9 @@
         (function () {
             function post(payload) {
                 try {
-                    if (window.chrome && window.chrome.webview)
-                        window.chrome.webview.postMessage(JSON.stringify(payload));
+                    if (!window.chrome || !window.chrome.webview) return;
+                    try { window.chrome.webview.postMessage(payload); }
+                    catch (e) { window.chrome.webview.postMessage(JSON.stringify(payload)); }
                 } catch (e) { }
             }
             document.addEventListener('click', function (e) {

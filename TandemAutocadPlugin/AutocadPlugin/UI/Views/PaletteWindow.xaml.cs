@@ -10,6 +10,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 
@@ -19,9 +20,14 @@ namespace AutocadPlugin.UI.Views
     {
         private readonly string _url;
         private readonly bool _authSplash;
+        private readonly bool _allowResize;
         private WebView2 Web;
         private const double SplashWidth = 320;
-        private const double SplashHeight = 248;
+        private const double SplashHeight = 292;
+        private DispatcherTimer _etaTimer;
+        private DateTime _etaStartedAt;
+        private int _etaPredictedMs;
+        private bool _etaCold;
         public event Action<string> MessageReceived;
         public event Action<Uri> Navigated;
 
@@ -33,7 +39,8 @@ namespace AutocadPlugin.UI.Views
             Height = height;
             _url = url;
             _authSplash = authSplash;
-            if (allowResize)
+            _allowResize = allowResize;
+            if (_allowResize)
                 ResizeMode = ResizeMode.CanResizeWithGrip;
 
             if (_authSplash)
@@ -45,6 +52,7 @@ namespace AutocadPlugin.UI.Views
             }
 
             Loaded += OnLoaded;
+            Closed += (_, __) => StopEtaTicker(record: false);
         }
 
         public void SetOwnerHandle(IntPtr ownerHandle)
@@ -64,10 +72,41 @@ namespace AutocadPlugin.UI.Views
             }
             SizeToContent = SizeToContent.Manual;
             MaxWidth = double.PositiveInfinity;
-            MinWidth = Math.Min(width, 48);
-            MinHeight = Math.Min(height, 36);
+            MaxHeight = double.PositiveInfinity;
+            MinWidth = Math.Max(16, Math.Min(width, 48));
+            MinHeight = Math.Max(16, Math.Min(height, 36));
             Width = width;
             Height = height;
+        }
+
+        public void SetCollapsedChrome(bool collapsed)
+        {
+            try
+            {
+                if (RootChrome != null)
+                {
+                    RootChrome.CornerRadius = new CornerRadius(collapsed ? 16 : 10);
+                    RootChrome.BorderThickness = new Thickness(1);
+                    Brush fill = Brushes.White;
+                    if (!collapsed)
+                    {
+                        try { fill = (Brush)FindResource("SplashBg"); }
+                        catch { fill = (Brush)new BrushConverter().ConvertFrom("#F5F5F9"); }
+                    }
+                    RootChrome.Background = fill;
+                }
+                if (WebHost != null)
+                    WebHost.Margin = collapsed ? new Thickness(0) : new Thickness(7, 6, 7, 6);
+                Background = collapsed
+                    ? Brushes.White
+                    : (Brush)new BrushConverter().ConvertFrom("#F5F5F9");
+                ResizeMode = collapsed
+                    ? ResizeMode.NoResize
+                    : (_allowResize ? ResizeMode.CanResizeWithGrip : ResizeMode.NoResize);
+            }
+            catch
+            {
+            }
         }
 
         private bool IsSplashVisible()
@@ -96,6 +135,7 @@ namespace AutocadPlugin.UI.Views
             ParkWeb();
             ApplySplashLogo(PluginSplashBrand.CachedFileIfExists());
             StartSpinner();
+            StartEtaTicker();
         }
 
         public void ApplySplashLogo(string filePath)
@@ -218,6 +258,7 @@ namespace AutocadPlugin.UI.Views
 
         private void RevealWeb()
         {
+            StopEtaTicker(record: true);
             StopSpinner();
             if (SplashPanel != null)
                 SplashPanel.Visibility = Visibility.Collapsed;
@@ -280,6 +321,66 @@ namespace AutocadPlugin.UI.Views
             SpinHands?.BeginAnimation(RotateTransform.AngleProperty, null);
         }
 
+        private void StartEtaTicker()
+        {
+            if (_etaTimer != null)
+                return;
+            _etaStartedAt = DateTime.UtcNow;
+            _etaPredictedMs = ConnectEta.PredictedStartMs();
+            _etaCold = false;
+            _etaTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(280)
+            };
+            _etaTimer.Tick += (_, __) => RefreshEta();
+            RefreshEta();
+            _etaTimer.Start();
+        }
+
+        private void StopEtaTicker(bool record)
+        {
+            if (_etaTimer != null)
+            {
+                _etaTimer.Stop();
+                _etaTimer = null;
+            }
+            if (record && _etaStartedAt != DateTime.MinValue)
+            {
+                var elapsed = (int)(DateTime.UtcNow - _etaStartedAt).TotalMilliseconds;
+                ConnectEta.Record(elapsed);
+            }
+            _etaStartedAt = DateTime.MinValue;
+        }
+
+        private void RefreshEta()
+        {
+            if (EtaText == null)
+                return;
+            var elapsed = Math.Max(0, (int)(DateTime.UtcNow - _etaStartedAt).TotalMilliseconds);
+            if (!_etaCold && elapsed > _etaPredictedMs + 1500)
+            {
+                _etaCold = true;
+                _etaPredictedMs = ConnectEta.ColdMs();
+            }
+
+            var remaining = Math.Max(1100, (int)(_etaPredictedMs - elapsed * 0.72));
+            var coldHang = _etaCold && elapsed > _etaPredictedMs;
+            EtaText.Text = ConnectEta.Format(remaining, coldHang);
+
+            double pct;
+            if (coldHang)
+                pct = Math.Min(96, 78 + (elapsed - _etaPredictedMs) / 4000.0);
+            else
+                pct = Math.Max(6, Math.Min(92, elapsed / (double)Math.Max(1, _etaPredictedMs) * 88));
+
+            if (EtaBarFill != null && EtaBarTrack != null)
+            {
+                var track = EtaBarTrack.ActualWidth;
+                if (track > 1)
+                    EtaBarFill.Width = Math.Max(8, track * pct / 100.0);
+            }
+        }
+
         private static async Task ClearCookiesForSiteAsync(CoreWebView2 web, string siteUrl)
         {
             try
@@ -339,7 +440,14 @@ namespace AutocadPlugin.UI.Views
                 };
                 Web.CoreWebView2.WebMessageReceived += (_, args) =>
                 {
-                    MessageReceived?.Invoke(args.TryGetWebMessageAsString());
+                    string text = null;
+                    try { text = args.TryGetWebMessageAsString(); } catch { }
+                    if (string.IsNullOrWhiteSpace(text))
+                    {
+                        try { text = args.WebMessageAsJson; } catch { }
+                    }
+                    if (!string.IsNullOrWhiteSpace(text))
+                        MessageReceived?.Invoke(text);
                 };
                 Web.CoreWebView2.NavigationCompleted += (_, __) =>
                 {
@@ -352,8 +460,11 @@ namespace AutocadPlugin.UI.Views
             }
             catch (Exception ex)
             {
+                StopEtaTicker(record: false);
                 if (StatusText != null)
                     StatusText.Text = "No se pudo conectar con TDesing.";
+                if (EtaText != null)
+                    EtaText.Text = "Comprueba que Desing esté en ejecución.";
                 MessageBox.Show(
                     "No se pudo cargar el formulario MVC.\n" +
                     "Si falta WebView2Loader.dll, vuelve a NETLOAD esta carpeta del plugin.\n" +
