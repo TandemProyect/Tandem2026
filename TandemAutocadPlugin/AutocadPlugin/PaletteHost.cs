@@ -369,7 +369,7 @@ namespace AutocadPlugin
                 return;
             }
 
-            var created = new PaletteWindow(url, BlocksWidth, BlocksHeight, allowResize: true);
+            var created = new PaletteWindow(url, BlocksWidth, BlocksHeight, allowResize: false);
             created.MessageReceived += OnPaletteMessage;
             created.Closed += (_, __) =>
             {
@@ -453,8 +453,6 @@ namespace AutocadPlugin
             }
         }
 
-        private static DateTime _ignoreBlocksExpandUntil = DateTime.MinValue;
-
         private static void OnPaletteMessage(string json)
         {
             if (string.IsNullOrWhiteSpace(json)) return;
@@ -493,15 +491,12 @@ namespace AutocadPlugin
 
             if (HasToken(text, "collapse-blocks"))
             {
-                _ignoreBlocksExpandUntil = DateTime.UtcNow.AddMilliseconds(900);
                 ApplyBlocksSize(expanded: false);
                 return true;
             }
 
             if (HasToken(text, "expand-blocks"))
             {
-                if (DateTime.UtcNow < _ignoreBlocksExpandUntil)
-                    return true;
                 ApplyBlocksSize(expanded: true);
                 return true;
             }
@@ -572,6 +567,7 @@ namespace AutocadPlugin
                     _blocks.SetSize(
                         expanded ? BlocksWidth : BlocksCollapsedWidth,
                         BlocksHeight);
+                    PositionOverAcad(_blocks, BlocksLeft, BlocksTop);
                 }
                 catch
                 {

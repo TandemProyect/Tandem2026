@@ -1987,6 +1987,12 @@
     <Content Include="Content\DesignTools\DWG\AtkSystem60\27345206.dwg" />
     <Content Include="Content\DesignTools\DWG\AtkSystem60\27604207.dwg" />
     <Content Include="Content\DesignTools\DWG\AtkSystem60\27904209.dwg" />
+    <Content Include="Content\DesignTools\DWG\AtkSystem60\3D\27904209.dwg" />
+    <Content Include="Content\DesignTools\DWG\AtkSystem60\3DRef\27904209R.dwg" />
+    <Content Include="Content\DesignTools\DWG\AtkSystem60\From\27904209.dwg" />
+    <Content Include="Content\DesignTools\DWG\AtkSystem60\Plant\27904209P.dwg" />
+    <Content Include="Content\DesignTools\DWG\AtkSystem60\Snaps\27904209.json" />
+    <Content Include="Content\DesignTools\DWG\AtkSystem60\Snaps\27904209-marcas.dxf" />
     <Content Include="Content\DesignTools\Stl\ATK60\12304211.stl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

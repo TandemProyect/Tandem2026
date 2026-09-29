@@ -71,12 +71,18 @@ namespace AutocadPlugin.UI.Views
                 return;
             }
             SizeToContent = SizeToContent.Manual;
+            var w = Math.Max(16, width);
+            var h = Math.Max(16, height);
+            MinWidth = 16;
             MaxWidth = double.PositiveInfinity;
+            MinHeight = 16;
             MaxHeight = double.PositiveInfinity;
-            MinWidth = Math.Max(16, Math.Min(width, 48));
-            MinHeight = Math.Max(16, Math.Min(height, 36));
-            Width = width;
-            Height = height;
+            Width = w;
+            Height = h;
+            MinWidth = w;
+            MaxWidth = w;
+            MinHeight = h;
+            MaxHeight = h;
         }
 
         public void SetCollapsedChrome(bool collapsed)

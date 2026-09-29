@@ -161,7 +161,19 @@
             color: #1565c0;
         }
         .plugin-blocks__item:nth-child(even) { background: rgba(0, 0, 0, 0.05); }
-        .plugin-blocks__item.is-selected { border-color: #90a4ae; background: #e3f2fd; }
+        .plugin-blocks__item.is-selected,
+        .plugin-blocks__item.is-selected:nth-child(even) {
+            background: #1565c0;
+            border-color: #0d47a1;
+            color: #fff;
+        }
+        .plugin-blocks__item.is-selected .plugin-blocks__caption {
+            color: #fff;
+            font-weight: 700;
+        }
+        .plugin-blocks__item.is-selected .plugin-blocks__thumb {
+            border-color: #fff;
+        }
         .plugin-blocks__thumb {
             width: 34px;
             height: 34px;
@@ -713,11 +725,27 @@
             var collapseEl = document.getElementById('plugin-blocks-collapse');
             var chipEl = document.getElementById('plugin-blocks-chip');
             var hoverArmed = false;
+            var collapsedAt = 0;
             function setCollapsed(on) {
                 if (!rootEl) return;
+                if (!!on === rootEl.classList.contains('is-collapsed') && on)
+                    return;
                 rootEl.classList.toggle('is-collapsed', !!on);
-                hoverArmed = false;
+                if (on) {
+                    collapsedAt = Date.now();
+                    hoverArmed = false;
+                }
                 post({ action: on ? 'collapse-blocks' : 'expand-blocks' });
+            }
+            function canHoverExpand() {
+                return hoverArmed
+                    && rootEl
+                    && rootEl.classList.contains('is-collapsed')
+                    && (Date.now() - collapsedAt) > 400;
+            }
+            function tryExpand() {
+                if (canHoverExpand())
+                    setCollapsed(false);
             }
             if (collapseEl) {
                 collapseEl.addEventListener('click', function (e) {
@@ -726,20 +754,28 @@
                     setCollapsed(true);
                 });
             }
-            function tryExpand() {
-                if (rootEl && rootEl.classList.contains('is-collapsed') && hoverArmed)
-                    setCollapsed(false);
+            if (rootEl) {
+                rootEl.addEventListener('mouseleave', function () {
+                    if (rootEl.classList.contains('is-collapsed'))
+                        hoverArmed = true;
+                });
+                rootEl.addEventListener('mouseenter', function () {
+                    if (rootEl.classList.contains('is-collapsed'))
+                        tryExpand();
+                    else
+                        post({ action: 'expand-blocks' });
+                });
             }
             if (chipEl) {
                 chipEl.addEventListener('mouseenter', tryExpand);
-                chipEl.addEventListener('click', function () {
+                chipEl.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     hoverArmed = true;
-                    tryExpand();
+                    collapsedAt = 0;
+                    setCollapsed(false);
                 });
             }
-            document.documentElement.addEventListener('mouseleave', function () {
-                hoverArmed = true;
-            });
 
             loadList('', true);
         })();
