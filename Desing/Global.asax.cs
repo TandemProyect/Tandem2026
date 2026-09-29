@@ -1,5 +1,8 @@
 using Desing.Helpers;
 using Desing.Models;
+using Microsoft.AspNet.Identity;
+using Microsoft.Owin;
+using Microsoft.Owin.Security;
 using System;
 using System.Configuration;
 using System.Data.Entity;
@@ -42,6 +45,32 @@ namespace Desing
             System.Web.Mvc.ModelBinders.Binders.Add(typeof(decimal?), decimalBinder);
             sw.Stop();
             TraceStartupTiming("Application_Start", sw.ElapsedMilliseconds);
+        }
+
+        protected void Application_Error()
+        {
+            var ex = Server.GetLastError();
+            var anti = ex as HttpAntiForgeryException
+                ?? ex?.InnerException as HttpAntiForgeryException
+                ?? ex?.GetBaseException() as HttpAntiForgeryException;
+            if (anti == null)
+                return;
+
+            Server.ClearError();
+            try
+            {
+                Context.GetOwinContext().Authentication.SignOut(
+                    DefaultAuthenticationTypes.ApplicationCookie);
+            }
+            catch
+            {
+            }
+
+            var returnUrl = Context.Request != null ? Context.Request["ReturnUrl"] : null;
+            var login = VirtualPathUtility.ToAbsolute("~/Account/Login");
+            if (!string.IsNullOrWhiteSpace(returnUrl) && returnUrl.StartsWith("/", StringComparison.Ordinal))
+                login += "?returnUrl=" + Uri.EscapeDataString(returnUrl);
+            Response.Redirect(login, endResponse: true);
         }
 
         private static void TraceStartupTiming(string label, long elapsedMs)

@@ -11,9 +11,8 @@ namespace AutocadPlugin
     public class MVCApiService
     {
         private readonly HttpClient _httpClient;
-        private readonly string _baseUrl;
 
-        public string BaseUrl => _baseUrl;
+        public string BaseUrl => PluginExceptionHelper.ResolveBaseUrlFromEnv();
 
         public MVCApiService()
         {
@@ -22,13 +21,18 @@ namespace AutocadPlugin
                 ServerCertificateCustomValidationCallback = (_, _, _, _) => true
             };
             _httpClient = new HttpClient(handler);
-            _baseUrl = PluginExceptionHelper.ResolveBaseUrlFromEnv();
-            _httpClient.BaseAddress = new Uri(_baseUrl);
             _httpClient.Timeout = TimeSpan.FromSeconds(120);
+            Bind();
+        }
+
+        private void Bind()
+        {
+            _httpClient.BaseAddress = new Uri(BaseUrl);
         }
 
         public async Task<string> ProbarConexionAsync()
         {
+            Bind();
             try
             {
                 var response = await _httpClient.GetAsync(string.Empty);
@@ -36,12 +40,13 @@ namespace AutocadPlugin
             }
             catch (Exception ex)
             {
-                throw PluginExceptionHelper.Wrap("Prueba de conexión fallida", ex, _baseUrl);
+                throw PluginExceptionHelper.Wrap("Prueba de conexión fallida", ex, BaseUrl);
             }
         }
 
         public async Task<List<DisenoResumenDTO>> ObtenerDisenosAsync()
         {
+            Bind();
             try
             {
                 var response = await _httpClient.GetAsync("api/disenos");
@@ -51,12 +56,13 @@ namespace AutocadPlugin
             }
             catch (Exception ex)
             {
-                throw PluginExceptionHelper.Wrap("Error al obtener diseños", ex, _baseUrl);
+                throw PluginExceptionHelper.Wrap("Error al obtener diseños", ex, BaseUrl);
             }
         }
 
         public async Task<DisenoDTO> ObtenerDisenoAsync(int id)
         {
+            Bind();
             try
             {
                 var response = await _httpClient.GetAsync($"api/disenos/{id}");
@@ -66,12 +72,13 @@ namespace AutocadPlugin
             }
             catch (Exception ex)
             {
-                throw PluginExceptionHelper.Wrap($"Error al obtener diseño {id}", ex, _baseUrl);
+                throw PluginExceptionHelper.Wrap($"Error al obtener diseño {id}", ex, BaseUrl);
             }
         }
 
         public async Task<DisenoDTO> CrearDisenoAsync(DisenoDTO diseno)
         {
+            Bind();
             try
             {
                 var json = JsonConvert.SerializeObject(diseno);
@@ -83,12 +90,13 @@ namespace AutocadPlugin
             }
             catch (Exception ex)
             {
-                throw PluginExceptionHelper.Wrap("Error al crear diseño", ex, _baseUrl);
+                throw PluginExceptionHelper.Wrap("Error al crear diseño", ex, BaseUrl);
             }
         }
 
         public async Task<ApiResponse<PluginAuthResultDTO>> ValidarEquipoPluginAsync(PluginAuthRequestDTO request)
         {
+            Bind();
             try
             {
                 var json = JsonConvert.SerializeObject(request);
@@ -100,12 +108,13 @@ namespace AutocadPlugin
             }
             catch (Exception ex)
             {
-                throw PluginExceptionHelper.Wrap("Error validando autorización del equipo", ex, _baseUrl);
+                throw PluginExceptionHelper.Wrap("Error validando autorización del equipo", ex, BaseUrl);
             }
         }
 
         public async Task<ApiResponse<DeteccionEsquinasLDTO>> EnviarLineasSeleccionadasAsync(SeleccionLineasDTO seleccion)
         {
+            Bind();
             try
             {
                 var json = JsonConvert.SerializeObject(seleccion);
@@ -123,12 +132,13 @@ namespace AutocadPlugin
             }
             catch (Exception ex)
             {
-                throw PluginExceptionHelper.Wrap("Error al enviar líneas", ex, _baseUrl);
+                throw PluginExceptionHelper.Wrap("Error al enviar líneas", ex, BaseUrl);
             }
         }
 
         public async Task<ApiResponse<DeteccionEsquinasLDTO>> AnalizarImagenAsync(byte[] imagenBytes, string nombreArchivo)
         {
+            Bind();
             try
             {
                 var content = new MultipartFormDataContent();
@@ -159,7 +169,7 @@ namespace AutocadPlugin
             }
             catch (Exception ex)
             {
-                throw PluginExceptionHelper.Wrap("Error al enviar imagen", ex, _baseUrl);
+                throw PluginExceptionHelper.Wrap("Error al enviar imagen", ex, BaseUrl);
             }
         }
 

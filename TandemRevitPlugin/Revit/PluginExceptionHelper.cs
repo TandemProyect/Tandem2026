@@ -7,7 +7,7 @@ namespace TandemRevit
 {
     public static class PluginExceptionHelper
     {
-        private const string DefaultBaseUrl = "https://localhost:44384/";
+        private const string DefaultBaseUrl = "https://tdesing.net/";
 
         public static string Format(Exception ex, string baseUrl = null)
         {
@@ -18,14 +18,13 @@ namespace TandemRevit
             if (IsConnectionRefused(root))
             {
                 return "No se puede conectar al servidor MVC en " + hint +
-                       " Comprueba que el proyecto Desing esté iniciado en Visual Studio (IIS Express). " +
-                       "Variable opcional: TANDEM_MVC_BASE_URL.";
+                       " Por defecto es https://tdesing.net/. Para desarrollo local: TANDEM_MVC_BASE_URL=https://localhost:44384/";
             }
 
             if (IsSslError(root))
             {
                 return "Error de certificado SSL al conectar con " + hint +
-                       " Inicia Desing con IIS Express en Visual Studio (certificado de desarrollo).";
+                       " Comprueba la URL (https://tdesing.net/) o TANDEM_MVC_BASE_URL.";
             }
 
             if (IsTimeout(root))
@@ -68,6 +67,8 @@ namespace TandemRevit
             if (string.IsNullOrWhiteSpace(url))
                 return DefaultBaseUrl;
             url = url.Trim();
+            if (url.StartsWith("https://www.tdesing.net", StringComparison.OrdinalIgnoreCase))
+                url = "https://tdesing.net" + url.Substring("https://www.tdesing.net".Length);
             return url.EndsWith("/") ? url : url + "/";
         }
 

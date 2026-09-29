@@ -12,6 +12,7 @@ namespace AutocadPlugin
     public static class PluginExceptionHelper
     {
         private const string DefaultBaseUrl = "https://localhost:44384/";
+        private const string ProductionBaseUrl = "https://tdesing.net/";
 
         public static string Format(Exception ex, string baseUrl = null)
         {
@@ -22,14 +23,13 @@ namespace AutocadPlugin
             if (IsConnectionRefused(root))
             {
                 return "No se puede conectar al servidor MVC en " + hint +
-                       " Comprueba que el proyecto Desing esté iniciado en Visual Studio (IIS Express). " +
-                       "Variable opcional: TANDEM_MVC_BASE_URL.";
+                       " Desarrollo: arranca Desing (IIS Express) y usa TANDEM_LOCAL. Producción: TANDEM_PRODUCCION.";
             }
 
             if (IsSslError(root))
             {
                 return "Error de certificado SSL al conectar con " + hint +
-                       " Inicia Desing con IIS Express en Visual Studio (certificado de desarrollo).";
+                       " Local: IIS Express en https://localhost:44384/. Producción: TANDEM_PRODUCCION.";
             }
 
             if (IsTimeout(root))
@@ -55,7 +55,7 @@ namespace AutocadPlugin
                 string.Equals(ex?.Message, "One or more errors occurred.", StringComparison.OrdinalIgnoreCase))
             {
                 return "Error de comunicación con el servidor MVC en " + hint +
-                       " Comprueba que Desing esté iniciado en Visual Studio (IIS Express).";
+                       " Local: TANDEM_LOCAL. Producción: TANDEM_PRODUCCION.";
             }
 
             return rootMessage;
@@ -68,8 +68,7 @@ namespace AutocadPlugin
 
         public static string ResolveBaseUrlFromEnv()
         {
-            var url = Environment.GetEnvironmentVariable("TANDEM_MVC_BASE_URL");
-            return NormalizeBaseUrl(string.IsNullOrWhiteSpace(url) ? DefaultBaseUrl : url);
+            return MvcServerSettings.CurrentUrl();
         }
 
         public static string NormalizeBaseUrl(string url)
@@ -77,6 +76,8 @@ namespace AutocadPlugin
             if (string.IsNullOrWhiteSpace(url))
                 return DefaultBaseUrl;
             url = url.Trim();
+            if (url.StartsWith("https://www.tdesing.net", StringComparison.OrdinalIgnoreCase))
+                url = ProductionBaseUrl.TrimEnd('/') + url.Substring("https://www.tdesing.net".Length);
             return url.EndsWith("/") ? url : url + "/";
         }
 

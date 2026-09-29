@@ -325,6 +325,8 @@
     <Compile Include="Helpers\OfferDisplayHelper.cs" />
     <Compile Include="Helpers\LanguageUiHelper.cs" />
     <Compile Include="Helpers\UiHtmlExtensions.cs" />
+    <Compile Include="Helpers\PluginCadDeviceHelper.cs" />
+    <Compile Include="Helpers\PluginCadAtk60PanelStlHelper.cs" />
     <Compile Include="Resources\Company.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Company.resx</DependentUpon>
@@ -505,6 +507,7 @@
     <Compile Include="Repositories\Atk60\Wall\WallTapeSolape\ModuloTape_0_01.cs" />
     <Compile Include="SendMail\Models.cs" />
     <Compile Include="Services\AutodeskApsClient.cs" />
+    <Compile Include="Services\TandemMailClient.cs" />
     <Compile Include="Services\Implements\EmailService.cs" />
     <Compile Include="Services\Implements\EmailServiceBase.cs" />
     <Compile Include="Services\Implements\SendGridConfig.cs" />
@@ -782,6 +785,7 @@
     <Content Include="Content\images\brand\t-desing-net.svg" />
     <Content Include="Content\images\ico\Logo.ico" />
     <Content Include="Content\images\tDesing\Logo_TDesing_450.png" />
+    <Content Include="Content\images\tDesing\t-desing-net.png" />
     <Content Include="Files\MaterialIco\10000221.png" />
     <Content Include="Files\MaterialIco\18501164.png" />
     <Content Include="Files\MaterialIco\1861122.png" />
@@ -815,6 +819,14 @@
     <Content Include="Scripts\datatables-resize.css" />
     <Content Include="Scripts\datatables-state.js" />
     <Content Include="Scripts\datatables-tandem.css" />
+    <Content Include="Scripts\MasterArticles\infinite-grid-helper.module.js" />
+    <Content Include="Scripts\MasterArticles\ma-stl-atk60-formwork.js" />
+    <Content Include="Scripts\MasterArticles\ma-stl-formwork-environment.js" />
+    <Content Include="Scripts\MasterArticles\ma-stl-wall-edit-finalize.js" />
+    <Content Include="Scripts\MasterArticles\master-article-aps-dwg-viewer-boot.js" />
+    <Content Include="Scripts\MasterArticles\master-article-details-stl-viewer.js" />
+    <Content Include="Scripts\MasterArticles\master-article-preview.js" />
+    <Content Include="Scripts\MasterArticles\vendor\three-dxf-loader.js" />
     <Content Include="assets\js\lib\datepicker\bootstrap-datepicker.js" />
     <Content Include="assets\js\lib\datepicker\bootstrap-datepicker.min.js" />
     <Content Include="assets\js\lib\daterangepicker\daterangepicker.js" />
@@ -3281,6 +3293,7 @@
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Shared\_LayoutMaterio.cshtml" />
+    <Content Include="Views\Shared\_TdesingBootSplash.cshtml" />
     <Content Include="Views\Shared\_NavbarMaterio.cshtml" />
     <Content Include="Views\Shared\_NavbarLanguageSwitcher.cshtml" />
     <Content Include="Views\Shared\_SidebarMaterio.cshtml" />
@@ -3445,6 +3458,8 @@
     <Content Include="Views\DesignToolsAutocad\_SaveDwgFiles.cshtml" />
     <Content Include="Views\DesignToolsAutocad\PaletteMode.cshtml" />
     <Content Include="Views\DesignToolsAutocad\PluginReady.cshtml" />
+    <Content Include="Views\DesignToolsAutocad\PluginBlocks.cshtml" />
+    <Content Include="Scripts\DesignToolsAutocad\plugin-cad-block-preview.js" />
     <Content Include="Views\DesignToolsAutocad\PaletteTools.cshtml" />
     <Content Include="Views\Shared\_LayoutAutocadPalette.cshtml" />
     <Content Include="Views\Account\Login_Production.cshtml" />

@@ -20,7 +20,7 @@ Si AutoCAD deja la DLL bloqueada, usa otra carpeta: `-p:OutputPath=bin\Debug9\` 
 NETLOAD → TandemAutocadPlugin\AutocadPlugin\bin\Debug\AutocadPlugin.dll
 ```
 
-Pestaña **Tandem 2026** o comando `TANDEM`. Desing en IIS Express (`https://localhost:44384/`).
+Pestaña **Tandem 2026** o comando `TANDEM`. Por defecto habla con **https://tdesing.net/**. Para IIS Express local: `TANDEM_MVC_BASE_URL=https://localhost:44384/`.
 
 Si no hay sesión, aparece el **login de Desing**. Tras conectar, una paleta lista diseños; al elegir uno se dibujan los muros (`TSql_DesignWall`).
 

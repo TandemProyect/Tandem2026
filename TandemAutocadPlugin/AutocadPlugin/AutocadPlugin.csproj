@@ -49,6 +49,7 @@
   <ItemGroup>
     <None Include="MNU\Tandem2026.cui" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="MNU\SelectLines.png" CopyToOutputDirectory="PreserveNewest" Condition="Exists('MNU\SelectLines.png')" />
+    <Resource Include="UI\Assets\tdesing-logo.png" />
   </ItemGroup>
 
   <!-- AutoCAD NETLOAD no resuelve runtimes\win-x64\native; el loader tiene que estar junto a la DLL. -->
@@ -65,5 +66,10 @@
           DestinationFolder="$(OutputPath)"
           SkipUnchangedFiles="true"
           Condition="!Exists('$(_WebView2LoaderFromOutput)') and Exists('$(_WebView2LoaderFromPkg)')" />
+  </Target>
+
+  <!-- AutoCAD bloquea bin\Debug; cada build deja una carpeta DebugN para NETLOAD. -->
+  <Target Name="CopyToNextDebugSlot" AfterTargets="CopyWebView2LoaderToOutputRoot">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\copy-next-debug-slot.ps1&quot; -OutputPath $([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\$(OutputPath)').TrimEnd('\'))" />
   </Target>
 </Project>

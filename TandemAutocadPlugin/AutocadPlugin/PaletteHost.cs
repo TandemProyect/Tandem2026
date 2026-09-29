@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using AutocadPlugin.Models;
 using AutocadPlugin.UI.Views;
 using Autodesk.AutoCAD.ApplicationServices;
@@ -8,26 +9,35 @@ using AcadApp = Autodesk.AutoCAD.ApplicationServices.Application;
 namespace AutocadPlugin
 {
     /// <summary>
-    /// Paletas MVC sobre AutoCAD: sesión (login / diseños) + modo + herramientas.
+    /// Paletas MVC sobre AutoCAD: sesión (login / menú general) + modo + herramientas.
     /// El login es la página de Desing; la cookie Identity vive en WebView2 (una vez por sesión).
+    /// Tras el login las paletas de herramientas quedan visibles; el menú general se abre
+    /// con el primer botón de la barra de modo. Abrir un diseño dibuja los muros en CAD.
     /// </summary>
     public static class PaletteHost
     {
         private static PaletteWindow _session;
         private static PaletteWindow _mode;
         private static PaletteWindow _tools;
+        private static PaletteWindow _blocks;
         private static bool _sessionAuthenticated;
+        private static bool _pendingBlocks;
         private static string _readyUrl;
+        private static string _sessionStartUrl;
+        private static int _splashWaitGen;
+        private static double _pendingSessionWidth = 460;
+        private static double _pendingSessionHeight = 720;
 
         public static bool AreVisible =>
             (_session != null && _session.IsVisible)
             || (_mode != null && _mode.IsVisible)
-            || (_tools != null && _tools.IsVisible);
+            || (_tools != null && _tools.IsVisible)
+            || (_blocks != null && _blocks.IsVisible);
 
         public static void Toggle()
         {
             if (AreVisible)
-                CloseAll();
+                HideUi();
             else
                 Show();
         }
@@ -37,7 +47,40 @@ namespace AutocadPlugin
             PaletteWindow.PrepareNativeLoader();
             var baseUrl = PluginExceptionHelper.ResolveBaseUrlFromEnv();
             _readyUrl = baseUrl + "DesignToolsAutocad/PluginReady";
+            _sessionStartUrl = BuildSessionStartUrl(baseUrl);
+
+            if (_sessionAuthenticated && _session != null)
+            {
+                ShowToolPalettes();
+                return;
+            }
+
+            WriteMessage("[Tandem] Comprobando autorización en " + MvcServerSettings.CurrentLabel() + "…");
             EnsureSession();
+        }
+
+        public static void ShowBlocks()
+        {
+            if (!_sessionAuthenticated)
+            {
+                _pendingBlocks = true;
+                Show();
+                return;
+            }
+
+            ShowToolPalettes();
+            if (_blocks != null && _blocks.IsVisible)
+            {
+                if (_blocks.Height < 80)
+                {
+                    try { _blocks.SetSize(BlocksWidth, BlocksHeight); } catch { }
+                    return;
+                }
+                HidePalette(_blocks);
+                return;
+            }
+
+            EnsureBlocks();
         }
 
         public static void CloseAll()
@@ -45,33 +88,66 @@ namespace AutocadPlugin
             Close(ref _session);
             Close(ref _mode);
             Close(ref _tools);
+            Close(ref _blocks);
             _sessionAuthenticated = false;
+            _pendingBlocks = false;
+        }
+
+        public static void ReconnectToCurrentServer()
+        {
+            CloseAll();
+            Show();
+        }
+
+        private static void HideUi()
+        {
+            HideSessionWindow();
+            HidePalette(_mode);
+            HidePalette(_tools);
+            HidePalette(_blocks);
+        }
+
+        private static void HidePalette(PaletteWindow window)
+        {
+            if (window == null) return;
+            try
+            {
+                if (window.IsVisible)
+                    window.Hide();
+            }
+            catch
+            {
+            }
         }
 
         private static void EnsureSession()
         {
             if (_session != null)
             {
-                if (_session.IsVisible)
+                if (!_session.IsVisible)
                 {
-                    _session.Activate();
-                    if (_sessionAuthenticated)
-                        ShowToolPalettes();
-                    return;
+                    try { _session.Show(); } catch { }
                 }
-                try { _session.Close(); } catch { }
-                _session = null;
+                _session.Activate();
+                if (_sessionAuthenticated)
+                    ShowToolPalettes();
+                return;
             }
 
-            var created = new PaletteWindow(_readyUrl, 460, 720, allowResize: true);
+            var created = new PaletteWindow(_sessionStartUrl, 320, 248, allowResize: false, authSplash: true);
             created.MessageReceived += OnPaletteMessage;
             created.Navigated += OnSessionNavigated;
             created.Closed += (_, __) =>
             {
-                if (ReferenceEquals(_session, created)) _session = null;
+                if (ReferenceEquals(_session, created))
+                {
+                    _session = null;
+                    _sessionAuthenticated = false;
+                }
             };
 
             Attach(created, -1, 70);
+            created.ShowStatus("Comprobando autorización en TDesing…");
             _session = created;
         }
 
@@ -80,30 +156,102 @@ namespace AutocadPlugin
             if (uri == null) return;
             var path = uri.AbsolutePath ?? "";
 
-            if (path.IndexOf("/Account/Login", StringComparison.OrdinalIgnoreCase) >= 0)
+            if (path.IndexOf("/Account/Login", StringComparison.OrdinalIgnoreCase) >= 0
+                || string.Equals(path, "/", StringComparison.Ordinal))
             {
                 _sessionAuthenticated = false;
                 Close(ref _mode);
                 Close(ref _tools);
-                ApplySessionSize(460, 720);
+                Close(ref _blocks);
+                _pendingBlocks = false;
+                _pendingSessionWidth = 460;
+                _pendingSessionHeight = 720;
+                if (_session != null)
+                {
+                    ShowSessionWindow();
+                    PositionOverAcad(_session, -1, 70);
+                    try
+                    {
+                        var origin = uri.GetLeftPart(UriPartial.Authority);
+                        if (!string.IsNullOrWhiteSpace(origin))
+                            _session.ClearCookiesForSite(origin + "/");
+                    }
+                    catch
+                    {
+                    }
+                }
+                WriteMessage("[Tandem] Inicia sesion en Desing (una vez por sesion).");
+                ArmSplashFallback();
+                return;
+            }
+
+            if (path.IndexOf("/DesignToolsAutocad/PluginSession", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                _session?.ShowStatus("Comprobando autorización en TDesing…");
                 if (_session != null)
                     PositionOverAcad(_session, -1, 70);
-                WriteMessage("[Tandem] Inicia sesión en Desing (una vez por sesión).");
                 return;
             }
 
             if (path.IndexOf("/DesignToolsAutocad/PluginReady", StringComparison.OrdinalIgnoreCase) >= 0)
             {
-                MarkAuthenticated();
+                _pendingSessionWidth = 540;
+                _pendingSessionHeight = 700;
+                if (_sessionAuthenticated)
+                    RevealSessionPage();
+                else
+                {
+                    _session?.ShowStatus("Cargando TDesing…");
+                    ArmSplashFallback();
+                }
                 return;
             }
 
-            // Si el login ignoró ReturnUrl y cayó en Home, volver a la paleta de diseños.
-            if (!string.IsNullOrWhiteSpace(_readyUrl)
+            // Si el login ignoró ReturnUrl y cayó en Home, repetir el arranque de sesión.
+            if (!string.IsNullOrWhiteSpace(_sessionStartUrl)
                 && path.IndexOf("/Home", StringComparison.OrdinalIgnoreCase) >= 0)
             {
-                _session?.Navigate(_readyUrl);
+                if (_sessionAuthenticated && !string.IsNullOrWhiteSpace(_readyUrl))
+                    _session?.Navigate(_readyUrl);
+                else
+                    _session?.Navigate(_sessionStartUrl);
             }
+        }
+
+        private static string BuildSessionStartUrl(string baseUrl)
+        {
+            var qs =
+                "deviceId=" + Uri.EscapeDataString(PluginDeviceId.Current()) +
+                "&machineName=" + Uri.EscapeDataString(Environment.MachineName ?? "") +
+                "&usuarioWindows=" + Uri.EscapeDataString(PluginDeviceId.WindowsUser()) +
+                "&pluginVersion=" + Uri.EscapeDataString(PluginDeviceId.PluginVersion());
+            return baseUrl + "DesignToolsAutocad/PluginSession?" + qs;
+        }
+
+        private static void ArmSplashFallback()
+        {
+            var gen = ++_splashWaitGen;
+            Task.Delay(12000).ContinueWith(_ =>
+            {
+                if (gen != _splashWaitGen) return;
+                try
+                {
+                    var win = _session;
+                    if (win == null) return;
+                    win.Dispatcher.Invoke(RevealSessionPage);
+                }
+                catch
+                {
+                }
+            });
+        }
+
+        private static void RevealSessionPage()
+        {
+            _splashWaitGen++;
+            ApplySessionSize(_pendingSessionWidth, _pendingSessionHeight);
+            _session?.HideStatus();
+            PositionOverAcad(_session, -1, 70);
         }
 
         private static void MarkAuthenticated()
@@ -115,11 +263,60 @@ namespace AutocadPlugin
             }
 
             _sessionAuthenticated = true;
-            ApplySessionSize(320, 400);
-            if (_session != null)
-                PositionOverAcad(_session, 80, 160);
+            HideSessionWindow();
             ShowToolPalettes();
-            WriteMessage("[Tandem] Sesión Desing conectada. Elige un diseño para dibujar los muros.");
+            WriteMessage("[Tandem] Sesion conectada a " + MvcServerSettings.CurrentLabel() + ". El primer boton abre el menu general.");
+            if (_pendingBlocks)
+            {
+                _pendingBlocks = false;
+                ShowBlocks();
+            }
+        }
+
+        private static void ShowHome()
+        {
+            EnsureSession();
+            if (_session == null) return;
+
+            ApplySessionSize(540, 700);
+            PositionOverAcad(_session, -1, 70);
+            ShowSessionWindow();
+            _session.Activate();
+            RevealSessionPage();
+
+            if (!_sessionAuthenticated && !string.IsNullOrWhiteSpace(_readyUrl))
+            {
+                _session.ShowStatus("Cargando TDesing…");
+                ArmSplashFallback();
+                _session.Navigate(_readyUrl);
+            }
+        }
+
+        private static void HideHome()
+        {
+            HideSessionWindow();
+        }
+
+        private static void ShowSessionWindow()
+        {
+            if (_session == null) return;
+            try
+            {
+                if (!_session.IsVisible)
+                    _session.Show();
+            }
+            catch { }
+        }
+
+        private static void HideSessionWindow()
+        {
+            if (_session == null) return;
+            try
+            {
+                if (_session.IsVisible)
+                    _session.Hide();
+            }
+            catch { }
         }
 
         private static void ApplySessionSize(double width, double height)
@@ -133,21 +330,63 @@ namespace AutocadPlugin
             var baseUrl = PluginExceptionHelper.ResolveBaseUrlFromEnv();
             var modeUrl = baseUrl + "DesignToolsAutocad/PaletteMode";
             var toolsUrl = baseUrl + "DesignToolsAutocad/PaletteTools";
-            EnsureWindow(ref _mode, modeUrl, 348, 62, 80, 90);
+            EnsureWindow(ref _mode, modeUrl, 448, 62, 80, 90);
             EnsureWindow(ref _tools, toolsUrl, 508, 58, -1, 90);
+        }
+
+        private const double BlocksWidth = 320;
+        private const double BlocksHeight = 680;
+        private const double BlocksCollapsedWidth = 56;
+        private const double BlocksCollapsedHeight = 40;
+        private const double BlocksLeft = 80;
+        private const double BlocksTop = 158;
+
+        private static void EnsureBlocks()
+        {
+            var baseUrl = PluginExceptionHelper.ResolveBaseUrlFromEnv();
+            var url = baseUrl + "DesignToolsAutocad/PluginBlocks";
+
+            if (_blocks != null)
+            {
+                try
+                {
+                    if (!_blocks.IsVisible)
+                        _blocks.Show();
+                    _blocks.Activate();
+                    PositionOverAcad(_blocks, BlocksLeft, BlocksTop);
+                }
+                catch
+                {
+                }
+                return;
+            }
+
+            var created = new PaletteWindow(url, BlocksWidth, BlocksHeight, allowResize: true);
+            created.MessageReceived += OnPaletteMessage;
+            created.Closed += (_, __) =>
+            {
+                if (ReferenceEquals(_blocks, created))
+                    _blocks = null;
+            };
+            Attach(created, BlocksLeft, BlocksTop);
+            _blocks = created;
         }
 
         private static void EnsureWindow(ref PaletteWindow window, string url, double width, double height, double leftOffset, double topOffset)
         {
             if (window != null)
             {
-                if (window.IsVisible)
+                try
                 {
+                    if (!window.IsVisible)
+                        window.Show();
                     window.Activate();
-                    return;
+                    PositionOverAcad(window, leftOffset, topOffset);
                 }
-                try { window.Close(); } catch { }
-                window = null;
+                catch
+                {
+                }
+                return;
             }
 
             var created = new PaletteWindow(url, width, height);
@@ -182,10 +421,13 @@ namespace AutocadPlugin
             {
                 created.Show();
             }
+
+            PositionOverAcad(created, leftOffset, topOffset);
         }
 
         private static void PositionOverAcad(PaletteWindow window, double leftOffset, double topOffset)
         {
+            if (window == null) return;
             try
             {
                 var main = AcadApp.MainWindow;
@@ -237,13 +479,88 @@ namespace AutocadPlugin
             try
             {
                 var msg = Newtonsoft.Json.JsonConvert.DeserializeAnonymousType(
-                    json, new { action = "", designId = 0L, snapshot = (WallSnapshotDto)null });
+                    json, new { action = "", url = "", designId = 0L, id = 0L, dwg = "", caption = "", snapshot = (WallSnapshotDto)null });
                 if (msg == null || string.IsNullOrWhiteSpace(msg.action))
                     return false;
 
-                if (string.Equals(msg.action, "session-ready", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(msg.action, "company-logo", StringComparison.OrdinalIgnoreCase))
                 {
-                    MarkAuthenticated();
+                    if (string.IsNullOrWhiteSpace(msg.url))
+                        PluginSplashBrand.Clear();
+                    else
+                        _ = PluginSplashBrand.SaveFromUrlAsync(msg.url);
+                    return true;
+                }
+
+                if (string.Equals(msg.action, "session-ready", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(msg.action, "page-ready", StringComparison.OrdinalIgnoreCase))
+                {
+                    RevealSessionPage();
+                    if (string.Equals(msg.action, "session-ready", StringComparison.OrdinalIgnoreCase))
+                        MarkAuthenticated();
+                    return true;
+                }
+
+                if (string.Equals(msg.action, "show-home", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (_session != null && _session.IsVisible)
+                        HideHome();
+                    else
+                        ShowHome();
+                    return true;
+                }
+
+                if (string.Equals(msg.action, "hide-home", StringComparison.OrdinalIgnoreCase))
+                {
+                    HideHome();
+                    return true;
+                }
+
+                if (string.Equals(msg.action, "show-blocks", StringComparison.OrdinalIgnoreCase))
+                {
+                    ShowBlocks();
+                    return true;
+                }
+
+                if (string.Equals(msg.action, "hide-blocks", StringComparison.OrdinalIgnoreCase))
+                {
+                    HidePalette(_blocks);
+                    return true;
+                }
+
+                if (string.Equals(msg.action, "collapse-blocks", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (_blocks != null)
+                    {
+                        try
+                        {
+                            if (!_blocks.IsVisible)
+                                _blocks.Show();
+                            _blocks.SetSize(BlocksCollapsedWidth, BlocksCollapsedHeight);
+                        }
+                        catch { }
+                    }
+                    return true;
+                }
+
+                if (string.Equals(msg.action, "expand-blocks", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (_blocks != null)
+                    {
+                        try
+                        {
+                            if (!_blocks.IsVisible)
+                                _blocks.Show();
+                            _blocks.SetSize(BlocksWidth, BlocksHeight);
+                        }
+                        catch { }
+                    }
+                    return true;
+                }
+
+                if (string.Equals(msg.action, "insert-block", StringComparison.OrdinalIgnoreCase))
+                {
+                    WriteMessage("[Tandem] Biblioteca de bloques: formulario listo. La inserción en el dibujo llega en el siguiente paso.");
                     return true;
                 }
 
@@ -301,7 +618,7 @@ namespace AutocadPlugin
         {
             Document doc = AcadApp.DocumentManager.MdiActiveDocument;
             Editor ed = doc?.Editor;
-            ed?.WriteMessage(text);
+            ed?.WriteMessage("\n" + text);
         }
 
         private static void Close(ref PaletteWindow window)

@@ -57,16 +57,40 @@ namespace Desing.Controllers
         [AllowAnonymous]
         public ActionResult Login(string returnUrl)
         {
+            Response.Cache.SetCacheability(HttpCacheability.NoCache);
+            Response.Cache.SetNoStore();
             ViewBag.ReturnUrl = returnUrl;
-            if (User.Identity.IsAuthenticated)
+
+            var isPluginLogin = !string.IsNullOrWhiteSpace(returnUrl)
+                && returnUrl.IndexOf("/DesignToolsAutocad/PluginReady", StringComparison.OrdinalIgnoreCase) >= 0;
+
+            if (isPluginLogin && User.Identity.IsAuthenticated)
+            {
+                AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+            }
+            else if (User.Identity.IsAuthenticated)
             {
                 return RedirectToLocal(returnUrl);
             }
 
-            // Plugins CAD usan ReturnUrl hacia PluginReady: no mostrar error de "sesión requerida".
-            var isPluginLogin = !string.IsNullOrWhiteSpace(returnUrl)
-                && returnUrl.IndexOf("/DesignToolsAutocad/PluginReady", StringComparison.OrdinalIgnoreCase) >= 0;
-            if (!string.IsNullOrWhiteSpace(returnUrl) && !isPluginLogin)
+            if (isPluginLogin)
+            {
+                ViewBag.PluginCadLogin = true;
+                var companyLogo = PluginCadDeviceHelper.TryReadLogoCookie(Request);
+                ViewBag.PlantillaLogo = string.IsNullOrWhiteSpace(companyLogo)
+                    ? PluginCadDeviceHelper.DefaultLogoVirtualPath
+                    : companyLogo;
+            }
+
+            if (string.Equals(Request["pluginDeviceBlocked"], "1", StringComparison.OrdinalIgnoreCase))
+            {
+                ViewBag.ErrorMessage = Common.PluginCad_DeviceBlocked;
+            }
+            else if (string.Equals(Request["pluginUserInactive"], "1", StringComparison.OrdinalIgnoreCase))
+            {
+                ViewBag.ErrorMessage = Common.PluginCad_UserInactive;
+            }
+            else if (!string.IsNullOrWhiteSpace(returnUrl) && !isPluginLogin)
             {
                 ViewBag.ErrorMessage = Common.Account_Err_LoginRequired;
             }
@@ -93,12 +117,23 @@ namespace Desing.Controllers
                 return View();
             }
 
+            var isPluginLogin = !string.IsNullOrWhiteSpace(returnUrl)
+                && returnUrl.IndexOf("/DesignToolsAutocad/PluginReady", StringComparison.OrdinalIgnoreCase) >= 0;
+            if (isPluginLogin)
+                ViewBag.PluginCadLogin = true;
+
             var user = await UserManager.FindByEmailAsync(model.Email);
             if (user != null)
             {
                 var userc = UserManager.IsEmailConfirmedAsync(user.Id);
                 if (!await UserManager.IsEmailConfirmedAsync(user.Id))
                 {
+                    if (isPluginLogin)
+                    {
+                        ViewBag.ErrorMessage = Common.PluginCad_UserInactive;
+                        ViewBag.PlantillaLogo = PluginCadDeviceHelper.DefaultLogoVirtualPath;
+                        return View(model);
+                    }
                     await SendEmailConfirmationTokenAsync(user.Id, user.UserName, user.Email, Common.Account_EmailConfirmation_Subject);
                     ViewBag.ErrorMessage = Common.Account_Err_EmailNotConfirmed;
 
@@ -138,11 +173,11 @@ namespace Desing.Controllers
                         }).ToList();
             var l = Data.Count();
             var firstData = Data.FirstOrDefault();
-            model.UserName = firstData.AttName;
-
-            // Guardar en cookie persistente la plantilla del usuario que se loguea,
-            // para que la pagina de Login muestre el mismo color/logo en visitas posteriores.
-            WritePlantillaCookie(firstData.LinPlantilla);
+            if (firstData != null)
+            {
+                model.UserName = firstData.AttName;
+                WritePlantillaCookie(firstData.LinPlantilla);
+            }
 
             try
             {
@@ -160,10 +195,45 @@ namespace Desing.Controllers
                 /* no bloquear login */
             }
 
+            if (user != null)
+            {
+                try
+                {
+                    var snap = PluginCadDeviceHelper.TryReadCookie(Request);
+                    var row = PluginCadDeviceHelper.Find(db, snap != null ? snap.DeviceId : null);
+                    if (PluginCadDeviceHelper.IsBlocked(row))
+                    {
+                        AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                        ViewBag.ErrorMessage = Common.PluginCad_DeviceBlocked;
+                        ViewBag.PluginCadLogin = true;
+                        ViewBag.PlantillaLogo = PluginCadDeviceHelper.DefaultLogoVirtualPath;
+                        PluginCadDeviceHelper.ClearLogoCookie(Response);
+                        return View(model);
+                    }
+                    if (!PluginCadDeviceHelper.IsUserAllowed(db, user.Id))
+                    {
+                        AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                        ViewBag.ErrorMessage = Common.PluginCad_UserInactive;
+                        ViewBag.PluginCadLogin = true;
+                        ViewBag.PlantillaLogo = PluginCadDeviceHelper.DefaultLogoVirtualPath;
+                        PluginCadDeviceHelper.ClearLogoCookie(Response);
+                        return View(model);
+                    }
+
+                    PluginCadDeviceHelper.RegisterAfterLogin(db, snap, user.Id);
+                    var logo = PluginCadDeviceHelper.ResolveCompanyLogoAbsoluteUrl(db, user.Id, Request, Url);
+                    PluginCadDeviceHelper.WriteLogoCookie(Response, Request, logo);
+                }
+                catch
+                {
+                    /* el login no debe fallar si el alta del equipo falla */
+                }
+            }
+
             string hostName = Dns.GetHostName();
             // Get the IP
             string myIP = Dns.GetHostByName(hostName).AddressList[0].ToString();
-            if (myIP != null)
+            if (user != null && myIP != null)
             {
                 TSql_Register newRegister = new TSql_Register
                 {
@@ -485,6 +555,7 @@ namespace Desing.Controllers
         }
 
 
+        [AllowAnonymous]
         public ActionResult LogOff()
         {
             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);

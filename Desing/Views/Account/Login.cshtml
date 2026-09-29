@@ -12,9 +12,11 @@
 
             <div class="card p-sm-7 p-2">
 
-                @* Logo (dinamico desde la plantilla recordada en cookie) *@
+                @* Logo: plantilla en intranet; en CAD, TDesing por defecto o logo de empresa en cookie *@
                 @{
-                    var loginLogo = (ViewBag.PlantillaLogo as string) ?? "/Content/images/Login/at.png";
+                    var isPluginCad = ViewBag.PluginCadLogin as bool? == true;
+                    var loginLogo = (ViewBag.PlantillaLogo as string)
+                        ?? (isPluginCad ? "/Content/images/tDesing/t-desing-net.png" : "/Content/images/Login/at.png");
                     var loginLogoUrl = loginLogo.StartsWith("http", StringComparison.OrdinalIgnoreCase)
                         ? loginLogo
                         : Url.Content("~" + (loginLogo.StartsWith("/") ? loginLogo : "/" + loginLogo));
@@ -22,11 +24,14 @@
                 <div class="app-brand justify-content-center mt-5">
                     <a href="@Url.Action("Index", "Home")" class="app-brand-link gap-3">
                         <span class="app-brand-logo demo">
-                            <img src="@loginLogoUrl" alt="Tandem" style="height:36px" />
+                            <img src="@loginLogoUrl" alt="TDesing" style="height:@(isPluginCad ? "48px" : "36px")" />
                         </span>
-                        <span class="app-brand-text demo text-heading brand-svg-login">
-                            @Html.Partial("_BrandSvg")
-                        </span>
+                        @if (!isPluginCad)
+                        {
+                            <span class="app-brand-text demo text-heading brand-svg-login">
+                                @Html.Partial("_BrandSvg")
+                            </span>
+                        }
                     </a>
                 </div>
 

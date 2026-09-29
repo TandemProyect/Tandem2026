@@ -34,7 +34,7 @@ namespace AutocadPlugin
                     ComponentManager.ItemInitialized += OnRibbonReady;
 
                 AcadApp.Idle += OnIdle;
-                WriteMessage("\nTandem 2026 cargado. Pulsa la pestaña 'Tandem 2026' para abrir los menús MVC.\n");
+                WriteMessage("\nTandem 2026 cargado (" + MvcServerSettings.CurrentLabel() + "). Pestaña 'Tandem 2026' o TANDEM_LOCAL / TANDEM_PRODUCCION.\n");
             }
             catch (System.Exception ex)
             {

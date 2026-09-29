@@ -25,6 +25,9 @@
   <data name="App_BrandFallback" xml:space="preserve">
     <value>T Desing.net</value>
   </data>
+  <data name="App_BootLoading" xml:space="preserve">
+    <value>Loading TDesing…</value>
+  </data>
   <data name="App_EnvironmentLabel" xml:space="preserve">
     <value>Develop environment</value>
   </data>
@@ -268,11 +271,56 @@
   <data name="Login_Welcome" xml:space="preserve">
     <value>Welcome to {0}</value>
   </data>
+  <data name="PluginCad_BlocksEmpty" xml:space="preserve">
+    <value>No articles.</value>
+  </data>
+  <data name="PluginCad_BlocksInsert" xml:space="preserve">
+    <value>Insert</value>
+  </data>
+  <data name="PluginCad_BlocksInsertSoon" xml:space="preserve">
+    <value>Inserting into the drawing comes in the next step.</value>
+  </data>
+  <data name="PluginCad_BlocksNoPreview" xml:space="preserve">
+    <value>This article has no STL preview.</value>
+  </data>
+  <data name="PluginCad_BlocksOpenAria" xml:space="preserve">
+    <value>Open block library</value>
+  </data>
+  <data name="PluginCad_BlocksOpenTitle" xml:space="preserve">
+    <value>Block library</value>
+  </data>
+  <data name="PluginCad_BlocksZoomFit" xml:space="preserve">
+    <value>Fit view</value>
+  </data>
+  <data name="PluginCad_BlocksZoomIn" xml:space="preserve">
+    <value>Zoom in</value>
+  </data>
+  <data name="PluginCad_BlocksZoomOut" xml:space="preserve">
+    <value>Zoom out</value>
+  </data>
+  <data name="PluginCad_BlocksColorFrame" xml:space="preserve">
+    <value>Frame color</value>
+  </data>
+  <data name="PluginCad_BlocksColorPhenolic" xml:space="preserve">
+    <value>Phenolic color</value>
+  </data>
+  <data name="PluginCad_BlocksSearchLabel" xml:space="preserve">
+    <value>Block.-</value>
+  </data>
+  <data name="PluginCad_BlocksTitle" xml:space="preserve">
+    <value>Block library</value>
+  </data>
   <data name="PluginCad_ConnectedAs" xml:space="preserve">
     <value>Signed in: {0}</value>
   </data>
+  <data name="PluginCad_CreateFailed" xml:space="preserve">
+    <value>Could not create.</value>
+  </data>
   <data name="PluginCad_DesignsTitle" xml:space="preserve">
     <value>Designs</value>
+  </data>
+  <data name="PluginCad_HideMenu" xml:space="preserve">
+    <value>Close menu</value>
   </data>
   <data name="PluginCad_LoadFailed" xml:space="preserve">
     <value>Could not load walls.</value>
@@ -280,14 +328,38 @@
   <data name="PluginCad_LoadingWalls" xml:space="preserve">
     <value>Loading walls…</value>
   </data>
+  <data name="PluginCad_MenuHomeAria" xml:space="preserve">
+    <value>Open general menu</value>
+  </data>
+  <data name="PluginCad_MenuHomeTitle" xml:space="preserve">
+    <value>General menu</value>
+  </data>
   <data name="PluginCad_NoDesigns" xml:space="preserve">
     <value>No designs.</value>
+  </data>
+  <data name="PluginCad_NoJobsides" xml:space="preserve">
+    <value>No jobsites.</value>
+  </data>
+  <data name="PluginCad_NoOffers" xml:space="preserve">
+    <value>No offers.</value>
+  </data>
+  <data name="PluginCad_OpenInCad" xml:space="preserve">
+    <value>Open in CAD</value>
   </data>
   <data name="PluginCad_OpenWalls" xml:space="preserve">
     <value>Draw walls</value>
   </data>
   <data name="PluginCad_Search" xml:space="preserve">
     <value>Search</value>
+  </data>
+  <data name="PluginCad_SelectEmpty" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="PluginCad_DeviceBlocked" xml:space="preserve">
+    <value>This computer is blocked or inactive. Contact an administrator.</value>
+  </data>
+  <data name="PluginCad_UserInactive" xml:space="preserve">
+    <value>This user is inactive. Contact an administrator.</value>
   </data>
   <data name="Register_BreadcrumbEmployees" xml:space="preserve">
     <value>Employees</value>

@@ -1,4 +1,5 @@
-﻿using netDxf;
+﻿using DAL;
+using netDxf;
 using netDxf.Blocks;
 using netDxf.Entities;
 using netDxf.Header;
@@ -6,6 +7,7 @@ using netDxf.Tables;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Globalization;
 using System.Data;
 using System.Data.Entity;
 using System.Data.SqlClient;
@@ -14,9 +16,15 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
+using Desing.Helpers;
 using Desing.Models;
+using Desing.Resources;
 using Desing.Services;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.Owin;
+using Microsoft.Owin.Security;
 using Newtonsoft.Json;
 
 namespace Desing.Controllers
@@ -44,28 +52,635 @@ namespace Desing.Controllers
         }
 
         /// <summary>
+        /// Arranque de sesión CAD: si el equipo está en TSql_PluginDeviceAuth y activo,
+        /// inicia sesión con el usuario ligado; si no, pide login (y el login registra el equipo).
+        /// </summary>
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<ActionResult> PluginSession(string deviceId, string machineName, string usuarioWindows, string pluginVersion)
+        {
+            var snap = new PluginCadDeviceHelper.Snapshot
+            {
+                DeviceId = (deviceId ?? "").Trim(),
+                MachineName = machineName,
+                UsuarioWindows = usuarioWindows,
+                PluginVersion = pluginVersion
+            };
+            PluginCadDeviceHelper.WriteCookie(Response, Request, snap);
+
+            var auth = HttpContext.GetOwinContext().Authentication;
+            auth.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+
+            var pluginReadyUrl = Url.Action("PluginReady", "DesignToolsAutocad");
+
+            if (!string.IsNullOrWhiteSpace(snap.DeviceId))
+            {
+                var row = PluginCadDeviceHelper.Find(db, snap.DeviceId);
+                if (PluginCadDeviceHelper.IsBlocked(row))
+                    return RedirectToPluginLogin(pluginReadyUrl, blocked: true);
+
+                if (PluginCadDeviceHelper.IsTrusted(row))
+                {
+                    if (!PluginCadDeviceHelper.IsUserAllowed(db, row.LinAspNetUsert))
+                        return RedirectToPluginLogin(pluginReadyUrl, inactiveUser: true);
+
+                    var userManager = HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
+                    var signInManager = HttpContext.GetOwinContext().Get<ApplicationSignInManager>();
+                    var user = await userManager.FindByIdAsync(row.LinAspNetUsert);
+                    if (user == null)
+                        return RedirectToPluginLogin(pluginReadyUrl, inactiveUser: true);
+
+                    await signInManager.SignInAsync(user, isPersistent: true, rememberBrowser: false);
+                    PluginCadDeviceHelper.Touch(db, row, snap, user.Id);
+                    PersistPluginCompanyLogo(user.Id);
+                    return RedirectToAction("PluginReady");
+                }
+            }
+
+            return RedirectToPluginLogin(pluginReadyUrl, blocked: false);
+        }
+
+        private ActionResult RedirectToPluginLogin(string pluginReadyUrl, bool blocked = false, bool inactiveUser = false)
+        {
+            if (blocked || inactiveUser)
+                PluginCadDeviceHelper.ClearLogoCookie(Response);
+
+            var url = "~/Account/Login?returnUrl=" + Uri.EscapeDataString(pluginReadyUrl ?? "");
+            if (blocked)
+                url += "&pluginDeviceBlocked=1";
+            if (inactiveUser)
+                url += "&pluginUserInactive=1";
+            return Redirect(url);
+        }
+
+        private void PersistPluginCompanyLogo(string userId)
+        {
+            var logo = PluginCadDeviceHelper.ResolveCompanyLogoAbsoluteUrl(db, userId, Request, Url);
+            PluginCadDeviceHelper.WriteLogoCookie(Response, Request, logo);
+            ViewBag.CompanyLogoUrl = logo;
+        }
+
+        /// <summary>
         /// Paleta de sesión del plugin CAD: exige login (cookie Identity).
-        /// Lista los mismos diseños V2 que el dashboard de Desing.
+        /// Menú general (obras / ofertas / diseños) — el diseño se abre en el plugin CAD.
         /// </summary>
         [HttpGet]
         [Authorize]
         public ActionResult PluginReady()
         {
-            var rows = (from d in db.TSql_Design_V2.AsNoTracking()
-                        join o in db.TSql_Offers.AsNoTracking() on d.LinkOffers equals o.IdObject
-                        where !d.AttIsDeleted && !o.Is_Delete
-                        orderby d.AttChange descending, d.SysObjectID descending
-                        select new PluginCadDesignRow
-                        {
-                            Id = d.SysObjectID,
-                            Label = d.AttLabel,
-                            OfferNumber = o.AddOfferNumber
-                        })
+            var vm = new PluginCadHomeVm
+            {
+                UserName = User.Identity.Name,
+                Jobsides = db.TSql_Jobside.AsNoTracking()
+                    .Where(j => !j.Is_Delete)
+                    .OrderByDescending(j => j.AddLastDateChange ?? j.AddDateMade)
+                    .ThenByDescending(j => j.IdObject)
+                    .Take(80)
+                    .Select(j => new PluginCadJobsideRow
+                    {
+                        Id = j.IdObject,
+                        Code = j.AddNJobside,
+                        Label = j.TextLabel
+                    })
+                    .ToList(),
+                Offers = db.TSql_Offers.AsNoTracking()
+                    .Where(o => !o.Is_Delete)
+                    .OrderByDescending(o => o.Ntimeschanged)
+                    .ThenByDescending(o => o.AddDateMade)
+                    .ThenByDescending(o => o.IdObject)
+                    .Take(80)
+                    .Select(o => new PluginCadOfferRow
+                    {
+                        Id = o.IdObject,
+                        JobsideId = o.LinkJobside,
+                        Number = o.AddOfferNumber,
+                        Label = o.TextLabel
+                    })
+                    .ToList(),
+                Designs = (from d in db.TSql_Design_V2.AsNoTracking()
+                           join o in db.TSql_Offers.AsNoTracking() on d.LinkOffers equals o.IdObject
+                           where !d.AttIsDeleted && !o.Is_Delete
+                           orderby d.AttChange descending, d.SysObjectID descending
+                           select new PluginCadDesignRow
+                           {
+                               Id = d.SysObjectID,
+                               Label = d.AttLabel,
+                               OfferNumber = o.AddOfferNumber
+                           })
+                    .Take(80)
+                    .ToList(),
+                Clients = db.TSql_Client_V2.AsNoTracking()
+                    .Where(c => !c.Is_Delete && c.Is_Active)
+                    .OrderBy(c => c.TextLabel)
+                    .Select(c => new PluginCadLookupItem { Id = c.IdObject, Label = c.TextLabel })
+                    .ToList(),
+                Branches = db.TSql_Branch.AsNoTracking()
+                    .OrderBy(b => b.AttLabel)
+                    .Select(b => new PluginCadLookupItem { Id = b.SysObjectID, Label = b.AttLabel })
+                    .ToList(),
+                OfferStates = db.TSql_OfferState.AsNoTracking()
+                    .Where(s => !s.Is_Delete && s.Is_Active)
+                    .OrderBy(s => s.TextLabel)
+                    .Select(s => new PluginCadLookupItem { Id = s.IdObject, Label = s.TextLabel })
+                    .ToList()
+            };
+
+            var userId = User.Identity.GetUserId();
+            if (!PluginCadDeviceHelper.IsUserAllowed(db, userId))
+            {
+                HttpContext.GetOwinContext().Authentication.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                return RedirectToPluginLogin(Url.Action("PluginReady", "DesignToolsAutocad"), inactiveUser: true);
+            }
+
+            var deviceSnap = PluginCadDeviceHelper.TryReadCookie(Request);
+            var deviceRow = PluginCadDeviceHelper.Find(db, deviceSnap != null ? deviceSnap.DeviceId : null);
+            if (PluginCadDeviceHelper.IsBlocked(deviceRow))
+            {
+                HttpContext.GetOwinContext().Authentication.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                return RedirectToPluginLogin(Url.Action("PluginReady", "DesignToolsAutocad"), blocked: true);
+            }
+
+            PersistPluginCompanyLogo(userId);
+            return View(vm);
+        }
+
+        /// <summary>
+        /// Paleta CAD: biblioteca de bloques (maestro de artículos). Solo formulario; no inserta.
+        /// </summary>
+        [HttpGet]
+        [Authorize]
+        public ActionResult PluginBlocks()
+        {
+            if (!EnsurePluginCadUser())
+                return RedirectToPluginLogin(Url.Action("PluginBlocks", "DesignToolsAutocad"), inactiveUser: true);
+
+            PersistPluginCompanyLogo(User.Identity.GetUserId());
+            var logo = ViewBag.CompanyLogoUrl as string;
+            if (string.IsNullOrWhiteSpace(logo))
+                logo = Url.Content("~" + PluginCadDeviceHelper.DefaultLogoVirtualPath);
+
+            return View(new PluginCadBlocksVm
+            {
+                LogoUrl = logo,
+                Items = new List<PluginCadBlockRow>()
+            });
+        }
+
+        [HttpGet]
+        [Authorize]
+        public ActionResult PluginSearchBlocks(string q)
+        {
+            if (!EnsurePluginCadUser())
+                return new HttpUnauthorizedResult();
+
+            return Json(QueryPluginBlocks(q), JsonRequestBehavior.AllowGet);
+        }
+
+        private bool EnsurePluginCadUser()
+        {
+            var userId = User.Identity.GetUserId();
+            if (!PluginCadDeviceHelper.IsUserAllowed(db, userId))
+            {
+                HttpContext.GetOwinContext().Authentication.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                return false;
+            }
+
+            var deviceSnap = PluginCadDeviceHelper.TryReadCookie(Request);
+            var deviceRow = PluginCadDeviceHelper.Find(db, deviceSnap != null ? deviceSnap.DeviceId : null);
+            if (PluginCadDeviceHelper.IsBlocked(deviceRow))
+            {
+                HttpContext.GetOwinContext().Authentication.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                return false;
+            }
+
+            return true;
+        }
+
+        private List<PluginCadBlockRow> QueryPluginBlocks(string q)
+        {
+            var term = (q ?? "").Trim();
+            var query = db.Tsql_Master_Articles.AsNoTracking().Where(a => a.AddIsActive);
+            if (term.Length > 0)
+            {
+                query = query.Where(a =>
+                    (a.AddAtenkoCode != null && a.AddAtenkoCode.Contains(term))
+                    || (a.TextCode != null && a.TextCode.Contains(term))
+                    || (a.TextLabel != null && a.TextLabel.Contains(term)));
+            }
+
+            var rows = query
+                .OrderBy(a => a.TextLabel)
+                .ThenBy(a => a.AddAtenkoCode)
                 .Take(80)
                 .ToList();
 
-            ViewBag.UserName = User.Identity.Name;
-            return View(rows);
+            var icoById = LoadMasterArticleIcoMap();
+            return rows.Select(a => MapPluginBlock(a, icoById)).ToList();
+        }
+
+        private Dictionary<long, string> LoadMasterArticleIcoMap()
+        {
+            try
+            {
+                return db.Database.SqlQuery<PluginCadArticleIcoRow>(
+                        "SELECT IdObject, ImgIco FROM dbo.Tsql_Master_Articles WHERE ImgIco IS NOT NULL AND LTRIM(RTRIM(ImgIco)) <> ''")
+                    .ToDictionary(x => x.IdObject, x => x.ImgIco);
+            }
+            catch
+            {
+                return new Dictionary<long, string>();
+            }
+        }
+
+        private PluginCadBlockRow MapPluginBlock(DAL.Tsql_Master_Articles a, Dictionary<long, string> icoById)
+        {
+            var code = FirstNonEmpty(a.AddAtenkoCode, a.TextCode);
+            var size = FormatBlockSize(a.NumberHigh, a.NumberWidth);
+            var captionParts = new[] { code, a.TextLabel };
+            if (!string.IsNullOrWhiteSpace(size) && (a.TextLabel == null || a.TextLabel.IndexOf(size, StringComparison.OrdinalIgnoreCase) < 0))
+                captionParts = new[] { code, a.TextLabel, size };
+            var caption = string.Join(" ", captionParts.Where(s => !string.IsNullOrWhiteSpace(s)));
+            string storedIco = null;
+            if (icoById != null)
+                icoById.TryGetValue(a.IdObject, out storedIco);
+            string stlUrl;
+            string stlPhenolicUrl;
+            ResolveStlPair(a, out stlUrl, out stlPhenolicUrl);
+            return new PluginCadBlockRow
+            {
+                Id = a.IdObject,
+                Code = code,
+                Label = a.TextLabel,
+                Caption = caption,
+                IcoUrl = ResolveIcoUrl(a, storedIco),
+                StlUrl = stlUrl,
+                StlPhenolicUrl = stlPhenolicUrl,
+                DwgUrl = ToPublicUrl(a.LinkBlockDwgPlant3D)
+            };
+        }
+
+        private string ResolveIcoUrl(DAL.Tsql_Master_Articles a, string storedIco)
+        {
+            var fromDb = ToPublicUrl(storedIco);
+            if (!string.IsNullOrWhiteSpace(fromDb) && VirtualFileExists(storedIco))
+                return fromDb;
+
+            var code = FirstNonEmpty(a.AddAtenkoCode, a.TextCode);
+            if (!string.IsNullOrWhiteSpace(code))
+            {
+                var byCode = "~/Files/MaterialIco/" + code.Trim() + ".png";
+                if (VirtualFileExists(byCode))
+                    return ToPublicUrl(byCode);
+            }
+
+            var label = (a.TextLabel ?? "").ToLowerInvariant();
+            if (label.Contains("atk") || label.Contains("panel"))
+            {
+                const string panel = "~/Files/MaterialIco/panel.png";
+                if (VirtualFileExists(panel))
+                    return ToPublicUrl(panel);
+            }
+
+            const string fallback = "~/Files/MaterialIco/SinArticulo.png";
+            return VirtualFileExists(fallback) ? ToPublicUrl(fallback) : null;
+        }
+
+        private void ResolveStlPair(DAL.Tsql_Master_Articles a, out string stlUrl, out string stlPhenolicUrl)
+        {
+            stlUrl = null;
+            stlPhenolicUrl = null;
+            string catalogFrame;
+            string catalogPhenolic;
+            if (PluginCadAtk60PanelStlHelper.TryResolve(a, out catalogFrame, out catalogPhenolic))
+            {
+                if (VirtualFileExists(catalogFrame))
+                    stlUrl = ToPublicUrl(catalogFrame);
+                if (VirtualFileExists(catalogPhenolic))
+                    stlPhenolicUrl = ToPublicUrl(catalogPhenolic);
+                if (!string.IsNullOrWhiteSpace(stlUrl))
+                    return;
+            }
+
+            stlUrl = ResolveStlUrl(a);
+            stlPhenolicUrl = ResolvePhenolicSiblingUrl(stlUrl);
+        }
+
+        private string ResolveStlUrl(DAL.Tsql_Master_Articles a)
+        {
+            var candidates = new[]
+            {
+                a.LinkBlockDwgPlantStl,
+                a.LinkBlockDwgVerticalElevationStl,
+                a.LinkBlockDwgHorizontalElevationStl
+            };
+            foreach (var p in candidates)
+            {
+                if (VirtualFileExists(p))
+                    return ToPublicUrl(p);
+            }
+
+            var dwg = a.LinkBlockDwgPlant3D;
+            if (!string.IsNullOrWhiteSpace(dwg))
+            {
+                var sibling = Path.ChangeExtension(dwg.Trim().Replace('\\', '/'), ".stl");
+                if (VirtualFileExists(sibling))
+                    return ToPublicUrl(sibling);
+            }
+
+            return ToPublicUrl(FirstNonEmpty(candidates));
+        }
+
+        private string ResolvePhenolicSiblingUrl(string publicStlUrl)
+        {
+            if (string.IsNullOrWhiteSpace(publicStlUrl))
+                return null;
+
+            var path = publicStlUrl.Replace('\\', '/');
+            var q = path.IndexOf('?');
+            if (q >= 0)
+                path = path.Substring(0, q);
+            if (!path.EndsWith(".stl", StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            string siblingVirtual = null;
+            if (path.EndsWith("P.stl", StringComparison.OrdinalIgnoreCase))
+            {
+                siblingVirtual = ToAppRelativePath(path.Substring(0, path.Length - 5) + "P2.stl");
+            }
+            else
+            {
+                siblingVirtual = ToAppRelativePath(path.Substring(0, path.Length - 4) + "_F.stl");
+            }
+
+            return VirtualFileExists(siblingVirtual) ? ToPublicUrl(siblingVirtual) : null;
+        }
+
+        private bool VirtualFileExists(string virtualPath)
+        {
+            var appRel = ToAppRelativePath(virtualPath);
+            if (string.IsNullOrWhiteSpace(appRel))
+                return false;
+            try
+            {
+                var physical = Server.MapPath(appRel);
+                return !string.IsNullOrWhiteSpace(physical) && System.IO.File.Exists(physical);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static string ToAppRelativePath(string virtualPath)
+        {
+            if (string.IsNullOrWhiteSpace(virtualPath))
+                return null;
+            var t = virtualPath.Trim().Replace('\\', '/');
+            while (t.StartsWith("../", StringComparison.Ordinal))
+                t = t.Substring(3);
+            while (t.StartsWith("./", StringComparison.Ordinal))
+                t = t.Substring(2);
+            if (t.StartsWith("http", StringComparison.OrdinalIgnoreCase) || t.StartsWith("//", StringComparison.Ordinal))
+                return null;
+            if (t.StartsWith("~/"))
+                return t;
+            if (t.StartsWith("/"))
+                return "~" + t;
+            return "~/" + t.TrimStart('/');
+        }
+
+        private static string FormatBlockSize(double? high, double? width)
+        {
+            if (!high.HasValue && !width.HasValue)
+                return "";
+            var ci = CultureInfo.GetCultureInfo("es-ES");
+            if (high.HasValue && width.HasValue)
+                return high.Value.ToString("0.00", ci) + " x " + width.Value.ToString("0.00", ci);
+            return (high ?? width).Value.ToString("0.00", ci);
+        }
+
+        private static string FirstNonEmpty(params string[] values)
+        {
+            if (values == null)
+                return "";
+            foreach (var v in values)
+            {
+                if (!string.IsNullOrWhiteSpace(v))
+                    return v.Trim();
+            }
+            return "";
+        }
+
+        private string ToPublicUrl(string virtualPath)
+        {
+            var appRel = ToAppRelativePath(virtualPath);
+            if (string.IsNullOrWhiteSpace(appRel))
+            {
+                if (string.IsNullOrWhiteSpace(virtualPath))
+                    return null;
+                var raw = virtualPath.Trim();
+                if (raw.StartsWith("http", StringComparison.OrdinalIgnoreCase) || raw.StartsWith("//", StringComparison.Ordinal))
+                    return raw;
+                return null;
+            }
+            return Url.Content(appRel);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public ActionResult PluginCreateJobside(string textLabel, long? linkClientV2, long linBranch)
+        {
+            var name = (textLabel ?? "").Trim();
+            if (string.IsNullOrEmpty(name))
+                return Json(new { ok = false, message = Jobside.Val_NameRequired });
+
+            if (linBranch <= 0 || !db.TSql_Branch.Any(b => b.SysObjectID == linBranch))
+                return Json(new { ok = false, message = Jobside.Val_BranchRequired });
+
+            if (linkClientV2.HasValue && linkClientV2.Value > 0)
+            {
+                if (!db.TSql_Client_V2.Any(c => !c.Is_Delete && c.IdObject == linkClientV2.Value))
+                    return Json(new { ok = false, message = Jobside.Val_ClientInvalid });
+            }
+            else
+            {
+                linkClientV2 = null;
+            }
+
+            bool duplicate = db.TSql_Jobside.Any(x => !x.Is_Delete
+                && x.LinkClient_V2 == linkClientV2
+                && x.TextLabel == name);
+            if (duplicate)
+                return Json(new { ok = false, message = Jobside.Val_DuplicateNameCreate });
+
+            var model = new TSql_Jobside
+            {
+                TextLabel = name,
+                LinkClient_V2 = linkClientV2,
+                LinBranch = linBranch,
+                TextContractRef = string.Empty,
+                BitBillSameAsLoc = true,
+                AddNJobside = null
+            };
+            IntranetAuditHelper.SetAuditOnCreate(model, User);
+
+            using (var tran = db.Database.BeginTransaction())
+            {
+                try
+                {
+                    db.TSql_Jobside.Add(model);
+                    db.SaveChanges();
+                    model.AddNJobside = JobsideCodeHelper.BuildAddNJobside(
+                        model.IdObject,
+                        JobsideCodeHelper.GetSpainLocalNow());
+                    db.SaveChanges();
+                    tran.Commit();
+                }
+                catch (Exception ex)
+                {
+                    tran.Rollback();
+                    return Json(new { ok = false, message = ex.Message });
+                }
+            }
+
+            return Json(new
+            {
+                ok = true,
+                message = string.Format(Jobside.ToastMessage_JobsideCreated, model.TextLabel),
+                item = new { id = model.IdObject, code = model.AddNJobside, label = model.TextLabel }
+            });
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public ActionResult PluginCreateOffer(long jobsideId, string textLabel, long linkOfferState)
+        {
+            var name = (textLabel ?? "").Trim();
+            if (string.IsNullOrEmpty(name))
+                return Json(new { ok = false, message = Jobside.Offers_Val_NameRequired });
+
+            if (linkOfferState <= 0 ||
+                !db.TSql_OfferState.Any(s => s.IdObject == linkOfferState && !s.Is_Delete && s.Is_Active))
+                return Json(new { ok = false, message = Jobside.Offers_Val_StateInvalid });
+
+            var jobsideRow = db.TSql_Jobside
+                .Include("TSql_Branch")
+                .Include("TSql_Branch.TSql_Company")
+                .FirstOrDefault(j => j.IdObject == jobsideId && !j.Is_Delete);
+            if (jobsideRow == null)
+                return Json(new { ok = false, message = Jobside.Err_JobsideNotFound });
+
+            if (!jobsideRow.LinkClient_V2.HasValue)
+                return Json(new { ok = false, message = Jobside.Offers_Val_JobsideNeedsClient });
+
+            if (jobsideRow.TSql_Branch == null)
+                return Json(new { ok = false, message = Jobside.Offers_Val_BranchOrCompanyMissing });
+
+            if (string.IsNullOrWhiteSpace(jobsideRow.AddNJobside))
+                return Json(new { ok = false, message = Jobside.Offers_Val_JobsideCodePending });
+
+            var resolvedClientId = jobsideRow.LinkClient_V2.Value;
+            var coLetter = jobsideRow.TSql_Branch.TSql_Company != null
+                ? jobsideRow.TSql_Branch.TSql_Company.AddLetter
+                : null;
+            var brLetter = jobsideRow.TSql_Branch.AddLetter;
+
+            TSql_Offers entity;
+            using (var tran = db.Database.BeginTransaction(IsolationLevel.Serializable))
+            {
+                try
+                {
+                    var addOfferNumber = OfferNumberHelper.AllocateNextOfferNumber(
+                        db, coLetter, brLetter, jobsideRow.AddNJobside);
+                    entity = new TSql_Offers
+                    {
+                        AddOfferNumber = addOfferNumber,
+                        TextLabel = name,
+                        LinkJobside = jobsideId,
+                        LinkClient_V2 = resolvedClientId,
+                        LinkOfferState = linkOfferState
+                    };
+                    IntranetAuditHelper.SetAuditOnCreate(entity, User);
+                    entity.Is_Active = true;
+                    db.TSql_Offers.Add(entity);
+                    db.SaveChanges();
+                    tran.Commit();
+                }
+                catch (Exception ex)
+                {
+                    tran.Rollback();
+                    return Json(new { ok = false, message = ex.Message });
+                }
+            }
+
+            return Json(new
+            {
+                ok = true,
+                message = Jobside.Offers_SaveSuccess,
+                item = new
+                {
+                    id = entity.IdObject,
+                    jobsideId = entity.LinkJobside,
+                    number = entity.AddOfferNumber,
+                    label = entity.TextLabel
+                }
+            });
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public ActionResult PluginCreateDesign(long offerId, string attLabel)
+        {
+            var uid = IntranetAuditHelper.ResolveCurrentUserId(User);
+            var offer = db.TSql_Offers.AsNoTracking()
+                .FirstOrDefault(o => o.IdObject == offerId && !o.Is_Delete);
+            if (offer == null)
+                return Json(new { ok = false, message = Jobside.Offers_Val_NotFound });
+
+            var label = (attLabel ?? "").Trim();
+            if (string.IsNullOrEmpty(label))
+                return Json(new { ok = false, message = Jobside.OfferWorkspace_Designs_Val_LabelRequired });
+            if (label.Length > 500)
+                label = label.Substring(0, 500);
+
+            var now = DateTime.Now;
+            var entity = new TSql_Design_V2
+            {
+                AttLabel = label,
+                AttDescription = null,
+                AttCenterX = 0d,
+                AttCenterY = 0d,
+                AttCreated = now,
+                AttChange = now,
+                AttIsDeleted = false,
+                AttThumbnail = null,
+                AttActiveCameraType = 0L,
+                LinCreatedBy = uid,
+                LinModifiedBy = uid,
+                SysUpdateNumber = 0L,
+                ItIsShared = false,
+                ItIsSharedMyGrup = false,
+                IsRenderAt60 = false,
+                LinkOffers = offerId
+            };
+
+            db.TSql_Design_V2.Add(entity);
+            db.SaveChanges();
+
+            return Json(new
+            {
+                ok = true,
+                message = Jobside.OfferWorkspace_Designs_SaveSuccess,
+                item = new
+                {
+                    id = entity.SysObjectID,
+                    label = entity.AttLabel,
+                    offerNumber = offer.AddOfferNumber
+                }
+            });
         }
 
         public ActionResult _SaveDwgFiles(string IdDesign, string NameDesign, IEnumerable<ImportBlock> ListMaterialExport)

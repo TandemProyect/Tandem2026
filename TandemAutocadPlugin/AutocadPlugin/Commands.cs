@@ -1,6 +1,4 @@
 using System;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.EditorInput;
@@ -29,7 +27,7 @@ namespace AutocadPlugin
         [CommandMethod("INSERTARBLOQUE")]
         public void InsertarBloque()
         {
-            WriteStub("INSERTARBLOQUE", "Inserción de bloques pendiente de portar.");
+            PaletteHost.ShowBlocks();
         }
 
         [CommandMethod("DETECTARMUROS")]
@@ -84,13 +82,10 @@ namespace AutocadPlugin
 
             ed.WriteMessage("\n=== Plugin AutoCAD 2026 - Tandem ===");
             ed.WriteMessage("\nComandos: TANDEM, MVCCONEXION, TANDEM_MURO2D, TANDEM_MURO3D,");
-            ed.WriteMessage("\n          GENERAR3D, REGENERAR3D, TANDEM_ABRIRDISENO,");
-            ed.WriteMessage("\n          LEERDISENOMVC,");
-            ed.WriteMessage("\n          CREARDISENOMVC, GUARDARDISENOMVC,");
-            ed.WriteMessage("\n          TANDEM_SELECCIONAR_LINEAS, TANDEM_ANALIZAR_IMAGEN,");
+            ed.WriteMessage("\n          GENERAR3D, REGENERAR3D, TANDEM_ABRIRDISENO, INSERTARBLOQUE,");
+            ed.WriteMessage("\n          TANDEM_LOCAL, TANDEM_PRODUCCION, TANDEM_SERVIDOR,");
             ed.WriteMessage("\n          TANDEM_PROBAR_CONEXION, TANDEM_DEVICE_ID, TANDEM_CARGAR_MENU");
-            ed.WriteMessage($"\nServidor MVC: {_apiService.BaseUrl}");
-            ed.WriteMessage("\nVariable opcional: TANDEM_MVC_BASE_URL\n");
+            ed.WriteMessage($"\nServidor MVC: {MvcServerSettings.CurrentLabel()} — {MvcServerSettings.CurrentUrl()}\n");
         }
 
         [CommandMethod("TANDEM_PROBAR_CONEXION")]
@@ -100,6 +95,7 @@ namespace AutocadPlugin
             if (ed == null) return;
 
             ed.WriteMessage("\n=== Tandem: Prueba de conexión MVC ===");
+            ed.WriteMessage($"\nServidor: {MvcServerSettings.CurrentLabel()}");
             ed.WriteMessage($"\nURL base: {_apiService.BaseUrl}");
             try
             {
@@ -112,12 +108,43 @@ namespace AutocadPlugin
             }
         }
 
+        [CommandMethod("TANDEM_LOCAL")]
+        public void UsarServidorLocal()
+        {
+            MvcServerSettings.SetLocal();
+            SwitchServer("local (localhost:44384). Arranca Desing en IIS Express.");
+        }
+
+        [CommandMethod("TANDEM_PRODUCCION")]
+        public void UsarServidorProduccion()
+        {
+            MvcServerSettings.SetProduction();
+            SwitchServer("producción (tdesing.net).");
+        }
+
+        [CommandMethod("TANDEM_SERVIDOR")]
+        public void MostrarServidor()
+        {
+            Editor ed = GetEditor();
+            if (ed == null) return;
+            ed.WriteMessage($"\nServidor MVC: {MvcServerSettings.CurrentLabel()}");
+            ed.WriteMessage($"\nURL: {MvcServerSettings.CurrentUrl()}");
+            ed.WriteMessage("\nTANDEM_LOCAL = IIS Express. TANDEM_PRODUCCION = tdesing.net.\n");
+        }
+
+        private void SwitchServer(string where)
+        {
+            Editor ed = GetEditor();
+            ed?.WriteMessage($"\n[Tandem] Cambiado a {where} Recargando paletas…\n");
+            PaletteHost.ReconnectToCurrentServer();
+        }
+
         [CommandMethod("TANDEM_DEVICE_ID")]
         public void MostrarDeviceId()
         {
             Editor ed = GetEditor();
             if (ed == null) return;
-            ed.WriteMessage($"\nDeviceId actual: {ObtenerDeviceId()}");
+            ed.WriteMessage($"\nDeviceId actual: {PluginDeviceId.Current()}");
             ed.WriteMessage($"\nMachineName: {Environment.MachineName}\n");
         }
 
@@ -132,33 +159,6 @@ namespace AutocadPlugin
         {
             Document doc = AcadApp.DocumentManager.MdiActiveDocument;
             return doc?.Editor;
-        }
-
-        private static string ObtenerDeviceId()
-        {
-            var seed = $"{Environment.MachineName}|{Environment.UserName}|{Environment.UserDomainName}|{Environment.OSVersion}|{ObtenerMachineGuid()}";
-            using (var sha = SHA256.Create())
-            {
-                byte[] hash = sha.ComputeHash(Encoding.UTF8.GetBytes(seed));
-                var sb = new StringBuilder(hash.Length * 2);
-                foreach (byte b in hash) sb.Append(b.ToString("x2"));
-                return sb.ToString();
-            }
-        }
-
-        private static string ObtenerMachineGuid()
-        {
-            try
-            {
-                using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography"))
-                {
-                    return key?.GetValue("MachineGuid")?.ToString() ?? "NO_GUID";
-                }
-            }
-            catch
-            {
-                return "NO_GUID";
-            }
         }
     }
 }

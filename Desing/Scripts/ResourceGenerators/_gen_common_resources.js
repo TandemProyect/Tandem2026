@@ -36,6 +36,7 @@ const es = Object.fromEntries(
   Object.entries({
     /* ===== Layout / branding (textos cuando no hay plantilla configurada) ===== */
     App_BrandFallback: "T Desing.net",
+    App_BootLoading: "Cargando TDesing…",
     App_EnvironmentLabel: "Entorno Develop",
 
     /* ===== Footer ===== */
@@ -75,8 +76,31 @@ const es = Object.fromEntries(
     PluginCad_OpenWalls: "Dibujar muros",
     PluginCad_Search: "Buscar",
     PluginCad_NoDesigns: "No hay diseños.",
+    PluginCad_NoJobsides: "No hay obras.",
+    PluginCad_NoOffers: "No hay ofertas.",
     PluginCad_LoadingWalls: "Cargando muros…",
     PluginCad_LoadFailed: "No se pudieron cargar los muros.",
+    PluginCad_CreateFailed: "No se pudo crear.",
+    PluginCad_MenuHomeTitle: "Menú general",
+    PluginCad_MenuHomeAria: "Abrir menú general",
+    PluginCad_HideMenu: "Cerrar menú",
+    PluginCad_OpenInCad: "Abrir en CAD",
+    PluginCad_SelectEmpty: "—",
+    PluginCad_DeviceBlocked: "Este equipo está bloqueado o inactivo. Contacta con administración.",
+    PluginCad_UserInactive: "Este usuario está inactivo. Contacta con administración.",
+    PluginCad_BlocksTitle: "Biblioteca de bloques",
+    PluginCad_BlocksSearchLabel: "Bloque.-",
+    PluginCad_BlocksEmpty: "No hay artículos.",
+    PluginCad_BlocksInsert: "Insertar",
+    PluginCad_BlocksInsertSoon: "La inserción en el dibujo llega en el siguiente paso.",
+    PluginCad_BlocksNoPreview: "Este artículo no tiene STL de vista previa.",
+    PluginCad_BlocksOpenTitle: "Biblioteca de bloques",
+    PluginCad_BlocksOpenAria: "Abrir biblioteca de bloques",
+    PluginCad_BlocksZoomIn: "Acercar",
+    PluginCad_BlocksZoomOut: "Alejar",
+    PluginCad_BlocksZoomFit: "Encajar vista",
+    PluginCad_BlocksColorFrame: "Color estructura",
+    PluginCad_BlocksColorPhenolic: "Color fenólico",
 
     /* ===== Account / Register ===== */
     Register_PageTitle: "Crear cuenta",
@@ -203,6 +227,7 @@ const es = Object.fromEntries(
 const en = Object.assign({}, es, {
   /* Layout / branding */
   App_BrandFallback: "T Desing.net",
+  App_BootLoading: "Loading TDesing…",
   App_EnvironmentLabel: "Develop environment",
 
   /* Footer */
@@ -242,8 +267,33 @@ const en = Object.assign({}, es, {
   PluginCad_OpenWalls: "Draw walls",
   PluginCad_Search: "Search",
   PluginCad_NoDesigns: "No designs.",
+  PluginCad_NoJobsides: "No jobsites.",
+  PluginCad_NoOffers: "No offers.",
   PluginCad_LoadingWalls: "Loading walls…",
   PluginCad_LoadFailed: "Could not load walls.",
+  PluginCad_CreateFailed: "Could not create.",
+  PluginCad_MenuHomeTitle: "General menu",
+  PluginCad_MenuHomeAria: "Open general menu",
+  PluginCad_HideMenu: "Close menu",
+  PluginCad_OpenInCad: "Open in CAD",
+  PluginCad_SelectEmpty: "—",
+  PluginCad_DeviceBlocked: "This computer is blocked or inactive. Contact an administrator.",
+  PluginCad_UserInactive: "This user is inactive. Contact an administrator.",
+  PluginCad_BlocksTitle: "Block library",
+  PluginCad_BlocksSearchLabel: "Block.-",
+  PluginCad_BlocksEmpty: "No articles.",
+  PluginCad_BlocksInsert: "Insert",
+  PluginCad_BlocksInsertSoon: "Inserting into the drawing comes in the next step.",
+  PluginCad_BlocksNoPreview: "This article has no STL preview.",
+  PluginCad_BlocksOpenTitle: "Block library",
+  PluginCad_BlocksOpenAria: "Open block library",
+  PluginCad_BlocksZoomIn: "Zoom in",
+  PluginCad_BlocksZoomOut: "Zoom out",
+  PluginCad_BlocksZoomFit: "Fit view",
+  PluginCad_BlocksColorFrame: "Frame color",
+  PluginCad_BlocksColorPhenolic: "Phenolic color",
+  PluginCad_BlocksCollapse: "Collapse",
+  PluginCad_BlocksExpand: "Expand block library",
 
   /* Register */
   Register_PageTitle: "Create account",

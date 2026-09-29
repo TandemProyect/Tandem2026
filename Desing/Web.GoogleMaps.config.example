@@ -9,5 +9,7 @@
 <appSettings>
   <add key="GoogleMaps:ApiKey" value="YOUR_BROWSER_API_KEY_HERE" />
   <!-- Análisis de planos (ZWCAD TANDEM_ANALIZAR_IMAGEN, visor Desing_2 boceto imagen) -->
-  <add key="OPENAI_APIKEY" value="sk-proj-YOUR_OPENAI_KEY_HERE" />
+    <add key="OPENAI_APIKEY" value="sk-proj-YOUR_OPENAI_KEY_HERE" />
+  <!-- Correo (no uses SMTP de SmarterASP). La clave real no se sube a Git. -->
+  <add key="SENDGRID_APIKEY" value="SG.YOUR_SENDGRID_KEY_HERE" />
 </appSettings>

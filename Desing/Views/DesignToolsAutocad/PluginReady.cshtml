@@ -1,57 +1,208 @@
+@using System.Collections.Generic
 @using Desing.Models
 @using Desing.Resources
-@model List<PluginCadDesignRow>
+@model PluginCadHomeVm
 @{
-    ViewBag.Title = Common.PluginCad_DesignsTitle;
+    ViewBag.Title = Common.PluginCad_MenuHomeTitle;
     Layout = "~/Views/Shared/_LayoutAutocadPalette.cshtml";
-    var userName = ViewBag.UserName as string ?? "";
+    var userName = Model != null ? (Model.UserName ?? "") : "";
+    var jobs = Model != null && Model.Jobsides != null ? Model.Jobsides : new List<PluginCadJobsideRow>();
+    var offers = Model != null && Model.Offers != null ? Model.Offers : new List<PluginCadOfferRow>();
+    var designs = Model != null && Model.Designs != null ? Model.Designs : new List<PluginCadDesignRow>();
+    var clients = Model != null && Model.Clients != null ? Model.Clients : new List<PluginCadLookupItem>();
+    var branches = Model != null && Model.Branches != null ? Model.Branches : new List<PluginCadLookupItem>();
+    var states = Model != null && Model.OfferStates != null ? Model.OfferStates : new List<PluginCadLookupItem>();
+    ViewBag.BootSplashOnceKey = "tdesing-plugin-ready-boot";
 }
+@Html.Partial("_TdesingBootSplash")
 @section Styles {
     <style>
         html, body { overflow: auto !important; height: 100%; }
-        .plugin-designs { display: flex; flex-direction: column; height: 100%; width: 100%; padding: 6px 8px 8px; box-sizing: border-box; }
-        .plugin-designs__meta { font-size: 11px; color: #5e6a75; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .plugin-designs__search { margin-bottom: 6px; }
-        .plugin-designs__search input { font-size: 12px; height: 30px; padding: 2px 8px; }
-        .plugin-designs__list { flex: 1; overflow: auto; display: flex; flex-direction: column; gap: 4px; }
-        .plugin-designs__item {
+        .plugin-home { display: flex; flex-direction: column; height: 100%; width: 100%; padding: 6px 8px 8px; box-sizing: border-box; gap: 6px; }
+        .plugin-home__head { display: flex; align-items: center; gap: 6px; }
+        .plugin-home__meta { flex: 1; font-size: 11px; color: #5e6a75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .plugin-home__tabs { display: flex; gap: 4px; }
+        .plugin-home__tabs .btn { font-size: 11px; padding: 2px 8px; }
+        .plugin-home__search input { font-size: 12px; height: 30px; padding: 2px 8px; }
+        .plugin-home__panel { display: none; flex: 1; min-height: 0; flex-direction: column; gap: 6px; }
+        .plugin-home__panel.is-active { display: flex; }
+        .plugin-home__form { display: none; border: 1px solid #d5dee8; border-radius: 8px; padding: 6px; background: #fff; gap: 6px; flex-direction: column; }
+        .plugin-home__form.is-open { display: flex; }
+        .plugin-home__form .form-control, .plugin-home__form .form-select { font-size: 12px; height: 30px; padding: 2px 8px; }
+        .plugin-home__form label { font-size: 11px; margin-bottom: 0; color: #5e6a75; }
+        .plugin-home__list { flex: 1; overflow: auto; display: flex; flex-direction: column; gap: 4px; }
+        .plugin-home__item {
             display: block; width: 100%; text-align: left; border: 1px solid #d5dee8; background: #fff;
-            border-radius: 8px; padding: 6px 8px; cursor: pointer;
+            border-radius: 8px; padding: 6px 8px; cursor: default;
         }
-        .plugin-designs__item:hover { border-color: #5a8dee; background: #f4f7ff; }
-        .plugin-designs__label { display: block; font-size: 12px; font-weight: 600; color: #2c3340; }
-        .plugin-designs__offer { display: block; font-size: 11px; color: #6b7785; }
-        .plugin-designs__empty { font-size: 12px; color: #6b7785; padding: 8px 0; }
-        .plugin-designs__status { font-size: 11px; color: #5a8dee; min-height: 16px; margin-top: 4px; }
+        .plugin-home__item[data-plugin-open-design] { cursor: pointer; }
+        .plugin-home__item[data-plugin-open-design]:hover { border-color: #5a8dee; background: #f4f7ff; }
+        .plugin-home__label { display: block; font-size: 12px; font-weight: 600; color: #2c3340; }
+        .plugin-home__sub { display: block; font-size: 11px; color: #6b7785; }
+        .plugin-home__empty { font-size: 12px; color: #6b7785; padding: 8px 0; }
+        .plugin-home__status { font-size: 11px; color: #5a8dee; min-height: 16px; }
+        .plugin-home__status.is-error { color: #d64545; }
     </style>
 }
 
-<div class="plugin-designs">
-    <div class="plugin-designs__meta">@string.Format(Common.PluginCad_ConnectedAs, userName)</div>
-    <div class="plugin-designs__search">
-        <input type="search" class="form-control" id="plugin-design-search" placeholder="@Common.PluginCad_Search" autocomplete="off" />
+<div class="plugin-home">
+    @Html.AntiForgeryToken()
+    <div class="plugin-home__head">
+        <div class="plugin-home__meta">@string.Format(Common.PluginCad_ConnectedAs, userName)</div>
+        <button type="button" class="btn btn-sm btn-icon btn-text-secondary" data-plugin-menu="hide-home" title="@Common.PluginCad_HideMenu" aria-label="@Common.PluginCad_HideMenu">
+            <i class="icon-base ri ri-close-line" aria-hidden="true"></i>
+        </button>
     </div>
-    <div class="plugin-designs__list" id="plugin-design-list">
-        @if (Model == null || Model.Count == 0)
-        {
-            <div class="plugin-designs__empty">@Common.PluginCad_NoDesigns</div>
-        }
-        else
-        {
-            foreach (var row in Model)
-            {
-                var label = string.IsNullOrWhiteSpace(row.Label) ? ("#" + row.Id) : row.Label;
-                <button type="button" class="plugin-designs__item" data-plugin-open-design="@row.Id" data-label="@label">
-                    <span class="plugin-designs__label">@label</span>
-                    @if (!string.IsNullOrWhiteSpace(row.OfferNumber))
+    <div class="plugin-home__tabs" role="tablist">
+        <button type="button" class="btn btn-sm btn-primary" data-plugin-tab="jobsides" role="tab" aria-selected="true">@Jobside.Index_Breadcrumb</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-plugin-tab="offers" role="tab" aria-selected="false">@Jobside.Offers_DtTitle</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-plugin-tab="designs" role="tab" aria-selected="false">@Jobside.OfferWorkspace_TabDesigns</button>
+    </div>
+    <div class="plugin-home__search">
+        <input type="search" class="form-control" id="plugin-home-search" placeholder="@Common.PluginCad_Search" autocomplete="off" />
+    </div>
+
+    <div class="plugin-home__panel is-active" data-plugin-panel="jobsides">
+        <button type="button" class="btn btn-sm btn-outline-primary align-self-start" data-plugin-toggle-form="jobside">@Jobside.Btn_New</button>
+        <form class="plugin-home__form" id="plugin-form-jobside" autocomplete="off">
+            <div>
+                <label for="plugin-jobside-name">@Jobside.Col_Name</label>
+                <input type="text" class="form-control" id="plugin-jobside-name" maxlength="500" required />
+            </div>
+            <div>
+                <label for="plugin-jobside-client">@Jobside.Lbl_Client</label>
+                <select class="form-select" id="plugin-jobside-client">
+                    <option value="">@Jobside.Lbl_ClientEmpty</option>
+                    @foreach (var c in clients)
                     {
-                        <span class="plugin-designs__offer">@row.OfferNumber</span>
+                        <option value="@c.Id">@c.Label</option>
                     }
-                </button>
+                </select>
+            </div>
+            <div>
+                <label for="plugin-jobside-branch">@Jobside.Lbl_Branch</label>
+                <select class="form-select" id="plugin-jobside-branch" required>
+                    <option value="">@Jobside.Lbl_BranchEmpty</option>
+                    @foreach (var b in branches)
+                    {
+                        <option value="@b.Id">@b.Label</option>
+                    }
+                </select>
+            </div>
+            <button type="submit" class="btn btn-sm btn-primary align-self-start">@Common.Btn_Create</button>
+        </form>
+        <div class="plugin-home__list" id="plugin-list-jobsides">
+            @if (jobs.Count == 0)
+            {
+                <div class="plugin-home__empty" data-plugin-empty="jobsides">@Common.PluginCad_NoJobsides</div>
             }
-        }
+            else
+            {
+                foreach (var row in jobs)
+                {
+                    <div class="plugin-home__item" data-plugin-filter="@row.Code @row.Label">
+                        <span class="plugin-home__label">@(string.IsNullOrWhiteSpace(row.Label) ? ("#" + row.Id) : row.Label)</span>
+                        @if (!string.IsNullOrWhiteSpace(row.Code))
+                        {
+                            <span class="plugin-home__sub">@row.Code</span>
+                        }
+                    </div>
+                }
+            }
+        </div>
     </div>
-    <div class="plugin-designs__status" id="plugin-design-status"></div>
+
+    <div class="plugin-home__panel" data-plugin-panel="offers">
+        <button type="button" class="btn btn-sm btn-outline-primary align-self-start" data-plugin-toggle-form="offer">@Jobside.Offers_Btn_New</button>
+        <form class="plugin-home__form" id="plugin-form-offer" autocomplete="off">
+            <div>
+                <label for="plugin-offer-jobside">@Jobside.Index_Breadcrumb</label>
+                <select class="form-select" id="plugin-offer-jobside" required>
+                    <option value="">@Common.PluginCad_SelectEmpty</option>
+                    @foreach (var j in jobs)
+                    {
+                        <option value="@j.Id">@(string.IsNullOrWhiteSpace(j.Label) ? j.Code : j.Label)</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label for="plugin-offer-name">@Jobside.Offers_Lbl_Name</label>
+                <input type="text" class="form-control" id="plugin-offer-name" maxlength="500" required />
+            </div>
+            <div>
+                <label for="plugin-offer-state">@Jobside.Offers_Lbl_State</label>
+                <select class="form-select" id="plugin-offer-state" required>
+                    @foreach (var s in states)
+                    {
+                        <option value="@s.Id">@s.Label</option>
+                    }
+                </select>
+            </div>
+            <button type="submit" class="btn btn-sm btn-primary align-self-start">@Common.Btn_Create</button>
+        </form>
+        <div class="plugin-home__list" id="plugin-list-offers">
+            @if (offers.Count == 0)
+            {
+                <div class="plugin-home__empty" data-plugin-empty="offers">@Common.PluginCad_NoOffers</div>
+            }
+            else
+            {
+                foreach (var row in offers)
+                {
+                    <div class="plugin-home__item" data-plugin-filter="@row.Number @row.Label">
+                        <span class="plugin-home__label">@(string.IsNullOrWhiteSpace(row.Label) ? row.Number : row.Label)</span>
+                        @if (!string.IsNullOrWhiteSpace(row.Number))
+                        {
+                            <span class="plugin-home__sub">@row.Number</span>
+                        }
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="plugin-home__panel" data-plugin-panel="designs">
+        <button type="button" class="btn btn-sm btn-outline-primary align-self-start" data-plugin-toggle-form="design">@Jobside.OfferWorkspace_Designs_Btn_New</button>
+        <form class="plugin-home__form" id="plugin-form-design" autocomplete="off">
+            <div>
+                <label for="plugin-design-offer">@Jobside.Offers_DtTitle</label>
+                <select class="form-select" id="plugin-design-offer" required>
+                    <option value="">@Common.PluginCad_SelectEmpty</option>
+                    @foreach (var o in offers)
+                    {
+                        <option value="@o.Id">@(string.IsNullOrWhiteSpace(o.Number) ? o.Label : (o.Number + " · " + o.Label))</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label for="plugin-design-name">@Jobside.OfferWorkspace_Designs_Lbl_AttLabel</label>
+                <input type="text" class="form-control" id="plugin-design-name" maxlength="500" required />
+            </div>
+            <button type="submit" class="btn btn-sm btn-primary align-self-start">@Common.Btn_Create</button>
+        </form>
+        <div class="plugin-home__list" id="plugin-list-designs">
+            @if (designs.Count == 0)
+            {
+                <div class="plugin-home__empty" data-plugin-empty="designs">@Common.PluginCad_NoDesigns</div>
+            }
+            else
+            {
+                foreach (var row in designs)
+                {
+                    var label = string.IsNullOrWhiteSpace(row.Label) ? ("#" + row.Id) : row.Label;
+                    <button type="button" class="plugin-home__item" data-plugin-open-design="@row.Id" data-label="@label" data-plugin-filter="@label @row.OfferNumber" title="@Common.PluginCad_OpenInCad">
+                        <span class="plugin-home__label">@label</span>
+                        @if (!string.IsNullOrWhiteSpace(row.OfferNumber))
+                        {
+                            <span class="plugin-home__sub">@row.OfferNumber</span>
+                        }
+                    </button>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="plugin-home__status" id="plugin-home-status"></div>
 </div>
 
 @section scripts {
@@ -59,9 +210,16 @@
         (function () {
             var loadingText = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_LoadingWalls));
             var failedText = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_LoadFailed));
-            var statusEl = document.getElementById('plugin-design-status');
-            var searchEl = document.getElementById('plugin-design-search');
-            var listEl = document.getElementById('plugin-design-list');
+            var createFailed = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_CreateFailed));
+            var openInCad = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_OpenInCad));
+            var urlWalls = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("GetDesignWalls", "Desing_2")));
+            var urlJobside = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("PluginCreateJobside", "DesignToolsAutocad")));
+            var urlOffer = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("PluginCreateOffer", "DesignToolsAutocad")));
+            var urlDesign = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("PluginCreateDesign", "DesignToolsAutocad")));
+            var companyLogoUrl = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject((ViewBag.CompanyLogoUrl as string) ?? ""));
+            var statusEl = document.getElementById('plugin-home-status');
+            var searchEl = document.getElementById('plugin-home-search');
+            var tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
 
             function post(payload) {
                 try {
@@ -70,39 +228,181 @@
                 } catch (e) { }
             }
 
+            function setStatus(text, isError) {
+                if (!statusEl) return;
+                statusEl.textContent = text || '';
+                statusEl.classList.toggle('is-error', !!isError);
+            }
+
+            function token() {
+                return tokenInput ? tokenInput.value : '';
+            }
+
+            function postForm(url, fields) {
+                var body = new URLSearchParams();
+                body.set('__RequestVerificationToken', token());
+                Object.keys(fields).forEach(function (k) { body.set(k, fields[k] == null ? '' : String(fields[k])); });
+                return fetch(url, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+                    body: body.toString()
+                }).then(function (r) { return r.json(); });
+            }
+
+            function hideEmpty(listId) {
+                var empty = document.querySelector('#' + listId + ' [data-plugin-empty]');
+                if (empty) empty.remove();
+            }
+
+            function appendJobside(item) {
+                hideEmpty('plugin-list-jobsides');
+                var el = document.createElement('div');
+                el.className = 'plugin-home__item';
+                el.setAttribute('data-plugin-filter', (item.code || '') + ' ' + (item.label || ''));
+                el.innerHTML = '<span class="plugin-home__label"></span>' + (item.code ? '<span class="plugin-home__sub"></span>' : '');
+                el.querySelector('.plugin-home__label').textContent = item.label || ('#' + item.id);
+                if (item.code) el.querySelector('.plugin-home__sub').textContent = item.code;
+                document.getElementById('plugin-list-jobsides').prepend(el);
+                var opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = item.label || item.code || ('#' + item.id);
+                document.getElementById('plugin-offer-jobside').appendChild(opt);
+            }
+
+            function appendOffer(item) {
+                hideEmpty('plugin-list-offers');
+                var el = document.createElement('div');
+                el.className = 'plugin-home__item';
+                el.setAttribute('data-plugin-filter', (item.number || '') + ' ' + (item.label || ''));
+                el.innerHTML = '<span class="plugin-home__label"></span>' + (item.number ? '<span class="plugin-home__sub"></span>' : '');
+                el.querySelector('.plugin-home__label').textContent = item.label || item.number || ('#' + item.id);
+                if (item.number) el.querySelector('.plugin-home__sub').textContent = item.number;
+                document.getElementById('plugin-list-offers').prepend(el);
+                var opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = item.number ? (item.number + ' · ' + (item.label || '')) : (item.label || ('#' + item.id));
+                document.getElementById('plugin-design-offer').appendChild(opt);
+            }
+
+            function appendDesign(item) {
+                hideEmpty('plugin-list-designs');
+                var label = item.label || ('#' + item.id);
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'plugin-home__item';
+                btn.setAttribute('data-plugin-open-design', item.id);
+                btn.setAttribute('data-label', label);
+                btn.setAttribute('data-plugin-filter', label + ' ' + (item.offerNumber || ''));
+                btn.title = openInCad;
+                btn.innerHTML = '<span class="plugin-home__label"></span>' + (item.offerNumber ? '<span class="plugin-home__sub"></span>' : '');
+                btn.querySelector('.plugin-home__label').textContent = label;
+                if (item.offerNumber) btn.querySelector('.plugin-home__sub').textContent = item.offerNumber;
+                document.getElementById('plugin-list-designs').prepend(btn);
+            }
+
+            post({ action: 'company-logo', url: companyLogoUrl });
             post({ action: 'session-ready' });
 
-            if (searchEl && listEl) {
+            document.querySelectorAll('[data-plugin-tab]').forEach(function (tab) {
+                tab.addEventListener('click', function () {
+                    var id = tab.getAttribute('data-plugin-tab');
+                    document.querySelectorAll('[data-plugin-tab]').forEach(function (t) {
+                        var on = t === tab;
+                        t.classList.toggle('btn-primary', on);
+                        t.classList.toggle('btn-outline-secondary', !on);
+                        t.setAttribute('aria-selected', on ? 'true' : 'false');
+                    });
+                    document.querySelectorAll('[data-plugin-panel]').forEach(function (p) {
+                        p.classList.toggle('is-active', p.getAttribute('data-plugin-panel') === id);
+                    });
+                });
+            });
+
+            document.querySelectorAll('[data-plugin-toggle-form]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var form = document.getElementById('plugin-form-' + btn.getAttribute('data-plugin-toggle-form'));
+                    if (form) form.classList.toggle('is-open');
+                });
+            });
+
+            if (searchEl) {
                 searchEl.addEventListener('input', function () {
                     var q = (searchEl.value || '').toLowerCase();
-                    var items = listEl.querySelectorAll('[data-plugin-open-design]');
+                    var panel = document.querySelector('.plugin-home__panel.is-active');
+                    if (!panel) return;
+                    var items = panel.querySelectorAll('.plugin-home__item');
                     for (var i = 0; i < items.length; i++) {
-                        var text = (items[i].getAttribute('data-label') || '').toLowerCase() + ' ' + (items[i].textContent || '').toLowerCase();
+                        var text = (items[i].getAttribute('data-plugin-filter') || items[i].textContent || '').toLowerCase();
                         items[i].style.display = !q || text.indexOf(q) >= 0 ? '' : 'none';
                     }
                 });
             }
+
+            document.getElementById('plugin-form-jobside').addEventListener('submit', function (e) {
+                e.preventDefault();
+                setStatus('');
+                postForm(urlJobside, {
+                    textLabel: document.getElementById('plugin-jobside-name').value,
+                    linkClientV2: document.getElementById('plugin-jobside-client').value,
+                    linBranch: document.getElementById('plugin-jobside-branch').value
+                }).then(function (data) {
+                    if (!data || !data.ok) { setStatus((data && data.message) || createFailed, true); return; }
+                    appendJobside(data.item);
+                    document.getElementById('plugin-jobside-name').value = '';
+                    document.getElementById('plugin-form-jobside').classList.remove('is-open');
+                    setStatus(data.message || '');
+                }).catch(function () { setStatus(createFailed, true); });
+            });
+
+            document.getElementById('plugin-form-offer').addEventListener('submit', function (e) {
+                e.preventDefault();
+                setStatus('');
+                postForm(urlOffer, {
+                    jobsideId: document.getElementById('plugin-offer-jobside').value,
+                    textLabel: document.getElementById('plugin-offer-name').value,
+                    linkOfferState: document.getElementById('plugin-offer-state').value
+                }).then(function (data) {
+                    if (!data || !data.ok) { setStatus((data && data.message) || createFailed, true); return; }
+                    appendOffer(data.item);
+                    document.getElementById('plugin-offer-name').value = '';
+                    document.getElementById('plugin-form-offer').classList.remove('is-open');
+                    setStatus(data.message || '');
+                }).catch(function () { setStatus(createFailed, true); });
+            });
+
+            document.getElementById('plugin-form-design').addEventListener('submit', function (e) {
+                e.preventDefault();
+                setStatus('');
+                postForm(urlDesign, {
+                    offerId: document.getElementById('plugin-design-offer').value,
+                    attLabel: document.getElementById('plugin-design-name').value
+                }).then(function (data) {
+                    if (!data || !data.ok) { setStatus((data && data.message) || createFailed, true); return; }
+                    appendDesign(data.item);
+                    document.getElementById('plugin-design-name').value = '';
+                    document.getElementById('plugin-form-design').classList.remove('is-open');
+                    setStatus(data.message || '');
+                }).catch(function () { setStatus(createFailed, true); });
+            });
 
             document.addEventListener('click', function (e) {
                 var btn = e.target.closest('[data-plugin-open-design]');
                 if (!btn) return;
                 var id = parseInt(btn.getAttribute('data-plugin-open-design'), 10);
                 if (!id) return;
-                if (statusEl) statusEl.textContent = loadingText;
-                fetch('@Url.Action("GetDesignWalls", "Desing_2")?designId=' + encodeURIComponent(id), {
+                setStatus(loadingText);
+                fetch(urlWalls + '?designId=' + encodeURIComponent(id), {
                     credentials: 'same-origin',
                     headers: { 'Accept': 'application/json' }
                 }).then(function (r) { return r.json(); }).then(function (data) {
                     if (!data || !(data.Exito === true || data.exito === true)) {
-                        if (statusEl) statusEl.textContent = (data && (data.Mensaje || data.mensaje)) || failedText;
+                        setStatus((data && (data.Mensaje || data.mensaje)) || failedText, true);
                         return;
                     }
-                    var snapshot = data.Snapshot || data.snapshot;
-                    post({ action: 'open-design', designId: id, snapshot: snapshot });
-                    if (statusEl) statusEl.textContent = '';
-                }).catch(function () {
-                    if (statusEl) statusEl.textContent = failedText;
-                });
+                    post({ action: 'open-design', designId: id, snapshot: data.Snapshot || data.snapshot });
+                    setStatus('');
+                }).catch(function () { setStatus(failedText, true); });
             });
         })();
     </script>

@@ -1,0 +1,141 @@
+@using Desing.Resources
+@using Newtonsoft.Json
+@{
+    var onceKey = ViewBag.BootSplashOnceKey as string;
+    var cookieLogo = Request.Cookies != null && Request.Cookies[Desing.Helpers.PluginCadDeviceHelper.LogoCookieName] != null
+        ? Request.Cookies[Desing.Helpers.PluginCadDeviceHelper.LogoCookieName].Value
+        : null;
+    var raw = (ViewBag.CompanyLogoUrl as string)
+        ?? cookieLogo
+        ?? (ViewBag.PlantillaLogo as string)
+        ?? Desing.Helpers.PluginCadDeviceHelper.DefaultLogoVirtualPath;
+    if (string.IsNullOrWhiteSpace(raw)
+        || raw.IndexOf("/Login/at.png", StringComparison.OrdinalIgnoreCase) >= 0)
+    {
+        raw = Desing.Helpers.PluginCadDeviceHelper.DefaultLogoVirtualPath;
+    }
+    var logoUrl = raw.StartsWith("http", StringComparison.OrdinalIgnoreCase) || raw.StartsWith("//", StringComparison.Ordinal)
+        ? raw
+        : Url.Content("~" + (raw.StartsWith("/") ? raw : "/" + raw));
+    var loadingText = Common.App_BootLoading;
+    if (string.IsNullOrWhiteSpace(loadingText))
+    {
+        loadingText = "Cargando TDesing…";
+    }
+}
+<style>
+    #tdesing-boot-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 20000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #FFF8F5 0%, #F5F5F9 45%, #EEF1F8 100%);
+        font-family: Segoe UI, Arial, sans-serif;
+        transition: opacity .35s ease;
+    }
+    #tdesing-boot-splash.is-done { opacity: 0; pointer-events: none; }
+    #tdesing-boot-splash .tdesing-boot-card {
+        width: 280px;
+        background: #fff;
+        border: 1px solid #ece7e1;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(44,51,64,.16);
+        text-align: center;
+        overflow: hidden;
+        padding: 0 0 24px;
+    }
+    #tdesing-boot-splash .tdesing-boot-bar { height: 6px; background: #F29100; }
+    #tdesing-boot-splash img { max-width: 220px; height: 52px; object-fit: contain; margin: 28px auto 0; display: block; }
+    #tdesing-boot-splash .tdesing-boot-clock {
+        width: 56px; height: 56px; margin: 20px auto 0; position: relative;
+    }
+    #tdesing-boot-splash .tdesing-boot-ring {
+        position: absolute; inset: 0;
+        border: 4px solid #F0E6D8;
+        border-top-color: #F29100;
+        border-radius: 50%;
+        animation: tdesing-boot-spin .85s linear infinite;
+    }
+    #tdesing-boot-splash .tdesing-boot-hands {
+        position: absolute; inset: 0;
+        animation: tdesing-boot-spin 1.35s linear infinite;
+    }
+    #tdesing-boot-splash .tdesing-boot-hands:before,
+    #tdesing-boot-splash .tdesing-boot-hands:after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        background: #2C3340;
+        border-radius: 2px;
+        transform-origin: 50% 0;
+    }
+    #tdesing-boot-splash .tdesing-boot-hands:before {
+        width: 2.4px; height: 14px; margin: -14px 0 0 -1.2px; background: #2C3340;
+    }
+    #tdesing-boot-splash .tdesing-boot-hands:after {
+        width: 2.4px; height: 10px; margin: 0 0 0 -1.2px; background: #F29100; transform: rotate(90deg); transform-origin: 50% 0;
+    }
+    #tdesing-boot-splash .tdesing-boot-dot {
+        position: absolute; left: 50%; top: 50%; width: 8px; height: 8px;
+        margin: -4px 0 0 -4px; background: #F29100; border-radius: 50%;
+    }
+    #tdesing-boot-splash p {
+        margin: 16px 20px 0;
+        font-size: 15px; font-weight: 600; color: #2C3340;
+    }
+    @@keyframes tdesing-boot-spin { to { transform: rotate(360deg); } }
+</style>
+<div id="tdesing-boot-splash" role="status" aria-live="polite">
+    <div class="tdesing-boot-card">
+        <div class="tdesing-boot-bar"></div>
+        <img src="@logoUrl" alt="TDesing" />
+        <div class="tdesing-boot-clock" aria-hidden="true">
+            <div class="tdesing-boot-ring"></div>
+            <div class="tdesing-boot-hands"></div>
+            <div class="tdesing-boot-dot"></div>
+        </div>
+        <p>@loadingText</p>
+    </div>
+</div>
+<script>
+    (function () {
+        var el = document.getElementById('tdesing-boot-splash');
+        if (!el) return;
+        var onceKey = @Html.Raw(JsonConvert.SerializeObject(onceKey ?? ""));
+        var hold = @Html.Raw(((ViewBag.BootSplashHold as bool?) == true).ToString().ToLowerInvariant());
+        try {
+            if (onceKey && window.sessionStorage && sessionStorage.getItem(onceKey)) {
+                el.parentNode.removeChild(el);
+                return;
+            }
+        } catch (e) { }
+
+        function dismiss() {
+            if (!el || el.getAttribute('data-done') === '1') return;
+            el.setAttribute('data-done', '1');
+            el.classList.add('is-done');
+            try {
+                if (onceKey && window.sessionStorage) sessionStorage.setItem(onceKey, '1');
+            } catch (e2) { }
+            setTimeout(function () {
+                if (el && el.parentNode) el.parentNode.removeChild(el);
+            }, 400);
+            try {
+                if (window.chrome && window.chrome.webview)
+                    window.chrome.webview.postMessage(JSON.stringify({ action: 'page-ready' }));
+            } catch (e3) { }
+        }
+
+        window.TdesingBootSplashDismiss = dismiss;
+        if (!hold) {
+            if (document.readyState === 'complete') dismiss();
+            else window.addEventListener('load', dismiss);
+            setTimeout(dismiss, 12000);
+        } else {
+            setTimeout(dismiss, 20000);
+        }
+    })();
+</script>

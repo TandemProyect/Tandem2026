@@ -106,6 +106,8 @@
 </head>
 
 <body class="@(ViewBag.BodyHtmlClass as string ?? string.Empty)">
+    @{ ViewBag.BootSplashOnceKey = "tdesing-intranet-boot"; }
+    @Html.Partial("_TdesingBootSplash")
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
 

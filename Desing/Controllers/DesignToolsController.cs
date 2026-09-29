@@ -2,6 +2,7 @@
 using DataTables.Mvc;
 using Desing.Helpers;
 using Desing.Models;
+using Desing.Services;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Dynamic.Core;
-using System.Net.Mail;
 using System.Web.Mvc;
 using static SendMail.Models;
 namespace Desing.Controllers
@@ -407,20 +407,7 @@ namespace Desing.Controllers
                 Model.Body = @"E diseño : " + sendMailModel.IdDesing + " con nombre : " + sendMailModel.AddNameDesing + " Supero en peso "
                     + "el diseño fue realizado por " + sendMailModel.UserName + " su peso es de: " + sendMailModel.TotalWeight + " y tiene " + sendMailModel.TotalElement + " de articulos";
 
-                MailMessage mail = new MailMessage();
-                mail.To.Add(Model.To);
-                mail.From = new MailAddress(Model.From);
-                mail.Subject = Model.Subject;
-                string Body = Model.Body;
-                mail.Body = Body;
-                mail.IsBodyHtml = true;
-                SmtpClient smtp = new SmtpClient();
-                smtp.Host = "mail5005.smarterasp.net";
-                smtp.Port = 587;
-                smtp.UseDefaultCredentials = false;
-                smtp.Credentials = new System.Net.NetworkCredential("admin@atenko.net", "AngelyJuan01@");
-                smtp.EnableSsl = true;
-                smtp.Send(mail);
+                TandemMailClient.SendHtml(Model.To, Model.Subject, Model.Body);
             }
 
         }

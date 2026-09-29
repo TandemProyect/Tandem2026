@@ -1,0 +1,567 @@
+@using System.Collections.Generic
+@using Desing.Models
+@using Desing.Resources
+@model PluginCadBlocksVm
+@{
+    ViewBag.Title = Common.PluginCad_BlocksTitle;
+    Layout = "~/Views/Shared/_LayoutAutocadPalette.cshtml";
+    var items = Model != null && Model.Items != null ? Model.Items : new List<PluginCadBlockRow>();
+    var brandLogoUrl = Url.Content("~/Content/images/ico/Logo.ico");
+    var searchUrl = Url.Action("PluginSearchBlocks", "DesignToolsAutocad");
+    ViewBag.BootSplashHold = true;
+}
+@Html.Partial("_TdesingBootSplash")
+@section Styles {
+    <style>
+        html, body { overflow: hidden !important; height: 100%; background: #fff; }
+        .autocad-palette { align-items: stretch; background: #fff; }
+        .plugin-blocks {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            padding: 8px 10px 10px;
+            box-sizing: border-box;
+            font-family: Segoe UI, Arial, sans-serif;
+            color: #1a237e;
+        }
+        .plugin-blocks__head {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding-bottom: 6px;
+        }
+        .plugin-blocks__brand {
+            width: 24px;
+            height: 24px;
+            flex: 0 0 24px;
+            object-fit: contain;
+            background: #fff;
+        }
+        .plugin-blocks__title { font-size: 14px; font-weight: 700; color: #1565c0; flex: 1; min-width: 0; }
+        .plugin-blocks__win {
+            display: flex;
+            gap: 2px;
+            flex: 0 0 auto;
+        }
+        .plugin-blocks__win-btn {
+            width: 22px;
+            height: 20px;
+            padding: 0;
+            border: 1px solid #90caf9;
+            background: #fff;
+            color: #1565c0;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 13px;
+            line-height: 1;
+            font-weight: 700;
+        }
+        .plugin-blocks__chip {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        .plugin-blocks__chip img { width: 28px; height: 28px; object-fit: contain; }
+        .plugin-blocks.is-collapsed {
+            padding: 4px;
+        }
+        .plugin-blocks.is-collapsed > :not(.plugin-blocks__chip) { display: none !important; }
+        .plugin-blocks.is-collapsed .plugin-blocks__chip { display: flex; }
+        .plugin-blocks__search {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 0 8px;
+            border-bottom: 2px solid #1565c0;
+        }
+        .plugin-blocks__search label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1565c0;
+            white-space: nowrap;
+            margin: 0;
+        }
+        .plugin-blocks__search input {
+            flex: 1;
+            height: 26px;
+            font-size: 12px;
+            padding: 2px 6px;
+            border: 1px solid #90caf9;
+            border-radius: 2px;
+        }
+        .plugin-blocks__list {
+            flex: 1;
+            min-height: 72px;
+            overflow: auto;
+            padding: 5px 0;
+            border-bottom: 2px solid #1565c0;
+        }
+        .plugin-blocks__item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+            text-align: left;
+            background: #fff;
+            border: 1px dashed transparent;
+            padding: 3px 6px;
+            cursor: pointer;
+            color: #1565c0;
+        }
+        .plugin-blocks__item:nth-child(even) { background: rgba(0, 0, 0, 0.05); }
+        .plugin-blocks__item.is-selected { border-color: #90a4ae; background: #e3f2fd; }
+        .plugin-blocks__thumb {
+            width: 34px;
+            height: 34px;
+            flex: 0 0 34px;
+            color: #607d8b;
+            object-fit: contain;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            box-sizing: border-box;
+        }
+        .plugin-blocks__caption { font-size: 10px; line-height: 1.2; }
+        .plugin-blocks__empty { font-size: 12px; color: #6b7785; padding: 8px 4px; }
+        .plugin-blocks__viewer {
+            height: 210px;
+            margin: 10px 2px 8px;
+            border: 2px solid #1565c0;
+            background: #fafafa;
+            position: relative;
+            overflow: hidden;
+        }
+        .plugin-blocks__viewer-host { position: absolute; inset: 0; }
+        .plugin-blocks__vc {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            z-index: 5;
+            pointer-events: auto;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+        }
+        .plugin-blocks__vc-scene {
+            width: 86px;
+            height: 70px;
+            margin-left: auto;
+            perspective: 380px;
+            perspective-origin: 70% 18%;
+            filter: drop-shadow(3px 6px 6px rgba(0, 0, 0, 0.22));
+        }
+        .plugin-blocks__vc-cube {
+            position: relative;
+            width: 54px;
+            height: 54px;
+            margin: 0 0 0 auto;
+            transform-style: preserve-3d;
+            transform-origin: 50% 50% 0;
+        }
+        .plugin-blocks__vc-face {
+            position: absolute;
+            width: 54px;
+            height: 54px;
+            box-sizing: border-box;
+            border: 1px solid #1f1f1f;
+            background: linear-gradient(180deg, #f7f8fa 0%, #e4e7ec 100%);
+            transform-style: preserve-3d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: 700;
+            color: #3a3f4a;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+        }
+        .plugin-blocks__vc-face:hover { background: #fff6d8; }
+        .plugin-blocks__vc-face--front { transform: rotateY(0deg) rotateX(180deg) translateZ(-27px); }
+        .plugin-blocks__vc-face--back { transform: rotateY(180deg) rotateX(180deg) translateZ(-27px); }
+        .plugin-blocks__vc-face--right { transform: rotateY(90deg) rotateX(180deg) translateZ(-27px); }
+        .plugin-blocks__vc-face--left { transform: rotateY(-90deg) rotateX(180deg) translateZ(-27px); }
+        .plugin-blocks__vc-face--top { transform: rotateX(-90deg) rotateX(180deg) translateZ(-27px); }
+        .plugin-blocks__vc-face--bottom { transform: rotateX(90deg) rotateX(180deg) translateZ(-27px); }
+        .plugin-blocks__vc-cams {
+            display: flex;
+            gap: 0;
+            background: #f4f0e6;
+            border: 1px solid #d7d0c3;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,.12);
+        }
+        .plugin-blocks__vc-cams button {
+            width: 32px;
+            height: 28px;
+            padding: 0;
+            border: 0;
+            border-right: 1px solid #d7d0c3;
+            background: #fff;
+            color: #455a64;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .plugin-blocks__vc-cams button:last-child { border-right: 0; }
+        .plugin-blocks__vc-cams button.is-on { background: #1565c0; color: #fff; }
+        .plugin-blocks.is-viewer-max .plugin-blocks__search,
+        .plugin-blocks.is-viewer-max .plugin-blocks__list,
+        .plugin-blocks.is-viewer-max .plugin-blocks__actions,
+        .plugin-blocks.is-viewer-max .plugin-blocks__status { display: none; }
+        .plugin-blocks.is-viewer-max .plugin-blocks__viewer {
+            flex: 1;
+            height: auto;
+            min-height: 0;
+        }
+        .plugin-blocks__tools {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px;
+            margin: 8px 2px 0;
+        }
+        .plugin-blocks__tool {
+            width: 28px;
+            height: 26px;
+            padding: 0;
+            border: 1px solid #90caf9;
+            background: #fff;
+            color: #1565c0;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .plugin-blocks__tool.is-on { background: #1565c0; color: #fff; border-color: #1565c0; }
+        .plugin-blocks__tool svg { width: 15px; height: 15px; display: block; }
+        .plugin-blocks__tool-color {
+            width: 22px;
+            height: 22px;
+            padding: 0;
+            border: 1px solid #90caf9;
+            border-radius: 4px;
+            background: #fff;
+            cursor: pointer;
+        }
+        .plugin-blocks__clip {
+            display: none;
+            pointer-events: none;
+        }
+        .plugin-blocks__clip.is-on { display: block; }
+        .plugin-blocks__clip-y {
+            position: absolute;
+            left: 4px;
+            top: 10px;
+            bottom: 28px;
+            width: 22px;
+            z-index: 6;
+            pointer-events: auto;
+        }
+        .plugin-blocks__clip-y input {
+            position: absolute;
+            left: -48px;
+            top: 50%;
+            width: 120px;
+            transform: rotate(-90deg);
+            transform-origin: center;
+        }
+        .plugin-blocks__clip-x {
+            position: absolute;
+            left: 28px;
+            right: 96px;
+            bottom: 4px;
+            z-index: 6;
+            pointer-events: auto;
+        }
+        .plugin-blocks__clip-x input { width: 100%; }
+        .plugin-blocks__actions { display: flex; justify-content: flex-end; }
+        .plugin-blocks__insert {
+            background: #1565c0;
+            color: #fff;
+            border: 0;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .plugin-blocks__insert:disabled { opacity: .45; }
+        .plugin-blocks__status { font-size: 11px; color: #5a8dee; min-height: 14px; margin-top: 4px; }
+        .plugin-blocks__status.is-error { color: #d64545; }
+    </style>
+}
+
+<div class="plugin-blocks" id="plugin-blocks-root">
+    <div class="plugin-blocks__head">
+        <img class="plugin-blocks__brand" src="@brandLogoUrl" alt="" />
+        <div class="plugin-blocks__title">@Common.PluginCad_BlocksTitle</div>
+        <div class="plugin-blocks__win">
+            <button type="button" class="plugin-blocks__win-btn" id="plugin-blocks-collapse" title="@MasterArticles.StlPreview_Desing2SideMenuCollapseTitle" aria-label="@MasterArticles.StlPreview_Desing2SideMenuCollapseTitle">_</button>
+            <button type="button" class="plugin-blocks__win-btn" id="plugin-blocks-close" data-plugin-menu="hide-blocks" title="@Common.Btn_Close" aria-label="@Common.Btn_Close">×</button>
+        </div>
+    </div>
+    <button type="button" class="plugin-blocks__chip" id="plugin-blocks-chip" title="@Common.PluginCad_BlocksOpenTitle" aria-label="@Common.PluginCad_BlocksOpenTitle">
+        <img src="@brandLogoUrl" alt="" />
+    </button>
+    <div class="plugin-blocks__search">
+        <label for="plugin-blocks-q">@Common.PluginCad_BlocksSearchLabel</label>
+        <input type="search" id="plugin-blocks-q" autocomplete="off" />
+    </div>
+    <div class="plugin-blocks__list" id="plugin-blocks-list">
+        @if (items.Count == 0)
+        {
+            <div class="plugin-blocks__empty">@Common.PluginCad_BlocksEmpty</div>
+        }
+        else
+        {
+            foreach (var row in items)
+            {
+                <button type="button" class="plugin-blocks__item"
+                        data-id="@row.Id"
+                        data-ico="@row.IcoUrl"
+                        data-stl="@row.StlUrl"
+                        data-stl-phenolic="@row.StlPhenolicUrl"
+                        data-dwg="@row.DwgUrl"
+                        data-caption="@row.Caption">
+                    @if (!string.IsNullOrWhiteSpace(row.IcoUrl))
+                    {
+                        <img class="plugin-blocks__thumb" src="@row.IcoUrl" alt="" />
+                    }
+                    else
+                    {
+                        <svg class="plugin-blocks__thumb" viewBox="0 0 36 36" aria-hidden="true">
+                            <rect x="6" y="4" width="24" height="28" fill="none" stroke="currentColor" stroke-width="1.4" />
+                            <path d="M6 11h24M6 18h24M6 25h24M14 4v28M22 4v28" fill="none" stroke="currentColor" stroke-width="1.1" />
+                        </svg>
+                    }
+                    <span class="plugin-blocks__caption">@row.Caption</span>
+                </button>
+            }
+        }
+    </div>
+    <div class="plugin-blocks__tools" id="plugin-blocks-tools">
+        <button type="button" class="plugin-blocks__tool" id="plugin-blocks-tool-expand" title="@MasterArticles.StlPreview_FullscreenTitle" data-tool="expand">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+        </button>
+        <button type="button" class="plugin-blocks__tool" id="plugin-blocks-tool-zoomin" title="@Common.PluginCad_BlocksZoomIn" data-tool="zoomin">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M14.5 14.5L20 20M7 10h6M10 7v6"/></svg>
+        </button>
+        <button type="button" class="plugin-blocks__tool" id="plugin-blocks-tool-zoomout" title="@Common.PluginCad_BlocksZoomOut" data-tool="zoomout">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M14.5 14.5L20 20M7 10h6"/></svg>
+        </button>
+        <button type="button" class="plugin-blocks__tool" id="plugin-blocks-tool-fit" title="@Common.PluginCad_BlocksZoomFit" data-tool="fit">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4M8 8h8v8H8z"/></svg>
+        </button>
+        <input type="color" class="plugin-blocks__tool-color" id="plugin-blocks-color-frame" value="#efb608" title="@Common.PluginCad_BlocksColorFrame" />
+        <input type="color" class="plugin-blocks__tool-color" id="plugin-blocks-color-phenolic" value="#1a1816" title="@Common.PluginCad_BlocksColorPhenolic" />
+        <button type="button" class="plugin-blocks__tool" id="plugin-blocks-tool-dark" title="@MasterArticles.StlPreview_DarkBgTitle" data-tool="dark">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M15 4.5A8 8 0 1 0 19.5 15 6.5 6.5 0 0 1 15 4.5z"/></svg>
+        </button>
+        <button type="button" class="plugin-blocks__tool" id="plugin-blocks-tool-clip" title="@MasterArticles.StlPreview_ClipToggleTitle" data-tool="clip">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="7" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="6" cy="17" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M8 8l12 9M8 16l12-9"/></svg>
+        </button>
+        <button type="button" class="plugin-blocks__tool is-on" id="plugin-blocks-tool-axes" title="@MasterArticles.StlPreview_XyzAxesToggleTitle" data-tool="axes">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M12 4v16M4 12h16"/></svg>
+        </button>
+    </div>
+    <div class="plugin-blocks__viewer">
+        <div class="plugin-blocks__viewer-host" id="plugin-blocks-viewer" data-article-preview="1"></div>
+        <div class="plugin-blocks__vc" id="plugin-blocks-vc">
+            <div class="plugin-blocks__vc-scene">
+                <div class="plugin-blocks__vc-cube" id="plugin-blocks-vc-cube">
+                    <div class="plugin-blocks__vc-face plugin-blocks__vc-face--front" data-face="front">FRONT</div>
+                    <div class="plugin-blocks__vc-face plugin-blocks__vc-face--back" data-face="back">BACK</div>
+                    <div class="plugin-blocks__vc-face plugin-blocks__vc-face--top" data-face="top">TOP</div>
+                    <div class="plugin-blocks__vc-face plugin-blocks__vc-face--bottom" data-face="bottom">BOTT.</div>
+                    <div class="plugin-blocks__vc-face plugin-blocks__vc-face--right" data-face="right">RIGHT</div>
+                    <div class="plugin-blocks__vc-face plugin-blocks__vc-face--left" data-face="left">LEFT</div>
+                </div>
+            </div>
+            <div class="plugin-blocks__vc-cams" role="group" aria-label="Cámara">
+                <button type="button" id="plugin-blocks-cam-ortho" class="is-on" title="2D / ortogonal" data-cam="ortho">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>
+                </button>
+                <button type="button" id="plugin-blocks-cam-iso" title="3D / isométrico" data-cam="iso">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M12 3l9 5v8l-9 5-9-5V8zM12 13l9-5M12 13v8M12 13L3 8"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="plugin-blocks__clip" id="plugin-blocks-clip">
+            <div class="plugin-blocks__clip-y" title="@MasterArticles.StlPreview_ClipYTitle">
+                <input type="range" id="plugin-blocks-clip-y" min="0" max="1000" value="1000" step="1" aria-label="@MasterArticles.StlPreview_ClipYAria" />
+            </div>
+            <div class="plugin-blocks__clip-x" title="@MasterArticles.StlPreview_ClipXTitle">
+                <input type="range" id="plugin-blocks-clip-x" min="0" max="1000" value="1000" step="1" aria-label="@MasterArticles.StlPreview_ClipXAria" />
+            </div>
+        </div>
+    </div>
+    <div class="plugin-blocks__actions">
+        <button type="button" class="plugin-blocks__insert" id="plugin-blocks-insert" disabled>@Common.PluginCad_BlocksInsert</button>
+    </div>
+    <div class="plugin-blocks__status" id="plugin-blocks-status"></div>
+</div>
+
+@section scripts {
+    @{
+        var previewImports = new Dictionary<string, string>
+        {
+            { "three", Url.Content("~/Scripts/Design/build/three.module.js") },
+            { "@masterarticles/OrbitControls", Url.Content("~/Scripts/Design/jsm/controls/OrbitControls.js") },
+            { "@masterarticles/STLLoader", Url.Content("~/Scripts/Design/jsm/loaders/STLLoader.js") }
+        };
+        var previewImportMap = new Dictionary<string, object> { { "imports", previewImports } };
+    }
+    <script type="importmap">
+@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(previewImportMap))
+    </script>
+    <script type="module" src="@Url.Content("~/Scripts/DesignToolsAutocad/plugin-cad-block-preview.js")"></script>
+    <script>
+        (function () {
+            var searchUrl = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(searchUrl));
+            var emptyText = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_BlocksEmpty));
+            var soonText = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_BlocksInsertSoon));
+            var noPreview = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_BlocksNoPreview));
+            var listEl = document.getElementById('plugin-blocks-list');
+            var qEl = document.getElementById('plugin-blocks-q');
+            var insertEl = document.getElementById('plugin-blocks-insert');
+            var statusEl = document.getElementById('plugin-blocks-status');
+            var selected = null;
+            var timer = null;
+
+            function post(payload) {
+                try {
+                    if (window.chrome && window.chrome.webview)
+                        window.chrome.webview.postMessage(JSON.stringify(payload));
+                } catch (e) { }
+            }
+
+            function setStatus(text, isError) {
+                statusEl.textContent = text || '';
+                statusEl.classList.toggle('is-error', !!isError);
+            }
+
+            function thumbSvg() {
+                return '<svg class="plugin-blocks__thumb" viewBox="0 0 36 36" aria-hidden="true"><rect x="6" y="4" width="24" height="28" fill="none" stroke="currentColor" stroke-width="1.4" /><path d="M6 11h24M6 18h24M6 25h24M14 4v28M22 4v28" fill="none" stroke="currentColor" stroke-width="1.1" /></svg>';
+            }
+
+            function thumbHtml(row) {
+                var ico = (row && (row.IcoUrl || row.icoUrl)) || '';
+                if (ico)
+                    return '<img class="plugin-blocks__thumb" src="' + String(ico).replace(/"/g, '') + '" alt="" />';
+                return thumbSvg();
+            }
+
+            function renderRows(rows) {
+                listEl.innerHTML = '';
+                if (!rows || !rows.length) {
+                    listEl.innerHTML = '<div class="plugin-blocks__empty">' + emptyText + '</div>';
+                    selected = null;
+                    insertEl.disabled = true;
+                    if (window.TandemCadBlockPreview) window.TandemCadBlockPreview.loadStl(document.getElementById('plugin-blocks-viewer'), null, noPreview, null);
+                    return;
+                }
+                rows.forEach(function (row) {
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'plugin-blocks__item';
+                    btn.setAttribute('data-id', row.Id || row.id);
+                    btn.setAttribute('data-ico', row.IcoUrl || row.icoUrl || '');
+                    btn.setAttribute('data-stl', row.StlUrl || row.stlUrl || '');
+                    btn.setAttribute('data-stl-phenolic', row.StlPhenolicUrl || row.stlPhenolicUrl || '');
+                    btn.setAttribute('data-dwg', row.DwgUrl || row.dwgUrl || '');
+                    btn.setAttribute('data-caption', row.Caption || row.caption || '');
+                    btn.innerHTML = thumbHtml(row) + '<span class="plugin-blocks__caption"></span>';
+                    btn.querySelector('.plugin-blocks__caption').textContent = row.Caption || row.caption || row.Label || row.label || '';
+                    listEl.appendChild(btn);
+                });
+            }
+
+            function selectItem(btn) {
+                Array.prototype.forEach.call(listEl.querySelectorAll('.plugin-blocks__item'), function (el) {
+                    el.classList.toggle('is-selected', el === btn);
+                });
+                selected = {
+                    id: parseInt(btn.getAttribute('data-id') || '0', 10),
+                    stl: btn.getAttribute('data-stl') || '',
+                    stlPhenolic: btn.getAttribute('data-stl-phenolic') || '',
+                    dwg: btn.getAttribute('data-dwg') || '',
+                    caption: btn.getAttribute('data-caption') || ''
+                };
+                insertEl.disabled = !selected.id;
+                setStatus('');
+                if (window.TandemCadBlockPreview)
+                    window.TandemCadBlockPreview.loadStl(document.getElementById('plugin-blocks-viewer'), selected.stl, noPreview, selected.stlPhenolic);
+            }
+
+            listEl.addEventListener('click', function (e) {
+                var btn = e.target.closest('.plugin-blocks__item');
+                if (!btn) return;
+                selectItem(btn);
+            });
+
+            function loadList(q, dismissSplash) {
+                fetch(searchUrl + '?q=' + encodeURIComponent(q || ''), { credentials: 'same-origin' })
+                    .then(function (r) { return r.json(); })
+                    .then(function (rows) {
+                        renderRows(rows);
+                        if (dismissSplash && window.TdesingBootSplashDismiss)
+                            window.TdesingBootSplashDismiss();
+                    })
+                    .catch(function () {
+                        setStatus(emptyText, true);
+                        if (dismissSplash && window.TdesingBootSplashDismiss)
+                            window.TdesingBootSplashDismiss();
+                    });
+            }
+
+            qEl.addEventListener('input', function () {
+                clearTimeout(timer);
+                timer = setTimeout(function () { loadList(qEl.value || '', false); }, 220);
+            });
+
+            insertEl.addEventListener('click', function () {
+                if (!selected || !selected.id) return;
+                setStatus(soonText);
+                post({ action: 'insert-block', id: selected.id, dwg: selected.dwg, caption: selected.caption });
+            });
+
+            var rootEl = document.getElementById('plugin-blocks-root');
+            var collapseEl = document.getElementById('plugin-blocks-collapse');
+            var chipEl = document.getElementById('plugin-blocks-chip');
+            var hoverArmed = false;
+            function setCollapsed(on) {
+                if (!rootEl) return;
+                rootEl.classList.toggle('is-collapsed', !!on);
+                hoverArmed = false;
+                post({ action: on ? 'collapse-blocks' : 'expand-blocks' });
+            }
+            if (collapseEl) {
+                collapseEl.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setCollapsed(true);
+                });
+            }
+            function tryExpand() {
+                if (rootEl && rootEl.classList.contains('is-collapsed') && hoverArmed)
+                    setCollapsed(false);
+            }
+            if (chipEl) {
+                chipEl.addEventListener('mouseenter', tryExpand);
+                chipEl.addEventListener('click', function () { hoverArmed = true; tryExpand(); });
+            }
+            if (rootEl) {
+                rootEl.addEventListener('mouseleave', function () { hoverArmed = true; });
+                rootEl.addEventListener('mouseenter', tryExpand);
+            }
+
+            loadList('', true);
+        })();
+    </script>
+}

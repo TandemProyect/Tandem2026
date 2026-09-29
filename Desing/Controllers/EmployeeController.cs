@@ -3,6 +3,7 @@ using DataTables.Mvc;
 using Desing.Helpers;
 using Desing.Models;
 using Desing.Resources;
+using Desing.Services;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Dynamic.Core;
-using System.Net.Mail;
 using System.Web;
 using System.Web.Mvc;
 using static SendMail.Models;
@@ -225,7 +225,7 @@ namespace Desing.Controllers
         }
 
         /* ============================================================
-           Send mail (legacy SMTP envelope, mail send disabled below).
+           Envío de contraseña al empleado (SendGrid).
            ============================================================ */
 
         public ActionResult SendMailUser(long Id)
@@ -772,24 +772,9 @@ WHERE TABLE_SCHEMA = 'dbo'
 
         private void SendMail(MailModel _objModelMail)
         {
-            if (ModelState.IsValid)
-            {
-                MailMessage mail = new MailMessage();
-                mail.To.Add(_objModelMail.To);
-                mail.From = new MailAddress(_objModelMail.From);
-                mail.Subject = _objModelMail.Subject;
-                mail.Body = _objModelMail.Body;
-                mail.IsBodyHtml = true;
-                SmtpClient smtp = new SmtpClient
-                {
-                    Host = "mail5005.smarterasp.net",
-                    Port = 587,
-                    UseDefaultCredentials = false,
-                    Credentials = new System.Net.NetworkCredential("admin@atenko.net", "AngelyJuan01@"),
-                    EnableSsl = true
-                };
-                smtp.Send(mail);
-            }
+            if (!ModelState.IsValid)
+                return;
+            TandemMailClient.SendHtml(_objModelMail.To, _objModelMail.Subject, _objModelMail.Body);
         }
 
         protected override void Dispose(bool disposing)

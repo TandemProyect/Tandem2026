@@ -4,6 +4,7 @@ using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
+using Desing.Services;
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -14,8 +15,9 @@ namespace Desing
     {
         public Task SendAsync(IdentityMessage message)
         {
-            // Plug in your email service here to send an email.
-            return Task.FromResult(0);
+            if (message == null || string.IsNullOrWhiteSpace(message.Destination))
+                return Task.FromResult(0);
+            return TandemMailClient.SendHtmlAsync(message.Destination, message.Subject, message.Body);
         }
     }
 
