@@ -57,7 +57,7 @@ namespace Desing.Controllers
         /// </summary>
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ActionResult> PluginSession(string deviceId, string machineName, string usuarioWindows, string pluginVersion)
+        public ActionResult PluginSession(string deviceId, string machineName, string usuarioWindows, string pluginVersion)
         {
             var snap = new PluginCadDeviceHelper.Snapshot
             {
@@ -68,34 +68,13 @@ namespace Desing.Controllers
             };
             PluginCadDeviceHelper.WriteCookie(Response, Request, snap);
 
-            var auth = HttpContext.GetOwinContext().Authentication;
-            auth.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
-
             var pluginReadyUrl = Url.Action("PluginReady", "DesignToolsAutocad");
 
-            if (!string.IsNullOrWhiteSpace(snap.DeviceId))
-            {
-                var row = PluginCadDeviceHelper.Find(db, snap.DeviceId);
-                if (PluginCadDeviceHelper.IsBlocked(row))
-                    return RedirectToPluginLogin(pluginReadyUrl, blocked: true);
-
-                if (PluginCadDeviceHelper.IsTrusted(row))
-                {
-                    if (!PluginCadDeviceHelper.IsUserAllowed(db, row.LinAspNetUsert))
-                        return RedirectToPluginLogin(pluginReadyUrl, inactiveUser: true);
-
-                    var userManager = HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
-                    var signInManager = HttpContext.GetOwinContext().Get<ApplicationSignInManager>();
-                    var user = await userManager.FindByIdAsync(row.LinAspNetUsert);
-                    if (user == null)
-                        return RedirectToPluginLogin(pluginReadyUrl, inactiveUser: true);
-
-                    await signInManager.SignInAsync(user, isPersistent: true, rememberBrowser: false);
-                    PluginCadDeviceHelper.Touch(db, row, snap, user.Id);
-                    PersistPluginCompanyLogo(user.Id);
-                    return RedirectToAction("PluginReady");
-                }
-            }
+            // No abrir ConexionData aquí: el primer uso del EDMX tarda minutos y deja
+            // el splash de AutoCAD en "Comprobando autorización…". Si ya hay cookie
+            // Identity en WebView2, entrar; si no, login inmediato.
+            if (User != null && User.Identity != null && User.Identity.IsAuthenticated)
+                return RedirectToAction("PluginReady");
 
             return RedirectToPluginLogin(pluginReadyUrl, blocked: false);
         }
@@ -337,10 +316,13 @@ namespace Desing.Controllers
             string stlUrl;
             string stlPhenolicUrl;
             ResolveStlPair(a, out stlUrl, out stlPhenolicUrl);
+            string codeName;
+            PluginCadAtk60PanelStlHelper.TryGetCodeName(a, out codeName);
             return new PluginCadBlockRow
             {
                 Id = a.IdObject,
                 Code = code,
+                CodeName = codeName,
                 Label = a.TextLabel,
                 Caption = caption,
                 IcoUrl = ResolveIcoUrl(a, storedIco),

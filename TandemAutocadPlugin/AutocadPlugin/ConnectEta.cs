@@ -10,10 +10,10 @@ namespace AutocadPlugin
     /// </summary>
     internal static class ConnectEta
     {
-        public const int WarmMsLocal = 18000;
-        public const int WarmMsProd = 12000;
-        public const int ColdMsLocal = 120000;
-        public const int ColdMsProd = 25000;
+        public const int WarmMsLocal = 8000;
+        public const int WarmMsProd = 8000;
+        public const int ColdMsLocal = 20000;
+        public const int ColdMsProd = 20000;
 
         public static int WarmMs()
         {
@@ -54,7 +54,7 @@ namespace AutocadPlugin
         public static string Format(int remainingMs, bool coldHang)
         {
             if (coldHang)
-                return "Sigue conectando… el primero tras arrancar puede tardar hasta 2 min";
+                return "Sigue conectando…";
             if (remainingMs < 1400)
                 return "Casi listo…";
             var sec = Math.Max(1, (int)Math.Ceiling(remainingMs / 1000.0));

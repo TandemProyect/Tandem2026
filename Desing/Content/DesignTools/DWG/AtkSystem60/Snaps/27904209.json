@@ -4,7 +4,7 @@
   "family": "panel-rect",
   "units": "m",
   "origin": "insbase-0-0-0",
-  "comment": "Medido 2026-09-29 en 3DRef/27904209R.dwg (parte del 3D). Caja X=0..0.9 Y=-0.12..0 Z=0..2.70. INSUNITS=4 (mm) pero la geometría está en metros. Marcas: 4 círculos capa ATK-60.",
+  "comment": "Caja X=0..0.9 Y=-0.12..0 Z=0..2.70 m. Vértices externos PANEL = esquinas de la cara Y=0 (origen INSBASE). GRAPA_V = círculos medidos en 3DRef.",
   "box": {
     "width": 0.9,
     "height": 2.7,
@@ -15,6 +15,10 @@
   },
   "insbase": [0, 0, 0],
   "snaps": [
+    { "id": "V_BL", "role": "PANEL", "x": 0, "y": 0, "z": 0, "rzDeg": 0 },
+    { "id": "V_BR", "role": "PANEL", "x": 0.9, "y": 0, "z": 0, "rzDeg": 0 },
+    { "id": "V_TL", "role": "PANEL", "x": 0, "y": 0, "z": 2.7, "rzDeg": 0 },
+    { "id": "V_TR", "role": "PANEL", "x": 0.9, "y": 0, "z": 2.7, "rzDeg": 0 },
     { "id": "L055", "role": "GRAPA_V", "x": 0.0437138, "y": -0.119128, "z": 0.55, "rzDeg": 180 },
     { "id": "L215", "role": "GRAPA_V", "x": 0.0437138, "y": -0.119128, "z": 2.15, "rzDeg": 180 },
     { "id": "R055", "role": "GRAPA_V", "x": 0.856286, "y": -0.119128, "z": 0.55, "rzDeg": 0 },

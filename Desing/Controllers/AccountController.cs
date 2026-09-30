@@ -12,6 +12,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Helpers;
+using System.Web.Hosting;
 using System.Web.Mvc;
 namespace Desing.Controllers
 {
@@ -154,109 +155,24 @@ namespace Desing.Controllers
                     return View(model);
             }
 
-            var Data = (from t in db.AspNetUsers
-                        join employee in db.TSql_Employee on t.Id equals employee.LinAspNetUsert
-                        join company in db.TSql_Company on employee.LinCompany equals company.SysObjectID into cg
-                        from company in cg.DefaultIfEmpty()
-                        where t.UserName == model.Email &&
-                        t.EmailConfirmed == true
-                        select new
+            if (user != null && isPluginLogin)
+            {
+                var snap = PluginCadDeviceHelper.TryReadCookie(Request);
+                var userId = user.Id;
+                HostingEnvironment.QueueBackgroundWorkItem(_ =>
+                {
+                    try
+                    {
+                        using (var ctx = new ConexionData())
                         {
-                            t.Id,
-                            t.Email,
-                            t.EmailConfirmed,
-                            employee.AttName,
-                            employee.AttSurname,
-                            employee.AttPhoto,
-                            employee.AttPhotoMenu,
-                            LinPlantilla = company != null ? company.LinPlantilla : null
-                        }).ToList();
-            var l = Data.Count();
-            var firstData = Data.FirstOrDefault();
-            if (firstData != null)
-            {
-                model.UserName = firstData.AttName;
-                WritePlantillaCookie(firstData.LinPlantilla);
-            }
-
-            try
-            {
-                var hasLang = Request.Cookies[LanguageUiHelper.LanguageCookieName] != null
-                    || Request.Cookies[LanguageUiHelper.LegacyUiCultureCookieName] != null;
-                if (!hasLang)
-                {
-                    var def = LanguageUiHelper.TryGetDefaultLanguageTextCode(db);
-                    if (!string.IsNullOrWhiteSpace(def))
-                        LanguageUiHelper.WriteLanguageCookies(Response, def);
-                }
-            }
-            catch
-            {
-                /* no bloquear login */
-            }
-
-            if (user != null)
-            {
-                try
-                {
-                    var snap = PluginCadDeviceHelper.TryReadCookie(Request);
-                    var row = PluginCadDeviceHelper.Find(db, snap != null ? snap.DeviceId : null);
-                    if (PluginCadDeviceHelper.IsBlocked(row))
-                    {
-                        AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
-                        ViewBag.ErrorMessage = Common.PluginCad_DeviceBlocked;
-                        ViewBag.PluginCadLogin = true;
-                        ViewBag.PlantillaLogo = PluginCadDeviceHelper.DefaultLogoVirtualPath;
-                        PluginCadDeviceHelper.ClearLogoCookie(Response);
-                        return View(model);
+                            PluginCadDeviceHelper.RegisterAfterLogin(ctx, snap, userId);
+                        }
                     }
-                    if (!PluginCadDeviceHelper.IsUserAllowed(db, user.Id))
+                    catch
                     {
-                        AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
-                        ViewBag.ErrorMessage = Common.PluginCad_UserInactive;
-                        ViewBag.PluginCadLogin = true;
-                        ViewBag.PlantillaLogo = PluginCadDeviceHelper.DefaultLogoVirtualPath;
-                        PluginCadDeviceHelper.ClearLogoCookie(Response);
-                        return View(model);
                     }
-
-                    PluginCadDeviceHelper.RegisterAfterLogin(db, snap, user.Id);
-                    var logo = PluginCadDeviceHelper.ResolveCompanyLogoAbsoluteUrl(db, user.Id, Request, Url);
-                    PluginCadDeviceHelper.WriteLogoCookie(Response, Request, logo);
-                }
-                catch
-                {
-                    /* el login no debe fallar si el alta del equipo falla */
-                }
+                });
             }
-
-            string hostName = Dns.GetHostName();
-            // Get the IP
-            string myIP = Dns.GetHostByName(hostName).AddressList[0].ToString();
-            if (user != null && myIP != null)
-            {
-                TSql_Register newRegister = new TSql_Register
-                {
-                    LinkApp = 1,
-                    Text_Ip = myIP,
-                    Text_User = model.Email,
-                    LinkUser = user.Id,
-                    Text_HostName = hostName,
-                    LinkMadeBy = user.Id,
-                    AddDateMade = DateTime.UtcNow,
-                    LinkChangeBy = user.Id,
-                    AddLastDateChange = DateTime.UtcNow,
-                    Ntimeschanged = +1
-                };
-                db.TSql_Register.Add(newRegister);
-                if (model.Email != "juan.godoy@vscad.com")
-                {
-                    db.SaveChanges();
-                }
-
-            }
-            //    return View(model);
-            //}
 
             return RedirectToLocal(returnUrl);
         }

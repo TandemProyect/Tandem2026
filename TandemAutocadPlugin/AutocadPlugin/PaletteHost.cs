@@ -189,7 +189,7 @@ namespace AutocadPlugin
                     }
                 }
                 WriteMessage("[Tandem] Inicia sesion en Desing (una vez por sesion).");
-                ArmSplashFallback();
+                RevealSessionPage();
                 return;
             }
 
@@ -513,7 +513,20 @@ namespace AutocadPlugin
         {
             Document doc = AcadApp.DocumentManager.MdiActiveDocument;
             if (doc == null || string.IsNullOrWhiteSpace(command)) return;
+            BlockInsertCommand.FocusDrawing();
             doc.SendStringToExecute("\x03\x03" + command.Trim() + " ", true, false, false);
+        }
+
+        private static void RunAcadCommandWhenIdle(string command)
+        {
+            EventHandler idle = null;
+            idle = (s, e) =>
+            {
+                AcadApp.Idle -= idle;
+                BlockInsertCommand.FocusDrawing();
+                RunAcadCommand(command);
+            };
+            AcadApp.Idle += idle;
         }
 
         private static string NormalizePaletteJson(string raw)
@@ -647,7 +660,9 @@ namespace AutocadPlugin
 
                 if (string.Equals(action, "insert-block", StringComparison.OrdinalIgnoreCase))
                 {
-                    WriteMessage("[Tandem] Biblioteca de bloques: formulario listo. La inserción en el dibujo llega en el siguiente paso.");
+                    BlockInsertCommand.QueueFromPalette(obj);
+                    ApplyBlocksSize(expanded: false);
+                    RunAcadCommandWhenIdle(BlockInsertCommand.CommandName);
                     return true;
                 }
 

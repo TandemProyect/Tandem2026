@@ -45,7 +45,7 @@
     var etaCold = Common.App_BootEtaCold;
     if (string.IsNullOrWhiteSpace(etaCold))
     {
-        etaCold = "Sigue conectando… el primero tras arrancar puede tardar hasta 2 min";
+        etaCold = "Sigue conectando…";
     }
 }
 <style>
@@ -71,15 +71,15 @@
         overflow: hidden;
         padding: 0 0 24px;
     }
-    #tdesing-boot-splash .tdesing-boot-bar { height: 6px; background: #F29100; }
+    #tdesing-boot-splash .tdesing-boot-bar { height: 6px; background: var(--tandem-primary, #349d7d); }
     #tdesing-boot-splash img { max-width: 220px; height: 52px; object-fit: contain; margin: 28px auto 0; display: block; }
     #tdesing-boot-splash .tdesing-boot-clock {
         width: 56px; height: 56px; margin: 20px auto 0; position: relative;
     }
     #tdesing-boot-splash .tdesing-boot-ring {
         position: absolute; inset: 0;
-        border: 4px solid #F0E6D8;
-        border-top-color: #F29100;
+        border: 4px solid transparent;
+        border-top-color: var(--tandem-primary, #349d7d);
         border-radius: 50%;
         animation: tdesing-boot-spin .85s linear infinite;
     }
@@ -101,11 +101,11 @@
         width: 2.4px; height: 14px; margin: -14px 0 0 -1.2px; background: #2C3340;
     }
     #tdesing-boot-splash .tdesing-boot-hands:after {
-        width: 2.4px; height: 10px; margin: 0 0 0 -1.2px; background: #F29100; transform: rotate(90deg); transform-origin: 50% 0;
+        width: 2.4px; height: 10px; margin: 0 0 0 -1.2px; background: var(--tandem-primary, #349d7d); transform: rotate(90deg); transform-origin: 50% 0;
     }
     #tdesing-boot-splash .tdesing-boot-dot {
         position: absolute; left: 50%; top: 50%; width: 8px; height: 8px;
-        margin: -4px 0 0 -4px; background: #F29100; border-radius: 50%;
+        margin: -4px 0 0 -4px; background: var(--tandem-primary, #349d7d); border-radius: 50%;
     }
     #tdesing-boot-splash p {
         margin: 16px 20px 0;
@@ -158,7 +158,7 @@
         var storeKey = 'tdesing-boot-eta-ms';
         var startedAt = Date.now();
         var predicted = hold ? 15000 : 8000;
-        var coldMs = 120000;
+        var coldMs = 20000;
         var cold = false;
         var tickTimer = null;
         try {

@@ -45,6 +45,7 @@ namespace Desing.Models
     {
         public long Id { get; set; }
         public string Code { get; set; }
+        public string CodeName { get; set; }
         public string Label { get; set; }
         public string Caption { get; set; }
         public string IcoUrl { get; set; }

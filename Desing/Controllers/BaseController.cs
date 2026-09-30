@@ -81,12 +81,19 @@ namespace Desing.Controllers
             ViewBag.PlantillaBrandTextColor = "";
             ViewBag.PlantillaBrandAccentColor = "#f29100";
 
-            // Disponibilizar avatar, userName y plantilla en todas las vistas (navbar Materio).
+            // Login y resto de Account no deben abrir ConexionData: el primer uso del EDMX
+            // puede tardar varios minutos y deja la pantalla en blanco.
+            var skipChromeDb = ShouldSkipChromeDb();
+
             try
             {
                 PlantillaViewData plantilla = null;
 
-                if (User != null && User.Identity != null && User.Identity.IsAuthenticated)
+                if (skipChromeDb)
+                {
+                    plantilla = TryPlantillaFromCacheOnly();
+                }
+                else if (User != null && User.Identity != null && User.Identity.IsAuthenticated)
                 {
                     var idUser = User.Identity.GetUserId();
                     if (!string.IsNullOrEmpty(idUser))
@@ -128,7 +135,7 @@ namespace Desing.Controllers
                 }
 
                 // Fallback: plantilla marcada como por defecto.
-                if (plantilla == null)
+                if (plantilla == null && !skipChromeDb)
                 {
                     plantilla = GetCachedDefaultPlantilla();
                 }
@@ -158,7 +165,8 @@ namespace Desing.Controllers
             }
 
             ViewBag.TandemUiCultureCode = LanguageUiHelper.ReadResolvedUiCultureCode(Request);
-            ViewBag.TandemLanguageIdObject = LanguageUiHelper.TryResolveLanguageId(db, Request);
+            if (!skipChromeDb)
+                ViewBag.TandemLanguageIdObject = LanguageUiHelper.TryResolveLanguageId(db, Request);
             ViewBag.TandemCompanyLanguageLocked =
                 HttpContext.Items[LanguageUiHelper.ItemKeyCompanyLanguageLocked] as bool? == true;
             ViewBag.TandemReleaseNumber = ReleaseVersionHelper.CurrentReleaseNumber;
@@ -167,6 +175,38 @@ namespace Desing.Controllers
                 "BaseController.OnActionExecuting " +
                 (Request != null ? Request.RawUrl : ""),
                 swAction.ElapsedMilliseconds);
+        }
+
+        private bool ShouldSkipChromeDb()
+        {
+            var controller = RouteData != null ? RouteData.Values["controller"] as string : null;
+            var action = RouteData != null ? RouteData.Values["action"] as string : null;
+            if (string.Equals(controller, "Account", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (!string.Equals(controller, "DesignToolsAutocad", StringComparison.OrdinalIgnoreCase))
+                return false;
+            return string.Equals(action, "PluginSession", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(action, "PaletteMode", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(action, "PaletteTools", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private PlantillaViewData TryPlantillaFromCacheOnly()
+        {
+            try
+            {
+                var cookieId = ReadPlantillaCookie();
+                if (cookieId.HasValue)
+                {
+                    var cached = HttpRuntime.Cache[PlantillaCacheKeyPrefix + cookieId.Value] as PlantillaViewData;
+                    if (cached != null)
+                        return cached;
+                }
+                return HttpRuntime.Cache[PlantillaDefaultCacheKey] as PlantillaViewData;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         /// <summary>

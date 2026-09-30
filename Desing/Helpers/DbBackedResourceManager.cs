@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Resources;
+using System.Web;
 using DAL;
 
 namespace Desing.Helpers
@@ -90,6 +91,9 @@ namespace Desing.Helpers
             if (string.IsNullOrEmpty(module))
                 return null;
 
+            if (IsAccountAuthRequest())
+                return null;
+
             var cacheKey = module + "|" + (code ?? "");
             var dict = _cache.GetOrAdd(cacheKey, _ => Load(module, code));
             if (dict == null)
@@ -169,6 +173,22 @@ namespace Desing.Helpers
 
             _languageIdCache[cacheKey] = langId.GetValueOrDefault();
             return langId;
+        }
+
+        private static bool IsAccountAuthRequest()
+        {
+            try
+            {
+                var path = HttpContext.Current != null && HttpContext.Current.Request != null
+                    ? HttpContext.Current.Request.Path
+                    : "";
+                return !string.IsNullOrEmpty(path)
+                    && path.IndexOf("/Account/", StringComparison.OrdinalIgnoreCase) >= 0;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private static void TraceStartupTiming(string label, long elapsedMs)

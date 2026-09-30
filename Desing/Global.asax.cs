@@ -7,6 +7,7 @@ using System;
 using System.Configuration;
 using System.Data.Entity;
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Claims;
 using System.Web;
 using System.Web.Helpers;
@@ -45,6 +46,25 @@ namespace Desing
             System.Web.Mvc.ModelBinders.Binders.Add(typeof(decimal?), decimalBinder);
             sw.Stop();
             TraceStartupTiming("Application_Start", sw.ElapsedMilliseconds);
+            WarmEntityModelInBackground();
+        }
+
+        private static void WarmEntityModelInBackground()
+        {
+            System.Threading.Tasks.Task.Run(() =>
+            {
+                try
+                {
+                    using (var db = new DAL.ConexionData())
+                    {
+                        db.Database.CommandTimeout = 15;
+                        var _ = db.TSql_Plantilla.AsNoTracking().Select(p => p.SysObjectID).FirstOrDefault();
+                    }
+                }
+                catch
+                {
+                }
+            });
         }
 
         protected void Application_Error()

@@ -41,7 +41,7 @@
     <value>Almost ready…</value>
   </data>
   <data name="App_BootEtaCold" xml:space="preserve">
-    <value>Still connecting… first start after launch can take up to 2 min</value>
+    <value>Still connecting…</value>
   </data>
   <data name="App_EnvironmentLabel" xml:space="preserve">
     <value>Develop environment</value>
@@ -293,7 +293,7 @@
     <value>Insert</value>
   </data>
   <data name="PluginCad_BlocksInsertSoon" xml:space="preserve">
-    <value>Inserting into the drawing comes in the next step.</value>
+    <value>Pick a panel vertex or a point in the drawing…</value>
   </data>
   <data name="PluginCad_BlocksNoPreview" xml:space="preserve">
     <value>This article has no STL preview.</value>

@@ -41,7 +41,7 @@
     <value>Casi listo…</value>
   </data>
   <data name="App_BootEtaCold" xml:space="preserve">
-    <value>Sigue conectando… el primero tras arrancar puede tardar hasta 2 min</value>
+    <value>Sigue conectando…</value>
   </data>
   <data name="App_EnvironmentLabel" xml:space="preserve">
     <value>Entorno Develop</value>
@@ -293,7 +293,7 @@
     <value>Insertar</value>
   </data>
   <data name="PluginCad_BlocksInsertSoon" xml:space="preserve">
-    <value>La inserción en el dibujo llega en el siguiente paso.</value>
+    <value>Pica un vértice del panel o un punto en el dibujo…</value>
   </data>
   <data name="PluginCad_BlocksNoPreview" xml:space="preserve">
     <value>Este artículo no tiene STL de vista previa.</value>

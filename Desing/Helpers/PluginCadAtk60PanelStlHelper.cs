@@ -1,6 +1,7 @@
 using Desing.Repositories.Atk60;
 using System;
 using System.Globalization;
+using System.IO;
 using System.Text.RegularExpressions;
 
 namespace Desing.Helpers
@@ -31,6 +32,20 @@ namespace Desing.Helpers
 
             frameVirtualPath = frame;
             phenolicVirtualPath = phenolic;
+            return true;
+        }
+
+        public static bool TryGetCodeName(DAL.Tsql_Master_Articles article, out string codeName)
+        {
+            codeName = null;
+            string frame;
+            string phenolic;
+            if (!TryResolve(article, out frame, out phenolic) || string.IsNullOrWhiteSpace(frame))
+                return false;
+            var file = Path.GetFileNameWithoutExtension(frame.Replace('\\', '/'));
+            if (string.IsNullOrWhiteSpace(file))
+                return false;
+            codeName = file.Trim();
             return true;
         }
 

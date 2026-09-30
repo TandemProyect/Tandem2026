@@ -41,7 +41,7 @@ const es = Object.fromEntries(
     App_BootEtaMinute: "Queda 1 min",
     App_BootEtaMinutes: "Quedan unos {0} min",
     App_BootEtaAlmost: "Casi listo…",
-    App_BootEtaCold: "Sigue conectando… el primero tras arrancar puede tardar hasta 2 min",
+    App_BootEtaCold: "Sigue conectando…",
     App_EnvironmentLabel: "Entorno Develop",
 
     /* ===== Footer ===== */
@@ -97,7 +97,7 @@ const es = Object.fromEntries(
     PluginCad_BlocksSearchLabel: "Bloque.-",
     PluginCad_BlocksEmpty: "No hay artículos.",
     PluginCad_BlocksInsert: "Insertar",
-    PluginCad_BlocksInsertSoon: "La inserción en el dibujo llega en el siguiente paso.",
+    PluginCad_BlocksInsertSoon: "Pica un vértice del panel o un punto en el dibujo…",
     PluginCad_BlocksNoPreview: "Este artículo no tiene STL de vista previa.",
     PluginCad_BlocksOpenTitle: "Biblioteca de bloques",
     PluginCad_BlocksOpenAria: "Abrir biblioteca de bloques",
@@ -245,7 +245,7 @@ const en = Object.assign({}, es, {
   App_BootEtaMinute: "1 min left",
   App_BootEtaMinutes: "About {0} min left",
   App_BootEtaAlmost: "Almost ready…",
-  App_BootEtaCold: "Still connecting… first start after launch can take up to 2 min",
+  App_BootEtaCold: "Still connecting…",
   App_EnvironmentLabel: "Develop environment",
 
   /* Footer */
@@ -301,7 +301,7 @@ const en = Object.assign({}, es, {
   PluginCad_BlocksSearchLabel: "Block.-",
   PluginCad_BlocksEmpty: "No articles.",
   PluginCad_BlocksInsert: "Insert",
-  PluginCad_BlocksInsertSoon: "Inserting into the drawing comes in the next step.",
+  PluginCad_BlocksInsertSoon: "Pick a panel vertex or a point in the drawing…",
   PluginCad_BlocksNoPreview: "This article has no STL preview.",
   PluginCad_BlocksOpenTitle: "Block library",
   PluginCad_BlocksOpenAria: "Open block library",

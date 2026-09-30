@@ -436,6 +436,7 @@
                         data-stl-phenolic="@row.StlPhenolicUrl"
                         data-dwg="@row.DwgUrl"
                         data-code="@row.Code"
+                        data-code-name="@row.CodeName"
                         data-caption="@row.Caption">
                     @if (!string.IsNullOrWhiteSpace(row.IcoUrl))
                     {
@@ -621,6 +622,7 @@
                     btn.setAttribute('data-stl-phenolic', row.StlPhenolicUrl || row.stlPhenolicUrl || '');
                     btn.setAttribute('data-dwg', row.DwgUrl || row.dwgUrl || '');
                     btn.setAttribute('data-code', row.Code || row.code || '');
+                    btn.setAttribute('data-code-name', row.CodeName || row.codeName || '');
                     btn.setAttribute('data-caption', row.Caption || row.caption || '');
                     btn.innerHTML = thumbHtml(row) + '<span class="plugin-blocks__caption"></span>';
                     btn.querySelector('.plugin-blocks__caption').textContent = row.Caption || row.caption || row.Label || row.label || '';
@@ -638,6 +640,7 @@
                     stlPhenolic: btn.getAttribute('data-stl-phenolic') || '',
                     dwg: btn.getAttribute('data-dwg') || '',
                     code: btn.getAttribute('data-code') || '',
+                    codeName: btn.getAttribute('data-code-name') || '',
                     caption: btn.getAttribute('data-caption') || ''
                 };
                 insertEl.disabled = !selected.id;
@@ -710,10 +713,12 @@
             insertEl.addEventListener('click', function () {
                 if (!selected || !selected.id) return;
                 setStatus(soonText);
+                setCollapsed(true, 2500);
                 post({
                     action: 'insert-block',
                     id: selected.id,
                     code: selected.code || '',
+                    codeName: selected.codeName || '',
                     dwg: selected.dwg,
                     caption: selected.caption,
                     view: insertView,
@@ -726,7 +731,8 @@
             var chipEl = document.getElementById('plugin-blocks-chip');
             var hoverArmed = false;
             var collapsedAt = 0;
-            function setCollapsed(on) {
+            var collapseLockMs = 400;
+            function setCollapsed(on, lockMs) {
                 if (!rootEl) return;
                 if (!!on === rootEl.classList.contains('is-collapsed') && on)
                     return;
@@ -734,6 +740,7 @@
                 if (on) {
                     collapsedAt = Date.now();
                     hoverArmed = false;
+                    collapseLockMs = (lockMs > 0) ? lockMs : 400;
                 }
                 post({ action: on ? 'collapse-blocks' : 'expand-blocks' });
             }
@@ -741,7 +748,7 @@
                 return hoverArmed
                     && rootEl
                     && rootEl.classList.contains('is-collapsed')
-                    && (Date.now() - collapsedAt) > 400;
+                    && (Date.now() - collapsedAt) > collapseLockMs;
             }
             function tryExpand() {
                 if (canHoverExpand())
