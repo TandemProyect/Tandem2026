@@ -101,6 +101,8 @@ const es = Object.fromEntries(
     PluginCad_BlocksNoPreview: "Este artículo no tiene STL de vista previa.",
     PluginCad_BlocksOpenTitle: "Biblioteca de bloques",
     PluginCad_BlocksOpenAria: "Abrir biblioteca de bloques",
+    PluginCad_ConvertTitle: "Cambiar tipo de bloques",
+    PluginCad_ConvertAria: "Cambiar los bloques seleccionados a 3D o 3DRef",
     PluginCad_BlocksZoomIn: "Acercar",
     PluginCad_BlocksZoomOut: "Alejar",
     PluginCad_BlocksZoomFit: "Encajar vista",
@@ -114,6 +116,8 @@ const es = Object.fromEntries(
     PluginCad_BlocksRot0: "0°",
     PluginCad_BlocksRot90: "90°",
     PluginCad_BlocksRot90Title: "Tumbado (90°)",
+    PluginCad_BlocksCollapse: "Plegar",
+    PluginCad_BlocksExpand: "Expandir biblioteca de bloques",
 
     /* ===== Account / Register ===== */
     Register_PageTitle: "Crear cuenta",
@@ -305,6 +309,8 @@ const en = Object.assign({}, es, {
   PluginCad_BlocksNoPreview: "This article has no STL preview.",
   PluginCad_BlocksOpenTitle: "Block library",
   PluginCad_BlocksOpenAria: "Open block library",
+  PluginCad_ConvertTitle: "Change block type",
+  PluginCad_ConvertAria: "Change selected blocks to 3D or 3DRef",
   PluginCad_BlocksZoomIn: "Zoom in",
   PluginCad_BlocksZoomOut: "Zoom out",
   PluginCad_BlocksZoomFit: "Fit view",

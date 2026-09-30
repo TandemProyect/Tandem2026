@@ -58,7 +58,10 @@
             document.addEventListener('click', function (e) {
                 var menu = e.target.closest('[data-plugin-menu]');
                 if (menu && !menu.disabled) {
-                    post({ action: menu.getAttribute('data-plugin-menu') });
+                    var payload = { action: menu.getAttribute('data-plugin-menu') };
+                    var view = menu.getAttribute('data-view');
+                    if (view) payload.view = view;
+                    post(payload);
                     return;
                 }
                 var el = e.target.closest('[data-ma-stl-tool],[data-ma-stl-mode],[data-ma-system]');

@@ -338,7 +338,7 @@ namespace AutocadPlugin
             var baseUrl = PluginExceptionHelper.ResolveBaseUrlFromEnv();
             var modeUrl = baseUrl + "DesignToolsAutocad/PaletteMode";
             var toolsUrl = baseUrl + "DesignToolsAutocad/PaletteTools";
-            EnsureWindow(ref _mode, modeUrl, 448, 62, 80, 90);
+            EnsureWindow(ref _mode, modeUrl, 492, 62, 80, 90);
             EnsureWindow(ref _tools, toolsUrl, 508, 58, -1, 90);
         }
 
@@ -663,6 +663,13 @@ namespace AutocadPlugin
                     BlockInsertCommand.QueueFromPalette(obj);
                     ApplyBlocksSize(expanded: false);
                     RunAcadCommandWhenIdle(BlockInsertCommand.CommandName);
+                    return true;
+                }
+
+                if (string.Equals(action, "convert-blocks", StringComparison.OrdinalIgnoreCase))
+                {
+                    BlockConvertCommand.QueueFromPalette(obj);
+                    RunAcadCommandWhenIdle(BlockConvertCommand.CommandName);
                     return true;
                 }
 
