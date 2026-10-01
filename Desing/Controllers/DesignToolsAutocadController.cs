@@ -68,13 +68,14 @@ namespace Desing.Controllers
             };
             PluginCadDeviceHelper.WriteCookie(Response, Request, snap);
 
-            var pluginReadyUrl = Url.Action("PluginReady", "DesignToolsAutocad");
+            var pluginReadyUrl = Url.Action("PluginCadAuth", "DesignToolsAutocad");
 
             // No abrir ConexionData aquí: el primer uso del EDMX tarda minutos y deja
             // el splash de AutoCAD en "Comprobando autorización…". Si ya hay cookie
             // Identity en WebView2, entrar; si no, login inmediato.
+            TryWarmEdmxInBackground();
             if (User != null && User.Identity != null && User.Identity.IsAuthenticated)
-                return RedirectToAction("PluginReady");
+                return RedirectToAction("PluginCadAuth");
 
             return RedirectToPluginLogin(pluginReadyUrl, blocked: false);
         }
@@ -90,6 +91,41 @@ namespace Desing.Controllers
             if (inactiveUser)
                 url += "&pluginUserInactive=1";
             return Redirect(url);
+        }
+
+        /// <summary>
+        /// Handshake CAD rápido: sin EDMX ni listados. El menú general sigue en PluginReady.
+        /// </summary>
+        [HttpGet]
+        [Authorize]
+        public ActionResult PluginCadAuth()
+        {
+            TryWarmEdmxInBackground();
+            return View();
+        }
+
+        private static int _edmxWarmStarted;
+
+        private static void TryWarmEdmxInBackground()
+        {
+            if (System.Threading.Interlocked.Exchange(ref _edmxWarmStarted, 1) == 1)
+                return;
+            System.Threading.Tasks.Task.Run(() =>
+            {
+                try
+                {
+                    using (var warmup = new ConexionData())
+                    {
+                        if (warmup.Database.Connection.State != ConnectionState.Open)
+                            warmup.Database.Connection.Open();
+                        warmup.Database.Connection.Close();
+                    }
+                }
+                catch
+                {
+                    System.Threading.Interlocked.Exchange(ref _edmxWarmStarted, 0);
+                }
+            });
         }
 
         private void PersistPluginCompanyLogo(string userId)
@@ -151,6 +187,7 @@ namespace Desing.Controllers
                 Clients = db.TSql_Client_V2.AsNoTracking()
                     .Where(c => !c.Is_Delete && c.Is_Active)
                     .OrderBy(c => c.TextLabel)
+                    .Take(80)
                     .Select(c => new PluginCadLookupItem { Id = c.IdObject, Label = c.TextLabel })
                     .ToList(),
                 Branches = db.TSql_Branch.AsNoTracking()
@@ -224,6 +261,91 @@ namespace Desing.Controllers
             }
         }
 
+        /// <summary>
+        /// Paleta CAD / convert: URL del DWG 3D, 3DRef o Xr según Tsql_Master_Articles.
+        /// </summary>
+        [HttpGet]
+        [AllowAnonymous]
+        public ActionResult PluginBlockDwg(string codeName, string view)
+        {
+            var code = (codeName ?? "").Trim();
+            var kind = (view ?? "3dref").Trim();
+            if (string.IsNullOrWhiteSpace(code))
+                return Json(new { ok = false, url = (string)null }, JsonRequestBehavior.AllowGet);
+
+            var article = FindMasterArticleForPlugin(code);
+            if (article == null)
+                return Json(new { ok = false, url = (string)null, codeName = code }, JsonRequestBehavior.AllowGet);
+
+            string virtualPath;
+            if (string.Equals(kind, "xr", StringComparison.OrdinalIgnoreCase))
+                virtualPath = article.LinkBlockDwgXr;
+            else if (string.Equals(kind, "3d", StringComparison.OrdinalIgnoreCase))
+                virtualPath = FirstNonEmpty(article.LinkBlockDwg3D, article.LinkBlockDwgPlant3D);
+            else
+                virtualPath = FirstNonEmpty(article.LinkBlockDwg3DRef, article.LinkBlockDwgPlant3D);
+
+            var url = ToPublicUrl(virtualPath);
+            return Json(new
+            {
+                ok = !string.IsNullOrWhiteSpace(url),
+                url,
+                codeName = FirstNonEmpty(article.TextCode, code),
+                view = kind
+            }, JsonRequestBehavior.AllowGet);
+        }
+
+        private DAL.Tsql_Master_Articles FindMasterArticleForPlugin(string code)
+        {
+            var rows = db.Tsql_Master_Articles.AsNoTracking()
+                .Where(a => a.AddIsActive)
+                .Where(a =>
+                    a.TextCode == code
+                    || a.TextBlockNumber == code
+                    || a.AddAtenkoCode == code)
+                .Take(8)
+                .ToList();
+            if (rows.Count == 1)
+                return rows[0];
+            if (rows.Count > 1)
+                return rows.FirstOrDefault(a => a.TextCode == code) ?? rows[0];
+
+            var mapped = Atk60CodeNameFromAtenko(code);
+            if (string.IsNullOrWhiteSpace(mapped))
+                return null;
+            return db.Tsql_Master_Articles.AsNoTracking()
+                .FirstOrDefault(a => a.AddIsActive && (a.TextCode == mapped || a.TextBlockNumber == mapped));
+        }
+
+        private static string Atk60CodeNameFromAtenko(string atenko)
+        {
+            if (string.IsNullOrWhiteSpace(atenko))
+                return null;
+            var digits = new string(atenko.Where(char.IsDigit).ToArray());
+            if (digits.Length != 10 || !digits.StartsWith("3120", StringComparison.Ordinal))
+                return null;
+            int h;
+            int w;
+            if (!int.TryParse(digits.Substring(4, 3), out h) || !int.TryParse(digits.Substring(7, 3), out w))
+                return null;
+            if (h == 270 && w == 90) return "27904209";
+            if (h == 270 && w == 60) return "27604207";
+            if (h == 270 && w == 45) return "27454206";
+            if (h == 270 && w == 30) return "27304205";
+            if (h == 240 && w == 90) return "24904240";
+            if (h == 240 && w == 60) return "24604242";
+            if (h == 240 && w == 45) return "24454243";
+            if (h == 240 && w == 30) return "24304244";
+            if (h == 120 && w == 90) return "12904215";
+            if (h == 120 && w == 60) return "12604213";
+            if (h == 120 && w == 45) return "12454212";
+            if (h == 120 && w == 30) return "12304211";
+            if (h == 270 && w == 75) return "27104219";
+            if (h == 240 && w == 75) return "24104224";
+            if (h == 120 && w == 75) return "12104120";
+            return null;
+        }
+
         private bool EnsurePluginCadUser()
         {
             var userId = User.Identity.GetUserId();
@@ -257,7 +379,9 @@ namespace Desing.Controllers
                     || (a.TextStlNumber != null && a.TextStlNumber.Contains(term))
                     || (a.TextBlockNumber != null && a.TextBlockNumber.Contains(term))
                     || (a.LinkBlockDwgPlantStl != null && a.LinkBlockDwgPlantStl.Contains(term))
-                    || (a.LinkBlockDwgPlant3D != null && a.LinkBlockDwgPlant3D.Contains(term)));
+                    || (a.LinkBlockDwg3D != null && a.LinkBlockDwg3D.Contains(term))
+                    || (a.LinkBlockDwg3DRef != null && a.LinkBlockDwg3DRef.Contains(term))
+                    || (a.LinkBlockDwgXr != null && a.LinkBlockDwgXr.Contains(term)));
             }
 
             var rows = query
@@ -318,6 +442,11 @@ namespace Desing.Controllers
             ResolveStlPair(a, out stlUrl, out stlPhenolicUrl);
             string codeName;
             PluginCadAtk60PanelStlHelper.TryGetCodeName(a, out codeName);
+            if (string.IsNullOrWhiteSpace(codeName))
+                codeName = FirstNonEmpty(a.TextCode, a.TextBlockNumber);
+            var dwg3d = ToPublicUrl(FirstNonEmpty(a.LinkBlockDwg3D, a.LinkBlockDwgPlant3D));
+            var dwg3dRef = ToPublicUrl(FirstNonEmpty(a.LinkBlockDwg3DRef, a.LinkBlockDwgPlant3D));
+            var dwgXr = ToPublicUrl(a.LinkBlockDwgXr);
             return new PluginCadBlockRow
             {
                 Id = a.IdObject,
@@ -328,7 +457,10 @@ namespace Desing.Controllers
                 IcoUrl = ResolveIcoUrl(a, storedIco),
                 StlUrl = stlUrl,
                 StlPhenolicUrl = stlPhenolicUrl,
-                DwgUrl = ToPublicUrl(a.LinkBlockDwgPlant3D)
+                DwgUrl = FirstNonEmpty(dwg3d, dwg3dRef, dwgXr),
+                DwgUrl3D = dwg3d,
+                DwgUrl3DRef = dwg3dRef,
+                DwgUrlXr = dwgXr
             };
         }
 
@@ -392,7 +524,7 @@ namespace Desing.Controllers
                     return url;
             }
 
-            var dwg = a.LinkBlockDwgPlant3D;
+            var dwg = FirstNonEmpty(a.LinkBlockDwg3D, a.LinkBlockDwgPlant3D);
             if (!string.IsNullOrWhiteSpace(dwg))
             {
                 var sibling = Path.ChangeExtension(dwg.Trim().Replace('\\', '/'), ".stl");

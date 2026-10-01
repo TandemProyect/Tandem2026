@@ -21,12 +21,9 @@ namespace Desing.Models
         public bool AddIsActive { get; set; }
         public DateTime AddChangeBy { get; set; }
 
-        public string LinkBlockDwgPlant3D { get; set; }
-        public string LinkBlockDwgVerticalElevation3D { get; set; }
-        public string LinkBlockDwgHorizontalElevation3D { get; set; }
-        public string LinkBlockDwgPlantMckUp { get; set; }
-        public string LinkBlockDwgVerticalElevationMockUp { get; set; }
-        public string LinkBlockDwgHorizontalElevationMockUp { get; set; }
+        public string LinkBlockDwg3D { get; set; }
+        public string LinkBlockDwg3DRef { get; set; }
+        public string LinkBlockDwgXr { get; set; }
         public string LinkBlockDwgPlantStl { get; set; }
         public string LinkBlockDwgVerticalElevationStl { get; set; }
         public string LinkBlockDwgHorizontalElevationStl { get; set; }

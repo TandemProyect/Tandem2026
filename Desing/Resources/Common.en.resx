@@ -334,6 +334,9 @@
   <data name="PluginCad_BlocksView3DRef" xml:space="preserve">
     <value>3DRef</value>
   </data>
+  <data name="PluginCad_BlocksViewXr" xml:space="preserve">
+    <value>Xr</value>
+  </data>
   <data name="PluginCad_BlocksViewAlzado" xml:space="preserve">
     <value>Elevation</value>
   </data>
@@ -359,7 +362,7 @@
     <value>Signed in: {0}</value>
   </data>
   <data name="PluginCad_ConvertAria" xml:space="preserve">
-    <value>Change selected blocks to 3D or 3DRef</value>
+    <value>Change selected blocks to 3D, 3DRef or Xr</value>
   </data>
   <data name="PluginCad_ConvertTitle" xml:space="preserve">
     <value>Change block type</value>

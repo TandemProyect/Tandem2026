@@ -1,16 +1,49 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using Newtonsoft.Json.Linq;
 
 namespace AutocadPlugin
 {
     internal static class Atk60DwgResolver
     {
-        public static string ResolveDwg(string codeName, string view)
+        private static readonly Dictionary<string, ArticleDwgUrls> Remembered =
+            new Dictionary<string, ArticleDwgUrls>(StringComparer.OrdinalIgnoreCase);
+
+        public static void RememberArticleUrls(string codeName, string url3d, string url3dRef, string urlXr)
+        {
+            var key = (codeName ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(key))
+                return;
+            Remembered[key] = new ArticleDwgUrls
+            {
+                Url3D = url3d,
+                Url3DRef = url3dRef,
+                UrlXr = urlXr
+            };
+        }
+
+        public static string ResolveDwg(string codeName, string view, string articleUrl = null)
         {
             string folder;
             string file;
             NormalizeView(view, codeName, out folder, out file);
+
+            var fromArticle = TryLocalOrDownload(articleUrl, folder, file);
+            if (!string.IsNullOrWhiteSpace(fromArticle))
+                return fromArticle;
+
+            var remembered = UrlFromRemembered(codeName, view);
+            fromArticle = TryLocalOrDownload(remembered, folder, file);
+            if (!string.IsNullOrWhiteSpace(fromArticle))
+                return fromArticle;
+
+            var fromDb = FetchArticleUrl(codeName, view);
+            fromArticle = TryLocalOrDownload(fromDb, folder, file);
+            if (!string.IsNullOrWhiteSpace(fromArticle))
+                return fromArticle;
+
             foreach (var path in CandidateDwgPaths(folder, file, codeName, view))
             {
                 if (File.Exists(path))
@@ -22,6 +55,34 @@ namespace AutocadPlugin
             var cached = Path.Combine(CacheDir(), folder, file);
             if (TryDownload(url, cached))
                 return cached;
+            var name = (codeName ?? "").Trim();
+            if (string.Equals(folder, "3DRef", StringComparison.OrdinalIgnoreCase))
+            {
+                var dxfFile = name + "R.dxf";
+                var dxfUrl = MvcServerSettings.CurrentUrl()
+                    + "Content/DesignTools/DWG/AtkSystem60/3DRef/" + dxfFile;
+                var dxfCached = Path.Combine(CacheDir(), "3DRef", dxfFile);
+                if (TryDownload(dxfUrl, dxfCached))
+                    return dxfCached;
+            }
+            if (string.Equals(folder, "3D", StringComparison.OrdinalIgnoreCase))
+            {
+                var dxfFile = name + ".dxf";
+                var dxfUrl = MvcServerSettings.CurrentUrl()
+                    + "Content/DesignTools/DWG/AtkSystem60/3D/" + dxfFile;
+                var dxfCached = Path.Combine(CacheDir(), "3D", dxfFile);
+                if (TryDownload(dxfUrl, dxfCached))
+                    return dxfCached;
+            }
+            if (string.Equals(folder, "Xr", StringComparison.OrdinalIgnoreCase))
+            {
+                var dxfFile = name + "X.dxf";
+                var dxfUrl = MvcServerSettings.CurrentUrl()
+                    + "Content/DesignTools/DWG/AtkSystem60/Xr/" + dxfFile;
+                var dxfCached = Path.Combine(CacheDir(), "Xr", dxfFile);
+                if (TryDownload(dxfUrl, dxfCached))
+                    return dxfCached;
+            }
             return null;
         }
 
@@ -55,6 +116,12 @@ namespace AutocadPlugin
                 file = name + ".dwg";
                 return;
             }
+            if (string.Equals(view, "xr", StringComparison.OrdinalIgnoreCase))
+            {
+                folder = "Xr";
+                file = name + "X.dwg";
+                return;
+            }
             folder = "3DRef";
             file = name + "R.dwg";
         }
@@ -62,13 +129,32 @@ namespace AutocadPlugin
         private static System.Collections.Generic.IEnumerable<string> CandidateDwgPaths(
             string folder, string file, string codeName, string view)
         {
+            var name = (codeName ?? "").Trim();
             foreach (var root in LibraryRoots())
             {
                 yield return Path.Combine(root, folder, file);
                 if (string.Equals(folder, "3DRef", StringComparison.OrdinalIgnoreCase))
-                    yield return Path.Combine(root, folder, (codeName ?? "").Trim() + ".dwg");
+                {
+                    yield return Path.Combine(root, folder, name + ".dwg");
+                    yield return Path.Combine(root, folder, name + "R.dxf");
+                    yield return Path.Combine(root, folder, name + ".dxf");
+                }
+                if (string.Equals(folder, "3D", StringComparison.OrdinalIgnoreCase))
+                    yield return Path.Combine(root, folder, name + ".dxf");
+                if (string.Equals(folder, "Xr", StringComparison.OrdinalIgnoreCase))
+                {
+                    yield return Path.Combine(root, folder, name + ".dwg");
+                    yield return Path.Combine(root, folder, name + "X.dxf");
+                    yield return Path.Combine(root, folder, name + ".dxf");
+                }
             }
             yield return Path.Combine(CacheDir(), folder, file);
+            if (string.Equals(folder, "3DRef", StringComparison.OrdinalIgnoreCase))
+                yield return Path.Combine(CacheDir(), folder, name + "R.dxf");
+            if (string.Equals(folder, "3D", StringComparison.OrdinalIgnoreCase))
+                yield return Path.Combine(CacheDir(), folder, name + ".dxf");
+            if (string.Equals(folder, "Xr", StringComparison.OrdinalIgnoreCase))
+                yield return Path.Combine(CacheDir(), folder, name + "X.dxf");
         }
 
         private static System.Collections.Generic.IEnumerable<string> LibraryRoots()
@@ -127,6 +213,96 @@ namespace AutocadPlugin
             {
                 return false;
             }
+        }
+
+        private static string UrlFromRemembered(string codeName, string view)
+        {
+            ArticleDwgUrls set;
+            if (!Remembered.TryGetValue((codeName ?? "").Trim(), out set) || set == null)
+                return null;
+            if (string.Equals(view, "3d", StringComparison.OrdinalIgnoreCase))
+                return set.Url3D;
+            if (string.Equals(view, "xr", StringComparison.OrdinalIgnoreCase))
+                return set.UrlXr;
+            return set.Url3DRef;
+        }
+
+        private static string FetchArticleUrl(string codeName, string view)
+        {
+            try
+            {
+                var q = "DesignToolsAutocad/PluginBlockDwg?codeName="
+                    + Uri.EscapeDataString(codeName ?? "")
+                    + "&view=" + Uri.EscapeDataString(view ?? "3dref");
+                var abs = AbsoluteUrl(q);
+                using (var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = (_, __, ___, ____) => true
+                })
+                using (var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(20) })
+                {
+                    var json = http.GetStringAsync(abs).GetAwaiter().GetResult();
+                    if (string.IsNullOrWhiteSpace(json))
+                        return null;
+                    var obj = JObject.Parse(json);
+                    var url = ((string)obj["url"] ?? (string)obj["Url"] ?? "").Trim();
+                    return string.IsNullOrWhiteSpace(url) ? null : url;
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static string TryLocalOrDownload(string url, string folder, string file)
+        {
+            url = (url ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(url))
+                return null;
+            if (File.Exists(url))
+                return url;
+            try
+            {
+                var abs = AbsoluteUrl(url);
+                var destName = file;
+                try
+                {
+                    var fromUrl = Path.GetFileName(new Uri(abs).AbsolutePath);
+                    if (!string.IsNullOrWhiteSpace(fromUrl))
+                        destName = fromUrl;
+                }
+                catch
+                {
+                }
+                var dest = Path.Combine(CacheDir(), folder, destName);
+                if (TryDownload(abs, dest))
+                    return dest;
+                if (File.Exists(dest))
+                    return dest;
+            }
+            catch
+            {
+            }
+            return null;
+        }
+
+        private static string AbsoluteUrl(string url)
+        {
+            var t = (url ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(t))
+                return t;
+            if (t.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                return t;
+            var root = MvcServerSettings.CurrentUrl().TrimEnd('/');
+            return root + "/" + t.TrimStart('~', '/');
+        }
+
+        private sealed class ArticleDwgUrls
+        {
+            public string Url3D { get; set; }
+            public string Url3DRef { get; set; }
+            public string UrlXr { get; set; }
         }
     }
 }

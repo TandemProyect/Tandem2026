@@ -57,12 +57,9 @@
                         <th>@MasterArticles.Col_StlNumber</th>
                         <th>@MasterArticles.Col_Company</th>
                         <th>@MasterArticles.Col_System</th>
-                        <th>@MasterArticles.Col_Plant3D</th>
-                        <th>@MasterArticles.Col_VertElev3D</th>
-                        <th>@MasterArticles.Col_HorzElev3D</th>
-                        <th>@MasterArticles.Col_PlantMockup</th>
-                        <th>@MasterArticles.Col_VertElevMockup</th>
-                        <th>@MasterArticles.Col_HorzElevMockup</th>
+                        <th>@MasterArticles.Col_Dwg3D</th>
+                        <th>@MasterArticles.Col_Dwg3DRef</th>
+                        <th>@MasterArticles.Col_DwgXr</th>
                         <th>@MasterArticles.Col_PlantStl</th>
                         <th>@MasterArticles.Col_VertElevStl</th>
                         <th>@MasterArticles.Col_HorzElevStl</th>
@@ -253,12 +250,9 @@
                     { data: 'TextStlNumber', name: 'TextStlNumber' },
                     { data: 'CompanyTextLabel', name: 'CompanyTextLabel' },
                     { data: 'System_TextLabel', name: 'System_TextLabel' },
-                    { data: 'LinkBlockDwgPlant3D', name: 'LinkBlockDwgPlant3D', visible: false, orderable: false, searchable: false, render: attachmentRender('LinkBlockDwgPlant3DPlain') },
-                    { data: 'LinkBlockDwgVerticalElevation3D', name: 'LinkBlockDwgVerticalElevation3D', visible: false, orderable: false, searchable: false, render: attachmentRender('LinkBlockDwgVerticalElevation3DPlain') },
-                    { data: 'LinkBlockDwgHorizontalElevation3D', name: 'LinkBlockDwgHorizontalElevation3D', visible: false, orderable: false, searchable: false, render: attachmentRender('LinkBlockDwgHorizontalElevation3DPlain') },
-                    { data: 'LinkBlockDwgPlantMckUp', name: 'LinkBlockDwgPlantMckUp', visible: false, orderable: false, searchable: false, render: attachmentRender('LinkBlockDwgPlantMckUpPlain') },
-                    { data: 'LinkBlockDwgVerticalElevationMockUp', name: 'LinkBlockDwgVerticalElevationMockUp', visible: false, orderable: false, searchable: false, render: attachmentRender('LinkBlockDwgVerticalElevationMockUpPlain') },
-                    { data: 'LinkBlockDwgHorizontalElevationMockUp', name: 'LinkBlockDwgHorizontalElevationMockUp', visible: false, orderable: false, searchable: false, render: attachmentRender('LinkBlockDwgHorizontalElevationMockUpPlain') },
+                    { data: 'LinkBlockDwg3D', name: 'LinkBlockDwg3D', visible: false, orderable: false, searchable: false, render: attachmentRender('LinkBlockDwg3DPlain') },
+                    { data: 'LinkBlockDwg3DRef', name: 'LinkBlockDwg3DRef', visible: false, orderable: false, searchable: false, render: attachmentRender('LinkBlockDwg3DRefPlain') },
+                    { data: 'LinkBlockDwgXr', name: 'LinkBlockDwgXr', visible: false, orderable: false, searchable: false, render: attachmentRender('LinkBlockDwgXrPlain') },
                     { data: 'LinkBlockDwgPlantStl', name: 'LinkBlockDwgPlantStl', visible: false, orderable: false, searchable: false, render: attachmentRender('LinkBlockDwgPlantStlPlain') },
                     { data: 'LinkBlockDwgVerticalElevationStl', name: 'LinkBlockDwgVerticalElevationStl', visible: false, orderable: false, searchable: false, render: attachmentRender('LinkBlockDwgVerticalElevationStlPlain') },
                     { data: 'LinkBlockDwgHorizontalElevationStl', name: 'LinkBlockDwgHorizontalElevationStl', visible: false, orderable: false, searchable: false, render: attachmentRender('LinkBlockDwgHorizontalElevationStlPlain') },

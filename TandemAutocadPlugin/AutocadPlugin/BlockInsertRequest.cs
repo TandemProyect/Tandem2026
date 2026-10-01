@@ -11,6 +11,32 @@ namespace AutocadPlugin
         public string View { get; set; }
         public int RotationDeg { get; set; }
         public string Caption { get; set; }
+        public string DwgUrl { get; set; }
+        public string DwgUrl3D { get; set; }
+        public string DwgUrl3DRef { get; set; }
+        public string DwgUrlXr { get; set; }
+
+        public string UrlForView(string view)
+        {
+            var v = (view ?? "").Trim();
+            if (string.Equals(v, "3d", StringComparison.OrdinalIgnoreCase))
+                return FirstNonEmpty(DwgUrl3D, DwgUrl);
+            if (string.Equals(v, "xr", StringComparison.OrdinalIgnoreCase))
+                return DwgUrlXr;
+            return FirstNonEmpty(DwgUrl3DRef, DwgUrl);
+        }
+
+        private static string FirstNonEmpty(params string[] values)
+        {
+            if (values == null)
+                return "";
+            foreach (var s in values)
+            {
+                if (!string.IsNullOrWhiteSpace(s))
+                    return s.Trim();
+            }
+            return "";
+        }
 
         public bool Is3dRef
         {
@@ -30,7 +56,11 @@ namespace AutocadPlugin
                 Code = ((string)obj["code"] ?? "").Trim(),
                 CodeName = ((string)obj["codeName"] ?? (string)obj["CodeName"] ?? "").Trim(),
                 View = ((string)obj["view"] ?? "3dref").Trim(),
-                Caption = ((string)obj["caption"] ?? "").Trim()
+                Caption = ((string)obj["caption"] ?? "").Trim(),
+                DwgUrl = ((string)obj["dwg"] ?? (string)obj["DwgUrl"] ?? "").Trim(),
+                DwgUrl3D = ((string)obj["dwg3d"] ?? (string)obj["DwgUrl3D"] ?? "").Trim(),
+                DwgUrl3DRef = ((string)obj["dwg3dref"] ?? (string)obj["DwgUrl3DRef"] ?? "").Trim(),
+                DwgUrlXr = ((string)obj["dwgXr"] ?? (string)obj["DwgUrlXr"] ?? "").Trim()
             };
             int rot;
             if (int.TryParse((string)obj["rotation"] ?? (string)obj["rotationDeg"] ?? "0", out rot))
@@ -64,6 +94,13 @@ namespace AutocadPlugin
                     if (h == 240 && w == 60) return "24604242";
                     if (h == 240 && w == 45) return "24454243";
                     if (h == 240 && w == 30) return "24304244";
+                    if (h == 120 && w == 90) return "12904215";
+                    if (h == 120 && w == 60) return "12604213";
+                    if (h == 120 && w == 45) return "12454212";
+                    if (h == 120 && w == 30) return "12304211";
+                    if (h == 270 && w == 75) return "27104219";
+                    if (h == 240 && w == 75) return "24104224";
+                    if (h == 120 && w == 75) return "12104120";
                 }
             }
             return "";

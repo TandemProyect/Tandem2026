@@ -29,7 +29,7 @@ namespace Desing.Models
 
     public class MasterArticleAttachmentSlot
     {
-        /// <summary>Clave de propiedad (p. ej. LinkBlockDwgPlant3D).</summary>
+        /// <summary>Clave de propiedad (p. ej. LinkBlockDwg3D).</summary>
         public string SlotKey { get; set; }
         public string Label { get; set; }
         public string VirtualPath { get; set; }

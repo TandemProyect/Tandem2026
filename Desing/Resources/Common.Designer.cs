@@ -135,6 +135,7 @@ namespace Desing.Resources
         public static string PluginCad_BlocksTitle => ResourceManager.GetString(nameof(PluginCad_BlocksTitle), resourceCulture);
         public static string PluginCad_BlocksView3D => ResourceManager.GetString(nameof(PluginCad_BlocksView3D), resourceCulture);
         public static string PluginCad_BlocksView3DRef => ResourceManager.GetString(nameof(PluginCad_BlocksView3DRef), resourceCulture);
+        public static string PluginCad_BlocksViewXr => ResourceManager.GetString(nameof(PluginCad_BlocksViewXr), resourceCulture);
         public static string PluginCad_BlocksViewAlzado => ResourceManager.GetString(nameof(PluginCad_BlocksViewAlzado), resourceCulture);
         public static string PluginCad_BlocksViewLabel => ResourceManager.GetString(nameof(PluginCad_BlocksViewLabel), resourceCulture);
         public static string PluginCad_BlocksViewPlanta => ResourceManager.GetString(nameof(PluginCad_BlocksViewPlanta), resourceCulture);

@@ -52,6 +52,9 @@ namespace Desing.Models
         public string StlUrl { get; set; }
         public string StlPhenolicUrl { get; set; }
         public string DwgUrl { get; set; }
+        public string DwgUrl3D { get; set; }
+        public string DwgUrl3DRef { get; set; }
+        public string DwgUrlXr { get; set; }
     }
 
     public sealed class PluginCadArticleIcoRow

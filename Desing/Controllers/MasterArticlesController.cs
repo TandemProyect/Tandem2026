@@ -29,14 +29,14 @@ namespace Desing.Controllers
     {
         private const long BlockFileMaxBytes = 50L * 1024 * 1024;
 
+        private const string BindArticleFields =
+            "TextCode,TextLabel,NumberHigh,NumberWidth,NumberLong,NumberWeight,NumberMts2,NumberMts3,TextBlockNumber,TextStlNumber,TextColor1,TextColor2,LinkSystem,AddIsActive,AddAtenkoCode,IInsertinMaterArticles,LinkBlockDwg3D,LinkBlockDwg3DRef,LinkBlockDwgXr,LinkBlockDwgPlantStl,LinkBlockDwgVerticalElevationStl,LinkBlockDwgHorizontalElevationStl";
+
         private static readonly string[] BlockLinkKeys =
         {
-            "LinkBlockDwgPlant3D",
-            "LinkBlockDwgVerticalElevation3D",
-            "LinkBlockDwgHorizontalElevation3D",
-            "LinkBlockDwgPlantMckUp",
-            "LinkBlockDwgVerticalElevationMockUp",
-            "LinkBlockDwgHorizontalElevationMockUp",
+            "LinkBlockDwg3D",
+            "LinkBlockDwg3DRef",
+            "LinkBlockDwgXr",
             "LinkBlockDwgPlantStl",
             "LinkBlockDwgVerticalElevationStl",
             "LinkBlockDwgHorizontalElevationStl"
@@ -44,12 +44,9 @@ namespace Desing.Controllers
 
         private static readonly HashSet<string> BlockLinkKeysDwgOnly = new HashSet<string>(StringComparer.Ordinal)
         {
-            "LinkBlockDwgPlant3D",
-            "LinkBlockDwgVerticalElevation3D",
-            "LinkBlockDwgHorizontalElevation3D",
-            "LinkBlockDwgPlantMckUp",
-            "LinkBlockDwgVerticalElevationMockUp",
-            "LinkBlockDwgHorizontalElevationMockUp"
+            "LinkBlockDwg3D",
+            "LinkBlockDwg3DRef",
+            "LinkBlockDwgXr"
         };
 
         private static readonly HashSet<string> BlockLinkKeysStlOnly = new HashSet<string>(StringComparer.Ordinal)
@@ -152,7 +149,7 @@ namespace Desing.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "TextCode,TextLabel,NumberHigh,NumberWidth,NumberLong,NumberWeight,NumberMts2,NumberMts3,TextBlockNumber,TextStlNumber,TextColor1,TextColor2,LinkSystem,AddIsActive,AddAtenkoCode,IInsertinMaterArticles,LinkBlockDwgPlant3D,LinkBlockDwgVerticalElevation3D,LinkBlockDwgHorizontalElevation3D,LinkBlockDwgPlantMckUp,LinkBlockDwgVerticalElevationMockUp,LinkBlockDwgHorizontalElevationMockUp,LinkBlockDwgPlantStl,LinkBlockDwgVerticalElevationStl,LinkBlockDwgHorizontalElevationStl")] DAL.Tsql_Master_Articles model)
+        public ActionResult Create([Bind(Include = BindArticleFields)] DAL.Tsql_Master_Articles model)
         {
             model.TextCode = (model.TextCode ?? string.Empty).Trim();
             model.TextLabel = (model.TextLabel ?? string.Empty).Trim();
@@ -272,7 +269,7 @@ namespace Desing.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "IdObject,TextCode,TextLabel,NumberHigh,NumberWidth,NumberLong,NumberWeight,NumberMts2,NumberMts3,TextBlockNumber,TextStlNumber,TextColor1,TextColor2,LinkSystem,AddIsActive,AddAtenkoCode,IInsertinMaterArticles,LinkBlockDwgPlant3D,LinkBlockDwgVerticalElevation3D,LinkBlockDwgHorizontalElevation3D,LinkBlockDwgPlantMckUp,LinkBlockDwgVerticalElevationMockUp,LinkBlockDwgHorizontalElevationMockUp,LinkBlockDwgPlantStl,LinkBlockDwgVerticalElevationStl,LinkBlockDwgHorizontalElevationStl")] DAL.Tsql_Master_Articles model)
+        public ActionResult Edit([Bind(Include = "IdObject," + BindArticleFields)] DAL.Tsql_Master_Articles model)
         {
             var article = db.Tsql_Master_Articles.FirstOrDefault(a => a.IdObject == model.IdObject);
             if (article == null)
@@ -548,12 +545,9 @@ namespace Desing.Controllers
 
         private static void CopyLinkStringsFromModel(DAL.Tsql_Master_Articles article, DAL.Tsql_Master_Articles model)
         {
-            article.LinkBlockDwgPlant3D = string.IsNullOrWhiteSpace(model.LinkBlockDwgPlant3D) ? null : model.LinkBlockDwgPlant3D.Trim();
-            article.LinkBlockDwgVerticalElevation3D = string.IsNullOrWhiteSpace(model.LinkBlockDwgVerticalElevation3D) ? null : model.LinkBlockDwgVerticalElevation3D.Trim();
-            article.LinkBlockDwgHorizontalElevation3D = string.IsNullOrWhiteSpace(model.LinkBlockDwgHorizontalElevation3D) ? null : model.LinkBlockDwgHorizontalElevation3D.Trim();
-            article.LinkBlockDwgPlantMckUp = string.IsNullOrWhiteSpace(model.LinkBlockDwgPlantMckUp) ? null : model.LinkBlockDwgPlantMckUp.Trim();
-            article.LinkBlockDwgVerticalElevationMockUp = string.IsNullOrWhiteSpace(model.LinkBlockDwgVerticalElevationMockUp) ? null : model.LinkBlockDwgVerticalElevationMockUp.Trim();
-            article.LinkBlockDwgHorizontalElevationMockUp = string.IsNullOrWhiteSpace(model.LinkBlockDwgHorizontalElevationMockUp) ? null : model.LinkBlockDwgHorizontalElevationMockUp.Trim();
+            article.LinkBlockDwg3D = string.IsNullOrWhiteSpace(model.LinkBlockDwg3D) ? null : model.LinkBlockDwg3D.Trim();
+            article.LinkBlockDwg3DRef = string.IsNullOrWhiteSpace(model.LinkBlockDwg3DRef) ? null : model.LinkBlockDwg3DRef.Trim();
+            article.LinkBlockDwgXr = string.IsNullOrWhiteSpace(model.LinkBlockDwgXr) ? null : model.LinkBlockDwgXr.Trim();
             article.LinkBlockDwgPlantStl = string.IsNullOrWhiteSpace(model.LinkBlockDwgPlantStl) ? null : model.LinkBlockDwgPlantStl.Trim();
             article.LinkBlockDwgVerticalElevationStl = string.IsNullOrWhiteSpace(model.LinkBlockDwgVerticalElevationStl) ? null : model.LinkBlockDwgVerticalElevationStl.Trim();
             article.LinkBlockDwgHorizontalElevationStl = string.IsNullOrWhiteSpace(model.LinkBlockDwgHorizontalElevationStl) ? null : model.LinkBlockDwgHorizontalElevationStl.Trim();
@@ -703,12 +697,9 @@ namespace Desing.Controllers
         {
             switch (key)
             {
-                case "LinkBlockDwgPlant3D": article.LinkBlockDwgPlant3D = value; break;
-                case "LinkBlockDwgVerticalElevation3D": article.LinkBlockDwgVerticalElevation3D = value; break;
-                case "LinkBlockDwgHorizontalElevation3D": article.LinkBlockDwgHorizontalElevation3D = value; break;
-                case "LinkBlockDwgPlantMckUp": article.LinkBlockDwgPlantMckUp = value; break;
-                case "LinkBlockDwgVerticalElevationMockUp": article.LinkBlockDwgVerticalElevationMockUp = value; break;
-                case "LinkBlockDwgHorizontalElevationMockUp": article.LinkBlockDwgHorizontalElevationMockUp = value; break;
+                case "LinkBlockDwg3D": article.LinkBlockDwg3D = value; break;
+                case "LinkBlockDwg3DRef": article.LinkBlockDwg3DRef = value; break;
+                case "LinkBlockDwgXr": article.LinkBlockDwgXr = value; break;
                 case "LinkBlockDwgPlantStl": article.LinkBlockDwgPlantStl = value; break;
                 case "LinkBlockDwgVerticalElevationStl": article.LinkBlockDwgVerticalElevationStl = value; break;
                 case "LinkBlockDwgHorizontalElevationStl": article.LinkBlockDwgHorizontalElevationStl = value; break;
@@ -844,12 +835,9 @@ namespace Desing.Controllers
                 var kind = p == null ? "none" : AttachmentViewerKind(p, defaultKind);
                 list.Add(new MasterArticleAttachmentSlot { SlotKey = slotKey, Label = label, VirtualPath = p, ViewerKind = kind });
             }
-            slot("LinkBlockDwgPlant3D", MasterArticles.BlockSlot_Plant3D, a.LinkBlockDwgPlant3D, "dwg");
-            slot("LinkBlockDwgVerticalElevation3D", MasterArticles.BlockSlot_VertElev3D, a.LinkBlockDwgVerticalElevation3D, "dwg");
-            slot("LinkBlockDwgHorizontalElevation3D", MasterArticles.BlockSlot_HorzElev3D, a.LinkBlockDwgHorizontalElevation3D, "dwg");
-            slot("LinkBlockDwgPlantMckUp", MasterArticles.BlockSlot_PlantMockup, a.LinkBlockDwgPlantMckUp, "dwg");
-            slot("LinkBlockDwgVerticalElevationMockUp", MasterArticles.BlockSlot_VertElevMockup, a.LinkBlockDwgVerticalElevationMockUp, "dwg");
-            slot("LinkBlockDwgHorizontalElevationMockUp", MasterArticles.BlockSlot_HorzElevMockup, a.LinkBlockDwgHorizontalElevationMockUp, "dwg");
+            slot("LinkBlockDwg3D", MasterArticles.BlockSlot_3D, a.LinkBlockDwg3D, "dwg");
+            slot("LinkBlockDwg3DRef", MasterArticles.BlockSlot_3DRef, a.LinkBlockDwg3DRef, "dwg");
+            slot("LinkBlockDwgXr", MasterArticles.BlockSlot_Xr, a.LinkBlockDwgXr, "dwg");
             slot("LinkBlockDwgPlantStl", MasterArticles.Col_PlantStl, a.LinkBlockDwgPlantStl, "stl");
             slot("LinkBlockDwgVerticalElevationStl", MasterArticles.Col_VertElevStl, a.LinkBlockDwgVerticalElevationStl, "stl");
             slot("LinkBlockDwgHorizontalElevationStl", MasterArticles.Col_HorzElevStl, a.LinkBlockDwgHorizontalElevationStl, "stl");
@@ -1001,12 +989,9 @@ namespace Desing.Controllers
         {
             switch (slotKey)
             {
-                case "LinkBlockDwgPlant3D": return a.LinkBlockDwgPlant3D;
-                case "LinkBlockDwgVerticalElevation3D": return a.LinkBlockDwgVerticalElevation3D;
-                case "LinkBlockDwgHorizontalElevation3D": return a.LinkBlockDwgHorizontalElevation3D;
-                case "LinkBlockDwgPlantMckUp": return a.LinkBlockDwgPlantMckUp;
-                case "LinkBlockDwgVerticalElevationMockUp": return a.LinkBlockDwgVerticalElevationMockUp;
-                case "LinkBlockDwgHorizontalElevationMockUp": return a.LinkBlockDwgHorizontalElevationMockUp;
+                case "LinkBlockDwg3D": return a.LinkBlockDwg3D;
+                case "LinkBlockDwg3DRef": return a.LinkBlockDwg3DRef;
+                case "LinkBlockDwgXr": return a.LinkBlockDwgXr;
                 case "LinkBlockDwgPlantStl": return a.LinkBlockDwgPlantStl;
                 case "LinkBlockDwgVerticalElevationStl": return a.LinkBlockDwgVerticalElevationStl;
                 case "LinkBlockDwgHorizontalElevationStl": return a.LinkBlockDwgHorizontalElevationStl;
@@ -1058,12 +1043,9 @@ namespace Desing.Controllers
                                                           TextStlNumber = masterArticles.TextStlNumber,
                                                           AddChangeBy = masterArticles.AddLastDateChange,
                                                           AddIsActive = masterArticles.AddIsActive,
-                                                          LinkBlockDwgPlant3D = masterArticles.LinkBlockDwgPlant3D,
-                                                          LinkBlockDwgVerticalElevation3D = masterArticles.LinkBlockDwgVerticalElevation3D,
-                                                          LinkBlockDwgHorizontalElevation3D = masterArticles.LinkBlockDwgHorizontalElevation3D,
-                                                          LinkBlockDwgPlantMckUp = masterArticles.LinkBlockDwgPlantMckUp,
-                                                          LinkBlockDwgVerticalElevationMockUp = masterArticles.LinkBlockDwgVerticalElevationMockUp,
-                                                          LinkBlockDwgHorizontalElevationMockUp = masterArticles.LinkBlockDwgHorizontalElevationMockUp,
+                                                          LinkBlockDwg3D = masterArticles.LinkBlockDwg3D,
+                                                          LinkBlockDwg3DRef = masterArticles.LinkBlockDwg3DRef,
+                                                          LinkBlockDwgXr = masterArticles.LinkBlockDwgXr,
                                                           LinkBlockDwgPlantStl = masterArticles.LinkBlockDwgPlantStl,
                                                           LinkBlockDwgVerticalElevationStl = masterArticles.LinkBlockDwgVerticalElevationStl,
                                                           LinkBlockDwgHorizontalElevationStl = masterArticles.LinkBlockDwgHorizontalElevationStl,
@@ -1089,12 +1071,9 @@ namespace Desing.Controllers
                                              (p.TextStlNumber != null && p.TextStlNumber.Contains(value)) ||
                                              p.AddChangeBy.ToString().Contains(value) ||
                                              p.AddIsActive.ToString().Contains(value) ||
-                                             (p.LinkBlockDwgPlant3D != null && p.LinkBlockDwgPlant3D.Contains(value)) ||
-                                             (p.LinkBlockDwgVerticalElevation3D != null && p.LinkBlockDwgVerticalElevation3D.Contains(value)) ||
-                                             (p.LinkBlockDwgHorizontalElevation3D != null && p.LinkBlockDwgHorizontalElevation3D.Contains(value)) ||
-                                             (p.LinkBlockDwgPlantMckUp != null && p.LinkBlockDwgPlantMckUp.Contains(value)) ||
-                                             (p.LinkBlockDwgVerticalElevationMockUp != null && p.LinkBlockDwgVerticalElevationMockUp.Contains(value)) ||
-                                             (p.LinkBlockDwgHorizontalElevationMockUp != null && p.LinkBlockDwgHorizontalElevationMockUp.Contains(value)) ||
+                                             (p.LinkBlockDwg3D != null && p.LinkBlockDwg3D.Contains(value)) ||
+                                             (p.LinkBlockDwg3DRef != null && p.LinkBlockDwg3DRef.Contains(value)) ||
+                                             (p.LinkBlockDwgXr != null && p.LinkBlockDwgXr.Contains(value)) ||
                                              (p.LinkBlockDwgPlantStl != null && p.LinkBlockDwgPlantStl.Contains(value)) ||
                                              (p.LinkBlockDwgVerticalElevationStl != null && p.LinkBlockDwgVerticalElevationStl.Contains(value)) ||
                                              (p.LinkBlockDwgHorizontalElevationStl != null && p.LinkBlockDwgHorizontalElevationStl.Contains(value)) ||
@@ -1125,12 +1104,9 @@ namespace Desing.Controllers
                         case "TextStlNumber": orderColumn = "TextStlNumber"; break;
                         case "AddChangeBy": orderColumn = "AddChangeBy"; break;
                         case "AddIsActive": orderColumn = "AddIsActive"; break;
-                        case "LinkBlockDwgPlant3D": orderColumn = "LinkBlockDwgPlant3D"; break;
-                        case "LinkBlockDwgVerticalElevation3D": orderColumn = "LinkBlockDwgVerticalElevation3D"; break;
-                        case "LinkBlockDwgHorizontalElevation3D": orderColumn = "LinkBlockDwgHorizontalElevation3D"; break;
-                        case "LinkBlockDwgPlantMckUp": orderColumn = "LinkBlockDwgPlantMckUp"; break;
-                        case "LinkBlockDwgVerticalElevationMockUp": orderColumn = "LinkBlockDwgVerticalElevationMockUp"; break;
-                        case "LinkBlockDwgHorizontalElevationMockUp": orderColumn = "LinkBlockDwgHorizontalElevationMockUp"; break;
+                        case "LinkBlockDwg3D": orderColumn = "LinkBlockDwg3D"; break;
+                        case "LinkBlockDwg3DRef": orderColumn = "LinkBlockDwg3DRef"; break;
+                        case "LinkBlockDwgXr": orderColumn = "LinkBlockDwgXr"; break;
                         case "LinkBlockDwgPlantStl": orderColumn = "LinkBlockDwgPlantStl"; break;
                         case "LinkBlockDwgVerticalElevationStl": orderColumn = "LinkBlockDwgVerticalElevationStl"; break;
                         case "LinkBlockDwgHorizontalElevationStl": orderColumn = "LinkBlockDwgHorizontalElevationStl"; break;
@@ -1243,18 +1219,12 @@ namespace Desing.Controllers
                         TextStlNumber = p.TextStlNumber,
                         AddChangeBy = p.AddChangeBy,
                         AddIsActive = p.AddIsActive,
-                        LinkBlockDwgPlant3D = ArticleLinkCellHtml(p.LinkBlockDwgPlant3D),
-                        LinkBlockDwgPlant3DPlain = ArticleLinkCellPlain(p.LinkBlockDwgPlant3D),
-                        LinkBlockDwgVerticalElevation3D = ArticleLinkCellHtml(p.LinkBlockDwgVerticalElevation3D),
-                        LinkBlockDwgVerticalElevation3DPlain = ArticleLinkCellPlain(p.LinkBlockDwgVerticalElevation3D),
-                        LinkBlockDwgHorizontalElevation3D = ArticleLinkCellHtml(p.LinkBlockDwgHorizontalElevation3D),
-                        LinkBlockDwgHorizontalElevation3DPlain = ArticleLinkCellPlain(p.LinkBlockDwgHorizontalElevation3D),
-                        LinkBlockDwgPlantMckUp = ArticleLinkCellHtml(p.LinkBlockDwgPlantMckUp),
-                        LinkBlockDwgPlantMckUpPlain = ArticleLinkCellPlain(p.LinkBlockDwgPlantMckUp),
-                        LinkBlockDwgVerticalElevationMockUp = ArticleLinkCellHtml(p.LinkBlockDwgVerticalElevationMockUp),
-                        LinkBlockDwgVerticalElevationMockUpPlain = ArticleLinkCellPlain(p.LinkBlockDwgVerticalElevationMockUp),
-                        LinkBlockDwgHorizontalElevationMockUp = ArticleLinkCellHtml(p.LinkBlockDwgHorizontalElevationMockUp),
-                        LinkBlockDwgHorizontalElevationMockUpPlain = ArticleLinkCellPlain(p.LinkBlockDwgHorizontalElevationMockUp),
+                        LinkBlockDwg3D = ArticleLinkCellHtml(p.LinkBlockDwg3D),
+                        LinkBlockDwg3DPlain = ArticleLinkCellPlain(p.LinkBlockDwg3D),
+                        LinkBlockDwg3DRef = ArticleLinkCellHtml(p.LinkBlockDwg3DRef),
+                        LinkBlockDwg3DRefPlain = ArticleLinkCellPlain(p.LinkBlockDwg3DRef),
+                        LinkBlockDwgXr = ArticleLinkCellHtml(p.LinkBlockDwgXr),
+                        LinkBlockDwgXrPlain = ArticleLinkCellPlain(p.LinkBlockDwgXr),
                         LinkBlockDwgPlantStl = ArticleLinkCellHtml(p.LinkBlockDwgPlantStl),
                         LinkBlockDwgPlantStlPlain = ArticleLinkCellPlain(p.LinkBlockDwgPlantStl),
                         LinkBlockDwgVerticalElevationStl = ArticleLinkCellHtml(p.LinkBlockDwgVerticalElevationStl),

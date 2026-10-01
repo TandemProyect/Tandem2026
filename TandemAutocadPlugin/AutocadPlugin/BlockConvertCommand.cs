@@ -14,7 +14,7 @@ using AcadApp = Autodesk.AutoCAD.ApplicationServices.Application;
 namespace AutocadPlugin
 {
     /// <summary>
-    /// Cambia la vista (3D / 3DRef) de los bloques Tandem seleccionados.
+    /// Cambia el tipo (3D / 3DRef / Xr) de los bloques Tandem seleccionados.
     /// Conserva punto, rotación y escala; borra e inserta el DWG destino.
     /// </summary>
     public class BlockConvertCommand
@@ -37,7 +37,7 @@ namespace AutocadPlugin
             try
             {
                 pop = TandemMiniPopup.ShowTop("Cambiar tipo");
-                pop.ShowPrompt("Selecciona los artículos e Intro.");
+                pop.ShowPrompt("Selecciona los artículos a cambiar y pulsa la tecla Intro");
                 BlockInsertCommand.FocusDrawing();
 
                 var ids = GatherSelection(ed);
@@ -55,7 +55,8 @@ namespace AutocadPlugin
                 pop.ShowChoices(msg, new List<KeyValuePair<string, string>>
                 {
                     new KeyValuePair<string, string>("3d", "3D"),
-                    new KeyValuePair<string, string>("3dref", "3DRef")
+                    new KeyValuePair<string, string>("3dref", "3DRef"),
+                    new KeyValuePair<string, string>("xr", "Xr")
                 });
                 var picked = pop.WaitForChoice();
                 if (string.IsNullOrWhiteSpace(picked) || pop.IsCancelled)
@@ -70,7 +71,8 @@ namespace AutocadPlugin
                 int skipped;
                 int failed;
                 ConvertMany(doc, ed, ids, target, out changed, out skipped, out failed);
-                ed.WriteMessage("\n[Tandem] Cambiados a " + (target == "3d" ? "3D" : "3DRef")
+                var targetLabel = target == "3d" ? "3D" : (target == "xr" ? "Xr" : "3DRef");
+                ed.WriteMessage("\n[Tandem] Cambiados a " + targetLabel
                     + ": " + changed
                     + (skipped > 0 ? ", ya eran ese tipo: " + skipped : "")
                     + (failed > 0 ? ", sin DWG: " + failed : "")

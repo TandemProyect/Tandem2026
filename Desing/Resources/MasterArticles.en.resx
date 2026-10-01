@@ -4,6 +4,12 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="BlockSlot_3D" xml:space="preserve">
+    <value>3D</value>
+  </data>
+  <data name="BlockSlot_3DRef" xml:space="preserve">
+    <value>3DRef</value>
+  </data>
   <data name="BlockSlot_HorzElev3D" xml:space="preserve">
     <value>Horizontal elevation 3D</value>
   </data>
@@ -39,6 +45,9 @@
   </data>
   <data name="BlockSlot_VertElevStl" xml:space="preserve">
     <value>Vertical elevation — .stl file</value>
+  </data>
+  <data name="BlockSlot_Xr" xml:space="preserve">
+    <value>Xr</value>
   </data>
   <data name="Btn_BackToList" xml:space="preserve">
     <value>Back to list</value>
@@ -99,6 +108,15 @@
   </data>
   <data name="Col_Mts3" xml:space="preserve">
     <value>M³</value>
+  </data>
+  <data name="Col_Dwg3D" xml:space="preserve">
+    <value>DWG 3D</value>
+  </data>
+  <data name="Col_Dwg3DRef" xml:space="preserve">
+    <value>DWG 3DRef</value>
+  </data>
+  <data name="Col_DwgXr" xml:space="preserve">
+    <value>DWG Xr</value>
   </data>
   <data name="Col_Plant3D" xml:space="preserve">
     <value>Plan 3D</value>
@@ -260,7 +278,7 @@
     <value>Atenko code</value>
   </data>
   <data name="Lbl_BlockDwgFilesHelp" xml:space="preserve">
-    <value>These .dwg files are work files (e.g. with ZWCAD). They are saved in the shared folder Files/MasterArticles/blocks with the same name you attach. In the details view, the preview uses the sibling DXF (.dxf next to the .dwg).</value>
+    <value>Three block types: 3D (solids), 3DRef (reference) and Xr. Attach .dwg files here or point to Content/DesignTools/DWG/AtkSystem60. The old plan/elevation/mock-up columns are no longer on this form.</value>
   </data>
   <data name="Lbl_BlockDwgFilesSection" xml:space="preserve">
     <value>Block files — AutoCAD (only .dwg)</value>

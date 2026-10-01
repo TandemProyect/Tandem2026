@@ -45,6 +45,10 @@ namespace DAL
         public string LinkBlockDwgVerticalElevationStl { get; set; }
         public string LinkBlockDwgHorizontalElevationStl { get; set; }
         public bool IInsertinMaterArticles { get; set; }
+        public string LinkBlockDwg3D { get; set; }
+        public string LinkBlockDwg3DRef { get; set; }
+        public string LinkBlockDwgXr { get; set; }
+        public string ImgIco { get; set; }
     
         public virtual AspNetUsers AspNetUsers { get; set; }
         public virtual AspNetUsers AspNetUsers1 { get; set; }

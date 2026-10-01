@@ -435,6 +435,9 @@
                         data-stl="@row.StlUrl"
                         data-stl-phenolic="@row.StlPhenolicUrl"
                         data-dwg="@row.DwgUrl"
+                        data-dwg-3d="@row.DwgUrl3D"
+                        data-dwg-3dref="@row.DwgUrl3DRef"
+                        data-dwg-xr="@row.DwgUrlXr"
                         data-code="@row.Code"
                         data-code-name="@row.CodeName"
                         data-caption="@row.Caption">
@@ -514,6 +517,7 @@
             <div class="plugin-blocks__seg" id="plugin-blocks-view" role="group" aria-label="@Common.PluginCad_BlocksViewLabel">
                 <button type="button" class="plugin-blocks__seg-btn" data-view="3d">@Common.PluginCad_BlocksView3D</button>
                 <button type="button" class="plugin-blocks__seg-btn is-on" data-view="3dref">@Common.PluginCad_BlocksView3DRef</button>
+                <button type="button" class="plugin-blocks__seg-btn" data-view="xr">@Common.PluginCad_BlocksViewXr</button>
                 <button type="button" class="plugin-blocks__seg-btn" data-view="alzado" disabled title="@Common.PluginCad_BlocksViewSoon">@Common.PluginCad_BlocksViewAlzado</button>
                 <button type="button" class="plugin-blocks__seg-btn" data-view="planta" disabled title="@Common.PluginCad_BlocksViewSoon">@Common.PluginCad_BlocksViewPlanta</button>
             </div>
@@ -621,6 +625,9 @@
                     btn.setAttribute('data-stl', row.StlUrl || row.stlUrl || '');
                     btn.setAttribute('data-stl-phenolic', row.StlPhenolicUrl || row.stlPhenolicUrl || '');
                     btn.setAttribute('data-dwg', row.DwgUrl || row.dwgUrl || '');
+                    btn.setAttribute('data-dwg-3d', row.DwgUrl3D || row.dwgUrl3D || '');
+                    btn.setAttribute('data-dwg-3dref', row.DwgUrl3DRef || row.dwgUrl3DRef || '');
+                    btn.setAttribute('data-dwg-xr', row.DwgUrlXr || row.dwgUrlXr || '');
                     btn.setAttribute('data-code', row.Code || row.code || '');
                     btn.setAttribute('data-code-name', row.CodeName || row.codeName || '');
                     btn.setAttribute('data-caption', row.Caption || row.caption || '');
@@ -639,6 +646,9 @@
                     stl: btn.getAttribute('data-stl') || '',
                     stlPhenolic: btn.getAttribute('data-stl-phenolic') || '',
                     dwg: btn.getAttribute('data-dwg') || '',
+                    dwg3d: btn.getAttribute('data-dwg-3d') || '',
+                    dwg3dref: btn.getAttribute('data-dwg-3dref') || '',
+                    dwgXr: btn.getAttribute('data-dwg-xr') || '',
                     code: btn.getAttribute('data-code') || '',
                     codeName: btn.getAttribute('data-code-name') || '',
                     caption: btn.getAttribute('data-caption') || ''
@@ -720,6 +730,9 @@
                     code: selected.code || '',
                     codeName: selected.codeName || '',
                     dwg: selected.dwg,
+                    dwg3d: selected.dwg3d || '',
+                    dwg3dref: selected.dwg3dref || '',
+                    dwgXr: selected.dwgXr || '',
                     caption: selected.caption,
                     view: insertView,
                     rotation: insertRot

@@ -674,6 +674,10 @@
           <Property Name="LinkBlockDwgVerticalElevation3ds" Type="nvarchar" MaxLength="500" />
           <Property Name="LinkBlockDwgHorizontalElevation3ds" Type="nvarchar" MaxLength="500" />
           <Property Name="IInsertinMaterArticles" Type="bit" Nullable="false" />
+          <Property Name="LinkBlockDwg3D" Type="nvarchar" MaxLength="500" />
+          <Property Name="LinkBlockDwg3DRef" Type="nvarchar" MaxLength="500" />
+          <Property Name="LinkBlockDwgXr" Type="nvarchar" MaxLength="500" />
+          <Property Name="ImgIco" Type="nvarchar" MaxLength="500" />
         </EntityType>
         <EntityType Name="TSql_Offers">
           <Key>
@@ -4777,6 +4781,10 @@
           <Property Name="LinkBlockDwgVerticalElevationStl" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
           <Property Name="LinkBlockDwgHorizontalElevationStl" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
           <Property Name="IInsertinMaterArticles" Type="Boolean" Nullable="false" />
+          <Property Name="LinkBlockDwg3D" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="LinkBlockDwg3DRef" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="LinkBlockDwgXr" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="ImgIco" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_Tsql_Master_Articles_AspNetUsers" FromRole="Tsql_Master_Articles" ToRole="AspNetUsers" />
           <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_Tsql_Master_Articles_AspNetUsers1" FromRole="Tsql_Master_Articles" ToRole="AspNetUsers" />
           <NavigationProperty Name="TSql_System" Relationship="DesingEntity.FK_Tsql_Master_Articles_TSql_System" FromRole="Tsql_Master_Articles" ToRole="TSql_System" />
@@ -6484,43 +6492,6 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="Tsql_Master_Articles">
-            <EntityTypeMapping TypeName="DesingEntity.Tsql_Master_Articles">
-              <MappingFragment StoreEntitySet="Tsql_Master_Articles">
-                <ScalarProperty Name="IInsertinMaterArticles" ColumnName="IInsertinMaterArticles" />
-                <ScalarProperty Name="LinkBlockDwgHorizontalElevationStl" ColumnName="LinkBlockDwgHorizontalElevation3ds" />
-                <ScalarProperty Name="LinkBlockDwgVerticalElevationStl" ColumnName="LinkBlockDwgVerticalElevation3ds" />
-                <ScalarProperty Name="LinkBlockDwgPlantStl" ColumnName="LinkBlockDwgPlant3ds" />
-                <ScalarProperty Name="LinkBlockDwgHorizontalElevationMockUp" ColumnName="LinkBlockDwgHorizontalElevationMock-up" />
-                <ScalarProperty Name="LinkBlockDwgVerticalElevationMockUp" ColumnName="LinkBlockDwgVerticalElevationMock-up" />
-                <ScalarProperty Name="LinkBlockDwgPlantMckUp" ColumnName="LinkBlockDwgPlantMck-up" />
-                <ScalarProperty Name="LinkBlockDwgHorizontalElevation3D" ColumnName="LinkBlockDwgHorizontalElevation3D" />
-                <ScalarProperty Name="LinkBlockDwgVerticalElevation3D" ColumnName="LinkBlockDwgVerticalElevation3D" />
-                <ScalarProperty Name="LinkBlockDwgPlant3D" ColumnName="LinkBlockDwgPlant3D" />
-                <ScalarProperty Name="LinkSystem" ColumnName="LinkSystem" />
-                <ScalarProperty Name="AddIsActive" ColumnName="AddIsActive" />
-                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
-                <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
-                <ScalarProperty Name="AddChangeBy" ColumnName="AddChangeBy" />
-                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
-                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
-                <ScalarProperty Name="NumberMts3" ColumnName="NumberMts3" />
-                <ScalarProperty Name="NumberMts2" ColumnName="NumberMts2" />
-                <ScalarProperty Name="TextColor2" ColumnName="TextColor2" />
-                <ScalarProperty Name="TextColor1" ColumnName="TextColor1" />
-                <ScalarProperty Name="TextStlNumber" ColumnName="TextStlNumber" />
-                <ScalarProperty Name="TextBlockNumber" ColumnName="TextBlockNumber" />
-                <ScalarProperty Name="NumberWeight" ColumnName="NumberWeight" />
-                <ScalarProperty Name="NumberLong" ColumnName="NumberLong" />
-                <ScalarProperty Name="NumberWidth" ColumnName="NumberWidth" />
-                <ScalarProperty Name="NumberHigh" ColumnName="NumberHigh" />
-                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
-                <ScalarProperty Name="TextCode" ColumnName="TextCode" />
-                <ScalarProperty Name="AddAtenkoCode" ColumnName="AddAtenkoCode" />
-                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="TSql_Plantilla">
             <EntityTypeMapping TypeName="DesingEntity.TSql_Plantilla">
               <MappingFragment StoreEntitySet="TSql_Plantilla">
@@ -7032,6 +7003,47 @@
                 <ScalarProperty Name="TextClientWallId" ColumnName="TextClientWallId" />
                 <ScalarProperty Name="LinkDesign_V2" ColumnName="LinkDesign_V2" />
                 <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Tsql_Master_Articles">
+            <EntityTypeMapping TypeName="DesingEntity.Tsql_Master_Articles">
+              <MappingFragment StoreEntitySet="Tsql_Master_Articles">
+                <ScalarProperty Name="ImgIco" ColumnName="ImgIco" />
+                <ScalarProperty Name="LinkBlockDwgXr" ColumnName="LinkBlockDwgXr" />
+                <ScalarProperty Name="LinkBlockDwg3DRef" ColumnName="LinkBlockDwg3DRef" />
+                <ScalarProperty Name="LinkBlockDwg3D" ColumnName="LinkBlockDwg3D" />
+                <ScalarProperty Name="IInsertinMaterArticles" ColumnName="IInsertinMaterArticles" />
+                <ScalarProperty Name="LinkBlockDwgHorizontalElevationStl" ColumnName="LinkBlockDwgHorizontalElevation3ds" />
+                <ScalarProperty Name="LinkBlockDwgVerticalElevationStl" ColumnName="LinkBlockDwgVerticalElevation3ds" />
+                <ScalarProperty Name="LinkBlockDwgPlantStl" ColumnName="LinkBlockDwgPlant3ds" />
+                <ScalarProperty Name="LinkBlockDwgHorizontalElevationMockUp" ColumnName="LinkBlockDwgHorizontalElevationMock-up" />
+                <ScalarProperty Name="LinkBlockDwgVerticalElevationMockUp" ColumnName="LinkBlockDwgVerticalElevationMock-up" />
+                <ScalarProperty Name="LinkBlockDwgPlantMckUp" ColumnName="LinkBlockDwgPlantMck-up" />
+                <ScalarProperty Name="LinkBlockDwgHorizontalElevation3D" ColumnName="LinkBlockDwgHorizontalElevation3D" />
+                <ScalarProperty Name="LinkBlockDwgVerticalElevation3D" ColumnName="LinkBlockDwgVerticalElevation3D" />
+                <ScalarProperty Name="LinkBlockDwgPlant3D" ColumnName="LinkBlockDwgPlant3D" />
+                <ScalarProperty Name="LinkSystem" ColumnName="LinkSystem" />
+                <ScalarProperty Name="AddIsActive" ColumnName="AddIsActive" />
+                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
+                <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
+                <ScalarProperty Name="AddChangeBy" ColumnName="AddChangeBy" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
+                <ScalarProperty Name="NumberMts3" ColumnName="NumberMts3" />
+                <ScalarProperty Name="NumberMts2" ColumnName="NumberMts2" />
+                <ScalarProperty Name="TextColor2" ColumnName="TextColor2" />
+                <ScalarProperty Name="TextColor1" ColumnName="TextColor1" />
+                <ScalarProperty Name="TextStlNumber" ColumnName="TextStlNumber" />
+                <ScalarProperty Name="TextBlockNumber" ColumnName="TextBlockNumber" />
+                <ScalarProperty Name="NumberWeight" ColumnName="NumberWeight" />
+                <ScalarProperty Name="NumberLong" ColumnName="NumberLong" />
+                <ScalarProperty Name="NumberWidth" ColumnName="NumberWidth" />
+                <ScalarProperty Name="NumberHigh" ColumnName="NumberHigh" />
+                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
+                <ScalarProperty Name="TextCode" ColumnName="TextCode" />
+                <ScalarProperty Name="AddAtenkoCode" ColumnName="AddAtenkoCode" />
                 <ScalarProperty Name="IdObject" ColumnName="IdObject" />
               </MappingFragment>
             </EntityTypeMapping>

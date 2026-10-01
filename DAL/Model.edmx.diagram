@@ -4,7 +4,7 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="372838cd3da94ab891750af082e86b2e" Name="Diagram1" ZoomLevel="80" >
+      <Diagram DiagramId="372838cd3da94ab891750af082e86b2e" Name="Diagram1" ZoomLevel="89" >
         <EntityTypeShape EntityType="DesingEntity.TSql_Countrys" Width="1.5" PointX="3" PointY="18.375" />
         <EntityTypeShape EntityType="DesingEntity.TSql_DesignCamera" Width="2.875" PointX="7" PointY="11.25" />
         <EntityTypeShape EntityType="DesingEntity.TSql_System" Width="1.5" PointX="10.5" PointY="11.75" />
@@ -138,7 +138,7 @@
         <AssociationConnector Association="DesingEntity.FK_TSql_Document_TSql_DocumentTypeExtension" />
         <AssociationConnector Association="DesingEntity.FK_TSql_Document_TSql_Offers" />
         <AssociationConnector Association="DesingEntity.FK_TSql_Offers_TSql_OfferState" />
-        <EntityTypeShape EntityType="DesingEntity.TSql_ConfigDesingDefault" Width="1.5" PointX="3.375" PointY="43.625" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_ConfigDesingDefault" Width="1.5" PointX="5.75" PointY="39.875" />
         <AssociationConnector Association="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers" />
         <AssociationConnector Association="DesingEntity.FK_TSql_ConfigDesingDefault_AspNetUsers1" />
         <EntityTypeShape EntityType="DesingEntity.TSql_UiTranslation" Width="1.5" PointX="3.375" PointY="56.5" />

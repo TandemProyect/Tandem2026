@@ -24,6 +24,8 @@ namespace Desing.Resources
             get => resourceCulture;
             set => resourceCulture = value;
         }
+        public static string BlockSlot_3D => ResourceManager.GetString(nameof(BlockSlot_3D), resourceCulture);
+        public static string BlockSlot_3DRef => ResourceManager.GetString(nameof(BlockSlot_3DRef), resourceCulture);
         public static string BlockSlot_HorzElev3D => ResourceManager.GetString(nameof(BlockSlot_HorzElev3D), resourceCulture);
         public static string BlockSlot_HorzElevMockup => ResourceManager.GetString(nameof(BlockSlot_HorzElevMockup), resourceCulture);
         public static string BlockSlot_HorzElevStl => ResourceManager.GetString(nameof(BlockSlot_HorzElevStl), resourceCulture);
@@ -36,6 +38,7 @@ namespace Desing.Resources
         public static string BlockSlot_VertElev3D => ResourceManager.GetString(nameof(BlockSlot_VertElev3D), resourceCulture);
         public static string BlockSlot_VertElevMockup => ResourceManager.GetString(nameof(BlockSlot_VertElevMockup), resourceCulture);
         public static string BlockSlot_VertElevStl => ResourceManager.GetString(nameof(BlockSlot_VertElevStl), resourceCulture);
+        public static string BlockSlot_Xr => ResourceManager.GetString(nameof(BlockSlot_Xr), resourceCulture);
         public static string Btn_BackToList => ResourceManager.GetString(nameof(Btn_BackToList), resourceCulture);
         public static string Btn_Cancel => ResourceManager.GetString(nameof(Btn_Cancel), resourceCulture);
         public static string Btn_CreateArticle => ResourceManager.GetString(nameof(Btn_CreateArticle), resourceCulture);
@@ -48,6 +51,9 @@ namespace Desing.Resources
         public static string Col_BlockNumber => ResourceManager.GetString(nameof(Col_BlockNumber), resourceCulture);
         public static string Col_Company => ResourceManager.GetString(nameof(Col_Company), resourceCulture);
         public static string Col_Description => ResourceManager.GetString(nameof(Col_Description), resourceCulture);
+        public static string Col_Dwg3D => ResourceManager.GetString(nameof(Col_Dwg3D), resourceCulture);
+        public static string Col_Dwg3DRef => ResourceManager.GetString(nameof(Col_Dwg3DRef), resourceCulture);
+        public static string Col_DwgXr => ResourceManager.GetString(nameof(Col_DwgXr), resourceCulture);
         public static string Col_High => ResourceManager.GetString(nameof(Col_High), resourceCulture);
         public static string Col_HorzElev3D => ResourceManager.GetString(nameof(Col_HorzElev3D), resourceCulture);
         public static string Col_HorzElevMockup => ResourceManager.GetString(nameof(Col_HorzElevMockup), resourceCulture);

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
@@ -82,20 +83,19 @@ namespace AutocadPlugin
             if (string.Equals(view, "alzado", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(view, "planta", StringComparison.OrdinalIgnoreCase))
             {
-                ed.WriteMessage("\n[Tandem] Alzado y Planta no están activos. Usa 3D o 3DRef.\n");
+                ed.WriteMessage("\n[Tandem] Alzado y Planta no están activos. Usa 3D, 3DRef o Xr.\n");
                 return;
             }
 
-            var dwg = Atk60DwgResolver.ResolveDwg(req.CodeName, view);
+            Atk60DwgResolver.RememberArticleUrls(req.CodeName, req.DwgUrl3D, req.DwgUrl3DRef, req.DwgUrlXr);
+            var dwg = Atk60DwgResolver.ResolveDwg(req.CodeName, view, req.UrlForView(view));
             if (string.IsNullOrWhiteSpace(dwg))
             {
                 ed.WriteMessage("\n[Tandem] No se encontró el DWG de " + req.CodeName + " (" + view + ").\n");
                 return;
             }
 
-            var blockName = string.Equals(view, "3d", StringComparison.OrdinalIgnoreCase)
-                ? req.CodeName
-                : req.CodeName + "R";
+            var blockName = BlockNameFor(req.CodeName, view);
             var meterToDwg = CadUnits.FromMillimeters(1000.0);
             double newW;
             double newH;
@@ -249,7 +249,10 @@ namespace AutocadPlugin
                     bt.UpgradeOpen();
                     using (var source = new Database(false, true))
                     {
-                        source.ReadDwgFile(dwgPath, FileOpenMode.OpenForReadAndAllShare, true, "");
+                        if (dwgPath.EndsWith(".dxf", StringComparison.OrdinalIgnoreCase))
+                            source.DxfIn(dwgPath, Path.Combine(Path.GetTempPath(), "tandem-dxfin.log"));
+                        else
+                            source.ReadDwgFile(dwgPath, FileOpenMode.OpenForReadAndAllShare, true, "");
                         db.Insert(blockName, source, true);
                     }
                     bt = (BlockTable)tr.GetObject(db.BlockTableId, OpenMode.ForRead);
@@ -533,19 +536,33 @@ namespace AutocadPlugin
             if (string.IsNullOrWhiteSpace(view))
             {
                 var n = (br.Name ?? "").Trim();
-                view = n.EndsWith("R", StringComparison.OrdinalIgnoreCase) ? "3dref" : "3d";
+                if (n.EndsWith("X", StringComparison.OrdinalIgnoreCase))
+                    view = "xr";
+                else if (n.EndsWith("R", StringComparison.OrdinalIgnoreCase))
+                    view = "3dref";
+                else
+                    view = "3d";
             }
             return true;
         }
 
         internal static string NormalizeView(string view)
         {
-            return string.Equals(view, "3d", StringComparison.OrdinalIgnoreCase) ? "3d" : "3dref";
+            if (string.Equals(view, "3d", StringComparison.OrdinalIgnoreCase))
+                return "3d";
+            if (string.Equals(view, "xr", StringComparison.OrdinalIgnoreCase))
+                return "xr";
+            return "3dref";
         }
 
         internal static string BlockNameFor(string codeName, string view)
         {
-            return NormalizeView(view) == "3d" ? codeName : codeName + "R";
+            var v = NormalizeView(view);
+            if (v == "3d")
+                return codeName;
+            if (v == "xr")
+                return codeName + "X";
+            return codeName + "R";
         }
 
         internal static void ApplyAtkXData(

@@ -1,0 +1,27 @@
+﻿{
+  "codeName": "12454212",
+  "articleCode": "3120120045",
+  "family": "panel-rect",
+  "units": "m",
+  "origin": "insbase-0-0-0",
+  "comment": "Caja X=0..0.45 Y=-0.12..0 Z=0..1.2 m. PANEL = cara Y=0. GRAPA_V = 350 mm desde pie y cabeza (NEVI/ATK-60).",
+  "box": {
+    "width": 0.45,
+    "height": 1.2,
+    "thickness": 0.12,
+    "axisWidth": "X",
+    "axisHeight": "Z",
+    "axisThickness": "Y"
+  },
+  "insbase": [0, 0, 0],
+  "snaps": [
+    { "id": "V_BL", "role": "PANEL", "x": 0, "y": 0, "z": 0, "rzDeg": 0 },
+    { "id": "V_BR", "role": "PANEL", "x": 0.45, "y": 0, "z": 0, "rzDeg": 0 },
+    { "id": "V_TL", "role": "PANEL", "x": 0, "y": 0, "z": 1.2, "rzDeg": 0 },
+    { "id": "V_TR", "role": "PANEL", "x": 0.45, "y": 0, "z": 1.2, "rzDeg": 0 },
+    { "id": "L035", "role": "GRAPA_V", "x": 0.0437138, "y": -0.119128, "z": 0.35, "rzDeg": 180 },
+    { "id": "L085", "role": "GRAPA_V", "x": 0.0437138, "y": -0.119128, "z": 0.85, "rzDeg": 180 },
+    { "id": "R035", "role": "GRAPA_V", "x": 0.4062862, "y": -0.119128, "z": 0.35, "rzDeg": 0 },
+    { "id": "R085", "role": "GRAPA_V", "x": 0.4062862, "y": -0.119128, "z": 0.85, "rzDeg": 0 }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "codeName": "24104224",
+  "articleCode": "3120240075",
+  "family": "panel-universal",
+  "units": "m",
+  "origin": "insbase-0-0-0",
+  "comment": "Universal 0.75 x 2.4 m. PANEL = cara Y=0. GRAPA_V = 550 mm desde pie y cabeza.",
+  "box": {
+    "width": 0.75,
+    "height": 2.4,
+    "thickness": 0.12,
+    "axisWidth": "X",
+    "axisHeight": "Z",
+    "axisThickness": "Y"
+  },
+  "insbase": [0, 0, 0],
+  "snaps": [
+    { "id": "V_BL", "role": "PANEL", "x": 0, "y": 0, "z": 0, "rzDeg": 0 },
+    { "id": "V_BR", "role": "PANEL", "x": 0.75, "y": 0, "z": 0, "rzDeg": 0 },
+    { "id": "V_TL", "role": "PANEL", "x": 0, "y": 0, "z": 2.4, "rzDeg": 0 },
+    { "id": "V_TR", "role": "PANEL", "x": 0.75, "y": 0, "z": 2.4, "rzDeg": 0 },
+    { "id": "L055", "role": "GRAPA_V", "x": 0.0437138, "y": -0.119128, "z": 0.55, "rzDeg": 180 },
+    { "id": "L185", "role": "GRAPA_V", "x": 0.0437138, "y": -0.119128, "z": 1.85, "rzDeg": 180 },
+    { "id": "R055", "role": "GRAPA_V", "x": 0.7062862, "y": -0.119128, "z": 0.55, "rzDeg": 0 },
+    { "id": "R185", "role": "GRAPA_V", "x": 0.7062862, "y": -0.119128, "z": 1.85, "rzDeg": 0 }
+  ]
+}
