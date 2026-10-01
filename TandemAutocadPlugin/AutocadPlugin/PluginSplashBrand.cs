@@ -48,7 +48,11 @@ namespace AutocadPlugin
                     && string.Equals(previous, url, StringComparison.OrdinalIgnoreCase))
                     return;
 
-                using (var http = new HttpClient())
+                using (var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = (_, __, ___, ____) => true
+                })
+                using (var http = new HttpClient(handler))
                 {
                     http.Timeout = TimeSpan.FromSeconds(8);
                     var bytes = await http.GetByteArrayAsync(url);

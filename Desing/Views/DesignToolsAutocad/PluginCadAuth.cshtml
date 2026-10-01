@@ -1,0 +1,16 @@
+@{
+    ViewBag.Title = "Tandem 2026";
+    Layout = "~/Views/Shared/_LayoutAutocadPalette.cshtml";
+}
+<script>
+    (function () {
+        function post(payload) {
+            try {
+                if (!window.chrome || !window.chrome.webview) return;
+                try { window.chrome.webview.postMessage(payload); }
+                catch (e) { window.chrome.webview.postMessage(JSON.stringify(payload)); }
+            } catch (e) { }
+        }
+        post({ action: 'session-ready' });
+    })();
+</script>

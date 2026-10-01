@@ -1,0 +1,12 @@
+FILEDIA
+0
+(command "_.STRETCH" "_C" (list 0.45 -1.0 -1.0) (list 2.0 1.0 4.0) "" (list 0.0 0.0 0.0) (list -0.30 0.0 0.0))
+(command "_.ZOOM" "_E")
+(setq a (getvar "EXTMIN") b (getvar "EXTMAX"))
+(princ (strcat "\nAFTER min=" (rtos (car a) 2 3) "," (rtos (cadr a) 2 3) "," (rtos (caddr a) 2 3)
+  " max=" (rtos (car b) 2 3) "," (rtos (cadr b) 2 3) "," (rtos (caddr b) 2 3)))
+(princ)
+FILEDIA
+1
+_.QUIT
+_Y

@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Autodesk.AutoCAD.ApplicationServices;
 using AcadApp = Autodesk.AutoCAD.ApplicationServices.Application;
@@ -18,6 +20,7 @@ namespace AutocadPlugin.UI.Views
         public bool IsCancelled { get; private set; }
         public string ChosenId { get; private set; }
         private DispatcherFrame _waitFrame;
+        private bool _showBrand;
 
         public TandemMiniPopup()
         {
@@ -27,7 +30,33 @@ namespace AutocadPlugin.UI.Views
         public static TandemMiniPopup ShowTop(string title)
         {
             var win = new TandemMiniPopup();
+            win.ApplyTheme();
             win.TitleText.Text = string.IsNullOrWhiteSpace(title) ? "Tandem" : title;
+            win.SetHeaderIcon(info: true);
+            try
+            {
+                var helper = new System.Windows.Interop.WindowInteropHelper(win)
+                {
+                    Owner = AcadApp.MainWindow.Handle
+                };
+            }
+            catch
+            {
+            }
+
+            PlaceTop(win);
+
+            try { AcadApp.ShowModelessWindow(win); }
+            catch { win.Show(); }
+
+            return win;
+        }
+
+        public static TandemMiniPopup ShowProgressTop(string title, string message, bool showBrand = false)
+        {
+            var win = new TandemMiniPopup();
+            win.ApplyTheme();
+            win.ShowProgress(title, message, showBrand);
             try
             {
                 var helper = new System.Windows.Interop.WindowInteropHelper(win)
@@ -52,8 +81,10 @@ namespace AutocadPlugin.UI.Views
             ChosenId = null;
             RunOnUi(() =>
             {
-                PromptText.Text = message ?? "";
-                PromptPanel.Visibility = Visibility.Visible;
+                SetHeaderIcon(info: true);
+                TitleText.Text = message ?? "";
+                PromptText.Text = "";
+                PromptPanel.Visibility = Visibility.Collapsed;
                 ChoicePanel.Visibility = Visibility.Collapsed;
                 ProgressPanel.Visibility = Visibility.Collapsed;
             });
@@ -64,6 +95,8 @@ namespace AutocadPlugin.UI.Views
             ChosenId = null;
             RunOnUi(() =>
             {
+                SetHeaderIcon(info: false);
+                TitleText.Text = "Elige el tipo de bloque";
                 ChoiceText.Text = message ?? "";
                 ChoiceHost.Children.Clear();
                 if (choices != null)
@@ -113,13 +146,107 @@ namespace AutocadPlugin.UI.Views
 
         public void ShowProgress(string message)
         {
+            ShowProgress("Cambiando bloques", message, false);
+        }
+
+        public void ShowProgress(string title, string message)
+        {
+            ShowProgress(title, message, false);
+        }
+
+        public void ShowProgress(string title, string message, bool showBrand)
+        {
             RunOnUi(() =>
             {
+                _showBrand = showBrand;
+                SetHeaderIcon(info: false);
+                TitleText.Text = string.IsNullOrWhiteSpace(title) ? "Tandem" : title;
                 ProgressText.Text = message ?? "";
                 PromptPanel.Visibility = Visibility.Collapsed;
                 ChoicePanel.Visibility = Visibility.Collapsed;
                 ProgressPanel.Visibility = Visibility.Visible;
+                ApplyBrandLogo();
             });
+        }
+
+        public void SetProgressDetail(string message)
+        {
+            RunOnUi(() =>
+            {
+                ProgressText.Text = message ?? "";
+            });
+        }
+
+        public void RefreshTheme()
+        {
+            RunOnUi(() =>
+            {
+                ApplyTheme();
+                ApplyBrandLogo();
+            });
+        }
+
+        private void ApplyTheme()
+        {
+            var bg = PluginPlantillaTheme.Background;
+            var fg = PluginPlantillaTheme.Foreground;
+            HeaderBar.Background = bg;
+            TitleText.Foreground = fg;
+            CloseGlyph.Foreground = fg;
+            IconInfoRing.Stroke = fg;
+            IconInfoDot.Fill = fg;
+            IconInfoStem.Fill = fg;
+            IconRunRing.Stroke = fg;
+            IconRunPlay.Fill = fg;
+            try { SpinArc.Stroke = bg; } catch { }
+        }
+
+        private void ApplyBrandLogo()
+        {
+            if (BrandLogo == null)
+                return;
+            if (!_showBrand)
+            {
+                BrandLogo.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            BrandLogo.Visibility = Visibility.Visible;
+            try
+            {
+                var file = PluginSplashBrand.CachedFileIfExists();
+                if (!string.IsNullOrWhiteSpace(file))
+                {
+                    using (var fs = File.OpenRead(file))
+                    {
+                        var bmp = new BitmapImage();
+                        bmp.BeginInit();
+                        bmp.CacheOption = BitmapCacheOption.OnLoad;
+                        bmp.StreamSource = fs;
+                        bmp.EndInit();
+                        bmp.Freeze();
+                        BrandLogo.Source = bmp;
+                    }
+                    return;
+                }
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                BrandLogo.Source = new BitmapImage(PluginSplashBrand.DefaultPackUri);
+            }
+            catch
+            {
+            }
+        }
+
+        private void SetHeaderIcon(bool info)
+        {
+            IconInfo.Visibility = info ? Visibility.Visible : Visibility.Collapsed;
+            IconRun.Visibility = info ? Visibility.Collapsed : Visibility.Visible;
         }
 
         public void CloseSafe()

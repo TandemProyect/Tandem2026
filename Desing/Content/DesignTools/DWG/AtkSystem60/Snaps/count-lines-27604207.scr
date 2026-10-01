@@ -1,0 +1,9 @@
+FILEDIA
+0
+SECURELOAD
+0
+(setq n 0 ss (ssget "_X" '((0 . "LINE"))))
+(if ss (setq n (sslength ss)))
+(princ (strcat "\nLINE COUNT=" (itoa n) "\n"))
+_.QUIT
+_N

@@ -16,156 +16,78 @@ namespace Desing.Repositories.Atk60
         {
             switch (Element)
             {
-
-                //PanelRegulable
-                case "PanelReg270":
-                    return "../../Content/DesignTools/Stl/ATK60/27104219.stl";
-                case "PanelReg270F":
-                    return "../../Content/DesignTools/Stl/ATK60/27104219_F.stl";
-                case "PanelReg240":
-                    return "../../Content/DesignTools/Stl/ATK60/24104224.stl";
-                case "PanelReg240F":
-                    return "../../Content/DesignTools/Stl/ATK60/24104224_F.stl";
-                case "PanelReg120":
-                    return "../../Content/DesignTools/Stl/ATK60/12104120.stl";
-                case "PanelReg120F":
-                    return "../../Content/DesignTools/Stl/ATK60/12104120_F.stl";
-
-                //Angular
-                case "PanelExt270":
-                    return "../../Content/DesignTools/Stl/ATK60/EEx27000000.stl";
-                case "PanelExt240":
-                    return "../../Content/DesignTools/Stl/ATK60/EEx24000000.stl";
-                case "PanelExt120":
-                    return "../../Content/DesignTools/Stl/ATK60/EEx12000000.stl";
-                //270 Tubado
-                //
-                case "Panel900270T":
-                    return "../../Content/DesignTools/Stl/ATK60/27904209T.stl";
-                case "Panel900270TF":
-                    return "../../Content/DesignTools/Stl/ATK60/27904209T_F.stl";
-                case "Panel450270T":
-                    return "../../Content/DesignTools/Stl/ATK60/27454206T.stl";
-                case "Panel45270TF":
-                    return "../../Content/DesignTools/Stl/ATK60/27454206T_F.stl";
-                case "Panel30270T":
-                    return "../../Content/DesignTools/Stl/ATK60/27304205T.stl";
-                case "Panel30270TF":
-                    return "../../Content/DesignTools/Stl/ATK60/27304205T_F.stl";
-
-                case "Panel60270T":
-                    return "../../Content/DesignTools/Stl/ATK60/27604207T.stl";
-                case "Panel60270TF":
-                    return "../../Content/DesignTools/Stl/ATK60/27604207T_F.stl";
-                //120 Tubado
-                case "Panel90120T":
-                    return "../../Content/DesignTools/Stl/ATK60/12904215T.stl";
-                case "Panel90120TF":
-                    return "../../Content/DesignTools/Stl/ATK60/12904215T_F.stl";
-
-                case "Panel30120T":
-                    return "../../Content/DesignTools/Stl/ATK60/12304211T.stl";
-                case "Panel30120TF":
-                    return "../../Content/DesignTools/Stl/ATK60/12304211T_F.stl";
-
-                case "Panel60120T":
-                    return "../../Content/DesignTools/Stl/ATK60/12604213T.stl";
-                case "Panel60120TF":
-                    return "../../Content/DesignTools/Stl/ATK60/12604213T_F.stl";
-
-                case "Panel45120T":
-                    return "../../Content/DesignTools/Stl/ATK60/12454212T.stl";
-                case "Panel45120TF":
-                    return "../../Content/DesignTools/Stl/ATK60/12454212T_F.stl";
-
-                //240 Tubado
-                case "Panel90240T":
-                    return "../../Content/DesignTools/Stl/ATK60/24904240T.stl";
-                case "Panel90240TF":
-                    return "../../Content/DesignTools/Stl/ATK60/24904240T_F.stl";
-                case "Panel60240T":
-                    return "../../Content/DesignTools/Stl/ATK60/24604242T.stl";
-                case "Panel60240TF":
-                    return "../../Content/DesignTools/Stl/ATK60/24604242T_F.stl";
-                case "Panel45240T":
-                    return "../../Content/DesignTools/Stl/ATK60/24454243T.stl";
-                case "Panel45240TF":
-                    return "../../Content/DesignTools/Stl/ATK60/24454243T_F.stl";
-                case "Panel30240T":
-                    return "../../Content/DesignTools/Stl/ATK60/24304244T.stl";
-                case "Panel30240TF":
-                    return "../../Content/DesignTools/Stl/ATK60/24304244T_F.stl";
-
-                //270
-                case "Panel90270":
-                    return "../../Content/DesignTools/Stl/ATK60/27904209.stl";
-                case "Panel90270F":
-                    return "../../Content/DesignTools/Stl/ATK60/27904209_F.stl";
-                case "Panel60270":
-                    return "../../Content/DesignTools/Stl/ATK60/27604207.stl";
-                case "Panel60270F":
-                    return "../../Content/DesignTools/Stl/ATK60/27604207_F.stl";
-                case "Panel45270":
-                    return "../../Content/DesignTools/Stl/ATK60/27454206.stl";
-                case "Panel45270F":
-                    return "../../Content/DesignTools/Stl/ATK60/27454206_F.stl";
-                case "Panel30270":
-                    return "../../Content/DesignTools/Stl/ATK60/27304205.stl";
-                case "Panel30270F":
-                    return "../../Content/DesignTools/Stl/ATK60/27304205_F.stl";
-
-
-
-                //240
-                case "Panel90240":
-                    return "../../Content/DesignTools/Stl/ATK60/24904240.stl";
-                case "Panel90240F":
-                    return "../../Content/DesignTools/Stl/ATK60/24904240_F.stl";
-                case "Panel60240":
-                    return "../../Content/DesignTools/Stl/ATK60/24604242.stl";
-                case "Panel60240F":
-                    return "../../Content/DesignTools/Stl/ATK60/24604242_F.stl";
-                case "Panel45240":
-                    return "../../Content/DesignTools/Stl/ATK60/24454243.stl";
-                case "Panel45240F":
-                    return "../../Content/DesignTools/Stl/ATK60/24454243_F.stl";
-                case "Panel30240":
-                    return "../../Content/DesignTools/Stl/ATK60/24304244.stl";
-                case "Panel30240F":
-                    return "../../Content/DesignTools/Stl/ATK60/24304244_F.stl";
-                //120
-                case "Panel90120":
-                    return "../../Content/DesignTools/Stl/ATK60/12904215.stl";
-                case "Panel90120F":
-                    return "../../Content/DesignTools/Stl/ATK60/12904215_F.stl";
-                case "Panel60120":
-                    return "../../Content/DesignTools/Stl/ATK60/12604213.stl";
-                case "Panel60120F":
-                    return "../../Content/DesignTools/Stl/ATK60/12604213_F.stl";
-                case "Panel45120":
-                    return "../../Content/DesignTools/Stl/ATK60/12454212.stl";
-                case "Panel45120F":
-                    return "../../Content/DesignTools/Stl/ATK60/12454212_F.stl";
-                case "Panel30120":
-                    return "../../Content/DesignTools/Stl/ATK60/12304211.stl";
-                case "Panel30120F":
-                    return "../../Content/DesignTools/Stl/ATK60/12304211_F.stl";
-
-                //Esquina
-                case "PanelE1200":
-                    return "../../Content/DesignTools/Stl/ATK60/E12004216.stl";
-                case "PanelE1200F":
-                    return "../../Content/DesignTools/Stl/ATK60/E12004216_F.stl";
-
-                case "PanelE2400":
-                    return "../../Content/DesignTools/Stl/ATK60/E24004217.stl";
-                case "PanelE2400F":
-                    return "../../Content/DesignTools/Stl/ATK60/E24004217_F.stl";
-
-                case "PanelE2700":
-                    return "../../Content/DesignTools/Stl/ATK60/E27004210.stl";
-                case "PanelE2700F":
-                    return "../../Content/DesignTools/Stl/ATK60/E27004210_F.stl";
+                // PanelRegulable
+                case "PanelReg270": return "../../Content/DesignTools/Stl/ATK60/27104219.stl";
+                case "PanelReg270F": return "../../Content/DesignTools/Stl/ATK60/27104219_F.stl";
+                case "PanelReg240": return "../../Content/DesignTools/Stl/ATK60/24104224.stl";
+                case "PanelReg240F": return "../../Content/DesignTools/Stl/ATK60/24104224_F.stl";
+                case "PanelReg120": return "../../Content/DesignTools/Stl/ATK60/12104120.stl";
+                case "PanelReg120F": return "../../Content/DesignTools/Stl/ATK60/12104120_F.stl";
+                // Angular
+                case "PanelExt270": return "../../Content/DesignTools/Stl/ATK60/EEx27000000.stl";
+                case "PanelExt240": return "../../Content/DesignTools/Stl/ATK60/EEx24000000.stl";
+                case "PanelExt120": return "../../Content/DesignTools/Stl/ATK60/EEx12000000.stl";
+                // 270 tumbado
+                case "Panel900270T": return "../../Content/DesignTools/Stl/ATK60/27904209T.stl";
+                case "Panel900270TF": return "../../Content/DesignTools/Stl/ATK60/27904209T_F.stl";
+                case "Panel450270T": return "../../Content/DesignTools/Stl/ATK60/27454206T.stl";
+                case "Panel45270TF": return "../../Content/DesignTools/Stl/ATK60/27454206T_F.stl";
+                case "Panel30270T": return "../../Content/DesignTools/Stl/ATK60/27304205T.stl";
+                case "Panel30270TF": return "../../Content/DesignTools/Stl/ATK60/27304205T_F.stl";
+                case "Panel60270T": return "../../Content/DesignTools/Stl/ATK60/27604207T.stl";
+                case "Panel60270TF": return "../../Content/DesignTools/Stl/ATK60/27604207T_F.stl";
+                // 120 tumbado
+                case "Panel90120T": return "../../Content/DesignTools/Stl/ATK60/12904215T.stl";
+                case "Panel90120TF": return "../../Content/DesignTools/Stl/ATK60/12904215T_F.stl";
+                case "Panel30120T": return "../../Content/DesignTools/Stl/ATK60/12304211T.stl";
+                case "Panel30120TF": return "../../Content/DesignTools/Stl/ATK60/12304211T_F.stl";
+                case "Panel60120T": return "../../Content/DesignTools/Stl/ATK60/12604213T.stl";
+                case "Panel60120TF": return "../../Content/DesignTools/Stl/ATK60/12604213T_F.stl";
+                case "Panel45120T": return "../../Content/DesignTools/Stl/ATK60/12454212T.stl";
+                case "Panel45120TF": return "../../Content/DesignTools/Stl/ATK60/12454212T_F.stl";
+                // 240 tumbado
+                case "Panel90240T": return "../../Content/DesignTools/Stl/ATK60/24904240T.stl";
+                case "Panel90240TF": return "../../Content/DesignTools/Stl/ATK60/24904240T_F.stl";
+                case "Panel60240T": return "../../Content/DesignTools/Stl/ATK60/24604242T.stl";
+                case "Panel60240TF": return "../../Content/DesignTools/Stl/ATK60/24604242T_F.stl";
+                case "Panel45240T": return "../../Content/DesignTools/Stl/ATK60/24454243T.stl";
+                case "Panel45240TF": return "../../Content/DesignTools/Stl/ATK60/24454243T_F.stl";
+                case "Panel30240T": return "../../Content/DesignTools/Stl/ATK60/24304244T.stl";
+                case "Panel30240TF": return "../../Content/DesignTools/Stl/ATK60/24304244T_F.stl";
+                // 270
+                case "Panel90270": return "../../Content/DesignTools/Stl/ATK60/27904209.stl";
+                case "Panel90270F": return "../../Content/DesignTools/Stl/ATK60/27904209_F.stl";
+                case "Panel60270": return "../../Content/DesignTools/Stl/ATK60/27604207.stl";
+                case "Panel60270F": return "../../Content/DesignTools/Stl/ATK60/27604207_F.stl";
+                case "Panel45270": return "../../Content/DesignTools/Stl/ATK60/27454206.stl";
+                case "Panel45270F": return "../../Content/DesignTools/Stl/ATK60/27454206_F.stl";
+                case "Panel30270": return "../../Content/DesignTools/Stl/ATK60/27304205.stl";
+                case "Panel30270F": return "../../Content/DesignTools/Stl/ATK60/27304205_F.stl";
+                // 240
+                case "Panel90240": return "../../Content/DesignTools/Stl/ATK60/24904240.stl";
+                case "Panel90240F": return "../../Content/DesignTools/Stl/ATK60/24904240_F.stl";
+                case "Panel60240": return "../../Content/DesignTools/Stl/ATK60/24604242.stl";
+                case "Panel60240F": return "../../Content/DesignTools/Stl/ATK60/24604242_F.stl";
+                case "Panel45240": return "../../Content/DesignTools/Stl/ATK60/24454243.stl";
+                case "Panel45240F": return "../../Content/DesignTools/Stl/ATK60/24454243_F.stl";
+                case "Panel30240": return "../../Content/DesignTools/Stl/ATK60/24304244.stl";
+                case "Panel30240F": return "../../Content/DesignTools/Stl/ATK60/24304244_F.stl";
+                // 120
+                case "Panel90120": return "../../Content/DesignTools/Stl/ATK60/12904215.stl";
+                case "Panel90120F": return "../../Content/DesignTools/Stl/ATK60/12904215_F.stl";
+                case "Panel60120": return "../../Content/DesignTools/Stl/ATK60/12604213.stl";
+                case "Panel60120F": return "../../Content/DesignTools/Stl/ATK60/12604213_F.stl";
+                case "Panel45120": return "../../Content/DesignTools/Stl/ATK60/12454212.stl";
+                case "Panel45120F": return "../../Content/DesignTools/Stl/ATK60/12454212_F.stl";
+                case "Panel30120": return "../../Content/DesignTools/Stl/ATK60/12304211.stl";
+                case "Panel30120F": return "../../Content/DesignTools/Stl/ATK60/12304211_F.stl";
+                // Esquina
+                case "PanelE1200": return "../../Content/DesignTools/Stl/ATK60/E12004216.stl";
+                case "PanelE1200F": return "../../Content/DesignTools/Stl/ATK60/E12004216_F.stl";
+                case "PanelE2400": return "../../Content/DesignTools/Stl/ATK60/E24004217.stl";
+                case "PanelE2400F": return "../../Content/DesignTools/Stl/ATK60/E24004217_F.stl";
+                case "PanelE2700": return "../../Content/DesignTools/Stl/ATK60/E27004210.stl";
+                case "PanelE2700F": return "../../Content/DesignTools/Stl/ATK60/E27004210_F.stl";
             }
             return "";
         }

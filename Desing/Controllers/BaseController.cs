@@ -186,6 +186,7 @@ namespace Desing.Controllers
             if (!string.Equals(controller, "DesignToolsAutocad", StringComparison.OrdinalIgnoreCase))
                 return false;
             return string.Equals(action, "PluginSession", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(action, "PluginCadAuth", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(action, "PaletteMode", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(action, "PaletteTools", StringComparison.OrdinalIgnoreCase);
         }

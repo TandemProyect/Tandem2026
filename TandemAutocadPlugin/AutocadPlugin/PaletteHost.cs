@@ -201,6 +201,12 @@ namespace AutocadPlugin
                 return;
             }
 
+            if (path.IndexOf("/DesignToolsAutocad/PluginCadAuth", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                _session?.ShowStatus("Comprobando autorización en TDesing…");
+                return;
+            }
+
             if (path.IndexOf("/DesignToolsAutocad/PluginReady", StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 _pendingSessionWidth = 540;
@@ -257,8 +263,8 @@ namespace AutocadPlugin
         private static void RevealSessionPage()
         {
             _splashWaitGen++;
-            ApplySessionSize(_pendingSessionWidth, _pendingSessionHeight);
             _session?.HideStatus();
+            ApplySessionSize(_pendingSessionWidth, _pendingSessionHeight);
             PositionOverAcad(_session, -1, 70);
         }
 
@@ -607,6 +613,34 @@ namespace AutocadPlugin
                         PluginSplashBrand.Clear();
                     else
                         _ = PluginSplashBrand.SaveFromUrlAsync(url);
+                    return true;
+                }
+
+                if (string.Equals(action, "plantilla-theme", StringComparison.OrdinalIgnoreCase))
+                {
+                    PluginPlantillaTheme.Apply(
+                        (string)obj["color"],
+                        (string)obj["textColor"],
+                        (string)obj["logo"]);
+                    _session?.RefreshSplashTheme();
+                    var logoUrl = (string)obj["logo"];
+                    if (string.IsNullOrWhiteSpace(logoUrl))
+                        logoUrl = PluginPlantillaTheme.LogoUrl;
+                    if (!string.IsNullOrWhiteSpace(logoUrl))
+                    {
+                        _ = PluginSplashBrand.SaveFromUrlAsync(logoUrl).ContinueWith(__ =>
+                        {
+                            try
+                            {
+                                var win = _session;
+                                if (win == null) return;
+                                win.Dispatcher.BeginInvoke(new Action(() => win.RefreshSplashTheme()));
+                            }
+                            catch
+                            {
+                            }
+                        });
+                    }
                     return true;
                 }
 

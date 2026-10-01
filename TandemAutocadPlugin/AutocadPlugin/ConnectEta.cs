@@ -33,7 +33,7 @@ namespace AutocadPlugin
         public static int PredictedStartMs()
         {
             var last = ReadLastMs();
-            if (last >= 3000)
+            if (last >= 3000 && last <= 15000)
                 return last;
             return WarmMs();
         }

@@ -11,6 +11,23 @@
     <link rel="stylesheet" href="@Url.Content("~/assets/materio/vendor/css/core.css")" />
     <link rel="stylesheet" href="@Url.Content("~/assets/materio/css/site.css")" />
     @Html.Partial("_PlantillaStyles")
+    @{
+        var pluginLogoRaw = (ViewBag.PlantillaLogo as string) ?? "/Content/images/tDesing/t-desing-net.png";
+        string pluginPlantillaLogoAbs;
+        if (pluginLogoRaw.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+            || pluginLogoRaw.StartsWith("//", StringComparison.Ordinal))
+        {
+            pluginPlantillaLogoAbs = pluginLogoRaw.StartsWith("//", StringComparison.Ordinal)
+                ? ((Request.Url != null ? Request.Url.Scheme : "https") + ":" + pluginLogoRaw)
+                : pluginLogoRaw;
+        }
+        else
+        {
+            var virtualLogo = pluginLogoRaw.StartsWith("~/") ? pluginLogoRaw : ("~" + (pluginLogoRaw.StartsWith("/") ? pluginLogoRaw : "/" + pluginLogoRaw));
+            var origin = Request.Url != null ? Request.Url.GetLeftPart(UriPartial.Authority) : "";
+            pluginPlantillaLogoAbs = origin + Url.Content(virtualLogo);
+        }
+    }
     <style>
         html, body {
             margin: 0;
@@ -55,6 +72,12 @@
                     catch (e) { window.chrome.webview.postMessage(JSON.stringify(payload)); }
                 } catch (e) { }
             }
+            post({
+                action: 'plantilla-theme',
+                color: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject((ViewBag.PlantillaColor as string) ?? "#349d7d")),
+                textColor: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(string.IsNullOrWhiteSpace(ViewBag.PlantillaBrandTextColor as string) ? "#ffffff" : ((string)ViewBag.PlantillaBrandTextColor).Trim())),
+                logo: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(pluginPlantillaLogoAbs))
+            });
             document.addEventListener('click', function (e) {
                 var menu = e.target.closest('[data-plugin-menu]');
                 if (menu && !menu.disabled) {

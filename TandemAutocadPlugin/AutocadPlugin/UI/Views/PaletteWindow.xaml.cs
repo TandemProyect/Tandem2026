@@ -8,8 +8,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
@@ -22,8 +20,8 @@ namespace AutocadPlugin.UI.Views
         private readonly bool _authSplash;
         private readonly bool _allowResize;
         private WebView2 Web;
-        private const double SplashWidth = 320;
-        private const double SplashHeight = 292;
+        private TandemMiniPopup _splashPopup;
+        private string _splashTitle = "Comprobando autorización en TDesing…";
         private DispatcherTimer _etaTimer;
         private DateTime _etaStartedAt;
         private int _etaPredictedMs;
@@ -45,14 +43,21 @@ namespace AutocadPlugin.UI.Views
 
             if (_authSplash)
             {
-                ApplySplashWindowSize();
-                ApplySplashLogo(PluginSplashBrand.CachedFileIfExists());
+                HideHostDuringSplash();
                 ShowStatus("Comprobando autorización en TDesing…");
-                SourceInitialized += (_, __) => ApplySplashWindowSize();
+                SourceInitialized += (_, __) =>
+                {
+                    if (IsSplashVisible())
+                        HideHostDuringSplash();
+                };
             }
 
             Loaded += OnLoaded;
-            Closed += (_, __) => StopEtaTicker(record: false);
+            Closed += (_, __) =>
+            {
+                StopEtaTicker(record: false);
+                CloseSplashPopup();
+            };
         }
 
         public void SetOwnerHandle(IntPtr ownerHandle)
@@ -67,7 +72,7 @@ namespace AutocadPlugin.UI.Views
         {
             if (IsSplashVisible())
             {
-                ApplySplashWindowSize();
+                HideHostDuringSplash();
                 return;
             }
             SizeToContent = SizeToContent.Manual;
@@ -117,58 +122,115 @@ namespace AutocadPlugin.UI.Views
 
         private bool IsSplashVisible()
         {
-            return _authSplash && SplashPanel != null && SplashPanel.Visibility == Visibility.Visible;
+            return _authSplash && _splashPopup != null && _splashPopup.IsVisible;
         }
 
-        private void ApplySplashWindowSize()
+        private void HideHostDuringSplash()
         {
-            SizeToContent = SizeToContent.Height;
-            MinWidth = SplashWidth;
-            MaxWidth = SplashWidth;
-            Width = SplashWidth;
-            MinHeight = 0;
-            Height = SplashHeight;
-        }
-
-        public void ShowStatus(string text)
-        {
-            if (_authSplash)
-                ApplySplashWindowSize();
-            if (!string.IsNullOrWhiteSpace(text) && StatusText != null)
-                StatusText.Text = text;
-            if (SplashPanel != null)
-                SplashPanel.Visibility = Visibility.Visible;
-            ParkWeb();
-            ApplySplashLogo(PluginSplashBrand.CachedFileIfExists());
-            StartSpinner();
-            StartEtaTicker();
-        }
-
-        public void ApplySplashLogo(string filePath)
-        {
-            if (SplashLogo == null) return;
             try
             {
-                if (!string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath))
-                {
-                    using (var fs = File.OpenRead(filePath))
-                    {
-                        var bmp = new BitmapImage();
-                        bmp.BeginInit();
-                        bmp.CacheOption = BitmapCacheOption.OnLoad;
-                        bmp.StreamSource = fs;
-                        bmp.EndInit();
-                        bmp.Freeze();
-                        SplashLogo.Source = bmp;
-                    }
-                    return;
-                }
+                Opacity = 0;
+                IsHitTestVisible = false;
+                ShowInTaskbar = false;
+                SizeToContent = SizeToContent.Manual;
+                MinWidth = 1;
+                MaxWidth = 1;
+                Width = 1;
+                MinHeight = 1;
+                MaxHeight = 1;
+                Height = 1;
             }
             catch
             {
             }
+        }
 
-            SplashLogo.Source = new BitmapImage(PluginSplashBrand.DefaultPackUri);
+        private void RestoreHostAfterSplash()
+        {
+            try
+            {
+                Opacity = 1;
+                IsHitTestVisible = true;
+                MaxWidth = double.PositiveInfinity;
+                MaxHeight = double.PositiveInfinity;
+            }
+            catch
+            {
+            }
+        }
+
+        public void ShowStatus(string text)
+        {
+            if (!string.IsNullOrWhiteSpace(text))
+                _splashTitle = text;
+            HideHostDuringSplash();
+            ParkWeb();
+            EnsureSplashPopup();
+            if (_splashPopup != null)
+                _splashPopup.ShowProgress(
+                    _splashTitle,
+                    ConnectEta.Format(ConnectEta.PredictedStartMs(), false),
+                    showBrand: true);
+            StartEtaTicker();
+        }
+
+        public void RefreshSplashTheme()
+        {
+            try { _splashPopup?.RefreshTheme(); }
+            catch { }
+        }
+
+        private void EnsureSplashPopup()
+        {
+            if (_splashPopup != null)
+            {
+                try
+                {
+                    if (_splashPopup.IsVisible)
+                    {
+                        PrefetchPlantillaLogo();
+                        return;
+                    }
+                }
+                catch
+                {
+                    _splashPopup = null;
+                }
+            }
+
+            var pop = TandemMiniPopup.ShowProgressTop(
+                _splashTitle,
+                ConnectEta.Format(ConnectEta.PredictedStartMs(), false),
+                showBrand: true);
+            _splashPopup = pop;
+            pop.Closed += (s, __) =>
+            {
+                if (ReferenceEquals(_splashPopup, s))
+                    _splashPopup = null;
+            };
+            PrefetchPlantillaLogo();
+        }
+
+        private void PrefetchPlantillaLogo()
+        {
+            var url = PluginPlantillaTheme.LogoUrl;
+            if (string.IsNullOrWhiteSpace(url))
+                return;
+            _ = PluginSplashBrand.SaveFromUrlAsync(url).ContinueWith(_ =>
+            {
+                try { Dispatcher.BeginInvoke(new Action(RefreshSplashTheme)); }
+                catch { }
+            });
+        }
+
+        private void CloseSplashPopup()
+        {
+            var pop = _splashPopup;
+            _splashPopup = null;
+            if (pop == null)
+                return;
+            try { pop.CloseSafe(); }
+            catch { }
         }
 
         public async Task SyncSplashLogoFromCookiesAsync()
@@ -187,12 +249,10 @@ namespace AutocadPlugin.UI.Views
                 if (string.IsNullOrWhiteSpace(logoUrl))
                 {
                     PluginSplashBrand.Clear();
-                    ApplySplashLogo(null);
                     return;
                 }
 
                 await PluginSplashBrand.SaveFromUrlAsync(logoUrl);
-                ApplySplashLogo(PluginSplashBrand.CachedFileIfExists());
             }
             catch
             {
@@ -201,6 +261,8 @@ namespace AutocadPlugin.UI.Views
 
         public void HideStatus()
         {
+            CloseSplashPopup();
+            RestoreHostAfterSplash();
             RevealWeb();
         }
 
@@ -265,9 +327,6 @@ namespace AutocadPlugin.UI.Views
         private void RevealWeb()
         {
             StopEtaTicker(record: true);
-            StopSpinner();
-            if (SplashPanel != null)
-                SplashPanel.Visibility = Visibility.Collapsed;
             SizeToContent = SizeToContent.Manual;
             MaxWidth = double.PositiveInfinity;
             MinWidth = 120;
@@ -305,28 +364,6 @@ namespace AutocadPlugin.UI.Views
             }
         }
 
-        private void StartSpinner()
-        {
-            StartForever(SpinArc, 0.85);
-            StartForever(SpinHands, 1.35);
-        }
-
-        private static void StartForever(RotateTransform spin, double seconds)
-        {
-            if (spin == null) return;
-            var anim = new DoubleAnimation(0, 360, TimeSpan.FromSeconds(seconds))
-            {
-                RepeatBehavior = RepeatBehavior.Forever
-            };
-            spin.BeginAnimation(RotateTransform.AngleProperty, anim);
-        }
-
-        private void StopSpinner()
-        {
-            SpinArc?.BeginAnimation(RotateTransform.AngleProperty, null);
-            SpinHands?.BeginAnimation(RotateTransform.AngleProperty, null);
-        }
-
         private void StartEtaTicker()
         {
             if (_etaTimer != null)
@@ -360,7 +397,7 @@ namespace AutocadPlugin.UI.Views
 
         private void RefreshEta()
         {
-            if (EtaText == null)
+            if (_splashPopup == null)
                 return;
             var elapsed = Math.Max(0, (int)(DateTime.UtcNow - _etaStartedAt).TotalMilliseconds);
             if (!_etaCold && elapsed > _etaPredictedMs + 1500)
@@ -371,20 +408,7 @@ namespace AutocadPlugin.UI.Views
 
             var remaining = Math.Max(1100, (int)(_etaPredictedMs - elapsed * 0.72));
             var coldHang = _etaCold && elapsed > _etaPredictedMs;
-            EtaText.Text = ConnectEta.Format(remaining, coldHang);
-
-            double pct;
-            if (coldHang)
-                pct = Math.Min(96, 78 + (elapsed - _etaPredictedMs) / 4000.0);
-            else
-                pct = Math.Max(6, Math.Min(92, elapsed / (double)Math.Max(1, _etaPredictedMs) * 88));
-
-            if (EtaBarFill != null && EtaBarTrack != null)
-            {
-                var track = EtaBarTrack.ActualWidth;
-                if (track > 1)
-                    EtaBarFill.Width = Math.Max(8, track * pct / 100.0);
-            }
+            _splashPopup.SetProgressDetail(ConnectEta.Format(remaining, coldHang));
         }
 
         private static async Task ClearCookiesForSiteAsync(CoreWebView2 web, string siteUrl)
@@ -411,9 +435,9 @@ namespace AutocadPlugin.UI.Views
             {
                 if (_authSplash)
                 {
-                    ApplySplashWindowSize();
+                    HideHostDuringSplash();
                     ShowStatus("Comprobando autorización en TDesing…");
-                    await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.Render);
+                    await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render);
                     await Task.Delay(80);
                 }
 
@@ -467,10 +491,8 @@ namespace AutocadPlugin.UI.Views
             catch (Exception ex)
             {
                 StopEtaTicker(record: false);
-                if (StatusText != null)
-                    StatusText.Text = "No se pudo conectar con TDesing.";
-                if (EtaText != null)
-                    EtaText.Text = "Comprueba que Desing esté en ejecución.";
+                try { _splashPopup?.SetProgressDetail("No se pudo conectar con TDesing."); }
+                catch { }
                 MessageBox.Show(
                     "No se pudo cargar el formulario MVC.\n" +
                     "Si falta WebView2Loader.dll, vuelve a NETLOAD esta carpeta del plugin.\n" +

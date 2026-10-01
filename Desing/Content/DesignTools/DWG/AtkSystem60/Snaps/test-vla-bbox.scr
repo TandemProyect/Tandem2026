@@ -1,0 +1,21 @@
+FILEDIA
+0
+SECURELOAD
+0
+(vl-load-com)
+(setq ss (ssget "_X" '((0 . "3DSOLID"))))
+(setq en (ssname ss 0))
+(setq obj (vlax-ename->vla-object en))
+(if obj
+  (progn
+    (vla-getboundingbox obj 'mn 'mx)
+    (setq p1 (vlax-safearray->list mn) p2 (vlax-safearray->list mx))
+    (princ (strcat "\nVLABOX " (rtos (car p1) 2 3) " .. " (rtos (car p2) 2 3)))
+  )
+  (princ "\nNO-VLA")
+)
+(princ)
+FILEDIA
+1
+_.QUIT
+_Y

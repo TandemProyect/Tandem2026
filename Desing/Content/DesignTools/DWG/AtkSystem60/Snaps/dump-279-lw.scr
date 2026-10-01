@@ -1,0 +1,53 @@
+FILEDIA
+0
+SECURELOAD
+0
+(setq ss (ssget "_X" '((0 . "LWPOLYLINE"))))
+(setq i 0 n (if ss (sslength ss) 0))
+(princ (strcat "\nLWCOUNT=" (itoa n)))
+(while (< i n)
+  (setq e (entget (ssname ss i)))
+  (setq elv (cdr (assoc 38 e)))
+  (setq nrm (cdr (assoc 210 e)))
+  (setq verts '())
+  (foreach g e
+    (if (= (car g) 10) (setq verts (append verts (list (cdr g)))))
+  )
+  (princ (strcat "\nLW" (itoa i) " elev=" (if elv (rtos elv 2 4) "0")
+    " n=" (itoa (length verts))
+    " nrm=" (if nrm (strcat (rtos (car nrm) 2 3) "," (rtos (cadr nrm) 2 3) "," (rtos (caddr nrm) 2 3)) "?")))
+  (foreach v verts
+    (princ (strcat " (" (rtos (car v) 2 4) "," (rtos (cadr v) 2 4) ")"))
+  )
+  (setq i (1+ i))
+)
+(setq ss (ssget "_X" '((0 . "CIRCLE"))))
+(setq i 0 n (if ss (sslength ss) 0))
+(princ (strcat "\nCIRCLES=" (itoa n)))
+(while (< i n)
+  (setq e (entget (ssname ss i)))
+  (setq c (cdr (assoc 10 e)))
+  (setq r (cdr (assoc 40 e)))
+  (princ (strcat "\nC" (itoa i) " " (rtos (car c) 2 4) "," (rtos (cadr c) 2 4) "," (rtos (caddr c) 2 4) " r=" (rtos r 2 4)))
+  (setq i (1+ i))
+)
+(setq ss (ssget "_X" '((0 . "3DFACE"))))
+(if ss
+  (progn
+    (setq e (entget (ssname ss 0)))
+    (princ "\n3DFACE")
+    (foreach g e
+      (if (member (car g) '(10 11 12 13))
+        (progn
+          (setq p (cdr g))
+          (princ (strcat " (" (rtos (car p) 2 4) "," (rtos (cadr p) 2 4) "," (rtos (caddr p) 2 4) ")"))
+        )
+      )
+    )
+  )
+)
+(princ)
+FILEDIA
+1
+_.QUIT
+_Y

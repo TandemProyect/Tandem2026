@@ -1,0 +1,35 @@
+FILEDIA
+0
+(princ (strcat "\nINSBASE=" (rtos (car (getvar "INSBASE")) 2 4) "," (rtos (cadr (getvar "INSBASE")) 2 4) "," (rtos (caddr (getvar "INSBASE")) 2 4)))
+(setq types '())
+(setq ss (ssget "_X"))
+(if ss
+  (progn
+    (setq i 0 n (sslength ss))
+    (while (< i n)
+      (setq e (entget (ssname ss i)))
+      (setq ty (cdr (assoc 0 e)))
+      (setq pair (assoc ty types))
+      (if pair
+        (setq types (subst (cons ty (1+ (cdr pair))) pair types))
+        (setq types (cons (cons ty 1) types))
+      )
+      (setq i (1+ i))
+    )
+  )
+)
+(princ "\nENTITIES:")
+(foreach p types (princ (strcat "\n " (car p) "=" (itoa (cdr p)))))
+(if (setq ss (ssget "_X"))
+  (progn
+    (command "_.ZOOM" "_E")
+    (setq a (getvar "EXTMIN") b (getvar "EXTMAX"))
+    (princ (strcat "\nEXTMIN=" (rtos (car a) 2 4) "," (rtos (cadr a) 2 4) "," (rtos (caddr a) 2 4)))
+    (princ (strcat "\nEXTMAX=" (rtos (car b) 2 4) "," (rtos (cadr b) 2 4) "," (rtos (caddr b) 2 4)))
+  )
+)
+(princ)
+FILEDIA
+1
+_.QUIT
+_Y

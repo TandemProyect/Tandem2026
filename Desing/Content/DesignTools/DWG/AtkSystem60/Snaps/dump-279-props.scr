@@ -1,0 +1,54 @@
+FILEDIA
+0
+SECURELOAD
+0
+(setq ss (ssget "_X" '((0 . "LWPOLYLINE"))))
+(setq i 0 n (if ss (sslength ss) 0))
+(princ (strcat "\nLWCOUNT=" (itoa n)))
+(while (< i n)
+  (setq e (entget (ssname ss i)))
+  (setq elv (cdr (assoc 38 e)))
+  (setq w43 (cdr (assoc 43 e)))
+  (setq w40 (cdr (assoc 40 e)))
+  (setq fl (cdr (assoc 70 e)))
+  (setq col (cdr (assoc 62 e)))
+  (setq la (cdr (assoc 8 e)))
+  (setq nrm (cdr (assoc 210 e)))
+  (setq verts '())
+  (foreach g e
+    (if (= (car g) 10) (setq verts (append verts (list (cdr g)))))
+  )
+  (princ (strcat "\nLW" (itoa i)
+    " lay=" (if la la "?")
+    " col=" (if col (itoa col) "bylayer")
+    " fl=" (if fl (itoa fl) "?")
+    " elev=" (if elv (rtos elv 2 4) "0")
+    " w43=" (if w43 (rtos w43 2 4) "nil")
+    " n=" (itoa (length verts))))
+  (setq i (1+ i))
+)
+(setq ss (ssget "_X" '((0 . "LINE"))))
+(princ (strcat "\nLINECOUNT=" (itoa (if ss (sslength ss) 0))))
+(setq ss (ssget "_X" '((0 . "3DFACE"))))
+(if ss
+  (progn
+    (setq e (entget (ssname ss 0)))
+    (princ (strcat "\n3DFACE col=" (if (cdr (assoc 62 e)) (itoa (cdr (assoc 62 e))) "bylayer")
+      " lay=" (cdr (assoc 8 e))))
+  )
+)
+(setq ss (ssget "_X" '((0 . "TEXT"))))
+(setq i 0 n (if ss (sslength ss) 0))
+(princ (strcat "\nTEXT=" (itoa n)))
+(while (< i n)
+  (setq e (entget (ssname ss i)))
+  (princ (strcat "\nT" (itoa i) " =" (if (cdr (assoc 1 e)) (cdr (assoc 1 e)) "")
+    " h=" (rtos (cdr (assoc 40 e)) 2 4)
+    " p=" (rtos (car (cdr (assoc 10 e))) 2 4) "," (rtos (cadr (cdr (assoc 10 e))) 2 4)))
+  (setq i (1+ i))
+)
+(princ)
+FILEDIA
+1
+_.QUIT
+_Y

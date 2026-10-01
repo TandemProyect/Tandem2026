@@ -1,0 +1,42 @@
+; Taladros del panel universal (NEVI): cada 50 mm en las costillas en U.
+(defun make-xs ( / x out)
+  (setq x 0.05 out '())
+  (while (< x 0.701)
+    (setq out (append out (list x)) x (+ x 0.05))
+  )
+  out
+)
+(defun drill-all ( / ss xs x z cyl src)
+  (setvar "OSMODE" 0)
+  (setvar "CMDECHO" 0)
+  (setvar "SOLIDHIST" 0)
+  (setvar "DELOBJ" 1)
+  (setq ss (ssget "_X" '((0 . "3DSOLID"))))
+  (if (and ss (> (sslength ss) 1)) (command "_.UNION" ss ""))
+  (setq xs (make-xs))
+  (foreach z *ZS*
+    (foreach x xs
+      (setq ss (ssget "_X" '((0 . "3DSOLID"))))
+      (if ss
+        (progn
+          (command "_.CYLINDER" (list x -0.18 z) 0.0105 "_A" (list x 0.03 z))
+          (setq cyl (entlast) src (ssname ss 0))
+          (if (and cyl src)
+            (progn
+              (command "_.SUBTRACT" src "" cyl "")
+              (if (and cyl (entget cyl)) (entdel cyl))
+            )
+          )
+        )
+      )
+    )
+  )
+  (setvar "INSBASE" (list 0.0 0.0 0.0))
+  (princ (strcat "\nOK-DRILL-" *LBL*))
+  (princ)
+)
+(if (not *ZS*) (setq *ZS* (list 0.55 1.35 2.15)))
+(if (not *LBL*) (setq *LBL* "x"))
+(drill-all)
+(command "_.QSAVE")
+(princ)

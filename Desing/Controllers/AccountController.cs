@@ -62,8 +62,7 @@ namespace Desing.Controllers
             Response.Cache.SetNoStore();
             ViewBag.ReturnUrl = returnUrl;
 
-            var isPluginLogin = !string.IsNullOrWhiteSpace(returnUrl)
-                && returnUrl.IndexOf("/DesignToolsAutocad/PluginReady", StringComparison.OrdinalIgnoreCase) >= 0;
+            var isPluginLogin = IsPluginCadReturnUrl(returnUrl);
 
             if (isPluginLogin && User.Identity.IsAuthenticated)
             {
@@ -118,8 +117,7 @@ namespace Desing.Controllers
                 return View();
             }
 
-            var isPluginLogin = !string.IsNullOrWhiteSpace(returnUrl)
-                && returnUrl.IndexOf("/DesignToolsAutocad/PluginReady", StringComparison.OrdinalIgnoreCase) >= 0;
+            var isPluginLogin = IsPluginCadReturnUrl(returnUrl);
             if (isPluginLogin)
                 ViewBag.PluginCadLogin = true;
 
@@ -527,6 +525,12 @@ namespace Desing.Controllers
             {
                 ModelState.AddModelError("", error);
             }
+        }
+
+        private static bool IsPluginCadReturnUrl(string returnUrl)
+        {
+            return !string.IsNullOrWhiteSpace(returnUrl)
+                && returnUrl.IndexOf("/DesignToolsAutocad/", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private ActionResult RedirectToLocal(string returnUrl)

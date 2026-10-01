@@ -1,0 +1,9 @@
+FILEDIA
+0
+(setvar "INSBASE" (list 0.0 0.0 0.0))
+_.QSAVE
+FILEDIA
+1
+_.QUIT
+_Y
+

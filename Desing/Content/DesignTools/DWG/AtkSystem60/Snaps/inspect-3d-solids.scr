@@ -1,0 +1,39 @@
+FILEDIA
+0
+(setq ss (ssget "_X" '((0 . "3DSOLID"))))
+(setq i 0 n (if ss (sslength ss) 0))
+(princ (strcat "\nSOLIDS=" (itoa n)))
+(while (< i n)
+  (setq en (ssname ss i))
+  (command "_.ISOLATEOBJECTS" en "")
+  (command "_.ZOOM" "_E")
+  (setq a (getvar "EXTMIN") b (getvar "EXTMAX"))
+  (princ (strcat "\nS" (itoa i) " "
+    (rtos (car a) 2 3) "," (rtos (cadr a) 2 3) "," (rtos (caddr a) 2 3)
+    " .. "
+    (rtos (car b) 2 3) "," (rtos (cadr b) 2 3) "," (rtos (caddr b) 2 3)))
+  (command "_.UNISOLATEOBJECTS")
+  (setq i (1+ i))
+)
+(setq ss (ssget "_X" '((0 . "CIRCLE"))))
+(setq i 0 n (if ss (sslength ss) 0))
+(princ (strcat "\nCIRCLES=" (itoa n)))
+(while (< i n)
+  (setq e (entget (ssname ss i)))
+  (setq c (cdr (assoc 10 e)))
+  (princ (strcat "\nC" (itoa i) " " (rtos (car c) 2 3) "," (rtos (cadr c) 2 3) "," (rtos (caddr c) 2 3)))
+  (setq i (1+ i))
+)
+(setq ss (ssget "_X" '((0 . "ATTDEF"))))
+(if ss
+  (progn
+    (setq e (entget (ssname ss 0)))
+    (princ (strcat "\nATTDEF tag=" (if (cdr (assoc 2 e)) (cdr (assoc 2 e)) "")
+      " def=" (if (cdr (assoc 1 e)) (cdr (assoc 1 e)) "")))
+  )
+)
+(princ)
+FILEDIA
+1
+_.QUIT
+_Y

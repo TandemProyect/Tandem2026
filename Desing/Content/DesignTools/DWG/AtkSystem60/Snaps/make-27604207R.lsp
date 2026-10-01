@@ -1,0 +1,46 @@
+; Parte de 27904209R (ya copiado a 27604207R): estrecha X 0,90 -> 0,60.
+; Manual NEVI p.9: 50+500+50. Origen / INSBASE = inferior izquierda (0,0,0).
+; No se escala: el perfil izquierdo y las grapas izquierdas no se aplastan.
+(defun dxf (c v) (cons c v))
+(defun shift-x (pt / )
+  (if (and pt (listp pt) (numberp (car pt)) (> (car pt) 0.45))
+    (cons (- (car pt) 0.30) (cdr pt))
+    pt
+  )
+)
+(defun stretch-ename (en / e n g p)
+  (setq e (entget en) n nil)
+  (foreach g e
+    (cond
+      ((member (car g) '(10 11 12 13))
+        (setq n (append n (list (cons (car g) (shift-x (cdr g))))))
+      )
+      ((= (car g) 1)
+        (setq p (cdr g))
+        (if (equal p "2,70x90") (setq p "2,70x60"))
+        (setq n (append n (list (cons 1 p))))
+      )
+      (T (setq n (append n (list g))))
+    )
+  )
+  (if n (entmod n))
+)
+(defun c:NARROW276 ( / ss i n en)
+  (setq ss (ssget "_X"))
+  (if ss
+    (progn
+      (setq i 0 n (sslength ss))
+      (while (< i n)
+        (setq en (ssname ss i))
+        (stretch-ename en)
+        (setq i (1+ i))
+      )
+    )
+  )
+  (setvar "INSBASE" (list 0.0 0.0 0.0))
+  (princ "\nOK-NARROW276")
+  (princ)
+)
+(c:NARROW276)
+(command "_.QSAVE")
+(princ)

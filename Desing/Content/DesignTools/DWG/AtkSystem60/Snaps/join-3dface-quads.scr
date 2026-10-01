@@ -1,0 +1,10 @@
+FILEDIA
+0
+SECURELOAD
+0
+(setq *JOINOUT* "C:/00_Tandem2026/Desing/Content/DesignTools/DWG/AtkSystem60/3D/27604207-quads.dwg")
+(load "C:/00_Tandem2026/Desing/Content/DesignTools/DWG/AtkSystem60/Snaps/join-3dface-quads.lsp")
+FILEDIA
+1
+_.QUIT
+_Y

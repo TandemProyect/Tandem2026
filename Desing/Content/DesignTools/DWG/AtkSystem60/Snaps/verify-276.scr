@@ -1,0 +1,35 @@
+FILEDIA
+0
+(princ (strcat "\nINSBASE=" (rtos (car (getvar "INSBASE")) 2 4) "," (rtos (cadr (getvar "INSBASE")) 2 4) "," (rtos (caddr (getvar "INSBASE")) 2 4)))
+(setq ss (ssget "_X" '((0 . "LWPOLYLINE"))))
+(setq e (entget (ssname ss 0)))
+(setq verts '())
+(foreach g e (if (= (car g) 10) (setq verts (append verts (list (cdr g))))))
+(princ "\nLW0")
+(foreach v verts (princ (strcat " (" (rtos (car v) 2 3) "," (rtos (cadr v) 2 3) ")")))
+(setq ss (ssget "_X" '((0 . "CIRCLE"))))
+(setq i 0 n (sslength ss))
+(while (< i n)
+  (setq c (cdr (assoc 10 (entget (ssname ss i)))))
+  (princ (strcat "\nC" (itoa i) "=" (rtos (car c) 2 3) "," (rtos (cadr c) 2 3) "," (rtos (caddr c) 2 3)))
+  (setq i (1+ i))
+)
+(setq ss (ssget "_X" '((0 . "3DFACE"))))
+(setq e (entget (ssname ss 0)))
+(princ "\n3DFACE")
+(foreach g e
+  (if (member (car g) '(10 11 12 13))
+    (progn (setq p (cdr g)) (princ (strcat " (" (rtos (car p) 2 3) "," (rtos (cadr p) 2 3) "," (rtos (caddr p) 2 3) ")")))
+  )
+)
+(setq ss (ssget "_X" '((0 . "TEXT"))))
+(setq i 0 n (sslength ss))
+(while (< i n)
+  (princ (strcat "\nT" (itoa i) "=" (cdr (assoc 1 (entget (ssname ss i))))))
+  (setq i (1+ i))
+)
+(princ)
+FILEDIA
+1
+_.QUIT
+_Y
