@@ -54,7 +54,7 @@ namespace AutocadPlugin
         public static string Format(int remainingMs, bool coldHang)
         {
             if (coldHang)
-                return "Sigue conectando…";
+                return "Sigue en marcha, no está colgado…";
             if (remainingMs < 1400)
                 return "Casi listo…";
             var sec = Math.Max(1, (int)Math.Ceiling(remainingMs / 1000.0));

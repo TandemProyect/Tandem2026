@@ -51,6 +51,7 @@
                     </div>
                     <div class="col-12 mt-2">
                         <h6 class="mb-2">@Employee.Lbl_DeviceSectionTitle</h6>
+                        <p class="text-muted small">@Employee.Lbl_DeviceSectionHint</p>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">@Employee.Lbl_DeviceName</label>
@@ -67,6 +68,13 @@
                             @Html.CheckBoxFor(m => m.DeviceAllowed, new { @class = "form-check-input" })
                             <label class="form-check-label" for="DeviceAllowed">@Employee.Lbl_DeviceAllowed</label>
                         </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            @Html.CheckBoxFor(m => m.IsCadDeveloper, new { @class = "form-check-input" })
+                            <label class="form-check-label" for="IsCadDeveloper">@Employee.Lbl_CadDeveloper</label>
+                        </div>
+                        <small class="text-muted">@Employee.Lbl_CadDeveloperHint</small>
                     </div>
                 </div>
             </div>

@@ -16,6 +16,7 @@
         confirmDeleteEmployee = Employee.Js_ConfirmDeleteEmployee,
         confirmToggleEmployee = Employee.Js_ConfirmToggleEmployee,
         confirmSendMail = Employee.Js_ConfirmSendMail,
+        confirmSendPluginMail = Employee.Js_ConfirmSendPluginMail,
         sendMailSuccessFallback = Employee.Js_SendMailSuccessFallback,
         sendMailErrorFallback = Employee.Js_SendMailErrorFallback,
         sendMailUnexpected = Employee.Js_SendMailUnexpected,
@@ -201,16 +202,25 @@
         };
 
         window.SendmailToEmployee = function (id) {
+            openEmployeeMailModal(id, '@Url.Action("SendMailUser", "Employee")', employeeDt.confirmSendMail);
+        };
+
+        window.SendPluginMailToEmployee = function (id) {
+            openEmployeeMailModal(id, '@Url.Action("SendPluginInstallMail", "Employee")', employeeDt.confirmSendPluginMail);
+        };
+
+        function openEmployeeMailModal(id, url, bodyText) {
             var $modal = $('#EmployeeSendMailModal');
             var hasBootstrap5 = typeof bootstrap !== 'undefined' && bootstrap.Modal;
             var modal = hasBootstrap5 ? bootstrap.Modal.getOrCreateInstance(document.getElementById('EmployeeSendMailModal')) : null;
+            $('#EmployeeSendMailBody').text(bodyText || employeeDt.confirmSendMail);
             if (modal) { modal.show(); } else { $modal.fadeIn(); }
 
             $('#EmployeeSendMailConfirm').off('click').on('click', function () {
                 if (modal) { modal.hide(); } else { $modal.fadeOut(); }
                 $.ajax({
                     type: 'POST',
-                    url: '@Url.Action("SendMailUser", "Employee")',
+                    url: url,
                     data: { Id: id },
                     success: function (data) {
                         var text = (data || '').toString();
@@ -225,6 +235,6 @@
                     error: function () { alert(employeeDt.sendMailNetworkError); }
                 });
             });
-        };
+        }
     </script>
 }

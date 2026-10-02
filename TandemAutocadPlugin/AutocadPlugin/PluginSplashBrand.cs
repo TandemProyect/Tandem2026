@@ -16,6 +16,12 @@ namespace AutocadPlugin
         public static readonly Uri DefaultPackUri =
             new Uri("pack://application:,,,/AutocadPlugin;component/UI/Assets/tdesing-logo.png");
 
+        /// <summary>
+        /// Primera instalación: siempre TDesing, sin cookie ni caché de empresa.
+        /// Se apaga al llegar el logo de la plantilla del usuario.
+        /// </summary>
+        public static bool ForceDefaultUntilPlantilla { get; set; }
+
         public static string CacheDir => Path.Combine(Path.GetTempPath(), "TandemAutocadWebView2");
         public static string CacheFile => Path.Combine(CacheDir, "splash-company-logo.bin");
         public static string CacheUrlFile => Path.Combine(CacheDir, "splash-company-logo.url");

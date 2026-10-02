@@ -479,6 +479,9 @@
         <button type="button" class="plugin-blocks__tool is-on" id="plugin-blocks-tool-axes" title="@MasterArticles.StlPreview_XyzAxesToggleTitle" data-tool="axes">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M12 4v16M4 12h16"/></svg>
         </button>
+        <button type="button" class="plugin-blocks__tool" id="plugin-blocks-tool-update" title="@Common.PluginCad_BlocksUpdate" aria-label="@Common.PluginCad_BlocksUpdate" data-plugin-menu="update-library">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg>
+        </button>
     </div>
     <div class="plugin-blocks__viewer">
         <div class="plugin-blocks__viewer-host" id="plugin-blocks-viewer" data-article-preview="1"></div>
@@ -555,6 +558,7 @@
             var searchUrl = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(searchUrl));
             var emptyText = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_BlocksEmpty));
             var soonText = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_BlocksInsertSoon));
+            var updatingText = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_BlocksUpdating));
             var noPreview = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_BlocksNoPreview));
             var listEl = document.getElementById('plugin-blocks-list');
             var qEl = document.getElementById('plugin-blocks-q');
@@ -568,6 +572,8 @@
             var insertRot = 0;
             var timer = null;
             var searchGen = 0;
+            var catalogRows = null;
+            var askedCatalog = false;
 
             function bindSeg(group, attr, onPick) {
                 if (!group) return;
@@ -665,6 +671,17 @@
                 selectItem(btn);
             });
 
+            function catalogHay(row) {
+                return [
+                    row.Caption, row.caption, row.Code, row.code,
+                    row.CodeName, row.codeName, row.Label, row.label
+                ].join(' ').toLowerCase();
+            }
+            function filterCatalog(q) {
+                q = (q || '').trim().toLowerCase();
+                if (!q) return catalogRows.slice();
+                return catalogRows.filter(function (row) { return catalogHay(row).indexOf(q) >= 0; });
+            }
             function loadList(q, dismissSplash) {
                 var my = ++searchGen;
                 if (searchBox) {
@@ -683,12 +700,23 @@
                     if (dismissSplash && window.TdesingBootSplashDismiss)
                         window.TdesingBootSplashDismiss();
                 }
+                if (catalogRows && catalogRows.length) {
+                    if (!stopClock()) return;
+                    renderRows(filterCatalog(q));
+                    doneSplash();
+                    return;
+                }
+                if (!askedCatalog) {
+                    askedCatalog = true;
+                    post({ action: 'request-catalog' });
+                }
                 fetch(searchUrl + '?q=' + encodeURIComponent(q || ''), {
                     credentials: 'same-origin',
                     headers: { 'Accept': 'application/json' }
                 })
                     .then(function (r) { return r.text(); })
                     .then(function (text) {
+                        if (catalogRows && catalogRows.length) return;
                         if (!stopClock()) return;
                         var rows = [];
                         try { rows = JSON.parse(text); } catch (e) { rows = []; }
@@ -696,10 +724,23 @@
                         doneSplash();
                     })
                     .catch(function () {
+                        if (catalogRows && catalogRows.length) return;
                         if (!stopClock()) return;
                         setStatus(emptyText, true);
                         doneSplash();
                     });
+            }
+            if (window.chrome && window.chrome.webview && window.chrome.webview.addEventListener) {
+                window.chrome.webview.addEventListener('message', function (ev) {
+                    var data = ev.data;
+                    if (typeof data === 'string') {
+                        try { data = JSON.parse(data); } catch (e) { return; }
+                    }
+                    if (!data || data.type !== 'catalog' || !Array.isArray(data.rows))
+                        return;
+                    catalogRows = data.rows;
+                    loadList(qEl ? (qEl.value || '') : '', true);
+                });
             }
 
             function scheduleSearch() {
@@ -717,6 +758,13 @@
                         clearTimeout(timer);
                         loadList(qEl.value || '', false);
                     }
+                });
+            }
+
+            var updateEl = document.getElementById('plugin-blocks-tool-update');
+            if (updateEl) {
+                updateEl.addEventListener('click', function () {
+                    setStatus(updatingText);
                 });
             }
 

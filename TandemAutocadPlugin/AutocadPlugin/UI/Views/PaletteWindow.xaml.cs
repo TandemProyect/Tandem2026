@@ -167,11 +167,29 @@ namespace AutocadPlugin.UI.Views
             ParkWeb();
             EnsureSplashPopup();
             if (_splashPopup != null)
+            {
                 _splashPopup.ShowProgress(
-                    _splashTitle,
-                    ConnectEta.Format(ConnectEta.PredictedStartMs(), false),
+                    PluginSplashBrand.ForceDefaultUntilPlantilla ? "Instalación TDesing" : "Conectando TDesing",
+                    text ?? _splashTitle,
                     showBrand: true);
+                if (!string.IsNullOrWhiteSpace(text))
+                    _splashPopup.AddInstallStep(text);
+            }
             StartEtaTicker();
+        }
+
+        public void SetStatusTitle(string text)
+        {
+            AddInstallStep(text);
+        }
+
+        public void AddInstallStep(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return;
+            EnsureSplashPopup();
+            try { _splashPopup?.AddInstallStep(text); }
+            catch { }
         }
 
         public void RefreshSplashTheme()
@@ -272,11 +290,40 @@ namespace AutocadPlugin.UI.Views
                 Web.CoreWebView2.Navigate(url);
         }
 
+        public void PostToPage(string json)
+        {
+            try
+            {
+                var web = Web?.CoreWebView2;
+                if (web == null || string.IsNullOrWhiteSpace(json))
+                    return;
+                Action send = () =>
+                {
+                    try { web.PostWebMessageAsString(json); }
+                    catch { }
+                };
+                if (Dispatcher.CheckAccess())
+                    send();
+                else
+                    Dispatcher.BeginInvoke(send);
+            }
+            catch
+            {
+            }
+        }
+
         public void ClearCookiesForSite(string siteUrl)
         {
             var web = Web?.CoreWebView2;
             if (web == null || string.IsNullOrWhiteSpace(siteUrl)) return;
-            _ = ClearCookiesForSiteAsync(web, siteUrl);
+            _ = ClearCookiesForSiteAsync(web, siteUrl, all: false);
+        }
+
+        public void ClearAllCookiesForSite(string siteUrl)
+        {
+            var web = Web?.CoreWebView2;
+            if (web == null || string.IsNullOrWhiteSpace(siteUrl)) return;
+            _ = ClearCookiesForSiteAsync(web, siteUrl, all: true);
         }
 
         private void EnsureWebControl()
@@ -408,10 +455,17 @@ namespace AutocadPlugin.UI.Views
 
             var remaining = Math.Max(1100, (int)(_etaPredictedMs - elapsed * 0.72));
             var coldHang = _etaCold && elapsed > _etaPredictedMs;
-            _splashPopup.SetProgressDetail(ConnectEta.Format(remaining, coldHang));
+            _splashPopup.SetProgressDetail(FirstRunEta(ConnectEta.Format(remaining, coldHang)));
         }
 
-        private static async Task ClearCookiesForSiteAsync(CoreWebView2 web, string siteUrl)
+        private static string FirstRunEta(string eta)
+        {
+            if (!PluginSplashBrand.ForceDefaultUntilPlantilla)
+                return eta;
+            return "Primera instalación · " + eta;
+        }
+
+        private static async Task ClearCookiesForSiteAsync(CoreWebView2 web, string siteUrl, bool all)
         {
             try
             {
@@ -419,8 +473,10 @@ namespace AutocadPlugin.UI.Views
                 foreach (var cookie in cookies)
                 {
                     var name = cookie.Name ?? "";
-                    if (name.IndexOf("AspNet", StringComparison.OrdinalIgnoreCase) >= 0
-                        || name.IndexOf("ApplicationCookie", StringComparison.OrdinalIgnoreCase) >= 0)
+                    if (all
+                        || name.IndexOf("AspNet", StringComparison.OrdinalIgnoreCase) >= 0
+                        || name.IndexOf("ApplicationCookie", StringComparison.OrdinalIgnoreCase) >= 0
+                        || string.Equals(name, PluginSplashBrand.LogoCookieName, StringComparison.OrdinalIgnoreCase))
                         web.CookieManager.DeleteCookie(cookie);
                 }
             }
@@ -436,7 +492,9 @@ namespace AutocadPlugin.UI.Views
                 if (_authSplash)
                 {
                     HideHostDuringSplash();
-                    ShowStatus("Comprobando autorización en TDesing…");
+                    ShowStatus(PluginSplashBrand.ForceDefaultUntilPlantilla
+                        ? "Primera instalación de TDesing"
+                        : "Comprobando autorización en TDesing…");
                     await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render);
                     await Task.Delay(80);
                 }
@@ -448,7 +506,10 @@ namespace AutocadPlugin.UI.Views
                     AttachWeb();
 
                 PrepareNativeLoader();
-                var userData = Path.Combine(Path.GetTempPath(), "TandemAutocadWebView2");
+                var userData = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "AtDesing",
+                    "WebView2");
                 var env = await CoreWebView2Environment.CreateAsync(null, userData);
                 await Web.EnsureCoreWebView2Async(env);
                 try
@@ -483,7 +544,21 @@ namespace AutocadPlugin.UI.Views
                 {
                     try { Navigated?.Invoke(Web.Source); } catch { }
                 };
-                if (_authSplash)
+                if (_authSplash && PluginSplashBrand.ForceDefaultUntilPlantilla)
+                {
+                    ShowStatus("Primera instalación: limpiando cookies antiguas…");
+                    try
+                    {
+                        var origin = new Uri(_url).GetLeftPart(UriPartial.Authority) + "/";
+                        await ClearCookiesForSiteAsync(Web.CoreWebView2, origin, all: true);
+                    }
+                    catch
+                    {
+                    }
+                    PluginSplashBrand.Clear();
+                    ShowStatus("Conectando con el servidor TDesing…");
+                }
+                else if (_authSplash)
                     await SyncSplashLogoFromCookiesAsync();
                 if (!string.IsNullOrWhiteSpace(_url))
                     Web.CoreWebView2.Navigate(_url);

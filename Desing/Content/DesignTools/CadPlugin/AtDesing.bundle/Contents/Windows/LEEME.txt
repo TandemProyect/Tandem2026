@@ -1,0 +1,3 @@
+No dejes aquí DLLs de .NET 8 (AutocadPlugin, Newtonsoft.Json, WebView2).
+IIS las carga y rompe Desing (Newtonsoft pide System.Runtime 6.0).
+El plugin se instala con NETLOAD o con el ZIP generado fuera de /bin.

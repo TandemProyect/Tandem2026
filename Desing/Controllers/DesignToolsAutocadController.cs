@@ -12,6 +12,7 @@ using System.Data;
 using System.Data.Entity;
 using System.Data.SqlClient;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -53,7 +54,7 @@ namespace Desing.Controllers
 
         /// <summary>
         /// Arranque de sesión CAD: si el equipo está en TSql_PluginDeviceAuth y activo,
-        /// inicia sesión con el usuario ligado; si no, pide login (y el login registra el equipo).
+        /// inicia sesión con el usuario ligado. El alta del equipo es en Personal, no aquí.
         /// </summary>
         [HttpGet]
         [AllowAnonymous]
@@ -78,6 +79,88 @@ namespace Desing.Controllers
                 return RedirectToAction("PluginCadAuth");
 
             return RedirectToPluginLogin(pluginReadyUrl, blocked: false);
+        }
+
+        /// <summary>
+        /// Instalación del plugin: solo con token de correo. No está en el menú.
+        /// </summary>
+        [HttpGet]
+        [AllowAnonymous]
+        public ActionResult InstallPlugin(string t)
+        {
+            string userId;
+            long employeeId;
+            string error;
+            ViewBag.Token = t;
+            ViewBag.MachineName = "";
+            if (!PluginInstallLink.TryRead(t, out employeeId, out userId, out error))
+            {
+                ViewBag.State = error == "expired" ? "expired" : "invalid";
+                return View();
+            }
+
+            var employee = db.TSql_Employee.AsNoTracking()
+                .FirstOrDefault(e => e.SysObjectID == employeeId && e.LinAspNetUsert == userId && !e.AttIsDeleted);
+            var device = PluginCadDeviceHelper.FindAuthorizedForUser(db, userId);
+            if (employee == null || device == null || string.IsNullOrWhiteSpace(device.MachineName))
+            {
+                ViewBag.State = "nodevice";
+                return View();
+            }
+
+            ViewBag.State = "ready";
+            ViewBag.EmployeeName = ((employee.AttName ?? "") + " " + (employee.AttSurname ?? "")).Trim();
+            ViewBag.MachineName = device.MachineName.Trim();
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public ActionResult InstallPluginClaim(string t, string machineName)
+        {
+            string userId;
+            long employeeId;
+            string error;
+            if (!PluginInstallLink.TryRead(t, out employeeId, out userId, out error))
+                return Json(new { ok = false, message = error == "expired" ? Common.PluginInstall_Expired : Common.PluginInstall_Invalid });
+
+            var device = PluginCadDeviceHelper.FindAuthorizedForUser(db, userId);
+            if (device == null)
+                return Json(new { ok = false, message = Common.PluginInstall_NoDevice });
+            if (!PluginCadDeviceHelper.MachineMatches(device, machineName))
+                return Json(new { ok = false, message = Common.PluginInstall_DeviceMismatch });
+
+            return Json(new
+            {
+                ok = true,
+                packageUrl = Url.Action("InstallPluginPackage", "DesignToolsAutocad", new { t, machineName = machineName.Trim() })
+            });
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public ActionResult InstallPluginPackage(string t, string machineName)
+        {
+            string userId;
+            long employeeId;
+            string error;
+            if (!PluginInstallLink.TryRead(t, out employeeId, out userId, out error))
+                return new HttpStatusCodeResult(403);
+            var device = PluginCadDeviceHelper.FindAuthorizedForUser(db, userId);
+            if (device == null || !PluginCadDeviceHelper.MachineMatches(device, machineName))
+                return new HttpStatusCodeResult(403);
+
+            var bundleRoot = Server.MapPath("~/Content/DesignTools/CadPlugin/AtDesing.bundle");
+            if (string.IsNullOrWhiteSpace(bundleRoot) || !Directory.Exists(bundleRoot))
+                return new HttpStatusCodeResult(404);
+
+            var tmp = Path.Combine(Path.GetTempPath(), "AtDesing-" + Guid.NewGuid().ToString("N") + ".zip");
+            if (System.IO.File.Exists(tmp))
+                System.IO.File.Delete(tmp);
+            ZipFile.CreateFromDirectory(bundleRoot, tmp);
+            var bytes = System.IO.File.ReadAllBytes(tmp);
+            try { System.IO.File.Delete(tmp); } catch { }
+            return File(bytes, "application/zip", "AtDesing.bundle.zip");
         }
 
         private ActionResult RedirectToPluginLogin(string pluginReadyUrl, bool blocked = false, bool inactiveUser = false)
@@ -210,7 +293,9 @@ namespace Desing.Controllers
 
             var deviceSnap = PluginCadDeviceHelper.TryReadCookie(Request);
             var deviceRow = PluginCadDeviceHelper.Find(db, deviceSnap != null ? deviceSnap.DeviceId : null);
-            if (PluginCadDeviceHelper.IsBlocked(deviceRow))
+            if (!PluginCadDeviceHelper.IsCadDeveloper(db, userId)
+                && (PluginCadDeviceHelper.IsBlocked(deviceRow)
+                    || !PluginCadDeviceHelper.AllowsPluginOnThisPc(db, userId, deviceSnap)))
             {
                 HttpContext.GetOwinContext().Authentication.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                 return RedirectToPluginLogin(Url.Action("PluginReady", "DesignToolsAutocad"), blocked: true);
@@ -295,6 +380,143 @@ namespace Desing.Controllers
             }, JsonRequestBehavior.AllowGet);
         }
 
+        /// <summary>
+        /// Manifiesto de DWG 3D / 3DRef / Xr + snaps para caché local del plugin.
+        /// </summary>
+        [HttpGet]
+        [AllowAnonymous]
+        public ActionResult PluginBlockLibrary()
+        {
+            var files = new List<PluginCadLibraryFile>();
+            var catalog = new List<PluginCadBlockRow>();
+            var articles = db.Tsql_Master_Articles.AsNoTracking()
+                .Where(a => a.AddIsActive)
+                .Where(a =>
+                    (a.LinkBlockDwg3D != null && a.LinkBlockDwg3D != "")
+                    || (a.LinkBlockDwg3DRef != null && a.LinkBlockDwg3DRef != "")
+                    || (a.LinkBlockDwgXr != null && a.LinkBlockDwgXr != "")
+                    || (a.LinkBlockDwgPlant3D != null && a.LinkBlockDwgPlant3D != ""))
+                .ToList();
+            var icoById = LoadMasterArticleIcoMap(articles.Select(a => a.IdObject));
+
+            foreach (var article in articles)
+            {
+                string codeName;
+                PluginCadAtk60PanelStlHelper.TryGetCodeName(article, out codeName);
+                codeName = FirstNonEmpty(codeName, article.TextCode, article.TextBlockNumber);
+                if (string.IsNullOrWhiteSpace(codeName))
+                    continue;
+
+                AddLibraryFile(files, article, codeName, "3d", "3D",
+                    FirstNonEmpty(article.LinkBlockDwg3D, article.LinkBlockDwgPlant3D),
+                    codeName + ".dwg");
+                AddLibraryFile(files, article, codeName, "3dref", "3DRef",
+                    FirstNonEmpty(article.LinkBlockDwg3DRef, article.LinkBlockDwgPlant3D),
+                    codeName + "R.dwg");
+                AddLibraryFile(files, article, codeName, "xr", "Xr",
+                    article.LinkBlockDwgXr,
+                    codeName + "X.dwg");
+
+                var snapVirtual = "~/Content/DesignTools/DWG/AtkSystem60/Snaps/" + codeName + ".json";
+                AddLibraryFile(files, article, codeName, "snap", "Snaps", snapVirtual, codeName + ".json");
+                catalog.Add(MapPluginBlock(article, icoById));
+            }
+
+            return Json(new PluginCadLibraryManifest
+            {
+                Ok = true,
+                GeneratedUtc = DateTime.UtcNow.ToString("o"),
+                Files = files,
+                Catalog = catalog
+            }, JsonRequestBehavior.AllowGet);
+        }
+
+        private void AddLibraryFile(
+            List<PluginCadLibraryFile> files,
+            DAL.Tsql_Master_Articles article,
+            string codeName,
+            string view,
+            string folder,
+            string virtualPath,
+            string defaultFile)
+        {
+            if (string.IsNullOrWhiteSpace(virtualPath))
+                return;
+
+            long size;
+            long ticks;
+            var hasFile = TryFileStamp(virtualPath, out size, out ticks);
+            if (!hasFile && string.Equals(view, "snap", StringComparison.OrdinalIgnoreCase))
+                return;
+            if (!hasFile && string.IsNullOrWhiteSpace(ToPublicUrl(virtualPath)))
+                return;
+
+            var url = ToPublicUrl(virtualPath);
+            if (string.IsNullOrWhiteSpace(url))
+                return;
+
+            var fileName = defaultFile;
+            try
+            {
+                var fromUrl = Path.GetFileName(new Uri(AbsoluteContentUrl(url), UriKind.Absolute).AbsolutePath);
+                if (!string.IsNullOrWhiteSpace(fromUrl))
+                    fileName = fromUrl;
+            }
+            catch
+            {
+            }
+
+            var version = hasFile
+                ? size.ToString(CultureInfo.InvariantCulture) + "|" + ticks.ToString(CultureInfo.InvariantCulture)
+                : article.AddLastDateChange.ToUniversalTime().Ticks.ToString(CultureInfo.InvariantCulture)
+                    + "|" + article.Ntimeschanged.ToString(CultureInfo.InvariantCulture);
+
+            files.Add(new PluginCadLibraryFile
+            {
+                Code = codeName,
+                View = view,
+                Folder = folder,
+                File = fileName,
+                Url = url,
+                Version = version + "|" + url,
+                Size = size
+            });
+        }
+
+        private bool TryFileStamp(string virtualPath, out long size, out long ticks)
+        {
+            size = 0;
+            ticks = 0;
+            var appRel = ToAppRelativePath(virtualPath);
+            if (string.IsNullOrWhiteSpace(appRel))
+                return false;
+            try
+            {
+                var physical = Server.MapPath(appRel);
+                if (string.IsNullOrWhiteSpace(physical) || !System.IO.File.Exists(physical))
+                    return false;
+                var info = new FileInfo(physical);
+                size = info.Length;
+                ticks = info.LastWriteTimeUtc.Ticks;
+                return info.Length >= 64;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private string AbsoluteContentUrl(string url)
+        {
+            var t = (url ?? "").Trim();
+            if (t.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                return t;
+            var root = Request.Url == null
+                ? ""
+                : Request.Url.GetLeftPart(UriPartial.Authority);
+            return root + (t.StartsWith("/") ? t : "/" + t.TrimStart('~', '/'));
+        }
+
         private DAL.Tsql_Master_Articles FindMasterArticleForPlugin(string code)
         {
             var rows = db.Tsql_Master_Articles.AsNoTracking()
@@ -357,7 +579,9 @@ namespace Desing.Controllers
 
             var deviceSnap = PluginCadDeviceHelper.TryReadCookie(Request);
             var deviceRow = PluginCadDeviceHelper.Find(db, deviceSnap != null ? deviceSnap.DeviceId : null);
-            if (PluginCadDeviceHelper.IsBlocked(deviceRow))
+            if (!PluginCadDeviceHelper.IsCadDeveloper(db, userId)
+                && (PluginCadDeviceHelper.IsBlocked(deviceRow)
+                    || !PluginCadDeviceHelper.AllowsPluginOnThisPc(db, userId, deviceSnap)))
             {
                 HttpContext.GetOwinContext().Authentication.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                 return false;

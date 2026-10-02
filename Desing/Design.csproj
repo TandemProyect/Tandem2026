@@ -167,6 +167,8 @@
     <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebPages.3.3.0\lib\net45\System.Web.Helpers.dll</HintPath>
@@ -326,6 +328,7 @@
     <Compile Include="Helpers\LanguageUiHelper.cs" />
     <Compile Include="Helpers\UiHtmlExtensions.cs" />
     <Compile Include="Helpers\PluginCadDeviceHelper.cs" />
+    <Compile Include="Helpers\PluginInstallLink.cs" />
     <Compile Include="Helpers\PluginCadAtk60PanelStlHelper.cs" />
     <Compile Include="Resources\Company.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -3522,6 +3525,11 @@
     <Content Include="Views\DesignToolsAutocad\PaletteMode.cshtml" />
     <Content Include="Views\DesignToolsAutocad\PluginReady.cshtml" />
     <Content Include="Views\DesignToolsAutocad\PluginBlocks.cshtml" />
+    <Content Include="Views\DesignToolsAutocad\InstallPlugin.cshtml" />
+    <Content Include="Content\DesignTools\CadPlugin\web.config" />
+    <Content Include="Content\DesignTools\CadPlugin\AtDesing.bundle\PackageContents.xml" />
+    <Content Include="Content\DesignTools\CadPlugin\AtDesing.bundle\setup.ps1" />
+    <Content Include="Content\DesignTools\CadPlugin\AtDesing.bundle\Contents\Windows\LEEME.txt" />
     <Content Include="Scripts\DesignToolsAutocad\plugin-cad-block-preview.js" />
     <Content Include="Views\DesignToolsAutocad\PaletteTools.cshtml" />
     <Content Include="Views\Shared\_LayoutAutocadPalette.cshtml" />

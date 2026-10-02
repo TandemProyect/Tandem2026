@@ -30,59 +30,24 @@ namespace AutocadPlugin
             string file;
             NormalizeView(view, codeName, out folder, out file);
 
-            var fromArticle = TryLocalOrDownload(articleUrl, folder, file);
-            if (!string.IsNullOrWhiteSpace(fromArticle))
-                return fromArticle;
+            Atk60LibrarySync.EnsureStarted();
+            string fromIndex;
+            if (Atk60LibrarySync.TryFindLocal(codeName, view, out fromIndex))
+                return fromIndex;
 
-            var remembered = UrlFromRemembered(codeName, view);
-            fromArticle = TryLocalOrDownload(remembered, folder, file);
-            if (!string.IsNullOrWhiteSpace(fromArticle))
-                return fromArticle;
+            var cached = Path.Combine(CacheDir(), folder, file);
+            if (IsUsable(cached))
+                return cached;
 
-            var fromDb = FetchArticleUrl(codeName, view);
-            fromArticle = TryLocalOrDownload(fromDb, folder, file);
-            if (!string.IsNullOrWhiteSpace(fromArticle))
-                return fromArticle;
+            if (File.Exists(articleUrl ?? ""))
+                return articleUrl;
 
             foreach (var path in CandidateDwgPaths(folder, file, codeName, view))
             {
-                if (File.Exists(path))
+                if (IsUsable(path))
                     return path;
             }
 
-            var url = MvcServerSettings.CurrentUrl()
-                + "Content/DesignTools/DWG/AtkSystem60/" + folder + "/" + file;
-            var cached = Path.Combine(CacheDir(), folder, file);
-            if (TryDownload(url, cached))
-                return cached;
-            var name = (codeName ?? "").Trim();
-            if (string.Equals(folder, "3DRef", StringComparison.OrdinalIgnoreCase))
-            {
-                var dxfFile = name + "R.dxf";
-                var dxfUrl = MvcServerSettings.CurrentUrl()
-                    + "Content/DesignTools/DWG/AtkSystem60/3DRef/" + dxfFile;
-                var dxfCached = Path.Combine(CacheDir(), "3DRef", dxfFile);
-                if (TryDownload(dxfUrl, dxfCached))
-                    return dxfCached;
-            }
-            if (string.Equals(folder, "3D", StringComparison.OrdinalIgnoreCase))
-            {
-                var dxfFile = name + ".dxf";
-                var dxfUrl = MvcServerSettings.CurrentUrl()
-                    + "Content/DesignTools/DWG/AtkSystem60/3D/" + dxfFile;
-                var dxfCached = Path.Combine(CacheDir(), "3D", dxfFile);
-                if (TryDownload(dxfUrl, dxfCached))
-                    return dxfCached;
-            }
-            if (string.Equals(folder, "Xr", StringComparison.OrdinalIgnoreCase))
-            {
-                var dxfFile = name + "X.dxf";
-                var dxfUrl = MvcServerSettings.CurrentUrl()
-                    + "Content/DesignTools/DWG/AtkSystem60/Xr/" + dxfFile;
-                var dxfCached = Path.Combine(CacheDir(), "Xr", dxfFile);
-                if (TryDownload(dxfUrl, dxfCached))
-                    return dxfCached;
-            }
             return null;
         }
 
@@ -90,20 +55,20 @@ namespace AutocadPlugin
         {
             if (string.IsNullOrWhiteSpace(codeName))
                 return null;
+            Atk60LibrarySync.EnsureStarted();
+            string fromIndex;
+            if (Atk60LibrarySync.TryFindLocal(codeName, "snap", out fromIndex))
+                return fromIndex;
             var file = codeName.Trim() + ".json";
+            var cached = Path.Combine(CacheDir(), "Snaps", file);
+            if (IsUsable(cached))
+                return cached;
             foreach (var root in LibraryRoots())
             {
                 var path = Path.Combine(root, "Snaps", file);
-                if (File.Exists(path))
+                if (IsUsable(path))
                     return path;
             }
-            var cached = Path.Combine(CacheDir(), "Snaps", file);
-            if (File.Exists(cached))
-                return cached;
-            var url = MvcServerSettings.CurrentUrl()
-                + "Content/DesignTools/DWG/AtkSystem60/Snaps/" + file;
-            if (TryDownload(url, cached))
-                return cached;
             return null;
         }
 
@@ -180,13 +145,21 @@ namespace AutocadPlugin
 
         private static string CacheDir()
         {
-            var dir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "Tandem",
-                "AutocadPlugin",
-                "dwg-cache");
-            Directory.CreateDirectory(dir);
-            return dir;
+            return Atk60LibrarySync.CacheDir();
+        }
+
+        private static bool IsUsable(string path)
+        {
+            try
+            {
+                return !string.IsNullOrWhiteSpace(path)
+                    && File.Exists(path)
+                    && new FileInfo(path).Length >= 64;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private static bool TryDownload(string url, string dest)
@@ -227,34 +200,6 @@ namespace AutocadPlugin
             return set.Url3DRef;
         }
 
-        private static string FetchArticleUrl(string codeName, string view)
-        {
-            try
-            {
-                var q = "DesignToolsAutocad/PluginBlockDwg?codeName="
-                    + Uri.EscapeDataString(codeName ?? "")
-                    + "&view=" + Uri.EscapeDataString(view ?? "3dref");
-                var abs = AbsoluteUrl(q);
-                using (var handler = new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback = (_, __, ___, ____) => true
-                })
-                using (var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(20) })
-                {
-                    var json = http.GetStringAsync(abs).GetAwaiter().GetResult();
-                    if (string.IsNullOrWhiteSpace(json))
-                        return null;
-                    var obj = JObject.Parse(json);
-                    var url = ((string)obj["url"] ?? (string)obj["Url"] ?? "").Trim();
-                    return string.IsNullOrWhiteSpace(url) ? null : url;
-                }
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
         private static string TryLocalOrDownload(string url, string folder, string file)
         {
             url = (url ?? "").Trim();
@@ -276,9 +221,9 @@ namespace AutocadPlugin
                 {
                 }
                 var dest = Path.Combine(CacheDir(), folder, destName);
-                if (TryDownload(abs, dest))
+                if (IsUsable(dest))
                     return dest;
-                if (File.Exists(dest))
+                if (TryDownload(abs, dest))
                     return dest;
             }
             catch

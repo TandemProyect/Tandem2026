@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ApplicationPackage SchemaVersion="1.0" AutodeskProduct="AutoCAD" Name="AtDesing" Description="Plugin AutoCAD TDesing" AppVersion="2026.0.0" ProductType="Application" ProductCode="{8C3E2A71-4B6D-4E0A-9F11-2B7C6D8E9012}" UpgradeCode="{1A9B4C22-7D5E-4F18-8A03-3C8D7E9F0123}">
+  <CompanyDetails Name="Atenko" Url="https://tdesing.net" Email="admin@atenko.net" />
+  <Components Description="AtDesing">
+    <RuntimeRequirements OS="Win64" Platform="AutoCAD*" SeriesMin="R24.0" SeriesMax="R25.1" />
+    <ComponentEntry AppName="AtDesing" ModuleName="./Contents/Windows/AutocadPlugin.dll" AppDescription="AtDesing AutoCAD" LoadOnAutoCADStartup="True" />
+  </Components>
+</ApplicationPackage>

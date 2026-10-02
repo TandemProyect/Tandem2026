@@ -8,7 +8,7 @@
         ShowInTaskbar="False"
         Topmost="True"
         Width="288"
-        Height="248"
+        Height="320"
         KeyDown="OnKeyDown">
     <Border Background="#F5FFFFFF"
             BorderBrush="#D9DEE8"
@@ -122,6 +122,18 @@
                                FontWeight="SemiBold"
                                Foreground="#433C65"
                                TextAlignment="Center"
+                               TextWrapping="Wrap" />
+                    <TextBlock x:Name="EtaText"
+                               Margin="0,4,0,0"
+                               FontSize="11"
+                               Foreground="#6E6B80"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap" />
+                    <TextBlock x:Name="StepLog"
+                               Margin="0,10,0,0"
+                               FontSize="11"
+                               Foreground="#6E6B80"
+                               TextAlignment="Left"
                                TextWrapping="Wrap" />
                 </StackPanel>
             </Grid>

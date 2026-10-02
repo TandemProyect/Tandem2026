@@ -68,4 +68,23 @@ namespace Desing.Models
         public string LogoUrl { get; set; }
         public List<PluginCadBlockRow> Items { get; set; }
     }
+
+    public sealed class PluginCadLibraryFile
+    {
+        public string Code { get; set; }
+        public string View { get; set; }
+        public string Folder { get; set; }
+        public string File { get; set; }
+        public string Url { get; set; }
+        public string Version { get; set; }
+        public long Size { get; set; }
+    }
+
+    public sealed class PluginCadLibraryManifest
+    {
+        public bool Ok { get; set; }
+        public string GeneratedUtc { get; set; }
+        public List<PluginCadLibraryFile> Files { get; set; }
+        public List<PluginCadBlockRow> Catalog { get; set; }
+    }
 }

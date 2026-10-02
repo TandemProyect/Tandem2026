@@ -131,9 +131,13 @@ namespace Desing.Controllers
                     var toggleBtn =
                         "<a title=\"" + ttToggle + "\" href=\"#\" onclick=\"ToggleEmployee('" + p.SysObjectID +
                         "'); return false;\" class=\"btn btn-info btn-xs\"><span class=\"fas fa-sync\" aria-hidden=\"true\"></span></a>";
+                    var ttPluginMail = HttpUtility.HtmlAttributeEncode(Employee.List_LinkSendPluginMailTooltip);
                     var sendBtn =
                         "<a title=\"" + ttSendMail + "\" href=\"#\" onclick=\"SendmailToEmployee('" + p.SysObjectID +
                         "'); return false;\" class=\"btn btn-success btn-xs\"><span class=\"fa fa-envelope-open\" aria-hidden=\"true\"></span></a>";
+                    var pluginBtn =
+                        "<a title=\"" + ttPluginMail + "\" href=\"#\" onclick=\"SendPluginMailToEmployee('" + p.SysObjectID +
+                        "'); return false;\" class=\"btn btn-primary btn-xs\"><span class=\"fa fa-cube\" aria-hidden=\"true\"></span></a>";
                     var deleteBtn = (p.TotalDesing == 0)
                         ? "<a title=\"" + ttDelete + "\" href=\"#\" onclick=\"DeleteEmployee('" + p.SysObjectID +
                           "'); return false;\" class=\"btn btn-danger btn-xs\"><span class=\"fas fa-trash-alt\" aria-hidden=\"true\"></span></a>"
@@ -141,7 +145,7 @@ namespace Desing.Controllers
 
                     var rowActions =
                         "<div class=\"d-inline-flex align-items-center gap-2\" role=\"group\">" +
-                        toggleBtn + sendBtn + editBtn +
+                        toggleBtn + sendBtn + pluginBtn + editBtn +
                         (string.IsNullOrEmpty(deleteBtn) ? "" : deleteBtn) +
                         "</div>";
 
@@ -249,6 +253,43 @@ namespace Desing.Controllers
                            " La contraseña requerida es:  " + employee.AttPassAspNetUsert
                 };
                 SendMail(Model);
+                return Content("Success: " + Employee.Msg_MailSent, "text/plain");
+            }
+            catch (Exception ex)
+            {
+                return Content("Error: " + ex.Message, "text/plain");
+            }
+        }
+
+        [HttpPost]
+        public ActionResult SendPluginInstallMail(long Id)
+        {
+            try
+            {
+                var employee = db.TSql_Employee.FirstOrDefault(x => x.SysObjectID == Id && !x.AttIsDeleted);
+                if (employee == null)
+                    return Content("Error: " + Employee.Err_EmployeeNotFound, "text/plain");
+
+                var user = db.AspNetUsers.FirstOrDefault(x => x.Id == employee.LinAspNetUsert);
+                if (user == null || string.IsNullOrWhiteSpace(user.Email))
+                    return Content("Error: " + Employee.Err_UserNotFound, "text/plain");
+
+                var device = PluginCadDeviceHelper.FindAuthorizedForUser(db, employee.LinAspNetUsert);
+                if (device == null || string.IsNullOrWhiteSpace(device.MachineName))
+                    return Content("Error: " + Employee.Err_PluginDeviceRequired, "text/plain");
+
+                var token = PluginInstallLink.Create(employee.SysObjectID, employee.LinAspNetUsert);
+                var installUrl = Url.Action("InstallPlugin", "DesignToolsAutocad", new { t = token }, Request.Url.Scheme);
+                var name = ((employee.AttName ?? "") + " " + (employee.AttSurname ?? "")).Trim();
+                var body = string.Format(Employee.Mail_PluginInstallBody, name, device.MachineName, installUrl);
+
+                SendMail(new MailModel
+                {
+                    To = user.Email,
+                    From = "admin@atenko.net",
+                    Subject = Employee.Mail_PluginInstallSubject,
+                    Body = body
+                });
                 return Content("Success: " + Employee.Msg_MailSent, "text/plain");
             }
             catch (Exception ex)
@@ -485,6 +526,7 @@ namespace Desing.Controllers
                 linCompany = (int)employee.LinCompany;
             }
             var authInfo = ObtenerPrimerEquipoAutorizado(userSystem);
+            var isCadDev = ObtenerIsCadDeveloper(userSystem);
 
             ViewBag.LinCompany = new SelectList(db.TSql_Company.Where(u => u.BitIsDeleted == false), "SysObjectID", "TextLabel");
 
@@ -500,6 +542,7 @@ namespace Desing.Controllers
                 DeviceId = authInfo.DeviceId,
                 DeviceName = authInfo.MachineName,
                 DeviceAllowed = authInfo.Allowed ?? true,
+                IsCadDeveloper = isCadDev,
                 EmployeeID = employee?.SysObjectID ?? 0,
                 IsEdit = isEdit,
             };
@@ -507,13 +550,13 @@ namespace Desing.Controllers
         }
 
         [HttpPost]
-        public ActionResult Create_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem, DeviceId, DeviceName, DeviceAllowed, EmployeeID, IsEdit")] EmployeeViewModel model, HttpPostedFileBase file1)
+        public ActionResult Create_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem, DeviceId, DeviceName, DeviceAllowed, IsCadDeveloper, EmployeeID, IsEdit")] EmployeeViewModel model, HttpPostedFileBase file1)
         {
             return SaveEmployee(model, file1, false);
         }
 
         [HttpPost]
-        public ActionResult Update_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem, DeviceId, DeviceName, DeviceAllowed, EmployeeID, IsEdit")] EmployeeViewModel model, HttpPostedFileBase file1)
+        public ActionResult Update_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem, DeviceId, DeviceName, DeviceAllowed, IsCadDeveloper, EmployeeID, IsEdit")] EmployeeViewModel model, HttpPostedFileBase file1)
         {
             return SaveEmployee(model, file1, true);
         }
@@ -621,6 +664,7 @@ namespace Desing.Controllers
                     db.TSql_DefaultDesign.Add(config);
                     db.SaveChanges();
                     UpsertPluginDeviceAuth(model, userId);
+                    UpsertIsCadDeveloper(model.LinAspNetUsert, model.IsCadDeveloper);
 
                     TempData.Clear();
                     TempData["ToastType"] = "Act";
@@ -644,6 +688,7 @@ namespace Desing.Controllers
                     existing.AttLastModification = DateTime.UtcNow;
                     db.SaveChanges();
                     UpsertPluginDeviceAuth(model, userId);
+                    UpsertIsCadDeveloper(model.LinAspNetUsert, model.IsCadDeveloper);
                     TempData.Clear();
                     TempData["ToastType"] = "Editar";
                     TempData["ToastTitle"] = Employee.ToastTitle_EditEmployee;
@@ -667,6 +712,29 @@ namespace Desing.Controllers
             public string DeviceId { get; set; }
             public string MachineName { get; set; }
             public bool? Allowed { get; set; }
+        }
+
+        private bool ObtenerIsCadDeveloper(string aspNetUserId)
+        {
+            return PluginCadDeviceHelper.IsCadDeveloper(db, aspNetUserId);
+        }
+
+        private void UpsertIsCadDeveloper(string aspNetUserId, bool isCadDeveloper)
+        {
+            if (string.IsNullOrWhiteSpace(aspNetUserId))
+                return;
+            try
+            {
+                db.Database.ExecuteSqlCommand(
+                    @"UPDATE dbo.TSql_Employee
+                         SET Is_CadDeveloper = @p0
+                       WHERE LinAspNetUsert = @p1 AND AttIsDeleted = 0",
+                    isCadDeveloper ? 1 : 0,
+                    aspNetUserId);
+            }
+            catch
+            {
+            }
         }
 
         private PluginDeviceAuthInfo ObtenerPrimerEquipoAutorizado(string aspNetUserId)

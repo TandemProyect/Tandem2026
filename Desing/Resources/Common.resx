@@ -328,6 +328,12 @@
   <data name="PluginCad_BlocksTitle" xml:space="preserve">
     <value>Biblioteca de bloques</value>
   </data>
+  <data name="PluginCad_BlocksUpdate" xml:space="preserve">
+    <value>Actualizar biblioteca</value>
+  </data>
+  <data name="PluginCad_BlocksUpdating" xml:space="preserve">
+    <value>Comprobando actualizaciones…</value>
+  </data>
   <data name="PluginCad_BlocksView3D" xml:space="preserve">
     <value>3D</value>
   </data>
@@ -495,5 +501,35 @@
   </data>
   <data name="Val_PasswordsDoNotMatch" xml:space="preserve">
     <value>La contraseña y la confirmación no coinciden.</value>
+  </data>
+  <data name="PluginInstall_Title" xml:space="preserve">
+    <value>Instalar plugin AutoCAD</value>
+  </data>
+  <data name="PluginInstall_Invalid" xml:space="preserve">
+    <value>Este enlace no es válido. Pide un correo nuevo en Personal.</value>
+  </data>
+  <data name="PluginInstall_Expired" xml:space="preserve">
+    <value>Este enlace ha caducado. Pide un correo nuevo en Personal.</value>
+  </data>
+  <data name="PluginInstall_NoDevice" xml:space="preserve">
+    <value>Este empleado no tiene un equipo autorizado. Regístralo en Personal.</value>
+  </data>
+  <data name="PluginInstall_DeviceMismatch" xml:space="preserve">
+    <value>Este ordenador no es el equipo autorizado.</value>
+  </data>
+  <data name="PluginInstall_OkHint" xml:space="preserve">
+    <value>Escribe el nombre de Windows de este PC. Debe ser exactamente: {0}</value>
+  </data>
+  <data name="PluginInstall_MachineLabel" xml:space="preserve">
+    <value>Nombre de este equipo</value>
+  </data>
+  <data name="PluginInstall_BtnCheck" xml:space="preserve">
+    <value>Comprobar equipo</value>
+  </data>
+  <data name="PluginInstall_BtnDownload" xml:space="preserve">
+    <value>Descargar e instalar</value>
+  </data>
+  <data name="PluginInstall_Success" xml:space="preserve">
+    <value>Equipo correcto. Descarga el ZIP, descomprímelo y ejecuta setup.ps1. AutoCAD debe estar cerrado.</value>
   </data>
 </root>

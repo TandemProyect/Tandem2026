@@ -60,6 +60,9 @@ namespace Desing.Models
         [DisplayName("Autorizar plugin para este equipo")]
         public bool DeviceAllowed { get; set; } = true;
 
+        [DisplayName("Desarrollador CAD")]
+        public bool IsCadDeveloper { get; set; }
+
         public long EmployeeID { get; set; }
         public bool IsEdit { get; set; }
     }

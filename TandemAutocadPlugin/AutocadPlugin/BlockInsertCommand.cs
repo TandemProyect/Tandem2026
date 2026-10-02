@@ -91,7 +91,7 @@ namespace AutocadPlugin
             var dwg = Atk60DwgResolver.ResolveDwg(req.CodeName, view, req.UrlForView(view));
             if (string.IsNullOrWhiteSpace(dwg))
             {
-                ed.WriteMessage("\n[Tandem] No se encontró el DWG de " + req.CodeName + " (" + view + ").\n");
+                ed.WriteMessage("\n[Tandem] No se encontró el DWG de " + req.CodeName + " (" + view + "). Pulsa Actualizar en bloquing.\n");
                 return;
             }
 

@@ -21,6 +21,7 @@ namespace AutocadPlugin.UI.Views
         public string ChosenId { get; private set; }
         private DispatcherFrame _waitFrame;
         private bool _showBrand;
+        private readonly List<string> _steps = new List<string>();
 
         public TandemMiniPopup()
         {
@@ -161,7 +162,8 @@ namespace AutocadPlugin.UI.Views
                 _showBrand = showBrand;
                 SetHeaderIcon(info: false);
                 TitleText.Text = string.IsNullOrWhiteSpace(title) ? "Tandem" : title;
-                ProgressText.Text = message ?? "";
+                if (ProgressText != null)
+                    ProgressText.Text = message ?? "";
                 PromptPanel.Visibility = Visibility.Collapsed;
                 ChoicePanel.Visibility = Visibility.Collapsed;
                 ProgressPanel.Visibility = Visibility.Visible;
@@ -173,7 +175,32 @@ namespace AutocadPlugin.UI.Views
         {
             RunOnUi(() =>
             {
-                ProgressText.Text = message ?? "";
+                if (EtaText != null)
+                    EtaText.Text = message ?? "";
+            });
+        }
+
+        public void SetProgressTitle(string title)
+        {
+            RunOnUi(() =>
+            {
+                if (!string.IsNullOrWhiteSpace(title))
+                    TitleText.Text = title;
+            });
+        }
+
+        public void AddInstallStep(string message)
+        {
+            if (string.IsNullOrWhiteSpace(message))
+                return;
+            RunOnUi(() =>
+            {
+                ProgressText.Text = message;
+                _steps.Add(message.Trim());
+                if (_steps.Count > 6)
+                    _steps.RemoveAt(0);
+                if (StepLog != null)
+                    StepLog.Text = string.Join("\n", _steps.ToArray());
             });
         }
 
@@ -212,6 +239,17 @@ namespace AutocadPlugin.UI.Views
             }
 
             BrandLogo.Visibility = Visibility.Visible;
+            if (PluginSplashBrand.ForceDefaultUntilPlantilla)
+            {
+                try
+                {
+                    BrandLogo.Source = new BitmapImage(PluginSplashBrand.DefaultPackUri);
+                    return;
+                }
+                catch
+                {
+                }
+            }
             try
             {
                 var file = PluginSplashBrand.CachedFileIfExists();

@@ -172,7 +172,7 @@ namespace AutocadPlugin
                 {
                     failed++;
                     job.Skip = true;
-                    ed.WriteMessage("\n[Tandem] Sin DWG " + target + " para " + job.CodeName + ".");
+                    ed.WriteMessage("\n[Tandem] Sin DWG " + target + " para " + job.CodeName + ". Pulsa Actualizar en bloquing.");
                     continue;
                 }
                 try

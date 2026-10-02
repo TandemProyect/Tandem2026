@@ -34,6 +34,7 @@ namespace AutocadPlugin
                     ComponentManager.ItemInitialized += OnRibbonReady;
 
                 AcadApp.Idle += OnIdle;
+                PaletteHost.BindDocumentLifetime();
                 var dll = System.Reflection.Assembly.GetExecutingAssembly().Location;
                 WriteMessage("\nTandem 2026 cargado (" + MvcServerSettings.CurrentLabel() + ").");
                 WriteMessage("\nDLL: " + dll);
@@ -58,7 +59,7 @@ namespace AutocadPlugin
             }
         }
 
-        [CommandMethod("TANDEM")]
+        [CommandMethod("TANDEM", CommandFlags.Session)]
         public void AbrirPaletasMvc()
         {
             PaletteHost.Toggle();

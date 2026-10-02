@@ -56,6 +56,22 @@ namespace AutocadPlugin
             get { return new SolidColorBrush(ParseHex(TextColorHex, 0xFF, 0xFF, 0xFF)); }
         }
 
+        public static void Reset()
+        {
+            _color = DefaultColor;
+            _textColor = DefaultTextColor;
+            _logoUrl = "";
+            _loaded = true;
+            try
+            {
+                if (File.Exists(CacheFile))
+                    File.Delete(CacheFile);
+            }
+            catch
+            {
+            }
+        }
+
         public static void Apply(string color, string textColor, string logoUrl = null)
         {
             _color = NormalizeHex(color, DefaultColor);

@@ -328,6 +328,12 @@
   <data name="PluginCad_BlocksTitle" xml:space="preserve">
     <value>Block library</value>
   </data>
+  <data name="PluginCad_BlocksUpdate" xml:space="preserve">
+    <value>Update library</value>
+  </data>
+  <data name="PluginCad_BlocksUpdating" xml:space="preserve">
+    <value>Checking for updates…</value>
+  </data>
   <data name="PluginCad_BlocksView3D" xml:space="preserve">
     <value>3D</value>
   </data>
@@ -495,5 +501,35 @@
   </data>
   <data name="Val_PasswordsDoNotMatch" xml:space="preserve">
     <value>The password and confirmation password do not match.</value>
+  </data>
+  <data name="PluginInstall_Title" xml:space="preserve">
+    <value>Install AutoCAD plugin</value>
+  </data>
+  <data name="PluginInstall_Invalid" xml:space="preserve">
+    <value>This link is not valid. Request a new email from Personnel.</value>
+  </data>
+  <data name="PluginInstall_Expired" xml:space="preserve">
+    <value>This link has expired. Request a new email from Personnel.</value>
+  </data>
+  <data name="PluginInstall_NoDevice" xml:space="preserve">
+    <value>This employee has no authorised computer. Register it in Personnel.</value>
+  </data>
+  <data name="PluginInstall_DeviceMismatch" xml:space="preserve">
+    <value>This computer is not the authorised device.</value>
+  </data>
+  <data name="PluginInstall_OkHint" xml:space="preserve">
+    <value>Type this PC's Windows name. It must be exactly: {0}</value>
+  </data>
+  <data name="PluginInstall_MachineLabel" xml:space="preserve">
+    <value>This computer name</value>
+  </data>
+  <data name="PluginInstall_BtnCheck" xml:space="preserve">
+    <value>Check computer</value>
+  </data>
+  <data name="PluginInstall_BtnDownload" xml:space="preserve">
+    <value>Download and install</value>
+  </data>
+  <data name="PluginInstall_Success" xml:space="preserve">
+    <value>Computer matches. Download the ZIP, unzip it and run setup.ps1. AutoCAD must be closed.</value>
   </data>
 </root>

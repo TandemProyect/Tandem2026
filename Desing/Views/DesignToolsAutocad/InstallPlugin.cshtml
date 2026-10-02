@@ -1,0 +1,75 @@
+@using Desing.Resources
+@{
+    ViewBag.Title = Common.PluginInstall_Title;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var state = ViewBag.State as string ?? "invalid";
+    var token = ViewBag.Token as string ?? "";
+    var machine = ViewBag.MachineName as string ?? "";
+    var name = ViewBag.EmployeeName as string ?? "";
+}
+
+<div class="container py-5" style="max-width:640px">
+    <h3 class="mb-3">@Common.PluginInstall_Title</h3>
+
+    @if (state == "expired")
+    {
+        <div class="alert alert-warning">@Common.PluginInstall_Expired</div>
+    }
+    else if (state == "nodevice")
+    {
+        <div class="alert alert-warning">@Common.PluginInstall_NoDevice</div>
+    }
+    else if (state == "ready")
+    {
+        <p class="text-muted">@name</p>
+        <p>@string.Format(Common.PluginInstall_OkHint, machine)</p>
+        <div class="mb-3">
+            <label class="form-label" for="plugin-install-machine">@Common.PluginInstall_MachineLabel</label>
+            <input class="form-control" id="plugin-install-machine" type="text" autocomplete="off" />
+        </div>
+        <button type="button" class="btn btn-primary" id="plugin-install-check">@Common.PluginInstall_BtnCheck</button>
+        <p class="mt-3 text-danger" id="plugin-install-error" hidden></p>
+        <a class="btn btn-success mt-2" id="plugin-install-download" hidden href="#">@Common.PluginInstall_BtnDownload</a>
+        <p class="mt-3 text-success" id="plugin-install-ok" hidden>@Common.PluginInstall_Success</p>
+    }
+    else
+    {
+        <div class="alert alert-danger">@Common.PluginInstall_Invalid</div>
+    }
+</div>
+
+@if (state == "ready")
+{
+    <script>
+        (function () {
+            var token = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(token));
+            var checkUrl = '@Url.Action("InstallPluginClaim", "DesignToolsAutocad")';
+            document.getElementById('plugin-install-check').onclick = function () {
+                var machine = (document.getElementById('plugin-install-machine').value || '').trim();
+                var err = document.getElementById('plugin-install-error');
+                var dl = document.getElementById('plugin-install-download');
+                var ok = document.getElementById('plugin-install-ok');
+                err.hidden = true;
+                dl.hidden = true;
+                ok.hidden = true;
+                fetch(checkUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 't=' + encodeURIComponent(token) + '&machineName=' + encodeURIComponent(machine)
+                }).then(function (r) { return r.json(); }).then(function (data) {
+                    if (data && data.ok && data.packageUrl) {
+                        dl.href = data.packageUrl;
+                        dl.hidden = false;
+                        ok.hidden = false;
+                    } else {
+                        err.textContent = (data && data.message) || '@Common.PluginInstall_DeviceMismatch';
+                        err.hidden = false;
+                    }
+                }).catch(function () {
+                    err.textContent = '@Common.PluginInstall_DeviceMismatch';
+                    err.hidden = false;
+                });
+            };
+        })();
+    </script>
+}

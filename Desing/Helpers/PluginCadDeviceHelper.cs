@@ -7,8 +7,8 @@ using System.Web.Mvc;
 namespace Desing.Helpers
 {
     /// <summary>
-    /// Equipo del plugin CAD: auto-login si está registrado y activo;
-    /// si no, el login correcto lo da de alta ligado al usuario.
+    /// Equipo del plugin CAD: el alta se hace en Personal.
+    /// El plugin solo toca un equipo ya autorizado.
     /// </summary>
     public static class PluginCadDeviceHelper
     {
@@ -76,6 +76,41 @@ namespace Desing.Helpers
         /// <summary>
         /// Usuario CAD permitido: cuenta activa (EmailConfirmed) y empleado no borrado.
         /// </summary>
+        public static bool IsCadDeveloper(ConexionData db, string userId)
+        {
+            if (db == null || string.IsNullOrWhiteSpace(userId))
+                return false;
+            try
+            {
+                return db.Database.SqlQuery<int>(
+                    @"SELECT TOP 1 CASE WHEN Is_CadDeveloper = 1 THEN 1 ELSE 0 END
+                      FROM dbo.TSql_Employee
+                      WHERE LinAspNetUsert = @p0 AND AttIsDeleted = 0",
+                    userId).FirstOrDefault() == 1;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static bool AllowsPluginOnThisPc(ConexionData db, string userId, Snapshot snap)
+        {
+            if (IsCadDeveloper(db, userId))
+                return true;
+
+            var registered = FindAuthorizedForUser(db, userId);
+            if (registered == null)
+                return true;
+
+            if (snap != null && !string.IsNullOrWhiteSpace(snap.DeviceId)
+                && string.Equals(registered.DeviceId, snap.DeviceId, StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (snap != null && MachineMatches(registered, snap.MachineName))
+                return true;
+            return false;
+        }
+
         public static bool IsUserAllowed(ConexionData db, string userId)
         {
             if (db == null || string.IsNullOrWhiteSpace(userId))
@@ -169,55 +204,69 @@ namespace Desing.Helpers
         }
 
         /// <summary>
-        /// Alta o actualización tras un login correcto. No reactiva equipos bloqueados.
+        /// El plugin no da de alta equipos. Solo toca una fila ya creada en Personal
+        /// (mismo usuario y DeviceId, o mismo nombre de equipo si el DeviceId aún está vacío).
         /// </summary>
         public static void RegisterAfterLogin(ConexionData db, Snapshot snap, string userId)
         {
-            if (db == null || snap == null || string.IsNullOrWhiteSpace(snap.DeviceId) || string.IsNullOrWhiteSpace(userId))
+            if (db == null || snap == null || string.IsNullOrWhiteSpace(userId))
                 return;
 
-            var now = DateTime.UtcNow;
             var row = Find(db, snap.DeviceId);
-            if (IsBlocked(row))
+            if (row == null)
+                row = FindAuthorizedByUserAndMachine(db, userId, snap.MachineName);
+            if (row == null || IsBlocked(row))
+                return;
+            if (!string.Equals(row.LinAspNetUsert, userId, StringComparison.Ordinal))
+                return;
+            if (!string.IsNullOrWhiteSpace(row.DeviceId)
+                && !string.IsNullOrWhiteSpace(snap.DeviceId)
+                && !string.Equals(row.DeviceId, snap.DeviceId, StringComparison.OrdinalIgnoreCase))
                 return;
 
-            if (row == null)
-            {
-                row = new TSql_PluginDeviceAuth
-                {
-                    DeviceId = Trunc(snap.DeviceId, 128),
-                    LinAspNetUsert = userId,
-                    MachineName = Trunc(snap.MachineName, 128),
-                    UsuarioWindows = Trunc(snap.UsuarioWindows, 128),
-                    PluginVersion = Trunc(snap.PluginVersion, 50),
-                    Allowed = true,
-                    IsActive = true,
-                    IsRevoked = false,
-                    Estado = "Activo",
-                    AttIsDeleted = false,
-                    LastCheckUtc = now,
-                    LinCreatedBy = userId,
-                    AttCreated = now,
-                    LinModifiedBy = userId,
-                    AttLastModification = now
-                };
-                db.TSql_PluginDeviceAuth.Add(row);
-            }
-            else
-            {
-                row.LinAspNetUsert = userId;
-                ApplySnapshot(row, snap);
-                row.Allowed = true;
-                row.IsActive = true;
-                row.IsRevoked = false;
-                row.Estado = "Activo";
-                row.AttIsDeleted = false;
-                row.LastCheckUtc = now;
-                row.LinModifiedBy = userId;
-                row.AttLastModification = now;
-            }
+            if (string.IsNullOrWhiteSpace(row.DeviceId) && !string.IsNullOrWhiteSpace(snap.DeviceId))
+                row.DeviceId = Trunc(snap.DeviceId, 128);
 
+            ApplySnapshot(row, snap);
+            row.LastCheckUtc = DateTime.UtcNow;
+            row.LinModifiedBy = userId;
+            row.AttLastModification = DateTime.UtcNow;
             db.SaveChanges();
+        }
+
+        public static TSql_PluginDeviceAuth FindAuthorizedForUser(ConexionData db, string userId)
+        {
+            if (db == null || string.IsNullOrWhiteSpace(userId))
+                return null;
+            return db.TSql_PluginDeviceAuth
+                .Where(d => d.LinAspNetUsert == userId && !d.AttIsDeleted)
+                .OrderByDescending(d => d.SysObjectID)
+                .ToList()
+                .FirstOrDefault(d => !IsBlocked(d));
+        }
+
+        public static TSql_PluginDeviceAuth FindAuthorizedByUserAndMachine(ConexionData db, string userId, string machineName)
+        {
+            var machine = (machineName ?? "").Trim();
+            if (db == null || string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(machine))
+                return null;
+            return db.TSql_PluginDeviceAuth
+                .Where(d => d.LinAspNetUsert == userId && !d.AttIsDeleted)
+                .ToList()
+                .FirstOrDefault(d =>
+                    !IsBlocked(d)
+                    && string.Equals((d.MachineName ?? "").Trim(), machine, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public static bool MachineMatches(TSql_PluginDeviceAuth row, string machineName)
+        {
+            if (row == null)
+                return false;
+            var expected = (row.MachineName ?? "").Trim();
+            var actual = (machineName ?? "").Trim();
+            return expected.Length > 0
+                && actual.Length > 0
+                && string.Equals(expected, actual, StringComparison.OrdinalIgnoreCase);
         }
 
         public static void Touch(ConexionData db, TSql_PluginDeviceAuth row, Snapshot snap, string userId)

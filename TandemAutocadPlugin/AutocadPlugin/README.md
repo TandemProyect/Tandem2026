@@ -50,6 +50,7 @@ No se usa el submenú CUI clásico (Panel / Detectar / …).
 | `TANDEM_PRODUCCION` | Destino tdesing.net y recarga paletas |
 | `TANDEM_SERVIDOR` | Muestra URL activa |
 | `TANDEM_CARGAR_MENU` | Recarga ribbon |
+| `UnAtdesing` | Desarrolladores: borra sesión, cookies WebView2 y biblioteca local (confirma con `SI`). Si AutoCAD bloquea ficheros, cerrar CAD y `reset-cad-dev-local.ps1` |
 
 `INSERTARBLOQUE` abre la biblioteca de bloques (formulario). La inserción en el DWG está pendiente (ver handover bloquing). Otros stubs ZWCAD (`DETECTARMUROS`, …) siguen sin lógica.
 

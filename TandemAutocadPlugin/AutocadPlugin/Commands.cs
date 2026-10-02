@@ -18,13 +18,13 @@ namespace AutocadPlugin
             return PluginExceptionHelper.Format(ex, _apiService.BaseUrl);
         }
 
-        [CommandMethod("MVCCONEXION")]
+        [CommandMethod("MVCCONEXION", CommandFlags.Session)]
         public void AbrirFormulario()
         {
             PaletteHost.Show();
         }
 
-        [CommandMethod("INSERTARBLOQUE")]
+        [CommandMethod("INSERTARBLOQUE", CommandFlags.Session)]
         public void InsertarBloque()
         {
             PaletteHost.ShowBlocks();
@@ -44,7 +44,7 @@ namespace AutocadPlugin
             WriteStub("CONFIGENCOFRADO", "Configuración de encofrado pendiente de portar.");
         }
 
-        [CommandMethod("LEERDISENOMVC")]
+        [CommandMethod("LEERDISENOMVC", CommandFlags.Session)]
         public void LeerDisenoMvc()
         {
             PaletteHost.Show();
@@ -84,7 +84,7 @@ namespace AutocadPlugin
             ed.WriteMessage("\nComandos: TANDEM, MVCCONEXION, TANDEM_MURO2D, TANDEM_MURO3D,");
             ed.WriteMessage("\n          GENERAR3D, REGENERAR3D, TANDEM_ABRIRDISENO, INSERTARBLOQUE, TANDEM_INSERTBLOQUE, TANDEM_CAMBIARBLOQUE,");
             ed.WriteMessage("\n          TANDEM_LOCAL, TANDEM_PRODUCCION, TANDEM_SERVIDOR,");
-            ed.WriteMessage("\n          TANDEM_PROBAR_CONEXION, TANDEM_DEVICE_ID, TANDEM_CARGAR_MENU");
+            ed.WriteMessage("\n          TANDEM_PROBAR_CONEXION, TANDEM_DEVICE_ID, TANDEM_CARGAR_MENU, UnAtdesing");
             ed.WriteMessage($"\nServidor MVC: {MvcServerSettings.CurrentLabel()} — {MvcServerSettings.CurrentUrl()}");
             ed.WriteMessage($"\nDLL: {System.Reflection.Assembly.GetExecutingAssembly().Location}\n");
         }
@@ -109,14 +109,14 @@ namespace AutocadPlugin
             }
         }
 
-        [CommandMethod("TANDEM_LOCAL")]
+        [CommandMethod("TANDEM_LOCAL", CommandFlags.Session)]
         public void UsarServidorLocal()
         {
             MvcServerSettings.SetLocal();
             SwitchServer("local (localhost:44384). Arranca Desing en IIS Express.");
         }
 
-        [CommandMethod("TANDEM_PRODUCCION")]
+        [CommandMethod("TANDEM_PRODUCCION", CommandFlags.Session)]
         public void UsarServidorProduccion()
         {
             MvcServerSettings.SetProduction();
@@ -138,6 +138,28 @@ namespace AutocadPlugin
             Editor ed = GetEditor();
             ed?.WriteMessage($"\n[Tandem] Cambiado a {where} Recargando paletas…\n");
             PaletteHost.ReconnectToCurrentServer();
+        }
+
+        [CommandMethod("UnAtdesing", CommandFlags.Session)]
+        public void ResetDeveloperLocal()
+        {
+            Editor ed = GetEditor();
+            if (ed != null)
+            {
+                var confirm = ed.GetString("\n[Tandem] Borra sesión, cookies y biblioteca local. Escribe SI para confirmar: ");
+                if (confirm.Status != PromptStatus.OK
+                    || !string.Equals((confirm.StringResult ?? "").Trim(), "SI", StringComparison.OrdinalIgnoreCase))
+                {
+                    ed.WriteMessage("\n[Tandem] Reset cancelado.\n");
+                    return;
+                }
+            }
+
+            var report = PaletteHost.ResetDeveloperLocalState();
+            ed = GetEditor();
+            if (ed == null) return;
+            ed.WriteMessage("\n[Tandem] Reset de desarrollador:\n" + report);
+            ed.WriteMessage("[Tandem] Estado de fábrica. Vuelve a conectar con TANDEM o MVCCONEXION.\n");
         }
 
         [CommandMethod("TANDEM_DEVICE_ID")]

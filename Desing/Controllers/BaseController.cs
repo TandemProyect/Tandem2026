@@ -187,6 +187,9 @@ namespace Desing.Controllers
                 return false;
             return string.Equals(action, "PluginSession", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(action, "PluginCadAuth", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(action, "InstallPlugin", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(action, "InstallPluginClaim", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(action, "InstallPluginPackage", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(action, "PaletteMode", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(action, "PaletteTools", StringComparison.OrdinalIgnoreCase);
         }

@@ -257,10 +257,10 @@
     <value>Editar empleado</value>
   </data>
   <data name="Ph_DeviceId" xml:space="preserve">
-    <value>Hash DeviceId del plugin</value>
+    <value>Se rellena solo al conectar el plugin en ese equipo</value>
   </data>
   <data name="Ph_DeviceName" xml:space="preserve">
-    <value>Ej.: PC-OFICINA-01</value>
+    <value>Nombre de Windows del PC, ej. PC-OFICINA-01</value>
   </data>
   <data name="Ph_NameRequired" xml:space="preserve">
     <value>Inserta nombre</value>
@@ -315,5 +315,29 @@
   </data>
   <data name="Val_SurnameRequired" xml:space="preserve">
     <value>El apellido del empleado es obligatorio.</value>
+  </data>
+  <data name="Js_ConfirmSendPluginMail" xml:space="preserve">
+    <value>¿Enviar al empleado el enlace para instalar el plugin de AutoCAD?</value>
+  </data>
+  <data name="List_LinkSendPluginMailTooltip" xml:space="preserve">
+    <value>Enviar instalación del plugin por correo</value>
+  </data>
+  <data name="Err_PluginDeviceRequired" xml:space="preserve">
+    <value>Primero registra el nombre del equipo en la ficha del empleado.</value>
+  </data>
+  <data name="Mail_PluginInstallSubject" xml:space="preserve">
+    <value>Instalar plugin AutoCAD TDesing</value>
+  </data>
+  <data name="Mail_PluginInstallBody" xml:space="preserve">
+    <value>Hola {0}.&lt;br/&gt;Tu equipo autorizado es &lt;b&gt;{1}&lt;/b&gt;.&lt;br/&gt;Abre este enlace solo en ese ordenador:&lt;br/&gt;&lt;a href="{2}"&gt;Instalar plugin AutoCAD&lt;/a&gt;</value>
+  </data>
+  <data name="Lbl_CadDeveloper" xml:space="preserve">
+    <value>Desarrollador CAD (NETLOAD)</value>
+  </data>
+  <data name="Lbl_CadDeveloperHint" xml:space="preserve">
+    <value>Puede cargar el plugin con NETLOAD en cualquier PC, sin correo de instalación ni bloqueo de equipo.</value>
+  </data>
+  <data name="Lbl_DeviceSectionHint" xml:space="preserve">
+    <value>El alta del equipo se hace aquí, no desde el plugin. Pon el nombre de Windows del PC (WIN+Pausa o sysdm.cpl).</value>
   </data>
 </root>
