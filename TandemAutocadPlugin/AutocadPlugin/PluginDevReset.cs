@@ -18,6 +18,7 @@ namespace AutocadPlugin
             var pluginRoaming = Path.Combine(roaming, "Tandem", "AutocadPlugin");
             return new List<string>
             {
+                Path.Combine(local, Atk60LibrarySync.ProductFolder, "WebView2"),
                 Path.Combine(local, Atk60LibrarySync.ProductFolder),
                 Path.Combine(Path.GetTempPath(), "TandemAutocadWebView2"),
                 Path.Combine(pluginRoaming, "connect-eta-local.txt"),
@@ -61,11 +62,17 @@ namespace AutocadPlugin
             {
                 if (Directory.Exists(path))
                 {
-                    Directory.Delete(path, true);
+                    DeleteTree(path);
+                    if (Directory.Exists(path))
+                    {
+                        error = "WebView2 sigue en uso. Cierra AutoCAD y vuelve a UnAtdesing.";
+                        return false;
+                    }
                     return true;
                 }
                 if (File.Exists(path))
                 {
+                    File.SetAttributes(path, FileAttributes.Normal);
                     File.Delete(path);
                     return true;
                 }
@@ -77,6 +84,23 @@ namespace AutocadPlugin
                 error = ex.Message;
                 return false;
             }
+        }
+
+        private static void DeleteTree(string dir)
+        {
+            foreach (var file in Directory.GetFiles(dir, "*", SearchOption.AllDirectories))
+            {
+                try
+                {
+                    File.SetAttributes(file, FileAttributes.Normal);
+                    File.Delete(file);
+                }
+                catch
+                {
+                }
+            }
+            try { Directory.Delete(dir, true); }
+            catch { }
         }
     }
 }

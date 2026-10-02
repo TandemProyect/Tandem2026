@@ -34,6 +34,7 @@ namespace AutocadPlugin
         private static HttpClient _http;
         private static Task _running;
         private static JArray _pendingCatalog;
+        private static Action<string> _step;
         public static Action AfterSync;
 
         public static string ProductRoot()
@@ -68,16 +69,42 @@ namespace AutocadPlugin
             LoadIndexFromDisk();
         }
 
-        public static void StartInBackground()
+        public static bool HasLocalLibrary()
+        {
+            try
+            {
+                var root = CacheDir();
+                var dwgs = 0;
+                foreach (var folder in new[] { "3D", "3DRef", "Xr" })
+                {
+                    var dir = Path.Combine(root, folder);
+                    if (!Directory.Exists(dir))
+                        continue;
+                    dwgs += Directory.GetFiles(dir, "*.dwg").Length;
+                }
+                return dwgs > 0;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static void StartInBackground(Action<string> step = null, Action finished = null)
         {
             lock (Gate)
             {
                 if (_running != null && !_running.IsCompleted)
                 {
-                    CadLine("[Tandem] Biblioteca: actualización ya en curso.");
+                    Tell("Biblioteca: actualización ya en curso.");
+                    var again = finished;
+                    var running = _running;
+                    if (again != null)
+                        running.ContinueWith(_ => again());
                     return;
                 }
-                CadLine("[Tandem] Biblioteca: comprobando actualizaciones…");
+                _step = step;
+                Tell("Comprobando el manifiesto en el servidor…");
                 _running = Task.Run(() =>
                 {
                     try
@@ -87,7 +114,13 @@ namespace AutocadPlugin
                         if (done != null)
                             done();
                     }
-                    catch (Exception ex) { CadLine("[Tandem] Biblioteca: " + ex.Message); }
+                    catch (Exception ex) { Tell("Error: " + ex.Message); }
+                    finally
+                    {
+                        var end = finished;
+                        if (end != null)
+                            end();
+                    }
                 });
             }
         }
@@ -103,11 +136,20 @@ namespace AutocadPlugin
             UrlByKey.Clear();
             Inflight.Clear();
             _pendingCatalog = null;
+            _step = null;
+        }
+
+        public static void ClearStep()
+        {
+            _step = null;
         }
 
         public static string ReadCatalogJson()
         {
             var arr = ReadCatalogFromDisk();
+            if (arr != null && arr.Count > 0)
+                return arr.ToString(Formatting.None);
+            arr = CatalogFromBlocks();
             return arr != null ? arr.ToString(Formatting.None) : "[]";
         }
 
@@ -115,6 +157,30 @@ namespace AutocadPlugin
         {
             var root = ReadIndexFile();
             return root?["catalog"] as JArray ?? root?["Catalog"] as JArray;
+        }
+
+        private static JArray CatalogFromBlocks()
+        {
+            var root = ReadIndexFile();
+            var blocks = root?["blocks"] as JArray;
+            if (blocks == null || blocks.Count == 0)
+                return new JArray();
+            var rows = new JArray();
+            foreach (var block in blocks)
+            {
+                var code = ((string)block["code"] ?? "").Trim();
+                if (string.IsNullOrWhiteSpace(code))
+                    continue;
+                rows.Add(new JObject
+                {
+                    ["Id"] = 0,
+                    ["Code"] = code,
+                    ["CodeName"] = code,
+                    ["Label"] = code,
+                    ["Caption"] = code
+                });
+            }
+            return rows;
         }
 
         public static bool TryFindLocal(string codeName, string view, out string path)
@@ -160,30 +226,52 @@ namespace AutocadPlugin
 
         public static bool TryDownloadOne(string codeName, string view)
         {
-            var key = Key(codeName, view);
-            string url;
-            if (!UrlByKey.TryGetValue(key, out url) || string.IsNullOrWhiteSpace(url))
-                return false;
             string folder;
             string file;
             Normalize(view, codeName, out folder, out file);
             var dest = Path.Combine(CacheDir(), folder, file);
-            if (!DownloadTo(url, dest))
-                return false;
-            LocalByKey[key] = dest;
-            return true;
+            if (IsUsable(dest))
+            {
+                LocalByKey[Key(codeName, view)] = dest;
+                return true;
+            }
+
+            var key = Key(codeName, view);
+            string url;
+            UrlByKey.TryGetValue(key, out url);
+            if (DownloadTo(url, dest, folder, file))
+            {
+                LocalByKey[key] = dest;
+                return true;
+            }
+            return false;
+        }
+
+        public static bool EnsureCached(string codeName, string view, string destFile = null)
+        {
+            string folder;
+            string file;
+            Normalize(view, codeName, out folder, out file);
+            if (!string.IsNullOrWhiteSpace(destFile))
+                file = destFile;
+            var dest = Path.Combine(CacheDir(), folder, file);
+            if (IsUsable(dest))
+                return true;
+            return TryDownloadOne(codeName, view) && IsUsable(dest);
         }
 
         private static void SyncNow()
         {
             var server = (MvcServerSettings.CurrentUrl() ?? "").Trim();
             LoadIndexFromDisk();
+            Tell("Leyendo catálogo de artículos…");
             var remote = FetchRemote();
             if (remote == null || remote.Count == 0)
             {
-                CadLine("[Tandem] Biblioteca: no hay manifiesto en el servidor. Se usa " + IndexFileName + " local.");
+                Tell("No hay manifiesto. Se usa " + IndexFileName + " local.");
                 return;
             }
+            Tell("Manifiesto: " + remote.Count + " archivos.");
 
             var previous = ReadIndexFile();
             var prevVersions = ReadVersions(previous);
@@ -207,14 +295,16 @@ namespace AutocadPlugin
             if (pending.Count == 0)
             {
                 WriteIndex(server, remote);
-                CadLine("[Tandem] Biblioteca al día (" + remote.Count + " en " + IndexFileName + ").");
+                Tell("Biblioteca al día (" + remote.Count + " en " + IndexFileName + ").");
                 return;
             }
 
-            CadLine("[Tandem] Biblioteca: descargando " + pending.Count + " archivo(s)…");
+            var total = pending.Count;
+            Tell("Hay " + total + " bloques que copiar.");
             var gate = new SemaphoreSlim(MaxParallel);
             var jobs = new List<Task>();
             var ok = 0;
+            var started = 0;
             foreach (var item in pending)
             {
                 var local = item;
@@ -225,7 +315,10 @@ namespace AutocadPlugin
                     gate.Wait();
                     try
                     {
-                        if (DownloadTo(local.Url, dest))
+                        var i = Interlocked.Increment(ref started);
+                        var label = (local.Code ?? "") + " " + (local.View ?? "");
+                        Tell("Copiando " + i + "/" + total + " · " + label.Trim());
+                        if (DownloadTo(local.Url, dest, local.Folder, local.File))
                         {
                             LocalByKey[key] = dest;
                             Interlocked.Increment(ref ok);
@@ -240,8 +333,9 @@ namespace AutocadPlugin
             foreach (var item in pending)
                 Inflight.TryRemove(Key(item.Code, item.View), out _);
 
+            Tell("Guardando índice local…");
             WriteIndex(server, remote);
-            CadLine("[Tandem] Biblioteca: " + ok + "/" + pending.Count + " nuevos. Índice " + IndexFileName + ".");
+            Tell("Biblioteca lista: " + ok + "/" + pending.Count + " nuevos.");
         }
 
         private static List<RemoteFile> FetchRemote()
@@ -382,27 +476,80 @@ namespace AutocadPlugin
             return map;
         }
 
-        private static bool DownloadTo(string url, string dest)
+        private static bool DownloadTo(string url, string dest, string folder, string file)
         {
             try
             {
-                var folder = Path.GetDirectoryName(dest);
-                if (!string.IsNullOrWhiteSpace(folder))
-                    Directory.CreateDirectory(folder);
+                var dir = Path.GetDirectoryName(dest);
+                if (!string.IsNullOrWhiteSpace(dir))
+                    Directory.CreateDirectory(dir);
+                if (TryCopyFromSource(folder, file, dest))
+                    return true;
+                if (string.IsNullOrWhiteSpace(url))
+                    return false;
                 var bytes = Http().GetByteArrayAsync(AbsoluteUrl(url)).GetAwaiter().GetResult();
                 if (bytes == null || bytes.Length < 64)
                     return false;
-                var tmp = dest + ".tmp";
-                File.WriteAllBytes(tmp, bytes);
-                if (File.Exists(dest))
-                    File.Replace(tmp, dest, null);
-                else
-                    File.Move(tmp, dest);
-                return File.Exists(dest) && new FileInfo(dest).Length >= 64;
+                WriteBytes(dest, bytes);
+                return IsUsable(dest);
             }
             catch
             {
+                return TryCopyFromSource(folder, file, dest);
+            }
+        }
+
+        private static void WriteBytes(string dest, byte[] bytes)
+        {
+            var tmp = dest + ".tmp";
+            File.WriteAllBytes(tmp, bytes);
+            if (File.Exists(dest))
+                File.Replace(tmp, dest, null);
+            else
+                File.Move(tmp, dest);
+        }
+
+        private static bool TryCopyFromSource(string folder, string file, string dest)
+        {
+            if (string.IsNullOrWhiteSpace(folder) || string.IsNullOrWhiteSpace(file))
                 return false;
+            try
+            {
+                foreach (var root in SourceRoots())
+                {
+                    var src = Path.Combine(root, folder, file);
+                    if (!IsUsable(src))
+                        continue;
+                    var dir = Path.GetDirectoryName(dest);
+                    if (!string.IsNullOrWhiteSpace(dir))
+                        Directory.CreateDirectory(dir);
+                    File.Copy(src, dest, overwrite: true);
+                    if (IsUsable(dest))
+                        return true;
+                }
+            }
+            catch
+            {
+            }
+            return false;
+        }
+
+        private static IEnumerable<string> SourceRoots()
+        {
+            var env = Environment.GetEnvironmentVariable("TANDEM_ATK60_DWG");
+            if (!string.IsNullOrWhiteSpace(env))
+                yield return env.Trim();
+
+            var asm = Path.GetDirectoryName(typeof(Atk60LibrarySync).Assembly.Location);
+            if (!string.IsNullOrWhiteSpace(asm))
+            {
+                var walk = new DirectoryInfo(asm);
+                for (var i = 0; i < 8 && walk != null; i++, walk = walk.Parent)
+                {
+                    var candidate = Path.Combine(walk.FullName, "Desing", "Content", "DesignTools", "DWG", "AtkSystem60");
+                    if (Directory.Exists(candidate))
+                        yield return candidate;
+                }
             }
         }
 
@@ -478,6 +625,13 @@ namespace AutocadPlugin
                     return value;
             }
             return "";
+        }
+
+        private static void Tell(string text)
+        {
+            CadLine("[Tandem] " + text);
+            try { _step?.Invoke(text); }
+            catch { }
         }
 
         private static void CadLine(string text)

@@ -221,12 +221,80 @@ namespace Desing.Controllers
         /// <summary>
         /// Paleta de sesión del plugin CAD: exige login (cookie Identity).
         /// Menú general (obras / ofertas / diseños) — el diseño se abre en el plugin CAD.
+        /// La ficha se pinta al momento; los listados llegan por PluginHomeData.
         /// </summary>
         [HttpGet]
         [Authorize]
+        [OutputCache(NoStore = true, Duration = 0, VaryByParam = "*")]
         public ActionResult PluginReady()
         {
-            var vm = new PluginCadHomeVm
+            var userId = User.Identity.GetUserId();
+            if (!PluginCadDeviceHelper.IsUserAllowed(db, userId))
+            {
+                HttpContext.GetOwinContext().Authentication.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                return RedirectToPluginLogin(Url.Action("PluginReady", "DesignToolsAutocad"), inactiveUser: true);
+            }
+
+            var deviceSnap = PluginCadDeviceHelper.TryReadCookie(Request);
+            var deviceRow = PluginCadDeviceHelper.Find(db, deviceSnap != null ? deviceSnap.DeviceId : null);
+            if (!PluginCadDeviceHelper.IsCadDeveloper(db, userId)
+                && (PluginCadDeviceHelper.IsBlocked(deviceRow)
+                    || !PluginCadDeviceHelper.AllowsPluginOnThisPc(db, userId, deviceSnap)))
+            {
+                HttpContext.GetOwinContext().Authentication.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                return RedirectToPluginLogin(Url.Action("PluginReady", "DesignToolsAutocad"), blocked: true);
+            }
+
+            PersistPluginCompanyLogo(userId);
+            return View(new PluginCadHomeVm
+            {
+                UserName = User.Identity.Name,
+                Jobsides = new List<PluginCadJobsideRow>(),
+                Offers = new List<PluginCadOfferRow>(),
+                Designs = new List<PluginCadDesignRow>(),
+                Clients = new List<PluginCadLookupItem>(),
+                Branches = new List<PluginCadLookupItem>(),
+                OfferStates = new List<PluginCadLookupItem>()
+            });
+        }
+
+        /// <summary>
+        /// Listados vivos de obras / ofertas / diseños para el menú general CAD.
+        /// </summary>
+        [HttpGet]
+        [Authorize]
+        [OutputCache(NoStore = true, Duration = 0, VaryByParam = "*")]
+        public ActionResult PluginHomeData()
+        {
+            if (!EnsurePluginCadUser())
+                return new HttpUnauthorizedResult();
+
+            try
+            {
+                var vm = LoadPluginHomeLists();
+                var json = Json(new
+                {
+                    ok = true,
+                    userName = User.Identity.Name ?? "",
+                    jobsides = vm.Jobsides.Select(j => new { id = j.Id, code = j.Code ?? "", label = j.Label ?? "" }).ToList(),
+                    offers = vm.Offers.Select(o => new { id = o.Id, jobsideId = o.JobsideId, number = o.Number ?? "", label = o.Label ?? "" }).ToList(),
+                    designs = vm.Designs.Select(d => new { id = d.Id, label = d.Label ?? "", offerNumber = d.OfferNumber ?? "" }).ToList(),
+                    clients = vm.Clients.Select(c => new { id = c.Id, label = c.Label ?? "" }).ToList(),
+                    branches = vm.Branches.Select(b => new { id = b.Id, label = b.Label ?? "" }).ToList(),
+                    offerStates = vm.OfferStates.Select(s => new { id = s.Id, label = s.Label ?? "" }).ToList()
+                }, JsonRequestBehavior.AllowGet);
+                json.MaxJsonLength = int.MaxValue;
+                return json;
+            }
+            catch
+            {
+                return Json(new { ok = false, message = Common.PluginCad_HomeLoadFailed }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        private PluginCadHomeVm LoadPluginHomeLists()
+        {
+            return new PluginCadHomeVm
             {
                 UserName = User.Identity.Name,
                 Jobsides = db.TSql_Jobside.AsNoTracking()
@@ -283,26 +351,6 @@ namespace Desing.Controllers
                     .Select(s => new PluginCadLookupItem { Id = s.IdObject, Label = s.TextLabel })
                     .ToList()
             };
-
-            var userId = User.Identity.GetUserId();
-            if (!PluginCadDeviceHelper.IsUserAllowed(db, userId))
-            {
-                HttpContext.GetOwinContext().Authentication.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
-                return RedirectToPluginLogin(Url.Action("PluginReady", "DesignToolsAutocad"), inactiveUser: true);
-            }
-
-            var deviceSnap = PluginCadDeviceHelper.TryReadCookie(Request);
-            var deviceRow = PluginCadDeviceHelper.Find(db, deviceSnap != null ? deviceSnap.DeviceId : null);
-            if (!PluginCadDeviceHelper.IsCadDeveloper(db, userId)
-                && (PluginCadDeviceHelper.IsBlocked(deviceRow)
-                    || !PluginCadDeviceHelper.AllowsPluginOnThisPc(db, userId, deviceSnap)))
-            {
-                HttpContext.GetOwinContext().Authentication.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
-                return RedirectToPluginLogin(Url.Action("PluginReady", "DesignToolsAutocad"), blocked: true);
-            }
-
-            PersistPluginCompanyLogo(userId);
-            return View(vm);
         }
 
         /// <summary>
@@ -451,25 +499,15 @@ namespace Desing.Controllers
             if (!hasFile && string.IsNullOrWhiteSpace(ToPublicUrl(virtualPath)))
                 return;
 
-            var url = ToPublicUrl(virtualPath);
-            if (string.IsNullOrWhiteSpace(url))
-                return;
-
             var fileName = defaultFile;
-            try
-            {
-                var fromUrl = Path.GetFileName(new Uri(AbsoluteContentUrl(url), UriKind.Absolute).AbsolutePath);
-                if (!string.IsNullOrWhiteSpace(fromUrl))
-                    fileName = fromUrl;
-            }
-            catch
-            {
-            }
-
             var version = hasFile
                 ? size.ToString(CultureInfo.InvariantCulture) + "|" + ticks.ToString(CultureInfo.InvariantCulture)
                 : article.AddLastDateChange.ToUniversalTime().Ticks.ToString(CultureInfo.InvariantCulture)
                     + "|" + article.Ntimeschanged.ToString(CultureInfo.InvariantCulture);
+
+            var url = Url.Action("PluginLibraryFile", "DesignToolsAutocad", new { folder, file = fileName });
+            if (string.IsNullOrWhiteSpace(url))
+                return;
 
             files.Add(new PluginCadLibraryFile
             {
@@ -481,6 +519,40 @@ namespace Desing.Controllers
                 Version = version + "|" + url,
                 Size = size
             });
+        }
+
+        /// <summary>
+        /// Descarga un DWG/JSON de la biblioteca ATK-60. El plugin lo copia a AppData.
+        /// </summary>
+        [HttpGet]
+        [AllowAnonymous]
+        public ActionResult PluginLibraryFile(string folder, string file)
+        {
+            var dir = (folder ?? "").Trim();
+            var name = Path.GetFileName((file ?? "").Trim());
+            if (string.IsNullOrWhiteSpace(name)
+                || !(string.Equals(dir, "3D", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(dir, "3DRef", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(dir, "Xr", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(dir, "Snaps", StringComparison.OrdinalIgnoreCase)))
+                return HttpNotFound();
+
+            string physical;
+            try
+            {
+                physical = Server.MapPath("~/Content/DesignTools/DWG/AtkSystem60/" + dir + "/" + name);
+            }
+            catch
+            {
+                return HttpNotFound();
+            }
+
+            if (string.IsNullOrWhiteSpace(physical) || !System.IO.File.Exists(physical))
+                return HttpNotFound();
+
+            var ext = (Path.GetExtension(name) ?? "").ToLowerInvariant();
+            var mime = ext == ".json" ? "application/json" : "application/octet-stream";
+            return File(physical, mime, name);
         }
 
         private bool TryFileStamp(string virtualPath, out long size, out long ticks)

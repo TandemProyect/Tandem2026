@@ -19,18 +19,22 @@ namespace AutocadPlugin.UI.Views
     {
         public bool IsCancelled { get; private set; }
         public string ChosenId { get; private set; }
+        public string LayoutId { get; set; }
         private DispatcherFrame _waitFrame;
         private bool _showBrand;
+        private bool _placing;
         private readonly List<string> _steps = new List<string>();
 
         public TandemMiniPopup()
         {
             InitializeComponent();
+            LocationChanged += (_, __) => RememberLocation();
         }
 
         public static TandemMiniPopup ShowTop(string title)
         {
             var win = new TandemMiniPopup();
+            win.LayoutId = "convert";
             win.ApplyTheme();
             win.TitleText.Text = string.IsNullOrWhiteSpace(title) ? "Tandem" : title;
             win.SetHeaderIcon(info: true);
@@ -56,6 +60,7 @@ namespace AutocadPlugin.UI.Views
         public static TandemMiniPopup ShowProgressTop(string title, string message, bool showBrand = false)
         {
             var win = new TandemMiniPopup();
+            win.LayoutId = "progress";
             win.ApplyTheme();
             win.ShowProgress(title, message, showBrand);
             try
@@ -85,9 +90,12 @@ namespace AutocadPlugin.UI.Views
                 SetHeaderIcon(info: true);
                 TitleText.Text = message ?? "";
                 PromptText.Text = "";
+                if (BodyHost != null)
+                    BodyHost.Visibility = Visibility.Collapsed;
                 PromptPanel.Visibility = Visibility.Collapsed;
                 ChoicePanel.Visibility = Visibility.Collapsed;
                 ProgressPanel.Visibility = Visibility.Collapsed;
+                SizeToContent = SizeToContent.Height;
             });
         }
 
@@ -119,9 +127,12 @@ namespace AutocadPlugin.UI.Views
                         ChoiceHost.Children.Add(box);
                     }
                 }
+                if (BodyHost != null)
+                    BodyHost.Visibility = Visibility.Visible;
                 PromptPanel.Visibility = Visibility.Collapsed;
                 ChoicePanel.Visibility = Visibility.Visible;
                 ProgressPanel.Visibility = Visibility.Collapsed;
+                SizeToContent = SizeToContent.Height;
             });
         }
 
@@ -164,9 +175,12 @@ namespace AutocadPlugin.UI.Views
                 TitleText.Text = string.IsNullOrWhiteSpace(title) ? "Tandem" : title;
                 if (ProgressText != null)
                     ProgressText.Text = message ?? "";
+                if (BodyHost != null)
+                    BodyHost.Visibility = Visibility.Visible;
                 PromptPanel.Visibility = Visibility.Collapsed;
                 ChoicePanel.Visibility = Visibility.Collapsed;
                 ProgressPanel.Visibility = Visibility.Visible;
+                SizeToContent = SizeToContent.Height;
                 ApplyBrandLogo();
             });
         }
@@ -196,6 +210,8 @@ namespace AutocadPlugin.UI.Views
             RunOnUi(() =>
             {
                 ProgressText.Text = message;
+                if (message.StartsWith("Copiando ", StringComparison.OrdinalIgnoreCase))
+                    return;
                 _steps.Add(message.Trim());
                 if (_steps.Count > 6)
                     _steps.RemoveAt(0);
@@ -341,8 +357,47 @@ namespace AutocadPlugin.UI.Views
             CloseSafe();
         }
 
+        private void OnDragHeader(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton != MouseButton.Left)
+                return;
+            try { DragMove(); } catch { }
+            RememberLocation();
+        }
+
+        private void RememberLocation()
+        {
+            if (_placing || string.IsNullOrWhiteSpace(LayoutId) || !IsVisible)
+                return;
+            try { PaletteLayoutStore.Save(LayoutId, Left, Top); }
+            catch { }
+        }
+
         private static void PlaceTop(Window window)
         {
+            var pop = window as TandemMiniPopup;
+            if (pop != null)
+            {
+                if (string.IsNullOrWhiteSpace(pop.LayoutId))
+                    pop.LayoutId = "convert";
+                pop._placing = true;
+                try
+                {
+                    double left;
+                    double top;
+                    if (PaletteLayoutStore.TryGet(pop.LayoutId, out left, out top))
+                    {
+                        pop.Left = left;
+                        pop.Top = top;
+                        return;
+                    }
+                }
+                finally
+                {
+                    pop._placing = false;
+                }
+            }
+
             try
             {
                 var main = AcadApp.MainWindow;

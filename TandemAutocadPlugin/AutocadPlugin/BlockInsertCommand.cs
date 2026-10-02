@@ -26,10 +26,13 @@ namespace AutocadPlugin
         public const string CommandName = "TANDEM_INSERTBLOQUE";
         internal const string AppName = "TANDEM";
         private static BlockInsertRequest _pending;
+        private static BlockInsertRequest _last;
 
         public static void QueueFromPalette(JObject obj)
         {
             _pending = BlockInsertRequest.FromJson(obj);
+            if (_pending != null)
+                _last = _pending;
         }
 
         internal static void FocusDrawing()
@@ -67,7 +70,7 @@ namespace AutocadPlugin
         [CommandMethod(CommandName)]
         public void Run()
         {
-            var req = _pending;
+            var req = _pending ?? _last;
             _pending = null;
             Document doc = AcadApp.DocumentManager.MdiActiveDocument;
             if (doc == null) return;
@@ -78,6 +81,8 @@ namespace AutocadPlugin
                 ed.WriteMessage("\n[Tandem] No hay panel para insertar. Elige uno en la biblioteca.\n");
                 return;
             }
+
+            _last = req;
 
             var view = (req.View ?? "3dref").Trim();
             if (string.Equals(view, "alzado", StringComparison.OrdinalIgnoreCase)
@@ -121,7 +126,8 @@ namespace AutocadPlugin
                 if (!placed)
                     return;
                 ed.WriteMessage("\n[Tandem] Insertado " + blockName
-                    + (snapped ? " (enganchado a vértice)" : "") + "\n");
+                    + (snapped ? " (enganchado a vértice)" : "")
+                    + ". Intro para insertar otro igual.\n");
             }
             catch (System.Exception ex)
             {

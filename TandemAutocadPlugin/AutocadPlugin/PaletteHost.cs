@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using AutocadPlugin.Models;
 using AutocadPlugin.UI.Views;
@@ -25,6 +26,7 @@ namespace AutocadPlugin
         private static bool _keepUi;
         private static bool _docsBound;
         private static bool _pendingBlocks;
+        private static bool _waitingHome;
         private static string _readyUrl;
         private static string _sessionStartUrl;
         private static int _splashWaitGen;
@@ -135,7 +137,14 @@ namespace AutocadPlugin
             PluginSessionStore.Clear();
             PluginSplashBrand.Clear();
             PluginPlantillaTheme.Reset();
+            try { System.Threading.Thread.Sleep(400); } catch { }
             var report = PluginDevReset.WipeAll();
+            if (Directory.Exists(PaletteWindow.UserDataDir())
+                || Directory.Exists(Atk60LibrarySync.ProductRoot()))
+            {
+                try { System.Threading.Thread.Sleep(600); } catch { }
+                report += PluginDevReset.WipeAll();
+            }
             return report;
         }
 
@@ -201,6 +210,7 @@ namespace AutocadPlugin
             }
 
             var created = new PaletteWindow(_sessionStartUrl, 320, 292, allowResize: false, authSplash: splash);
+            created.LayoutId = "session";
             created.MessageReceived += OnPaletteMessage;
             created.Navigated += OnSessionNavigated;
             created.Closed += (_, __) =>
@@ -209,7 +219,7 @@ namespace AutocadPlugin
                     _session = null;
             };
 
-            Attach(created, -1, 70);
+            Attach(created, "session", -1, 70);
             if (splash)
                 created.ShowStatus(PluginSplashBrand.ForceDefaultUntilPlantilla
                     ? "Primera instalación de TDesing"
@@ -238,7 +248,7 @@ namespace AutocadPlugin
                 if (_session != null)
                 {
                     ShowSessionWindow();
-                    PositionOverAcad(_session, -1, 70);
+                    PlacePalette(_session, "session", -1, 70);
                     try
                     {
                         var origin = uri.GetLeftPart(UriPartial.Authority);
@@ -257,14 +267,13 @@ namespace AutocadPlugin
             if (path.IndexOf("/DesignToolsAutocad/PluginSession", StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 ReportConnectStep("Comprobando si ya hay sesión…");
-                if (_session != null)
-                    PositionOverAcad(_session, -1, 70);
                 return;
             }
 
             if (path.IndexOf("/DesignToolsAutocad/PluginCadAuth", StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 ReportConnectStep("Validando usuario y equipo…");
+                ArmAuthReadyFallback();
                 return;
             }
 
@@ -272,11 +281,9 @@ namespace AutocadPlugin
             {
                 _pendingSessionWidth = 540;
                 _pendingSessionHeight = 700;
-                if (_sessionAuthenticated)
-                    RevealSessionPage();
-                else
+                if (_waitingHome)
                 {
-                    ReportConnectStep("Cargando el menú de TDesing…");
+                    ReportConnectStep("Cargando obras, ofertas y diseños…");
                     ArmSplashFallback();
                 }
                 return;
@@ -321,31 +328,108 @@ namespace AutocadPlugin
             });
         }
 
+        private static void ArmAuthReadyFallback()
+        {
+            var gen = ++_splashWaitGen;
+            Task.Delay(2500).ContinueWith(_ =>
+            {
+                if (gen != _splashWaitGen || _sessionAuthenticated)
+                    return;
+                try
+                {
+                    var win = _session;
+                    if (win == null) return;
+                    win.Dispatcher.Invoke(() =>
+                    {
+                        ReportConnectStep("Sesión lista. Abriendo herramientas…");
+                        MarkAuthenticated();
+                    });
+                }
+                catch
+                {
+                }
+            });
+        }
+
         private static void RevealSessionPage()
         {
             _splashWaitGen++;
             _session?.HideStatus();
             ApplySessionSize(_pendingSessionWidth, _pendingSessionHeight);
-            PositionOverAcad(_session, -1, 70);
+            PlacePalette(_session, "session", -1, 70);
         }
 
         private static void MarkAuthenticated()
         {
-            if (_sessionAuthenticated)
+            _splashWaitGen++;
+            if (!_sessionAuthenticated)
             {
-                ShowToolPalettes();
+                _sessionAuthenticated = true;
+                _keepUi = true;
+                PluginSessionStore.Remember();
+            }
+
+            if (!Atk60LibrarySync.HasLocalLibrary())
+            {
+                ReportConnectStep("Primera instalación: creando biblioteca local…");
+                RunLibraryUpdate(useSessionSplash: true);
                 return;
             }
 
-            _sessionAuthenticated = true;
-            _keepUi = true;
-            PluginSessionStore.Remember();
+            FinishConnectUi();
+        }
+
+        private static void RunLibraryUpdate(bool useSessionSplash)
+        {
+            TandemMiniPopup pop = null;
+            if (!useSessionSplash)
+                pop = TandemMiniPopup.ShowProgressTop("Actualizar biblioteca", "Comprobando cambios…", showBrand: true);
+
+            Atk60LibrarySync.StartInBackground(
+                step =>
+                {
+                    if (useSessionSplash)
+                        ReportConnectStep(step);
+                    else
+                        pop?.AddInstallStep(step);
+                },
+                () =>
+                {
+                    Action finish = () =>
+                    {
+                        Atk60LibrarySync.ClearStep();
+                        if (useSessionSplash)
+                            FinishConnectUi();
+                        else
+                        {
+                            try { pop?.CloseSafe(); } catch { }
+                            PushCatalogToBlocks();
+                        }
+                    };
+                    try
+                    {
+                        if (_session != null)
+                            _session.Dispatcher.BeginInvoke(finish);
+                        else
+                            finish();
+                    }
+                    catch
+                    {
+                        finish();
+                    }
+                });
+        }
+
+        private static void FinishConnectUi()
+        {
+            Atk60LibrarySync.ClearStep();
+            PluginSplashBrand.ForceDefaultUntilPlantilla = false;
+            try { _session?.HideStatus(); } catch { }
             HideSessionWindow();
             ShowToolPalettes();
             WriteMessage("[Tandem] Sesión conectada a " + MvcServerSettings.CurrentLabel() + ". El primer botón abre el menú general.");
             Atk60LibrarySync.EnsureFolders();
-            if (!System.IO.File.Exists(Atk60LibrarySync.IndexPath()))
-                WriteMessage("[Tandem] Biblioteca vacia. Pulsa Actualizar en bloquing para descargarla.");
+            PushCatalogToBlocks();
             if (_pendingBlocks)
             {
                 _pendingBlocks = false;
@@ -358,22 +442,28 @@ namespace AutocadPlugin
             EnsureSession(splash: !_sessionAuthenticated);
             if (_session == null) return;
 
-            ApplySessionSize(540, 700);
-            PositionOverAcad(_session, -1, 70);
+            _waitingHome = true;
+            _pendingSessionWidth = 540;
+            _pendingSessionHeight = 700;
             ShowSessionWindow();
-            _session.Activate();
-            RevealSessionPage();
+            _session.ShowStatus(_sessionAuthenticated
+                ? "Cargando obras, ofertas y diseños…"
+                : "Cargando TDesing…");
+            ArmSplashFallback();
+            if (!string.IsNullOrWhiteSpace(_readyUrl))
+                _session.Navigate(CacheBust(_readyUrl));
+        }
 
-            if (!_sessionAuthenticated && !string.IsNullOrWhiteSpace(_readyUrl))
-            {
-                _session.ShowStatus("Cargando TDesing…");
-                ArmSplashFallback();
-                _session.Navigate(_readyUrl);
-            }
+        private static string CacheBust(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url)) return url;
+            var sep = url.IndexOf('?') >= 0 ? "&" : "?";
+            return url + sep + "t=" + DateTime.UtcNow.Ticks.ToString();
         }
 
         private static void HideHome()
         {
+            _waitingHome = false;
             HideSessionWindow();
         }
 
@@ -410,13 +500,14 @@ namespace AutocadPlugin
             var baseUrl = PluginExceptionHelper.ResolveBaseUrlFromEnv();
             var modeUrl = baseUrl + "DesignToolsAutocad/PaletteMode";
             var toolsUrl = baseUrl + "DesignToolsAutocad/PaletteTools";
-            EnsureWindow(ref _mode, modeUrl, 492, 62, 80, 90);
-            EnsureWindow(ref _tools, toolsUrl, 508, 58, -1, 90);
+            EnsureWindow(ref _mode, "mode", modeUrl, 492, 70, 80, 90);
+            EnsureWindow(ref _tools, "tools", toolsUrl, 508, 66, -1, 90);
         }
 
         private const double BlocksWidth = 320;
         private const double BlocksHeight = 680;
-        private const double BlocksCollapsedWidth = 32;
+        private const double BlocksCollapsedWidth = 36;
+        private const double BlocksCollapsedHeight = 46;
         private const double BlocksLeft = 80;
         private const double BlocksTop = 158;
 
@@ -433,7 +524,7 @@ namespace AutocadPlugin
                         _blocks.Show();
                     ApplyBlocksSize(expanded: true);
                     _blocks.Activate();
-                    PositionOverAcad(_blocks, BlocksLeft, BlocksTop);
+                    PlacePalette(_blocks, "blocks", BlocksLeft, BlocksTop);
                 }
                 catch
                 {
@@ -442,17 +533,18 @@ namespace AutocadPlugin
             }
 
             var created = new PaletteWindow(url, BlocksWidth, BlocksHeight, allowResize: false);
+            created.LayoutId = "blocks";
             created.MessageReceived += OnPaletteMessage;
             created.Closed += (_, __) =>
             {
                 if (ReferenceEquals(_blocks, created))
                     _blocks = null;
             };
-            Attach(created, BlocksLeft, BlocksTop);
+            Attach(created, "blocks", BlocksLeft, BlocksTop);
             _blocks = created;
         }
 
-        private static void EnsureWindow(ref PaletteWindow window, string url, double width, double height, double leftOffset, double topOffset)
+        private static void EnsureWindow(ref PaletteWindow window, string layoutId, string url, double width, double height, double leftOffset, double topOffset)
         {
             if (window != null)
             {
@@ -461,7 +553,7 @@ namespace AutocadPlugin
                     if (!window.IsVisible)
                         window.Show();
                     window.Activate();
-                    PositionOverAcad(window, leftOffset, topOffset);
+                    PlacePalette(window, layoutId, leftOffset, topOffset);
                 }
                 catch
                 {
@@ -470,6 +562,7 @@ namespace AutocadPlugin
             }
 
             var created = new PaletteWindow(url, width, height);
+            created.LayoutId = layoutId;
             created.MessageReceived += OnPaletteMessage;
             created.Closed += (_, __) =>
             {
@@ -477,11 +570,11 @@ namespace AutocadPlugin
                 if (ReferenceEquals(_tools, created)) _tools = null;
             };
 
-            Attach(created, leftOffset, topOffset);
+            Attach(created, layoutId, leftOffset, topOffset);
             window = created;
         }
 
-        private static void Attach(PaletteWindow created, double leftOffset, double topOffset)
+        private static void Attach(PaletteWindow created, string layoutId, double leftOffset, double topOffset)
         {
             try
             {
@@ -491,7 +584,8 @@ namespace AutocadPlugin
             {
             }
 
-            PositionOverAcad(created, leftOffset, topOffset);
+            created.LayoutId = layoutId;
+            PlacePalette(created, layoutId, leftOffset, topOffset);
 
             try
             {
@@ -502,7 +596,15 @@ namespace AutocadPlugin
                 created.Show();
             }
 
-            PositionOverAcad(created, leftOffset, topOffset);
+            PlacePalette(created, layoutId, leftOffset, topOffset);
+        }
+
+        private static void PlacePalette(PaletteWindow window, string layoutId, double leftOffset, double topOffset)
+        {
+            if (window == null) return;
+            if (!string.IsNullOrWhiteSpace(layoutId))
+                window.LayoutId = layoutId;
+            window.PlaceOrRestore(() => PositionOverAcad(window, leftOffset, topOffset));
         }
 
         private static void PositionOverAcad(PaletteWindow window, double leftOffset, double topOffset)
@@ -651,8 +753,7 @@ namespace AutocadPlugin
                     _blocks.SetCollapsedChrome(!expanded);
                     _blocks.SetSize(
                         expanded ? BlocksWidth : BlocksCollapsedWidth,
-                        BlocksHeight);
-                    PositionOverAcad(_blocks, BlocksLeft, BlocksTop);
+                        expanded ? BlocksHeight : BlocksCollapsedHeight);
                 }
                 catch
                 {
@@ -690,8 +791,8 @@ namespace AutocadPlugin
                         (string)obj["color"],
                         (string)obj["textColor"],
                         (string)obj["logo"]);
-                    PluginSplashBrand.ForceDefaultUntilPlantilla = false;
-                    _session?.RefreshSplashTheme();
+                    if (PluginSplashBrand.ForceDefaultUntilPlantilla)
+                        return true;
                     var logoUrl = (string)obj["logo"];
                     if (string.IsNullOrWhiteSpace(logoUrl))
                         logoUrl = PluginPlantillaTheme.LogoUrl;
@@ -713,12 +814,22 @@ namespace AutocadPlugin
                     return true;
                 }
 
-                if (string.Equals(action, "session-ready", StringComparison.OrdinalIgnoreCase)
+                if (string.Equals(action, "home-ready", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(action, "page-ready", StringComparison.OrdinalIgnoreCase))
                 {
-                    RevealSessionPage();
-                    if (string.Equals(action, "session-ready", StringComparison.OrdinalIgnoreCase))
-                        MarkAuthenticated();
+                    if (_waitingHome)
+                    {
+                        ShowSessionWindow();
+                        RevealSessionPage();
+                    }
+                    return true;
+                }
+
+                if (string.Equals(action, "session-ready", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (_sessionAuthenticated)
+                        return true;
+                    MarkAuthenticated();
                     return true;
                 }
 
@@ -769,7 +880,7 @@ namespace AutocadPlugin
 
                 if (string.Equals(action, "update-library", StringComparison.OrdinalIgnoreCase))
                 {
-                    Atk60LibrarySync.StartInBackground();
+                    RunLibraryUpdate(useSessionSplash: false);
                     return true;
                 }
 
@@ -870,6 +981,7 @@ namespace AutocadPlugin
         private static void Close(ref PaletteWindow window)
         {
             if (window == null) return;
+            try { window.DisposeWebView(); } catch { }
             try { window.Close(); } catch { }
             window = null;
         }

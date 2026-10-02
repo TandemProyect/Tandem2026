@@ -3,6 +3,7 @@
 $ErrorActionPreference = "Continue"
 
 $targets = @(
+    (Join-Path $env:LOCALAPPDATA "AtDesing\WebView2"),
     (Join-Path $env:LOCALAPPDATA "AtDesing"),
     (Join-Path $env:TEMP "TandemAutocadWebView2"),
     (Join-Path $env:APPDATA "Tandem\AutocadPlugin\connect-eta-local.txt"),

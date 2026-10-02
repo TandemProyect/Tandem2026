@@ -1,4 +1,3 @@
-@using System.Collections.Generic
 @using Desing.Models
 @using Desing.Resources
 @model PluginCadHomeVm
@@ -6,19 +5,14 @@
     ViewBag.Title = Common.PluginCad_MenuHomeTitle;
     Layout = "~/Views/Shared/_LayoutAutocadPalette.cshtml";
     var userName = Model != null ? (Model.UserName ?? "") : "";
-    var jobs = Model != null && Model.Jobsides != null ? Model.Jobsides : new List<PluginCadJobsideRow>();
-    var offers = Model != null && Model.Offers != null ? Model.Offers : new List<PluginCadOfferRow>();
-    var designs = Model != null && Model.Designs != null ? Model.Designs : new List<PluginCadDesignRow>();
-    var clients = Model != null && Model.Clients != null ? Model.Clients : new List<PluginCadLookupItem>();
-    var branches = Model != null && Model.Branches != null ? Model.Branches : new List<PluginCadLookupItem>();
-    var states = Model != null && Model.OfferStates != null ? Model.OfferStates : new List<PluginCadLookupItem>();
     ViewBag.BootSplashOnceKey = "tdesing-plugin-ready-boot";
 }
 @Html.Partial("_TdesingBootSplash")
 @section Styles {
     <style>
-        html, body { overflow: auto !important; height: 100%; }
-        .plugin-home { display: flex; flex-direction: column; height: 100%; width: 100%; padding: 6px 8px 8px; box-sizing: border-box; gap: 6px; }
+        html, body { overflow: auto !important; height: 100%; background: #f5f7fb !important; }
+        body .autocad-palette { align-items: stretch !important; flex-direction: column; height: 100%; }
+        .plugin-home { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; height: 100%; width: 100%; padding: 6px 8px 8px; box-sizing: border-box; gap: 6px; background: #f5f7fb; }
         .plugin-home__head { display: flex; align-items: center; gap: 6px; }
         .plugin-home__meta { flex: 1; font-size: 11px; color: #5e6a75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .plugin-home__tabs { display: flex; gap: 4px; }
@@ -40,6 +34,7 @@
         .plugin-home__label { display: block; font-size: 12px; font-weight: 600; color: #2c3340; }
         .plugin-home__sub { display: block; font-size: 11px; color: #6b7785; }
         .plugin-home__empty { font-size: 12px; color: #6b7785; padding: 8px 0; }
+        .plugin-home__empty.is-error { color: #d64545; }
         .plugin-home__status { font-size: 11px; color: #5a8dee; min-height: 16px; }
         .plugin-home__status.is-error { color: #d64545; }
     </style>
@@ -73,42 +68,18 @@
                 <label for="plugin-jobside-client">@Jobside.Lbl_Client</label>
                 <select class="form-select" id="plugin-jobside-client">
                     <option value="">@Jobside.Lbl_ClientEmpty</option>
-                    @foreach (var c in clients)
-                    {
-                        <option value="@c.Id">@c.Label</option>
-                    }
                 </select>
             </div>
             <div>
                 <label for="plugin-jobside-branch">@Jobside.Lbl_Branch</label>
                 <select class="form-select" id="plugin-jobside-branch" required>
                     <option value="">@Jobside.Lbl_BranchEmpty</option>
-                    @foreach (var b in branches)
-                    {
-                        <option value="@b.Id">@b.Label</option>
-                    }
                 </select>
             </div>
             <button type="submit" class="btn btn-sm btn-primary align-self-start">@Common.Btn_Create</button>
         </form>
         <div class="plugin-home__list" id="plugin-list-jobsides">
-            @if (jobs.Count == 0)
-            {
-                <div class="plugin-home__empty" data-plugin-empty="jobsides">@Common.PluginCad_NoJobsides</div>
-            }
-            else
-            {
-                foreach (var row in jobs)
-                {
-                    <div class="plugin-home__item" data-plugin-filter="@row.Code @row.Label">
-                        <span class="plugin-home__label">@(string.IsNullOrWhiteSpace(row.Label) ? ("#" + row.Id) : row.Label)</span>
-                        @if (!string.IsNullOrWhiteSpace(row.Code))
-                        {
-                            <span class="plugin-home__sub">@row.Code</span>
-                        }
-                    </div>
-                }
-            }
+            <div class="plugin-home__empty" data-plugin-empty="jobsides">@Common.PluginCad_LoadingHome</div>
         </div>
     </div>
 
@@ -119,10 +90,6 @@
                 <label for="plugin-offer-jobside">@Jobside.Index_Breadcrumb</label>
                 <select class="form-select" id="plugin-offer-jobside" required>
                     <option value="">@Common.PluginCad_SelectEmpty</option>
-                    @foreach (var j in jobs)
-                    {
-                        <option value="@j.Id">@(string.IsNullOrWhiteSpace(j.Label) ? j.Code : j.Label)</option>
-                    }
                 </select>
             </div>
             <div>
@@ -132,32 +99,13 @@
             <div>
                 <label for="plugin-offer-state">@Jobside.Offers_Lbl_State</label>
                 <select class="form-select" id="plugin-offer-state" required>
-                    @foreach (var s in states)
-                    {
-                        <option value="@s.Id">@s.Label</option>
-                    }
+                    <option value="">@Common.PluginCad_SelectEmpty</option>
                 </select>
             </div>
             <button type="submit" class="btn btn-sm btn-primary align-self-start">@Common.Btn_Create</button>
         </form>
         <div class="plugin-home__list" id="plugin-list-offers">
-            @if (offers.Count == 0)
-            {
-                <div class="plugin-home__empty" data-plugin-empty="offers">@Common.PluginCad_NoOffers</div>
-            }
-            else
-            {
-                foreach (var row in offers)
-                {
-                    <div class="plugin-home__item" data-plugin-filter="@row.Number @row.Label">
-                        <span class="plugin-home__label">@(string.IsNullOrWhiteSpace(row.Label) ? row.Number : row.Label)</span>
-                        @if (!string.IsNullOrWhiteSpace(row.Number))
-                        {
-                            <span class="plugin-home__sub">@row.Number</span>
-                        }
-                    </div>
-                }
-            }
+            <div class="plugin-home__empty" data-plugin-empty="offers">@Common.PluginCad_LoadingHome</div>
         </div>
     </div>
 
@@ -168,10 +116,6 @@
                 <label for="plugin-design-offer">@Jobside.Offers_DtTitle</label>
                 <select class="form-select" id="plugin-design-offer" required>
                     <option value="">@Common.PluginCad_SelectEmpty</option>
-                    @foreach (var o in offers)
-                    {
-                        <option value="@o.Id">@(string.IsNullOrWhiteSpace(o.Number) ? o.Label : (o.Number + " · " + o.Label))</option>
-                    }
                 </select>
             </div>
             <div>
@@ -181,24 +125,7 @@
             <button type="submit" class="btn btn-sm btn-primary align-self-start">@Common.Btn_Create</button>
         </form>
         <div class="plugin-home__list" id="plugin-list-designs">
-            @if (designs.Count == 0)
-            {
-                <div class="plugin-home__empty" data-plugin-empty="designs">@Common.PluginCad_NoDesigns</div>
-            }
-            else
-            {
-                foreach (var row in designs)
-                {
-                    var label = string.IsNullOrWhiteSpace(row.Label) ? ("#" + row.Id) : row.Label;
-                    <button type="button" class="plugin-home__item" data-plugin-open-design="@row.Id" data-label="@label" data-plugin-filter="@label @row.OfferNumber" title="@Common.PluginCad_OpenInCad">
-                        <span class="plugin-home__label">@label</span>
-                        @if (!string.IsNullOrWhiteSpace(row.OfferNumber))
-                        {
-                            <span class="plugin-home__sub">@row.OfferNumber</span>
-                        }
-                    </button>
-                }
-            }
+            <div class="plugin-home__empty" data-plugin-empty="designs">@Common.PluginCad_LoadingHome</div>
         </div>
     </div>
 
@@ -212,7 +139,14 @@
             var failedText = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_LoadFailed));
             var createFailed = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_CreateFailed));
             var openInCad = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_OpenInCad));
+            var loadingHome = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_LoadingHome));
+            var homeFailed = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_HomeLoadFailed));
+            var emptyJobs = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_NoJobsides));
+            var emptyOffers = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_NoOffers));
+            var emptyDesigns = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_NoDesigns));
+            var selectEmpty = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SelectEmpty));
             var urlWalls = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("GetDesignWalls", "Desing_2")));
+            var urlHomeData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("PluginHomeData", "DesignToolsAutocad")));
             var urlJobside = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("PluginCreateJobside", "DesignToolsAutocad")));
             var urlOffer = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("PluginCreateOffer", "DesignToolsAutocad")));
             var urlDesign = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("PluginCreateDesign", "DesignToolsAutocad")));
@@ -255,54 +189,159 @@
                 if (empty) empty.remove();
             }
 
+            function val(item, camel, pascal) {
+                if (!item) return '';
+                var v = item[camel];
+                if (v == null) v = item[pascal];
+                return v == null ? '' : v;
+            }
+
             function appendJobside(item) {
                 hideEmpty('plugin-list-jobsides');
+                var id = val(item, 'id', 'Id');
+                var code = val(item, 'code', 'Code');
+                var label = val(item, 'label', 'Label');
                 var el = document.createElement('div');
                 el.className = 'plugin-home__item';
-                el.setAttribute('data-plugin-filter', (item.code || '') + ' ' + (item.label || ''));
-                el.innerHTML = '<span class="plugin-home__label"></span>' + (item.code ? '<span class="plugin-home__sub"></span>' : '');
-                el.querySelector('.plugin-home__label').textContent = item.label || ('#' + item.id);
-                if (item.code) el.querySelector('.plugin-home__sub').textContent = item.code;
+                el.setAttribute('data-plugin-filter', code + ' ' + label);
+                el.innerHTML = '<span class="plugin-home__label"></span>' + (code ? '<span class="plugin-home__sub"></span>' : '');
+                el.querySelector('.plugin-home__label').textContent = label || ('#' + id);
+                if (code) el.querySelector('.plugin-home__sub').textContent = code;
                 document.getElementById('plugin-list-jobsides').prepend(el);
                 var opt = document.createElement('option');
-                opt.value = item.id;
-                opt.textContent = item.label || item.code || ('#' + item.id);
+                opt.value = id;
+                opt.textContent = label || code || ('#' + id);
                 document.getElementById('plugin-offer-jobside').appendChild(opt);
             }
 
             function appendOffer(item) {
                 hideEmpty('plugin-list-offers');
+                var id = val(item, 'id', 'Id');
+                var number = val(item, 'number', 'Number');
+                var label = val(item, 'label', 'Label');
                 var el = document.createElement('div');
                 el.className = 'plugin-home__item';
-                el.setAttribute('data-plugin-filter', (item.number || '') + ' ' + (item.label || ''));
-                el.innerHTML = '<span class="plugin-home__label"></span>' + (item.number ? '<span class="plugin-home__sub"></span>' : '');
-                el.querySelector('.plugin-home__label').textContent = item.label || item.number || ('#' + item.id);
-                if (item.number) el.querySelector('.plugin-home__sub').textContent = item.number;
+                el.setAttribute('data-plugin-filter', number + ' ' + label);
+                el.innerHTML = '<span class="plugin-home__label"></span>' + (number ? '<span class="plugin-home__sub"></span>' : '');
+                el.querySelector('.plugin-home__label').textContent = label || number || ('#' + id);
+                if (number) el.querySelector('.plugin-home__sub').textContent = number;
                 document.getElementById('plugin-list-offers').prepend(el);
                 var opt = document.createElement('option');
-                opt.value = item.id;
-                opt.textContent = item.number ? (item.number + ' · ' + (item.label || '')) : (item.label || ('#' + item.id));
+                opt.value = id;
+                opt.textContent = number ? (number + ' · ' + (label || '')) : (label || ('#' + id));
                 document.getElementById('plugin-design-offer').appendChild(opt);
             }
 
             function appendDesign(item) {
                 hideEmpty('plugin-list-designs');
-                var label = item.label || ('#' + item.id);
+                var id = val(item, 'id', 'Id');
+                var label = val(item, 'label', 'Label') || ('#' + id);
+                var offerNumber = val(item, 'offerNumber', 'OfferNumber');
                 var btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'plugin-home__item';
-                btn.setAttribute('data-plugin-open-design', item.id);
+                btn.setAttribute('data-plugin-open-design', id);
                 btn.setAttribute('data-label', label);
-                btn.setAttribute('data-plugin-filter', label + ' ' + (item.offerNumber || ''));
+                btn.setAttribute('data-plugin-filter', label + ' ' + offerNumber);
                 btn.title = openInCad;
-                btn.innerHTML = '<span class="plugin-home__label"></span>' + (item.offerNumber ? '<span class="plugin-home__sub"></span>' : '');
+                btn.innerHTML = '<span class="plugin-home__label"></span>' + (offerNumber ? '<span class="plugin-home__sub"></span>' : '');
                 btn.querySelector('.plugin-home__label').textContent = label;
-                if (item.offerNumber) btn.querySelector('.plugin-home__sub').textContent = item.offerNumber;
+                if (offerNumber) btn.querySelector('.plugin-home__sub').textContent = offerNumber;
                 document.getElementById('plugin-list-designs').prepend(btn);
             }
 
+            function setEmpty(listId, text, isError) {
+                var list = document.getElementById(listId);
+                if (!list) return;
+                list.innerHTML = '';
+                var el = document.createElement('div');
+                el.className = 'plugin-home__empty' + (isError ? ' is-error' : '');
+                el.setAttribute('data-plugin-empty', listId.replace('plugin-list-', ''));
+                el.textContent = text;
+                list.appendChild(el);
+            }
+
+            function fillSelect(selectId, items, emptyLabel, labelFn) {
+                var sel = document.getElementById(selectId);
+                if (!sel) return;
+                var keepFirst = sel.querySelector('option[value=""]');
+                sel.innerHTML = '';
+                if (emptyLabel != null) {
+                    var empty = document.createElement('option');
+                    empty.value = '';
+                    empty.textContent = emptyLabel;
+                    sel.appendChild(empty);
+                } else if (keepFirst) {
+                    sel.appendChild(keepFirst);
+                }
+                (items || []).forEach(function (item) {
+                    var opt = document.createElement('option');
+                    opt.value = val(item, 'id', 'Id');
+                    opt.textContent = labelFn ? labelFn(item) : (val(item, 'label', 'Label') || ('#' + opt.value));
+                    sel.appendChild(opt);
+                });
+            }
+
+            function rows(data, camel, pascal) {
+                return (data && (data[camel] || data[pascal])) || [];
+            }
+
+            function renderHome(data) {
+                var jobs = rows(data, 'jobsides', 'Jobsides');
+                var offers = rows(data, 'offers', 'Offers');
+                var designs = rows(data, 'designs', 'Designs');
+                setEmpty('plugin-list-jobsides', emptyJobs);
+                setEmpty('plugin-list-offers', emptyOffers);
+                setEmpty('plugin-list-designs', emptyDesigns);
+                jobs.forEach(function (item) { appendJobside(item); });
+                offers.forEach(function (item) { appendOffer(item); });
+                designs.forEach(function (item) { appendDesign(item); });
+                fillSelect('plugin-jobside-client', rows(data, 'clients', 'Clients'), document.getElementById('plugin-jobside-client').options[0] ? document.getElementById('plugin-jobside-client').options[0].text : '', function (c) { return c.label || c.Label || ('#' + (c.id || c.Id)); });
+                fillSelect('plugin-jobside-branch', rows(data, 'branches', 'Branches'), document.getElementById('plugin-jobside-branch').options[0] ? document.getElementById('plugin-jobside-branch').options[0].text : '', function (b) { return b.label || b.Label || ('#' + (b.id || b.Id)); });
+                fillSelect('plugin-offer-jobside', jobs, selectEmpty, function (j) { return j.label || j.Label || j.code || j.Code || ('#' + (j.id || j.Id)); });
+                fillSelect('plugin-offer-state', rows(data, 'offerStates', 'OfferStates'), null, function (s) { return s.label || s.Label || ('#' + (s.id || s.Id)); });
+                fillSelect('plugin-design-offer', offers, selectEmpty, function (o) { return (o.number || o.Number) ? ((o.number || o.Number) + ' · ' + (o.label || o.Label || '')) : (o.label || o.Label || ('#' + (o.id || o.Id))); });
+                var meta = document.querySelector('.plugin-home__meta');
+                var uname = data.userName || data.UserName;
+                if (meta && uname)
+                    meta.textContent = meta.textContent.replace(/: .*$/, ': ' + uname);
+            }
+
+            function loadHome() {
+                setEmpty('plugin-list-jobsides', loadingHome);
+                setEmpty('plugin-list-offers', loadingHome);
+                setEmpty('plugin-list-designs', loadingHome);
+                fetch(urlHomeData + (urlHomeData.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now(), {
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json' },
+                    cache: 'no-store'
+                }).then(function (r) {
+                    if (r.status === 401) throw new Error('auth');
+                    return r.json();
+                }).then(function (data) {
+                    if (!data || data.ok === false) {
+                        var msg = (data && data.message) || homeFailed;
+                        setEmpty('plugin-list-jobsides', msg, true);
+                        setEmpty('plugin-list-offers', msg, true);
+                        setEmpty('plugin-list-designs', msg, true);
+                        setStatus(msg, true);
+                        return;
+                    }
+                    renderHome(data);
+                    setStatus('');
+                }).catch(function () {
+                    setEmpty('plugin-list-jobsides', homeFailed, true);
+                    setEmpty('plugin-list-offers', homeFailed, true);
+                    setEmpty('plugin-list-designs', homeFailed, true);
+                    setStatus(homeFailed, true);
+                }).then(function () {
+                    post({ action: 'home-ready' });
+                });
+            }
+
             post({ action: 'company-logo', url: companyLogoUrl });
-            post({ action: 'session-ready' });
+            post({ action: 'home-ready' });
+            loadHome();
 
             document.querySelectorAll('[data-plugin-tab]').forEach(function (tab) {
                 tab.addEventListener('click', function () {

@@ -28,6 +28,8 @@ namespace AutocadPlugin.UI.Views
         private bool _etaCold;
         public event Action<string> MessageReceived;
         public event Action<Uri> Navigated;
+        public string LayoutId { get; set; }
+        private bool _placing;
 
         public PaletteWindow(string url, double width, double height, bool allowResize = false, bool authSplash = false)
         {
@@ -53,11 +55,51 @@ namespace AutocadPlugin.UI.Views
             }
 
             Loaded += OnLoaded;
+            LocationChanged += (_, __) => RememberLocation();
             Closed += (_, __) =>
             {
+                RememberLocation();
                 StopEtaTicker(record: false);
                 CloseSplashPopup();
+                DisposeWebView();
             };
+        }
+
+        public void PlaceOrRestore(Action fallback)
+        {
+            _placing = true;
+            try
+            {
+                double left;
+                double top;
+                if (!string.IsNullOrWhiteSpace(LayoutId)
+                    && PaletteLayoutStore.TryGet(LayoutId, out left, out top))
+                {
+                    Left = left;
+                    Top = top;
+                    return;
+                }
+                fallback?.Invoke();
+            }
+            finally
+            {
+                _placing = false;
+            }
+        }
+
+        private void RememberLocation()
+        {
+            if (_placing || string.IsNullOrWhiteSpace(LayoutId) || !IsVisible)
+                return;
+            try
+            {
+                if (Opacity < 0.2 || ActualWidth < 8 || ActualHeight < 8)
+                    return;
+                PaletteLayoutStore.Save(LayoutId, Left, Top);
+            }
+            catch
+            {
+            }
         }
 
         public void SetOwnerHandle(IntPtr ownerHandle)
@@ -107,7 +149,7 @@ namespace AutocadPlugin.UI.Views
                     RootChrome.Background = fill;
                 }
                 if (WebHost != null)
-                    WebHost.Margin = collapsed ? new Thickness(0) : new Thickness(7, 6, 7, 6);
+                    WebHost.Margin = collapsed ? new Thickness(2, 10, 2, 2) : new Thickness(7, 10, 7, 6);
                 Background = collapsed
                     ? Brushes.White
                     : (Brush)new BrushConverter().ConvertFrom("#F5F5F9");
@@ -185,10 +227,9 @@ namespace AutocadPlugin.UI.Views
 
         public void AddInstallStep(string text)
         {
-            if (string.IsNullOrWhiteSpace(text))
+            if (string.IsNullOrWhiteSpace(text) || _splashPopup == null)
                 return;
-            EnsureSplashPopup();
-            try { _splashPopup?.AddInstallStep(text); }
+            try { _splashPopup.AddInstallStep(text); }
             catch { }
         }
 
@@ -231,6 +272,8 @@ namespace AutocadPlugin.UI.Views
 
         private void PrefetchPlantillaLogo()
         {
+            if (PluginSplashBrand.ForceDefaultUntilPlantilla)
+                return;
             var url = PluginPlantillaTheme.LogoUrl;
             if (string.IsNullOrWhiteSpace(url))
                 return;
@@ -282,6 +325,19 @@ namespace AutocadPlugin.UI.Views
             CloseSplashPopup();
             RestoreHostAfterSplash();
             RevealWeb();
+        }
+
+        public bool IsOnPluginReady()
+        {
+            try
+            {
+                var path = Web?.Source?.AbsolutePath ?? "";
+                return path.IndexOf("/DesignToolsAutocad/PluginReady", StringComparison.OrdinalIgnoreCase) >= 0;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public void Navigate(string url)
@@ -506,10 +562,7 @@ namespace AutocadPlugin.UI.Views
                     AttachWeb();
 
                 PrepareNativeLoader();
-                var userData = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "AtDesing",
-                    "WebView2");
+                var userData = UserDataDir();
                 var env = await CoreWebView2Environment.CreateAsync(null, userData);
                 await Web.EnsureCoreWebView2Async(env);
                 try
@@ -579,6 +632,29 @@ namespace AutocadPlugin.UI.Views
             }
         }
 
+        public static string UserDataDir()
+        {
+            return Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "AtDesing",
+                "WebView2");
+        }
+
+        public void DisposeWebView()
+        {
+            try
+            {
+                if (Web == null)
+                    return;
+                DetachWeb();
+                Web.Dispose();
+                Web = null;
+            }
+            catch
+            {
+            }
+        }
+
         internal static void PrepareNativeLoader()
         {
             var dir = Path.GetDirectoryName(typeof(PaletteWindow).Assembly.Location);
@@ -612,8 +688,10 @@ namespace AutocadPlugin.UI.Views
 
         private void OnDrag(object sender, MouseButtonEventArgs e)
         {
-            if (e.ChangedButton == MouseButton.Left)
-                DragMove();
+            if (e.ChangedButton != MouseButton.Left)
+                return;
+            try { DragMove(); } catch { }
+            RememberLocation();
         }
     }
 }

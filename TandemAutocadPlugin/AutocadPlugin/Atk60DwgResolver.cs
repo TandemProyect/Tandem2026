@@ -30,23 +30,22 @@ namespace AutocadPlugin
             string file;
             NormalizeView(view, codeName, out folder, out file);
 
-            Atk60LibrarySync.EnsureStarted();
-            string fromIndex;
-            if (Atk60LibrarySync.TryFindLocal(codeName, view, out fromIndex))
-                return fromIndex;
-
             var cached = Path.Combine(CacheDir(), folder, file);
             if (IsUsable(cached))
                 return cached;
 
-            if (File.Exists(articleUrl ?? ""))
-                return articleUrl;
+            string fromIndex;
+            if (Atk60LibrarySync.TryFindLocal(codeName, view, out fromIndex) && IsUsable(fromIndex))
+                return fromIndex;
 
-            foreach (var path in CandidateDwgPaths(folder, file, codeName, view))
-            {
-                if (IsUsable(path))
-                    return path;
-            }
+            if (Atk60LibrarySync.EnsureCached(codeName, view, file) && IsUsable(cached))
+                return cached;
+
+            if (!string.IsNullOrWhiteSpace(articleUrl)
+                && File.Exists(articleUrl)
+                && IsUsable(articleUrl)
+                && articleUrl.StartsWith(CacheDir(), StringComparison.OrdinalIgnoreCase))
+                return articleUrl;
 
             return null;
         }
@@ -57,18 +56,14 @@ namespace AutocadPlugin
                 return null;
             Atk60LibrarySync.EnsureStarted();
             string fromIndex;
-            if (Atk60LibrarySync.TryFindLocal(codeName, "snap", out fromIndex))
+            if (Atk60LibrarySync.TryFindLocal(codeName, "snap", out fromIndex) && IsUsable(fromIndex))
                 return fromIndex;
             var file = codeName.Trim() + ".json";
             var cached = Path.Combine(CacheDir(), "Snaps", file);
             if (IsUsable(cached))
                 return cached;
-            foreach (var root in LibraryRoots())
-            {
-                var path = Path.Combine(root, "Snaps", file);
-                if (IsUsable(path))
-                    return path;
-            }
+            if (Atk60LibrarySync.EnsureCached(codeName, "snap") && IsUsable(cached))
+                return cached;
             return null;
         }
 
@@ -89,58 +84,6 @@ namespace AutocadPlugin
             }
             folder = "3DRef";
             file = name + "R.dwg";
-        }
-
-        private static System.Collections.Generic.IEnumerable<string> CandidateDwgPaths(
-            string folder, string file, string codeName, string view)
-        {
-            var name = (codeName ?? "").Trim();
-            foreach (var root in LibraryRoots())
-            {
-                yield return Path.Combine(root, folder, file);
-                if (string.Equals(folder, "3DRef", StringComparison.OrdinalIgnoreCase))
-                {
-                    yield return Path.Combine(root, folder, name + ".dwg");
-                    yield return Path.Combine(root, folder, name + "R.dxf");
-                    yield return Path.Combine(root, folder, name + ".dxf");
-                }
-                if (string.Equals(folder, "3D", StringComparison.OrdinalIgnoreCase))
-                    yield return Path.Combine(root, folder, name + ".dxf");
-                if (string.Equals(folder, "Xr", StringComparison.OrdinalIgnoreCase))
-                {
-                    yield return Path.Combine(root, folder, name + ".dwg");
-                    yield return Path.Combine(root, folder, name + "X.dxf");
-                    yield return Path.Combine(root, folder, name + ".dxf");
-                }
-            }
-            yield return Path.Combine(CacheDir(), folder, file);
-            if (string.Equals(folder, "3DRef", StringComparison.OrdinalIgnoreCase))
-                yield return Path.Combine(CacheDir(), folder, name + "R.dxf");
-            if (string.Equals(folder, "3D", StringComparison.OrdinalIgnoreCase))
-                yield return Path.Combine(CacheDir(), folder, name + ".dxf");
-            if (string.Equals(folder, "Xr", StringComparison.OrdinalIgnoreCase))
-                yield return Path.Combine(CacheDir(), folder, name + "X.dxf");
-        }
-
-        private static System.Collections.Generic.IEnumerable<string> LibraryRoots()
-        {
-            var env = Environment.GetEnvironmentVariable("TANDEM_ATK60_DWG");
-            if (!string.IsNullOrWhiteSpace(env))
-                yield return env.Trim();
-
-            yield return @"C:\00_Tandem2026\Desing\Content\DesignTools\DWG\AtkSystem60";
-
-            var asm = Path.GetDirectoryName(typeof(Atk60DwgResolver).Assembly.Location);
-            if (!string.IsNullOrWhiteSpace(asm))
-            {
-                var walk = new DirectoryInfo(asm);
-                for (var i = 0; i < 8 && walk != null; i++, walk = walk.Parent)
-                {
-                    var candidate = Path.Combine(walk.FullName, "Desing", "Content", "DesignTools", "DWG", "AtkSystem60");
-                    if (Directory.Exists(candidate))
-                        yield return candidate;
-                }
-            }
         }
 
         private static string CacheDir()

@@ -65,12 +65,12 @@ namespace AutocadPlugin
                     return;
                 }
 
-                pop.ShowProgress("Cambiando bloques…");
+                pop.ShowProgress("Cambiando bloques", "Leyendo bloques locales…");
                 var target = BlockInsertCommand.NormalizeView(picked);
                 int changed;
                 int skipped;
                 int failed;
-                ConvertMany(doc, ed, ids, target, out changed, out skipped, out failed);
+                ConvertMany(doc, ed, ids, target, pop, out changed, out skipped, out failed);
                 var targetLabel = target == "3d" ? "3D" : (target == "xr" ? "Xr" : "3DRef");
                 ed.WriteMessage("\n[Tandem] Cambiados a " + targetLabel
                     + ": " + changed
@@ -123,6 +123,7 @@ namespace AutocadPlugin
             Editor ed,
             IList<ObjectId> ids,
             string target,
+            TandemMiniPopup pop,
             out int changed,
             out int skipped,
             out int failed)
@@ -162,8 +163,12 @@ namespace AutocadPlugin
             }
 
             var defCache = new Dictionary<string, ObjectId>(StringComparer.OrdinalIgnoreCase);
+            var n = 0;
             foreach (var job in jobs)
             {
+                n++;
+                if (pop != null)
+                    pop.ShowProgress("Cambiando bloques", n + "/" + jobs.Count + " · " + job.CodeName + " → " + target);
                 var blockName = BlockInsertCommand.BlockNameFor(job.CodeName, target);
                 if (defCache.ContainsKey(blockName))
                     continue;

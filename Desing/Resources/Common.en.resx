@@ -301,6 +301,9 @@
   <data name="PluginCad_BlocksInsertSoon" xml:space="preserve">
     <value>Pick a panel vertex or a point in the drawing…</value>
   </data>
+  <data name="PluginCad_BlocksNeedUpdate" xml:space="preserve">
+    <value>Click Update to load the local catalog.</value>
+  </data>
   <data name="PluginCad_BlocksNoPreview" xml:space="preserve">
     <value>This article has no STL preview.</value>
   </data>
@@ -340,9 +343,6 @@
   <data name="PluginCad_BlocksView3DRef" xml:space="preserve">
     <value>3DRef</value>
   </data>
-  <data name="PluginCad_BlocksViewXr" xml:space="preserve">
-    <value>Xr</value>
-  </data>
   <data name="PluginCad_BlocksViewAlzado" xml:space="preserve">
     <value>Elevation</value>
   </data>
@@ -354,6 +354,9 @@
   </data>
   <data name="PluginCad_BlocksViewSoon" xml:space="preserve">
     <value>Available later.</value>
+  </data>
+  <data name="PluginCad_BlocksViewXr" xml:space="preserve">
+    <value>Xr</value>
   </data>
   <data name="PluginCad_BlocksZoomFit" xml:space="preserve">
     <value>Fit view</value>
@@ -385,8 +388,14 @@
   <data name="PluginCad_HideMenu" xml:space="preserve">
     <value>Close menu</value>
   </data>
+  <data name="PluginCad_HomeLoadFailed" xml:space="preserve">
+    <value>Could not load projects. Check that TDesing is running.</value>
+  </data>
   <data name="PluginCad_LoadFailed" xml:space="preserve">
     <value>Could not load walls.</value>
+  </data>
+  <data name="PluginCad_LoadingHome" xml:space="preserve">
+    <value>Loading jobsites, offers and designs…</value>
   </data>
   <data name="PluginCad_LoadingWalls" xml:space="preserve">
     <value>Loading walls…</value>
@@ -420,6 +429,36 @@
   </data>
   <data name="PluginCad_UserInactive" xml:space="preserve">
     <value>This user is inactive. Contact an administrator.</value>
+  </data>
+  <data name="PluginInstall_BtnCheck" xml:space="preserve">
+    <value>Check computer</value>
+  </data>
+  <data name="PluginInstall_BtnDownload" xml:space="preserve">
+    <value>Download and install</value>
+  </data>
+  <data name="PluginInstall_DeviceMismatch" xml:space="preserve">
+    <value>This computer is not the authorised device.</value>
+  </data>
+  <data name="PluginInstall_Expired" xml:space="preserve">
+    <value>This link has expired. Request a new email from Personnel.</value>
+  </data>
+  <data name="PluginInstall_Invalid" xml:space="preserve">
+    <value>This link is not valid. Request a new email from Personnel.</value>
+  </data>
+  <data name="PluginInstall_MachineLabel" xml:space="preserve">
+    <value>This computer name</value>
+  </data>
+  <data name="PluginInstall_NoDevice" xml:space="preserve">
+    <value>This employee has no authorised computer. Register it in Personnel.</value>
+  </data>
+  <data name="PluginInstall_OkHint" xml:space="preserve">
+    <value>Type this PC's Windows name. It must be exactly: {0}</value>
+  </data>
+  <data name="PluginInstall_Success" xml:space="preserve">
+    <value>Computer matches. Download the ZIP, unzip it and run setup.ps1. AutoCAD must be closed.</value>
+  </data>
+  <data name="PluginInstall_Title" xml:space="preserve">
+    <value>Install AutoCAD plugin</value>
   </data>
   <data name="Register_BreadcrumbEmployees" xml:space="preserve">
     <value>Employees</value>
@@ -501,35 +540,5 @@
   </data>
   <data name="Val_PasswordsDoNotMatch" xml:space="preserve">
     <value>The password and confirmation password do not match.</value>
-  </data>
-  <data name="PluginInstall_Title" xml:space="preserve">
-    <value>Install AutoCAD plugin</value>
-  </data>
-  <data name="PluginInstall_Invalid" xml:space="preserve">
-    <value>This link is not valid. Request a new email from Personnel.</value>
-  </data>
-  <data name="PluginInstall_Expired" xml:space="preserve">
-    <value>This link has expired. Request a new email from Personnel.</value>
-  </data>
-  <data name="PluginInstall_NoDevice" xml:space="preserve">
-    <value>This employee has no authorised computer. Register it in Personnel.</value>
-  </data>
-  <data name="PluginInstall_DeviceMismatch" xml:space="preserve">
-    <value>This computer is not the authorised device.</value>
-  </data>
-  <data name="PluginInstall_OkHint" xml:space="preserve">
-    <value>Type this PC's Windows name. It must be exactly: {0}</value>
-  </data>
-  <data name="PluginInstall_MachineLabel" xml:space="preserve">
-    <value>This computer name</value>
-  </data>
-  <data name="PluginInstall_BtnCheck" xml:space="preserve">
-    <value>Check computer</value>
-  </data>
-  <data name="PluginInstall_BtnDownload" xml:space="preserve">
-    <value>Download and install</value>
-  </data>
-  <data name="PluginInstall_Success" xml:space="preserve">
-    <value>Computer matches. Download the ZIP, unzip it and run setup.ps1. AutoCAD must be closed.</value>
   </data>
 </root>

@@ -33,7 +33,23 @@
                     HorizontalAlignment="Left"
                     VerticalAlignment="Top" />
             <Grid x:Name="WebHost"
-                  Margin="7,6,7,6" />
+                  Margin="7,10,7,6" />
+            <Border x:Name="DragBar"
+                    Height="10"
+                    VerticalAlignment="Top"
+                    Background="#01FFFFFF"
+                    Cursor="SizeAll"
+                    MouseLeftButtonDown="OnDrag"
+                    ToolTip="Arrastrar">
+                <Rectangle Width="28"
+                           Height="3"
+                           RadiusX="1.5"
+                           RadiusY="1.5"
+                           Fill="#8899AABB"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           IsHitTestVisible="False" />
+            </Border>
         </Grid>
     </Border>
 </Window>

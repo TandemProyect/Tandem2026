@@ -479,9 +479,6 @@
         <button type="button" class="plugin-blocks__tool is-on" id="plugin-blocks-tool-axes" title="@MasterArticles.StlPreview_XyzAxesToggleTitle" data-tool="axes">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M12 4v16M4 12h16"/></svg>
         </button>
-        <button type="button" class="plugin-blocks__tool" id="plugin-blocks-tool-update" title="@Common.PluginCad_BlocksUpdate" aria-label="@Common.PluginCad_BlocksUpdate" data-plugin-menu="update-library">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg>
-        </button>
     </div>
     <div class="plugin-blocks__viewer">
         <div class="plugin-blocks__viewer-host" id="plugin-blocks-viewer" data-article-preview="1"></div>
@@ -557,8 +554,8 @@
         (function () {
             var searchUrl = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(searchUrl));
             var emptyText = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_BlocksEmpty));
+            var needUpdateText = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_BlocksNeedUpdate));
             var soonText = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_BlocksInsertSoon));
-            var updatingText = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_BlocksUpdating));
             var noPreview = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_BlocksNoPreview));
             var listEl = document.getElementById('plugin-blocks-list');
             var qEl = document.getElementById('plugin-blocks-q');
@@ -659,7 +656,7 @@
                     codeName: btn.getAttribute('data-code-name') || '',
                     caption: btn.getAttribute('data-caption') || ''
                 };
-                insertEl.disabled = !selected.id;
+                insertEl.disabled = !selected.id && !selected.codeName;
                 setStatus('');
                 if (window.TandemCadBlockPreview)
                     window.TandemCadBlockPreview.loadStl(document.getElementById('plugin-blocks-viewer'), selected.stl, noPreview, selected.stlPhenolic);
@@ -683,52 +680,25 @@
                 return catalogRows.filter(function (row) { return catalogHay(row).indexOf(q) >= 0; });
             }
             function loadList(q, dismissSplash) {
-                var my = ++searchGen;
                 if (searchBox) {
-                    searchBox.classList.add('is-busy');
-                    searchBox.setAttribute('aria-busy', 'true');
+                    searchBox.classList.remove('is-busy');
+                    searchBox.setAttribute('aria-busy', 'false');
                 }
-                function stopClock() {
-                    if (my !== searchGen) return false;
-                    if (searchBox) {
-                        searchBox.classList.remove('is-busy');
-                        searchBox.setAttribute('aria-busy', 'false');
-                    }
-                    return true;
-                }
-                function doneSplash() {
-                    if (dismissSplash && window.TdesingBootSplashDismiss)
-                        window.TdesingBootSplashDismiss();
-                }
-                if (catalogRows && catalogRows.length) {
-                    if (!stopClock()) return;
-                    renderRows(filterCatalog(q));
-                    doneSplash();
-                    return;
-                }
+                if (dismissSplash && window.TdesingBootSplashDismiss)
+                    window.TdesingBootSplashDismiss();
                 if (!askedCatalog) {
                     askedCatalog = true;
                     post({ action: 'request-catalog' });
                 }
-                fetch(searchUrl + '?q=' + encodeURIComponent(q || ''), {
-                    credentials: 'same-origin',
-                    headers: { 'Accept': 'application/json' }
-                })
-                    .then(function (r) { return r.text(); })
-                    .then(function (text) {
-                        if (catalogRows && catalogRows.length) return;
-                        if (!stopClock()) return;
-                        var rows = [];
-                        try { rows = JSON.parse(text); } catch (e) { rows = []; }
-                        renderRows(Array.isArray(rows) ? rows : []);
-                        doneSplash();
-                    })
-                    .catch(function () {
-                        if (catalogRows && catalogRows.length) return;
-                        if (!stopClock()) return;
-                        setStatus(emptyText, true);
-                        doneSplash();
-                    });
+                if (catalogRows && catalogRows.length) {
+                    renderRows(filterCatalog(q));
+                    setStatus('');
+                    return;
+                }
+                listEl.innerHTML = '<div class="plugin-blocks__empty">' + needUpdateText + '</div>';
+                selected = null;
+                insertEl.disabled = true;
+                setStatus(needUpdateText);
             }
             if (window.chrome && window.chrome.webview && window.chrome.webview.addEventListener) {
                 window.chrome.webview.addEventListener('message', function (ev) {
@@ -761,15 +731,8 @@
                 });
             }
 
-            var updateEl = document.getElementById('plugin-blocks-tool-update');
-            if (updateEl) {
-                updateEl.addEventListener('click', function () {
-                    setStatus(updatingText);
-                });
-            }
-
             insertEl.addEventListener('click', function () {
-                if (!selected || !selected.id) return;
+                if (!selected || (!selected.id && !selected.codeName)) return;
                 setStatus(soonText);
                 setCollapsed(true, 2500);
                 post({
