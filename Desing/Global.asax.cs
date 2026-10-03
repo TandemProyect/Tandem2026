@@ -58,7 +58,7 @@ namespace Desing
                     using (var db = new DAL.ConexionData())
                     {
                         db.Database.CommandTimeout = 15;
-                        var _ = db.TSql_Plantilla.AsNoTracking().Select(p => p.SysObjectID).FirstOrDefault();
+                        db.Database.SqlQuery<int>("SELECT CAST(1 AS INT)").FirstOrDefault();
                     }
                 }
                 catch

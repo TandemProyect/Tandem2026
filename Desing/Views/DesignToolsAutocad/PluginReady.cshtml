@@ -158,7 +158,7 @@
             <span class="plugin-home__speed-label" data-speed-label="net">@Common.PluginCad_SpeedMeasuring</span>
         </div>
         <div class="plugin-home__speed-item" data-speed="server">
-            <span class="plugin-home__speed-name">@Common.PluginCad_SpeedServerTitle</span>
+            <span class="plugin-home__speed-name" data-speed-name="server">@Common.PluginCad_SpeedServerTitle</span>
             <span class="plugin-home__speed-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
             <span class="plugin-home__speed-label" data-speed-label="server">@Common.PluginCad_SpeedMeasuring</span>
         </div>
@@ -191,6 +191,7 @@
             var speedWifiTitle = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedWifiTitle));
             var speedCableTitle = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedCableTitle));
             var speedNetTitle = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedNetTitle));
+            var speedServerTitle = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedServerTitle));
             var speedGood = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedGood));
             var speedOk = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedOk));
             var speedPoor = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedPoor));
@@ -287,6 +288,9 @@
                 var nameEl = speedEl.querySelector('[data-speed-name="net"]');
                 if (nameEl)
                     nameEl.textContent = net.kind === 'cable' ? speedCableTitle : (net.kind === 'net' ? speedNetTitle : speedWifiTitle);
+                var sName = speedEl.querySelector('[data-speed-name="server"]');
+                if (sName)
+                    sName.textContent = speedServerTitle + ' · ' + (location.hostname || '');
                 var nDots = netDots(net.mbps, lastRound);
                 var nTip = net.mbps > 0
                     ? fmt(net.kind === 'cable' ? speedCable : (net.kind === 'wifi' ? speedWifi : speedNet), net.mbps)
@@ -472,7 +476,6 @@
                 setEmpty('plugin-list-jobsides', loadingHome);
                 setEmpty('plugin-list-offers', loadingHome);
                 setEmpty('plugin-list-designs', loadingHome);
-                var t0 = Date.now();
                 fetch(urlHomeData + (urlHomeData.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now(), {
                     credentials: 'same-origin',
                     headers: { 'Accept': 'application/json' },
@@ -491,15 +494,13 @@
                     }
                     renderHome(data);
                     setStatus('');
-                    lastRound = Date.now() - t0;
-                    var listMs = data.listMs != null ? data.listMs : data.ListMs;
-                    lastServer = (listMs != null && listMs >= 0) ? listMs : lastRound;
-                    paintSpeed();
+                    measurePing();
                 }).catch(function () {
                     setEmpty('plugin-list-jobsides', homeFailed, true);
                     setEmpty('plugin-list-offers', homeFailed, true);
                     setEmpty('plugin-list-designs', homeFailed, true);
                     setStatus(homeFailed, true);
+                    measurePing();
                 }).then(function () {
                     post({ action: 'home-ready' });
                 });
@@ -511,6 +512,7 @@
             paintSpeed();
             measurePing();
             loadHome();
+            setInterval(measurePing, 8000);
             try {
                 if (window.chrome && window.chrome.webview && window.chrome.webview.addEventListener)
                     window.chrome.webview.addEventListener('message', function (ev) { onHostMessage(ev.data); });

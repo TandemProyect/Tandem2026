@@ -20,6 +20,7 @@ namespace AutocadPlugin
         private static RibbonTab _tandemTab;
         private static string _lastOtherTabId;
         private static bool _handlingTab;
+        private static bool _resumeQueued;
 
         public void Initialize()
         {
@@ -39,7 +40,15 @@ namespace AutocadPlugin
                 var dll = System.Reflection.Assembly.GetExecutingAssembly().Location;
                 WriteMessage("\nTandem 2026 cargado (" + MvcServerSettings.CurrentLabel() + ").");
                 WriteMessage("\nDLL: " + dll);
-                WriteMessage("\nPestaña 'Tandem 2026' o TANDEM_LOCAL / TANDEM_PRODUCCION.\n");
+                if (PluginSessionStore.HasRecent())
+                {
+                    _resumeQueued = true;
+                    WriteMessage("\nSesión anterior: se conecta sin reinstalar. ATDESING solo para copiar bloques.\n");
+                }
+                else
+                {
+                    WriteMessage("\nTANDEM para conectar. ATDESING para instalar la biblioteca local (una vez).\n");
+                }
             }
             catch (System.Exception ex)
             {
@@ -112,6 +121,20 @@ namespace AutocadPlugin
 
         private static void OnIdle(object sender, EventArgs e)
         {
+            if (_resumeQueued)
+            {
+                _resumeQueued = false;
+                try
+                {
+                    PaletteHost.Show();
+                    RestorePreviousRibbonTab();
+                }
+                catch
+                {
+                }
+                return;
+            }
+
             if (_handlingTab || _tandemTab == null) return;
 
             if (!_tandemTab.IsActive)

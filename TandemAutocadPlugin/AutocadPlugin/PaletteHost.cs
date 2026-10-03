@@ -73,6 +73,7 @@ namespace AutocadPlugin
 
             if (_sessionAuthenticated)
             {
+                Atk60LibrarySync.LoadIndexIfPresent();
                 ShowToolPalettes();
                 EnsureSession(splash: false);
                 return;
@@ -82,6 +83,7 @@ namespace AutocadPlugin
             {
                 PluginSplashBrand.ForceDefaultUntilPlantilla = false;
                 WriteMessage("[Tandem] Reanudando sesión en " + MvcServerSettings.CurrentLabel() + "…");
+                Atk60LibrarySync.LoadIndexIfPresent();
                 EnsureSession(splash: false);
                 return;
             }
@@ -90,9 +92,20 @@ namespace AutocadPlugin
             PluginSplashBrand.Clear();
             PluginPlantillaTheme.Reset();
             EnsureSession(splash: true);
-            ReportConnectStep("Logo TDesing. Creando carpetas locales…");
-            Atk60LibrarySync.EnsureFolders();
+            Atk60LibrarySync.LoadIndexIfPresent();
             ReportConnectStep("Conectando con " + MvcServerSettings.CurrentLabel() + "…");
+        }
+
+        /// <summary>
+        /// Instalación explícita (comando ATDESING): carpetas AppData + copia de bloques.
+        /// NETLOAD / TANDEM no hacen esto.
+        /// </summary>
+        public static void InstallLibrary()
+        {
+            BindDocumentLifetime();
+            WriteMessage("[Tandem] ATDESING: instalando biblioteca en %LocalAppData%\\AtDesing …");
+            Atk60LibrarySync.EnsureFolders();
+            RunLibraryUpdate(useSessionSplash: false, connectWhenDone: true);
         }
 
         public static void ShowBlocks()
@@ -223,7 +236,7 @@ namespace AutocadPlugin
             Attach(created, "session", -1, 70);
             if (splash)
                 created.ShowStatus(PluginSplashBrand.ForceDefaultUntilPlantilla
-                    ? "Primera instalación de TDesing"
+                    ? "Iniciando sesión en TDesing"
                     : "Comprobando autorización en TDesing…");
             else
                 HideSessionWindow();
@@ -370,21 +383,17 @@ namespace AutocadPlugin
                 PluginSessionStore.Remember();
             }
 
-            if (!Atk60LibrarySync.HasLocalLibrary())
-            {
-                ReportConnectStep("Primera instalación: creando biblioteca local…");
-                RunLibraryUpdate(useSessionSplash: true);
-                return;
-            }
-
             FinishConnectUi();
         }
 
-        private static void RunLibraryUpdate(bool useSessionSplash)
+        private static void RunLibraryUpdate(bool useSessionSplash, bool connectWhenDone = false)
         {
             TandemMiniPopup pop = null;
             if (!useSessionSplash)
-                pop = TandemMiniPopup.ShowProgressTop("Actualizar biblioteca", "Comprobando cambios…", showBrand: true);
+                pop = TandemMiniPopup.ShowProgressTop(
+                    connectWhenDone ? "ATDESING" : "Actualizar biblioteca",
+                    connectWhenDone ? "Instalando biblioteca local…" : "Comprobando cambios…",
+                    showBrand: true);
 
             Atk60LibrarySync.StartInBackground(
                 step =>
@@ -405,6 +414,15 @@ namespace AutocadPlugin
                         {
                             try { pop?.CloseSafe(); } catch { }
                             PushCatalogToBlocks();
+                            if (connectWhenDone && !_sessionAuthenticated)
+                            {
+                                WriteMessage("[Tandem] Biblioteca lista. Conectando…");
+                                Show();
+                            }
+                            else if (Atk60LibrarySync.HasLocalLibrary())
+                                WriteMessage("[Tandem] Biblioteca local lista.");
+                            else
+                                WriteMessage("[Tandem] ATDESING no pudo completar la biblioteca. Revisa IIS / TANDEM_LOCAL.");
                         }
                     };
                     try
@@ -430,9 +448,10 @@ namespace AutocadPlugin
             ShowToolPalettes();
             WriteMessage("[Tandem] Sesión conectada a " + MvcServerSettings.CurrentLabel() + ". El primer botón abre el menú general.");
             PluginAutoload.Disable();
-            WriteMessage("[Tandem] Autoload desactivado. Carga el último DebugN con NETLOAD.");
-            Atk60LibrarySync.EnsureFolders();
+            Atk60LibrarySync.LoadIndexIfPresent();
             PushCatalogToBlocks();
+            if (!Atk60LibrarySync.HasLocalLibrary())
+                WriteMessage("[Tandem] No hay biblioteca local. Escribe ATDESING para instalar los bloques (una vez).");
             if (_pendingBlocks)
             {
                 _pendingBlocks = false;

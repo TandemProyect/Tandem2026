@@ -84,7 +84,7 @@ namespace AutocadPlugin
             ed.WriteMessage("\nComandos: TANDEM, MVCCONEXION, TANDEM_MURO2D, TANDEM_MURO3D,");
             ed.WriteMessage("\n          GENERAR3D, REGENERAR3D, TANDEM_ENCOFRAR, TANDEM_SALVAR, TANDEM_ABRIRDISENO, INSERTARBLOQUE, TANDEM_INSERTBLOQUE, TANDEM_CAMBIARBLOQUE,");
             ed.WriteMessage("\n          TANDEM_LOCAL, TANDEM_PRODUCCION, TANDEM_SERVIDOR,");
-            ed.WriteMessage("\n          TANDEM_PROBAR_CONEXION, TANDEM_DEVICE_ID, TANDEM_CARGAR_MENU, UnAtdesing");
+            ed.WriteMessage("\n          TANDEM_PROBAR_CONEXION, TANDEM_DEVICE_ID, TANDEM_CARGAR_MENU, ATDESING, UnAtdesing");
             ed.WriteMessage($"\nServidor MVC: {MvcServerSettings.CurrentLabel()} — {MvcServerSettings.CurrentUrl()}");
             ed.WriteMessage($"\nDLL: {System.Reflection.Assembly.GetExecutingAssembly().Location}\n");
         }
@@ -140,6 +140,12 @@ namespace AutocadPlugin
             PaletteHost.ReconnectToCurrentServer();
         }
 
+        [CommandMethod("ATDESING", CommandFlags.Session)]
+        public void InstallAtDesing()
+        {
+            PaletteHost.InstallLibrary();
+        }
+
         [CommandMethod("UnAtdesing", CommandFlags.Session)]
         public void ResetDeveloperLocal()
         {
@@ -159,7 +165,7 @@ namespace AutocadPlugin
             ed = GetEditor();
             if (ed == null) return;
             ed.WriteMessage("\n[Tandem] Reset de desarrollador:\n" + report);
-            ed.WriteMessage("[Tandem] Desinstalado. Cierra AutoCAD. Para volver a usarlo: NETLOAD y conectar otra vez.\n");
+            ed.WriteMessage("[Tandem] Desinstalado. Cierra AutoCAD. NETLOAD para cargar el plugin. ATDESING para volver a instalar la biblioteca.\n");
         }
 
         [CommandMethod("TANDEM_DEVICE_ID")]

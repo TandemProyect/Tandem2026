@@ -44,9 +44,19 @@ namespace AutocadPlugin
                 ProductFolder);
         }
 
+        public static string BlockRoot()
+        {
+            return Path.Combine(ProductRoot(), "Content", "Data", "Block");
+        }
+
+        public static string IndexFilePath()
+        {
+            return Path.Combine(ProductRoot(), "Content", "Data", "db", IndexFileName);
+        }
+
         public static string CacheDir()
         {
-            var dir = Path.Combine(ProductRoot(), "Content", "Data", "Block");
+            var dir = BlockRoot();
             Directory.CreateDirectory(dir);
             Directory.CreateDirectory(Path.Combine(dir, "3D"));
             Directory.CreateDirectory(Path.Combine(dir, "3DRef"));
@@ -57,9 +67,11 @@ namespace AutocadPlugin
 
         public static string IndexPath()
         {
-            var db = Path.Combine(ProductRoot(), "Content", "Data", "db");
-            Directory.CreateDirectory(db);
-            return Path.Combine(db, IndexFileName);
+            var path = IndexFilePath();
+            var db = Path.GetDirectoryName(path);
+            if (!string.IsNullOrWhiteSpace(db))
+                Directory.CreateDirectory(db);
+            return path;
         }
 
         public static void EnsureFolders()
@@ -69,20 +81,29 @@ namespace AutocadPlugin
             LoadIndexFromDisk();
         }
 
+        public static void LoadIndexIfPresent()
+        {
+            LoadIndexFromDisk();
+        }
+
         public static bool HasLocalLibrary()
         {
             try
             {
-                var root = CacheDir();
-                var dwgs = 0;
+                if (File.Exists(IndexFilePath()))
+                    return true;
+                var root = BlockRoot();
+                if (!Directory.Exists(root))
+                    return false;
                 foreach (var folder in new[] { "3D", "3DRef", "Xr" })
                 {
                     var dir = Path.Combine(root, folder);
                     if (!Directory.Exists(dir))
                         continue;
-                    dwgs += Directory.GetFiles(dir, "*.dwg").Length;
+                    if (Directory.GetFiles(dir, "*.dwg").Length > 0)
+                        return true;
                 }
-                return dwgs > 0;
+                return false;
             }
             catch
             {
@@ -127,7 +148,7 @@ namespace AutocadPlugin
 
         public static void EnsureStarted()
         {
-            EnsureFolders();
+            LoadIndexFromDisk();
         }
 
         public static void ClearMemory()
@@ -422,7 +443,7 @@ namespace AutocadPlugin
 
         private static void LoadIndexFromDisk()
         {
-            var path = IndexPath();
+            var path = IndexFilePath();
             if (!File.Exists(path))
                 return;
             JObject root;
@@ -442,7 +463,7 @@ namespace AutocadPlugin
                     var rel = ((string)prop.Value["path"] ?? "").Trim();
                     if (string.IsNullOrWhiteSpace(rel))
                         continue;
-                    var dest = Path.Combine(CacheDir(), rel.Replace('/', Path.DirectorySeparatorChar));
+                    var dest = Path.Combine(BlockRoot(), rel.Replace('/', Path.DirectorySeparatorChar));
                     if (IsUsable(dest))
                         LocalByKey[Key(code, prop.Name)] = dest;
                 }
@@ -451,7 +472,7 @@ namespace AutocadPlugin
 
         private static JObject ReadIndexFile()
         {
-            var path = IndexPath();
+            var path = IndexFilePath();
             if (!File.Exists(path))
                 return null;
             try { return JObject.Parse(File.ReadAllText(path)); }

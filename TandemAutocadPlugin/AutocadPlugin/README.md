@@ -27,7 +27,7 @@ NETLOAD → TandemAutocadPlugin\AutocadPlugin\bin\Debug\AutocadPlugin.dll
 
 Pestaña **Tandem 2026** o comando `TANDEM`. Por defecto habla con **https://localhost:44384/** (`TANDEM_LOCAL`). Producción: `TANDEM_PRODUCCION` (tdesing.net). Override: `TANDEM_MVC_BASE_URL`.
 
-Si no hay sesión, aparece el **login de Desing**. El **autoload está desactivado**: hay que `NETLOAD` el último `bin\DebugN`. `UnAtdesing` sigue quitando registro y estado local.
+Si no hay sesión, aparece el **login de Desing**. El **autoload está desactivado**: hay que `NETLOAD` el último `bin\DebugN`. `NETLOAD` / `TANDEM` **no** instalan la biblioteca. `ATDESING` crea `%LocalAppData%\AtDesing` y copia los bloques (una vez). `UnAtdesing` quita registro y estado local.
 
 Tras conectar: paletas de modo/herramientas. El **primer botón** de la barra izquierda abre el menú de obras/ofertas/diseños (`PluginReady` + `PluginHomeData`). **Actualizar** biblioteca está en esa barra, **antes** del home. Bloquing: botón de modo o `INSERTARBLOQUE` / `TANDEM_INSERTBLOQUE`.
 
@@ -47,7 +47,8 @@ No se usa el submenú CUI clásico (Panel / Detectar / …).
 
 | Comando | Uso |
 |---------|-----|
-| `TANDEM` | Mostrar/ocultar paletas MVC |
+| `TANDEM` | Mostrar/ocultar paletas MVC (conecta; no copia bloques) |
+| `ATDESING` | Instala la biblioteca local (`%LocalAppData%\AtDesing` + DWG). Única vía de instalación |
 | `TANDEM_MURO2D` | Dibujar muro 2D (eje + caras 300 mm) |
 | `TANDEM_MURO3D` / `GENERAR3D` | Sólidos 3D vía `LCornerDetector` |
 | `TANDEM_INSERTBLOQUE` / `INSERTARBLOQUE` | Insertar bloque ATK-60 desde la paleta; **Intro** repite el último |

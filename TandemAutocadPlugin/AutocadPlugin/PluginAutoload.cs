@@ -139,6 +139,7 @@ namespace AutocadPlugin
                 cmds.SetValue("TANDEM", "TANDEM", RegistryValueKind.String);
                 cmds.SetValue("MVCCONEXION", "MVCCONEXION", RegistryValueKind.String);
                 cmds.SetValue("INSERTARBLOQUE", "INSERTARBLOQUE", RegistryValueKind.String);
+                cmds.SetValue("ATDESING", "ATDESING", RegistryValueKind.String);
                 cmds.SetValue("UnAtdesing", "UnAtdesing", RegistryValueKind.String);
             }
         }
