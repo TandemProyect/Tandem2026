@@ -27,7 +27,7 @@ NETLOAD → TandemAutocadPlugin\AutocadPlugin\bin\Debug\AutocadPlugin.dll
 
 Pestaña **Tandem 2026** o comando `TANDEM`. Por defecto habla con **https://localhost:44384/** (`TANDEM_LOCAL`). Producción: `TANDEM_PRODUCCION` (tdesing.net). Override: `TANDEM_MVC_BASE_URL`.
 
-Si no hay sesión, aparece el **login de Desing**. Tras **conectar una vez**, AutoCAD autoload al día siguiente (`%LocalAppData%\AtDesing\Plugin` + registro). Los desarrolladores siguen usando NETLOAD para un `bin\DebugN` nuevo.
+Si no hay sesión, aparece el **login de Desing**. El **autoload está desactivado**: hay que `NETLOAD` el último `bin\DebugN`. `UnAtdesing` sigue quitando registro y estado local.
 
 Tras conectar: paletas de modo/herramientas. El **primer botón** de la barra izquierda abre el menú de obras/ofertas/diseños (`PluginReady` + `PluginHomeData`). **Actualizar** biblioteca está en esa barra, **antes** del home. Bloquing: botón de modo o `INSERTARBLOQUE` / `TANDEM_INSERTBLOQUE`.
 
@@ -37,7 +37,7 @@ Abre paletas (sin título, compactas, arrastrables; recuerdan sitio):
 - `DesignToolsAutocad/PaletteTools` — herramientas CAD de Desing_2
 - `DesignToolsAutocad/PluginBlocks` — biblioteca local (inserta 3D / 3DRef / Xr)
 
-Cada `dotnet build` copia a `bin\DebugN` si AutoCAD bloquea `bin\Debug`. NETLOAD esa carpeta. Tras conectar, `PluginAutoload` actualiza la copia en AppData.
+Cada `dotnet build` copia a `bin\DebugN` si AutoCAD bloquea `bin\Debug`. **NETLOAD esa carpeta.** El autoload (copia en AppData + registro) está apagado de momento.
 
 DWG de usuario: **solo** `%LocalAppData%\AtDesing\Content\Data\Block\{3D,3DRef,Xr}`. El repo no existe en el PC del cliente.
 
@@ -53,6 +53,7 @@ No se usa el submenú CUI clásico (Panel / Detectar / …).
 | `TANDEM_INSERTBLOQUE` / `INSERTARBLOQUE` | Insertar bloque ATK-60 desde la paleta; **Intro** repite el último |
 | `TANDEM_CAMBIARBLOQUES` | Convertir 3D / 3DRef / Xr (popup compacto) |
 | `TANDEM_ENCOFRAR` / `ENCOFRAR` | Muros rectos: misma lógica que Desing (`SolveFromIdsJson`); inserta DWG |
+| `TANDEM_SALVAR` / `SALVAR` | Guarda muros en `TSql_DesignWall` (mismo `ReplaceWalls` que Desing) |
 | `TANDEM_PROBAR_CONEXION` | Ping al MVC |
 | `TANDEM_LOCAL` | Destino IIS Express (`localhost:44384`) y recarga paletas |
 | `TANDEM_PRODUCCION` | Destino tdesing.net y recarga paletas |

@@ -64,6 +64,32 @@ namespace AutocadPlugin.Models
         public XyzMmDto P1Mm { get; set; }
         public XyzMmDto P2Mm { get; set; }
         public string WallRole { get; set; }
+        public long? WallGroupId { get; set; }
+        public string TextSystem { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("_Datalong")]
+        public double? DataLong { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("_DataWith")]
+        public double? DataWith { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("_DataHeight")]
+        public double? DataHeight { get; set; }
+    }
+
+    public class PluginSaveWallsRequest
+    {
+        public long DesignId { get; set; }
+        public string DeviceId { get; set; }
+        public List<WallLineDto> Lines { get; set; }
+    }
+
+    public class PluginSaveWallsResponse
+    {
+        public bool Exito { get; set; }
+        public string Mensaje { get; set; }
+        public int Count { get; set; }
+        public long DesignId { get; set; }
     }
 
     public class WallSnapshotDto

@@ -429,9 +429,8 @@ namespace AutocadPlugin
             HideSessionWindow();
             ShowToolPalettes();
             WriteMessage("[Tandem] Sesión conectada a " + MvcServerSettings.CurrentLabel() + ". El primer botón abre el menú general.");
-            var installed = PluginAutoload.Install();
-            if (!string.IsNullOrWhiteSpace(installed))
-                WriteMessage("[Tandem] " + installed);
+            PluginAutoload.Disable();
+            WriteMessage("[Tandem] Autoload desactivado. Carga el último DebugN con NETLOAD.");
             Atk60LibrarySync.EnsureFolders();
             PushCatalogToBlocks();
             if (_pendingBlocks)
@@ -469,6 +468,11 @@ namespace AutocadPlugin
         {
             _waitingHome = false;
             HideSessionWindow();
+        }
+
+        internal static void HideHomeForm()
+        {
+            HideHome();
         }
 
         private static void ShowSessionWindow()
@@ -914,6 +918,12 @@ namespace AutocadPlugin
                     var designId = obj["designId"] != null ? (long)obj["designId"] : 0L;
                     var snapshot = obj["snapshot"]?.ToObject<WallSnapshotDto>();
                     WallImportCommand.OpenFromPalette(designId, snapshot);
+                    return true;
+                }
+
+                if (string.Equals(action, "save-walls", StringComparison.OrdinalIgnoreCase))
+                {
+                    RunAcadCommandWhenIdle(WallSaveCommand.CommandName);
                     return true;
                 }
             }

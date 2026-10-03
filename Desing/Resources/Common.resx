@@ -421,6 +421,12 @@
   <data name="PluginCad_OpenWalls" xml:space="preserve">
     <value>Dibujar muros</value>
   </data>
+  <data name="PluginCad_SaveWalls" xml:space="preserve">
+    <value>Salvar muros</value>
+  </data>
+  <data name="PluginCad_SaveWallsAria" xml:space="preserve">
+    <value>Guardar los muros en el diseño</value>
+  </data>
   <data name="PluginCad_Search" xml:space="preserve">
     <value>Buscar</value>
   </data>

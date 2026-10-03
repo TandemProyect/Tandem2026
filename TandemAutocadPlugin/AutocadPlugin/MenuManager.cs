@@ -35,6 +35,7 @@ namespace AutocadPlugin
 
                 AcadApp.Idle += OnIdle;
                 PaletteHost.BindDocumentLifetime();
+                PluginAutoload.Disable();
                 var dll = System.Reflection.Assembly.GetExecutingAssembly().Location;
                 WriteMessage("\nTandem 2026 cargado (" + MvcServerSettings.CurrentLabel() + ").");
                 WriteMessage("\nDLL: " + dll);

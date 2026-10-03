@@ -62,6 +62,7 @@ namespace Desing.Repositories.RepositoryDesing2
     public sealed class Desing2DesignWallSaveRequest
     {
         public long DesignId { get; set; }
+        public string DeviceId { get; set; }
         public List<Desing2DesignWallLineDto> Lines { get; set; }
         public long? NextSegId { get; set; }
         public long? NextPolylineGroupId { get; set; }

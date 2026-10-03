@@ -41,7 +41,7 @@ Conversacion de referencia: [Sesion plugin ATK-60](c403cd73-821f-4fe0-a7ea-5badf
 | UnAtdesing | Cierra paletas, quita autoload/menu, borra WebView2 y `AtDesing` (confirma `SI`). |
 | Barras negras | Overlay blanco + reloj + «Cargando…» hasta que WebView2 pinta. |
 | Diagnostico red | Pie del menu general: Wi-Fi y servidor con texto (Buena/Aceptable/Regular/No es buena) + 4 puntitos. |
-| Autoload | Tras la primera conexion: copia en `%LocalAppData%\AtDesing\Plugin` + registro AutoCAD. Sin NETLOAD al dia siguiente. |
+| Autoload | **Desactivado (2026-10-03).** Hay que NETLOAD el ultimo DebugN. `PluginAutoload.Disable()` quita el registro. |
 
 ---
 

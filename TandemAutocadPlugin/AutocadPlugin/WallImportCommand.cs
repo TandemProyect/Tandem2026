@@ -25,6 +25,7 @@ namespace AutocadPlugin
 
         internal static long PendingDesignId;
         internal static WallSnapshotDto PendingSnapshot;
+        internal static long CurrentDesignId;
 
         [CommandMethod(CommandName)]
         public void OpenPending()
@@ -40,16 +41,20 @@ namespace AutocadPlugin
                 doc.Editor.WriteMessage("\nNo hay diseño pendiente. Elige uno en la paleta Tandem.\n");
                 return;
             }
+            CurrentDesignId = id;
             Draw(doc, id, snap);
+            AfterLoad(doc);
         }
 
         public static void OpenFromPalette(long designId, WallSnapshotDto snapshot)
         {
             var doc = AcadApp.DocumentManager.MdiActiveDocument;
             if (doc == null) return;
+            CurrentDesignId = designId;
             if (snapshot == null || snapshot.Lines == null || snapshot.Lines.Count == 0)
             {
-                doc.Editor.WriteMessage($"\nDiseño {designId}: no hay muros en TSql_DesignWall.\n");
+                doc.Editor.WriteMessage($"\nDiseño {designId}: sin muros guardados. Dibuja y pulsa Salvar.\n");
+                AfterLoad(doc);
                 return;
             }
 
@@ -58,6 +63,7 @@ namespace AutocadPlugin
                 using (doc.LockDocument())
                 {
                     Draw(doc, designId, snapshot);
+                    AfterLoad(doc);
                 }
             }
             catch
@@ -104,6 +110,56 @@ namespace AutocadPlugin
             }
 
             ed.WriteMessage($"\nDiseño {designId}: {drawn} muro(s) en {LayerAxis} / {LayerFace}.\n");
+        }
+
+        private static void AfterLoad(Document doc)
+        {
+            PaletteHost.HideHomeForm();
+            try
+            {
+                ZoomExtents(doc);
+            }
+            catch
+            {
+                try { doc.SendStringToExecute("._ZOOM _E ", true, false, false); } catch { }
+            }
+        }
+
+        private static void ZoomExtents(Document doc)
+        {
+            if (doc == null) return;
+            var db = doc.Database;
+            var ed = doc.Editor;
+            db.UpdateExt(true);
+            Extents3d ext;
+            try
+            {
+                ext = new Extents3d(db.Extmin, db.Extmax);
+            }
+            catch
+            {
+                return;
+            }
+
+            var min = ext.MinPoint;
+            var max = ext.MaxPoint;
+            if (min.GetAsVector().Length < 1e-9 && max.GetAsVector().Length < 1e-9)
+                return;
+
+            var dx = max.X - min.X;
+            var dy = max.Y - min.Y;
+            if (dx < 1e-6) dx = 1;
+            if (dy < 1e-6) dy = 1;
+            var padX = dx * 0.05;
+            var padY = dy * 0.05;
+
+            using (var view = ed.GetCurrentView())
+            {
+                view.CenterPoint = new Point2d((min.X + max.X) * 0.5, (min.Y + max.Y) * 0.5);
+                view.Width = dx + padX * 2;
+                view.Height = dy + padY * 2;
+                ed.SetCurrentView(view);
+            }
         }
 
         private static Point3d ToAcad(XyzMmDto p)

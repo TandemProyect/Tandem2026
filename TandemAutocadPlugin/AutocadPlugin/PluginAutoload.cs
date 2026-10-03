@@ -57,10 +57,19 @@ namespace AutocadPlugin
             return log.ToString().Trim();
         }
 
-        public static void Uninstall()
+        /// <summary>
+        /// Quita el arranque automático. No toca la pestaña ni AppData.
+        /// Mientras tanto se carga con NETLOAD del último DebugN.
+        /// </summary>
+        public static void Disable()
         {
             try { DeleteRegistry(); } catch { }
             try { UntrustFolder(InstallDir()); } catch { }
+        }
+
+        public static void Uninstall()
+        {
+            Disable();
             try { MenuManager.RemoveTandemTab(); } catch { }
             try
             {

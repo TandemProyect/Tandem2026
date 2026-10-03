@@ -112,6 +112,48 @@ namespace AutocadPlugin
             }
         }
 
+        public async Task<PluginSaveWallsResponse> SaveDesignWallsAsync(
+            long designId,
+            string deviceId,
+            List<WallLineDto> lines)
+        {
+            Bind();
+            try
+            {
+                var body = new PluginSaveWallsRequest
+                {
+                    DesignId = designId,
+                    DeviceId = deviceId,
+                    Lines = lines ?? new List<WallLineDto>()
+                };
+                var json = JsonConvert.SerializeObject(body);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync("DesignToolsAutocad/PluginSaveDesignWalls", content);
+                var responseJson = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                {
+                    var apiMsg = TryExtractApiMensaje(responseJson);
+                    throw new Exception($"Error del servidor ({(int)response.StatusCode}): {apiMsg ?? responseJson}");
+                }
+
+                if (string.IsNullOrWhiteSpace(responseJson)
+                    || responseJson.TrimStart().StartsWith("<", StringComparison.Ordinal))
+                {
+                    throw new Exception(
+                        "El servidor devolvió HTML. Arranca Develop y vuelve a Salvar.");
+                }
+
+                var result = JsonConvert.DeserializeObject<PluginSaveWallsResponse>(responseJson);
+                if (result == null)
+                    throw new Exception("Respuesta vacía al guardar muros.");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw PluginExceptionHelper.Wrap("Error al salvar muros", ex, BaseUrl);
+            }
+        }
+
         public async Task<Atk60FormworkResponse> EncofrarAtk60Async(string idsJson)
         {
             Bind();

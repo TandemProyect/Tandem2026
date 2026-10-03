@@ -17,7 +17,7 @@ namespace AutocadPlugin
 {
     /// <summary>
     /// Recoge muros del DWG y pide poses a Atk60WallsRepository.SolveFromIdsJson
-    /// (la misma que Desing). Aquí solo se insertan DWG; no hay otra lógica de paneles.
+    /// (la misma que Desing). Inserta DWG 3DRef por defecto (más ligero que 3D).
     /// </summary>
     public class FormworkCommand
     {
@@ -219,7 +219,7 @@ namespace AutocadPlugin
             skipped = 0;
             var db = doc.Database;
             var meterToDwg = CadUnits.FromMillimeters(1000.0);
-            const string view = "3d";
+            const string view = "3dref";
             var blockCache = new Dictionary<string, ObjectId>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var item in elements)

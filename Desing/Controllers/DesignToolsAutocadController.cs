@@ -23,6 +23,7 @@ using Desing.Helpers;
 using Desing.Models;
 using Desing.Repositories.RepositoryAtk60;
 using Desing.Repositories.RepositoryCommun;
+using Desing.Repositories.RepositoryDesing2;
 using Desing.Resources;
 using Desing.Services;
 using Microsoft.AspNet.Identity;
@@ -1274,6 +1275,67 @@ namespace Desing.Controllers
             insert.Layer = new Layer("ATK_Panel");
             //insert.Layer.Color.Index = 4;
             doc.Entities.Add(insert);
+        }
+
+        /// <summary>
+        /// Guarda muros del plugin en TSql_DesignWall. Misma ReplaceWalls que
+        /// Desing_2/SaveDesignWalls. Aquí no hay otra lógica de persistencia.
+        /// </summary>
+        [HttpPost]
+        [AllowAnonymous]
+        public JsonResult PluginSaveDesignWalls()
+        {
+            try
+            {
+                if (Request.InputStream.CanSeek)
+                    Request.InputStream.Position = 0;
+                string rawJson;
+                using (var reader = new StreamReader(Request.InputStream, Encoding.UTF8))
+                    rawJson = reader.ReadToEnd();
+                if (string.IsNullOrWhiteSpace(rawJson))
+                    return Json(new { Exito = false, Mensaje = "JSON vacío." });
+
+                var request = JsonConvert.DeserializeObject<Desing2DesignWallSaveRequest>(rawJson);
+                if (request == null || request.DesignId <= 0)
+                    return Json(new { Exito = false, Mensaje = "Diseño no indicado." });
+
+                var repository = new DesignWallRepository(db);
+                var design = repository.FindActiveDesign(request.DesignId);
+                if (design == null)
+                    return Json(new { Exito = false, Mensaje = "Diseño no encontrado." });
+
+                var userId = IntranetAuditHelper.ResolveCurrentUserId(User);
+                if (string.IsNullOrWhiteSpace(userId))
+                {
+                    var snap = PluginCadDeviceHelper.TryReadCookie(Request);
+                    var deviceId = !string.IsNullOrWhiteSpace(request.DeviceId)
+                        ? request.DeviceId
+                        : (snap != null ? snap.DeviceId : null);
+                    var device = PluginCadDeviceHelper.Find(db, deviceId);
+                    if (device != null && !string.IsNullOrWhiteSpace(device.LinAspNetUsert))
+                        userId = device.LinAspNetUsert;
+                }
+                if (string.IsNullOrWhiteSpace(userId))
+                    userId = "plugin-cad";
+
+                int saved;
+                using (var trans = db.Database.BeginTransaction())
+                {
+                    saved = repository.ReplaceWalls(request.DesignId, request.Lines, userId);
+                    db.SaveChanges();
+                    trans.Commit();
+                }
+
+                return Json(new { Exito = true, Count = saved, DesignId = request.DesignId });
+            }
+            catch (JsonReaderException ex)
+            {
+                return Json(new { Exito = false, Mensaje = "JSON inválido: " + ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Exito = false, Mensaje = ex.Message });
+            }
         }
 
         /// <summary>
