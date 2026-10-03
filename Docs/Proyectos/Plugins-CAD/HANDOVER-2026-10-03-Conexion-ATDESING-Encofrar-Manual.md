@@ -23,6 +23,7 @@ Conversación de referencia: [Sesion plugin ATK-60](c403cd73-821f-4fe0-a7ea-5bad
 7. `Web.config` de Desing está otra vez en **site4now** (remoto). El bloque `.\SQLEXPRESS` queda comentado para pruebas locales.
 8. No hacer commit/push salvo que el usuario lo pida.
 9. Siguiente trabajo: US **Encofrar manualmente** (aún no existe en Azure; PAT de los scripts en 401). Texto listo en la sección 10.
+10. Antes de un code review del equipo: leer [CODE-REVIEW-PREP-2026-10-03.md](../../General/CODE-REVIEW-PREP-2026-10-03.md). Contraseñas ya no van en el JSON de Personal ni en Session al editar. TLS estricto en tdesing.net.
 
 ---
 
@@ -255,3 +256,25 @@ Scripts: `Scripts/Create-US-Fast.ps1` y `Scripts/US.ps1` — PAT hardcodeado **4
 - [ ] Confirmas con el usuario el alcance: insert libre vs encofrado con reglas en un punto.
 - [ ] Develop 44384 encendido antes de culpar al plugin.
 - [ ] No commitear `.vs`, `bin\`, `obj\`, slots `DebugN`, ni secretos.
+
+---
+
+## 12. Code review / recortes (2026-10-03 tarde)
+
+Aplicado en working tree (sin commit todavía):
+
+| Cambio | Por qué |
+|--------|---------|
+| `ViewBag.SkipIntranetDataTables` en Viewer + `_LayoutMaterio` | El visor no tiene grids; se ahorran ~2,6 MB (DataTables + pdfmake + JSZip) |
+| `ShouldSkipChromeDb` incluye PluginPing / HomeData / Diagnostics / library | El ping cada 8 s ya no abre plantilla/idioma/empleado |
+| PluginReady: no ping si la pestaña está oculta; `clearInterval` en `pagehide` | Menos SQL en paletas de fondo |
+| MapLibre solo al abrir el modal de edificios | No se baja unpkg en cada Viewer |
+| `Atk60LibrarySync` cachea `bloquing.json` por mtime; descarga a stream | Menos parse e I/O RAM en insert |
+| `Atk60DwgResolver` usa `BlockRoot()` (no crea carpetas) y quita HttpClient muerto | Evita el bug de carpetas vacías |
+| `ShouldSkipChromeDb` = todo `DesignToolsAutocad` + APIs `Desing_2` + JSON | Conectar a menudo no abre plantilla/empleado |
+| `PluginPing` = ADO `SELECT 1`, sin EDMX | El pie CAD no instancia EF cada 8–20 s |
+| Logo plugin desde cookie; `IsUserAllowed` / CAD-dev 45 s | Reabrir home no consulta Personal cada vez |
+| `MVCApiService` HttpClient estático (keep-alive) | TANDEM / Encofrar / Salvar reutilizan TCP |
+| Ping adaptativo: 20 s si Buena/Aceptable, 8 s si no; sin cultura en `/PluginPing` | Menos ruido SQL cuando la red ya es buena |
+
+**No hecho (hace falta decisión):** rotar secretos de `Web.config`; quitar `AttPassAspNetUsert` del JSON de empleados y `Session["passVscad"]`; partir `DesignToolsController` (~2500 líneas); `TandemCad.Core` para Brics/Revit; un WebView2 Environment compartido.

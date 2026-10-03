@@ -2,6 +2,7 @@ using DAL;
 using System;
 using System.Linq;
 using System.Web;
+using System.Web.Caching;
 using System.Web.Mvc;
 
 namespace Desing.Helpers
@@ -15,6 +16,7 @@ namespace Desing.Helpers
         public const string CookieName = "tandem_plugin_device";
         public const string LogoCookieName = "tandem_plugin_company_logo";
         public const string DefaultLogoVirtualPath = "/Content/images/tDesing/t-desing-net.png";
+        private static readonly TimeSpan AuthCacheDuration = TimeSpan.FromSeconds(45);
 
         public sealed class Snapshot
         {
@@ -80,13 +82,18 @@ namespace Desing.Helpers
         {
             if (db == null || string.IsNullOrWhiteSpace(userId))
                 return false;
+            bool cached;
+            if (TryGetCachedBool("PluginCad_Dev_" + userId, out cached))
+                return cached;
             try
             {
-                return db.Database.SqlQuery<int>(
+                var ok = db.Database.SqlQuery<int>(
                     @"SELECT TOP 1 CASE WHEN Is_CadDeveloper = 1 THEN 1 ELSE 0 END
                       FROM dbo.TSql_Employee
                       WHERE LinAspNetUsert = @p0 AND AttIsDeleted = 0",
                     userId).FirstOrDefault() == 1;
+                RememberBool("PluginCad_Dev_" + userId, ok);
+                return ok;
             }
             catch
             {
@@ -115,16 +122,21 @@ namespace Desing.Helpers
         {
             if (db == null || string.IsNullOrWhiteSpace(userId))
                 return false;
+            bool cached;
+            if (TryGetCachedBool("PluginCad_Allowed_" + userId, out cached))
+                return cached;
 
             var user = db.AspNetUsers.FirstOrDefault(u => u.Id == userId);
-            if (user == null || !user.EmailConfirmed)
-                return false;
-            if (user.LockoutEnabled
-                && user.LockoutEndDateUtc.HasValue
-                && user.LockoutEndDateUtc.Value > DateTime.UtcNow)
-                return false;
-
-            return db.TSql_Employee.Any(e => e.LinAspNetUsert == userId && !e.AttIsDeleted);
+            var ok = false;
+            if (user != null && user.EmailConfirmed)
+            {
+                if (!(user.LockoutEnabled
+                    && user.LockoutEndDateUtc.HasValue
+                    && user.LockoutEndDateUtc.Value > DateTime.UtcNow))
+                    ok = db.TSql_Employee.Any(e => e.LinAspNetUsert == userId && !e.AttIsDeleted);
+            }
+            RememberBool("PluginCad_Allowed_" + userId, ok);
+            return ok;
         }
 
         public static string ResolveCompanyLogoAbsoluteUrl(ConexionData db, string userId, HttpRequestBase request, UrlHelper url)
@@ -319,6 +331,28 @@ namespace Desing.Helpers
             if (string.IsNullOrEmpty(value))
                 return value;
             return value.Length <= max ? value : value.Substring(0, max);
+        }
+
+        private static bool TryGetCachedBool(string key, out bool value)
+        {
+            var hit = HttpRuntime.Cache[key];
+            if (hit is bool)
+            {
+                value = (bool)hit;
+                return true;
+            }
+            value = false;
+            return false;
+        }
+
+        private static void RememberBool(string key, bool value)
+        {
+            HttpRuntime.Cache.Insert(
+                key,
+                value,
+                null,
+                DateTime.UtcNow.Add(AuthCacheDuration),
+                Cache.NoSlidingExpiration);
         }
     }
 }

@@ -183,15 +183,25 @@ namespace Desing.Controllers
             var action = RouteData != null ? RouteData.Values["action"] as string : null;
             if (string.Equals(controller, "Account", StringComparison.OrdinalIgnoreCase))
                 return true;
-            if (!string.Equals(controller, "DesignToolsAutocad", StringComparison.OrdinalIgnoreCase))
-                return false;
-            return string.Equals(action, "PluginSession", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(action, "PluginCadAuth", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(action, "InstallPlugin", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(action, "InstallPluginClaim", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(action, "InstallPluginPackage", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(action, "PaletteMode", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(action, "PaletteTools", StringComparison.OrdinalIgnoreCase);
+            // Plugin CAD y APIs Desing_2 se llaman a menudo: no abrir plantilla/empleado/idioma.
+            if (string.Equals(controller, "DesignToolsAutocad", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (string.Equals(controller, "Desing_2", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(action, "Viewer", StringComparison.OrdinalIgnoreCase))
+                return true;
+            try
+            {
+                if (Request != null && Request.IsAjaxRequest())
+                    return true;
+                var accept = Request != null ? Request.Headers["Accept"] : null;
+                if (!string.IsNullOrEmpty(accept)
+                    && accept.IndexOf("application/json", StringComparison.OrdinalIgnoreCase) >= 0)
+                    return true;
+            }
+            catch
+            {
+            }
+            return false;
         }
 
         private PlantillaViewData TryPlantillaFromCacheOnly()

@@ -123,6 +123,7 @@ namespace Desing.Controllers
 
 
             ViewBag.BodyHtmlClass = "desing2-stl-fullpage";
+            ViewBag.SkipIntranetDataTables = true;
 
 
 

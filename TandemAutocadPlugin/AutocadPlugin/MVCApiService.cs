@@ -10,24 +10,51 @@ namespace AutocadPlugin
 {
     public class MVCApiService
     {
+        private static readonly object Gate = new object();
+        private static HttpClient _shared;
+        private static string _boundUrl;
         private readonly HttpClient _httpClient;
 
         public string BaseUrl => PluginExceptionHelper.ResolveBaseUrlFromEnv();
 
         public MVCApiService()
         {
-            var handler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback = (_, _, _, _) => true
-            };
-            _httpClient = new HttpClient(handler);
-            _httpClient.Timeout = TimeSpan.FromSeconds(120);
+            _httpClient = SharedClient();
             Bind();
+        }
+
+        private static HttpClient SharedClient()
+        {
+            if (_shared != null)
+                return _shared;
+            lock (Gate)
+            {
+                if (_shared != null)
+                    return _shared;
+                _shared = new HttpClient(PluginHttp.CreateHandler())
+                {
+                    Timeout = TimeSpan.FromSeconds(120)
+                };
+                return _shared;
+            }
         }
 
         private void Bind()
         {
-            _httpClient.BaseAddress = new Uri(BaseUrl);
+            var url = BaseUrl;
+            if (string.IsNullOrWhiteSpace(url))
+                return;
+            if (!url.EndsWith("/", StringComparison.Ordinal))
+                url += "/";
+            if (string.Equals(_boundUrl, url, StringComparison.OrdinalIgnoreCase))
+                return;
+            lock (Gate)
+            {
+                if (string.Equals(_boundUrl, url, StringComparison.OrdinalIgnoreCase))
+                    return;
+                _httpClient.BaseAddress = new Uri(url);
+                _boundUrl = url;
+            }
         }
 
         public async Task<string> ProbarConexionAsync()

@@ -622,7 +622,9 @@ namespace AutocadPlugin.UI.Views
                 Web.CoreWebView2.Settings.AreDevToolsEnabled = false;
                 Web.CoreWebView2.ServerCertificateErrorDetected += (_, args) =>
                 {
-                    args.Action = CoreWebView2ServerCertificateErrorAction.AlwaysAllow;
+                    args.Action = MvcServerSettings.IsProduction()
+                        ? CoreWebView2ServerCertificateErrorAction.Cancel
+                        : CoreWebView2ServerCertificateErrorAction.AlwaysAllow;
                 };
                 Web.CoreWebView2.WebMessageReceived += (_, args) =>
                 {

@@ -326,6 +326,7 @@
     <Compile Include="Helpers\OfferDesignWorkspaceHelper.cs" />
     <Compile Include="Helpers\OfferDisplayHelper.cs" />
     <Compile Include="Helpers\LanguageUiHelper.cs" />
+    <Compile Include="Helpers\SqlConnectionPing.cs" />
     <Compile Include="Helpers\UiHtmlExtensions.cs" />
     <Compile Include="Helpers\PluginCadDeviceHelper.cs" />
     <Compile Include="Helpers\PluginInstallLink.cs" />

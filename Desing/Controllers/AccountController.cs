@@ -253,7 +253,7 @@ namespace Desing.Controllers
                     //// await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
                     Session["userSystem"] = user.Id;
                     Session["userVscad"] = model.Email;
-                    Session["passVscad"] = model.Password;
+                    TempData["passVscad"] = model.Password;
 
                     return RedirectToAction("Create_Employee", "Employee");
                 }

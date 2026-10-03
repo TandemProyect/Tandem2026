@@ -254,6 +254,11 @@ namespace Desing.Helpers
         {
             if (request == null)
                 return;
+            var path = request.Path ?? "";
+            if (path.IndexOf("/PluginPing", StringComparison.OrdinalIgnoreCase) >= 0
+                || path.IndexOf("/PluginLibraryFile", StringComparison.OrdinalIgnoreCase) >= 0
+                || path.IndexOf("/ConnectionDiagnostics", StringComparison.OrdinalIgnoreCase) >= 0)
+                return;
             ApplyCultureFromCookie(new HttpRequestWrapper(request));
         }
 

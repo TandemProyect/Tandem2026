@@ -35,6 +35,8 @@ namespace AutocadPlugin
         private static Task _running;
         private static JArray _pendingCatalog;
         private static Action<string> _step;
+        private static string _indexLoadedPath;
+        private static DateTime _indexLoadedWriteUtc;
         public static Action AfterSync;
 
         public static string ProductRoot()
@@ -158,6 +160,8 @@ namespace AutocadPlugin
             Inflight.Clear();
             _pendingCatalog = null;
             _step = null;
+            _indexLoadedPath = null;
+            _indexLoadedWriteUtc = DateTime.MinValue;
         }
 
         public static void ClearStep()
@@ -439,12 +443,26 @@ namespace AutocadPlugin
                 File.Replace(tmp, path, null);
             else
                 File.Move(tmp, path);
+            RememberIndexStamp(path);
+        }
+
+        private static void RememberIndexStamp(string path)
+        {
+            _indexLoadedPath = path;
+            try { _indexLoadedWriteUtc = File.GetLastWriteTimeUtc(path); }
+            catch { _indexLoadedWriteUtc = DateTime.UtcNow; }
         }
 
         private static void LoadIndexFromDisk()
         {
             var path = IndexFilePath();
             if (!File.Exists(path))
+                return;
+            DateTime writeUtc;
+            try { writeUtc = File.GetLastWriteTimeUtc(path); }
+            catch { writeUtc = DateTime.MinValue; }
+            if (string.Equals(_indexLoadedPath, path, StringComparison.OrdinalIgnoreCase)
+                && _indexLoadedWriteUtc == writeUtc)
                 return;
             JObject root;
             try { root = JObject.Parse(File.ReadAllText(path)); }
@@ -468,6 +486,7 @@ namespace AutocadPlugin
                         LocalByKey[Key(code, prop.Name)] = dest;
                 }
             }
+            RememberIndexStamp(path);
         }
 
         private static JObject ReadIndexFile()
@@ -508,26 +527,30 @@ namespace AutocadPlugin
                     return true;
                 if (string.IsNullOrWhiteSpace(url))
                     return false;
-                var bytes = Http().GetByteArrayAsync(AbsoluteUrl(url)).GetAwaiter().GetResult();
-                if (bytes == null || bytes.Length < 64)
-                    return false;
-                WriteBytes(dest, bytes);
+                using (var resp = Http().GetAsync(AbsoluteUrl(url), HttpCompletionOption.ResponseHeadersRead)
+                    .GetAwaiter().GetResult())
+                {
+                    resp.EnsureSuccessStatusCode();
+                    var tmp = dest + ".tmp";
+                    using (var src = resp.Content.ReadAsStreamAsync().GetAwaiter().GetResult())
+                    using (var dst = new FileStream(tmp, FileMode.Create, FileAccess.Write, FileShare.None))
+                        src.CopyTo(dst);
+                    if (!File.Exists(tmp) || new FileInfo(tmp).Length < 64)
+                    {
+                        try { File.Delete(tmp); } catch { }
+                        return false;
+                    }
+                    if (File.Exists(dest))
+                        File.Replace(tmp, dest, null);
+                    else
+                        File.Move(tmp, dest);
+                }
                 return IsUsable(dest);
             }
             catch
             {
                 return TryCopyFromSource(folder, file, dest);
             }
-        }
-
-        private static void WriteBytes(string dest, byte[] bytes)
-        {
-            var tmp = dest + ".tmp";
-            File.WriteAllBytes(tmp, bytes);
-            if (File.Exists(dest))
-                File.Replace(tmp, dest, null);
-            else
-                File.Move(tmp, dest);
         }
 
         private static bool TryCopyFromSource(string folder, string file, string dest)
@@ -582,11 +605,7 @@ namespace AutocadPlugin
             {
                 if (_http != null)
                     return _http;
-                var handler = new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback = (_, __, ___, ____) => true
-                };
-                _http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(60) };
+                _http = new HttpClient(PluginHttp.CreateHandler()) { Timeout = TimeSpan.FromSeconds(60) };
                 return _http;
             }
         }

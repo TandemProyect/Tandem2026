@@ -9,6 +9,8 @@ namespace TandemRevit
 {
     public class MVCApiService
     {
+        private static readonly object Gate = new object();
+        private static HttpClient _shared;
         private readonly HttpClient _httpClient;
         private readonly string _baseUrl;
 
@@ -16,14 +18,36 @@ namespace TandemRevit
 
         public MVCApiService()
         {
-            var handler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback = (_, _, _, _) => true
-            };
-            _httpClient = new HttpClient(handler);
             _baseUrl = PluginExceptionHelper.ResolveBaseUrlFromEnv();
-            _httpClient.BaseAddress = new Uri(_baseUrl);
-            _httpClient.Timeout = TimeSpan.FromSeconds(120);
+            _httpClient = SharedClient(_baseUrl);
+        }
+
+        private static HttpClient SharedClient(string baseUrl)
+        {
+            if (_shared != null)
+                return _shared;
+            lock (Gate)
+            {
+                if (_shared != null)
+                    return _shared;
+                var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = (req, _, __, errors) =>
+                    {
+                        if (errors == System.Net.Security.SslPolicyErrors.None)
+                            return true;
+                        var host = req != null && req.RequestUri != null ? req.RequestUri.Host : "";
+                        return host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
+                            || host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase);
+                    }
+                };
+                _shared = new HttpClient(handler)
+                {
+                    BaseAddress = new Uri(baseUrl),
+                    Timeout = TimeSpan.FromSeconds(120)
+                };
+                return _shared;
+            }
         }
 
         public async Task<ApiResponse<DeteccionEsquinasLDTO>> EnviarLineasSeleccionadasAsync(SeleccionLineasDTO seleccion)

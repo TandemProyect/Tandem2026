@@ -54,7 +54,6 @@ namespace Desing.Controllers
                                                          AttCreated = employee.AttCreated,
                                                          AddLeter = company.AddLeter,
                                                          AddCompany = company.TextLabel,
-                                                         AttPassAspNetUsert = employee.AttPassAspNetUsert,
                                                          EmailConfirmed = user.EmailConfirmed,
                                                          UserName = user.UserName
                                                      };
@@ -160,7 +159,6 @@ namespace Desing.Controllers
                         AttSurname = p.AttSurname ?? "",
                         AddLeter = p.AddLeter ?? "",
                         AddCompany = p.AddCompany ?? "",
-                        AttPassAspNetUsert = p.AttPassAspNetUsert ?? "",
                         AttCreated = p.AttCreated.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                         TotalDesing = p.TotalDesing,
                         EmailConfirmed = p.EmailConfirmed,
@@ -250,7 +248,7 @@ namespace Desing.Controllers
                     From = "admin@atenko.net",
                     Subject = "Envio de contraseña",
                     Body = "Envio de contraseña al usuario:  " + employee.AttName + " " + employee.AttSurname +
-                           " La contraseña requerida es:  " + employee.AttPassAspNetUsert
+                           ". Por seguridad no enviamos la contraseña en este correo. Usa «Olvidé mi contraseña» en el login."
                 };
                 SendMail(Model);
                 return Content("Success: " + Employee.Msg_MailSent, "text/plain");
@@ -478,7 +476,7 @@ namespace Desing.Controllers
                 Session["ItComeFrom"] = "Edit_Employee";
                 Session["userSystem"] = user?.Id;
                 Session["userVscad"] = user?.UserName;
-                Session["passVscad"] = employee.AttPassAspNetUsert;
+                Session.Remove("passVscad");
                 return RedirectToAction("Create_Employee", "Employee");
             }
             catch (Exception ex)
@@ -500,7 +498,8 @@ namespace Desing.Controllers
 
             var userSystem = Session["userSystem"]?.ToString();
             var userVscad = Session["userVscad"]?.ToString();
-            var passVscad = Session["passVscad"]?.ToString();
+            var passVscad = TempData["passVscad"] as string;
+            Session.Remove("passVscad");
             if (string.IsNullOrWhiteSpace(userSystem) || string.IsNullOrWhiteSpace(userVscad))
             {
                 return RedirectToAction("Index");
@@ -681,7 +680,8 @@ namespace Desing.Controllers
                     existing.LinBusiness = newEmployee.LinBusiness;
                     existing.SysUpdateNumber = newEmployee.SysUpdateNumber;
                     existing.LinAspNetUsert = newEmployee.LinAspNetUsert;
-                    existing.AttPassAspNetUsert = newEmployee.AttPassAspNetUsert;
+                    if (!string.IsNullOrWhiteSpace(newEmployee.AttPassAspNetUsert))
+                        existing.AttPassAspNetUsert = newEmployee.AttPassAspNetUsert;
                     existing.AttIsDeleted = false;
                     existing.Linlanguage = 1;
                     existing.LinModifiedBy = userId;

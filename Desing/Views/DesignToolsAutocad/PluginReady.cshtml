@@ -512,7 +512,25 @@
             paintSpeed();
             measurePing();
             loadHome();
-            setInterval(measurePing, 8000);
+            var pingTimer = null;
+            function schedulePing() {
+                if (pingTimer) clearTimeout(pingTimer);
+                var wait = (lastServer >= 0 && lastServer < 200) ? 20000 : 8000;
+                pingTimer = setTimeout(function () {
+                    if (document.visibilityState !== 'hidden') measurePing();
+                    schedulePing();
+                }, wait);
+            }
+            schedulePing();
+            window.addEventListener('pagehide', function () {
+                if (pingTimer) clearTimeout(pingTimer);
+            });
+            document.addEventListener('visibilitychange', function () {
+                if (document.visibilityState === 'visible') {
+                    measurePing();
+                    schedulePing();
+                }
+            });
             try {
                 if (window.chrome && window.chrome.webview && window.chrome.webview.addEventListener)
                     window.chrome.webview.addEventListener('message', function (ev) { onHostMessage(ev.data); });

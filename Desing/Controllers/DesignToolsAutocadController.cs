@@ -217,8 +217,12 @@ namespace Desing.Controllers
 
         private void PersistPluginCompanyLogo(string userId)
         {
-            var logo = PluginCadDeviceHelper.ResolveCompanyLogoAbsoluteUrl(db, userId, Request, Url);
-            PluginCadDeviceHelper.WriteLogoCookie(Response, Request, logo);
+            var logo = PluginCadDeviceHelper.TryReadLogoCookie(Request);
+            if (string.IsNullOrWhiteSpace(logo))
+            {
+                logo = PluginCadDeviceHelper.ResolveCompanyLogoAbsoluteUrl(db, userId, Request, Url);
+                PluginCadDeviceHelper.WriteLogoCookie(Response, Request, logo);
+            }
             ViewBag.CompanyLogoUrl = logo;
         }
 
@@ -232,24 +236,17 @@ namespace Desing.Controllers
         [OutputCache(NoStore = true, Duration = 0, VaryByParam = "*")]
         public ActionResult PluginReady()
         {
-            var userId = User.Identity.GetUserId();
-            if (!PluginCadDeviceHelper.IsUserAllowed(db, userId))
+            var gate = EvaluatePluginCadUser();
+            if (gate != PluginCadGate.Ok)
             {
                 HttpContext.GetOwinContext().Authentication.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
-                return RedirectToPluginLogin(Url.Action("PluginReady", "DesignToolsAutocad"), inactiveUser: true);
+                return RedirectToPluginLogin(
+                    Url.Action("PluginReady", "DesignToolsAutocad"),
+                    inactiveUser: gate == PluginCadGate.Inactive,
+                    blocked: gate == PluginCadGate.Blocked);
             }
 
-            var deviceSnap = PluginCadDeviceHelper.TryReadCookie(Request);
-            var deviceRow = PluginCadDeviceHelper.Find(db, deviceSnap != null ? deviceSnap.DeviceId : null);
-            if (!PluginCadDeviceHelper.IsCadDeveloper(db, userId)
-                && (PluginCadDeviceHelper.IsBlocked(deviceRow)
-                    || !PluginCadDeviceHelper.AllowsPluginOnThisPc(db, userId, deviceSnap)))
-            {
-                HttpContext.GetOwinContext().Authentication.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
-                return RedirectToPluginLogin(Url.Action("PluginReady", "DesignToolsAutocad"), blocked: true);
-            }
-
-            PersistPluginCompanyLogo(userId);
+            PersistPluginCompanyLogo(User.Identity.GetUserId());
             return View(new PluginCadHomeVm
             {
                 UserName = User.Identity.Name,
@@ -268,20 +265,11 @@ namespace Desing.Controllers
         public ActionResult PluginPing()
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
-            long dbMs = -1;
-            try
-            {
-                db.Database.SqlQuery<int>("SELECT CAST(1 AS INT)").FirstOrDefault();
-                dbMs = sw.ElapsedMilliseconds;
-            }
-            catch
-            {
-                dbMs = -1;
-            }
+            var ping = SqlConnectionPing.SelectOne();
             return Json(new
             {
-                ok = dbMs >= 0,
-                dbMs,
+                ok = ping.Ok,
+                dbMs = ping.Ms,
                 serverMs = sw.ElapsedMilliseconds
             }, JsonRequestBehavior.AllowGet);
         }
@@ -394,24 +382,8 @@ namespace Desing.Controllers
 
         private static ConnectionPingResult PingAdoSelectOne(string rawConnection)
         {
-            var sw = System.Diagnostics.Stopwatch.StartNew();
-            try
-            {
-                var sql = UnwrapSqlConnectionString(rawConnection);
-                if (string.IsNullOrWhiteSpace(sql))
-                    return new ConnectionPingResult { Ok = false, Ms = -1 };
-                using (var cn = new SqlConnection(sql))
-                {
-                    cn.Open();
-                    using (var cmd = new SqlCommand("SELECT CAST(1 AS INT)", cn))
-                        cmd.ExecuteScalar();
-                }
-                return new ConnectionPingResult { Ok = true, Ms = sw.ElapsedMilliseconds };
-            }
-            catch
-            {
-                return new ConnectionPingResult { Ok = false, Ms = -1 };
-            }
+            var ping = SqlConnectionPing.SelectOneRaw(rawConnection);
+            return new ConnectionPingResult { Ok = ping.Ok, Ms = ping.Ms };
         }
 
         private static ConnectionSqlTarget ReadSafeSqlTarget(string connectionName)
@@ -908,26 +880,35 @@ namespace Desing.Controllers
             return null;
         }
 
-        private bool EnsurePluginCadUser()
+        private enum PluginCadGate
+        {
+            Ok,
+            Inactive,
+            Blocked
+        }
+
+        private PluginCadGate EvaluatePluginCadUser()
         {
             var userId = User.Identity.GetUserId();
             if (!PluginCadDeviceHelper.IsUserAllowed(db, userId))
-            {
-                HttpContext.GetOwinContext().Authentication.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
-                return false;
-            }
+                return PluginCadGate.Inactive;
 
             var deviceSnap = PluginCadDeviceHelper.TryReadCookie(Request);
             var deviceRow = PluginCadDeviceHelper.Find(db, deviceSnap != null ? deviceSnap.DeviceId : null);
             if (!PluginCadDeviceHelper.IsCadDeveloper(db, userId)
                 && (PluginCadDeviceHelper.IsBlocked(deviceRow)
                     || !PluginCadDeviceHelper.AllowsPluginOnThisPc(db, userId, deviceSnap)))
-            {
-                HttpContext.GetOwinContext().Authentication.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
-                return false;
-            }
+                return PluginCadGate.Blocked;
 
-            return true;
+            return PluginCadGate.Ok;
+        }
+
+        private bool EnsurePluginCadUser()
+        {
+            if (EvaluatePluginCadUser() == PluginCadGate.Ok)
+                return true;
+            HttpContext.GetOwinContext().Authentication.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+            return false;
         }
 
         private List<PluginCadBlockRow> QueryPluginBlocks(string q)

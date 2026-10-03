@@ -3,6 +3,7 @@
 @{
     ViewBag.Title = "Diseño — visor STL";
     Layout = "~/Views/Shared/_LayoutMaterio.cshtml";
+    ViewBag.SkipIntranetDataTables = true;
 }
 @*
     Desing_2 / Viewer — Three.js STL. Barra única: logo plantilla + contexto obra/oferta/diseño (izq.);
@@ -11,7 +12,6 @@
 @section Styles
 {
     @Html.Partial("~/Views/MasterArticles/_MasterArticleStlPreviewStyles.cshtml")
-    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" crossorigin="" />
     <style>
         /* Barra única: logo + contexto (izquierda); iconos + Volver (derecha) — color plantilla */
         .desing2-stl-view-scope #master-article-stl-viewer-toolbar.desing2-stl-actions-toolbar {
@@ -204,7 +204,6 @@
     <script type="importmap">
 @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(masterArticleImportMap))
     </script>
-    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js" crossorigin=""></script>
     <script src="@Url.Content("~/Scripts/Desing2/desing2-map-building-import.js")"></script>
     <script type="module" src="@Url.Content("~/Scripts/MasterArticles/master-article-details-stl-viewer.js")"></script>
     <script src="@Url.Content("~/Scripts/Desing2/desing2-stl-viewer-toolbar-wiring.js")"></script>

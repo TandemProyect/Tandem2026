@@ -15,6 +15,9 @@
   var LAYER_FILL = 'desing2-osm-buildings-extrusion';
   var LAYER_OUTLINE = 'desing2-osm-buildings-outline';
   var STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
+  var MAPLIBRE_CSS = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css';
+  var MAPLIBRE_JS = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js';
+  var mapLibreWaiters = [];
 
   var state = {
     map: null,
@@ -29,6 +32,7 @@
     onImported: null,
     onToast: null,
     suppressCloseCallback: false,
+    mapLibreLoading: false,
   };
 
   function attr(el, name) {
@@ -568,6 +572,39 @@
     });
   }
 
+  function ensureMapLibre(done) {
+    if (typeof done !== 'function') done = function () { };
+    if (typeof global.maplibregl !== 'undefined') {
+      done();
+      return;
+    }
+    mapLibreWaiters.push(done);
+    if (state.mapLibreLoading) return;
+    state.mapLibreLoading = true;
+    if (!document.querySelector('link[data-desing2-maplibre]')) {
+      var css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = MAPLIBRE_CSS;
+      css.setAttribute('data-desing2-maplibre', '1');
+      css.crossOrigin = '';
+      document.head.appendChild(css);
+    }
+    var s = document.createElement('script');
+    s.src = MAPLIBRE_JS;
+    s.crossOrigin = '';
+    s.onload = function () {
+      state.mapLibreLoading = false;
+      var q = mapLibreWaiters.splice(0, mapLibreWaiters.length);
+      for (var i = 0; i < q.length; i++) q[i]();
+    };
+    s.onerror = function () {
+      state.mapLibreLoading = false;
+      mapLibreWaiters.splice(0, mapLibreWaiters.length);
+      toast('No se ha podido cargar el mapa.');
+    };
+    document.head.appendChild(s);
+  }
+
   function ensureMap() {
     if (state.map) return state.map;
     if (typeof global.maplibregl === 'undefined') return null;
@@ -942,9 +979,23 @@
       });
     }
     state.modalEl.addEventListener('shown.bs.modal', function () {
-      ensureMap();
-      invalidateMapSize();
+      ensureMapLibre(function () {
+        ensureMap();
+        invalidateMapSize();
+      });
     });
+  }
+
+  function afterMapLibreReady() {
+    showModal();
+    ensureMap();
+    if (state.map && state.map.isStyleLoaded()) {
+      resetToBasemapBuildingsView();
+    } else if (state.map) {
+      state.map.once('load', resetToBasemapBuildingsView);
+    }
+    invalidateMapSize();
+    syncAcceptUi();
   }
 
   function open(options) {
@@ -958,15 +1009,7 @@
     state.busy = false;
     setMapBusyOverlay(false);
     clearSelection();
-    showModal();
-    ensureMap();
-    if (state.map && state.map.isStyleLoaded()) {
-      resetToBasemapBuildingsView();
-    } else if (state.map) {
-      state.map.once('load', resetToBasemapBuildingsView);
-    }
-    invalidateMapSize();
-    syncAcceptUi();
+    ensureMapLibre(afterMapLibreReady);
   }
 
   function close() {

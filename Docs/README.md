@@ -22,6 +22,7 @@ Contiene guías y prácticas que aplican a **todos los proyectos**:
 | Documento | Descripción | Cuándo consultar |
 |-----------|-------------|------------------|
 | [**🎯 GESTION-PANEL-AZURE-DEVOPS**](General/GESTION-PANEL-AZURE-DEVOPS.md) ⭐ | **Guía completa de Azure DevOps** - Crear US/Tasks, scripts, troubleshooting | **LEER PRIMERO** antes de crear US o Tasks |
+| [**Code review prep 2026-10-03**](General/CODE-REVIEW-PREP-2026-10-03.md) | Arquitectura, conexión frecuente, qué no revertir, deuda conocida | Antes de un review interno |
 | [**Azure DevOps**](General/Azure-DevOps.md) | Documentación anterior (redirige a la nueva) | Referencia histórica |
 | [**Estructura del Repositorio**](General/Estructura-Repositorio.md) | Organización de carpetas y archivos | Navegar el proyecto, ubicar archivos |
 | [**Common - Código Compartido**](General/Common.md) | Usar y mantener código compartido | Crear/usar utilidades compartidas |

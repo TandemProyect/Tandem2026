@@ -8,6 +8,7 @@
 @{
     var tandemUiCulture = LanguageUiHelper.ReadResolvedUiCultureCode(Request) ?? "es";
     var tandemHtmlLang = string.IsNullOrWhiteSpace(tandemUiCulture) ? "es" : tandemUiCulture.Trim().ToLowerInvariant();
+    var skipIntranetDataTables = ViewBag.SkipIntranetDataTables as bool? == true;
 }
 <!DOCTYPE html>
 <html lang="@tandemHtmlLang"
@@ -52,15 +53,16 @@
     <!-- Site CSS -->
     <link rel="stylesheet" href="@Url.Content("~/assets/materio/css/site.css")" />
 
-    @* DataTables - estilo Bootstrap 5 (Materio) via CDN *@
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.7.0/css/colReorder.bootstrap5.min.css" />
-    @* Resize de columnas (handles propios) *@
-    <link rel="stylesheet" href="@Url.Content("~/Scripts/datatables-resize.css")" />
-    @* DataTables: color, tamaño y capitalización de cabeceras *@
-    <link rel="stylesheet" href="@Url.Content("~/Scripts/datatables-tandem.css")" />
+    @if (!skipIntranetDataTables)
+    {
+        @* DataTables — solo listados intranet. El visor Desing_2 no los usa. *@
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" />
+        <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" />
+        <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" />
+        <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.7.0/css/colReorder.bootstrap5.min.css" />
+        <link rel="stylesheet" href="@Url.Content("~/Scripts/datatables-resize.css")" />
+        <link rel="stylesheet" href="@Url.Content("~/Scripts/datatables-tandem.css")" />
+    }
 
     @* Identificacion del usuario para clave de cookies de DataTables *@
     <meta name="dt-user" content="@(User != null && User.Identity != null && User.Identity.IsAuthenticated ? User.Identity.Name : "anon")" />
@@ -72,12 +74,13 @@
     <script src="@Url.Content("~/assets/materio/vendor/js/helpers.js")"></script>
     <script src="@Url.Content("~/assets/materio/js/config.js")"></script>
 
-    @* === DataTables i18n por idioma actual (modulo Common, claves Dt_*) =======
-       intranet-datatables-list.js usa window.tandemCommonDt para textos del menu
-       colectivo (Registros / Exportar / Columnas visibles / "10 filas" / Todas).
-       Si una vista define <vm>Dt (p. ej. companyDt) y lo pasa a applyListDefaults,
-       ese objeto especifico GANA — esto solo es el fallback global. *@
-    @{
+    @if (!skipIntranetDataTables)
+    {
+        @* === DataTables i18n por idioma actual (modulo Common, claves Dt_*) =======
+           intranet-datatables-list.js usa window.tandemCommonDt para textos del menu
+           colectivo (Registros / Exportar / Columnas visibles / "10 filas" / Todas).
+           Si una vista define <vm>Dt (p. ej. companyDt) y lo pasa a applyListDefaults,
+           ese objeto especifico GANA — esto solo es el fallback global. *@
         var tandemCommonDt = new
         {
             sectionRecords = Common.Dt_Section_Records,
@@ -94,10 +97,10 @@
             btnPageLength = Common.Dt_Btn_PageLength,
             btnColVis = Common.Dt_Btn_ColVis
         };
+        <script>
+            window.tandemCommonDt = @Html.Raw(JsonConvert.SerializeObject(tandemCommonDt));
+        </script>
     }
-    <script>
-        window.tandemCommonDt = @Html.Raw(JsonConvert.SerializeObject(tandemCommonDt));
-    </script>
 
     @* === Plantilla del usuario (color principal) ============================== *@
     @Html.Partial("_PlantillaStyles")
@@ -150,25 +153,26 @@
     <!-- Main JS -->
     <script src="@Url.Content("~/assets/materio/js/main.js")"></script>
 
-    @* DataTables - JS con bridge Bootstrap 5 *@
-    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.colVis.min.js"></script>
-    @* JSZip + pdfmake desde el mismo origen: evita "Tracking Prevention blocked access to storage" en Edge al cargar desde CDN. *@
-    <script src="@Url.Content("~/Scripts/datatables/JSZip-2.5.0/jszip.min.js")"></script>
-    <script src="@Url.Content("~/Scripts/datatables/pdfmake-0.1.36/pdfmake.min.js")"></script>
-    <script src="@Url.Content("~/Scripts/datatables/pdfmake-0.1.36/vfs_fonts.js")"></script>
-    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
-    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
-    @* ColReorder: arrastrar columnas para reordenar *@
-    <script src="https://cdn.datatables.net/colreorder/1.7.0/js/dataTables.colReorder.min.js"></script>
-    @* Helper de estado por usuario en cookie (orden, anchos, visibilidad...) *@
-    <script src="@Url.Content("~/Scripts/datatables-state.js?v=13")"></script>
-    <script src="@Url.Content("~/Scripts/Intranet/intranet-datatables-list.js")"></script>
+    @if (!skipIntranetDataTables)
+    {
+        @* DataTables - JS con bridge Bootstrap 5 *@
+        <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.colVis.min.js"></script>
+        @* JSZip + pdfmake desde el mismo origen: evita "Tracking Prevention blocked access to storage" en Edge al cargar desde CDN. *@
+        <script src="@Url.Content("~/Scripts/datatables/JSZip-2.5.0/jszip.min.js")"></script>
+        <script src="@Url.Content("~/Scripts/datatables/pdfmake-0.1.36/pdfmake.min.js")"></script>
+        <script src="@Url.Content("~/Scripts/datatables/pdfmake-0.1.36/vfs_fonts.js")"></script>
+        <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+        <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+        <script src="https://cdn.datatables.net/colreorder/1.7.0/js/dataTables.colReorder.min.js"></script>
+        <script src="@Url.Content("~/Scripts/datatables-state.js?v=13")"></script>
+        <script src="@Url.Content("~/Scripts/Intranet/intranet-datatables-list.js")"></script>
+    }
 
     @* Toggle del sidebar en escritorio: cookie por usuario (misma meta dt-user que DataTables) *@
     <script>

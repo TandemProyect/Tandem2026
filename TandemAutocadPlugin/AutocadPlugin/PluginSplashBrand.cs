@@ -54,10 +54,7 @@ namespace AutocadPlugin
                     && string.Equals(previous, url, StringComparison.OrdinalIgnoreCase))
                     return;
 
-                using (var handler = new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback = (_, __, ___, ____) => true
-                })
+                using (var handler = PluginHttp.CreateHandler())
                 using (var http = new HttpClient(handler))
                 {
                     http.Timeout = TimeSpan.FromSeconds(8);
