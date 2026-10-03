@@ -3425,6 +3425,7 @@
     <Content Include="Scripts\MasterArticles\master-article-details-stl-viewer.js" />
     <Content Include="Scripts\Desing2\desing2-stl-viewer-toolbar-wiring.js" />
     <Content Include="Scripts\Desing2\desing2-map-building-import.js" />
+    <Content Include="Scripts\Desing2\desing2-connection-test.js" />
     <Content Include="Scripts\ResourceGenerators\_gen_branch_resources.js" />
     <Content Include="Scripts\ResourceGenerators\_gen_clientv2_resources.js" />
     <Content Include="Scripts\ResourceGenerators\_gen_common_resources.js" />

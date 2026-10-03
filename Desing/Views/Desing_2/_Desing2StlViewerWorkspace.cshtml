@@ -437,6 +437,9 @@
                                     <path d="M6 9h12M6 12.5h12M6 16h8" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" />
                                 </svg>
                             </button>
+                            <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-right-panel__connection-btn rounded flex-shrink-0" id="desing2-stl-right-panel-connection-test" title="@Common.ConnectionTest_Title" aria-label="@Common.ConnectionTest_Aria" aria-pressed="false" data-conn-url="@Url.Action("ConnectionDiagnostics", "DesignToolsAutocad")">
+                                <i class="icon-base ri ri-wifi-line desing2-stl-right-panel__conn-icon" aria-hidden="true"></i>
+                            </button>
                         </div>
                         <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-hover-right-panel__collapse rounded flex-shrink-0" id="desing2-stl-right-panel-collapse" title="@MasterArticles.StlPreview_Desing2RightMenuCollapseTitle" aria-label="@MasterArticles.StlPreview_Desing2RightMenuCollapseTitle">
                             <i class="icon-base ri ri-menu-fold-line fs-6" aria-hidden="true"></i>
@@ -444,6 +447,59 @@
                     </div>
                     <div class="desing2-stl-hover-right-panel__body px-3 pb-2 pt-2" id="desing2-stl-right-panel-body">
                         <p class="small text-body-secondary mb-0" id="desing2-stl-right-panel-placeholder">@MasterArticles.StlPreview_Desing2RightMenuPlaceholder</p>
+                        <div class="desing2-conn-test d-none" id="desing2-connection-test-panel" hidden="hidden"
+                             data-msg-measuring="@Common.ConnectionTest_Measuring"
+                             data-msg-fail="@Common.ConnectionTest_Fail"
+                             data-lbl-local="@Common.ConnectionTest_Local"
+                             data-lbl-remote="@Common.ConnectionTest_Remote"
+                             data-lbl-good="@Common.PluginCad_SpeedGood"
+                             data-lbl-ok="@Common.PluginCad_SpeedOk"
+                             data-lbl-poor="@Common.PluginCad_SpeedPoor"
+                             data-lbl-bad="@Common.PluginCad_SpeedBad"
+                             data-lbl-wifi="@Common.ConnectionTest_WifiTitle"
+                             data-lbl-cable="@Common.PluginCad_SpeedCableTitle"
+                             data-lbl-net="@Common.PluginCad_SpeedNetTitle">
+                            <div class="desing2-conn-test__head">
+                                <strong>@Common.ConnectionTest_Title</strong>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="desing2-connection-test-retry">@Common.ConnectionTest_Retry</button>
+                            </div>
+
+                            <section class="desing2-conn-test__section">
+                                <h3 class="desing2-conn-test__block">@Common.ConnectionTest_DeviceTitle</h3>
+                                <dl class="desing2-conn-test__rows">
+                                    <div><dt>@Common.ConnectionTest_Machine</dt><dd data-conn="machine">—</dd></div>
+                                    <div><dt>@Common.ConnectionTest_User</dt><dd data-conn="user">—</dd></div>
+                                    <div><dt>@Common.ConnectionTest_Site</dt><dd data-conn="host">—</dd></div>
+                                </dl>
+                            </section>
+
+                            <section class="desing2-conn-test__section">
+                                <h3 class="desing2-conn-test__block" data-conn="wifi-title">@Common.ConnectionTest_WifiTitle</h3>
+                                <div class="desing2-conn-test__quality" data-conn="wifi-quality">
+                                    <span class="desing2-conn-test__dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                                    <span data-conn="wifi-label">@Common.ConnectionTest_Measuring</span>
+                                </div>
+                                <dl class="desing2-conn-test__rows">
+                                    <div><dt>@Common.ConnectionTest_NetType</dt><dd data-conn="wifi-type">—</dd></div>
+                                    <div><dt>@Common.ConnectionTest_Speed</dt><dd data-conn="wifi-speed">—</dd></div>
+                                </dl>
+                            </section>
+
+                            <section class="desing2-conn-test__section">
+                                <h3 class="desing2-conn-test__block">@Common.ConnectionTest_ServerTitle</h3>
+                                <div class="desing2-conn-test__quality" data-conn="quality">
+                                    <span class="desing2-conn-test__dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                                    <span data-conn="quality-label">@Common.ConnectionTest_Measuring</span>
+                                </div>
+                                <dl class="desing2-conn-test__rows">
+                                    <div><dt>@Common.ConnectionTest_DataWhere</dt><dd data-conn="data-where">—</dd></div>
+                                    <div><dt>@Common.ConnectionTest_Ping</dt><dd data-conn="data-ms">—</dd></div>
+                                    <div><dt>@Common.ConnectionTest_IdentityTitle</dt><dd data-conn="id-ms">—</dd></div>
+                                    <div><dt>@Common.ConnectionTest_List</dt><dd data-conn="list-ms">—</dd></div>
+                                    <div><dt>@Common.ConnectionTest_Roundtrip</dt><dd data-conn="http-ms">—</dd></div>
+                                </dl>
+                            </section>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -858,8 +858,106 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
 
 .desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__wallmap-btn,
 .desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__imagesketch-btn,
-.desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__mapbuilding-btn {
+.desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__mapbuilding-btn,
+.desing2-stl-hover-right-panel__toolbar .desing2-stl-right-panel__connection-btn {
     padding: 0.35rem !important;
+}
+
+.desing2-stl-view-scope .desing2-stl-right-panel__conn-icon {
+    display: block;
+    width: 1.45rem;
+    height: 1.45rem;
+    font-size: 1.45rem;
+    line-height: 1;
+    color: #3d8bfd;
+}
+
+.desing2-conn-test {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    font-size: 12px;
+    color: #2c3340;
+}
+
+.desing2-conn-test__section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding-bottom: 0.45rem;
+    border-bottom: 1px solid #e4e8ee;
+}
+
+.desing2-conn-test__section:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.desing2-conn-test__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.desing2-conn-test__head .btn { font-size: 11px; padding: 0.1rem 0.45rem; }
+
+.desing2-conn-test__quality {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-weight: 600;
+}
+
+.desing2-conn-test__dots { display: flex; gap: 4px; }
+.desing2-conn-test__dots i {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #d5dee8; display: block;
+}
+.desing2-conn-test__quality.is-good .desing2-conn-test__dots i.is-on,
+.desing2-conn-test__quality.is-good [data-conn="quality-label"] { color: #2f9d6a; }
+.desing2-conn-test__quality.is-good .desing2-conn-test__dots i.is-on { background: #2f9d6a; }
+.desing2-conn-test__quality.is-ok .desing2-conn-test__dots i.is-on { background: #3d8bfd; }
+.desing2-conn-test__quality.is-ok [data-conn="quality-label"] { color: #3d8bfd; }
+.desing2-conn-test__quality.is-poor .desing2-conn-test__dots i.is-on { background: #c45c26; }
+.desing2-conn-test__quality.is-poor [data-conn="quality-label"] { color: #c45c26; }
+.desing2-conn-test__quality.is-bad .desing2-conn-test__dots i.is-on,
+.desing2-conn-test__quality.is-fail .desing2-conn-test__dots i.is-on { background: #d64545; }
+.desing2-conn-test__quality.is-bad [data-conn="quality-label"],
+.desing2-conn-test__quality.is-fail [data-conn="quality-label"] { color: #d64545; }
+
+.desing2-conn-test__block {
+    margin: 0.25rem 0 0;
+    font-size: 11px;
+    font-weight: 700;
+    color: #5e6a75;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.desing2-conn-test__rows {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.desing2-conn-test__rows > div {
+    display: grid;
+    grid-template-columns: 7.2rem 1fr;
+    gap: 0.35rem;
+    align-items: baseline;
+}
+
+.desing2-conn-test__rows dt {
+    margin: 0;
+    font-weight: 600;
+    color: #5e6a75;
+}
+
+.desing2-conn-test__rows dd {
+    margin: 0;
+    word-break: break-word;
 }
 
 .desing2-stl-view-scope .desing2-stl-right-panel__map-icon {
@@ -960,6 +1058,10 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     pointer-events: none;
 }
 
+.desing2-stl-hover-right-panel__body:has(#desing2-connection-test-panel:not(.d-none)) {
+    max-height: min(70vh, 540px);
+}
+
 .desing2-stl-hover-right-panel__body {
     flex: 1 1 auto;
     min-height: 0;
@@ -1006,6 +1108,13 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     min-height: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+}
+
+.desing2-stl-hover-right-panel:not(.is-hover-locked) .desing2-stl-hover-right-panel__hover-zone:hover > .desing2-stl-hover-right-panel__sheet
+    .desing2-stl-hover-right-panel__body:has(#desing2-connection-test-panel:not(.d-none)),
+.desing2-stl-hover-right-panel .desing2-stl-hover-right-panel__sheet:focus-within
+    .desing2-stl-hover-right-panel__body:has(#desing2-connection-test-panel:not(.d-none)) {
+    max-height: min(70vh, 540px);
 }
 
 .desing2-stl-hover-right-panel:not(.is-hover-locked)

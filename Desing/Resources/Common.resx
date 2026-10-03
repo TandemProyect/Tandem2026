@@ -100,6 +100,90 @@
   <data name="ConfirmEmail_Title" xml:space="preserve">
     <value>Confirmación de email</value>
   </data>
+  <data name="ConnectionTest_Aria" xml:space="preserve">
+    <value>Comprobar la red, este ordenador y el servidor</value>
+  </data>
+  <data name="ConnectionTest_Auth" xml:space="preserve">
+    <value>Tipo de acceso</value>
+  </data>
+  <data name="ConnectionTest_AuthSql" xml:space="preserve">
+    <value>Con usuario y contraseña</value>
+  </data>
+  <data name="ConnectionTest_AuthWindows" xml:space="preserve">
+    <value>Con tu usuario de Windows</value>
+  </data>
+  <data name="ConnectionTest_Catalog" xml:space="preserve">
+    <value>Catálogo</value>
+  </data>
+  <data name="ConnectionTest_DataTitle" xml:space="preserve">
+    <value>Datos del trabajo</value>
+  </data>
+  <data name="ConnectionTest_DataWhere" xml:space="preserve">
+    <value>Dónde están los datos</value>
+  </data>
+  <data name="ConnectionTest_DeviceTitle" xml:space="preserve">
+    <value>Tu equipo</value>
+  </data>
+  <data name="ConnectionTest_Fail" xml:space="preserve">
+    <value>No se ha podido comprobar. Inténtalo de nuevo.</value>
+  </data>
+  <data name="ConnectionTest_IdentityTitle" xml:space="preserve">
+    <value>Inicio de sesión</value>
+  </data>
+  <data name="ConnectionTest_List" xml:space="preserve">
+    <value>Abrir el listado de obras</value>
+  </data>
+  <data name="ConnectionTest_Local" xml:space="preserve">
+    <value>En este ordenador</value>
+  </data>
+  <data name="ConnectionTest_Machine" xml:space="preserve">
+    <value>Nombre del ordenador</value>
+  </data>
+  <data name="ConnectionTest_Measuring" xml:space="preserve">
+    <value>Comprobando…</value>
+  </data>
+  <data name="ConnectionTest_NetType" xml:space="preserve">
+    <value>Tipo de red</value>
+  </data>
+  <data name="ConnectionTest_Ping" xml:space="preserve">
+    <value>Tiempo de respuesta</value>
+  </data>
+  <data name="ConnectionTest_Remote" xml:space="preserve">
+    <value>En internet</value>
+  </data>
+  <data name="ConnectionTest_Retry" xml:space="preserve">
+    <value>Probar otra vez</value>
+  </data>
+  <data name="ConnectionTest_Roundtrip" xml:space="preserve">
+    <value>Tiempo total de la prueba</value>
+  </data>
+  <data name="ConnectionTest_ServerTitle" xml:space="preserve">
+    <value>Servidor</value>
+  </data>
+  <data name="ConnectionTest_Site" xml:space="preserve">
+    <value>TDesing está abierto en</value>
+  </data>
+  <data name="ConnectionTest_Source" xml:space="preserve">
+    <value>Origen</value>
+  </data>
+  <data name="ConnectionTest_Speed" xml:space="preserve">
+    <value>Velocidad</value>
+  </data>
+  <data name="ConnectionTest_SqlServer" xml:space="preserve">
+    <value>Servidor</value>
+  </data>
+  <data name="ConnectionTest_Title" xml:space="preserve">
+    <value>Estado de la conexión</value>
+  </data>
+  <data name="ConnectionTest_User" xml:space="preserve">
+    <value>Has entrado como</value>
+  </data>
+  <data name="ConnectionTest_Version" xml:space="preserve">
+    <value>Versión</value>
+  </data>
+  <data name="ConnectionTest_WifiTitle" xml:space="preserve">
+    <value>Wi‑Fi</value>
+  </data>
   <data name="Display_Code" xml:space="preserve">
     <value>Código</value>
   </data>

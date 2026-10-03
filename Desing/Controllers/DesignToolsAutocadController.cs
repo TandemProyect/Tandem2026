@@ -15,6 +15,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -284,6 +285,244 @@ namespace Desing.Controllers
                 serverMs = sw.ElapsedMilliseconds
             }, JsonRequestBehavior.AllowGet);
         }
+
+        /// <summary>
+        /// Diagnóstico de conexión (intranet Desing_2 y, si se reutiliza, plugin).
+        /// No devuelve contraseñas ni la cadena completa.
+        /// </summary>
+        [HttpGet]
+        [Authorize]
+        [OutputCache(NoStore = true, Duration = 0, VaryByParam = "*")]
+        public ActionResult ConnectionDiagnostics()
+        {
+            var swAll = System.Diagnostics.Stopwatch.StartNew();
+            var dataMeta = ReadSafeSqlTarget("ConexionData");
+            var idMeta = ReadSafeSqlTarget("IdentityConnection");
+
+            var dataPing = PingEfSelectOne(db);
+            var idPing = PingAdoSelectOne(ConfigurationManager.ConnectionStrings["IdentityConnection"]?.ConnectionString);
+
+            string sqlVersion = null;
+            try
+            {
+                sqlVersion = db.Database.SqlQuery<string>(
+                    "SELECT CAST(SERVERPROPERTY('ProductVersion') AS NVARCHAR(32))")
+                    .FirstOrDefault();
+            }
+            catch
+            {
+            }
+
+            long listMs = -1;
+            int? jobsides = null;
+            try
+            {
+                var swList = System.Diagnostics.Stopwatch.StartNew();
+                jobsides = db.TSql_Jobside.AsNoTracking().Count(j => !j.Is_Delete);
+                listMs = swList.ElapsedMilliseconds;
+            }
+            catch
+            {
+                listMs = -1;
+            }
+
+            var dbMs = dataPing.Ms;
+            string netKind;
+            int netMbps;
+            ReadNetworkLink(out netKind, out netMbps);
+            return Json(new
+            {
+                ok = dataPing.Ok,
+                quality = QualityFromMs(dbMs),
+                host = Request.Url != null ? Request.Url.Host : "",
+                appUrl = Request.Url != null ? Request.Url.GetLeftPart(UriPartial.Authority) : "",
+                machineName = Environment.MachineName ?? "",
+                userName = User.Identity.Name ?? "",
+                utc = DateTime.UtcNow.ToString("o"),
+                appMs = swAll.ElapsedMilliseconds,
+                net = new
+                {
+                    kind = netKind,
+                    mbps = netMbps
+                },
+                data = new
+                {
+                    ok = dataPing.Ok,
+                    ms = dataPing.Ms,
+                    isLocal = dataMeta.IsLocal,
+                    auth = dataMeta.Auth,
+                    productVersion = sqlVersion ?? ""
+                },
+                identity = new
+                {
+                    ok = idPing.Ok,
+                    ms = idPing.Ms,
+                    isLocal = idMeta.IsLocal,
+                    auth = idMeta.Auth
+                },
+                list = new
+                {
+                    ok = listMs >= 0,
+                    ms = listMs,
+                    jobsides = jobsides
+                }
+            }, JsonRequestBehavior.AllowGet);
+        }
+
+        private static string QualityFromMs(long ms)
+        {
+            if (ms < 0) return "fail";
+            if (ms < 80) return "good";
+            if (ms < 200) return "ok";
+            if (ms < 500) return "poor";
+            return "bad";
+        }
+
+        private static ConnectionPingResult PingEfSelectOne(ConexionData context)
+        {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            try
+            {
+                context.Database.SqlQuery<int>("SELECT CAST(1 AS INT)").FirstOrDefault();
+                return new ConnectionPingResult { Ok = true, Ms = sw.ElapsedMilliseconds };
+            }
+            catch
+            {
+                return new ConnectionPingResult { Ok = false, Ms = -1 };
+            }
+        }
+
+        private static ConnectionPingResult PingAdoSelectOne(string rawConnection)
+        {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            try
+            {
+                var sql = UnwrapSqlConnectionString(rawConnection);
+                if (string.IsNullOrWhiteSpace(sql))
+                    return new ConnectionPingResult { Ok = false, Ms = -1 };
+                using (var cn = new SqlConnection(sql))
+                {
+                    cn.Open();
+                    using (var cmd = new SqlCommand("SELECT CAST(1 AS INT)", cn))
+                        cmd.ExecuteScalar();
+                }
+                return new ConnectionPingResult { Ok = true, Ms = sw.ElapsedMilliseconds };
+            }
+            catch
+            {
+                return new ConnectionPingResult { Ok = false, Ms = -1 };
+            }
+        }
+
+        private static ConnectionSqlTarget ReadSafeSqlTarget(string connectionName)
+        {
+            var target = new ConnectionSqlTarget();
+            try
+            {
+                var raw = ConfigurationManager.ConnectionStrings[connectionName]?.ConnectionString;
+                var sql = UnwrapSqlConnectionString(raw);
+                if (string.IsNullOrWhiteSpace(sql))
+                    return target;
+                var b = new SqlConnectionStringBuilder(sql);
+                target.Source = b.DataSource ?? "";
+                target.Catalog = b.InitialCatalog ?? "";
+                target.Auth = b.IntegratedSecurity ? "windows" : "sql";
+                target.IsLocal = IsLocalSqlSource(target.Source);
+            }
+            catch
+            {
+            }
+            return target;
+        }
+
+        private static string UnwrapSqlConnectionString(string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+                return "";
+            const string key = "provider connection string=";
+            var i = raw.IndexOf(key, StringComparison.OrdinalIgnoreCase);
+            if (i < 0)
+                return raw;
+            var rest = raw.Substring(i + key.Length).Trim();
+            if (rest.StartsWith("\"", StringComparison.Ordinal))
+            {
+                var end = rest.IndexOf('"', 1);
+                if (end > 1)
+                    return rest.Substring(1, end - 1);
+            }
+            return rest.Trim().TrimEnd(';');
+        }
+
+        private static bool IsLocalSqlSource(string source)
+        {
+            var s = (source ?? "").Trim();
+            if (s.Length == 0)
+                return false;
+            if (s.StartsWith(".", StringComparison.Ordinal) || s.StartsWith("lpc:", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (s.IndexOf("localhost", StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+            if (s.StartsWith("(local)", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (s.StartsWith("127.0.0.1", StringComparison.OrdinalIgnoreCase))
+                return true;
+            var machine = Environment.MachineName ?? "";
+            return machine.Length > 0 && s.IndexOf(machine, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static void ReadNetworkLink(out string kind, out int mbps)
+        {
+            kind = "";
+            mbps = 0;
+            try
+            {
+                NetworkInterface best = null;
+                foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
+                {
+                    if (ni == null || ni.OperationalStatus != OperationalStatus.Up)
+                        continue;
+                    if (ni.NetworkInterfaceType == NetworkInterfaceType.Loopback
+                        || ni.NetworkInterfaceType == NetworkInterfaceType.Tunnel)
+                        continue;
+                    if (best == null)
+                    {
+                        best = ni;
+                        continue;
+                    }
+                    if (ni.NetworkInterfaceType == NetworkInterfaceType.Wireless80211
+                        && best.NetworkInterfaceType != NetworkInterfaceType.Wireless80211)
+                    {
+                        best = ni;
+                        continue;
+                    }
+                    if (ni.NetworkInterfaceType == best.NetworkInterfaceType && ni.Speed > best.Speed)
+                        best = ni;
+                }
+                if (best == null)
+                    return;
+                kind = best.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 ? "wifi" : "cable";
+                if (best.Speed > 0 && best.Speed < long.MaxValue / 2)
+                    mbps = (int)Math.Max(1, best.Speed / 1000000L);
+            }
+            catch
+            {
+            }
+        }
+
+        private sealed class ConnectionPingResult
+        {
+            public bool Ok;
+            public long Ms;
+        }
+
+        private sealed class ConnectionSqlTarget
+        {
+            public string Source = "";
+            public string Catalog = "";
+            public string Auth = "";
+            public bool IsLocal;
+        }
+
 
         /// <summary>
         /// Listados vivos de obras / ofertas / diseños para el menú general CAD.
