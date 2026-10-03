@@ -77,7 +77,7 @@ Contiene documentación **específica de implementación** para cada proyecto:
 
 **Propósito:** plugins Tandem 2026 alineados con Desing_2 (paletas MVC, muro 2D, generar 3D).
 
-**Continuar aquí:** [HANDOVER-2026-09-Plugins-Tandem-CAD.md](Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md)
+**Continuar aquí:** [HANDOVER-2026-10-03-Conexion-ATDESING-Encofrar-Manual.md](Proyectos/Plugins-CAD/HANDOVER-2026-10-03-Conexion-ATDESING-Encofrar-Manual.md)
 
 También: [AutocadPlugin](Proyectos/AutocadPlugin/), [BricscadPlugin](Proyectos/BricscadPlugin/), [RevitPlugin](Proyectos/RevitPlugin/).
 

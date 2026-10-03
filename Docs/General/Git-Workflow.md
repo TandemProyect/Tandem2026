@@ -21,6 +21,8 @@ Flujo de trabajo con Git y GitHub para Tandem 2026.
 - **Protección:** Commits directos permitidos (proyecto pequeño)
 - **Deployment:** Automático o manual a Site4Now / SmarterASP — ver **[Deploy-Site4Now.md](./Deploy-Site4Now.md)** (GitHub Actions + FTP, Visual Studio o script PowerShell).
 
+**Rama de desarrollo diaria:** `develo` (no existe `develop`). A 2026-10-03 `develo` y `master` están al mismo commit. Trabajar en `develo` y fast-forward a `master` cuando el usuario lo pida.
+
 **Reglas:**
 - ✅ Solo código que compila
 - ✅ Testing básico realizado

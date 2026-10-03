@@ -2,9 +2,10 @@
 
 Class Library (`net8.0-windows`) para AutoCAD 2026. Paletas MVC, muro 2D y generar 3D.
 
-**Handover (leer primero el de 2026-10-02):**
+**Handover (leer primero el de 2026-10-03):**
 
-- Sesión, home, AppData, insert/convert, autoload: [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-10-02-Autocad-Sesion-Bloquing-Autoload.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-10-02-Autocad-Sesion-Bloquing-Autoload.md)
+- NETLOAD vs ATDESING, conexión, siguiente US: [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-10-03-Conexion-ATDESING-Encofrar-Manual.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-10-03-Conexion-ATDESING-Encofrar-Manual.md)
+- Sesión, home, AppData, insert/convert: [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-10-02-Autocad-Sesion-Bloquing-Autoload.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-10-02-Autocad-Sesion-Bloquing-Autoload.md)
 - Muros / paletas base: [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md)
 - Bloquing (contexto sept-29): [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-29-Autocad-Bloquing.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-29-Autocad-Bloquing.md)
 - Contrato geométrico inserción ATK-60 (el código **ya existe**): [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md)

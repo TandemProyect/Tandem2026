@@ -1,5 +1,7 @@
 # Handover — AutoCAD sesion, menu de proyectos, bloquing local y autoload
 
+> **Corte posterior (2026-10-03):** NETLOAD ya no instala bloques, comando `ATDESING`, test de conexión Desing_2, Git `develo`/`master` en `c0883c4`, siguiente US Encofrar manualmente → [HANDOVER-2026-10-03-Conexion-ATDESING-Encofrar-Manual.md](./HANDOVER-2026-10-03-Conexion-ATDESING-Encofrar-Manual.md). Este fichero sigue valiendo para sesión, home, paletas e insert/convert. Las secciones 0.4, 8 (autoload al conectar) y «primera instalación en el login» están **desactualizadas**.
+
 Documento para **retomar** el plugin AutoCAD 2026 + intranet Desing. Fecha de corte: **2026-10-02**.
 
 Handovers previos (aun validos para muros y contrato de insercion; este fichero **actualiza** sesion, home, biblioteca y arranque):
