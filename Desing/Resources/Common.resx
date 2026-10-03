@@ -427,6 +427,51 @@
   <data name="PluginCad_SelectEmpty" xml:space="preserve">
     <value>—</value>
   </data>
+  <data name="PluginCad_SpeedBad" xml:space="preserve">
+    <value>No es buena</value>
+  </data>
+  <data name="PluginCad_SpeedCable" xml:space="preserve">
+    <value>Cable {0} Mb/s</value>
+  </data>
+  <data name="PluginCad_SpeedCableTitle" xml:space="preserve">
+    <value>Cable</value>
+  </data>
+  <data name="PluginCad_SpeedFail" xml:space="preserve">
+    <value>Sin medida de red o servidor</value>
+  </data>
+  <data name="PluginCad_SpeedGood" xml:space="preserve">
+    <value>Buena</value>
+  </data>
+  <data name="PluginCad_SpeedMeasuring" xml:space="preserve">
+    <value>Midiendo red y servidor…</value>
+  </data>
+  <data name="PluginCad_SpeedNet" xml:space="preserve">
+    <value>Red {0} Mb/s</value>
+  </data>
+  <data name="PluginCad_SpeedNetTitle" xml:space="preserve">
+    <value>Red</value>
+  </data>
+  <data name="PluginCad_SpeedOk" xml:space="preserve">
+    <value>Aceptable</value>
+  </data>
+  <data name="PluginCad_SpeedPoor" xml:space="preserve">
+    <value>Regular</value>
+  </data>
+  <data name="PluginCad_SpeedRoundtrip" xml:space="preserve">
+    <value>Ida/vuelta {0} ms</value>
+  </data>
+  <data name="PluginCad_SpeedServer" xml:space="preserve">
+    <value>Servidor {0} ms</value>
+  </data>
+  <data name="PluginCad_SpeedServerTitle" xml:space="preserve">
+    <value>Servidor</value>
+  </data>
+  <data name="PluginCad_SpeedWifi" xml:space="preserve">
+    <value>Wi‑Fi {0} Mb/s</value>
+  </data>
+  <data name="PluginCad_SpeedWifiTitle" xml:space="preserve">
+    <value>Wi‑Fi</value>
+  </data>
   <data name="PluginCad_UserInactive" xml:space="preserve">
     <value>Este usuario está inactivo. Contacta con administración.</value>
   </data>

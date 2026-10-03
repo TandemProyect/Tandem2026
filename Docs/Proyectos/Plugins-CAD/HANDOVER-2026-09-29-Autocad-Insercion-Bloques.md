@@ -1,6 +1,8 @@
 # Handover — AutoCAD inserción de bloques ATK-60
 
-Contrato de diseño (debate 2026-09-29). **Aún no implementado.**
+> **Superado en código (2026-10-02).** INSERT 3D / 3DRef / Xr, nudos, Intro = repetir y DWG en AppData ya están. Contrato geométrico de este fichero sigue valiendo. Estado actual: [HANDOVER-2026-10-02-Autocad-Sesion-Bloquing-Autoload.md](./HANDOVER-2026-10-02-Autocad-Sesion-Bloquing-Autoload.md).
+
+Contrato de diseño (debate 2026-09-29). El aviso «aún no implementado» de abajo es histórico.
 
 Formulario de biblioteca: [HANDOVER-2026-09-29-Autocad-Bloquing.md](./HANDOVER-2026-09-29-Autocad-Bloquing.md)  
 Muros / sesión: [HANDOVER-2026-09-Plugins-Tandem-CAD.md](./HANDOVER-2026-09-Plugins-Tandem-CAD.md)

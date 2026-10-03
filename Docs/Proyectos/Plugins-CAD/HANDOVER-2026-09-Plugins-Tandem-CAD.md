@@ -4,7 +4,7 @@ Documento para **continuar** AutoCAD, BricsCAD y Revit. No es el plugin ZWCAD ni
 
 **Estado:** muro 2D + generar 3D usable; **sesión Desing + abrir diseño (muros) en AutoCAD**; uniones al terminar el 2D y encofrado, pendientes. BricsCAD/Revit aún no tienen el login.
 
-**Biblioteca de bloques (2026-09-29):** formulario listo en AutoCAD; inserción pendiente. Ver [HANDOVER-2026-09-29-Autocad-Bloquing.md](./HANDOVER-2026-09-29-Autocad-Bloquing.md).
+**Biblioteca / sesión (2026-10-02):** INSERT, AppData, home AJAX y autoload ya están. Retomar: [HANDOVER-2026-10-02-Autocad-Sesion-Bloquing-Autoload.md](./HANDOVER-2026-10-02-Autocad-Sesion-Bloquing-Autoload.md). Este fichero sigue valiendo para muros 2D/3D.
 
 ---
 

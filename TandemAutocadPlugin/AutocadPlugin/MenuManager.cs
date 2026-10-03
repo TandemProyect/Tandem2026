@@ -65,6 +65,28 @@ namespace AutocadPlugin
             PaletteHost.Toggle();
         }
 
+        public static void RemoveTandemTab()
+        {
+            try
+            {
+                UnloadLegacyMenus();
+                var ribbon = ComponentManager.Ribbon;
+                if (ribbon == null) return;
+                for (int i = ribbon.Tabs.Count - 1; i >= 0; i--)
+                {
+                    var tab = ribbon.Tabs[i];
+                    if (tab == null) continue;
+                    if (tab.Id == RibbonTabId
+                        || string.Equals(tab.Title, MenuCaption, StringComparison.OrdinalIgnoreCase))
+                        ribbon.Tabs.Remove(tab);
+                }
+                _tandemTab = null;
+            }
+            catch
+            {
+            }
+        }
+
         [CommandMethod("TANDEM_CARGAR_MENU")]
         public void RecargarMenu()
         {

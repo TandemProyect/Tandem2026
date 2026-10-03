@@ -37,6 +37,27 @@
         .plugin-home__empty.is-error { color: #d64545; }
         .plugin-home__status { font-size: 11px; color: #5a8dee; min-height: 16px; }
         .plugin-home__status.is-error { color: #d64545; }
+        .plugin-home__speed {
+            font-size: 13px; color: #5e6a75; border-top: 1px solid #e4e8ee;
+            padding-top: 6px; display: flex; flex-wrap: wrap; gap: 6px 16px;
+            align-items: center;
+        }
+        .plugin-home__speed-item { display: flex; align-items: center; gap: 7px; min-width: 0; }
+        .plugin-home__speed-name { font-weight: 700; color: #2c3340; }
+        .plugin-home__speed-label { font-weight: 600; }
+        .plugin-home__speed-dots { display: flex; gap: 4px; }
+        .plugin-home__speed-dots i {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #d5dee8; display: block;
+        }
+        .plugin-home__speed-item.is-good .plugin-home__speed-dots i.is-on { background: #2f9d6a; }
+        .plugin-home__speed-item.is-good .plugin-home__speed-label { color: #2f9d6a; }
+        .plugin-home__speed-item.is-ok .plugin-home__speed-dots i.is-on { background: #3d8bfd; }
+        .plugin-home__speed-item.is-ok .plugin-home__speed-label { color: #3d8bfd; }
+        .plugin-home__speed-item.is-poor .plugin-home__speed-dots i.is-on { background: #c45c26; }
+        .plugin-home__speed-item.is-poor .plugin-home__speed-label { color: #c45c26; }
+        .plugin-home__speed-item.is-bad .plugin-home__speed-dots i.is-on { background: #d64545; }
+        .plugin-home__speed-item.is-bad .plugin-home__speed-label { color: #d64545; }
     </style>
 }
 
@@ -130,6 +151,18 @@
     </div>
 
     <div class="plugin-home__status" id="plugin-home-status"></div>
+    <div class="plugin-home__speed" id="plugin-home-speed" role="status">
+        <div class="plugin-home__speed-item" data-speed="net">
+            <span class="plugin-home__speed-name" data-speed-name="net">@Common.PluginCad_SpeedWifiTitle</span>
+            <span class="plugin-home__speed-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            <span class="plugin-home__speed-label" data-speed-label="net">@Common.PluginCad_SpeedMeasuring</span>
+        </div>
+        <div class="plugin-home__speed-item" data-speed="server">
+            <span class="plugin-home__speed-name">@Common.PluginCad_SpeedServerTitle</span>
+            <span class="plugin-home__speed-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            <span class="plugin-home__speed-label" data-speed-label="server">@Common.PluginCad_SpeedMeasuring</span>
+        </div>
+    </div>
 </div>
 
 @section scripts {
@@ -147,12 +180,32 @@
             var selectEmpty = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SelectEmpty));
             var urlWalls = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("GetDesignWalls", "Desing_2")));
             var urlHomeData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("PluginHomeData", "DesignToolsAutocad")));
+            var urlPing = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("PluginPing", "DesignToolsAutocad")));
+            var speedMeasuring = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedMeasuring));
+            var speedWifi = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedWifi));
+            var speedCable = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedCable));
+            var speedNet = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedNet));
+            var speedRound = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedRoundtrip));
+            var speedServer = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedServer));
+            var speedFail = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedFail));
+            var speedWifiTitle = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedWifiTitle));
+            var speedCableTitle = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedCableTitle));
+            var speedNetTitle = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedNetTitle));
+            var speedGood = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedGood));
+            var speedOk = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedOk));
+            var speedPoor = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedPoor));
+            var speedBad = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedBad));
             var urlJobside = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("PluginCreateJobside", "DesignToolsAutocad")));
             var urlOffer = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("PluginCreateOffer", "DesignToolsAutocad")));
             var urlDesign = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("PluginCreateDesign", "DesignToolsAutocad")));
             var companyLogoUrl = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject((ViewBag.CompanyLogoUrl as string) ?? ""));
             var statusEl = document.getElementById('plugin-home-status');
+            var speedEl = document.getElementById('plugin-home-speed');
             var searchEl = document.getElementById('plugin-home-search');
+            var nicKind = '';
+            var nicMbps = 0;
+            var lastRound = -1;
+            var lastServer = -1;
             var tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
 
             function post(payload) {
@@ -166,6 +219,114 @@
                 if (!statusEl) return;
                 statusEl.textContent = text || '';
                 statusEl.classList.toggle('is-error', !!isError);
+            }
+
+            function fmt(tpl, value) {
+                return String(tpl || '').replace('{0}', String(value));
+            }
+
+            function netInfo() {
+                if (nicMbps > 0)
+                    return { kind: nicKind || 'net', mbps: nicMbps };
+                try {
+                    var c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                    if (c && c.downlink > 0) {
+                        var t = (c.type || c.effectiveType || '') + '';
+                        return {
+                            kind: t.indexOf('wifi') >= 0 ? 'wifi' : (t.indexOf('ethernet') >= 0 ? 'cable' : 'net'),
+                            mbps: Math.max(1, Math.round(c.downlink))
+                        };
+                    }
+                } catch (e1) { }
+                return { kind: '', mbps: 0 };
+            }
+
+            function qualityFromDots(dots) {
+                if (dots >= 4) return { cls: 'is-good', text: speedGood };
+                if (dots === 3) return { cls: 'is-ok', text: speedOk };
+                if (dots === 2) return { cls: 'is-poor', text: speedPoor };
+                return { cls: 'is-bad', text: speedBad };
+            }
+
+            function netDots(mbps, roundMs) {
+                if (mbps >= 100) return 4;
+                if (mbps >= 50) return 3;
+                if (mbps >= 20) return 2;
+                if (mbps > 0) return 1;
+                if (roundMs < 0) return 0;
+                if (roundMs < 80) return 4;
+                if (roundMs < 200) return 3;
+                if (roundMs < 500) return 2;
+                return 1;
+            }
+
+            function serverDots(ms) {
+                if (ms < 0) return 0;
+                if (ms < 80) return 4;
+                if (ms < 200) return 3;
+                if (ms < 500) return 2;
+                return 1;
+            }
+
+            function paintItem(key, dots, label, tip) {
+                var item = speedEl ? speedEl.querySelector('[data-speed="' + key + '"]') : null;
+                if (!item) return;
+                var q = dots > 0 ? qualityFromDots(dots) : { cls: '', text: speedMeasuring };
+                item.className = 'plugin-home__speed-item' + (q.cls ? ' ' + q.cls : '');
+                var lab = item.querySelector('[data-speed-label]');
+                if (lab) lab.textContent = label || q.text;
+                var dotsEl = item.querySelectorAll('.plugin-home__speed-dots i');
+                for (var i = 0; i < dotsEl.length; i++)
+                    dotsEl[i].className = i < dots ? 'is-on' : '';
+                if (tip) item.setAttribute('title', tip);
+            }
+
+            function paintSpeed() {
+                if (!speedEl) return;
+                var net = netInfo();
+                var nameEl = speedEl.querySelector('[data-speed-name="net"]');
+                if (nameEl)
+                    nameEl.textContent = net.kind === 'cable' ? speedCableTitle : (net.kind === 'net' ? speedNetTitle : speedWifiTitle);
+                var nDots = netDots(net.mbps, lastRound);
+                var nTip = net.mbps > 0
+                    ? fmt(net.kind === 'cable' ? speedCable : (net.kind === 'wifi' ? speedWifi : speedNet), net.mbps)
+                    : (lastRound >= 0 ? fmt(speedRound, lastRound) : speedMeasuring);
+                if (lastRound >= 0) nTip += ' · ' + fmt(speedRound, lastRound);
+                paintItem('net', nDots, nDots > 0 ? qualityFromDots(nDots).text : speedMeasuring, nTip);
+                var sDots = serverDots(lastServer);
+                var sTip = lastServer >= 0 ? fmt(speedServer, lastServer) : speedFail;
+                paintItem('server', sDots, sDots > 0 ? qualityFromDots(sDots).text : (lastServer < 0 && lastRound >= 0 ? speedFail : speedMeasuring), sTip);
+            }
+
+            function measurePing() {
+                if (!urlPing) return;
+                var t0 = Date.now();
+                fetch(urlPing + (urlPing.indexOf('?') >= 0 ? '&' : '?') + 't=' + t0, {
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json' },
+                    cache: 'no-store'
+                }).then(function (r) { return r.json(); }).then(function (data) {
+                    lastRound = Date.now() - t0;
+                    var db = data && (data.dbMs != null ? data.dbMs : data.DbMs);
+                    lastServer = (db != null && db >= 0) ? db : lastRound;
+                    paintSpeed();
+                }).catch(function () {
+                    lastRound = Date.now() - t0;
+                    lastServer = -1;
+                    paintSpeed();
+                });
+            }
+
+            function onHostMessage(raw) {
+                try {
+                    var msg = typeof raw === 'string' ? JSON.parse(raw) : raw;
+                    if (!msg) return;
+                    if (msg.action === 'link-speed' || msg.type === 'link-speed') {
+                        nicKind = (msg.kind || msg.Kind || '') + '';
+                        nicMbps = parseInt(msg.mbps != null ? msg.mbps : msg.Mbps, 10) || 0;
+                        paintSpeed();
+                    }
+                } catch (e2) { }
             }
 
             function token() {
@@ -311,6 +472,7 @@
                 setEmpty('plugin-list-jobsides', loadingHome);
                 setEmpty('plugin-list-offers', loadingHome);
                 setEmpty('plugin-list-designs', loadingHome);
+                var t0 = Date.now();
                 fetch(urlHomeData + (urlHomeData.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now(), {
                     credentials: 'same-origin',
                     headers: { 'Accept': 'application/json' },
@@ -329,6 +491,10 @@
                     }
                     renderHome(data);
                     setStatus('');
+                    lastRound = Date.now() - t0;
+                    var listMs = data.listMs != null ? data.listMs : data.ListMs;
+                    lastServer = (listMs != null && listMs >= 0) ? listMs : lastRound;
+                    paintSpeed();
                 }).catch(function () {
                     setEmpty('plugin-list-jobsides', homeFailed, true);
                     setEmpty('plugin-list-offers', homeFailed, true);
@@ -341,7 +507,14 @@
 
             post({ action: 'company-logo', url: companyLogoUrl });
             post({ action: 'home-ready' });
+            post({ action: 'request-link-speed' });
+            paintSpeed();
+            measurePing();
             loadHome();
+            try {
+                if (window.chrome && window.chrome.webview && window.chrome.webview.addEventListener)
+                    window.chrome.webview.addEventListener('message', function (ev) { onHostMessage(ev.data); });
+            } catch (e3) { }
 
             document.querySelectorAll('[data-plugin-tab]').forEach(function (tab) {
                 tab.addEventListener('click', function () {

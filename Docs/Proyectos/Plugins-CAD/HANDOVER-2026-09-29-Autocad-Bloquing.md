@@ -1,8 +1,10 @@
 # Handover — AutoCAD biblioteca de bloques (bloquing)
 
-Documento para **retomar** el formulario de bloques del plugin AutoCAD 2026. Fecha de corte: **2026-09-29**.
+> **Superado en runtime (2026-10-02).** El formulario sigue; INSERT ya existe; catálogo y DWG viven en `%LocalAppData%\AtDesing`. Retomar: [HANDOVER-2026-10-02-Autocad-Sesion-Bloquing-Autoload.md](./HANDOVER-2026-10-02-Autocad-Sesion-Bloquing-Autoload.md).
 
-**Siguiente fase:** inserción ATK-60 (solo 3D / 3DRef en la primera release). Contrato: [HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md](./HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md). No implementar INSERT hasta que el usuario cierre el debate.
+Documento del formulario de bloques del plugin AutoCAD 2026. Fecha de corte original: **2026-09-29**.
+
+**Siguiente fase (histórica):** inserción ATK-60. Ya implementada; no seguir el «no implementar INSERT» de las secciones de abajo.
 
 Handover previo (muros 2D/3D, sesión, paletas modo/herramientas):  
 [HANDOVER-2026-09-Plugins-Tandem-CAD.md](./HANDOVER-2026-09-Plugins-Tandem-CAD.md)

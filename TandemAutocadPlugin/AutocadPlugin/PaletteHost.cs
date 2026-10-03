@@ -133,6 +133,7 @@ namespace AutocadPlugin
         public static string ResetDeveloperLocalState()
         {
             CloseAll();
+            PluginAutoload.Uninstall();
             Atk60LibrarySync.ClearMemory();
             PluginSessionStore.Clear();
             PluginSplashBrand.Clear();
@@ -428,6 +429,9 @@ namespace AutocadPlugin
             HideSessionWindow();
             ShowToolPalettes();
             WriteMessage("[Tandem] Sesión conectada a " + MvcServerSettings.CurrentLabel() + ". El primer botón abre el menú general.");
+            var installed = PluginAutoload.Install();
+            if (!string.IsNullOrWhiteSpace(installed))
+                WriteMessage("[Tandem] " + installed);
             Atk60LibrarySync.EnsureFolders();
             PushCatalogToBlocks();
             if (_pendingBlocks)
@@ -815,13 +819,19 @@ namespace AutocadPlugin
                 }
 
                 if (string.Equals(action, "home-ready", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(action, "page-ready", StringComparison.OrdinalIgnoreCase))
+                    || string.Equals(action, "page-ready", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(action, "request-link-speed", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (_waitingHome)
+                    if (string.Equals(action, "home-ready", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(action, "page-ready", StringComparison.OrdinalIgnoreCase))
                     {
-                        ShowSessionWindow();
-                        RevealSessionPage();
+                        if (_waitingHome)
+                        {
+                            ShowSessionWindow();
+                            RevealSessionPage();
+                        }
                     }
+                    PushLinkSpeed();
                     return true;
                 }
 
@@ -927,6 +937,7 @@ namespace AutocadPlugin
                     case "polyline": return "._PLINE";
                     case "wall-2d": return Wall2dCommand.CommandName;
                     case "wall-3d": return Wall3dCommand.CommandName;
+                    case "formwork": return FormworkCommand.CommandName;
                     case "insert-enclosure": return "._RECTANG";
                     case "copy": return "._COPY";
                     case "move": return "._MOVE";
@@ -942,6 +953,7 @@ namespace AutocadPlugin
                     case "lines": return "._PLINE";
                     case "wall-2d": return Wall2dCommand.CommandName;
                     case "wall-3d": return Wall3dCommand.CommandName;
+                    case "formwork": return FormworkCommand.CommandName;
                 }
             }
             catch
@@ -955,6 +967,26 @@ namespace AutocadPlugin
         {
             WriteMessage("[Tandem] " + title);
             _session?.AddInstallStep(title);
+        }
+
+        private static void PushLinkSpeed()
+        {
+            try
+            {
+                string kind;
+                int mbps;
+                NetworkLinkInfo.Read(out kind, out mbps);
+                var json = new JObject
+                {
+                    ["action"] = "link-speed",
+                    ["kind"] = kind ?? "",
+                    ["mbps"] = mbps
+                }.ToString(Newtonsoft.Json.Formatting.None);
+                _session?.PostToPage(json);
+            }
+            catch
+            {
+            }
         }
 
         private static void PushCatalogToBlocks()

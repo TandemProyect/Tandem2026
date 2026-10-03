@@ -6,7 +6,7 @@
         ShowInTaskbar="False"
         Topmost="True"
         SizeToContent="Manual"
-        Background="#F5F5F9"
+        Background="#FFFFFF"
         Width="320"
         Height="268">
     <Window.Resources>
@@ -17,7 +17,7 @@
         </LinearGradientBrush>
     </Window.Resources>
     <Border x:Name="RootChrome"
-            Background="{StaticResource SplashBg}"
+            Background="#FFFFFF"
             BorderBrush="#D9DEE8"
             BorderThickness="1"
             CornerRadius="10"
@@ -50,6 +50,45 @@
                            VerticalAlignment="Center"
                            IsHitTestVisible="False" />
             </Border>
+            <Border x:Name="PageLoader"
+                    Background="#FFFFFF"
+                    CornerRadius="9"
+                    Visibility="Collapsed"
+                    IsHitTestVisible="True">
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+                    <Grid Width="16" Height="16" Margin="0,0,8,0">
+                        <Ellipse Stroke="#E8E6F4" StrokeThickness="2" />
+                        <Ellipse Stroke="#349d7d"
+                                 StrokeThickness="2"
+                                 StrokeDashArray="8 12"
+                                 StrokeStartLineCap="Round"
+                                 RenderTransformOrigin="0.5,0.5">
+                            <Ellipse.RenderTransform>
+                                <RotateTransform x:Name="LoaderSpin" />
+                            </Ellipse.RenderTransform>
+                        </Ellipse>
+                    </Grid>
+                    <TextBlock x:Name="PageLoaderText"
+                               Text="Cargando…"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               Foreground="#2C3340"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </Border>
         </Grid>
     </Border>
+    <Window.Triggers>
+        <EventTrigger RoutedEvent="Loaded">
+            <BeginStoryboard>
+                <Storyboard RepeatBehavior="Forever">
+                    <DoubleAnimation Storyboard.TargetName="LoaderSpin"
+                                     Storyboard.TargetProperty="Angle"
+                                     From="0" To="360" Duration="0:0:0.8" />
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </Window.Triggers>
 </Window>

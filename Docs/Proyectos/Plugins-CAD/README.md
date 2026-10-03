@@ -2,11 +2,12 @@
 
 Continuación del trabajo de plugins Tandem 2026, **aparte de ZWCAD**.
 
-**Empezar aquí:**
+**Empezar aquí (AutoCAD, corte 2026-10-02):**
 
-- Muros, sesión, paletas modo/herramientas: [HANDOVER-2026-09-Plugins-Tandem-CAD.md](./HANDOVER-2026-09-Plugins-Tandem-CAD.md)
-- Biblioteca de bloques AutoCAD (formulario listo): [HANDOVER-2026-09-29-Autocad-Bloquing.md](./HANDOVER-2026-09-29-Autocad-Bloquing.md) — local/producción §14.
-- Inserción ATK-60 (3D / 3DRef, sin XREF; aún no código): [HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md](./HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md)
+- **Retomar hoy:** [HANDOVER-2026-10-02-Autocad-Sesion-Bloquing-Autoload.md](./HANDOVER-2026-10-02-Autocad-Sesion-Bloquing-Autoload.md) — sesión persistente, menú obras/ofertas, biblioteca en AppData, insert/convert, autoload, UnAtdesing.
+- Muros / paletas modo-herramientas (base): [HANDOVER-2026-09-Plugins-Tandem-CAD.md](./HANDOVER-2026-09-Plugins-Tandem-CAD.md)
+- Bloquing (formulario, contexto sept-29): [HANDOVER-2026-09-29-Autocad-Bloquing.md](./HANDOVER-2026-09-29-Autocad-Bloquing.md)
+- Contrato de inserción ATK-60 (geométrico; el código **ya existe**): [HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md](./HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md)
 
 | Host | Código | Notas |
 |------|--------|--------|

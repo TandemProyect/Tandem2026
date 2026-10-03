@@ -522,53 +522,17 @@
                         && g.EndZmm != null;
                 });
 
-            function cornerKey(x, z) {
-                return String(Math.round(x)) + '|' + String(Math.round(z));
-            }
-
-            const nodeDegree = Object.create(null);
+            // Recorte 450 mm en nudos: Atk60WallsRepository.SolveFromIdsJson
+            // (mismo código para Desing y AutoCAD). No recortar aquí.
             for (let i = 0; i < wallGeom.length; i++) {
                 const g = wallGeom[i];
-                const ks = cornerKey(g.StartXmm, g.StartZmm);
-                const ke = cornerKey(g.EndXmm, g.EndZmm);
-                nodeDegree[ks] = (nodeDegree[ks] || 0) + 1;
-                nodeDegree[ke] = (nodeDegree[ke] || 0) + 1;
-            }
-
-            const CONNECTED_END_TRIM_MM = 450;
-            for (let i = 0; i < wallGeom.length; i++) {
-                const g = wallGeom[i];
-                const dx = g.EndXmm - g.StartXmm;
-                const dz = g.EndZmm - g.StartZmm;
-                const len = Math.sqrt(dx * dx + dz * dz);
-                if (!(len > 1e-6)) continue;
-
-                const ux = dx / len;
-                const uz = dz / len;
-                const ks = cornerKey(g.StartXmm, g.StartZmm);
-                const ke = cornerKey(g.EndXmm, g.EndZmm);
-                const trimStart = (nodeDegree[ks] || 0) >= 2 ? CONNECTED_END_TRIM_MM : 0;
-                const trimEnd = (nodeDegree[ke] || 0) >= 2 ? CONNECTED_END_TRIM_MM : 0;
-
-                const trimmedLen = Math.max(0, len - trimStart - trimEnd);
-                const newStartX = g.StartXmm + ux * trimStart;
-                const newStartZ = g.StartZmm + uz * trimStart;
-                const newEndX = newStartX + ux * trimmedLen;
-                const newEndZ = newStartZ + uz * trimmedLen;
-
                 g.RawStartXmm = g.StartXmm;
                 g.RawStartZmm = g.StartZmm;
                 g.RawEndXmm = g.EndXmm;
                 g.RawEndZmm = g.EndZmm;
-                g.RawLengthMm = len;
-                g.TrimStartMm = trimStart;
-                g.TrimEndMm = trimEnd;
-
-                g.StartXmm = newStartX;
-                g.StartZmm = newStartZ;
-                g.EndXmm = newEndX;
-                g.EndZmm = newEndZ;
-                g.LengthMm = trimmedLen;
+                g.RawLengthMm = g.LengthMm;
+                g.TrimStartMm = 0;
+                g.TrimEndMm = 0;
             }
 
             const wallGeomById = Object.create(null);

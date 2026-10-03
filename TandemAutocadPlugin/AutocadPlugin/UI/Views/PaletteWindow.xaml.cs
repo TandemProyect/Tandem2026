@@ -30,6 +30,7 @@ namespace AutocadPlugin.UI.Views
         public event Action<Uri> Navigated;
         public string LayoutId { get; set; }
         private bool _placing;
+        private bool _pageShown;
 
         public PaletteWindow(string url, double width, double height, bool allowResize = false, bool authSplash = false)
         {
@@ -42,6 +43,10 @@ namespace AutocadPlugin.UI.Views
             _allowResize = allowResize;
             if (_allowResize)
                 ResizeMode = ResizeMode.CanResizeWithGrip;
+
+            Background = Brushes.White;
+            if (!_authSplash)
+                ShowPageLoader();
 
             if (_authSplash)
             {
@@ -382,12 +387,50 @@ namespace AutocadPlugin.UI.Views
             _ = ClearCookiesForSiteAsync(web, siteUrl, all: true);
         }
 
+        private void ShowPageLoader()
+        {
+            try
+            {
+                Background = Brushes.White;
+                if (RootChrome != null)
+                    RootChrome.Background = Brushes.White;
+                if (PageLoader != null)
+                {
+                    PageLoader.Visibility = Visibility.Visible;
+                    if (PageLoaderText != null)
+                        PageLoaderText.Text = "Cargando…";
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        public void HidePageLoader()
+        {
+            if (_pageShown)
+            {
+                try { AttachWeb(); } catch { }
+                return;
+            }
+            _pageShown = true;
+            try
+            {
+                AttachWeb();
+                if (PageLoader != null)
+                    PageLoader.Visibility = Visibility.Collapsed;
+            }
+            catch
+            {
+            }
+        }
+
         private void EnsureWebControl()
         {
             if (Web != null) return;
             Web = new WebView2
             {
-                DefaultBackgroundColor = System.Drawing.Color.FromArgb(255, 245, 245, 249),
+                DefaultBackgroundColor = System.Drawing.Color.White,
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 VerticalAlignment = VerticalAlignment.Stretch
             };
@@ -434,7 +477,7 @@ namespace AutocadPlugin.UI.Views
             MaxWidth = double.PositiveInfinity;
             MinWidth = 120;
             MinHeight = 58;
-            AttachWeb();
+            HidePageLoader();
         }
 
         private void HideWebHwnd()
@@ -556,10 +599,9 @@ namespace AutocadPlugin.UI.Views
                 }
 
                 EnsureWebControl();
-                if (_authSplash)
-                    ParkWeb();
-                else
-                    AttachWeb();
+                ParkWeb();
+                if (!_authSplash)
+                    ShowPageLoader();
 
                 PrepareNativeLoader();
                 var userData = UserDataDir();
@@ -567,7 +609,7 @@ namespace AutocadPlugin.UI.Views
                 await Web.EnsureCoreWebView2Async(env);
                 try
                 {
-                    Web.DefaultBackgroundColor = System.Drawing.Color.FromArgb(255, 245, 245, 249);
+                    Web.DefaultBackgroundColor = System.Drawing.Color.White;
                 }
                 catch
                 {
@@ -593,9 +635,11 @@ namespace AutocadPlugin.UI.Views
                     if (!string.IsNullOrWhiteSpace(text))
                         MessageReceived?.Invoke(text);
                 };
-                Web.CoreWebView2.NavigationCompleted += (_, __) =>
+                Web.CoreWebView2.NavigationCompleted += (_, args) =>
                 {
                     try { Navigated?.Invoke(Web.Source); } catch { }
+                    if (!_authSplash && args != null && args.IsSuccess)
+                        HidePageLoader();
                 };
                 if (_authSplash && PluginSplashBrand.ForceDefaultUntilPlantilla)
                 {

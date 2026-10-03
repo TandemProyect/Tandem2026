@@ -161,4 +161,31 @@ namespace AutocadPlugin.Models
         public List<PolilineaDTO> PolilineasADibujar { get; set; }
         public string Mensaje { get; set; }
     }
+
+    public class Atk60FormworkResponse
+    {
+        public bool Exito { get; set; }
+        public string Mensaje { get; set; }
+        public int WallsCount { get; set; }
+        public int ElementsForThreeJsCount { get; set; }
+        public Atk60FormworkPaint ElementsForThreeJs { get; set; }
+    }
+
+    public class Atk60FormworkPaint
+    {
+        public List<Atk60FormworkElement> Elements { get; set; }
+    }
+
+    public class Atk60FormworkElement
+    {
+        public string ElementCode { get; set; }
+        public string ImportPath { get; set; }
+        public string Orientation { get; set; }
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double Z { get; set; }
+        public double RotY { get; set; }
+        public double PieceWidthMm { get; set; }
+        public bool IsMirrored { get; set; }
+    }
 }

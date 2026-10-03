@@ -112,6 +112,41 @@ namespace AutocadPlugin
             }
         }
 
+        public async Task<Atk60FormworkResponse> EncofrarAtk60Async(string idsJson)
+        {
+            Bind();
+            try
+            {
+                var content = new FormUrlEncodedContent(new[]
+                {
+                    new KeyValuePair<string, string>("IdsJson", idsJson ?? "")
+                });
+                var response = await _httpClient.PostAsync("DesignToolsAutocad/PluginEncofrarAtk60", content);
+                var responseJson = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                {
+                    var apiMsg = TryExtractApiMensaje(responseJson);
+                    throw new Exception($"Error del servidor ({(int)response.StatusCode}): {apiMsg ?? responseJson}");
+                }
+
+                if (string.IsNullOrWhiteSpace(responseJson)
+                    || responseJson.TrimStart().StartsWith("<", StringComparison.Ordinal))
+                {
+                    throw new Exception(
+                        "El servidor devolvió HTML en lugar de JSON. Arranca Develop (IIS Express) y vuelve a Encofrar.");
+                }
+
+                var result = JsonConvert.DeserializeObject<Atk60FormworkResponse>(responseJson);
+                if (result == null)
+                    throw new Exception("Respuesta vacía o JSON inválido del encofrado ATK-60.");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw PluginExceptionHelper.Wrap("Error al encofrar ATK-60", ex, BaseUrl);
+            }
+        }
+
         public async Task<ApiResponse<DeteccionEsquinasLDTO>> EnviarLineasSeleccionadasAsync(SeleccionLineasDTO seleccion)
         {
             Bind();

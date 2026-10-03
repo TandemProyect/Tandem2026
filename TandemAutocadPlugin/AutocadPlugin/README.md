@@ -2,11 +2,12 @@
 
 Class Library (`net8.0-windows`) para AutoCAD 2026. Paletas MVC, muro 2D y generar 3D.
 
-**Handover:**
+**Handover (leer primero el de 2026-10-02):**
 
-- Muros / sesión: [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md)
-- Biblioteca de bloques (formulario listo): [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-29-Autocad-Bloquing.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-29-Autocad-Bloquing.md)
-- Inserción ATK-60 3D/3DRef (contrato, sin código): [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md)
+- Sesión, home, AppData, insert/convert, autoload: [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-10-02-Autocad-Sesion-Bloquing-Autoload.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-10-02-Autocad-Sesion-Bloquing-Autoload.md)
+- Muros / paletas base: [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md)
+- Bloquing (contexto sept-29): [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-29-Autocad-Bloquing.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-29-Autocad-Bloquing.md)
+- Contrato geométrico inserción ATK-60 (el código **ya existe**): [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md)
 
 ## Compilar
 
@@ -26,15 +27,19 @@ NETLOAD → TandemAutocadPlugin\AutocadPlugin\bin\Debug\AutocadPlugin.dll
 
 Pestaña **Tandem 2026** o comando `TANDEM`. Por defecto habla con **https://localhost:44384/** (`TANDEM_LOCAL`). Producción: `TANDEM_PRODUCCION` (tdesing.net). Override: `TANDEM_MVC_BASE_URL`.
 
-Si no hay sesión, aparece el **login de Desing**. Tras conectar, paletas de modo/herramientas; el primer botón abre el menú de diseños. Biblioteca de bloques: botón de la barra de modo o `INSERTARBLOQUE`.
+Si no hay sesión, aparece el **login de Desing**. Tras **conectar una vez**, AutoCAD autoload al día siguiente (`%LocalAppData%\AtDesing\Plugin` + registro). Los desarrolladores siguen usando NETLOAD para un `bin\DebugN` nuevo.
 
-Abre paletas (sin título, compactas, se mueven):
+Tras conectar: paletas de modo/herramientas. El **primer botón** de la barra izquierda abre el menú de obras/ofertas/diseños (`PluginReady` + `PluginHomeData`). **Actualizar** biblioteca está en esa barra, **antes** del home. Bloquing: botón de modo o `INSERTARBLOQUE` / `TANDEM_INSERTBLOQUE`.
 
-- `DesignToolsAutocad/PaletteMode` — modo + Atk-60 + abrir bloques
+Abre paletas (sin título, compactas, arrastrables; recuerdan sitio):
+
+- `DesignToolsAutocad/PaletteMode` — modo + Atk-60 + Actualizar + home
 - `DesignToolsAutocad/PaletteTools` — herramientas CAD de Desing_2
-- `DesignToolsAutocad/PluginBlocks` — biblioteca (formulario; no inserta aún)
+- `DesignToolsAutocad/PluginBlocks` — biblioteca local (inserta 3D / 3DRef / Xr)
 
-Cada `dotnet build` copia a `bin\DebugN` si AutoCAD bloquea `bin\Debug`. **Cerrar AutoCAD** antes de NETLOAD de una DLL nueva; si no, los mensajes `collapse-blocks` se imprimen como `[Tandem paleta]`.
+Cada `dotnet build` copia a `bin\DebugN` si AutoCAD bloquea `bin\Debug`. NETLOAD esa carpeta. Tras conectar, `PluginAutoload` actualiza la copia en AppData.
+
+DWG de usuario: **solo** `%LocalAppData%\AtDesing\Content\Data\Block\{3D,3DRef,Xr}`. El repo no existe en el PC del cliente.
 
 No se usa el submenú CUI clásico (Panel / Detectar / …).
 
@@ -45,14 +50,17 @@ No se usa el submenú CUI clásico (Panel / Detectar / …).
 | `TANDEM` | Mostrar/ocultar paletas MVC |
 | `TANDEM_MURO2D` | Dibujar muro 2D (eje + caras 300 mm) |
 | `TANDEM_MURO3D` / `GENERAR3D` | Sólidos 3D vía `LCornerDetector` |
+| `TANDEM_INSERTBLOQUE` / `INSERTARBLOQUE` | Insertar bloque ATK-60 desde la paleta; **Intro** repite el último |
+| `TANDEM_CAMBIARBLOQUES` | Convertir 3D / 3DRef / Xr (popup compacto) |
+| `TANDEM_ENCOFRAR` / `ENCOFRAR` | Muros rectos: misma lógica que Desing (`SolveFromIdsJson`); inserta DWG |
 | `TANDEM_PROBAR_CONEXION` | Ping al MVC |
 | `TANDEM_LOCAL` | Destino IIS Express (`localhost:44384`) y recarga paletas |
 | `TANDEM_PRODUCCION` | Destino tdesing.net y recarga paletas |
 | `TANDEM_SERVIDOR` | Muestra URL activa |
 | `TANDEM_CARGAR_MENU` | Recarga ribbon |
-| `UnAtdesing` | Desarrolladores: borra sesión, cookies WebView2 y biblioteca local (confirma con `SI`). Si AutoCAD bloquea ficheros, cerrar CAD y `reset-cad-dev-local.ps1` |
+| `UnAtdesing` | Desinstala: quita autoload/ribbon, borra WebView2 y `%LocalAppData%\AtDesing` (confirma `SI`). Cerrar AutoCAD. Script: `reset-cad-dev-local.ps1` |
 
-`INSERTARBLOQUE` abre la biblioteca de bloques (formulario). La inserción en el DWG está pendiente (ver handover bloquing). Otros stubs ZWCAD (`DETECTARMUROS`, …) siguen sin lógica.
+Otros stubs ZWCAD (`DETECTARMUROS`, …) siguen sin lógica.
 
 ## Documentación
 

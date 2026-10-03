@@ -69,6 +69,19 @@ namespace Desing.Repositories.RepositoryCommun
         public List<Atk60ElementPaintItem> Elements { get; set; } = new List<Atk60ElementPaintItem>();
     }
 
+    /// <summary>
+    /// Resultado único de encofrado ATK-60. Lo usan Desing_2 y el plugin CAD.
+    /// Cualquier cambio de lógica entra aquí, no en los controladores ni en AutoCAD.
+    /// </summary>
+    public sealed class Atk60FormworkSolveResult
+    {
+        public string System { get; set; }
+        public string IdsJson { get; set; }
+        public List<Desing2FormworkWallDto> Walls { get; set; }
+        public List<ModulosAtk60Wall> Modulos { get; set; }
+        public Atk60ThreeJsPaintPayload ElementsForThreeJs { get; set; }
+    }
+
     public sealed class Atk60WallPaintAnchor
     {
         public string IdWall { get; set; }

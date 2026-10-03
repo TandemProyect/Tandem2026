@@ -4,9 +4,10 @@ Código: `TandemAutocadPlugin/AutocadPlugin/`
 
 **Estado actual y cómo continuar:**
 
-- Muros / sesión: [HANDOVER-2026-09-Plugins-Tandem-CAD.md](../Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md)
-- Biblioteca de bloques: [HANDOVER-2026-09-29-Autocad-Bloquing.md](../Plugins-CAD/HANDOVER-2026-09-29-Autocad-Bloquing.md)
-- Inserción 3D/3DRef: [HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md](../Plugins-CAD/HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md)
+- **Retomar (2026-10-02):** [HANDOVER-2026-10-02-Autocad-Sesion-Bloquing-Autoload.md](../Plugins-CAD/HANDOVER-2026-10-02-Autocad-Sesion-Bloquing-Autoload.md)
+- Muros / paletas base: [HANDOVER-2026-09-Plugins-Tandem-CAD.md](../Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md)
+- Bloquing (contexto sept-29): [HANDOVER-2026-09-29-Autocad-Bloquing.md](../Plugins-CAD/HANDOVER-2026-09-29-Autocad-Bloquing.md)
+- Contrato geométrico INSERT (código ya existe): [HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md](../Plugins-CAD/HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md)
 
 ## Cargar
 

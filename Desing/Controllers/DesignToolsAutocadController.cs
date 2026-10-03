@@ -21,6 +21,8 @@ using System.Web;
 using System.Web.Mvc;
 using Desing.Helpers;
 using Desing.Models;
+using Desing.Repositories.RepositoryAtk60;
+using Desing.Repositories.RepositoryCommun;
 using Desing.Resources;
 using Desing.Services;
 using Microsoft.AspNet.Identity;
@@ -258,6 +260,30 @@ namespace Desing.Controllers
             });
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        [OutputCache(NoStore = true, Duration = 0, VaryByParam = "*")]
+        public ActionResult PluginPing()
+        {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            long dbMs = -1;
+            try
+            {
+                db.Database.SqlQuery<int>("SELECT CAST(1 AS INT)").FirstOrDefault();
+                dbMs = sw.ElapsedMilliseconds;
+            }
+            catch
+            {
+                dbMs = -1;
+            }
+            return Json(new
+            {
+                ok = dbMs >= 0,
+                dbMs,
+                serverMs = sw.ElapsedMilliseconds
+            }, JsonRequestBehavior.AllowGet);
+        }
+
         /// <summary>
         /// Listados vivos de obras / ofertas / diseños para el menú general CAD.
         /// </summary>
@@ -271,10 +297,12 @@ namespace Desing.Controllers
 
             try
             {
+                var sw = System.Diagnostics.Stopwatch.StartNew();
                 var vm = LoadPluginHomeLists();
                 var json = Json(new
                 {
                     ok = true,
+                    listMs = sw.ElapsedMilliseconds,
                     userName = User.Identity.Name ?? "",
                     jobsides = vm.Jobsides.Select(j => new { id = j.Id, code = j.Code ?? "", label = j.Label ?? "" }).ToList(),
                     offers = vm.Offers.Select(o => new { id = o.Id, jobsideId = o.JobsideId, number = o.Number ?? "", label = o.Label ?? "" }).ToList(),
@@ -1246,6 +1274,44 @@ namespace Desing.Controllers
             insert.Layer = new Layer("ATK_Panel");
             //insert.Layer.Color.Index = 4;
             doc.Entities.Add(insert);
+        }
+
+        /// <summary>
+        /// Encofrado ATK-60 para el plugin CAD. Llama a la misma SolveFromIdsJson
+        /// que Desing_2/GetWallsAtk-60. Aquí no hay otra lógica de paneles.
+        /// </summary>
+        [HttpPost]
+        [AllowAnonymous]
+        [ActionName("PluginEncofrarAtk60")]
+        public JsonResult PluginEncofrarAtk60(Desing2WallIdsRequest idsRequest)
+        {
+            try
+            {
+                var jsonRaw = idsRequest != null ? idsRequest.IdsJson : null;
+                var solved = new Atk60WallsRepository(new FormworkJsonCommonRepository())
+                    .SolveFromIdsJson(jsonRaw);
+                var walls = solved.Walls;
+                var modulos = solved.Modulos;
+                var elementsForThreeJs = solved.ElementsForThreeJs;
+                var result = Json(new
+                {
+                    Exito = true,
+                    System = solved.System,
+                    WallsCount = walls != null ? walls.Count : 0,
+                    ModulosCount = modulos != null ? modulos.Count : 0,
+                    ElementsForThreeJsCount = elementsForThreeJs != null && elementsForThreeJs.Elements != null
+                        ? elementsForThreeJs.Elements.Count
+                        : 0,
+                    ElementsForThreeJs = elementsForThreeJs,
+                    Walls = walls
+                });
+                result.MaxJsonLength = int.MaxValue;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Exito = false, Mensaje = ex.Message });
+            }
         }
 
         /// <summary>

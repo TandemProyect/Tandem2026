@@ -82,7 +82,7 @@ namespace AutocadPlugin
 
             ed.WriteMessage("\n=== Plugin AutoCAD 2026 - Tandem ===");
             ed.WriteMessage("\nComandos: TANDEM, MVCCONEXION, TANDEM_MURO2D, TANDEM_MURO3D,");
-            ed.WriteMessage("\n          GENERAR3D, REGENERAR3D, TANDEM_ABRIRDISENO, INSERTARBLOQUE, TANDEM_INSERTBLOQUE, TANDEM_CAMBIARBLOQUE,");
+            ed.WriteMessage("\n          GENERAR3D, REGENERAR3D, TANDEM_ENCOFRAR, TANDEM_ABRIRDISENO, INSERTARBLOQUE, TANDEM_INSERTBLOQUE, TANDEM_CAMBIARBLOQUE,");
             ed.WriteMessage("\n          TANDEM_LOCAL, TANDEM_PRODUCCION, TANDEM_SERVIDOR,");
             ed.WriteMessage("\n          TANDEM_PROBAR_CONEXION, TANDEM_DEVICE_ID, TANDEM_CARGAR_MENU, UnAtdesing");
             ed.WriteMessage($"\nServidor MVC: {MvcServerSettings.CurrentLabel()} — {MvcServerSettings.CurrentUrl()}");
@@ -146,7 +146,7 @@ namespace AutocadPlugin
             Editor ed = GetEditor();
             if (ed != null)
             {
-                var confirm = ed.GetString("\n[Tandem] Borra sesión, cookies y biblioteca local. Escribe SI para confirmar: ");
+                var confirm = ed.GetString("\n[Tandem] Desinstala TDesing (menú, arranque automático, sesión y biblioteca). Escribe SI para confirmar: ");
                 if (confirm.Status != PromptStatus.OK
                     || !string.Equals((confirm.StringResult ?? "").Trim(), "SI", StringComparison.OrdinalIgnoreCase))
                 {
@@ -159,7 +159,7 @@ namespace AutocadPlugin
             ed = GetEditor();
             if (ed == null) return;
             ed.WriteMessage("\n[Tandem] Reset de desarrollador:\n" + report);
-            ed.WriteMessage("[Tandem] Estado de fábrica. Vuelve a conectar con TANDEM o MVCCONEXION.\n");
+            ed.WriteMessage("[Tandem] Desinstalado. Cierra AutoCAD. Para volver a usarlo: NETLOAD y conectar otra vez.\n");
         }
 
         [CommandMethod("TANDEM_DEVICE_ID")]

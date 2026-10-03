@@ -331,22 +331,19 @@ namespace Desing.Controllers
             {
                 var jsonRaw = idsRequest != null ? idsRequest.IdsJson : null;
                 const string buildStamp = "ATK60-BACKEND-2026-07-17-FACESIGN-POSE";
-                var repository = new Atk60WallsRepository(new FormworkJsonCommonRepository());
-                var payload = repository.BuildPayloadFromIdsJson(jsonRaw);
-
-                var walls = payload.Walls;
-                var modulos = repository.GetWallsForCadSystems(walls);
-                var elementsForThreeJs = repository.BuildThreeJsPaintPayload(walls, modulos);
+                var solved = new Atk60WallsRepository(new FormworkJsonCommonRepository())
+                    .SolveFromIdsJson(jsonRaw);
+                var walls = solved.Walls;
+                var modulos = solved.Modulos;
+                var elementsForThreeJs = solved.ElementsForThreeJs;
                 SaveAtk60RequestDebugToTemp(jsonRaw, walls, modulos, elementsForThreeJs, buildStamp);
 
-                // Aqui insertaremos la logica de encofrado ATK-60 a partir de la lista de muros rectos.
-                // Cada item ya llega con su Id y con sus atributos dinamicos.
                 return Json(new
                 {
                     Exito = true,
-                    System = payload.System,
+                    System = solved.System,
                     WallsCount = walls != null ? walls.Count : 0,
-                    ListCount = payload.List != null ? payload.List.Count : 0,
+                    ListCount = walls != null ? walls.Count : 0,
                     IdsJsonCount = !string.IsNullOrWhiteSpace(jsonRaw) ? (walls != null ? walls.Count : 0) : 0,
                     IdsJsonLength = string.IsNullOrWhiteSpace(jsonRaw) ? 0 : jsonRaw.Length,
                     ModulosCount = modulos != null ? modulos.Count : 0,

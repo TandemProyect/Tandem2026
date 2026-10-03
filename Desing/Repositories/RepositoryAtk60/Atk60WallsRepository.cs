@@ -17,6 +17,7 @@ namespace Desing.Repositories.RepositoryAtk60
         private static readonly int[] Atk60FillModuleMm = { 2400, 1200, 900, 750, 600, 450, 300 };
         private const int Atk60BaseModuleMm = 2700;
         private const int Atk60MaxRemateMm = 149;
+        private const double ConnectedEndTrimMm = 450d;
 
         public Atk60WallsRepository(FormworkJsonCommonRepository common)
         {
@@ -33,6 +34,26 @@ namespace Desing.Repositories.RepositoryAtk60
                 System = "Atk-60",
                 Walls = walls ?? new List<Desing2FormworkWallDto>(),
                 List = walls ?? new List<Desing2FormworkWallDto>(),
+            };
+        }
+
+        /// <summary>
+        /// Única entrada de encofrado ATK-60 para Desing y para CAD.
+        /// Recorte de nudos, empaquetado de módulos y pose de paneles viven aquí.
+        /// </summary>
+        public Atk60FormworkSolveResult SolveFromIdsJson(string idsJson)
+        {
+            var payload = BuildPayloadFromIdsJson(idsJson);
+            var walls = payload.Walls ?? new List<Desing2FormworkWallDto>();
+            ApplyConnectedEndTrim(walls);
+            var modulos = GetWallsForCadSystems(walls);
+            return new Atk60FormworkSolveResult
+            {
+                System = payload.System,
+                IdsJson = idsJson,
+                Walls = walls,
+                Modulos = modulos,
+                ElementsForThreeJs = BuildThreeJsPaintPayload(walls, modulos)
             };
         }
 
@@ -96,6 +117,155 @@ namespace Desing.Repositories.RepositoryAtk60
             }
 
             return modulos;
+        }
+
+        private static void ApplyConnectedEndTrim(List<Desing2FormworkWallDto> walls)
+        {
+            if (walls == null || walls.Count < 2)
+            {
+                return;
+            }
+
+            var segs = new List<Atk60TrimSeg>();
+            for (var i = 0; i < walls.Count; i++)
+            {
+                var wall = walls[i];
+                if (wall == null)
+                {
+                    continue;
+                }
+
+                var geom = ResolveWallGeom(wall);
+                if (geom == null || !geom.StartX.HasValue || !geom.StartZ.HasValue
+                    || !geom.EndX.HasValue || !geom.EndZ.HasValue)
+                {
+                    continue;
+                }
+
+                segs.Add(new Atk60TrimSeg
+                {
+                    Wall = wall,
+                    Sx = geom.StartX.Value,
+                    Sz = geom.StartZ.Value,
+                    Ex = geom.EndX.Value,
+                    Ez = geom.EndZ.Value
+                });
+            }
+
+            if (segs.Count < 2)
+            {
+                return;
+            }
+
+            var degree = new Dictionary<string, int>(StringComparer.Ordinal);
+            for (var i = 0; i < segs.Count; i++)
+            {
+                var s = segs[i];
+                var ks = CornerKeyMm(s.Sx, s.Sz);
+                var ke = CornerKeyMm(s.Ex, s.Ez);
+                int ns;
+                degree[ks] = degree.TryGetValue(ks, out ns) ? ns + 1 : 1;
+                int ne;
+                degree[ke] = degree.TryGetValue(ke, out ne) ? ne + 1 : 1;
+            }
+
+            for (var i = 0; i < segs.Count; i++)
+            {
+                var s = segs[i];
+                var dx = s.Ex - s.Sx;
+                var dz = s.Ez - s.Sz;
+                var len = Math.Sqrt(dx * dx + dz * dz);
+                if (len < 1e-6)
+                {
+                    continue;
+                }
+
+                var ux = dx / len;
+                var uz = dz / len;
+                int ds;
+                int de;
+                var trimStart = degree.TryGetValue(CornerKeyMm(s.Sx, s.Sz), out ds) && ds >= 2
+                    ? ConnectedEndTrimMm
+                    : 0d;
+                var trimEnd = degree.TryGetValue(CornerKeyMm(s.Ex, s.Ez), out de) && de >= 2
+                    ? ConnectedEndTrimMm
+                    : 0d;
+                var trimmed = Math.Max(0d, len - trimStart - trimEnd);
+                var nsx = s.Sx + ux * trimStart;
+                var nsz = s.Sz + uz * trimStart;
+                var nex = nsx + ux * trimmed;
+                var nez = nsz + uz * trimmed;
+                WriteTrimmedAxis(s.Wall, nsx, nsz, nex, nez, trimmed);
+            }
+        }
+
+        private static string CornerKeyMm(double x, double z)
+        {
+            return ((int)Math.Round(x)).ToString() + "|" + ((int)Math.Round(z)).ToString();
+        }
+
+        private static void WriteTrimmedAxis(
+            Desing2FormworkWallDto wall,
+            double startX,
+            double startZ,
+            double endX,
+            double endZ,
+            double lengthMm)
+        {
+            if (wall == null)
+            {
+                return;
+            }
+
+            if (wall.Attributes == null)
+            {
+                wall.Attributes = new AttributesList();
+            }
+
+            var attrs = wall.Attributes;
+            if (attrs.Extra == null)
+            {
+                attrs.Extra = new Dictionary<string, JToken>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            attrs._Datalong = Math.Round(lengthMm / 1000d, 6);
+            SetExtraNumber(attrs, "InicioX", startX);
+            SetExtraNumber(attrs, "InicioY", startZ);
+            SetExtraNumber(attrs, "InicioZ", 0d);
+            SetExtraNumber(attrs, "FinX", endX);
+            SetExtraNumber(attrs, "FinY", endZ);
+            SetExtraNumber(attrs, "FinZ", 0d);
+            SetExtraPointMm(attrs, "p1", startX, 0d, startZ);
+            SetExtraPointMm(attrs, "P1", startX, 0d, startZ);
+            SetExtraPointMm(attrs, "p2", endX, 0d, endZ);
+            SetExtraPointMm(attrs, "P2", endX, 0d, endZ);
+        }
+
+        private static void SetExtraNumber(AttributesList attrs, string key, double value)
+        {
+            attrs.Extra[key] = value;
+        }
+
+        private static void SetExtraPointMm(AttributesList attrs, string key, double x, double y, double z)
+        {
+            attrs.Extra[key] = new JObject
+            {
+                ["x"] = x,
+                ["y"] = y,
+                ["z"] = z,
+                ["xMm"] = x,
+                ["yMm"] = y,
+                ["zMm"] = z
+            };
+        }
+
+        private sealed class Atk60TrimSeg
+        {
+            public Desing2FormworkWallDto Wall;
+            public double Sx;
+            public double Sz;
+            public double Ex;
+            public double Ez;
         }
 
         public Atk60ThreeJsPaintPayload BuildThreeJsPaintPayload(

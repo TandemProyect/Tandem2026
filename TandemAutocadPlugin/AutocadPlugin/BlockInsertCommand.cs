@@ -417,7 +417,7 @@ namespace AutocadPlugin
             }
         }
 
-        private static Matrix3d PanelOrient(double scale, bool tumbado)
+        internal static Matrix3d PanelOrient(double scale, bool tumbado)
         {
             var m = Matrix3d.Scaling(scale, Point3d.Origin);
             if (tumbado)
@@ -485,7 +485,7 @@ namespace AutocadPlugin
             return ca.Xaxis.IsEqualTo(cb.Xaxis, ta) && ca.Zaxis.IsEqualTo(cb.Zaxis, ta);
         }
 
-        private static void ApplyPanelMatrix(BlockReference br, Point3d at, Matrix3d orient)
+        internal static void ApplyPanelMatrix(BlockReference br, Point3d at, Matrix3d orient)
         {
             br.BlockTransform = Matrix3d.Displacement(at.GetAsVector()) * orient;
         }
