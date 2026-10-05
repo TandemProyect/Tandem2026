@@ -194,6 +194,17 @@ namespace AutocadPlugin.UI.Views
             });
         }
 
+        public void SetLinkQuality(string wifiLine, string serverLine)
+        {
+            RunOnUi(() =>
+            {
+                if (WifiQualityText != null)
+                    WifiQualityText.Text = string.IsNullOrWhiteSpace(wifiLine) ? "Wi‑Fi · Midiendo…" : wifiLine;
+                if (ServerQualityText != null)
+                    ServerQualityText.Text = string.IsNullOrWhiteSpace(serverLine) ? "Servidor · Midiendo…" : serverLine;
+            });
+        }
+
         public void SetProgressTitle(string title)
         {
             RunOnUi(() =>

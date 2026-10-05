@@ -26,6 +26,8 @@ namespace AutocadPlugin.UI.Views
         private DateTime _etaStartedAt;
         private int _etaPredictedMs;
         private bool _etaCold;
+        private DateTime _lastQualityPingAt = DateTime.MinValue;
+        private bool _qualityPingBusy;
         public event Action<string> MessageReceived;
         public event Action<Uri> Navigated;
         public string LayoutId { get; set; }
@@ -555,6 +557,45 @@ namespace AutocadPlugin.UI.Views
             var remaining = Math.Max(1100, (int)(_etaPredictedMs - elapsed * 0.72));
             var coldHang = _etaCold && elapsed > _etaPredictedMs;
             _splashPopup.SetProgressDetail(FirstRunEta(ConnectEta.Format(remaining, coldHang)));
+            RefreshLinkQuality();
+        }
+
+        private void RefreshLinkQuality()
+        {
+            if (_splashPopup == null)
+                return;
+            try
+            {
+                _splashPopup.SetLinkQuality(NetworkLinkInfo.FormatWifiLine(), NetworkLinkInfo.FormatServerLine());
+            }
+            catch
+            {
+            }
+
+            if (_qualityPingBusy || (DateTime.UtcNow - _lastQualityPingAt).TotalMilliseconds < 2500)
+                return;
+            _qualityPingBusy = true;
+            _lastQualityPingAt = DateTime.UtcNow;
+            Task.Run(() =>
+            {
+                NetworkLinkInfo.RefreshServerPing();
+                try
+                {
+                    Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        _qualityPingBusy = false;
+                        if (_splashPopup == null)
+                            return;
+                        _splashPopup.SetLinkQuality(
+                            NetworkLinkInfo.FormatWifiLine(),
+                            NetworkLinkInfo.FormatServerLine());
+                    }));
+                }
+                catch
+                {
+                    _qualityPingBusy = false;
+                }
+            });
         }
 
         private static string FirstRunEta(string eta)

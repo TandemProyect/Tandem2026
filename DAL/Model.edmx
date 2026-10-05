@@ -448,6 +448,34 @@
           <Property Name="AddDateMade" Type="datetime" Nullable="false" />
           <Property Name="AddLastDateChange" Type="datetime" />
           <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
+          <Property Name="Is_Special" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TSql_DesignWallArticle">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TextLabel" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="LinkDesign_V2" Type="bigint" Nullable="false" />
+          <Property Name="LinkDesignWall" Type="bigint" Nullable="false" />
+          <Property Name="LinkMasterArticle" Type="bigint" />
+          <Property Name="TextCode" Type="nvarchar" MaxLength="50" />
+          <Property Name="TextView" Type="nvarchar" MaxLength="20" Nullable="false" />
+          <Property Name="NumberSequence" Type="bigint" Nullable="false" />
+          <Property Name="NumberInsertX" Type="float" Nullable="false" />
+          <Property Name="NumberInsertY" Type="float" Nullable="false" />
+          <Property Name="NumberInsertZ" Type="float" Nullable="false" />
+          <Property Name="NumberXRotation" Type="float" Nullable="false" />
+          <Property Name="NumberYRotation" Type="float" Nullable="false" />
+          <Property Name="NumberZRotation" Type="float" Nullable="false" />
+          <Property Name="TextHandleCad" Type="nvarchar" MaxLength="50" />
+          <Property Name="Is_Delete" Type="bit" Nullable="false" />
+          <Property Name="Is_Active" Type="bit" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AddDateMade" Type="datetime" Nullable="false" />
+          <Property Name="AddLastDateChange" Type="datetime" />
+          <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
         </EntityType>
         <EntityType Name="TSql_Document">
           <Key>
@@ -1423,6 +1451,42 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_TSql_DesignWallArticle_TSql_Design_V2">
+          <End Role="TSql_Design_V2" Type="Self.TSql_Design_V2" Multiplicity="1" />
+          <End Role="TSql_DesignWallArticle" Type="Self.TSql_DesignWallArticle" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Design_V2">
+              <PropertyRef Name="SysObjectID" />
+            </Principal>
+            <Dependent Role="TSql_DesignWallArticle">
+              <PropertyRef Name="LinkDesign_V2" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_DesignWallArticle_TSql_DesignWall">
+          <End Role="TSql_DesignWall" Type="Self.TSql_DesignWall" Multiplicity="1" />
+          <End Role="TSql_DesignWallArticle" Type="Self.TSql_DesignWallArticle" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_DesignWall">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_DesignWallArticle">
+              <PropertyRef Name="LinkDesignWall" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_DesignWallArticle_Tsql_Master_Articles">
+          <End Role="Tsql_Master_Articles" Type="Self.Tsql_Master_Articles" Multiplicity="0..1" />
+          <End Role="TSql_DesignWallArticle" Type="Self.TSql_DesignWallArticle" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Tsql_Master_Articles">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_DesignWallArticle">
+              <PropertyRef Name="LinkMasterArticle" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_TSql_Document_AspNetUsers">
           <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
           <End Role="TSql_Document" Type="Self.TSql_Document" Multiplicity="*" />
@@ -2386,6 +2450,7 @@
           <EntitySet Name="TSql_DesignCamera" EntityType="Self.TSql_DesignCamera" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_DesignDetails" EntityType="Self.TSql_DesignDetails" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_DesignWall" EntityType="Self.TSql_DesignWall" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_DesignWallArticle" EntityType="Self.TSql_DesignWallArticle" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_Document" EntityType="Self.TSql_Document" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_DocumentType" EntityType="Self.TSql_DocumentType" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_DocumentTypeExtension" EntityType="Self.TSql_DocumentTypeExtension" Schema="dbo" store:Type="Tables" />
@@ -2566,6 +2631,18 @@
           <AssociationSet Name="FK_TSql_DesignWall_TSql_Design_V2" Association="Self.FK_TSql_DesignWall_TSql_Design_V2">
             <End Role="TSql_Design_V2" EntitySet="TSql_Design_V2" />
             <End Role="TSql_DesignWall" EntitySet="TSql_DesignWall" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_DesignWallArticle_TSql_Design_V2" Association="Self.FK_TSql_DesignWallArticle_TSql_Design_V2">
+            <End Role="TSql_Design_V2" EntitySet="TSql_Design_V2" />
+            <End Role="TSql_DesignWallArticle" EntitySet="TSql_DesignWallArticle" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_DesignWallArticle_TSql_DesignWall" Association="Self.FK_TSql_DesignWallArticle_TSql_DesignWall">
+            <End Role="TSql_DesignWall" EntitySet="TSql_DesignWall" />
+            <End Role="TSql_DesignWallArticle" EntitySet="TSql_DesignWallArticle" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_DesignWallArticle_Tsql_Master_Articles" Association="Self.FK_TSql_DesignWallArticle_Tsql_Master_Articles">
+            <End Role="Tsql_Master_Articles" EntitySet="Tsql_Master_Articles" />
+            <End Role="TSql_DesignWallArticle" EntitySet="TSql_DesignWallArticle" />
           </AssociationSet>
           <AssociationSet Name="FK_TSql_Document_AspNetUsers" Association="Self.FK_TSql_Document_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
@@ -3404,9 +3481,22 @@
             <End Role="TSql_Jobside" EntitySet="TSql_Jobside" />
           </AssociationSet>
           <EntitySet Name="TSql_DesignWall" EntityType="DesingEntity.TSql_DesignWall" />
+          <EntitySet Name="TSql_DesignWallArticle" EntityType="DesingEntity.TSql_DesignWallArticle" />
           <AssociationSet Name="FK_TSql_DesignWall_TSql_Design_V2" Association="DesingEntity.FK_TSql_DesignWall_TSql_Design_V2">
             <End Role="TSql_Design_V2" EntitySet="TSql_Design_V2" />
             <End Role="TSql_DesignWall" EntitySet="TSql_DesignWall" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_DesignWallArticle_TSql_Design_V2" Association="DesingEntity.FK_TSql_DesignWallArticle_TSql_Design_V2">
+            <End Role="TSql_Design_V2" EntitySet="TSql_Design_V2" />
+            <End Role="TSql_DesignWallArticle" EntitySet="TSql_DesignWallArticle" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_DesignWallArticle_TSql_DesignWall" Association="DesingEntity.FK_TSql_DesignWallArticle_TSql_DesignWall">
+            <End Role="TSql_DesignWall" EntitySet="TSql_DesignWall" />
+            <End Role="TSql_DesignWallArticle" EntitySet="TSql_DesignWallArticle" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_DesignWallArticle_Tsql_Master_Articles" Association="DesingEntity.FK_TSql_DesignWallArticle_Tsql_Master_Articles">
+            <End Role="Tsql_Master_Articles" EntitySet="Tsql_Master_Articles" />
+            <End Role="TSql_DesignWallArticle" EntitySet="TSql_DesignWallArticle" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="TSql_Countrys">
@@ -4788,6 +4878,7 @@
           <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_Tsql_Master_Articles_AspNetUsers" FromRole="Tsql_Master_Articles" ToRole="AspNetUsers" />
           <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_Tsql_Master_Articles_AspNetUsers1" FromRole="Tsql_Master_Articles" ToRole="AspNetUsers" />
           <NavigationProperty Name="TSql_System" Relationship="DesingEntity.FK_Tsql_Master_Articles_TSql_System" FromRole="Tsql_Master_Articles" ToRole="TSql_System" />
+          <NavigationProperty Name="TSql_DesignWallArticle" Relationship="DesingEntity.FK_TSql_DesignWallArticle_Tsql_Master_Articles" FromRole="Tsql_Master_Articles" ToRole="TSql_DesignWallArticle" />
         </EntityType>
         <Association Name="FK_Tsql_Master_Articles_AspNetUsers">
           <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
@@ -5799,6 +5890,7 @@
           <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_Design_V2_AspNetUsers1" FromRole="TSql_Design_V2" ToRole="AspNetUsers" />
           <NavigationProperty Name="TSql_Offers" Relationship="DesingEntity.FK_TSql_Design_V2_TSql_Offers" FromRole="TSql_Design_V2" ToRole="TSql_Offers" />
           <NavigationProperty Name="TSql_DesignWall" Relationship="DesingEntity.FK_TSql_DesignWall_TSql_Design_V2" FromRole="TSql_Design_V2" ToRole="TSql_DesignWall" />
+          <NavigationProperty Name="TSql_DesignWallArticle" Relationship="DesingEntity.FK_TSql_DesignWallArticle_TSql_Design_V2" FromRole="TSql_Design_V2" ToRole="TSql_DesignWallArticle" />
         </EntityType>
         <Association Name="FK_TSql_Design_V2_AspNetUsers">
           <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
@@ -6023,7 +6115,39 @@
           <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="AddLastDateChange" Type="DateTime" Precision="3" />
           <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
+          <Property Name="Is_Special" Type="Boolean" Nullable="false" />
           <NavigationProperty Name="TSql_Design_V2" Relationship="DesingEntity.FK_TSql_DesignWall_TSql_Design_V2" FromRole="TSql_DesignWall" ToRole="TSql_Design_V2" />
+          <NavigationProperty Name="TSql_DesignWallArticle" Relationship="DesingEntity.FK_TSql_DesignWallArticle_TSql_DesignWall" FromRole="TSql_DesignWall" ToRole="TSql_DesignWallArticle" />
+        </EntityType>
+        <EntityType Name="TSql_DesignWallArticle">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TextLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="LinkDesign_V2" Type="Int64" Nullable="false" />
+          <Property Name="LinkDesignWall" Type="Int64" Nullable="false" />
+          <Property Name="LinkMasterArticle" Type="Int64" />
+          <Property Name="TextCode" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TextView" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="NumberSequence" Type="Int64" Nullable="false" />
+          <Property Name="NumberInsertX" Type="Double" Nullable="false" />
+          <Property Name="NumberInsertY" Type="Double" Nullable="false" />
+          <Property Name="NumberInsertZ" Type="Double" Nullable="false" />
+          <Property Name="NumberXRotation" Type="Double" Nullable="false" />
+          <Property Name="NumberYRotation" Type="Double" Nullable="false" />
+          <Property Name="NumberZRotation" Type="Double" Nullable="false" />
+          <Property Name="TextHandleCad" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Is_Delete" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Active" Type="Boolean" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AddLastDateChange" Type="DateTime" Precision="3" />
+          <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="TSql_Design_V2" Relationship="DesingEntity.FK_TSql_DesignWallArticle_TSql_Design_V2" FromRole="TSql_DesignWallArticle" ToRole="TSql_Design_V2" />
+          <NavigationProperty Name="TSql_DesignWall" Relationship="DesingEntity.FK_TSql_DesignWallArticle_TSql_DesignWall" FromRole="TSql_DesignWallArticle" ToRole="TSql_DesignWall" />
+          <NavigationProperty Name="Tsql_Master_Articles" Relationship="DesingEntity.FK_TSql_DesignWallArticle_Tsql_Master_Articles" FromRole="TSql_DesignWallArticle" ToRole="Tsql_Master_Articles" />
         </EntityType>
         <Association Name="FK_TSql_DesignWall_TSql_Design_V2">
           <End Type="DesingEntity.TSql_Design_V2" Role="TSql_Design_V2" Multiplicity="1" />
@@ -6034,6 +6158,42 @@
             </Principal>
             <Dependent Role="TSql_DesignWall">
               <PropertyRef Name="LinkDesign_V2" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_DesignWallArticle_TSql_Design_V2">
+          <End Type="DesingEntity.TSql_Design_V2" Role="TSql_Design_V2" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_DesignWallArticle" Role="TSql_DesignWallArticle" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_Design_V2">
+              <PropertyRef Name="SysObjectID" />
+            </Principal>
+            <Dependent Role="TSql_DesignWallArticle">
+              <PropertyRef Name="LinkDesign_V2" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_DesignWallArticle_TSql_DesignWall">
+          <End Type="DesingEntity.TSql_DesignWall" Role="TSql_DesignWall" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_DesignWallArticle" Role="TSql_DesignWallArticle" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_DesignWall">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_DesignWallArticle">
+              <PropertyRef Name="LinkDesignWall" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_DesignWallArticle_Tsql_Master_Articles">
+          <End Type="DesingEntity.Tsql_Master_Articles" Role="Tsql_Master_Articles" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_DesignWallArticle" Role="TSql_DesignWallArticle" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Tsql_Master_Articles">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_DesignWallArticle">
+              <PropertyRef Name="LinkMasterArticle" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -6900,9 +7060,51 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="Tsql_Master_Articles">
+            <EntityTypeMapping TypeName="DesingEntity.Tsql_Master_Articles">
+              <MappingFragment StoreEntitySet="Tsql_Master_Articles">
+                <ScalarProperty Name="ImgIco" ColumnName="ImgIco" />
+                <ScalarProperty Name="LinkBlockDwgXr" ColumnName="LinkBlockDwgXr" />
+                <ScalarProperty Name="LinkBlockDwg3DRef" ColumnName="LinkBlockDwg3DRef" />
+                <ScalarProperty Name="LinkBlockDwg3D" ColumnName="LinkBlockDwg3D" />
+                <ScalarProperty Name="IInsertinMaterArticles" ColumnName="IInsertinMaterArticles" />
+                <ScalarProperty Name="LinkBlockDwgHorizontalElevationStl" ColumnName="LinkBlockDwgHorizontalElevation3ds" />
+                <ScalarProperty Name="LinkBlockDwgVerticalElevationStl" ColumnName="LinkBlockDwgVerticalElevation3ds" />
+                <ScalarProperty Name="LinkBlockDwgPlantStl" ColumnName="LinkBlockDwgPlant3ds" />
+                <ScalarProperty Name="LinkBlockDwgHorizontalElevationMockUp" ColumnName="LinkBlockDwgHorizontalElevationMock-up" />
+                <ScalarProperty Name="LinkBlockDwgVerticalElevationMockUp" ColumnName="LinkBlockDwgVerticalElevationMock-up" />
+                <ScalarProperty Name="LinkBlockDwgPlantMckUp" ColumnName="LinkBlockDwgPlantMck-up" />
+                <ScalarProperty Name="LinkBlockDwgHorizontalElevation3D" ColumnName="LinkBlockDwgHorizontalElevation3D" />
+                <ScalarProperty Name="LinkBlockDwgVerticalElevation3D" ColumnName="LinkBlockDwgVerticalElevation3D" />
+                <ScalarProperty Name="LinkBlockDwgPlant3D" ColumnName="LinkBlockDwgPlant3D" />
+                <ScalarProperty Name="LinkSystem" ColumnName="LinkSystem" />
+                <ScalarProperty Name="AddIsActive" ColumnName="AddIsActive" />
+                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
+                <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
+                <ScalarProperty Name="AddChangeBy" ColumnName="AddChangeBy" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
+                <ScalarProperty Name="NumberMts3" ColumnName="NumberMts3" />
+                <ScalarProperty Name="NumberMts2" ColumnName="NumberMts2" />
+                <ScalarProperty Name="TextColor2" ColumnName="TextColor2" />
+                <ScalarProperty Name="TextColor1" ColumnName="TextColor1" />
+                <ScalarProperty Name="TextStlNumber" ColumnName="TextStlNumber" />
+                <ScalarProperty Name="TextBlockNumber" ColumnName="TextBlockNumber" />
+                <ScalarProperty Name="NumberWeight" ColumnName="NumberWeight" />
+                <ScalarProperty Name="NumberLong" ColumnName="NumberLong" />
+                <ScalarProperty Name="NumberWidth" ColumnName="NumberWidth" />
+                <ScalarProperty Name="NumberHigh" ColumnName="NumberHigh" />
+                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
+                <ScalarProperty Name="TextCode" ColumnName="TextCode" />
+                <ScalarProperty Name="AddAtenkoCode" ColumnName="AddAtenkoCode" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
           <EntitySetMapping Name="TSql_DesignWall">
             <EntityTypeMapping TypeName="DesingEntity.TSql_DesignWall">
               <MappingFragment StoreEntitySet="TSql_DesignWall">
+                <ScalarProperty Name="Is_Special" ColumnName="Is_Special" />
                 <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
                 <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
                 <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
@@ -7007,43 +7209,30 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="Tsql_Master_Articles">
-            <EntityTypeMapping TypeName="DesingEntity.Tsql_Master_Articles">
-              <MappingFragment StoreEntitySet="Tsql_Master_Articles">
-                <ScalarProperty Name="ImgIco" ColumnName="ImgIco" />
-                <ScalarProperty Name="LinkBlockDwgXr" ColumnName="LinkBlockDwgXr" />
-                <ScalarProperty Name="LinkBlockDwg3DRef" ColumnName="LinkBlockDwg3DRef" />
-                <ScalarProperty Name="LinkBlockDwg3D" ColumnName="LinkBlockDwg3D" />
-                <ScalarProperty Name="IInsertinMaterArticles" ColumnName="IInsertinMaterArticles" />
-                <ScalarProperty Name="LinkBlockDwgHorizontalElevationStl" ColumnName="LinkBlockDwgHorizontalElevation3ds" />
-                <ScalarProperty Name="LinkBlockDwgVerticalElevationStl" ColumnName="LinkBlockDwgVerticalElevation3ds" />
-                <ScalarProperty Name="LinkBlockDwgPlantStl" ColumnName="LinkBlockDwgPlant3ds" />
-                <ScalarProperty Name="LinkBlockDwgHorizontalElevationMockUp" ColumnName="LinkBlockDwgHorizontalElevationMock-up" />
-                <ScalarProperty Name="LinkBlockDwgVerticalElevationMockUp" ColumnName="LinkBlockDwgVerticalElevationMock-up" />
-                <ScalarProperty Name="LinkBlockDwgPlantMckUp" ColumnName="LinkBlockDwgPlantMck-up" />
-                <ScalarProperty Name="LinkBlockDwgHorizontalElevation3D" ColumnName="LinkBlockDwgHorizontalElevation3D" />
-                <ScalarProperty Name="LinkBlockDwgVerticalElevation3D" ColumnName="LinkBlockDwgVerticalElevation3D" />
-                <ScalarProperty Name="LinkBlockDwgPlant3D" ColumnName="LinkBlockDwgPlant3D" />
-                <ScalarProperty Name="LinkSystem" ColumnName="LinkSystem" />
-                <ScalarProperty Name="AddIsActive" ColumnName="AddIsActive" />
+          <EntitySetMapping Name="TSql_DesignWallArticle">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_DesignWallArticle">
+              <MappingFragment StoreEntitySet="TSql_DesignWallArticle">
                 <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
                 <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
-                <ScalarProperty Name="AddChangeBy" ColumnName="AddChangeBy" />
                 <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
                 <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
-                <ScalarProperty Name="NumberMts3" ColumnName="NumberMts3" />
-                <ScalarProperty Name="NumberMts2" ColumnName="NumberMts2" />
-                <ScalarProperty Name="TextColor2" ColumnName="TextColor2" />
-                <ScalarProperty Name="TextColor1" ColumnName="TextColor1" />
-                <ScalarProperty Name="TextStlNumber" ColumnName="TextStlNumber" />
-                <ScalarProperty Name="TextBlockNumber" ColumnName="TextBlockNumber" />
-                <ScalarProperty Name="NumberWeight" ColumnName="NumberWeight" />
-                <ScalarProperty Name="NumberLong" ColumnName="NumberLong" />
-                <ScalarProperty Name="NumberWidth" ColumnName="NumberWidth" />
-                <ScalarProperty Name="NumberHigh" ColumnName="NumberHigh" />
-                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
+                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
+                <ScalarProperty Name="Is_Delete" ColumnName="Is_Delete" />
+                <ScalarProperty Name="TextHandleCad" ColumnName="TextHandleCad" />
+                <ScalarProperty Name="NumberZRotation" ColumnName="NumberZRotation" />
+                <ScalarProperty Name="NumberYRotation" ColumnName="NumberYRotation" />
+                <ScalarProperty Name="NumberXRotation" ColumnName="NumberXRotation" />
+                <ScalarProperty Name="NumberInsertZ" ColumnName="NumberInsertZ" />
+                <ScalarProperty Name="NumberInsertY" ColumnName="NumberInsertY" />
+                <ScalarProperty Name="NumberInsertX" ColumnName="NumberInsertX" />
+                <ScalarProperty Name="NumberSequence" ColumnName="NumberSequence" />
+                <ScalarProperty Name="TextView" ColumnName="TextView" />
                 <ScalarProperty Name="TextCode" ColumnName="TextCode" />
-                <ScalarProperty Name="AddAtenkoCode" ColumnName="AddAtenkoCode" />
+                <ScalarProperty Name="LinkMasterArticle" ColumnName="LinkMasterArticle" />
+                <ScalarProperty Name="LinkDesignWall" ColumnName="LinkDesignWall" />
+                <ScalarProperty Name="LinkDesign_V2" ColumnName="LinkDesign_V2" />
+                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
                 <ScalarProperty Name="IdObject" ColumnName="IdObject" />
               </MappingFragment>
             </EntityTypeMapping>

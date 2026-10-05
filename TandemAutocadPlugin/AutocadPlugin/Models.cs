@@ -75,6 +75,55 @@ namespace AutocadPlugin.Models
 
         [Newtonsoft.Json.JsonProperty("_DataHeight")]
         public double? DataHeight { get; set; }
+
+        public long? WallDbId { get; set; }
+        public bool? IsSpecial { get; set; }
+    }
+
+    public class WallArticleDto
+    {
+        public long IdObject { get; set; }
+        public long WallDbId { get; set; }
+        public long? MasterArticleId { get; set; }
+        public string TextCode { get; set; }
+        public string TextView { get; set; }
+        public long NumberSequence { get; set; }
+        public XyzMmDto InsertMm { get; set; }
+        public double RotationX { get; set; }
+        public double RotationY { get; set; }
+        public double RotationZ { get; set; }
+        public string TextHandleCad { get; set; }
+    }
+
+    public class PluginSaveWallArticleRequest
+    {
+        public long DesignId { get; set; }
+        public string DeviceId { get; set; }
+        public long? WallDbId { get; set; }
+        public long? MasterArticleId { get; set; }
+        public string CodeName { get; set; }
+        public string View { get; set; }
+        public XyzMmDto P1Mm { get; set; }
+        public XyzMmDto P2Mm { get; set; }
+        public double? DataWith { get; set; }
+        public double? DataLong { get; set; }
+        public double? DataHeight { get; set; }
+        public string TextSystem { get; set; }
+        public XyzMmDto InsertMm { get; set; }
+        public double RotationX { get; set; }
+        public double RotationY { get; set; }
+        public double RotationZ { get; set; }
+        public string HandleCad { get; set; }
+    }
+
+    public class PluginSaveWallArticleResponse
+    {
+        public bool Exito { get; set; }
+        public string Mensaje { get; set; }
+        public long WallId { get; set; }
+        public long ArticleId { get; set; }
+        public long Sequence { get; set; }
+        public long DesignId { get; set; }
     }
 
     public class PluginSaveWallsRequest
@@ -82,6 +131,7 @@ namespace AutocadPlugin.Models
         public long DesignId { get; set; }
         public string DeviceId { get; set; }
         public List<WallLineDto> Lines { get; set; }
+        public List<PluginSaveWallArticleRequest> Articles { get; set; }
     }
 
     public class PluginSaveWallsResponse
@@ -89,12 +139,14 @@ namespace AutocadPlugin.Models
         public bool Exito { get; set; }
         public string Mensaje { get; set; }
         public int Count { get; set; }
+        public int ArticleCount { get; set; }
         public long DesignId { get; set; }
     }
 
     public class WallSnapshotDto
     {
         public List<WallLineDto> Lines { get; set; }
+        public List<WallArticleDto> Articles { get; set; }
     }
 
     public class PluginAuthRequestDTO

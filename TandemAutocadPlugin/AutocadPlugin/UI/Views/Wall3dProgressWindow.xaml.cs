@@ -19,9 +19,11 @@ namespace AutocadPlugin.UI.Views
             InitializeComponent();
         }
 
-        public static Wall3dProgressWindow ShowOverAcad()
+        public static Wall3dProgressWindow ShowOverAcad(string message = null)
         {
             var win = new Wall3dProgressWindow();
+            if (!string.IsNullOrWhiteSpace(message) && win.MessageText != null)
+                win.MessageText.Text = message;
             try
             {
                 win.SetOwnerHandle(AcadApp.MainWindow.Handle);

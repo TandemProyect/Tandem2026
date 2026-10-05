@@ -11,7 +11,7 @@ namespace AutocadPlugin
     /// </summary>
     internal static class PluginPlantillaTheme
     {
-        public const string DefaultColor = "#349d7d";
+        public const string DefaultColor = "#7367F0";
         public const string DefaultTextColor = "#ffffff";
 
         private static string _color = DefaultColor;
@@ -48,7 +48,7 @@ namespace AutocadPlugin
 
         public static Brush Background
         {
-            get { return new SolidColorBrush(ParseHex(ColorHex, 0x34, 0x9D, 0x7D)); }
+            get { return new SolidColorBrush(ParseHex(ColorHex, 0x73, 0x67, 0xF0)); }
         }
 
         public static Brush Foreground

@@ -414,12 +414,20 @@
             ]);
 
             if (!Array.isArray(walls)) walls = [];
+            const wallIsSpecial = typeof window.maStlDesing2WallIsSpecial === 'function'
+                ? window.maStlDesing2WallIsSpecial
+                : function (w) {
+                    const attrs = w && w.Attributes ? w.Attributes : w;
+                    return !!(attrs && (attrs.isSpecial === true || attrs.IsSpecial === true
+                        || attrs._IsFormwork === false || attrs._IsFormwork === 0));
+                };
+            walls = walls.filter(function (w) { return !wallIsSpecial(w); });
             if (!walls.length) {
                 // Fallback 3D seguro: ejes de muro en escena (misma fuente del inspector de atributos).
-                walls = mergeWallsUnique([wallsFromScene]);
+                walls = mergeWallsUnique([wallsFromScene]).filter(function (w) { return !wallIsSpecial(w); });
                 if (!walls.length) {
-                    window.alert('ATK60: no hay muros 3D disponibles (sólidos ni ejes).');
-                    console.error('ATK60 abortado: sin muros 3D.');
+                    window.alert('ATK60: no hay muros 3D para encofrar (los especiales se omiten).');
+                    console.error('ATK60 abortado: sin muros 3D automáticos.');
                     return;
                 }
                 console.warn('ATK60 fallback: usando ejes 3D de escena por wallModelSource vacío.');

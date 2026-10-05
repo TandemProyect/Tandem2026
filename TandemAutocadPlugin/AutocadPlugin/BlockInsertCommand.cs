@@ -17,9 +17,10 @@ using AcColor = Autodesk.AutoCAD.Colors.Color;
 namespace AutocadPlugin
 {
     /// <summary>
-    /// INSERT de panel ATK-60. El punto es siempre libre: el bloque sigue al cursor.
-    /// Si el cursor pasa cerca de un vértice de otro panel, ese nudo se ilumina;
-    /// un clic en ese momento engancha. Si no, se coloca donde esté el cursor.
+    /// INSERT de panel ATK-60. En un muro recto hay 4 marcas inferiores
+    /// (2 caras × 2 extremos). El vértice elegido fija cara y sentido;
+    /// el simétrico va a la cara contraria. Si ya hay paneles, también
+    /// engancha a sus vértices. Salvar persiste en BD.
     /// </summary>
     public class BlockInsertCommand
     {
@@ -106,6 +107,8 @@ namespace AutocadPlugin
             double newH;
             PanelSizeMeters(req.CodeName, out newW, out newH);
             var hosts = CollectHostVertices(doc.Database, "PANEL");
+            var walls = CollectAxisHosts(doc.Database, hosts);
+            AddStraightWallMarks(hosts, walls);
 
             ObjectId blockId;
             try
@@ -122,11 +125,11 @@ namespace AutocadPlugin
             bool snapped;
             try
             {
-                var placed = DragVisiblePanel(doc, ed, blockId, req, meterToDwg, newW, newH, overlay, out snapped);
+                var placed = DragVisiblePanel(doc, ed, blockId, req, meterToDwg, newW, newH, overlay, walls, out snapped);
                 if (!placed)
                     return;
                 ed.WriteMessage("\n[Tandem] Insertado " + blockName
-                    + (snapped ? " (enganchado a vértice)" : "")
+                    + (snapped ? " (enganchado)" : "")
                     + ". Intro para insertar otro igual.\n");
             }
             catch (System.Exception ex)
@@ -135,7 +138,7 @@ namespace AutocadPlugin
             }
         }
 
-        private static void PanelSizeMeters(string codeName, out double width, out double height)
+        internal static void PanelSizeMeters(string codeName, out double width, out double height)
         {
             width = 0.9;
             height = 2.7;
@@ -159,6 +162,24 @@ namespace AutocadPlugin
             public Vector3d WidthDir;
             public Vector3d HeightDir;
             public Vector3d ThickDir;
+            public long WallDbId;
+            public ObjectId WallLineId;
+            public bool FromWall;
+        }
+
+        private sealed class AxisHost
+        {
+            public ObjectId LineId;
+            public Point3d A;
+            public Point3d B;
+            public Point3d BottomLeft;
+            public Point3d BottomRight;
+            public Vector3d Along;
+            public Vector3d ThickDir;
+            public double Thickness;
+            public long WallDbId;
+            public bool IsSpecial;
+            public bool HasPanels;
         }
 
         private static List<HostVertex> CollectHostVertices(Database db, string role)
@@ -174,6 +195,8 @@ namespace AutocadPlugin
                     var br = tr.GetObject(id, OpenMode.ForRead) as BlockReference;
                     if (br == null)
                         continue;
+                    if (string.Equals(br.Layer, WallArticleCad.LayerFormwork, StringComparison.OrdinalIgnoreCase))
+                        continue;
                     var codeName = CodeNameFromInsert(br);
                     if (string.IsNullOrWhiteSpace(codeName))
                         continue;
@@ -184,12 +207,11 @@ namespace AutocadPlugin
                         cache[codeName] = snaps;
                     }
                     var tf = br.BlockTransform;
-                    var wVec = Vector3d.XAxis.TransformBy(tf);
-                    var tVec = Vector3d.YAxis.TransformBy(tf);
-                    var hVec = Vector3d.ZAxis.TransformBy(tf);
-                    var wDir = wVec.Length > 1e-9 ? wVec.GetNormal() : Vector3d.XAxis;
-                    var tDir = tVec.Length > 1e-9 ? tVec.GetNormal() : Vector3d.YAxis;
-                    var hDir = hVec.Length > 1e-9 ? hVec.GetNormal() : Vector3d.ZAxis;
+                    Vector3d wDir;
+                    Vector3d hDir;
+                    Vector3d tDir;
+                    WallAlignedAxes(tf, out wDir, out hDir, out tDir);
+                    var wallId = WallIdFromInsert(br);
                     foreach (var snap in snaps)
                     {
                         pts.Add(new HostVertex
@@ -198,7 +220,8 @@ namespace AutocadPlugin
                             Id = snap.Id,
                             WidthDir = wDir,
                             HeightDir = hDir,
-                            ThickDir = tDir
+                            ThickDir = tDir,
+                            WallDbId = wallId
                         });
                     }
                 }
@@ -269,6 +292,200 @@ namespace AutocadPlugin
             }
         }
 
+        private static List<AxisHost> CollectAxisHosts(Database db, IList<HostVertex> hosts)
+        {
+            var walls = new List<AxisHost>();
+            using (var tr = db.TransactionManager.StartTransaction())
+            {
+                var bt = (BlockTable)tr.GetObject(db.BlockTableId, OpenMode.ForRead);
+                var ms = (BlockTableRecord)tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForRead);
+                foreach (ObjectId id in ms)
+                {
+                    var line = tr.GetObject(id, OpenMode.ForRead) as Line;
+                    if (line == null)
+                        continue;
+                    if (!string.Equals(line.Layer, WallCadXData.LayerAxis, StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    var a = line.StartPoint;
+                    var b = line.EndPoint;
+                    if (a.DistanceTo(b) < 1e-9)
+                        continue;
+
+                    string role;
+                    int groupId;
+                    double thickness;
+                    long wallDbId;
+                    bool isSpecial;
+                    WallCadXData.Read(line, out role, out groupId, out thickness, out wallDbId, out isSpecial);
+                    Point3d bl;
+                    Point3d br;
+                    PickBottom(a, b, out bl, out br);
+                    var along = br - bl;
+                    if (along.Length < 1e-9)
+                        continue;
+                    along = along.GetNormal();
+                    var thick = new Vector3d(-along.Y, along.X, 0);
+                    if (thick.Length < 1e-9)
+                        thick = Vector3d.YAxis;
+                    else
+                        thick = thick.GetNormal();
+                    walls.Add(new AxisHost
+                    {
+                        LineId = id,
+                        A = a,
+                        B = b,
+                        BottomLeft = bl,
+                        BottomRight = br,
+                        Along = along,
+                        ThickDir = thick,
+                        Thickness = thickness,
+                        WallDbId = wallDbId,
+                        IsSpecial = isSpecial
+                    });
+                }
+                tr.Commit();
+            }
+
+            var panelTol = CadUnits.FromMillimeters(80);
+            foreach (var wall in walls)
+            {
+                var band = Math.Max(wall.Thickness * 1.6, panelTol);
+                foreach (var host in hosts)
+                {
+                    if (host.WallDbId > 0 && wall.WallDbId > 0 && host.WallDbId == wall.WallDbId)
+                    {
+                        wall.HasPanels = true;
+                        break;
+                    }
+                    if (WallCadXData.DistToSegment(host.World, wall.A, wall.B) <= band)
+                    {
+                        wall.HasPanels = true;
+                        break;
+                    }
+                }
+            }
+
+            return walls;
+        }
+
+        /// <summary>
+        /// Cuatro marcas en la base del prisma: dos caras × dos extremos.
+        /// En un L se apartan del nudo para que el snap sea del muro, no de la esquina.
+        /// Cara +: izquierda p1, derecha p2, sentido +Along.
+        /// Cara −: izquierda p2, derecha p1, sentido −Along (el contrario).
+        /// </summary>
+        private static void AddStraightWallMarks(IList<HostVertex> hosts, IList<AxisHost> walls)
+        {
+            if (hosts == null || walls == null)
+                return;
+            var joinTol = CadUnits.FromMillimeters(40);
+            foreach (var wall in walls)
+            {
+                Vector3d n;
+                double half;
+                if (!TryWallNormal(wall, out n, out half))
+                    continue;
+                var along = new Vector3d(wall.Along.X, wall.Along.Y, 0);
+                if (along.Length < 1e-9)
+                    continue;
+                along = along.GetNormal();
+                var len = wall.BottomLeft.DistanceTo(wall.BottomRight);
+                var cap = Math.Min(CadUnits.FromMillimeters(150), len * 0.2);
+                var dStart = EndShared(wall, wall.BottomLeft, walls, joinTol) ? cap : 0;
+                var dEnd = EndShared(wall, wall.BottomRight, walls, joinTol) ? cap : 0;
+                if (dStart + dEnd > len * 0.6)
+                {
+                    dStart = 0;
+                    dEnd = 0;
+                }
+
+                var p1 = wall.BottomLeft + along * dStart;
+                var p2 = wall.BottomRight - along * dEnd;
+                var z = Math.Min(wall.BottomLeft.Z, wall.BottomRight.Z);
+                hosts.Add(WallMark(wall, p1, n, along, half, z, "V_BL"));
+                hosts.Add(WallMark(wall, p2, n, along, half, z, "V_BR"));
+                hosts.Add(WallMark(wall, p2, -n, -along, half, z, "V_BL"));
+                hosts.Add(WallMark(wall, p1, -n, -along, half, z, "V_BR"));
+            }
+        }
+
+        private static HostVertex WallMark(
+            AxisHost wall, Point3d onAxis, Vector3d thick, Vector3d width,
+            double half, double z, string id)
+        {
+            return new HostVertex
+            {
+                World = new Point3d(onAxis.X + thick.X * half, onAxis.Y + thick.Y * half, z),
+                Id = id,
+                WidthDir = width,
+                HeightDir = Vector3d.ZAxis,
+                ThickDir = thick,
+                WallDbId = wall.WallDbId,
+                WallLineId = wall.LineId,
+                FromWall = true
+            };
+        }
+
+        private static bool EndShared(AxisHost wall, Point3d end, IList<AxisHost> walls, double tol)
+        {
+            foreach (var other in walls)
+            {
+                if (ReferenceEquals(other, wall))
+                    continue;
+                if (NearXY(end, other.BottomLeft, tol) || NearXY(end, other.BottomRight, tol))
+                    return true;
+            }
+            return false;
+        }
+
+        private static bool NearXY(Point3d a, Point3d b, double tol)
+        {
+            var dx = a.X - b.X;
+            var dy = a.Y - b.Y;
+            return dx * dx + dy * dy <= tol * tol;
+        }
+
+        private static double DistXY(Point3d a, Point3d b)
+        {
+            var dx = a.X - b.X;
+            var dy = a.Y - b.Y;
+            return Math.Sqrt(dx * dx + dy * dy);
+        }
+
+        private static Point3d PlaceAtWallVertex(
+            HostVertex host, double newW, double newH, bool tumbado, double scale)
+        {
+            if (host == null)
+                return Point3d.Origin;
+            var alongDwg = (tumbado ? newH : newW) * scale;
+            var dir = host.WidthDir;
+            if (dir.Length < 1e-9)
+                dir = Vector3d.XAxis;
+            else
+                dir = dir.GetNormal();
+            var id = (host.Id ?? "").ToUpperInvariant();
+            if (id == "V_BR" || id == "V_TR")
+                return host.World - dir * alongDwg;
+            return host.World;
+        }
+
+        /// <summary>
+        /// Eje canónico horario: p1→p2 hacia +X; si es vertical, hacia +Y.
+        /// Igual que CanonicalizeClockwiseWallAxis del encofrado automático.
+        /// </summary>
+        internal static void PickBottom(Point3d a, Point3d b, out Point3d left, out Point3d right)
+        {
+            if (a.X < b.X - 1e-6 || (Math.Abs(a.X - b.X) <= 1e-6 && a.Y <= b.Y))
+            {
+                left = a;
+                right = b;
+                return;
+            }
+
+            left = b;
+            right = a;
+        }
+
         private static bool DragVisiblePanel(
             Document doc,
             Editor ed,
@@ -278,12 +495,13 @@ namespace AutocadPlugin
             double newW,
             double newH,
             VertexOverlay overlay,
+            IList<AxisHost> walls,
             out bool snapped)
         {
             snapped = false;
             var db = doc.Database;
             var tumbado = req.RotationDeg == 90;
-            var jig = new PanelDragJig(blockId, overlay, meterToDwg, tumbado, newW, newH);
+            var jig = new PanelDragJig(blockId, overlay, walls, meterToDwg, tumbado, newW, newH);
             FocusDrawing();
             var oldOsmode = AcadApp.GetSystemVariable("OSMODE");
             var oldOrtho = AcadApp.GetSystemVariable("ORTHOMODE");
@@ -305,24 +523,341 @@ namespace AutocadPlugin
                 return false;
 
             snapped = jig.Snapped;
+            var wall = jig.Wall;
+            var wallDbId = wall != null ? wall.WallDbId : 0;
+            var widthDwg = newW * meterToDwg;
+            var alongDwg = (jig.RotationDeg == 90 ? newH : newW) * meterToDwg;
+            var emptyStanding = wall != null && !wall.HasPanels && jig.RotationDeg != 90;
+            var at1 = jig.At;
+            var orient1 = jig.Orient;
+            var at2 = jig.At;
+            var orient2 = jig.Orient;
+            var hasMirror = false;
+            if (emptyStanding && !jig.SnapToPanel)
+            {
+                hasMirror = TryFormworkFacePoses(
+                    wall, jig.At, meterToDwg, false, widthDwg,
+                    out at1, out orient1, out at2, out orient2);
+            }
+            else if (jig.SnapToPanel)
+            {
+                hasMirror = wall != null
+                    && TryOppositeFromSnapped(jig.At, jig.Orient, wall, alongDwg, out at2, out orient2)
+                    && !PoseOccupied(doc.Database, at2, CadUnits.FromMillimeters(80));
+            }
+
             using (doc.LockDocument())
             using (var tr = db.TransactionManager.StartTransaction())
             {
                 var ms = (BlockTableRecord)tr.GetObject(db.CurrentSpaceId, OpenMode.ForWrite);
-                var br = new BlockReference(Point3d.Origin, blockId);
-                ApplyPanelMatrix(br, jig.At, jig.Orient);
-                ms.AppendEntity(br);
-                tr.AddNewlyCreatedDBObject(br, true);
-                ApplyAtkXData(br, tr, db, req.CodeName, req.View ?? "3dref", "PANEL", jig.RotationDeg);
+                var spin = emptyStanding;
+                AppendPanel(ms, tr, db, blockId, at1, orient1, req, jig.RotationDeg, wallDbId, widthDwg, spin);
+                if (hasMirror && at2.DistanceTo(at1) >= CadUnits.FromMillimeters(20))
+                    AppendPanel(ms, tr, db, blockId, at2, orient2, req, jig.RotationDeg, wallDbId, alongDwg, spin);
+                if (wall != null && !wall.LineId.IsNull)
+                    StampWallSpecial(tr, wall.LineId, wallDbId);
                 tr.Commit();
             }
             return true;
+        }
+
+        private static void StampWallSpecial(Transaction tr, ObjectId wallLineId, long wallDbId)
+        {
+            var line = tr.GetObject(wallLineId, OpenMode.ForWrite) as Line;
+            if (line == null)
+                return;
+            string role;
+            int groupId;
+            double thickness;
+            long oldId;
+            bool special;
+            WallCadXData.Read(line, out role, out groupId, out thickness, out oldId, out special);
+            WallCadXData.Write(line, role, groupId, thickness, wallDbId > 0 ? wallDbId : oldId, true);
+        }
+
+        private static ObjectId AppendPanel(
+            BlockTableRecord ms,
+            Transaction tr,
+            Database db,
+            ObjectId blockId,
+            Point3d at,
+            Matrix3d orient,
+            BlockInsertRequest req,
+            int rotDeg,
+            long wallDbId,
+            double widthDwg,
+            bool formworkSpin)
+        {
+            var br = new BlockReference(Point3d.Origin, blockId);
+            if (formworkSpin)
+                ApplyFormworkPanelMatrix(br, at, orient, widthDwg);
+            else
+                ApplyPanelMatrix(br, at, orient);
+            ms.AppendEntity(br);
+            tr.AddNewlyCreatedDBObject(br, true);
+            ApplyAtkXData(br, tr, db, req.CodeName, req.View ?? "3dref", "PANEL", rotDeg, wallDbId);
+            return br.ObjectId;
+        }
+
+        /// <summary>
+        /// Misma regla que el encofrado automático (Modulo270PanelElementGenerator):
+        /// eje canónico horario (p1→p2 hacia +X, o +Y si es vertical), inserto en
+        /// inferior-izquierda de la cara, 180° en la cara opuesta y el punto avanza
+        /// una anchura de pieza para no desplazar la huella.
+        /// </summary>
+        private static bool TryFormworkFacePoses(
+            AxisHost wall,
+            Point3d cursor,
+            double scale,
+            bool tumbado,
+            double widthDwg,
+            out Point3d at1,
+            out Matrix3d orient1,
+            out Point3d at2,
+            out Matrix3d orient2)
+        {
+            at1 = cursor;
+            at2 = cursor;
+            orient1 = PanelOrient(scale, tumbado);
+            orient2 = orient1;
+            if (wall == null)
+                return false;
+
+            Vector3d n;
+            double half;
+            if (!TryWallNormal(wall, out n, out half))
+                return false;
+
+            var along = new Vector3d(wall.Along.X, wall.Along.Y, 0);
+            if (along.Length < 1e-9)
+                return false;
+            along = along.GetNormal();
+            var yaw = Math.Atan2(along.Y, along.X);
+            var outward = FaceOutward(wall, cursor);
+            var faceIsRightSide = outward.DotProduct(n) < 0;
+            var start = wall.BottomLeft;
+            var basePt = new Point3d(
+                start.X + outward.X * half,
+                start.Y + outward.Y * half,
+                start.Z);
+            var shiftX = along.X * widthDwg;
+            var shiftY = along.Y * widthDwg;
+
+            at1 = faceIsRightSide
+                ? new Point3d(basePt.X + shiftX, basePt.Y + shiftY, basePt.Z)
+                : basePt;
+            orient1 = Matrix3d.Rotation(yaw + (faceIsRightSide ? Math.PI : 0), Vector3d.ZAxis, Point3d.Origin)
+                * PanelOrient(scale, tumbado);
+
+            var thickness = half * 2.0;
+            var oppBase = new Point3d(
+                basePt.X - outward.X * thickness,
+                basePt.Y - outward.Y * thickness,
+                basePt.Z);
+            at2 = !faceIsRightSide
+                ? new Point3d(oppBase.X + shiftX, oppBase.Y + shiftY, oppBase.Z)
+                : oppBase;
+            orient2 = Matrix3d.Rotation(yaw + (!faceIsRightSide ? Math.PI : 0), Vector3d.ZAxis, Point3d.Origin)
+                * PanelOrient(scale, tumbado);
+
+            return at1.DistanceTo(at2) >= CadUnits.FromMillimeters(20);
+        }
+
+        private static bool TryOppositeFromSnapped(
+            Point3d at,
+            Matrix3d orient,
+            AxisHost wall,
+            double alongDwg,
+            out Point3d at2,
+            out Matrix3d orient2)
+        {
+            at2 = at;
+            orient2 = orient;
+            if (wall == null)
+                return false;
+            Vector3d n;
+            double half;
+            if (!TryWallNormal(wall, out n, out half))
+                return false;
+            var p = ProjectOnAxis(at, wall);
+            var side = (at.X - p.X) * n.X + (at.Y - p.Y) * n.Y;
+            at2 = new Point3d(at.X - 2.0 * side * n.X, at.Y - 2.0 * side * n.Y, at.Z);
+            var alongPanel = OrientIsTumbado(orient)
+                ? Vector3d.ZAxis.TransformBy(orient)
+                : Vector3d.XAxis.TransformBy(orient);
+            var along = new Vector3d(alongPanel.X, alongPanel.Y, 0);
+            if (along.Length < 1e-9)
+                along = new Vector3d(wall.Along.X, wall.Along.Y, 0);
+            if (along.Length > 1e-9)
+                along = along.GetNormal();
+            at2 = new Point3d(at2.X + along.X * alongDwg, at2.Y + along.Y * alongDwg, at2.Z);
+            orient2 = Matrix3d.Rotation(Math.PI, Vector3d.ZAxis, Point3d.Origin) * orient;
+            return at2.DistanceTo(at) >= CadUnits.FromMillimeters(20);
+        }
+
+        private static bool PoseOccupied(Database db, Point3d at, double tol)
+        {
+            if (db == null)
+                return false;
+            using (var tr = db.TransactionManager.StartTransaction())
+            {
+                var bt = (BlockTable)tr.GetObject(db.BlockTableId, OpenMode.ForRead);
+                var ms = (BlockTableRecord)tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForRead);
+                foreach (ObjectId id in ms)
+                {
+                    var br = tr.GetObject(id, OpenMode.ForRead) as BlockReference;
+                    if (br == null)
+                        continue;
+                    string code;
+                    string view;
+                    string role;
+                    int rot;
+                    if (!TryReadAtk(br, out code, out view, out role, out rot))
+                        continue;
+                    if (br.Position.DistanceTo(at) <= tol)
+                    {
+                        tr.Commit();
+                        return true;
+                    }
+                }
+                tr.Commit();
+            }
+            return false;
+        }
+
+        private static void WallAlignedAxes(
+            Matrix3d tf, out Vector3d wDir, out Vector3d hDir, out Vector3d tDir)
+        {
+            var x = Vector3d.XAxis.TransformBy(tf);
+            var y = Vector3d.YAxis.TransformBy(tf);
+            var z = Vector3d.ZAxis.TransformBy(tf);
+            tDir = y.Length > 1e-9 ? y.GetNormal() : Vector3d.YAxis;
+            if (OrientIsTumbado(tf))
+            {
+                hDir = x.Length > 1e-9 ? x.GetNormal() : Vector3d.ZAxis;
+                var along = new Vector3d(z.X, z.Y, 0);
+                if (along.Length < 1e-9)
+                    along = new Vector3d(-hDir.Y, hDir.X, 0);
+                wDir = along.Length > 1e-9 ? along.GetNormal() : Vector3d.XAxis;
+                return;
+            }
+
+            wDir = x.Length > 1e-9 ? x.GetNormal() : Vector3d.XAxis;
+            hDir = z.Length > 1e-9 ? z.GetNormal() : Vector3d.ZAxis;
+        }
+
+        private static bool TryWallNormal(AxisHost wall, out Vector3d n, out double half)
+        {
+            n = Vector3d.YAxis;
+            half = 0;
+            if (wall == null)
+                return false;
+            n = new Vector3d(wall.ThickDir.X, wall.ThickDir.Y, 0);
+            if (n.Length < 1e-9)
+                return false;
+            n = n.GetNormal();
+            var thickness = wall.Thickness;
+            if (thickness < CadUnits.FromMillimeters(20))
+                thickness = CadUnits.FromMillimeters(300);
+            half = thickness * 0.5;
+            return half >= CadUnits.FromMillimeters(10);
+        }
+
+        private static Point3d ProjectOnAxis(Point3d at, AxisHost wall)
+        {
+            var a = wall.A;
+            var b = wall.B;
+            var ab = new Vector3d(b.X - a.X, b.Y - a.Y, 0);
+            var ap = new Vector3d(at.X - a.X, at.Y - a.Y, 0);
+            var len2 = ab.DotProduct(ab);
+            var t = 0d;
+            if (len2 > 1e-18)
+                t = Math.Max(0, Math.Min(1, ap.DotProduct(ab) / len2));
+            return new Point3d(a.X + ab.X * t, a.Y + ab.Y * t, at.Z);
+        }
+
+        private static Vector3d FaceOutward(AxisHost wall, Point3d from)
+        {
+            Vector3d n;
+            double half;
+            if (!TryWallNormal(wall, out n, out half))
+                return Vector3d.YAxis;
+            var p = ProjectOnAxis(from, wall);
+            var side = (from.X - p.X) * n.X + (from.Y - p.Y) * n.Y;
+            return side < 0 ? -n : n;
+        }
+
+        internal static void ArticleRotations(
+            Point3d at,
+            Point3d axisA,
+            Point3d axisB,
+            Matrix3d orient,
+            out int rotX,
+            out int rotY,
+            out double rotZ)
+        {
+            rotX = OrientIsTumbado(orient) ? 90 : 0;
+            Point3d left;
+            Point3d right;
+            PickBottom(axisA, axisB, out left, out right);
+            var along = new Vector3d(right.X - left.X, right.Y - left.Y, 0);
+            rotZ = 0;
+            if (along.Length > 1e-9)
+            {
+                along = along.GetNormal();
+                rotZ = Math.Atan2(along.Y, along.X) * 180.0 / Math.PI;
+            }
+            var n = new Vector3d(-along.Y, along.X, 0);
+            if (n.Length < 1e-9)
+            {
+                rotY = 0;
+                return;
+            }
+            n = n.GetNormal();
+            var ap = new Vector3d(at.X - left.X, at.Y - left.Y, 0);
+            var ab = new Vector3d(right.X - left.X, right.Y - left.Y, 0);
+            var len2 = ab.DotProduct(ab);
+            var t = 0d;
+            if (len2 > 1e-18)
+                t = Math.Max(0, Math.Min(1, ap.DotProduct(ab) / len2));
+            var px = left.X + ab.X * t;
+            var py = left.Y + ab.Y * t;
+            var side = (at.X - px) * n.X + (at.Y - py) * n.Y;
+            rotY = side < 0 ? 180 : 0;
+        }
+
+        internal static double YawDegFromOrient(Matrix3d orient)
+        {
+            var tumbado = OrientIsTumbado(orient);
+            var along = tumbado
+                ? Vector3d.ZAxis.TransformBy(orient)
+                : Vector3d.XAxis.TransformBy(orient);
+            var v = new Vector3d(along.X, along.Y, 0);
+            if (v.Length < 1e-9)
+            {
+                var y = Vector3d.YAxis.TransformBy(orient);
+                v = new Vector3d(-y.Y, y.X, 0);
+            }
+            if (v.Length < 1e-9)
+                return 0;
+            return Math.Atan2(v.Y, v.X) * 180.0 / Math.PI;
+        }
+
+        internal static bool OrientIsMirrored(Matrix3d orient)
+        {
+            var x = Vector3d.XAxis.TransformBy(orient);
+            var y = Vector3d.YAxis.TransformBy(orient);
+            var z = Vector3d.ZAxis.TransformBy(orient);
+            if (x.Length < 1e-9 || y.Length < 1e-9 || z.Length < 1e-9)
+                return false;
+            return x.CrossProduct(y).DotProduct(z) < 0;
         }
 
         private sealed class PanelDragJig : DrawJig
         {
             private readonly ObjectId _blockId;
             private readonly VertexOverlay _overlay;
+            private readonly IList<AxisHost> _walls;
             private readonly double _scale;
             private readonly bool _tumbado;
             private readonly double _newW;
@@ -331,11 +866,20 @@ namespace AutocadPlugin
             private Point3d? _hot;
             private Matrix3d _orient;
             private BlockReference _ghost;
+            private AxisHost _wall;
 
-            public PanelDragJig(ObjectId blockId, VertexOverlay overlay, double scale, bool tumbado, double newW, double newH)
+            public PanelDragJig(
+                ObjectId blockId,
+                VertexOverlay overlay,
+                IList<AxisHost> walls,
+                double scale,
+                bool tumbado,
+                double newW,
+                double newH)
             {
                 _blockId = blockId;
                 _overlay = overlay;
+                _walls = walls ?? new List<AxisHost>();
                 _scale = scale;
                 _tumbado = tumbado;
                 _newW = newW;
@@ -348,6 +892,8 @@ namespace AutocadPlugin
             public Matrix3d Orient { get { return _orient; } }
             public int RotationDeg { get; private set; }
             public bool Snapped { get; private set; }
+            public bool SnapToPanel { get; private set; }
+            public AxisHost Wall { get { return _wall; } }
 
             public void ReleaseGhost()
             {
@@ -360,7 +906,7 @@ namespace AutocadPlugin
             protected override SamplerStatus Sampler(JigPrompts prompts)
             {
                 var opts = new JigPromptPointOptions(
-                    "\nMueve el panel (parte de 0,0). Cerca de un vértice se ilumina; clic coloca, ESC cancela: ");
+                    "\nElige un vértice inferior del muro (4 marcas). ESC cancela: ");
                 opts.UserInputControls =
                     UserInputControls.Accept3dCoordinates
                     | UserInputControls.GovernedByOrthoMode
@@ -373,34 +919,86 @@ namespace AutocadPlugin
                     return SamplerStatus.Cancel;
 
                 HostVertex hit;
-                var near = _overlay.TryNearest(res.Value, out hit);
+                var nearPanel = _overlay.TryNearestPanel(res.Value, out hit);
+                var wall = NearestWall(res.Value, true);
+                HostVertex wallHit = null;
+                var nearWallMark = false;
+                if (wall != null)
+                {
+                    var maxD = wall.HasPanels
+                        ? Math.Max(wall.Thickness * 1.8, CadUnits.FromMillimeters(250))
+                        : double.MaxValue;
+                    nearWallMark = _overlay.TryNearestOnWallFace(wall, res.Value, maxD, out wallHit);
+                }
+
                 Matrix3d orient;
                 int rotDeg;
-                if (near)
+                Point3d next;
+                Point3d? hot;
+                bool snap;
+                bool snapPanel;
+                if (wall != null && wall.HasPanels && nearPanel)
                 {
                     orient = OrientOnHost(hit, _scale, _tumbado);
-                    rotDeg = _tumbado || HostIsTumbado(hit) ? 90 : 0;
+                    rotDeg = _tumbado ? 90 : 0;
+                    next = _overlay.Place(hit, res.Value, orient, _newW, _newH);
+                    hot = hit.World;
+                    snap = true;
+                    snapPanel = true;
+                }
+                else if (nearWallMark)
+                {
+                    orient = OrientOnHost(wallHit, _scale, _tumbado);
+                    rotDeg = _tumbado ? 90 : 0;
+                    next = PlaceAtWallVertex(wallHit, _newW, _newH, _tumbado, _scale);
+                    hot = wallHit.World;
+                    snap = true;
+                    snapPanel = true;
+                    wall = WallOf(wallHit) ?? wall;
+                }
+                else if (nearPanel)
+                {
+                    orient = OrientOnHost(hit, _scale, _tumbado);
+                    rotDeg = _tumbado ? 90 : 0;
+                    next = _overlay.Place(hit, res.Value, orient, _newW, _newH);
+                    hot = hit.World;
+                    snap = true;
+                    snapPanel = true;
+                    wall = WallOf(hit);
+                }
+                else if (wall != null)
+                {
+                    orient = MatchHostSentido(HostFromWall(wall), PanelOrient(_scale, _tumbado));
+                    rotDeg = _tumbado ? 90 : 0;
+                    next = res.Value;
+                    hot = null;
+                    snap = false;
+                    snapPanel = false;
                 }
                 else
                 {
                     orient = PanelOrient(_scale, _tumbado);
                     rotDeg = _tumbado ? 90 : 0;
+                    next = res.Value;
+                    hot = null;
+                    snap = false;
+                    snapPanel = false;
                 }
-                var next = near
-                    ? _overlay.Place(hit, res.Value, orient, _newW, _newH)
-                    : res.Value;
-                var hot = near ? hit.World : (Point3d?)null;
-                if (next.IsEqualTo(_at, new Tolerance(1e-6, 1e-6)) && Snapped == near
+
+                if (next.IsEqualTo(_at, new Tolerance(1e-6, 1e-6)) && Snapped == snap
                     && RotationDeg == rotDeg
                     && SameOrient(_orient, orient)
                     && hot.HasValue == _hot.HasValue
-                    && (!hot.HasValue || hot.Value.IsEqualTo(_hot.Value, new Tolerance(1e-6, 1e-6))))
+                    && (!hot.HasValue || hot.Value.IsEqualTo(_hot.Value, new Tolerance(1e-6, 1e-6)))
+                    && ReferenceEquals(_wall, wall))
                     return SamplerStatus.NoChange;
                 _at = next;
                 _hot = hot;
                 _orient = orient;
                 RotationDeg = rotDeg;
-                Snapped = near;
+                Snapped = snap;
+                SnapToPanel = snapPanel;
+                _wall = wall;
                 return SamplerStatus.OK;
             }
 
@@ -410,10 +1008,73 @@ namespace AutocadPlugin
                     return true;
                 if (_ghost == null)
                     _ghost = new BlockReference(Point3d.Origin, _blockId);
-                ApplyPanelMatrix(_ghost, _at, _orient);
+                if (_wall != null && !_tumbado && !_wall.HasPanels)
+                    ApplyFormworkPanelMatrix(_ghost, _at, _orient, _newW * _scale);
+                else
+                    ApplyPanelMatrix(_ghost, _at, _orient);
                 draw.Geometry.Draw(_ghost);
                 _overlay.WorldDraw(draw, _hot);
                 return true;
+            }
+
+            private AxisHost NearestWall(Point3d cursor, bool requireNear)
+            {
+                AxisHost best = null;
+                var bestDist = double.MaxValue;
+                foreach (var w in _walls)
+                {
+                    var d = WallCadXData.DistToSegment(cursor, w.A, w.B);
+                    var tol = Math.Max(w.Thickness * 2.2, CadUnits.FromMillimeters(400));
+                    if (requireNear && d > tol)
+                        continue;
+                    if (!requireNear && d > tol)
+                        continue;
+                    if (d < bestDist)
+                    {
+                        bestDist = d;
+                        best = w;
+                    }
+                }
+                return best;
+            }
+
+            private AxisHost WallOf(HostVertex hit)
+            {
+                if (hit == null)
+                    return null;
+                if (!hit.WallLineId.IsNull)
+                {
+                    foreach (var w in _walls)
+                    {
+                        if (w.LineId == hit.WallLineId)
+                            return w;
+                    }
+                }
+                if (hit.WallDbId > 0)
+                {
+                    foreach (var w in _walls)
+                    {
+                        if (w.WallDbId == hit.WallDbId)
+                            return w;
+                    }
+                }
+
+                return NearestWall(hit.World, true);
+            }
+
+            private static HostVertex HostFromWall(AxisHost wall)
+            {
+                return new HostVertex
+                {
+                    World = wall.BottomLeft,
+                    Id = "V_BL",
+                    WidthDir = wall.Along,
+                    HeightDir = Vector3d.ZAxis,
+                    ThickDir = wall.ThickDir,
+                    WallDbId = wall.WallDbId,
+                    WallLineId = wall.LineId,
+                    FromWall = true
+                };
             }
         }
 
@@ -430,7 +1091,7 @@ namespace AutocadPlugin
             return Math.Abs(host.HeightDir.DotProduct(Vector3d.ZAxis)) < 0.7;
         }
 
-        private static bool OrientIsTumbado(Matrix3d orient)
+        internal static bool OrientIsTumbado(Matrix3d orient)
         {
             var h = Vector3d.ZAxis.TransformBy(orient);
             return h.Length > 1e-9 && Math.Abs(h.GetNormal().DotProduct(Vector3d.ZAxis)) < 0.7;
@@ -443,8 +1104,6 @@ namespace AutocadPlugin
         /// </summary>
         private static Matrix3d OrientOnHost(HostVertex host, double scale, bool tumbado)
         {
-            if (!tumbado && HostIsTumbado(host))
-                return OrientFromHost(host, scale);
             return MatchHostSentido(host, PanelOrient(scale, tumbado));
         }
 
@@ -488,6 +1147,22 @@ namespace AutocadPlugin
         internal static void ApplyPanelMatrix(BlockReference br, Point3d at, Matrix3d orient)
         {
             br.BlockTransform = Matrix3d.Displacement(at.GetAsVector()) * orient;
+        }
+
+        /// <summary>
+        /// El DWG mira al revés que el STL: 180° en vertical sobre el centro
+        /// de la base, para no desplazar la huella del muro (mismo criterio que FormworkCommand).
+        /// </summary>
+        internal static void ApplyFormworkPanelMatrix(BlockReference br, Point3d at, Matrix3d orient, double widthDwg)
+        {
+            var along = Vector3d.XAxis.TransformBy(orient);
+            if (along.Length > 1e-9)
+                along = along.GetNormal();
+            var halfW = widthDwg > 1e-9 ? widthDwg * 0.5 : 0;
+            var pivot = at + along * halfW;
+            br.BlockTransform = Matrix3d.Rotation(Math.PI, Vector3d.ZAxis, pivot)
+                * Matrix3d.Displacement(at.GetAsVector())
+                * orient;
         }
 
         private static Point3d CornerLocalMeters(string id, double width, double height)
@@ -571,17 +1246,46 @@ namespace AutocadPlugin
             return codeName + "R";
         }
 
+        internal static long WallIdFromInsert(BlockReference br)
+        {
+            if (br == null || br.XData == null)
+                return 0;
+            var inApp = false;
+            foreach (var t in br.XData.AsArray())
+            {
+                if (t.TypeCode == 1001)
+                {
+                    inApp = string.Equals(t.Value as string, AppName, StringComparison.OrdinalIgnoreCase);
+                    continue;
+                }
+                if (!inApp || t.TypeCode != 1000)
+                    continue;
+                var text = (t.Value as string ?? "").Trim();
+                if (!text.StartsWith("WID:", StringComparison.OrdinalIgnoreCase))
+                    continue;
+                long id;
+                if (long.TryParse(text.Substring(4), out id))
+                    return id;
+            }
+            return 0;
+        }
+
         internal static void ApplyAtkXData(
             BlockReference br, Transaction tr, Database db,
-            string codeName, string view, string role, int rotDeg)
+            string codeName, string view, string role, int rotDeg, long wallDbId = 0)
         {
             EnsureRegApp(tr, db);
-            br.XData = new ResultBuffer(
+            var values = new List<TypedValue>
+            {
                 new TypedValue(1001, AppName),
                 new TypedValue(1000, codeName ?? ""),
                 new TypedValue(1000, view ?? "3dref"),
                 new TypedValue(1000, role ?? "PANEL"),
-                new TypedValue(1070, rotDeg));
+                new TypedValue(1070, rotDeg)
+            };
+            if (wallDbId > 0)
+                values.Add(new TypedValue(1000, "WID:" + wallDbId.ToString()));
+            br.XData = new ResultBuffer(values.ToArray());
         }
 
         private static void EnsureRegApp(Transaction tr, Database db)
@@ -605,6 +1309,56 @@ namespace AutocadPlugin
             {
                 _hosts = hosts ?? new List<HostVertex>();
                 _ed = ed;
+            }
+
+            public bool TryNearestPanel(Point3d cursor, out HostVertex nearest)
+            {
+                nearest = null;
+                var best = double.MaxValue;
+                foreach (var p in _hosts)
+                {
+                    if (p.FromWall)
+                        continue;
+                    var d = ScreenDist(cursor, p.World);
+                    if (d < best)
+                    {
+                        best = d;
+                        nearest = p;
+                    }
+                }
+                return nearest != null && best <= PixelTol;
+            }
+
+            public bool TryNearestOnWallFace(AxisHost wall, Point3d cursor, double maxDist, out HostVertex nearest)
+            {
+                nearest = null;
+                if (wall == null)
+                    return false;
+                var outward = FaceOutward(wall, cursor);
+                var best = double.MaxValue;
+                foreach (var p in _hosts)
+                {
+                    if (!p.FromWall || !SameWall(p, wall))
+                        continue;
+                    if (p.ThickDir.DotProduct(outward) <= 0)
+                        continue;
+                    var d = DistXY(cursor, p.World);
+                    if (d < best)
+                    {
+                        best = d;
+                        nearest = p;
+                    }
+                }
+                return nearest != null && best <= maxDist;
+            }
+
+            private static bool SameWall(HostVertex p, AxisHost wall)
+            {
+                if (p == null || wall == null)
+                    return false;
+                if (!p.WallLineId.IsNull && !wall.LineId.IsNull)
+                    return p.WallLineId == wall.LineId;
+                return p.WallDbId > 0 && wall.WallDbId > 0 && p.WallDbId == wall.WallDbId;
             }
 
             public bool TryNearest(Point3d cursor, out HostVertex nearest)
@@ -766,8 +1520,9 @@ namespace AutocadPlugin
                 foreach (var p in _hosts)
                 {
                     var isHot = hot.HasValue && p.World.DistanceTo(hot.Value) < 1e-4;
-                    var r = isHot ? mark * 1.7 : mark;
-                    draw.SubEntityTraits.Color = (short)(isHot ? 30 : 150);
+                    var isWall = p.FromWall;
+                    var r = isHot ? mark * 1.7 : (isWall ? mark : mark * 0.65);
+                    draw.SubEntityTraits.Color = (short)(isHot ? 30 : (isWall ? 4 : 150));
                     draw.Geometry.Circle(p.World, r, Vector3d.ZAxis);
                     draw.Geometry.Circle(p.World, r, Vector3d.XAxis);
                     draw.Geometry.Circle(p.World, r, Vector3d.YAxis);

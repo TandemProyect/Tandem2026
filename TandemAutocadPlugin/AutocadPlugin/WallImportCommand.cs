@@ -87,6 +87,7 @@ namespace AutocadPlugin
                 ClearLayer(tr, db, LayerAxis);
                 ClearLayer(tr, db, LayerFace);
                 ClearLayer(tr, db, Layer3d);
+                WallArticleCad.ErasePanels(tr, db);
 
                 var bt = (BlockTable)tr.GetObject(db.BlockTableId, OpenMode.ForRead);
                 var ms = (BlockTableRecord)tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite);
@@ -101,6 +102,15 @@ namespace AutocadPlugin
                     string role = (row.WallRole ?? "axis").Trim().ToLowerInvariant();
                     string layer = role == "face" ? LayerFace : LayerAxis;
                     var line = new Line(a, b) { Layer = layer };
+                    var thickness = CadUnits.FromMillimeters((row.DataWith ?? 0.30) * 1000.0);
+                    var groupId = row.WallGroupId.HasValue ? (int)row.WallGroupId.Value : 0;
+                    WallCadXData.Write(
+                        line,
+                        role,
+                        groupId,
+                        thickness,
+                        row.WallDbId ?? 0,
+                        row.IsSpecial == true);
                     ms.AppendEntity(line);
                     tr.AddNewlyCreatedDBObject(line, true);
                     drawn++;
@@ -109,7 +119,14 @@ namespace AutocadPlugin
                 tr.Commit();
             }
 
-            ed.WriteMessage($"\nDiseño {designId}: {drawn} muro(s) en {LayerAxis} / {LayerFace}.\n");
+            var articles = snapshot.Articles ?? new List<WallArticleDto>();
+            WallArticleCad.Remember(articles);
+            ed.WriteMessage(
+                $"\nDiseño {designId}: {drawn} muro(s) en {LayerAxis} / {LayerFace}"
+                + (articles.Count > 0
+                    ? $". {articles.Count} artículo(s) se insertarán al levantar el 3D."
+                    : ".")
+                + "\n");
         }
 
         private static void AfterLoad(Document doc)

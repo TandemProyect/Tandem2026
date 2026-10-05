@@ -57,6 +57,9 @@ namespace Desing.Repositories.RepositoryDesing2
         public bool? _CHeckPropOutside { get; set; }
         public bool? _CHeckPropInsideInf { get; set; }
         public bool? _CHeckPropOutsideInf { get; set; }
+
+        public long? WallDbId { get; set; }
+        public bool? IsSpecial { get; set; }
     }
 
     public sealed class Desing2DesignWallSaveRequest
@@ -64,6 +67,7 @@ namespace Desing.Repositories.RepositoryDesing2
         public long DesignId { get; set; }
         public string DeviceId { get; set; }
         public List<Desing2DesignWallLineDto> Lines { get; set; }
+        public List<PluginSaveWallArticleRequest> Articles { get; set; }
         public long? NextSegId { get; set; }
         public long? NextPolylineGroupId { get; set; }
         public long? NextWallGroupId { get; set; }
@@ -72,6 +76,7 @@ namespace Desing.Repositories.RepositoryDesing2
     public sealed class Desing2DesignWallSnapshotDto
     {
         public List<Desing2DesignWallLineDto> Lines { get; set; }
+        public List<Desing2DesignWallArticleDto> Articles { get; set; }
         public long NextSegId { get; set; }
         public long NextPolylineGroupId { get; set; }
         public long NextWallGroupId { get; set; }
@@ -101,42 +106,129 @@ namespace Desing.Repositories.RepositoryDesing2
             var existing = _db.TSql_DesignWall
                 .Where(w => w.LinkDesign_V2 == designId && !w.Is_Delete)
                 .ToList();
+            var used = new HashSet<long>();
+            var count = 0;
+
+            if (lines != null)
+            {
+                for (var i = 0; i < lines.Count; i++)
+                {
+                    var line = lines[i];
+                    if (!IsValidLine(line))
+                    {
+                        continue;
+                    }
+
+                    var match = FindExistingWall(existing, used, line);
+                    if (match != null)
+                    {
+                        var wasSpecial = match.Is_Special;
+                        MapLineToEntity(line, match);
+                        if (wasSpecial || line.IsSpecial == true)
+                        {
+                            match.Is_Special = true;
+                            match.Is_Formwork = false;
+                        }
+
+                        IntranetAuditHelper.SetAuditOnUpdate(match, userId);
+                        used.Add(match.IdObject);
+                        count++;
+                        continue;
+                    }
+
+                    var entity = new TSql_DesignWall
+                    {
+                        LinkDesign_V2 = designId
+                    };
+                    MapLineToEntity(line, entity);
+                    if (line.IsSpecial == true)
+                    {
+                        entity.Is_Special = true;
+                        entity.Is_Formwork = false;
+                    }
+
+                    IntranetAuditHelper.SetAuditOnCreate(entity, userId);
+                    _db.TSql_DesignWall.Add(entity);
+                    count++;
+                }
+            }
 
             for (var i = 0; i < existing.Count; i++)
             {
-                IntranetAuditHelper.SetAuditOnDelete(existing[i], userId);
-            }
-
-            var count = 0;
-            if (lines == null)
-            {
-                return count;
-            }
-
-            for (var i = 0; i < lines.Count; i++)
-            {
-                var line = lines[i];
-                if (line == null || line.P1Mm == null || line.P2Mm == null)
+                var row = existing[i];
+                if (used.Contains(row.IdObject) || row.Is_Special)
                 {
                     continue;
                 }
 
-                if (!line.P1Mm.X.HasValue || !line.P1Mm.Z.HasValue || !line.P2Mm.X.HasValue || !line.P2Mm.Z.HasValue)
-                {
-                    continue;
-                }
-
-                var entity = new TSql_DesignWall
-                {
-                    LinkDesign_V2 = designId
-                };
-                MapLineToEntity(line, entity);
-                IntranetAuditHelper.SetAuditOnCreate(entity, userId);
-                _db.TSql_DesignWall.Add(entity);
-                count++;
+                IntranetAuditHelper.SetAuditOnDelete(row, userId);
             }
 
             return count;
+        }
+
+        public TSql_DesignWall FindOrCreateAxisForManual(PluginSaveWallArticleRequest request, string userId)
+        {
+            if (request == null || request.DesignId <= 0)
+            {
+                throw new InvalidOperationException("Diseño no indicado.");
+            }
+
+            TSql_DesignWall wall = null;
+            if (request.WallDbId.HasValue && request.WallDbId.Value > 0)
+            {
+                wall = _db.TSql_DesignWall.FirstOrDefault(w =>
+                    w.IdObject == request.WallDbId.Value
+                    && w.LinkDesign_V2 == request.DesignId
+                    && !w.Is_Delete);
+            }
+
+            if (wall == null && IsValidLine(new Desing2DesignWallLineDto
+            {
+                P1Mm = request.P1Mm,
+                P2Mm = request.P2Mm
+            }))
+            {
+                var existing = _db.TSql_DesignWall
+                    .Where(w => w.LinkDesign_V2 == request.DesignId && !w.Is_Delete)
+                    .ToList();
+                wall = FindByGeometry(existing, request.P1Mm, request.P2Mm, "axis");
+            }
+
+            if (wall == null)
+            {
+                if (!IsValidLine(new Desing2DesignWallLineDto { P1Mm = request.P1Mm, P2Mm = request.P2Mm }))
+                {
+                    throw new InvalidOperationException("El muro no tiene geometría para guardarlo.");
+                }
+
+                wall = new TSql_DesignWall
+                {
+                    LinkDesign_V2 = request.DesignId
+                };
+                MapLineToEntity(new Desing2DesignWallLineDto
+                {
+                    P1Mm = request.P1Mm,
+                    P2Mm = request.P2Mm,
+                    WallRole = "axis",
+                    TextSystem = string.IsNullOrWhiteSpace(request.TextSystem) ? "Atk-60" : request.TextSystem,
+                    _Datalong = request.DataLong,
+                    _DataWith = request.DataWith,
+                    _DataHeight = request.DataHeight ?? 2.70,
+                    _IsFormwork = false,
+                    IsSpecial = true
+                }, wall);
+                wall.Is_Special = true;
+                wall.Is_Formwork = false;
+                IntranetAuditHelper.SetAuditOnCreate(wall, userId);
+                _db.TSql_DesignWall.Add(wall);
+                return wall;
+            }
+
+            wall.Is_Special = true;
+            wall.Is_Formwork = false;
+            IntranetAuditHelper.SetAuditOnUpdate(wall, userId);
+            return wall;
         }
 
         public Desing2DesignWallSnapshotDto LoadSnapshot(long designId)
@@ -170,6 +262,7 @@ namespace Desing.Repositories.RepositoryDesing2
             return new Desing2DesignWallSnapshotDto
             {
                 Lines = lines,
+                Articles = new DesignWallArticleRepository(_db).ListActive(designId),
                 NextSegId = maxId + 1,
                 NextPolylineGroupId = maxPolyline + 1,
                 NextWallGroupId = maxWallGroup + 1
@@ -215,8 +308,12 @@ namespace Desing.Repositories.RepositoryDesing2
             entity.NumberXCoordinate = line._XCoordinate;
             entity.NumberYCoordinate = line._YCoordinate;
             entity.NumberZCoordinate = line._ZCoordinate;
-            entity.Is_Formwork = line._IsFormwork ?? true;
+            entity.Is_Formwork = line.IsSpecial == true ? false : (line._IsFormwork ?? true);
             entity.Is_UniversalPanel = line._IsUniversalPanel ?? true;
+            if (line.IsSpecial.HasValue)
+            {
+                entity.Is_Special = line.IsSpecial.Value;
+            }
             entity.TextTape_1 = Truncate(line._Tape_1, 50);
             entity.TextTape_2 = Truncate(line._Tape_2, 50);
             entity.TextIdConnection_1 = Truncate(line._Idconnection_1, 128);
@@ -238,7 +335,7 @@ namespace Desing.Repositories.RepositoryDesing2
         {
             var dto = new Desing2DesignWallLineDto
             {
-                Id = row.NumberLineId,
+                Id = row.NumberLineId ?? row.IdObject,
                 P1Mm = new Desing2XyzMmDto { X = row.NumberP1X, Y = row.NumberP1Y, Z = row.NumberP1Z },
                 P2Mm = new Desing2XyzMmDto { X = row.NumberP2X, Y = row.NumberP2Y, Z = row.NumberP2Z },
                 PolylineGroupId = row.NumberPolylineGroupId,
@@ -273,7 +370,9 @@ namespace Desing.Repositories.RepositoryDesing2
                 _CHeckPropInside = row.Is_CheckPropInside,
                 _CHeckPropOutside = row.Is_CheckPropOutside,
                 _CHeckPropInsideInf = row.Is_CheckPropInsideInf,
-                _CHeckPropOutsideInf = row.Is_CheckPropOutsideInf
+                _CHeckPropOutsideInf = row.Is_CheckPropOutsideInf,
+                WallDbId = row.IdObject,
+                IsSpecial = row.Is_Special
             };
 
             if (row.NumberDrawP1X.HasValue && row.NumberDrawP1Z.HasValue)
@@ -297,6 +396,114 @@ namespace Desing.Repositories.RepositoryDesing2
             }
 
             return dto;
+        }
+
+        private static bool IsValidLine(Desing2DesignWallLineDto line)
+        {
+            return line != null
+                && line.P1Mm != null
+                && line.P2Mm != null
+                && line.P1Mm.X.HasValue
+                && line.P1Mm.Z.HasValue
+                && line.P2Mm.X.HasValue
+                && line.P2Mm.Z.HasValue;
+        }
+
+        private static TSql_DesignWall FindExistingWall(
+            IList<TSql_DesignWall> existing,
+            HashSet<long> used,
+            Desing2DesignWallLineDto line)
+        {
+            if (existing == null || existing.Count == 0)
+            {
+                return null;
+            }
+
+            if (line.WallDbId.HasValue && line.WallDbId.Value > 0)
+            {
+                for (var i = 0; i < existing.Count; i++)
+                {
+                    var row = existing[i];
+                    if (row.IdObject == line.WallDbId.Value && !used.Contains(row.IdObject))
+                    {
+                        return row;
+                    }
+                }
+            }
+
+            return FindByGeometry(existing, line.P1Mm, line.P2Mm, line.WallRole, used);
+        }
+
+        private static TSql_DesignWall FindByGeometry(
+            IList<TSql_DesignWall> existing,
+            Desing2XyzMmDto p1,
+            Desing2XyzMmDto p2,
+            string role,
+            HashSet<long> used = null)
+        {
+            if (existing == null || p1 == null || p2 == null
+                || !p1.X.HasValue || !p1.Z.HasValue
+                || !p2.X.HasValue || !p2.Z.HasValue)
+            {
+                return null;
+            }
+
+            const double tol = 25d;
+            TSql_DesignWall fallback = null;
+            for (var i = 0; i < existing.Count; i++)
+            {
+                var row = existing[i];
+                if (used != null && used.Contains(row.IdObject))
+                {
+                    continue;
+                }
+
+                if (!SameEnds(
+                    row.NumberP1X, row.NumberP1Z, row.NumberP2X, row.NumberP2Z,
+                    p1.X.Value, p1.Z.Value, p2.X.Value, p2.Z.Value, tol))
+                {
+                    continue;
+                }
+
+                if (RolesMatch(row.TextWallRole, role))
+                {
+                    return row;
+                }
+
+                if (fallback == null)
+                {
+                    fallback = row;
+                }
+            }
+
+            return fallback;
+        }
+
+        private static bool RolesMatch(string stored, string incoming)
+        {
+            if (string.IsNullOrWhiteSpace(incoming))
+            {
+                return true;
+            }
+
+            return string.Equals(
+                (stored ?? string.Empty).Trim(),
+                incoming.Trim(),
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool SameEnds(
+            double a1x, double a1z, double a2x, double a2z,
+            double b1x, double b1z, double b2x, double b2z,
+            double tol)
+        {
+            return (Near(a1x, b1x, tol) && Near(a1z, b1z, tol) && Near(a2x, b2x, tol) && Near(a2z, b2z, tol))
+                || (Near(a1x, b2x, tol) && Near(a1z, b2z, tol) && Near(a2x, b1x, tol) && Near(a2z, b1z, tol));
+        }
+
+        private static bool Near(double a, double b, double tol)
+        {
+            return Math.Abs(a - b) <= tol;
         }
 
         private static string ResolveClientWallId(Desing2DesignWallLineDto line)

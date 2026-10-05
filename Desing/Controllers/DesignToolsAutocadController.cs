@@ -1,4 +1,4 @@
-﻿using DAL;
+using DAL;
 using netDxf;
 using netDxf.Blocks;
 using netDxf.Entities;
@@ -1498,8 +1498,9 @@ namespace Desing.Controllers
         }
 
         /// <summary>
-        /// Guarda muros del plugin en TSql_DesignWall. Misma ReplaceWalls que
-        /// Desing_2/SaveDesignWalls. Aquí no hay otra lógica de persistencia.
+        /// Guarda muros del plugin en TSql_DesignWall y, si viene Articles
+        /// (icono Salvar de AutoCAD), sustituye TSql_DesignWallArticle.
+        /// Desing_2 no envía Articles: no se tocan los artículos.
         /// </summary>
         [HttpPost]
         [AllowAnonymous]
@@ -1524,29 +1525,30 @@ namespace Desing.Controllers
                 if (design == null)
                     return Json(new { Exito = false, Mensaje = "Diseño no encontrado." });
 
-                var userId = IntranetAuditHelper.ResolveCurrentUserId(User);
-                if (string.IsNullOrWhiteSpace(userId))
-                {
-                    var snap = PluginCadDeviceHelper.TryReadCookie(Request);
-                    var deviceId = !string.IsNullOrWhiteSpace(request.DeviceId)
-                        ? request.DeviceId
-                        : (snap != null ? snap.DeviceId : null);
-                    var device = PluginCadDeviceHelper.Find(db, deviceId);
-                    if (device != null && !string.IsNullOrWhiteSpace(device.LinAspNetUsert))
-                        userId = device.LinAspNetUsert;
-                }
-                if (string.IsNullOrWhiteSpace(userId))
-                    userId = "plugin-cad";
+                var userId = ResolvePluginAuditUserId(request.DeviceId);
 
                 int saved;
+                int articleCount = 0;
                 using (var trans = db.Database.BeginTransaction())
                 {
                     saved = repository.ReplaceWalls(request.DesignId, request.Lines, userId);
                     db.SaveChanges();
+                    if (request.Articles != null)
+                    {
+                        articleCount = new DesignWallArticleRepository(db)
+                            .ReplaceAll(request.DesignId, request.Articles, userId);
+                        db.SaveChanges();
+                    }
                     trans.Commit();
                 }
 
-                return Json(new { Exito = true, Count = saved, DesignId = request.DesignId });
+                return Json(new
+                {
+                    Exito = true,
+                    Count = saved,
+                    ArticleCount = articleCount,
+                    DesignId = request.DesignId
+                });
             }
             catch (JsonReaderException ex)
             {
@@ -1556,6 +1558,82 @@ namespace Desing.Controllers
             {
                 return Json(new { Exito = false, Mensaje = ex.Message });
             }
+        }
+
+        /// <summary>
+        /// Inserta a mano un artículo en un muro: marca Is_Special y
+        /// guarda la fila en TSql_DesignWallArticle.
+        /// </summary>
+        [HttpPost]
+        [AllowAnonymous]
+        public JsonResult PluginSaveWallArticle()
+        {
+            try
+            {
+                if (Request.InputStream.CanSeek)
+                    Request.InputStream.Position = 0;
+                string rawJson;
+                using (var reader = new StreamReader(Request.InputStream, Encoding.UTF8))
+                    rawJson = reader.ReadToEnd();
+                if (string.IsNullOrWhiteSpace(rawJson))
+                    return Json(new { Exito = false, Mensaje = "JSON vacío." });
+
+                var request = JsonConvert.DeserializeObject<PluginSaveWallArticleRequest>(rawJson);
+                if (request == null || request.DesignId <= 0)
+                    return Json(new { Exito = false, Mensaje = "Diseño no indicado." });
+                if (string.IsNullOrWhiteSpace(request.CodeName))
+                    return Json(new { Exito = false, Mensaje = "Artículo no indicado." });
+
+                var walls = new DesignWallRepository(db);
+                var design = walls.FindActiveDesign(request.DesignId);
+                if (design == null)
+                    return Json(new { Exito = false, Mensaje = "Diseño no encontrado." });
+
+                var userId = ResolvePluginAuditUserId(request.DeviceId);
+                PluginSaveWallArticleResult saved;
+                using (var trans = db.Database.BeginTransaction())
+                {
+                    saved = new DesignWallArticleRepository(db).SaveManual(request, userId);
+                    db.SaveChanges();
+                    trans.Commit();
+                }
+
+                if (saved != null && saved.Article != null)
+                    saved.ArticleId = saved.Article.IdObject;
+
+                return Json(new
+                {
+                    Exito = true,
+                    WallId = saved != null ? saved.WallId : 0L,
+                    ArticleId = saved != null ? saved.ArticleId : 0L,
+                    Sequence = saved != null ? saved.Sequence : 0L,
+                    DesignId = request.DesignId
+                });
+            }
+            catch (JsonReaderException ex)
+            {
+                return Json(new { Exito = false, Mensaje = "JSON inválido: " + ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Exito = false, Mensaje = ex.Message });
+            }
+        }
+
+        private string ResolvePluginAuditUserId(string requestDeviceId)
+        {
+            var userId = IntranetAuditHelper.ResolveCurrentUserId(User);
+            if (!string.IsNullOrWhiteSpace(userId))
+                return userId;
+
+            var snap = PluginCadDeviceHelper.TryReadCookie(Request);
+            var deviceId = !string.IsNullOrWhiteSpace(requestDeviceId)
+                ? requestDeviceId
+                : (snap != null ? snap.DeviceId : null);
+            var device = PluginCadDeviceHelper.Find(db, deviceId);
+            if (device != null && !string.IsNullOrWhiteSpace(device.LinAspNetUsert))
+                return device.LinAspNetUsert;
+            return "plugin-cad";
         }
 
         /// <summary>

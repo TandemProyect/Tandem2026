@@ -4003,6 +4003,10 @@ function bootMasterArticleDetailsStlViewer() {
         '_CHeckPropOutside',
         '_CHeckPropInsideInf',
         '_CHeckPropOutsideInf',
+        'WallDbId',
+        'wallDbId',
+        'IsSpecial',
+        'isSpecial',
     ];
 
     function maStlWallLineCopyAttrs(fromObj, toObj) {
@@ -4062,7 +4066,13 @@ function bootMasterArticleDetailsStlViewer() {
         ud._XRotation = 0;
         ud._YrRtation = Math.round(yRotDeg * 1000) / 1000;
         ud._ZRotation = 0;
-        if (ud._IsFormwork == null) ud._IsFormwork = true;
+        if (ud.isSpecial === true || ud.IsSpecial === true) {
+            ud.isSpecial = true;
+            ud.IsSpecial = true;
+            ud._IsFormwork = false;
+        } else if (ud._IsFormwork == null) {
+            ud._IsFormwork = true;
+        }
         if (ud._IsUniversalPanel == null) ud._IsUniversalPanel = true;
         ud._XCoordinate = midX;
         ud._YCoordinate = midY;
@@ -4127,6 +4137,12 @@ function bootMasterArticleDetailsStlViewer() {
                     row.wallDrawP2Mm = maStlDesing2ClonePlanPointMm(ud.wallDrawP2Mm);
                 }
                 maStlWallLineCopyAttrs(ud, row);
+                if (ud.wallDbId != null) row.WallDbId = ud.wallDbId;
+                else if (ud.WallDbId != null) row.WallDbId = ud.WallDbId;
+                if (ud.isSpecial === true || ud.IsSpecial === true) {
+                    row.IsSpecial = true;
+                    row._IsFormwork = false;
+                }
                 lines.push(row);
             }
         }
@@ -4214,6 +4230,18 @@ function bootMasterArticleDetailsStlViewer() {
         const drawP2 = maStlDesing2PointFromServerDto(row.wallDrawP2Mm || row.WallDrawP2Mm);
         if (drawP1) out.wallDrawP1Mm = drawP1;
         if (drawP2) out.wallDrawP2Mm = drawP2;
+        const wallDbId = row.wallDbId != null ? row.wallDbId : row.WallDbId;
+        if (wallDbId != null && Number.isFinite(Number(wallDbId))) {
+            out.wallDbId = Number(wallDbId);
+            out.WallDbId = out.wallDbId;
+        }
+        const isSpecial = row.isSpecial === true || row.IsSpecial === true
+            || row._IsFormwork === false || row._IsFormwork === 0;
+        if (isSpecial) {
+            out.isSpecial = true;
+            out.IsSpecial = true;
+            out._IsFormwork = false;
+        }
         maStlWallLineCopyAttrs(row, out);
         return out;
     }
@@ -4389,24 +4417,24 @@ function bootMasterArticleDetailsStlViewer() {
                     const mapped = maStlDesing2WallLineFromServer(rawLines[i]);
                     if (mapped) lines.push(mapped);
                 }
-                if (!lines.length) {
-                    maStlDesing2MarkWallsPersisted();
-                    return { ok: true, empty: true };
+                const rawArticles = snap.articles || snap.Articles || [];
+                if (lines.length) {
+                    maStlDesing2ApplyEditSnapshot({
+                        lines: lines,
+                        nextSegId: snap.nextSegId || snap.NextSegId,
+                        nextPolylineGroupId: snap.nextPolylineGroupId || snap.NextPolylineGroupId,
+                        nextWallGroupId: snap.nextWallGroupId || snap.NextWallGroupId,
+                    });
+                    if (typeof maStlWall2dToolRefreshResumeStateFromScene === 'function') {
+                        maStlWall2dToolRefreshResumeStateFromScene();
+                    }
+                    if (typeof maStlWall2dToolRefactorAllWallJunctionsMm === 'function') {
+                        maStlWall2dToolRefactorAllWallJunctionsMm();
+                    }
                 }
-                maStlDesing2ApplyEditSnapshot({
-                    lines: lines,
-                    nextSegId: snap.nextSegId || snap.NextSegId,
-                    nextPolylineGroupId: snap.nextPolylineGroupId || snap.NextPolylineGroupId,
-                    nextWallGroupId: snap.nextWallGroupId || snap.NextWallGroupId,
-                });
-                if (typeof maStlWall2dToolRefreshResumeStateFromScene === 'function') {
-                    maStlWall2dToolRefreshResumeStateFromScene();
-                }
-                if (typeof maStlWall2dToolRefactorAllWallJunctionsMm === 'function') {
-                    maStlWall2dToolRefactorAllWallJunctionsMm();
-                }
+                maStlDesing2RenderManualWallArticles(rawArticles);
                 maStlDesing2MarkWallsPersisted();
-                return { ok: true, count: lines.length };
+                return { ok: true, count: lines.length, articles: rawArticles.length };
             })
             .catch(function (err) {
                 if (window.console && console.warn) {
@@ -4784,6 +4812,186 @@ function bootMasterArticleDetailsStlViewer() {
         };
     }
 
+    function maStlDesing2WallIsSpecial(wall) {
+        if (!wall || typeof wall !== 'object') return false;
+        const attrs = wall.Attributes && typeof wall.Attributes === 'object' ? wall.Attributes : wall;
+        if (wall.isSpecial === true || wall.IsSpecial === true) return true;
+        if (attrs.isSpecial === true || attrs.IsSpecial === true) return true;
+        if (attrs._IsFormwork === false || attrs._IsFormwork === 0) return true;
+        if (wall._IsFormwork === false || wall._IsFormwork === 0) return true;
+        return false;
+    }
+
+    let maStlDesing2ManualArticleGroup = null;
+
+    function maStlDesing2EnsureManualArticleGroup() {
+        if (maStlDesing2ManualArticleGroup) return maStlDesing2ManualArticleGroup;
+        maStlDesing2ManualArticleGroup = new THREE.Group();
+        maStlDesing2ManualArticleGroup.name = 'maStlManualWallArticles';
+        maStlDesing2ManualArticleGroup.renderOrder = 145;
+        if (scene) scene.add(maStlDesing2ManualArticleGroup);
+        return maStlDesing2ManualArticleGroup;
+    }
+
+    function maStlDesing2ClearManualArticles() {
+        const group = maStlDesing2ManualArticleGroup;
+        if (!group) return;
+        const doomed = [];
+        group.traverse(function (obj) {
+            if (obj && obj.isMesh) doomed.push(obj);
+        });
+        for (let i = 0; i < doomed.length; i++) {
+            const idx = clipStlMeshes.indexOf(doomed[i]);
+            if (idx >= 0) clipStlMeshes.splice(idx, 1);
+        }
+        for (let j = group.children.length - 1; j >= 0; j--) {
+            const child = group.children[j];
+            group.remove(child);
+            if (typeof disposeObject3D === 'function') disposeObject3D(child);
+        }
+    }
+
+    function maStlDesing2LoadStlGeometry(url) {
+        return new Promise(function (resolve, reject) {
+            const src = url != null ? String(url).trim() : '';
+            if (!src) {
+                reject(new Error('STL vacío'));
+                return;
+            }
+            const loader = new STLLoader();
+            loader.load(src, function (geometry) {
+                if (geometry && typeof geometry.computeVertexNormals === 'function') {
+                    geometry.computeVertexNormals();
+                }
+                resolve(geometry);
+            }, undefined, function (err) {
+                reject(err || new Error('No se pudo cargar ' + src));
+            });
+        });
+    }
+
+    function maStlDesing2MakeManualArticleMesh(geometry, tint) {
+        const mesh = new THREE.Mesh(geometry, makeStlMeshStandardMaterial(tint));
+        mesh.castShadow = groundShadowVisible;
+        mesh.receiveShadow = false;
+        mesh.rotation.x = -0.5 * Math.PI;
+        return mesh;
+    }
+
+    function maStlDesing2FitManualArticleScale(root) {
+        root.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(root);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const maxDim = Math.max(size.x, size.y, size.z);
+        if (Number.isFinite(maxDim) && maxDim > 1e-6 && maxDim < 50) {
+            root.scale.multiplyScalar(1000);
+        }
+    }
+
+    function maStlDesing2ManualArticleWallYawRad(item) {
+        const wantId = item && (item.WallDbId != null ? item.WallDbId : item.wallDbId);
+        if (wantId == null || !maStlUserLinesGroup) return null;
+        const want = String(wantId);
+        let best = null;
+        maStlUserLinesGroup.traverse(function (obj) {
+            if (best || !obj || !obj.userData) return;
+            const ud = obj.userData;
+            const role = String(ud.wallRole || ud.WallRole || '').toLowerCase();
+            if (role === 'face') return;
+            const id = ud.wallDbId != null ? ud.wallDbId
+                : (ud.WallDbId != null ? ud.WallDbId
+                    : (ud._idObject != null ? ud._idObject : null));
+            if (id == null || String(id) !== want) return;
+            const p1 = ud.p1Mm || ud.P1Mm;
+            const p2 = ud.p2Mm || ud.P2Mm;
+            if (!p1 || !p2) return;
+            const ax = Number(p1.x != null ? p1.x : p1.X);
+            const az = Number(p1.z != null ? p1.z : p1.Z);
+            const bx = Number(p2.x != null ? p2.x : p2.X);
+            const bz = Number(p2.z != null ? p2.z : p2.Z);
+            if (!Number.isFinite(ax) || !Number.isFinite(az) || !Number.isFinite(bx) || !Number.isFinite(bz)) return;
+            let lx = ax;
+            let lz = az;
+            let rx = bx;
+            let rz = bz;
+            if (!(ax < bx - 1e-6 || (Math.abs(ax - bx) <= 1e-6 && az <= bz))) {
+                lx = bx;
+                lz = bz;
+                rx = ax;
+                rz = az;
+            }
+            best = -Math.atan2(rz - lz, rx - lx);
+        });
+        return best;
+    }
+
+    async function maStlDesing2RenderManualWallArticles(articles) {
+        if (!scene) return { inserted: 0, requested: 0 };
+        const group = maStlDesing2EnsureManualArticleGroup();
+        maStlDesing2ClearManualArticles();
+        const source = Array.isArray(articles) ? articles : [];
+        let inserted = 0;
+        for (let i = 0; i < source.length; i++) {
+            const item = source[i] || {};
+            const insert = item.InsertMm || item.insertMm || {};
+            const x = Number(insert.X != null ? insert.X : insert.x);
+            const y = Number(insert.Y != null ? insert.Y : insert.y);
+            const z = Number(insert.Z != null ? insert.Z : insert.z);
+            const stlUrl = (item.StlUrl || item.stlUrl || '').trim();
+            if (!stlUrl || !Number.isFinite(x) || !Number.isFinite(z)) continue;
+            try {
+                const frameGeom = await maStlDesing2LoadStlGeometry(stlUrl);
+                const root = new THREE.Group();
+                const frame = maStlDesing2MakeManualArticleMesh(frameGeom, stlMeshTintColor);
+                root.add(frame);
+                if (clipStlMeshes.indexOf(frame) < 0) clipStlMeshes.push(frame);
+
+                const phenolicUrl = (item.StlPhenolicUrl || item.stlPhenolicUrl || '').trim();
+                if (phenolicUrl) {
+                    try {
+                        const phenGeom = await maStlDesing2LoadStlGeometry(phenolicUrl);
+                        const phen = maStlDesing2MakeManualArticleMesh(phenGeom, stlMeshTintColor2);
+                        root.add(phen);
+                        if (clipStlMeshes.indexOf(phen) < 0) clipStlMeshes.push(phen);
+                    } catch (_phenErr) { /* sin fenólico */ }
+                }
+
+                maStlDesing2FitManualArticleScale(root);
+                const rotX = Number(item.RotationX != null ? item.RotationX : item.rotationX);
+                const rotY = Number(item.RotationY != null ? item.RotationY : item.rotationY);
+                const rotZ = Number(item.RotationZ != null ? item.RotationZ : item.rotationZ);
+                const tumbado = Number.isFinite(rotX) && Math.abs(rotX - 90) < 1;
+                const mirrored = Number.isFinite(rotY) && Math.abs(Math.abs(rotY) - 180) < 1;
+                const wallYaw = maStlDesing2ManualArticleWallYawRad(item);
+                const yawRad = wallYaw != null
+                    ? wallYaw
+                    : maStlDesing2NormalizeAngleToRad(Number.isFinite(rotZ) ? -rotZ : 0);
+                // AutoCAD tumba en el plano de la cara y luego orienta en planta.
+                // STL Desing (Y-up, espesor en Z): +90° en Z y después yaw en Y.
+                // La cara simétrica no gira 180°: solo invierte el espesor.
+                root.rotation.order = 'ZYX';
+                root.rotation.set(0, yawRad, tumbado ? Math.PI * 0.5 : 0);
+                if (mirrored) root.scale.z *= -1;
+                root.position.set(x, Number.isFinite(y) ? y : 0, z);
+                root.userData = Object.assign({}, root.userData || {}, {
+                    maStlManualWallArticle: true,
+                    maStlManualArticleId: item.IdObject != null ? item.IdObject : item.idObject,
+                    maStlManualWallDbId: item.WallDbId != null ? item.WallDbId : item.wallDbId,
+                    maStlManualTextCode: item.TextCode || item.textCode || '',
+                });
+                group.add(root);
+                inserted++;
+            } catch (err) {
+                if (window.console && console.warn) {
+                    console.warn('[Desing_2] No se pudo pintar artículo manual', item, err);
+                }
+            }
+        }
+        if (typeof updateClipPlanes === 'function') updateClipPlanes();
+        return { inserted: inserted, requested: source.length };
+    }
+
     function maStlBuildStraightWallsForFormwork() {
         const built = maStlBuildWallConnectionsPayload();
         if (!built || !built.payload || !Array.isArray(built.payload.lines)) return [];
@@ -4800,6 +5008,7 @@ function bootMasterArticleDetailsStlViewer() {
                 const isFace = line.wallRole === 'face' || line.kind === 'wallFace';
                 if (isFace) return false;
                 if (!isAxis && !isStraightCandidate) return false;
+                if (maStlDesing2WallIsSpecial(line)) return false;
 
                 const key = String(line.id);
                 if (seen[key]) return false;
@@ -4840,6 +5049,7 @@ function bootMasterArticleDetailsStlViewer() {
             const isStraightWallByName = name.indexOf('Wall_R000') === 0 || name.indexOf('Wall_R900') === 0;
 
             if (!isStraightWallByUd && !isStraightWallByName) return;
+            if (maStlDesing2WallIsSpecial(ud || obj.userData || obj)) return;
 
             const src = ud || obj;
             const lineId = src.id != null ? src.id : obj.id;
@@ -4902,6 +5112,7 @@ function bootMasterArticleDetailsStlViewer() {
                 const attrs = obj.userData;
                 const typeMesh = String(attrs._TypeMesh || attrs.TypeMesh || '').toLowerCase();
                 if (typeMesh !== 'wall') return;
+                if (maStlDesing2WallIsSpecial(attrs)) return;
 
                 const idWallRaw = attrs._idObject != null ? attrs._idObject : (attrs.Id != null ? attrs.Id : obj.id);
                 const idWall = String(idWallRaw);
@@ -5882,6 +6093,8 @@ function bootMasterArticleDetailsStlViewer() {
         window.maStlDesing2BuildWallConnectionsPayload = maStlBuildWallConnectionsPayload;
         window.maStlDesing2RenderAtk60AnchorPoints = maStlDesing2RenderAtk60AnchorPoints;
         window.maStlDesing2RenderAtk60Elements = maStlDesing2RenderAtk60Elements;
+        window.maStlDesing2WallIsSpecial = maStlDesing2WallIsSpecial;
+        window.maStlDesing2RenderManualWallArticles = maStlDesing2RenderManualWallArticles;
     }
 
     function maStlBuildWallDiagnosticsPayload(reason) {
@@ -27426,6 +27639,8 @@ function bootMasterArticleDetailsStlViewer() {
         window.maStlDesing2BuildWallConnectionsPayload = maStlBuildWallConnectionsPayload;
         window.maStlDesing2RenderAtk60AnchorPoints = maStlDesing2RenderAtk60AnchorPoints;
         window.maStlDesing2RenderAtk60Elements = maStlDesing2RenderAtk60Elements;
+        window.maStlDesing2WallIsSpecial = maStlDesing2WallIsSpecial;
+        window.maStlDesing2RenderManualWallArticles = maStlDesing2RenderManualWallArticles;
     }
 
     function applySceneBackgroundAndClearColor() {

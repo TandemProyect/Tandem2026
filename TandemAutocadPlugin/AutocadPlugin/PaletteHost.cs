@@ -980,7 +980,7 @@ namespace AutocadPlugin
                 switch (click.mode)
                 {
                     case "lines": return "._PLINE";
-                    case "wall-2d": return Wall2dCommand.CommandName;
+                    case "wall-2d": return "TANDEM_VER2D";
                     case "wall-3d": return Wall3dCommand.CommandName;
                     case "formwork": return FormworkCommand.CommandName;
                 }

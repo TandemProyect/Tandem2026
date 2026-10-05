@@ -27,7 +27,7 @@
             </Grid.RowDefinitions>
 
             <Border x:Name="HeaderBar"
-                    Background="#349d7d"
+                    Background="#7367F0"
                     Padding="10,8"
                     CornerRadius="13,13,0,0"
                     Cursor="SizeAll"
@@ -109,7 +109,7 @@
                     <Grid Width="36" Height="36" HorizontalAlignment="Center">
                         <Ellipse Stroke="#E8E6F4" StrokeThickness="3.2" />
                         <Ellipse x:Name="SpinArc"
-                                 Stroke="#349d7d"
+                                 Stroke="#7367F0"
                                  StrokeThickness="3.2"
                                  StrokeDashArray="12 20"
                                  StrokeStartLineCap="Round"
@@ -139,6 +139,24 @@
                                Foreground="#6E6B80"
                                TextAlignment="Left"
                                TextWrapping="Wrap" />
+                    <Border Margin="0,12,0,0"
+                            Padding="0,8,0,0"
+                            BorderBrush="#E8E6F4"
+                            BorderThickness="0,1,0,0">
+                        <StackPanel>
+                            <TextBlock x:Name="WifiQualityText"
+                                       FontSize="11"
+                                       Foreground="#6E6B80"
+                                       Text="Wi‑Fi · Midiendo…"
+                                       TextWrapping="Wrap" />
+                            <TextBlock x:Name="ServerQualityText"
+                                       Margin="0,3,0,0"
+                                       FontSize="11"
+                                       Foreground="#6E6B80"
+                                       Text="Servidor · Midiendo…"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
             </Grid>
         </Grid>

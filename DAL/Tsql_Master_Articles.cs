@@ -14,6 +14,12 @@ namespace DAL
     
     public partial class Tsql_Master_Articles
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public Tsql_Master_Articles()
+        {
+            this.TSql_DesignWallArticle = new HashSet<TSql_DesignWallArticle>();
+        }
+    
         public long IdObject { get; set; }
         public string AddAtenkoCode { get; set; }
         public string TextCode { get; set; }
@@ -53,5 +59,7 @@ namespace DAL
         public virtual AspNetUsers AspNetUsers { get; set; }
         public virtual AspNetUsers AspNetUsers1 { get; set; }
         public virtual TSql_System TSql_System { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_DesignWallArticle> TSql_DesignWallArticle { get; set; }
     }
 }

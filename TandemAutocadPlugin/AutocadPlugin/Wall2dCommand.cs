@@ -21,6 +21,15 @@ namespace AutocadPlugin
         private const string LayerAxis = "TANDEM_MURO_EJE";
         private const string LayerFace = "TANDEM_MURO_CARA";
 
+        [CommandMethod("TANDEM_VER2D")]
+        public void Show2d()
+        {
+            Document doc = AcadApp.DocumentManager.MdiActiveDocument;
+            if (doc == null) return;
+            WallArticleCad.Enter2d(doc);
+            doc.Editor.WriteMessage("\nVista 2D: se quitaron los muros 3D y los paneles.\n");
+        }
+
         [CommandMethod(CommandName)]
         public void DrawWall2d()
         {
@@ -28,6 +37,7 @@ namespace AutocadPlugin
             if (doc == null) return;
             Editor ed = doc.Editor;
             Database db = doc.Database;
+            WallArticleCad.Enter2d(doc);
 
             double thickness = ResolveWallThickness();
             double half = thickness * 0.5;
@@ -168,11 +178,7 @@ namespace AutocadPlugin
         {
             var line = new Line(p1, p2);
             line.Layer = layer;
-            line.XData = new ResultBuffer(
-                new TypedValue((int)DxfCode.ExtendedDataRegAppName, AppName),
-                new TypedValue((int)DxfCode.ExtendedDataAsciiString, role),
-                new TypedValue((int)DxfCode.ExtendedDataInteger32, groupId),
-                new TypedValue((int)DxfCode.ExtendedDataReal, thickness));
+            WallCadXData.Write(line, role, groupId, thickness, 0, false);
             ObjectId id = ms.AppendEntity(line);
             tr.AddNewlyCreatedDBObject(line, true);
             return id;

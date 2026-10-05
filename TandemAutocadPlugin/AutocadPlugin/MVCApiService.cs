@@ -142,7 +142,8 @@ namespace AutocadPlugin
         public async Task<PluginSaveWallsResponse> SaveDesignWallsAsync(
             long designId,
             string deviceId,
-            List<WallLineDto> lines)
+            List<WallLineDto> lines,
+            List<PluginSaveWallArticleRequest> articles)
         {
             Bind();
             try
@@ -151,7 +152,8 @@ namespace AutocadPlugin
                 {
                     DesignId = designId,
                     DeviceId = deviceId,
-                    Lines = lines ?? new List<WallLineDto>()
+                    Lines = lines ?? new List<WallLineDto>(),
+                    Articles = articles ?? new List<PluginSaveWallArticleRequest>()
                 };
                 var json = JsonConvert.SerializeObject(body);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -178,6 +180,39 @@ namespace AutocadPlugin
             catch (Exception ex)
             {
                 throw PluginExceptionHelper.Wrap("Error al salvar muros", ex, BaseUrl);
+            }
+        }
+
+        public async Task<PluginSaveWallArticleResponse> SaveWallArticleAsync(PluginSaveWallArticleRequest request)
+        {
+            Bind();
+            try
+            {
+                var json = JsonConvert.SerializeObject(request);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync("DesignToolsAutocad/PluginSaveWallArticle", content);
+                var responseJson = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                {
+                    var apiMsg = TryExtractApiMensaje(responseJson);
+                    throw new Exception($"Error del servidor ({(int)response.StatusCode}): {apiMsg ?? responseJson}");
+                }
+
+                if (string.IsNullOrWhiteSpace(responseJson)
+                    || responseJson.TrimStart().StartsWith("<", StringComparison.Ordinal))
+                {
+                    throw new Exception(
+                        "El servidor devolvió HTML. Arranca Develop y vuelve a insertar el panel.");
+                }
+
+                var result = JsonConvert.DeserializeObject<PluginSaveWallArticleResponse>(responseJson);
+                if (result == null)
+                    throw new Exception("Respuesta vacía al guardar el artículo.");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw PluginExceptionHelper.Wrap("Error al guardar el artículo del muro", ex, BaseUrl);
             }
         }
 

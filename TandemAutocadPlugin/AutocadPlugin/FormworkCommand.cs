@@ -128,6 +128,15 @@ namespace AutocadPlugin
                     if (!string.Equals(line.Layer, LayerAxis, StringComparison.OrdinalIgnoreCase))
                         continue;
 
+                    string xdRole;
+                    int groupId;
+                    double thicknessDwg;
+                    long wallDbId;
+                    bool isSpecial;
+                    WallCadXData.Read(line, out xdRole, out groupId, out thicknessDwg, out wallDbId, out isSpecial);
+                    if (isSpecial)
+                        continue;
+
                     n++;
                     var a = line.StartPoint;
                     var b = line.EndPoint;

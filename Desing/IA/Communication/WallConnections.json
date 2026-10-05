@@ -1,5 +1,5 @@
 {
-  "generatedAtUtc": "2026-10-03T07:57:41.846Z",
+  "generatedAtUtc": "2026-10-05T10:56:22.315Z",
   "pageUrl": "https://localhost:44384/Desing_2/Viewer?offerId=1&designId=1",
   "schema": "WallConnections.v1",
   "source": "Desing_2",
@@ -62,7 +62,7 @@
       "_XRotation": 0,
       "_YrRtation": 0,
       "_ZRotation": 0,
-      "_IsFormwork": true,
+      "_IsFormwork": false,
       "_IsUniversalPanel": true,
       "_XCoordinate": 9625,
       "_YCoordinate": 0,
@@ -78,7 +78,11 @@
       "_CHeckPropInside": true,
       "_CHeckPropOutside": true,
       "_CHeckPropInsideInf": true,
-      "_CHeckPropOutsideInf": true
+      "_CHeckPropOutsideInf": true,
+      "WallDbId": 1,
+      "wallDbId": 1,
+      "IsSpecial": true,
+      "isSpecial": true
     },
     {
       "id": 2,
@@ -103,11 +107,8 @@
       },
       "lengthMm": 15900,
       "wallGroupId": 1,
-      "wallId": "2",
+      "wallId": "1",
       "wallRole": "face",
-      "linkOffsetFromLineId": 1,
-      "numberOffsetMm": 150,
-      "numberWallFaceSideSign": 1,
       "_idObject": 2,
       "_TypeMesh": "Wall",
       "_Datalong": 15.9,
@@ -124,7 +125,7 @@
       "_Tape_1": "Tipo 1",
       "_Tape_2": "Tipo 1",
       "_Idconnection_1": null,
-      "_Idconnection_2": "L:1-4",
+      "_Idconnection_2": null,
       "_CHeckBracketInside": true,
       "_CHeckBracketOutside": true,
       "_CHeckRijiInside": true,
@@ -132,7 +133,10 @@
       "_CHeckPropInside": true,
       "_CHeckPropOutside": true,
       "_CHeckPropInsideInf": true,
-      "_CHeckPropOutsideInf": true
+      "_CHeckPropOutsideInf": true,
+      "WallDbId": 2,
+      "wallDbId": 2,
+      "IsSpecial": false
     },
     {
       "id": 3,
@@ -157,11 +161,8 @@
       },
       "lengthMm": 15600,
       "wallGroupId": 1,
-      "wallId": "3",
+      "wallId": "1",
       "wallRole": "face",
-      "linkOffsetFromLineId": 1,
-      "numberOffsetMm": 150,
-      "numberWallFaceSideSign": -1,
       "_idObject": 3,
       "_TypeMesh": "Wall",
       "_Datalong": 15.6,
@@ -178,7 +179,7 @@
       "_Tape_1": "Tipo 1",
       "_Tape_2": "Tipo 1",
       "_Idconnection_1": null,
-      "_Idconnection_2": "L:1-4",
+      "_Idconnection_2": null,
       "_CHeckBracketInside": true,
       "_CHeckBracketOutside": true,
       "_CHeckRijiInside": true,
@@ -186,7 +187,10 @@
       "_CHeckPropInside": true,
       "_CHeckPropOutside": true,
       "_CHeckPropInsideInf": true,
-      "_CHeckPropOutsideInf": true
+      "_CHeckPropOutsideInf": true,
+      "WallDbId": 3,
+      "wallDbId": 3,
+      "IsSpecial": false
     },
     {
       "id": 4,
@@ -211,7 +215,7 @@
       },
       "lengthMm": 11500,
       "wallGroupId": 1,
-      "wallId": "4",
+      "wallId": "1",
       "wallRole": "axis",
       "_idObject": 4,
       "_TypeMesh": "Wall",
@@ -237,7 +241,10 @@
       "_CHeckPropInside": true,
       "_CHeckPropOutside": true,
       "_CHeckPropInsideInf": true,
-      "_CHeckPropOutsideInf": true
+      "_CHeckPropOutsideInf": true,
+      "WallDbId": 4,
+      "wallDbId": 4,
+      "IsSpecial": false
     },
     {
       "id": 5,
@@ -262,11 +269,8 @@
       },
       "lengthMm": 11500,
       "wallGroupId": 1,
-      "wallId": "5",
+      "wallId": "1",
       "wallRole": "face",
-      "linkOffsetFromLineId": 4,
-      "numberOffsetMm": 150,
-      "numberWallFaceSideSign": 1,
       "_idObject": 5,
       "_TypeMesh": "Wall",
       "_Datalong": 11.5,
@@ -282,8 +286,8 @@
       "_ZCoordinate": -7400,
       "_Tape_1": "Tipo 1",
       "_Tape_2": "Tipo 1",
-      "_Idconnection_1": "L:4-7",
-      "_Idconnection_2": "L:1-4",
+      "_Idconnection_1": null,
+      "_Idconnection_2": null,
       "_CHeckBracketInside": true,
       "_CHeckBracketOutside": true,
       "_CHeckRijiInside": true,
@@ -291,7 +295,10 @@
       "_CHeckPropInside": true,
       "_CHeckPropOutside": true,
       "_CHeckPropInsideInf": true,
-      "_CHeckPropOutsideInf": true
+      "_CHeckPropOutsideInf": true,
+      "WallDbId": 5,
+      "wallDbId": 5,
+      "IsSpecial": false
     },
     {
       "id": 6,
@@ -316,11 +323,8 @@
       },
       "lengthMm": 11500,
       "wallGroupId": 1,
-      "wallId": "6",
+      "wallId": "1",
       "wallRole": "face",
-      "linkOffsetFromLineId": 4,
-      "numberOffsetMm": 150,
-      "numberWallFaceSideSign": -1,
       "_idObject": 6,
       "_TypeMesh": "Wall",
       "_Datalong": 11.5,
@@ -336,8 +340,8 @@
       "_ZCoordinate": -7100,
       "_Tape_1": "Tipo 1",
       "_Tape_2": "Tipo 1",
-      "_Idconnection_1": "L:4-7",
-      "_Idconnection_2": "L:1-4",
+      "_Idconnection_1": null,
+      "_Idconnection_2": null,
       "_CHeckBracketInside": true,
       "_CHeckBracketOutside": true,
       "_CHeckRijiInside": true,
@@ -345,7 +349,10 @@
       "_CHeckPropInside": true,
       "_CHeckPropOutside": true,
       "_CHeckPropInsideInf": true,
-      "_CHeckPropOutsideInf": true
+      "_CHeckPropOutsideInf": true,
+      "WallDbId": 6,
+      "wallDbId": 6,
+      "IsSpecial": false
     },
     {
       "id": 7,
@@ -370,7 +377,7 @@
       },
       "lengthMm": 10500,
       "wallGroupId": 1,
-      "wallId": "7",
+      "wallId": "1",
       "wallRole": "axis",
       "_idObject": 7,
       "_TypeMesh": "Wall",
@@ -396,7 +403,10 @@
       "_CHeckPropInside": true,
       "_CHeckPropOutside": true,
       "_CHeckPropInsideInf": true,
-      "_CHeckPropOutsideInf": true
+      "_CHeckPropOutsideInf": true,
+      "WallDbId": 7,
+      "wallDbId": 7,
+      "IsSpecial": false
     },
     {
       "id": 8,
@@ -421,11 +431,8 @@
       },
       "lengthMm": 10350,
       "wallGroupId": 1,
-      "wallId": "8",
+      "wallId": "1",
       "wallRole": "face",
-      "linkOffsetFromLineId": 7,
-      "numberOffsetMm": 150,
-      "numberWallFaceSideSign": 1,
       "_idObject": 8,
       "_TypeMesh": "Wall",
       "_Datalong": 10.35,
@@ -441,7 +448,7 @@
       "_ZCoordinate": -12850,
       "_Tape_1": "Tipo 1",
       "_Tape_2": "Tipo 1",
-      "_Idconnection_1": "L:4-7",
+      "_Idconnection_1": null,
       "_Idconnection_2": null,
       "_CHeckBracketInside": true,
       "_CHeckBracketOutside": true,
@@ -450,7 +457,10 @@
       "_CHeckPropInside": true,
       "_CHeckPropOutside": true,
       "_CHeckPropInsideInf": true,
-      "_CHeckPropOutsideInf": true
+      "_CHeckPropOutsideInf": true,
+      "WallDbId": 8,
+      "wallDbId": 8,
+      "IsSpecial": false
     },
     {
       "id": 9,
@@ -475,11 +485,8 @@
       },
       "lengthMm": 10650,
       "wallGroupId": 1,
-      "wallId": "9",
+      "wallId": "1",
       "wallRole": "face",
-      "linkOffsetFromLineId": 7,
-      "numberOffsetMm": 150,
-      "numberWallFaceSideSign": -1,
       "_idObject": 9,
       "_TypeMesh": "Wall",
       "_Datalong": 10.65,
@@ -495,7 +502,7 @@
       "_ZCoordinate": -13150,
       "_Tape_1": "Tipo 1",
       "_Tape_2": "Tipo 1",
-      "_Idconnection_1": "L:4-7",
+      "_Idconnection_1": null,
       "_Idconnection_2": null,
       "_CHeckBracketInside": true,
       "_CHeckBracketOutside": true,
@@ -504,7 +511,10 @@
       "_CHeckPropInside": true,
       "_CHeckPropOutside": true,
       "_CHeckPropInsideInf": true,
-      "_CHeckPropOutsideInf": true
+      "_CHeckPropOutsideInf": true,
+      "WallDbId": 9,
+      "wallDbId": 9,
+      "IsSpecial": false
     }
   ],
   "polylines": [],
@@ -524,7 +534,7 @@
         8,
         9
       ],
-      "wallId": "9"
+      "wallId": "1"
     }
   ],
   "nodes": [
@@ -936,8 +946,6 @@
         {
           "lineId": 2,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 1,
-          "numberWallFaceSideSign": 1,
           "endpoint": "p1",
           "point": {
             "xMm": 1750,
@@ -951,8 +959,6 @@
         {
           "lineId": 3,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 1,
-          "numberWallFaceSideSign": -1,
           "endpoint": "p1",
           "point": {
             "xMm": 1750,
@@ -1001,8 +1007,6 @@
         {
           "lineId": 2,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 1,
-          "numberWallFaceSideSign": 1,
           "endpoint": "p2",
           "point": {
             "xMm": 17650,
@@ -1016,8 +1020,6 @@
         {
           "lineId": 3,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 1,
-          "numberWallFaceSideSign": -1,
           "endpoint": "p2",
           "point": {
             "xMm": 17350,
@@ -1031,8 +1033,6 @@
         {
           "lineId": 5,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 4,
-          "numberWallFaceSideSign": 1,
           "endpoint": "p2",
           "point": {
             "xMm": 17350,
@@ -1046,8 +1046,6 @@
         {
           "lineId": 6,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 4,
-          "numberWallFaceSideSign": -1,
           "endpoint": "p2",
           "point": {
             "xMm": 17650,
@@ -1077,8 +1075,6 @@
         {
           "lineId": 2,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 1,
-          "numberWallFaceSideSign": 1,
           "endpoint": "p1",
           "point": {
             "xMm": 1750,
@@ -1108,8 +1104,6 @@
         {
           "lineId": 2,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 1,
-          "numberWallFaceSideSign": 1,
           "endpoint": "p2",
           "point": {
             "xMm": 17650,
@@ -1123,8 +1117,6 @@
         {
           "lineId": 6,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 4,
-          "numberWallFaceSideSign": -1,
           "endpoint": "p2",
           "point": {
             "xMm": 17650,
@@ -1154,8 +1146,6 @@
         {
           "lineId": 3,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 1,
-          "numberWallFaceSideSign": -1,
           "endpoint": "p1",
           "point": {
             "xMm": 1750,
@@ -1185,8 +1175,6 @@
         {
           "lineId": 3,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 1,
-          "numberWallFaceSideSign": -1,
           "endpoint": "p2",
           "point": {
             "xMm": 17350,
@@ -1200,8 +1188,6 @@
         {
           "lineId": 5,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 4,
-          "numberWallFaceSideSign": 1,
           "endpoint": "p2",
           "point": {
             "xMm": 17350,
@@ -1250,8 +1236,6 @@
         {
           "lineId": 5,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 4,
-          "numberWallFaceSideSign": 1,
           "endpoint": "p1",
           "point": {
             "xMm": 17350,
@@ -1265,8 +1249,6 @@
         {
           "lineId": 6,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 4,
-          "numberWallFaceSideSign": -1,
           "endpoint": "p1",
           "point": {
             "xMm": 17650,
@@ -1280,8 +1262,6 @@
         {
           "lineId": 8,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 7,
-          "numberWallFaceSideSign": 1,
           "endpoint": "p1",
           "point": {
             "xMm": 17650,
@@ -1295,8 +1275,6 @@
         {
           "lineId": 9,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 7,
-          "numberWallFaceSideSign": -1,
           "endpoint": "p1",
           "point": {
             "xMm": 17350,
@@ -1326,8 +1304,6 @@
         {
           "lineId": 5,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 4,
-          "numberWallFaceSideSign": 1,
           "endpoint": "p1",
           "point": {
             "xMm": 17350,
@@ -1341,8 +1317,6 @@
         {
           "lineId": 9,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 7,
-          "numberWallFaceSideSign": -1,
           "endpoint": "p1",
           "point": {
             "xMm": 17350,
@@ -1372,8 +1346,6 @@
         {
           "lineId": 6,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 4,
-          "numberWallFaceSideSign": -1,
           "endpoint": "p1",
           "point": {
             "xMm": 17650,
@@ -1387,8 +1359,6 @@
         {
           "lineId": 8,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 7,
-          "numberWallFaceSideSign": 1,
           "endpoint": "p1",
           "point": {
             "xMm": 17650,
@@ -1428,8 +1398,6 @@
         {
           "lineId": 8,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 7,
-          "numberWallFaceSideSign": 1,
           "endpoint": "p2",
           "point": {
             "xMm": 28000,
@@ -1443,8 +1411,6 @@
         {
           "lineId": 9,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 7,
-          "numberWallFaceSideSign": -1,
           "endpoint": "p2",
           "point": {
             "xMm": 28000,
@@ -1474,8 +1440,6 @@
         {
           "lineId": 8,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 7,
-          "numberWallFaceSideSign": 1,
           "endpoint": "p2",
           "point": {
             "xMm": 28000,
@@ -1505,8 +1469,6 @@
         {
           "lineId": 9,
           "wallGroupId": 1,
-          "linkOffsetFromLineId": 7,
-          "numberWallFaceSideSign": -1,
           "endpoint": "p2",
           "point": {
             "xMm": 28000,
@@ -1524,7 +1486,7 @@
   "generatedWallModel": {
     "mode": "wall3d",
     "system": "Atk-60",
-    "generatedAtUtc": "2026-10-03T07:57:41.832Z",
+    "generatedAtUtc": "2026-10-05T10:56:22.293Z",
     "source": {
       "totalLineas": 6,
       "lineas": [

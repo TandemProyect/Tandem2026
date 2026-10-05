@@ -14,6 +14,12 @@ namespace DAL
     
     public partial class TSql_DesignWall
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public TSql_DesignWall()
+        {
+            this.TSql_DesignWallArticle = new HashSet<TSql_DesignWallArticle>();
+        }
+    
         public long IdObject { get; set; }
         public string TextLabel { get; set; }
         public long LinkDesign_V2 { get; set; }
@@ -115,7 +121,10 @@ namespace DAL
         public System.DateTime AddDateMade { get; set; }
         public Nullable<System.DateTime> AddLastDateChange { get; set; }
         public long Ntimeschanged { get; set; }
+        public bool Is_Special { get; set; }
     
         public virtual TSql_Design_V2 TSql_Design_V2 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_DesignWallArticle> TSql_DesignWallArticle { get; set; }
     }
 }

@@ -18,6 +18,7 @@ namespace DAL
         public TSql_Design_V2()
         {
             this.TSql_DesignWall = new HashSet<TSql_DesignWall>();
+            this.TSql_DesignWallArticle = new HashSet<TSql_DesignWallArticle>();
         }
     
         public long SysObjectID { get; set; }
@@ -43,5 +44,7 @@ namespace DAL
         public virtual TSql_Offers TSql_Offers { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TSql_DesignWall> TSql_DesignWall { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_DesignWallArticle> TSql_DesignWallArticle { get; set; }
     }
 }

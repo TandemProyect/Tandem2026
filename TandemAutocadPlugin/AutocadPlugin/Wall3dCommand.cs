@@ -53,6 +53,7 @@ namespace AutocadPlugin
                 return;
             }
 
+            WallArticleCad.CaptureAndErasePanels(doc);
             ed.WriteMessage($"\nGenerar muros 3D — {faces.Count} cara(s) → LCornerDetector (Desing_2)...\n");
 
             var seleccion = new SeleccionLineasDTO
@@ -68,6 +69,7 @@ namespace AutocadPlugin
 
             ApiResponse<DeteccionEsquinasLDTO> respuesta = null;
             int solids = 0;
+            int restored = 0;
             Wall3dProgressWindow overlay = null;
             try
             {
@@ -93,12 +95,16 @@ namespace AutocadPlugin
             finally
             {
                 try { overlay?.Close(); } catch { }
+                restored = WallArticleCad.RestoreCached(doc);
             }
 
+            if (respuesta == null || respuesta.Datos == null)
+                return;
             DeteccionEsquinasLDTO datos = respuesta.Datos;
             ed.WriteMessage(
                 $"\n{respuesta.Mensaje}\n" +
-                $"Muros rectos: {datos.TotalMurosRectos}, esquinas L: {datos.TotalEsquinasDetectadas}, sólidos: {solids}.\n");
+                $"Muros rectos: {datos.TotalMurosRectos}, esquinas L: {datos.TotalEsquinasDetectadas}, sólidos: {solids}" +
+                (restored > 0 ? $", paneles: {restored}" : "") + ".\n");
             if (solids == 0)
                 ed.WriteMessage("No se pudo extruir ningún perímetro ModelDesing. Revisa las caras 2D (capa TANDEM_MURO_CARA).\n");
         }

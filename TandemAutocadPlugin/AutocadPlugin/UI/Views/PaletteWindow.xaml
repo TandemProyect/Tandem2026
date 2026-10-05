@@ -60,7 +60,7 @@
                             VerticalAlignment="Center">
                     <Grid Width="16" Height="16" Margin="0,0,8,0">
                         <Ellipse Stroke="#E8E6F4" StrokeThickness="2" />
-                        <Ellipse Stroke="#349d7d"
+                        <Ellipse Stroke="#7367F0"
                                  StrokeThickness="2"
                                  StrokeDashArray="8 12"
                                  StrokeStartLineCap="Round"

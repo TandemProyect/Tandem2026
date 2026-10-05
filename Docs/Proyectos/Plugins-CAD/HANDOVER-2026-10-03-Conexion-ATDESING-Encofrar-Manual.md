@@ -220,7 +220,9 @@ i18n: si se tocan cadenas, preferir el generador. Node del PATH puede faltar; el
 
 El usuario va a crearla en el board. Texto acordado:
 
-**Título:** Encofrar manualmente  
+**Título:** Encofrar manualmente
+
+**SQL (2026-10-05, develop + producción):** `TSql_DesignWall.Is_Special` (BIT, default 0) y tabla `TSql_DesignWallArticle`. Scripts en `Desing/Scripts/TemporalScript/2026-10-05_*`. Falta **Update Model from Database** en `DAL/Model.edmx`. Un muro con `Is_Special = 1` no debe pasar por `SolveFromIdsJson`.  
 **Puntos:** 8  
 **Área:** tandem2026  
 

@@ -265,14 +265,27 @@ namespace Desing.Controllers
 
                 var userId = IntranetAuditHelper.ResolveCurrentUserId(User);
                 int saved;
+                int articleCount = 0;
                 using (var trans = db.Database.BeginTransaction())
                 {
                     saved = repository.ReplaceWalls(request.DesignId, request.Lines, userId);
                     db.SaveChanges();
+                    if (request.Articles != null)
+                    {
+                        articleCount = new DesignWallArticleRepository(db)
+                            .ReplaceAll(request.DesignId, request.Articles, userId);
+                        db.SaveChanges();
+                    }
                     trans.Commit();
                 }
 
-                return Json(new { Exito = true, Count = saved, DesignId = request.DesignId });
+                return Json(new
+                {
+                    Exito = true,
+                    Count = saved,
+                    ArticleCount = articleCount,
+                    DesignId = request.DesignId
+                });
             }
             catch (JsonReaderException ex)
             {

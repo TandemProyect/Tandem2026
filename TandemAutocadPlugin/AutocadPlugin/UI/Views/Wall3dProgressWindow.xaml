@@ -32,7 +32,8 @@
                     </Ellipse.RenderTransform>
                 </Ellipse>
             </Grid>
-            <TextBlock Text="Generando modelo de muros…"
+            <TextBlock x:Name="MessageText"
+                       Text="Generando modelo de muros…"
                        FontSize="14"
                        FontWeight="Bold"
                        Foreground="#433C65"
