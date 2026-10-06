@@ -11,18 +11,18 @@ import { SSAOPass } from '../Design/jsm/postprocessing/SSAOPass.js';
 export const MA_STL_FORMWORK_ENV_DEFAULTS = Object.freeze({
     sunAzimuthDeg: 138,
     sunElevationDeg: 41,
-    sunIntensity: 1.85,
+    sunIntensity: 1.25,
     sunColor: 0xffe8c0,
-    ambientIntensity: 0.28,
+    ambientIntensity: 0.55,
     hemisphereSkyColor: 0xdce8ff,
     hemisphereGroundColor: 0xe4e4e4,
-    hemisphereIntensity: 0.14,
-    fillIntensity: 0.09,
+    hemisphereIntensity: 0.22,
+    fillIntensity: 0.35,
     fillColor: 0xeef2ff,
     rimIntensity: 0,
     rimColor: 0xffffff,
     iblIntensity: 0,
-    exposure: 1.02,
+    exposure: 1.22,
     fogEnabled: false,
     fogStrength: 0,
     shadowsEnabled: true,
@@ -63,6 +63,16 @@ function mergeFormworkEnvSettings(partial) {
     out.sunElevationDeg = THREE.MathUtils.clamp(Number(out.sunElevationDeg) || 0, 5, 85);
     out.sunIntensity = THREE.MathUtils.clamp(Number(out.sunIntensity) || 0, 0.05, 3);
     out.ambientIntensity = THREE.MathUtils.clamp(Number(out.ambientIntensity) || 0, 0, 1);
+    /* Luces antiguas (ambiente 0.28 / fill 0.09) dejaban el ATK apagado frente al bloquing. */
+    const prevAmbient = Number(partial && partial.ambientIntensity);
+    const prevFill = Number(partial && partial.fillIntensity);
+    if (Math.abs(prevAmbient - 0.28) < 0.021 && Math.abs(prevFill - 0.09) < 0.031) {
+        out.ambientIntensity = MA_STL_FORMWORK_ENV_DEFAULTS.ambientIntensity;
+        out.fillIntensity = MA_STL_FORMWORK_ENV_DEFAULTS.fillIntensity;
+        out.hemisphereIntensity = MA_STL_FORMWORK_ENV_DEFAULTS.hemisphereIntensity;
+        out.sunIntensity = MA_STL_FORMWORK_ENV_DEFAULTS.sunIntensity;
+        out.exposure = MA_STL_FORMWORK_ENV_DEFAULTS.exposure;
+    }
     out.hemisphereIntensity = THREE.MathUtils.clamp(Number(out.hemisphereIntensity) || 0, 0, 1.5);
     out.fillIntensity = THREE.MathUtils.clamp(Number(out.fillIntensity) || 0, 0, 1.5);
     out.rimIntensity = THREE.MathUtils.clamp(Number(out.rimIntensity) || 0, 0, 1);

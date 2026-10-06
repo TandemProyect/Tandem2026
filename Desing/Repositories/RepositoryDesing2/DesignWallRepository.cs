@@ -122,13 +122,8 @@ namespace Desing.Repositories.RepositoryDesing2
                     var match = FindExistingWall(existing, used, line);
                     if (match != null)
                     {
-                        var wasSpecial = match.Is_Special;
                         MapLineToEntity(line, match);
-                        if (wasSpecial || line.IsSpecial == true)
-                        {
-                            match.Is_Special = true;
-                            match.Is_Formwork = false;
-                        }
+                        ApplySpecialFlag(line, match);
 
                         IntranetAuditHelper.SetAuditOnUpdate(match, userId);
                         used.Add(match.IdObject);
@@ -141,11 +136,7 @@ namespace Desing.Repositories.RepositoryDesing2
                         LinkDesign_V2 = designId
                     };
                     MapLineToEntity(line, entity);
-                    if (line.IsSpecial == true)
-                    {
-                        entity.Is_Special = true;
-                        entity.Is_Formwork = false;
-                    }
+                    ApplySpecialFlag(line, entity);
 
                     IntranetAuditHelper.SetAuditOnCreate(entity, userId);
                     _db.TSql_DesignWall.Add(entity);
@@ -165,6 +156,23 @@ namespace Desing.Repositories.RepositoryDesing2
             }
 
             return count;
+        }
+
+        private static void ApplySpecialFlag(Desing2DesignWallLineDto line, TSql_DesignWall entity)
+        {
+            if (line != null && line.IsSpecial == true)
+            {
+                entity.Is_Special = true;
+                entity.Is_Formwork = false;
+                return;
+            }
+
+            if (line != null && line.IsSpecial == false)
+            {
+                entity.Is_Special = false;
+                if (line._IsFormwork.HasValue)
+                    entity.Is_Formwork = line._IsFormwork.Value;
+            }
         }
 
         public TSql_DesignWall FindOrCreateAxisForManual(PluginSaveWallArticleRequest request, string userId)

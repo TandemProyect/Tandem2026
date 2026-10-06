@@ -34,13 +34,22 @@ namespace AutocadPlugin
         {
             if (doc == null)
                 return;
-            using (doc.LockDocument())
-            using (var tr = doc.Database.TransactionManager.StartTransaction())
+            var prev = WallSpecialCad.SuppressEraseWatch;
+            WallSpecialCad.SuppressEraseWatch = true;
+            try
             {
-                CaptureUnlocked(tr, doc.Database);
-                ErasePanels(tr, doc.Database);
-                EraseLayer(tr, doc.Database, Layer3d);
-                tr.Commit();
+                using (doc.LockDocument())
+                using (var tr = doc.Database.TransactionManager.StartTransaction())
+                {
+                    CaptureUnlocked(tr, doc.Database);
+                    ErasePanels(tr, doc.Database);
+                    EraseLayer(tr, doc.Database, Layer3d);
+                    tr.Commit();
+                }
+            }
+            finally
+            {
+                WallSpecialCad.SuppressEraseWatch = prev;
             }
         }
 
@@ -48,12 +57,21 @@ namespace AutocadPlugin
         {
             if (doc == null)
                 return;
-            using (doc.LockDocument())
-            using (var tr = doc.Database.TransactionManager.StartTransaction())
+            var prev = WallSpecialCad.SuppressEraseWatch;
+            WallSpecialCad.SuppressEraseWatch = true;
+            try
             {
-                CaptureUnlocked(tr, doc.Database);
-                ErasePanels(tr, doc.Database);
-                tr.Commit();
+                using (doc.LockDocument())
+                using (var tr = doc.Database.TransactionManager.StartTransaction())
+                {
+                    CaptureUnlocked(tr, doc.Database);
+                    ErasePanels(tr, doc.Database);
+                    tr.Commit();
+                }
+            }
+            finally
+            {
+                WallSpecialCad.SuppressEraseWatch = prev;
             }
         }
 
@@ -131,6 +149,8 @@ namespace AutocadPlugin
             var db = doc.Database;
             var meterToDwg = CadUnits.FromMillimeters(1000.0);
             var cache = new Dictionary<string, ObjectId>(StringComparer.OrdinalIgnoreCase);
+            var prev = WallSpecialCad.SuppressEraseWatch;
+            WallSpecialCad.SuppressEraseWatch = true;
 
             foreach (var item in articles)
             {
@@ -147,6 +167,8 @@ namespace AutocadPlugin
                     doc, dwg, BlockInsertCommand.BlockNameFor(item.TextCode, view));
             }
 
+            try
+            {
             using (doc.LockDocument())
             using (var tr = db.TransactionManager.StartTransaction())
             {
@@ -172,15 +194,23 @@ namespace AutocadPlugin
                     double pieceH;
                     BlockInsertCommand.PanelSizeMeters(item.TextCode, out pieceW, out pieceH);
                     var br = new BlockReference(Point3d.Origin, blockId);
-                    BlockInsertCommand.ApplyFormworkPanelMatrix(br, at, orient, pieceW * meterToDwg);
+                    if (tumbado)
+                        BlockInsertCommand.ApplyPanelMatrix(br, at, orient);
+                    else
+                        BlockInsertCommand.ApplyFormworkPanelMatrix(br, at, orient, pieceW * meterToDwg);
                     ms.AppendEntity(br);
                     tr.AddNewlyCreatedDBObject(br, true);
                     BlockInsertCommand.ApplyAtkXData(
                         br, tr, db, item.TextCode, view, "PANEL",
-                        tumbado ? 90 : 0, item.WallDbId);
+                        tumbado ? 90 : 0, item.WallDbId, at);
                     restored++;
                 }
                 tr.Commit();
+            }
+            }
+            finally
+            {
+                WallSpecialCad.SuppressEraseWatch = prev;
             }
 
             return restored;
@@ -231,6 +261,7 @@ namespace AutocadPlugin
                 double poseZ = BlockInsertCommand.YawDegFromOrient(br.BlockTransform);
                 Line axis = null;
                 var wallId = BlockInsertCommand.WallIdFromInsert(br);
+                var insertAt = BlockInsertCommand.InsertWorld(br);
                 if (wallId > 0)
                 {
                     for (var i = 0; i < axes.Count; i++)
@@ -253,7 +284,7 @@ namespace AutocadPlugin
                     var best = double.MaxValue;
                     for (var i = 0; i < axes.Count; i++)
                     {
-                        var d = WallCadXData.DistToSegment(br.Position, axes[i].StartPoint, axes[i].EndPoint);
+                        var d = WallCadXData.DistToSegment(insertAt, axes[i].StartPoint, axes[i].EndPoint);
                         if (d < best)
                         {
                             best = d;
@@ -264,7 +295,7 @@ namespace AutocadPlugin
                 if (axis != null)
                 {
                     BlockInsertCommand.ArticleRotations(
-                        br.Position, axis.StartPoint, axis.EndPoint, br.BlockTransform,
+                        insertAt, axis.StartPoint, axis.EndPoint, br.BlockTransform,
                         out poseX, out poseY, out poseZ);
                 }
 
@@ -273,7 +304,7 @@ namespace AutocadPlugin
                     WallDbId = wallId,
                     TextCode = code,
                     TextView = view,
-                    InsertMm = WallCadXData.ToDesingMm(br.Position),
+                    InsertMm = WallCadXData.ToDesingMm(insertAt),
                     RotationX = poseX,
                     RotationY = poseY,
                     RotationZ = poseZ,

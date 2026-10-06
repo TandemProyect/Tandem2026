@@ -227,6 +227,8 @@ namespace AutocadPlugin
             inserted = 0;
             skipped = 0;
             var db = doc.Database;
+            var prev = WallSpecialCad.SuppressEraseWatch;
+            WallSpecialCad.SuppressEraseWatch = true;
             var meterToDwg = CadUnits.FromMillimeters(1000.0);
             const string view = "3dref";
             var blockCache = new Dictionary<string, ObjectId>(StringComparer.OrdinalIgnoreCase);
@@ -245,6 +247,8 @@ namespace AutocadPlugin
                     doc, dwg, BlockInsertCommand.BlockNameFor(code, view));
             }
 
+            try
+            {
             using (var tr = db.TransactionManager.StartTransaction())
             {
                 EnsureFormworkLayer(tr, db);
@@ -296,6 +300,11 @@ namespace AutocadPlugin
                 }
 
                 tr.Commit();
+            }
+            }
+            finally
+            {
+                WallSpecialCad.SuppressEraseWatch = prev;
             }
         }
 

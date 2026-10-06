@@ -82,6 +82,43 @@ namespace AutocadPlugin
             ed.WriteMessage($"\nGuardados {resp.Count} muro(s) y {resp.ArticleCount} artículo(s) en el diseño {designId}.\n");
         }
 
+        /// <summary>
+        /// Tras borrar el último panel o un elemento de encofrado automático:
+        /// actualiza Is_Special en SQL sin bloquear el hilo de AutoCAD.
+        /// </summary>
+        public static void PersistSilent(Document doc)
+        {
+            if (doc == null)
+                return;
+            var designId = WallImportCommand.CurrentDesignId;
+            if (designId <= 0)
+                return;
+            List<WallLineDto> lines;
+            List<PluginSaveWallArticleRequest> articles;
+            try
+            {
+                Collect(doc.Database, designId, out lines, out articles);
+            }
+            catch
+            {
+                return;
+            }
+            if (lines == null || lines.Count == 0)
+                return;
+            System.Threading.Tasks.Task.Run(() =>
+            {
+                try
+                {
+                    var api = new MVCApiService();
+                    api.SaveDesignWallsAsync(designId, PluginDeviceId.Current(), lines, articles)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                }
+                catch
+                {
+                }
+            });
+        }
+
         private static void Collect(
             Database db,
             long designId,
@@ -93,6 +130,7 @@ namespace AutocadPlugin
             var axes = new List<AxisSnap>();
             using (var tr = db.TransactionManager.StartTransaction())
             {
+                WallSpecialCad.RecalcUnlocked(tr, db);
                 var bt = (BlockTable)tr.GetObject(db.BlockTableId, OpenMode.ForRead);
                 var ms = (BlockTableRecord)tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForRead);
                 long n = 0;
@@ -146,7 +184,8 @@ namespace AutocadPlugin
                             Thickness = thicknessDwg,
                             DataWith = thicknessM,
                             DataLong = lenM,
-                            WallDbId = wallDbId
+                            WallDbId = wallDbId,
+                            IsSpecial = isSpecial
                         });
                     }
                 }
@@ -155,8 +194,7 @@ namespace AutocadPlugin
                 {
                     var br = tr.GetObject(id, OpenMode.ForRead) as BlockReference;
                     if (br == null) continue;
-                    if (string.Equals(br.Layer, LayerFormwork, StringComparison.OrdinalIgnoreCase))
-                        continue;
+                    var isFormwork = string.Equals(br.Layer, LayerFormwork, StringComparison.OrdinalIgnoreCase);
 
                     string code;
                     string view;
@@ -178,20 +216,23 @@ namespace AutocadPlugin
                             }
                         }
                     }
-                    if (axis == null && !TryNearestAxis(br.Position, axes, out axis))
+                    if (axis == null && !TryNearestAxis(BlockInsertCommand.InsertWorld(br), axes, out axis))
                     {
                         if (wallDbId <= 0)
                             continue;
                     }
+                    if (isFormwork && (axis == null || !axis.IsSpecial))
+                        continue;
 
-                    var insert = WallCadXData.ToDesingMm(br.Position);
+                    var insertAt = BlockInsertCommand.InsertWorld(br);
+                    var insert = WallCadXData.ToDesingMm(insertAt);
                     int poseX = rotDeg;
                     int poseY = 0;
                     double poseZ = BlockInsertCommand.YawDegFromOrient(br.BlockTransform);
                     if (axis != null)
                     {
                         BlockInsertCommand.ArticleRotations(
-                            br.Position, axis.A, axis.B, br.BlockTransform,
+                            insertAt, axis.A, axis.B, br.BlockTransform,
                             out poseX, out poseY, out poseZ);
                     }
                     articles.Add(new PluginSaveWallArticleRequest
@@ -275,6 +316,7 @@ namespace AutocadPlugin
             public double DataWith;
             public double DataLong;
             public long WallDbId;
+            public bool IsSpecial;
         }
     }
 }

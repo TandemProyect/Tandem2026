@@ -56,6 +56,7 @@ namespace AutocadPlugin
             {
                 AcadApp.DocumentManager.DocumentActivated += OnDocumentActivated;
                 Atk60LibrarySync.AfterSync = PushCatalogToBlocks;
+                WallSpecialCad.Bind();
             }
             catch
             {
@@ -963,7 +964,7 @@ namespace AutocadPlugin
 
                 switch (click.tool)
                 {
-                    case "polyline": return "._PLINE";
+                    case "polyline": return "TANDEM_LINEA";
                     case "wall-2d": return Wall2dCommand.CommandName;
                     case "wall-3d": return Wall3dCommand.CommandName;
                     case "formwork": return FormworkCommand.CommandName;
@@ -979,7 +980,7 @@ namespace AutocadPlugin
 
                 switch (click.mode)
                 {
-                    case "lines": return "._PLINE";
+                    case "lines": return "TANDEM_VER2D";
                     case "wall-2d": return "TANDEM_VER2D";
                     case "wall-3d": return Wall3dCommand.CommandName;
                     case "formwork": return FormworkCommand.CommandName;

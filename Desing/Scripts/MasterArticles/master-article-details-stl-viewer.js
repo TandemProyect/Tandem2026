@@ -4139,8 +4139,10 @@ function bootMasterArticleDetailsStlViewer() {
                 maStlWallLineCopyAttrs(ud, row);
                 if (ud.wallDbId != null) row.WallDbId = ud.wallDbId;
                 else if (ud.WallDbId != null) row.WallDbId = ud.WallDbId;
-                if (ud.isSpecial === true || ud.IsSpecial === true) {
-                    row.IsSpecial = true;
+                const specialNow = ud.isSpecial === true || ud.IsSpecial === true;
+                row.IsSpecial = specialNow;
+                row.isSpecial = specialNow;
+                if (specialNow) {
                     row._IsFormwork = false;
                 }
                 lines.push(row);
@@ -4334,7 +4336,7 @@ function bootMasterArticleDetailsStlViewer() {
         }
     }
 
-    function maStlDesing2SaveDesignWallsToServer() {
+    function maStlDesing2SaveDesignWallsToServer(options) {
         if (!maStlDesingV2Viewer) {
             return Promise.resolve({ skipped: true });
         }
@@ -4346,6 +4348,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (!apiUrl) {
             return Promise.resolve({ skipped: true });
         }
+        const includeArticles = !!(options && options.includeArticles);
         maStlDesing2SetPersistOverlay(true, 'save');
         return Promise.resolve()
             .then(function () {
@@ -4357,6 +4360,9 @@ function bootMasterArticleDetailsStlViewer() {
                     NextPolylineGroupId: snap.nextPolylineGroupId,
                     NextWallGroupId: snap.nextWallGroupId,
                 };
+                if (includeArticles) {
+                    body.Articles = maStlDesing2CollectPersistArticles(designId);
+                }
                 return fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
@@ -4433,6 +4439,7 @@ function bootMasterArticleDetailsStlViewer() {
                     }
                 }
                 maStlDesing2RenderManualWallArticles(rawArticles);
+                maStlDesing2SyncManualArticleVisibility();
                 maStlDesing2MarkWallsPersisted();
                 return { ok: true, count: lines.length, articles: rawArticles.length };
             })
@@ -4822,6 +4829,217 @@ function bootMasterArticleDetailsStlViewer() {
         return false;
     }
 
+    const maStlDesing2FormworkEditedKeys = Object.create(null);
+
+    function maStlDesing2WallKeyList(ud) {
+        if (!ud || typeof ud !== 'object') return [];
+        const keys = [];
+        const src = [ud.wallDbId, ud.WallDbId, ud.wallId, ud.wallGroupId, ud.id, ud.Id];
+        for (let i = 0; i < src.length; i++) {
+            if (src[i] == null || src[i] === '') continue;
+            const s = String(src[i]);
+            if (keys.indexOf(s) < 0) keys.push(s);
+        }
+        return keys;
+    }
+
+    function maStlDesing2FindAxisLinesByWallKey(key) {
+        const out = [];
+        if (!maStlUserLinesGroup || key == null || key === '') return out;
+        const want = String(key);
+        const ch = maStlUserLinesGroup.children || [];
+        for (let i = 0; i < ch.length; i++) {
+            const ln = ch[i];
+            if (!maStlIsUserFloorPlanLineObject(ln)) continue;
+            const ud = ln.userData && ln.userData.maStlUserPlanLine;
+            if (!ud) continue;
+            const role = String(ud.wallRole || ud.WallRole || '').toLowerCase();
+            if (role === 'face') continue;
+            const keys = maStlDesing2WallKeyList(ud);
+            if (keys.indexOf(want) >= 0) out.push(ln);
+        }
+        return out;
+    }
+
+    function maStlDesing2SetLineSpecial(ln, special) {
+        const ud = ln && ln.userData && ln.userData.maStlUserPlanLine;
+        if (!ud) return;
+        ud.isSpecial = special === true;
+        ud.IsSpecial = special === true;
+        if (special) ud._IsFormwork = false;
+    }
+
+    function maStlDesing2WalkArticleUserData(mesh, visit) {
+        let obj = mesh;
+        while (obj) {
+            if (obj.userData) visit(obj.userData, obj);
+            obj = obj.parent;
+        }
+    }
+
+    function maStlDesing2InspectDeletedMeshes(meshes) {
+        const result = { articleChange: false, keys: [] };
+        const seen = Object.create(null);
+        function addKey(k) {
+            if (k == null || k === '') return;
+            const s = String(k);
+            if (seen[s]) return;
+            seen[s] = true;
+            result.keys.push(s);
+        }
+        const list = Array.isArray(meshes) ? meshes : [];
+        for (let i = 0; i < list.length; i++) {
+            maStlDesing2WalkArticleUserData(list[i], function (ud) {
+                if (ud.maStlManualWallArticle) {
+                    result.articleChange = true;
+                    addKey(ud.maStlManualWallDbId);
+                }
+                if (ud.maStlAtk60Element || ud.maStlAtk60SamplePlaced) {
+                    result.articleChange = true;
+                    const wallKey = ud.maStlAtk60SampleWallId;
+                    if (wallKey != null && wallKey !== '') {
+                        maStlDesing2FormworkEditedKeys[String(wallKey)] = true;
+                    }
+                    addKey(wallKey);
+                }
+            });
+        }
+        return result;
+    }
+
+    function maStlDesing2RemainingManualCount(wallKey) {
+        const group = maStlDesing2ManualArticleGroup;
+        if (!group) return 0;
+        const want = wallKey != null && wallKey !== '' ? String(wallKey) : '';
+        let n = 0;
+        const kids = group.children || [];
+        for (let i = 0; i < kids.length; i++) {
+            const root = kids[i];
+            const ud = root && root.userData;
+            if (!ud || !ud.maStlManualWallArticle) continue;
+            if (!want) {
+                n++;
+                continue;
+            }
+            if (ud.maStlManualWallDbId != null && String(ud.maStlManualWallDbId) === want) n++;
+        }
+        return n;
+    }
+
+    function maStlDesing2RefreshSpecialFlags(keys) {
+        const bag = Object.create(null);
+        const src = Array.isArray(keys) ? keys : [];
+        for (let i = 0; i < src.length; i++) {
+            if (src[i] != null && src[i] !== '') bag[String(src[i])] = true;
+        }
+        Object.keys(maStlDesing2FormworkEditedKeys).forEach(function (k) {
+            bag[k] = true;
+        });
+        const touched = Object.keys(bag);
+        for (let t = 0; t < touched.length; t++) {
+            const key = touched[t];
+            const lines = maStlDesing2FindAxisLinesByWallKey(key);
+            for (let li = 0; li < lines.length; li++) {
+                const ln = lines[li];
+                const ud = ln.userData && ln.userData.maStlUserPlanLine;
+                const lineKeys = maStlDesing2WallKeyList(ud);
+                let edited = false;
+                let manuals = 0;
+                for (let k = 0; k < lineKeys.length; k++) {
+                    if (maStlDesing2FormworkEditedKeys[lineKeys[k]]) edited = true;
+                    manuals += maStlDesing2RemainingManualCount(lineKeys[k]);
+                }
+                maStlDesing2SetLineSpecial(ln, manuals > 0 || edited);
+            }
+        }
+    }
+
+    function maStlDesing2ResolveWallDbId(wallKey) {
+        const lines = maStlDesing2FindAxisLinesByWallKey(wallKey);
+        for (let i = 0; i < lines.length; i++) {
+            const ud = lines[i].userData && lines[i].userData.maStlUserPlanLine;
+            if (!ud) continue;
+            const id = ud.wallDbId != null ? ud.wallDbId : ud.WallDbId;
+            if (id != null && Number.isFinite(Number(id))) return Number(id);
+        }
+        const n = Number(wallKey);
+        return Number.isFinite(n) ? n : null;
+    }
+
+    function maStlDesing2Atk60CodeName(code) {
+        let out = code != null ? String(code).trim() : '';
+        if (out.toUpperCase().indexOf('PANEL_') === 0) out = out.substring(6);
+        return out;
+    }
+
+    function maStlDesing2CollectPersistArticles(designId) {
+        const articles = [];
+        const group = maStlDesing2ManualArticleGroup;
+        if (group) {
+            const kids = group.children || [];
+            for (let i = 0; i < kids.length; i++) {
+                const root = kids[i];
+                const ud = root && root.userData;
+                if (!ud || !ud.maStlManualWallArticle) continue;
+                const payload = ud.maStlManualArticlePayload || {};
+                const pos = root.position || { x: 0, y: 0, z: 0 };
+                const code = ud.maStlManualTextCode || payload.TextCode || payload.textCode || payload.CodeName || '';
+                if (!code) continue;
+                articles.push({
+                    DesignId: designId,
+                    WallDbId: ud.maStlManualWallDbId != null ? ud.maStlManualWallDbId : payload.WallDbId,
+                    CodeName: code,
+                    View: payload.TextView || payload.View || payload.textView || '3dref',
+                    InsertMm: {
+                        X: Number(pos.x),
+                        Y: Number(pos.y),
+                        Z: Number(pos.z)
+                    },
+                    RotationX: Number(payload.RotationX != null ? payload.RotationX : payload.rotationX) || 0,
+                    RotationY: Number(payload.RotationY != null ? payload.RotationY : payload.rotationY) || 0,
+                    RotationZ: Number(payload.RotationZ != null ? payload.RotationZ : payload.rotationZ) || 0,
+                    TextSystem: 'Atk-60'
+                });
+            }
+        }
+        const atkGroup = maStlDesing2Atk60SampleGroup;
+        if (atkGroup) {
+            const seen = Object.create(null);
+            atkGroup.traverse(function (obj) {
+                if (!obj || !obj.userData) return;
+                const ud = obj.userData;
+                if (!ud.maStlAtk60Element && !ud.maStlAtk60SamplePlaced) return;
+                if (obj.parent && obj.parent.userData && (obj.parent.userData.maStlAtk60Element || obj.parent.userData.maStlAtk60SamplePlaced)) {
+                    return;
+                }
+                const wallKey = ud.maStlAtk60SampleWallId;
+                if (wallKey == null || !maStlDesing2FormworkEditedKeys[String(wallKey)]) return;
+                if (seen[obj.uuid]) return;
+                seen[obj.uuid] = true;
+                const code = maStlDesing2Atk60CodeName(ud.maStlAtk60ElementCode);
+                if (!code) return;
+                const tumbado = String(ud.maStlAtk60ElementOrientation || '').toLowerCase().indexOf('tumbado') >= 0;
+                const pos = obj.position || { x: 0, y: 0, z: 0 };
+                articles.push({
+                    DesignId: designId,
+                    WallDbId: maStlDesing2ResolveWallDbId(wallKey),
+                    CodeName: code,
+                    View: '3dref',
+                    InsertMm: {
+                        X: Number(pos.x),
+                        Y: Number(pos.y),
+                        Z: Number(pos.z)
+                    },
+                    RotationX: tumbado ? 90 : 0,
+                    RotationY: 0,
+                    RotationZ: Number.isFinite(obj.rotation && obj.rotation.y) ? (obj.rotation.y * 180 / Math.PI) : 0,
+                    TextSystem: 'Atk-60'
+                });
+            });
+        }
+        return articles;
+    }
+
     let maStlDesing2ManualArticleGroup = null;
 
     function maStlDesing2EnsureManualArticleGroup() {
@@ -4871,7 +5089,13 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     function maStlDesing2MakeManualArticleMesh(geometry, tint) {
-        const mesh = new THREE.Mesh(geometry, makeStlMeshStandardMaterial(tint));
+        const hex = tint && typeof tint.getHex === 'function'
+            ? tint.getHex()
+            : (typeof tint === 'number' ? tint : 0xefb608);
+        const mesh = new THREE.Mesh(
+            geometry,
+            maStlFormworkEnvCreateAtk60Material(hex, hex !== 0x1a1816, [clipPlaneY, clipPlaneX])
+        );
         mesh.castShadow = groundShadowVisible;
         mesh.receiveShadow = false;
         mesh.rotation.x = -0.5 * Math.PI;
@@ -4943,7 +5167,7 @@ function bootMasterArticleDetailsStlViewer() {
             try {
                 const frameGeom = await maStlDesing2LoadStlGeometry(stlUrl);
                 const root = new THREE.Group();
-                const frame = maStlDesing2MakeManualArticleMesh(frameGeom, stlMeshTintColor);
+                const frame = maStlDesing2MakeManualArticleMesh(frameGeom, 0xefb608);
                 root.add(frame);
                 if (clipStlMeshes.indexOf(frame) < 0) clipStlMeshes.push(frame);
 
@@ -4951,7 +5175,7 @@ function bootMasterArticleDetailsStlViewer() {
                 if (phenolicUrl) {
                     try {
                         const phenGeom = await maStlDesing2LoadStlGeometry(phenolicUrl);
-                        const phen = maStlDesing2MakeManualArticleMesh(phenGeom, stlMeshTintColor2);
+                        const phen = maStlDesing2MakeManualArticleMesh(phenGeom, 0x1a1816);
                         root.add(phen);
                         if (clipStlMeshes.indexOf(phen) < 0) clipStlMeshes.push(phen);
                     } catch (_phenErr) { /* sin fenólico */ }
@@ -4967,18 +5191,28 @@ function bootMasterArticleDetailsStlViewer() {
                 const yawRad = wallYaw != null
                     ? wallYaw
                     : maStlDesing2NormalizeAngleToRad(Number.isFinite(rotZ) ? -rotZ : 0);
-                // AutoCAD tumba en el plano de la cara y luego orienta en planta.
-                // STL Desing (Y-up, espesor en Z): +90° en Z y después yaw en Y.
-                // La cara simétrica no gira 180°: solo invierte el espesor.
-                root.rotation.order = 'ZYX';
-                root.rotation.set(0, yawRad, tumbado ? Math.PI * 0.5 : 0);
-                if (mirrored) root.scale.z *= -1;
+                // Misma convención que el encofrado automático: yaw en Y, tumbado -90° en Z.
+                // Cara simétrica: +180° de yaw (RotationY=180), sin desplazar el origen.
+                root.rotation.order = 'XYZ';
+                root.rotation.set(
+                    0,
+                    yawRad + (mirrored ? Math.PI : 0),
+                    tumbado ? -Math.PI * 0.5 : 0
+                );
                 root.position.set(x, Number.isFinite(y) ? y : 0, z);
-                root.userData = Object.assign({}, root.userData || {}, {
+                const wallDbId = item.WallDbId != null ? item.WallDbId : item.wallDbId;
+                const articleMark = {
                     maStlManualWallArticle: true,
                     maStlManualArticleId: item.IdObject != null ? item.IdObject : item.idObject,
-                    maStlManualWallDbId: item.WallDbId != null ? item.WallDbId : item.wallDbId,
-                    maStlManualTextCode: item.TextCode || item.textCode || '',
+                    maStlManualWallDbId: wallDbId,
+                    maStlManualTextCode: item.TextCode || item.textCode || item.CodeName || '',
+                    maStlManualArticlePayload: item
+                };
+                root.userData = Object.assign({}, root.userData || {}, articleMark);
+                frame.userData = Object.assign({}, frame.userData || {}, articleMark);
+                root.traverse(function (child) {
+                    if (!child || child === root) return;
+                    child.userData = Object.assign({}, child.userData || {}, articleMark);
                 });
                 group.add(root);
                 inserted++;
@@ -4989,6 +5223,7 @@ function bootMasterArticleDetailsStlViewer() {
             }
         }
         if (typeof updateClipPlanes === 'function') updateClipPlanes();
+        maStlDesing2SyncManualArticleVisibility();
         return { inserted: inserted, requested: source.length };
     }
 
@@ -5202,9 +5437,22 @@ function bootMasterArticleDetailsStlViewer() {
         return maStlDesing2Atk60SampleGroup;
     }
 
+    function maStlDesing2SpecialWallArticlesVisible() {
+        if (maStlDesing2ModelMode !== 'wall3d') return false;
+        if (maStlIsLineToolPlacementActive() || maStlIsWall2dToolActive()) return false;
+        return true;
+    }
+
+    function maStlDesing2SyncManualArticleVisibility() {
+        if (!maStlDesing2ManualArticleGroup) return;
+        maStlDesing2ManualArticleGroup.visible = maStlDesing2SpecialWallArticlesVisible();
+    }
+
     function maStlDesing2SyncAtk60SampleVisibility() {
-        if (!maStlDesing2Atk60SampleGroup) return;
-        maStlDesing2Atk60SampleGroup.visible = maStlDesing2ModelMode === 'wall3d';
+        const show = maStlDesing2SpecialWallArticlesVisible();
+        if (maStlDesing2Atk60SampleGroup)
+            maStlDesing2Atk60SampleGroup.visible = show;
+        maStlDesing2SyncManualArticleVisibility();
     }
 
     function maStlDesing2MaybeMetersToSceneMm(v) {
@@ -10537,6 +10785,7 @@ function bootMasterArticleDetailsStlViewer() {
         maStlTeardownPickHighlightsOnly();
         maStlResetLineToolPickingBaselineState();
         maStlLineToolState = 'picking1';
+        maStlDesing2SyncAtk60SampleVisibility();
         maStlLockOrbitForRulerAnchorPick();
         maStlEnsureGridIntersectionPickHighlightMeshes();
         maStlSyncLineToolToggleBtnUi();
@@ -10590,6 +10839,7 @@ function bootMasterArticleDetailsStlViewer() {
         } else {
             maStlLineToolState = 'picking1';
         }
+        maStlDesing2SyncAtk60SampleVisibility();
         maStlLockOrbitForRulerAnchorPick();
         maStlEnsureGridIntersectionPickHighlightMeshes();
         maStlSyncLineToolToggleBtnUi();
@@ -12597,6 +12847,7 @@ function bootMasterArticleDetailsStlViewer() {
         }
         /* Línea no mueve anclaje de reglas → nunca preserveView→ruler en unlock (misma filosofía que defer tras pan). */
         maStlUnlockOrbitForRulerAnchorPick(true);
+        maStlDesing2SyncAtk60SampleVisibility();
         maStlSaveWallConnectionsNow({
             force: wasWall2d,
             reason: wasWall2d ? 'wall2d-stop-escape-or-toolbar' : 'line-tool-stop',
@@ -14319,6 +14570,7 @@ function bootMasterArticleDetailsStlViewer() {
         }
         if (lineList.length === 0 && meshList.length === 0) return false;
 
+        const specialInspect = maStlDesing2InspectDeletedMeshes(meshList);
         const undoBefore = maStlDesing2SerializeEditSnapshot();
         for (let di = 0; di < lineList.length; di++) {
             const ln = lineList[di];
@@ -14344,6 +14596,14 @@ function bootMasterArticleDetailsStlViewer() {
             undoBefore,
             maStlDesing2SerializeEditSnapshot()
         );
+        if (specialInspect && specialInspect.articleChange) {
+            maStlDesing2RefreshSpecialFlags(specialInspect.keys);
+            maStlDesing2SaveDesignWallsToServer({ includeArticles: true }).catch(function (err) {
+                if (window.console && console.warn) {
+                    console.warn('[Desing_2] No se pudo salvar Is_Special tras borrar', err);
+                }
+            });
+        }
         return true;
     }
 

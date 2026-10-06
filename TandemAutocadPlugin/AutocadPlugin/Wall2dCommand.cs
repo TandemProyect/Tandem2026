@@ -30,6 +30,15 @@ namespace AutocadPlugin
             doc.Editor.WriteMessage("\nVista 2D: se quitaron los muros 3D y los paneles.\n");
         }
 
+        [CommandMethod("TANDEM_LINEA")]
+        public void DrawLineAfter2d()
+        {
+            Document doc = AcadApp.DocumentManager.MdiActiveDocument;
+            if (doc == null) return;
+            WallArticleCad.Enter2d(doc);
+            doc.SendStringToExecute("._PLINE ", true, false, false);
+        }
+
         [CommandMethod(CommandName)]
         public void DrawWall2d()
         {

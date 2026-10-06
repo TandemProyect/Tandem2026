@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using Autodesk.AutoCAD.ApplicationServices;
@@ -352,10 +353,16 @@ namespace AutocadPlugin
                 var band = Math.Max(wall.Thickness * 1.6, panelTol);
                 foreach (var host in hosts)
                 {
-                    if (host.WallDbId > 0 && wall.WallDbId > 0 && host.WallDbId == wall.WallDbId)
+                    if (host.FromWall)
+                        continue;
+                    if (host.WallDbId > 0 && wall.WallDbId > 0)
                     {
-                        wall.HasPanels = true;
-                        break;
+                        if (host.WallDbId == wall.WallDbId)
+                        {
+                            wall.HasPanels = true;
+                            break;
+                        }
+                        continue;
                     }
                     if (WallCadXData.DistToSegment(host.World, wall.A, wall.B) <= band)
                     {
@@ -539,11 +546,10 @@ namespace AutocadPlugin
                     wall, jig.At, meterToDwg, false, widthDwg,
                     out at1, out orient1, out at2, out orient2);
             }
-            else if (jig.SnapToPanel)
+            else if (wall != null)
             {
-                hasMirror = wall != null
-                    && TryOppositeFromSnapped(jig.At, jig.Orient, wall, alongDwg, out at2, out orient2)
-                    && !PoseOccupied(doc.Database, at2, CadUnits.FromMillimeters(80));
+                hasMirror = TryOppositeFromSnapped(jig.At, jig.Orient, wall, alongDwg, out at2, out orient2)
+                    && !PoseOccupied(doc.Database, at2, CadUnits.FromMillimeters(40), wallDbId);
             }
 
             using (doc.LockDocument())
@@ -595,7 +601,7 @@ namespace AutocadPlugin
                 ApplyPanelMatrix(br, at, orient);
             ms.AppendEntity(br);
             tr.AddNewlyCreatedDBObject(br, true);
-            ApplyAtkXData(br, tr, db, req.CodeName, req.View ?? "3dref", "PANEL", rotDeg, wallDbId);
+            ApplyAtkXData(br, tr, db, req.CodeName, req.View ?? "3dref", "PANEL", rotDeg, wallDbId, at);
             return br.ObjectId;
         }
 
@@ -695,7 +701,7 @@ namespace AutocadPlugin
             return at2.DistanceTo(at) >= CadUnits.FromMillimeters(20);
         }
 
-        private static bool PoseOccupied(Database db, Point3d at, double tol)
+        private static bool PoseOccupied(Database db, Point3d at, double tol, long wallDbId)
         {
             if (db == null)
                 return false;
@@ -708,13 +714,18 @@ namespace AutocadPlugin
                     var br = tr.GetObject(id, OpenMode.ForRead) as BlockReference;
                     if (br == null)
                         continue;
+                    if (string.Equals(br.Layer, WallArticleCad.LayerFormwork, StringComparison.OrdinalIgnoreCase))
+                        continue;
                     string code;
                     string view;
                     string role;
                     int rot;
                     if (!TryReadAtk(br, out code, out view, out role, out rot))
                         continue;
-                    if (br.Position.DistanceTo(at) <= tol)
+                    var otherWall = WallIdFromInsert(br);
+                    if (wallDbId > 0 && otherWall > 0 && otherWall != wallDbId)
+                        continue;
+                    if (InsertWorld(br).DistanceTo(at) <= tol)
                     {
                         tr.Commit();
                         return true;
@@ -1270,9 +1281,62 @@ namespace AutocadPlugin
             return 0;
         }
 
+        internal static Point3d InsertWorld(BlockReference br)
+        {
+            if (br == null)
+                return Point3d.Origin;
+            if (br.XData != null)
+            {
+                var inApp = false;
+                foreach (var t in br.XData.AsArray())
+                {
+                    if (t.TypeCode == 1001)
+                    {
+                        inApp = string.Equals(t.Value as string, AppName, StringComparison.OrdinalIgnoreCase);
+                        continue;
+                    }
+                    if (!inApp || t.TypeCode != 1000)
+                        continue;
+                    var text = (t.Value as string ?? "").Trim();
+                    if (!text.StartsWith("AT:", StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    Point3d parsed;
+                    if (TryParseInsertAt(text.Substring(3), out parsed))
+                        return parsed;
+                }
+            }
+            return br.Position;
+        }
+
+        private static bool TryParseInsertAt(string raw, out Point3d at)
+        {
+            at = Point3d.Origin;
+            if (string.IsNullOrWhiteSpace(raw))
+                return false;
+            var parts = raw.Split(',');
+            if (parts.Length < 3)
+                return false;
+            double x;
+            double y;
+            double z;
+            if (!double.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out x)
+                || !double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out y)
+                || !double.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out z))
+                return false;
+            at = new Point3d(x, y, z);
+            return true;
+        }
+
         internal static void ApplyAtkXData(
             BlockReference br, Transaction tr, Database db,
             string codeName, string view, string role, int rotDeg, long wallDbId = 0)
+        {
+            ApplyAtkXData(br, tr, db, codeName, view, role, rotDeg, wallDbId, null);
+        }
+
+        internal static void ApplyAtkXData(
+            BlockReference br, Transaction tr, Database db,
+            string codeName, string view, string role, int rotDeg, long wallDbId, Point3d? insertAt)
         {
             EnsureRegApp(tr, db);
             var values = new List<TypedValue>
@@ -1285,6 +1349,13 @@ namespace AutocadPlugin
             };
             if (wallDbId > 0)
                 values.Add(new TypedValue(1000, "WID:" + wallDbId.ToString()));
+            if (insertAt.HasValue)
+            {
+                var p = insertAt.Value;
+                values.Add(new TypedValue(
+                    1000,
+                    string.Format(CultureInfo.InvariantCulture, "AT:{0:R},{1:R},{2:R}", p.X, p.Y, p.Z)));
+            }
             br.XData = new ResultBuffer(values.ToArray());
         }
 
