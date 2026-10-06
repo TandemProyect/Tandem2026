@@ -349,6 +349,12 @@
   <data name="Login_Btn_SignIn" xml:space="preserve">
     <value>Sign in</value>
   </data>
+  <data name="Login_Connecting" xml:space="preserve">
+    <value>Connecting…</value>
+  </data>
+  <data name="Login_ConnectingWait" xml:space="preserve">
+    <value>Please wait, it is not frozen…</value>
+  </data>
   <data name="Login_Lbl_Email" xml:space="preserve">
     <value>Email</value>
   </data>
@@ -531,6 +537,9 @@
   </data>
   <data name="PluginCad_SpeedGood" xml:space="preserve">
     <value>Good</value>
+  </data>
+  <data name="PluginCad_SpeedLocal" xml:space="preserve">
+    <value>Local server · {0} ms</value>
   </data>
   <data name="PluginCad_SpeedMeasuring" xml:space="preserve">
     <value>Measuring network and server…</value>

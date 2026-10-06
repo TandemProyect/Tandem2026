@@ -10,9 +10,9 @@ namespace AutocadPlugin
     /// </summary>
     internal static class ConnectEta
     {
-        public const int WarmMsLocal = 8000;
+        public const int WarmMsLocal = 1200;
         public const int WarmMsProd = 8000;
-        public const int ColdMsLocal = 20000;
+        public const int ColdMsLocal = 4000;
         public const int ColdMsProd = 20000;
 
         public static int WarmMs()

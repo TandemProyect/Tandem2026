@@ -56,6 +56,12 @@ namespace AutocadPlugin
             get { return new SolidColorBrush(ParseHex(TextColorHex, 0xFF, 0xFF, 0xFF)); }
         }
 
+        public static bool HasCachedTheme()
+        {
+            try { return File.Exists(CacheFile); }
+            catch { return false; }
+        }
+
         public static void Reset()
         {
             _color = DefaultColor;

@@ -20,9 +20,7 @@
             Background="#FFFFFF"
             BorderBrush="#D9DEE8"
             BorderThickness="1"
-            CornerRadius="10"
-            Cursor="SizeAll"
-            MouseLeftButtonDown="OnDrag">
+            CornerRadius="10">
         <Grid>
             <!-- WebView2 se crea en código y se aparca fuera hasta que la página esté lista -->
             <Canvas x:Name="WebPark"
@@ -55,15 +53,15 @@
                     CornerRadius="9"
                     Visibility="Collapsed"
                     IsHitTestVisible="True">
-                <StackPanel Orientation="Horizontal"
-                            HorizontalAlignment="Center"
+                <StackPanel HorizontalAlignment="Center"
                             VerticalAlignment="Center">
-                    <Grid Width="16" Height="16" Margin="0,0,8,0">
-                        <Ellipse Stroke="#E8E6F4" StrokeThickness="2" />
+                    <Grid Width="36" Height="36" HorizontalAlignment="Center">
+                        <Ellipse Stroke="#E8E6F4" StrokeThickness="3.2" />
                         <Ellipse Stroke="#7367F0"
-                                 StrokeThickness="2"
-                                 StrokeDashArray="8 12"
+                                 StrokeThickness="3.2"
+                                 StrokeDashArray="12 20"
                                  StrokeStartLineCap="Round"
+                                 StrokeEndLineCap="Round"
                                  RenderTransformOrigin="0.5,0.5">
                             <Ellipse.RenderTransform>
                                 <RotateTransform x:Name="LoaderSpin" />
@@ -71,11 +69,12 @@
                         </Ellipse>
                     </Grid>
                     <TextBlock x:Name="PageLoaderText"
-                               Text="Cargando…"
-                               FontSize="12"
+                               Margin="0,10,0,0"
+                               Text="Conectando…"
+                               FontSize="13"
                                FontWeight="SemiBold"
-                               Foreground="#2C3340"
-                               VerticalAlignment="Center" />
+                               Foreground="#433C65"
+                               HorizontalAlignment="Center" />
                 </StackPanel>
             </Border>
         </Grid>

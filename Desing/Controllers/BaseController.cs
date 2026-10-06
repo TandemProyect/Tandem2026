@@ -19,6 +19,9 @@ namespace Desing.Controllers
         /// pintar el Login con el color/logo correcto antes de autenticar.
         /// </summary>
         public const string PlantillaCookieName = "tandem_plantilla";
+        public const string PlantillaColorCookieName = "tandem_plantilla_color";
+        public const string PlantillaTextColorCookieName = "tandem_plantilla_text";
+        public const string MaterioDefaultColor = "#7367F0";
         private const string PlantillaCacheKeyPrefix = "TandemPlantilla_";
         private const string PlantillaDefaultCacheKey = "TandemPlantilla_Default";
         private const string LanguageByIdCacheKeyPrefix = "TandemLanguage_ById_";
@@ -74,12 +77,18 @@ namespace Desing.Controllers
             base.OnActionExecuting(filterContext);
 
             // Plantilla por defecto del sitio (color + logo + favicon) - fallback si no hay usuario.
-            ViewBag.PlantillaColor = "#349d7d";
-            ViewBag.PlantillaLogo = "/Content/images/Login/at.png";
+            var pluginCadChrome = IsPluginCadRequest();
+            ViewBag.PlantillaColor = pluginCadChrome ? MaterioDefaultColor : "#349d7d";
+            ViewBag.PlantillaLogo = pluginCadChrome
+                ? "/Content/images/tDesing/t-desing-net.png"
+                : "/Content/images/Login/at.png";
             ViewBag.PlantillaFavicon = "/assets/client/images/Default/Ico/at.ico";
             ViewBag.PlantillaBrandText = "T Desing.net";
             ViewBag.PlantillaBrandTextColor = "";
             ViewBag.PlantillaBrandAccentColor = "#f29100";
+            ApplyPlantillaCookiesWithoutDb();
+            if (pluginCadChrome)
+                ViewBag.SkipRemoteFonts = true;
 
             // Login y resto de Account no deben abrir ConexionData: el primer uso del EDMX
             // puede tardar varios minutos y deja la pantalla en blanco.
@@ -382,12 +391,15 @@ namespace Desing.Controllers
         {
             try
             {
+                PlantillaViewData row = null;
                 if (!plantillaId.HasValue)
                 {
-                    var plantilla = GetCachedDefaultPlantilla();
-                    plantillaId = plantilla != null ? (long?)plantilla.Id : null;
+                    row = GetCachedDefaultPlantilla();
+                    plantillaId = row != null ? (long?)row.Id : null;
                 }
                 if (!plantillaId.HasValue) return;
+                if (row == null)
+                    row = GetCachedPlantillaById(plantillaId.Value);
 
                 var cookie = new HttpCookie(PlantillaCookieName, plantillaId.Value.ToString())
                 {
@@ -396,8 +408,114 @@ namespace Desing.Controllers
                     Path = "/"
                 };
                 Response.Cookies.Set(cookie);
+                WritePlantillaColorCookies(
+                    row != null ? row.Color : null,
+                    row != null ? row.BrandTextColor : null);
             }
             catch { }
+        }
+
+        protected void WritePlantillaChromeFromUser(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+                return;
+            try
+            {
+                var chrome = GetCachedUserChromeByAspNetUserId(userId);
+                WritePlantillaCookie(chrome != null ? chrome.PlantillaId : null);
+            }
+            catch
+            {
+            }
+        }
+
+        private void WritePlantillaColorCookies(string color, string textColor)
+        {
+            WritePlainCookie(PlantillaColorCookieName, NormalizeHexCookie(color, MaterioDefaultColor));
+            var text = NormalizeHexCookie(textColor, "");
+            if (!string.IsNullOrWhiteSpace(text))
+                WritePlainCookie(PlantillaTextColorCookieName, text);
+        }
+
+        private void ApplyPlantillaCookiesWithoutDb()
+        {
+            var color = ReadCookieValue(PlantillaColorCookieName);
+            var text = ReadCookieValue(PlantillaTextColorCookieName);
+            if (LooksLikeHex(color))
+                ViewBag.PlantillaColor = color;
+            if (LooksLikeHex(text))
+                ViewBag.PlantillaBrandTextColor = text;
+        }
+
+        private bool IsPluginCadRequest()
+        {
+            try
+            {
+                var ru = Request != null
+                    ? (Request["returnUrl"] ?? Request["ReturnUrl"] ?? "")
+                    : "";
+                if (ru.IndexOf("/DesignToolsAutocad/", StringComparison.OrdinalIgnoreCase) >= 0)
+                    return true;
+                var path = Request != null && Request.Path != null ? Request.Path : "";
+                return path.IndexOf("/DesignToolsAutocad/", StringComparison.OrdinalIgnoreCase) >= 0;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private string ReadCookieValue(string name)
+        {
+            try
+            {
+                var cookie = Request != null ? Request.Cookies[name] : null;
+                return cookie == null ? null : (cookie.Value ?? "").Trim();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private void WritePlainCookie(string name, string value)
+        {
+            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(value) || Response == null)
+                return;
+            var cookie = new HttpCookie(name, value.Trim())
+            {
+                Expires = DateTime.UtcNow.AddYears(1),
+                HttpOnly = true,
+                Path = "/"
+            };
+            Response.Cookies.Set(cookie);
+        }
+
+        private static string NormalizeHexCookie(string raw, string fallback)
+        {
+            var t = (raw ?? "").Trim();
+            if (t.Length == 0)
+                return fallback;
+            if (t[0] != '#')
+                t = "#" + t;
+            return LooksLikeHex(t) ? t : fallback;
+        }
+
+        private static bool LooksLikeHex(string value)
+        {
+            var t = (value ?? "").Trim();
+            if (t.Length != 4 && t.Length != 7)
+                return false;
+            if (t[0] != '#')
+                return false;
+            for (var i = 1; i < t.Length; i++)
+            {
+                var c = t[i];
+                var hex = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+                if (!hex)
+                    return false;
+            }
+            return true;
         }
 
         protected override void Dispose(bool disposing)

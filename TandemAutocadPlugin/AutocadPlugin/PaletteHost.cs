@@ -30,8 +30,8 @@ namespace AutocadPlugin
         private static string _readyUrl;
         private static string _sessionStartUrl;
         private static int _splashWaitGen;
-        private static double _pendingSessionWidth = 460;
-        private static double _pendingSessionHeight = 720;
+        private static double _pendingSessionWidth = 400;
+        private static double _pendingSessionHeight = 620;
 
         public static bool AreVisible =>
             (_session != null && _session.IsVisible)
@@ -89,9 +89,7 @@ namespace AutocadPlugin
                 return;
             }
 
-            PluginSplashBrand.ForceDefaultUntilPlantilla = true;
-            PluginSplashBrand.Clear();
-            PluginPlantillaTheme.Reset();
+            PluginSplashBrand.ForceDefaultUntilPlantilla = !PluginPlantillaTheme.HasCachedTheme();
             EnsureSession(splash: true);
             Atk60LibrarySync.LoadIndexIfPresent();
             ReportConnectStep("Conectando con " + MvcServerSettings.CurrentLabel() + "…");
@@ -224,7 +222,7 @@ namespace AutocadPlugin
                 return;
             }
 
-            var created = new PaletteWindow(_sessionStartUrl, 320, 292, allowResize: false, authSplash: splash);
+            var created = new PaletteWindow(_sessionStartUrl, 400, 620, allowResize: false, authSplash: splash);
             created.LayoutId = "session";
             created.MessageReceived += OnPaletteMessage;
             created.Navigated += OnSessionNavigated;
@@ -236,9 +234,7 @@ namespace AutocadPlugin
 
             Attach(created, "session", -1, 70);
             if (splash)
-                created.ShowStatus(PluginSplashBrand.ForceDefaultUntilPlantilla
-                    ? "Iniciando sesión en TDesing"
-                    : "Comprobando autorización en TDesing…");
+                created.ShowStatus("Conectando con " + MvcServerSettings.CurrentLabel() + "…");
             else
                 HideSessionWindow();
             _session = created;
@@ -258,24 +254,17 @@ namespace AutocadPlugin
                 Close(ref _tools);
                 Close(ref _blocks);
                 _pendingBlocks = false;
-                _pendingSessionWidth = 460;
-                _pendingSessionHeight = 720;
+                _pendingSessionWidth = 400;
+                _pendingSessionHeight = 620;
                 if (_session != null)
                 {
                     ShowSessionWindow();
                     PlacePalette(_session, "session", -1, 70);
-                    try
-                    {
-                        var origin = uri.GetLeftPart(UriPartial.Authority);
-                        if (!string.IsNullOrWhiteSpace(origin))
-                            _session.ClearCookiesForSite(origin + "/");
-                    }
-                    catch
-                    {
-                    }
+                    _session.SetLoginChrome(true);
                 }
                 ReportConnectStep("Esperando que inicies sesión…");
                 RevealSessionPage();
+                PushLinkSpeed();
                 return;
             }
 
@@ -369,6 +358,15 @@ namespace AutocadPlugin
         private static void RevealSessionPage()
         {
             _splashWaitGen++;
+            ShowSessionWindow();
+            try
+            {
+                if (_session != null && _session.IsOnPluginReady())
+                    _session.SetLoginChrome(false);
+                else
+                    _session?.SetLoginChrome(true);
+            }
+            catch { }
             _session?.HideStatus();
             ApplySessionSize(_pendingSessionWidth, _pendingSessionHeight);
             PlacePalette(_session, "session", -1, 70);
@@ -444,6 +442,7 @@ namespace AutocadPlugin
         {
             Atk60LibrarySync.ClearStep();
             PluginSplashBrand.ForceDefaultUntilPlantilla = false;
+            try { _session?.SetLoginChrome(false); } catch { }
             try { _session?.HideStatus(); } catch { }
             HideSessionWindow();
             ShowToolPalettes();
@@ -842,6 +841,29 @@ namespace AutocadPlugin
                     return true;
                 }
 
+                if (string.Equals(action, "login-ready", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(action, "login-submit", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (string.Equals(action, "login-ready", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var w = obj["width"] != null ? (double)obj["width"] : 0;
+                        var h = obj["height"] != null ? (double)obj["height"] : 0;
+                        if (w >= 320 && w <= 520)
+                            _pendingSessionWidth = w;
+                        if (h >= 420 && h <= 760)
+                            _pendingSessionHeight = h;
+                        _session?.SetLoginChrome(true);
+                        RevealSessionPage();
+                        _session?.HidePageLoader();
+                        PushLinkSpeed();
+                    }
+                    else
+                    {
+                        ReportConnectStep("Conectando…");
+                    }
+                    return true;
+                }
+
                 if (string.Equals(action, "home-ready", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(action, "page-ready", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(action, "request-link-speed", StringComparison.OrdinalIgnoreCase))
@@ -1003,16 +1025,24 @@ namespace AutocadPlugin
         {
             try
             {
-                string kind;
-                int mbps;
-                NetworkLinkInfo.Read(out kind, out mbps);
-                var json = new JObject
+                Task.Run(() =>
                 {
-                    ["action"] = "link-speed",
-                    ["kind"] = kind ?? "",
-                    ["mbps"] = mbps
-                }.ToString(Newtonsoft.Json.Formatting.None);
-                _session?.PostToPage(json);
+                    NetworkLinkInfo.RefreshServerPing();
+                    string kind;
+                    int mbps;
+                    NetworkLinkInfo.Read(out kind, out mbps);
+                    var json = new JObject
+                    {
+                        ["action"] = "link-quality",
+                        ["kind"] = kind ?? "",
+                        ["mbps"] = mbps,
+                        ["wifiLine"] = NetworkLinkInfo.FormatWifiLine(),
+                        ["serverLine"] = NetworkLinkInfo.FormatServerLine(),
+                        ["serverMs"] = NetworkLinkInfo.LastServerMs,
+                        ["local"] = MvcServerSettings.IsLocal()
+                    }.ToString(Newtonsoft.Json.Formatting.None);
+                    _session?.PostToPage(json);
+                });
             }
             catch
             {

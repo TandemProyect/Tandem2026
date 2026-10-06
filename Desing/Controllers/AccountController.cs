@@ -74,13 +74,7 @@ namespace Desing.Controllers
             }
 
             if (isPluginLogin)
-            {
-                ViewBag.PluginCadLogin = true;
-                var companyLogo = PluginCadDeviceHelper.TryReadLogoCookie(Request);
-                ViewBag.PlantillaLogo = string.IsNullOrWhiteSpace(companyLogo)
-                    ? PluginCadDeviceHelper.DefaultLogoVirtualPath
-                    : companyLogo;
-            }
+                ApplyPluginCadLoginChrome();
 
             if (string.Equals(Request["pluginDeviceBlocked"], "1", StringComparison.OrdinalIgnoreCase))
             {
@@ -119,7 +113,7 @@ namespace Desing.Controllers
 
             var isPluginLogin = IsPluginCadReturnUrl(returnUrl);
             if (isPluginLogin)
-                ViewBag.PluginCadLogin = true;
+                ApplyPluginCadLoginChrome();
 
             var user = await UserManager.FindByEmailAsync(model.Email);
             if (user != null)
@@ -170,6 +164,11 @@ namespace Desing.Controllers
                     {
                     }
                 });
+            }
+            else if (user != null)
+            {
+                try { WritePlantillaChromeFromUser(user.Id); }
+                catch { }
             }
 
             return RedirectToLocal(returnUrl);
@@ -525,6 +524,16 @@ namespace Desing.Controllers
             {
                 ModelState.AddModelError("", error);
             }
+        }
+
+        private void ApplyPluginCadLoginChrome()
+        {
+            ViewBag.PluginCadLogin = true;
+            ViewBag.SkipRemoteFonts = true;
+            var companyLogo = PluginCadDeviceHelper.TryReadLogoCookie(Request);
+            ViewBag.PlantillaLogo = string.IsNullOrWhiteSpace(companyLogo)
+                ? PluginCadDeviceHelper.DefaultLogoVirtualPath
+                : companyLogo;
         }
 
         private static bool IsPluginCadReturnUrl(string returnUrl)

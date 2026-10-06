@@ -33,6 +33,11 @@ namespace AutocadPlugin.UI.Views
         public string LayoutId { get; set; }
         private bool _placing;
         private bool _pageShown;
+        private bool _hostStashed;
+        private double _stashW;
+        private double _stashH;
+        private double _stashLeft;
+        private double _stashTop;
 
         public PaletteWindow(string url, double width, double height, bool allowResize = false, bool authSplash = false)
         {
@@ -46,14 +51,19 @@ namespace AutocadPlugin.UI.Views
             if (_allowResize)
                 ResizeMode = ResizeMode.CanResizeWithGrip;
 
-            Background = Brushes.White;
             if (!_authSplash)
+            {
+                Background = Brushes.White;
                 ShowPageLoader();
+            }
 
             if (_authSplash)
             {
+                Background = Brushes.White;
+                if (RootChrome != null)
+                    RootChrome.Background = Brushes.White;
                 HideHostDuringSplash();
-                ShowStatus("Comprobando autorización en TDesing…");
+                ShowStatus("Conectando con TDesing…");
                 SourceInitialized += (_, __) =>
                 {
                     if (IsSplashVisible())
@@ -119,14 +129,21 @@ namespace AutocadPlugin.UI.Views
 
         public void SetSize(double width, double height)
         {
-            if (IsSplashVisible())
+            var w = Math.Max(16, width);
+            var h = Math.Max(16, height);
+            _stashW = w;
+            _stashH = h;
+            if (IsSplashVisible() || _hostStashed)
             {
                 HideHostDuringSplash();
                 return;
             }
+            ApplyVisibleSize(w, h);
+        }
+
+        private void ApplyVisibleSize(double w, double h)
+        {
             SizeToContent = SizeToContent.Manual;
-            var w = Math.Max(16, width);
-            var h = Math.Max(16, height);
             MinWidth = 16;
             MaxWidth = double.PositiveInfinity;
             MinHeight = 16;
@@ -169,6 +186,37 @@ namespace AutocadPlugin.UI.Views
             }
         }
 
+        public void SetLoginChrome(bool login)
+        {
+            try
+            {
+                Background = Brushes.White;
+                if (RootChrome != null)
+                {
+                    RootChrome.Background = Brushes.White;
+                    RootChrome.BorderBrush = (Brush)new BrushConverter().ConvertFrom("#D9DEE8");
+                    RootChrome.BorderThickness = new Thickness(login ? 0 : 1);
+                    RootChrome.CornerRadius = new CornerRadius(login ? 14 : 10);
+                }
+                if (WebHost != null)
+                {
+                    WebHost.Margin = login ? new Thickness(0) : new Thickness(7, 10, 7, 6);
+                    WebHost.IsHitTestVisible = true;
+                }
+                if (Web != null)
+                {
+                    Web.DefaultBackgroundColor = System.Drawing.Color.White;
+                    Web.IsHitTestVisible = true;
+                    Web.Visibility = Visibility.Visible;
+                }
+                if (login)
+                    FocusWeb();
+            }
+            catch
+            {
+            }
+        }
+
         private bool IsSplashVisible()
         {
             return _authSplash && _splashPopup != null && _splashPopup.IsVisible;
@@ -178,16 +226,19 @@ namespace AutocadPlugin.UI.Views
         {
             try
             {
+                if (!_hostStashed)
+                {
+                    _stashW = Width > 8 ? Width : 400;
+                    _stashH = Height > 8 ? Height : 620;
+                    _stashLeft = Left;
+                    _stashTop = Top;
+                    _hostStashed = true;
+                }
                 Opacity = 0;
                 IsHitTestVisible = false;
                 ShowInTaskbar = false;
-                SizeToContent = SizeToContent.Manual;
-                MinWidth = 1;
-                MaxWidth = 1;
-                Width = 1;
-                MinHeight = 1;
-                MaxHeight = 1;
-                Height = 1;
+                ApplyVisibleSize(1, 1);
+                HideWebHwnd();
             }
             catch
             {
@@ -198,10 +249,37 @@ namespace AutocadPlugin.UI.Views
         {
             try
             {
+                var w = _stashW > 8 ? _stashW : 400;
+                var h = _stashH > 8 ? _stashH : 620;
+                _hostStashed = false;
+                ApplyVisibleSize(w, h);
+                if (_stashLeft != 0 || _stashTop != 0)
+                {
+                    Left = _stashLeft;
+                    Top = _stashTop;
+                }
                 Opacity = 1;
                 IsHitTestVisible = true;
                 MaxWidth = double.PositiveInfinity;
                 MaxHeight = double.PositiveInfinity;
+                ShowPageLoader("Conectando…");
+                AttachWeb();
+            }
+            catch
+            {
+            }
+        }
+
+        private void FocusWeb()
+        {
+            try
+            {
+                if (Web == null)
+                    return;
+                Web.Visibility = Visibility.Visible;
+                Web.IsHitTestVisible = true;
+                Web.Focus();
+                Keyboard.Focus(Web);
             }
             catch
             {
@@ -213,12 +291,14 @@ namespace AutocadPlugin.UI.Views
             if (!string.IsNullOrWhiteSpace(text))
                 _splashTitle = text;
             HideHostDuringSplash();
-            ParkWeb();
+            EnsureWebControl();
+            AttachWeb();
+            HideWebHwnd();
             EnsureSplashPopup();
             if (_splashPopup != null)
             {
                 _splashPopup.ShowProgress(
-                    PluginSplashBrand.ForceDefaultUntilPlantilla ? "Instalación TDesing" : "Conectando TDesing",
+                    "Conectando TDesing",
                     text ?? _splashTitle,
                     showBrand: true);
                 if (!string.IsNullOrWhiteSpace(text))
@@ -331,7 +411,7 @@ namespace AutocadPlugin.UI.Views
         {
             CloseSplashPopup();
             RestoreHostAfterSplash();
-            RevealWeb();
+            StopEtaTicker(record: true);
         }
 
         public bool IsOnPluginReady()
@@ -391,6 +471,11 @@ namespace AutocadPlugin.UI.Views
 
         private void ShowPageLoader()
         {
+            ShowPageLoader("Conectando…");
+        }
+
+        private void ShowPageLoader(string text)
+        {
             try
             {
                 Background = Brushes.White;
@@ -400,7 +485,7 @@ namespace AutocadPlugin.UI.Views
                 {
                     PageLoader.Visibility = Visibility.Visible;
                     if (PageLoaderText != null)
-                        PageLoaderText.Text = "Cargando…";
+                        PageLoaderText.Text = string.IsNullOrWhiteSpace(text) ? "Conectando…" : text;
                 }
             }
             catch
@@ -410,17 +495,13 @@ namespace AutocadPlugin.UI.Views
 
         public void HidePageLoader()
         {
-            if (_pageShown)
-            {
-                try { AttachWeb(); } catch { }
-                return;
-            }
             _pageShown = true;
             try
             {
                 AttachWeb();
                 if (PageLoader != null)
                     PageLoader.Visibility = Visibility.Collapsed;
+                FocusWeb();
             }
             catch
             {
@@ -434,7 +515,8 @@ namespace AutocadPlugin.UI.Views
             {
                 DefaultBackgroundColor = System.Drawing.Color.White,
                 HorizontalAlignment = HorizontalAlignment.Stretch,
-                VerticalAlignment = VerticalAlignment.Stretch
+                VerticalAlignment = VerticalAlignment.Stretch,
+                IsHitTestVisible = true
             };
         }
 
@@ -600,9 +682,7 @@ namespace AutocadPlugin.UI.Views
 
         private static string FirstRunEta(string eta)
         {
-            if (!PluginSplashBrand.ForceDefaultUntilPlantilla)
-                return eta;
-            return "Primera instalación · " + eta;
+            return eta;
         }
 
         private static async Task ClearCookiesForSiteAsync(CoreWebView2 web, string siteUrl, bool all)
@@ -632,15 +712,14 @@ namespace AutocadPlugin.UI.Views
                 if (_authSplash)
                 {
                     HideHostDuringSplash();
-                    ShowStatus(PluginSplashBrand.ForceDefaultUntilPlantilla
-                        ? "Primera instalación de TDesing"
-                        : "Comprobando autorización en TDesing…");
+                    ShowStatus("Conectando con " + MvcServerSettings.CurrentLabel() + "…");
                     await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render);
-                    await Task.Delay(80);
                 }
 
                 EnsureWebControl();
-                ParkWeb();
+                AttachWeb();
+                if (_authSplash)
+                    HideHostDuringSplash();
                 if (!_authSplash)
                     ShowPageLoader();
 
@@ -651,13 +730,14 @@ namespace AutocadPlugin.UI.Views
                 try
                 {
                     Web.DefaultBackgroundColor = System.Drawing.Color.White;
+                    Web.IsHitTestVisible = true;
                 }
                 catch
                 {
                 }
 
                 if (_authSplash)
-                    ParkWeb();
+                    HideHostDuringSplash();
 
                 Web.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
                 Web.CoreWebView2.Settings.AreDevToolsEnabled = false;
@@ -681,24 +761,22 @@ namespace AutocadPlugin.UI.Views
                 Web.CoreWebView2.NavigationCompleted += (_, args) =>
                 {
                     try { Navigated?.Invoke(Web.Source); } catch { }
-                    if (!_authSplash && args != null && args.IsSuccess)
-                        HidePageLoader();
+                    if (args == null || !args.IsSuccess)
+                        return;
+                    var path = "";
+                    try { path = Web.Source != null ? Web.Source.AbsolutePath : ""; } catch { }
+                    var login = path.IndexOf("/Account/Login", StringComparison.OrdinalIgnoreCase) >= 0;
+                    if (!_authSplash || login)
+                    {
+                        Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            if (login)
+                                HideStatus();
+                            HidePageLoader();
+                        }), DispatcherPriority.Background);
+                    }
                 };
-                if (_authSplash && PluginSplashBrand.ForceDefaultUntilPlantilla)
-                {
-                    ShowStatus("Primera instalación: limpiando cookies antiguas…");
-                    try
-                    {
-                        var origin = new Uri(_url).GetLeftPart(UriPartial.Authority) + "/";
-                        await ClearCookiesForSiteAsync(Web.CoreWebView2, origin, all: true);
-                    }
-                    catch
-                    {
-                    }
-                    PluginSplashBrand.Clear();
-                    ShowStatus("Conectando con el servidor TDesing…");
-                }
-                else if (_authSplash)
+                if (_authSplash)
                     await SyncSplashLogoFromCookiesAsync();
                 if (!string.IsNullOrWhiteSpace(_url))
                     Web.CoreWebView2.Navigate(_url);

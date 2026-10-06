@@ -22,12 +22,13 @@
     }
     <link rel="icon" href="@faviconUrl" />
 
-    @{
+    @if (ViewBag.SkipRemoteFonts as bool? != true)
+    {
         var googleFontsUrl = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap";
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="@googleFontsUrl" rel="stylesheet" />
     }
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="@googleFontsUrl" rel="stylesheet" />
 
     <link rel="stylesheet" href="@Url.Content("~/assets/materio/vendor/fonts/iconify-icons.css")" />
     <link rel="stylesheet" href="@Url.Content("~/assets/materio/vendor/libs/node-waves/node-waves.css")" />

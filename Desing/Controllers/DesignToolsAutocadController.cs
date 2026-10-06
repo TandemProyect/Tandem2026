@@ -236,17 +236,11 @@ namespace Desing.Controllers
         [OutputCache(NoStore = true, Duration = 0, VaryByParam = "*")]
         public ActionResult PluginReady()
         {
-            var gate = EvaluatePluginCadUser();
-            if (gate != PluginCadGate.Ok)
-            {
-                HttpContext.GetOwinContext().Authentication.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
-                return RedirectToPluginLogin(
-                    Url.Action("PluginReady", "DesignToolsAutocad"),
-                    inactiveUser: gate == PluginCadGate.Inactive,
-                    blocked: gate == PluginCadGate.Blocked);
-            }
-
-            PersistPluginCompanyLogo(User.Identity.GetUserId());
+            TryWarmEdmxInBackground();
+            var logo = PluginCadDeviceHelper.TryReadLogoCookie(Request);
+            if (string.IsNullOrWhiteSpace(logo))
+                logo = PluginCadDeviceHelper.DefaultLogoVirtualPath;
+            ViewBag.CompanyLogoUrl = logo;
             return View(new PluginCadHomeVm
             {
                 UserName = User.Identity.Name,
@@ -265,6 +259,17 @@ namespace Desing.Controllers
         public ActionResult PluginPing()
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
+            var light = string.Equals(Request["light"], "1", StringComparison.OrdinalIgnoreCase);
+            if (light)
+            {
+                return Json(new
+                {
+                    ok = true,
+                    dbMs = -1,
+                    serverMs = sw.ElapsedMilliseconds
+                }, JsonRequestBehavior.AllowGet);
+            }
+
             var ping = SqlConnectionPing.SelectOne();
             return Json(new
             {

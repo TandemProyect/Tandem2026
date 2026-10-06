@@ -37,6 +37,19 @@ namespace AutocadPlugin
             return url.IndexOf("tdesing.net", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
+        public static bool IsLocal()
+        {
+            try
+            {
+                var host = new Uri(CurrentUrl()).Host;
+                return PluginHttp.IsLoopback(host);
+            }
+            catch
+            {
+                return true;
+            }
+        }
+
         public static string CurrentLabel()
         {
             return IsProduction() ? "producción (tdesing.net)" : "local (localhost:44384)";

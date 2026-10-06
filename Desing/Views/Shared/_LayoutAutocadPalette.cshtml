@@ -74,7 +74,7 @@
             }
             post({
                 action: 'plantilla-theme',
-                color: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject((ViewBag.PlantillaColor as string) ?? "#349d7d")),
+                color: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject((ViewBag.PlantillaColor as string) ?? "#7367F0")),
                 textColor: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(string.IsNullOrWhiteSpace(ViewBag.PlantillaBrandTextColor as string) ? "#ffffff" : ((string)ViewBag.PlantillaBrandTextColor).Trim())),
                 logo: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(pluginPlantillaLogoAbs))
             });

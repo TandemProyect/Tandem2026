@@ -12,6 +12,5 @@
             } catch (e) { }
         }
         post({ action: 'session-ready' });
-        window.location.replace(@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("PluginReady", "DesignToolsAutocad"))));
     })();
 </script>

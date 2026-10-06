@@ -74,6 +74,8 @@ const es = Object.fromEntries(
     Login_Lbl_RememberMe: "Recordarme",
     Login_Link_ForgotPassword: "¿Olvidé mi contraseña?",
     Login_Btn_SignIn: "Entrar",
+    Login_Connecting: "Conectando…",
+    Login_ConnectingWait: "Espera, no está colgado…",
 
     /* ===== Plugin CAD (paleta de sesión AutoCAD / BricsCAD / Revit) ===== */
     PluginCad_DesignsTitle: "Diseños",
@@ -93,6 +95,7 @@ const es = Object.fromEntries(
     PluginCad_SpeedNet: "Red {0} Mb/s",
     PluginCad_SpeedRoundtrip: "Ida/vuelta {0} ms",
     PluginCad_SpeedServer: "Servidor {0} ms",
+    PluginCad_SpeedLocal: "Servidor local · {0} ms",
     PluginCad_SpeedFail: "Sin medida de red o servidor",
     PluginCad_SpeedWifiTitle: "Wi‑Fi",
     PluginCad_SpeedCableTitle: "Cable",
@@ -343,6 +346,8 @@ const en = Object.assign({}, es, {
   Login_Lbl_RememberMe: "Remember me",
   Login_Link_ForgotPassword: "Forgot password?",
   Login_Btn_SignIn: "Sign in",
+  Login_Connecting: "Connecting…",
+  Login_ConnectingWait: "Please wait, it is not frozen…",
 
   /* Plugin CAD */
   PluginCad_DesignsTitle: "Designs",
@@ -362,6 +367,7 @@ const en = Object.assign({}, es, {
   PluginCad_SpeedNet: "Network {0} Mbps",
   PluginCad_SpeedRoundtrip: "Round trip {0} ms",
   PluginCad_SpeedServer: "Server {0} ms",
+  PluginCad_SpeedLocal: "Local server · {0} ms",
   PluginCad_SpeedFail: "No network or server reading",
   PluginCad_SpeedWifiTitle: "Wi‑Fi",
   PluginCad_SpeedCableTitle: "Cable",

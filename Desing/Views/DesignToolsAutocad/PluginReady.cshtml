@@ -180,7 +180,7 @@
             var selectEmpty = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SelectEmpty));
             var urlWalls = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("GetDesignWalls", "Desing_2")));
             var urlHomeData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("PluginHomeData", "DesignToolsAutocad")));
-            var urlPing = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("PluginPing", "DesignToolsAutocad")));
+            var urlPing = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("PluginPing", "DesignToolsAutocad", new { light = 1 })));
             var speedMeasuring = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedMeasuring));
             var speedWifi = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedWifi));
             var speedCable = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Common.PluginCad_SpeedCable));
@@ -311,12 +311,13 @@
                     cache: 'no-store'
                 }).then(function (r) { return r.json(); }).then(function (data) {
                     lastRound = Date.now() - t0;
-                    var db = data && (data.dbMs != null ? data.dbMs : data.DbMs);
-                    lastServer = (db != null && db >= 0) ? db : lastRound;
+                    var httpMs = data && (data.serverMs != null ? data.serverMs : data.ServerMs);
+                    lastServer = (typeof httpMs === 'number' && httpMs >= 0) ? httpMs : lastRound;
                     paintSpeed();
                 }).catch(function () {
                     lastRound = Date.now() - t0;
-                    lastServer = -1;
+                    var local = /^(localhost|127\.0\.0\.1|::1)$/i.test(location.hostname || '');
+                    lastServer = local ? lastRound : -1;
                     paintSpeed();
                 });
             }
