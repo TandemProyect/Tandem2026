@@ -2,7 +2,6 @@ using DAL;
 using Desing.Helpers;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 
 namespace Desing.Repositories.RepositoryDesing2

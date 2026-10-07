@@ -1,3 +1,8 @@
+using DAL;
+using DataTables.Mvc;
+using Desing.Helpers;
+using Desing.Models;
+using Desing.Resources;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -6,11 +11,6 @@ using System.Linq.Dynamic.Core;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
-using DAL;
-using DataTables.Mvc;
-using Desing.Helpers;
-using Desing.Models;
-using Desing.Resources;
 
 namespace Desing.Controllers
 {

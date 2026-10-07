@@ -259,6 +259,7 @@ namespace AutocadPlugin.Models
         public string ElementCode { get; set; }
         public string ImportPath { get; set; }
         public string Orientation { get; set; }
+        public string IdWall { get; set; }
         public double X { get; set; }
         public double Y { get; set; }
         public double Z { get; set; }

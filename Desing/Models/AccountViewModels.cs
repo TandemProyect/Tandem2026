@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Desing.Resources;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using Desing.Resources;
 
 namespace Desing.Models
 {

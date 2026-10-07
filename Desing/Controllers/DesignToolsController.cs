@@ -30,7 +30,8 @@ namespace Desing.Controllers
                 if (list == null)
                 {
                     return Json(new { data = false, list, IsOk = false });
-                };
+                }
+                ;
 
                 //using (var trans = db.Database.BeginTransaction())
                 //{
@@ -74,7 +75,8 @@ namespace Desing.Controllers
                 if (list == null)
                 {
                     return Json(new { data = false, list, IsOk = false });
-                };
+                }
+                ;
 
                 //using (var trans = db.Database.BeginTransaction())
                 //{

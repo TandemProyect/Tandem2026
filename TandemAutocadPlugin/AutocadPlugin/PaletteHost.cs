@@ -777,6 +777,8 @@ namespace AutocadPlugin
                 {
                     if (!_blocks.IsVisible)
                         _blocks.Show();
+                    _blocks.Opacity = 1;
+                    _blocks.IsHitTestVisible = true;
                     _blocks.SetCollapsedChrome(!expanded);
                     _blocks.SetSize(
                         expanded ? BlocksWidth : BlocksCollapsedWidth,

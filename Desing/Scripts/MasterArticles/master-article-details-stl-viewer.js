@@ -4983,6 +4983,10 @@ function bootMasterArticleDetailsStlViewer() {
                 if (!ud || !ud.maStlManualWallArticle) continue;
                 const payload = ud.maStlManualArticlePayload || {};
                 const pos = root.position || { x: 0, y: 0, z: 0 };
+                const savedInsert = payload.InsertMm || payload.insertMm || {};
+                const savedX = Number(savedInsert.X != null ? savedInsert.X : savedInsert.x);
+                const savedY = Number(savedInsert.Y != null ? savedInsert.Y : savedInsert.y);
+                const savedZ = Number(savedInsert.Z != null ? savedInsert.Z : savedInsert.z);
                 const code = ud.maStlManualTextCode || payload.TextCode || payload.textCode || payload.CodeName || '';
                 if (!code) continue;
                 articles.push({
@@ -4991,9 +4995,9 @@ function bootMasterArticleDetailsStlViewer() {
                     CodeName: code,
                     View: payload.TextView || payload.View || payload.textView || '3dref',
                     InsertMm: {
-                        X: Number(pos.x),
-                        Y: Number(pos.y),
-                        Z: Number(pos.z)
+                        X: Number.isFinite(savedX) ? savedX : Number(pos.x),
+                        Y: Number.isFinite(savedY) ? savedY : Number(pos.y),
+                        Z: Number.isFinite(savedZ) ? savedZ : Number(pos.z)
                     },
                     RotationX: Number(payload.RotationX != null ? payload.RotationX : payload.rotationX) || 0,
                     RotationY: Number(payload.RotationY != null ? payload.RotationY : payload.rotationY) || 0,
@@ -5150,6 +5154,87 @@ function bootMasterArticleDetailsStlViewer() {
         return best;
     }
 
+    /**
+     * Los paneles posteriores al primero guardan el yaw del DWG.
+     * El STL con ese yaw mete el cuerpo hacia el eje. Se refleja en la cara
+     * (solo el espesor). El primero, con el 180° ya descontado, no entra aquí.
+     */
+    function maStlDesing2FaceOutwardNormal(item, insertX, insertZ) {
+        const wantId = item && (item.WallDbId != null ? item.WallDbId : item.wallDbId);
+        let axis = null;
+        if (wantId != null && maStlUserLinesGroup) {
+            const want = String(wantId);
+            maStlUserLinesGroup.traverse(function (obj) {
+                if (axis || !obj || !obj.userData) return;
+                const ud = obj.userData;
+                const role = String(ud.wallRole || ud.WallRole || '').toLowerCase();
+                if (role === 'face') return;
+                const id = ud.wallDbId != null ? ud.wallDbId
+                    : (ud.WallDbId != null ? ud.WallDbId
+                        : (ud._idObject != null ? ud._idObject : null));
+                if (id == null || String(id) !== want) return;
+                const p1 = ud.p1Mm || ud.P1Mm;
+                const p2 = ud.p2Mm || ud.P2Mm;
+                if (!p1 || !p2) return;
+                const ax = Number(p1.x != null ? p1.x : p1.X);
+                const az = Number(p1.z != null ? p1.z : p1.Z);
+                const bx = Number(p2.x != null ? p2.x : p2.X);
+                const bz = Number(p2.z != null ? p2.z : p2.Z);
+                if (!Number.isFinite(ax) || !Number.isFinite(az) || !Number.isFinite(bx) || !Number.isFinite(bz)) return;
+                axis = { ax: ax, az: az, bx: bx, bz: bz };
+            });
+        }
+        if (axis) {
+            const abx = axis.bx - axis.ax;
+            const abz = axis.bz - axis.az;
+            const len2 = abx * abx + abz * abz;
+            let t = 0;
+            if (len2 > 1e-6) {
+                t = ((insertX - axis.ax) * abx + (insertZ - axis.az) * abz) / len2;
+                if (t < 0) t = 0;
+                else if (t > 1) t = 1;
+            }
+            const nx = insertX - (axis.ax + abx * t);
+            const nz = insertZ - (axis.az + abz * t);
+            const nlen = Math.hypot(nx, nz);
+            if (nlen >= 1) return { nx: nx / nlen, nz: nz / nlen };
+        }
+        const absX = Math.abs(insertX);
+        const absZ = Math.abs(insertZ);
+        if (absZ >= 20 && absZ <= 2000 && absZ <= absX + 1) {
+            return { nx: 0, nz: insertZ < 0 ? -1 : 1 };
+        }
+        if (absX >= 20 && absX <= 2000 && absX < absZ) {
+            return { nx: insertX < 0 ? -1 : 1, nz: 0 };
+        }
+        if (absZ >= 20) return { nx: 0, nz: insertZ < 0 ? -1 : 1 };
+        return null;
+    }
+
+    function maStlDesing2ReflectManualArticleOutward(root, item, insertX, insertZ) {
+        const outward = maStlDesing2FaceOutwardNormal(item, insertX, insertZ);
+        if (!outward) return;
+        const nx = outward.nx;
+        const nz = outward.nz;
+        root.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(root);
+        if (box.isEmpty()) return;
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+        const side = (center.x - insertX) * nx + (center.z - insertZ) * nz;
+        if (side >= -1) return;
+        const reflect = new THREE.Matrix4().set(
+            1 - 2 * nx * nx, 0, -2 * nx * nz, 0,
+            0, 1, 0, 0,
+            -2 * nz * nx, 0, 1 - 2 * nz * nz, 0,
+            0, 0, 0, 1
+        );
+        const py = Number.isFinite(root.position.y) ? root.position.y : 0;
+        const toOrigin = new THREE.Matrix4().makeTranslation(-insertX, -py, -insertZ);
+        const back = new THREE.Matrix4().makeTranslation(insertX, py, insertZ);
+        root.applyMatrix4(new THREE.Matrix4().multiplyMatrices(back, reflect).multiply(toOrigin));
+    }
+
     async function maStlDesing2RenderManualWallArticles(articles) {
         if (!scene) return { inserted: 0, requested: 0 };
         const group = maStlDesing2EnsureManualArticleGroup();
@@ -5184,22 +5269,53 @@ function bootMasterArticleDetailsStlViewer() {
                 maStlDesing2FitManualArticleScale(root);
                 const rotX = Number(item.RotationX != null ? item.RotationX : item.rotationX);
                 const rotY = Number(item.RotationY != null ? item.RotationY : item.rotationY);
-                const rotZ = Number(item.RotationZ != null ? item.RotationZ : item.rotationZ);
+                const rawZ = Number(item.RotationZ != null ? item.RotationZ : item.rotationZ);
+                const poseEncoded = Number.isFinite(rawZ) && Math.abs(rawZ) >= 3000;
+                const spun = poseEncoded && Math.abs(rawZ) >= 4500;
+                let yawDeg = rawZ;
+                if (poseEncoded) {
+                    const sign = rawZ < 0 ? -1 : 1;
+                    yawDeg = rawZ - sign * (spun ? 5000 : 4000);
+                    // El 180° del primer panel vacío ya está en el punto lógico.
+                    // El STL no lleva ese giro del DWG.
+                    if (spun) yawDeg -= 180;
+                }
                 const tumbado = Number.isFinite(rotX) && Math.abs(rotX - 90) < 1;
                 const mirrored = Number.isFinite(rotY) && Math.abs(Math.abs(rotY) - 180) < 1;
                 const wallYaw = maStlDesing2ManualArticleWallYawRad(item);
-                const yawRad = wallYaw != null
-                    ? wallYaw
-                    : maStlDesing2NormalizeAngleToRad(Number.isFinite(rotZ) ? -rotZ : 0);
-                // Misma convención que el encofrado automático: yaw en Y, tumbado -90° en Z.
-                // Cara simétrica: +180° de yaw (RotationY=180), sin desplazar el origen.
-                root.rotation.order = 'XYZ';
-                root.rotation.set(
-                    0,
-                    yawRad + (mirrored ? Math.PI : 0),
-                    tumbado ? -Math.PI * 0.5 : 0
-                );
-                root.position.set(x, Number.isFinite(y) ? y : 0, z);
+                const y0 = Number.isFinite(y) ? y : 0;
+                root.rotation.set(0, 0, 0);
+                root.quaternion.identity();
+                if (poseEncoded && Number.isFinite(yawDeg)) {
+                    // Mismo giro en planta que AutoCAD (eje vertical = Y del visor).
+                    // Tumbado: el ancho 0,90 queda arriba y el largo 2,70 a lo largo del muro.
+                    const yawRad = yawDeg * Math.PI / 180;
+                    const qYaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yawRad);
+                    if (tumbado) {
+                        const qTumble = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
+                        root.quaternion.copy(qYaw).multiply(qTumble);
+                    } else {
+                        root.quaternion.copy(qYaw);
+                    }
+                } else {
+                    let yawRad = wallYaw != null
+                        ? wallYaw + (mirrored ? Math.PI : 0)
+                        : maStlDesing2NormalizeAngleToRad(Number.isFinite(yawDeg) ? -yawDeg : 0);
+                    root.rotation.order = 'YZX';
+                    root.rotation.set(0, yawRad, 0);
+                    if (tumbado) root.rotateZ(Math.PI / 2);
+                }
+                root.position.set(x, y0, z);
+                if (tumbado) {
+                    root.updateMatrixWorld(true);
+                    const worldBox = new THREE.Box3().setFromObject(root);
+                    if (Number.isFinite(worldBox.min.y)) {
+                        root.position.y += (y0 - worldBox.min.y);
+                    }
+                }
+                if (poseEncoded && !spun) {
+                    maStlDesing2ReflectManualArticleOutward(root, item, x, z);
+                }
                 const wallDbId = item.WallDbId != null ? item.WallDbId : item.wallDbId;
                 const articleMark = {
                     maStlManualWallArticle: true,

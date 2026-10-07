@@ -92,14 +92,18 @@ namespace AutocadPlugin
                 var bt = (BlockTable)tr.GetObject(db.BlockTableId, OpenMode.ForRead);
                 var ms = (BlockTableRecord)tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite);
 
+                var drawnKeys = new List<string>();
                 foreach (var row in lines)
                 {
                     if (row == null || row.P1Mm == null || row.P2Mm == null) continue;
                     Point3d a = ToAcad(row.P1Mm);
                     Point3d b = ToAcad(row.P2Mm);
                     if (a.DistanceTo(b) < 1e-9) continue;
-
                     string role = (row.WallRole ?? "axis").Trim().ToLowerInvariant();
+                    if (AlreadyDrawn(drawnKeys, role, a, b))
+                        continue;
+                    drawnKeys.Add(LineKey(role, a, b));
+
                     string layer = role == "face" ? LayerFace : LayerAxis;
                     var line = new Line(a, b) { Layer = layer };
                     var thickness = CadUnits.FromMillimeters((row.DataWith ?? 0.30) * 1000.0);
@@ -177,6 +181,25 @@ namespace AutocadPlugin
                 view.Height = dy + padY * 2;
                 ed.SetCurrentView(view);
             }
+        }
+
+        private static bool AlreadyDrawn(List<string> keys, string role, Point3d a, Point3d b)
+        {
+            return keys.Contains(LineKey(role, a, b));
+        }
+
+        private static string LineKey(string role, Point3d a, Point3d b)
+        {
+            var ax = Math.Round(a.X / 25.0);
+            var ay = Math.Round(a.Y / 25.0);
+            var bx = Math.Round(b.X / 25.0);
+            var by = Math.Round(b.Y / 25.0);
+            var left = ax < bx || (ax == bx && ay <= by);
+            var x1 = left ? ax : bx;
+            var y1 = left ? ay : by;
+            var x2 = left ? bx : ax;
+            var y2 = left ? by : ay;
+            return role + "|" + x1 + "," + y1 + "|" + x2 + "," + y2;
         }
 
         private static Point3d ToAcad(XyzMmDto p)

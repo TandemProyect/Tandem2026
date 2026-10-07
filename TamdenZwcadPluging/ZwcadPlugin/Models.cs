@@ -51,6 +51,104 @@ namespace ZwcadPlugin.Models
         public T Datos { get; set; }
     }
 
+    public class XyzMmDto
+    {
+        public double? X { get; set; }
+        public double? Y { get; set; }
+        public double? Z { get; set; }
+    }
+
+    public class WallLineDto
+    {
+        public long? Id { get; set; }
+        public XyzMmDto P1Mm { get; set; }
+        public XyzMmDto P2Mm { get; set; }
+        public string WallRole { get; set; }
+        public long? WallGroupId { get; set; }
+        public string TextSystem { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("_Datalong")]
+        public double? DataLong { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("_DataWith")]
+        public double? DataWith { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("_DataHeight")]
+        public double? DataHeight { get; set; }
+
+        public long? WallDbId { get; set; }
+        public bool? IsSpecial { get; set; }
+    }
+
+    public class WallArticleDto
+    {
+        public long IdObject { get; set; }
+        public long WallDbId { get; set; }
+        public long? MasterArticleId { get; set; }
+        public string TextCode { get; set; }
+        public string TextView { get; set; }
+        public long NumberSequence { get; set; }
+        public XyzMmDto InsertMm { get; set; }
+        public double RotationX { get; set; }
+        public double RotationY { get; set; }
+        public double RotationZ { get; set; }
+        public string TextHandleCad { get; set; }
+    }
+
+    public class PluginSaveWallArticleRequest
+    {
+        public long DesignId { get; set; }
+        public string DeviceId { get; set; }
+        public long? WallDbId { get; set; }
+        public long? MasterArticleId { get; set; }
+        public string CodeName { get; set; }
+        public string View { get; set; }
+        public XyzMmDto P1Mm { get; set; }
+        public XyzMmDto P2Mm { get; set; }
+        public double? DataWith { get; set; }
+        public double? DataLong { get; set; }
+        public double? DataHeight { get; set; }
+        public string TextSystem { get; set; }
+        public XyzMmDto InsertMm { get; set; }
+        public double RotationX { get; set; }
+        public double RotationY { get; set; }
+        public double RotationZ { get; set; }
+        public string HandleCad { get; set; }
+    }
+
+    public class PluginSaveWallArticleResponse
+    {
+        public bool Exito { get; set; }
+        public string Mensaje { get; set; }
+        public long WallId { get; set; }
+        public long ArticleId { get; set; }
+        public long Sequence { get; set; }
+        public long DesignId { get; set; }
+    }
+
+    public class PluginSaveWallsRequest
+    {
+        public long DesignId { get; set; }
+        public string DeviceId { get; set; }
+        public List<WallLineDto> Lines { get; set; }
+        public List<PluginSaveWallArticleRequest> Articles { get; set; }
+    }
+
+    public class PluginSaveWallsResponse
+    {
+        public bool Exito { get; set; }
+        public string Mensaje { get; set; }
+        public int Count { get; set; }
+        public int ArticleCount { get; set; }
+        public long DesignId { get; set; }
+    }
+
+    public class WallSnapshotDto
+    {
+        public List<WallLineDto> Lines { get; set; }
+        public List<WallArticleDto> Articles { get; set; }
+    }
+
     public class PluginAuthRequestDTO
     {
         public string DeviceId { get; set; }
@@ -77,12 +175,9 @@ namespace ZwcadPlugin.Models
         public string Usuario { get; set; }
     }
 
-    /// <summary>
-    /// DTO para enviar información de una línea desde ZWCAD al servidor MVC
-    /// </summary>
     public class LineaDTO
     {
-        public string Tipo { get; set; } // "Line" o "Polyline"
+        public string Tipo { get; set; }
         public double InicioX { get; set; }
         public double InicioY { get; set; }
         public double InicioZ { get; set; }
@@ -92,43 +187,20 @@ namespace ZwcadPlugin.Models
         public string Layer { get; set; }
         public string Color { get; set; }
         public double Longitud { get; set; }
-        public List<PuntoDTO> Vertices { get; set; } // Para polilíneas
+        public List<PuntoDTO> Vertices { get; set; }
     }
 
-    /// <summary>
-    /// DTO para representar un punto 3D
-    /// </summary>
     public class PuntoDTO
     {
         public double X { get; set; }
         public double Y { get; set; }
         public double Z { get; set; }
-
-        /// <summary>
-        /// Tipo de punto: "Interior" (vértice de esquina) o "Exterior" (vértice opuesto)
-        /// </summary>
         public string TipoPunto { get; set; }
-
-        /// <summary>
-        /// ColorIndex ZWCAD calculado por el servidor según TipoPunto
-        /// </summary>
         public int ColorIndex { get; set; }
-
-        /// <summary>
-        /// US-688 T1 — forma geométrica del marcador: "Circulo" (default) o "Cuadrado".
-        /// </summary>
         public string Forma { get; set; } = "Circulo";
-
-        /// <summary>
-        /// US-688 T1 — tamaño del marcador en mm (radio para Circulo, semi-lado para Cuadrado).
-        /// Si es 0, el cliente usa su default.
-        /// </summary>
         public double Tamano { get; set; } = 0;
     }
 
-    /// <summary>
-    /// DTO para enviar colección de líneas y polilíneas al servidor MVC
-    /// </summary>
     public class SeleccionLineasDTO
     {
         public List<LineaDTO> Lineas { get; set; }
@@ -137,89 +209,63 @@ namespace ZwcadPlugin.Models
         public int TotalPolilineas { get; set; }
         public DateTime FechaSeleccion { get; set; }
         public string Usuario { get; set; }
-
-        /// <summary>
-        /// US-697 — Altura del muro en mm para extrusión en capa ModelDesing. Default 2700 (2.70 m).
-        /// </summary>
         public double AlturaMuroMm { get; set; } = 2700;
     }
 
-    /// <summary>
-    /// DTO para representar una esquina tipo L detectada
-    /// </summary>
     public class EsquinaLDTO
     {
-        /// <summary>
-        /// Punto del vértice donde se forma la esquina L
-        /// </summary>
         public PuntoDTO Vertice { get; set; }
-
-        /// <summary>
-        /// Índice de la primera línea que forma la esquina
-        /// </summary>
         public int IndiceLinea1 { get; set; }
-
-        /// <summary>
-        /// Índice de la segunda línea que forma la esquina
-        /// </summary>
         public int IndiceLinea2 { get; set; }
-
-        /// <summary>
-        /// Ángulo calculado entre las dos líneas (debería ser cercano a 90°)
-        /// </summary>
         public double Angulo { get; set; }
-
-        /// <summary>
-        /// Orientación de la esquina (0-7, según las 8 orientaciones posibles)
-        /// </summary>
         public int Orientacion { get; set; }
     }
 
-    /// <summary>
-    /// Polilínea a dibujar en ZWCAD (ObjetoDB2d)
-    /// </summary>
     public class PolilineaDTO
     {
         public List<PuntoDTO> Vertices { get; set; }
         public bool Cerrada { get; set; }
         public string Capa { get; set; }
         public int ColorIndex { get; set; }
-        public double AlturaExtrusion { get; set; }  // 0 = sin extrusión
+        public double AlturaExtrusion { get; set; }
     }
 
-    /// <summary>
-    /// Respuesta del servidor con esquinas L detectadas
-    /// </summary>
     public class DeteccionEsquinasLDTO
     {
-        /// <summary>
-        /// Lista de esquinas L detectadas
-        /// </summary>
         public List<EsquinaLDTO> Esquinas { get; set; }
-
-        /// <summary>
-        /// Total de esquinas detectadas
-        /// </summary>
         public int TotalEsquinasDetectadas { get; set; }
-
-        /// <summary>
-        /// US-697 — Total de muros rectos detectados (B/C, A/D, E/F).
-        /// </summary>
         public int TotalMurosRectos { get; set; }
-
-        /// <summary>
-        /// Puntos a dibujar en ZWCAD para visualización
-        /// </summary>
         public List<PuntoDTO> PuntosADibujar { get; set; }
-
-        /// <summary>
-        /// Polilíneas a dibujar en capa ObjetoDB2d
-        /// </summary>
         public List<PolilineaDTO> PolilineasADibujar { get; set; }
-
-        /// <summary>
-        /// Mensaje descriptivo del resultado
-        /// </summary>
         public string Mensaje { get; set; }
     }
+
+    public class Atk60FormworkResponse
+    {
+        public bool Exito { get; set; }
+        public string Mensaje { get; set; }
+        public int WallsCount { get; set; }
+        public int ElementsForThreeJsCount { get; set; }
+        public Atk60FormworkPaint ElementsForThreeJs { get; set; }
+    }
+
+    public class Atk60FormworkPaint
+    {
+        public List<Atk60FormworkElement> Elements { get; set; }
+    }
+
+    public class Atk60FormworkElement
+    {
+        public string ElementCode { get; set; }
+        public string ImportPath { get; set; }
+        public string Orientation { get; set; }
+        public string IdWall { get; set; }
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double Z { get; set; }
+        public double RotY { get; set; }
+        public double PieceWidthMm { get; set; }
+        public bool IsMirrored { get; set; }
+    }
 }
+

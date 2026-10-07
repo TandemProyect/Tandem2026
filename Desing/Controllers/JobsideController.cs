@@ -3,11 +3,9 @@ using DataTables.Mvc;
 using Desing.Helpers;
 using Desing.Models;
 using Desing.Resources;
-using System.Collections.Generic;
 using System;
 using System.Configuration;
 using System.Data;
-using System.Data.Entity;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -1324,20 +1322,20 @@ namespace Desing.Controllers
             try
             {
                 IQueryable<JobsideListItem> query = from j in db.TSql_Jobside
-                                                   join c in db.TSql_Client_V2 on j.LinkClient_V2 equals c.IdObject into cg
-                                                   from c in cg.DefaultIfEmpty()
-                                                   where !j.Is_Delete
-                                                   select new JobsideListItem
-                                                   {
-                                                       IdObject = j.IdObject,
-                                                       AddNJobside = j.AddNJobside ?? "",
-                                                       AddNJobsideClient = j.AddNJobsideClient ?? "",
-                                                       TextLabel = j.TextLabel,
-                                                       ClientName = c != null ? c.TextLabel : "",
-                                                       Loc_Formatted_Address = j.Loc_Formatted_Address,
-                                                       Is_Active = j.Is_Active,
-                                                       Is_Delete = j.Is_Delete
-                                                   };
+                                                    join c in db.TSql_Client_V2 on j.LinkClient_V2 equals c.IdObject into cg
+                                                    from c in cg.DefaultIfEmpty()
+                                                    where !j.Is_Delete
+                                                    select new JobsideListItem
+                                                    {
+                                                        IdObject = j.IdObject,
+                                                        AddNJobside = j.AddNJobside ?? "",
+                                                        AddNJobsideClient = j.AddNJobsideClient ?? "",
+                                                        TextLabel = j.TextLabel,
+                                                        ClientName = c != null ? c.TextLabel : "",
+                                                        Loc_Formatted_Address = j.Loc_Formatted_Address,
+                                                        Is_Active = j.Is_Active,
+                                                        Is_Delete = j.Is_Delete
+                                                    };
 
                 var totalCount = query.Count();
 

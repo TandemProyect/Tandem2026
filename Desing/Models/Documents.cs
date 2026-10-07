@@ -9,7 +9,7 @@
         public string RUTA_ARCHIVO { get; set; }
         public string TAMANO { get; set; }
         public string NombreOferta { get; set; }
-        public int SysObjectID { get;  set; }
+        public int SysObjectID { get; set; }
     }
 
 

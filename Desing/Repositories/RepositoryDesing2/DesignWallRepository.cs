@@ -1,9 +1,7 @@
 using DAL;
 using Desing.Helpers;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
 
@@ -101,7 +99,7 @@ namespace Desing.Repositories.RepositoryDesing2
             return _db.TSql_Design_V2.FirstOrDefault(d => d.SysObjectID == designId && !d.AttIsDeleted);
         }
 
-        public int ReplaceWalls(long designId, IList<Desing2DesignWallLineDto> lines, string userId)
+        public int ReplaceWalls(long designId, IList<Desing2DesignWallLineDto> lines, string userId, bool retireMissingSpecial = false)
         {
             var existing = _db.TSql_DesignWall
                 .Where(w => w.LinkDesign_V2 == designId && !w.Is_Delete)
@@ -147,7 +145,15 @@ namespace Desing.Repositories.RepositoryDesing2
             for (var i = 0; i < existing.Count; i++)
             {
                 var row = existing[i];
-                if (used.Contains(row.IdObject) || row.Is_Special)
+                if (used.Contains(row.IdObject))
+                {
+                    continue;
+                }
+
+                // Desing_2 no reenvía los muros manuales: se conservan.
+                // El Salvar de AutoCAD manda el dibujo completo y retira los
+                // especiales que ya no están; si no, al abrir se solapan.
+                if (!retireMissingSpecial && row.Is_Special)
                 {
                     continue;
                 }

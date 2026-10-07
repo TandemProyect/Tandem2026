@@ -1,15 +1,14 @@
+using DAL;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Data.Entity;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Resources;
 using System.Web;
-using DAL;
 
 namespace Desing.Helpers
 {

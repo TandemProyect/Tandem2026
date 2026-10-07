@@ -1,9 +1,7 @@
-using DAL;
 using Desing.Helpers;
 using Desing.Models.TandemXr;
 using Microsoft.AspNet.Identity;
 using System;
-using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
 

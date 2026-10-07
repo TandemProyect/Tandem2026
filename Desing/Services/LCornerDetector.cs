@@ -1,9 +1,9 @@
 using Desing.Models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
-using Newtonsoft.Json;
+using System.Linq;
 
 namespace Desing.Services
 {
@@ -175,13 +175,13 @@ namespace Desing.Services
                         SonPerpendiculares = sonPerpendiculares,
                         Casos = new[]
                         {
-                            new { Caso = "L1.Inicio <-> L2.Inicio", Distancia = dist_p1I_p2I, SeTocan = dist_p1I_p2I <= TOLERANCIA, 
+                            new { Caso = "L1.Inicio <-> L2.Inicio", Distancia = dist_p1I_p2I, SeTocan = dist_p1I_p2I <= TOLERANCIA,
                                   P1 = p1Inicio, P2 = p2Inicio },
-                            new { Caso = "L1.Inicio <-> L2.Fin", Distancia = dist_p1I_p2F, SeTocan = dist_p1I_p2F <= TOLERANCIA, 
+                            new { Caso = "L1.Inicio <-> L2.Fin", Distancia = dist_p1I_p2F, SeTocan = dist_p1I_p2F <= TOLERANCIA,
                                   P1 = p1Inicio, P2 = p2Fin },
-                            new { Caso = "L1.Fin <-> L2.Inicio", Distancia = dist_p1F_p2I, SeTocan = dist_p1F_p2I <= TOLERANCIA, 
+                            new { Caso = "L1.Fin <-> L2.Inicio", Distancia = dist_p1F_p2I, SeTocan = dist_p1F_p2I <= TOLERANCIA,
                                   P1 = p1Fin, P2 = p2Inicio },
-                            new { Caso = "L1.Fin <-> L2.Fin", Distancia = dist_p1F_p2F, SeTocan = dist_p1F_p2F <= TOLERANCIA, 
+                            new { Caso = "L1.Fin <-> L2.Fin", Distancia = dist_p1F_p2F, SeTocan = dist_p1F_p2F <= TOLERANCIA,
                                   P1 = p1Fin, P2 = p2Fin }
                         }
                     };
@@ -436,12 +436,12 @@ namespace Desing.Services
                 // Recopilar todos los puntos únicos de todos los paneles válidos
                 var todosPuntosInterior = new List<PuntoDTO>();
                 var todosPuntosExterior = new List<PuntoDTO>();
-                var todosPuntosVerde    = new List<PuntoDTO>();
+                var todosPuntosVerde = new List<PuntoDTO>();
                 var todosPuntosAmarillo = new List<PuntoDTO>();
-                var todosPuntosBlanco   = new List<PuntoDTO>();
-                var todosPuntosCian     = new List<PuntoDTO>();
-                var todosPuntosMagenta  = new List<PuntoDTO>();
-                var todosPuntosCriss    = new List<PuntoDTO>();
+                var todosPuntosBlanco = new List<PuntoDTO>();
+                var todosPuntosCian = new List<PuntoDTO>();
+                var todosPuntosMagenta = new List<PuntoDTO>();
+                var todosPuntosCriss = new List<PuntoDTO>();
 
                 // US-688 T5 (#693) — info de cada panel L para detectar muros rectos entre esquinas (B/C)
                 var panelesInfoMuro = new List<PanelInfoMuro>();
@@ -475,39 +475,39 @@ namespace Desing.Services
                     // Calcular 6 puntos de panel (US-668 + US-671) + info líneas (US-688 T5)
                     var (ptVerde, ptAmarillo, ptBlanco, ptCian, ptMagenta, ptCriss, infoMuro) = CalcularPuntosPanelConLineas(l1a, l1b, l2a, l2b);
                     if (infoMuro != null) panelesInfoMuro.Add(infoMuro);
-                    if (ptVerde    != null) todosPuntosVerde.Add(ptVerde);
+                    if (ptVerde != null) todosPuntosVerde.Add(ptVerde);
                     if (ptAmarillo != null) todosPuntosAmarillo.Add(ptAmarillo);
-                    if (ptBlanco   != null) todosPuntosBlanco.Add(ptBlanco);
-                    if (ptCian     != null) todosPuntosCian.Add(ptCian);
-                    if (ptMagenta  != null) todosPuntosMagenta.Add(ptMagenta);
-                    if (ptCriss    != null) todosPuntosCriss.Add(ptCriss);
+                    if (ptBlanco != null) todosPuntosBlanco.Add(ptBlanco);
+                    if (ptCian != null) todosPuntosCian.Add(ptCian);
+                    if (ptMagenta != null) todosPuntosMagenta.Add(ptMagenta);
+                    if (ptCriss != null) todosPuntosCriss.Add(ptCriss);
 
                     // US-675/679: polilíneas por esquina — orden 3→5→2→4→1→7 (cerrada)
                     var ptInterior = interior.FirstOrDefault();
                     var ptExterior = exterior.FirstOrDefault();
                     if (ptVerde != null && ptInterior != null && ptAmarillo != null &&
-                        ptCian  != null && ptExterior != null && ptBlanco   != null)
+                        ptCian != null && ptExterior != null && ptBlanco != null)
                     {
                         var verticesEsquina = new List<PuntoDTO> { ptVerde, ptInterior, ptAmarillo, ptCian, ptExterior, ptBlanco };
 
                         // Polilínea original — capa ObjetoDB2d, sin extrusión
                         resultado.PolilineasADibujar.Add(new PolilineaDTO
                         {
-                            Cerrada         = true,
-                            Capa            = "ObjetoDB2d",
-                            ColorIndex      = 256,
+                            Cerrada = true,
+                            Capa = "ObjetoDB2d",
+                            ColorIndex = 256,
                             AlturaExtrusion = 0,
-                            Vertices        = verticesEsquina
+                            Vertices = verticesEsquina
                         });
 
                         // Polilínea extruida — capa ModelDesing, altura configurable (US-697)
                         resultado.PolilineasADibujar.Add(new PolilineaDTO
                         {
-                            Cerrada         = true,
-                            Capa            = "ModelDesing",
-                            ColorIndex      = 256,
+                            Cerrada = true,
+                            Capa = "ModelDesing",
+                            ColorIndex = 256,
                             AlturaExtrusion = _alturaMuroMm,
-                            Vertices        = verticesEsquina
+                            Vertices = verticesEsquina
                         });
                     }
 
@@ -538,24 +538,24 @@ namespace Desing.Services
                 // Agregar puntos únicos a la lista de dibujo
                 foreach (var punto in puntosInteriorUnicos)
                 {
-                    punto.TipoPunto  = "PtEInterior";
+                    punto.TipoPunto = "PtEInterior";
                     punto.ColorIndex = (int)TipoPunto.PtEInterior;
                     resultado.PuntosADibujar.Add(punto);
                 }
 
                 foreach (var punto in puntosExteriorUnicos)
                 {
-                    punto.TipoPunto  = "PtEExteriro";
+                    punto.TipoPunto = "PtEExteriro";
                     punto.ColorIndex = (int)TipoPunto.PtEExteriro;
                     resultado.PuntosADibujar.Add(punto);
                 }
 
-                foreach (var punto in EliminarPuntosDuplicados(todosPuntosVerde))    resultado.PuntosADibujar.Add(punto);
+                foreach (var punto in EliminarPuntosDuplicados(todosPuntosVerde)) resultado.PuntosADibujar.Add(punto);
                 foreach (var punto in EliminarPuntosDuplicados(todosPuntosAmarillo)) resultado.PuntosADibujar.Add(punto);
-                foreach (var punto in EliminarPuntosDuplicados(todosPuntosBlanco))   resultado.PuntosADibujar.Add(punto);
-                foreach (var punto in EliminarPuntosDuplicados(todosPuntosCian))     resultado.PuntosADibujar.Add(punto);
-                foreach (var punto in EliminarPuntosDuplicados(todosPuntosMagenta))  resultado.PuntosADibujar.Add(punto);
-                foreach (var punto in EliminarPuntosDuplicados(todosPuntosCriss))    resultado.PuntosADibujar.Add(punto);
+                foreach (var punto in EliminarPuntosDuplicados(todosPuntosBlanco)) resultado.PuntosADibujar.Add(punto);
+                foreach (var punto in EliminarPuntosDuplicados(todosPuntosCian)) resultado.PuntosADibujar.Add(punto);
+                foreach (var punto in EliminarPuntosDuplicados(todosPuntosMagenta)) resultado.PuntosADibujar.Add(punto);
+                foreach (var punto in EliminarPuntosDuplicados(todosPuntosCriss)) resultado.PuntosADibujar.Add(punto);
 
                 // Tipo 1 primero: muros entre esquinas conectadas en ambos extremos.
                 // Se detectan por estaciones comunes sobre pares de líneas paralelas
@@ -577,7 +577,7 @@ namespace Desing.Services
                 // Si no hay paneles válidos, usar conexiones individuales
                 foreach (var esquina in resultado.Esquinas)
                 {
-                    esquina.Vertice.TipoPunto  = "PtEInterior";
+                    esquina.Vertice.TipoPunto = "PtEInterior";
                     esquina.Vertice.ColorIndex = (int)TipoPunto.PtEInterior;
                     resultado.PuntosADibujar.Add(esquina.Vertice);
                 }
@@ -626,7 +626,7 @@ namespace Desing.Services
                     TotalEsquinasEnL = esquinasEnLReales,
 
                     // Explicación de la lógica
-                    NotaDeteccion = panelesValidos.Count > 0 
+                    NotaDeteccion = panelesValidos.Count > 0
                         ? $"Se detectaron {esquinasEnLIndependientes} conexiones punto-a-punto y {esquinasDetectadas.Count} panel(es) rectangular(es). De estos, {panelesValidos.Count} panel(es) cumple(n) con el offset máximo ({OFFSET_MAXIMO_PANEL} unidades) y se cuenta(n) como {esquinasEnLReales} esquina(s) en L."
                         : esquinasDetectadas.Count > 0
                             ? $"Se detectaron {esquinasDetectadas.Count} panel(es) rectangular(es), pero NINGUNO cumple con el offset máximo ({OFFSET_MAXIMO_PANEL} unidades). Las {esquinasEnLIndependientes} conexiones se cuentan como esquinas independientes."
@@ -642,8 +642,8 @@ namespace Desing.Services
                         {
                             NumeroConexion = idx + 1,
                             PuntoConexion = $"({conn.PuntoConexion.X}, {conn.PuntoConexion.Y})",
-                            TipoEsquina = panelesValidos.Count > 0 
-                                ? "Parte de un panel rectangular VÁLIDO" 
+                            TipoEsquina = panelesValidos.Count > 0
+                                ? "Parte de un panel rectangular VÁLIDO"
                                 : panelesInvalidos.Count > 0
                                     ? "Parte de un panel rectangular INVÁLIDO (offset > 1500)"
                                     : "Esquina en L independiente (90°)",
@@ -1239,10 +1239,10 @@ namespace Desing.Services
             if (ReferenceEquals(a, b)) return true;
             bool sameDir =
                 Math.Abs(a.InicioX - b.InicioX) < TOLERANCIA && Math.Abs(a.InicioY - b.InicioY) < TOLERANCIA &&
-                Math.Abs(a.FinX    - b.FinX)    < TOLERANCIA && Math.Abs(a.FinY    - b.FinY)    < TOLERANCIA;
+                Math.Abs(a.FinX - b.FinX) < TOLERANCIA && Math.Abs(a.FinY - b.FinY) < TOLERANCIA;
             bool revDir =
-                Math.Abs(a.InicioX - b.FinX)    < TOLERANCIA && Math.Abs(a.InicioY - b.FinY)    < TOLERANCIA &&
-                Math.Abs(a.FinX    - b.InicioX) < TOLERANCIA && Math.Abs(a.FinY    - b.InicioY) < TOLERANCIA;
+                Math.Abs(a.InicioX - b.FinX) < TOLERANCIA && Math.Abs(a.InicioY - b.FinY) < TOLERANCIA &&
+                Math.Abs(a.FinX - b.InicioX) < TOLERANCIA && Math.Abs(a.FinY - b.InicioY) < TOLERANCIA;
             return sameDir || revDir;
         }
 
@@ -1283,20 +1283,20 @@ namespace Desing.Services
             resultado.TotalMurosRectos++;
             resultado.PolilineasADibujar.Add(new PolilineaDTO
             {
-                Cerrada         = true,
-                Capa            = "ObjetoDB2d",
-                ColorIndex      = 256,
+                Cerrada = true,
+                Capa = "ObjetoDB2d",
+                ColorIndex = 256,
                 AlturaExtrusion = 0,
-                Vertices        = vertices
+                Vertices = vertices
             });
 
             resultado.PolilineasADibujar.Add(new PolilineaDTO
             {
-                Cerrada         = true,
-                Capa            = "ModelDesing",
-                ColorIndex      = 256,
+                Cerrada = true,
+                Capa = "ModelDesing",
+                ColorIndex = 256,
                 AlturaExtrusion = _alturaMuroMm,
-                Vertices        = vertices
+                Vertices = vertices
             });
         }
 
@@ -1318,14 +1318,14 @@ namespace Desing.Services
                 if (v == null) continue;
                 resultado.PuntosADibujar.Add(new PuntoDTO
                 {
-                    X          = v.X,
-                    Y          = v.Y,
-                    Z          = v.Z,
-                    TipoPunto  = "VerticeMuro",
+                    X = v.X,
+                    Y = v.Y,
+                    Z = v.Z,
+                    TipoPunto = "VerticeMuro",
                     ColorIndex = COLOR_ROJO,
-                    Forma      = "Cruz",
-                    Tamano     = TAMAÑO_CRUZ,
-                    Etiqueta   = etiquetas[k]
+                    Forma = "Cruz",
+                    Tamano = TAMAÑO_CRUZ,
+                    Etiqueta = etiquetas[k]
                 });
             }
         }
@@ -1354,7 +1354,7 @@ namespace Desing.Services
             {
                 // --- Eje HORIZONTAL: innerH + outerH ---
                 if (panel.InnerH != null && panel.OuterH != null &&
-                    panel.Verde   != null && panel.Blanco   != null)
+                    panel.Verde != null && panel.Blanco != null)
                 {
                     var freeEndInner = ExtremoLejano(panel.InnerH, panel.AzulX, panel.AzulY);
                     var freeEndOuter = ExtremoLejano(panel.OuterH, panel.RojoX, panel.RojoY);
@@ -1406,9 +1406,9 @@ namespace Desing.Services
         private PuntoDTO ExtremoLejano(LineaDTO linea, double refX, double refY)
         {
             double dIni = Distancia(linea.InicioX, linea.InicioY, refX, refY);
-            double dFin = Distancia(linea.FinX,    linea.FinY,    refX, refY);
+            double dFin = Distancia(linea.FinX, linea.FinY, refX, refY);
             return dFin >= dIni
-                ? new PuntoDTO { X = linea.FinX,    Y = linea.FinY,    Z = linea.FinZ    }
+                ? new PuntoDTO { X = linea.FinX, Y = linea.FinY, Z = linea.FinZ }
                 : new PuntoDTO { X = linea.InicioX, Y = linea.InicioY, Z = linea.InicioZ };
         }
 
@@ -1423,7 +1423,7 @@ namespace Desing.Services
             {
                 if (ReferenceEquals(l, excluir)) continue;
                 if (Distancia(x, y, l.InicioX, l.InicioY) < TOL_CONEXION) return false;
-                if (Distancia(x, y, l.FinX,    l.FinY)    < TOL_CONEXION) return false;
+                if (Distancia(x, y, l.FinX, l.FinY) < TOL_CONEXION) return false;
             }
             return true;
         }
@@ -1463,8 +1463,8 @@ namespace Desing.Services
             // Sólo consideramos líneas simples (no polilíneas)
             var candidatas = lineas.Where(l => l.Tipo == "Line" && !lineasDePaneles.Contains(l)).ToList();
 
-            const double COS_PARALELO_MIN  = 0.999; // ~2.5° de tolerancia angular
-            const double SOLAPAMIENTO_MIN  = 100.0; // mm
+            const double COS_PARALELO_MIN = 0.999; // ~2.5° de tolerancia angular
+            const double SOLAPAMIENTO_MIN = 100.0; // mm
             var paresUsados = new HashSet<string>();
 
             for (int i = 0; i < candidatas.Count; i++)
@@ -1491,16 +1491,16 @@ namespace Desing.Services
                     double ux = dxA / normA, uy = dyA / normA;
                     double a0 = 0, a1 = normA; // proyecciones de los extremos de A sobre su eje (medido desde su Inicio)
                     double b0 = (lB.InicioX - lA.InicioX) * ux + (lB.InicioY - lA.InicioY) * uy;
-                    double b1 = (lB.FinX    - lA.InicioX) * ux + (lB.FinY    - lA.InicioY) * uy;
+                    double b1 = (lB.FinX - lA.InicioX) * ux + (lB.FinY - lA.InicioY) * uy;
                     double bMin = Math.Min(b0, b1), bMax = Math.Max(b0, b1);
                     double overlap = Math.Min(a1, bMax) - Math.Max(a0, bMin);
                     if (overlap < SOLAPAMIENTO_MIN) continue;
 
                     // 5. Los 4 endpoints son libres
                     if (!EsExtremoLibre(lA.InicioX, lA.InicioY, lineas, lA)) continue;
-                    if (!EsExtremoLibre(lA.FinX,    lA.FinY,    lineas, lA)) continue;
+                    if (!EsExtremoLibre(lA.FinX, lA.FinY, lineas, lA)) continue;
                     if (!EsExtremoLibre(lB.InicioX, lB.InicioY, lineas, lB)) continue;
-                    if (!EsExtremoLibre(lB.FinX,    lB.FinY,    lineas, lB)) continue;
+                    if (!EsExtremoLibre(lB.FinX, lB.FinY, lineas, lB)) continue;
 
                     // Evitar duplicados (mismo par procesado dos veces)
                     string clave = i + "-" + j;
@@ -1511,9 +1511,9 @@ namespace Desing.Services
                     // que esté en el mismo lado (proyección menor o mayor sobre el eje).
                     bool bInvertido = b0 > b1; // si Inicio de B está más lejos en el eje que Fin de B
                     var pA0 = new PuntoDTO { X = lA.InicioX, Y = lA.InicioY, Z = lA.InicioZ };
-                    var pA1 = new PuntoDTO { X = lA.FinX,    Y = lA.FinY,    Z = lA.FinZ    };
+                    var pA1 = new PuntoDTO { X = lA.FinX, Y = lA.FinY, Z = lA.FinZ };
                     var pB0 = new PuntoDTO { X = lB.InicioX, Y = lB.InicioY, Z = lB.InicioZ };
-                    var pB1 = new PuntoDTO { X = lB.FinX,    Y = lB.FinY,    Z = lB.FinZ    };
+                    var pB1 = new PuntoDTO { X = lB.FinX, Y = lB.FinY, Z = lB.FinZ };
 
                     // Vértices: A0 → A1 → (extremo de B en mismo lado que A1) → (extremo de B en mismo lado que A0)
                     var vertices = bInvertido
@@ -1809,10 +1809,10 @@ namespace Desing.Services
             double espV = CalcularDistanciaEntreLineasParalelas(g1EsH ? l2a : l1a, g1EsH ? l2b : l1b);
             double espH = CalcularDistanciaEntreLineasParalelas(g1EsH ? l1a : l2a, g1EsH ? l1b : l2b);
 
-            var verde    = PuntoPolar(ptAzul.Value, innerH, DIST,        "PtEInt300H");
-            var amarillo = PuntoPolar(ptAzul.Value, innerV, DIST,        "PtEInt300V");
-            var blanco   = PuntoPolar(ptRojo.Value, outerH, espV + DIST, "PtEExt300H");
-            var cian     = PuntoPolar(ptRojo.Value, outerV, espH + DIST, "PtEExt300V");
+            var verde = PuntoPolar(ptAzul.Value, innerH, DIST, "PtEInt300H");
+            var amarillo = PuntoPolar(ptAzul.Value, innerV, DIST, "PtEInt300V");
+            var blanco = PuntoPolar(ptRojo.Value, outerH, espV + DIST, "PtEExt300H");
+            var cian = PuntoPolar(ptRojo.Value, outerV, espH + DIST, "PtEExt300V");
 
             // US-671: puntos de remate — solo si espV+300 / espH+300 NO son medida estándar
             PuntoDTO magenta = null, criss = null;
@@ -1833,18 +1833,18 @@ namespace Desing.Services
 
             var info = new PanelInfoMuro
             {
-                Verde    = verde,
+                Verde = verde,
                 Amarillo = amarillo,
-                Blanco   = blanco,
-                Cian     = cian,
-                InnerH   = innerH,
-                OuterH   = outerH,
-                InnerV   = innerV,
-                OuterV   = outerV,
-                AzulX    = ptAzul.Value.X,
-                AzulY    = ptAzul.Value.Y,
-                RojoX    = ptRojo.Value.X,
-                RojoY    = ptRojo.Value.Y
+                Blanco = blanco,
+                Cian = cian,
+                InnerH = innerH,
+                OuterH = outerH,
+                InnerV = innerV,
+                OuterV = outerV,
+                AzulX = ptAzul.Value.X,
+                AzulY = ptAzul.Value.Y,
+                RojoX = ptRojo.Value.X,
+                RojoY = ptRojo.Value.Y
             };
             return (verde, amarillo, blanco, cian, magenta, criss, info);
         }
@@ -1852,12 +1852,12 @@ namespace Desing.Services
         private PuntoDTO PuntoPolar((double X, double Y) ptBase, LineaDTO linea, double distancia, string tipo)
         {
             double dIni2 = Math.Pow(linea.InicioX - ptBase.X, 2) + Math.Pow(linea.InicioY - ptBase.Y, 2);
-            double dFin2 = Math.Pow(linea.FinX    - ptBase.X, 2) + Math.Pow(linea.FinY    - ptBase.Y, 2);
-            double refX  = dFin2 >= dIni2 ? linea.FinX : linea.InicioX;
-            double refY  = dFin2 >= dIni2 ? linea.FinY : linea.InicioY;
+            double dFin2 = Math.Pow(linea.FinX - ptBase.X, 2) + Math.Pow(linea.FinY - ptBase.Y, 2);
+            double refX = dFin2 >= dIni2 ? linea.FinX : linea.InicioX;
+            double refY = dFin2 >= dIni2 ? linea.FinY : linea.InicioY;
             double dx = refX - ptBase.X;
             double dy = refY - ptBase.Y;
-            double d  = Math.Sqrt(dx * dx + dy * dy);
+            double d = Math.Sqrt(dx * dx + dy * dy);
             if (d < TOLERANCIA) return null;
             int colorIdx = System.Enum.TryParse<TipoPunto>(tipo, out var tipoPuntoEnum) ? (int)tipoPuntoEnum : (int)TipoPunto.PtEInterior;
             return new PuntoDTO { X = ptBase.X + (dx / d) * distancia, Y = ptBase.Y + (dy / d) * distancia, Z = 0, TipoPunto = tipo, ColorIndex = colorIdx };
@@ -1880,11 +1880,15 @@ namespace Desing.Services
                     double dx = v1.X - v0.X, dy = v1.Y - v0.Y;
                     resultado.Add(new LineaDTO
                     {
-                        Tipo     = "Line",
-                        InicioX  = v0.X, InicioY = v0.Y, InicioZ = v0.Z,
-                        FinX     = v1.X, FinY    = v1.Y, FinZ    = v1.Z,
-                        Layer    = l.Layer,
-                        Color    = l.Color,
+                        Tipo = "Line",
+                        InicioX = v0.X,
+                        InicioY = v0.Y,
+                        InicioZ = v0.Z,
+                        FinX = v1.X,
+                        FinY = v1.Y,
+                        FinZ = v1.Z,
+                        Layer = l.Layer,
+                        Color = l.Color,
                         Longitud = Math.Sqrt(dx * dx + dy * dy)
                     });
                 }
@@ -1962,7 +1966,7 @@ namespace Desing.Services
         private double DistanciaLineaPunto(LineaDTO linea, double px, double py)
         {
             double x1 = linea.InicioX, y1 = linea.InicioY;
-            double x2 = linea.FinX,   y2 = linea.FinY;
+            double x2 = linea.FinX, y2 = linea.FinY;
             double num = Math.Abs((y2 - y1) * px - (x2 - x1) * py + x2 * y1 - y2 * x1);
             double den = Math.Sqrt(Math.Pow(y2 - y1, 2) + Math.Pow(x2 - x1, 2));
             return den > 0 ? num / den : 0;

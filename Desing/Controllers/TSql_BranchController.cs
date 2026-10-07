@@ -130,7 +130,7 @@ namespace Desing.Controllers
                 entity.AttLabel = model.AttLabel;
                 entity.AttDescription = model.AttDescription;
                 entity.AddLetter = model.AddLetter;
-                 entity.AttColor = model.AttColor;
+                entity.AttColor = model.AttColor;
                 CopyBranchGoogleLocFields(entity, model);
                 return View(entity);
             }
@@ -138,7 +138,7 @@ namespace Desing.Controllers
             entity.AttLabel = model.AttLabel.Trim();
             entity.AttDescription = string.IsNullOrWhiteSpace(model.AttDescription) ? null : model.AttDescription.Trim();
             entity.AddLetter = NormalizeBranchAddLetter(model.AddLetter);
-             entity.AttColor = normColor;
+            entity.AttColor = normColor;
             CopyBranchGoogleLocFields(entity, model);
             entity.LinModifiedBy = User.Identity.GetUserId();
             entity.AttLastModification = DateTime.UtcNow;

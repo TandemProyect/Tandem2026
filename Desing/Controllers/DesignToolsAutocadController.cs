@@ -1,16 +1,25 @@
 using DAL;
+using Desing.Helpers;
+using Desing.Models;
+using Desing.Repositories.RepositoryAtk60;
+using Desing.Repositories.RepositoryCommun;
+using Desing.Repositories.RepositoryDesing2;
+using Desing.Resources;
+using Desing.Services;
+using Microsoft.AspNet.Identity;
 using netDxf;
 using netDxf.Blocks;
 using netDxf.Entities;
 using netDxf.Header;
 using netDxf.Tables;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Globalization;
 using System.Data;
 using System.Data.Entity;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -20,17 +29,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using Desing.Helpers;
-using Desing.Models;
-using Desing.Repositories.RepositoryAtk60;
-using Desing.Repositories.RepositoryCommun;
-using Desing.Repositories.RepositoryDesing2;
-using Desing.Resources;
-using Desing.Services;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.Owin;
-using Microsoft.Owin.Security;
-using Newtonsoft.Json;
 
 namespace Desing.Controllers
 {
@@ -1536,7 +1534,7 @@ namespace Desing.Controllers
                 int articleCount = 0;
                 using (var trans = db.Database.BeginTransaction())
                 {
-                    saved = repository.ReplaceWalls(request.DesignId, request.Lines, userId);
+                    saved = repository.ReplaceWalls(request.DesignId, request.Lines, userId, retireMissingSpecial: true);
                     db.SaveChanges();
                     if (request.Articles != null)
                     {

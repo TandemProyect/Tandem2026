@@ -109,7 +109,7 @@ namespace Desing.Repositories.Atk60.Wall
                         CommonElement.SedUnionVerticalMirror(type, PanelPerfil, 0, dataCordenadX, 0, dataCordenadY, nHeight + 135, ListRenderElement, dataWith / 10, "");
                         CommonElement.SedUnionVerticalMirror(type, PanelPerfil, 0, dataCordenadX, 0, dataCordenadY, nHeight + 225, ListRenderElement, dataWith / 10, "");
                     }
-                    CommonElement.AddDimHorizontal(nHeight, ListRenderElement, dataCordenadX, dataCordenadY, 600, type, 0, DimType.Horizontal, type.ToString(),"",0);
+                    CommonElement.AddDimHorizontal(nHeight, ListRenderElement, dataCordenadX, dataCordenadY, 600, type, 0, DimType.Horizontal, type.ToString(), "", 0);
                     ModelRenderElement element = new ModelRenderElement();
                     element.Element = Atk60Element.GetElement("Panel60270");
                     element.ElementF = Atk60Element.GetElement("Panel60270F");
@@ -231,7 +231,7 @@ namespace Desing.Repositories.Atk60.Wall
                 CommonElement.SedUnionHorizontal(type, PanelPerfil, 0, dataCordenadX, 40, dataCordenadY, nHeight, ListRenderElement, "90");
                 CommonElement.SedUnionHorizontalMirror(type, PanelPerfil, 0, dataCordenadX, 40, dataCordenadY, nHeight, ListRenderElement, dataWith / 10, "90");
             }
-            CommonElement.AddDimHorizontal(nHeight, ListRenderElement, dataCordenadX, dataCordenadY, 600, type, 0, DimType.Horizontal, type.ToString(),"",0);
+            CommonElement.AddDimHorizontal(nHeight, ListRenderElement, dataCordenadX, dataCordenadY, 600, type, 0, DimType.Horizontal, type.ToString(), "", 0);
             ModelRenderElement element = new ModelRenderElement();
             element.Element = Atk60Element.GetElement("Panel60270");
             element.ElementF = Atk60Element.GetElement("Panel60270F");
@@ -295,7 +295,7 @@ namespace Desing.Repositories.Atk60.Wall
                 CommonElement.SedUnionHorizontal(type, PanelPerfil, 0, dataCordenadX, 40, dataCordenadY, nHeight + SupNHeight, ListRenderElement, "90");
                 CommonElement.SedUnionHorizontalMirror(type, PanelPerfil, 0, dataCordenadX, 40, dataCordenadY, nHeight + SupNHeight, ListRenderElement, dataWith / 10, "90");
             }
-            CommonElement.AddDimHorizontal(nHeight, ListRenderElement, dataCordenadX, dataCordenadY, 600, type, 0, DimType.Horizontal, type.ToString(),"",0);
+            CommonElement.AddDimHorizontal(nHeight, ListRenderElement, dataCordenadX, dataCordenadY, 600, type, 0, DimType.Horizontal, type.ToString(), "", 0);
             ModelRenderElement element = new ModelRenderElement();
             element.Element = Atk60Element.GetElement("Panel60120");
             element.ElementF = Atk60Element.GetElement("Panel60120F");

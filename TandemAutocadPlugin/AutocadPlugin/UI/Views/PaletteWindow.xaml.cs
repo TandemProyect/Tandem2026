@@ -133,7 +133,9 @@ namespace AutocadPlugin.UI.Views
             var h = Math.Max(16, height);
             _stashW = w;
             _stashH = h;
-            if (IsSplashVisible() || _hostStashed)
+            // Solo la ventana de login/splash esconde el HWND. Bloquing al insertar
+            // debe plegarse (36×46), no desaparecer.
+            if (_authSplash && (IsSplashVisible() || _hostStashed))
             {
                 HideHostDuringSplash();
                 return;

@@ -25,9 +25,40 @@ namespace AutocadPlugin
                 return;
             for (var i = 0; i < articles.Count; i++)
             {
-                if (articles[i] != null && !string.IsNullOrWhiteSpace(articles[i].TextCode))
+                if (articles[i] != null && !string.IsNullOrWhiteSpace(articles[i].TextCode)
+                    && !SamePose(Cache, articles[i]))
                     Cache.Add(articles[i]);
             }
+        }
+
+        private static bool SamePose(IList<WallArticleDto> list, WallArticleDto item)
+        {
+            var insert = item.InsertMm;
+            if (insert == null)
+                return false;
+            for (var i = 0; i < list.Count; i++)
+            {
+                var other = list[i];
+                if (other == null || other.InsertMm == null)
+                    continue;
+                if (!string.Equals(other.TextCode, item.TextCode, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                if (Math.Abs(other.RotationX - item.RotationX) > 1)
+                    continue;
+                if (Math.Abs(other.RotationY - item.RotationY) > 1)
+                    continue;
+                if (Math.Abs(other.RotationZ - item.RotationZ) > 1)
+                    continue;
+                var o = other.InsertMm;
+                if (Math.Abs((o.X ?? 0) - (insert.X ?? 0)) > 25)
+                    continue;
+                if (Math.Abs((o.Y ?? 0) - (insert.Y ?? 0)) > 25)
+                    continue;
+                if (Math.Abs((o.Z ?? 0) - (insert.Z ?? 0)) > 25)
+                    continue;
+                return true;
+            }
+            return false;
         }
 
         public static void Enter2d(Document doc)
@@ -185,19 +216,27 @@ namespace AutocadPlugin
 
                     var at = WallCadXData.ToAcad(item.InsertMm);
                     var tumbado = Math.Abs(item.RotationX - 90) < 1;
-                    var yaw = item.RotationZ * Math.PI / 180.0;
+                    double yawDeg;
+                    bool spun;
+                    bool encoded;
+                    BlockInsertCommand.DecodePoseZ(item.RotationZ, out yawDeg, out spun, out encoded);
+                    var yaw = yawDeg * Math.PI / 180.0;
                     var orient = Matrix3d.Rotation(yaw, Vector3d.ZAxis, Point3d.Origin)
                         * BlockInsertCommand.PanelOrient(meterToDwg, tumbado);
-                    if (Math.Abs(item.RotationY - 180) < 1 || Math.Abs(item.RotationY + 180) < 1)
+                    if (!encoded && (Math.Abs(item.RotationY - 180) < 1 || Math.Abs(item.RotationY + 180) < 1))
                         orient = Matrix3d.Rotation(Math.PI, Vector3d.ZAxis, Point3d.Origin) * orient;
-                    double pieceW;
-                    double pieceH;
-                    BlockInsertCommand.PanelSizeMeters(item.TextCode, out pieceW, out pieceH);
                     var br = new BlockReference(Point3d.Origin, blockId);
-                    if (tumbado)
-                        BlockInsertCommand.ApplyPanelMatrix(br, at, orient);
+                    if (encoded && spun && !tumbado)
+                    {
+                        double panelW;
+                        double panelH;
+                        BlockInsertCommand.PanelSizeMeters(item.TextCode, out panelW, out panelH);
+                        var pre = Matrix3d.Rotation(yaw - Math.PI, Vector3d.ZAxis, Point3d.Origin)
+                            * BlockInsertCommand.PanelOrient(meterToDwg, false);
+                        BlockInsertCommand.ApplyFormworkPanelMatrix(br, at, pre, panelW * meterToDwg);
+                    }
                     else
-                        BlockInsertCommand.ApplyFormworkPanelMatrix(br, at, orient, pieceW * meterToDwg);
+                        BlockInsertCommand.ApplyPanelMatrix(br, at, orient);
                     ms.AppendEntity(br);
                     tr.AddNewlyCreatedDBObject(br, true);
                     BlockInsertCommand.ApplyAtkXData(
@@ -298,6 +337,7 @@ namespace AutocadPlugin
                         insertAt, axis.StartPoint, axis.EndPoint, br.BlockTransform,
                         out poseX, out poseY, out poseZ);
                 }
+                poseZ = BlockInsertCommand.EncodePoseZ(br);
 
                 list.Add(new WallArticleDto
                 {

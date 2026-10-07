@@ -1,9 +1,9 @@
+using Desing.Models;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Desing.Models;
-using Newtonsoft.Json.Linq;
 
 namespace Desing.Services
 {
@@ -1241,7 +1241,10 @@ namespace Desing.Services
                 merged = new LineaDTO
                 {
                     Tipo = "Line",
-                    InicioX = minX, InicioY = y, FinX = maxX, FinY = y
+                    InicioX = minX,
+                    InicioY = y,
+                    FinX = maxX,
+                    FinY = y
                 };
                 return true;
             }
@@ -1251,7 +1254,10 @@ namespace Desing.Services
             merged = new LineaDTO
             {
                 Tipo = "Line",
-                InicioX = x, InicioY = minY, FinX = x, FinY = maxY
+                InicioX = x,
+                InicioY = minY,
+                FinX = x,
+                FinY = maxY
             };
             return true;
         }

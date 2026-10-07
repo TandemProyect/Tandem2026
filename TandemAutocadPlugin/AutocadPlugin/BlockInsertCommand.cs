@@ -460,20 +460,36 @@ namespace AutocadPlugin
         }
 
         private static Point3d PlaceAtWallVertex(
-            HostVertex host, double newW, double newH, bool tumbado, double scale)
+            HostVertex host, Matrix3d orient, double newW, double newH, bool tumbado)
         {
             if (host == null)
                 return Point3d.Origin;
-            var alongDwg = (tumbado ? newH : newW) * scale;
-            var dir = host.WidthDir;
-            if (dir.Length < 1e-9)
-                dir = Vector3d.XAxis;
-            else
-                dir = dir.GetNormal();
             var id = (host.Id ?? "").ToUpperInvariant();
-            if (id == "V_BR" || id == "V_TR")
-                return host.World - dir * alongDwg;
-            return host.World;
+            Point3d local;
+            if (tumbado)
+            {
+                switch (id)
+                {
+                    case "V_BR":
+                        local = new Point3d(0, 0, newH);
+                        break;
+                    case "V_TR":
+                        local = new Point3d(newW, 0, newH);
+                        break;
+                    case "V_TL":
+                        local = new Point3d(newW, 0, 0);
+                        break;
+                    default:
+                        local = Point3d.Origin;
+                        break;
+                }
+            }
+            else
+            {
+                local = CornerLocalMeters(id, newW, newH);
+            }
+            var offset = local.TransformBy(orient) - Point3d.Origin;
+            return host.World - offset;
         }
 
         /// <summary>
@@ -548,8 +564,12 @@ namespace AutocadPlugin
             }
             else if (wall != null)
             {
+                // El 180° del simétrico da la vuelta al panel. El origen se corre
+                // el largo de la pieza (0,90 de pie, 2,70 tumbado) para que la
+                // huella siga en la misma estación. Un panel de pie no ocupa
+                // el hueco de uno a 90°.
                 hasMirror = TryOppositeFromSnapped(jig.At, jig.Orient, wall, alongDwg, out at2, out orient2)
-                    && !PoseOccupied(doc.Database, at2, CadUnits.FromMillimeters(40), wallDbId);
+                    && !PoseOccupied(doc.Database, at2, CadUnits.FromMillimeters(40), wallDbId, jig.RotationDeg);
             }
 
             using (doc.LockDocument())
@@ -701,7 +721,7 @@ namespace AutocadPlugin
             return at2.DistanceTo(at) >= CadUnits.FromMillimeters(20);
         }
 
-        private static bool PoseOccupied(Database db, Point3d at, double tol, long wallDbId)
+        private static bool PoseOccupied(Database db, Point3d at, double tol, long wallDbId, int rotDeg)
         {
             if (db == null)
                 return false;
@@ -721,6 +741,8 @@ namespace AutocadPlugin
                     string role;
                     int rot;
                     if (!TryReadAtk(br, out code, out view, out role, out rot))
+                        continue;
+                    if (rot != rotDeg)
                         continue;
                     var otherWall = WallIdFromInsert(br);
                     if (wallDbId > 0 && otherWall > 0 && otherWall != wallDbId)
@@ -854,6 +876,54 @@ namespace AutocadPlugin
             return Math.Atan2(v.Y, v.X) * 180.0 / Math.PI;
         }
 
+        /// <summary>
+        /// Giro en planta del bloque ya insertado, el que deja la cara Y=0
+        /// contra el muro. No es el rumbo del eje: un panel enganchado a otro
+        /// que ya dio la vuelta no coincide con RotationY.
+        /// 4000 + yaw = pose visual. +1000 más = el primer panel de muro vacío,
+        /// que lleva el 180° de encofrado sobre el centro.
+        /// </summary>
+        internal static double EncodePoseZ(BlockReference br)
+        {
+            var yaw = VisualYawDeg(br.BlockTransform);
+            var spun = false;
+            if (!OrientIsTumbado(br.BlockTransform))
+            {
+                var delta = br.Position.DistanceTo(InsertWorld(br));
+                spun = delta > CadUnits.FromMillimeters(50);
+            }
+            return yaw + 4000.0 + (spun ? 1000.0 : 0.0);
+        }
+
+        internal static void DecodePoseZ(double raw, out double yawDeg, out bool spun, out bool encoded)
+        {
+            spun = false;
+            encoded = Math.Abs(raw) >= 3000.0;
+            if (!encoded)
+            {
+                yawDeg = raw;
+                return;
+            }
+            var sign = raw < 0 ? -1.0 : 1.0;
+            if (Math.Abs(raw) >= 4500.0)
+            {
+                spun = true;
+                yawDeg = raw - sign * 5000.0;
+            }
+            else
+                yawDeg = raw - sign * 4000.0;
+        }
+
+        private static double VisualYawDeg(Matrix3d tf)
+        {
+            var y = Vector3d.YAxis.TransformBy(tf);
+            var v = new Vector3d(y.X, y.Y, 0);
+            if (v.Length < 1e-9)
+                return 0;
+            v = v.GetNormal();
+            return Math.Atan2(-v.X, v.Y) * 180.0 / Math.PI;
+        }
+
         internal static bool OrientIsMirrored(Matrix3d orient)
         {
             var x = Vector3d.XAxis.TransformBy(orient);
@@ -961,11 +1031,11 @@ namespace AutocadPlugin
                 {
                     orient = OrientOnHost(wallHit, _scale, _tumbado);
                     rotDeg = _tumbado ? 90 : 0;
-                    next = PlaceAtWallVertex(wallHit, _newW, _newH, _tumbado, _scale);
+                    wall = WallOf(wallHit) ?? wall;
+                    next = PlaceAtWallVertex(wallHit, orient, _newW, _newH, _tumbado);
                     hot = wallHit.World;
                     snap = true;
                     snapPanel = true;
-                    wall = WallOf(wallHit) ?? wall;
                 }
                 else if (nearPanel)
                 {

@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using AutocadPlugin.Models;
+using Newtonsoft.Json;
 using AutocadPlugin.UI.Views;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
@@ -50,6 +53,7 @@ namespace AutocadPlugin
             }
 
             ed.WriteMessage($"\nSalvar diseño {designId}: {lines.Count} línea(s), {articles.Count} artículo(s)...\n");
+            ed.WriteMessage("\nPosiciones en c:\\temp\\Posicion.json\n");
             Wall3dProgressWindow overlay = null;
             PluginSaveWallsResponse resp = null;
             try
@@ -128,6 +132,7 @@ namespace AutocadPlugin
             lines = new List<WallLineDto>();
             articles = new List<PluginSaveWallArticleRequest>();
             var axes = new List<AxisSnap>();
+            var shots = new List<object>();
             using (var tr = db.TransactionManager.StartTransaction())
             {
                 WallSpecialCad.RecalcUnlocked(tr, db);
@@ -225,7 +230,9 @@ namespace AutocadPlugin
                         continue;
 
                     var insertAt = BlockInsertCommand.InsertWorld(br);
+                    var blockPos = br.Position;
                     var insert = WallCadXData.ToDesingMm(insertAt);
+                    var blockMm = WallCadXData.ToDesingMm(blockPos);
                     int poseX = rotDeg;
                     int poseY = 0;
                     double poseZ = BlockInsertCommand.YawDegFromOrient(br.BlockTransform);
@@ -235,6 +242,7 @@ namespace AutocadPlugin
                             insertAt, axis.A, axis.B, br.BlockTransform,
                             out poseX, out poseY, out poseZ);
                     }
+                    poseZ = BlockInsertCommand.EncodePoseZ(br);
                     articles.Add(new PluginSaveWallArticleRequest
                     {
                         DesignId = designId,
@@ -255,12 +263,112 @@ namespace AutocadPlugin
                         RotationZ = poseZ,
                         HandleCad = br.Handle.ToString()
                     });
+                    shots.Add(new
+                    {
+                        handle = br.Handle.ToString(),
+                        code,
+                        view,
+                        role,
+                        isFormwork,
+                        wallDbId = wallDbId > 0
+                            ? wallDbId
+                            : (axis != null && axis.WallDbId > 0 ? axis.WallDbId : 0),
+                        rotationX = poseX,
+                        rotationY = poseY,
+                        rotationZ = poseZ,
+                        logicalDwg = DwgPoint(insertAt),
+                        blockPositionDwg = DwgPoint(blockPos),
+                        deltaBlockMinusLogicalMm = new
+                        {
+                            x = CadUnits.ToMillimeters(blockPos.X - insertAt.X),
+                            y = CadUnits.ToMillimeters(blockPos.Y - insertAt.Y),
+                            z = CadUnits.ToMillimeters(blockPos.Z - insertAt.Z)
+                        },
+                        sentToDatabaseMm = MmPoint(insert),
+                        blockPositionAsDesingMm = MmPoint(blockMm),
+                        wall = axis == null ? null : new
+                        {
+                            wallDbId = axis.WallDbId,
+                            isSpecial = axis.IsSpecial,
+                            thicknessM = axis.DataWith,
+                            lengthM = axis.DataLong,
+                            p1Dwg = DwgPoint(axis.A),
+                            p2Dwg = DwgPoint(axis.B),
+                            p1Mm = MmPoint(axis.P1Mm),
+                            p2Mm = MmPoint(axis.P2Mm)
+                        }
+                    });
 
                     if (axis != null)
                         MarkLineSpecial(lines, axis);
                 }
                 tr.Commit();
             }
+
+            WritePosicionJson(designId, axes, shots);
+        }
+
+        /// <summary>
+        /// Foto de lo que hay en el DWG frente a lo que se manda a SQL.
+        /// logicalDwg / sentToDatabaseMm es el origen AT: (lo que debe recuperarse).
+        /// blockPosition es el Position de AutoCAD tras el giro 180° del DWG.
+        /// </summary>
+        private static void WritePosicionJson(long designId, IList<AxisSnap> axes, IList<object> shots)
+        {
+            try
+            {
+                var walls = new List<object>();
+                if (axes != null)
+                {
+                    foreach (var axis in axes)
+                    {
+                        walls.Add(new
+                        {
+                            wallDbId = axis.WallDbId,
+                            isSpecial = axis.IsSpecial,
+                            thicknessM = axis.DataWith,
+                            lengthM = axis.DataLong,
+                            p1Dwg = DwgPoint(axis.A),
+                            p2Dwg = DwgPoint(axis.B),
+                            p1Mm = MmPoint(axis.P1Mm),
+                            p2Mm = MmPoint(axis.P2Mm)
+                        });
+                    }
+                }
+
+                var doc = new
+                {
+                    capturedAt = DateTime.Now.ToString("o", CultureInfo.InvariantCulture),
+                    designId,
+                    units = new
+                    {
+                        dwg = "unidades de dibujo de AutoCAD",
+                        desingMm = "X planta, Y alzado, Z planta (ToDesingMm)"
+                    },
+                    note = "sentToDatabaseMm debe coincidir con NumberInsertX/Y/Z. Si blockPositionAsDesingMm difiere, Position no es el origen.",
+                    walls,
+                    articles = shots ?? new List<object>()
+                };
+                Directory.CreateDirectory(@"c:\temp");
+                File.WriteAllText(
+                    @"c:\temp\Posicion.json",
+                    JsonConvert.SerializeObject(doc, Formatting.Indented));
+            }
+            catch
+            {
+            }
+        }
+
+        private static object DwgPoint(Point3d p)
+        {
+            return new { x = p.X, y = p.Y, z = p.Z };
+        }
+
+        private static object MmPoint(XyzMmDto p)
+        {
+            if (p == null)
+                return null;
+            return new { x = p.X, y = p.Y, z = p.Z };
         }
 
         private static void MarkLineSpecial(List<WallLineDto> lines, AxisSnap axis)

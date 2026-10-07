@@ -6,7 +6,7 @@ using Desing.Resources;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -14,7 +14,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Dynamic.Core;
-using System.Data.SqlClient;
 using System.Web;
 using System.Web.Mvc;
 
@@ -324,7 +323,7 @@ namespace Desing.Controllers
                 AttBrandText = string.IsNullOrWhiteSpace(entity.AttBrandText) ? "T Desing.net" : entity.AttBrandText,
                 AttBrandTextColor = entity.AttBrandTextColor ?? "",
                 AttBrandAccentColor = string.IsNullOrWhiteSpace(entity.AttBrandAccentColor) ? "#f29100" : entity.AttBrandAccentColor,
-                AttColor =  entity.AttColor,
+                AttColor = entity.AttColor,
                 AttLogo = entity.AttLogo,
                 AttFavicon = string.IsNullOrWhiteSpace(entity.AttFavicon)
                     ? "/assets/client/images/Default/Ico/at.ico"
@@ -409,7 +408,7 @@ namespace Desing.Controllers
             entity.AttBrandText = string.IsNullOrWhiteSpace(model.AttBrandText) ? "T Desing.net" : model.AttBrandText.Trim();
             entity.AttBrandTextColor = string.IsNullOrWhiteSpace(model.AttBrandTextColor) ? null : model.AttBrandTextColor.Trim();
             entity.AttBrandAccentColor = string.IsNullOrWhiteSpace(model.AttBrandAccentColor) ? "#f29100" : model.AttBrandAccentColor.Trim();
-             entity.AttColor = model.AttColor;
+            entity.AttColor = model.AttColor;
             entity.AttLogo = model.AttLogo;
             entity.AttFavicon = model.AttFavicon;
             entity.AttIsDefault = model.AttIsDefault;

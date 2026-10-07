@@ -105,6 +105,7 @@ namespace AutocadPlugin
         private sealed class AxisWall
         {
             public string Id;
+            public long WallDbId;
             public double StartXmm;
             public double StartYmm;
             public double EndXmm;
@@ -150,7 +151,10 @@ namespace AutocadPlugin
 
                     walls.Add(new AxisWall
                     {
-                        Id = "axis-" + n,
+                        Id = wallDbId > 0
+                            ? wallDbId.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                            : "axis-" + n,
+                        WallDbId = wallDbId,
                         StartXmm = sx,
                         StartYmm = sy,
                         EndXmm = ex,
@@ -295,7 +299,17 @@ namespace AutocadPlugin
                     br.BlockTransform = placed;
                     ms.AppendEntity(br);
                     tr.AddNewlyCreatedDBObject(br, true);
-                    BlockInsertCommand.ApplyAtkXData(br, tr, db, code, view, "PANEL", tumbado ? 90 : 0);
+                    long wallId = 0;
+                    if (!string.IsNullOrWhiteSpace(item.IdWall))
+                    {
+                        long.TryParse(
+                            item.IdWall,
+                            System.Globalization.NumberStyles.Integer,
+                            System.Globalization.CultureInfo.InvariantCulture,
+                            out wallId);
+                    }
+                    BlockInsertCommand.ApplyAtkXData(
+                        br, tr, db, code, view, "PANEL", tumbado ? 90 : 0, wallId, at);
                     inserted++;
                 }
 

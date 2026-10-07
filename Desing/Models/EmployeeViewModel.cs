@@ -6,15 +6,15 @@ namespace Desing.Models
 {
     public class EmployeeViewMySpaceModel
     {
-		public string FullName { get; set; }
-		public string UserName { get; set; }
-		public string AttPhoto { get; set; }
+        public string FullName { get; set; }
+        public string UserName { get; set; }
+        public string AttPhoto { get; set; }
         public string AttPhotoMenu { get; set; }
-		public bool EmailConfirmed { get; set; }
-		public DateTime AccountCreationDate { get; set; }
-		public string CompanyName { get; set; }
-		public int TotalDesigns { get; set; }
-	}
+        public bool EmailConfirmed { get; set; }
+        public DateTime AccountCreationDate { get; set; }
+        public string CompanyName { get; set; }
+        public int TotalDesigns { get; set; }
+    }
 
 
     public class EmployeeViewModel

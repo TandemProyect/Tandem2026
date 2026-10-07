@@ -7,7 +7,6 @@ using Desing.Services;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
@@ -36,27 +35,27 @@ namespace Desing.Controllers
             try
             {
                 IQueryable<EmployeeViewModel> query = from user in db.AspNetUsers
-                                                     join employee in db.TSql_Employee on user.Id equals employee.LinAspNetUsert
-                                                     join company in db.TSql_Company on employee.LinCompany equals company.SysObjectID
-                                                     join design in (from d in db.TSql_Design
-                                                                     group d by d.LinCreatedBy into g
-                                                                     select new { LinCreatedBy = g.Key, NDesing = g.Count() }) on user.Id equals design.LinCreatedBy into designGroup
-                                                     from totalDesign in designGroup.DefaultIfEmpty()
-                                                     where employee.AttIsDeleted == false
-                                                     select new EmployeeViewModel
-                                                     {
-                                                         SysObjectID = employee.SysObjectID,
-                                                         userId = user.Id,
-                                                         TotalDesing = totalDesign != null ? totalDesign.NDesing : 0,
-                                                         AttName = employee.AttName,
-                                                         AttSurname = employee.AttSurname,
-                                                         AttPhotoMenu = employee.AttPhotoMenu,
-                                                         AttCreated = employee.AttCreated,
-                                                         AddLeter = company.AddLeter,
-                                                         AddCompany = company.TextLabel,
-                                                         EmailConfirmed = user.EmailConfirmed,
-                                                         UserName = user.UserName
-                                                     };
+                                                      join employee in db.TSql_Employee on user.Id equals employee.LinAspNetUsert
+                                                      join company in db.TSql_Company on employee.LinCompany equals company.SysObjectID
+                                                      join design in (from d in db.TSql_Design
+                                                                      group d by d.LinCreatedBy into g
+                                                                      select new { LinCreatedBy = g.Key, NDesing = g.Count() }) on user.Id equals design.LinCreatedBy into designGroup
+                                                      from totalDesign in designGroup.DefaultIfEmpty()
+                                                      where employee.AttIsDeleted == false
+                                                      select new EmployeeViewModel
+                                                      {
+                                                          SysObjectID = employee.SysObjectID,
+                                                          userId = user.Id,
+                                                          TotalDesing = totalDesign != null ? totalDesign.NDesing : 0,
+                                                          AttName = employee.AttName,
+                                                          AttSurname = employee.AttSurname,
+                                                          AttPhotoMenu = employee.AttPhotoMenu,
+                                                          AttCreated = employee.AttCreated,
+                                                          AddLeter = company.AddLeter,
+                                                          AddCompany = company.TextLabel,
+                                                          EmailConfirmed = user.EmailConfirmed,
+                                                          UserName = user.UserName
+                                                      };
 
                 var totalCount = query.Count();
 

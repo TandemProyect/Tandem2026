@@ -1,0 +1,248 @@
+{
+  "system": "AtkSystem60",
+  "sourceFormat": "STEP",
+  "targetFormat": "FCStd",
+  "entries": [
+    {
+      "articleCode": "12104120",
+      "sourceGroup": "3D",
+      "sourceStep": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/12104120.stp",
+      "freeCadObject": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/12104120.FCStd",
+      "freeCadObjectType": "Part::Feature",
+      "geometryKind": "wire-edges-only",
+      "solids": 0,
+      "faces": 0,
+      "edges": 6,
+      "bbox": {
+        "x": 3.5,
+        "y": 3.5,
+        "z": 0.0
+      }
+    },
+    {
+      "articleCode": "12304211",
+      "sourceGroup": "3D",
+      "sourceStep": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/12304211.stp",
+      "freeCadObject": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/12304211.FCStd",
+      "freeCadObjectType": "Part::Feature",
+      "geometryKind": "wire-edges-only",
+      "solids": 0,
+      "faces": 0,
+      "edges": 8,
+      "bbox": {
+        "x": 0.23257240938982005,
+        "y": 0.12000053696200008,
+        "z": 0.0152406437991922
+      }
+    },
+    {
+      "articleCode": "12454212",
+      "sourceGroup": "3D",
+      "sourceStep": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/12454212.stp",
+      "freeCadObject": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/12454212.FCStd",
+      "freeCadObjectType": "Part::Feature",
+      "geometryKind": "wire-edges-only",
+      "solids": 0,
+      "faces": 0,
+      "edges": 8,
+      "bbox": {
+        "x": 0.38257240938982,
+        "y": 0.12000053696200008,
+        "z": 0.0152406437991922
+      }
+    },
+    {
+      "articleCode": "12604213",
+      "sourceGroup": "3D",
+      "sourceStep": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/12604213.stp",
+      "freeCadObject": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/12604213.FCStd",
+      "freeCadObjectType": "Part::Feature",
+      "geometryKind": "wire-edges-only",
+      "solids": 0,
+      "faces": 0,
+      "edges": 8,
+      "bbox": {
+        "x": 0.53257240938982,
+        "y": 0.12000053696200008,
+        "z": 0.0152406437991922
+      }
+    },
+    {
+      "articleCode": "12904215",
+      "sourceGroup": "3D",
+      "sourceStep": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/12904215.stp",
+      "freeCadObject": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/12904215.FCStd",
+      "freeCadObjectType": "Part::Feature",
+      "geometryKind": "wire-edges-only",
+      "solids": 0,
+      "faces": 0,
+      "edges": 8,
+      "bbox": {
+        "x": 0.83257240938982,
+        "y": 0.12000053696200008,
+        "z": 0.0152406437991922
+      }
+    },
+    {
+      "articleCode": "24104224",
+      "sourceGroup": "3D",
+      "sourceStep": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/24104224.stp",
+      "freeCadObject": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/24104224.FCStd",
+      "freeCadObjectType": "Part::Feature",
+      "geometryKind": "wire-edges-only",
+      "solids": 0,
+      "faces": 0,
+      "edges": 6,
+      "bbox": {
+        "x": 3.5,
+        "y": 3.5,
+        "z": 0.0
+      }
+    },
+    {
+      "articleCode": "24304244",
+      "sourceGroup": "3D",
+      "sourceStep": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/24304244.stp",
+      "freeCadObject": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/24304244.FCStd",
+      "freeCadObjectType": "Part::Feature",
+      "geometryKind": "wire-edges-only",
+      "solids": 0,
+      "faces": 0,
+      "edges": 8,
+      "bbox": {
+        "x": 0.23257240938982005,
+        "y": 1.320000536962,
+        "z": 0.015240643799199401
+      }
+    },
+    {
+      "articleCode": "24454243",
+      "sourceGroup": "3D",
+      "sourceStep": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/24454243.stp",
+      "freeCadObject": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/24454243.FCStd",
+      "freeCadObjectType": "Part::Feature",
+      "geometryKind": "wire-edges-only",
+      "solids": 0,
+      "faces": 0,
+      "edges": 8,
+      "bbox": {
+        "x": 0.38257240938982,
+        "y": 1.320000536962,
+        "z": 0.015240643799199401
+      }
+    },
+    {
+      "articleCode": "24604242",
+      "sourceGroup": "3D",
+      "sourceStep": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/24604242.stp",
+      "freeCadObject": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/24604242.FCStd",
+      "freeCadObjectType": "Part::Feature",
+      "geometryKind": "wire-edges-only",
+      "solids": 0,
+      "faces": 0,
+      "edges": 8,
+      "bbox": {
+        "x": 0.53257240938982,
+        "y": 1.320000536962,
+        "z": 0.015240643799199401
+      }
+    },
+    {
+      "articleCode": "24904240",
+      "sourceGroup": "3D",
+      "sourceStep": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/24904240.stp",
+      "freeCadObject": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/24904240.FCStd",
+      "freeCadObjectType": "Part::Feature",
+      "geometryKind": "wire-edges-only",
+      "solids": 0,
+      "faces": 0,
+      "edges": 8,
+      "bbox": {
+        "x": 0.83257240938982,
+        "y": 1.320000536962,
+        "z": 0.015240643799199401
+      }
+    },
+    {
+      "articleCode": "27104219",
+      "sourceGroup": "3D",
+      "sourceStep": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/27104219.stp",
+      "freeCadObject": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/27104219.FCStd",
+      "freeCadObjectType": "Part::Feature",
+      "geometryKind": "wire-edges-only",
+      "solids": 0,
+      "faces": 0,
+      "edges": 6,
+      "bbox": {
+        "x": 3.5,
+        "y": 3.5,
+        "z": 0.0
+      }
+    },
+    {
+      "articleCode": "27304205",
+      "sourceGroup": "3D",
+      "sourceStep": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/27304205.stp",
+      "freeCadObject": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/27304205.FCStd",
+      "freeCadObjectType": "Part::Feature",
+      "geometryKind": "wire-edges-only",
+      "solids": 0,
+      "faces": 0,
+      "edges": 8,
+      "bbox": {
+        "x": 0.23257240938982005,
+        "y": 1.6200005369619999,
+        "z": 0.0152406437992005
+      }
+    },
+    {
+      "articleCode": "27454206",
+      "sourceGroup": "3D",
+      "sourceStep": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/27454206.stp",
+      "freeCadObject": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/27454206.FCStd",
+      "freeCadObjectType": "Part::Feature",
+      "geometryKind": "wire-edges-only",
+      "solids": 0,
+      "faces": 0,
+      "edges": 8,
+      "bbox": {
+        "x": 0.38257240938982,
+        "y": 1.6200005369619999,
+        "z": 0.0152406437992005
+      }
+    },
+    {
+      "articleCode": "27604207",
+      "sourceGroup": "3D",
+      "sourceStep": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/27604207.stp",
+      "freeCadObject": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/27604207.FCStd",
+      "freeCadObjectType": "Part::Feature",
+      "geometryKind": "wire-edges-only",
+      "solids": 0,
+      "faces": 0,
+      "edges": 8,
+      "bbox": {
+        "x": 0.53257240938982,
+        "y": 1.6200005369619999,
+        "z": 0.0152406437992005
+      }
+    },
+    {
+      "articleCode": "27904209",
+      "sourceGroup": "3D",
+      "sourceStep": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/27904209.stp",
+      "freeCadObject": "Desing/Content/DesignTools/FreeCAD/AtkSystem60/3D/27904209.FCStd",
+      "freeCadObjectType": "Part::Feature",
+      "geometryKind": "brep-faces",
+      "solids": 0,
+      "faces": 250,
+      "edges": 1104,
+      "bbox": {
+        "x": 900.000000000189,
+        "y": 120.00000428124399,
+        "z": 2700.000000000059
+      }
+    }
+  ],
+  "failures": []
+}

@@ -1,8 +1,6 @@
 using Desing.Helpers;
 using Desing.Models;
 using Microsoft.AspNet.Identity;
-using Microsoft.Owin;
-using Microsoft.Owin.Security;
 using System;
 using System.Configuration;
 using System.Data.Entity;

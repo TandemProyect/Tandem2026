@@ -1,5 +1,4 @@
-﻿using DAL;
-using DataTables.Mvc;
+﻿using DataTables.Mvc;
 using Desing.Helpers;
 using Desing.Resources;
 using System;

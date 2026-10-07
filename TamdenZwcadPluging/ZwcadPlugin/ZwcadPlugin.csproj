@@ -17,6 +17,8 @@
     <!-- API ZWCAD: misma versión que el CAD. Newtonsoft: DLL copiada en lib\ (no depende de ..\packages si borras esa carpeta). -->
     <ZwCadApiRoot Condition="'$(ZWCAD_API_ROOT)' != ''">$(ZWCAD_API_ROOT)</ZwCadApiRoot>
     <ZwCadApiRoot Condition="'$(ZwCadApiRoot)' == ''">C:\Program Files\ZWSOFT\ZWCAD 2026</ZwCadApiRoot>
+    <WebView2Lib Condition="'$(WebView2Lib)' == ''">$(UserProfile)\.nuget\packages\microsoft.web.webview2\1.0.2849.39\lib\net462</WebView2Lib>
+    <WebView2Native Condition="'$(WebView2Native)' == ''">$(UserProfile)\.nuget\packages\microsoft.web.webview2\1.0.2849.39\runtimes\win-x64\native</WebView2Native>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -86,9 +88,57 @@
       <HintPath>$(ZwCadApiRoot)\ZwSoft.ZwCAD.Interop.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.Web.WebView2.Core">
+      <HintPath>$(WebView2Lib)\Microsoft.Web.WebView2.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Web.WebView2.Wpf">
+      <HintPath>$(WebView2Lib)\Microsoft.Web.WebView2.Wpf.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands.cs" />
+    <Compile Include="ZwcadLegacyCommands.cs" />
+    <Compile Include="Atk60DwgResolver.cs" />
+    <Compile Include="Atk60LibrarySync.cs" />
+    <Compile Include="Atk60SnapCatalog.cs" />
+    <Compile Include="BlockConvertCommand.cs" />
+    <Compile Include="BlockInsertCommand.cs" />
+    <Compile Include="BlockInsertRequest.cs" />
+    <Compile Include="CadUnits.cs" />
+    <Compile Include="ConnectEta.cs" />
+    <Compile Include="FormworkCommand.cs" />
+    <Compile Include="MvcServerSettings.cs" />
+    <Compile Include="NetworkLinkInfo.cs" />
+    <Compile Include="PaletteHost.cs" />
+    <Compile Include="PaletteLayoutStore.cs" />
+    <Compile Include="PluginAutoload.cs" />
+    <Compile Include="PluginDeviceId.cs" />
+    <Compile Include="PluginDevReset.cs" />
+    <Compile Include="PluginHttp.cs" />
+    <Compile Include="PluginPlantillaTheme.cs" />
+    <Compile Include="PluginSessionStore.cs" />
+    <Compile Include="PluginSplashBrand.cs" />
+    <Compile Include="Wall2dCommand.cs" />
+    <Compile Include="Wall3dCommand.cs" />
+    <Compile Include="WallArticleCad.cs" />
+    <Compile Include="WallCadXData.cs" />
+    <Compile Include="WallImportCommand.cs" />
+    <Compile Include="WallSaveCommand.cs" />
+    <Compile Include="WallSpecialCad.cs" />
+    <Compile Include="UI\Views\PaletteWindow.xaml.cs">
+      <DependentUpon>PaletteWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Views\TandemMiniPopup.xaml.cs">
+      <DependentUpon>TandemMiniPopup.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Views\TandemToastWindow.xaml.cs">
+      <DependentUpon>TandemToastWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Views\Wall3dProgressWindow.xaml.cs">
+      <DependentUpon>Wall3dProgressWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="CuixBuilder.cs" />
     <Compile Include="FormularioConfigMuros.cs">
       <SubType>Form</SubType>
@@ -112,6 +162,22 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="UI\Views\PaletteWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Views\TandemMiniPopup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Views\TandemToastWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Views\Wall3dProgressWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="UI\Views\CreateDesignWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -140,7 +206,13 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <Target Name="CopiarMNU" AfterTargets="Build">
+  <ItemGroup>
+    <Resource Include="UI\Assets\tdesing-logo.png" />
+  </ItemGroup>
+  <Target Name="CopiarWebView2Loader" AfterTargets="Build">
+    <Copy SourceFiles="$(WebView2Native)\WebView2Loader.dll" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" Condition="Exists('$(WebView2Native)\WebView2Loader.dll')" />
+  </Target>
+  <Target Name="CopiarMNU" AfterTargets="CopiarWebView2Loader">
     <Copy SourceFiles="MNU\Tandem2026.cui" DestinationFolder="$(OutputPath)MNU\" SkipUnchangedFiles="true" />
     <ItemGroup>
       <ImgFiles Include="MNU\img\**\*.*" />
@@ -148,6 +220,10 @@
     <Copy SourceFiles="@(ImgFiles)" DestinationFolder="$(OutputPath)MNU\img\%(RecursiveDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="MNU\SelectLines.png" DestinationFolder="$(OutputPath)MNU\" SkipUnchangedFiles="true" Condition="Exists('MNU\SelectLines.png')" />
     <Copy SourceFiles="MNU\img\SelectLines.png" DestinationFolder="$(ZwCadApiRoot)\Support\" SkipUnchangedFiles="true" Condition="Exists('$(ZwCadApiRoot)\Support')" />
+  </Target>
+  <!-- ZWCAD bloquea bin\Debug; cada build deja una carpeta DebugN para NETLOAD. -->
+  <Target Name="CopiarCarpetaDebug" AfterTargets="CopiarMNU" Condition="'$(MSBuildProjectName)' == 'ZwcadPlugin'">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\copy-next-debug-slot.ps1&quot; -OutputPath $([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\$(OutputPath)').TrimEnd('\'))" />
   </Target>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

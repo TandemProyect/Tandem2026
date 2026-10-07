@@ -1,6 +1,14 @@
 # ZwcadPlugin — Plugin Tandem 2026 para ZWCAD
 
-Class Library (.NET Framework 4.8) que expone comandos, menú CUI y UI WPF para ZWCAD 2026.
+Class Library (.NET Framework 4.8) para ZWCAD 2026. Desde el 2026-10-07 lleva el encofrado manual que estaba en el plugin de AutoCAD: paleta Desing, insertar paneles ATK-60, simétrico, salvar y abrir diseño.
+
+Cargar:
+
+```
+NETLOAD → TamdenZwcadPluging\ZwcadPlugin\bin\Debug\ZwcadPlugin.dll
+```
+
+Comandos de trabajo: `TANDEM` (paleta), `ATDESING` (biblioteca local, una vez), `TANDEM_SALVAR`, `TANDEM_ABRIRDISENO`, `INSERTARBLOQUE`. `HOLA` lista el resto. `TANDEM_SELECCIONAR_LINEAS` sigue en el código anterior.
 
 ## Compilar
 

@@ -1,15 +1,14 @@
+using DAL;
+using Desing.Models;
+using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
 using System.Security.Principal;
 using System.Threading;
 using System.Web;
 using System.Web.Caching;
-using DAL;
-using Desing.Models;
-using Microsoft.AspNet.Identity;
 
 namespace Desing.Helpers
 {
