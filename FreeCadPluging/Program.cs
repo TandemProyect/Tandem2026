@@ -3,8 +3,10 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace FreeCadPluging
 {
@@ -13,6 +15,7 @@ namespace FreeCadPluging
         private const string LocalUrl = "https://localhost:44384/";
         private const string ProductionUrl = "https://tdesing.net/";
 
+        [STAThread]
         private static int Main(string[] args)
         {
             try
@@ -45,15 +48,73 @@ namespace FreeCadPluging
                 case "show-server":
                     Console.WriteLine("Servidor MVC: " + CurrentLabel() + " - " + CurrentUrl());
                     return 0;
+                case "connect-ui":
+                case "prepare":
+                case "atdesing":
+                    return RunConnectUi();
                 case "wall-2d":
                     Console.WriteLine("Muro 2D en FreeCAD pendiente. La UI y API seran comunes via MVC.");
                     return 0;
                 case "wall-3d":
                     Console.WriteLine("Generar 3D en FreeCAD pendiente. Se usara LCornerDetector por MVC.");
                     return 0;
+                case "formwork":
+                case "encofrar":
+                    Console.WriteLine("Encofrado FreeCAD iniciado. El adaptador FreeCAD insertara los objetos ATK60 disponibles.");
+                    return 0;
+                case "formwork-solve":
+                    return await SolveFormworkAsync(args).ConfigureAwait(false);
                 default:
                     Console.Error.WriteLine("Comando FreeCadPluging no reconocido: " + command);
                     return 2;
+            }
+        }
+
+        private static int RunConnectUi()
+        {
+            FreeCadPluginEnvironment.EnsureFolders();
+            var app = new Application
+            {
+                ShutdownMode = ShutdownMode.OnLastWindowClose
+            };
+            FreeCadPaletteHost.Show();
+            return app.Run();
+        }
+
+        private static async Task<int> SolveFormworkAsync(string[] args)
+        {
+            if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
+            {
+                Console.Error.WriteLine("Uso: FreeCadPluging.exe formwork-solve <ids-json-file>");
+                return 2;
+            }
+
+            var idsJsonPath = args[1];
+            if (!File.Exists(idsJsonPath))
+            {
+                Console.Error.WriteLine("No existe el archivo IdsJson: " + idsJsonPath);
+                return 2;
+            }
+
+            var idsJson = File.ReadAllText(idsJsonPath);
+            using (var client = new HttpClient(CreateHandler()) { Timeout = TimeSpan.FromSeconds(120) })
+            using (var content = new FormUrlEncodedContent(new[]
+            {
+                new KeyValuePair<string, string>("IdsJson", idsJson ?? "")
+            }))
+            {
+                var url = CurrentUrl() + "DesignToolsAutocad/PluginEncofrarAtk60";
+                var response = await client.PostAsync(url, content).ConfigureAwait(false);
+                var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode)
+                {
+                    Console.Error.WriteLine("Error HTTP " + (int)response.StatusCode + " al encofrar con " + url);
+                    Console.Error.WriteLine(body);
+                    return 1;
+                }
+
+                Console.WriteLine(body);
+                return 0;
             }
         }
 
@@ -101,7 +162,7 @@ namespace FreeCadPluging
                 || string.Equals(host, "::1", StringComparison.OrdinalIgnoreCase);
         }
 
-        private static string CurrentUrl()
+        internal static string CurrentUrl()
         {
             var env = Environment.GetEnvironmentVariable("TANDEM_MVC_BASE_URL");
             if (!string.IsNullOrWhiteSpace(env))
@@ -117,12 +178,12 @@ namespace FreeCadPluging
             return LocalUrl;
         }
 
-        private static string CurrentLabel()
+        internal static string CurrentLabel()
         {
             return IsProduction() ? "produccion (tdesing.net)" : "local (localhost:44384)";
         }
 
-        private static bool IsProduction()
+        internal static bool IsProduction()
         {
             return CurrentUrl().IndexOf("tdesing.net", StringComparison.OrdinalIgnoreCase) >= 0;
         }

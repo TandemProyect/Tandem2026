@@ -542,6 +542,7 @@ namespace Desing.Repositories.RepositoryAtk60
                         continue;
                     }
 
+                    var remateFollows = ci + 1 < chunks.Count && chunks[ci + 1].Builder == null;
                     outElements.AddRange(
                         Modulo270PanelElementGenerator.Build(
                             wall,
@@ -550,7 +551,8 @@ namespace Desing.Repositories.RepositoryAtk60
                             chunk.Builder.ModuleLengthMm,
                             cursorMm,
                             indexOffset,
-                            totalModules > 0 ? totalModules : chunk.Count));
+                            totalModules > 0 ? totalModules : chunk.Count,
+                            remateFollows));
 
                     cursorMm += chunk.Count * (double)chunk.Builder.ModuleLengthMm;
                     indexOffset += chunk.Count;

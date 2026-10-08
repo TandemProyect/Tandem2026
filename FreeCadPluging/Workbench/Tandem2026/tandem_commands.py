@@ -4,6 +4,10 @@ import FreeCAD
 import FreeCADGui
 
 import tandem_host
+import tandem_freecad_tools
+import tandem_command_bridge
+
+_environment_started = False
 
 
 def _message(text):
@@ -24,15 +28,28 @@ def _run(command):
         _warning("FreeCadPluging.exe devolvio codigo {0}.".format(code))
 
 
+def activate_environment(force=False):
+    global _environment_started
+    tandem_command_bridge.start()
+    if _environment_started and not force:
+        return
+    ok, error = tandem_host.run_host_detached("connect-ui")
+    if not ok:
+        _warning(error)
+        return
+    _environment_started = True
+    _message("Entorno Tandem 2026 abierto. Las herramientas se cargan desde MVC.")
+
+
 class ConnectCommand:
     def GetResources(self):
         return {
-            "MenuText": "Conectar",
-            "ToolTip": "Probar conexion con Desing MVC desde el host C#",
+            "MenuText": "Conectar / Preparar entorno",
+            "ToolTip": "Abrir sesion MVC y mostrar las herramientas Tandem",
         }
 
     def Activated(self):
-        _run("ping")
+        activate_environment(force=True)
 
     def IsActive(self):
         return True
@@ -89,6 +106,7 @@ class Wall2DCommand:
 
     def Activated(self):
         _run("wall-2d")
+        tandem_freecad_tools.create_wall_2d()
 
     def IsActive(self):
         return True
@@ -103,6 +121,22 @@ class Wall3DCommand:
 
     def Activated(self):
         _run("wall-3d")
+        tandem_freecad_tools.generate_wall_3d()
+
+    def IsActive(self):
+        return True
+
+
+class FormworkCommand:
+    def GetResources(self):
+        return {
+            "MenuText": "Encofrar",
+            "ToolTip": "Enviar muros al encofrado MVC e insertar piezas ATK60",
+        }
+
+    def Activated(self):
+        _run("formwork")
+        tandem_freecad_tools.insert_formwork()
 
     def IsActive(self):
         return True
@@ -111,11 +145,6 @@ class Wall3DCommand:
 def register_commands():
     commands = {
         "Tandem_Connect": ConnectCommand(),
-        "Tandem_ServerLocal": SetLocalServerCommand(),
-        "Tandem_ServerProduction": SetProductionServerCommand(),
-        "Tandem_ShowServer": ShowServerCommand(),
-        "Tandem_Wall2D": Wall2DCommand(),
-        "Tandem_Wall3D": Wall3DCommand(),
     }
     for name, command in commands.items():
         FreeCADGui.addCommand(name, command)

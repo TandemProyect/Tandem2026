@@ -5728,12 +5728,65 @@ function bootMasterArticleDetailsStlViewer() {
         return normalized;
     }
 
+    function maStlDesing2GetAtk60RigidMaterial() {
+        if (!maStlDesing2GetAtk60RigidMaterial._mat) {
+            maStlDesing2GetAtk60RigidMaterial._mat = new THREE.MeshStandardMaterial({
+                color: 0x3498db,
+                metalness: 0.35,
+                roughness: 0.45,
+            });
+        }
+        return maStlDesing2GetAtk60RigidMaterial._mat;
+    }
+
+    function maStlDesing2GetAtk60UnionMaterial() {
+        if (!maStlDesing2GetAtk60UnionMaterial._mat) {
+            maStlDesing2GetAtk60UnionMaterial._mat = new THREE.MeshStandardMaterial({
+                color: 0xb8bcc4,
+                metalness: 0.65,
+                roughness: 0.42,
+            });
+        }
+        return maStlDesing2GetAtk60UnionMaterial._mat;
+    }
+
     function maStlDesing2EnsureAtk60ElementTemplate(importPath) {
         const resolvedPath = maStlDesing2NormalizeAtk60ImportPath(importPath);
         if (maStlDesing2Atk60ElementTemplatePromises[resolvedPath]) {
             return maStlDesing2Atk60ElementTemplatePromises[resolvedPath];
         }
+        const isStl = /\.stl($|\?)/i.test(resolvedPath);
         maStlDesing2Atk60ElementTemplatePromises[resolvedPath] = new Promise(function (resolve, reject) {
+            if (isStl) {
+                const loader = new STLLoader();
+                loader.load(
+                    resolvedPath,
+                    function (geometry) {
+                        if (!geometry) {
+                            reject(new Error('STL sin geometría.'));
+                            return;
+                        }
+                        geometry.computeBoundingBox();
+                        const box = geometry.boundingBox;
+                        const size = new THREE.Vector3();
+                        if (box) box.getSize(size);
+                        const maxDim = Math.max(size.x, size.y, size.z);
+                        if (maxDim > 0 && maxDim < 10) {
+                            geometry.scale(1000, 1000, 1000);
+                        }
+                        geometry.computeVertexNormals();
+                        const mesh = new THREE.Mesh(geometry, maStlDesing2GetAtk60UnionMaterial());
+                        const group = new THREE.Group();
+                        group.add(mesh);
+                        resolve(group);
+                    },
+                    undefined,
+                    function (err) {
+                        reject(err || new Error('No se pudo cargar el STL ATK-60.'));
+                    }
+                );
+                return;
+            }
             const loader = new GLTFLoader();
             loader.load(
                 resolvedPath,
@@ -6207,6 +6260,84 @@ function bootMasterArticleDetailsStlViewer() {
                         maStlAtk60StrictPose: true,
                     });
                     sampleGroup.add(remate);
+                    inserted++;
+                    continue;
+                }
+
+                const elementType = item.ElementType != null ? String(item.ElementType) : '';
+                if (elementType.toLowerCase() === 'union') {
+                    const unionTemplate = await maStlDesing2EnsureAtk60ElementTemplate(item.ImportPath);
+                    const unionClone = unionTemplate.clone(true);
+                    // Misma orientación que InsertUnion de Desing (10004220):
+                    // junta vertical, muro en +X → "270" = rotation.x -90º.
+                    // Cara de detrás → "90" = rotation.x +90º.
+                    // Junta horizontal → "270M" / "90M".
+                    const seam = item.Orientation != null && String(item.Orientation).toLowerCase() === 'horizontal';
+                    const mirrored = item && item.IsMirrored === true;
+                    let unx = maStlDesing2ToFiniteNumber(item.NormalX);
+                    let unz = maStlDesing2ToFiniteNumber(item.NormalZ);
+                    const faceNormal = new THREE.Vector3(
+                        Number.isFinite(unx) ? unx : 0,
+                        0,
+                        Number.isFinite(unz) ? unz : 1
+                    );
+                    if (mirrored) faceNormal.multiplyScalar(-1);
+                    if (faceNormal.lengthSq() < 1e-8) faceNormal.set(0, 0, 1);
+                    faceNormal.normalize();
+                    const wallYaw = Math.atan2(-faceNormal.x, faceNormal.z);
+                    const baseEuler = seam
+                        ? new THREE.Euler(0, mirrored ? Math.PI * 0.5 : Math.PI * 1.5, Math.PI * 0.5, 'XYZ')
+                        : new THREE.Euler(mirrored ? Math.PI * 0.5 : -Math.PI * 0.5, 0, 0, 'XYZ');
+                    const qBase = new THREE.Quaternion().setFromEuler(baseEuler);
+                    const qYaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -wallYaw);
+                    unionClone.quaternion.copy(qYaw).multiply(qBase);
+                    if (elementCode === '1850164') {
+                        // 90° en el alzado, eje frontal, hacia el perfil.
+                        // Casi 120 mm más hacia el muro, hasta el taladro.
+                        const faceOut = new THREE.Vector3(
+                            Number.isFinite(unx) ? unx : 0,
+                            0,
+                            Number.isFinite(unz) ? unz : 1
+                        );
+                        if (faceOut.lengthSq() < 1e-8) faceOut.set(0, 0, 1);
+                        faceOut.normalize();
+                        const atPanelEnd = maStlDesing2ToFiniteNumber(item.BaseRotZ) > 0.5;
+                        const qFront = new THREE.Quaternion().setFromAxisAngle(
+                            faceOut,
+                            atPanelEnd ? Math.PI * 0.5 : -Math.PI * 0.5);
+                        unionClone.quaternion.premultiply(qFront);
+                        unionClone.position.addScaledVector(faceOut, -180);
+                    }
+                    if (elementCode === '10000221' || elementCode === '10000221B') {
+                        const qReverse = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+                        unionClone.quaternion.premultiply(qReverse);
+                        unionClone.scale.y = -1;
+                        unionClone.traverse(function (obj) {
+                            if (obj && obj.isMesh && obj.material) {
+                                const mat = obj.material.clone();
+                                mat.side = THREE.DoubleSide;
+                                obj.material = mat;
+                            }
+                        });
+                    }
+                    if (elementCode === '1850162' || elementCode === '1850163' || elementCode === '1850164') {
+                        const rigidMat = maStlDesing2GetAtk60RigidMaterial();
+                        unionClone.traverse(function (obj) {
+                            if (obj && obj.isMesh) obj.material = rigidMat;
+                        });
+                    }
+                    unionClone.position.set(x, y, z);
+                    unionClone.userData = {
+                        maStlAtk60SamplePlaced: true,
+                        maStlAtk60Element: true,
+                        maStlAtk60ElementCode: elementCode,
+                        maStlAtk60ElementType: elementType,
+                        maStlAtk60ElementOrientation: item.Orientation != null ? String(item.Orientation) : '',
+                        maStlAtk60SampleWallId: item.IdWall != null ? String(item.IdWall) : null,
+                        maStlAtk60FaceSign: maStlDesing2ToFiniteNumber(item.FaceSign),
+                        maStlAtk60StrictPose: true,
+                    };
+                    sampleGroup.add(unionClone);
                     inserted++;
                     continue;
                 }
@@ -19464,6 +19595,7 @@ function bootMasterArticleDetailsStlViewer() {
             if (!Number.isFinite(along)) continue;
             const code = maStlAtk60ReadPaintStr(item, 'ElementCode').toUpperCase();
             const type = maStlAtk60ReadPaintStr(item, 'ElementType');
+            if (type === 'Union') continue;
             const isRemate = type === 'Remate' || code === 'REMATE_WOOD';
             const len = isRemate
                 ? maStlAtk60ReadPaintNum(item, 'ModuleLengthMm') ||
@@ -19636,7 +19768,7 @@ function bootMasterArticleDetailsStlViewer() {
             if (!wallId || !anchorById[wallId]) continue;
             const type = maStlAtk60ReadPaintStr(item, 'ElementType');
             const code = maStlAtk60ReadPaintStr(item, 'ElementCode').toUpperCase();
-            if (type === 'Remate' || code === 'REMATE_WOOD') continue;
+            if (type === 'Union' || type === 'Remate' || code === 'REMATE_WOOD') continue;
             const along = maStlAtk60ReadPaintNum(item, 'LocalAlongMm');
             const len = maStlAtk60ReadPaintNum(item, 'ModuleLengthMm');
             const up = maStlAtk60ReadPaintNum(item, 'LocalUpMm');

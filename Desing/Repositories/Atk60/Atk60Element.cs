@@ -120,6 +120,7 @@ namespace Desing.Repositories.Atk60
                     return "../../Content/DesignTools/Stl/ATK60/dywidag.stl";
                 case "TuercaFija":
                     return "../../Content/DesignTools/Stl/ATK60/10443020.stl";
+                
                 case "Unionvertical_1":
                     return "../../Content/DesignTools/Stl/ATK60/1850162.stl";
                 case "Unionvertical_2":

@@ -23,9 +23,24 @@
     <None Include="Workbench\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <Target Name="InstallFreeCadWorkbench" AfterTargets="Build">
+  <Target Name="CopyWebView2LoaderToOutputRoot" AfterTargets="Build">
+    <PropertyGroup>
+      <_WebView2LoaderFromOutput>$(OutputPath)runtimes\win-x64\native\WebView2Loader.dll</_WebView2LoaderFromOutput>
+      <_WebView2LoaderFromPkg>$(NuGetPackageRoot)microsoft.web.webview2\1.0.2849.39\runtimes\win-x64\native\WebView2Loader.dll</_WebView2LoaderFromPkg>
+    </PropertyGroup>
+    <Copy SourceFiles="$(_WebView2LoaderFromOutput)"
+          DestinationFolder="$(OutputPath)"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(_WebView2LoaderFromOutput)')" />
+    <Copy SourceFiles="$(_WebView2LoaderFromPkg)"
+          DestinationFolder="$(OutputPath)"
+          SkipUnchangedFiles="true"
+          Condition="!Exists('$(_WebView2LoaderFromOutput)') and Exists('$(_WebView2LoaderFromPkg)')" />
+  </Target>
+
+  <Target Name="InstallFreeCadWorkbench" AfterTargets="CopyWebView2LoaderToOutputRoot">
     <ItemGroup>
-      <_WorkbenchFiles Include="$(MSBuildProjectDirectory)\Workbench\Tandem2026\**\*" />
+      <_WorkbenchFiles Include="$(MSBuildProjectDirectory)\Workbench\Tandem2026\**\*" Exclude="$(MSBuildProjectDirectory)\Workbench\Tandem2026\**\__pycache__\**\*" />
       <_HostFiles Include="$(TargetDir)*.*" Exclude="$(TargetDir)*.pdb" />
     </ItemGroup>
     <RemoveDir Directories="$(FreeCadWorkbenchDir)" Condition="Exists('$(FreeCadWorkbenchDir)')" />

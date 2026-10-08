@@ -11,25 +11,16 @@ class TandemWorkbench(Workbench):
         import tandem_commands
 
         commands = tandem_commands.register_commands()
-        server_commands = [
-            "Tandem_ServerLocal",
-            "Tandem_ServerProduction",
-            "Tandem_ShowServer",
-        ]
-        geometry_commands = [
-            "Tandem_Wall2D",
-            "Tandem_Wall3D",
-        ]
 
         self.appendToolbar("Tandem 2026", commands)
-        self.appendMenu("Tandem 2026", commands[:1])
-        self.appendMenu("Tandem 2026", server_commands)
-        self.appendMenu("Tandem 2026", geometry_commands)
+        self.appendMenu("Tandem 2026", commands)
 
     def Activated(self):
         import FreeCAD
+        import tandem_commands
 
-        FreeCAD.Console.PrintMessage("Tandem 2026 cargado desde FreeCadPluging.\n")
+        FreeCAD.Console.PrintMessage("Tandem 2026 cargado. Abriendo entorno MVC...\n")
+        tandem_commands.activate_environment()
 
     def Deactivated(self):
         pass
