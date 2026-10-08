@@ -6306,7 +6306,7 @@ function bootMasterArticleDetailsStlViewer() {
                             faceOut,
                             atPanelEnd ? Math.PI * 0.5 : -Math.PI * 0.5);
                         unionClone.quaternion.premultiply(qFront);
-                        unionClone.position.addScaledVector(faceOut, -180);
+                        unionClone.position.addScaledVector(faceOut, -240);
                     }
                     if (elementCode === '10000221' || elementCode === '10000221B') {
                         const qReverse = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);

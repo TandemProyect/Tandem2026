@@ -10,7 +10,11 @@ Puede haber clases C# especificas por plugin, y en casos necesarios tambien codi
 
 Cuando una funcionalidad sirva a mas de un plugin, primero debe moverse o nacer en una capa comun reutilizable. El plugin concreto solo decide como presentar el comando y como traducir entradas/salidas del CAD.
 
-**Empezar aquí (AutoCAD, corte 2026-10-07):**
+**Empezar aquí (resumen mensual):**
+
+- [RESUMEN-2026-09-10-Trabajo-Agentes.md](./RESUMEN-2026-09-10-Trabajo-Agentes.md) — mapa consolidado de lo hecho por agentes en septiembre y octubre: paletas MVC, muros 2D/3D, ATDESING, bloquing, encofrado manual, visor Desing_2 y arranque FreeCAD.
+
+**Handovers técnicos (AutoCAD, corte 2026-10-07):**
 
 - **Retomar hoy:** [HANDOVER-2026-10-07-Encofrar-Manual-Posicion-Visor.md](./HANDOVER-2026-10-07-Encofrar-Manual-Posicion-Visor.md) — giro al abrir (`EncodePoseZ`, Debug122) y orientación en el visor Desing_2. El reflejo solo del espesor está sin confirmar en pantalla.
 - Corte 2026-10-06: [HANDOVER-2026-10-06-Encofrar-Manual-Conexiones.md](./HANDOVER-2026-10-06-Encofrar-Manual-Conexiones.md) — insertado uno a uno, marcas del muro, vértices del panel, simétrico, guardado `AT:`, bug del inferior derecho.

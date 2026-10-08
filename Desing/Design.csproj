@@ -2527,6 +2527,16 @@
     <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\27454206_F.stl" />
     <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\27904209.stl" />
     <Content Include="Content\DesignTools\Atk-60NewGeneration\STL\27904209_F.stl" />
+    <Content Include="docs\recovered-chats-2026-07-11\53f724f6-d67c-4515-97c6-b6f7fc3192e6-resumen.md" />
+    <Content Include="docs\recovered-chats-2026-07-11\53f724f6-d67c-4515-97c6-b6f7fc3192e6.jsonl" />
+    <Content Include="docs\recovered-chats-2026-07-11\541d930e-dcbd-4081-9358-9127af860639-resumen.md" />
+    <Content Include="docs\recovered-chats-2026-07-11\541d930e-dcbd-4081-9358-9127af860639.jsonl" />
+    <Content Include="docs\recovered-chats-2026-07-11\d318f80b-fc8f-4f10-b945-ade0e8b284d9-resumen.md" />
+    <Content Include="docs\recovered-chats-2026-07-11\d318f80b-fc8f-4f10-b945-ade0e8b284d9.jsonl" />
+    <Content Include="docs\recovered-chats-2026-07-11\INDICE.md" />
+    <None Include="Report\LEEME.md" />
+    <None Include="Report\2026\2026-10-08_Informe-Quincenal.md" />
+    <None Include="Report\2026\2026-10-08_Informe-Quincenal.pdf" />
     <None Include="Properties\PublishProfiles\atenko Develop.pubxml" />
     <None Include="Properties\PublishProfiles\atenko.net.pubxml" />
     <None Include="Properties\PublishProfiles\Athosstaging.pubxml" />

@@ -1,0 +1,15 @@
+---
+description: Informe quincenal de Tandem. Usar cuando pidan el informe quincenal, el PDF del informe, o continuar la serie de Desing/Report.
+alwaysApply: false
+---
+
+# Informe quincenal
+
+Al pedirlo, seguir `Desing/Report/LEEME.md`.
+
+- Guardar en `Desing/Report/<año de hoy>/yyyy-MM-dd_Informe-Quincenal.md` y el PDF con el mismo nombre.
+- Crear `Desing/Report/<año>/` si no existe. En 2027 se crea `2027` en la primera petición de ese año. No crear años por adelantado.
+- No reescribir el informe anterior. El 01 (5 ago–8 oct 2026) ya está en `Desing/Report/2026/`. Los siguientes son quincenas: corte el 15, o el último día del mes.
+- Fuentes: chats de Cursor, chats de Visual Studio Code y la documentación. No usar el historial de git.
+- Dejar fuera los chats personales.
+- Entregar Markdown y PDF juntos, y registrar ambos en `Desing/Design.csproj` como `None`. Sin esa línea, Visual Studio no muestra `Report`.

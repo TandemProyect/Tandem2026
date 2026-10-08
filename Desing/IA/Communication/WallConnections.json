@@ -1,5 +1,5 @@
 {
-  "generatedAtUtc": "2026-10-08T14:41:01.291Z",
+  "generatedAtUtc": "2026-10-08T14:49:07.83Z",
   "pageUrl": "https://localhost:44384/Desing_2/Viewer?offerId=1&designId=10002",
   "schema": "WallConnections.v1",
   "source": "Desing_2",
@@ -545,7 +545,7 @@
   "generatedWallModel": {
     "mode": "wall3d",
     "system": "Atk-60",
-    "generatedAtUtc": "2026-10-08T14:41:01.286Z",
+    "generatedAtUtc": "2026-10-08T14:49:07.824Z",
     "source": {
       "totalLineas": 2,
       "lineas": [
