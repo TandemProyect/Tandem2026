@@ -62,6 +62,18 @@ namespace ZwcadPlugin
             WriteStub("GUARDARDISENOMVC", "Guardado de diseño MVC pendiente de portar.");
         }
 
+        [CommandMethod("TANDEM_SELECCIONAR_LINEAS")]
+        public void SeleccionarLineas()
+        {
+            WriteStub("TANDEM_SELECCIONAR_LINEAS", "Selección de líneas pendiente de portar.");
+        }
+
+        [CommandMethod("TANDEM_ANALIZAR_IMAGEN")]
+        public void AnalizarImagen()
+        {
+            WriteStub("TANDEM_ANALIZAR_IMAGEN", "Análisis de imagen pendiente de portar.");
+        }
+
         [CommandMethod("HOLA")]
         public void MostrarAyuda()
         {

@@ -1,6 +1,6 @@
 # Informes quincenales
 
-Cuando el usuario pida el **informe quincenal**, el agente lo crea aquí. No hace falta que recuerde la ruta: esta carpeta y la regla `.cursor/rules/informe-quincenal.mdc` son la instrucción.
+Cuando el usuario pida el **informe quincenal**, o cuando un agente tenga que anotar trabajo de producto, seguir esta carpeta y la regla `.cursor/rules/informe-quincenal.mdc`.
 
 ## Dónde se guarda
 
@@ -9,40 +9,61 @@ Desing/Report/<año>/yyyy-MM-dd_Informe-Quincenal.md
 Desing/Report/<año>/yyyy-MM-dd_Informe-Quincenal.pdf
 ```
 
-`<año>` es el año de la fecha del corte (hoy, al pedirlo).
+`<año>` es el año del **día de corte / review** del informe.
 
-- En 2026 los informes van en `Desing/Report/2026/`.
-- El 1 de enero de 2027, el primer informe de ese año crea `Desing/Report/2027/`. No crear el año siguiente antes de tiempo.
-- Si la carpeta del año no existe, crearla en ese momento. No pedir confirmación.
+- En 2026: `Desing/Report/2026/`.
+- El 1 de enero de 2027, el primer informe de ese año crea `2027`. No crear años por adelantado.
+- Si la carpeta del año no existe, crearla. No pedir confirmación.
+- Markdown y PDF juntos. Ambos en `Desing/Design.csproj` como `<None Include="Report\...">`.
 
-El informe 01 ya está en `Desing/Report/2026/2026-10-08_Informe-Quincenal.md` y en el PDF del mismo nombre.
+## Qué informe está abierto (regla para agentes)
 
-## Qué periodo cubre
+| Informe | Fichero | Periodo | Review | Siguiente |
+|---------|---------|---------|--------|-----------|
+| 01 | `2026-10-08_Informe-Quincenal.md` | 5 ago – 8 oct 2026 | 8 oct | cerrado |
+| **02 (abierto)** | `2026-10-22_Informe-Quincenal.md` | **9 oct – 22 oct 2026** | **22 oct** | **23 oct → informe 03** |
+| 03 | (aún no) | desde 23 oct | según calendario | … |
 
-El 01 fue la excepción: dos meses, del 5 de agosto al 8 de octubre de 2026.
+**Mientras hoy esté entre el 9 y el 22 de octubre de 2026 inclusive:** el informe activo es el **02**. No preguntar al usuario si es trimestral o quincenal, ni qué fichero usar.
 
-A partir de ese corte, cada informe es una quincena y no reescribe el anterior.
+### Qué hacer en un chat (nuevo o antiguo)
 
-| Corte | Periodo |
-|-------|---------|
-| Día 15 | Desde el día siguiente al informe anterior hasta el 15 |
-| Último día del mes | Desde el 16 hasta ese día |
+1. Leer este `LEEME.md` y abrir el informe **abierto** (hoy: el 02).
+2. Si el trabajo es un frente nuevo: crear el **siguiente apartado correlativo**  
+   (`### N. Nombre del frente`, p. ej. `### 1. Proyecto XR`, `### 2. …`).
+3. Si el frente ya tiene apartado: **trabajar en ese apartado** (ampliar bullets, estado, fechas). No abrir otro con el mismo nombre.
+4. Anotar inicio cuando el usuario lo diga; al salir, fin + qué se hizo.
+5. **No** reescribir un informe cerrado (el 01).
+6. Las **horas** van al **trimestral** (`yyyy-T<n>_Informe-Trimestral.md`), no al quincenal. El quincenal narra el trabajo; el trimestral suma horas.
 
-Si lo piden a mitad de quincena, el periodo es desde el día siguiente al último informe hasta el día de la petición. El siguiente informe arranca al día siguiente de este.
+### Creación automática del siguiente informe
 
-El número sale del último informe existente (01, 02, 03…), mirando este año y el anterior.
+- El día **después** del review del informe abierto, el agente **crea solo** el siguiente quincenal (nuevo número, nuevo `yyyy-MM-dd_Informe-Quincenal.md` con la fecha de corte prevista), registra MD+PDF en el `.csproj`, y deja de escribir en el anterior.
+- Ejemplo actual: review del 02 = **22 oct** → el **23 oct** se crea el **03** sin que el usuario lo pida.
+- No hace falta que diga «abre el informe». Basta con trabajar; el agente elige el fichero abierto o crea el nuevo si ya toca.
+
+## Calendario (tras el 01)
+
+El 01 fue la excepción (dos meses). A partir del 02:
+
+| Informe | Periodo | Review |
+|---------|---------|--------|
+| 02 | 9–22 oct 2026 | 22 oct 2026 |
+| 03 | desde 23 oct … | se fija al crearlo (siguiente bloque ~2 semanas / review acordada) |
+
+Si en el futuro se vuelve al ritmo «corte el 15 / último día del mes», actualizar esta tabla. Mientras el usuario diga «del 9 al 22» / «el 23 uno nuevo», manda esa regla.
 
 ## De dónde sale el contenido
 
-Chats de Cursor, chats de Visual Studio Code (Copilot) y la documentación del repo (handovers, `LEEME`, README de lo que se tocó). El historial de git no es fuente: los mensajes de commit no siguen el trabajo.
+Chats de Cursor, chats de Visual Studio Code (Copilot) y la documentación del repo. **No** el historial de git.
 
-Quedan fuera los chats personales (perfil, compras, encargos ajenos a Tandem).
+Fuera: chats personales (perfil, compras, encargos ajenos a Tandem).
 
-El texto va en español, agrupado por fecha. Al final: en qué quedó cada frente, qué sigue abierto y la fecha del próximo corte.
+Español. Apartados numerados por frente. Al final del informe (o al review): frentes, abierto y fecha del próximo corte.
 
 ## PDF
 
-El Markdown y el PDF se guardan juntos, con el mismo nombre. Cada fichero nuevo se añade a `Desing/Design.csproj` como `<None Include="Report\...">`. Si no está en el proyecto, Visual Studio no muestra la carpeta Report en el Explorador de soluciones. El PDF se imprime desde un HTML con el mismo texto (A4, sin membrete del navegador). Chrome, si está instalado:
+Imprimir desde HTML intermedio (A4, sin membrete). Chrome, si está instalado:
 
 ```powershell
 & "C:\Program Files\Google\Chrome\Application\chrome.exe" `
@@ -51,4 +72,22 @@ El Markdown y el PDF se guardan juntos, con el mismo nombre. Cada fichero nuevo 
   "file:///ruta/al.html"
 ```
 
-El HTML es un paso intermedio. No se deja en `Report`.
+El HTML no se deja en `Report`. Al añadir o cerrar un apartado relevante, regenerar el PDF del informe abierto.
+
+## Informe trimestral (horas)
+
+Además del quincenal. El trimestral lleva las **horas**. Se actualiza al cerrar un trabajo.
+
+```text
+Desing/Report/<año>/yyyy-T<n>_Informe-Trimestral.md
+Desing/Report/<año>/yyyy-T<n>_Informe-Trimestral.pdf
+```
+
+`n` = 1…4 (trimestre natural). Ahora: `2026-T4_Informe-Trimestral.md`.
+
+| Clase | Qué es | Cuándo |
+|-------|--------|--------|
+| Programación | Código, visor, plugins, docs técnicas | Al cerrar ese trabajo |
+| Manual | No programación (p. ej. bloques) | Cuando lo pidan, con horas |
+
+No inventar horas. No mezclar clases. No reescribir un trimestre cerrado. Regla: `.cursor/rules/informe-trimestral.mdc`.

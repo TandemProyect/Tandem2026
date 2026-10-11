@@ -1,15 +1,28 @@
 ---
-description: Informe quincenal de Tandem. Usar cuando pidan el informe quincenal, el PDF del informe, o continuar la serie de Desing/Report.
-alwaysApply: false
+description: Informe quincenal de Tandem. Al anotar trabajo de producto, abrir/seguir apartados en el informe abierto; el día después del review crear el siguiente solo.
+alwaysApply: true
 ---
 
 # Informe quincenal
 
-Al pedirlo, seguir `Desing/Report/LEEME.md`.
+Seguir siempre `Desing/Report/LEEME.md`.
 
-- Guardar en `Desing/Report/<año de hoy>/yyyy-MM-dd_Informe-Quincenal.md` y el PDF con el mismo nombre.
-- Crear `Desing/Report/<año>/` si no existe. En 2027 se crea `2027` en la primera petición de ese año. No crear años por adelantado.
-- No reescribir el informe anterior. El 01 (5 ago–8 oct 2026) ya está en `Desing/Report/2026/`. Los siguientes son quincenas: corte el 15, o el último día del mes.
-- Fuentes: chats de Cursor, chats de Visual Studio Code y la documentación. No usar el historial de git.
-- Dejar fuera los chats personales.
-- Entregar Markdown y PDF juntos, y registrar ambos en `Desing/Design.csproj` como `None`. Sin esa línea, Visual Studio no muestra `Report`.
+## Informe abierto ahora (oct 2026)
+
+- **02** — `Desing/Report/2026/2026-10-22_Informe-Quincenal.md`
+- Periodo: **9–22 oct 2026**. Review: **22 oct**. El **23 oct** se crea el **03** automáticamente.
+- El **01** (`2026-10-08_…`) está **cerrado**. No reescribirlo.
+
+## Qué hacer el agente (sin preguntar)
+
+1. Si hay que documentar trabajo en un frente: ir al informe **abierto**.
+2. Si el frente no tiene apartado: crear `### N. Nombre` con el **siguiente número correlativo**.
+3. Si ya existe (p. ej. `### 1. Proyecto XR`): **ampliar ese apartado**, no duplicar.
+4. No preguntar «¿trimestral o quincenal?». Quincenal = relato/apartados. Trimestral = **horas** (otra regla).
+5. El día **posterior** al review, si aún no existe el siguiente fichero: crearlo, registrarlo en `Design.csproj` como `None`, y usar ese como abierto.
+
+## No hacer
+
+- No mezclar horas de programación en el quincenal (van al trimestral).
+- No abrir un informe nuevo antes del día que toca.
+- No usar el historial de git como fuente del texto.

@@ -1,0 +1,16 @@
+---
+description: Informe trimestral de Tandem. Al cerrar un trabajo nuevo, apuntar qué se hizo y las horas (programación o manual) en el trimestre en curso.
+alwaysApply: true
+---
+
+# Informe trimestral
+
+Seguir `Desing/Report/LEEME.md`, sección «Informe trimestral (horas)».
+
+- Aquí van las **horas**. El relato del frente va en el **quincenal** (apartados). Ver también `.cursor/rules/informe-quincenal.mdc`.
+- Al cerrar un trabajo de programación, añadir un apunte en `Desing/Report/<año>/yyyy-T<n>_Informe-Trimestral.md`: fecha, horas y qué se hizo. Regenerar el PDF del mismo nombre.
+- Las horas de programación son el tramo de esa tarea. Si no se sabe, preguntar. No inventarlas.
+- Las horas manuales (hacer bloques y cualquier trabajo que no sea programación) se apuntan aparte, solo cuando se pidan, con las horas y lo que se hizo.
+- Actualizar las sumas de arriba: programación, manual y total.
+- No reescribir un trimestre cerrado. No mezclar las dos clases de horas.
+- El fichero nuevo se registra en `Desing/Design.csproj` como `<None Include="Report\...">`.

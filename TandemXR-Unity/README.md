@@ -1,112 +1,61 @@
 # TandemXR-Unity
 
-Aplicación **instalable** para **Meta Quest 3S** y **tablet Android**.  
-Interactúa con diseños Tandem vía API de Desing (Visual Studio).
+Aplicación **instalable** para **Meta Quest 3S** y **Xiaomi Pad 6**.  
+Habla con Desing por API (`/TandemXrApi/...`).
+
+**Editor:** Unity **2022.3.62f3** (o 2022.3 LTS cercana) + módulo **Android**.
 
 ---
 
-## Requisitos (instalar una vez)
+## Abrir el proyecto (primera vez)
 
-1. **[Unity Hub](https://unity.com/download)**
-2. **Unity 2022.3 LTS** (Editor)
-3. Módulo **Android Build Support** (en Hub → Installs → Add modules)
-4. Cuenta desarrollador Meta (gratis) — [developer.oculus.com](https://developer.oculus.com/) — para instalar APK en Quest
-5. **Visual Studio** o **VS Build Tools** — Unity lo usa para compilar C#
-
----
-
-## Crear el proyecto Unity (primera vez)
-
-### Opción A — Recomendada (plantilla Meta)
-
-1. Unity Hub → **New project**
-2. Elegir plantilla **Meta XR All-in-One SDK** (o **VR Core**)
-3. Nombre: `TandemXR-Unity` (carpeta fuera o dentro del repo)
-4. Copiar al proyecto los assets de este repo:
+1. En **Unity Hub** → licencia **Personal** activada (si pide login, hazlo).
+2. **Proyectos** → **Importar** / **Add** → carpeta:
    ```
-   C:\00_Tandem2026\TandemXR-Unity\Assets\TandemXR\  →  <tu proyecto>\Assets\TandemXR\
+   C:\00_Tandem2026\TandemXR-Unity
    ```
+3. Ábrelo con **2022.3.62f3**. La primera vez tarda (paquetes). No cierres.
+4. En el menú de Unity: **TandemXR → Setup escena principal**
+5. En el Project, abre `Assets/TandemXR/Settings/TandemServerSettings`
+   - **Server Base Url:** `https://localhost:44384` (en dispositivo real: IP del PC)
+   - **Pairing Code:** el de Intranet → Dispositivos XR
+6. Arranca **Desing** (F5) → en Unity pulsa **Play**
 
-### Opción B — Abrir esta carpeta como proyecto
+Consola esperada: `[TandemXR] Diseño: ...` o un envío pendiente.
 
-Si ya tienes Unity 2022.3, puedes abrir directamente `C:\00_Tandem2026\TandemXR-Unity` en Hub.  
-Unity regenerará librerías al primer abrir (tarda varios minutos).
-
----
-
-## Configuración
-
-1. En Unity: **Edit → Project Settings → XR Plug-in Management → Android**
-   - Activar **OpenXR**
-   - En OpenXR: perfil **Meta Quest Touch Plus Controller**
-2. Crear en escena un GameObject `TandemXR` con script `TandemXrBootstrap`
-3. En el Inspector, componente `TandemServerSettings`:
-   - **Server Base Url:** `https://localhost:44384` (o IP de tu PC en red local)
-   - **Pairing Code:** el código del dispositivo en Intranet → Dispositivos XR
-   - **Design Id / Offer Id:** IDs de respaldo si no hay envío pendiente
-4. Arrancar **Desing** (F5 en Visual Studio) antes de probar la API
-
-### Flujo «Enviar a XR»
-
-1. En Desing: Configuración → Dispositivos XR → crear dispositivo → copiar código
-2. Pegar el código en `TandemServerSettings.pairingCode`
-3. Abrir un diseño en Desing → **Enviar a XR** → elegir dispositivo
-4. Play en Unity (o APK en Quest): carga el envío pendiente y hace ACK
+> Si Hub dice «no se encontraron proyectos», comprueba que entras en `TandemXR-Unity` (no en la raíz del repo).  
+> Si Unity en línea de comandos falla con «No valid license», activa la licencia en el Hub (modo gráfico); no hace falta batchmode.
 
 ---
 
-## Build APK — Quest 3S
+## Flujo «Enviar a XR»
 
-1. **File → Build Settings**
-2. Plataforma **Android** → Switch Platform
-3. **Player Settings → Android:**
-   - Minimum API Level: 29+
-   - Target architectures: **ARM64**
-4. **Player Settings → XR Plug-in Management:** OpenXR + Quest
-5. Conectar Quest por USB (modo desarrollador activado)
-6. **Build And Run** → se instala el APK en las gafas
-
-Documentación Meta: [Unity Develop for Meta Quest](https://developers.meta.com/horizon/documentation/unity/unity-project-setup)
+1. Desing → Configuración → Dispositivos XR → crear dispositivo → copiar código  
+2. Pegar en `TandemServerSettings.pairingCode`  
+3. Diseño 3D → **Enviar a XR** → elegir dispositivo  
+4. Play en Unity (o APK): carga el pendiente y hace ACK  
 
 ---
 
-## Build APK — Tablet Android
+## Build APK (después de Play en Editor)
 
-Mismo proyecto, mismo build Android. En tablet:
+1. **File → Build Settings** → **Android** → Switch Platform  
+2. Player Settings: Minimum API **29+**, arquitectura **ARM64**, package `com.tandem.xr`  
+3. XR Plug-in Management (Android): **OpenXR**  
+4. **Build And Run** con tablet/Quest en USB (modo desarrollador)
 
-- v0: visor 3D táctil (sin gafas)
-- v1+: activar **AR Foundation** + ARCore en Project Settings
-
-Instalar APK en tablet (USB o fichero `.apk`).
-
----
-
-## Flujo de datos
-
-```
-Unity (TandemDesignApiClient)
-    → GET /TandemXrApi/Manifest?designId=1
-    ← JSON con instancias + URLs STL
-Unity (TandemSceneLoader)
-    → descarga STL, coloca en escena
-Usuario
-    → mandos (Quest) o touch (tablet)
-```
+Quest: tienda Meta más adelante. Tablet: Play Store más adelante. Prototipo = APK a mano.
 
 ---
 
-## Estructura de scripts (`Assets/TandemXR/`)
+## Scripts (`Assets/TandemXR/`)
 
 | Script | Función |
 |--------|---------|
-| `TandemServerSettings` | URL servidor, IDs diseño |
-| `TandemDesignApiClient` | Llama API Desing |
-| `TandemSceneLoader` | Monta piezas en la escena |
-| `TandemXrBootstrap` | Arranque: API → carga → modo VR |
+| `TandemServerSettings` | URL, pairingCode, IDs |
+| `TandemDesignApiClient` | Manifest / Pending / Ack |
+| `TandemSceneLoader` | Monta escena (v0: placeholder) |
+| `TandemXrBootstrap` | Arranque + sondeo pendientes |
+| `Editor/TandemXrProjectSetup` | Menú Setup escena |
 
----
-
-## Ayuda
-
-No hace falta experiencia previa en XR: cada fase tiene una prueba concreta (API responde → 1 pieza visible → interacción).  
-Arquitectura completa: `Docs/Proyectos/TandemXR/ARQUITECTURA.md`
+Docs: `Docs/Proyectos/TandemXR/`

@@ -5739,6 +5739,168 @@ function bootMasterArticleDetailsStlViewer() {
         return maStlDesing2GetAtk60RigidMaterial._mat;
     }
 
+    function maStlDesing2GetAtk60PropMaterial() {
+        if (!maStlDesing2GetAtk60PropMaterial._mat) {
+            maStlDesing2GetAtk60PropMaterial._mat = new THREE.MeshStandardMaterial({
+                color: 0x908f8e,
+                metalness: 0.35,
+                roughness: 0.5,
+            });
+        }
+        return maStlDesing2GetAtk60PropMaterial._mat;
+    }
+
+    function maStlDesing2GetAtk60PropInnerMaterial() {
+        if (!maStlDesing2GetAtk60PropInnerMaterial._mat) {
+            maStlDesing2GetAtk60PropInnerMaterial._mat = new THREE.MeshStandardMaterial({
+                color: 0xdcdbda,
+                metalness: 0.28,
+                roughness: 0.48,
+            });
+        }
+        return maStlDesing2GetAtk60PropInnerMaterial._mat;
+    }
+
+    function maStlDesing2GetAtk60WoodMaterial() {
+        if (!maStlDesing2GetAtk60WoodMaterial._mat) {
+            maStlDesing2GetAtk60WoodMaterial._mat = new THREE.MeshStandardMaterial({
+                color: 0xc4894a,
+                metalness: 0.02,
+                roughness: 0.78,
+            });
+        }
+        return maStlDesing2GetAtk60WoodMaterial._mat;
+    }
+
+    function maStlDesing2GetAtk60MetalMaterial() {
+        if (!maStlDesing2GetAtk60MetalMaterial._mat) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#c5ccd3';
+            ctx.fillRect(0, 0, 128, 512);
+            for (let x = 0; x < 128; x++) {
+                const n = 176 + Math.floor(Math.sin(x * 0.9) * 16 + Math.sin(x * 2.6) * 7 + ((x * 13) % 5));
+                ctx.fillStyle = 'rgb(' + n + ',' + (n + 2) + ',' + (n + 4) + ')';
+                ctx.fillRect(x, 0, 1, 512);
+            }
+            ctx.fillStyle = 'rgba(255,255,255,0.35)';
+            ctx.fillRect(22, 0, 2, 512);
+            ctx.fillRect(86, 0, 1, 512);
+            ctx.fillStyle = 'rgba(70,76,84,0.35)';
+            ctx.fillRect(48, 0, 3, 512);
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+            else if (THREE.sRGBEncoding != null) tex.encoding = THREE.sRGBEncoding;
+            maStlDesing2GetAtk60MetalMaterial._mat = new THREE.MeshStandardMaterial({
+                map: tex,
+                color: 0xd8dde3,
+                metalness: 0.42,
+                roughness: 0.46,
+                envMapIntensity: 0,
+            });
+        }
+        return maStlDesing2GetAtk60MetalMaterial._mat;
+    }
+
+    // Tubo vertical de la ménsula, en mm del STL ya escalado.
+    // El poste entero va en el eje X=0, Y=-900, de arriba abajo.
+    function maStlDesing2BracketTubeRadiusSq(x, y) {
+        const dy = y + 900;
+        return (x * x) + (dy * dy);
+    }
+
+    function maStlDesing2GeometryFromVertices(srcPos, srcNor, ids, withUv) {
+        const n = ids.length;
+        const pos = new Float32Array(n * 3);
+        const nor = srcNor ? new Float32Array(n * 3) : null;
+        let zMin = Infinity;
+        let zMax = -Infinity;
+        for (let i = 0; i < n; i++) {
+            const vi = ids[i];
+            const x = srcPos.getX(vi);
+            const y = srcPos.getY(vi);
+            const z = srcPos.getZ(vi);
+            pos[i * 3] = x;
+            pos[i * 3 + 1] = y;
+            pos[i * 3 + 2] = z;
+            if (z < zMin) zMin = z;
+            if (z > zMax) zMax = z;
+            if (nor) {
+                nor[i * 3] = srcNor.getX(vi);
+                nor[i * 3 + 1] = srcNor.getY(vi);
+                nor[i * 3 + 2] = srcNor.getZ(vi);
+            }
+        }
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        if (nor) geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+        if (withUv) {
+            const uv = new Float32Array(n * 2);
+            const span = Math.max(1, zMax - zMin);
+            for (let i = 0; i < n; i++) {
+                const x = pos[i * 3];
+                const y = pos[i * 3 + 1];
+                const z = pos[i * 3 + 2];
+                uv[i * 2] = Math.atan2(x, y + 900) / (Math.PI * 2) + 0.5;
+                uv[i * 2 + 1] = (z - zMin) / span;
+            }
+            geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+        }
+        return geo;
+    }
+
+    function maStlDesing2PaintBracketTube(root) {
+        const meshes = [];
+        root.traverse(function (obj) {
+            if (obj && obj.isMesh && obj.geometry) meshes.push(obj);
+        });
+        for (let m = 0; m < meshes.length; m++) {
+            const mesh = meshes[m];
+            const geo = mesh.geometry;
+            const pos = geo.getAttribute('position');
+            if (!pos) continue;
+            const index = geo.getIndex();
+            const triCount = index ? (index.count / 3) : (pos.count / 3);
+            const tube = [];
+            const body = [];
+            for (let t = 0; t < triCount; t++) {
+                let core = 0;
+                let sx = 0;
+                let sy = 0;
+                const ids = [0, 0, 0];
+                for (let k = 0; k < 3; k++) {
+                    const vi = index ? index.getX(t * 3 + k) : (t * 3 + k);
+                    ids[k] = vi;
+                    const x = pos.getX(vi);
+                    const y = pos.getY(vi);
+                    sx += x;
+                    sy += y;
+                    if (maStlDesing2BracketTubeRadiusSq(x, y) < 70 * 70) core++;
+                }
+                const onTube = core > 0
+                    || maStlDesing2BracketTubeRadiusSq(sx / 3, sy / 3) < 120 * 120;
+                (onTube ? tube : body).push(ids[0], ids[1], ids[2]);
+            }
+            if (!tube.length || !body.length) {
+                mesh.material = maStlDesing2GetAtk60RigidMaterial();
+                continue;
+            }
+            const nor = geo.getAttribute('normal');
+            const parent = mesh.parent;
+            parent.add(new THREE.Mesh(
+                maStlDesing2GeometryFromVertices(pos, nor, body, false),
+                maStlDesing2GetAtk60RigidMaterial()));
+            parent.add(new THREE.Mesh(
+                maStlDesing2GeometryFromVertices(pos, nor, tube, true),
+                maStlDesing2GetAtk60MetalMaterial()));
+            parent.remove(mesh);
+        }
+    }
+
     function maStlDesing2GetAtk60UnionMaterial() {
         if (!maStlDesing2GetAtk60UnionMaterial._mat) {
             maStlDesing2GetAtk60UnionMaterial._mat = new THREE.MeshStandardMaterial({
@@ -5773,6 +5935,15 @@ function bootMasterArticleDetailsStlViewer() {
                         const maxDim = Math.max(size.x, size.y, size.z);
                         if (maxDim > 0 && maxDim < 10) {
                             geometry.scale(1000, 1000, 1000);
+                        }
+                        if (/dywidag\.stl($|\?)/i.test(resolvedPath)) {
+                            geometry.computeBoundingBox();
+                            const barBox = geometry.boundingBox;
+                            if (barBox) {
+                                const midY = (barBox.min.y + barBox.max.y) * 0.5;
+                                geometry.translate(0, -midY, 0);
+                                geometry.userData.maStlDywidagLengthMm = barBox.max.y - barBox.min.y;
+                            }
                         }
                         geometry.computeVertexNormals();
                         const mesh = new THREE.Mesh(geometry, maStlDesing2GetAtk60UnionMaterial());
@@ -6293,7 +6464,7 @@ function bootMasterArticleDetailsStlViewer() {
                     unionClone.quaternion.copy(qYaw).multiply(qBase);
                     if (elementCode === '1850164') {
                         // 90° en el alzado, eje frontal, hacia el perfil.
-                        // Casi 120 mm más hacia el muro, hasta el taladro.
+                        // La profundidad es la del resto: cara del muro + 120 mm.
                         const faceOut = new THREE.Vector3(
                             Number.isFinite(unx) ? unx : 0,
                             0,
@@ -6306,7 +6477,6 @@ function bootMasterArticleDetailsStlViewer() {
                             faceOut,
                             atPanelEnd ? Math.PI * 0.5 : -Math.PI * 0.5);
                         unionClone.quaternion.premultiply(qFront);
-                        unionClone.position.addScaledVector(faceOut, -240);
                     }
                     if (elementCode === '10000221' || elementCode === '10000221B') {
                         const qReverse = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
@@ -6320,11 +6490,41 @@ function bootMasterArticleDetailsStlViewer() {
                             }
                         });
                     }
-                    if (elementCode === '1850162' || elementCode === '1850163' || elementCode === '1850164') {
+                    if (elementCode === '4120000042') {
+                        maStlDesing2PaintBracketTube(unionClone);
+                    } else if (elementCode === '1850162' || elementCode === '1850163' || elementCode === '1850164') {
                         const rigidMat = maStlDesing2GetAtk60RigidMaterial();
                         unionClone.traverse(function (obj) {
                             if (obj && obj.isMesh) obj.material = rigidMat;
                         });
+                    }
+                    const paintColor = item.Color != null ? String(item.Color).toLowerCase() : '';
+                    if (paintColor === 'prop' || paintColor === 'prop-inner') {
+                        const propMat = paintColor === 'prop-inner'
+                            ? maStlDesing2GetAtk60PropInnerMaterial()
+                            : maStlDesing2GetAtk60PropMaterial();
+                        unionClone.traverse(function (obj) {
+                            if (obj && obj.isMesh) obj.material = propMat;
+                        });
+                    }
+                    if (elementCode.indexOf('Tablon') >= 0 || paintColor === 'wood') {
+                        const woodMat = maStlDesing2GetAtk60WoodMaterial();
+                        unionClone.traverse(function (obj) {
+                            if (obj && obj.isMesh) obj.material = woodMat;
+                        });
+                    }
+                    if (/^230\d{3}$/.test(elementCode)) {
+                        let barLen = 0;
+                        unionClone.traverse(function (obj) {
+                            const stored = obj && obj.geometry && obj.geometry.userData
+                                ? obj.geometry.userData.maStlDywidagLengthMm
+                                : 0;
+                            if (stored > barLen) barLen = stored;
+                        });
+                        const lengthMm = parseInt(elementCode.substring(3), 10) * 10;
+                        if (barLen > 1 && lengthMm > 0) {
+                            unionClone.scale.set(1, lengthMm / barLen, 1);
+                        }
                     }
                     unionClone.position.set(x, y, z);
                     unionClone.userData = {
@@ -6360,9 +6560,18 @@ function bootMasterArticleDetailsStlViewer() {
                 const size = new THREE.Vector3();
                 box.getSize(size);
                 if (size.y > 1e-6 && size.x > 1e-6 && size.z > 1e-6) {
-                    // No estirar ancho: la modulación la resuelve orientación de pieza + escala uniforme por altura.
-                    const s = pieceHeightMm / size.y;
-                    clone.scale.setScalar(s);
+                    if (isTumbado) {
+                        // Tras Rz(-90) el canto corto está en Y y el largo en X.
+                        // El largo tiene que medir el ancho de la pieza: si se escala
+                        // solo por altura, el taladro del final no cae en ancho-550.
+                        clone.scale.set(
+                            pieceHeightMm / size.y,
+                            pieceWidthMm / size.x,
+                            pieceHeightMm / size.y);
+                    } else {
+                        const s = pieceHeightMm / size.y;
+                        clone.scale.setScalar(s);
+                    }
                 }
 
                 if (useStrictPose) {

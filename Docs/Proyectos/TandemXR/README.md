@@ -14,11 +14,13 @@ Cliente XR de Tandem: interactuar con diseños de encofrado en **gafas VR** y **
 
 ## Empezar (app instalable)
 
-1. Instalar **Unity Hub** + **Unity 2022.3 LTS** + módulo **Android**
-2. Abrir `C:\00_Tandem2026\TandemXR-Unity\` en Unity Hub
-3. Arrancar **Desing** (Visual Studio F5)
-4. Probar API: `https://localhost:44384/TandemXrApi/Manifest?designId=1&offerId=1`
-5. Seguir [TandemXR-Unity/README.md](../../TandemXR-Unity/README.md)
+1. Instalar **Unity Hub** + **Unity 2022.3.62f3** (LTS) + módulo **Android**
+2. Activar licencia **Personal** en el Hub
+3. **Importar** `C:\00_Tandem2026\TandemXR-Unity\` (ya es proyecto reconocible)
+4. En Unity: menú **TandemXR → Setup escena principal**
+5. Arrancar **Desing** (Visual Studio F5)
+6. Probar API: `https://localhost:44384/TandemXrApi/Manifest?designId=1&offerId=1`
+7. Detalle operativo: [TandemXR-Unity/README.md](../../TandemXR-Unity/README.md)
 
 ---
 

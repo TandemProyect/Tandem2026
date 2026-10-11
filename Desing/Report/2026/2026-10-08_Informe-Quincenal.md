@@ -201,15 +201,29 @@ Cursor, agente Encofrado ATK-60.
 
 - Placas (tuercas) a la altura del rigidizador, sumando el ancho de la pieza universal. El desplazamiento de elevación se corrige hasta dejar los tirantes como en la primera implementación. El fallo que queda es la placa.
 - Grapa regulable de remate de madera (`10000221`). Si va la regulable, no va la fija. El sentido vertical se acepta. El horizontal no engancha los paneles.
-- En planta, gancho y placa se habían ido el doble. La placa se rehace cambiando el origen del STL. El gancho `1850164` se gira en alzado hacia el perfil. El de la izquierda se acepta. El de la derecha puede necesitar el simétrico.
+- En planta, gancho y placa se habían ido el doble. La placa se rehace cambiando el origen del STL. Ese día se llamó tirante al gancho `1850164`. El tirante de verdad se cierra en el apartado de más abajo.
 - Al cierre, el usuario lo deja así: el rigidizador y la placa se meten en el panel, la grapa general va desplazada y el panel de 0,30 × 2,70 m también. La posición es general, no de una sola pieza.
 - Se pide un agente nuevo solo para la posición, con documentación. Queda `.cursor/agents/atk60-posicion-uniones.md` y `HANDOVER-2026-10-08-ATK60-Posicion-Uniones.md`. Diseño de referencia: 10002.
 
 Visual Studio Code, por la mañana, sigue FreeCAD hasta acercarlo a ZWCAD (formularios MVC). Por la tarde se deja para después. El resumen de agentes de septiembre y octubre está en `Docs/Proyectos/Plugins-CAD/RESUMEN-2026-09-10-Trabajo-Agentes.md`.
 
+## Inserción de tirantes en Desing
+
+Cerrado el 9 de octubre de 2026. **2 h 40 min** (de 9:14 a 11:52), en Cursor.
+
+El 7 y el 8 se llamó tirante al gancho `1850164`. No lo es: ese gancho sigue sin entrar en el taladro y queda en el frente de uniones. El tirante es la placa en cada cara del panel y la barra Dywidag que las atraviesa. Diseño de referencia: 10002. El detalle está en `Docs/Proyectos/Plugins-CAD/HANDOVER-2026-10-09-ATK60-Tirantes.md`.
+
+- Placa `10443020` en las dos caras, en el agujero del panel, no en la junta. El agujero está a 43,7 mm del canto. Se usa el de la izquierda de cada panel vertical y, en el último canto libre, también el de la derecha. Alturas: 550 mm desde pie y cabeza en 2,40 y 2,70; 350 mm en 1,20.
+- Tumbado sobre un vertical: una fila junto a cada canto largo. Dos tumbados seguidos (por ejemplo 0,45 y encima 0,30): una sola fila, en la junta, puesta en el de encima. La placa de ala `1920894` y la tuerca `7238001` solo van en la fila baja del tumbado que arranca en el suelo.
+- El punto de inserción de la placa es la coordenada del muro, con su rotación, más 120 mm hacia el exterior. El origen del STL es el punto rojo, en el centro de la cara cuadrada. Esa misma suma queda como regla para el resto de artículos.
+- La barra `dywidag.stl` va en el mismo agujero. Su origen es el centro de la barra y cae en el centro del muro, para atravesar las dos placas. La longitud es el ancho del muro más 240 mm de los dos paneles, más 150 mm de rosca y 100 mm de holgura, al alza de 100 mm, entre 500 y 2500. El código es `230` y la longitud en centímetros (`230070` es la de 700 mm). Un muro de 200 mm lleva esa de 700 mm.
+- No se copiaron los desplazamientos de planta del generador antiguo.
+
+El apartado queda cerrado. Grapa, rigidizador, gancho y el panel de 0,30 × 2,70 m siguen con la posición abierta.
+
 ## Dónde está cada frente
 
-| Frente | Quién lo llevó | Al 8 de octubre |
+| Frente | Quién lo llevó | En qué quedó |
 |--------|----------------|-----------------|
 | Mapa y escaneo | Cursor, 5–6 ago | Edificio seleccionable, catastro de ejemplo e IFC de muestra. XR pasado a la rama de trabajo |
 | Muro recto ATK-60 | Visual Studio Code y Cursor, 8 sep | Modulaciones, remate penúltimo y cotas horizontales. La cota vertical quedó a medias |
@@ -218,15 +232,15 @@ Visual Studio Code, por la mañana, sigue FreeCAD hasta acercarlo a ZWCAD (formu
 | BricsCAD y Revit | Cursor, 24 sep | Misma base que AutoCAD ese día. No son el camino de la semana del 6 al 8 |
 | ZWCAD | Cursor, 7 oct | El plugin reciente, para poder presentar sin la licencia de AutoCAD |
 | Desing_2, artículos a mano | Cursor, 5–7 oct | Se pintan. El reflejo y el giro al abrir no quedaron confirmados |
-| Uniones | Cursor, 7–8 oct | Grapa, rigidizador, placa y gancho insertados. La posición no está cerrada |
+| Uniones y tirantes | Cursor, 7–9 oct | Tirantes cerrados el 9 oct (2 h 40 min): placas y barra Dywidag. Grapa, rigidizador, gancho y panel 0,30 × 2,70 siguen sin posición cerrada |
 | FreeCAD | Visual Studio Code, 6–8 oct | Workbench, piezas `.FCStd` y paletas MVC a medias |
 | Ayuda en vídeo | Visual Studio Code, 24 sep | Ficha y narración de dibujar muro en planta |
 
-## Abierto del 9 al 15 de octubre
+## Abierto al cierre (pasa al informe 02)
 
 1. Posición de las uniones y del panel de 0,30 × 2,70 m. Una familia cada vez. El agente de posición ya está creado.
-2. Gancho dentro del taladro. El giro de la izquierda está aceptado. El de la derecha puede pedir el simétrico.
-3. Grapa regulable en horizontal, cuando el gancho y la placa estén fuera del panel.
+2. Gancho `1850164` dentro del taladro. No es el tirante. El giro del inicio del panel está aceptado. El del final puede pedir el simétrico.
+3. Grapa regulable en horizontal. El tirante ya está en su agujero.
 4. Inferior derecho del panel a mano, sin tocar el inferior izquierdo.
 5. Confirmar en Desing_2 que los paneles a mano coinciden con AutoCAD al reabrir.
 6. Crear en Azure la US «Encofrar manualmente». El 3 de octubre se pidió y el panel no la aceptó.
@@ -234,8 +248,10 @@ Visual Studio Code, por la mañana, sigue FreeCAD hasta acercarlo a ZWCAD (formu
 
 ## Siguientes cortes
 
-| Informe | Periodo | Día de corte |
-|---------|---------|--------------|
-| 01, este | 5 ago – 8 oct 2026 | 8 oct 2026 |
-| 02 | 9 oct – 15 oct 2026 | 15 oct 2026 |
-| 03 | 16 oct – 31 oct 2026 | 31 oct 2026 |
+| Informe | Periodo | Review / corte | Siguiente informe |
+|---------|---------|----------------|-------------------|
+| 01, este | 5 ago – 8 oct 2026 | 8 oct 2026 | — |
+| 02 | 9 oct – 22 oct 2026 | 22 oct 2026 | **23 oct** (se crea solo) |
+| 03 | 23 oct – … | según el LEEME | — |
+
+El trabajo del 9 de octubre en adelante va en `2026-10-22_Informe-Quincenal.md` (informe 02). No reescribir este 01.

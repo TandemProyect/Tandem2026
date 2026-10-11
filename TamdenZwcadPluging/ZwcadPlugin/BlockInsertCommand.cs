@@ -216,11 +216,15 @@ namespace ZwcadPlugin
                     Vector3d tDir;
                     WallAlignedAxes(tf, out wDir, out hDir, out tDir);
                     var wallId = WallIdFromInsert(br);
+                    var localFactor = SnapLocalFactor(tr, br, snaps);
                     foreach (var snap in snaps)
                     {
+                        var local = snap.LocalMeters;
+                        if (localFactor > 1.5)
+                            local = new Point3d(local.X * localFactor, local.Y * localFactor, local.Z * localFactor);
                         pts.Add(new HostVertex
                         {
-                            World = snap.LocalMeters.TransformBy(tf),
+                            World = local.TransformBy(tf),
                             Id = snap.Id,
                             WidthDir = wDir,
                             HeightDir = hDir,
@@ -348,6 +352,104 @@ namespace ZwcadPlugin
             btr.XData = new ResultBuffer(
                 new TypedValue((int)DxfCode.ExtendedDataRegAppName, ScaleApp),
                 new TypedValue((int)DxfCode.ExtendedDataReal, factor));
+        }
+
+        /// <summary>
+        /// AutoCAD deja el bloque en metros y la inserción a escala de dibujo.
+        /// ZWCAD graba el bloque en milímetros y la inserción a escala 1.
+        /// Las referencias del catálogo siguen en metros: hay que pasarlas
+        /// a las unidades del bloque antes de BlockTransform, igual que hace
+        /// la escala de inserción de AutoCAD.
+        /// </summary>
+        private static double SnapLocalFactor(Transaction tr, BlockReference br, IList<Atk60Snap> snaps)
+        {
+            var insertScale = Math.Abs(br.ScaleFactors.X);
+            if (insertScale > 1.5)
+                return 1;
+            var bake = ReadBakeFactor(tr, br.BlockTableRecord);
+            if (bake > 1.5)
+                return bake;
+            var meter = CadUnits.FromMillimeters(1000.0);
+            if (meter < 1.5)
+                return 1;
+            return DefinitionExceedsSnaps(tr, br.BlockTableRecord, snaps, meter) ? meter : 1;
+        }
+
+        private static bool DefinitionExceedsSnaps(
+            Transaction tr, ObjectId blockId, IList<Atk60Snap> snaps, double meter)
+        {
+            double maxSnap = 0;
+            if (snaps != null)
+            {
+                foreach (var snap in snaps)
+                {
+                    maxSnap = Math.Max(maxSnap, Math.Abs(snap.LocalMeters.X));
+                    maxSnap = Math.Max(maxSnap, Math.Abs(snap.LocalMeters.Y));
+                    maxSnap = Math.Max(maxSnap, Math.Abs(snap.LocalMeters.Z));
+                }
+            }
+            if (maxSnap < 1e-6)
+                return false;
+            var btr = tr.GetObject(blockId, OpenMode.ForRead) as BlockTableRecord;
+            if (btr == null)
+                return false;
+            var any = false;
+            var ext = new Extents3d();
+            foreach (ObjectId id in btr)
+            {
+                var ent = tr.GetObject(id, OpenMode.ForRead) as Entity;
+                if (ent == null || ent.IsErased)
+                    continue;
+                try
+                {
+                    var ge = ent.GeometricExtents;
+                    if (!any)
+                    {
+                        ext = ge;
+                        any = true;
+                    }
+                    else
+                        ext.AddExtents(ge);
+                }
+                catch
+                {
+                }
+            }
+            if (!any)
+                return false;
+            var size = Math.Max(
+                Math.Abs(ext.MaxPoint.X - ext.MinPoint.X),
+                Math.Max(
+                    Math.Abs(ext.MaxPoint.Y - ext.MinPoint.Y),
+                    Math.Abs(ext.MaxPoint.Z - ext.MinPoint.Z)));
+            return size > maxSnap * meter * 0.5;
+        }
+
+        private static double ReadBakeFactor(Transaction tr, ObjectId blockId)
+        {
+            var btr = tr.GetObject(blockId, OpenMode.ForRead) as BlockTableRecord;
+            if (btr == null)
+                return 1;
+            ResultBuffer xd;
+            try
+            {
+                xd = btr.GetXDataForApplication(ScaleApp);
+            }
+            catch
+            {
+                xd = null;
+            }
+            if (xd == null)
+                return 1;
+            foreach (var t in xd.AsArray())
+            {
+                if (t.TypeCode != (int)DxfCode.ExtendedDataReal)
+                    continue;
+                var v = Convert.ToDouble(t.Value, CultureInfo.InvariantCulture);
+                if (v > 1.5)
+                    return v;
+            }
+            return 1;
         }
 
         private static bool IsBaked(BlockTableRecord btr, double factor)

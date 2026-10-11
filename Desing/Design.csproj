@@ -420,6 +420,16 @@
     <Compile Include="Repositories\RepositoryAtk60\ModulosATK60\ModuloAtk60ElementBuilders.cs" />
     <Compile Include="Repositories\RepositoryAtk60\ModulosATK60\Modulo270HeightPanelCatalog.cs" />
     <Compile Include="Repositories\RepositoryAtk60\ModulosATK60\Modulo270PanelElementGenerator.cs" />
+    <Compile Include="Repositories\RepositoryAtk60\ModulosATK60\Modulo270WorkBracketGenerator.cs" />
+    <Compile Include="Repositories\Repository_Desing_2\Atk60\Atk60FaceInsertion.cs" />
+    <Compile Include="Repositories\Repository_Desing_2\Atk60\Atk60ModuleAssembly.cs" />
+    <Compile Include="Repositories\Repository_Desing_2\Atk60\EndFiller.cs" />
+    <Compile Include="Repositories\Repository_Desing_2\Atk60\FormTie.cs" />
+    <Compile Include="Repositories\Repository_Desing_2\Atk60\PanelClamp.cs" />
+    <Compile Include="Repositories\Repository_Desing_2\Atk60\PanelFormwork.cs" />
+    <Compile Include="Repositories\Repository_Desing_2\Atk60\PanelStiffener.cs" />
+    <Compile Include="Repositories\Repository_Desing_2\Atk60\PushPullProp.cs" />
+    <Compile Include="Repositories\Repository_Desing_2\Atk60\WorkingBracket.cs" />
     <Compile Include="Repositories\RepositoryCommun\FormworkDtos.cs" />
     <Compile Include="Repositories\RepositoryCommun\FormworkJsonCommonRepository.cs" />
     <Compile Include="Repositories\RepositoryDesing2\DesignWallRepository.cs" />
@@ -2537,6 +2547,10 @@
     <None Include="Report\LEEME.md" />
     <None Include="Report\2026\2026-10-08_Informe-Quincenal.md" />
     <None Include="Report\2026\2026-10-08_Informe-Quincenal.pdf" />
+    <None Include="Report\2026\2026-10-22_Informe-Quincenal.md" />
+    <None Include="Report\2026\2026-10-22_Informe-Quincenal.pdf" />
+    <None Include="Report\2026\2026-T4_Informe-Trimestral.md" />
+    <None Include="Report\2026\2026-T4_Informe-Trimestral.pdf" />
     <None Include="Properties\PublishProfiles\atenko Develop.pubxml" />
     <None Include="Properties\PublishProfiles\atenko.net.pubxml" />
     <None Include="Properties\PublishProfiles\Athosstaging.pubxml" />

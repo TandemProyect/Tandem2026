@@ -1,5 +1,6 @@
 using Desing.Repositories.RepositoryAtk60.ModulosATK60;
 using Desing.Repositories.RepositoryCommun;
+using Desing.Repositories.Repository_Desing_2.Atk60;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -502,6 +503,7 @@ namespace Desing.Repositories.RepositoryAtk60
                 .GroupBy(a => a.IdWall, StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
+            var protectionWoodPending = true;
             foreach (var moduloWall in modulos)
             {
                 if (moduloWall == null || string.IsNullOrWhiteSpace(moduloWall.IdWall))
@@ -529,6 +531,7 @@ namespace Desing.Repositories.RepositoryAtk60
 
                 var remateMm = Math.Round(moduloWall.M_Remate * 1000d, 3);
                 var chunks = BuildAtk60AlongChunks(moduloWall);
+                var stiffenerAlongMm = new List<double>();
                 var cursorMm = 0d;
                 var indexOffset = 0;
                 for (var ci = 0; ci < chunks.Count; ci++)
@@ -540,6 +543,17 @@ namespace Desing.Repositories.RepositoryAtk60
                             Modulo270PanelElementGenerator.BuildRemate(wall, anchor, remateMm, cursorMm));
                         cursorMm += remateMm;
                         continue;
+                    }
+
+                    var moduleLengthMm = (double)chunk.Builder.ModuleLengthMm;
+                    var alongLocal = PanelStiffener.AlongLocals(moduleLengthMm);
+                    for (var mi = 0; mi < chunk.Count; mi++)
+                    {
+                        var originMm = cursorMm + (mi * moduleLengthMm);
+                        for (var li = 0; li < alongLocal.Length; li++)
+                        {
+                            stiffenerAlongMm.Add(originMm + alongLocal[li]);
+                        }
                     }
 
                     var remateFollows = ci + 1 < chunks.Count && chunks[ci + 1].Builder == null;
@@ -557,6 +571,10 @@ namespace Desing.Repositories.RepositoryAtk60
                     cursorMm += chunk.Count * (double)chunk.Builder.ModuleLengthMm;
                     indexOffset += chunk.Count;
                 }
+
+                outElements.AddRange(
+                    Modulo270WorkBracketGenerator.Build(wall, anchor, cursorMm, protectionWoodPending, stiffenerAlongMm));
+                protectionWoodPending = false;
             }
 
             return outElements;
