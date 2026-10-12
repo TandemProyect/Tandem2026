@@ -33,7 +33,9 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double faceSign,
             double wallHeightMm,
             double wallThicknessMm,
-            double wallLengthMm)
+            double wallLengthMm,
+            bool showOutside = true,
+            bool showInside = true)
         {
             var has300 = false;
             var has450 = false;
@@ -100,7 +102,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     moduleBaseAlongMm, alongLocal,
                     seam.Key, yawRad, ux, uz, faceSign,
                     wallHeightMm, wallThicknessMm, wallLengthMm,
-                    ShortCode, ShortPath);
+                    ShortCode, ShortPath, showOutside, showInside);
             }
 
             if (pair300And450 && stripTop > stripBottom)
@@ -113,7 +115,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     moduleBaseAlongMm, alongLocal,
                     center, yawRad, ux, uz, faceSign,
                     wallHeightMm, wallThicknessMm, wallLengthMm,
-                    LongCode, LongPath);
+                    LongCode, LongPath, showOutside, showInside);
             }
         }
 
@@ -146,7 +148,9 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double wallThicknessMm,
             double wallLengthMm,
             string code,
-            string path)
+            string path,
+            bool showOutside,
+            bool showInside)
         {
             for (var ai = 0; ai < alongLocal.Length; ai++)
             {
@@ -160,7 +164,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     outElements, anchor, idWall, path,
                     alongMm, upMm, yawRad, ux, uz, faceSign,
                     wallHeightMm, wallThicknessMm, wallLengthMm,
-                    Atk60FaceInsertion.PanelFaceMm, 0d, code, "blue");
+                    Atk60FaceInsertion.PanelFaceMm, 0d, code, "blue",
+                    false, showOutside, showInside);
 
                 var nutOffset = code == LongCode ? 300d : 200d;
                 var nutHeights = new[] { upMm - nutOffset, upMm + nutOffset };
@@ -172,12 +177,13 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                         alongMm, nutHeights[ni], yawRad, ux, uz, faceSign,
                         wallHeightMm, wallThicknessMm, wallLengthMm,
                         Atk60FaceInsertion.PanelFaceMm, 0d, HookCode, "blue",
-                        atPanelEnd);
+                        atPanelEnd, showOutside, showInside);
                     Atk60FaceInsertion.BothFaces(
                         outElements, anchor, idWall, FollowerPlatePath,
                         alongMm, nutHeights[ni], yawRad, ux, uz, faceSign,
                         wallHeightMm, wallThicknessMm, wallLengthMm,
-                        Atk60FaceInsertion.PanelFaceMm, 0d, FollowerPlateCode, "zinc");
+                        Atk60FaceInsertion.PanelFaceMm, 0d, FollowerPlateCode, "zinc",
+                        false, showOutside, showInside);
                 }
             }
         }

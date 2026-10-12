@@ -27,9 +27,19 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double faceSign,
             double wallHeightMm,
             double wallThicknessMm,
-            double wallLengthMm)
+            double wallLengthMm,
+            AttributesList attrs)
         {
             if (outElements == null || anchor == null || wallHeightMm < MinWallHeightMm)
+            {
+                return;
+            }
+
+            var upperOutside = Atk60FaceInsertion.FlagOn(attrs != null ? attrs._CHeckPropOutside : null);
+            var upperInside = Atk60FaceInsertion.FlagOn(attrs != null ? attrs._CHeckPropInside : null);
+            var lowerOutside = Atk60FaceInsertion.FlagOn(attrs != null ? attrs._CHeckPropOutsideInf : null);
+            var lowerInside = Atk60FaceInsertion.FlagOn(attrs != null ? attrs._CHeckPropInsideInf : null);
+            if (!upperOutside && !upperInside && !lowerOutside && !lowerInside)
             {
                 return;
             }
@@ -57,11 +67,20 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
 
                 for (var pi = 0; pi < parts.Count; pi++)
                 {
+                    var part = parts[pi];
+                    var showOutside = part.Lower ? lowerOutside : upperOutside;
+                    var showInside = part.Lower ? lowerInside : upperInside;
+                    if (!showOutside && !showInside)
+                    {
+                        continue;
+                    }
+
                     AddBothFaces(
                         outElements, anchor, idWall,
-                        parts[pi].Path, parts[pi].Code, parts[pi].Color,
+                        part.Path, part.Code, part.Color,
                         alongMm, yawRad, ux, uz, faceSign,
-                        wallHeightMm, wallThicknessMm, wallLengthMm);
+                        wallHeightMm, wallThicknessMm, wallLengthMm,
+                        showOutside, showInside);
                 }
             }
         }
@@ -103,6 +122,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             public string Path;
             public string Code;
             public string Color;
+            public bool Lower;
         }
 
         /// <summary>
@@ -222,18 +242,18 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             }
 
             var parts = new List<PropPart>();
-            AddPart(parts, bodyFile, bodyCode, "prop");
-            AddPart(parts, innerFile, innerCode, "prop-inner");
+            AddPart(parts, bodyFile, bodyCode, "prop", false);
+            AddPart(parts, innerFile, innerCode, "prop-inner", false);
             if (heightMm > LowerPartFromMm)
             {
-                AddPart(parts, lowerFile, lowerCode, "prop");
-                AddPart(parts, lowerInnerFile, lowerInnerCode, "prop-inner");
+                AddPart(parts, lowerFile, lowerCode, "prop", true);
+                AddPart(parts, lowerInnerFile, lowerInnerCode, "prop-inner", true);
             }
 
             return parts;
         }
 
-        private static void AddPart(List<PropPart> parts, string file, string code, string color)
+        private static void AddPart(List<PropPart> parts, string file, string code, string color, bool lower)
         {
             if (string.IsNullOrWhiteSpace(file) || string.IsNullOrWhiteSpace(code))
             {
@@ -245,6 +265,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 Path = "../../Content/DesignTools/Stl/ATK60/" + file,
                 Code = code,
                 Color = color,
+                Lower = lower,
             });
         }
 
@@ -262,23 +283,33 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double faceSign,
             double wallHeightMm,
             double wallThicknessMm,
-            double wallLengthMm)
+            double wallLengthMm,
+            bool showOutside,
+            bool showInside)
         {
             var jointX = anchor.X + (ux * alongMm);
             var jointZ = anchor.Z + (uz * alongMm);
-            AddFace(
-                outElements, anchor, idWall, path, code, color,
-                jointX + (anchor.NormalX * PanelFaceMm),
-                anchor.Y,
-                jointZ + (anchor.NormalZ * PanelFaceMm),
-                -yawRad + (faceSign < 0d ? Math.PI : 0d),
-                anchor.NormalX,
-                anchor.NormalZ,
-                faceSign,
-                alongMm,
-                wallHeightMm,
-                wallThicknessMm,
-                wallLengthMm);
+            if (showOutside)
+            {
+                AddFace(
+                    outElements, anchor, idWall, path, code, color,
+                    jointX + (anchor.NormalX * PanelFaceMm),
+                    anchor.Y,
+                    jointZ + (anchor.NormalZ * PanelFaceMm),
+                    -yawRad + (faceSign < 0d ? Math.PI : 0d),
+                    anchor.NormalX,
+                    anchor.NormalZ,
+                    faceSign,
+                    alongMm,
+                    wallHeightMm,
+                    wallThicknessMm,
+                    wallLengthMm);
+            }
+
+            if (!showInside)
+            {
+                return;
+            }
 
             var oppositeX = jointX - (anchor.NormalX * wallThicknessMm);
             var oppositeZ = jointZ - (anchor.NormalZ * wallThicknessMm);

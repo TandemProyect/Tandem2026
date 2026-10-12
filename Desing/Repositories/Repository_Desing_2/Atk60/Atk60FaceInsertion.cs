@@ -31,13 +31,17 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double rotZ,
             string elementCode,
             string color,
-            bool atPanelEnd = false)
+            bool atPanelEnd = false,
+            bool showPrimary = true,
+            bool showOpposite = true)
         {
             var jointX = anchor.X + (ux * alongMm);
             var jointY = anchor.Y + upMm;
             var jointZ = anchor.Z + (uz * alongMm);
             var primaryYaw = -yawRad + (faceSign < 0d ? Math.PI : 0d);
-            OneFace(
+            if (showPrimary)
+            {
+                OneFace(
                 outElements, anchor, idWall, unionPath,
                 jointX + (anchor.NormalX * faceGapMm),
                 jointY,
@@ -56,6 +60,12 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 elementCode,
                 color,
                 atPanelEnd);
+            }
+
+            if (!showOpposite)
+            {
+                return;
+            }
 
             var oppositeX = jointX - (anchor.NormalX * wallThicknessMm);
             var oppositeZ = jointZ - (anchor.NormalZ * wallThicknessMm);
@@ -149,6 +159,30 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         {
             var l = ToSceneMm(attrs != null ? (attrs._Datalong ?? attrs.ExtraValueAsDouble("_Datalong")) : null);
             return l > 1d ? Math.Abs(l) : 0d;
+        }
+
+        /// <summary>Un check ausente cuenta como marcado.</summary>
+        internal static bool FlagOn(bool? flag)
+        {
+            return !flag.HasValue || flag.Value;
+        }
+
+        /// <summary>
+        /// Panel de 0,75 m regulable. Si el muro no lo pide, el hueco se parte en 0,30 + 0,45.
+        /// </summary>
+        internal static bool UseAdjustable750(AttributesList attrs)
+        {
+            if (attrs == null)
+            {
+                return true;
+            }
+
+            if (attrs._CHeck750R.HasValue)
+            {
+                return attrs._CHeck750R.Value;
+            }
+
+            return FlagOn(attrs._IsUniversalPanel);
         }
 
         internal static double NormalizeYawToRad(double yaw)

@@ -15,6 +15,20 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
 
         internal static Modulo270Layout ResolveForModule(double wallHeightMm, int moduleLengthMm)
         {
+            return ResolveForModule(wallHeightMm, moduleLengthMm, true);
+        }
+
+        internal static Modulo270Layout ResolveForModule(double wallHeightMm, int moduleLengthMm, bool useAdjustable750)
+        {
+            return ResolveForModule(wallHeightMm, moduleLengthMm, useAdjustable750, true);
+        }
+
+        internal static Modulo270Layout ResolveForModule(
+            double wallHeightMm,
+            int moduleLengthMm,
+            bool useAdjustable750,
+            bool verticalPanels)
+        {
             if (moduleLengthMm < 300)
             {
                 moduleLengthMm = 2700;
@@ -23,10 +37,17 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
             var target = NormalizeTargetHeightMm(wallHeightMm);
 
             // Modulos estrechos (0,30..0,90): solo paneles verticales.
-            // Ejemplo H=3,00 y modulo 0,45: 2,70x0,45 + 1,20x0,45. Sin tumbados.
-            if (IsNarrowLengthModule(moduleLengthMm))
+            // El de 0,75 no entra si el muro no usa el regulable: se parte en 0,45 + 0,30.
+            if (IsNarrowLengthModule(moduleLengthMm) && (useAdjustable750 || moduleLengthMm != 750))
             {
                 return BuildNarrowModuleVerticalStack((int)target, moduleLengthMm);
+            }
+
+            // Sin paneles verticales, el 2,70, el 2,40 y el 1,20 van enteros tumbados.
+            // El resto de módulos no cambia.
+            if (!verticalPanels && IsTumbadoWhenVerticalOff(moduleLengthMm))
+            {
+                return RemapLayoutToModuleLength(BuildGreedyTumbadoLayout(target), moduleLengthMm, useAdjustable750);
             }
 
             Modulo270Layout layout;
@@ -37,7 +58,14 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
                     : BuildGreedyTumbadoLayout(target);
             }
 
-            return RemapLayoutToModuleLength(layout, moduleLengthMm);
+            return RemapLayoutToModuleLength(layout, moduleLengthMm, useAdjustable750);
+        }
+
+        private static bool IsTumbadoWhenVerticalOff(int moduleLengthMm)
+        {
+            return moduleLengthMm == 2700
+                || moduleLengthMm == 2400
+                || moduleLengthMm == 1200;
         }
 
         private static bool IsNarrowLengthModule(int moduleLengthMm)
@@ -286,14 +314,14 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
             };
         }
 
-        private static Modulo270Layout RemapLayoutToModuleLength(Modulo270Layout source, int moduleLengthMm)
+        private static Modulo270Layout RemapLayoutToModuleLength(Modulo270Layout source, int moduleLengthMm, bool useAdjustable750)
         {
             if (source == null || source.Pieces == null || source.Pieces.Count == 0)
             {
                 return source;
             }
 
-            var columns = DecomposeLengthToPanelWidths(moduleLengthMm);
+            var columns = DecomposeLengthToPanelWidths(moduleLengthMm, useAdjustable750);
             if (columns.Count == 0)
             {
                 columns.Add(Math.Max(300, moduleLengthMm));
@@ -338,9 +366,11 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
             return Build(source.CatalogHeightMm, pieces.ToArray());
         }
 
-        private static List<int> DecomposeLengthToPanelWidths(int lengthMm)
+        private static List<int> DecomposeLengthToPanelWidths(int lengthMm, bool useAdjustable750)
         {
-            var options = new[] { 900, 750, 600, 450, 300 };
+            var options = useAdjustable750
+                ? new[] { 900, 750, 600, 450, 300 }
+                : new[] { 900, 600, 450, 300 };
             var columns = new List<int>();
             var remaining = Math.Max(0, lengthMm);
             for (var i = 0; i < options.Length && remaining >= 299; i++)

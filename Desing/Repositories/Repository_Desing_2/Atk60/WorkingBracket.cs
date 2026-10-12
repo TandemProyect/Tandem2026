@@ -55,16 +55,22 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 ? wall.WallId
                 : (!string.IsNullOrWhiteSpace(wall.Id) ? wall.Id : wall.LineId);
             var upMm = wallHeightMm - BracketBelowTopMm;
+            var showOutside = Atk60FaceInsertion.FlagOn(attrs != null ? attrs._CHeckBracketOutside : null);
+            var showInside = Atk60FaceInsertion.FlagOn(attrs != null ? attrs._CHeckBracketInside : null);
 
-            foreach (var alongMm in BracketStations(formedLengthMm, stiffenerAlongMm))
+            if (showOutside || showInside)
             {
-                AddBothFaces(
-                    outElements, anchor, idWall, BracketPath, BracketCode, "blue",
-                    alongMm, upMm, yawRad, ux, uz, faceSign,
-                    wallHeightMm, wallThicknessMm, formedLengthMm, PanelFaceMm);
+                foreach (var alongMm in BracketStations(formedLengthMm, stiffenerAlongMm))
+                {
+                    AddBothFaces(
+                        outElements, anchor, idWall, BracketPath, BracketCode, "blue",
+                        alongMm, upMm, yawRad, ux, uz, faceSign,
+                        wallHeightMm, wallThicknessMm, formedLengthMm, PanelFaceMm,
+                        showOutside, showInside);
+                }
             }
 
-            if (protectionWood && formedLengthMm >= BayMm)
+            if (protectionWood && showOutside && formedLengthMm >= BayMm)
             {
                 AddProtectionWood(
                     outElements, anchor, idWall,
@@ -227,12 +233,22 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double wallHeightMm,
             double wallThicknessMm,
             double wallLengthMm,
-            double outMm)
+            double outMm,
+            bool showOutside = true,
+            bool showInside = true)
         {
+            if (showOutside)
+            {
             AddPrimaryFace(
                 outElements, anchor, idWall, path, code, color,
                 alongMm, upMm, yawRad, ux, uz, faceSign,
                 wallHeightMm, wallThicknessMm, wallLengthMm, outMm);
+            }
+
+            if (!showInside)
+            {
+                return;
+            }
 
             var jointX = anchor.X + (ux * alongMm);
             var jointZ = anchor.Z + (uz * alongMm);

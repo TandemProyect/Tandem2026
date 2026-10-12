@@ -105,11 +105,13 @@ namespace Desing.Repositories.RepositoryAtk60
 
                 int n270;
                 int remateMm;
-                var fillCounts = PackAtk60LengthMm(longMm, out n270, out remateMm);
+                var useAdjustable750 = Atk60FaceInsertion.UseAdjustable750(item.Attributes);
+                var fillSizes = Atk60FillSizesMm(useAdjustable750);
+                var fillCounts = PackAtk60LengthMm(longMm, fillSizes, out n270, out remateMm);
                 AddModuleCount(module, 2.70, n270);
-                for (var i = 0; i < Atk60FillModuleMm.Length; i++)
+                for (var i = 0; i < fillSizes.Length; i++)
                 {
-                    AddModuleCount(module, Atk60FillModuleMm[i] / 1000.0, fillCounts[i]);
+                    AddModuleCount(module, fillSizes[i] / 1000.0, fillCounts[i]);
                 }
 
                 module.M_Remate = Math.Round(remateMm / 1000.0, 3);
@@ -1076,13 +1078,23 @@ namespace Desing.Repositories.RepositoryAtk60
         /// Despiece longitudinal para cualquier L: maximos 2,70 y relleno
         /// 2,40..0,30 de modo que el remate quede siempre en 0..149 mm.
         /// </summary>
-        private static int[] PackAtk60LengthMm(int longMm, out int n270, out int remateMm)
+        private static int[] Atk60FillSizesMm(bool useAdjustable750)
+        {
+            if (useAdjustable750)
+            {
+                return Atk60FillModuleMm;
+            }
+
+            return new[] { 2400, 1200, 900, 600, 450, 300 };
+        }
+
+        private static int[] PackAtk60LengthMm(int longMm, int[] fillSizes, out int n270, out int remateMm)
         {
             n270 = longMm / Atk60BaseModuleMm;
             var remainingMm = longMm - (n270 * Atk60BaseModuleMm);
-            var fillCounts = new int[Atk60FillModuleMm.Length];
+            var fillCounts = new int[fillSizes.Length];
 
-            while (!TryFillAtk60RemainderMm(remainingMm, fillCounts, 0))
+            while (!TryFillAtk60RemainderMm(remainingMm, fillCounts, 0, fillSizes))
             {
                 if (n270 <= 0)
                 {
@@ -1102,7 +1114,7 @@ namespace Desing.Repositories.RepositoryAtk60
             remateMm = remainingMm;
             for (var i = 0; i < fillCounts.Length; i++)
             {
-                remateMm -= fillCounts[i] * Atk60FillModuleMm[i];
+                remateMm -= fillCounts[i] * fillSizes[i];
             }
 
             if (remateMm < 0)
@@ -1113,7 +1125,7 @@ namespace Desing.Repositories.RepositoryAtk60
             return fillCounts;
         }
 
-        private static bool TryFillAtk60RemainderMm(int remainingMm, int[] counts, int index)
+        private static bool TryFillAtk60RemainderMm(int remainingMm, int[] counts, int index, int[] fillSizes)
         {
             if (remainingMm <= Atk60MaxRemateMm)
             {
@@ -1125,17 +1137,17 @@ namespace Desing.Repositories.RepositoryAtk60
                 return true;
             }
 
-            if (index >= Atk60FillModuleMm.Length)
+            if (index >= fillSizes.Length)
             {
                 return false;
             }
 
-            var sizeMm = Atk60FillModuleMm[index];
+            var sizeMm = fillSizes[index];
             var maxN = remainingMm / sizeMm;
             for (var n = maxN; n >= 0; n--)
             {
                 counts[index] = n;
-                if (TryFillAtk60RemainderMm(remainingMm - (n * sizeMm), counts, index + 1))
+                if (TryFillAtk60RemainderMm(remainingMm - (n * sizeMm), counts, index + 1, fillSizes))
                 {
                     return true;
                 }

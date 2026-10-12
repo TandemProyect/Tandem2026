@@ -48,6 +48,25 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 - **Según la altura:** cuerpo y tubo interior hasta 4,95 m (`h060`…`h375` y su `_2`). De 2,26 m a 2,55 m se usa el de 2,40 m. Por encima de 1,20 m se añade la pieza de abajo (`h270Inf` o `h375Inf`). Desde 4,96 m el cuerpo es `Puntal_Tipo3`, `Tipo3-2` o `Tipo3-41`, sin tubo interior. El cuerpo va en gris y el tubo interior en gris claro.
 - **Código:** `PushPullProp`.
 
+### 4. Altura de las esquinas
+
+- **Estado:** cerrado, solucionado. **12 de octubre de 2026, 9:41–9:52.** **11 min** en el trimestral T4.
+- **Qué quedó:** con «Aplicar altura a todos los muros» marcado, las esquinas se extruyen a esa misma altura. Sin el check, la esquina no cambia.
+
+### 5. Editar muro
+
+- **Estado:** cerrado. **12 de octubre de 2026, 10:13–13:28.** **3 h 15 min** en el trimestral T4.
+- **Qué quedó:** formulario «Modificar muro» con las pestañas Muro, Configurar Tapes y Configurar Puntales. En Muro: altura aparte, y otro check que copia ménsulas, rigidizadores, paneles y puntales a todos los muros y a las esquinas. Puntales con los cuatro checks. Sin paneles verticales, los módulos de 2,70, 2,40 y 1,20 van todos tumbados.
+- **No se testeó bien.** Queda pendiente una pasada de verdad en el visor. La pestaña Tapes sigue sin hacer.
+- **Código:** visor Desing_2 y catálogo de paneles ATK-60.
+
+### 6. Salvar la configuración del muro
+
+- **Estado:** abierto. Sesión en curso desde el **12 de octubre de 2026, 13:28**.
+- **Sesión 12 oct:** inicio **13:28**. Aún sin cierre. Las horas van al trimestral T4 cuando se cierre.
+- **Qué se hace:** al volver a abrir el diseño, el muro conserva la configuración. Paneles de 0,75 en `Is_Check750R`. Paneles verticales en `Is_FormworkMode`. Ménsulas, rigidizadores y puntales ya tenían columna.
+- **Bases:** `db_a197cd_desingproducction` y `db_a197cd_desingdevelop`, en local. En develop se creó `TSql_DesignWall`. En las dos, los dos checks nacen marcados. Los muros que ya había quedan con paneles de 0,75 y paneles verticales activos, que es como se veían.
+
 ## Heredado del informe 01 (sigue abierto)
 
 1. Posición de las uniones, del panel de 0,30 × 2,70 m y de la ménsula (no cae en su agujero).
@@ -65,6 +84,9 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 | Proyecto XR | Cursor, 9–10 oct | Apartado 1 en curso desde el 10 oct, 8:16. El 9 oct, 1 h 2 min. Esqueleto Unity listo; falta licencia Hub |
 | Ménsulas de trabajo | Cursor, 11 oct | Apartado 2 cerrado. 9:22–10:39, 1 h 17 min. El agujero de la ménsula queda en el fallo de posición |
 | Puntales | Cursor, 11 oct | Apartado 3 en curso desde el 11 oct, 10:39 |
+| Altura de las esquinas | Cursor, 12 oct | Apartado 4 cerrado, solucionado. 9:41–9:52, 11 min. Con el check, las esquinas suben con los muros |
+| Editar muro | Cursor, 12 oct | Apartado 5 cerrado. 10:13–13:28, 3 h 15 min. No se testeó bien. Tapes sigue pendiente |
+| Salvar la configuración del muro | Cursor, 12 oct | Apartado 6 en curso desde el 12 oct, 13:28. Checks en producción y develop |
 
 ## Al cerrar el 22 de octubre
 

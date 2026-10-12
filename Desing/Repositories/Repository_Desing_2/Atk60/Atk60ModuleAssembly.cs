@@ -45,7 +45,10 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             var wallHeightMm = Atk60FaceInsertion.ResolveWallHeightMm(attrs);
             var wallThicknessMm = Atk60FaceInsertion.ResolveWallThicknessMm(attrs);
             var wallLengthMm = Atk60FaceInsertion.ResolveWallLengthMm(attrs);
-            var layout = Modulo270HeightPanelCatalog.ResolveForModule(wallHeightMm, (int)Math.Round(moduleLengthMm));
+            var useAdjustable750 = Atk60FaceInsertion.UseAdjustable750(attrs);
+            var verticalPanels = Atk60FaceInsertion.FlagOn(attrs != null ? attrs._CHeckTypeFormworkMode : null);
+            var layout = Modulo270HeightPanelCatalog.ResolveForModule(
+                wallHeightMm, (int)Math.Round(moduleLengthMm), useAdjustable750, verticalPanels);
             var idWall = !string.IsNullOrWhiteSpace(wall.WallId)
                 ? wall.WallId
                 : (!string.IsNullOrWhiteSpace(wall.Id) ? wall.Id : wall.LineId);
@@ -80,7 +83,9 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     outElements, layout.Pieces, anchor, idWall,
                     moduleBaseAlongMm, moduleLengthMm,
                     yawRad, ux, uz, faceSign,
-                    wallHeightMm, wallThicknessMm, wallLengthMm);
+                    wallHeightMm, wallThicknessMm, wallLengthMm,
+                    Atk60FaceInsertion.FlagOn(attrs != null ? attrs._CHeckRijiOutside : null),
+                    Atk60FaceInsertion.FlagOn(attrs != null ? attrs._CHeckRijiInside : null));
                 FormTie.Place(
                     outElements, layout, anchor,
                     moduleBaseAlongMm, moduleIndex, countInWall,
@@ -90,7 +95,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     outElements, anchor, idWall,
                     moduleBaseAlongMm, moduleLengthMm,
                     yawRad, ux, uz, faceSign,
-                    wallHeightMm, wallThicknessMm, wallLengthMm);
+                    wallHeightMm, wallThicknessMm, wallLengthMm,
+                    attrs);
             }
 
             return outElements;

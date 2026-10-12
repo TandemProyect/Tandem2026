@@ -7,9 +7,9 @@
 
 | Clase | Horas |
 |-------|-------|
-| Programación | 4 h 59 min |
+| Programación | 8 h 25 min |
 | Manual | 0 h |
-| Total | 4 h 59 min |
+| Total | 8 h 25 min |
 
 ## Programación
 
@@ -41,6 +41,24 @@
 - **Inicio:** 10:39. En curso. Las horas se cierran al salir.
 - **Qué se hace:** puntales de aplome en las dos caras, según la altura del muro.
 - **Quincenal:** `Desing/Report/2026/2026-10-22_Informe-Quincenal.md` § 3. Puntales.
+
+### 12 de octubre — Altura de las esquinas
+
+- **Horas:** 11 min (de 9:41 a 9:52).
+- **Qué se hizo:** con «Aplicar altura a todos los muros», las esquinas quedan a esa misma altura. Sin el check, no cambian.
+- **Quincenal:** `Desing/Report/2026/2026-10-22_Informe-Quincenal.md` § 4. Altura de las esquinas.
+
+### 12 de octubre — Editar muro
+
+- **Horas:** 3 h 15 min (de 10:13 a 13:28).
+- **Qué se hizo:** formulario «Modificar muro». Sin paneles verticales, los módulos de 2,70, 2,40 y 1,20 van todos tumbados. No se testeó bien. Tapes sigue pendiente.
+- **Quincenal:** `Desing/Report/2026/2026-10-22_Informe-Quincenal.md` § 5. Editar muro.
+
+### 12 de octubre — Salvar la configuración del muro
+
+- **Inicio:** 13:28. En curso. Las horas se cierran al salir.
+- **Qué se hace:** guardar en la base los checks de paneles de 0,75 y de paneles verticales, en producción y en develop, para que al reabrir el diseño sigan igual.
+- **Quincenal:** `Desing/Report/2026/2026-10-22_Informe-Quincenal.md` § 6. Salvar la configuración del muro.
 
 ## Manual
 

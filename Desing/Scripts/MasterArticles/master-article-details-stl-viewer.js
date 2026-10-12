@@ -3988,6 +3988,9 @@ function bootMasterArticleDetailsStlViewer() {
         '_ZRotation',
         '_IsFormwork',
         '_IsUniversalPanel',
+        '_CHeck750R',
+        '_CHeckTypeFormworkMode',
+        '_CHeckDimWall',
         '_XCoordinate',
         '_YCoordinate',
         '_ZCoordinate',
@@ -4074,6 +4077,9 @@ function bootMasterArticleDetailsStlViewer() {
             ud._IsFormwork = true;
         }
         if (ud._IsUniversalPanel == null) ud._IsUniversalPanel = true;
+        if (ud._CHeck750R == null) ud._CHeck750R = ud._IsUniversalPanel !== false;
+        if (ud._CHeckTypeFormworkMode == null) ud._CHeckTypeFormworkMode = true;
+        if (ud._CHeckDimWall == null) ud._CHeckDimWall = false;
         ud._XCoordinate = midX;
         ud._YCoordinate = midY;
         ud._ZCoordinate = midZ;
@@ -8002,9 +8008,37 @@ function bootMasterArticleDetailsStlViewer() {
         return !!mesh;
     }
 
+    let maStlWallApplyAllHeightMm = 0;
+
+    function maStlWall3dResolveCornerExtrudeMm() {
+        if (maStlWallApplyAllHeightMm > 0) return maStlWallApplyAllHeightMm;
+        if (!maStlUserLinesGroup) return MA_STL_WALL3D_DEFAULT_HEIGHT_MM;
+        const ch = maStlUserLinesGroup.children;
+        let shared = 0;
+        let saw = false;
+        for (let i = 0; i < ch.length; i++) {
+            const ln = ch[i];
+            if (!maStlIsUserFloorPlanLineObject(ln)) continue;
+            const ud = ln.userData && ln.userData.maStlUserPlanLine;
+            if (!ud || ud.wallRole !== 'axis') continue;
+            const h = maStlWallLineResolveHeightMm(ud);
+            if (!saw) {
+                shared = h;
+                saw = true;
+            } else if (Math.abs(shared - h) > 1) {
+                return MA_STL_WALL3D_DEFAULT_HEIGHT_MM;
+            }
+        }
+        return saw ? shared : MA_STL_WALL3D_DEFAULT_HEIGHT_MM;
+    }
+
     function maStlWall3dAddMeshFromAtk60Footprint(footprint) {
         if (!footprint || !footprint.points || footprint.points.length < 3 || !maStlWall3dMeshesGroup) return null;
         const kind = (footprint.meta && footprint.meta.kind) || maAtk60ClassifyFootprintKind(footprint.points.length);
+        const pieceKindEarly = kind === 'cornerT' || kind === 'cornerL' || kind === 'cornerX' ? 'corner' : 'wall';
+        const extrudeMm = pieceKindEarly === 'corner'
+            ? maStlWall3dResolveCornerExtrudeMm()
+            : MA_STL_WALL3D_DEFAULT_HEIGHT_MM;
         const shape = new THREE.Shape();
         shape.moveTo(footprint.points[0].x, -footprint.points[0].z);
         for (let i = 1; i < footprint.points.length; i++) {
@@ -8012,7 +8046,7 @@ function bootMasterArticleDetailsStlViewer() {
         }
         shape.closePath();
         const geo = new THREE.ExtrudeGeometry(shape, {
-            depth: MA_STL_WALL3D_DEFAULT_HEIGHT_MM,
+            depth: extrudeMm,
             bevelEnabled: false,
         });
         geo.rotateX(-Math.PI / 2);
@@ -26069,6 +26103,9 @@ function bootMasterArticleDetailsStlViewer() {
                 '_ZRotation',
                 '_IsFormwork',
                 '_IsUniversalPanel',
+                '_CHeck750R',
+                '_CHeckTypeFormworkMode',
+                '_CHeckDimWall',
                 '_XCoordinate',
                 '_YCoordinate',
                 '_ZCoordinate',
@@ -26119,11 +26156,30 @@ function bootMasterArticleDetailsStlViewer() {
     const maStlWallInspectFormState = {
         root: null,
         titleEl: null,
-        lengthValueEl: null,
+        groupInput: null,
+        lengthInput: null,
+        widthInput: null,
         heightInput: null,
+        coordXInput: null,
+        coordYInput: null,
         applyAllCheckbox: null,
+        applyConfigAllCheckbox: null,
+        dimCheckbox: null,
+        bracketInCheckbox: null,
+        bracketOutCheckbox: null,
+        stiffInCheckbox: null,
+        stiffOutCheckbox: null,
+        panel750Checkbox: null,
+        verticalPanelsCheckbox: null,
+        propInCheckbox: null,
+        propOutCheckbox: null,
+        propInInfCheckbox: null,
+        propOutInfCheckbox: null,
+        muroPane: null,
+        tapesPane: null,
+        propsPane: null,
         acceptBtn: null,
-        cancelBtn: null,
+        deleteBtn: null,
         closeBtn: null,
         selectedUd: null,
         selectedLine: null,
@@ -26210,6 +26266,10 @@ function bootMasterArticleDetailsStlViewer() {
             ud._DataHeight = hMeters;
         }
 
+        if (applyAll) {
+            maStlWallApplyAllHeightMm = Math.max(300, hMeters * 1000);
+        }
+
         maStlSaveWallConnectionsNow({
             force: true,
             reason: applyAll ? 'wall-height-popup-apply-all' : 'wall-height-popup-apply-one',
@@ -26237,13 +26297,83 @@ function bootMasterArticleDetailsStlViewer() {
         return maStlDesing2DimEditableMetersDisplayFromMm(lengthMm) + ' m';
     }
 
+    function maStlWallInspectFlagOn(ud, key) {
+        if (!ud || ud[key] == null) return true;
+        return !!ud[key];
+    }
+
+    function maStlWallInspectLineIsCorner(ud) {
+        if (!ud) return false;
+        if (ud.isSpecial === true || ud.IsSpecial === true) return true;
+        const role = String(ud.wallRole || '').toLowerCase();
+        const mesh = String(ud._TypeMesh || '').toLowerCase();
+        const kind = String(ud.maStlWall3dKind || ud.maStlWall3dAtk60Kind || '').toLowerCase();
+        return role.indexOf('corner') >= 0 || mesh.indexOf('corner') >= 0 || mesh.indexOf('esquina') >= 0 || kind.indexOf('corner') >= 0;
+    }
+
+    function maStlWallInspectCollectConfigTargets(applyAll) {
+        const st = maStlWallInspectFormState;
+        const targets = maStlWallInspectCollectTargetLines(st.selectedLine, st.selectedUd, applyAll);
+        if (!applyAll || !maStlUserLinesGroup) return targets;
+        const ch = maStlUserLinesGroup.children;
+        for (let i = 0; i < ch.length; i++) {
+            const ln = ch[i];
+            if (!maStlIsUserFloorPlanLineObject(ln) || targets.indexOf(ln) >= 0) continue;
+            const ud = ln.userData && ln.userData.maStlUserPlanLine;
+            if (maStlWallInspectLineIsCorner(ud)) targets.push(ln);
+        }
+        return targets;
+    }
+
+    function maStlWallInspectWritePropFlags() {
+        const st = maStlWallInspectFormState;
+        const applyConfigAll = !!(st.applyConfigAllCheckbox && st.applyConfigAllCheckbox.checked);
+        const targets = maStlWallInspectCollectConfigTargets(applyConfigAll);
+        if (!targets.length && st.selectedUd) {
+            targets.push({ userData: { maStlUserPlanLine: st.selectedUd } });
+        }
+        const inside = !!(st.propInCheckbox && st.propInCheckbox.checked);
+        const outside = !!(st.propOutCheckbox && st.propOutCheckbox.checked);
+        const insideInf = !!(st.propInInfCheckbox && st.propInInfCheckbox.checked);
+        const outsideInf = !!(st.propOutInfCheckbox && st.propOutInfCheckbox.checked);
+        const bracketIn = !!(st.bracketInCheckbox && st.bracketInCheckbox.checked);
+        const bracketOut = !!(st.bracketOutCheckbox && st.bracketOutCheckbox.checked);
+        const stiffIn = !!(st.stiffInCheckbox && st.stiffInCheckbox.checked);
+        const stiffOut = !!(st.stiffOutCheckbox && st.stiffOutCheckbox.checked);
+        const use750 = !!(st.panel750Checkbox && st.panel750Checkbox.checked);
+        const verticalPanels = !!(st.verticalPanelsCheckbox && st.verticalPanelsCheckbox.checked);
+        for (let i = 0; i < targets.length; i++) {
+            const ln = targets[i];
+            const ud = ln && ln.userData ? ln.userData.maStlUserPlanLine : null;
+            if (!ud) continue;
+            if (ud.p1Mm && ud.p2Mm) maStlWallLineEnsureAttrs(ud);
+            ud._CHeckPropInside = inside;
+            ud._CHeckPropOutside = outside;
+            ud._CHeckPropInsideInf = insideInf;
+            ud._CHeckPropOutsideInf = outsideInf;
+            if (st.bracketInCheckbox) ud._CHeckBracketInside = bracketIn;
+            if (st.bracketOutCheckbox) ud._CHeckBracketOutside = bracketOut;
+            if (st.stiffInCheckbox) ud._CHeckRijiInside = stiffIn;
+            if (st.stiffOutCheckbox) ud._CHeckRijiOutside = stiffOut;
+            if (st.panel750Checkbox) {
+                ud._CHeck750R = use750;
+                ud._IsUniversalPanel = use750;
+            }
+            if (st.verticalPanelsCheckbox) ud._CHeckTypeFormworkMode = verticalPanels;
+        }
+    }
+
     function maStlWallInspectEnsurePopup() {
+        if (maStlWallInspectFormState.root && (!maStlWallInspectFormState.bracketInCheckbox || !maStlWallInspectFormState.applyConfigAllCheckbox)) {
+            maStlWallInspectFormState.root.remove();
+            maStlWallInspectFormState.root = null;
+        }
         if (maStlWallInspectFormState.root) return maStlWallInspectFormState.root;
 
         const root = document.createElement('div');
         root.style.position = 'fixed';
         root.style.zIndex = '2147483200';
-        root.style.width = '320px';
+        root.style.width = '520px';
         root.style.maxWidth = 'calc(100vw - 24px)';
         root.style.background = '#ffffff';
         root.style.border = '1px solid #cbd5e1';
@@ -26265,7 +26395,7 @@ function bootMasterArticleDetailsStlViewer() {
         head.style.cursor = 'move';
 
         const title = document.createElement('div');
-        title.textContent = 'Configurar muro';
+        title.textContent = 'Modificar muro';
         title.style.fontSize = '13px';
         title.style.fontWeight = '600';
         head.appendChild(title);
@@ -26285,13 +26415,105 @@ function bootMasterArticleDetailsStlViewer() {
         body.style.padding = '12px';
         body.style.userSelect = 'text';
 
+        const tabRow = document.createElement('div');
+        tabRow.style.display = 'flex';
+        tabRow.style.gap = '6px';
+        tabRow.style.marginBottom = '12px';
+
+        function maStlWallInspectMakeTab(label) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = label;
+            btn.style.flex = '1';
+            btn.style.padding = '7px 6px';
+            btn.style.border = 'none';
+            btn.style.borderRadius = '4px';
+            btn.style.cursor = 'pointer';
+            btn.style.fontSize = '12px';
+            return btn;
+        }
+
+        const tabMuro = maStlWallInspectMakeTab('Muro');
+        const tabTapes = maStlWallInspectMakeTab('Configurar Tapes');
+        const tabProps = maStlWallInspectMakeTab('Configurar Puntales');
+        tabRow.appendChild(tabMuro);
+        tabRow.appendChild(tabTapes);
+        tabRow.appendChild(tabProps);
+        body.appendChild(tabRow);
+
+        const muroPane = document.createElement('div');
+        const tapesPane = document.createElement('div');
+        tapesPane.style.display = 'none';
+        tapesPane.style.fontSize = '12px';
+        tapesPane.style.color = '#64748b';
+        tapesPane.style.padding = '8px 2px 12px';
+        tapesPane.textContent = 'Pendiente.';
+        const propsPane = document.createElement('div');
+        propsPane.style.display = 'none';
+
+        function maStlWallInspectMakeCheck(text) {
+            const wrap = document.createElement('label');
+            wrap.style.display = 'flex';
+            wrap.style.alignItems = 'flex-start';
+            wrap.style.gap = '8px';
+            wrap.style.fontSize = '13px';
+            wrap.style.color = '#0f172a';
+            wrap.style.marginBottom = '14px';
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.checked = true;
+            input.style.marginTop = '2px';
+            const span = document.createElement('span');
+            span.textContent = text;
+            wrap.appendChild(input);
+            wrap.appendChild(span);
+            return { wrap: wrap, input: input };
+        }
+
+        const propGrid = document.createElement('div');
+        propGrid.style.display = 'grid';
+        propGrid.style.gridTemplateColumns = '1fr 1fr';
+        propGrid.style.columnGap = '16px';
+        const propIn = maStlWallInspectMakeCheck('Puntales superiores en cara interior');
+        const propOut = maStlWallInspectMakeCheck('Puntales superiores en cara exterior');
+        const propInInf = maStlWallInspectMakeCheck('Puntales Inferiores en cara interior');
+        const propOutInf = maStlWallInspectMakeCheck('Puntales Inferiores en cara exterior');
+        propGrid.appendChild(propIn.wrap);
+        propGrid.appendChild(propOut.wrap);
+        propGrid.appendChild(propInInf.wrap);
+        propGrid.appendChild(propOutInf.wrap);
+        propsPane.appendChild(propGrid);
+
+        body.appendChild(muroPane);
+        body.appendChild(tapesPane);
+        body.appendChild(propsPane);
+
+        function maStlWallInspectPaintTab(btn, active) {
+            btn.style.background = active ? '#2563eb' : '#e8eef5';
+            btn.style.color = active ? '#ffffff' : '#334155';
+        }
+
+        function maStlWallInspectShowEditTab(which) {
+            muroPane.style.display = which === 'muro' ? 'block' : 'none';
+            tapesPane.style.display = which === 'tapes' ? 'block' : 'none';
+            propsPane.style.display = which === 'props' ? 'block' : 'none';
+            maStlWallInspectPaintTab(tabMuro, which === 'muro');
+            maStlWallInspectPaintTab(tabTapes, which === 'tapes');
+            maStlWallInspectPaintTab(tabProps, which === 'props');
+        }
+
+        tabMuro.addEventListener('click', function () { maStlWallInspectShowEditTab('muro'); });
+        tabTapes.addEventListener('click', function () { maStlWallInspectShowEditTab('tapes'); });
+        tabProps.addEventListener('click', function () { maStlWallInspectShowEditTab('props'); });
+        maStlWallInspectShowEditTab('muro');
+
         const lengthLabel = document.createElement('div');
         lengthLabel.textContent = 'Longitud del muro';
         lengthLabel.style.fontSize = '12px';
         lengthLabel.style.fontWeight = '600';
         lengthLabel.style.color = '#334155';
         lengthLabel.style.marginBottom = '4px';
-        body.appendChild(lengthLabel);
+        muroPane.appendChild(lengthLabel);
 
         const lengthValue = document.createElement('div');
         lengthValue.textContent = 'No disponible';
@@ -26302,7 +26524,7 @@ function bootMasterArticleDetailsStlViewer() {
         lengthValue.style.color = '#0f172a';
         lengthValue.style.fontSize = '13px';
         lengthValue.style.marginBottom = '10px';
-        body.appendChild(lengthValue);
+        muroPane.appendChild(lengthValue);
 
         const rowLabel = document.createElement('label');
         rowLabel.textContent = 'Altura del muro (m)';
@@ -26311,7 +26533,7 @@ function bootMasterArticleDetailsStlViewer() {
         rowLabel.style.fontWeight = '600';
         rowLabel.style.color = '#334155';
         rowLabel.style.marginBottom = '6px';
-        body.appendChild(rowLabel);
+        muroPane.appendChild(rowLabel);
 
         const heightInput = document.createElement('input');
         heightInput.type = 'number';
@@ -26325,23 +26547,75 @@ function bootMasterArticleDetailsStlViewer() {
         heightInput.style.border = '1px solid #cbd5e1';
         heightInput.style.borderRadius = '8px';
         heightInput.style.marginBottom = '10px';
-        body.appendChild(heightInput);
+        muroPane.appendChild(heightInput);
+
+        const applyRow = document.createElement('div');
+        applyRow.style.display = 'grid';
+        applyRow.style.gridTemplateColumns = '1fr 1fr';
+        applyRow.style.columnGap = '12px';
+        applyRow.style.marginBottom = '12px';
 
         const applyAllWrap = document.createElement('label');
         applyAllWrap.style.display = 'flex';
-        applyAllWrap.style.alignItems = 'center';
+        applyAllWrap.style.alignItems = 'flex-start';
         applyAllWrap.style.gap = '8px';
         applyAllWrap.style.fontSize = '12px';
         applyAllWrap.style.color = '#334155';
-        applyAllWrap.style.marginBottom = '12px';
         const applyAllCheckbox = document.createElement('input');
         applyAllCheckbox.type = 'checkbox';
         applyAllCheckbox.checked = true;
+        applyAllCheckbox.style.marginTop = '2px';
         const applyAllText = document.createElement('span');
         applyAllText.textContent = 'Aplicar altura a todos los muros';
         applyAllWrap.appendChild(applyAllCheckbox);
         applyAllWrap.appendChild(applyAllText);
-        body.appendChild(applyAllWrap);
+
+        const applyConfigWrap = document.createElement('label');
+        applyConfigWrap.style.display = 'flex';
+        applyConfigWrap.style.alignItems = 'flex-start';
+        applyConfigWrap.style.gap = '8px';
+        applyConfigWrap.style.fontSize = '12px';
+        applyConfigWrap.style.color = '#334155';
+        const applyConfigAllCheckbox = document.createElement('input');
+        applyConfigAllCheckbox.type = 'checkbox';
+        applyConfigAllCheckbox.checked = false;
+        applyConfigAllCheckbox.style.marginTop = '2px';
+        const applyConfigText = document.createElement('span');
+        applyConfigText.textContent = 'Aplicar la configuración a todos los muros y esquinas';
+        applyConfigWrap.appendChild(applyConfigAllCheckbox);
+        applyConfigWrap.appendChild(applyConfigText);
+
+        applyRow.appendChild(applyAllWrap);
+        applyRow.appendChild(applyConfigWrap);
+        muroPane.appendChild(applyRow);
+
+        const muroChecksTitle = document.createElement('div');
+        muroChecksTitle.textContent = 'En este muro';
+        muroChecksTitle.style.fontSize = '12px';
+        muroChecksTitle.style.fontWeight = '600';
+        muroChecksTitle.style.color = '#334155';
+        muroChecksTitle.style.margin = '4px 0 8px';
+        muroPane.appendChild(muroChecksTitle);
+
+        const muroGrid = document.createElement('div');
+        muroGrid.style.display = 'grid';
+        muroGrid.style.gridTemplateColumns = '1fr 1fr';
+        muroGrid.style.columnGap = '16px';
+        muroGrid.style.marginTop = '4px';
+        const bracketIn = maStlWallInspectMakeCheck('Ménsulas en cara interior');
+        const bracketOut = maStlWallInspectMakeCheck('Ménsulas en cara exterior');
+        const stiffIn = maStlWallInspectMakeCheck('Rigidizadores en cara interior');
+        const stiffOut = maStlWallInspectMakeCheck('Rigidizadores en cara exterior');
+        muroGrid.appendChild(bracketIn.wrap);
+        muroGrid.appendChild(bracketOut.wrap);
+        muroGrid.appendChild(stiffIn.wrap);
+        muroGrid.appendChild(stiffOut.wrap);
+        muroPane.appendChild(muroGrid);
+
+        const panel750 = maStlWallInspectMakeCheck('Utilizar paneles 0,75 regulables');
+        const verticalPanels = maStlWallInspectMakeCheck('Paneles verticales');
+        muroPane.appendChild(panel750.wrap);
+        muroPane.appendChild(verticalPanels.wrap);
 
         const actions = document.createElement('div');
         actions.style.display = 'flex';
@@ -26408,6 +26682,7 @@ function bootMasterArticleDetailsStlViewer() {
                 maStlDesing2ShowSaveViewToast('Altura invalida');
                 return;
             }
+            maStlWallInspectWritePropFlags();
             const ok = maStlWallInspectApplyHeightMeters(h, !!applyAllCheckbox.checked);
             if (!ok) {
                 maStlDesing2ShowSaveViewToast('No se pudo aplicar la altura');
@@ -26421,6 +26696,20 @@ function bootMasterArticleDetailsStlViewer() {
         maStlWallInspectFormState.lengthValueEl = lengthValue;
         maStlWallInspectFormState.heightInput = heightInput;
         maStlWallInspectFormState.applyAllCheckbox = applyAllCheckbox;
+        maStlWallInspectFormState.applyConfigAllCheckbox = applyConfigAllCheckbox;
+        maStlWallInspectFormState.bracketInCheckbox = bracketIn.input;
+        maStlWallInspectFormState.bracketOutCheckbox = bracketOut.input;
+        maStlWallInspectFormState.stiffInCheckbox = stiffIn.input;
+        maStlWallInspectFormState.stiffOutCheckbox = stiffOut.input;
+        maStlWallInspectFormState.panel750Checkbox = panel750.input;
+        maStlWallInspectFormState.verticalPanelsCheckbox = verticalPanels.input;
+        maStlWallInspectFormState.propInCheckbox = propIn.input;
+        maStlWallInspectFormState.propOutCheckbox = propOut.input;
+        maStlWallInspectFormState.propInInfCheckbox = propInInf.input;
+        maStlWallInspectFormState.propOutInfCheckbox = propOutInf.input;
+        maStlWallInspectFormState.muroPane = muroPane;
+        maStlWallInspectFormState.tapesPane = tapesPane;
+        maStlWallInspectFormState.propsPane = propsPane;
         maStlWallInspectFormState.acceptBtn = acceptBtn;
         maStlWallInspectFormState.cancelBtn = cancelBtn;
         maStlWallInspectFormState.closeBtn = closeBtn;
@@ -26446,6 +26735,43 @@ function bootMasterArticleDetailsStlViewer() {
         }
         maStlWallInspectFormState.heightInput.value = String(hUse);
         maStlWallInspectFormState.applyAllCheckbox.checked = true;
+        if (maStlWallInspectFormState.applyConfigAllCheckbox) {
+            maStlWallInspectFormState.applyConfigAllCheckbox.checked = false;
+        }
+        const propUd = selection.ud;
+        if (maStlWallInspectFormState.propInCheckbox) {
+            maStlWallInspectFormState.propInCheckbox.checked = maStlWallInspectFlagOn(propUd, '_CHeckPropInside');
+        }
+        if (maStlWallInspectFormState.propOutCheckbox) {
+            maStlWallInspectFormState.propOutCheckbox.checked = maStlWallInspectFlagOn(propUd, '_CHeckPropOutside');
+        }
+        if (maStlWallInspectFormState.propInInfCheckbox) {
+            maStlWallInspectFormState.propInInfCheckbox.checked = maStlWallInspectFlagOn(propUd, '_CHeckPropInsideInf');
+        }
+        if (maStlWallInspectFormState.propOutInfCheckbox) {
+            maStlWallInspectFormState.propOutInfCheckbox.checked = maStlWallInspectFlagOn(propUd, '_CHeckPropOutsideInf');
+        }
+        if (maStlWallInspectFormState.bracketInCheckbox) {
+            maStlWallInspectFormState.bracketInCheckbox.checked = maStlWallInspectFlagOn(propUd, '_CHeckBracketInside');
+        }
+        if (maStlWallInspectFormState.bracketOutCheckbox) {
+            maStlWallInspectFormState.bracketOutCheckbox.checked = maStlWallInspectFlagOn(propUd, '_CHeckBracketOutside');
+        }
+        if (maStlWallInspectFormState.stiffInCheckbox) {
+            maStlWallInspectFormState.stiffInCheckbox.checked = maStlWallInspectFlagOn(propUd, '_CHeckRijiInside');
+        }
+        if (maStlWallInspectFormState.stiffOutCheckbox) {
+            maStlWallInspectFormState.stiffOutCheckbox.checked = maStlWallInspectFlagOn(propUd, '_CHeckRijiOutside');
+        }
+        if (maStlWallInspectFormState.panel750Checkbox) {
+            const use750 = propUd && propUd._CHeck750R != null
+                ? !!propUd._CHeck750R
+                : maStlWallInspectFlagOn(propUd, '_IsUniversalPanel');
+            maStlWallInspectFormState.panel750Checkbox.checked = use750;
+        }
+        if (maStlWallInspectFormState.verticalPanelsCheckbox) {
+            maStlWallInspectFormState.verticalPanelsCheckbox.checked = maStlWallInspectFlagOn(propUd, '_CHeckTypeFormworkMode');
+        }
 
         root.style.display = 'block';
         const vw = window.innerWidth || document.documentElement.clientWidth || 1280;

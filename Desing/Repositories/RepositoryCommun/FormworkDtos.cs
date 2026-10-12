@@ -163,6 +163,10 @@ namespace Desing.Repositories.RepositoryCommun
         public double? _ZRotation { get; set; }
         public bool? _IsFormwork { get; set; }
         public bool? _IsUniversalPanel { get; set; }
+        /// <summary>Paneles de 0,75 m regulables. Si es false, ese hueco pasa a 0,30 + 0,45.</summary>
+        public bool? _CHeck750R { get; set; }
+        /// <summary>Paneles verticales. Si es false, los módulos de 2,70, 2,40 y 1,20 van todos tumbados.</summary>
+        public bool? _CHeckTypeFormworkMode { get; set; }
         public double? _XCoordinate { get; set; }
         public double? _YCoordinate { get; set; }
         public double? _ZCoordinate { get; set; }

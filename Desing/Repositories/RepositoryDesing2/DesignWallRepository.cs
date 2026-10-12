@@ -40,6 +40,8 @@ namespace Desing.Repositories.RepositoryDesing2
         public double? _ZRotation { get; set; }
         public bool? _IsFormwork { get; set; }
         public bool? _IsUniversalPanel { get; set; }
+        public bool? _CHeck750R { get; set; }
+        public bool? _CHeckTypeFormworkMode { get; set; }
         public double? _XCoordinate { get; set; }
         public double? _YCoordinate { get; set; }
         public double? _ZCoordinate { get; set; }
@@ -323,7 +325,10 @@ namespace Desing.Repositories.RepositoryDesing2
             entity.NumberYCoordinate = line._YCoordinate;
             entity.NumberZCoordinate = line._ZCoordinate;
             entity.Is_Formwork = line.IsSpecial == true ? false : (line._IsFormwork ?? true);
-            entity.Is_UniversalPanel = line._IsUniversalPanel ?? true;
+            var useAdjustable750 = line._CHeck750R ?? line._IsUniversalPanel ?? true;
+            entity.Is_Check750R = useAdjustable750;
+            entity.Is_UniversalPanel = line._IsUniversalPanel ?? useAdjustable750;
+            entity.Is_FormworkMode = line._CHeckTypeFormworkMode ?? true;
             if (line.IsSpecial.HasValue)
             {
                 entity.Is_Special = line.IsSpecial.Value;
@@ -373,6 +378,8 @@ namespace Desing.Repositories.RepositoryDesing2
                 _ZCoordinate = row.NumberZCoordinate,
                 _IsFormwork = row.Is_Formwork,
                 _IsUniversalPanel = row.Is_UniversalPanel,
+                _CHeck750R = row.Is_Check750R,
+                _CHeckTypeFormworkMode = row.Is_FormworkMode,
                 _Tape_1 = row.TextTape_1,
                 _Tape_2 = row.TextTape_2,
                 _Idconnection_1 = row.TextIdConnection_1,
