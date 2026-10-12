@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Copiar este archivo a Web.GoogleMaps.config (misma carpeta que Web.config).
-  Web.GoogleMaps.config está en .gitignore — no commitear claves reales.
+  Copiar este archivo a GoogleMaps.local.config (misma carpeta que Web.config).
+  GoogleMaps.local.config está en .gitignore — no commitear claves reales.
+  No lo llames Web.*.config: la publicación excluye esos nombres.
 
-  Web.config usa: <appSettings file="Web.GoogleMaps.config">
+  Web.config usa: <appSettings file="GoogleMaps.local.config">
   Las claves aquí sustituyen las de Web.config con el mismo nombre.
 -->
 <appSettings>

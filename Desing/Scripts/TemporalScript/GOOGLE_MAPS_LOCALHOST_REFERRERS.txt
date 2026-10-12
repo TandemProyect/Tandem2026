@@ -14,9 +14,10 @@ La clave NO va en el repositorio. Tras clonar o tras la alerta de GitHub:
   3. Configurar en local (elija A o B):
 
      A) Fichero local (recomendado)
-        copy Desing\Web.GoogleMaps.config.example Desing\Web.GoogleMaps.config
-        Editar Web.GoogleMaps.config y sustituir YOUR_BROWSER_API_KEY_HERE.
-        (Web.GoogleMaps.config está en .gitignore — no commitear.)
+        copy Desing\Web.GoogleMaps.config.example Desing\GoogleMaps.local.config
+        Editar GoogleMaps.local.config y sustituir YOUR_BROWSER_API_KEY_HERE.
+        (GoogleMaps.local.config está en .gitignore — no commitear.
+         No usar el nombre Web.*.config: la publicación lo excluye.)
 
      B) Variable de entorno (prioridad sobre Web.config)
         set GOOGLE_MAPS_API_KEY=su_clave_aqui

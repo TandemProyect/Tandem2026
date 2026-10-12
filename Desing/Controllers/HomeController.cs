@@ -3,6 +3,7 @@ using Desing.Helpers;
 using Desing.Resources;
 using System;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Web;
 using System.Web.Mvc;
 
@@ -138,8 +139,11 @@ namespace Desing.Controllers
             {
                 var q = from d in db.TSql_Design_V2.AsNoTracking()
                         join o in db.TSql_Offers.AsNoTracking() on d.LinkOffers equals o.IdObject
+                        join c in db.TSql_Client_V2.AsNoTracking().Where(c => !c.Is_Delete)
+                            on o.LinkClient_V2 equals c.IdObject into cg
+                        from c in cg.DefaultIfEmpty()
                         where !d.AttIsDeleted && !o.Is_Delete
-                        select new { d, o };
+                        select new { d, o, ClientName = c == null ? "" : (c.TextLabel ?? "") };
 
                 var totalCount = q.Count();
 
@@ -148,14 +152,11 @@ namespace Desing.Controllers
                     var value = requestModel.Search.Value.Trim();
                     q = q.Where(x =>
                         (x.d.AttLabel ?? "").Contains(value) ||
-                        (x.o.AddOfferNumber ?? "").Contains(value));
+                        (x.o.AddOfferNumber ?? "").Contains(value) ||
+                        (x.ClientName ?? "").Contains(value));
                 }
 
                 var filteredCount = q.Count();
-
-                q = q.OrderByDescending(x => x.d.AttChange)
-                    .ThenByDescending(x => x.d.AttCreated)
-                    .ThenByDescending(x => x.d.SysObjectID);
 
                 var page = q.Select(x => new
                 {
@@ -164,8 +165,43 @@ namespace Desing.Controllers
                     AttThumbnail = x.d.AttThumbnail,
                     OfferId = x.o.IdObject,
                     JobsideId = x.o.LinkJobside,
-                    AddOfferNumber = x.o.AddOfferNumber ?? ""
+                    AddOfferNumber = x.o.AddOfferNumber ?? "",
+                    ClientName = x.ClientName ?? "",
+                    x.d.AttChange,
+                    x.d.AttCreated
                 });
+
+                var orderBy = "";
+                if (requestModel.Columns != null)
+                {
+                    foreach (var column in requestModel.Columns.GetSortedColumns())
+                    {
+                        string orderColumn;
+                        switch ((column.Data ?? "").ToLowerInvariant())
+                        {
+                            case "addoffernumber":
+                                orderColumn = "AddOfferNumber";
+                                break;
+                            case "clientname":
+                                orderColumn = "ClientName";
+                                break;
+                            case "attlabel":
+                                orderColumn = "AttLabel";
+                                break;
+                            default:
+                                continue;
+                        }
+                        if (orderBy.Length > 0)
+                        {
+                            orderBy += ", ";
+                        }
+                        orderBy += orderColumn +
+                            (column.SortDirection == Column.OrderDirection.Ascendant ? " asc" : " desc");
+                    }
+                }
+                page = page.OrderBy(string.IsNullOrEmpty(orderBy)
+                    ? "AttChange desc, AttCreated desc, SysObjectID desc"
+                    : orderBy);
 
                 page = page.ApplyDataTablesPaging(requestModel.Start, requestModel.Length);
                 var rows = page.ToList();
@@ -179,16 +215,19 @@ namespace Desing.Controllers
                     var encUrl = HttpUtility.HtmlAttributeEncode(url);
                     var btn =
                         "<a href=\"" + encUrl + "\" class=\"btn btn-sm btn-icon btn-text-secondary rounded-pill\" title=\"" + tt +
-                        "\"><i class=\"icon-base ri ri-shape-3-line\" aria-hidden=\"true\"></i></a>";
+                        "\"><i class=\"icon-base ri ri-eye-line\" aria-hidden=\"true\"></i></a>";
+                    var newLabel = HttpUtility.HtmlEncode(Jobside.OfferWorkspace_Designs_Btn_New);
                     var newDesign =
-                        "<button type=\"button\" class=\"btn btn-icon btn-primary rounded-pill dash-new-design\" data-offer-id=\"" +
-                        p.OfferId + "\" data-jobside-id=\"" + p.JobsideId + "\" title=\"" + ttNew +
-                        "\" aria-label=\"" + ttNew + "\"><i class=\"icon-base ri ri-add-line\" aria-hidden=\"true\"></i></button>";
+                        "<button type=\"button\" class=\"btn btn-sm btn-primary dash-new-design text-nowrap\" data-offer-id=\"" +
+                        p.OfferId + "\" data-jobside-id=\"" + p.JobsideId + "\" data-offer-number=\"" +
+                        HttpUtility.HtmlAttributeEncode(p.AddOfferNumber) + "\" title=\"" + ttNew +
+                        "\" aria-label=\"" + ttNew + "\">" + newLabel + "</button>";
                     return new
                     {
                         AddOfferNumber =
                             "<span class=\"d-inline-flex align-items-center gap-1\">" +
                             HttpUtility.HtmlEncode(p.AddOfferNumber) + newDesign + "</span>",
+                        ClientName = HttpUtility.HtmlEncode(p.ClientName),
                         AttLabel = HttpUtility.HtmlEncode(p.AttLabel),
                         actions = btn
                     };

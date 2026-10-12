@@ -307,6 +307,9 @@
   <data name="OfferWorkspace_Designs_ModalTitle" xml:space="preserve">
     <value>Nuevo diseño</value>
   </data>
+  <data name="OfferWorkspace_Designs_ModalTitleOfferFmt" xml:space="preserve">
+    <value>Crear nuevo diseño en la oferta "{0}"</value>
+  </data>
   <data name="OfferWorkspace_Designs_NoStlLinked" xml:space="preserve">
     <value>Sin STL enlazado</value>
   </data>

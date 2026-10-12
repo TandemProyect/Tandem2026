@@ -72,7 +72,7 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 - **Estado:** abierto. Sesión en curso desde el **12 de octubre de 2026, 15:14**.
 - **Sesión 12 oct:** inicio **15:14**. Aún sin cierre. Las horas van al trimestral T4 cuando se cierre.
 - **Qué se hace:** poder crear una oferta desde el panel principal de diseño.
-- **Hecho en el panel Diseños:** icono «+» en la cabecera para crear la oferta (obra, nombre, cliente, estado). Además, junto a cada número de oferta ya registrado, otro «+» crea el diseño dentro de esa oferta y solo pide el nombre.
+- **Hecho en el panel Diseños:** icono «+» en la cabecera para crear la oferta (obra, nombre, cliente, estado). Además, junto a cada número de oferta ya registrado, otro «+» crea el diseño dentro de esa oferta y solo pide el nombre. Diseños queda abajo, en tres de los cuatro huecos, con la columna Cliente, orden y buscador. El alta es el botón «Nuevo diseño» y el título indica la oferta. Arriba: obras, ofertas y clientes. Abrir un diseño usa el mismo ojo que el resto.
 
 ### 8. Conexión SQL al publicar
 
@@ -81,6 +81,7 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 - **Qué queda:** al publicar en Release, `Web.Release.config` cambia las dos cadenas a `SQL5113.site4now.net` y el catálogo de producción. En local sigue SQL Express. Hay que volver a publicar para que el servidor lo coja.
 - **Editar empresa:** faltaban en el proyecto las vistas de delegaciones (`_CompanyBranchesDtCard` y las tres que van con ella). Sin eso, al publicar no se copian y Editar empresa falla. Hay que volver a publicar.
 - **Otras páginas que tampoco se copiaban:** obra (`Details`), estados de oferta, detalle de idioma, acceso del plugin CAD y el layout de ZWCAD. Ya están en el proyecto. Las clases viejas de esquina ATK-60 que no están en el proyecto no se compilan y no rompen la publicación.
+- **Google Maps al publicar:** `Web.GoogleMaps.config` no se sube porque Visual Studio excluye los `Web.*.config`. La clave pasa a `GoogleMaps.local.config`, que sí se publica y sigue fuera de Git. Hay que volver a publicar.
 
 ## Heredado del informe 01 (sigue abierto)
 
