@@ -62,10 +62,25 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 
 ### 6. Salvar la configuración del muro
 
-- **Estado:** abierto. Sesión en curso desde el **12 de octubre de 2026, 13:28**.
-- **Sesión 12 oct:** inicio **13:28**. Aún sin cierre. Las horas van al trimestral T4 cuando se cierre.
-- **Qué se hace:** al volver a abrir el diseño, el muro conserva la configuración. Paneles de 0,75 en `Is_Check750R`. Paneles verticales en `Is_FormworkMode`. Ménsulas, rigidizadores y puntales ya tenían columna.
-- **Bases:** `db_a197cd_desingproducction` y `db_a197cd_desingdevelop`, en local. En develop se creó `TSql_DesignWall`. En las dos, los dos checks nacen marcados. Los muros que ya había quedan con paneles de 0,75 y paneles verticales activos, que es como se veían.
+- **Estado:** cerrado. **12 de octubre de 2026, 13:28–15:05.** **1 h 37 min** en el trimestral T4.
+- **Qué quedó:** al reabrir el diseño, cada muro recupera ménsulas, rigidizadores, puntales (superiores e inferiores, las dos caras), paneles de 0,75 y paneles verticales. También longitud, espesor, altura y coordenadas.
+- **Bases:** `db_a197cd_desingproducction` y `db_a197cd_desingdevelop`. En develop se creó `TSql_DesignWall`.
+- **Prueba:** pendiente de testeo. Si algo no vuelve igual, se abre un bug.
+
+### 7. Poder crear oferta desde el panel principal de diseño
+
+- **Estado:** abierto. Sesión en curso desde el **12 de octubre de 2026, 15:14**.
+- **Sesión 12 oct:** inicio **15:14**. Aún sin cierre. Las horas van al trimestral T4 cuando se cierre.
+- **Qué se hace:** poder crear una oferta desde el panel principal de diseño.
+- **Hecho en el panel Diseños:** icono «+» en la cabecera para crear la oferta (obra, nombre, cliente, estado). Además, junto a cada número de oferta ya registrado, otro «+» crea el diseño dentro de esa oferta y solo pide el nombre.
+
+### 8. Conexión SQL al publicar
+
+- **Estado:** abierto. Sesión en curso desde el **12 de octubre de 2026, 18:09**.
+- **Qué pasa:** en `ccvallecano-002-site5` el sitio publicado seguía con `.\SQLEXPRESS`. Ese equipo no tiene esa instancia (error 26).
+- **Qué queda:** al publicar en Release, `Web.Release.config` cambia las dos cadenas a `SQL5113.site4now.net` y el catálogo de producción. En local sigue SQL Express. Hay que volver a publicar para que el servidor lo coja.
+- **Editar empresa:** faltaban en el proyecto las vistas de delegaciones (`_CompanyBranchesDtCard` y las tres que van con ella). Sin eso, al publicar no se copian y Editar empresa falla. Hay que volver a publicar.
+- **Otras páginas que tampoco se copiaban:** obra (`Details`), estados de oferta, detalle de idioma, acceso del plugin CAD y el layout de ZWCAD. Ya están en el proyecto. Las clases viejas de esquina ATK-60 que no están en el proyecto no se compilan y no rompen la publicación.
 
 ## Heredado del informe 01 (sigue abierto)
 
@@ -86,7 +101,9 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 | Puntales | Cursor, 11 oct | Apartado 3 en curso desde el 11 oct, 10:39 |
 | Altura de las esquinas | Cursor, 12 oct | Apartado 4 cerrado, solucionado. 9:41–9:52, 11 min. Con el check, las esquinas suben con los muros |
 | Editar muro | Cursor, 12 oct | Apartado 5 cerrado. 10:13–13:28, 3 h 15 min. No se testeó bien. Tapes sigue pendiente |
-| Salvar la configuración del muro | Cursor, 12 oct | Apartado 6 en curso desde el 12 oct, 13:28. Checks en producción y develop |
+| Salvar la configuración del muro | Cursor, 12 oct | Apartado 6 cerrado. 13:28–15:05, 1 h 37 min. Pendiente de testeo; si falla, bug |
+| Crear oferta desde el panel principal | Cursor, 12 oct | Apartado 7 en curso desde el 12 oct, 15:14. + de oferta en la cabecera; + de diseño junto al número, solo el nombre |
+| Conexión SQL al publicar | Cursor, 12 oct | Apartado 8 en curso desde el 12 oct, 18:09. Release apunta a SQL5113; hay que republicar |
 
 ## Al cerrar el 22 de octubre
 

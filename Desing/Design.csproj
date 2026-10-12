@@ -3491,6 +3491,10 @@
     <Content Include="Views\TSql_Company\Create.cshtml" />
     <Content Include="Views\TSql_Company\Edit.cshtml" />
     <Content Include="Views\TSql_Company\_CompanyUiLanguageSelect.cshtml" />
+    <Content Include="Views\TSql_Company\_CompanyBranchesDtCard.cshtml" />
+    <Content Include="Views\TSql_Company\_CompanyBranchModal.cshtml" />
+    <Content Include="Views\TSql_Company\_CompanyBranchesPanel.cshtml" />
+    <Content Include="Views\TSql_Company\_CompanyBranchesPanelList.cshtml" />
     <Content Include="Views\ClientV2\Index.cshtml" />
     <Content Include="Views\ClientV2\Create.cshtml" />
     <Content Include="Views\ClientV2\Edit.cshtml" />
@@ -3504,6 +3508,7 @@
     <Content Include="Views\Language\Create.cshtml" />
     <Content Include="Views\Language\Edit.cshtml" />
     <Content Include="Views\Language\_LanguageFormFields.cshtml" />
+    <Content Include="Views\Language\Details.cshtml" />
     <Content Include="Views\UiTranslation\Index.cshtml" />
     <Content Include="Views\DocumentType\_DocumentTypeFormFields.cshtml" />
     <Content Include="Views\Extension\Index.cshtml" />
@@ -3525,6 +3530,12 @@
     <Content Include="Views\Jobside\_JobsideWorkspaceLeftPanel.cshtml" />
     <Content Include="Views\Jobside\_JobsideFormFields.cshtml" />
     <Content Include="Views\Jobside\_JobsideOfferForm.cshtml" />
+    <Content Include="Views\Jobside\Details.cshtml" />
+    <Content Include="Views\OfferState\Index.cshtml" />
+    <Content Include="Views\OfferState\Create.cshtml" />
+    <Content Include="Views\OfferState\Edit.cshtml" />
+    <Content Include="Views\OfferState\Details.cshtml" />
+    <Content Include="Views\OfferState\_OfferStateFormFields.cshtml" />
     <Content Include="Views\Shared\_GooglePlacesAddressBlock.cshtml" />
     <Content Include="Views\Shared\_IntranetAuditSection.cshtml" />
     <Content Include="Views\Shared\_GooglePlacesAddressScripts.cshtml" />
@@ -3553,6 +3564,7 @@
     <Content Include="Views\DesignToolsAutocad\PluginReady.cshtml" />
     <Content Include="Views\DesignToolsAutocad\PluginBlocks.cshtml" />
     <Content Include="Views\DesignToolsAutocad\InstallPlugin.cshtml" />
+    <Content Include="Views\DesignToolsAutocad\PluginCadAuth.cshtml" />
     <Content Include="Content\DesignTools\CadPlugin\web.config" />
     <Content Include="Content\DesignTools\CadPlugin\AtDesing.bundle\PackageContents.xml" />
     <Content Include="Content\DesignTools\CadPlugin\AtDesing.bundle\setup.ps1" />
@@ -3560,6 +3572,7 @@
     <Content Include="Scripts\DesignToolsAutocad\plugin-cad-block-preview.js" />
     <Content Include="Views\DesignToolsAutocad\PaletteTools.cshtml" />
     <Content Include="Views\Shared\_LayoutAutocadPalette.cshtml" />
+    <Content Include="Views\Shared\_LayoutZwcadEmbed.cshtml" />
     <Content Include="Views\Account\Login_Production.cshtml" />
     <Content Include="Views\Account\SendMail.cshtml" />
     <Content Include="Views\Employee\_Delete.cshtml" />

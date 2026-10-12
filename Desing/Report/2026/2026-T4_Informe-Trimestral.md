@@ -7,9 +7,9 @@
 
 | Clase | Horas |
 |-------|-------|
-| Programación | 8 h 25 min |
+| Programación | 10 h 2 min |
 | Manual | 0 h |
-| Total | 8 h 25 min |
+| Total | 10 h 2 min |
 
 ## Programación
 
@@ -56,9 +56,21 @@
 
 ### 12 de octubre — Salvar la configuración del muro
 
-- **Inicio:** 13:28. En curso. Las horas se cierran al salir.
-- **Qué se hace:** guardar en la base los checks de paneles de 0,75 y de paneles verticales, en producción y en develop, para que al reabrir el diseño sigan igual.
+- **Horas:** 1 h 37 min (de 13:28 a 15:05).
+- **Qué se hizo:** al reabrir el diseño se recuperan ménsulas, rigidizadores, puntales, paneles de 0,75 y paneles verticales. Hecho en producción y en develop. Pendiente de testeo; si algo falla, se abre un bug.
 - **Quincenal:** `Desing/Report/2026/2026-10-22_Informe-Quincenal.md` § 6. Salvar la configuración del muro.
+
+### 12 de octubre — Crear oferta desde el panel principal de diseño
+
+- **Inicio:** 15:14. En curso. Las horas se cierran al salir.
+- **Qué se hace:** poder crear una oferta desde el panel principal de diseño.
+- **Quincenal:** `Desing/Report/2026/2026-10-22_Informe-Quincenal.md` § 7. Poder crear oferta desde el panel principal de diseño.
+
+### 12 de octubre — Conexión SQL al publicar
+
+- **Inicio:** 18:09. En curso. Las horas se cierran al salir.
+- **Qué se hace:** al publicar en Release, las cadenas dejan `.\SQLEXPRESS` y pasan a SQL5113. Hay que republicar `ccvallecano-002-site5`.
+- **Quincenal:** `Desing/Report/2026/2026-10-22_Informe-Quincenal.md` § 8. Conexión SQL al publicar.
 
 ## Manual
 

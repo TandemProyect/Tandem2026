@@ -154,6 +154,32 @@
 
 
 
+            .home-dash-tile .dash-new-design.btn-icon {
+
+                width: 1.25rem;
+
+                height: 1.25rem;
+
+                min-width: 1.25rem;
+
+                padding: 0;
+
+            }
+
+
+
+            .home-dash-tile .dash-new-design.btn-icon .icon-base {
+
+                width: 0.73rem;
+
+                height: 0.73rem;
+
+                font-size: 0.73rem;
+
+            }
+
+
+
         @@media (max-width: 1199.98px) {
 
             .home-dash-shell {
@@ -294,6 +320,14 @@
 
                         <span class="fw-semibold">@Jobside.OfferWorkspace_TabDesigns</span>
 
+                        <button type="button"
+                                class="btn btn-icon btn-lg btn-primary rounded-pill"
+                                id="dashOpenNewOfferBtn"
+                                title="@Jobside.Offers_Btn_New"
+                                aria-label="@Jobside.Offers_Btn_New">
+                            <i class="icon-base ri ri-add-line" aria-hidden="true"></i>
+                        </button>
+
                     </div>
 
                     <div class="card-body home-dash-card-body">
@@ -387,6 +421,110 @@
                 </div>
 
             }
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="modal fade" id="dashNewOfferModal" tabindex="-1" aria-labelledby="dashNewOfferModalTitle" aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+
+                <h5 class="modal-title text-white" id="dashNewOfferModalTitle">@Jobside.Offers_CreateModalTitle</h5>
+
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="@Common.Aria_CloseModal"></button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <div id="dashNewOfferFlash" class="mb-2"></div>
+
+                <div class="mb-3">
+
+                    <label class="form-label" for="dashNewOfferJobside">@Jobside.OfferWorkspace_SubheaderJobsite</label>
+
+                    <select class="form-select" id="dashNewOfferJobside">
+
+                        <option value="">@Jobside.Offers_Dash_PickJobside</option>
+
+                    </select>
+
+                </div>
+
+                <div id="dashNewOfferFormHost"></div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">@Common.Btn_Cancel</button>
+
+                <button type="button" class="btn btn-primary" id="dashNewOfferSaveBtn">@Common.Btn_Save</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="modal fade" id="dashNewDesignModal" tabindex="-1" aria-labelledby="dashNewDesignModalTitle" aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+
+                <h5 class="modal-title text-white" id="dashNewDesignModalTitle">@Jobside.OfferWorkspace_Designs_ModalTitle</h5>
+
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="@Common.Aria_CloseModal"></button>
+
+            </div>
+
+            <form id="dashNewDesignForm">
+
+                @Html.AntiForgeryToken()
+
+                <div class="modal-body">
+
+                    <div id="dashNewDesignFlash" class="mb-2"></div>
+
+                    <input type="hidden" name="offerId" id="dashNewDesignOfferId" value="" />
+
+                    <input type="hidden" name="jobsideId" id="dashNewDesignJobsideId" value="" />
+
+                    <input type="hidden" name="attDescription" value="" />
+
+                    <input type="hidden" name="attThumbnail" value="" />
+
+                    <div class="mb-0">
+
+                        <label class="form-label" for="dashNewDesignName">@Jobside.OfferWorkspace_Designs_Lbl_AttLabel</label>
+
+                        <input type="text" class="form-control" id="dashNewDesignName" name="attLabel" maxlength="500" autocomplete="off" required="required" />
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">@Common.Btn_Cancel</button>
+
+                    <button type="submit" class="btn btn-primary">@Jobside.OfferWorkspace_Designs_Save_Submit</button>
+
+                </div>
+
+            </form>
 
         </div>
 
@@ -495,6 +633,318 @@
                 { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-end text-nowrap' }
 
             ]));
+
+
+
+            var dashOfferUi = {
+
+                jobsUrl: '@Url.Action("DashboardJobsForOffer", "Home")',
+
+                formUrl: '@Url.Action("JobsideOfferForm", "Jobside")',
+
+                saveUrl: '@Url.Action("SaveJobsideOffer", "Jobside")',
+
+                pickJob: @Html.Raw(JsonConvert.SerializeObject(Jobside.Offers_Dash_PickJobside)),
+
+                failed: @Html.Raw(JsonConvert.SerializeObject(Jobside.Offers_SaveFailed)),
+
+                success: @Html.Raw(JsonConvert.SerializeObject(Jobside.Offers_SaveSuccess))
+
+            };
+
+
+
+            function dashOfferFlash(kind, text) {
+
+                var host = document.getElementById('dashNewOfferFlash');
+
+                if (!host) return;
+
+                host.innerHTML = '<div class="alert alert-' + kind + ' py-2 px-3 small mb-0" role="alert">' +
+
+                    $('<div>').text(text || '').html() + '</div>';
+
+            }
+
+
+
+            function dashLoadOfferJobs(done) {
+
+                var select = document.getElementById('dashNewOfferJobside');
+
+                if (!select || select.getAttribute('data-loaded') === '1') {
+
+                    if (done) done();
+
+                    return;
+
+                }
+
+                $.getJSON(dashOfferUi.jobsUrl).done(function (rows) {
+
+                    var html = '<option value="">' + $('<div>').text(dashOfferUi.pickJob).html() + '</option>';
+
+                    (rows || []).forEach(function (row) {
+
+                        var label = (row.code ? row.code + ' — ' : '') + (row.name || '');
+
+                        html += '<option value="' + row.id + '">' + $('<div>').text(label).html() + '</option>';
+
+                    });
+
+                    select.innerHTML = html;
+
+                    select.setAttribute('data-loaded', '1');
+
+                    if (done) done();
+
+                }).fail(function () {
+
+                    dashOfferFlash('danger', dashOfferUi.failed);
+
+                });
+
+            }
+
+
+
+            function dashLoadOfferForm(jobsideId) {
+
+                var host = $('#dashNewOfferFormHost');
+
+                host.empty();
+
+                if (!jobsideId) return;
+
+                host.load(dashOfferUi.formUrl + '?jobsideId=' + encodeURIComponent(jobsideId), function (response, status) {
+
+                    if (status === 'error') {
+
+                        dashOfferFlash('danger', dashOfferUi.failed);
+
+                    }
+
+                });
+
+            }
+
+
+
+            $('#dashOpenNewOfferBtn').on('click', function (e) {
+
+                e.preventDefault();
+
+                $('#dashNewOfferFlash').empty();
+
+                $('#dashNewOfferFormHost').empty();
+
+                $('#dashNewOfferJobside').val('');
+
+                var modalEl = document.getElementById('dashNewOfferModal');
+
+                if (modalEl && window.bootstrap && bootstrap.Modal) {
+
+                    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+
+                }
+
+                dashLoadOfferJobs();
+
+            });
+
+
+
+            $('#dashNewOfferJobside').on('change', function () {
+
+                $('#dashNewOfferFlash').empty();
+
+                dashLoadOfferForm(this.value);
+
+            });
+
+
+
+            $('#dashNewOfferSaveBtn').on('click', function () {
+
+                var form = $('#dashNewOfferFormHost').find('#jobsideOfferForm');
+
+                if (!form.length) {
+
+                    dashOfferFlash('danger', dashOfferUi.pickJob);
+
+                    return;
+
+                }
+
+                $.ajax({
+
+                    url: dashOfferUi.saveUrl,
+
+                    type: 'POST',
+
+                    data: form.serialize()
+
+                }).done(function (r) {
+
+                    if (r && r.ok) {
+
+                        var modalEl = document.getElementById('dashNewOfferModal');
+
+                        if (modalEl && window.bootstrap) {
+
+                            var inst = bootstrap.Modal.getInstance(modalEl);
+
+                            if (inst) inst.hide();
+
+                        }
+
+                        $('#dashNewOfferFormHost').empty();
+
+                        if ($.fn.dataTable.isDataTable('#DashOffers')) {
+
+                            $('#DashOffers').DataTable().ajax.reload(null, false);
+
+                        }
+
+                    } else {
+
+                        dashOfferFlash('danger', (r && r.message) ? r.message : dashOfferUi.failed);
+
+                    }
+
+                }).fail(function () {
+
+                    dashOfferFlash('danger', dashOfferUi.failed);
+
+                });
+
+            });
+
+
+
+            var dashDesignUi = {
+
+                saveUrl: '@Url.Action("SaveOfferDesign", "Jobside")',
+
+                labelRequired: @Html.Raw(JsonConvert.SerializeObject(Jobside.OfferWorkspace_Designs_Val_LabelRequired)),
+
+                failed: @Html.Raw(JsonConvert.SerializeObject(Jobside.OfferWorkspace_Designs_SaveFailed)),
+
+                success: @Html.Raw(JsonConvert.SerializeObject(Jobside.OfferWorkspace_Designs_SaveSuccess))
+
+            };
+
+
+
+            function dashDesignFlash(kind, text) {
+
+                var host = document.getElementById('dashNewDesignFlash');
+
+                if (!host) return;
+
+                host.innerHTML = '<div class="alert alert-' + kind + ' py-2 px-3 small mb-0" role="alert">' +
+
+                    $('<div>').text(text || '').html() + '</div>';
+
+            }
+
+
+
+            $('#DashDesigns').on('click', '.dash-new-design', function (e) {
+
+                e.preventDefault();
+
+                $('#dashNewDesignOfferId').val($(this).attr('data-offer-id') || '');
+
+                $('#dashNewDesignJobsideId').val($(this).attr('data-jobside-id') || '');
+
+                $('#dashNewDesignName').val('');
+
+                $('#dashNewDesignFlash').empty();
+
+                var modalEl = document.getElementById('dashNewDesignModal');
+
+                if (modalEl && window.bootstrap && bootstrap.Modal) {
+
+                    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+
+                }
+
+            });
+
+
+
+            $('#dashNewDesignForm').on('submit', function (e) {
+
+                e.preventDefault();
+
+                var name = ($('#dashNewDesignName').val() || '').trim();
+
+                if (!name) {
+
+                    dashDesignFlash('danger', dashDesignUi.labelRequired);
+
+                    return;
+
+                }
+
+                $.ajax({
+
+                    url: dashDesignUi.saveUrl,
+
+                    type: 'POST',
+
+                    data: $(this).serialize()
+
+                }).done(function (r) {
+
+                    if (r && r.ok) {
+
+                        var modalEl = document.getElementById('dashNewDesignModal');
+
+                        if (modalEl && window.bootstrap) {
+
+                            var inst = bootstrap.Modal.getInstance(modalEl);
+
+                            if (inst) inst.hide();
+
+                        }
+
+                        if ($.fn.dataTable.isDataTable('#DashDesigns')) {
+
+                            $('#DashDesigns').DataTable().ajax.reload(null, false);
+
+                        }
+
+                    } else {
+
+                        dashDesignFlash('danger', (r && r.message) ? r.message : dashDesignUi.failed);
+
+                    }
+
+                }).fail(function () {
+
+                    dashDesignFlash('danger', dashDesignUi.failed);
+
+                });
+
+            });
+
+
+
+            var dashOfferModalEl = document.getElementById('dashNewOfferModal');
+
+            if (dashOfferModalEl) {
+
+                dashOfferModalEl.addEventListener('hidden.bs.modal', function () {
+
+                    $('#dashNewOfferFormHost').empty();
+
+                    $('#dashNewOfferFlash').empty();
+
+                });
+
+            }
 
         });
 

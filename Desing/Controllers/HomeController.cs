@@ -163,6 +163,7 @@ namespace Desing.Controllers
                     AttLabel = x.d.AttLabel ?? "",
                     AttThumbnail = x.d.AttThumbnail,
                     OfferId = x.o.IdObject,
+                    JobsideId = x.o.LinkJobside,
                     AddOfferNumber = x.o.AddOfferNumber ?? ""
                 });
 
@@ -170,6 +171,7 @@ namespace Desing.Controllers
                 var rows = page.ToList();
 
                 var tt = HttpUtility.HtmlAttributeEncode(Jobside.OfferWorkspace_Designs_Tooltip_Open3DViewer);
+                var ttNew = HttpUtility.HtmlAttributeEncode(Jobside.OfferWorkspace_Designs_Btn_NewTooltip);
                 var data = rows.Select(p =>
                 {
                     var stlPath = ApplicationStlUrlHelper.TryGetTrustedStlVirtualPath(p.AttThumbnail);
@@ -178,9 +180,15 @@ namespace Desing.Controllers
                     var btn =
                         "<a href=\"" + encUrl + "\" class=\"btn btn-sm btn-icon btn-text-secondary rounded-pill\" title=\"" + tt +
                         "\"><i class=\"icon-base ri ri-shape-3-line\" aria-hidden=\"true\"></i></a>";
+                    var newDesign =
+                        "<button type=\"button\" class=\"btn btn-icon btn-primary rounded-pill dash-new-design\" data-offer-id=\"" +
+                        p.OfferId + "\" data-jobside-id=\"" + p.JobsideId + "\" title=\"" + ttNew +
+                        "\" aria-label=\"" + ttNew + "\"><i class=\"icon-base ri ri-add-line\" aria-hidden=\"true\"></i></button>";
                     return new
                     {
-                        AddOfferNumber = HttpUtility.HtmlEncode(p.AddOfferNumber),
+                        AddOfferNumber =
+                            "<span class=\"d-inline-flex align-items-center gap-1\">" +
+                            HttpUtility.HtmlEncode(p.AddOfferNumber) + newDesign + "</span>",
                         AttLabel = HttpUtility.HtmlEncode(p.AttLabel),
                         actions = btn
                     };
@@ -192,6 +200,27 @@ namespace Desing.Controllers
             {
                 return Json(ex.Message);
             }
+        }
+
+        /// <summary>
+        /// Obras activas para el alta de oferta desde el panel de inicio.
+        /// </summary>
+        [HttpGet]
+        public JsonResult DashboardJobsForOffer()
+        {
+            var rows = db.TSql_Jobside.AsNoTracking()
+                .Where(j => !j.Is_Delete)
+                .OrderBy(j => j.AddNJobside)
+                .ThenBy(j => j.TextLabel)
+                .Select(j => new
+                {
+                    id = j.IdObject,
+                    code = j.AddNJobside ?? "",
+                    name = j.TextLabel ?? ""
+                })
+                .ToList();
+
+            return Json(rows, JsonRequestBehavior.AllowGet);
         }
 
         [HttpPost]
