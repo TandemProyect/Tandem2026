@@ -1,4 +1,5 @@
-﻿using DataTables.Mvc;
+﻿using DAL;
+using DataTables.Mvc;
 using Desing.Helpers;
 using Desing.Resources;
 using System;
@@ -218,14 +219,14 @@ namespace Desing.Controllers
                         "\"><i class=\"icon-base ri ri-eye-line\" aria-hidden=\"true\"></i></a>";
                     var newLabel = HttpUtility.HtmlEncode(Jobside.OfferWorkspace_Designs_Btn_New);
                     var newDesign =
-                        "<button type=\"button\" class=\"btn btn-sm btn-primary dash-new-design text-nowrap\" data-offer-id=\"" +
+                        "<button type=\"button\" class=\"btn btn-primary dash-new-design text-nowrap\" data-offer-id=\"" +
                         p.OfferId + "\" data-jobside-id=\"" + p.JobsideId + "\" data-offer-number=\"" +
                         HttpUtility.HtmlAttributeEncode(p.AddOfferNumber) + "\" title=\"" + ttNew +
                         "\" aria-label=\"" + ttNew + "\">" + newLabel + "</button>";
                     return new
                     {
                         AddOfferNumber =
-                            "<span class=\"d-inline-flex align-items-center gap-1\">" +
+                            "<span class=\"d-inline-flex align-items-center\">" +
                             HttpUtility.HtmlEncode(p.AddOfferNumber) + newDesign + "</span>",
                         ClientName = HttpUtility.HtmlEncode(p.ClientName),
                         AttLabel = HttpUtility.HtmlEncode(p.AttLabel),
@@ -239,6 +240,248 @@ namespace Desing.Controllers
             {
                 return Json(ex.Message);
             }
+        }
+
+        /// <summary>
+        /// Pestaña Clientes del panel de diseños: un cliente y, si la tiene, su oferta.
+        /// </summary>
+        [HttpPost]
+        public JsonResult ListDashboardClientDesigns([ModelBinder(typeof(DataTablesBinder))] IDataTablesRequest requestModel)
+        {
+            try
+            {
+                var q = from c in db.TSql_Client_V2.AsNoTracking()
+                        where !c.Is_Delete
+                        join o in db.TSql_Offers.AsNoTracking().Where(o => !o.Is_Delete)
+                            on c.IdObject equals o.LinkClient_V2 into og
+                        from o in og.DefaultIfEmpty()
+                        select new
+                        {
+                            ClientId = c.IdObject,
+                            ClientName = c.TextLabel ?? "",
+                            OfferId = o == null ? 0L : o.IdObject,
+                            JobsideId = o == null ? 0L : o.LinkJobside,
+                            OfferNumber = o == null ? "" : (o.AddOfferNumber ?? "")
+                        };
+
+                var totalCount = q.Count();
+
+                if (requestModel.Search != null && !string.IsNullOrEmpty(requestModel.Search.Value))
+                {
+                    var value = requestModel.Search.Value.Trim();
+                    q = q.Where(x =>
+                        (x.ClientName ?? "").Contains(value) ||
+                        (x.OfferNumber ?? "").Contains(value));
+                }
+
+                var filteredCount = q.Count();
+
+                var orderBy = "";
+                if (requestModel.Columns != null)
+                {
+                    foreach (var column in requestModel.Columns.GetSortedColumns())
+                    {
+                        string orderColumn;
+                        switch ((column.Data ?? "").ToLowerInvariant())
+                        {
+                            case "clientname":
+                                orderColumn = "ClientName";
+                                break;
+                            case "offernumber":
+                                orderColumn = "OfferNumber";
+                                break;
+                            default:
+                                continue;
+                        }
+                        if (orderBy.Length > 0)
+                        {
+                            orderBy += ", ";
+                        }
+                        orderBy += orderColumn +
+                            (column.SortDirection == Column.OrderDirection.Ascendant ? " asc" : " desc");
+                    }
+                }
+
+                var page = q.OrderBy(string.IsNullOrEmpty(orderBy)
+                    ? "ClientName asc, OfferNumber asc, ClientId asc"
+                    : orderBy)
+                    .ApplyDataTablesPaging(requestModel.Start, requestModel.Length);
+                var rows = page.ToList();
+
+                var newLabel = HttpUtility.HtmlEncode(Jobside.OfferWorkspace_Designs_Btn_New);
+                var ttNew = HttpUtility.HtmlAttributeEncode(Jobside.DashDesigns_RowTooltipClient);
+                var data = rows.Select(p =>
+                {
+                    var newDesign =
+                        "<button type=\"button\" class=\"btn btn-primary dash-new-client-design text-nowrap\" data-client-id=\"" +
+                        p.ClientId + "\" data-offer-id=\"" + p.OfferId + "\" data-jobside-id=\"" + p.JobsideId +
+                        "\" data-client-name=\"" + HttpUtility.HtmlAttributeEncode(p.ClientName) +
+                        "\" data-offer-number=\"" + HttpUtility.HtmlAttributeEncode(p.OfferNumber) +
+                        "\" title=\"" + ttNew + "\" aria-label=\"" + ttNew + "\">" + newLabel + "</button>";
+                    return new
+                    {
+                        ClientName =
+                            "<span class=\"d-inline-flex align-items-center\">" +
+                            HttpUtility.HtmlEncode(p.ClientName) + newDesign + "</span>",
+                        OfferNumber = HttpUtility.HtmlEncode(p.OfferNumber)
+                    };
+                }).ToList();
+
+                return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, totalCount));
+            }
+            catch (Exception ex)
+            {
+                return Json(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Ofertas para el alta de diseño desde la pestaña Ofertas.
+        /// </summary>
+        [HttpGet]
+        public JsonResult DashboardOffersForDesign()
+        {
+            var rows = (from o in db.TSql_Offers.AsNoTracking()
+                        where !o.Is_Delete
+                        join c in db.TSql_Client_V2.AsNoTracking().Where(c => !c.Is_Delete)
+                            on o.LinkClient_V2 equals c.IdObject into cg
+                        from c in cg.DefaultIfEmpty()
+                        orderby o.AddOfferNumber
+                        select new
+                        {
+                            id = o.IdObject,
+                            jobsideId = o.LinkJobside,
+                            number = o.AddOfferNumber ?? "",
+                            client = c == null ? "" : (c.TextLabel ?? "")
+                        }).ToList();
+
+            return Json(rows, JsonRequestBehavior.AllowGet);
+        }
+
+        /// <summary>
+        /// Clientes para el alta de diseño desde la pestaña Clientes.
+        /// </summary>
+        [HttpGet]
+        public JsonResult DashboardClientsForDesign()
+        {
+            var rows = db.TSql_Client_V2.AsNoTracking()
+                .Where(c => !c.Is_Delete)
+                .OrderBy(c => c.TextLabel)
+                .Select(c => new
+                {
+                    id = c.IdObject,
+                    name = c.TextLabel ?? ""
+                })
+                .ToList();
+
+            return Json(rows, JsonRequestBehavior.AllowGet);
+        }
+
+        /// <summary>
+        /// Crea un diseño nuevo con el nombre indicado y lo adjunta solo al cliente.
+        /// La oferta no se pide: si la fila ya la trae, se usa esa; si no, la última del cliente.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult SaveDashboardClientDesign(long clientId, long? offerId, string attLabel)
+        {
+            var client = db.TSql_Client_V2.AsNoTracking()
+                .FirstOrDefault(c => c.IdObject == clientId && !c.Is_Delete);
+            if (client == null)
+            {
+                return Json(new { ok = false, message = Jobside.DashDesigns_Val_ClientNotFound });
+            }
+
+            TSql_Offers offer;
+            if (offerId.HasValue && offerId.Value > 0)
+            {
+                var picked = offerId.Value;
+                offer = db.TSql_Offers.AsNoTracking()
+                    .FirstOrDefault(o => o.IdObject == picked && !o.Is_Delete && o.LinkClient_V2 == clientId);
+            }
+            else
+            {
+                offer = db.TSql_Offers.AsNoTracking()
+                    .Where(o => !o.Is_Delete && o.LinkClient_V2 == clientId)
+                    .OrderByDescending(o => o.IdObject)
+                    .FirstOrDefault();
+            }
+
+            if (offer == null)
+            {
+                return Json(new { ok = false, message = Jobside.DashDesigns_Val_NoOffer });
+            }
+
+            var label = (attLabel ?? "").Trim();
+            if (string.IsNullOrEmpty(label))
+            {
+                return Json(new { ok = false, message = Jobside.OfferWorkspace_Designs_Val_LabelRequired });
+            }
+            if (label.Length > 500)
+            {
+                label = label.Substring(0, 500);
+            }
+
+            var uid = IntranetAuditHelper.ResolveCurrentUserId(User) ?? "system";
+            if (uid.Length > 128)
+            {
+                uid = uid.Substring(0, 128);
+            }
+
+            var now = DateTime.Now;
+            var entity = new TSql_Design_V2
+            {
+                AttLabel = label,
+                AttDescription = null,
+                AttCenterX = 0d,
+                AttCenterY = 0d,
+                AttCreated = now,
+                AttChange = now,
+                AttIsDeleted = false,
+                AttThumbnail = null,
+                AttActiveCameraType = 0L,
+                LinCreatedBy = uid,
+                LinModifiedBy = uid,
+                SysUpdateNumber = 0L,
+                ItIsShared = false,
+                ItIsSharedMyGrup = false,
+                IsRenderAt60 = false,
+                LinkOffers = offer.IdObject
+            };
+
+            using (var tx = db.Database.BeginTransaction())
+            {
+                try
+                {
+                    db.TSql_Design_V2.Add(entity);
+                    db.SaveChanges();
+                    db.Database.ExecuteSqlCommand(
+                        @"INSERT INTO dbo.TSql_DesgloseOfertaCliente
+                            (TextLabel, LinkClient_V2, LinkOffers, LinkDesign_V2,
+                             Is_Delete, Is_Active, LinkMadeBy, LinModifiedBy,
+                             AddDateMade, AddLastDateChange, Ntimeschanged)
+                          VALUES (@p0, @p1, @p2, @p3, 0, 1, @p4, NULL, @p5, NULL, 0)",
+                        label,
+                        clientId,
+                        offer.IdObject,
+                        entity.SysObjectID,
+                        uid,
+                        now);
+                    tx.Commit();
+                }
+                catch
+                {
+                    tx.Rollback();
+                    return Json(new { ok = false, message = Jobside.OfferWorkspace_Designs_SaveFailed });
+                }
+            }
+
+            return Json(new
+            {
+                ok = true,
+                message = Jobside.DashDesigns_SaveSuccessFmt,
+                designId = entity.SysObjectID
+            });
         }
 
         /// <summary>

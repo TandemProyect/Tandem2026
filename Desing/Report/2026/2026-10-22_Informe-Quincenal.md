@@ -72,7 +72,7 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 - **Estado:** abierto. Sesión en curso desde el **12 de octubre de 2026, 15:14**.
 - **Sesión 12 oct:** inicio **15:14**. Aún sin cierre. Las horas van al trimestral T4 cuando se cierre.
 - **Qué se hace:** poder crear una oferta desde el panel principal de diseño.
-- **Hecho en el panel Diseños:** icono «+» en la cabecera para crear la oferta (obra, nombre, cliente, estado). Además, junto a cada número de oferta ya registrado, otro «+» crea el diseño dentro de esa oferta y solo pide el nombre. Diseños queda abajo, en tres de los cuatro huecos, con la columna Cliente, orden y buscador. El alta es el botón «Nuevo diseño» y el título indica la oferta. Arriba: obras, ofertas y clientes. Abrir un diseño usa el mismo ojo que el resto.
+- **Hecho en el panel Diseños:** icono «+» en la cabecera para crear la oferta (obra, nombre, cliente, estado). Además, junto a cada número de oferta ya registrado, otro «+» crea el diseño dentro de esa oferta y solo pide el nombre. Diseños queda abajo, en tres de los cuatro huecos, con la columna Cliente, orden y buscador. El alta es el botón «Nuevo diseño» y el título indica la oferta. Arriba: obras, ofertas y clientes. Abrir un diseño usa el mismo ojo que el resto. Cada panel lleva su barra de desplazamiento vertical.
 
 ### 8. Conexión SQL al publicar
 
@@ -82,6 +82,13 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 - **Editar empresa:** faltaban en el proyecto las vistas de delegaciones (`_CompanyBranchesDtCard` y las tres que van con ella). Sin eso, al publicar no se copian y Editar empresa falla. Hay que volver a publicar.
 - **Otras páginas que tampoco se copiaban:** obra (`Details`), estados de oferta, detalle de idioma, acceso del plugin CAD y el layout de ZWCAD. Ya están en el proyecto. Las clases viejas de esquina ATK-60 que no están en el proyecto no se compilan y no rompen la publicación.
 - **Google Maps al publicar:** `Web.GoogleMaps.config` no se sube porque Visual Studio excluye los `Web.*.config`. La clave pasa a `GoogleMaps.local.config`, que sí se publica y sigue fuera de Git. Hay que volver a publicar.
+
+### 9. Adjuntar diseños al cliente
+
+- **Estado:** abierto. Sesión en curso desde el **13 de octubre de 2026, 8:30**.
+- **Qué se hace:** poder adjuntar diseños a un cliente. Los formularios van después.
+- **Base:** tabla `TSql_DesgloseOfertaCliente`. El diseño sigue naciendo en su oferta. Cada línea guarda cliente, oferta y diseño; la misma terna no se repite. Sustituye a `TSql_ClientDesign`, que estaba vacía y se eliminó. Hecho en el SQL local de producción y en SQL5113 (tres claves foráneas). En develop local la tabla está, pero no hay clientes, ofertas ni diseños, así que las claves foráneas no se crearon.
+- **Formularios:** el panel Diseños tiene dos pestañas. Ofertas deja el listado de ahora. El «Nuevo diseño» de cada fila es más pequeño y va separado del número; solo pide el nombre. El + de la cabecera pasa a ser el botón «Nuevo diseño» y pide la oferta y el nombre. Clientes muestra primero el cliente y después la oferta, si la tiene. El «Nuevo diseño» de la fila pide el nombre y adjunta el diseño nuevo solo a ese cliente, sin pedir la oferta. El botón de arriba pide el cliente y el nombre.
 
 ## Heredado del informe 01 (sigue abierto)
 
@@ -105,6 +112,7 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 | Salvar la configuración del muro | Cursor, 12 oct | Apartado 6 cerrado. 13:28–15:05, 1 h 37 min. Pendiente de testeo; si falla, bug |
 | Crear oferta desde el panel principal | Cursor, 12 oct | Apartado 7 en curso desde el 12 oct, 15:14. + de oferta en la cabecera; + de diseño junto al número, solo el nombre |
 | Conexión SQL al publicar | Cursor, 12 oct | Apartado 8 en curso desde el 12 oct, 18:09. Release apunta a SQL5113; hay que republicar |
+| Adjuntar diseños al cliente | Cursor, 13 oct | Apartado 9 en curso desde el 13 oct, 8:30. Pestañas Ofertas y Clientes en el panel Diseños. El alta de cliente escribe en `TSql_DesgloseOfertaCliente` |
 
 ## Al cerrar el 22 de octubre
 

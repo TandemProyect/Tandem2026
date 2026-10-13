@@ -310,6 +310,63 @@
   <data name="OfferWorkspace_Designs_ModalTitleOfferFmt" xml:space="preserve">
     <value>Crear nuevo diseño en la oferta "{0}"</value>
   </data>
+  <data name="DashDesigns_Btn_Attach" xml:space="preserve">
+    <value>Adjuntar</value>
+  </data>
+  <data name="DashDesigns_ModalTitleAttach" xml:space="preserve">
+    <value>Adjuntar diseño al cliente</value>
+  </data>
+  <data name="DashDesigns_NoDesigns" xml:space="preserve">
+    <value>No hay diseños pendientes de adjuntar a este cliente.</value>
+  </data>
+  <data name="DashDesigns_PickDesign" xml:space="preserve">
+    <value>Selecciona el diseño</value>
+  </data>
+  <data name="DashDesigns_Val_AlreadyAttached" xml:space="preserve">
+    <value>Este diseño ya está adjuntado a este cliente.</value>
+  </data>
+  <data name="DashDesigns_Val_DesignNotFound" xml:space="preserve">
+    <value>No se ha encontrado el diseño.</value>
+  </data>
+  <data name="DashDesigns_Val_DesignRequired" xml:space="preserve">
+    <value>Selecciona el diseño.</value>
+  </data>
+  <data name="DashDesigns_ModalTitleClientFmt" xml:space="preserve">
+    <value>Crear nuevo diseño en el cliente "{0}"</value>
+  </data>
+  <data name="DashDesigns_ModalTitleNew" xml:space="preserve">
+    <value>Crear nuevo diseño</value>
+  </data>
+  <data name="DashDesigns_PickClient" xml:space="preserve">
+    <value>Selecciona el cliente</value>
+  </data>
+  <data name="DashDesigns_PickOffer" xml:space="preserve">
+    <value>Selecciona la oferta</value>
+  </data>
+  <data name="DashDesigns_RowTooltipClient" xml:space="preserve">
+    <value>Adjuntar un diseño a este cliente</value>
+  </data>
+  <data name="DashDesigns_SaveSuccessFmt" xml:space="preserve">
+    <value>Diseño creado y adjuntado al cliente.</value>
+  </data>
+  <data name="DashDesigns_TabClients" xml:space="preserve">
+    <value>Clientes</value>
+  </data>
+  <data name="DashDesigns_TabOffers" xml:space="preserve">
+    <value>Ofertas</value>
+  </data>
+  <data name="DashDesigns_Val_ClientNotFound" xml:space="preserve">
+    <value>No se ha encontrado el cliente.</value>
+  </data>
+  <data name="DashDesigns_Val_ClientRequired" xml:space="preserve">
+    <value>Selecciona el cliente.</value>
+  </data>
+  <data name="DashDesigns_Val_NoOffer" xml:space="preserve">
+    <value>Este cliente no tiene oferta. El diseño tiene que crearse dentro de una oferta.</value>
+  </data>
+  <data name="DashDesigns_Val_OfferRequired" xml:space="preserve">
+    <value>Selecciona la oferta.</value>
+  </data>
   <data name="OfferWorkspace_Designs_NoStlLinked" xml:space="preserve">
     <value>Sin STL enlazado</value>
   </data>

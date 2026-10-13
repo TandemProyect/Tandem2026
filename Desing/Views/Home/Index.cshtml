@@ -78,6 +78,8 @@
 
             grid-template-columns: repeat(4, minmax(0, 1fr));
 
+            grid-template-rows: minmax(0, 1fr);
+
             gap: 1rem;
 
             align-content: stretch;
@@ -134,11 +136,43 @@
 
                 min-height: 0;
 
-                overflow-y: auto;
-
                 overflow-x: hidden;
 
+                overflow-y: scroll;
+
+                scrollbar-gutter: stable;
+
+                scrollbar-width: thin;
+
+                scrollbar-color: rgba(46, 38, 61, 0.38) rgba(46, 38, 61, 0.08);
+
                 padding: 0.35rem 0.5rem 0.5rem;
+
+            }
+
+
+
+            .home-dash-tile .card-body.home-dash-card-body::-webkit-scrollbar {
+
+                width: 10px;
+
+            }
+
+
+
+            .home-dash-tile .card-body.home-dash-card-body::-webkit-scrollbar-track {
+
+                background: rgba(46, 38, 61, 0.08);
+
+            }
+
+
+
+            .home-dash-tile .card-body.home-dash-card-body::-webkit-scrollbar-thumb {
+
+                background: rgba(46, 38, 61, 0.38);
+
+                border-radius: 6px;
 
             }
 
@@ -170,27 +204,34 @@
 
 
 
-            .home-dash-tile .dash-new-design.btn-icon {
+            .home-dash-tile .dash-new-design,
+            .home-dash-tile .dash-new-client-design {
 
-                width: 1.25rem;
+                font-size: 0.6875rem;
 
-                height: 1.25rem;
+                line-height: 1.15;
 
-                min-width: 1.25rem;
+                padding: 0.05rem 0.4rem;
 
-                padding: 0;
+                margin-left: 1.35rem;
 
             }
 
 
 
-            .home-dash-tile .dash-new-design.btn-icon .icon-base {
+            .home-dash-tile--designs .dash-design-tabs {
 
-                width: 0.73rem;
+                margin-top: 0.35rem;
 
-                height: 0.73rem;
+            }
 
-                font-size: 0.73rem;
+
+
+            .home-dash-tile--designs .dash-design-tabs .nav-link {
+
+                font-size: 0.8125rem;
+
+                padding: 0.25rem 0.7rem;
 
             }
 
@@ -215,6 +256,34 @@
                 width: auto;
 
             }
+
+
+
+        @@media (min-width: 1200px) {
+
+            html.tandem-intranet-chrome .layout-content-navbar .content-wrapper > .container-fluid.flex-grow-1.container-p-y.tandem-layout-main-scroll:has(.home-dash-shell) {
+
+                display: flex;
+
+                flex-direction: column;
+
+                overflow: hidden !important;
+
+            }
+
+
+
+            .home-dash-shell {
+
+                flex: 1 1 0%;
+
+                height: auto;
+
+                max-height: none;
+
+            }
+
+        }
 
 
 
@@ -243,7 +312,9 @@
 
                 grid-template-columns: repeat(2, minmax(0, 1fr));
 
-                grid-auto-rows: minmax(240px, auto);
+                grid-template-rows: none;
+
+                grid-auto-rows: minmax(240px, 42vh);
 
             }
 
@@ -266,7 +337,7 @@
 
                 grid-template-columns: 1fr;
 
-                grid-auto-rows: minmax(220px, auto);
+                grid-auto-rows: minmax(220px, 70vh);
 
             }
 
@@ -418,41 +489,87 @@
 
                 <div class="card shadow-none border">
 
-                    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                    <div class="card-header py-2">
 
-                        <span class="fw-semibold">@Jobside.OfferWorkspace_TabDesigns</span>
+                        <div class="d-flex justify-content-between align-items-center">
 
-                        <button type="button"
-                                class="btn btn-icon btn-lg btn-primary rounded-pill"
-                                id="dashOpenNewOfferBtn"
-                                title="@Jobside.Offers_Btn_New"
-                                aria-label="@Jobside.Offers_Btn_New">
-                            <i class="icon-base ri ri-add-line" aria-hidden="true"></i>
-                        </button>
+                            <span class="fw-semibold">@Jobside.OfferWorkspace_TabDesigns</span>
+
+                            <button type="button"
+                                    class="btn btn-sm btn-primary text-nowrap"
+                                    id="dashOpenNewDesignBtn">
+                                @Jobside.OfferWorkspace_Designs_Btn_New
+                            </button>
+
+                        </div>
+
+                        <ul class="nav nav-tabs card-header-tabs dash-design-tabs" id="dashDesignTabs" role="tablist">
+
+                            <li class="nav-item" role="presentation">
+
+                                <button class="nav-link active" id="dashTabOffersBtn" data-bs-toggle="tab" data-bs-target="#dashTabOffers" data-dash-tab="offers" type="button" role="tab" aria-controls="dashTabOffers" aria-selected="true">@Jobside.DashDesigns_TabOffers</button>
+
+                            </li>
+
+                            <li class="nav-item" role="presentation">
+
+                                <button class="nav-link" id="dashTabClientsBtn" data-bs-toggle="tab" data-bs-target="#dashTabClients" data-dash-tab="clients" type="button" role="tab" aria-controls="dashTabClients" aria-selected="false">@Jobside.DashDesigns_TabClients</button>
+
+                            </li>
+
+                        </ul>
 
                     </div>
 
                     <div class="card-body home-dash-card-body">
 
-                        <table id="DashDesigns" class="table table-hover table-sm w-100" cellspacing="0">
+                        <div class="tab-content">
 
-                            <thead>
+                            <div class="tab-pane fade show active" id="dashTabOffers" role="tabpanel" aria-labelledby="dashTabOffersBtn">
 
-                                <tr>
+                                <table id="DashDesigns" class="table table-hover table-sm w-100" cellspacing="0">
 
-                                    <th>@Jobside.Offers_Col_Number</th>
+                                    <thead>
 
-                                    <th>@Jobside.Offers_Col_Client</th>
+                                        <tr>
 
-                                    <th>@Jobside.OfferWorkspace_Designs_Lbl_AttLabel</th>
+                                            <th>@Jobside.Offers_Col_Number</th>
 
-                                    <th class="text-end text-nowrap" style="width:1%;"></th>
+                                            <th>@Jobside.Offers_Col_Client</th>
 
-                                </tr>
+                                            <th>@Jobside.OfferWorkspace_Designs_Lbl_AttLabel</th>
 
-                            </thead>
+                                            <th class="text-end text-nowrap" style="width:1%;"></th>
 
-                        </table>
+                                        </tr>
+
+                                    </thead>
+
+                                </table>
+
+                            </div>
+
+                            <div class="tab-pane fade" id="dashTabClients" role="tabpanel" aria-labelledby="dashTabClientsBtn">
+
+                                <table id="DashClientDesigns" class="table table-hover table-sm w-100" cellspacing="0">
+
+                                    <thead>
+
+                                        <tr>
+
+                                            <th>@Jobside.Offers_Col_Client</th>
+
+                                            <th>@Jobside.OfferWorkspace_SubheaderOffer</th>
+
+                                        </tr>
+
+                                    </thead>
+
+                                </table>
+
+                            </div>
+
+                        </div>
 
                     </div>
 
@@ -556,6 +673,18 @@
 
                     <div id="dashNewDesignFlash" class="mb-2"></div>
 
+                    <div class="mb-3 d-none" id="dashNewDesignOfferPick">
+
+                        <label class="form-label" for="dashNewDesignOfferSelect">@Jobside.OfferWorkspace_SubheaderOffer</label>
+
+                        <select class="form-select" id="dashNewDesignOfferSelect">
+
+                            <option value="">@Jobside.DashDesigns_PickOffer</option>
+
+                        </select>
+
+                    </div>
+
                     <input type="hidden" name="offerId" id="dashNewDesignOfferId" value="" />
 
                     <input type="hidden" name="jobsideId" id="dashNewDesignJobsideId" value="" />
@@ -569,6 +698,70 @@
                         <label class="form-label" for="dashNewDesignName">@Jobside.OfferWorkspace_Designs_Lbl_AttLabel</label>
 
                         <input type="text" class="form-control" id="dashNewDesignName" name="attLabel" maxlength="500" autocomplete="off" required="required" />
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">@Common.Btn_Cancel</button>
+
+                    <button type="submit" class="btn btn-primary">@Jobside.OfferWorkspace_Designs_Save_Submit</button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="modal fade" id="dashNewClientDesignModal" tabindex="-1" aria-labelledby="dashNewClientDesignModalTitle" aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+
+                <h5 class="modal-title text-white" id="dashNewClientDesignModalTitle">@Jobside.DashDesigns_ModalTitleNew</h5>
+
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="@Common.Aria_CloseModal"></button>
+
+            </div>
+
+            <form id="dashNewClientDesignForm">
+
+                @Html.AntiForgeryToken()
+
+                <div class="modal-body">
+
+                    <div id="dashNewClientDesignFlash" class="mb-2"></div>
+
+                    <div class="mb-3 d-none" id="dashNewClientDesignClientPick">
+
+                        <label class="form-label" for="dashNewClientDesignClientSelect">@Jobside.Lbl_Client</label>
+
+                        <select class="form-select" id="dashNewClientDesignClientSelect">
+
+                            <option value="">@Jobside.DashDesigns_PickClient</option>
+
+                        </select>
+
+                    </div>
+
+                    <input type="hidden" name="clientId" id="dashNewClientDesignClientId" value="" />
+
+                    <input type="hidden" name="offerId" id="dashNewClientDesignOfferId" value="" />
+
+                    <div class="mb-0">
+
+                        <label class="form-label" for="dashNewClientDesignName">@Jobside.OfferWorkspace_Designs_Lbl_AttLabel</label>
+
+                        <input type="text" class="form-control" id="dashNewClientDesignName" name="attLabel" maxlength="500" autocomplete="off" />
 
                     </div>
 
@@ -689,6 +882,24 @@
             dashDesignOpts.order = [[2, 'asc']];
 
             $('#DashDesigns').DataTable(dashDesignOpts);
+
+
+
+            var dashClientDesignOpts = tandemDashTableOptions('@Url.Action("ListDashboardClientDesigns", "Home")', [
+
+                { data: 'ClientName', name: 'ClientName' },
+
+                { data: 'OfferNumber', name: 'OfferNumber' }
+
+            ]);
+
+            dashClientDesignOpts.dom = 'frtip';
+
+            dashClientDesignOpts.ordering = true;
+
+            dashClientDesignOpts.order = [[0, 'asc']];
+
+            $('#DashClientDesigns').DataTable(dashClientDesignOpts);
 
 
 
@@ -890,17 +1101,65 @@
 
 
 
+            var dashDesignTab = 'offers';
+
+            $('#dashDesignTabs').on('shown.bs.tab', function (e) {
+
+                dashDesignTab = $(e.target).attr('data-dash-tab') || 'offers';
+
+                var tableId = dashDesignTab === 'clients' ? '#DashClientDesigns' : '#DashDesigns';
+
+                if ($.fn.dataTable.isDataTable(tableId)) {
+
+                    $(tableId).DataTable().columns.adjust();
+
+                }
+
+            });
+
+
+
             var dashDesignUi = {
 
                 saveUrl: '@Url.Action("SaveOfferDesign", "Jobside")',
 
+                offersUrl: '@Url.Action("DashboardOffersForDesign", "Home")',
+
                 labelRequired: @Html.Raw(JsonConvert.SerializeObject(Jobside.OfferWorkspace_Designs_Val_LabelRequired)),
+
+                offerRequired: @Html.Raw(JsonConvert.SerializeObject(Jobside.DashDesigns_Val_OfferRequired)),
+
+                pickOffer: @Html.Raw(JsonConvert.SerializeObject(Jobside.DashDesigns_PickOffer)),
 
                 failed: @Html.Raw(JsonConvert.SerializeObject(Jobside.OfferWorkspace_Designs_SaveFailed)),
 
                 success: @Html.Raw(JsonConvert.SerializeObject(Jobside.OfferWorkspace_Designs_SaveSuccess)),
 
-                titleFmt: @Html.Raw(JsonConvert.SerializeObject(Jobside.OfferWorkspace_Designs_ModalTitleOfferFmt))
+                titleFmt: @Html.Raw(JsonConvert.SerializeObject(Jobside.OfferWorkspace_Designs_ModalTitleOfferFmt)),
+
+                titleNew: @Html.Raw(JsonConvert.SerializeObject(Jobside.DashDesigns_ModalTitleNew))
+
+            };
+
+
+
+            var dashClientDesignUi = {
+
+                saveUrl: '@Url.Action("SaveDashboardClientDesign", "Home")',
+
+                clientsUrl: '@Url.Action("DashboardClientsForDesign", "Home")',
+
+                labelRequired: @Html.Raw(JsonConvert.SerializeObject(Jobside.OfferWorkspace_Designs_Val_LabelRequired)),
+
+                clientRequired: @Html.Raw(JsonConvert.SerializeObject(Jobside.DashDesigns_Val_ClientRequired)),
+
+                pickClient: @Html.Raw(JsonConvert.SerializeObject(Jobside.DashDesigns_PickClient)),
+
+                failed: @Html.Raw(JsonConvert.SerializeObject(Jobside.OfferWorkspace_Designs_SaveFailed)),
+
+                titleFmt: @Html.Raw(JsonConvert.SerializeObject(Jobside.DashDesigns_ModalTitleClientFmt)),
+
+                titleNew: @Html.Raw(JsonConvert.SerializeObject(Jobside.DashDesigns_ModalTitleNew))
 
             };
 
@@ -920,29 +1179,247 @@
 
 
 
-            $('#DashDesigns').on('click', '.dash-new-design', function (e) {
+            function dashClientDesignFlash(kind, text) {
 
-                e.preventDefault();
+                var host = document.getElementById('dashNewClientDesignFlash');
 
-                $('#dashNewDesignOfferId').val($(this).attr('data-offer-id') || '');
+                if (!host) return;
 
-                $('#dashNewDesignJobsideId').val($(this).attr('data-jobside-id') || '');
+                host.innerHTML = '<div class="alert alert-' + kind + ' py-2 px-3 small mb-0" role="alert">' +
 
-                var offerNumber = $(this).attr('data-offer-number') || '';
+                    $('<div>').text(text || '').html() + '</div>';
 
-                $('#dashNewDesignModalTitle').text((dashDesignUi.titleFmt || '').replace('{0}', offerNumber));
+            }
 
-                $('#dashNewDesignName').val('');
 
-                $('#dashNewDesignFlash').empty();
 
-                var modalEl = document.getElementById('dashNewDesignModal');
+            function dashShowModal(id) {
+
+                var modalEl = document.getElementById(id);
 
                 if (modalEl && window.bootstrap && bootstrap.Modal) {
 
                     bootstrap.Modal.getOrCreateInstance(modalEl).show();
 
                 }
+
+            }
+
+
+
+            function dashLoadDesignOffers() {
+
+                var select = document.getElementById('dashNewDesignOfferSelect');
+
+                if (!select || select.getAttribute('data-loaded') === '1') return;
+
+                $.getJSON(dashDesignUi.offersUrl).done(function (rows) {
+
+                    var html = '<option value="">' + $('<div>').text(dashDesignUi.pickOffer).html() + '</option>';
+
+                    (rows || []).forEach(function (row) {
+
+                        var label = row.number || '';
+
+                        if (row.client) label += (label ? ' — ' : '') + row.client;
+
+                        html += '<option value="' + row.id + '" data-jobside-id="' + row.jobsideId + '">' +
+
+                            $('<div>').text(label).html() + '</option>';
+
+                    });
+
+                    select.innerHTML = html;
+
+                    select.setAttribute('data-loaded', '1');
+
+                }).fail(function () {
+
+                    dashDesignFlash('danger', dashDesignUi.failed);
+
+                });
+
+            }
+
+
+
+            function dashLoadDesignClients() {
+
+                var select = document.getElementById('dashNewClientDesignClientSelect');
+
+                if (!select || select.getAttribute('data-loaded') === '1') return;
+
+                $.getJSON(dashClientDesignUi.clientsUrl).done(function (rows) {
+
+                    var html = '<option value="">' + $('<div>').text(dashClientDesignUi.pickClient).html() + '</option>';
+
+                    (rows || []).forEach(function (row) {
+
+                        html += '<option value="' + row.id + '">' + $('<div>').text(row.name || '').html() + '</option>';
+
+                    });
+
+                    select.innerHTML = html;
+
+                    select.setAttribute('data-loaded', '1');
+
+                }).fail(function () {
+
+                    dashClientDesignFlash('danger', dashClientDesignUi.failed);
+
+                });
+
+            }
+
+
+
+            function dashOpenOfferDesignModal(fromRow, offerId, jobsideId, offerNumber) {
+
+                $('#dashNewDesignName').val('');
+
+                $('#dashNewDesignFlash').empty();
+
+                if (fromRow) {
+
+                    $('#dashNewDesignOfferPick').addClass('d-none');
+
+                    $('#dashNewDesignOfferId').val(offerId || '');
+
+                    $('#dashNewDesignJobsideId').val(jobsideId || '');
+
+                    $('#dashNewDesignModalTitle').text((dashDesignUi.titleFmt || '').replace('{0}', offerNumber || ''));
+
+                } else {
+
+                    $('#dashNewDesignOfferPick').removeClass('d-none');
+
+                    $('#dashNewDesignOfferSelect').val('');
+
+                    $('#dashNewDesignOfferId').val('');
+
+                    $('#dashNewDesignJobsideId').val('');
+
+                    $('#dashNewDesignModalTitle').text(dashDesignUi.titleNew || '');
+
+                    dashLoadDesignOffers();
+
+                }
+
+                dashShowModal('dashNewDesignModal');
+
+            }
+
+
+
+            function dashOpenClientDesignModal(fromRow, clientId, clientName, offerId) {
+
+                $('#dashNewClientDesignName').val('');
+
+                $('#dashNewClientDesignFlash').empty();
+
+                if (fromRow) {
+
+                    $('#dashNewClientDesignClientPick').addClass('d-none');
+
+                    $('#dashNewClientDesignClientId').val(clientId || '');
+
+                    $('#dashNewClientDesignOfferId').val(offerId && offerId !== '0' ? offerId : '');
+
+                    $('#dashNewClientDesignModalTitle').text((dashClientDesignUi.titleFmt || '').replace('{0}', clientName || ''));
+
+                } else {
+
+                    $('#dashNewClientDesignClientPick').removeClass('d-none');
+
+                    $('#dashNewClientDesignClientSelect').val('');
+
+                    $('#dashNewClientDesignClientId').val('');
+
+                    $('#dashNewClientDesignOfferId').val('');
+
+                    $('#dashNewClientDesignModalTitle').text(dashClientDesignUi.titleNew || '');
+
+                    dashLoadDesignClients();
+
+                }
+
+                dashShowModal('dashNewClientDesignModal');
+
+            }
+
+
+
+            $('#dashOpenNewDesignBtn').on('click', function (e) {
+
+                e.preventDefault();
+
+                if (dashDesignTab === 'clients') {
+
+                    dashOpenClientDesignModal(false);
+
+                } else {
+
+                    dashOpenOfferDesignModal(false);
+
+                }
+
+            });
+
+
+
+            $('#dashNewDesignOfferSelect').on('change', function () {
+
+                var opt = this.options[this.selectedIndex];
+
+                $('#dashNewDesignOfferId').val(this.value || '');
+
+                $('#dashNewDesignJobsideId').val(opt ? (opt.getAttribute('data-jobside-id') || '') : '');
+
+            });
+
+
+
+            $('#dashNewClientDesignClientSelect').on('change', function () {
+
+                $('#dashNewClientDesignClientId').val(this.value || '');
+
+                $('#dashNewClientDesignOfferId').val('');
+
+            });
+
+
+
+            $('#DashDesigns').on('click', '.dash-new-design', function (e) {
+
+                e.preventDefault();
+
+                dashOpenOfferDesignModal(
+
+                    true,
+
+                    $(this).attr('data-offer-id') || '',
+
+                    $(this).attr('data-jobside-id') || '',
+
+                    $(this).attr('data-offer-number') || '');
+
+            });
+
+
+
+            $('#DashClientDesigns').on('click', '.dash-new-client-design', function (e) {
+
+                e.preventDefault();
+
+                dashOpenClientDesignModal(
+
+                    true,
+
+                    $(this).attr('data-client-id') || '',
+
+                    $(this).attr('data-client-name') || '',
+
+                    $(this).attr('data-offer-id') || '');
 
             });
 
@@ -951,6 +1428,14 @@
             $('#dashNewDesignForm').on('submit', function (e) {
 
                 e.preventDefault();
+
+                if (!$('#dashNewDesignOfferPick').hasClass('d-none') && !$('#dashNewDesignOfferId').val()) {
+
+                    dashDesignFlash('danger', dashDesignUi.offerRequired);
+
+                    return;
+
+                }
 
                 var name = ($('#dashNewDesignName').val() || '').trim();
 
@@ -999,6 +1484,72 @@
                 }).fail(function () {
 
                     dashDesignFlash('danger', dashDesignUi.failed);
+
+                });
+
+            });
+
+
+
+            $('#dashNewClientDesignForm').on('submit', function (e) {
+
+                e.preventDefault();
+
+                if (!$('#dashNewClientDesignClientPick').hasClass('d-none') && !$('#dashNewClientDesignClientId').val()) {
+
+                    dashClientDesignFlash('danger', dashClientDesignUi.clientRequired);
+
+                    return;
+
+                }
+
+                var name = ($('#dashNewClientDesignName').val() || '').trim();
+
+                if (!name) {
+
+                    dashClientDesignFlash('danger', dashClientDesignUi.labelRequired);
+
+                    return;
+
+                }
+
+                $.ajax({
+
+                    url: dashClientDesignUi.saveUrl,
+
+                    type: 'POST',
+
+                    data: $(this).serialize()
+
+                }).done(function (r) {
+
+                    if (r && r.ok) {
+
+                        var modalEl = document.getElementById('dashNewClientDesignModal');
+
+                        if (modalEl && window.bootstrap) {
+
+                            var inst = bootstrap.Modal.getInstance(modalEl);
+
+                            if (inst) inst.hide();
+
+                        }
+
+                        if ($.fn.dataTable.isDataTable('#DashDesigns')) {
+
+                            $('#DashDesigns').DataTable().ajax.reload(null, false);
+
+                        }
+
+                    } else {
+
+                        dashClientDesignFlash('danger', (r && r.message) ? r.message : dashClientDesignUi.failed);
+
+                    }
+
+                }).fail(function () {
+
+                    dashClientDesignFlash('danger', dashClientDesignUi.failed);
 
                 });
 

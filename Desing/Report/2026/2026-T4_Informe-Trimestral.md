@@ -72,6 +72,12 @@
 - **Qué se hace:** al publicar en Release, las cadenas dejan `.\SQLEXPRESS` y pasan a SQL5113. Hay que republicar `ccvallecano-002-site5`.
 - **Quincenal:** `Desing/Report/2026/2026-10-22_Informe-Quincenal.md` § 8. Conexión SQL al publicar.
 
+### 13 de octubre — Adjuntar diseños al cliente
+
+- **Inicio:** 8:30. En curso. Las horas se cierran al salir.
+- **Qué se hace:** tabla `TSql_DesgloseOfertaCliente` (cliente, oferta y diseño) en el SQL local de producción y en SQL5113. En el panel Diseños, pestaña Ofertas (alta actual) y pestaña Clientes (pide el nombre y adjunta el diseño nuevo solo al cliente).
+- **Quincenal:** `Desing/Report/2026/2026-10-22_Informe-Quincenal.md` § 9. Adjuntar diseños al cliente.
+
 ## Manual
 
 Trabajo que no es programación. Cada apunte lleva la fecha, las horas y lo que se hizo. Hacer los bloques entra aquí.
