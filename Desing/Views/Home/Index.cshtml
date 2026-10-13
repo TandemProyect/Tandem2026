@@ -22,7 +22,13 @@
 
         allRows = Common.Dt_Rows_All,
 
-        ariaMenu = Common.Dt_MenuAria
+        ariaMenu = Common.Dt_MenuAria,
+
+        sectionRecords = Common.Dt_Section_Records,
+
+        sectionExport = Common.Dt_Section_Export,
+
+        sectionCols = Common.Dt_Section_ColumnsVisible
 
     });
 
@@ -136,15 +142,7 @@
 
                 min-height: 0;
 
-                overflow-x: hidden;
-
-                overflow-y: scroll;
-
-                scrollbar-gutter: stable;
-
-                scrollbar-width: thin;
-
-                scrollbar-color: rgba(46, 38, 61, 0.38) rgba(46, 38, 61, 0.08);
+                overflow: visible;
 
                 padding: 0.35rem 0.5rem 0.5rem;
 
@@ -152,27 +150,69 @@
 
 
 
-            .home-dash-tile .card-body.home-dash-card-body::-webkit-scrollbar {
+            .home-dash-tile .dataTables_wrapper {
 
-                width: 10px;
+                display: flex;
 
-            }
+                flex-direction: column;
 
+                min-height: 0;
 
-
-            .home-dash-tile .card-body.home-dash-card-body::-webkit-scrollbar-track {
-
-                background: rgba(46, 38, 61, 0.08);
+                height: 100%;
 
             }
 
 
 
-            .home-dash-tile .card-body.home-dash-card-body::-webkit-scrollbar-thumb {
+            .home-dash-tile .dataTables_scroll {
 
-                background: rgba(46, 38, 61, 0.38);
+                flex: 1 1 auto;
+
+                min-height: 0;
+
+            }
+
+
+
+            .home-dash-tile .dataTables_scrollBody {
+
+                overflow-x: hidden !important;
+
+                overflow-y: scroll !important;
+
+                scrollbar-gutter: stable;
+
+                scrollbar-color: rgba(46, 38, 61, 0.55) rgba(46, 38, 61, 0.12);
+
+            }
+
+
+
+            .home-dash-tile .dataTables_scrollBody::-webkit-scrollbar {
+
+                width: 12px;
+
+                -webkit-appearance: none;
+
+            }
+
+
+
+            .home-dash-tile .dataTables_scrollBody::-webkit-scrollbar-track {
+
+                background: rgba(46, 38, 61, 0.12);
+
+            }
+
+
+
+            .home-dash-tile .dataTables_scrollBody::-webkit-scrollbar-thumb {
+
+                background: rgba(46, 38, 61, 0.55);
 
                 border-radius: 6px;
+
+                border: 2px solid #fff;
 
             }
 
@@ -204,7 +244,36 @@
 
 
 
-            .home-dash-tile .dash-new-design,
+            .home-dash-tile .dt-buttons,
+            .home-dash-tile .dataTables_filter {
+
+                margin: 0 0 0.35rem;
+
+            }
+
+
+
+            .home-dash-tile .dataTables_filter {
+
+                text-align: right;
+
+            }
+
+
+
+            .home-dash-tile .dataTables_filter input {
+
+                margin-left: 0.35rem;
+
+                display: inline-block;
+
+                width: auto;
+
+            }
+
+
+
+            .home-dash-tile .dash-new-design:not(.btn-icon),
             .home-dash-tile .dash-new-client-design {
 
                 font-size: 0.6875rem;
@@ -219,9 +288,498 @@
 
 
 
+            .home-dash-tile .dash-new-design.btn-icon {
+
+                margin-left: 0;
+
+                width: 1.5rem;
+
+                height: 1.5rem;
+
+                padding: 0;
+
+                background: transparent !important;
+
+                border: 0;
+
+                box-shadow: none;
+
+                color: var(--bs-primary) !important;
+
+            }
+
+
+
+            .home-dash-tile .dash-new-design-sign {
+
+                background: #fff !important;
+
+                color: var(--bs-primary) !important;
+
+                border-color: var(--bs-primary) !important;
+
+            }
+
+
+
+            .home-dash-tile tr:hover .dash-new-design-sign,
+            .home-dash-tile .dash-new-design:hover .dash-new-design-sign,
+            .home-dash-tile .dash-new-design:focus-visible .dash-new-design-sign {
+
+                background: var(--bs-primary) !important;
+
+                color: #fff !important;
+
+            }
+
+
+
+            .home-dash-tile table.dataTable tbody tr .tandem-col-actions .btn-icon,
+            .home-dash-tile .dash-client-tree .btn-icon {
+
+                color: var(--bs-primary);
+
+                background-color: transparent;
+
+            }
+
+
+
+            .home-dash-tile table.dataTable tbody tr:hover .tandem-col-actions .btn-icon:not(.dash-new-design),
+            .home-dash-tile table.dataTable tbody tr .tandem-col-actions .btn-icon:not(.dash-new-design):hover,
+            .home-dash-tile table.dataTable tbody tr .tandem-col-actions .btn-icon:not(.dash-new-design):focus-visible,
+            .home-dash-tile .dash-client-tree .dash-client-tree-design:hover .btn-icon,
+            .home-dash-tile .dash-client-tree .btn-icon:hover,
+            .home-dash-tile .dash-client-tree .btn-icon:focus-visible {
+
+                color: #fff !important;
+
+                background-color: var(--bs-primary) !important;
+
+                box-shadow: 0 0 0 2px color-mix(in sRGB, var(--bs-primary) 40%, #fff);
+
+            }
+
+
+
+            .home-dash-tile table.dataTable tbody tr .tandem-col-actions .btn-icon i,
+            .home-dash-tile .dash-client-tree .btn-icon i {
+
+                color: inherit;
+
+            }
+
+
+
+            .home-dash-tile .dash-tree-toggle {
+
+                width: 1.35rem;
+
+                height: 1.35rem;
+
+                padding: 0;
+
+                border: 0;
+
+                background: transparent;
+
+                line-height: 1;
+
+            }
+
+
+
+            .home-dash-tile .dash-tree-sign {
+
+                display: inline-flex;
+
+                align-items: center;
+
+                justify-content: center;
+
+                width: 1.15rem;
+
+                height: 1.15rem;
+
+                border: 1px solid var(--bs-primary);
+
+                border-radius: 0.2rem;
+
+                background: #fff;
+
+                color: var(--bs-primary);
+
+                font-weight: 700;
+
+                font-size: 0.9rem;
+
+            }
+
+
+
+            .home-dash-tile tr:hover .dash-tree-toggle .dash-tree-sign,
+            .home-dash-tile .dash-tree-toggle:hover .dash-tree-sign,
+            .home-dash-tile .dash-tree-toggle[aria-expanded="true"] .dash-tree-sign {
+
+                background: var(--bs-primary);
+
+                color: #fff;
+
+            }
+
+
+
+            .home-dash-tile .dash-client-tree {
+
+                --dash-tree-line: #b7bec8;
+
+                position: relative;
+
+                margin-left: var(--dash-tree-gutter, 1.15rem);
+
+                padding: 0.15rem 0.35rem 0.45rem 1.05rem;
+
+                border-left: 1px solid var(--dash-tree-line);
+
+                background: #fff;
+
+                overflow: hidden;
+
+            }
+
+
+
+            .home-dash-tile .dash-client-tree-node {
+
+                position: relative;
+
+                margin-bottom: 0.35rem;
+
+            }
+
+
+
+            .home-dash-tile .dash-client-tree-monthline {
+
+                position: relative;
+
+                display: flex;
+
+                align-items: center;
+
+                gap: 0.85rem;
+
+                min-height: 2rem;
+
+                padding: 0.3rem 0.45rem 0.3rem 0.15rem;
+
+                border-radius: 0.4rem;
+
+            }
+
+
+
+            .home-dash-tile--designs table.table > tbody > tr > *,
+            .home-dash-tile--designs table.table > tbody > tr:hover > *,
+            .home-dash-tile--designs table.table > tbody > tr.odd > *,
+            .home-dash-tile--designs table.table > tbody > tr.even > * {
+
+                --bs-table-bg-state: transparent !important;
+
+                --bs-table-accent-bg: transparent !important;
+
+                --bs-table-color-state: var(--bs-body-color) !important;
+
+                box-shadow: none !important;
+
+                background-color: #fff !important;
+
+                color: var(--bs-body-color) !important;
+
+            }
+
+
+
+            .home-dash-tile .dash-client-tree-label,
+            .home-dash-tile .dash-client-tree-head,
+            .home-dash-tile .dash-client-tree-name {
+
+                color: var(--bs-body-color);
+
+            }
+
+
+
+            .home-dash-tile .dash-client-tree-label {
+
+                font-weight: 600;
+
+            }
+
+
+
+            .home-dash-tile .dash-client-tree-count,
+            .home-dash-tile .dash-client-tree-offer,
+            .home-dash-tile .dash-client-tree-date {
+
+                color: var(--bs-secondary-color);
+
+            }
+
+
+
+            .home-dash-tile--designs #DashDesigns tbody td.dash-offer-number,
+            .home-dash-tile--designs #DashClientDesigns tbody td.dash-client-name,
+            .home-dash-tile--designs .dash-client-tree-offer {
+
+                color: var(--bs-primary) !important;
+
+                font-weight: 700;
+
+            }
+
+
+
+            .home-dash-tile .dash-client-tree-designs {
+
+                display: flex;
+
+                flex-direction: column;
+
+                gap: 0.25rem;
+
+                margin: 0 0 0.15rem;
+
+            }
+
+
+
+            .home-dash-tile .dash-client-tree-head,
+            .home-dash-tile .dash-client-tree-design {
+
+                display: grid;
+
+                grid-template-columns: minmax(9rem, 1.6fr) minmax(7rem, 1fr) 10.5rem 4.75rem;
+
+                column-gap: 1.25rem;
+
+                align-items: center;
+
+            }
+
+
+
+            .home-dash-tile .dash-client-tree-head {
+
+                font-size: 0.72rem;
+
+                font-weight: 700;
+
+                color: var(--bs-secondary-color);
+
+                padding: 0.1rem 0.7rem;
+
+            }
+
+
+
+            .home-dash-tile .dash-client-tree-design {
+
+                position: relative;
+
+                min-height: 2.2rem;
+
+                padding: 0.4rem 0.7rem;
+
+                border-radius: 0.4rem;
+
+                background: #fff;
+
+                border: 1px solid transparent;
+
+            }
+
+
+
+            .home-dash-tile .dash-client-tree-design:hover {
+
+                background: #fff;
+
+                border-color: var(--bs-primary);
+
+            }
+
+
+
+            .home-dash-tile .dash-client-tree-eye {
+
+                justify-self: end;
+
+            }
+
+
+
+            .home-dash-tile table.dataTable tr.dash-client-tree-row > td {
+
+                padding: 0 0.75rem 0.2rem 0;
+
+                background: #fff;
+
+                overflow: visible;
+
+            }
+
+
+
+            .home-dash-tile--designs tr:has(> td .dash-client-tree-root[aria-expanded="true"]) > td.dash-tree-col {
+
+                position: relative;
+
+            }
+
+
+
+            .home-dash-tile--designs tr:has(> td .dash-client-tree-root[aria-expanded="true"]) > td.dash-tree-col::after {
+
+                content: "";
+
+                position: absolute;
+
+                left: 50%;
+
+                top: calc(50% + 0.72rem);
+
+                bottom: -1px;
+
+                border-left: 1px solid #b7bec8;
+
+            }
+
+
+
+            .home-dash-tile .dash-client-tree-monthline::before {
+
+                content: "";
+
+                position: absolute;
+
+                left: calc(-1.05rem + 1px);
+
+                top: 50%;
+
+                width: 0.85rem;
+
+                border-top: 1px solid var(--dash-tree-line, #b7bec8);
+
+            }
+
+
+
+            .home-dash-tile .dash-client-tree-node:last-child .dash-client-tree-monthline::after {
+
+                content: "";
+
+                position: absolute;
+
+                left: calc(-1.05rem - 1px);
+
+                top: calc(50% + 1px);
+
+                width: 3px;
+
+                height: 4000px;
+
+                background: #fff;
+
+            }
+
+
+
+            .home-dash-tile .dash-client-tree-head {
+
+                margin-left: 1.7rem;
+
+            }
+
+
+
+            .home-dash-tile .dash-client-tree-leaves {
+
+                position: relative;
+
+                display: flex;
+
+                flex-direction: column;
+
+                gap: 0.35rem;
+
+                margin: 0 0 0.15rem 0.62rem;
+
+                padding-left: 1.05rem;
+
+                border-left: 1px solid var(--dash-tree-line, #b7bec8);
+
+                overflow: hidden;
+
+            }
+
+
+
+            .home-dash-tile .dash-client-tree-design::before {
+
+                content: "";
+
+                position: absolute;
+
+                left: calc(-1.05rem + 1px);
+
+                top: 50%;
+
+                width: 0.85rem;
+
+                border-top: 1px solid var(--dash-tree-line, #b7bec8);
+
+            }
+
+
+
+            .home-dash-tile .dash-client-tree-design:last-child::after {
+
+                content: "";
+
+                position: absolute;
+
+                left: calc(-1.05rem - 1px);
+
+                top: calc(50% + 1px);
+
+                width: 3px;
+
+                height: 400px;
+
+                background: #fff;
+
+            }
+
+
+
             .home-dash-tile--designs .dash-design-tabs {
 
-                margin-top: 0.35rem;
+                display: flex;
+
+                align-items: flex-end;
+
+                gap: 0.3rem;
+
+                margin: 0 1rem -1px 0;
+
+                padding: 0;
+
+                border: 0;
+
+                position: relative;
+
+                z-index: 2;
 
             }
 
@@ -231,15 +789,248 @@
 
                 font-size: 0.8125rem;
 
-                padding: 0.25rem 0.7rem;
+                font-weight: 600;
+
+                line-height: 1.2;
+
+                padding: 0.42rem 0.95rem 0.48rem;
+
+                border: 1px solid #c5ced8;
+
+                border-radius: 0.55rem 0.55rem 0 0;
+
+                background: #fff;
+
+                color: var(--bs-body-color);
+
+                margin-bottom: 0;
 
             }
 
 
 
-            .home-dash-tile--designs .dataTables_filter {
+            .home-dash-tile--designs .dash-design-tabs .nav-link:hover:not(.active) {
 
-                margin: 0 0 0.35rem;
+                background: #f4f7fb;
+
+                color: var(--bs-primary);
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-design-tabs .nav-link.active,
+            .home-dash-tile--designs .dash-design-tabs .nav-link.active:hover,
+            .home-dash-tile--designs .dash-design-tabs .nav-link.active:focus {
+
+                --bs-nav-link-color: #fff;
+
+                --bs-nav-link-hover-color: #fff;
+
+                --bs-nav-tabs-link-active-color: #fff;
+
+                background: var(--bs-primary) !important;
+
+                background-color: var(--bs-primary) !important;
+
+                color: #fff !important;
+
+                border-color: var(--bs-primary) !important;
+
+                box-shadow: none !important;
+
+            }
+
+
+
+            .home-dash-tile--designs {
+
+                height: 100%;
+
+                overflow: hidden;
+
+            }
+
+
+
+            .home-dash-tile--designs > .card {
+
+                overflow: hidden;
+
+            }
+
+
+
+            .home-dash-tile--designs .card-header {
+
+                position: relative;
+
+                z-index: 2;
+
+                padding-top: 0.45rem;
+
+                padding-bottom: 0 !important;
+
+                border-bottom: 0;
+
+            }
+
+
+
+            .home-dash-tile--designs .card-body.home-dash-card-body {
+
+                display: flex;
+
+                flex-direction: column;
+
+                position: relative;
+
+                z-index: 1;
+
+                margin: 0 0.65rem 0.45rem;
+
+                padding: 0.4rem 0.55rem 0.3rem;
+
+                border: 1px solid #c5ced8;
+
+                border-radius: 0.55rem;
+
+                background: #fff;
+
+                overflow: hidden;
+
+            }
+
+
+
+            .home-dash-tile--designs .tab-content {
+
+                flex: 1 1 auto;
+
+                min-height: 0;
+
+                display: flex;
+
+                flex-direction: column;
+
+            }
+
+
+
+            .home-dash-tile--designs .tab-pane.active {
+
+                display: flex !important;
+
+                flex-direction: column;
+
+                flex: 1 1 auto;
+
+                min-height: 0;
+
+                height: 100%;
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-designs-charts-empty {
+
+                display: flex;
+
+                align-items: center;
+
+                justify-content: center;
+
+                flex: 1 1 auto;
+
+                min-height: 8rem;
+
+                color: var(--bs-secondary-color);
+
+            }
+
+
+
+            .home-dash-tile--designs .dataTables_wrapper {
+
+                display: flex;
+
+                flex-direction: column;
+
+                flex: 1 1 auto;
+
+                min-height: 0;
+
+                height: auto;
+
+                padding: 0 !important;
+
+            }
+
+
+
+            .dash-designs-head {
+
+                display: flex;
+
+                align-items: flex-end;
+
+                flex-wrap: nowrap;
+
+                gap: 0.65rem;
+
+            }
+
+
+
+            .dash-designs-head-tools {
+
+                display: flex;
+
+                align-items: flex-end;
+
+                gap: 0.65rem;
+
+                margin-left: auto;
+
+                min-width: 0;
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-dt-toolbar {
+
+                display: flex;
+
+                align-items: center;
+
+                justify-content: flex-end;
+
+                gap: 0.65rem;
+
+                margin: 0;
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-dt-toolbar .dt-buttons,
+            .home-dash-tile--designs .dash-dt-toolbar .dataTables_filter {
+
+                float: none;
+
+                margin: 0;
+
+                text-align: left;
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-dt-toolbar .dataTables_filter {
+
+                margin-left: 0;
 
                 text-align: right;
 
@@ -247,15 +1038,149 @@
 
 
 
-            .home-dash-tile--designs .dataTables_filter input {
+            .dash-designs-head-tools .dataTables_filter label {
 
-                margin-left: 0.35rem;
+                display: flex;
 
-                display: inline-block;
+                align-items: center;
 
-                width: auto;
+                gap: 0.35rem;
+
+                margin: 0;
+
+                white-space: nowrap;
 
             }
+
+
+
+            .home-dash-tile--designs .dataTables_scroll {
+
+                flex: 1 1 auto;
+
+                min-height: 0;
+
+                display: flex;
+
+                flex-direction: column;
+
+                clear: both;
+
+            }
+
+
+
+            .home-dash-tile--designs .dataTables_scrollHead {
+
+                flex: 0 0 auto;
+
+            }
+
+
+
+            .home-dash-tile--designs .dataTables_scrollBody {
+
+                flex: 1 1 0%;
+
+                height: auto !important;
+
+                max-height: none !important;
+
+                min-height: 6rem;
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-dt-footer {
+
+                flex: 0 0 auto;
+
+                display: flex;
+
+                align-items: center;
+
+                justify-content: space-between;
+
+                gap: 0.5rem;
+
+                margin: 0;
+
+                padding: 0.15rem 0 0;
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-dt-footer .dataTables_info,
+            .home-dash-tile--designs .dash-dt-footer .dataTables_paginate {
+
+                float: none !important;
+
+                margin: 0 !important;
+
+                padding: 0 !important;
+
+            }
+
+
+
+            .home-dash-tile--designs.dash-designs-expanded {
+
+                position: fixed;
+
+                inset: 0;
+
+                z-index: 1080;
+
+                margin: 0;
+
+                padding: 0.75rem;
+
+                background: var(--bs-body-bg, #fff);
+
+                grid-column: auto;
+
+            }
+
+
+
+            .home-dash-tile--designs.dash-designs-expanded {
+
+                display: flex;
+
+            }
+
+
+
+            .home-dash-tile--designs.dash-designs-expanded > .card {
+
+                flex: 1 1 auto;
+
+                min-height: 0;
+
+                height: auto;
+
+            }
+
+
+
+            body:has(.dash-designs-expanded) .modal-backdrop {
+
+                z-index: 1090;
+
+            }
+
+
+
+            body:has(.dash-designs-expanded) .modal {
+
+                z-index: 1095;
+
+            }
+
+
+
 
 
 
@@ -485,39 +1410,56 @@
 
         <div class="home-dash-grid">
 
-            <div class="home-dash-tile home-dash-tile--designs">
+            <div class="home-dash-tile home-dash-tile--designs dt-no-single-scroll">
 
                 <div class="card shadow-none border">
 
-                    <div class="card-header py-2">
+                    <div class="card-header dash-designs-head">
 
-                        <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold text-nowrap">@Jobside.OfferWorkspace_TabDesigns</span>
 
-                            <span class="fw-semibold">@Jobside.OfferWorkspace_TabDesigns</span>
+                        <div class="dash-designs-head-tools">
 
-                            <button type="button"
-                                    class="btn btn-sm btn-primary text-nowrap"
-                                    id="dashOpenNewDesignBtn">
-                                @Jobside.OfferWorkspace_Designs_Btn_New
-                            </button>
+                            <ul class="nav nav-tabs dash-design-tabs border-0" id="dashDesignTabs" role="tablist">
+
+                                <li class="nav-item" role="presentation">
+
+                                    <button class="nav-link active" id="dashTabOffersBtn" data-bs-toggle="tab" data-bs-target="#dashTabOffers" data-dash-tab="offers" type="button" role="tab" aria-controls="dashTabOffers" aria-selected="true">@Jobside.DashDesigns_TabOffers</button>
+
+                                </li>
+
+                                <li class="nav-item" role="presentation">
+
+                                    <button class="nav-link" id="dashTabClientsBtn" data-bs-toggle="tab" data-bs-target="#dashTabClients" data-dash-tab="clients" type="button" role="tab" aria-controls="dashTabClients" aria-selected="false">@Jobside.DashDesigns_TabClients</button>
+
+                                </li>
+
+                                <li class="nav-item" role="presentation">
+
+                                    <button class="nav-link" id="dashTabChartsBtn" data-bs-toggle="tab" data-bs-target="#dashTabCharts" data-dash-tab="charts" type="button" role="tab" aria-controls="dashTabCharts" aria-selected="false">@Jobside.DashDesigns_TabCharts</button>
+
+                                </li>
+
+                            </ul>
+
+                            <div id="dashDesignToolbarHost"></div>
 
                         </div>
 
-                        <ul class="nav nav-tabs card-header-tabs dash-design-tabs" id="dashDesignTabs" role="tablist">
+                        <button type="button"
+                                class="btn btn-sm btn-icon btn-text-secondary rounded-pill"
+                                id="dashToggleDesignsSize"
+                                title="@Jobside.DashDesigns_Expand"
+                                aria-label="@Jobside.DashDesigns_Expand"
+                                aria-pressed="false">
+                            <i class="icon-base ri ri-fullscreen-line" aria-hidden="true"></i>
+                        </button>
 
-                            <li class="nav-item" role="presentation">
-
-                                <button class="nav-link active" id="dashTabOffersBtn" data-bs-toggle="tab" data-bs-target="#dashTabOffers" data-dash-tab="offers" type="button" role="tab" aria-controls="dashTabOffers" aria-selected="true">@Jobside.DashDesigns_TabOffers</button>
-
-                            </li>
-
-                            <li class="nav-item" role="presentation">
-
-                                <button class="nav-link" id="dashTabClientsBtn" data-bs-toggle="tab" data-bs-target="#dashTabClients" data-dash-tab="clients" type="button" role="tab" aria-controls="dashTabClients" aria-selected="false">@Jobside.DashDesigns_TabClients</button>
-
-                            </li>
-
-                        </ul>
+                        <button type="button"
+                                class="btn btn-sm btn-primary text-nowrap"
+                                id="dashOpenNewDesignBtn">
+                            @Jobside.OfferWorkspace_Designs_Btn_New
+                        </button>
 
                     </div>
 
@@ -533,13 +1475,19 @@
 
                                         <tr>
 
+                                            <th class="dash-tree-col" style="width:1%;"></th>
+
                                             <th>@Jobside.Offers_Col_Number</th>
 
-                                            <th>@Jobside.Offers_Col_Client</th>
+                                            <th>@Jobside.DashDesigns_Col_OfferDescription</th>
 
-                                            <th>@Jobside.OfferWorkspace_Designs_Lbl_AttLabel</th>
+                                            <th>@Jobside.DashDesigns_Col_JobNumber</th>
 
-                                            <th class="text-end text-nowrap" style="width:1%;"></th>
+                                            <th>@Jobside.DashDesigns_Col_JobDescription</th>
+
+                                            <th class="text-end">@Jobside.DashDesigns_Col_Count</th>
+
+                                            <th class="text-end text-nowrap tandem-col-actions" style="width:1%;"></th>
 
                                         </tr>
 
@@ -557,15 +1505,25 @@
 
                                         <tr>
 
+                                            <th class="dash-tree-col" style="width:1%;"></th>
+
                                             <th>@Jobside.Offers_Col_Client</th>
 
-                                            <th>@Jobside.OfferWorkspace_SubheaderOffer</th>
+                                            <th class="text-end">@Jobside.DashDesigns_Col_Count</th>
+
+                                            <th class="text-end text-nowrap tandem-col-actions" style="width:1%;"></th>
 
                                         </tr>
 
                                     </thead>
 
                                 </table>
+
+                            </div>
+
+                            <div class="tab-pane fade" id="dashTabCharts" role="tabpanel" aria-labelledby="dashTabChartsBtn">
+
+                                <div class="dash-designs-charts-empty">@Jobside.Tab_ComingSoon</div>
 
                             </div>
 
@@ -795,25 +1753,93 @@
 
 
 
+        var dashExportOpts = {
+
+            columns: ':visible:not(.tandem-col-actions)',
+
+            orthogonal: 'export',
+
+            format: {
+
+                body: function (data) {
+
+                    if (typeof data === 'string' && data.indexOf('<') >= 0) {
+
+                        var tmp = document.createElement('div');
+
+                        tmp.innerHTML = data;
+
+                        var btns = tmp.querySelectorAll('button, a.btn');
+
+                        for (var i = 0; i < btns.length; i++) {
+
+                            if (btns[i].parentNode) btns[i].parentNode.removeChild(btns[i]);
+
+                        }
+
+                        data = tmp.innerHTML;
+
+                    }
+
+                    return TandemDataTablesList.stripHtmlForExport(data);
+
+                }
+
+            }
+
+        };
+
+
+
+        function tandemDashButtons() {
+
+            return [{
+
+                extend: 'collection',
+
+                text: "<i class='fas fa-bars'></i>",
+
+                attr: { 'aria-label': dashDt.ariaMenu },
+
+                className: 'custom-html-collection',
+
+                buttons: [
+
+                    '<h5>' + dashDt.sectionRecords + '</h5>',
+
+                    'pageLength',
+
+                    '<h5>' + dashDt.sectionExport + '</h5>',
+
+                    { extend: 'print', exportOptions: dashExportOpts },
+
+                    { extend: 'copy', exportOptions: dashExportOpts },
+
+                    { extend: 'pdf', exportOptions: dashExportOpts },
+
+                    { extend: 'csv', exportOptions: dashExportOpts },
+
+                    { extend: 'excel', exportOptions: dashExportOpts },
+
+                    '<h5 class="not-top-heading">' + dashDt.sectionCols + '</h5>',
+
+                    'colvis'
+
+                ]
+
+            }];
+
+        }
+
+
+
         function tandemDashTableOptions(url, columns) {
 
             return TandemDataTablesList.applyListDefaults({
 
-                dom: 'rtip',
-
-                buttons: [],
-
                 stateSave: false,
 
-                lengthMenu: [
-
-                    [5, 10, 15],
-
-                    ['5 ' + dashDt.rowsSuffix, '10 ' + dashDt.rowsSuffix, '15 ' + dashDt.rowsSuffix]
-
-                ],
-
-                pageLength: 5,
+                scrollY: 'max(8rem, calc(40vh - 13rem))',
 
                 scrollCollapse: false,
 
@@ -822,6 +1848,8 @@
                 processing: true,
 
                 ordering: false,
+
+                buttons: tandemDashButtons(),
 
                 ajax: { url: url, type: 'POST' },
 
@@ -845,7 +1873,7 @@
 
                 { data: 'TextLabel', name: 'TextLabel', orderable: false },
 
-                { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-end text-nowrap' }
+                { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'tandem-col-actions text-end text-nowrap' }
 
             ]));
 
@@ -857,7 +1885,7 @@
 
                 { data: 'TextLabel', name: 'TextLabel', orderable: false },
 
-                { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-end text-nowrap' }
+                { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'tandem-col-actions text-end text-nowrap' }
 
             ]));
 
@@ -865,41 +1893,129 @@
 
             var dashDesignOpts = tandemDashTableOptions('@Url.Action("ListDashboardDesigns", "Home")', [
 
-                { data: 'AddOfferNumber', name: 'AddOfferNumber' },
+                { data: 'treeToggle', name: 'treeToggle', orderable: false, searchable: false, className: 'dash-tree-col text-center' },
 
-                { data: 'ClientName', name: 'ClientName' },
+                { data: 'OfferNumber', name: 'OfferNumber', className: 'dash-offer-number' },
 
-                { data: 'AttLabel', name: 'AttLabel' },
+                { data: 'Description', name: 'Description' },
 
-                { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-end text-nowrap' }
+                { data: 'JobNumber', name: 'JobNumber' },
+
+                { data: 'JobDescription', name: 'JobDescription' },
+
+                { data: 'DesignCount', name: 'DesignCount', className: 'text-end' },
+
+                { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'tandem-col-actions text-center' }
 
             ]);
 
-            dashDesignOpts.dom = 'frtip';
+            dashDesignOpts.dom = '<"dash-dt-toolbar"Bf>rt<"dash-dt-footer"ip>';
+
+            dashDesignOpts.scrollCollapse = true;
 
             dashDesignOpts.ordering = true;
 
-            dashDesignOpts.order = [[2, 'asc']];
+            dashDesignOpts.order = [[1, 'asc']];
 
             $('#DashDesigns').DataTable(dashDesignOpts);
+
+            dashParkDesignToolbar('#DashDesigns', 'offers');
 
 
 
             var dashClientDesignOpts = tandemDashTableOptions('@Url.Action("ListDashboardClientDesigns", "Home")', [
 
-                { data: 'ClientName', name: 'ClientName' },
+                { data: 'treeToggle', name: 'treeToggle', orderable: false, searchable: false, className: 'dash-tree-col text-center' },
 
-                { data: 'OfferNumber', name: 'OfferNumber' }
+                { data: 'ClientName', name: 'ClientName', className: 'dash-client-name' },
+
+                { data: 'DesignCount', name: 'DesignCount', className: 'text-end' },
+
+                { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'tandem-col-actions text-center' }
 
             ]);
 
-            dashClientDesignOpts.dom = 'frtip';
+            dashClientDesignOpts.dom = '<"dash-dt-toolbar"Bf>rt<"dash-dt-footer"ip>';
+
+            dashClientDesignOpts.scrollCollapse = true;
 
             dashClientDesignOpts.ordering = true;
 
-            dashClientDesignOpts.order = [[0, 'asc']];
+            dashClientDesignOpts.order = [[1, 'asc']];
 
             $('#DashClientDesigns').DataTable(dashClientDesignOpts);
+
+            dashParkDesignToolbar('#DashClientDesigns', 'clients');
+
+
+
+            function dashTreeSetOpen($btn, open) {
+
+                $btn.attr('aria-expanded', open ? 'true' : 'false');
+
+                var tip = open ? ($btn.attr('data-collapse') || '') : ($btn.attr('data-expand') || '');
+
+                $btn.attr('title', tip).attr('aria-label', tip);
+
+                $btn.find('.dash-tree-sign').text(open ? '\u2212' : '+');
+
+            }
+
+
+
+            $('#DashDesigns, #DashClientDesigns').on('click', '.dash-client-tree-root', function (e) {
+
+                e.preventDefault();
+
+                e.stopPropagation();
+
+                var $btn = $(this);
+
+                var row = $btn.closest('table').DataTable().row($btn.closest('tr'));
+
+                var open = $btn.attr('aria-expanded') === 'true';
+
+                if (open) {
+
+                    row.child.hide();
+
+                    dashTreeSetOpen($btn, false);
+
+                } else {
+
+                    var html = (row.data() && row.data().tree) ? row.data().tree : '';
+
+                    row.child(html, 'dash-client-tree-row').show();
+
+                    var gutter = Math.round(($btn.closest('td').outerWidth() || 0) / 2);
+
+                    $(row.child()).find('.dash-client-tree').css('--dash-tree-gutter', gutter + 'px');
+
+                    dashTreeSetOpen($btn, true);
+
+                }
+
+            });
+
+
+
+            $('#DashDesigns, #DashClientDesigns').on('click', '.dash-client-tree-month', function (e) {
+
+                e.preventDefault();
+
+                e.stopPropagation();
+
+                var $btn = $(this);
+
+                var $designs = $btn.closest('.dash-client-tree-node').children('.dash-client-tree-designs');
+
+                var open = $btn.attr('aria-expanded') === 'true';
+
+                $designs.toggleClass('d-none', open);
+
+                dashTreeSetOpen($btn, !open);
+
+            });
 
 
 
@@ -909,7 +2025,7 @@
 
                 { data: 'TextLabel', name: 'TextLabel', orderable: false },
 
-                { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-end text-nowrap' }
+                { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'tandem-col-actions text-end text-nowrap' }
 
             ]));
 
@@ -1101,19 +2217,111 @@
 
 
 
+            function dashParkDesignToolbar(tableSelector, tab) {
+
+                var toolbar = $(tableSelector).closest('.dataTables_wrapper').children('.dash-dt-toolbar');
+
+                toolbar.attr('data-dash-toolbar', tab);
+
+                if (tab !== 'offers') toolbar.addClass('d-none');
+
+                $('#dashDesignToolbarHost').append(toolbar);
+
+            }
+
+
+
+            function dashShowDesignToolbar(tab) {
+
+                $('#dashDesignToolbarHost .dash-dt-toolbar').addClass('d-none');
+
+                $('#dashDesignToolbarHost .dash-dt-toolbar[data-dash-toolbar="' + tab + '"]').removeClass('d-none');
+
+            }
+
+
+
+            function dashAdjustDesignTables() {
+
+                ['#DashDesigns', '#DashClientDesigns'].forEach(function (tableId) {
+
+                    if ($.fn.dataTable.isDataTable(tableId)) {
+
+                        $(tableId).DataTable().columns.adjust();
+
+                    }
+
+                });
+
+            }
+
+
+
             var dashDesignTab = 'offers';
+
+            var dashExpandLabel = @Html.Raw(JsonConvert.SerializeObject(Jobside.DashDesigns_Expand));
+
+            var dashRestoreLabel = @Html.Raw(JsonConvert.SerializeObject(Jobside.DashDesigns_Restore));
+
+
 
             $('#dashDesignTabs').on('shown.bs.tab', function (e) {
 
                 dashDesignTab = $(e.target).attr('data-dash-tab') || 'offers';
 
-                var tableId = dashDesignTab === 'clients' ? '#DashClientDesigns' : '#DashDesigns';
+                dashShowDesignToolbar(dashDesignTab);
 
-                if ($.fn.dataTable.isDataTable(tableId)) {
+                var tableId = dashDesignTab === 'clients' ? '#DashClientDesigns' : (dashDesignTab === 'offers' ? '#DashDesigns' : '');
+
+                if (tableId && $.fn.dataTable.isDataTable(tableId)) {
 
                     $(tableId).DataTable().columns.adjust();
 
                 }
+
+            });
+
+
+
+            $('#dashToggleDesignsSize').on('click', function () {
+
+                var tile = document.querySelector('.home-dash-tile--designs');
+
+                if (!tile) return;
+
+                var expanded = tile.classList.toggle('dash-designs-expanded');
+
+                var icon = this.querySelector('i');
+
+                this.setAttribute('aria-pressed', expanded ? 'true' : 'false');
+
+                this.title = expanded ? dashRestoreLabel : dashExpandLabel;
+
+                this.setAttribute('aria-label', expanded ? dashRestoreLabel : dashExpandLabel);
+
+                if (icon) {
+
+                    icon.classList.toggle('ri-fullscreen-line', !expanded);
+
+                    icon.classList.toggle('ri-fullscreen-exit-line', expanded);
+
+                }
+
+                window.setTimeout(dashAdjustDesignTables, 50);
+
+            });
+
+
+
+            $(document).on('keydown', function (e) {
+
+                if (e.key !== 'Escape') return;
+
+                var tile = document.querySelector('.home-dash-tile--designs.dash-designs-expanded');
+
+                if (!tile) return;
+
+                $('#dashToggleDesignsSize').trigger('click');
 
             });
 
@@ -1475,6 +2683,12 @@
 
                         }
 
+                        if ($.fn.dataTable.isDataTable('#DashClientDesigns')) {
+
+                            $('#DashClientDesigns').DataTable().ajax.reload(null, false);
+
+                        }
+
                     } else {
 
                         dashDesignFlash('danger', (r && r.message) ? r.message : dashDesignUi.failed);
@@ -1538,6 +2752,12 @@
                         if ($.fn.dataTable.isDataTable('#DashDesigns')) {
 
                             $('#DashDesigns').DataTable().ajax.reload(null, false);
+
+                        }
+
+                        if ($.fn.dataTable.isDataTable('#DashClientDesigns')) {
+
+                            $('#DashClientDesigns').DataTable().ajax.reload(null, false);
 
                         }
 

@@ -310,6 +310,48 @@
   <data name="OfferWorkspace_Designs_ModalTitleOfferFmt" xml:space="preserve">
     <value>Crear nuevo diseño en la oferta "{0}"</value>
   </data>
+  <data name="DashDesigns_Col_Count" xml:space="preserve">
+    <value>Nº de diseños</value>
+  </data>
+  <data name="DashDesigns_Col_Created" xml:space="preserve">
+    <value>Fecha de creación</value>
+  </data>
+  <data name="DashDesigns_Col_DesignName" xml:space="preserve">
+    <value>Nombre del diseño</value>
+  </data>
+  <data name="DashDesigns_Col_Open" xml:space="preserve">
+    <value>Abrir</value>
+  </data>
+  <data name="DashDesigns_Tip_NewClientFmt" xml:space="preserve">
+    <value>Crear diseño en el cliente "{0}"</value>
+  </data>
+  <data name="DashDesigns_Tip_NewOfferFmt" xml:space="preserve">
+    <value>Crear diseño en la oferta "{0}"</value>
+  </data>
+  <data name="DashDesigns_Tip_OpenDesign" xml:space="preserve">
+    <value>Abrir Diseño</value>
+  </data>
+  <data name="DashDesigns_Col_JobDescription" xml:space="preserve">
+    <value>Descripción de la obra</value>
+  </data>
+  <data name="DashDesigns_Col_JobNumber" xml:space="preserve">
+    <value>Nº de obra</value>
+  </data>
+  <data name="DashDesigns_Col_OfferDescription" xml:space="preserve">
+    <value>Descripción de la oferta</value>
+  </data>
+  <data name="DashDesigns_Tree_Collapse" xml:space="preserve">
+    <value>Plegar</value>
+  </data>
+  <data name="DashDesigns_Tree_Expand" xml:space="preserve">
+    <value>Desplegar</value>
+  </data>
+  <data name="DashDesigns_Expand" xml:space="preserve">
+    <value>Ampliar el panel</value>
+  </data>
+  <data name="DashDesigns_Restore" xml:space="preserve">
+    <value>Volver a su sitio</value>
+  </data>
   <data name="DashDesigns_Btn_Attach" xml:space="preserve">
     <value>Adjuntar</value>
   </data>
@@ -348,6 +390,9 @@
   </data>
   <data name="DashDesigns_SaveSuccessFmt" xml:space="preserve">
     <value>Diseño creado y adjuntado al cliente.</value>
+  </data>
+  <data name="DashDesigns_TabCharts" xml:space="preserve">
+    <value>Gráficos</value>
   </data>
   <data name="DashDesigns_TabClients" xml:space="preserve">
     <value>Clientes</value>

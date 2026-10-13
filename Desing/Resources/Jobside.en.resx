@@ -310,6 +310,48 @@
   <data name="OfferWorkspace_Designs_ModalTitleOfferFmt" xml:space="preserve">
     <value>Create a new design in offer "{0}"</value>
   </data>
+  <data name="DashDesigns_Col_Count" xml:space="preserve">
+    <value>Designs</value>
+  </data>
+  <data name="DashDesigns_Col_Created" xml:space="preserve">
+    <value>Created on</value>
+  </data>
+  <data name="DashDesigns_Col_DesignName" xml:space="preserve">
+    <value>Design name</value>
+  </data>
+  <data name="DashDesigns_Col_Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="DashDesigns_Tip_NewClientFmt" xml:space="preserve">
+    <value>Create a design for client "{0}"</value>
+  </data>
+  <data name="DashDesigns_Tip_NewOfferFmt" xml:space="preserve">
+    <value>Create a design in offer "{0}"</value>
+  </data>
+  <data name="DashDesigns_Tip_OpenDesign" xml:space="preserve">
+    <value>Open design</value>
+  </data>
+  <data name="DashDesigns_Col_JobDescription" xml:space="preserve">
+    <value>Job description</value>
+  </data>
+  <data name="DashDesigns_Col_JobNumber" xml:space="preserve">
+    <value>Job no.</value>
+  </data>
+  <data name="DashDesigns_Col_OfferDescription" xml:space="preserve">
+    <value>Offer description</value>
+  </data>
+  <data name="DashDesigns_Tree_Collapse" xml:space="preserve">
+    <value>Collapse</value>
+  </data>
+  <data name="DashDesigns_Tree_Expand" xml:space="preserve">
+    <value>Expand</value>
+  </data>
+  <data name="DashDesigns_Expand" xml:space="preserve">
+    <value>Expand the panel</value>
+  </data>
+  <data name="DashDesigns_Restore" xml:space="preserve">
+    <value>Return to its place</value>
+  </data>
   <data name="DashDesigns_Btn_Attach" xml:space="preserve">
     <value>Attach</value>
   </data>
@@ -348,6 +390,9 @@
   </data>
   <data name="DashDesigns_SaveSuccessFmt" xml:space="preserve">
     <value>Design created and attached to the client.</value>
+  </data>
+  <data name="DashDesigns_TabCharts" xml:space="preserve">
+    <value>Charts</value>
   </data>
   <data name="DashDesigns_TabClients" xml:space="preserve">
     <value>Clients</value>
