@@ -220,6 +220,9 @@
   <data name="Js_ConfirmDeleteJobside" xml:space="preserve">
     <value>Delete this jobsite? (soft delete).</value>
   </data>
+  <data name="Js_ConfirmDeleteOfferDesign" xml:space="preserve">
+    <value>Delete this design? (soft delete).</value>
+  </data>
   <data name="Js_ConfirmDeleteOfferDocument" xml:space="preserve">
     <value>Remove this document from the offer? (soft delete).</value>
   </data>
@@ -292,8 +295,26 @@
   <data name="OfferWorkspace_Designs_Btn_NewTooltip" xml:space="preserve">
     <value>Create design for this offer</value>
   </data>
+  <data name="OfferWorkspace_Designs_Col_Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Col_Name" xml:space="preserve">
+    <value>Design name</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Col_User" xml:space="preserve">
+    <value>User</value>
+  </data>
   <data name="OfferWorkspace_Designs_DedicatedPageNote" xml:space="preserve">
     <value>Opens in a dedicated page.</value>
+  </data>
+  <data name="OfferWorkspace_Designs_DeleteFailed" xml:space="preserve">
+    <value>Could not delete the design.</value>
+  </data>
+  <data name="OfferWorkspace_Designs_DeleteSuccess" xml:space="preserve">
+    <value>Design deleted successfully.</value>
+  </data>
+  <data name="OfferWorkspace_Designs_DeleteTooltip" xml:space="preserve">
+    <value>Delete design</value>
   </data>
   <data name="OfferWorkspace_Designs_Lbl_AttDescription" xml:space="preserve">
     <value>Description</value>

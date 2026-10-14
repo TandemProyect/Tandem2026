@@ -202,8 +202,8 @@ const es = Object.fromEntries(
     Forgot_Lbl_Email: "Email",
     Forgot_Btn_Send: "Enviar enlace",
     Forgot_Link_BackToLogin: "Volver a iniciar sesión",
-    Forgot_ConfirmationTitle: "Solicitud enviada",
-    Forgot_ConfirmationMessage: "Por favor, revisa tu correo para restablecer la contraseña.",
+    Forgot_ConfirmationTitle: "Correo enviado",
+    Forgot_ConfirmationMessage: "El correo ha sido enviado. Revisa tu bandeja para cambiar la contraseña.",
 
     /* ===== Account / Reset password ===== */
     Reset_PageTitle: "Restablecer contraseña",
@@ -230,8 +230,14 @@ const es = Object.fromEntries(
     Account_Err_EmailNotConfirmed:
       "Tienes que confirmar el email; la confirmación ha sido enviada.",
     Account_Err_UserNotRegistered: "El usuario no está registrado.",
+    Account_Err_UnknownEmail: "El correo no está registrado.",
+    Account_Err_InvalidPassword: "La contraseña no es correcta.",
+    Account_Err_LoginFailed: "No se ha podido iniciar sesión. Comprueba el correo y la contraseña.",
+    Account_Err_MailSendFailed: "No se ha podido enviar el correo. Inténtalo más tarde.",
     Account_Err_InvalidCode: "Código no válido.",
     Account_EmailConfirmation_Subject: "Por favor, valida tu cuenta",
+    Account_ResetEmail_Subject: "Cambiar la contraseña",
+    Account_ResetEmail_Html: "<p>Has pedido cambiar la contraseña de T Desing.net.</p><p><a href=\"{0}\">Cambiar la contraseña</a></p><p>Si no has sido tú, ignora este mensaje.</p>",
 
     /* ===== Validaciones de modelo (AccountViewModels) ===== */
     Val_EmailRequired: "El email es obligatorio.",
@@ -474,8 +480,8 @@ const en = Object.assign({}, es, {
   Forgot_Lbl_Email: "Email",
   Forgot_Btn_Send: "Send link",
   Forgot_Link_BackToLogin: "Back to sign in",
-  Forgot_ConfirmationTitle: "Request sent",
-  Forgot_ConfirmationMessage: "Please check your email to reset your password.",
+  Forgot_ConfirmationTitle: "Email sent",
+  Forgot_ConfirmationMessage: "The email has been sent. Check your inbox to change the password.",
 
   /* Reset */
   Reset_PageTitle: "Reset password",
@@ -502,7 +508,13 @@ const en = Object.assign({}, es, {
   Account_Err_EmailNotConfirmed:
     "You must confirm your email. The confirmation has been sent.",
   Account_Err_UserNotRegistered: "The user is not registered.",
+  Account_Err_UnknownEmail: "That email is not registered.",
+  Account_Err_InvalidPassword: "The password is not correct.",
+  Account_Err_LoginFailed: "Sign-in failed. Check the email and the password.",
+  Account_Err_MailSendFailed: "The email could not be sent. Try again later.",
   Account_Err_InvalidCode: "Invalid code.",
+  Account_ResetEmail_Subject: "Change password",
+  Account_ResetEmail_Html: "<p>You asked to change your T Desing.net password.</p><p><a href=\"{0}\">Change password</a></p><p>If this was not you, ignore this message.</p>",
   Account_EmailConfirmation_Subject: "Please verify your account",
 
   /* Validations */

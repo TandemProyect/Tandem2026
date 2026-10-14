@@ -28,15 +28,25 @@
                     </div>
                     @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small d-block mb-3" })
 
-                    <div class="form-floating form-floating-outline mb-5">
-                        @Html.PasswordFor(m => m.Password, new { @class = "form-control", id = "Password", placeholder = Common.Register_Lbl_Password })
-                        <label for="Password">@Common.Register_Lbl_Password</label>
+                    <div class="mb-5">
+                        <div class="input-group input-group-merge">
+                            <div class="form-floating form-floating-outline">
+                                @Html.PasswordFor(m => m.Password, new { @class = "form-control", id = "Password", placeholder = Common.Register_Lbl_Password })
+                                <label for="Password">@Common.Register_Lbl_Password</label>
+                            </div>
+                            @Html.Partial("_PasswordEyeButton")
+                        </div>
                     </div>
                     @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger small d-block mb-3" })
 
-                    <div class="form-floating form-floating-outline mb-5">
-                        @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", id = "ConfirmPassword", placeholder = Common.Register_Lbl_ConfirmPassword })
-                        <label for="ConfirmPassword">@Common.Register_Lbl_ConfirmPassword</label>
+                    <div class="mb-5">
+                        <div class="input-group input-group-merge">
+                            <div class="form-floating form-floating-outline">
+                                @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", id = "ConfirmPassword", placeholder = Common.Register_Lbl_ConfirmPassword })
+                                <label for="ConfirmPassword">@Common.Register_Lbl_ConfirmPassword</label>
+                            </div>
+                            @Html.Partial("_PasswordEyeButton")
+                        </div>
                     </div>
                     @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger small d-block mb-3" })
 

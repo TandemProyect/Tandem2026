@@ -235,6 +235,18 @@
   <data name="State_Inactive" xml:space="preserve">
     <value>Inactivo</value>
   </data>
+  <data name="Tab_Designs" xml:space="preserve">
+    <value>Diseños</value>
+  </data>
+  <data name="Tab_Documents" xml:space="preserve">
+    <value>Documentos</value>
+  </data>
+  <data name="Tab_Jobsides" xml:space="preserve">
+    <value>Obras</value>
+  </data>
+  <data name="Tab_Offers" xml:space="preserve">
+    <value>Ofertas</value>
+  </data>
   <data name="ToastMessage_ClientCreated" xml:space="preserve">
     <value>Cliente &quot;{0}&quot; creado correctamente.</value>
   </data>
@@ -264,5 +276,41 @@
   </data>
   <data name="Val_NameRequired" xml:space="preserve">
     <value>El nombre del cliente es obligatorio.</value>
+  </data>
+  <data name="Workspace_LeftTitle" xml:space="preserve">
+    <value>Datos del cliente</value>
+  </data>
+  <data name="Ws_Col_Design" xml:space="preserve">
+    <value>Nombre del diseño</value>
+  </data>
+  <data name="Ws_Col_Jobside" xml:space="preserve">
+    <value>Obra</value>
+  </data>
+  <data name="Ws_DesignsEmpty" xml:space="preserve">
+    <value>No hay diseños de este cliente.</value>
+  </data>
+  <data name="Ws_DesignsTitle" xml:space="preserve">
+    <value>Diseños del cliente</value>
+  </data>
+  <data name="Ws_DocsEmpty" xml:space="preserve">
+    <value>No hay documentos de este cliente.</value>
+  </data>
+  <data name="Ws_DocsTitle" xml:space="preserve">
+    <value>Documentos del cliente</value>
+  </data>
+  <data name="Ws_JobsEmpty" xml:space="preserve">
+    <value>No hay obras de este cliente.</value>
+  </data>
+  <data name="Ws_JobsTitle" xml:space="preserve">
+    <value>Obras del cliente</value>
+  </data>
+  <data name="Ws_OffersEmpty" xml:space="preserve">
+    <value>No hay ofertas de este cliente.</value>
+  </data>
+  <data name="Ws_OffersTitle" xml:space="preserve">
+    <value>Ofertas del cliente</value>
+  </data>
+  <data name="Ws_OpenTooltip" xml:space="preserve">
+    <value>Abrir</value>
   </data>
 </root>

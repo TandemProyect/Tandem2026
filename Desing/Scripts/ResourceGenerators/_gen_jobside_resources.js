@@ -166,6 +166,8 @@ const es = Object.fromEntries(
     Docs_Offer_DeleteTooltip: "Eliminar documento (borrado lógico)",
     Docs_Offer_DeleteSuccess: "Documento eliminado correctamente.",
     Docs_Offer_DeleteFailed: "No se pudo eliminar el documento.",
+    Js_ConfirmDeleteOfferDesign:
+      "¿Eliminar este diseño? (borrado lógico).",
     Js_ConfirmDeleteOfferDocument:
       "¿Eliminar este documento de la oferta? (borrado lógico).",
     Err_OfferDocumentTypeMissing:
@@ -231,6 +233,12 @@ const es = Object.fromEntries(
 
     OfferWorkspace_Designs_Btn_New: "Nuevo diseño",
     OfferWorkspace_Designs_Btn_NewTooltip: "Crear diseño para esta oferta",
+    OfferWorkspace_Designs_Col_Name: "Nombre del diseño",
+    OfferWorkspace_Designs_Col_User: "Usuario",
+    OfferWorkspace_Designs_Col_Date: "Fecha",
+    OfferWorkspace_Designs_DeleteTooltip: "Eliminar diseño",
+    OfferWorkspace_Designs_DeleteSuccess: "Diseño eliminado correctamente.",
+    OfferWorkspace_Designs_DeleteFailed: "No se pudo eliminar el diseño.",
     OfferWorkspace_Designs_ModalTitle: "Nuevo diseño",
     OfferWorkspace_Designs_ModalTitleOfferFmt: "Crear nuevo diseño en la oferta \"{0}\"",
     DashDesigns_Col_Count: "Nº de diseños",
@@ -430,6 +438,7 @@ const en = Object.assign({}, es, {
   Docs_Offer_DeleteTooltip: "Remove document (soft delete)",
   Docs_Offer_DeleteSuccess: "Document removed successfully.",
   Docs_Offer_DeleteFailed: "Could not remove the document.",
+  Js_ConfirmDeleteOfferDesign: "Delete this design? (soft delete).",
   Js_ConfirmDeleteOfferDocument:
     "Remove this document from the offer? (soft delete).",
   Err_OfferDocumentTypeMissing:
@@ -493,6 +502,12 @@ const en = Object.assign({}, es, {
 
   OfferWorkspace_Designs_Btn_New: "New design",
   OfferWorkspace_Designs_Btn_NewTooltip: "Create design for this offer",
+  OfferWorkspace_Designs_Col_Name: "Design name",
+  OfferWorkspace_Designs_Col_User: "User",
+  OfferWorkspace_Designs_Col_Date: "Date",
+  OfferWorkspace_Designs_DeleteTooltip: "Delete design",
+  OfferWorkspace_Designs_DeleteSuccess: "Design deleted successfully.",
+  OfferWorkspace_Designs_DeleteFailed: "Could not delete the design.",
   OfferWorkspace_Designs_ModalTitle: "New design",
   OfferWorkspace_Designs_ModalTitleOfferFmt: "Create a new design in offer \"{0}\"",
   DashDesigns_Col_Count: "Designs",

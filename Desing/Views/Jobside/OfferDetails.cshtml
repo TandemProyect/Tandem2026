@@ -18,8 +18,6 @@
     var stateColor = Model.TSql_OfferState != null ? Model.TSql_OfferState.AddColor : null;
     var ci = System.Globalization.CultureInfo.CurrentUICulture?.TwoLetterISOLanguageName ?? "es";
     var hasOfferDocType = ViewBag.OfferWorkspaceHasOfferDocType as bool? ?? false;
-    var offerDesigns = ViewBag.OfferWorkspaceDesigns as IList<JobsideOfferDesignRowVm>
-        ?? new List<JobsideOfferDesignRowVm>();
 
     var jobsideOfferUi = JsonConvert.SerializeObject(new
     {
@@ -53,7 +51,20 @@
         offerId = Model.IdObject,
         jobsideId = jobsideId,
         saveSuccess = Jobside.OfferWorkspace_Designs_SaveSuccess,
-        saveFailed = Jobside.OfferWorkspace_Designs_SaveFailed
+        saveFailed = Jobside.OfferWorkspace_Designs_SaveFailed,
+        listUrl = Url.Action("ListOfferDesigns", "Jobside", new { offerId = Model.IdObject, jobsideId = jobsideId }),
+        deleteUrl = Url.Action("DeleteOfferDesign", "Jobside"),
+        deleteSuccess = Jobside.OfferWorkspace_Designs_DeleteSuccess,
+        deleteFailed = Jobside.OfferWorkspace_Designs_DeleteFailed,
+        confirmDelete = Jobside.Js_ConfirmDeleteOfferDesign,
+        culture = ci,
+        rowsSuffix = Jobside.Dt_Rows_N,
+        allRows = Jobside.Dt_Rows_All,
+        sectionRecords = Jobside.Dt_Section_Records,
+        sectionExport = Jobside.Dt_Section_Export,
+        sectionCols = Jobside.Dt_Section_ColumnsVisible,
+        ariaMenu = Jobside.Dt_MenuAria,
+        emptyMessage = Jobside.OfferWorkspace_Designs_None
     });
     var offerDocsUi = JsonConvert.SerializeObject(new
     {
@@ -119,7 +130,7 @@
             <div class="card tandem-jobside-right-card h-100 w-100 border shadow-none">
                 <div class="card-body tandem-jobside-right-card-body">
                     <div class="d-flex align-items-end gap-2 flex-nowrap tandem-jobside-tabs-bar flex-shrink-0">
-                        <ul class="nav nav-tabs flex-grow-1 mb-0 flex-nowrap overflow-x-auto" role="tablist" style="min-width:0">
+                        <ul class="nav nav-tabs tandem-folder-tabs flex-grow-1 mb-0 flex-nowrap overflow-x-auto" role="tablist" style="min-width:0">
                             <li class="nav-item text-nowrap" role="presentation">
                                 <button type="button" class="nav-link active" id="offer-tab-designs"
                                         data-bs-toggle="tab" data-bs-target="#offer-pane-designs"
@@ -164,18 +175,18 @@
                                 </button>
                             </div>
                             <div id="offerWorkspaceDesignsFlash" class="mb-2"></div>
-                            <div id="offerWorkspaceDesignsEmpty" class="@(offerDesigns.Count > 0 ? "d-none" : "")">
-                                <p class="mb-0">@Jobside.OfferWorkspace_Designs_None</p>
-                            </div>
-                            <div id="offerWorkspaceDesignsList">
-                                @foreach (var row in offerDesigns)
-                                {
-                                    @Html.Partial("_OfferWorkspaceDesignRow", new OfferWorkspaceDesignRowDisplayModel
-                                    {
-                                        OfferId = Model.IdObject,
-                                        Row = row
-                                    })
-                                }
+                            <div class="mb-3 table-responsive" style="padding:5px">
+                                <table id="OfferDesignsTable" class="table table-hover w-100" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>@Jobside.OfferWorkspace_Designs_Col_Name</th>
+                                            <th>@Jobside.OfferWorkspace_Designs_Col_User</th>
+                                            <th>@Jobside.OfferWorkspace_Designs_Col_Date</th>
+                                            <th class="text-end text-nowrap" style="width:1%;">@Jobside.Docs_Col_Actions</th>
+                                            <th>ID</th>
+                                        </tr>
+                                    </thead>
+                                </table>
                             </div>
                         </div>
                         <div class="tab-pane fade" id="offer-pane-docs" role="tabpanel" aria-labelledby="offer-tab-docs">
@@ -314,6 +325,7 @@
         var offerDocsUploadUi = @Html.Raw(offerDocsUi);
         var offerDocsExportOpts = TandemDataTablesList.exportOptsPlainVisible;
         var offerDocumentsDt;
+        var offerDesignsDt;
 
         function offerPaneDocsShowFlash(kind, message) {
             var cls = kind === 'success' ? 'alert-success' : 'alert-danger';
@@ -405,9 +417,8 @@
                             if (inst) { inst.hide(); }
                         }
                         $('#offerWorkspaceNewDesignForm')[0].reset();
-                        $('#offerWorkspaceDesignsEmpty').addClass('d-none');
-                        if (r.rowHtml) {
-                            $('#offerWorkspaceDesignsList').append(r.rowHtml);
+                        if (offerDesignsDt) {
+                            offerDesignsDt.ajax.reload(null, false);
                         }
                         offerWorkspaceDesignsFlash('success', r.message || msgOk);
                         $('[data-bs-toggle="tooltip"]').tooltip({
@@ -427,19 +438,107 @@
                 });
             });
 
-            $('#offer-pane-designs [title]').tooltip({
-                delay: { show: 100, hide: 100 },
-                placement: 'auto'
-            });
+            var designUi = window.offerWorkspaceDesignUi || {};
+            offerDesignsDt = $('#OfferDesignsTable').DataTable(TandemDataTablesList.applyListDefaults({
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    ['10 ' + designUi.rowsSuffix, '25 ' + designUi.rowsSuffix, '50 ' + designUi.rowsSuffix, designUi.allRows]
+                ],
+                buttons: [{
+                    extend: 'collection',
+                    text: "<i class='fas fa-bars'></i>",
+                    attr: { 'aria-label': designUi.ariaMenu },
+                    className: 'custom-html-collection',
+                    buttons: [
+                        '<h5>' + designUi.sectionRecords + '</h5>',
+                        'pageLength',
+                        '<h5>' + designUi.sectionExport + '</h5>',
+                        'print',
+                        'copy',
+                        'pdf',
+                        { extend: 'csv', exportOptions: offerDocsExportOpts },
+                        { extend: 'excel', exportOptions: offerDocsExportOpts },
+                        '<h5 class="not-top-heading">' + designUi.sectionCols + '</h5>',
+                        'colvis'
+                    ]
+                }],
+                serverSide: true,
+                processing: true,
+                language: {
+                    emptyTable: designUi.emptyMessage,
+                    zeroRecords: designUi.emptyMessage
+                },
+                ajax: { url: designUi.listUrl, type: 'POST' },
+                order: [[2, 'desc']],
+                columns: [
+                    {
+                        data: 'attLabel',
+                        name: 'attLabel',
+                        render: function (data, type, row) {
+                            if (type === 'export' || type === 'sort' || type === 'type') {
+                                return row.attLabelPlain || '';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'createdByName',
+                        name: 'createdByName',
+                        render: function (data, type, row) {
+                            if (type === 'export' || type === 'sort' || type === 'type') {
+                                return row.createdByPlain || '';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'attCreatedFmt',
+                        name: 'attCreated',
+                        render: function (data, type, row) {
+                            if (type === 'sort' || type === 'type') {
+                                return row.attCreated || '';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'rowActions',
+                        orderable: false,
+                        searchable: false,
+                        className: 'tandem-col-actions text-end align-middle text-nowrap'
+                    },
+                    { data: 'IdObject', visible: false }
+                ]
+            }));
 
-            $('#offerWorkspaceDesignsList').on('click', '.tandem-offer-design-card', function (e) {
-                if ($(e.target).closest('a, button').length) {
+            $('#OfferDesignsTable').on('click', '.tandem-offer-design-delete', function (e) {
+                e.preventDefault();
+                var cfg = window.offerWorkspaceDesignUi || {};
+                if (cfg.confirmDelete && !window.confirm(cfg.confirmDelete)) {
                     return;
                 }
-                var url = $(this).attr('data-viewer-url');
-                if (url) {
-                    window.location.href = url;
-                }
+                var designId = $(this).attr('data-design-id');
+                var tk = $('input[name="__RequestVerificationToken"]').first().val();
+                $.ajax({
+                    url: cfg.deleteUrl,
+                    type: 'POST',
+                    data: {
+                        offerId: cfg.offerId,
+                        designId: designId,
+                        __RequestVerificationToken: tk
+                    }
+                }).done(function (r) {
+                    if (r && r.ok) {
+                        if (offerDesignsDt) {
+                            offerDesignsDt.ajax.reload(null, false);
+                        }
+                        offerWorkspaceDesignsFlash('success', r.message || cfg.deleteSuccess || '');
+                    } else {
+                        offerWorkspaceDesignsFlash('danger', (r && r.message) ? r.message : (cfg.deleteFailed || ''));
+                    }
+                }).fail(function () {
+                    offerWorkspaceDesignsFlash('danger', (window.offerWorkspaceDesignUi || {}).deleteFailed || '');
+                });
             });
 
             var openEdit = document.getElementById('offerWorkspaceOpenOfferEditBtn');

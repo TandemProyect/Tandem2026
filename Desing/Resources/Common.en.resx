@@ -13,11 +13,29 @@
   <data name="Account_Err_InvalidCode" xml:space="preserve">
     <value>Invalid code.</value>
   </data>
+  <data name="Account_Err_InvalidPassword" xml:space="preserve">
+    <value>The password is not correct.</value>
+  </data>
+  <data name="Account_Err_LoginFailed" xml:space="preserve">
+    <value>Sign-in failed. Check the email and the password.</value>
+  </data>
   <data name="Account_Err_LoginRequired" xml:space="preserve">
     <value>You must sign in to access that page.</value>
   </data>
+  <data name="Account_Err_MailSendFailed" xml:space="preserve">
+    <value>The email could not be sent. Try again later.</value>
+  </data>
+  <data name="Account_Err_UnknownEmail" xml:space="preserve">
+    <value>That email is not registered.</value>
+  </data>
   <data name="Account_Err_UserNotRegistered" xml:space="preserve">
     <value>The user is not registered.</value>
+  </data>
+  <data name="Account_ResetEmail_Html" xml:space="preserve">
+    <value>&lt;p&gt;You asked to change your T Desing.net password.&lt;/p&gt;&lt;p&gt;&lt;a href="{0}"&gt;Change password&lt;/a&gt;&lt;/p&gt;&lt;p&gt;If this was not you, ignore this message.&lt;/p&gt;</value>
+  </data>
+  <data name="Account_ResetEmail_Subject" xml:space="preserve">
+    <value>Change password</value>
   </data>
   <data name="Action_OpenList" xml:space="preserve">
     <value>Open full list</value>
@@ -263,10 +281,10 @@
     <value>Send link</value>
   </data>
   <data name="Forgot_ConfirmationMessage" xml:space="preserve">
-    <value>Please check your email to reset your password.</value>
+    <value>The email has been sent. Check your inbox to change the password.</value>
   </data>
   <data name="Forgot_ConfirmationTitle" xml:space="preserve">
-    <value>Request sent</value>
+    <value>Email sent</value>
   </data>
   <data name="Forgot_Heading" xml:space="preserve">
     <value>Forgot password</value>

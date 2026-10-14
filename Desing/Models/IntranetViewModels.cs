@@ -81,6 +81,47 @@ namespace Desing.Models
         public DateTime AddDateMade { get; set; }
     }
 
+    public class ClientWorkspaceDocRow
+    {
+        public long IdObject { get; set; }
+        public string AddDescription { get; set; }
+        public string AddPath { get; set; }
+        public string DocumentTypeName { get; set; }
+        public string OfferNumberPlain { get; set; }
+        public DateTime AddDateMade { get; set; }
+    }
+
+    public class ClientWorkspaceJobRow
+    {
+        public long IdObject { get; set; }
+        public string TextLabel { get; set; }
+        public string AddNJobside { get; set; }
+        public bool Is_Active { get; set; }
+        public DateTime AddDateMade { get; set; }
+    }
+
+    public class ClientWorkspaceOfferRow
+    {
+        public long IdObject { get; set; }
+        public string AddOfferNumber { get; set; }
+        public string TextLabel { get; set; }
+        public string OfferStateAddColor { get; set; }
+        public string JobsideName { get; set; }
+        public string StateName { get; set; }
+        public DateTime AddDateMade { get; set; }
+    }
+
+    public class ClientWorkspaceDesignRow
+    {
+        public long IdObject { get; set; }
+        public long OfferId { get; set; }
+        public string AttLabel { get; set; }
+        public string OfferNumberPlain { get; set; }
+        public string OfferStateAddColor { get; set; }
+        public string AttThumbnail { get; set; }
+        public DateTime AttChange { get; set; }
+    }
+
     /// <summary>
     /// Formulario modal crear/editar oferta desde el espacio de trabajo de obra.
     /// </summary>
@@ -237,6 +278,16 @@ namespace Desing.Models
         public string Title { get; set; }
         /// <summary>Ruta virtual ~/… para el query <c>stlUrl</c>, o null si no hay STL de confianza enlazado (<see cref="DAL.TSql_Design_V2.AttThumbnail"/>).</summary>
         public string StlVirtualPath { get; set; }
+    }
+
+    public class OfferDesignListRow
+    {
+        public long IdObject { get; set; }
+        public string AttLabel { get; set; }
+        public string LinCreatedBy { get; set; }
+        public string CreatedByName { get; set; }
+        public string AttThumbnail { get; set; }
+        public DateTime AttCreated { get; set; }
     }
 
     /// <summary>Vista parcial Diseño-V2 dentro del espacio de trabajo de oferta (card + enlaces visor).</summary>

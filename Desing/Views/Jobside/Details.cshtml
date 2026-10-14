@@ -92,7 +92,7 @@
             <div class="card tandem-jobside-right-card h-100 w-100 border shadow-none">
                 <div class="card-body tandem-jobside-right-card-body">
                     <div class="d-flex align-items-end gap-2 flex-nowrap tandem-jobside-tabs-bar flex-shrink-0">
-                        <ul class="nav nav-tabs flex-grow-1 mb-0 flex-nowrap overflow-x-auto" role="tablist" style="min-width:0">
+                        <ul class="nav nav-tabs tandem-folder-tabs flex-grow-1 mb-0 flex-nowrap overflow-x-auto" role="tablist" style="min-width:0">
                             <li class="nav-item text-nowrap" role="presentation">
                                 <button type="button" class="nav-link active" id="jobside-tab-docs" data-bs-toggle="tab" data-bs-target="#jobside-pane-docs" role="tab" aria-controls="jobside-pane-docs" aria-selected="true">
                                     @Jobside.Tab_Documents
@@ -182,6 +182,7 @@
                                 <table id="JobsideOffersTable" class="table table-hover w-100" cellspacing="0">
                                     <thead>
                                         <tr>
+                                            <th class="dash-tree-col"></th>
                                             <th>@Jobside.Offers_Col_Number</th>
                                             <th>@Jobside.Offers_Col_Name</th>
                                             <th>@Jobside.Offers_Col_Client</th>
@@ -453,8 +454,9 @@
                     url: '@Url.Action("ListJobsideOffers", "Jobside", new { jobsideId = Model.IdObject })',
                     type: 'POST'
                 },
-                order: [[4, 'desc']],
+                order: [[5, 'desc']],
                 columns: [
+                    { data: 'treeToggle', name: 'treeToggle', orderable: false, searchable: false, className: 'dash-tree-col text-center' },
                     {
                         data: 'addOfferNumber',
                         name: 'addOfferNumber',
@@ -622,6 +624,41 @@
                     jobsideLoadOfferForm(null);
                 });
             }
+
+            function jobsideTreeSetOpen($btn, open) {
+                $btn.attr('aria-expanded', open ? 'true' : 'false');
+                var tip = open ? ($btn.attr('data-collapse') || '') : ($btn.attr('data-expand') || '');
+                $btn.attr('title', tip).attr('aria-label', tip);
+                $btn.find('.dash-tree-sign').text(open ? '\u2212' : '+');
+            }
+
+            $('#JobsideOffersTable').on('click', '.dash-client-tree-root', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var $btn = $(this);
+                var row = jobsideOffersDt.row($btn.closest('tr'));
+                var open = $btn.attr('aria-expanded') === 'true';
+                if (open) {
+                    row.child.hide();
+                    jobsideTreeSetOpen($btn, false);
+                } else {
+                    var html = (row.data() && row.data().tree) ? row.data().tree : '';
+                    row.child(html, 'dash-client-tree-row').show();
+                    var gutter = Math.round(($btn.closest('td').outerWidth() || 0) / 2);
+                    $(row.child()).find('.dash-client-tree').css('--dash-tree-gutter', gutter + 'px');
+                    jobsideTreeSetOpen($btn, true);
+                }
+            });
+
+            $('#JobsideOffersTable').on('click', '.dash-client-tree-month', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var $btn = $(this);
+                var $designs = $btn.closest('.dash-client-tree-node').children('.dash-client-tree-designs');
+                var open = $btn.attr('aria-expanded') === 'true';
+                $designs.toggleClass('d-none', open);
+                jobsideTreeSetOpen($btn, !open);
+            });
 
             /* Solo .tandem-jobside-offer-edit-row abre el modal; Detalles es un enlace normal (sin este handler). */
             $('#JobsideOffersTable').on('click', '.tandem-jobside-offer-edit-row', function (e) {

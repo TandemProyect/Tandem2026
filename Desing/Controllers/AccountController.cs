@@ -2,6 +2,7 @@
 using Desing.Helpers;
 using Desing.Models;
 using Desing.Resources;
+using Desing.Services;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
@@ -10,7 +11,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-using System.Web.Helpers;
 using System.Web.Hosting;
 using System.Web.Mvc;
 namespace Desing.Controllers
@@ -62,8 +62,14 @@ namespace Desing.Controllers
             ViewBag.ReturnUrl = returnUrl;
 
             var isPluginLogin = IsPluginCadReturnUrl(returnUrl);
+            var passwordResetSent = TempData["PasswordResetSent"] as bool? == true;
+            var passwordChanged = TempData["PasswordChanged"] as bool? == true;
+            if (passwordResetSent)
+                ViewBag.PasswordResetSent = true;
+            if (passwordChanged)
+                ViewBag.PasswordChanged = true;
 
-            if (isPluginLogin && User.Identity.IsAuthenticated)
+            if ((isPluginLogin || passwordResetSent || passwordChanged) && User.Identity.IsAuthenticated)
             {
                 AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
             }
@@ -94,30 +100,30 @@ namespace Desing.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        [Obsolete]
         public async Task<ActionResult> Login(LoginViewModel model, string returnUrl)
         {
-            if (!ModelState.IsValid)
-            {
-            }
-
-            if (model.Password == null)
-            {
-                return View();
-            }
-            if (model.Email == null)
-            {
-                return View();
-            }
-
             var isPluginLogin = IsPluginCadReturnUrl(returnUrl);
             if (isPluginLogin)
                 ApplyPluginCadLoginChrome();
 
-            var user = await UserManager.FindByEmailAsync(model.Email);
-            if (user != null)
+            if (model == null || !ModelState.IsValid)
             {
-                var userc = UserManager.IsEmailConfirmedAsync(user.Id);
+                return View(model);
+            }
+
+            ApplicationUser user = null;
+            try
+            {
+                user = await UserManager.FindByEmailAsync(model.Email);
+                if (user == null)
+                    user = await UserManager.FindByNameAsync(model.Email);
+
+                if (user == null)
+                {
+                    ViewBag.ErrorMessage = Common.Account_Err_UnknownEmail;
+                    return View(model);
+                }
+
                 if (!await UserManager.IsEmailConfirmedAsync(user.Id))
                 {
                     if (isPluginLogin)
@@ -126,24 +132,41 @@ namespace Desing.Controllers
                         ViewBag.PlantillaLogo = PluginCadDeviceHelper.DefaultLogoVirtualPath;
                         return View(model);
                     }
-                    await SendEmailConfirmationTokenAsync(user.Id, user.UserName, user.Email, Common.Account_EmailConfirmation_Subject);
-                    ViewBag.ErrorMessage = Common.Account_Err_EmailNotConfirmed;
 
-                    return View("Error");
+                    try
+                    {
+                        await SendEmailConfirmationTokenAsync(user.Id, user.UserName, user.Email, Common.Account_EmailConfirmation_Subject);
+                    }
+                    catch
+                    {
+                    }
+
+                    ViewBag.ErrorMessage = Common.Account_Err_EmailNotConfirmed;
+                    return View(model);
+                }
+
+                if (!await UserManager.CheckPasswordAsync(user, model.Password))
+                {
+                    ViewBag.ErrorMessage = Common.Account_Err_InvalidPassword;
+                    return View(model);
+                }
+
+                var result = await SignInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, shouldLockout: false);
+                switch (result)
+                {
+                    case SignInStatus.LockedOut:
+                        return View("Lockout");
+                    case SignInStatus.RequiresVerification:
+                        return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
+                    case SignInStatus.Failure:
+                        ViewBag.ErrorMessage = Common.Account_Err_InvalidPassword;
+                        return View(model);
                 }
             }
-
-            var result = await SignInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, shouldLockout: false);
-            switch (result)
+            catch
             {
-                case SignInStatus.LockedOut:
-                    return View("Lockout");
-                case SignInStatus.RequiresVerification:
-                    return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
-                //return View(model);
-                case SignInStatus.Failure:
-                    ViewBag.ErrorMessage = Common.Account_Err_UserNotRegistered;
-                    return View(model);
+                ViewBag.ErrorMessage = Common.Account_Err_LoginFailed;
+                return View(model);
             }
 
             if (user != null && isPluginLogin)
@@ -266,12 +289,7 @@ namespace Desing.Controllers
         [AllowAnonymous]
         public ActionResult ForgotPassword()
         {
-            string UserId = User.Identity.GetUserId();
-            var user = db.AspNetUsers.Where(x => x.Id == UserId);
-            var OldPass = user.FirstOrDefault().PasswordHash;
-            var userd = new ApplicationUser { UserName = user.FirstOrDefault().UserName, Email = user.FirstOrDefault().Email };
-            var a = Crypto.HashPassword("Pic7317pic7317+");
-            return View();
+            return View(new ForgotPasswordViewModel());
         }
 
         //
@@ -281,25 +299,40 @@ namespace Desing.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
-            if (ModelState.IsValid)
+            if (model == null || !ModelState.IsValid)
             {
-                var user = await UserManager.FindByNameAsync(model.Email);
-                if (user == null || !(await UserManager.IsEmailConfirmedAsync(user.Id)))
-                {
-                    // Don't reveal that the user does not exist or is not confirmed
-                    return View("ForgotPasswordConfirmation");
-                }
-
-                // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
-                // Send an email with this link
-                // string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
-                // var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);		
-                // await UserManager.SendEmailAsync(user.Id, "Reset Password", "Please reset your password by clicking <a href=\"" + callbackUrl + "\">here</a>");
-                // return RedirectToAction("ForgotPasswordConfirmation", "Account");
+                return View(model);
             }
 
-            // If we got this far, something failed, redisplay form
-            return View(model);
+            var user = await UserManager.FindByEmailAsync(model.Email);
+            if (user == null)
+                user = await UserManager.FindByNameAsync(model.Email);
+
+            if (user == null || string.IsNullOrWhiteSpace(user.Email))
+            {
+                ViewBag.ErrorMessage = Common.Account_Err_UnknownEmail;
+                return View(model);
+            }
+
+            try
+            {
+                var code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
+                var callbackUrl = Url.Action(
+                    "ResetPassword",
+                    "Account",
+                    new { code, email = user.Email },
+                    protocol: Request.Url.Scheme);
+                var body = string.Format(Common.Account_ResetEmail_Html, callbackUrl);
+                await TandemMailClient.SendHtmlAsync(user.Email, Common.Account_ResetEmail_Subject, body);
+                AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                TempData["PasswordResetSent"] = true;
+                return RedirectToAction("Login", "Account");
+            }
+            catch
+            {
+                ViewBag.ErrorMessage = Common.Account_Err_MailSendFailed;
+                return View(model);
+            }
         }
 
         //
@@ -307,15 +340,25 @@ namespace Desing.Controllers
         [AllowAnonymous]
         public ActionResult ForgotPasswordConfirmation()
         {
-            return View();
+            TempData["PasswordResetSent"] = true;
+            return RedirectToAction("Login", "Account");
         }
 
         //
         // GET: /Account/ResetPassword
         [AllowAnonymous]
-        public ActionResult ResetPassword(string code)
+        public ActionResult ResetPassword(string code, string email)
         {
-            return code == null ? View("Error") : View();
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                return View("Error");
+            }
+
+            return View(new ResetPasswordViewModel
+            {
+                Code = code,
+                Email = email ?? ""
+            });
         }
 
         //
@@ -329,19 +372,23 @@ namespace Desing.Controllers
             {
                 return View(model);
             }
-            var user = await UserManager.FindByNameAsync(model.Email);
+            var user = await UserManager.FindByEmailAsync(model.Email);
+            if (user == null)
+                user = await UserManager.FindByNameAsync(model.Email);
             if (user == null)
             {
-                // Don't reveal that the user does not exist
-                return RedirectToAction("ResetPasswordConfirmation", "Account");
+                ViewBag.ErrorMessage = Common.Account_Err_UnknownEmail;
+                return View(model);
             }
             var result = await UserManager.ResetPasswordAsync(user.Id, model.Code, model.Password);
             if (result.Succeeded)
             {
-                return RedirectToAction("ResetPasswordConfirmation", "Account");
+                AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                TempData["PasswordChanged"] = true;
+                return RedirectToAction("Login", "Account");
             }
             AddErrors(result);
-            return View();
+            return View(model);
         }
 
         //
@@ -349,7 +396,8 @@ namespace Desing.Controllers
         [AllowAnonymous]
         public ActionResult ResetPasswordConfirmation()
         {
-            return View();
+            TempData["PasswordChanged"] = true;
+            return RedirectToAction("Login", "Account");
         }
 
         //

@@ -134,17 +134,7 @@
                                         @Html.PasswordFor(m => m.Password, new { @class = "form-control", id = "password", placeholder = Common.Login_Lbl_Password })
                                         <label for="password">@Common.Login_Lbl_Password</label>
                                     </div>
-                                    <button type="button" class="input-group-text cursor-pointer tandem-pwd-toggle" id="togglePassword" aria-label="@Common.Aria_TogglePassword" aria-pressed="false">
-                                        <svg id="pwdEyeOff" viewBox="0 0 24 24" aria-hidden="true">
-                                            <path d="M3 3l18 18" stroke-linecap="round" />
-                                            <path d="M10.6 10.6A3 3 0 0012 15a3 3 0 002.4-4.4" stroke-linecap="round" />
-                                            <path d="M9.9 5.2A10.8 10.8 0 0112 5c6 0 10 7 10 7a18.4 18.4 0 01-4.2 4.8M6.1 6.1C3.9 7.7 2 12 2 12s4 7 10 7a10.5 10.5 0 005.1-1.3" stroke-linecap="round" />
-                                        </svg>
-                                        <svg id="pwdEyeOn" viewBox="0 0 24 24" aria-hidden="true" style="display:none">
-                                            <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" />
-                                            <circle cx="12" cy="12" r="3" />
-                                        </svg>
-                                    </button>
+                                    @Html.Partial("_PasswordEyeButton")
                                 </div>
                             </div>
                         </div>
@@ -192,6 +182,42 @@
                 }
             </div>
 
+            @if (ViewBag.PasswordChanged as bool? == true)
+            {
+                <div class="modal fade" id="pwdChangedModal" tabindex="-1" aria-labelledby="pwdChangedTitle" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="pwdChangedTitle">@Common.Reset_ConfirmationTitle</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@Common.Login_Btn_SignIn"></button>
+                            </div>
+                            <div class="modal-body">@Common.Reset_ConfirmationLead</div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">@Common.Login_Btn_SignIn</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (ViewBag.PasswordResetSent as bool? == true)
+            {
+                <div class="modal fade" id="pwdResetSentModal" tabindex="-1" aria-labelledby="pwdResetSentTitle" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="pwdResetSentTitle">@Common.Forgot_ConfirmationTitle</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@Common.Forgot_Link_BackToLogin"></button>
+                            </div>
+                            <div class="modal-body">@Common.Forgot_ConfirmationMessage</div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">@Common.Login_Btn_SignIn</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
             @if (!isPluginCad)
             {
                 <img src="~/assets/img/login-construction-skyline.png" class="tandem-login-skyline d-none d-lg-block" alt="construction-skyline" />
@@ -203,20 +229,9 @@
 @section scripts {
     <script>
         (function () {
-            var pwd = document.getElementById('password');
-            var btn = document.getElementById('togglePassword');
-            var eyeOff = document.getElementById('pwdEyeOff');
-            var eyeOn = document.getElementById('pwdEyeOn');
-            if (btn && pwd) {
-                btn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    var show = pwd.getAttribute('type') === 'password';
-                    pwd.setAttribute('type', show ? 'text' : 'password');
-                    btn.setAttribute('aria-pressed', show ? 'true' : 'false');
-                    if (eyeOff) eyeOff.style.display = show ? 'none' : 'block';
-                    if (eyeOn) eyeOn.style.display = show ? 'block' : 'none';
-                });
+            var sentModal = document.getElementById('pwdResetSentModal') || document.getElementById('pwdChangedModal');
+            if (sentModal && window.bootstrap && bootstrap.Modal) {
+                bootstrap.Modal.getOrCreateInstance(sentModal).show();
             }
 
             var isCad = @(isPluginCad ? "true" : "false");

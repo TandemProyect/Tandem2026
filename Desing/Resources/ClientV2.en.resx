@@ -235,6 +235,18 @@
   <data name="State_Inactive" xml:space="preserve">
     <value>Inactive</value>
   </data>
+  <data name="Tab_Designs" xml:space="preserve">
+    <value>Designs</value>
+  </data>
+  <data name="Tab_Documents" xml:space="preserve">
+    <value>Documents</value>
+  </data>
+  <data name="Tab_Jobsides" xml:space="preserve">
+    <value>Jobs</value>
+  </data>
+  <data name="Tab_Offers" xml:space="preserve">
+    <value>Offers</value>
+  </data>
   <data name="ToastMessage_ClientCreated" xml:space="preserve">
     <value>Client &quot;{0}&quot; created successfully.</value>
   </data>
@@ -264,5 +276,41 @@
   </data>
   <data name="Val_NameRequired" xml:space="preserve">
     <value>Client name is required.</value>
+  </data>
+  <data name="Workspace_LeftTitle" xml:space="preserve">
+    <value>Client details</value>
+  </data>
+  <data name="Ws_Col_Design" xml:space="preserve">
+    <value>Design name</value>
+  </data>
+  <data name="Ws_Col_Jobside" xml:space="preserve">
+    <value>Job</value>
+  </data>
+  <data name="Ws_DesignsEmpty" xml:space="preserve">
+    <value>This client has no designs.</value>
+  </data>
+  <data name="Ws_DesignsTitle" xml:space="preserve">
+    <value>Client designs</value>
+  </data>
+  <data name="Ws_DocsEmpty" xml:space="preserve">
+    <value>This client has no documents.</value>
+  </data>
+  <data name="Ws_DocsTitle" xml:space="preserve">
+    <value>Client documents</value>
+  </data>
+  <data name="Ws_JobsEmpty" xml:space="preserve">
+    <value>This client has no jobs.</value>
+  </data>
+  <data name="Ws_JobsTitle" xml:space="preserve">
+    <value>Client jobs</value>
+  </data>
+  <data name="Ws_OffersEmpty" xml:space="preserve">
+    <value>This client has no offers.</value>
+  </data>
+  <data name="Ws_OffersTitle" xml:space="preserve">
+    <value>Client offers</value>
+  </data>
+  <data name="Ws_OpenTooltip" xml:space="preserve">
+    <value>Open</value>
   </data>
 </root>

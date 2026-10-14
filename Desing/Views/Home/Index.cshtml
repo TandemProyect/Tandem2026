@@ -104,7 +104,7 @@
 
         .home-dash-tile--designs {
 
-            grid-column: span 3;
+            grid-column: 1 / -1;
 
         }
 
@@ -213,6 +213,95 @@
                 border-radius: 6px;
 
                 border: 2px solid #fff;
+
+            }
+
+
+
+            .home-dash-tile--recent .dt-buttons,
+            .home-dash-tile--recent .dataTables_filter,
+            .home-dash-tile--recent .dataTables_info,
+            .home-dash-tile--recent .dataTables_paginate,
+            .home-dash-tile--recent .dataTables_length {
+
+                display: none !important;
+
+            }
+
+
+
+            .home-dash-tile--recent > .card > .card-header {
+
+                padding: 0.3rem 0.55rem !important;
+
+            }
+
+
+
+            .home-dash-tile--recent .card-body.home-dash-card-body {
+
+                padding: 0 0.25rem 0.15rem;
+
+            }
+
+
+
+            .home-dash-tile--recent table.dataTable {
+
+                font-size: 0.75rem;
+
+            }
+
+
+
+            .home-dash-tile--recent table.dataTable thead th,
+            .home-dash-tile--recent .dataTables_scrollHead table.dataTable thead th {
+
+                padding: 0.2rem 0.4rem !important;
+
+                font-size: 0.68rem;
+
+                line-height: 1.15;
+
+                white-space: nowrap;
+
+            }
+
+
+
+            .home-dash-tile--recent table.dataTable tbody td {
+
+                padding: 0.22rem 0.4rem !important;
+
+                line-height: 1.25;
+
+            }
+
+
+
+            .home-dash-tile--recent table.dataTable .btn-icon {
+
+                width: 1.7rem !important;
+
+                height: 1.7rem !important;
+
+                inline-size: 1.7rem !important;
+
+                block-size: 1.7rem !important;
+
+            }
+
+
+
+            .home-dash-tile--recent table.dataTable .btn-icon .icon-base {
+
+                font-size: 1.05rem !important;
+
+                inline-size: 1.05rem !important;
+
+                block-size: 1.05rem !important;
+
+                line-height: 1;
 
             }
 
@@ -575,9 +664,13 @@
 
                 font-weight: 700;
 
-                color: var(--bs-secondary-color);
+                color: var(--bs-heading-color);
 
-                padding: 0.1rem 0.7rem;
+                padding: 0.35rem 0.7rem;
+
+                background: var(--bs-table-header-bg-color, #f6f7fb);
+
+                border-radius: 0.25rem;
 
             }
 
@@ -961,7 +1054,7 @@
 
                 min-height: 0;
 
-                height: auto;
+                height: 100%;
 
                 padding: 0 !important;
 
@@ -1082,11 +1175,9 @@
 
                 flex: 1 1 0%;
 
-                height: auto !important;
+                min-height: 0;
 
-                max-height: none !important;
-
-                min-height: 6rem;
+                overflow-y: scroll !important;
 
             }
 
@@ -1131,7 +1222,15 @@
 
                 inset: 0;
 
-                z-index: 1080;
+                inset-block-start: 4rem;
+
+                height: auto !important;
+
+                max-height: none;
+
+                overflow: hidden;
+
+                z-index: 1070;
 
                 margin: 0;
 
@@ -1140,6 +1239,26 @@
                 background: var(--bs-body-bg, #fff);
 
                 grid-column: auto;
+
+            }
+
+
+
+            @@media (min-width: 1200px) {
+
+                html.layout-menu-fixed .home-dash-tile--designs.dash-designs-expanded {
+
+                    inset-inline-start: var(--bs-menu-width);
+
+                }
+
+
+
+                html.layout-menu-fixed.layout-menu-collapsed .home-dash-tile--designs.dash-designs-expanded {
+
+                    inset-inline-start: var(--bs-menu-collapsed-width);
+
+                }
 
             }
 
@@ -1159,7 +1278,9 @@
 
                 min-height: 0;
 
-                height: auto;
+                height: 100%;
+
+                overflow: hidden;
 
             }
 
@@ -1184,6 +1305,224 @@
 
 
 
+            .home-dash-shell table.dataTable > thead > tr > th,
+            .home-dash-shell table.dataTable > thead > tr > td,
+            .home-dash-shell .dataTables_scrollHead table.dataTable thead th,
+            .home-dash-shell .dataTables_scrollHeadInner table.dataTable thead th,
+            .home-dash-shell .dash-client-tree-head {
+
+                border-bottom: 0 !important;
+
+                background: var(--bs-table-header-bg-color, #f6f7fb) !important;
+
+                background-color: var(--bs-table-header-bg-color, #f6f7fb) !important;
+
+            }
+
+
+
+            .home-dash-shell .dataTables_paginate,
+            .home-dash-shell .pagination {
+
+                margin: 0 !important;
+
+                gap: 0.35rem;
+
+            }
+
+
+
+            .home-dash-shell .page-item {
+
+                margin: 0 !important;
+
+            }
+
+
+
+            .home-dash-shell .page-link,
+            .home-dash-shell .page-item .page-link,
+            .home-dash-shell .page-item.active .page-link,
+            .home-dash-shell .page-item.disabled .page-link,
+            .home-dash-shell .page-link:hover,
+            .home-dash-shell .page-link:focus,
+            .home-dash-shell .dataTables_wrapper .dataTables_paginate .paginate_button,
+            .home-dash-shell .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+            .home-dash-shell .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover,
+            .home-dash-shell .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+
+                background: transparent !important;
+
+                background-color: transparent !important;
+
+                border: 0 !important;
+
+                border-radius: 0 !important;
+
+                box-shadow: none !important;
+
+                min-width: 0 !important;
+
+                min-inline-size: 0 !important;
+
+                min-block-size: 0 !important;
+
+                width: auto !important;
+
+                height: auto !important;
+
+                padding: 0 0.15rem !important;
+
+                margin: 0 !important;
+
+                line-height: 1 !important;
+
+                font-size: 0.7rem !important;
+
+                font-weight: 500;
+
+                color: #5c5668 !important;
+
+                opacity: 1 !important;
+
+            }
+
+
+
+            .home-dash-shell .dataTables_wrapper .pagination .page-item.active .page-link,
+            .home-dash-shell .dataTables_wrapper .pagination .page-item.active > a,
+            .home-dash-shell .dataTables_wrapper .pagination .page-item.active > span,
+            .home-dash-shell .page-item.active .page-link,
+            .home-dash-shell .page-link.active,
+            .home-dash-shell .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+            .home-dash-shell .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+
+                color: #2e263d !important;
+
+                -webkit-text-fill-color: #2e263d !important;
+
+                background: transparent !important;
+
+                background-color: transparent !important;
+
+                font-weight: 700;
+
+            }
+
+
+
+            .home-dash-shell .page-item.disabled .page-link {
+
+                color: #a8a4b4 !important;
+
+                font-weight: 500;
+
+            }
+
+
+
+            .home-dash-shell .dataTables_info {
+
+                font-size: 0.7rem;
+
+                line-height: 1.1;
+
+                padding-top: 0;
+
+            }
+
+
+
+            .home-dash-shell .dt-buttons .btn,
+            .home-dash-shell .dt-buttons .dt-button,
+            .home-dash-shell div.dt-buttons > .btn,
+            .home-dash-shell div.dt-buttons > .dt-button,
+            .home-dash-shell .dataTables_wrapper .dt-buttons .btn-secondary,
+            .home-dash-shell .dt-buttons .btn:hover,
+            .home-dash-shell .dt-buttons .dt-button:hover,
+            .home-dash-shell .dt-buttons .btn:focus,
+            .home-dash-shell .dt-buttons .dt-button:focus,
+            .home-dash-shell .dt-buttons .btn:active,
+            .home-dash-shell .dt-buttons .dt-button:active {
+
+                background: #fff !important;
+
+                background-color: #fff !important;
+
+                border: 1px solid #c5ced8 !important;
+
+                color: #6d6a7c !important;
+
+                filter: none;
+
+                box-shadow: none !important;
+
+            }
+
+
+
+            .home-dash-shell .dt-button-collection,
+            .home-dash-shell div.dt-button-collection,
+            .home-dash-shell .dt-button-collection.dropdown-menu {
+
+                background: #fff !important;
+
+                background-color: #fff !important;
+
+                border: 1px solid #c5ced8 !important;
+
+                color: #4b465c !important;
+
+            }
+
+
+
+            .home-dash-shell .dt-button-collection .dropdown-header,
+            .home-dash-shell .dt-button-collection h5,
+            .home-dash-shell .dt-button-collection h6,
+            .home-dash-shell .dt-button-collection .dt-button-collection-title {
+
+                color: #6d6a7c !important;
+
+                background: transparent !important;
+
+                border-color: #e4e6ea !important;
+
+            }
+
+
+
+            .home-dash-shell .dt-button-collection .dt-button,
+            .home-dash-shell .dt-button-collection .dropdown-item,
+            .home-dash-shell .dt-button-collection button.dt-button {
+
+                background: transparent !important;
+
+                background-color: transparent !important;
+
+                color: #4b465c !important;
+
+                border: 0 !important;
+
+            }
+
+
+
+            .home-dash-shell .dt-button-collection .dt-button:hover,
+            .home-dash-shell .dt-button-collection .dropdown-item:hover,
+            .home-dash-shell .dt-button-collection .dt-button.active,
+            .home-dash-shell .dt-button-collection .dropdown-item.active {
+
+                background: #f4f5f7 !important;
+
+                background-color: #f4f5f7 !important;
+
+                color: #4b465c !important;
+
+            }
+
+
+
         @@media (min-width: 1200px) {
 
             html.tandem-intranet-chrome .layout-content-navbar .content-wrapper > .container-fluid.flex-grow-1.container-p-y.tandem-layout-main-scroll:has(.home-dash-shell) {
@@ -1205,6 +1544,10 @@
                 height: auto;
 
                 max-height: none;
+
+                width: auto;
+
+                margin-bottom: 0 !important;
 
             }
 
@@ -1288,7 +1631,7 @@
 
         <div class="home-dash-grid">
 
-            <div class="home-dash-tile">
+            <div class="home-dash-tile home-dash-tile--recent">
 
                 <div class="card shadow-none border">
 
@@ -1326,7 +1669,7 @@
 
             </div>
 
-            <div class="home-dash-tile">
+            <div class="home-dash-tile home-dash-tile--recent">
 
                 <div class="card shadow-none border">
 
@@ -1364,7 +1707,7 @@
 
             </div>
 
-            <div class="home-dash-tile">
+            <div class="home-dash-tile home-dash-tile--recent">
 
                 <div class="card shadow-none border">
 
@@ -1534,26 +1877,6 @@
                 </div>
 
             </div>
-
-            @for (var i = 0; i < 1; i++)
-
-            {
-
-                <div class="home-dash-tile home-dash-tile--placeholder">
-
-                    <div class="card shadow-none border h-100">
-
-                        <div class="card-body home-dash-card-body d-flex align-items-center justify-content-center text-muted">
-
-                            <span>@Jobside.Tab_ComingSoon</span>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            }
 
         </div>
 
@@ -1833,6 +2156,30 @@
 
 
 
+        function tandemDashRecentOptions(url, columns) {
+
+            var opts = tandemDashTableOptions(url, columns);
+
+            opts.dom = 't';
+
+            opts.paging = false;
+
+            opts.searching = false;
+
+            opts.info = false;
+
+            opts.lengthChange = false;
+
+            opts.buttons = [];
+
+            opts.scrollY = '';
+
+            return opts;
+
+        }
+
+
+
         function tandemDashTableOptions(url, columns) {
 
             return TandemDataTablesList.applyListDefaults({
@@ -1867,7 +2214,7 @@
 
         $(document).ready(function () {
 
-            $('#DashJobs').DataTable(tandemDashTableOptions('@Url.Action("ListDashboardJobs", "Home")', [
+            $('#DashJobs').DataTable(tandemDashRecentOptions('@Url.Action("ListDashboardJobs", "Home")', [
 
                 { data: 'AddNJobside', name: 'AddNJobside', orderable: false },
 
@@ -1879,7 +2226,7 @@
 
 
 
-            $('#DashOffers').DataTable(tandemDashTableOptions('@Url.Action("ListDashboardOffers", "Home")', [
+            $('#DashOffers').DataTable(tandemDashRecentOptions('@Url.Action("ListDashboardOffers", "Home")', [
 
                 { data: 'AddOfferNumber', name: 'AddOfferNumber', orderable: false },
 
@@ -1915,7 +2262,7 @@
 
             dashDesignOpts.ordering = true;
 
-            dashDesignOpts.order = [[1, 'asc']];
+            dashDesignOpts.order = [];
 
             $('#DashDesigns').DataTable(dashDesignOpts);
 
@@ -1941,11 +2288,31 @@
 
             dashClientDesignOpts.ordering = true;
 
-            dashClientDesignOpts.order = [[1, 'asc']];
+            dashClientDesignOpts.order = [];
 
             $('#DashClientDesigns').DataTable(dashClientDesignOpts);
 
             dashParkDesignToolbar('#DashClientDesigns', 'clients');
+
+            $('#DashJobs, #DashOffers, #DashDesigns, #DashClientDesigns').on('draw.dt', function () {
+
+                window.setTimeout(dashFitScrollHeights, 0);
+
+            });
+
+            $(window).on('resize', function () {
+
+                window.setTimeout(dashAdjustDesignTables, 50);
+
+            });
+
+            $(document).on('click', '.layout-menu-toggle', function () {
+
+                window.setTimeout(dashAdjustDesignTables, 350);
+
+            });
+
+            window.setTimeout(dashAdjustDesignTables, 50);
 
 
 
@@ -2019,7 +2386,7 @@
 
 
 
-            $('#DashClients').DataTable(tandemDashTableOptions('@Url.Action("ListDashboardClients", "Home")', [
+            $('#DashClients').DataTable(tandemDashRecentOptions('@Url.Action("ListDashboardClients", "Home")', [
 
                 { data: 'TextCode', name: 'TextCode', orderable: false },
 
@@ -2241,9 +2608,55 @@
 
 
 
+            function dashFitScrollHeights() {
+
+                if (!window.matchMedia('(min-width: 1200px)').matches) return;
+
+                $('.home-dash-tile .dataTables_scrollBody').each(function () {
+
+                    var scroll = this.parentElement;
+
+                    var wrapper = this.closest('.dataTables_wrapper');
+
+                    if (!scroll || !wrapper) return;
+
+                    var host = wrapper.parentElement;
+
+                    if (!host || !host.clientHeight) return;
+
+                    var used = 0;
+
+                    Array.prototype.forEach.call(wrapper.children, function (el) {
+
+                        if (el === scroll || !el.offsetHeight) return;
+
+                        used += el.offsetHeight;
+
+                    });
+
+                    var head = scroll.querySelector('.dataTables_scrollHead');
+
+                    var style = window.getComputedStyle(host);
+
+                    var pad = (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0);
+
+                    var h = host.clientHeight - pad - used - (head ? head.offsetHeight : 0) - 2;
+
+                    if (h < 48) h = 48;
+
+                    this.style.height = h + 'px';
+
+                    this.style.maxHeight = h + 'px';
+
+                });
+
+            }
+
+
+
             function dashAdjustDesignTables() {
 
-                ['#DashDesigns', '#DashClientDesigns'].forEach(function (tableId) {
+                ['#DashJobs', '#DashOffers', '#DashDesigns', '#DashClientDesigns'].forEach(function (tableId) {
 
                     if ($.fn.dataTable.isDataTable(tableId)) {
 
@@ -2252,6 +2665,8 @@
                     }
 
                 });
+
+                dashFitScrollHeights();
 
             }
 
@@ -2278,6 +2693,8 @@
                     $(tableId).DataTable().columns.adjust();
 
                 }
+
+                window.setTimeout(dashFitScrollHeights, 0);
 
             });
 

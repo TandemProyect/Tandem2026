@@ -114,6 +114,23 @@ const es = Object.fromEntries(
     Details_NoValue: "—",
     Details_YesValue: "Sí",
     Details_NoBoolValue: "No",
+
+    Workspace_LeftTitle: "Datos del cliente",
+    Tab_Documents: "Documentos",
+    Tab_Jobsides: "Obras",
+    Tab_Offers: "Ofertas",
+    Tab_Designs: "Diseños",
+    Ws_DocsTitle: "Documentos del cliente",
+    Ws_DocsEmpty: "No hay documentos de este cliente.",
+    Ws_JobsTitle: "Obras del cliente",
+    Ws_JobsEmpty: "No hay obras de este cliente.",
+    Ws_OffersTitle: "Ofertas del cliente",
+    Ws_OffersEmpty: "No hay ofertas de este cliente.",
+    Ws_DesignsTitle: "Diseños del cliente",
+    Ws_DesignsEmpty: "No hay diseños de este cliente.",
+    Ws_Col_Jobside: "Obra",
+    Ws_Col_Design: "Nombre del diseño",
+    Ws_OpenTooltip: "Abrir",
   })
 );
 
@@ -225,6 +242,23 @@ const en = Object.assign({}, es, {
   Details_NoValue: "—",
   Details_YesValue: "Yes",
   Details_NoBoolValue: "No",
+
+  Workspace_LeftTitle: "Client details",
+  Tab_Documents: "Documents",
+  Tab_Jobsides: "Jobs",
+  Tab_Offers: "Offers",
+  Tab_Designs: "Designs",
+  Ws_DocsTitle: "Client documents",
+  Ws_DocsEmpty: "This client has no documents.",
+  Ws_JobsTitle: "Client jobs",
+  Ws_JobsEmpty: "This client has no jobs.",
+  Ws_OffersTitle: "Client offers",
+  Ws_OffersEmpty: "This client has no offers.",
+  Ws_DesignsTitle: "Client designs",
+  Ws_DesignsEmpty: "This client has no designs.",
+  Ws_Col_Jobside: "Job",
+  Ws_Col_Design: "Design name",
+  Ws_OpenTooltip: "Open",
 });
 
 function xmlEsc(s) {

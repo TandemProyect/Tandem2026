@@ -4,12 +4,14 @@ using Desing.Helpers;
 using Desing.Models;
 using Desing.Resources;
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Dynamic.Core;
+using System.Text;
 using System.Web;
 using System.Web.Mvc;
 
@@ -101,18 +103,6 @@ namespace Desing.Controllers
             }
 
             ViewBag.OfferWorkspaceHasOfferDocType = TryGetOfferDocumentTypeId().HasValue;
-
-            var designRows = offer.TSql_Design_V2
-                .Where(d => !d.AttIsDeleted)
-                .OrderBy(d => d.AttLabel)
-                .Select(d => new JobsideOfferDesignRowVm
-                {
-                    DesignId = d.SysObjectID,
-                    Title = d.AttLabel ?? string.Empty,
-                    StlVirtualPath = ApplicationStlUrlHelper.TryGetTrustedStlVirtualPath(d.AttThumbnail)
-                })
-                .ToList();
-            ViewBag.OfferWorkspaceDesigns = designRows;
 
             return View(offer);
         }
@@ -237,6 +227,153 @@ namespace Desing.Controllers
                 designId = entity.SysObjectID,
                 rowHtml
             });
+        }
+
+        public JsonResult ListOfferDesigns(long offerId, long jobsideId, [ModelBinder(typeof(DataTablesBinder))] IDataTablesRequest requestModel)
+        {
+            try
+            {
+                if (!db.TSql_Offers.Any(o => o.IdObject == offerId && !o.Is_Delete && o.LinkJobside == jobsideId))
+                {
+                    return Json(DataTablesMvcJson.Create(requestModel.Draw, new object[0], 0, 0), JsonRequestBehavior.AllowGet);
+                }
+
+                IQueryable<OfferDesignListRow> query =
+                    from d in db.TSql_Design_V2
+                    join u in db.AspNetUsers on d.LinCreatedBy equals u.Id into ug
+                    from u in ug.DefaultIfEmpty()
+                    where !d.AttIsDeleted && d.LinkOffers == offerId
+                    select new OfferDesignListRow
+                    {
+                        IdObject = d.SysObjectID,
+                        AttLabel = d.AttLabel,
+                        LinCreatedBy = d.LinCreatedBy,
+                        CreatedByName = u != null ? (u.UserName ?? "") : "",
+                        AttThumbnail = d.AttThumbnail,
+                        AttCreated = d.AttCreated
+                    };
+
+                var totalCount = query.Count();
+                if (!string.IsNullOrEmpty(requestModel.Search.Value))
+                {
+                    var value = requestModel.Search.Value.Trim();
+                    query = query.Where(p => (p.AttLabel ?? "").Contains(value) || (p.CreatedByName ?? "").Contains(value));
+                }
+
+                var filteredCount = query.Count();
+                var orderByString = string.Empty;
+                foreach (var column in requestModel.Columns.GetSortedColumns())
+                {
+                    string orderColumn;
+                    switch (column.Data)
+                    {
+                        case "attLabel":
+                        case "attLabelPlain":
+                            orderColumn = "AttLabel";
+                            break;
+                        case "createdByName":
+                        case "createdByPlain":
+                            orderColumn = "CreatedByName";
+                            break;
+                        case "attCreated":
+                        case "attCreatedFmt":
+                            orderColumn = "AttCreated";
+                            break;
+                        default:
+                            orderColumn = "AttCreated";
+                            break;
+                    }
+                    orderByString += orderByString != string.Empty ? "," : "";
+                    orderByString += orderColumn +
+                        (column.SortDirection == Column.OrderDirection.Ascendant ? " asc" : " desc");
+                }
+                query = query.OrderBy(string.IsNullOrEmpty(orderByString) ? "AttCreated desc" : orderByString);
+                var rows = query.ApplyDataTablesPaging(requestModel.Start, requestModel.Length).ToList();
+                var names = ResolveDesignCreatorNames(rows.Select(r => r.LinCreatedBy));
+                var tipOpen = HttpUtility.HtmlAttributeEncode(Jobside.DashDesigns_Tip_OpenDesign);
+                var tipDelete = HttpUtility.HtmlAttributeEncode(Jobside.OfferWorkspace_Designs_DeleteTooltip);
+                var data = rows.Select(p =>
+                {
+                    var name = p.AttLabel ?? "";
+                    var creator = names.ContainsKey(p.LinCreatedBy ?? "")
+                        ? names[p.LinCreatedBy ?? ""]
+                        : (p.CreatedByName ?? "");
+                    if (string.IsNullOrWhiteSpace(creator))
+                    {
+                        creator = Jobside.Details_NoValue;
+                    }
+                    var href = HttpUtility.HtmlAttributeEncode(
+                        OfferDesignWorkspaceHelper.BuildViewerUrl(Url, offerId, p.IdObject, p.AttThumbnail));
+                    var eye =
+                        "<a class=\"btn btn-info btn-xs\" href=\"" + href + "\" title=\"" + tipOpen + "\" aria-label=\"" + tipOpen + "\">" +
+                        "<span class=\"fas fa-eye\" aria-hidden=\"true\"></span></a>";
+                    var del =
+                        "<button type=\"button\" class=\"btn btn-danger btn-xs tandem-offer-design-delete\" data-design-id=\"" + p.IdObject +
+                        "\" title=\"" + tipDelete + "\" aria-label=\"" + tipDelete + "\">" +
+                        "<span class=\"fas fa-trash\" aria-hidden=\"true\"></span></button>";
+                    return new
+                    {
+                        IdObject = p.IdObject,
+                        attLabel = HttpUtility.HtmlEncode(name),
+                        attLabelPlain = name,
+                        createdByName = HttpUtility.HtmlEncode(creator),
+                        createdByPlain = creator,
+                        attCreated = p.AttCreated,
+                        attCreatedFmt = HttpUtility.HtmlEncode(p.AttCreated.ToString("g")),
+                        rowActions = "<div class=\"d-inline-flex align-items-center gap-1\">" + eye + del + "</div>"
+                    };
+                }).ToList();
+
+                return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(ex.Message);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult DeleteOfferDesign(long offerId, long designId)
+        {
+            var entity = db.TSql_Design_V2.FirstOrDefault(d =>
+                d.SysObjectID == designId && d.LinkOffers == offerId && !d.AttIsDeleted);
+            if (entity == null)
+            {
+                return Json(new { ok = false, message = Jobside.OfferWorkspace_Designs_DeleteFailed });
+            }
+
+            entity.AttIsDeleted = true;
+            entity.AttChange = DateTime.Now;
+            entity.LinModifiedBy = IntranetAuditHelper.ResolveCurrentUserId(User);
+            entity.SysUpdateNumber += 1;
+            db.SaveChanges();
+            return Json(new { ok = true, message = Jobside.OfferWorkspace_Designs_DeleteSuccess });
+        }
+
+        private Dictionary<string, string> ResolveDesignCreatorNames(IEnumerable<string> userIds)
+        {
+            var ids = userIds.Where(id => !string.IsNullOrWhiteSpace(id)).Distinct().ToList();
+            var map = new Dictionary<string, string>(StringComparer.Ordinal);
+            if (ids.Count == 0)
+            {
+                return map;
+            }
+
+            var employees = db.TSql_Employee
+                .Where(e => !e.AttIsDeleted && ids.Contains(e.LinAspNetUsert))
+                .Select(e => new { e.LinAspNetUsert, e.AttName, e.AttSurname })
+                .ToList();
+            foreach (var emp in employees)
+            {
+                var label = ((emp.AttName ?? "") + " " + (emp.AttSurname ?? "")).Trim();
+                if (!string.IsNullOrEmpty(label) && !string.IsNullOrEmpty(emp.LinAspNetUsert) && !map.ContainsKey(emp.LinAspNetUsert))
+                {
+                    map[emp.LinAspNetUsert] = label;
+                }
+            }
+
+            return map;
         }
 
         /// <summary>
@@ -1086,6 +1223,24 @@ namespace Desing.Controllers
                 query = query.ApplyDataTablesPaging(requestModel.Start, requestModel.Length);
 
                 var rows = query.ToList();
+                var offerIds = rows.Select(r => r.IdObject).ToList();
+                var designsByOffer = offerIds.Count == 0
+                    ? new Dictionary<long, List<JobsideOfferTreeDesign>>()
+                    : db.TSql_Design_V2.AsNoTracking()
+                        .Where(d => !d.AttIsDeleted && offerIds.Contains(d.LinkOffers))
+                        .Select(d => new JobsideOfferTreeDesign
+                        {
+                            OfferId = d.LinkOffers,
+                            DesignId = d.SysObjectID,
+                            AttLabel = d.AttLabel ?? "",
+                            AttCreated = d.AttCreated,
+                            AttThumbnail = d.AttThumbnail
+                        })
+                        .ToList()
+                        .GroupBy(d => d.OfferId)
+                        .ToDictionary(g => g.Key, g => g.ToList());
+                var expandTip = HttpUtility.HtmlAttributeEncode(Jobside.DashDesigns_Tree_Expand);
+                var collapseTip = HttpUtility.HtmlAttributeEncode(Jobside.DashDesigns_Tree_Collapse);
                 var ttEdit = HttpUtility.HtmlAttributeEncode(Jobside.Offers_EditTooltip);
                 var ttDetails = HttpUtility.HtmlAttributeEncode(Jobside.Offers_DetailsTooltip);
                 var lblActive = HttpUtility.HtmlEncode(Jobside.State_Active);
@@ -1122,9 +1277,22 @@ namespace Desing.Controllers
                     var actions = "<div class=\"d-inline-flex align-items-center gap-2 flex-wrap justify-content-end\" role=\"group\">" +
                                   editBtn + detailsBtn + "</div>";
 
+                    List<JobsideOfferTreeDesign> designs;
+                    designsByOffer.TryGetValue(p.IdObject, out designs);
+                    var toggle = "";
+                    if (designs != null && designs.Count > 0)
+                    {
+                        toggle =
+                            "<button type=\"button\" class=\"btn btn-sm btn-icon dash-tree-toggle dash-client-tree-root\" aria-expanded=\"false\" title=\"" +
+                            expandTip + "\" aria-label=\"" + expandTip + "\" data-expand=\"" + expandTip +
+                            "\" data-collapse=\"" + collapseTip + "\"><span class=\"dash-tree-sign\" aria-hidden=\"true\">+</span></button>";
+                    }
+
                     return new
                     {
                         IdObject = p.IdObject,
+                        treeToggle = toggle,
+                        tree = BuildJobsideOfferDesignTree(designs, clientNamePlain, expandTip, collapseTip),
                         addOfferNumber = numCell,
                         addOfferNumberPlain = numRaw,
                         textLabel = nameCell,
@@ -1148,6 +1316,81 @@ namespace Desing.Controllers
             {
                 return Json(ex.Message);
             }
+        }
+
+        private string BuildJobsideOfferDesignTree(
+            List<JobsideOfferTreeDesign> designs,
+            string clientName,
+            string expandTip,
+            string collapseTip)
+        {
+            if (designs == null || designs.Count == 0)
+            {
+                return "";
+            }
+
+            var culture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+            if (culture == null || string.IsNullOrEmpty(culture.Name))
+            {
+                culture = new CultureInfo("es-ES");
+            }
+
+            var sb = new StringBuilder();
+            sb.Append("<div class=\"dash-client-tree\">");
+            var groups = designs
+                .GroupBy(d => new { d.AttCreated.Year, d.AttCreated.Month })
+                .OrderByDescending(g => g.Key.Year)
+                .ThenByDescending(g => g.Key.Month);
+            foreach (var g in groups)
+            {
+                var label = culture.TextInfo.ToTitleCase(
+                    new DateTime(g.Key.Year, g.Key.Month, 1).ToString("MMMM yyyy", culture));
+                sb.Append("<div class=\"dash-client-tree-node\">");
+                sb.Append("<div class=\"dash-client-tree-monthline\">");
+                sb.Append(
+                    "<button type=\"button\" class=\"btn btn-sm btn-icon dash-tree-toggle dash-client-tree-month\" aria-expanded=\"false\" title=\"" +
+                    expandTip + "\" aria-label=\"" + expandTip + "\" data-expand=\"" + expandTip +
+                    "\" data-collapse=\"" + collapseTip + "\"><span class=\"dash-tree-sign\" aria-hidden=\"true\">+</span></button>");
+                sb.Append("<span class=\"dash-client-tree-label\">" + HttpUtility.HtmlEncode(label) + "</span>");
+                sb.Append("<span class=\"dash-client-tree-count\">" + g.Count() + "</span>");
+                sb.Append("</div>");
+                sb.Append("<div class=\"dash-client-tree-designs d-none\">");
+                sb.Append("<div class=\"dash-client-tree-head\">");
+                sb.Append("<span>" + HttpUtility.HtmlEncode(Jobside.DashDesigns_Col_DesignName) + "</span>");
+                sb.Append("<span>" + HttpUtility.HtmlEncode(Jobside.Offers_Col_Client) + "</span>");
+                sb.Append("<span>" + HttpUtility.HtmlEncode(Jobside.DashDesigns_Col_Created) + "</span>");
+                sb.Append("<span class=\"dash-client-tree-eye\">" + HttpUtility.HtmlEncode(Jobside.DashDesigns_Col_Open) + "</span>");
+                sb.Append("</div>");
+                sb.Append("<div class=\"dash-client-tree-leaves\">");
+                foreach (var d in g.OrderByDescending(x => x.AttCreated).ThenBy(x => x.AttLabel))
+                {
+                    var stlPath = ApplicationStlUrlHelper.TryGetTrustedStlVirtualPath(d.AttThumbnail);
+                    var url = OfferDesignWorkspaceHelper.BuildViewerUrl(Url, d.OfferId, d.DesignId, stlPath);
+                    var encTip = HttpUtility.HtmlAttributeEncode(Jobside.DashDesigns_Tip_OpenDesign);
+                    sb.Append("<div class=\"dash-client-tree-design\">");
+                    sb.Append("<span class=\"dash-client-tree-name\">" + HttpUtility.HtmlEncode(d.AttLabel) + "</span>");
+                    sb.Append("<span class=\"dash-client-tree-offer\">" + HttpUtility.HtmlEncode(clientName ?? "") + "</span>");
+                    sb.Append("<span class=\"dash-client-tree-date\">" + d.AttCreated.ToString("dd/MM/yyyy HH:mm") + "</span>");
+                    sb.Append(
+                        "<a href=\"" + HttpUtility.HtmlAttributeEncode(url) +
+                        "\" class=\"btn btn-sm btn-icon btn-text-secondary rounded-pill dash-client-tree-eye\" title=\"" + encTip +
+                        "\" aria-label=\"" + encTip +
+                        "\"><i class=\"icon-base ri ri-eye-line\" aria-hidden=\"true\"></i></a>");
+                    sb.Append("</div>");
+                }
+                sb.Append("</div></div></div>");
+            }
+            sb.Append("</div>");
+            return sb.ToString();
+        }
+
+        private class JobsideOfferTreeDesign
+        {
+            public long OfferId { get; set; }
+            public long DesignId { get; set; }
+            public string AttLabel { get; set; }
+            public DateTime AttCreated { get; set; }
+            public string AttThumbnail { get; set; }
         }
 
         /// <summary>

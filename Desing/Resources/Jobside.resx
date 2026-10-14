@@ -220,6 +220,9 @@
   <data name="Js_ConfirmDeleteJobside" xml:space="preserve">
     <value>¿Eliminar esta obra? (borrado lógico).</value>
   </data>
+  <data name="Js_ConfirmDeleteOfferDesign" xml:space="preserve">
+    <value>¿Eliminar este diseño? (borrado lógico).</value>
+  </data>
   <data name="Js_ConfirmDeleteOfferDocument" xml:space="preserve">
     <value>¿Eliminar este documento de la oferta? (borrado lógico).</value>
   </data>
@@ -292,8 +295,26 @@
   <data name="OfferWorkspace_Designs_Btn_NewTooltip" xml:space="preserve">
     <value>Crear diseño para esta oferta</value>
   </data>
+  <data name="OfferWorkspace_Designs_Col_Date" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Col_Name" xml:space="preserve">
+    <value>Nombre del diseño</value>
+  </data>
+  <data name="OfferWorkspace_Designs_Col_User" xml:space="preserve">
+    <value>Usuario</value>
+  </data>
   <data name="OfferWorkspace_Designs_DedicatedPageNote" xml:space="preserve">
     <value>Se abre en página dedicada.</value>
+  </data>
+  <data name="OfferWorkspace_Designs_DeleteFailed" xml:space="preserve">
+    <value>No se pudo eliminar el diseño.</value>
+  </data>
+  <data name="OfferWorkspace_Designs_DeleteSuccess" xml:space="preserve">
+    <value>Diseño eliminado correctamente.</value>
+  </data>
+  <data name="OfferWorkspace_Designs_DeleteTooltip" xml:space="preserve">
+    <value>Eliminar diseño</value>
   </data>
   <data name="OfferWorkspace_Designs_Lbl_AttDescription" xml:space="preserve">
     <value>Descripción</value>

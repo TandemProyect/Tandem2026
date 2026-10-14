@@ -57,6 +57,17 @@ html.tandem-intranet-chrome .layout-content-navbar .layout-page {
     overflow: hidden;
 }
 
+/* El menú fijo no debe tapar el formulario: el contenido empieza después de su ancho. */
+@media (min-width: 1200px) {
+    html.tandem-intranet-chrome.layout-menu-fixed:not(.layout-menu-collapsed) .layout-content-navbar .layout-page {
+        padding-inline-start: var(--bs-menu-width) !important;
+    }
+
+    html.tandem-intranet-chrome.layout-menu-fixed.layout-menu-collapsed .layout-content-navbar .layout-page {
+        padding-inline-start: var(--bs-menu-collapsed-width) !important;
+    }
+}
+
 html.tandem-intranet-chrome .layout-content-navbar .content-wrapper {
     min-height: 0 !important;
     flex: 1 1 0% !important;
@@ -295,6 +306,12 @@ html.tandem-intranet-chrome .layout-content-navbar .content-wrapper > .container
 
 html.tandem-intranet-chrome .tandem-jobside-workspace {
     max-height: 100%;
+}
+
+/* Detalle de obra, oferta y cliente: al 100% del navegador se ve como al 80%.
+   Baja la raíz rem; el zoom con ancho 125% recortaba el lado derecho. */
+html.tandem-intranet-chrome:has(.tandem-jobside-workspace) {
+    --bs-root-font-size: 12.8px;
 }
 
 /* ---- Desing_2 STL viewer: lienzo a pantalla completa en el área de contenido (sin pie de página) ----- */
@@ -1581,6 +1598,47 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     z-index: 12;
 }
 
+/* Pestañas tipo carpeta (mismo aspecto que el panel Diseños del inicio). */
+.nav-tabs.tandem-folder-tabs {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.3rem;
+    margin: 0;
+    padding: 0;
+    border: 0 !important;
+    border-bottom: 0 !important;
+}
+
+.nav-tabs.tandem-folder-tabs .nav-link {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.2;
+    padding: 0.42rem 0.95rem 0.48rem;
+    border: 1px solid #c5ced8 !important;
+    border-radius: 0.55rem 0.55rem 0 0 !important;
+    background: #fff;
+    color: var(--bs-body-color);
+    margin-bottom: 0;
+}
+
+.nav-tabs.tandem-folder-tabs .nav-link:hover:not(.active),
+.nav-tabs.tandem-folder-tabs .nav-link:focus:not(.active) {
+    background: #f4f7fb;
+    color: var(--bs-primary);
+    border-color: #c5ced8 !important;
+}
+
+.nav-tabs.tandem-folder-tabs .nav-link.active,
+.nav-tabs.tandem-folder-tabs .nav-link.active:hover,
+.nav-tabs.tandem-folder-tabs .nav-link.active:focus {
+    background: var(--bs-primary) !important;
+    background-color: var(--bs-primary) !important;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    border-color: var(--bs-primary) !important;
+    box-shadow: none !important;
+}
+
 .tandem-jobside-workspace-toolbar {
     flex: 0 0 auto;
 }
@@ -1644,6 +1702,204 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
 }
 
 /* Documents tab: menús DataTables / dropdowns en panel con scroll */
+.tandem-jobside-workspace .dash-tree-toggle {
+    width: 1.35rem;
+    height: 1.35rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    line-height: 1;
+}
+
+.tandem-jobside-workspace .dash-tree-sign {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.15rem;
+    height: 1.15rem;
+    border: 1px solid var(--bs-primary);
+    border-radius: 0.2rem;
+    background: #fff;
+    color: var(--bs-primary);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.tandem-jobside-workspace tr:hover .dash-tree-toggle .dash-tree-sign,
+.tandem-jobside-workspace .dash-tree-toggle:hover .dash-tree-sign,
+.tandem-jobside-workspace .dash-tree-toggle[aria-expanded="true"] .dash-tree-sign {
+    background: var(--bs-primary);
+    color: #fff;
+}
+
+.tandem-jobside-workspace .dash-client-tree {
+    --dash-tree-line: #b7bec8;
+    position: relative;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    margin-left: var(--dash-tree-gutter, 1.15rem);
+    padding: 0.15rem 0.35rem 0.45rem 1.05rem;
+    border-left: 1px solid var(--dash-tree-line);
+    background: #fff;
+    overflow: visible;
+}
+
+.tandem-jobside-workspace .dash-client-tree-node {
+    position: relative;
+    margin-bottom: 0.35rem;
+}
+
+.tandem-jobside-workspace .dash-client-tree-monthline {
+    position: relative;
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.85rem;
+    min-height: 2rem;
+    padding: 0.3rem 0.45rem 0.3rem 0.15rem;
+    border-radius: 0.4rem;
+}
+
+.tandem-jobside-workspace .dash-client-tree-label {
+    font-weight: 600;
+    color: var(--bs-body-color);
+}
+
+.tandem-jobside-workspace .dash-client-tree-count,
+.tandem-jobside-workspace .dash-client-tree-date {
+    color: var(--bs-secondary-color);
+}
+
+.tandem-jobside-workspace .dash-client-tree-offer {
+    color: var(--bs-primary);
+    font-weight: 700;
+}
+
+.tandem-jobside-workspace .dash-client-tree-designs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0 0 0.15rem;
+}
+
+.tandem-jobside-workspace .dash-client-tree-head,
+.tandem-jobside-workspace .dash-client-tree-design {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+    gap: 1rem;
+}
+
+.tandem-jobside-workspace .dash-client-tree-head > span:nth-child(1),
+.tandem-jobside-workspace .dash-client-tree-design > .dash-client-tree-name {
+    flex: 1.6 1 0;
+    min-width: 8rem;
+}
+
+.tandem-jobside-workspace .dash-client-tree-head > span:nth-child(2),
+.tandem-jobside-workspace .dash-client-tree-design > .dash-client-tree-offer {
+    flex: 1 1 0;
+    min-width: 6rem;
+}
+
+.tandem-jobside-workspace .dash-client-tree-head > span:nth-child(3),
+.tandem-jobside-workspace .dash-client-tree-design > .dash-client-tree-date {
+    flex: 0 0 10.5rem;
+}
+
+.tandem-jobside-workspace .dash-client-tree-head {
+    margin-left: 1.7rem;
+    width: calc(100% - 1.7rem);
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--bs-heading-color);
+    padding: 0.35rem 0.7rem;
+    background: var(--bs-table-header-bg-color, #f6f7fb) !important;
+    border-radius: 0.25rem;
+}
+
+.tandem-jobside-workspace .dash-client-tree-design {
+    position: relative;
+    min-height: 2.2rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: 0.4rem;
+    background: #fff;
+    border: 1px solid transparent;
+}
+
+.tandem-jobside-workspace .dash-client-tree-design:hover {
+    border-color: var(--bs-primary);
+}
+
+.tandem-jobside-workspace .dash-client-tree-head > .dash-client-tree-eye,
+.tandem-jobside-workspace .dash-client-tree-design > .dash-client-tree-eye {
+    flex: 0 0 2.5rem;
+    margin-left: auto;
+    justify-self: auto;
+}
+
+.tandem-jobside-workspace table.dataTable tr.dash-client-tree-row > td,
+.tandem-jobside-workspace table.dataTable tr.dash-client-tree-row:hover > td {
+    --bs-table-bg-state: transparent !important;
+    --bs-table-accent-bg: transparent !important;
+    --bs-table-bg-type: transparent !important;
+    box-shadow: none !important;
+    padding: 0.25rem 0.75rem 0.45rem !important;
+    background: #fff !important;
+    background-color: #fff !important;
+    overflow: visible;
+    width: 100%;
+}
+
+.tandem-jobside-workspace tr:has(> td .dash-client-tree-root[aria-expanded="true"]) > td.dash-tree-col {
+    position: relative;
+}
+
+.tandem-jobside-workspace tr:has(> td .dash-client-tree-root[aria-expanded="true"]) > td.dash-tree-col::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: calc(50% + 0.72rem);
+    bottom: -1px;
+    border-left: 1px solid #b7bec8;
+}
+
+.tandem-jobside-workspace .dash-client-tree-monthline::before,
+.tandem-jobside-workspace .dash-client-tree-design::before {
+    content: "";
+    position: absolute;
+    left: calc(-1.05rem + 1px);
+    top: 50%;
+    width: 0.85rem;
+    border-top: 1px solid var(--dash-tree-line, #b7bec8);
+}
+
+.tandem-jobside-workspace .dash-client-tree-node:last-child .dash-client-tree-monthline::after,
+.tandem-jobside-workspace .dash-client-tree-design:last-child::after {
+    content: "";
+    position: absolute;
+    left: calc(-1.05rem - 1px);
+    top: calc(50% + 1px);
+    width: 3px;
+    height: 400px;
+    background: #fff;
+}
+
+.tandem-jobside-workspace .dash-client-tree-leaves {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin: 0 0 0.15rem 0.62rem;
+    padding-left: 1.05rem;
+    border-left: 1px solid var(--dash-tree-line, #b7bec8);
+    overflow: hidden;
+}
+
 .tandem-jobside-workspace .tandem-jobside-tab-content .table-responsive {
     overflow-x: auto !important;
     overflow-y: visible;

@@ -10,6 +10,7 @@ using System.Text;
 using System.Linq.Dynamic.Core;
 using System.Web;
 using System.Web.Mvc;
+using Microsoft.AspNet.Identity;
 
 namespace Desing.Controllers
 {
@@ -27,32 +28,20 @@ namespace Desing.Controllers
         {
             try
             {
-                var q = db.TSql_Jobside.AsNoTracking().Where(j => !j.Is_Delete);
-
-                var totalCount = q.Count();
-
-                if (requestModel.Search != null && !string.IsNullOrEmpty(requestModel.Search.Value))
-                {
-                    var value = requestModel.Search.Value.Trim();
-                    q = q.Where(j =>
-                        (j.AddNJobside ?? "").Contains(value) ||
-                        (j.TextLabel ?? "").Contains(value));
-                }
-
-                var filteredCount = q.Count();
-
-                q = q.OrderByDescending(j => j.AddLastDateChange ?? j.AddDateMade)
-                    .ThenByDescending(j => j.IdObject);
-
-                var page = q.Select(j => new
-                {
-                    j.IdObject,
-                    AddNJobside = j.AddNJobside ?? "",
-                    TextLabel = j.TextLabel ?? ""
-                });
-
-                page = page.ApplyDataTablesPaging(requestModel.Start, requestModel.Length);
-                var rows = page.ToList();
+                var userId = User.Identity.GetUserId();
+                var rows = db.TSql_Jobside.AsNoTracking()
+                    .Where(j => !j.Is_Delete && j.LinkMadeBy == userId)
+                    .OrderByDescending(j => j.AddDateMade)
+                    .ThenByDescending(j => j.IdObject)
+                    .Take(5)
+                    .Select(j => new
+                    {
+                        j.IdObject,
+                        AddNJobside = j.AddNJobside ?? "",
+                        TextLabel = j.TextLabel ?? ""
+                    })
+                    .ToList();
+                var filteredCount = rows.Count;
 
                 var tt = HttpUtility.HtmlAttributeEncode(Jobside.List_LinkWorkspaceTooltip);
                 var data = rows.Select(p =>
@@ -70,7 +59,7 @@ namespace Desing.Controllers
                     };
                 }).ToList();
 
-                return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, totalCount));
+                return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, filteredCount));
             }
             catch (Exception ex)
             {
@@ -83,34 +72,20 @@ namespace Desing.Controllers
         {
             try
             {
-                var q = db.TSql_Offers.AsNoTracking().Where(o => !o.Is_Delete);
-
-                var totalCount = q.Count();
-
-                if (requestModel.Search != null && !string.IsNullOrEmpty(requestModel.Search.Value))
-                {
-                    var value = requestModel.Search.Value.Trim();
-                    q = q.Where(o =>
-                        (o.AddOfferNumber ?? "").Contains(value) ||
-                        (o.TextLabel ?? "").Contains(value));
-                }
-
-                var filteredCount = q.Count();
-
-                /* Sin AddLastDateChange en entidad: último movimiento ≈ Ntimeschanged + AddDateMade */
-                q = q.OrderByDescending(o => o.Ntimeschanged)
-                    .ThenByDescending(o => o.AddDateMade)
-                    .ThenByDescending(o => o.IdObject);
-
-                var page = q.Select(o => new
-                {
-                    o.IdObject,
-                    AddOfferNumber = o.AddOfferNumber ?? "",
-                    TextLabel = o.TextLabel ?? ""
-                });
-
-                page = page.ApplyDataTablesPaging(requestModel.Start, requestModel.Length);
-                var rows = page.ToList();
+                var userId = User.Identity.GetUserId();
+                var rows = db.TSql_Offers.AsNoTracking()
+                    .Where(o => !o.Is_Delete && o.LinkMadeBy == userId)
+                    .OrderByDescending(o => o.AddDateMade)
+                    .ThenByDescending(o => o.IdObject)
+                    .Take(5)
+                    .Select(o => new
+                    {
+                        o.IdObject,
+                        AddOfferNumber = o.AddOfferNumber ?? "",
+                        TextLabel = o.TextLabel ?? ""
+                    })
+                    .ToList();
+                var filteredCount = rows.Count;
 
                 var tt = HttpUtility.HtmlAttributeEncode(Jobside.Offers_DetailsTooltip);
                 var data = rows.Select(p =>
@@ -128,7 +103,7 @@ namespace Desing.Controllers
                     };
                 }).ToList();
 
-                return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, totalCount));
+                return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, filteredCount));
             }
             catch (Exception ex)
             {
@@ -194,7 +169,10 @@ namespace Desing.Controllers
                                 : ((j.TextJobsideNotes != null && j.TextJobsideNotes != "")
                                     ? j.TextJobsideNotes
                                     : (j.TextLabel ?? "")),
-                            DesignCount = db.TSql_Design_V2.Count(d => !d.AttIsDeleted && d.LinkOffers == o.IdObject)
+                            DesignCount = db.TSql_Design_V2.Count(d => !d.AttIsDeleted && d.LinkOffers == o.IdObject),
+                            LastMove = db.TSql_Design_V2
+                                .Where(d => !d.AttIsDeleted && d.LinkOffers == o.IdObject)
+                                .Max(d => (DateTime?)d.AttChange)
                         };
 
                 var orderBy = "";
@@ -233,7 +211,7 @@ namespace Desing.Controllers
                 }
 
                 var page = q.OrderBy(string.IsNullOrEmpty(orderBy)
-                    ? "OfferNumber asc, OfferId asc"
+                    ? "LastMove desc, OfferId desc"
                     : orderBy)
                     .ApplyDataTablesPaging(requestModel.Start, requestModel.Length);
                 var rows = page.ToList();
@@ -388,7 +366,13 @@ namespace Desing.Controllers
                         db.TSql_Offers.Any(o =>
                             !o.Is_Delete &&
                             o.IdObject == d.LinkOffers &&
+                            o.LinkClient_V2 == c.IdObject)),
+                    LastMove = db.TSql_Design_V2
+                        .Where(d => !d.AttIsDeleted && db.TSql_Offers.Any(o =>
+                            !o.Is_Delete &&
+                            o.IdObject == d.LinkOffers &&
                             o.LinkClient_V2 == c.IdObject))
+                        .Max(d => (DateTime?)d.AttChange)
                 });
 
                 var orderBy = "";
@@ -418,7 +402,7 @@ namespace Desing.Controllers
                 }
 
                 var page = q.OrderBy(string.IsNullOrEmpty(orderBy)
-                    ? "ClientName asc, ClientId asc"
+                    ? "LastMove desc, ClientId desc"
                     : orderBy)
                     .ApplyDataTablesPaging(requestModel.Start, requestModel.Length);
                 var rows = page.ToList();
@@ -735,32 +719,20 @@ namespace Desing.Controllers
         {
             try
             {
-                var q = db.TSql_Client_V2.AsNoTracking().Where(c => !c.Is_Delete);
-
-                var totalCount = q.Count();
-
-                if (requestModel.Search != null && !string.IsNullOrEmpty(requestModel.Search.Value))
-                {
-                    var value = requestModel.Search.Value.Trim();
-                    q = q.Where(c =>
-                        (c.TextCode ?? "").Contains(value) ||
-                        (c.TextLabel ?? "").Contains(value));
-                }
-
-                var filteredCount = q.Count();
-
-                q = q.OrderByDescending(c => c.AddLastDateChange ?? c.AddDateMade)
-                    .ThenByDescending(c => c.IdObject);
-
-                var page = q.Select(c => new
-                {
-                    c.IdObject,
-                    TextCode = c.TextCode ?? "",
-                    TextLabel = c.TextLabel ?? ""
-                });
-
-                page = page.ApplyDataTablesPaging(requestModel.Start, requestModel.Length);
-                var rows = page.ToList();
+                var userId = User.Identity.GetUserId();
+                var rows = db.TSql_Client_V2.AsNoTracking()
+                    .Where(c => !c.Is_Delete && c.LinkMadeBy == userId)
+                    .OrderByDescending(c => c.AddDateMade)
+                    .ThenByDescending(c => c.IdObject)
+                    .Take(5)
+                    .Select(c => new
+                    {
+                        c.IdObject,
+                        TextCode = c.TextCode ?? "",
+                        TextLabel = c.TextLabel ?? ""
+                    })
+                    .ToList();
+                var filteredCount = rows.Count;
 
                 var tt = HttpUtility.HtmlAttributeEncode(ClientV2.List_LinkOpenTooltip);
                 var data = rows.Select(p =>
@@ -778,7 +750,7 @@ namespace Desing.Controllers
                     };
                 }).ToList();
 
-                return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, totalCount));
+                return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, filteredCount));
             }
             catch (Exception ex)
             {
