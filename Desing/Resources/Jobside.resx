@@ -376,6 +376,21 @@
   <data name="DashDesigns_Btn_Attach" xml:space="preserve">
     <value>Adjuntar</value>
   </data>
+  <data name="DashDesigns_Card_CreatedBy" xml:space="preserve">
+    <value>Creado por</value>
+  </data>
+  <data name="DashDesigns_Card_EditName" xml:space="preserve">
+    <value>Editar nombre</value>
+  </data>
+  <data name="DashDesigns_Card_Modified" xml:space="preserve">
+    <value>Último cambio</value>
+  </data>
+  <data name="DashDesigns_Card_RenameFailed" xml:space="preserve">
+    <value>No se pudo cambiar el nombre.</value>
+  </data>
+  <data name="DashDesigns_Card_RenameSuccess" xml:space="preserve">
+    <value>Nombre actualizado.</value>
+  </data>
   <data name="DashDesigns_ModalTitleAttach" xml:space="preserve">
     <value>Adjuntar diseño al cliente</value>
   </data>
@@ -418,6 +433,9 @@
   <data name="DashDesigns_TabClients" xml:space="preserve">
     <value>Clientes</value>
   </data>
+  <data name="DashDesigns_TabDesign" xml:space="preserve">
+    <value>Diseños</value>
+  </data>
   <data name="DashDesigns_TabOffers" xml:space="preserve">
     <value>Ofertas</value>
   </data>
@@ -432,6 +450,12 @@
   </data>
   <data name="DashDesigns_Val_OfferRequired" xml:space="preserve">
     <value>Selecciona la oferta.</value>
+  </data>
+  <data name="DashDesigns_ViewData" xml:space="preserve">
+    <value>Datos</value>
+  </data>
+  <data name="DashDesigns_ViewPhotos" xml:space="preserve">
+    <value>Imágenes</value>
   </data>
   <data name="OfferWorkspace_Designs_NoStlLinked" xml:space="preserve">
     <value>Sin STL enlazado</value>

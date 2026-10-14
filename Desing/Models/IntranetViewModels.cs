@@ -59,6 +59,8 @@ namespace Desing.Models
         public string DocumentTypeName { get; set; }
         /// <summary><see cref="DAL.TSql_Offers.AddOfferNumber"/> cuando <see cref="DAL.TSql_Document.LinkOffer"/> no es null.</summary>
         public string OfferNumberPlain { get; set; }
+        /// <summary>TSql_OfferState.AddColor del estado de la oferta ligada, si hay.</summary>
+        public string OfferStateAddColor { get; set; }
         public DateTime AddDateMade { get; set; }
     }
 
@@ -88,6 +90,8 @@ namespace Desing.Models
         public string AddPath { get; set; }
         public string DocumentTypeName { get; set; }
         public string OfferNumberPlain { get; set; }
+        /// <summary>TSql_OfferState.AddColor del estado de la oferta ligada, si hay.</summary>
+        public string OfferStateAddColor { get; set; }
         public DateTime AddDateMade { get; set; }
     }
 

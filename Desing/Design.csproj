@@ -2569,6 +2569,7 @@
     <None Include="Properties\PublishProfiles\ccvallecano-002-site7 - FTP.pubxml" />
     <None Include="Properties\PublishProfiles\ccvallecano-002-site7 - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\FTPProfile.pubxml" />
+    <None Include="Properties\PublishProfiles\tDesing.net.pubxml" />
     <Content Include="Content\datatables\Buttons-2.0.1\css\buttons.bootstrap.css" />
     <Content Include="Content\datatables\Buttons-2.0.1\css\buttons.bootstrap.min.css" />
     <Content Include="Content\datatables\Buttons-2.0.1\css\buttons.bootstrap4.css" />

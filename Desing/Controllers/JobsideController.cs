@@ -568,6 +568,9 @@ namespace Desing.Controllers
                         OfferNumberPlain = d.LinkOffer != null && o != null
                             ? ((o.AddOfferNumber ?? "").Trim())
                             : "",
+                        OfferStateAddColor = o == null
+                            ? null
+                            : db.TSql_OfferState.Where(st => st.IdObject == o.LinkOfferState).Select(st => st.AddColor).FirstOrDefault(),
                         AddDateMade = d.AddDateMade
                     };
 
@@ -669,7 +672,7 @@ namespace Desing.Controllers
                         displayName = HttpUtility.HtmlEncode(displayPlain),
                         displayNamePlain = displayPlain,
                         documentTypeName = HttpUtility.HtmlEncode(p.DocumentTypeName ?? ""),
-                        offerNumber = HttpUtility.HtmlEncode(offerPlain),
+                        offerNumber = OfferDisplayHelper.BuildOfferNumberCellHtml(offerPlain, p.OfferStateAddColor),
                         offerNumberPlain = offerPlain,
                         fileExtension = HttpUtility.HtmlEncode(string.IsNullOrEmpty(ext) ? Jobside.Details_NoValue : ext),
                         addDateMade = p.AddDateMade,
@@ -905,6 +908,9 @@ namespace Desing.Controllers
                         AddPath = d.AddPath,
                         DocumentTypeName = t != null ? t.TextLabel : "",
                         OfferNumberPlain = o != null ? ((o.AddOfferNumber ?? "").Trim()) : "",
+                        OfferStateAddColor = o == null
+                            ? null
+                            : db.TSql_OfferState.Where(st => st.IdObject == o.LinkOfferState).Select(st => st.AddColor).FirstOrDefault(),
                         AddDateMade = d.AddDateMade
                     };
 
@@ -1013,7 +1019,7 @@ namespace Desing.Controllers
                         displayName = HttpUtility.HtmlEncode(displayPlain),
                         displayNamePlain = displayPlain,
                         documentTypeName = HttpUtility.HtmlEncode(p.DocumentTypeName ?? ""),
-                        offerNumber = HttpUtility.HtmlEncode(offerPlain),
+                        offerNumber = OfferDisplayHelper.BuildOfferNumberCellHtml(offerPlain, p.OfferStateAddColor),
                         offerNumberPlain = offerPlain,
                         fileExtension = HttpUtility.HtmlEncode(string.IsNullOrEmpty(ext) ? Jobside.Details_NoValue : ext),
                         addDateMade = p.AddDateMade,

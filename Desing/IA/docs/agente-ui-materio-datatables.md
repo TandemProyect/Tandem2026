@@ -106,6 +106,14 @@ Vistas parciales que cargan DataTables **sin** layout completo enlazan también 
 
 ---
 
+## 4b. Color del estado de la oferta
+
+El número de oferta se pinta con `OfferDisplayHelper.BuildOfferNumberCellHtml(número, TSql_OfferState.AddColor)`. El fondo es el HEX del estado (`#RGB` o `#RRGGBB`). El texto sale blanco o casi negro según la luminosidad.
+
+Ya lo usan la ficha de la oferta, los listados de ofertas de obra y de cliente, el inicio (panel de ofertas, pestaña Ofertas y el número dentro del árbol de Clientes) y la columna de oferta en los documentos de obra, de oferta y de cliente.
+
+Al mostrar un número de oferta en un sitio nuevo, no devolver el texto plano: unir `TSql_OfferState` por `TSql_Offers.LinkOfferState` y pasar `AddColor` al helper. Ordenar y buscar sigue haciéndose con el número en claro, no con el HTML.
+
 ## 5. Cromático / separadores (site.css + plantilla)
 
 - **Pie**: `border-top` 1px color `var(--tandem-primary)` en `.layout-content-navbar .content-footer.footer`.

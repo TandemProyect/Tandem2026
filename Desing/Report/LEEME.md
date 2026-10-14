@@ -32,9 +32,9 @@ Desing/Report/<año>/yyyy-MM-dd_Informe-Quincenal.pdf
 2. Si el trabajo es un frente nuevo: crear el **siguiente apartado correlativo**  
    (`### N. Nombre del frente`, p. ej. `### 1. Proyecto XR`, `### 2. …`).
 3. Si el frente ya tiene apartado: **trabajar en ese apartado** (ampliar bullets, estado, fechas). No abrir otro con el mismo nombre.
-4. Anotar inicio cuando el usuario lo diga; al salir, fin + qué se hizo.
+4. Si el usuario dice que empezamos algo nuevo: abrir el apartado ya, con la hora de inicio. Cuando diga que se termina o que se pasa a otra cosa, cerrar y anotar el tramo de reloj (inicio → ese momento). Es una estimación de la sesión, con el testeo. No es el tiempo del agente ni una hora de facturación. No alargarla.
 5. **No** reescribir un informe cerrado (el 01).
-6. Las **horas** van al **trimestral** (`yyyy-T<n>_Informe-Trimestral.md`), no al quincenal. El quincenal narra el trabajo; el trimestral suma horas.
+6. Las **horas de programación** que ya se cierran van al **trimestral** (`yyyy-T<n>_Informe-Trimestral.md`). La estimación de sesión del punto 4 se queda en el apartado del quincenal y no se suma al trimestral.
 
 ### Creación automática del siguiente informe
 

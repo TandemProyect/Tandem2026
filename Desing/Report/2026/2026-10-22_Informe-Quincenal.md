@@ -102,6 +102,18 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 - **Hecho:** en la barra de arriba, junto a los iconos de entorno, hay una cámara. Guarda un PNG del lienzo completo, con el nombre del diseño. No entran la barra, el menú lateral ni las herramientas. El visor antiguo ya tenía esa cámara, pero esperaba un segundo, el fichero se llamaba «Hola.png» y a veces salía en blanco. Ahora la foto se toma en el mismo instante, con el cielo y la luz que haya en pantalla.
 - **Al salvar y al imprimir:** la misma foto se escribe en el servidor, en `Content/images/desing`, dentro de una carpeta con el año y el mes (`2026-10`), y el fichero es el nombre del diseño. Si ya existe, se sustituye. En la tabla de diseños queda la ruta en `AttPhoto`. La columna de la miniatura STL no se toca. Al terminar, un aviso dice qué se hizo: muros y foto guardados, o imagen descargada y foto guardada. Si la foto no se puede guardar, el aviso sale en rojo. En el menú lateral, junto a Ayuda, el apartado Últimos diseños muestra la foto a 150×108, el número de oferta, el texto «Doble click para abrir» y el nombre. Un clic pasa al diseño anterior por fecha de creación. El doble clic abre el que se ve y sale el aviso «Abriendo diseño» con el reloj. Con el menú plegado la foto queda dentro del carril, sin el título, para no tapar el botón de plegar. Cómo seguir está en `Desing/IA/docs/agente-foto-diseno-y-menu.md`. En el servidor de publicación, la columna `AttPhoto` hay que crearla con el script del 14 de octubre si aún no está: sin ella la foto no se guarda y el apartado no sale.
 
+### 12. Color del estado en las ofertas
+
+- **Estado:** cerrado. **14 de octubre de 2026, 11:39–11:44.** Estimación de sesión: **5 min**.
+- **Qué se hace:** el número de oferta lleva de fondo el color de su estado. En la ficha de la oferta ya estaba. Hay que verlo en los demás sitios donde sale la oferta, sobre todo en los paneles del inicio.
+- **Hecho:** en el inicio, el número de las ofertas de arriba, el de la pestaña Ofertas y el del árbol de Clientes salen con el color del estado. También en los documentos de la obra, de la oferta y del cliente. El texto del número se lee en claro u oscuro según el fondo.
+
+### 13. Pestaña Diseño en el panel de inicio
+
+- **Estado:** cerrado. **14 de octubre de 2026, 11:52–12:30.** Estimación de sesión: **38 min**.
+- **Qué se hace:** en el panel Diseños, una pestaña con todos los diseños, en dos vistas.
+- **Hecho:** la pestaña se llama Diseños y va detrás de Ofertas. Al abrirla el panel se amplía. Datos es la tabla, con la foto a 100 de ancho en la primera columna, búsqueda, paginación y menú de registros. Imágenes son fichas con la foto, la oferta, el cliente, la obra, quién lo creó y el último cambio. Los enunciados van al 70 %, en gris claro y sin negrita. El nombre de quien lo creó va al 70 % e inclinado. No sale la fecha de creación. En la ficha se abre, se cambia el nombre y se borra. Esa vista lleva buscador, número de registros y paginación, sin menú de exportar.
+
 ## Heredado del informe 01 (sigue abierto)
 
 1. Posición de las uniones, del panel de 0,30 × 2,70 m y de la ménsula (no cae en su agujero).
@@ -126,6 +138,8 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 | Conexión SQL al publicar | Cursor, 12 oct | Apartado 8 en curso desde el 12 oct, 18:09. Release apunta a SQL5113; hay que republicar |
 | Adjuntar diseños al cliente | Cursor, 13 oct | Apartado 9 en curso desde el 13 oct, 8:30. Pestañas Ofertas y Clientes en el panel Diseños. El alta de cliente escribe en `TSql_DesgloseOfertaCliente` |
 | Foto del diseño | Cursor, 14 oct | Apartado 11 cerrado. Cámara, foto en el servidor, apartado Últimos diseños. Queda escrito en `Desing/IA/docs/agente-foto-diseno-y-menu.md` |
+| Color del estado en las ofertas | Cursor, 14 oct | Apartado 12 cerrado. 11:39–11:44, estimación 5 min. El número lleva el color del estado en el inicio y en los documentos |
+| Pestaña Diseño en el panel de inicio | Cursor, 14 oct | Apartado 13 cerrado. 11:52–12:30, estimación 38 min. Pestaña Diseños, tabla y fichas |
 
 ## Al cerrar el 22 de octubre
 

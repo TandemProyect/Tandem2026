@@ -856,6 +856,396 @@
 
 
 
+            .home-dash-tile--designs .dash-design-view-tabs {
+
+                display: flex;
+
+                align-items: flex-end;
+
+                gap: 0.3rem;
+
+                margin: 0.55rem 0 0.35rem;
+
+                padding: 0;
+
+                border: 0;
+
+            }
+
+
+
+            #DashDesignPhotos_wrapper > .dash-dt-toolbar {
+
+                justify-content: space-between;
+
+                width: 100%;
+
+                margin: 0 0 0.7rem;
+
+            }
+
+
+
+            #DashDesignPhotos_wrapper .dataTables_length label,
+            #DashDesignPhotos_wrapper .dataTables_filter label {
+
+                display: flex;
+
+                align-items: center;
+
+                gap: 0.35rem;
+
+                margin: 0;
+
+                white-space: nowrap;
+
+            }
+
+
+
+            #DashDesignPhotos_wrapper .dash-dt-footer {
+
+                display: flex;
+
+                align-items: center;
+
+                justify-content: space-between;
+
+                gap: 0.75rem;
+
+                margin-top: 0.55rem;
+
+            }
+
+
+
+            #DashDesignPhotos_wrapper .dataTables_scrollBody table.dataTable {
+
+                display: block !important;
+
+                width: 100% !important;
+
+            }
+
+
+
+            #DashDesignPhotos tbody {
+
+                display: grid !important;
+
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+
+                gap: 0.85rem;
+
+                width: 100%;
+
+            }
+
+
+
+            #DashDesignPhotos tbody tr {
+
+                display: contents;
+
+            }
+
+
+
+            #DashDesignPhotos tbody td {
+
+                display: block !important;
+
+                width: auto !important;
+
+                padding: 0 !important;
+
+                border: 0 !important;
+
+                background: transparent !important;
+
+                box-shadow: none !important;
+
+            }
+
+
+
+            #DashDesignPhotos td.dataTables_empty {
+
+                grid-column: 1 / -1;
+
+                padding: 1.5rem !important;
+
+                text-align: center;
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-design-card {
+
+                display: flex;
+
+                flex-direction: column;
+
+                height: 100%;
+
+                border: 1px solid #e1e6ee;
+
+                border-radius: 0.7rem;
+
+                background: #fff;
+
+                box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+
+                overflow: hidden;
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-design-card:hover {
+
+                border-color: #c5d4ea;
+
+                box-shadow: 0 8px 18px rgba(16, 24, 40, 0.08);
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-design-card-photo {
+
+                display: flex;
+
+                align-items: center;
+
+                justify-content: center;
+
+                height: 148px;
+
+                background: #f4f6fa;
+
+                border-bottom: 1px solid #e6e8ef;
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-design-card-photo img,
+            .home-dash-tile--designs .dash-design-photo-empty {
+
+                display: block;
+
+                width: 100%;
+
+                height: 148px;
+
+                object-fit: cover;
+
+                border: 0;
+
+                background: #f4f6fa;
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-design-photo-empty {
+
+                display: flex;
+
+                align-items: center;
+
+                justify-content: center;
+
+                color: #9aa3b2;
+
+                font-size: 2rem;
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-design-card-body {
+
+                display: flex;
+
+                flex-direction: column;
+
+                gap: 0.4rem;
+
+                padding: 0.75rem 0.85rem 0.8rem;
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-design-card-title {
+
+                margin: 0;
+
+                font-size: 0.95rem;
+
+                font-weight: 700;
+
+                line-height: 1.3;
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-design-card-offer {
+
+                display: flex;
+
+                flex-wrap: wrap;
+
+                align-items: center;
+
+                gap: 0.4rem;
+
+                font-weight: 600;
+
+                line-height: 1.3;
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-design-card-meta {
+
+                display: grid;
+
+                gap: 0.18rem;
+
+                margin: 0;
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-design-card-meta div {
+
+                display: grid;
+
+                grid-template-columns: 6.4rem 1fr;
+
+                gap: 0.35rem;
+
+                font-size: 0.78rem;
+
+                line-height: 1.35;
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-design-card-meta dt {
+
+                margin: 0;
+
+                color: #9aa3b2;
+
+                font-size: 70%;
+
+                font-weight: 400;
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-design-card-meta dd {
+
+                margin: 0;
+
+                min-width: 0;
+
+                font-weight: 400;
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-design-card-by {
+
+                font-size: 70%;
+
+                font-style: italic;
+
+                font-weight: 400;
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-design-card-actions {
+
+                display: flex;
+
+                align-items: center;
+
+                gap: 0.35rem;
+
+                margin-top: 0.2rem;
+
+                padding-top: 0.5rem;
+
+                border-top: 1px solid #eef1f5;
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-design-card-open {
+
+                display: inline-flex;
+
+                align-items: center;
+
+                gap: 0.3rem;
+
+                margin-right: auto;
+
+            }
+
+
+
+            .home-dash-tile--designs .dash-design-row-photo,
+            .home-dash-tile--designs .dash-design-row-photo img,
+            .home-dash-tile--designs .dash-design-row-photo-empty {
+
+                display: block;
+
+                width: 100px;
+
+                height: 76px;
+
+                object-fit: cover;
+
+                border-radius: 0.35rem;
+
+                background: #f4f6fa;
+
+            }
+
+
+
+            .home-dash-tile--designs td.dash-design-photo-col {
+
+                width: 100px;
+
+                vertical-align: middle;
+
+            }
+            .home-dash-tile--designs .dash-design-photo-table thead,
+            #DashDesignPhotos_wrapper .dataTables_scrollHead {
+
+                display: none;
+
+            }
+
+
+
             .home-dash-tile--designs .dash-design-tabs {
 
                 display: flex;
@@ -878,7 +1268,8 @@
 
 
 
-            .home-dash-tile--designs .dash-design-tabs .nav-link {
+            .home-dash-tile--designs .dash-design-tabs .nav-link,
+            .home-dash-tile--designs .dash-design-view-tabs .nav-link {
 
                 font-size: 0.8125rem;
 
@@ -902,7 +1293,8 @@
 
 
 
-            .home-dash-tile--designs .dash-design-tabs .nav-link:hover:not(.active) {
+            .home-dash-tile--designs .dash-design-tabs .nav-link:hover:not(.active),
+            .home-dash-tile--designs .dash-design-view-tabs .nav-link:hover:not(.active) {
 
                 background: #f4f7fb;
 
@@ -914,7 +1306,10 @@
 
             .home-dash-tile--designs .dash-design-tabs .nav-link.active,
             .home-dash-tile--designs .dash-design-tabs .nav-link.active:hover,
-            .home-dash-tile--designs .dash-design-tabs .nav-link.active:focus {
+            .home-dash-tile--designs .dash-design-tabs .nav-link.active:focus,
+            .home-dash-tile--designs .dash-design-view-tabs .nav-link.active,
+            .home-dash-tile--designs .dash-design-view-tabs .nav-link.active:hover,
+            .home-dash-tile--designs .dash-design-view-tabs .nav-link.active:focus {
 
                 --bs-nav-link-color: #fff;
 
@@ -1068,7 +1463,7 @@
 
                 align-items: flex-end;
 
-                flex-wrap: nowrap;
+                flex-wrap: wrap;
 
                 gap: 0.65rem;
 
@@ -1773,6 +2168,12 @@
 
                                 <li class="nav-item" role="presentation">
 
+                                    <button class="nav-link" id="dashTabDesignsBtn" data-bs-toggle="tab" data-bs-target="#dashTabDesigns" data-dash-tab="designs" type="button" role="tab" aria-controls="dashTabDesigns" aria-selected="false">@Jobside.DashDesigns_TabDesign</button>
+
+                                </li>
+
+                                <li class="nav-item" role="presentation">
+
                                     <button class="nav-link" id="dashTabClientsBtn" data-bs-toggle="tab" data-bs-target="#dashTabClients" data-dash-tab="clients" type="button" role="tab" aria-controls="dashTabClients" aria-selected="false">@Jobside.DashDesigns_TabClients</button>
 
                                 </li>
@@ -1867,6 +2268,84 @@
                             <div class="tab-pane fade" id="dashTabCharts" role="tabpanel" aria-labelledby="dashTabChartsBtn">
 
                                 <div class="dash-designs-charts-empty">@Jobside.Tab_ComingSoon</div>
+
+                            </div>
+
+                            <div class="tab-pane fade" id="dashTabDesigns" role="tabpanel" aria-labelledby="dashTabDesignsBtn">
+
+                                <ul class="nav nav-tabs dash-design-view-tabs border-0" id="dashDesignViewTabs" role="tablist">
+
+                                    <li class="nav-item" role="presentation">
+
+                                        <button class="nav-link active" id="dashDesignViewDataBtn" data-bs-toggle="tab" data-bs-target="#dashDesignViewData" data-dash-view="data" type="button" role="tab" aria-controls="dashDesignViewData" aria-selected="true">@Jobside.DashDesigns_ViewData</button>
+
+                                    </li>
+
+                                    <li class="nav-item" role="presentation">
+
+                                        <button class="nav-link" id="dashDesignViewPhotosBtn" data-bs-toggle="tab" data-bs-target="#dashDesignViewPhotos" data-dash-view="photos" type="button" role="tab" aria-controls="dashDesignViewPhotos" aria-selected="false">@Jobside.DashDesigns_ViewPhotos</button>
+
+                                    </li>
+
+                                </ul>
+
+                                <div class="tab-content">
+
+                                    <div class="tab-pane fade show active" id="dashDesignViewData" role="tabpanel" aria-labelledby="dashDesignViewDataBtn">
+
+                                        <table id="DashAllDesigns" class="table table-hover table-sm w-100" cellspacing="0">
+
+                                            <thead>
+
+                                                <tr>
+
+                                                    <th class="dash-design-photo-col"></th>
+
+                                                    <th>@Jobside.DashDesigns_Col_DesignName</th>
+
+                                                    <th>@Jobside.Offers_Col_Number</th>
+
+                                                    <th>@Jobside.DashDesigns_Col_OfferDescription</th>
+
+                                                    <th>@Jobside.Offers_Col_Client</th>
+
+                                                    <th>@Jobside.DashDesigns_Col_JobNumber</th>
+
+                                                    <th>@Jobside.DashDesigns_Col_JobDescription</th>
+
+                                                    <th>@Jobside.DashDesigns_Col_Created</th>
+
+                                                    <th class="text-end text-nowrap tandem-col-actions" style="width:1%;"></th>
+
+                                                </tr>
+
+                                            </thead>
+
+                                        </table>
+
+                                    </div>
+
+                                    <div class="tab-pane fade" id="dashDesignViewPhotos" role="tabpanel" aria-labelledby="dashDesignViewPhotosBtn">
+
+                                        <div id="dashDesignPhotoFlash" class="mb-2"></div>
+
+                                        <table id="DashDesignPhotos" class="table w-100 dash-design-photo-table" cellspacing="0">
+
+                                            <thead>
+
+                                                <tr>
+
+                                                    <th>@Jobside.DashDesigns_ViewPhotos</th>
+
+                                                </tr>
+
+                                            </thead>
+
+                                        </table>
+
+                                    </div>
+
+                                </div>
 
                             </div>
 
@@ -2294,7 +2773,303 @@
 
             dashParkDesignToolbar('#DashClientDesigns', 'clients');
 
-            $('#DashJobs, #DashOffers, #DashDesigns, #DashClientDesigns').on('draw.dt', function () {
+
+
+            var dashAllDesignOpts = tandemDashTableOptions('@Url.Action("ListDashboardAllDesigns", "Home")', [
+
+                { data: 'photo', name: 'photo', orderable: false, searchable: false, className: 'dash-design-photo-col' },
+
+                { data: 'DesignName', name: 'DesignName' },
+
+                { data: 'OfferNumber', name: 'OfferNumber', className: 'dash-offer-number' },
+
+                { data: 'Description', name: 'Description' },
+
+                { data: 'ClientName', name: 'ClientName' },
+
+                { data: 'JobNumber', name: 'JobNumber' },
+
+                { data: 'JobDescription', name: 'JobDescription' },
+
+                { data: 'Created', name: 'Created' },
+
+                { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'tandem-col-actions text-center' }
+
+            ]);
+
+            dashAllDesignOpts.dom = '<"dash-dt-toolbar"Bf>rt<"dash-dt-footer"ip>';
+
+            dashAllDesignOpts.scrollCollapse = true;
+
+            dashAllDesignOpts.ordering = true;
+
+            dashAllDesignOpts.order = [[7, 'desc']];
+
+            $('#DashAllDesigns').DataTable(dashAllDesignOpts);
+
+            dashParkDesignToolbar('#DashAllDesigns', 'designs');
+
+
+
+            var dashDesignPhotoOpts = tandemDashTableOptions('@Url.Action("ListDashboardAllDesigns", "Home")', [
+
+                { data: 'card', name: 'card', orderable: false, searchable: false }
+
+            ]);
+
+            dashDesignPhotoOpts.dom = '<"dash-dt-toolbar"lf>rt<"dash-dt-footer"ip>';
+
+            dashDesignPhotoOpts.buttons = [];
+
+            dashDesignPhotoOpts.scrollCollapse = true;
+
+            dashDesignPhotoOpts.ordering = false;
+
+            dashDesignPhotoOpts.order = [];
+
+            dashDesignPhotoOpts.ajax.url = '@Url.Action("ListDashboardAllDesigns", "Home")';
+
+            dashDesignPhotoOpts.ajax.type = 'POST';
+
+            dashDesignPhotoOpts.ajax.data = function (d) { d.view = 'photos'; };
+
+            $('#DashDesignPhotos').DataTable(dashDesignPhotoOpts);
+
+
+
+            var dashDesignCardUi = {
+
+                renameUrl: '@Url.Action("RenameDashboardDesign", "Home")',
+
+                deleteUrl: '@Url.Action("DeleteDashboardDesign", "Home")',
+
+                confirmDelete: @Html.Raw(JsonConvert.SerializeObject(Jobside.Js_ConfirmDeleteOfferDesign)),
+
+                renameFailed: @Html.Raw(JsonConvert.SerializeObject(Jobside.DashDesigns_Card_RenameFailed)),
+
+                deleteFailed: @Html.Raw(JsonConvert.SerializeObject(Jobside.OfferWorkspace_Designs_DeleteFailed))
+
+            };
+
+
+
+            function dashDesignToken() {
+
+                return $('input[name="__RequestVerificationToken"]').first().val();
+
+            }
+
+
+
+            function dashDesignPhotoFlash(kind, text) {
+
+                var host = $('#dashDesignPhotoFlash');
+
+                if (!text) {
+
+                    host.empty();
+
+                    return;
+
+                }
+
+                host.html('<div class="alert alert-' + kind + ' py-2 mb-0" role="alert"></div>');
+
+                host.find('.alert').text(text);
+
+            }
+
+
+
+            function dashReloadDesignPanels() {
+
+                ['#DashDesignPhotos', '#DashAllDesigns', '#DashDesigns', '#DashClientDesigns'].forEach(function (tableId) {
+
+                    if ($.fn.dataTable.isDataTable(tableId)) {
+
+                        $(tableId).DataTable().ajax.reload(null, false);
+
+                    }
+
+                });
+
+            }
+
+
+
+            function dashCloseDesignName($card, value) {
+
+                var input = $card.find('.dash-design-card-name-input');
+
+                input.val(value).addClass('d-none');
+
+                $card.find('.dash-design-card-title').text(value).removeClass('d-none');
+
+            }
+
+
+
+            function dashSaveDesignName($card) {
+
+                var input = $card.find('.dash-design-card-name-input');
+
+                if (input.hasClass('d-none') || $card.data('saving')) return;
+
+                var next = $.trim(input.val());
+
+                var prev = $card.attr('data-name') || '';
+
+                if (!next || next === prev) {
+
+                    dashCloseDesignName($card, prev);
+
+                    return;
+
+                }
+
+                $card.data('saving', true);
+
+                $.ajax({
+
+                    url: dashDesignCardUi.renameUrl,
+
+                    type: 'POST',
+
+                    data: {
+
+                        designId: $card.attr('data-design-id'),
+
+                        name: next,
+
+                        __RequestVerificationToken: dashDesignToken()
+
+                    }
+
+                }).done(function (r) {
+
+                    if (r && r.ok) {
+
+                        var saved = r.name || next;
+
+                        $card.attr('data-name', saved);
+
+                        dashCloseDesignName($card, saved);
+
+                        dashDesignPhotoFlash('success', r.message || '');
+
+                        if ($.fn.dataTable.isDataTable('#DashAllDesigns')) {
+
+                            $('#DashAllDesigns').DataTable().ajax.reload(null, false);
+
+                        }
+
+                    } else {
+
+                        dashCloseDesignName($card, prev);
+
+                        dashDesignPhotoFlash('danger', (r && r.message) ? r.message : dashDesignCardUi.renameFailed);
+
+                    }
+
+                }).fail(function () {
+
+                    dashCloseDesignName($card, prev);
+
+                    dashDesignPhotoFlash('danger', dashDesignCardUi.renameFailed);
+
+                }).always(function () {
+
+                    $card.data('saving', false);
+
+                });
+
+            }
+
+
+
+            $('#DashDesignPhotos').on('click', '.dash-design-card-edit', function (e) {
+
+                e.preventDefault();
+
+                var card = $(this).closest('.dash-design-card');
+
+                card.find('.dash-design-card-title').addClass('d-none');
+
+                card.find('.dash-design-card-name-input').removeClass('d-none').trigger('focus').trigger('select');
+
+            });
+
+
+
+            $('#DashDesignPhotos').on('keydown', '.dash-design-card-name-input', function (e) {
+
+                if (e.key === 'Escape') {
+
+                    var card = $(this).closest('.dash-design-card');
+
+                    $(this).addClass('d-none');
+
+                    dashCloseDesignName(card, card.attr('data-name') || '');
+
+                } else if (e.key === 'Enter') {
+
+                    e.preventDefault();
+
+                    dashSaveDesignName($(this).closest('.dash-design-card'));
+
+                }
+
+            });
+
+
+
+            $('#DashDesignPhotos').on('blur', '.dash-design-card-name-input', function () {
+
+                dashSaveDesignName($(this).closest('.dash-design-card'));
+
+            });
+
+
+
+            $('#DashDesignPhotos').on('click', '.dash-design-card-delete', function (e) {
+
+                e.preventDefault();
+
+                if (dashDesignCardUi.confirmDelete && !window.confirm(dashDesignCardUi.confirmDelete)) return;
+
+                var id = $(this).closest('.dash-design-card').attr('data-design-id');
+
+                $.ajax({
+
+                    url: dashDesignCardUi.deleteUrl,
+
+                    type: 'POST',
+
+                    data: { designId: id, __RequestVerificationToken: dashDesignToken() }
+
+                }).done(function (r) {
+
+                    if (r && r.ok) {
+
+                        dashDesignPhotoFlash('success', r.message || '');
+
+                        dashReloadDesignPanels();
+
+                    } else {
+
+                        dashDesignPhotoFlash('danger', (r && r.message) ? r.message : dashDesignCardUi.deleteFailed);
+
+                    }
+
+                }).fail(function () {
+
+                    dashDesignPhotoFlash('danger', dashDesignCardUi.deleteFailed);
+
+                });
+
+            });
+
+            $('#DashJobs, #DashOffers, #DashDesigns, #DashClientDesigns, #DashAllDesigns, #DashDesignPhotos').on('draw.dt', function () {
 
                 window.setTimeout(dashFitScrollHeights, 0);
 
@@ -2656,7 +3431,7 @@
 
             function dashAdjustDesignTables() {
 
-                ['#DashJobs', '#DashOffers', '#DashDesigns', '#DashClientDesigns'].forEach(function (tableId) {
+                ['#DashJobs', '#DashOffers', '#DashDesigns', '#DashClientDesigns', '#DashAllDesigns', '#DashDesignPhotos'].forEach(function (tableId) {
 
                     if ($.fn.dataTable.isDataTable(tableId)) {
 
@@ -2674,9 +3449,57 @@
 
             var dashDesignTab = 'offers';
 
+            var dashDesignView = 'data';
+
             var dashExpandLabel = @Html.Raw(JsonConvert.SerializeObject(Jobside.DashDesigns_Expand));
 
             var dashRestoreLabel = @Html.Raw(JsonConvert.SerializeObject(Jobside.DashDesigns_Restore));
+
+
+
+            function dashDesignToolbarKey() {
+
+                if (dashDesignTab === 'designs') {
+
+                    return dashDesignView === 'photos' ? 'designs-photos' : 'designs';
+
+                }
+
+                return dashDesignTab;
+
+            }
+
+
+
+            function dashDesignTableId() {
+
+                if (dashDesignTab === 'clients') return '#DashClientDesigns';
+
+                if (dashDesignTab === 'offers') return '#DashDesigns';
+
+                if (dashDesignTab === 'designs') {
+
+                    return dashDesignView === 'photos' ? '#DashDesignPhotos' : '#DashAllDesigns';
+
+                }
+
+                return '';
+
+            }
+
+
+
+            $('#dashTabDesignsBtn').on('click', function () {
+
+                var tile = document.querySelector('.home-dash-tile--designs');
+
+                if (tile && !tile.classList.contains('dash-designs-expanded')) {
+
+                    $('#dashToggleDesignsSize').trigger('click');
+
+                }
+
+            });
 
 
 
@@ -2684,9 +3507,45 @@
 
                 dashDesignTab = $(e.target).attr('data-dash-tab') || 'offers';
 
-                dashShowDesignToolbar(dashDesignTab);
+                if (dashDesignTab === 'designs') {
 
-                var tableId = dashDesignTab === 'clients' ? '#DashClientDesigns' : (dashDesignTab === 'offers' ? '#DashDesigns' : '');
+                    var tile = document.querySelector('.home-dash-tile--designs');
+
+                    if (tile && !tile.classList.contains('dash-designs-expanded')) {
+
+                        $('#dashToggleDesignsSize').trigger('click');
+
+                    }
+
+                }
+
+                dashShowDesignToolbar(dashDesignToolbarKey());
+
+                var tableId = dashDesignTableId();
+
+                if (tableId && $.fn.dataTable.isDataTable(tableId)) {
+
+                    $(tableId).DataTable().columns.adjust();
+
+                }
+
+                window.setTimeout(dashFitScrollHeights, 0);
+
+            });
+
+
+
+            $('#dashDesignViewTabs').on('shown.bs.tab', function (e) {
+
+                dashDesignView = $(e.target).attr('data-dash-view') || 'data';
+
+                if (dashDesignTab === 'designs') {
+
+                    dashShowDesignToolbar(dashDesignToolbarKey());
+
+                }
+
+                var tableId = dashDesignTableId();
 
                 if (tableId && $.fn.dataTable.isDataTable(tableId)) {
 
