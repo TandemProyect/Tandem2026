@@ -353,9 +353,136 @@
 
         </li>
 
-
+        @{
+            var lastDesigns = ViewBag.LastUserDesigns as System.Collections.Generic.IList<Desing.Helpers.LastUserDesignMenuItem>;
+            var lastDesignPayload = new System.Collections.Generic.List<object>();
+            if (lastDesigns != null)
+            {
+                foreach (var item in lastDesigns)
+                {
+                    if (item == null) { continue; }
+                    var itemPhoto = (item.AttPhoto ?? "").Trim().Replace('\\', '/');
+                    var itemPhotoUrl = itemPhoto.StartsWith("~/Content/images/desing/", StringComparison.OrdinalIgnoreCase)
+                        ? Url.Content(itemPhoto)
+                        : "";
+                    lastDesignPayload.Add(new
+                    {
+                        photo = itemPhotoUrl ?? "",
+                        offer = (item.OfferNumber ?? "").Trim(),
+                        name = (item.AttLabel ?? "").Trim(),
+                        url = Desing.Helpers.OfferDesignWorkspaceHelper.BuildViewerUrl(
+                            Url, item.OfferId, item.DesignId, item.AttThumbnail)
+                    });
+                }
+            }
+            var lastDesignJson = Newtonsoft.Json.JsonConvert.SerializeObject(lastDesignPayload);
+            var firstDesign = lastDesignPayload.Count > 0
+                ? Newtonsoft.Json.Linq.JObject.FromObject(lastDesignPayload[0])
+                : null;
+        }
+        @if (firstDesign != null)
+        {
+            var photoUrl = (string)firstDesign["photo"] ?? "";
+            var offerNumber = (string)firstDesign["offer"] ?? "";
+            var designName = (string)firstDesign["name"] ?? "";
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">@Html.Ui("Menu.LastDesigns", "Últimos diseños", "Common")</span></li>
+            <li class="menu-item">
+                <div class="tandem-menu-last-design">
+                    @if (string.IsNullOrEmpty(photoUrl))
+                    {
+                        <img alt="" class="tandem-menu-last-design-photo d-none" />
+                    }
+                    else
+                    {
+                        <img src="@photoUrl" alt="" class="tandem-menu-last-design-photo" />
+                    }
+                    <span class="tandem-menu-last-design-photo tandem-menu-last-design-photo--empty@(string.IsNullOrEmpty(photoUrl) ? "" : " d-none")" aria-hidden="true"></span>
+                    <span class="tandem-menu-last-design-title">
+                        @if (!string.IsNullOrEmpty(offerNumber))
+                        {
+                            <span class="tandem-menu-last-design-offer">@offerNumber</span>
+                        }
+                        else
+                        {
+                            <span class="tandem-menu-last-design-offer d-none"></span>
+                        }
+                        <span class="tandem-menu-last-design-hint">@Html.Ui("Menu.LastDesignsDoubleClick", "Doble click para abrir", "Common")</span>
+                        <span class="tandem-menu-last-design-name">@designName</span>
+                    </span>
+                </div>
+                <script type="application/json" id="tandem-menu-last-designs-data">@Html.Raw(lastDesignJson)</script>
+            </li>
+        }
 
     </ul>
 
 </aside>
+
+<div id="tandem-opening-design" hidden>
+    <div class="tandem-opening-design-card" role="status" aria-live="polite">
+        <div class="tandem-opening-design-clock" aria-hidden="true">
+            <div class="tandem-opening-design-ring"></div>
+            <div class="tandem-opening-design-hands"></div>
+            <div class="tandem-opening-design-dot"></div>
+        </div>
+        <p>@Html.Ui("Menu.OpeningDesign", "Abriendo diseño", "Common")</p>
+    </div>
+</div>
+<script>
+    (function () {
+        var root = document.querySelector('.tandem-menu-last-design');
+        var dataEl = document.getElementById('tandem-menu-last-designs-data');
+        var popup = document.getElementById('tandem-opening-design');
+        if (!root || !dataEl) return;
+        var items;
+        try { items = JSON.parse(dataEl.textContent || '[]'); } catch (e) { return; }
+        if (!items || !items.length) return;
+        var index = 0;
+        var timer = null;
+        var img = root.querySelector('img.tandem-menu-last-design-photo');
+        var empty = root.querySelector('.tandem-menu-last-design-photo--empty');
+        var offer = root.querySelector('.tandem-menu-last-design-offer');
+        var name = root.querySelector('.tandem-menu-last-design-name');
+
+        function paint() {
+            var item = items[index] || {};
+            if (item.photo) {
+                img.setAttribute('src', item.photo);
+                img.classList.remove('d-none');
+                empty.classList.add('d-none');
+            } else {
+                img.removeAttribute('src');
+                img.classList.add('d-none');
+                empty.classList.remove('d-none');
+            }
+            offer.textContent = item.offer || '';
+            offer.classList.toggle('d-none', !item.offer);
+            name.textContent = item.name || '';
+        }
+
+        function openCurrent() {
+            var url = (items[index] || {}).url;
+            if (!url) return;
+            if (popup) popup.hidden = false;
+            window.location.href = url;
+        }
+
+        root.addEventListener('click', function (ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            if (timer) {
+                window.clearTimeout(timer);
+                timer = null;
+                openCurrent();
+                return;
+            }
+            timer = window.setTimeout(function () {
+                timer = null;
+                if (items.length < 2) return;
+                index = (index + 1) % items.length;
+                paint();
+            }, 280);
+        });
+    })();
+</script>
 

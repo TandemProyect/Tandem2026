@@ -1073,6 +1073,24 @@
   <data name="StlPreview_SaveViewTitle" xml:space="preserve">
     <value>Guardar vista</value>
   </data>
+  <data name="StlPreview_SaveWallsAndPhotoToast" xml:space="preserve">
+    <value>Muros guardados. La foto se ha guardado en el servidor.</value>
+  </data>
+  <data name="StlPreview_ScreenshotAria" xml:space="preserve">
+    <value>Foto del diseño</value>
+  </data>
+  <data name="StlPreview_ScreenshotDownloadedOnlyToast" xml:space="preserve">
+    <value>Imagen descargada.</value>
+  </data>
+  <data name="StlPreview_ScreenshotDownloadedToast" xml:space="preserve">
+    <value>Imagen descargada. La foto se ha guardado en el servidor.</value>
+  </data>
+  <data name="StlPreview_ScreenshotPhotoFailedToast" xml:space="preserve">
+    <value>Imagen descargada. No se pudo guardar la foto en el servidor.</value>
+  </data>
+  <data name="StlPreview_ScreenshotTitle" xml:space="preserve">
+    <value>Descargar una foto del diseño, sin menús</value>
+  </data>
   <data name="StlPreview_SkyToggleAria" xml:space="preserve">
     <value>Cielo STL</value>
   </data>

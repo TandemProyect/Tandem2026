@@ -4385,7 +4385,15 @@ function bootMasterArticleDetailsStlViewer() {
                     throw new Error((resp && resp.Mensaje) || 'No se pudieron guardar los muros');
                 }
                 maStlDesing2MarkWallsPersisted();
-                return { ok: true, count: resp.Count != null ? resp.Count : resp.count };
+                return maStlPersistDesignPhoto().then(function (photo) {
+                    return {
+                        ok: true,
+                        count: resp.Count != null ? resp.Count : resp.count,
+                        photoOk: !!(photo && photo.ok),
+                        photoFailed: !!(photo && photo.failed),
+                        photoMessage: photo && photo.message ? photo.message : ''
+                    };
+                });
             })
             .finally(function () {
                 maStlDesing2SetPersistOverlay(false);
@@ -28720,6 +28728,133 @@ function bootMasterArticleDetailsStlViewer() {
             skyToggleBtn.setAttribute('title', skyVisible ? 'Ocultar cielo' : 'Mostrar u ocultar cielo');
         }
     }
+    function maStlDesignScreenshotFileName() {
+        var ctx = document.querySelector('.desing2-stl-toolbar-context');
+        var raw = ctx && ctx.textContent ? ctx.textContent.trim() : '';
+        if (!raw || raw === '—' || raw === '-') raw = 'diseno';
+        raw = raw.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim();
+        if (!raw) raw = 'diseno';
+        if (raw.length > 80) raw = raw.slice(0, 80).trim();
+        return raw + '.png';
+    }
+
+    function maStlPersistDesignPhoto(existingDataUrl) {
+        var designId = maStlDesing2CurrentDesignId();
+        var apiUrl = viewerShell ? viewerShell.getAttribute('data-ma-stl-save-design-photo-api-url') || '' : '';
+        if (!designId || !apiUrl) {
+            return Promise.resolve({ skipped: true });
+        }
+        var dataUrl = existingDataUrl || maStlCaptureDesignPngDataUrl();
+        if (!dataUrl) {
+            return Promise.resolve({ failed: true, message: 'No se pudo tomar la foto del diseño' });
+        }
+        return fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ DesignId: designId, PngBase64: dataUrl })
+        })
+            .then(function (res) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            })
+            .then(function (resp) {
+                if (!resp || resp.Exito !== true) {
+                    return { failed: true, message: (resp && resp.Mensaje) || 'No se pudo guardar la foto' };
+                }
+                return { ok: true, fileName: resp.FileName || '' };
+            })
+            .catch(function (err) {
+                return { failed: true, message: err && err.message ? err.message : 'No se pudo guardar la foto' };
+            });
+    }
+
+    /** Foto del lienzo WebGL, sin barras ni menús. Devuelve el PNG en data URL. */
+    function maStlCaptureDesignPngDataUrl() {
+        if (!renderer) return '';
+        var camMain = activeCamera();
+        if (controls && !maStlIsRulerAnchorPickModeActive()) controls.update();
+        maStlCameraHeadLight.position.copy(camMain.position);
+        maStlCameraHeadLight.visible = maStlDesing2ModelMode === 'wall3d';
+        if (maStlFormworkEnvRig) {
+            maStlFormworkEnvSyncFog(
+                scene,
+                maStlFormworkEnvRig.settings,
+                maStlFormworkEnvRig.sceneExtentMm,
+                maStlFormworkEnvHorizonColorHex()
+            );
+        }
+        if (maStlFormworkEnvRig && maStlFormworkEnvRig.settings.ssaoEnabled) {
+            maStlFormworkEnvEnsureSsaoComposer(renderer, scene, camMain, maStlFormworkEnvRig);
+            if (maStlFormworkEnvRig.ssaoComposer) {
+                maStlFormworkEnvResizeSsao(
+                    maStlFormworkEnvRig,
+                    renderer.domElement.width,
+                    renderer.domElement.height,
+                    camMain
+                );
+                maStlFormworkEnvRig.ssaoComposer.render();
+            } else {
+                renderer.render(scene, camMain);
+            }
+        } else {
+            renderer.render(scene, camMain);
+        }
+        var gl = renderer.getContext();
+        var w = gl.drawingBufferWidth;
+        var h = gl.drawingBufferHeight;
+        if (!w || !h) return '';
+        var pixels = new Uint8Array(w * h * 4);
+        gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        var out = document.createElement('canvas');
+        out.width = w;
+        out.height = h;
+        var ctx2 = out.getContext('2d');
+        var imageData = ctx2.createImageData(w, h);
+        var rowBytes = w * 4;
+        for (var y = 0; y < h; y++) {
+            var src = (h - 1 - y) * rowBytes;
+            imageData.data.set(pixels.subarray(src, src + rowBytes), y * rowBytes);
+        }
+        ctx2.putImageData(imageData, 0, 0);
+        return out.toDataURL('image/png');
+    }
+
+    function maStlDownloadDesignScreenshot() {
+        var dataUrl = maStlCaptureDesignPngDataUrl();
+        var btn = document.getElementById('ma-stl-screenshot');
+        if (!dataUrl) {
+            maStlDesing2ShowSaveViewToast('No se pudo tomar la foto del diseño', true);
+            return;
+        }
+        var a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = maStlDesignScreenshotFileName();
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        maStlPersistDesignPhoto(dataUrl).then(function (photo) {
+            var saved = (btn && btn.getAttribute('data-ma-stl-screenshot-downloaded')) || 'Imagen descargada. La foto se ha guardado en el servidor.';
+            var only = (btn && btn.getAttribute('data-ma-stl-screenshot-downloaded-only')) || 'Imagen descargada.';
+            var failed = (btn && btn.getAttribute('data-ma-stl-screenshot-photo-failed')) || 'Imagen descargada. No se pudo guardar la foto en el servidor.';
+            if (photo && photo.ok) {
+                maStlDesing2ShowSaveViewToast(saved);
+                return;
+            }
+            if (photo && photo.skipped) {
+                maStlDesing2ShowSaveViewToast(only);
+                return;
+            }
+            maStlDesing2ShowSaveViewToast((photo && photo.message) || failed, true);
+        });
+    }
+
+    var screenshotBtn = document.getElementById('ma-stl-screenshot');
+    if (screenshotBtn) {
+        screenshotBtn.addEventListener('click', function () {
+            maStlDownloadDesignScreenshot();
+        });
+    }
     if (skyToggleBtn) {
         skyToggleBtn.addEventListener('click', function () {
             skyVisible = !skyVisible;
@@ -29081,7 +29216,7 @@ function bootMasterArticleDetailsStlViewer() {
     /**
      * @param {string} message
      */
-    function maStlDesing2ShowSaveViewToast(message) {
+    function maStlDesing2ShowSaveViewToast(message, isError) {
         const text = (message || '').trim();
         if (!text) return;
         let container = document.getElementById('ma-stl-desing2-toast-container');
@@ -29094,14 +29229,14 @@ function bootMasterArticleDetailsStlViewer() {
             document.body.appendChild(container);
         }
         const toastEl = document.createElement('div');
-        toastEl.className = 'toast bs-toast bg-success';
+        toastEl.className = 'toast bs-toast ' + (isError ? 'bg-danger' : 'bg-success');
         toastEl.setAttribute('role', 'alert');
         toastEl.setAttribute('aria-live', 'assertive');
         toastEl.setAttribute('aria-atomic', 'true');
         const body = document.createElement('div');
         body.className = 'toast-body d-flex align-items-center gap-2';
         const icon = document.createElement('i');
-        icon.className = 'icon-base ri ri-checkbox-circle-line flex-shrink-0';
+        icon.className = 'icon-base ri ' + (isError ? 'ri-error-warning-line' : 'ri-checkbox-circle-line') + ' flex-shrink-0';
         icon.setAttribute('aria-hidden', 'true');
         const label = document.createElement('span');
         label.textContent = text;
@@ -29156,6 +29291,20 @@ function bootMasterArticleDetailsStlViewer() {
                 .then(function (wallsResult) {
                     if (wallsResult && wallsResult.ok) {
                         maStlDesing2FlashSaveViewFeedback(saveStateBtn);
+                        if (wallsResult.photoFailed) {
+                            maStlDesing2ShowSaveViewToast(
+                                wallsResult.photoMessage || 'No se pudo guardar la foto del diseño',
+                                true
+                            );
+                            return;
+                        }
+                        if (wallsResult.photoOk) {
+                            maStlDesing2ShowSaveViewToast(
+                                saveStateBtn.getAttribute('data-ma-stl-save-walls-photo-toast') ||
+                                    'Muros guardados. La foto se ha guardado en el servidor.'
+                            );
+                            return;
+                        }
                         const wallsToast =
                             saveStateBtn.getAttribute('data-ma-stl-save-walls-toast') ||
                             saveStateBtn.getAttribute('data-ma-stl-save-view-toast') ||

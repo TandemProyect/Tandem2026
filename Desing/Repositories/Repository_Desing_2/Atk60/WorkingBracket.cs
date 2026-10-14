@@ -173,7 +173,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
 
         /// <summary>
         /// Una sola vez, en la cara por la que se empieza el muro.
-        /// Cinco tablones de piso y tres de protección, sobre el primer tramo de 2,40 m.
+        /// Cuatro tablones de piso y tres de protección, sobre el primer tramo de 2,40 m.
+        /// El del extremo se quitó: quedaba fuera de la ménsula y los tubos lo atravesaban.
         /// El origen del tablón de piso está en el canto exterior: la malla crece hacia el muro.
         /// </summary>
         private static void AddProtectionWood(
@@ -190,7 +191,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         {
             var alongMm = BracketFromBayStartMm;
             var deckUpMm = wallHeightMm - 250d;
-            var deckNearEdgeMm = new[] { 280d, 460d, 640d, 820d, 1000d };
+            var deckNearEdgeMm = new[] { 280d, 460d, 640d, 820d };
             for (var i = 0; i < deckNearEdgeMm.Length; i++)
             {
                 AddPrimaryFace(

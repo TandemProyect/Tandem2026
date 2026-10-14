@@ -105,6 +105,7 @@ namespace Desing.Controllers
                     var idUser = User.Identity.GetUserId();
                     if (!string.IsNullOrEmpty(idUser))
                     {
+                        ViewBag.LastUserDesigns = LastUserDesignMenuHelper.List(db, idUser);
                         var userChrome = GetCachedUserChromeByAspNetUserId(idUser);
                         if (userChrome != null)
                         {

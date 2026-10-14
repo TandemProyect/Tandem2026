@@ -30,6 +30,7 @@ Usar **selector nativo + texto sincronizados** y validación servidor `#RGB` / `
 - Checkboxes: `form-label` + `form-check mt-2` + `form-check-input` / `form-check-label`.
 - Index DataTables: columnas de negocio + `activeBadge` + `buttonEdit` + **`IdObject` visible:false**; soft delete con `Is_Delete`.
 - Index DataTables export: `TandemDataTablesList.applyListDefaults({...})` — menú Registros / Exportar / Columnas visibles (ver `UI-Formularios-y-Estilo.md` § Listados DataTables).
+- Paneles del inicio, árbol de diseños y look de esas tablas: `.cursor/rules/intranet-paneles-datatables.mdc`.
 - Entidad estándar: `IdObject`, `TextLabel`, `Is_Active`, `Is_Delete`, campos auditoría (`LinkMadeBy`, `AddDateMade`, …).
 - Nuevo módulo: Controller + Views (Index/Create/Edit/Details + `_ModuloFormFields`) + entrada `_SidebarMaterio.cshtml` + `Design.csproj`.
 

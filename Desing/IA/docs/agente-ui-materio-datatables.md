@@ -101,6 +101,8 @@ Vistas parciales que cargan DataTables **sin** layout completo enlazan también 
 - Clase Materio: `layout-menu-collapsed` en `document.documentElement`.
 - **Persistencia**: cookie `tandem_menu_collapsed_<dt-user>`, 365 días, `path=/`, `SameSite=Lax`.
 - **Migración una vez**: cookie global antigua `tandem_menu_collapsed` → cookie por usuario y se borra la global; si no, `localStorage` legacy `tandem-menu-collapsed` → cookie por usuario y se limpia `localStorage`.
+- **No** poner `overflow: visible` en `#layout-menu` con el menú plegado: las entradas se salen del carril y tapan `#navbarMenuToggle`. El clic deja de plegar y desplegar.
+- El apartado **Últimos diseños** (foto, clic y doble clic) está en `agente-foto-diseno-y-menu.md`.
 
 ---
 

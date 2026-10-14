@@ -324,6 +324,7 @@
     <Compile Include="Helpers\ReleaseVersionHelper.cs" />
     <Compile Include="Helpers\ApplicationStlUrlHelper.cs" />
     <Compile Include="Helpers\OfferDesignWorkspaceHelper.cs" />
+    <Compile Include="Helpers\LastUserDesignMenuHelper.cs" />
     <Compile Include="Helpers\OfferDisplayHelper.cs" />
     <Compile Include="Helpers\LanguageUiHelper.cs" />
     <Compile Include="Helpers\SqlConnectionPing.cs" />
@@ -2467,6 +2468,9 @@
     <Content Include="IA\docs\03-sistemas-de-encofrado.md" />
     <Content Include="IA\docs\04-pipeline-2d-a-3d.md" />
     <Content Include="IA\docs\05-pendientes-y-preguntas.md" />
+    <Content Include="IA\docs\agente-foto-diseno-y-menu.md" />
+    <Content Include="IA\docs\agente-traducciones-modulos.md" />
+    <Content Include="IA\docs\agente-ui-materio-datatables.md" />
     <Content Include="IA\docs\AGENTE-US619-INFO.md" />
     <Content Include="IA\docs\AGENTE-US619-RESUMEN.md" />
     <Content Include="IA\docs\CHEATSHEET-AZURE-DEVOPS.md" />

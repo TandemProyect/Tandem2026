@@ -1,0 +1,53 @@
+---
+description: Estilo y comportamiento de los paneles del inicio y de las DataTables
+globs:
+  - Desing/Views/**/*.cshtml
+  - Desing/assets/materio/css/site.css
+  - Desing/Controllers/HomeController.cs
+  - Desing/Controllers/JobsideController.cs
+  - Desing/Controllers/ClientV2Controller.cs
+  - Desing/Scripts/Intranet/**
+  - Desing/Scripts/datatables-tandem.css
+alwaysApply: false
+---
+
+# Paneles del inicio y DataTables
+
+El inicio es la referencia. Una tabla nueva o un detalle no inventan otro look.
+
+## Inicio
+
+- Arriba: obras, ofertas y clientes. Abajo: Diseños a todo el ancho. No volver a poner el hueco «Próximamente».
+- Los tres de arriba son los **5 últimos** que creó el usuario que ha entrado (`LinkMadeBy`, `AddDateMade` descendente, `Is_Delete = 0`). El ojo abre el detalle. Se queda el enlace al listado completo. Sin buscador, paginación, info ni menú de registros (`dom: 't'`, `paging/searching/info/lengthChange` en false, `buttons: []`, `scrollY` vacío).
+- Esas filas van bajas para que quepan las cinco. El ojo se tiene que ver: botón ~1.7rem con `block-size` e `inline-size` (Materio no usa `height`) y el glifo ~1.05rem.
+- Diseños lleva paginación, selector de registros, exportación y barra vertical. El botón de ampliar lo pone a pantalla y el mismo control lo devuelve. Ampliado, el panel empieza **después** del menú izquierdo, el icono de volver queda bajo la barra superior y la paginación cabe en la ventana.
+- Orden por defecto de los paneles del inicio: último movimiento de la tabla de diseños, el más reciente primero (`LastMove` / `AttChange` desc). En cliente, `order: []` para no pisarlo.
+
+## Árbol de diseños
+
+- Un + en la oferta o el cliente abre mes y año. Otro + en el mes abre los diseños.
+- Cada diseño es **una fila**: nombre, cliente u oferta, fecha `dd/MM/yyyy HH:mm`, ojo al final. En Ofertas la columna central es el cliente; en Clientes, la oferta. Esas dos van en negrita y azul.
+- Dentro de la celda hija de DataTables, columnas con **flex y anchos fijos**. Un `grid` con `fr` se aplasta y el texto sale pegado. La celda hija a `width: 100%`.
+- Encabezado del desglose en gris, como el de la tabla. El fondo de la fila desplegada, también al pasar el ratón, en blanco: anular `box-shadow` y `--bs-table-bg-state` de la raya. Líneas de árbol de la fila al mes y del mes a cada diseño.
+- El mismo árbol, con las mismas columnas, en la pestaña Ofertas de la obra.
+
+## Look de las tablas del inicio
+
+- Todo encabezado en gris (`--bs-table-header-bg-color`, `#f6f7fb`), sin línea azul bajo los títulos.
+- Paginación: texto pequeño (~0.7rem), sin recuadro. El número se lee: activo `#2e263d`, el resto `#5c5668`, deshabilitado `#a8a4b4`. Nunca el mismo color que el fondo.
+- Menú de registros y exportación: fondo blanco, borde `#c5ced8`, texto gris. No azul.
+- Pestañas tipo carpeta (`.dash-design-tabs` en el inicio, `.nav-tabs.tandem-folder-tabs` en el resto): blancas, borde gris, activa con texto blanco sobre azul. En toda pantalla que tenga pestañas, obras, ofertas y clientes incluidos.
+
+## Detalles
+
+- Obra, oferta y cliente usan `.tandem-jobside-workspace`.
+- Con el navegador al 100 % se ven como al 80 % bajando la raíz: `html.tandem-intranet-chrome:has(.tandem-jobside-workspace) { --bs-root-font-size: 12.8px }`. No usar `zoom: 0.8` con ancho 125 %: recorta el lado derecho.
+- En la oferta, Diseños es tabla: nombre, quién lo creó, fecha, ojo y borrado lógico.
+- El listado de clientes tiene ojo al detalle.
+
+## No hacer
+
+- No mezclar en una sola línea el nombre, el cliente y la fecha de un diseño.
+- No pintar de gris el fondo al abrir el año.
+- No devolver buscador o paginación a los tres paneles de cinco registros.
+- No listar ahí altas de otro usuario.

@@ -13,6 +13,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web.Mvc;
 
 
@@ -290,6 +291,159 @@ namespace Desing.Controllers
             {
                 return Json(new { Exito = false, Mensaje = ex.Message });
             }
+        }
+
+        /// <summary>
+        /// Guarda la foto del visor en Content/images/desing/yyyy-MM y la ruta en AttPhoto.
+        /// Si el fichero ya existe, se sustituye.
+        /// </summary>
+        [HttpPost]
+        public JsonResult SaveDesignPhoto()
+        {
+            try
+            {
+                if (Request.InputStream.CanSeek)
+                {
+                    Request.InputStream.Position = 0;
+                }
+
+                string rawJson;
+                using (var reader = new StreamReader(Request.InputStream, Encoding.UTF8))
+                {
+                    rawJson = reader.ReadToEnd();
+                }
+
+                if (string.IsNullOrWhiteSpace(rawJson))
+                {
+                    return Json(new { Exito = false, Mensaje = "JSON vacío." });
+                }
+
+                var body = JObject.Parse(rawJson);
+                var designId = body.Value<long?>("DesignId") ?? 0;
+                var pngBase64 = body.Value<string>("PngBase64") ?? "";
+                if (designId <= 0)
+                {
+                    return Json(new { Exito = false, Mensaje = "Diseño no indicado." });
+                }
+
+                var design = db.TSql_Design_V2.AsNoTracking()
+                    .Where(d => d.SysObjectID == designId && !d.AttIsDeleted)
+                    .Select(d => new { d.SysObjectID, d.AttLabel })
+                    .FirstOrDefault();
+                if (design == null)
+                {
+                    return Json(new { Exito = false, Mensaje = "Diseño no encontrado." });
+                }
+
+                byte[] png;
+                try
+                {
+                    png = DecodeDesignPhotoPng(pngBase64);
+                }
+                catch (Exception ex)
+                {
+                    return Json(new { Exito = false, Mensaje = ex.Message });
+                }
+
+                var folder = DateTime.Now.ToString("yyyy-MM", CultureInfo.InvariantCulture);
+                var fileName = SafeDesignPhotoFileName(design.AttLabel, design.SysObjectID);
+                var virtualPath = "~/Content/images/desing/" + folder + "/" + fileName;
+                var dir = Server.MapPath("~/Content/images/desing/" + folder);
+                Directory.CreateDirectory(dir);
+                var physical = Path.Combine(dir, fileName);
+                System.IO.File.WriteAllBytes(physical, png);
+
+                var userId = IntranetAuditHelper.ResolveCurrentUserId(User) ?? "";
+                var updated = db.Database.ExecuteSqlCommand(
+                    "UPDATE dbo.TSql_Design_V2 SET AttPhoto = @p0, AttChange = @p1, LinModifiedBy = @p2, SysUpdateNumber = SysUpdateNumber + 1 WHERE SysObjectID = @p3 AND AttIsDeleted = 0",
+                    virtualPath,
+                    DateTime.Now,
+                    userId,
+                    design.SysObjectID);
+                if (updated != 1)
+                {
+                    return Json(new { Exito = false, Mensaje = "No se pudo guardar la ruta de la foto." });
+                }
+
+                return Json(new
+                {
+                    Exito = true,
+                    DesignId = design.SysObjectID,
+                    AttPhoto = virtualPath,
+                    FileName = fileName
+                });
+            }
+            catch (JsonReaderException ex)
+            {
+                return Json(new { Exito = false, Mensaje = "JSON inválido: " + ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Exito = false, Mensaje = ex.Message });
+            }
+        }
+
+        private static byte[] DecodeDesignPhotoPng(string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                throw new InvalidOperationException("Foto vacía.");
+            }
+
+            var comma = raw.IndexOf(',');
+            if (raw.StartsWith("data:", StringComparison.OrdinalIgnoreCase) && comma >= 0)
+            {
+                raw = raw.Substring(comma + 1);
+            }
+
+            byte[] png;
+            try
+            {
+                png = Convert.FromBase64String(raw.Trim());
+            }
+            catch (FormatException)
+            {
+                throw new InvalidOperationException("La foto no es una imagen válida.");
+            }
+
+            if (png.Length < 8 || png.Length > 12 * 1024 * 1024)
+            {
+                throw new InvalidOperationException("La foto no tiene un tamaño válido.");
+            }
+
+            if (png[0] != 0x89 || png[1] != 0x50 || png[2] != 0x4E || png[3] != 0x47)
+            {
+                throw new InvalidOperationException("La foto no es un PNG.");
+            }
+
+            return png;
+        }
+
+        private static string SafeDesignPhotoFileName(string label, long designId)
+        {
+            var name = (label ?? "").Trim();
+            foreach (var c in Path.GetInvalidFileNameChars())
+            {
+                name = name.Replace(c, ' ');
+            }
+
+            name = Regex.Replace(name, @"\s+", " ").Trim().Trim('.');
+            if (name.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
+            {
+                name = name.Substring(0, name.Length - 4).Trim().Trim('.');
+            }
+
+            if (string.IsNullOrEmpty(name))
+            {
+                name = "diseno-" + designId.ToString(CultureInfo.InvariantCulture);
+            }
+
+            if (name.Length > 120)
+            {
+                name = name.Substring(0, 120).Trim().Trim('.');
+            }
+
+            return name + ".png";
         }
 
         /// <summary>
