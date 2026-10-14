@@ -114,6 +114,12 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 - **Qué se hace:** en el panel Diseños, una pestaña con todos los diseños, en dos vistas.
 - **Hecho:** la pestaña se llama Diseños y va detrás de Ofertas. Al abrirla el panel se amplía. Datos es la tabla, con la foto a 100 de ancho en la primera columna, búsqueda, paginación y menú de registros. Imágenes son fichas con la foto, la oferta, el cliente, la obra, quién lo creó y el último cambio. Los enunciados van al 70 %, en gris claro y sin negrita. El nombre de quien lo creó va al 70 % e inclinado. No sale la fecha de creación. En la ficha se abre, se cambia el nombre y se borra. Esa vista lleva buscador, número de registros y paginación, sin menú de exportar.
 
+### 14. Recuento de piezas
+
+- **Estado:** en curso. **14 de octubre de 2026, 12:37.**
+- **Qué se hace:** el recuento de piezas del diseño, leyendo el maestro de artículos. En el visor antiguo era muy lento. Primero se estudia cómo estaba hecho, sin tocarlo.
+- **En marcha:** el icono de la lista solo se ve cuando el diseño ya está encofrado y abre el formulario con lo que hay en pantalla. El icono de guardar del diseño escribe los muros y la foto, sin el recuento. El recuento se guarda solo con el icono de la cabecera del formulario: primero borra las piezas de ese diseño, luego guarda el recuento y después el diseño y la foto de la pantalla sin el formulario. En cada paso sale el aviso de guardar y desaparece al terminar. La pestaña Artículos queda alineada con la palabra Código. Los iconos de exportar y de cada fila se ven y se iluminan al pasar. La cabecera de la lista va en azul con letra blanca y queda fija al bajar. El buscador está en la fila de las pestañas. La lista lleva recuadro. El hueco de los totales queda a la mitad y los márgenes en altura son más bajos. Cambiar de modo no vuelve a generar el muro si el diseño no ha cambiado, ni guarda las piezas.
+
 ## Heredado del informe 01 (sigue abierto)
 
 1. Posición de las uniones, del panel de 0,30 × 2,70 m y de la ménsula (no cae en su agujero).
@@ -140,6 +146,7 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 | Foto del diseño | Cursor, 14 oct | Apartado 11 cerrado. Cámara, foto en el servidor, apartado Últimos diseños. Queda escrito en `Desing/IA/docs/agente-foto-diseno-y-menu.md` |
 | Color del estado en las ofertas | Cursor, 14 oct | Apartado 12 cerrado. 11:39–11:44, estimación 5 min. El número lleva el color del estado en el inicio y en los documentos |
 | Pestaña Diseño en el panel de inicio | Cursor, 14 oct | Apartado 13 cerrado. 11:52–12:30, estimación 38 min. Pestaña Diseños, tabla y fichas |
+| Recuento de piezas | Cursor, 14 oct | Apartado 14 en curso desde el 14 oct, 12:37. Pestaña alineada con Código; iconos visibles; al guardar, el aviso desaparece al terminar |
 
 ## Al cerrar el 22 de octubre
 

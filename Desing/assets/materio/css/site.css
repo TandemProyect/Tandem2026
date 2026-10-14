@@ -1405,6 +1405,285 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     pointer-events: none;
 }
 
+.desing2-material-count {
+    position: absolute;
+    left: calc(var(--desing2-stl-hsp-sheet-collapsed, 32px) + var(--desing2-stl-compass-gap-from-collapsed-strip, 10px));
+    top: calc(
+        max(2px, var(--desing2-stl-side-panel-top-offset, 72px) - var(--desing2-stl-compass-size, 54px) - var(--desing2-stl-compass-gap-above-panel, 18px))
+        + var(--desing2-stl-compass-size, 54px)
+        + 4px
+    );
+    bottom: 0.75rem;
+    z-index: 40;
+    width: min(580px, calc(100% - 4.5rem));
+    max-width: calc(100% - 3.5rem);
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid #d5dbe3;
+    border-radius: 0.7rem;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
+    overflow: hidden;
+    transform: translateX(calc(-100% - 1.25rem));
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.desing2-material-count.is-open {
+    transform: none;
+}
+
+.desing2-material-count[hidden] {
+    display: none !important;
+}
+
+.desing2-material-count.is-placed {
+    bottom: auto;
+    transform: none !important;
+}
+
+.desing2-material-count__head {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.15rem 0.45rem 0.05rem 0.55rem;
+    cursor: grab;
+    user-select: none;
+}
+
+.desing2-material-count__head button,
+.desing2-material-count__head .dt-buttons {
+    cursor: pointer;
+}
+
+.desing2-material-count__title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    margin-right: auto;
+}
+
+.desing2-material-count table.dataTable thead th {
+    font-size: 60%;
+    font-weight: 600;
+    line-height: 1.1;
+    padding-top: 0.15rem;
+    padding-bottom: 0.15rem;
+}
+
+.desing2-material-count__tabs-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.45rem;
+    padding: 0 0.45rem 0 calc(0.45rem + 1px + 0.3rem);
+}
+
+.desing2-material-count__tabs {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+.desing2-material-count__search {
+    flex: 0 0 auto;
+    margin-left: auto;
+    padding-bottom: 0.2rem;
+}
+
+.desing2-material-count__search .dataTables_filter {
+    position: static;
+    float: none;
+    margin: 0;
+    background: transparent;
+}
+
+.desing2-material-count__search .dataTables_filter label {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin: 0;
+    font-size: 0.72rem;
+    white-space: nowrap;
+}
+
+.desing2-material-count__search .dataTables_filter input {
+    width: 12rem;
+    max-width: 12rem;
+    margin-left: 0;
+}
+
+.desing2-material-count__actions-col {
+    width: 6.4rem;
+}
+
+.desing2-material-count__row-actions {
+    white-space: nowrap;
+    text-align: center;
+    width: 6.4rem;
+}
+
+.desing2-material-count__head .dt-buttons .btn {
+    color: #1d6fbf !important;
+    background: #fff !important;
+    border: 1px solid #1d6fbf !important;
+    box-shadow: none !important;
+    width: 2rem;
+    height: 2rem;
+    padding: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.desing2-material-count__head .dt-buttons .btn:hover {
+    color: #155a9c !important;
+    background: #e7eef6 !important;
+    border-color: #155a9c !important;
+}
+
+.desing2-material-count__head .dt-buttons .btn .icon-base,
+.desing2-material-count__head .dt-buttons .btn .ri {
+    color: currentColor !important;
+    background-color: currentColor !important;
+    border: 0 !important;
+    width: 1.15rem;
+    height: 1.15rem;
+    inline-size: 1.15rem;
+    block-size: 1.15rem;
+    font-size: 1.15rem;
+}
+
+.desing2-material-count__row-actions .btn {
+    padding: 0;
+    width: 1.45rem;
+    height: 1.45rem;
+    line-height: 1;
+    color: #1e3a5f !important;
+    background: #fff !important;
+    border: 1px solid #c5ced8 !important;
+    box-shadow: none !important;
+}
+
+.desing2-material-count__row-actions .btn:hover {
+    color: #1d6fbf !important;
+    background: #e7eef6 !important;
+    border-color: #1d6fbf !important;
+}
+
+.desing2-material-count__row-actions .btn .icon-base,
+.desing2-material-count__row-actions .btn .ri {
+    color: currentColor !important;
+    background-color: currentColor !important;
+    border: 0 !important;
+    width: 1rem;
+    height: 1rem;
+    inline-size: 1rem;
+    block-size: 1rem;
+    font-size: 1rem;
+}
+
+.desing2-material-count__summary {
+    flex: 0 0 50px;
+    min-height: 50px;
+}
+
+.desing2-material-count__loading {
+    position: absolute;
+    z-index: 6;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 4.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.78);
+}
+
+.desing2-material-count__loading[hidden] {
+    display: none !important;
+}
+
+.desing2-material-count__status {
+    margin: 0.05rem 0.55rem 0;
+    color: #3d4a5c;
+    font-size: 0.78rem;
+}
+
+.desing2-material-count__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 0.08rem 0.45rem 0.1rem;
+}
+
+.desing2-material-count .tab-pane.active.show {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex !important;
+    flex-direction: column;
+}
+
+.desing2-material-count .dataTables_wrapper {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 0;
+    border: 1px solid #c5ced8;
+    border-radius: 0.2rem;
+    background: #fff;
+}
+
+.desing2-material-count .dataTables_length,
+.desing2-material-count .dataTables_info,
+.desing2-material-count .dataTables_paginate {
+    display: none !important;
+}
+
+.desing2-material-count .dataTables_wrapper .dataTables_filter {
+    display: none;
+}
+
+.desing2-material-count .dataTables_filter input {
+    max-width: 11rem;
+}
+
+.desing2-material-count__head .dt-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.1rem;
+}
+
+.desing2-material-count__head .dt-buttons .btn {
+    margin-right: 0;
+}
+
+.desing2-material-count table.dataTable {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.desing2-material-count__soon {
+    margin: 1.2rem 0.4rem;
+    color: #8b95a1;
+    font-size: 0.85rem;
+}
+
+.desing2-material-count .dataTables_wrapper .dataTables_filter,
+.desing2-material-count .dataTables_wrapper .dataTables_length {
+    font-size: 0.75rem;
+}
+
+.desing2-material-count table.dataTable {
+    font-size: 0.78rem;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
 .desing2-stl-floating-toolbar__inner {
     pointer-events: auto;
     padding: 0.2rem 0.3rem;
@@ -1975,6 +2254,16 @@ body.master-articles-one-scroll .layout-content-navbar .content-wrapper > .conta
     margin-left: 0.5rem;
 }
 
+#ma-stl-viewer-shell,
+#master-article-details-stl-viewer-canvas {
+    min-width: 0;
+    max-width: 100%;
+}
+
+#master-article-details-stl-viewer-canvas {
+    overflow-x: clip;
+}
+
 .dataTables_wrapper table.dataTable thead th,
 .dataTables_wrapper table.dataTable thead td {
     background-color: transparent;
@@ -1985,6 +2274,94 @@ body.master-articles-one-scroll .layout-content-navbar .content-wrapper > .conta
     font-size: 0.8125rem;
     letter-spacing: 0.5px;
     padding: 0.875rem 1rem;
+}
+
+.desing2-material-count .dataTables_wrapper table.dataTable thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #1d6fbf;
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.15;
+    min-height: 1.85rem;
+    height: 1.85rem;
+    padding: 0.42rem 0.3rem;
+    vertical-align: middle;
+    border: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+    outline: none;
+}
+
+.desing2-material-count .dataTables_wrapper table.dataTable thead th.sorting:before,
+.desing2-material-count .dataTables_wrapper table.dataTable thead th.sorting:after,
+.desing2-material-count .dataTables_wrapper table.dataTable thead th.sorting_asc:before,
+.desing2-material-count .dataTables_wrapper table.dataTable thead th.sorting_asc:after,
+.desing2-material-count .dataTables_wrapper table.dataTable thead th.sorting_desc:before,
+.desing2-material-count .dataTables_wrapper table.dataTable thead th.sorting_desc:after {
+    color: #fff;
+    opacity: 0.85;
+    border-bottom-color: #fff;
+    border-top-color: #fff;
+}
+
+.desing2-material-count .dataTables_wrapper table.dataTable tbody tr:nth-child(even) td {
+    background: #f2f3f5;
+}
+
+.desing2-material-count .dataTables_wrapper table.dataTable tbody tr:nth-child(odd) td {
+    background: #fff;
+}
+
+.desing2-material-count .dataTables_wrapper table.dataTable tbody tr:hover td {
+    background: #e7eef6;
+}
+
+.desing2-material-count .dataTables_wrapper table.dataTable {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.desing2-material-count .dataTables_wrapper table.dataTable tbody td {
+    padding-top: 0.16rem;
+    padding-bottom: 0.16rem;
+    vertical-align: middle;
+}
+
+.desing2-material-count table.dataTable {
+    table-layout: fixed;
+}
+
+.desing2-material-count table.dataTable th:nth-child(1),
+.desing2-material-count table.dataTable td:nth-child(1) {
+    width: 5.4rem;
+    max-width: 5.4rem;
+    white-space: nowrap;
+}
+
+.desing2-material-count table.dataTable th:nth-child(2),
+.desing2-material-count table.dataTable td:nth-child(2) {
+    width: auto;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.desing2-material-count table.dataTable th:nth-child(3),
+.desing2-material-count table.dataTable td:nth-child(3) {
+    width: 4rem;
+    max-width: 4rem;
+    white-space: nowrap;
+}
+
+.desing2-material-count table.dataTable th:last-child,
+.desing2-material-count table.dataTable td:last-child {
+    width: 6.4rem !important;
+    min-width: 6.4rem !important;
+    max-width: none;
+    white-space: nowrap;
 }
 
 .dataTables_wrapper table.dataTable tbody td {

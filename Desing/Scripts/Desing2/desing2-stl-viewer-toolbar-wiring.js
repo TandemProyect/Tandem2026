@@ -326,7 +326,7 @@
             refreshFormworkOverlay();
         }
 
-        function hideFormworkOverlay() {
+        function hideFormworkOverlay(ok, message) {
             stopFormworkTicker();
             formworkState = null;
             if (overlayBar) overlayBar.style.width = '100%';
@@ -338,6 +338,15 @@
             formworkBusy = false;
             btn.disabled = false;
             btn.classList.remove('disabled');
+            document.dispatchEvent(new CustomEvent('desing2-formwork-settled', {
+                detail: { ok: ok !== false, message: message || '' }
+            }));
+        }
+
+        function settleFormworkEarly(message) {
+            document.dispatchEvent(new CustomEvent('desing2-formwork-settled', {
+                detail: { ok: false, message: message || '' }
+            }));
         }
 
         btn.addEventListener('click', function () {
@@ -346,12 +355,14 @@
 
             if (selectedSystem !== 'Atk-60') {
                 console.warn('Sistema no soportado por ahora:', selectedSystem);
+                settleFormworkEarly('Sistema no soportado.');
                 return;
             }
 
             const atk60Url = btn.getAttribute('data-ma-formwork-url-atk60');
             if (!atk60Url) {
                 console.error('No existe URL configurada para Encofrar ATK-60.');
+                settleFormworkEarly('No existe URL configurada para Encofrar ATK-60.');
                 return;
             }
 
@@ -428,6 +439,7 @@
                 if (!walls.length) {
                     window.alert('ATK60: no hay muros 3D para encofrar (los especiales se omiten).');
                     console.error('ATK60 abortado: sin muros 3D automáticos.');
+                    settleFormworkEarly('No hay muros 3D para encofrar.');
                     return;
                 }
                 console.warn('ATK60 fallback: usando ejes 3D de escena por wallModelSource vacío.');
@@ -667,6 +679,7 @@
 
             if (typeof window.jQuery === 'undefined' || !window.jQuery.ajax) {
                 console.error('No existe jQuery.ajax disponible para encofrar.');
+                settleFormworkEarly('No existe jQuery.ajax disponible para encofrar.');
                 return;
             }
 
@@ -685,7 +698,7 @@
                 success: function (resp) {
                     if (!resp || resp.Exito !== true) {
                         console.error((resp && resp.Mensaje) || 'No se pudo iniciar Encofrar ATK-60.');
-                        hideFormworkOverlay();
+                        hideFormworkOverlay(false, (resp && resp.Mensaje) || 'No se pudo iniciar Encofrar ATK-60.');
                         return;
                     }
 
@@ -736,12 +749,12 @@
 
                     const wallsReturned = Array.isArray(resp.Walls) ? resp.Walls : [];
                     console.info('Muros recibidos (' + wallsReturned.length + '):', wallsReturned);
-                    paintDone.then(hideFormworkOverlay, hideFormworkOverlay);
+                    paintDone.then(function () { hideFormworkOverlay(true); }, function () { hideFormworkOverlay(false, 'Error al pintar paneles'); });
                 },
                 error: function (xhr, _status, err) {
                     const serverMsg = xhr && xhr.responseJSON && xhr.responseJSON.Mensaje;
                     console.error('Error al encofrar:', (serverMsg || (err && err.message) || 'Error HTTP'));
-                    hideFormworkOverlay();
+                    hideFormworkOverlay(false, serverMsg || (err && err.message) || 'Error HTTP');
                 },
             });
         });

@@ -982,6 +982,96 @@
   <data name="StlPreview_MapBuildingSuccess" xml:space="preserve">
     <value>Inserted {0} wall(s) with faces from building</value>
   </data>
+  <data name="StlPreview_MaterialCountActionFade" xml:space="preserve">
+    <value>Fade</value>
+  </data>
+  <data name="StlPreview_MaterialCountActionSelect" xml:space="preserve">
+    <value>Select and hide the rest</value>
+  </data>
+  <data name="StlPreview_MaterialCountActionSelectFade" xml:space="preserve">
+    <value>Select and fade the rest</value>
+  </data>
+  <data name="StlPreview_MaterialCountActionToggle" xml:space="preserve">
+    <value>Show or hide</value>
+  </data>
+  <data name="StlPreview_MaterialCountAria" xml:space="preserve">
+    <value>Material count</value>
+  </data>
+  <data name="StlPreview_MaterialCountColCode" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="StlPreview_MaterialCountColName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="StlPreview_MaterialCountColQty" xml:space="preserve">
+    <value>Quantity</value>
+  </data>
+  <data name="StlPreview_MaterialCountEmpty" xml:space="preserve">
+    <value>There are no pieces in this design</value>
+  </data>
+  <data name="StlPreview_MaterialCountExportExcel" xml:space="preserve">
+    <value>Export to Excel</value>
+  </data>
+  <data name="StlPreview_MaterialCountExportPdf" xml:space="preserve">
+    <value>Export to PDF</value>
+  </data>
+  <data name="StlPreview_MaterialCountSave" xml:space="preserve">
+    <value>Save count</value>
+  </data>
+  <data name="StlPreview_MaterialCountSaved" xml:space="preserve">
+    <value>Count saved.</value>
+  </data>
+  <data name="StlPreview_MaterialCountSoon" xml:space="preserve">
+    <value>This count comes next</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusChanged" xml:space="preserve">
+    <value>The design has changed. Deleting the previous count…</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusChecking" xml:space="preserve">
+    <value>Checking whether the design has changed…</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusClearing" xml:space="preserve">
+    <value>Deleting the records…</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusError" xml:space="preserve">
+    <value>The count could not be prepared.</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusFormwork" xml:space="preserve">
+    <value>Forming the formwork…</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusMissing" xml:space="preserve">
+    <value>There is no saved count. Raising the walls…</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusRaising" xml:space="preserve">
+    <value>Raising the walls…</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusSaving" xml:space="preserve">
+    <value>Saving the pieces…</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusSavingCount" xml:space="preserve">
+    <value>Saving the count…</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusSavingDesign" xml:space="preserve">
+    <value>Saving the design…</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusShowing" xml:space="preserve">
+    <value>Showing the count.</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusUnchanged" xml:space="preserve">
+    <value>The design has not changed. Showing the saved count.</value>
+  </data>
+  <data name="StlPreview_MaterialCountTabArea" xml:space="preserve">
+    <value>Area</value>
+  </data>
+  <data name="StlPreview_MaterialCountTabArticles" xml:space="preserve">
+    <value>Articles</value>
+  </data>
+  <data name="StlPreview_MaterialCountTabWeight" xml:space="preserve">
+    <value>Weight</value>
+  </data>
+  <data name="StlPreview_MaterialCountTitle" xml:space="preserve">
+    <value>Material count</value>
+  </data>
   <data name="StlPreview_NoFile" xml:space="preserve">
     <value>No file.</value>
   </data>

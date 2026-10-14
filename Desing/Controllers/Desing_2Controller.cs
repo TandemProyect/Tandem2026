@@ -1,3 +1,4 @@
+using DAL;
 using Desing.Helpers;
 
 using Desing.Models;
@@ -260,19 +261,28 @@ namespace Desing.Controllers
                 }
 
                 var userId = IntranetAuditHelper.ResolveCurrentUserId(User);
-                int saved;
+                int saved = 0;
                 int articleCount = 0;
+                DesignWallArticleRepository articleRepo = null;
                 using (var trans = db.Database.BeginTransaction())
                 {
-                    saved = repository.ReplaceWalls(request.DesignId, request.Lines, userId);
-                    db.SaveChanges();
-                    if (request.Articles != null)
+                    if (request.ArticlesOnly)
                     {
-                        articleCount = new DesignWallArticleRepository(db)
-                            .ReplaceAll(request.DesignId, request.Articles, userId);
+                        articleRepo = new DesignWallArticleRepository(db);
+                        articleCount = articleRepo.ReplaceAll(request.DesignId, request.Articles, userId);
+                        db.SaveChanges();
+                    }
+                    else
+                    {
+                        saved = repository.ReplaceWalls(request.DesignId, request.Lines, userId);
                         db.SaveChanges();
                     }
                     trans.Commit();
+                }
+
+                if (articleRepo != null)
+                {
+                    articleRepo.QueueRetirePrevious(userId);
                 }
 
                 return Json(new
@@ -444,6 +454,249 @@ namespace Desing.Controllers
             }
 
             return name + ".png";
+        }
+
+        /// <summary>
+        /// Recuento de artículos del diseño: una lectura de las piezas y una del maestro.
+        /// </summary>
+        [HttpGet]
+        public JsonResult ListDesignMaterialCount(long designId)
+        {
+            try
+            {
+                if (designId <= 0)
+                {
+                    return Json(new { ok = true, rows = new object[0] }, JsonRequestBehavior.AllowGet);
+                }
+
+                var pieces = new DesignWallArticleRepository(db).QueryLatestActive(designId)
+                    .Select(a => new { a.TextCode, a.LinkMasterArticle })
+                    .ToList();
+
+                var grouped = pieces
+                    .Select(p => new
+                    {
+                        Code = NormalizeMaterialCode(p.TextCode),
+                        p.LinkMasterArticle
+                    })
+                    .Where(p => p.Code.Length > 0)
+                    .GroupBy(p => p.Code)
+                    .Select(g => new
+                    {
+                        Code = g.Key,
+                        Qty = g.Count(),
+                        MasterId = g.Select(x => x.LinkMasterArticle).FirstOrDefault(id => id.HasValue)
+                    })
+                    .ToList();
+
+                var codes = grouped.Select(g => g.Code).ToList();
+                var ids = grouped.Where(g => g.MasterId.HasValue).Select(g => g.MasterId.Value).Distinct().ToList();
+                var masterQuery = db.Tsql_Master_Articles.AsNoTracking().Where(m => codes.Contains(m.TextCode) || codes.Contains(m.AddAtenkoCode));
+                if (ids.Count > 0)
+                {
+                    masterQuery = db.Tsql_Master_Articles.AsNoTracking()
+                        .Where(m => ids.Contains(m.IdObject) || codes.Contains(m.TextCode) || codes.Contains(m.AddAtenkoCode));
+                }
+                var masters = codes.Count == 0
+                    ? new List<MasterArticleCountRow>()
+                    : masterQuery.Select(m => new MasterArticleCountRow
+                    {
+                        IdObject = m.IdObject,
+                        TextCode = m.TextCode,
+                        AddAtenkoCode = m.AddAtenkoCode,
+                        TextLabel = m.TextLabel
+                    }).ToList();
+
+                var rows = grouped
+                    .OrderBy(g => g.Code)
+                    .Select(g =>
+                    {
+                        var master = masters.FirstOrDefault(m => g.MasterId.HasValue && m.IdObject == g.MasterId.Value)
+                            ?? masters.FirstOrDefault(m => string.Equals(m.TextCode, g.Code, StringComparison.OrdinalIgnoreCase))
+                            ?? masters.FirstOrDefault(m => string.Equals(m.AddAtenkoCode, g.Code, StringComparison.OrdinalIgnoreCase));
+                        var code = master == null
+                            ? g.Code
+                            : (!string.IsNullOrWhiteSpace(master.AddAtenkoCode) ? master.AddAtenkoCode : (master.TextCode ?? g.Code));
+                        var name = master == null ? "" : (master.TextLabel ?? "");
+                        return new { code = code, name = name, qty = g.Qty };
+                    })
+                    .ToList();
+
+                return Json(new { ok = true, rows = rows }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { ok = false, message = ex.Message, rows = new object[0] }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
+        /// Pone el nombre del maestro a las piezas que ya están encofradas en el visor. No escribe en la base.
+        /// </summary>
+        [HttpPost]
+        public JsonResult PreviewMaterialCount()
+        {
+            try
+            {
+                if (Request.InputStream.CanSeek)
+                {
+                    Request.InputStream.Position = 0;
+                }
+
+                string rawJson;
+                using (var reader = new StreamReader(Request.InputStream, Encoding.UTF8))
+                {
+                    rawJson = reader.ReadToEnd();
+                }
+
+                var grouped = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                if (!string.IsNullOrWhiteSpace(rawJson))
+                {
+                    var parsed = JToken.Parse(rawJson);
+                    var items = parsed["items"] as JArray;
+                    if (items != null)
+                    {
+                        foreach (var item in items)
+                        {
+                            var code = NormalizeMaterialCode(item.Value<string>("code"));
+                            if (code.Length == 0 || code.EndsWith("_PHENOLIC", StringComparison.OrdinalIgnoreCase))
+                            {
+                                continue;
+                            }
+                            if (code.EndsWith("_FRAME", StringComparison.OrdinalIgnoreCase))
+                            {
+                                code = code.Substring(0, code.Length - 6).Trim();
+                            }
+                            if (code.Length == 0)
+                            {
+                                continue;
+                            }
+                            var qty = 1;
+                            var qtyToken = item["qty"];
+                            if (qtyToken != null && qtyToken.Type != JTokenType.Null)
+                            {
+                                int parsedQty;
+                                if (int.TryParse(qtyToken.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out parsedQty) && parsedQty > 0)
+                                {
+                                    qty = parsedQty;
+                                }
+                            }
+                            int current;
+                            grouped.TryGetValue(code, out current);
+                            grouped[code] = current + qty;
+                        }
+                    }
+                }
+
+                var codes = grouped.Keys.ToList();
+                var masters = codes.Count == 0
+                    ? new List<MasterArticleCountRow>()
+                    : db.Tsql_Master_Articles.AsNoTracking()
+                        .Where(m => codes.Contains(m.TextCode) || codes.Contains(m.AddAtenkoCode))
+                        .Select(m => new MasterArticleCountRow
+                        {
+                            IdObject = m.IdObject,
+                            TextCode = m.TextCode,
+                            AddAtenkoCode = m.AddAtenkoCode,
+                            TextLabel = m.TextLabel
+                        })
+                        .ToList();
+
+                var rows = grouped
+                    .OrderBy(g => g.Key)
+                    .Select(g =>
+                    {
+                        var master = masters.FirstOrDefault(m => string.Equals(m.TextCode, g.Key, StringComparison.OrdinalIgnoreCase))
+                            ?? masters.FirstOrDefault(m => string.Equals(m.AddAtenkoCode, g.Key, StringComparison.OrdinalIgnoreCase));
+                        var code = master == null
+                            ? g.Key
+                            : (!string.IsNullOrWhiteSpace(master.AddAtenkoCode) ? master.AddAtenkoCode : (master.TextCode ?? g.Key));
+                        var name = master == null ? "" : (master.TextLabel ?? "");
+                        return new { code = code, name = name, qty = g.Value };
+                    })
+                    .ToList();
+
+                return Json(new { ok = true, rows = rows });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { ok = false, message = ex.Message, rows = new object[0] });
+            }
+        }
+
+        /// <summary>
+        /// Dice si este diseño ya tiene piezas guardadas y si los muros son posteriores.
+        /// </summary>
+        [HttpGet]
+        public JsonResult MaterialCountState(long designId)
+        {
+            try
+            {
+                if (designId <= 0)
+                {
+                    return Json(new { ok = true, pieceCount = 0, stale = false }, JsonRequestBehavior.AllowGet);
+                }
+
+                var pieceDates = db.TSql_DesignWallArticle.AsNoTracking()
+                    .Where(a => a.LinkDesign_V2 == designId && !a.Is_Delete && a.Is_Active)
+                    .Select(a => a.AddDateMade)
+                    .ToList();
+                var wallDates = db.TSql_DesignWall.AsNoTracking()
+                    .Where(w => w.LinkDesign_V2 == designId && !w.Is_Delete)
+                    .Select(w => new { w.AddDateMade, w.AddLastDateChange })
+                    .ToList();
+
+                DateTime? pieceAt = pieceDates.Count == 0 ? (DateTime?)null : pieceDates.Max();
+                DateTime? wallAt = null;
+                for (var i = 0; i < wallDates.Count; i++)
+                {
+                    var stamp = wallDates[i].AddLastDateChange ?? wallDates[i].AddDateMade;
+                    if (!wallAt.HasValue || stamp > wallAt.Value)
+                    {
+                        wallAt = stamp;
+                    }
+                }
+
+                var stale = pieceAt.HasValue && wallAt.HasValue && wallAt.Value > pieceAt.Value.AddSeconds(2);
+                return Json(new { ok = true, pieceCount = pieceDates.Count, stale = stale }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { ok = false, message = ex.Message, pieceCount = 0, stale = true }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
+        /// Borrado lógico de las piezas guardadas de un diseño, antes de rehacer el recuento.
+        /// </summary>
+        [HttpPost]
+        public JsonResult ClearDesignMaterialCount(long designId)
+        {
+            try
+            {
+                if (designId <= 0)
+                {
+                    return Json(new { ok = false, message = "Diseño no indicado." });
+                }
+
+                var userId = IntranetAuditHelper.ResolveCurrentUserId(User);
+                var deleted = new DesignWallArticleRepository(db).SoftDeleteByDesign(designId, userId);
+                return Json(new { ok = true, deleted = deleted });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { ok = false, message = ex.Message });
+            }
+        }
+
+        private static string NormalizeMaterialCode(string raw)
+        {
+            var code = (raw ?? "").Trim();
+            if (code.StartsWith("Atk60_", StringComparison.OrdinalIgnoreCase) && code.Length > 6)
+            {
+                code = code.Substring(6).Trim();
+            }
+            return code;
         }
 
         /// <summary>
@@ -1147,6 +1400,14 @@ namespace Desing.Controllers
 
             model.ContextSubtitleLine = parts.Count > 0 ? string.Join(" — ", parts) : null;
 
+        }
+
+        private sealed class MasterArticleCountRow
+        {
+            public long IdObject { get; set; }
+            public string TextCode { get; set; }
+            public string AddAtenkoCode { get; set; }
+            public string TextLabel { get; set; }
         }
 
     }

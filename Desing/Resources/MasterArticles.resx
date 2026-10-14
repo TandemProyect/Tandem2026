@@ -982,6 +982,96 @@
   <data name="StlPreview_MapBuildingSuccess" xml:space="preserve">
     <value>Se insertaron {0} muro(s) con caras desde el edificio</value>
   </data>
+  <data name="StlPreview_MaterialCountActionFade" xml:space="preserve">
+    <value>Atenuar</value>
+  </data>
+  <data name="StlPreview_MaterialCountActionSelect" xml:space="preserve">
+    <value>Seleccionar y ocultar el resto</value>
+  </data>
+  <data name="StlPreview_MaterialCountActionSelectFade" xml:space="preserve">
+    <value>Seleccionar y atenuar el resto</value>
+  </data>
+  <data name="StlPreview_MaterialCountActionToggle" xml:space="preserve">
+    <value>Mostrar u ocultar</value>
+  </data>
+  <data name="StlPreview_MaterialCountAria" xml:space="preserve">
+    <value>Recuento de materiales</value>
+  </data>
+  <data name="StlPreview_MaterialCountColCode" xml:space="preserve">
+    <value>Código</value>
+  </data>
+  <data name="StlPreview_MaterialCountColName" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="StlPreview_MaterialCountColQty" xml:space="preserve">
+    <value>Cantidad</value>
+  </data>
+  <data name="StlPreview_MaterialCountEmpty" xml:space="preserve">
+    <value>No hay piezas en este diseño</value>
+  </data>
+  <data name="StlPreview_MaterialCountExportExcel" xml:space="preserve">
+    <value>Exportar a Excel</value>
+  </data>
+  <data name="StlPreview_MaterialCountExportPdf" xml:space="preserve">
+    <value>Exportar a PDF</value>
+  </data>
+  <data name="StlPreview_MaterialCountSave" xml:space="preserve">
+    <value>Guardar recuento</value>
+  </data>
+  <data name="StlPreview_MaterialCountSaved" xml:space="preserve">
+    <value>Recuento guardado.</value>
+  </data>
+  <data name="StlPreview_MaterialCountSoon" xml:space="preserve">
+    <value>Este recuento se hará a continuación</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusChanged" xml:space="preserve">
+    <value>El diseño ha cambiado. Borrando el recuento anterior…</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusChecking" xml:space="preserve">
+    <value>Comprobando si el diseño ha cambiado…</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusClearing" xml:space="preserve">
+    <value>Borrando los registros…</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusError" xml:space="preserve">
+    <value>No se ha podido preparar el recuento.</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusFormwork" xml:space="preserve">
+    <value>Encofrando…</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusMissing" xml:space="preserve">
+    <value>No hay recuento guardado. Levantando los muros…</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusRaising" xml:space="preserve">
+    <value>Levantando los muros…</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusSaving" xml:space="preserve">
+    <value>Guardando las piezas…</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusSavingCount" xml:space="preserve">
+    <value>Guardando recuento…</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusSavingDesign" xml:space="preserve">
+    <value>Guardando diseño…</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusShowing" xml:space="preserve">
+    <value>Mostrando el recuento.</value>
+  </data>
+  <data name="StlPreview_MaterialCountStatusUnchanged" xml:space="preserve">
+    <value>El diseño no ha cambiado. Mostrando el recuento guardado.</value>
+  </data>
+  <data name="StlPreview_MaterialCountTabArea" xml:space="preserve">
+    <value>Superficie</value>
+  </data>
+  <data name="StlPreview_MaterialCountTabArticles" xml:space="preserve">
+    <value>Artículos</value>
+  </data>
+  <data name="StlPreview_MaterialCountTabWeight" xml:space="preserve">
+    <value>Peso</value>
+  </data>
+  <data name="StlPreview_MaterialCountTitle" xml:space="preserve">
+    <value>Recuento de materiales</value>
+  </data>
   <data name="StlPreview_NoFile" xml:space="preserve">
     <value>Sin archivo.</value>
   </data>

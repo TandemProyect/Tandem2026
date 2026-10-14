@@ -117,20 +117,53 @@ namespace Desing.Repositories.RepositoryDesing2
         /// Si Articles es null no se invoca: Desing no borra lo guardado en CAD.
         /// Lista vacía = borrar lógico todos los artículos del diseño.
         /// </summary>
+        public int SoftDeleteByDesign(long designId, string userId)
+        {
+            if (designId <= 0)
+            {
+                return 0;
+            }
+
+            return _db.Database.ExecuteSqlCommand(
+                "UPDATE dbo.TSql_DesignWallArticle SET Is_Delete = 1, LinModifiedBy = @p0, AddLastDateChange = @p1, Ntimeschanged = Ntimeschanged + 1 WHERE LinkDesign_V2 = @p2 AND Is_Delete = 0",
+                userId ?? "",
+                DateTime.Now,
+                designId);
+        }
+
+        private readonly List<TSql_DesignWallArticle> _batch = new List<TSql_DesignWallArticle>();
+        private long _batchDesignId;
+        private DateTime _batchAt;
+
         public int ReplaceAll(long designId, IList<PluginSaveWallArticleRequest> articles, string userId)
         {
-            var existing = _db.TSql_DesignWallArticle
-                .Where(a => a.LinkDesign_V2 == designId && !a.Is_Delete)
-                .ToList();
-            for (var i = 0; i < existing.Count; i++)
-            {
-                IntranetAuditHelper.SetAuditOnDelete(existing[i], userId);
-            }
+            _batch.Clear();
+            _batchDesignId = designId;
+            _batchAt = DateTime.Now;
 
             if (articles == null || articles.Count == 0)
             {
                 return 0;
             }
+
+            var walls = _db.TSql_DesignWall
+                .Where(w => w.LinkDesign_V2 == designId && !w.Is_Delete)
+                .ToList();
+            var codes = new List<string>();
+            for (var c = 0; c < articles.Count; c++)
+            {
+                var code = articles[c] == null ? "" : (articles[c].CodeName ?? "").Trim();
+                if (code.Length > 0 && !codes.Contains(code))
+                {
+                    codes.Add(code);
+                }
+            }
+
+            var masters = codes.Count == 0
+                ? new List<Tsql_Master_Articles>()
+                : _db.Tsql_Master_Articles.AsNoTracking()
+                    .Where(m => m.AddIsActive && (codes.Contains(m.TextCode) || codes.Contains(m.AddAtenkoCode) || codes.Contains(m.TextBlockNumber)))
+                    .ToList();
 
             var seqByWall = new Dictionary<long, long>();
             var count = 0;
@@ -143,10 +176,10 @@ namespace Desing.Repositories.RepositoryDesing2
                 }
 
                 request.DesignId = designId;
-                var wall = _walls.FindOrCreateAxisForManual(request, userId);
-                if (wall.IdObject == 0)
+                var wall = _walls.ResolveExistingWall(request, walls);
+                if (wall == null)
                 {
-                    _db.SaveChanges();
+                    throw new InvalidOperationException("Este diseño no tiene muros guardados.");
                 }
 
                 long seq;
@@ -159,7 +192,7 @@ namespace Desing.Repositories.RepositoryDesing2
 
                 var code = Truncate((request.CodeName ?? string.Empty).Trim(), 50);
                 var view = NormalizeView(request.View);
-                var masterId = ResolveMasterArticleId(request.MasterArticleId, code);
+                var masterId = FindMasterId(masters, request.MasterArticleId, code);
                 var insert = request.InsertMm ?? new Desing2XyzMmDto();
                 var label = string.IsNullOrWhiteSpace(code) ? "Artículo" : (code + " " + view);
 
@@ -181,18 +214,113 @@ namespace Desing.Repositories.RepositoryDesing2
                     TextHandleCad = Truncate(request.HandleCad, 50)
                 };
                 IntranetAuditHelper.SetAuditOnCreate(article, userId);
+                article.AddDateMade = _batchAt;
                 _db.TSql_DesignWallArticle.Add(article);
+                _batch.Add(article);
                 count++;
             }
 
             return count;
         }
 
+        /// <summary>
+        /// Tras guardar el recuento nuevo, marca borradas solo las piezas anteriores de este diseño.
+        /// No espera: el aviso ya puede cerrarse. El recuento visible es el lote recién guardado.
+        /// </summary>
+        public void QueueRetirePrevious(string userId)
+        {
+            if (_batchDesignId <= 0)
+            {
+                return;
+            }
+
+            long? keepFromId = null;
+            if (_batch.Count > 0)
+            {
+                var min = _batch[0].IdObject;
+                for (var i = 1; i < _batch.Count; i++)
+                {
+                    if (_batch[i].IdObject < min)
+                    {
+                        min = _batch[i].IdObject;
+                    }
+                }
+                if (min <= 0)
+                {
+                    return;
+                }
+                keepFromId = min;
+            }
+
+            var designId = _batchDesignId;
+            var user = userId ?? "";
+            System.Web.Hosting.HostingEnvironment.QueueBackgroundWorkItem(delegate
+            {
+                try
+                {
+                    using (var db = new ConexionData())
+                    {
+                        db.Database.CommandTimeout = 0;
+                        if (keepFromId.HasValue)
+                        {
+                            db.Database.ExecuteSqlCommand(
+                                "UPDATE dbo.TSql_DesignWallArticle SET Is_Delete = 1, LinModifiedBy = @p0, AddLastDateChange = @p1, Ntimeschanged = Ntimeschanged + 1 WHERE LinkDesign_V2 = @p2 AND Is_Delete = 0 AND IdObject < @p3",
+                                user,
+                                DateTime.Now,
+                                designId,
+                                keepFromId.Value);
+                        }
+                        else
+                        {
+                            db.Database.ExecuteSqlCommand(
+                                "UPDATE dbo.TSql_DesignWallArticle SET Is_Delete = 1, LinModifiedBy = @p0, AddLastDateChange = @p1, Ntimeschanged = Ntimeschanged + 1 WHERE LinkDesign_V2 = @p2 AND Is_Delete = 0",
+                                user,
+                                DateTime.Now,
+                                designId);
+                        }
+                    }
+                }
+                catch
+                {
+                }
+            });
+        }
+
+        private static long? FindMasterId(List<Tsql_Master_Articles> masters, long? requestedId, string code)
+        {
+            if (requestedId.HasValue && requestedId.Value > 0)
+            {
+                for (var i = 0; i < masters.Count; i++)
+                {
+                    if (masters[i].IdObject == requestedId.Value)
+                    {
+                        return masters[i].IdObject;
+                    }
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                return null;
+            }
+
+            for (var i = 0; i < masters.Count; i++)
+            {
+                var master = masters[i];
+                if (string.Equals(master.TextCode, code, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(master.AddAtenkoCode, code, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(master.TextBlockNumber, code, StringComparison.OrdinalIgnoreCase))
+                {
+                    return master.IdObject;
+                }
+            }
+
+            return null;
+        }
+
         public List<Desing2DesignWallArticleDto> ListActive(long designId)
         {
-            var rows = _db.TSql_DesignWallArticle
-                .AsNoTracking()
-                .Where(a => a.LinkDesign_V2 == designId && !a.Is_Delete && a.Is_Active)
+            var rows = QueryLatestActive(designId)
                 .OrderBy(a => a.LinkDesignWall)
                 .ThenBy(a => a.NumberSequence)
                 .ThenBy(a => a.IdObject)

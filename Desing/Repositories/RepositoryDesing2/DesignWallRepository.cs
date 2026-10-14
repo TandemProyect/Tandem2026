@@ -68,6 +68,7 @@ namespace Desing.Repositories.RepositoryDesing2
         public string DeviceId { get; set; }
         public List<Desing2DesignWallLineDto> Lines { get; set; }
         public List<PluginSaveWallArticleRequest> Articles { get; set; }
+        public bool ArticlesOnly { get; set; }
         public long? NextSegId { get; set; }
         public long? NextPolylineGroupId { get; set; }
         public long? NextWallGroupId { get; set; }
@@ -181,6 +182,45 @@ namespace Desing.Repositories.RepositoryDesing2
                 if (line._IsFormwork.HasValue)
                     entity.Is_Formwork = line._IsFormwork.Value;
             }
+        }
+
+        public TSql_DesignWall ResolveExistingWall(PluginSaveWallArticleRequest request, IList<TSql_DesignWall> walls)
+        {
+            if (walls == null || walls.Count == 0)
+            {
+                return null;
+            }
+
+            if (request != null && request.WallDbId.HasValue && request.WallDbId.Value > 0)
+            {
+                var id = request.WallDbId.Value;
+                for (var i = 0; i < walls.Count; i++)
+                {
+                    if (walls[i].IdObject == id)
+                    {
+                        return walls[i];
+                    }
+                }
+
+                for (var i = 0; i < walls.Count; i++)
+                {
+                    if (walls[i].NumberLineId.HasValue && walls[i].NumberLineId.Value == id)
+                    {
+                        return walls[i];
+                    }
+                }
+
+                var key = id.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                for (var i = 0; i < walls.Count; i++)
+                {
+                    if (string.Equals(walls[i].TextClientWallId, key, StringComparison.Ordinal))
+                    {
+                        return walls[i];
+                    }
+                }
+            }
+
+            return walls[0];
         }
 
         public TSql_DesignWall FindOrCreateAxisForManual(PluginSaveWallArticleRequest request, string userId)

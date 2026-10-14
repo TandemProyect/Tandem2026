@@ -4254,14 +4254,14 @@ function bootMasterArticleDetailsStlViewer() {
         return out;
     }
 
-    function maStlDesing2SetPersistOverlay(visible, mode) {
+    function maStlDesing2SetPersistOverlay(visible, mode, message) {
         const overlay = document.getElementById('ma-stl-design-persist-overlay');
         if (!overlay) return;
         const textEl = document.getElementById('ma-stl-design-persist-overlay-text');
         if (visible) {
             const saving = overlay.getAttribute('data-ma-stl-saving') || 'Guardando diseño…';
             const loading = overlay.getAttribute('data-ma-stl-loading') || 'Cargando diseño…';
-            if (textEl) textEl.textContent = mode === 'load' ? loading : saving;
+            if (textEl) textEl.textContent = message || (mode === 'load' ? loading : saving);
             overlay.classList.remove('d-none');
             overlay.setAttribute('aria-hidden', 'false');
             overlay.setAttribute('aria-busy', 'true');
@@ -4271,6 +4271,8 @@ function bootMasterArticleDetailsStlViewer() {
             overlay.setAttribute('aria-busy', 'false');
         }
     }
+
+    window.maStlDesing2SetPersistOverlay = maStlDesing2SetPersistOverlay;
 
     let maStlDesing2LastPersistedWallsJson = '';
 
@@ -4342,6 +4344,12 @@ function bootMasterArticleDetailsStlViewer() {
         }
     }
 
+    function maStlDesing2SetCountFormHidden(hidden) {
+        var panel = document.getElementById('desing2-material-count');
+        if (!panel) return;
+        panel.style.visibility = hidden ? 'hidden' : '';
+    }
+
     function maStlDesing2SaveDesignWallsToServer(options) {
         if (!maStlDesingV2Viewer) {
             return Promise.resolve({ skipped: true });
@@ -4354,21 +4362,29 @@ function bootMasterArticleDetailsStlViewer() {
         if (!apiUrl) {
             return Promise.resolve({ skipped: true });
         }
-        const includeArticles = !!(options && options.includeArticles);
-        maStlDesing2SetPersistOverlay(true, 'save');
+        const articlesOnly = !!(options && options.articlesOnly);
+        const includePhoto = !(options && options.includePhoto === false);
+        const quiet = !!(options && options.quiet);
+        const hideForms = !!(options && options.hideForms);
+        if (!quiet) maStlDesing2SetPersistOverlay(true, 'save');
         return Promise.resolve()
             .then(function () {
-                const snap = maStlDesing2SerializeEditSnapshot();
-                const body = {
-                    DesignId: designId,
-                    Lines: snap.lines || [],
-                    NextSegId: snap.nextSegId,
-                    NextPolylineGroupId: snap.nextPolylineGroupId,
-                    NextWallGroupId: snap.nextWallGroupId,
-                };
-                if (includeArticles) {
-                    body.Articles = maStlDesing2CollectPersistArticles(designId);
-                }
+                const body = articlesOnly
+                    ? {
+                        DesignId: designId,
+                        ArticlesOnly: true,
+                        Articles: maStlDesing2CollectPersistArticles(designId),
+                    }
+                    : (function () {
+                        const snap = maStlDesing2SerializeEditSnapshot();
+                        return {
+                            DesignId: designId,
+                            Lines: snap.lines || [],
+                            NextSegId: snap.nextSegId,
+                            NextPolylineGroupId: snap.nextPolylineGroupId,
+                            NextWallGroupId: snap.nextWallGroupId,
+                        };
+                    })();
                 return fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
@@ -4384,11 +4400,25 @@ function bootMasterArticleDetailsStlViewer() {
                 if (!resp || resp.Exito !== true) {
                     throw new Error((resp && resp.Mensaje) || 'No se pudieron guardar los muros');
                 }
-                maStlDesing2MarkWallsPersisted();
-                return maStlPersistDesignPhoto().then(function (photo) {
+                if (!articlesOnly) maStlDesing2MarkWallsPersisted();
+                var photoDataUrl = '';
+                if (includePhoto && hideForms) {
+                    maStlDesing2SetCountFormHidden(true);
+                    photoDataUrl = maStlCaptureDesignPngDataUrl();
+                    maStlDesing2SetCountFormHidden(false);
+                }
+                const photoStep = !includePhoto
+                    ? Promise.resolve({ skipped: true })
+                    : (hideForms
+                        ? (photoDataUrl
+                            ? maStlPersistDesignPhoto(photoDataUrl)
+                            : Promise.resolve({ failed: true, message: 'No se pudo tomar la foto del diseño' }))
+                        : maStlPersistDesignPhoto());
+                return photoStep.then(function (photo) {
                     return {
                         ok: true,
                         count: resp.Count != null ? resp.Count : resp.count,
+                        articleCount: resp.ArticleCount != null ? resp.ArticleCount : (resp.articleCount != null ? resp.articleCount : null),
                         photoOk: !!(photo && photo.ok),
                         photoFailed: !!(photo && photo.failed),
                         photoMessage: photo && photo.message ? photo.message : ''
@@ -4396,9 +4426,13 @@ function bootMasterArticleDetailsStlViewer() {
                 });
             })
             .finally(function () {
-                maStlDesing2SetPersistOverlay(false);
+                if (!quiet) maStlDesing2SetPersistOverlay(false);
+                if (hideForms) maStlDesing2SetCountFormHidden(false);
             });
     }
+
+    window.maStlDesing2WallsHaveUnsavedChanges = maStlDesing2WallsHaveUnsavedChanges;
+    window.maStlDesing2SaveDesignWallsToServer = maStlDesing2SaveDesignWallsToServer;
 
     function maStlDesing2LoadDesignWallsFromServer() {
         if (!maStlDesingV2Viewer || !maStlUserLinesGroup) {
@@ -5023,6 +5057,7 @@ function bootMasterArticleDetailsStlViewer() {
         const atkGroup = maStlDesing2Atk60SampleGroup;
         if (atkGroup) {
             const seen = Object.create(null);
+            const wallIdCache = Object.create(null);
             atkGroup.traverse(function (obj) {
                 if (!obj || !obj.userData) return;
                 const ud = obj.userData;
@@ -5031,16 +5066,24 @@ function bootMasterArticleDetailsStlViewer() {
                     return;
                 }
                 const wallKey = ud.maStlAtk60SampleWallId;
-                if (wallKey == null || !maStlDesing2FormworkEditedKeys[String(wallKey)]) return;
+                if (wallKey == null || wallKey === '') return;
                 if (seen[obj.uuid]) return;
                 seen[obj.uuid] = true;
-                const code = maStlDesing2Atk60CodeName(ud.maStlAtk60ElementCode);
+                let code = maStlDesing2Atk60CodeName(ud.maStlAtk60ElementCode);
+                if (!code || /_PHENOLIC$/i.test(code)) return;
+                code = code.replace(/_FRAME$/i, '');
                 if (!code) return;
                 const tumbado = String(ud.maStlAtk60ElementOrientation || '').toLowerCase().indexOf('tumbado') >= 0;
                 const pos = obj.position || { x: 0, y: 0, z: 0 };
                 articles.push({
                     DesignId: designId,
-                    WallDbId: maStlDesing2ResolveWallDbId(wallKey),
+                    WallDbId: (function () {
+                        const key = String(wallKey);
+                        if (Object.prototype.hasOwnProperty.call(wallIdCache, key)) return wallIdCache[key];
+                        const id = maStlDesing2ResolveWallDbId(wallKey);
+                        wallIdCache[key] = id;
+                        return id;
+                    })(),
                     CodeName: code,
                     View: '3dref',
                     InsertMm: {
@@ -5578,11 +5621,45 @@ function bootMasterArticleDetailsStlViewer() {
         maStlDesing2ManualArticleGroup.visible = maStlDesing2SpecialWallArticlesVisible();
     }
 
+    function maStlDesing2FormworkCountRows() {
+        const items = maStlDesing2LastAtk60PaintPayload && maStlDesing2LastAtk60PaintPayload.elements;
+        if (!Array.isArray(items)) return [];
+        const map = Object.create(null);
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i] || {};
+            let code = maStlDesing2Atk60CodeName(item.ElementCode);
+            if (!code || /_PHENOLIC$/i.test(code)) continue;
+            code = code.replace(/_FRAME$/i, '');
+            if (!code) continue;
+            map[code] = (map[code] || 0) + 1;
+        }
+        return Object.keys(map).sort().map(function (code) {
+            return { code: code, qty: map[code] };
+        });
+    }
+
+    function maStlDesing2SyncMaterialCountButton() {
+        const btn = document.getElementById('ma-stl-material-count');
+        if (!btn) return;
+        const items = maStlDesing2LastAtk60PaintPayload && maStlDesing2LastAtk60PaintPayload.elements;
+        const show = maStlDesing2ModelMode === 'wall3d'
+            && Array.isArray(items)
+            && items.length > 0
+            && maStlDesing2SpecialWallArticlesVisible();
+        btn.classList.toggle('d-none', !show);
+        document.dispatchEvent(new CustomEvent('desing2-material-count-visibility', {
+            detail: { show: show }
+        }));
+    }
+
+    window.maStlDesing2FormworkCountRows = maStlDesing2FormworkCountRows;
+
     function maStlDesing2SyncAtk60SampleVisibility() {
         const show = maStlDesing2SpecialWallArticlesVisible();
         if (maStlDesing2Atk60SampleGroup)
             maStlDesing2Atk60SampleGroup.visible = show;
         maStlDesing2SyncManualArticleVisibility();
+        maStlDesing2SyncMaterialCountButton();
     }
 
     function maStlDesing2MaybeMetersToSceneMm(v) {
@@ -6373,6 +6450,7 @@ function bootMasterArticleDetailsStlViewer() {
 
     function maStlDesing2ClearAtk60Visuals() {
         maStlDesing2LastAtk60PaintPayload = { walls: [], elements: [] };
+        maStlDesing2SyncMaterialCountButton();
         if (!maStlDesing2Atk60SampleGroup) return;
         for (let i = maStlDesing2Atk60SampleGroup.children.length - 1; i >= 0; i--) {
             maStlDesing2Atk60SampleGroup.remove(maStlDesing2Atk60SampleGroup.children[i]);
@@ -6390,6 +6468,7 @@ function bootMasterArticleDetailsStlViewer() {
         const clearPrevious = options.clearPrevious === true;
         const drawDebugProxy = options.drawDebugProxy === true;
         maStlDesing2LastAtk60PaintPayload.elements = sourceElements.slice();
+        maStlDesing2SyncMaterialCountButton();
 
         if (clearPrevious) {
             for (let i = sampleGroup.children.length - 1; i >= 0; i--) {
@@ -7269,18 +7348,35 @@ function bootMasterArticleDetailsStlViewer() {
         };
     }
 
+    const maStlDesing2WallModelReadyKey = { wall2d: '', wall3d: '' };
+
+    function maStlDesing2WallModelCacheKey(mode) {
+        try {
+            return mode + '|' + maStlDesing2WallsPersistFingerprint();
+        } catch (_e) {
+            return '';
+        }
+    }
+
+    function maStlDesing2RememberWallModel(mode) {
+        maStlDesing2WallModelReadyKey[mode] = maStlDesing2WallModelCacheKey(mode);
+    }
+
+    function maStlDesing2WallModelCacheHit(mode) {
+        const key = maStlDesing2WallModelCacheKey(mode);
+        if (!key || maStlDesing2WallModelReadyKey[mode] !== key) return false;
+        const group = mode === 'wall3d' ? maStlWall3dMeshesGroup : maStlWall2dModelMeshesGroup;
+        return !!(group && group.children && group.children.length);
+    }
+
     function maStlDesing2SummarizeWallModelDetection(mode, payload, datos, generatedCount) {
         return {
             mode: mode,
             system: 'Atk-60',
             generatedAtUtc: new Date().toISOString(),
-            source: {
-                totalLineas: payload && payload.Lineas ? payload.Lineas.length : 0,
-                lineas: payload && payload.Lineas ? payload.Lineas : [],
-            },
-            result: datos || null,
             counts: {
                 generatedMeshes: generatedCount || 0,
+                sourceLines: payload && payload.Lineas ? payload.Lineas.length : 0,
                 polilineas: datos && datos.PolilineasADibujar ? datos.PolilineasADibujar.length : 0,
                 murosRectos: datos && datos.TotalMurosRectos != null ? datos.TotalMurosRectos : 0,
                 esquinas: datos && datos.TotalEsquinasDetectadas != null ? datos.TotalEsquinasDetectadas : 0,
@@ -8541,10 +8637,8 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
         if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
         maStlStopWallDimToolModesToolbar();
-        maStlDesing2ClearGeneratedWallModels();
-        maStlDesing2LastWallModelDetection = null;
         if (maStlWall2dModelMeshesGroup) maStlWall2dModelMeshesGroup.visible = false;
-        if (maStlWall3dMeshesGroup) maStlWall3dMeshesGroup.visible = true;
+        if (maStlWall3dMeshesGroup) maStlWall3dMeshesGroup.visible = false;
         maStlDesing2SetSourceLinesVisible(true);
         maStlSyncDesing2ModeToolbarUi();
         maStlSaveWallConnectionsNow({
@@ -8555,6 +8649,15 @@ function bootMasterArticleDetailsStlViewer() {
 
     function maStlDesing2ApplyWall2dModelMode() {
         if (maStlDesing2WallModelBusy) return;
+        if (maStlDesing2WallModelCacheHit('wall2d')) {
+            maStlDesing2ModelMode = 'wall2d';
+            maStlDesing2SyncAtk60SampleVisibility();
+            if (maStlWall3dMeshesGroup) maStlWall3dMeshesGroup.visible = false;
+            if (maStlWall2dModelMeshesGroup) maStlWall2dModelMeshesGroup.visible = true;
+            maStlDesing2SetSourceLinesVisible(false);
+            maStlSyncDesing2ModeToolbarUi();
+            return;
+        }
         maStlDesing2ModelMode = 'wall2d';
         maStlDesing2SyncAtk60SampleVisibility();
         if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
@@ -8567,7 +8670,7 @@ function bootMasterArticleDetailsStlViewer() {
         maStlStopWallDimToolModesToolbar();
         maStlDisposeUserFloorLineDimEdit(false);
         maStlClearUserFloorLineSelection();
-        maStlDesing2ClearGeneratedWallModels();
+        maStlWall2dModelClearGenerated();
         maStlDesing2LastWallModelDetection = null;
         maStlDesing2SetSourceLinesVisible(false);
         maStlSyncDesing2ModeToolbarUi();
@@ -8586,6 +8689,7 @@ function bootMasterArticleDetailsStlViewer() {
                 datos,
                 count
             );
+            maStlDesing2RememberWallModel('wall2d');
             maStlSaveWallConnectionsNow({
                 force: true,
                 reason: 'wall2d-model-mode-regenerate',
@@ -8600,6 +8704,15 @@ function bootMasterArticleDetailsStlViewer() {
 
     function maStlDesing2ApplyWall3dModelMode() {
         if (maStlDesing2WallModelBusy) return;
+        if (maStlDesing2WallModelCacheHit('wall3d')) {
+            maStlDesing2ModelMode = 'wall3d';
+            maStlDesing2SyncAtk60SampleVisibility();
+            if (maStlWall2dModelMeshesGroup) maStlWall2dModelMeshesGroup.visible = false;
+            if (maStlWall3dMeshesGroup) maStlWall3dMeshesGroup.visible = true;
+            maStlDesing2SetSourceLinesVisible(false);
+            maStlSyncDesing2ModeToolbarUi();
+            return;
+        }
         maStlDesing2ClearAtk60Visuals();
         maStlDesing2ModelMode = 'wall3d';
         maStlDesing2SyncAtk60SampleVisibility();
@@ -8613,7 +8726,7 @@ function bootMasterArticleDetailsStlViewer() {
         maStlStopWallDimToolModesToolbar();
         maStlDisposeUserFloorLineDimEdit(false);
         maStlClearUserFloorLineSelection();
-        maStlDesing2ClearGeneratedWallModels();
+        maStlWall3dModelClearGenerated();
         maStlDesing2LastWallModelDetection = null;
         maStlDesing2SetSourceLinesVisible(false);
         maStlSyncDesing2ModeToolbarUi();
@@ -8631,15 +8744,23 @@ function bootMasterArticleDetailsStlViewer() {
                 datos,
                 count
             );
+            maStlDesing2RememberWallModel('wall3d');
             maStlSaveWallConnectionsNow({
                 force: true,
                 reason: 'wall3d-model-mode-regenerate',
             });
+            document.dispatchEvent(new CustomEvent('desing2-wall3d-ready', {
+                detail: { ok: true, count: count }
+            }));
         }, function (err) {
             maStlDesing2SetSourceLinesVisible(true);
             maStlDesing2ModelMode = 'lines';
             maStlSyncDesing2ModeToolbarUi();
-            maStlDesing2ShowSaveViewToast(err && err.message ? err.message : String(err || 'Error modelo 3D'));
+            var message = err && err.message ? err.message : String(err || 'Error modelo 3D');
+            maStlDesing2ShowSaveViewToast(message);
+            document.dispatchEvent(new CustomEvent('desing2-wall3d-ready', {
+                detail: { ok: false, message: message }
+            }));
         });
     }
 
@@ -15096,7 +15217,7 @@ function bootMasterArticleDetailsStlViewer() {
         );
         if (specialInspect && specialInspect.articleChange) {
             maStlDesing2RefreshSpecialFlags(specialInspect.keys);
-            maStlDesing2SaveDesignWallsToServer({ includeArticles: true }).catch(function (err) {
+            maStlDesing2SaveDesignWallsToServer({ includePhoto: false }).catch(function (err) {
                 if (window.console && console.warn) {
                     console.warn('[Desing_2] No se pudo salvar Is_Special tras borrar', err);
                 }

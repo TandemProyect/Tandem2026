@@ -44,7 +44,7 @@
    data-ma-stl-source-units: vértices STL → m → mm escena (×1000; reglas/rejilla en mm).
    Persistencia vista: #ma-stl-save-viewer-state → cookie global; restauración tras primer refit (ver desing-2-stl-viewer-funciones.md). *@
 @* Opcional desarrollo en #ma-stl-viewer-shell: data-ma-stl-dev-auto-load="true", data-ma-stl-dev-default-stl="~/Files/.../3120270090P.stl" (URL resuelta con @Url.Content), data-ma-stl-dev-default-label="..." *@
-<div id="ma-stl-viewer-shell" class="desing2-stl-view-scope border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" data-ma-text-color1="@HttpUtility.HtmlAttributeEncode(textColor1Hex)" data-ma-text-color2="@HttpUtility.HtmlAttributeEncode(textColor2Hex)" data-ma-stl-show-rulers-toggle="true" data-ma-stl-desing2-persist-view="true" data-ma-stl-source-units="@HttpUtility.HtmlAttributeEncode(stlSrcUnits)" data-ma-stl-wall3d-api-url="@Url.Action("ProcesarLineasZwcad", "DesignToolsAutocad")" data-ma-stl-image-sketch-api-url="@Url.Action("DetectarEsquinasImagen", "DesignToolsAutocad")" data-ma-stl-map-building-search-url="@Url.Action("BuscarDireccionOsm", "DesignToolsAutocad")" data-ma-stl-map-building-buildings-url="@Url.Action("BuscarEdificiosOsm", "DesignToolsAutocad")" data-ma-stl-map-building-import-url="@Url.Action("ImportarEdificioOsm", "DesignToolsAutocad")" data-ma-stl-map-building-catastro-url="@Url.Action("ConsultarCatastroPorCoordenadas", "DesignToolsAutocad")" data-ma-stl-wall-connections-api-url="@Url.Action("SaveWallConnections", "Desing_2")" data-ma-stl-wall-diagnostics-api-url="@Url.Action("SaveWallDiagnostics", "Desing_2")" data-ma-stl-save-design-walls-api-url="@Url.Action("SaveDesignWalls", "Desing_2")" data-ma-stl-save-design-photo-api-url="@Url.Action("SaveDesignPhoto", "Desing_2")" data-ma-stl-load-design-walls-api-url="@Url.Action("GetDesignWalls", "Desing_2")" data-ma-stl-design-id="@(Model.DesignId.HasValue ? Model.DesignId.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" data-ma-stl-wall3d-mat-wall="@Url.Content("~/Content/DesignTools/Material/concrete.png")" data-ma-stl-escape-cancel-toast="@MasterArticles.StlPreview_EscapeCancelToolsToast" data-ma-stl-user-floor-line-dim-edit-aria="@MasterArticles.StlPreview_UserFloorLineDimEditAria" data-ma-stl-user-floor-line-dim-edit-x-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaXAria" data-ma-stl-user-floor-line-dim-edit-z-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaZAria" data-ma-stl-user-floor-line-dim-edit-thickness-aria="@MasterArticles.StlPreview_UserFloorLineDimEditThicknessAria" data-ma-stl-user-floor-line-drag-handle-aria="@MasterArticles.StlPreview_UserFloorLineDragHandleAria" data-ma-stl-user-floor-line-p1-handle-aria="@MasterArticles.StlPreview_UserFloorLineP1HandleAria" data-ma-stl-user-floor-line-p2-handle-aria="@MasterArticles.StlPreview_UserFloorLineP2HandleAria">
+<div id="ma-stl-viewer-shell" class="desing2-stl-view-scope border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" data-ma-text-color1="@HttpUtility.HtmlAttributeEncode(textColor1Hex)" data-ma-text-color2="@HttpUtility.HtmlAttributeEncode(textColor2Hex)" data-ma-stl-show-rulers-toggle="true" data-ma-stl-desing2-persist-view="true" data-ma-stl-source-units="@HttpUtility.HtmlAttributeEncode(stlSrcUnits)" data-ma-stl-wall3d-api-url="@Url.Action("ProcesarLineasZwcad", "DesignToolsAutocad")" data-ma-stl-image-sketch-api-url="@Url.Action("DetectarEsquinasImagen", "DesignToolsAutocad")" data-ma-stl-map-building-search-url="@Url.Action("BuscarDireccionOsm", "DesignToolsAutocad")" data-ma-stl-map-building-buildings-url="@Url.Action("BuscarEdificiosOsm", "DesignToolsAutocad")" data-ma-stl-map-building-import-url="@Url.Action("ImportarEdificioOsm", "DesignToolsAutocad")" data-ma-stl-map-building-catastro-url="@Url.Action("ConsultarCatastroPorCoordenadas", "DesignToolsAutocad")" data-ma-stl-wall-connections-api-url="@Url.Action("SaveWallConnections", "Desing_2")" data-ma-stl-wall-diagnostics-api-url="@Url.Action("SaveWallDiagnostics", "Desing_2")" data-ma-stl-save-design-walls-api-url="@Url.Action("SaveDesignWalls", "Desing_2")" data-ma-stl-save-design-photo-api-url="@Url.Action("SaveDesignPhoto", "Desing_2")" data-ma-stl-load-design-walls-api-url="@Url.Action("GetDesignWalls", "Desing_2")" data-ma-stl-material-count-url="@Url.Action("ListDesignMaterialCount", "Desing_2")" data-ma-stl-material-count-preview-url="@Url.Action("PreviewMaterialCount", "Desing_2")" data-ma-stl-material-count-clear-url="@Url.Action("ClearDesignMaterialCount", "Desing_2")" data-ma-stl-design-id="@(Model.DesignId.HasValue ? Model.DesignId.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" data-ma-stl-wall3d-mat-wall="@Url.Content("~/Content/DesignTools/Material/concrete.png")" data-ma-stl-escape-cancel-toast="@MasterArticles.StlPreview_EscapeCancelToolsToast" data-ma-stl-user-floor-line-dim-edit-aria="@MasterArticles.StlPreview_UserFloorLineDimEditAria" data-ma-stl-user-floor-line-dim-edit-x-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaXAria" data-ma-stl-user-floor-line-dim-edit-z-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaZAria" data-ma-stl-user-floor-line-dim-edit-thickness-aria="@MasterArticles.StlPreview_UserFloorLineDimEditThicknessAria" data-ma-stl-user-floor-line-drag-handle-aria="@MasterArticles.StlPreview_UserFloorLineDragHandleAria" data-ma-stl-user-floor-line-p1-handle-aria="@MasterArticles.StlPreview_UserFloorLineP1HandleAria" data-ma-stl-user-floor-line-p2-handle-aria="@MasterArticles.StlPreview_UserFloorLineP2HandleAria">
     <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap px-2 py-2 border-bottom desing2-stl-actions-toolbar" id="master-article-stl-viewer-toolbar">
         <div class="d-flex align-items-center gap-2 min-w-0 flex-grow-1 desing2-stl-toolbar-leading">
             <span class="app-brand-logo demo flex-shrink-0">
@@ -65,6 +65,10 @@
             <button type="button" class="btn btn-sm btn-outline-secondary waves-effect" id="ma-stl-screenshot" title="@screenshotTitle" aria-label="@screenshotAria" data-ma-stl-screenshot-downloaded="@HttpUtility.HtmlAttributeEncode(screenshotDownloadedToast)" data-ma-stl-screenshot-downloaded-only="@HttpUtility.HtmlAttributeEncode(screenshotDownloadedOnlyToast)" data-ma-stl-screenshot-photo-failed="@HttpUtility.HtmlAttributeEncode(screenshotPhotoFailedToast)">
                 <i class="icon-base ri ri-camera-line" aria-hidden="true"></i>
                 <span class="visually-hidden">@screenshotAria</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect d-none" id="ma-stl-material-count" title="@MasterArticles.StlPreview_MaterialCountTitle" aria-label="@MasterArticles.StlPreview_MaterialCountAria" aria-pressed="false" aria-controls="desing2-material-count">
+                <i class="icon-base ri ri-list-check-2" aria-hidden="true"></i>
+                <span class="visually-hidden">@MasterArticles.StlPreview_MaterialCountAria</span>
             </button>
             <button type="button" class="btn btn-sm btn-outline-secondary waves-effect" id="ma-stl-sky-toggle" aria-pressed="false" title="@MasterArticles.StlPreview_SkyToggleTitle">
                 <i class="icon-base ri ri-cloud-line" aria-hidden="true"></i>
@@ -92,6 +96,66 @@
     <div id="master-article-details-stl-viewer-canvas" class="flex-grow-1 position-relative bg-white ma-stl-canvas--clips d-flex flex-column">
         @* inset edges (not h-100): percentage height on absolute children can collapse inside nested flex until layout settles *@
         <div id="ma-stl-viewer-gl-host" class="position-absolute top-0 bottom-0 start-0 end-0"></div>
+        <section id="desing2-material-count" class="desing2-material-count" hidden="hidden" aria-hidden="true" role="region" aria-label="@MasterArticles.StlPreview_MaterialCountAria"
+                 data-ma-count-select="@HttpUtility.HtmlAttributeEncode(MasterArticles.StlPreview_MaterialCountActionSelect)"
+                 data-ma-count-select-fade="@HttpUtility.HtmlAttributeEncode(MasterArticles.StlPreview_MaterialCountActionSelectFade)"
+                 data-ma-count-toggle="@HttpUtility.HtmlAttributeEncode(MasterArticles.StlPreview_MaterialCountActionToggle)"
+                 data-ma-count-fade="@HttpUtility.HtmlAttributeEncode(MasterArticles.StlPreview_MaterialCountActionFade)"
+                 data-ma-count-excel="@HttpUtility.HtmlAttributeEncode(MasterArticles.StlPreview_MaterialCountExportExcel)"
+                 data-ma-count-pdf="@HttpUtility.HtmlAttributeEncode(MasterArticles.StlPreview_MaterialCountExportPdf)">
+            <div class="desing2-material-count__head">
+                <span class="desing2-material-count__title">@MasterArticles.StlPreview_MaterialCountTitle</span>
+                <button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" id="desing2-material-count-save" title="@MasterArticles.StlPreview_MaterialCountSave" aria-label="@MasterArticles.StlPreview_MaterialCountSave">
+                    <i class="icon-base ri ri-save-3-line" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" id="desing2-material-count-close" aria-label="@Common.Aria_CloseModal">
+                    <i class="icon-base ri ri-close-line" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="desing2-material-count__tabs-row">
+            <ul class="nav nav-tabs tandem-folder-tabs desing2-material-count__tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button type="button" class="nav-link active" id="desing2-material-tab-articles" data-bs-toggle="tab" data-bs-target="#desing2-material-pane-articles" role="tab" aria-controls="desing2-material-pane-articles" aria-selected="true">@MasterArticles.StlPreview_MaterialCountTabArticles</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button type="button" class="nav-link" id="desing2-material-tab-weight" data-bs-toggle="tab" data-bs-target="#desing2-material-pane-weight" role="tab" aria-controls="desing2-material-pane-weight" aria-selected="false">@MasterArticles.StlPreview_MaterialCountTabWeight</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button type="button" class="nav-link" id="desing2-material-tab-area" data-bs-toggle="tab" data-bs-target="#desing2-material-pane-area" role="tab" aria-controls="desing2-material-pane-area" aria-selected="false">@MasterArticles.StlPreview_MaterialCountTabArea</button>
+                </li>
+            </ul>
+            <div id="desing2-material-count-search" class="desing2-material-count__search"></div>
+            </div>
+            <p id="desing2-material-count-status" class="desing2-material-count__status" hidden="hidden"></p>
+            <div id="desing2-material-count-loading" class="desing2-material-count__loading" hidden="hidden">
+                <div class="tandem-opening-design-clock" aria-hidden="true">
+                    <div class="tandem-opening-design-ring"></div>
+                    <div class="tandem-opening-design-hands"></div>
+                    <div class="tandem-opening-design-dot"></div>
+                </div>
+            </div>
+            <div class="tab-content desing2-material-count__body">
+                <div class="tab-pane fade show active" id="desing2-material-pane-articles" role="tabpanel" aria-labelledby="desing2-material-tab-articles">
+                    <table id="desing2-material-count-table" class="table table-sm table-hover w-100" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>@MasterArticles.StlPreview_MaterialCountColCode</th>
+                                <th>@MasterArticles.StlPreview_MaterialCountColName</th>
+                                <th class="text-end">@MasterArticles.StlPreview_MaterialCountColQty</th>
+                                <th class="desing2-material-count__actions-col"><span class="visually-hidden">@MasterArticles.StlPreview_MaterialCountAria</span></th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+                <div class="tab-pane fade" id="desing2-material-pane-weight" role="tabpanel" aria-labelledby="desing2-material-tab-weight">
+                    <p class="desing2-material-count__soon">@MasterArticles.StlPreview_MaterialCountSoon</p>
+                </div>
+                <div class="tab-pane fade" id="desing2-material-pane-area" role="tabpanel" aria-labelledby="desing2-material-tab-area">
+                    <p class="desing2-material-count__soon">@MasterArticles.StlPreview_MaterialCountSoon</p>
+                </div>
+            </div>
+            <div class="desing2-material-count__summary"></div>
+        </section>
         <div id="ma-stl-wall-model-render-overlay" class="desing2-stl-render-overlay d-none" aria-live="polite" aria-atomic="true">
             <div class="desing2-stl-render-overlay__card shadow-lg">
                 <div class="spinner-border text-primary desing2-stl-render-overlay__spinner" role="status" aria-hidden="true"></div>
@@ -824,3 +888,382 @@
         </div>
     </div>
 </div>
+<script>
+(function () {
+    var shell = document.getElementById('ma-stl-viewer-shell');
+    var openBtn = document.getElementById('ma-stl-material-count');
+    var panel = document.getElementById('desing2-material-count');
+    var closeBtn = document.getElementById('desing2-material-count-close');
+    if (!shell || !openBtn || !panel) return;
+    var emptyText = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(MasterArticles.StlPreview_MaterialCountEmpty));
+    var countMsg = {
+        checking: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(MasterArticles.StlPreview_MaterialCountStatusChecking)),
+        unchanged: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(MasterArticles.StlPreview_MaterialCountStatusUnchanged)),
+        missing: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(MasterArticles.StlPreview_MaterialCountStatusMissing)),
+        changed: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(MasterArticles.StlPreview_MaterialCountStatusChanged)),
+        raising: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(MasterArticles.StlPreview_MaterialCountStatusRaising)),
+        formwork: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(MasterArticles.StlPreview_MaterialCountStatusFormwork)),
+        saving: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(MasterArticles.StlPreview_MaterialCountStatusSaving)),
+        clearing: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(MasterArticles.StlPreview_MaterialCountStatusClearing)),
+        savingCount: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(MasterArticles.StlPreview_MaterialCountStatusSavingCount)),
+        savingDesign: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(MasterArticles.StlPreview_MaterialCountStatusSavingDesign)),
+        saved: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(MasterArticles.StlPreview_MaterialCountSaved)),
+        showing: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(MasterArticles.StlPreview_MaterialCountStatusShowing)),
+        error: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(MasterArticles.StlPreview_MaterialCountStatusError))
+    };
+    var zipUrl = '@Url.Content("~/Scripts/datatables/JSZip-2.5.0/jszip.min.js")';
+    var pdfMakeUrl = '@Url.Content("~/Scripts/datatables/pdfmake-0.1.36/pdfmake.min.js")';
+    var pdfFontsUrl = '@Url.Content("~/Scripts/datatables/pdfmake-0.1.36/vfs_fonts.js")';
+    var tableReady = false;
+    var closeTimer = 0;
+    var countBusy = false;
+    var statusEl = document.getElementById('desing2-material-count-status');
+
+    function setStatus(text) {
+        if (!statusEl) return;
+        statusEl.hidden = !text;
+        statusEl.textContent = text || '';
+    }
+
+    function setCountLoading(on) {
+        var el = document.getElementById('desing2-material-count-loading');
+        if (!el) return;
+        el.hidden = !on;
+    }
+
+    var countHead = panel.querySelector('.desing2-material-count__head');
+    if (countHead) {
+        countHead.addEventListener('pointerdown', function (ev) {
+            if (ev.button !== 0) return;
+            if (ev.target.closest('button, a, input, .dt-buttons')) return;
+            var canvas = document.getElementById('master-article-details-stl-viewer-canvas');
+            if (!canvas) return;
+            var rect = panel.getBoundingClientRect();
+            var dx = ev.clientX - rect.left;
+            var dy = ev.clientY - rect.top;
+            panel.classList.add('is-placed');
+            panel.style.width = rect.width + 'px';
+            panel.style.height = rect.height + 'px';
+            panel.style.bottom = 'auto';
+            panel.style.right = 'auto';
+            function place(clientX, clientY) {
+                var host = canvas.getBoundingClientRect();
+                var x = clientX - host.left - dx;
+                var y = clientY - host.top - dy;
+                var maxX = Math.max(0, host.width - rect.width);
+                var maxY = Math.max(0, host.height - rect.height);
+                panel.style.left = Math.max(0, Math.min(x, maxX)) + 'px';
+                panel.style.top = Math.max(0, Math.min(y, maxY)) + 'px';
+            }
+            place(ev.clientX, ev.clientY);
+            countHead.setPointerCapture(ev.pointerId);
+            function move(e) { place(e.clientX, e.clientY); }
+            function up(e) {
+                countHead.removeEventListener('pointermove', move);
+                countHead.removeEventListener('pointerup', up);
+                try { countHead.releasePointerCapture(e.pointerId); } catch (err) { }
+            }
+            countHead.addEventListener('pointermove', move);
+            countHead.addEventListener('pointerup', up);
+            ev.preventDefault();
+        });
+    }
+
+    function escAttr(value) {
+        return String(value || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    }
+
+    function rowActionsHtml() {
+        var items = [
+            ['ri-focus-2-line', panel.getAttribute('data-ma-count-select')],
+            ['ri-contrast-drop-2-line', panel.getAttribute('data-ma-count-select-fade')],
+            ['ri-eye-line', panel.getAttribute('data-ma-count-toggle')],
+            ['ri-drop-line', panel.getAttribute('data-ma-count-fade')]
+        ];
+        return items.map(function (item) {
+            var title = escAttr(item[1]);
+            return '<button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" title="' + title + '" aria-label="' + title + '"><i class="icon-base ri ' + item[0] + '" aria-hidden="true"></i></button>';
+        }).join('');
+    }
+
+    function setOpen(open, skipLoad) {
+        window.clearTimeout(closeTimer);
+        if (open) {
+            panel.hidden = false;
+            panel.style.display = 'flex';
+            panel.style.transform = 'none';
+            panel.style.zIndex = '40';
+            panel.setAttribute('aria-hidden', 'false');
+            panel.classList.remove('is-open');
+            void panel.offsetWidth;
+            panel.classList.add('is-open');
+            openBtn.setAttribute('aria-pressed', 'true');
+            openBtn.classList.add('active');
+            if (!skipLoad) loadTable();
+            return;
+        }
+        panel.classList.remove('is-open');
+        panel.style.transform = '';
+        panel.style.display = '';
+        panel.setAttribute('aria-hidden', 'true');
+        openBtn.setAttribute('aria-pressed', 'false');
+        openBtn.classList.remove('active');
+        closeTimer = window.setTimeout(function () {
+            if (!panel.classList.contains('is-open')) panel.hidden = true;
+        }, 300);
+    }
+
+    function loadScript(src) {
+        return new Promise(function (resolve, reject) {
+            var existing = document.querySelector('script[src="' + src + '"]');
+            if (existing) {
+                if (existing.getAttribute('data-loaded') === '1' || existing.readyState === 'complete') {
+                    resolve();
+                    return;
+                }
+                existing.addEventListener('load', function () { resolve(); });
+                existing.addEventListener('error', reject);
+                return;
+            }
+            var el = document.createElement('script');
+            el.src = src;
+            el.onload = function () {
+                el.setAttribute('data-loaded', '1');
+                resolve();
+            };
+            el.onerror = reject;
+            document.body.appendChild(el);
+        });
+    }
+
+    function loadScripts(done) {
+        var chain = [];
+        if (!(window.jQuery && window.jQuery.fn && window.jQuery.fn.DataTable)) {
+            var css = document.createElement('link');
+            css.rel = 'stylesheet';
+            css.href = 'https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css';
+            document.head.appendChild(css);
+            chain.push('https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js');
+            chain.push('https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js');
+        }
+        chain.push(zipUrl);
+        chain.push(pdfMakeUrl);
+        chain.push(pdfFontsUrl);
+        chain.push('https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js');
+        chain.push('https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js');
+        chain.push('https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js');
+        var seq = Promise.resolve();
+        chain.forEach(function (src) {
+            seq = seq.then(function () { return loadScript(src); });
+        });
+        seq.then(done).catch(function () { done(); });
+    }
+
+    function loadTable() {
+        if (tableReady) {
+            window.jQuery('#desing2-material-count-table').DataTable().columns.adjust();
+            return;
+        }
+        setCountLoading(true);
+        loadScripts(function () {
+            var sceneRows = typeof window.maStlDesing2FormworkCountRows === 'function'
+                ? (window.maStlDesing2FormworkCountRows() || [])
+                : [];
+            var url = shell.getAttribute('data-ma-stl-material-count-preview-url') || '';
+            function buildTable(dataRows) {
+                if (tableReady) {
+                    setCountLoading(false);
+                    return;
+                }
+                try {
+                window.jQuery('#desing2-material-count-table').DataTable({
+                    data: dataRows,
+                    paging: false,
+                    searching: true,
+                    info: false,
+                    ordering: true,
+                    order: [[0, 'asc']],
+                    lengthChange: false,
+                    autoWidth: false,
+                    scrollX: false,
+                    dom: 'Bfrt',
+                    language: {
+                        search: 'Buscar:',
+                        emptyTable: emptyText,
+                        zeroRecords: emptyText
+                    },
+                    buttons: [
+                        {
+                            extend: 'excel',
+                            text: '<i class="icon-base ri ri-file-excel-2-line" aria-hidden="true"></i>',
+                            className: 'btn btn-sm btn-icon btn-text-secondary rounded-pill',
+                            titleAttr: panel.getAttribute('data-ma-count-excel') || '',
+                            title: panel.getAttribute('data-ma-count-excel') || '',
+                            exportOptions: { columns: [0, 1, 2] }
+                        },
+                        {
+                            extend: 'pdf',
+                            text: '<i class="icon-base ri ri-file-pdf-2-line" aria-hidden="true"></i>',
+                            className: 'btn btn-sm btn-icon btn-text-secondary rounded-pill',
+                            titleAttr: panel.getAttribute('data-ma-count-pdf') || '',
+                            title: panel.getAttribute('data-ma-count-pdf') || '',
+                            exportOptions: { columns: [0, 1, 2] },
+                            orientation: 'portrait',
+                            pageSize: 'A4'
+                        }
+                    ],
+                    columns: [
+                        { data: 'code', defaultContent: '' },
+                        { data: 'name', defaultContent: '' },
+                        { data: 'qty', className: 'text-end', defaultContent: '' },
+                        {
+                            data: null,
+                            orderable: false,
+                            searchable: false,
+                            className: 'desing2-material-count__row-actions',
+                            defaultContent: '',
+                            render: function () { return rowActionsHtml(); }
+                        }
+                    ],
+                    initComplete: function () {
+                        var box = panel.querySelector('.dt-buttons');
+                        var save = document.getElementById('desing2-material-count-save');
+                        if (box && save && save.parentNode) save.parentNode.insertBefore(box, save);
+                        var filter = panel.querySelector('.dataTables_filter');
+                        var searchHost = document.getElementById('desing2-material-count-search');
+                        if (filter && searchHost) searchHost.appendChild(filter);
+                        panel.style.setProperty('--desing2-count-head-top', '0px');
+                    }
+                });
+                tableReady = true;
+            } finally {
+                setCountLoading(false);
+            }
+            }
+            buildTable(sceneRows);
+            if (!sceneRows.length || !url || !window.jQuery) return;
+            window.jQuery.ajax({
+                url: url,
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                data: JSON.stringify({ items: sceneRows })
+            }).done(function (data) {
+                if (!data || data.ok === false || !data.rows || !window.jQuery.fn.DataTable.isDataTable('#desing2-material-count-table')) return;
+                var dt = window.jQuery('#desing2-material-count-table').DataTable();
+                dt.clear();
+                dt.rows.add(data.rows);
+                dt.draw(false);
+            });
+        });
+    }
+
+    function resetTable() {
+        if (window.jQuery && window.jQuery.fn && window.jQuery.fn.DataTable && window.jQuery.fn.DataTable.isDataTable('#desing2-material-count-table')) {
+            window.jQuery('#desing2-material-count-table').DataTable().destroy();
+        }
+        tableReady = false;
+    }
+
+    function paintStatus(text) {
+        setStatus(text);
+        if (typeof window.maStlDesing2SetPersistOverlay === 'function') {
+            window.maStlDesing2SetPersistOverlay(true, 'save', text);
+        }
+        return new Promise(function (resolve) {
+            window.requestAnimationFrame(function () {
+                window.setTimeout(resolve, 0);
+            });
+        });
+    }
+
+    function hideSavePopup() {
+        if (typeof window.maStlDesing2SetPersistOverlay === 'function') {
+            window.maStlDesing2SetPersistOverlay(false);
+        }
+    }
+
+    function postClearArticles() {
+        var url = shell.getAttribute('data-ma-stl-material-count-clear-url') || '';
+        var designId = shell.getAttribute('data-ma-stl-design-id') || '';
+        if (!url || !designId) {
+            return Promise.reject(new Error(countMsg.error));
+        }
+        return fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
+            credentials: 'same-origin',
+            body: 'designId=' + encodeURIComponent(designId)
+        }).then(function (res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+        }).then(function (data) {
+            if (!data || data.ok === false) {
+                throw new Error((data && data.message) || countMsg.error);
+            }
+            return data;
+        });
+    }
+
+    function saveStep(options) {
+        if (typeof window.maStlDesing2SaveDesignWallsToServer !== 'function') {
+            return Promise.reject(new Error(countMsg.error));
+        }
+        return window.maStlDesing2SaveDesignWallsToServer(options).then(function (result) {
+            if (!result || result.ok !== true) {
+                throw new Error((result && (result.message || result.photoMessage)) || countMsg.error);
+            }
+            return result;
+        });
+    }
+
+    var saveBtn = document.getElementById('desing2-material-count-save');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', function () {
+            if (countBusy) return;
+            countBusy = true;
+            paintStatus(countMsg.savingCount)
+                .then(function () { return saveStep({ articlesOnly: true, includePhoto: false, quiet: true }); })
+                .then(function (result) {
+                    var saved = result.articleCount != null ? Number(result.articleCount) : null;
+                    if (saved === 0) throw new Error(emptyText);
+                    return paintStatus(countMsg.savingDesign);
+                })
+                .then(function () { return saveStep({ includePhoto: true, quiet: true, hideForms: true }); })
+                .then(function (result) {
+                    if (result && result.photoFailed) {
+                        throw new Error(result.photoMessage || countMsg.error);
+                    }
+                    hideSavePopup();
+                    setStatus(countMsg.saved);
+                    countBusy = false;
+                })
+                .catch(function (err) {
+                    hideSavePopup();
+                    setStatus((err && err.message) ? (countMsg.error + ' ' + err.message) : countMsg.error);
+                    countBusy = false;
+                });
+        });
+    }
+
+    document.addEventListener('desing2-material-count-visibility', function (ev) {
+        var show = !!(ev && ev.detail && ev.detail.show);
+        openBtn.classList.toggle('d-none', !show);
+        if (!show && !panel.hidden) setOpen(false);
+    });
+
+    openBtn.addEventListener('click', function () {
+        if (!panel.hidden && panel.classList.contains('is-open')) {
+            setOpen(false);
+            return;
+        }
+        setStatus('');
+        resetTable();
+        setOpen(true);
+    });
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function () {
+            setOpen(false);
+        });
+    }
+})();
+</script>
