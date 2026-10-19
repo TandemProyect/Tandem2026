@@ -91,6 +91,7 @@ Más ayuda local: `Desing\Scripts\TemporalScript\GOOGLE_MAPS_LOCALHOST_REFERRERS
 | Mapas sin cargar | Sin `Web.GoogleMaps.config` ni env en servidor; referentes GCP mal | Crear archivo en servidor; añadir dominio producción en consola GCP. |
 | Sitio muy antiguo | Deploy no ejecutado o FTP a carpeta equivocada | Comprobar en panel qué directorio sirve tu dominio. |
 | Build en Actions falla (Web.targets) | Imagen cambió rutas VS | Workflow intenta resolver `Microsoft.WebApplication.targets` con workload Web; revisar logs del paso Publish. |
+| El visor local va y en el sitio publicado falta una malla, una vista o un script | El fichero no está en `Desing/Design.csproj` (`Content` o `Compile`). IIS Express sirve la carpeta del proyecto; la publicación solo copia lo que está en el proyecto. Los `*.obj` además los ignora Git (son objetos de enlace), así que un modelo OBJ no llega ni al commit ni a Actions | Meter el fichero en el `.csproj`. Si es un OBJ de malla, excepción en `.gitignore` (el trabajador es `Content/DesignTools/Stl/Worker/Worker.obj`). Los `.cs` de los plugins SDK (AutoCAD, BricsCAD, Revit, FreeCAD) entran solos; ZWCAD y Desing/DAL hay que añadirlos a mano |
 
 ---
 
@@ -101,4 +102,4 @@ Más ayuda local: `Desing\Scripts\TemporalScript\GOOGLE_MAPS_LOCALHOST_REFERRERS
 - Perfil público FS (sin credenciales): `Desing/Properties/PublishProfiles/Site4Now-FileSystem.pubxml`
 - Flujo Git: [Git-Workflow.md](./Git-Workflow.md)
 
-**Última actualización:** 2026-05-21
+**Última actualización:** 2026-10-19

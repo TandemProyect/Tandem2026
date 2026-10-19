@@ -8,46 +8,18 @@ Documento vivo para continuar sin perder contexto. El handover completo esta en 
 - Camara: se guarda en cookie por diseno y se actualiza `AttActiveCameraType`; preparado para usar `AttViewerStateJson` si existe.
 - Recuento: muestra carga, resumen, articulos, detalles y superficies.
 - ATK60: altura alta corregida para caso 7 m.
-- Barra superior: botones `Pilares` e `Insertar worker` visibles, pero deshabilitados.
+- Barra superior: `Pilares` e `Insertar worker` están activos. El relato está en el informe quincenal, apartados 18 y 20.
+- Publicación: el OBJ del trabajador tiene que estar en `Design.csproj`. Git ignora `*.obj`; la excepción es `Desing/Content/DesignTools/Stl/Worker/Worker.obj`.
 
-## Pendiente 1: activar Pilares
+## Hecho: Pilares (cerrado el 19 oct 2026)
 
-### Decision pendiente
-Definir que es un pilar en el modelo Desing_2:
-- geometria 2D en planta,
-- articulo maestro/STL asociado,
-- dimensiones por defecto,
-- si cuenta en materiales,
-- si afecta a encofrado ATK60.
+El botón inserta el pilar, el formulario lo modifica y el encofrado lleva paneles, ganchos y puntales. El relato está en el informe quincenal, apartado 20. El punto exacto del pasador del puntal queda para retomarlo.
 
-### Primer corte recomendado
-1. Boton `ma-stl-tool-pillars` deja de estar disabled.
-2. Al hacer click, entra en modo pick sobre suelo.
-3. Primer click inserta un marcador cuadrado en planta.
-4. Guardar como articulo manual o linea especial, segun encaje con `DesignWallArticleRepository`.
-5. Incluirlo/ocultarlo correctamente en recuento.
+## Hecho: Insertar trabajador (18–19 oct 2026)
 
-### Archivos probables
-- `Desing/Views/Desing_2/_Desing2TopToolBar.cshtml`
-- `Desing/Scripts/MasterArticles/master-article-details-stl-viewer.js`
-- `Desing/Controllers/Desing_2Controller.cs`
-- Repositorios de articulos si el pilar cuenta como material.
+El doble clic lo deja en el suelo o sobre los tablones. Al borrar el muro, se borra el trabajador de ese muro. El modelo que carga el visor es `Content/DesignTools/Stl/Worker/Worker.obj` y tiene que ir en `Design.csproj`. El relato está en el apartado 18.
 
-## Pendiente 2: activar Insertar worker
-
-### Decision pendiente
-El nombre `worker` necesita aclaracion funcional:
-- puede ser operario/persona para escala,
-- recurso de obra,
-- bloque visual,
-- o entidad de planificacion.
-
-### Primer corte recomendado
-1. Mantenerlo deshabilitado hasta definir semantica.
-2. Si es visual, insertar sprite/modelo simple en escena y no contarlo en materiales.
-3. Si es material/recurso, crear flujo separado de articulos.
-
-## Pendiente 3: persistencia completa de vista en BD
+## Pendiente: persistencia completa de vista en BD
 
 ### Situacion
 - El codigo ya detecta columna `AttViewerStateJson` en `dbo.TSql_Design_V2`.

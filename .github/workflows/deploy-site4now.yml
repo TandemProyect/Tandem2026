@@ -102,18 +102,21 @@ jobs:
           New-Item -ItemType Directory -Force -Path $pub | Out-Null
 
           $proj = Join-Path $env:GITHUB_WORKSPACE 'Desing\Design.csproj'
-          Write-Host "MSBuild PublishUrl=$pub"
+          Write-Host "MSBuild PublishProfile=Site4Now-FileSystem"
 
           & msbuild $proj `
             /m `
             /p:Configuration=Release `
             /p:DeployOnBuild=true `
-            /p:WebPublishMethod=FileSystem `
-            /p:"PublishUrl=$pub" `
-            /p:DeleteExistingFiles=true
+            /p:PublishProfile=Site4Now-FileSystem `
+            /p:VSToolsPath=$env:VSToolsPath
 
           if (-not (Test-Path (Join-Path $pub 'Web.config'))) {
             throw "Fallo de publicación — no hay Web.config en $pub."
+          }
+          $worker = Join-Path $pub 'Content\DesignTools\Stl\Worker\Worker.obj'
+          if (-not (Test-Path -LiteralPath $worker)) {
+            throw "Fallo de publicación — no está el OBJ del trabajador."
           }
 
       - name: Normalizar rutas FTP

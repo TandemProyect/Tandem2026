@@ -80,6 +80,8 @@ StyleCopReport.xml
 *.ilk
 *.meta
 *.obj
+# Malla del trabajador (no es un .obj de enlace). Sin esto, el visor publicado no lo tiene.
+!Desing/Content/DesignTools/Stl/Worker/Worker.obj
 *.iobj
 *.pch
 *.pdb

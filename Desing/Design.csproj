@@ -2399,6 +2399,7 @@
     <Content Include="Content\DesignTools\DWG\104219.dwg" />
     <Content Include="Content\DesignTools\Stl\ATK60\10004220-2.stl" />
     <Content Include="Content\DesignTools\Stl\ATK60\Puntal_Tipo3.stl" />
+    <Content Include="Content\DesignTools\Stl\Worker\Worker.obj" />
     <Content Include="Content\DesignTools\Stl\ATK60\h375.stl" />
     <Content Include="Content\DesignTools\Stl\ATK60\h375_2.stl" />
     <Content Include="Content\DesignTools\Stl\ATK60\h375Inf.stl" />

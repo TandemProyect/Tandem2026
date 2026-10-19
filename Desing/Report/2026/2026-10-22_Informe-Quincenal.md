@@ -175,7 +175,8 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 
 ### 20. Pilares
 
-- **Estado:** en curso. Desde el **18 de octubre de 2026, 17:41.** No cerrado.
+- **Estado:** cerrado. **19 de octubre de 2026.** Se pasa a otra cosa. No va al trimestral.
+- **Cierre:** abierto el 18 oct a las 17:41. Se cierra el 19 oct al publicar. No se suma la noche como horas de trabajo.
 - **Qué se hace:** llevar los pilares al visor nuevo, con los tamaños de la guía NEVI y con lo que ya hacía el Desing antiguo.
 - **Tamaños (NEVI 3.8 y prestaciones).** El pilar sale de cuatro paneles universales de 0,75 m, unidos con gancho de cierre y tuerca placa campana. La costilla en U tiene 14 orificios cada 5 cm. El gancho entra por los orificios laterales. Cuadrado, de **10×10 cm** (orificios 12 y 3) a **65×65 cm** (orificios 1 y 14), de 5 en 5 cm. El ancho máximo que declara la guía es **65 cm**. Si el gancho va por fuera del perfil, en vez de por el orificio lateral, el pilar queda 10 cm más pequeño. Costillas con orificio: el de 2,70 m lleva 3, el de 2,40 m lleva 2 y el de 1,20 m lleva 2. El rectangular combina orificios distintos. El embebido en muro o en esquina es otro caso (apartado 3.6).
 - **En el Desing antiguo:** longitud y espesor de **0,10 a 0,55 m**. El formulario corta por encima de 0,55 m; no llega al 0,65 de la guía. El mínimo de 0,10 coincide con el 10×10. La altura no tiene tope. Apila módulos de 2,70 m; el resto, si cabe en 1,20, va en 1,20, y si cabe en 2,40 y ese panel existe, va en 2,40. El check de panel de 0,75 regulable va fijo. Cuatro caras, panel `27104219` en el de 2,70.
@@ -222,7 +223,7 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 | Distancia entre puntales | Cursor, 16 oct | Apartado 17 cerrado. 9:16–9:54 y 10:53–11:19, 1 h 4 min. Paso máximo 2,40 m, mitad del paso en los dos extremos, y al cambiar el valor se vuelve a encofrar |
 | Insertar trabajador | Cursor, 18–19 oct | Apartado 18 cerrado de momento. 12:22–16:18, 3 h 56 min. El 19 oct, al borrar el muro se borra también el trabajador de ese muro |
 | Posición de plataformas y puntales | Cursor, 18 oct | Apartado 19 cerrado de momento. 16:18–17:41, 1 h 23 min. Queda para testear |
-| Pilares | Cursor, 18–19 oct | Apartado 20 en curso desde el 18 oct, 17:41. Botón derecho abre Modificar pilar, con los campos del formulario antiguo y el estilo del formulario del muro. Encofrado pendiente de revisar |
+| Pilares | Cursor, 18–19 oct | Apartado 20 cerrado el 19 oct. Abierto el 18 oct, 17:41. Encofrado de pilar en el visor; el pasador del puntal queda para retomarlo |
 
 ## Al cerrar el 22 de octubre
 
