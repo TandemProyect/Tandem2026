@@ -46,17 +46,23 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
-          $has = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.Web.MSBuild -property installationPath | Select-Object -First 1
-          if (-not [string]::IsNullOrWhiteSpace($has)) {
-            Write-Host "Web.MSBuild ya está en $has"
+          $installPath = & $vswhere -latest -products * -property installationPath | Select-Object -First 1
+          if ([string]::IsNullOrWhiteSpace($installPath)) {
+            Write-Host '::error::vswhere no encontró Visual Studio en el runner.'
+            throw 'No hay Visual Studio en el runner.'
+          }
+          $targets = Get-ChildItem -Path (Join-Path $installPath 'MSBuild\Microsoft\VisualStudio') -Recurse -Filter 'Microsoft.WebApplication.targets' -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($targets) {
+            Write-Host "Web targets ya están en $($targets.FullName)"
             exit 0
           }
-          $installPath = & $vswhere -latest -products * -property installationPath | Select-Object -First 1
-          if ([string]::IsNullOrWhiteSpace($installPath)) { throw 'No hay Visual Studio en el runner.' }
           $setup = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\setup.exe'
-          Write-Host "Instalando Web.MSBuild en $installPath"
-          & $setup modify --installPath $installPath --add Microsoft.VisualStudio.Component.Web.MSBuild --add Microsoft.VisualStudio.Workload.NetWeb --quiet --norestart --wait
-          if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 3010) { throw "setup.exe modify salió con $LASTEXITCODE" }
+          Write-Host "Instalando componentes web en $installPath"
+          & $setup modify --installPath $installPath --add Microsoft.VisualStudio.Component.Web --quiet --norestart --wait
+          if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 3010) {
+            Write-Host "::error::setup.exe modify salió con $LASTEXITCODE."
+            throw "setup.exe modify salió con $LASTEXITCODE"
+          }
 
       - name: Publish MVC (Filesystem)
         shell: pwsh
@@ -71,26 +77,12 @@ jobs:
             throw 'vswhere.exe missing — revisar runner windows-latest.'
           }
 
-          $installationPath = & $VsWhere `
-            -latest `
-            -products * `
-            -requires Microsoft.VisualStudio.Component.Web.MSBuild `
-            -property installationPath `
-            | Select-Object -First 1
-
+          $installationPath = & $VsWhere -latest -products * -property installationPath | Select-Object -First 1
           if ([string]::IsNullOrWhiteSpace($installationPath)) {
-            $installationPath = & $VsWhere `
-              -latest `
-              -products * `
-              -requires Microsoft.VisualStudio.Workload.MSBuildTools `
-              -property installationPath `
-              | Select-Object -First 1
+            Write-Host '::error::vswhere no encontró Visual Studio en el runner.'
+            throw 'No hay Visual Studio en el runner.'
           }
-
-          if ([string]::IsNullOrWhiteSpace($installationPath)) {
-            Write-Host '::error::No hay Visual Studio con MSBuild en el runner.'
-            throw 'Visual Studio Build Tools sin componente Web.MSBuild.'
-          }
+          Write-Host "VS=$installationPath"
 
           $toolRoot = Join-Path $installationPath 'MSBuild\Microsoft\VisualStudio'
           $ordered = @(Get-ChildItem -Path $toolRoot -Directory -ErrorAction Stop |
