@@ -163,7 +163,8 @@
 
     @{
 
-        var plantillaLogo = (ViewBag.PlantillaLogo as string) ?? "/Content/images/Login/at.png";
+        var plantillaLogo = (ViewBag.PlantillaLogo as string) ?? Desing.Helpers.PluginCadDeviceHelper.DefaultWordmarkVirtualPath;
+        var plantillaLogoIsLockup = plantillaLogo.IndexOf("t-desingc.png", StringComparison.OrdinalIgnoreCase) >= 0;
 
         var plantillaLogoUrl = plantillaLogo.StartsWith("http", StringComparison.OrdinalIgnoreCase)
 
@@ -179,15 +180,18 @@
 
             <span class="app-brand-logo demo me-1">
 
-                <img src="@plantillaLogoUrl" alt="Tandem" style="height:28px" />
+                <img src="@plantillaLogoUrl" alt="Tandem" class="@(plantillaLogoIsLockup ? "tandem-brand-lockup" : null)" style="height:@(plantillaLogoIsLockup ? "32px" : "28px")" />
 
             </span>
 
+            @if (!plantillaLogoIsLockup)
+            {
             <span class="app-brand-text demo menu-text fw-bold ms-2 brand-svg-sidebar">
 
                 @Html.Partial("_BrandSvg")
 
             </span>
+            }
 
         </a>
 
@@ -363,10 +367,11 @@
                     if (item == null) { continue; }
                     var itemPhoto = (item.AttPhoto ?? "").Trim().Replace('\\', '/');
                     var itemPhotoUrl = itemPhoto.StartsWith("~/Content/images/desing/", StringComparison.OrdinalIgnoreCase)
-                        ? Url.Content(itemPhoto)
+                        ? Url.Content(itemPhoto) + "?v=" + item.AttChange.ToUniversalTime().Ticks.ToString(System.Globalization.CultureInfo.InvariantCulture)
                         : "";
                     lastDesignPayload.Add(new
                     {
+                        designId = item.DesignId,
                         photo = itemPhotoUrl ?? "",
                         offer = (item.OfferNumber ?? "").Trim(),
                         name = (item.AttLabel ?? "").Trim(),
@@ -444,6 +449,11 @@
         var offer = root.querySelector('.tandem-menu-last-design-offer');
         var name = root.querySelector('.tandem-menu-last-design-name');
 
+        function designIdOf(item) {
+            var n = Number(item && item.designId);
+            return Number.isFinite(n) ? n : 0;
+        }
+
         function paint() {
             var item = items[index] || {};
             if (item.photo) {
@@ -458,6 +468,18 @@
             offer.textContent = item.offer || '';
             offer.classList.toggle('d-none', !item.offer);
             name.textContent = item.name || '';
+        }
+
+        function applyPhotoUpdate(detail) {
+            var designId = Number(detail && detail.designId);
+            var photoUrl = detail && detail.photoUrl;
+            if (!Number.isFinite(designId) || !photoUrl) return;
+            for (var i = 0; i < items.length; i++) {
+                if (designIdOf(items[i]) !== designId) continue;
+                items[i].photo = photoUrl;
+                if (i === index) paint();
+                return;
+            }
         }
 
         function openCurrent() {
@@ -482,6 +504,14 @@
                 index = (index + 1) % items.length;
                 paint();
             }, 280);
+        });
+
+        window.addEventListener('tandem:design-photo-updated', function (ev) {
+            applyPhotoUpdate(ev && ev.detail);
+        });
+        window.addEventListener('storage', function (ev) {
+            if (!ev || ev.key !== 'tandem:design-photo-updated' || !ev.newValue) return;
+            try { applyPhotoUpdate(JSON.parse(ev.newValue)); } catch (_e) { }
         });
     })();
 </script>

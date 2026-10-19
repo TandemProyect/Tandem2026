@@ -6,6 +6,8 @@ import { Line2 } from '../Design/jsm/lines/Line2.js';
 import { LineGeometry } from '../Design/jsm/lines/LineGeometry.js';
 import { LineMaterial } from '../Design/jsm/lines/LineMaterial.js';
 import { GLTFLoader } from '../Design/jsm/loaders/GLTFLoader.js';
+import { createDesing2WorkerTool } from './desing2-worker-tool.js';
+import { createDesing2PillarTool } from './desing2-pillar-tool.js';
 import { MaStlWallEditFinalize, MaStlWallStretchMath } from './ma-stl-wall-edit-finalize.js';
 import {
     maAtk60BuildFootprintDimPlacements,
@@ -2421,7 +2423,183 @@ function maStlCreateSceneLights(scene, useDesing2Design3dLights) {
     return { ambientLight, mainDirLight, fillDirLight, hemiLight };
 }
 
-/** Cookie global Desing_2: misma vista en cualquier diseño/oferta. */
+/** Visor pequeño del recuento: mismas luces, material y giro que Artículos maestros. No toca la escena del diseño. */
+let maStlCountArticlePreview = null;
+
+function maStlDisposePreviewObject(obj) {
+    if (!obj) return;
+    obj.traverse(function (node) {
+        if (node.geometry && typeof node.geometry.dispose === 'function') node.geometry.dispose();
+        var material = node.material;
+        if (!material) return;
+        if (Array.isArray(material)) {
+            material.forEach(function (m) { if (m && typeof m.dispose === 'function') m.dispose(); });
+        } else if (typeof material.dispose === 'function') {
+            material.dispose();
+        }
+    });
+}
+
+function maStlCountPreviewMaterial(hex) {
+    return new THREE.MeshStandardMaterial({
+        color: masterArticleStlTintColorFromDataHex(hex),
+        metalness: 0.14,
+        roughness: 0.42,
+        side: THREE.DoubleSide
+    });
+}
+
+function maStlFitCountArticlePreview(preview) {
+    if (!preview || !preview.root || !preview.host) return;
+    var w = Math.max(preview.host.clientWidth, 1);
+    var h = Math.max(preview.host.clientHeight, 1);
+    preview.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    preview.renderer.setSize(w, h, false);
+    var box = new THREE.Box3().setFromObject(preview.root);
+    if (box.isEmpty()) return;
+    var size = box.getSize(new THREE.Vector3());
+    var center = box.getCenter(new THREE.Vector3());
+    var maxDim = Math.max(size.x, size.y, size.z, 1e-4);
+    var halfY = maxDim * 0.72;
+    var aspect = w / h;
+    var cam = preview.camera;
+    cam.top = halfY;
+    cam.bottom = -halfY;
+    cam.left = -halfY * aspect;
+    cam.right = halfY * aspect;
+    cam.near = Math.max(maxDim / 100, 0.001);
+    cam.far = maxDim * 80;
+    cam.zoom = 1;
+    cam.up.set(0, 1, 0);
+    cam.position.set(center.x, center.y, center.z + maxDim * 2.4);
+    cam.lookAt(center);
+    cam.updateProjectionMatrix();
+    preview.controls.target.copy(center);
+    preview.controls.update();
+}
+
+function maStlEnsureCountArticlePreview(host) {
+    if (maStlCountArticlePreview && maStlCountArticlePreview.host === host) return maStlCountArticlePreview;
+    if (typeof window.maStlDesing2HideCountArticleStl === 'function') window.maStlDesing2HideCountArticleStl();
+    var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setClearColor(MA_STL_SKY_OFF_HEX, 1);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.28;
+    renderer.shadowMap.enabled = false;
+    var scene = new THREE.Scene();
+    maStlCreateSceneLights(scene, false);
+    var camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 1e6);
+    camera.position.set(0, 0, 10);
+    var controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    host.appendChild(renderer.domElement);
+    var preview = {
+        host: host,
+        renderer: renderer,
+        scene: scene,
+        camera: camera,
+        controls: controls,
+        root: null,
+        token: 0,
+        running: true
+    };
+    function tick() {
+        if (!preview.running) return;
+        preview.frame = window.requestAnimationFrame(tick);
+        controls.update();
+        renderer.render(scene, camera);
+    }
+    tick();
+    preview.onResize = function () { maStlFitCountArticlePreview(preview); };
+    window.addEventListener('resize', preview.onResize);
+    maStlCountArticlePreview = preview;
+    return preview;
+}
+
+window.maStlDesing2HideCountArticleStl = function () {
+    var preview = maStlCountArticlePreview;
+    if (!preview) return;
+    preview.running = false;
+    preview.token += 1;
+    if (preview.frame) window.cancelAnimationFrame(preview.frame);
+    window.removeEventListener('resize', preview.onResize);
+    if (preview.root) {
+        preview.scene.remove(preview.root);
+        maStlDisposePreviewObject(preview.root);
+        preview.root = null;
+    }
+    if (preview.controls) preview.controls.dispose();
+    if (preview.renderer) {
+        preview.renderer.dispose();
+        if (preview.renderer.domElement && preview.renderer.domElement.parentNode) {
+            preview.renderer.domElement.parentNode.removeChild(preview.renderer.domElement);
+        }
+    }
+    maStlCountArticlePreview = null;
+};
+
+window.maStlDesing2ShowCountArticleStl = function (opts) {
+    opts = opts || {};
+    var host = opts.host;
+    var statusEl = opts.statusEl || null;
+    function setStatus(text) {
+        if (statusEl) statusEl.textContent = text || '';
+    }
+    var url = (opts.url || '').trim();
+    if (!host || !url) {
+        window.maStlDesing2HideCountArticleStl();
+        setStatus(opts.missing || 'Sin STL en el visor');
+        return;
+    }
+    var preview = maStlEnsureCountArticlePreview(host);
+    var token = ++preview.token;
+    if (preview.root) {
+        preview.scene.remove(preview.root);
+        maStlDisposePreviewObject(preview.root);
+        preview.root = null;
+    }
+    setStatus('Cargando…');
+    var group = new THREE.Group();
+    preview.root = group;
+    preview.scene.add(group);
+    var loader = new STLLoader();
+    function addMesh(geometry, hex) {
+        if (token !== preview.token) {
+            geometry.dispose();
+            return;
+        }
+        geometry.computeVertexNormals();
+        var mesh = new THREE.Mesh(geometry, maStlCountPreviewMaterial(hex));
+        mesh.rotation.x = -0.5 * Math.PI;
+        group.add(mesh);
+        maStlFitCountArticlePreview(preview);
+    }
+    loader.load(
+        url,
+        function (geometry) {
+            addMesh(geometry, opts.color1);
+            if (token !== preview.token) return;
+            var label = (opts.label || '').trim();
+            setStatus(label ? ('Viendo: ' + label) : 'Modelo cargado.');
+            var url2 = (opts.url2 || '').trim();
+            if (!url2 || url2 === url) return;
+            loader.load(url2, function (geometry2) {
+                addMesh(geometry2, opts.color2 || opts.color1);
+            }, undefined, function () {});
+        },
+        undefined,
+        function () {
+            if (token !== preview.token) return;
+            setStatus('No se pudo cargar el STL.');
+        }
+    );
+    window.requestAnimationFrame(function () {
+        if (token === preview.token) maStlFitCountArticlePreview(preview);
+    });
+};
+
+/** Cookie global Desing_2: respaldo si no hay vista guardada por diseño. */
 const MA_STL_DESING2_VIEWER_COOKIE_GLOBAL = 'ma_stl_desing2_viewer_state_global';
 const MA_STL_DESING2_VIEWER_COOKIE_LEGACY_BASE = 'ma_stl_desing2_viewer_state';
 const MA_STL_DESING2_VIEWER_COOKIE_MAX_AGE_SEC = 30 * 24 * 60 * 60;
@@ -2429,10 +2607,10 @@ const MA_STL_DESING2_VIEWER_COOKIE_MAX_BYTES = 3800;
 const MA_STL_DESING2_VIEWER_STATE_VERSION = 1;
 
 /**
- * Nombre cookie legado por oferta/diseño (solo lectura para migrar estado guardado).
+ * Nombre cookie por oferta/diseño.
  * @returns {string|null}
  */
-function maStlDesing2LegacyPerDesignViewerCookieName() {
+function maStlDesing2PerDesignViewerCookieName() {
     const params = new URLSearchParams(window.location.search);
     const offerId = (params.get('offerId') || '').trim();
     const designId = (params.get('designId') || '').trim();
@@ -2492,8 +2670,8 @@ function maStlWriteCookie(name, value, maxAgeSec) {
  * @returns {object|null}
  */
 function maStlDesing2ReadViewerStateFromCookie() {
-    const legacyPerDesign = maStlDesing2LegacyPerDesignViewerCookieName();
-    const names = [MA_STL_DESING2_VIEWER_COOKIE_GLOBAL, legacyPerDesign, MA_STL_DESING2_VIEWER_COOKIE_LEGACY_BASE].filter(
+    const perDesign = maStlDesing2PerDesignViewerCookieName();
+    const names = [perDesign, MA_STL_DESING2_VIEWER_COOKIE_GLOBAL, MA_STL_DESING2_VIEWER_COOKIE_LEGACY_BASE].filter(
         Boolean
     );
     for (let i = 0; i < names.length; i++) {
@@ -2501,6 +2679,16 @@ function maStlDesing2ReadViewerStateFromCookie() {
         if (parsed) return parsed;
     }
     return null;
+}
+
+function maStlDesing2ViewerStateBootEl() {
+    return document.getElementById('ma-stl-desing2-viewer-state-boot');
+}
+
+function maStlDesing2ReadInitialViewerState() {
+    const boot = maStlDesing2ViewerStateBootEl();
+    const serverState = boot ? maStlDesing2ParseViewerStateCookie(boot.textContent || '') : null;
+    return serverState || maStlDesing2ReadViewerStateFromCookie();
 }
 
 /**
@@ -2596,8 +2784,8 @@ function bootMasterArticleDetailsStlViewer() {
             viewerShell.getAttribute('data-ma-stl-show-rulers-toggle') === 'true');
     const maStlXyzAxesGate = !!(maStlXyzAxesToggleBtn && maStlDesingV2Viewer);
 
-    /** Cookie leída al arranque; se aplica una vez tras el primer refit (o al boot sin STL). */
-    let pendingDesing2Restore = maStlDesingV2Viewer ? maStlDesing2ReadViewerStateFromCookie() : null;
+    /** Vista leída al arranque; se aplica una vez tras el primer refit (o al boot sin STL). */
+    let pendingDesing2Restore = maStlDesingV2Viewer ? maStlDesing2ReadInitialViewerState() : null;
     /** Tras restaurar, refits posteriores (p. ej. `*2.stl`) no deben resetear cámara con `placeCamerasForModel`. */
     let maStlDesing2StateRestored = false;
     let maStlDesing2RestoringViewerState = false;
@@ -2857,6 +3045,8 @@ function bootMasterArticleDetailsStlViewer() {
     const maStlInsertEnclosurePoint1Mm = new THREE.Vector3();
     const maStlInsertEnclosureToolLastPointerClientXY = new THREE.Vector2(Number.NaN, Number.NaN);
     const maStlInsertEnclosureToolToggleBtn = document.getElementById('ma-stl-tool-insert-enclosure');
+    const maStlInsertWorkerToolToggleBtn = document.getElementById('ma-stl-tool-insert-worker');
+    const maStlInsertPillarToolToggleBtn = document.getElementById('ma-stl-tool-pillars');
     const maStlInsertEnclosureToolHud = document.getElementById('ma-stl-insert-enclosure-tool-hud');
     const maStlInsertEnclosureToolHudInstruction = document.getElementById(
         'ma-stl-insert-enclosure-tool-hud-instruction'
@@ -3129,7 +3319,8 @@ function bootMasterArticleDetailsStlViewer() {
             maStlIsWall3dToolActive() ||
             maStlIsImageSketchToolPlacementActive() ||
             maStlIsInsertCornerToolPlacementActive() ||
-            maStlIsInsertEnclosureToolPlacementActive()
+            maStlIsInsertEnclosureToolPlacementActive() ||
+            maStlIsPillarToolActive()
         );
     }
 
@@ -3215,6 +3406,7 @@ function bootMasterArticleDetailsStlViewer() {
         };
     }
     let desing2EnvLightingSettings = null;
+    const maStlConfigPropSpacingInput = document.getElementById('ma-stl-config-prop-spacing');
     const maStlConfigOffsetDefaultInput = document.getElementById('ma-stl-config-offset-default');
     const maStlConfigWallWidthXInput = document.getElementById('ma-stl-config-wall-width-x');
     const maStlConfigWallWidthYInput = document.getElementById('ma-stl-config-wall-width-y');
@@ -3320,6 +3512,7 @@ function bootMasterArticleDetailsStlViewer() {
 
     let desing2EnvGridSnapMm = MA_STL_DESING2_GRID_MINOR_MM;
     let desing2EnvRulerExtentCapMm = MA_STL_DESING2_RULE_FIXED_EXTENT_MM;
+    let desing2PropSpacingMm = 2400;
     let desing2EnvOffsetDefaultMm = MA_STL_DESING2_OFFSET_DEFAULT_MM;
     let desing2EnvWallWidthXMm = MA_STL_DESING2_WALL_WIDTH_DEFAULT_MM;
     let desing2EnvWallWidthYMm = MA_STL_DESING2_WALL_WIDTH_DEFAULT_MM;
@@ -3444,6 +3637,15 @@ function bootMasterArticleDetailsStlViewer() {
         desing2EnvRulerExtentCapMm = maStlDesing2RulerExtentCapFromMeters(
             maStlEntornoRulerExtentSelect.value
         );
+    }
+    if (maStlDesingV2Viewer && viewerShell && viewerShell.getAttribute) {
+        const propRaw = Number(viewerShell.getAttribute('data-ma-stl-prop-spacing-mm'));
+        if (Number.isFinite(propRaw) && propRaw >= 300 && propRaw <= 6000) {
+            desing2PropSpacingMm = propRaw;
+        }
+    }
+    if (maStlDesingV2Viewer && maStlConfigPropSpacingInput instanceof HTMLInputElement) {
+        maStlConfigPropSpacingInput.value = maStlDesing2DimEditableMetersDisplayFromMm(desing2PropSpacingMm);
     }
     if (maStlDesingV2Viewer && maStlConfigOffsetDefaultInput instanceof HTMLInputElement) {
         maStlSyncConfigOffsetDefaultInputFromMm(desing2EnvOffsetDefaultMm);
@@ -3652,6 +3854,367 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     const scene = new THREE.Scene();
+    const maStlPillarFloorRaycaster = new THREE.Raycaster();
+    const maStlPillarFloorPoint = new THREE.Vector3();
+    const maStlPillarGuideGroup = new THREE.Group();
+    maStlPillarGuideGroup.name = 'desing2-pillar-guides';
+    scene.add(maStlPillarGuideGroup);
+    const maStlPillarGuideMaterial = new THREE.LineBasicMaterial({ color: 0xc47a12 });
+    const maStlPillarPickMaterial = new THREE.MeshBasicMaterial({
+        color: 0xc47a12,
+        transparent: true,
+        opacity: 0.14,
+        depthWrite: false,
+    });
+    const maStlDesing2PillarTool = createDesing2PillarTool({
+        scene: scene,
+        pickFloor: function (clientX, clientY) {
+            const canvas = renderer ? renderer.domElement : null;
+            const camera = activeCamera();
+            if (!maStlClientRayToWorkspaceFloor(
+                clientX, clientY, canvas, camera, null, maStlPillarFloorRaycaster, maStlPillarFloorPoint
+            )) {
+                return null;
+            }
+            const pt = {
+                x: maStlPillarFloorPoint.x,
+                y: maStlPillarFloorPoint.y,
+                z: maStlPillarFloorPoint.z,
+            };
+            maStlQuantizeUserFloorPlanPointToGridMm(pt);
+            return pt;
+        },
+    });
+    const maStlDesing2WorkerTool = createDesing2WorkerTool({
+        scene: scene,
+        getCamera: function () {
+            return activeCamera();
+        },
+        getCanvas: function () {
+            return renderer ? renderer.domElement : null;
+        },
+        getDeckMeshes: function () {
+            return maStlDesing2WorkerDeckMeshes();
+        },
+        wallIdAt: function (x, z) {
+            return maStlDesing2NearestWorkingWallKey(x, z, null);
+        },
+    });
+
+    function maStlIsWorkerToolActive() {
+        return !!(maStlDesing2WorkerTool && maStlDesing2WorkerTool.isActive());
+    }
+
+    function maStlStopWorkerTool() {
+        if (!maStlIsWorkerToolActive()) return;
+        maStlDesing2WorkerTool.stop();
+        maStlUnlockOrbitForRulerAnchorPick(true);
+        if (renderer && renderer.domElement) renderer.domElement.style.cursor = '';
+        maStlSyncLineToolToggleBtnUi();
+        maStlLineToolPickCursorSync();
+    }
+
+    function maStlStartWorkerTool() {
+        if (maStlIsWorkerToolActive()) return;
+        if (maStlIsPillarToolActive()) maStlStopPillarTool();
+        if (!maStlDesing2FormworkViewOn()) {
+            maStlDesing2ShowSaveViewToast('El trabajador solo se ve en el encofrado');
+            return;
+        }
+        if (maStlIsWall2dToolActive()) maStlStopWall2dToolModesToolbar(false);
+        if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
+        if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
+        if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
+        if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
+        if (maStlIsImageSketchToolActive()) maStlStopImageSketchToolModesToolbar(false);
+        if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
+        if (maStlIsInsertEnclosureToolActive()) maStlStopInsertEnclosureToolModesToolbar(false);
+        maStlStopWallDimToolModesToolbar();
+        maStlDesing2SetLastToolbarCommandId('ma-stl-tool-insert-worker');
+        maStlStopRulerAnchorPickModesToolbar();
+        maStlTeardownPickHighlightsOnly();
+        maStlLockOrbitForRulerAnchorPick();
+        if (renderer && renderer.domElement) renderer.domElement.style.cursor = 'crosshair';
+        const loadingWorker = !maStlDesing2WorkerTool.isReady();
+        if (loadingWorker) maStlDesing2SetPersistOverlay(true, 'load', 'Cargando trabajador…');
+        maStlDesing2WorkerTool.start().then(function () {
+            if (loadingWorker) maStlDesing2SetPersistOverlay(false);
+        }).catch(function () {
+            maStlDesing2SetPersistOverlay(false);
+            maStlDesing2ShowSaveViewToast('No se pudo cargar el trabajador', true);
+            maStlStopWorkerTool();
+        });
+        maStlSyncLineToolToggleBtnUi();
+        if (maStlInsertWorkerToolToggleBtn && document.activeElement === maStlInsertWorkerToolToggleBtn) {
+            maStlInsertWorkerToolToggleBtn.blur();
+        }
+    }
+
+    function maStlIsPillarToolActive() {
+        return !!(maStlDesing2PillarTool && maStlDesing2PillarTool.isActive());
+    }
+
+    function maStlStopPillarTool() {
+        if (!maStlIsPillarToolActive()) return;
+        maStlDesing2PillarTool.stop();
+        maStlUnlockOrbitForRulerAnchorPick(true);
+        if (renderer && renderer.domElement) renderer.domElement.style.cursor = '';
+        maStlSyncLineToolToggleBtnUi();
+        maStlLineToolPickCursorSync();
+    }
+
+    function maStlRefreshPillarGuides() {
+        if (!maStlPillarGuideGroup) return;
+        for (let i = maStlPillarGuideGroup.children.length - 1; i >= 0; i--) {
+            const child = maStlPillarGuideGroup.children[i];
+            maStlPillarGuideGroup.remove(child);
+            if (child.geometry) child.geometry.dispose();
+        }
+        if (!maStlUserLinesGroup) return;
+        const ch = maStlUserLinesGroup.children;
+        for (let i = 0; i < ch.length; i++) {
+            const line = ch[i];
+            if (!maStlIsUserFloorPlanLineObject(line)) continue;
+            const ud = line.userData && line.userData.maStlUserPlanLine;
+            if (!ud || ud.wallRole !== 'pillar' || !ud.p1Mm || !ud.p2Mm) continue;
+            const cx = (ud.p1Mm.x + ud.p2Mm.x) * 0.5;
+            const cz = (ud.p1Mm.z + ud.p2Mm.z) * 0.5;
+            const dx = ud.p2Mm.x - ud.p1Mm.x;
+            const dz = ud.p2Mm.z - ud.p1Mm.z;
+            const longMm = Math.max(Math.hypot(dx, dz), 100);
+            const widthMm = ud.pillarWidthMm >= 100 ? ud.pillarWidthMm : 300;
+            const ax = dx / longMm;
+            const az = dz / longMm;
+            const px = -az;
+            const pz = ax;
+            const hl = longMm * 0.5;
+            const hw = widthMm * 0.5;
+            const y0 = ud.p1Mm.y || 0;
+            const corners = [
+                [cx - ax * hl - px * hw, y0, cz - az * hl - pz * hw],
+                [cx + ax * hl - px * hw, y0, cz + az * hl - pz * hw],
+                [cx + ax * hl + px * hw, y0, cz + az * hl + pz * hw],
+                [cx - ax * hl + px * hw, y0, cz - az * hl + pz * hw],
+            ];
+            const pos = [];
+            for (let c = 0; c < 4; c++) {
+                const a = corners[c];
+                const b = corners[(c + 1) % 4];
+                pos.push(a[0], a[1] + 2, a[2], b[0], b[1] + 2, b[2]);
+            }
+            const guide = new THREE.LineSegments(
+                new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)),
+                maStlPillarGuideMaterial
+            );
+            guide.frustumCulled = false;
+            guide.raycast = function () { };
+            maStlPillarGuideGroup.add(guide);
+            const pick = new THREE.Mesh(
+                new THREE.BoxGeometry(longMm, 160, widthMm),
+                maStlPillarPickMaterial
+            );
+            pick.position.set(cx, y0 + 80, cz);
+            pick.rotation.y = Math.atan2(dz, dx);
+            pick.frustumCulled = false;
+            pick.userData.pillarLineId = ud.id;
+            maStlPillarGuideGroup.add(pick);
+        }
+    }
+
+    function maStlPillarLineById(lineId) {
+        if (!maStlUserLinesGroup || lineId == null) return null;
+        const ch = maStlUserLinesGroup.children;
+        for (let i = 0; i < ch.length; i++) {
+            const line = ch[i];
+            const ud = line.userData && line.userData.maStlUserPlanLine;
+            if (ud && ud.wallRole === 'pillar' && ud.id === lineId) return line;
+        }
+        return null;
+    }
+
+    function maStlPickPillarGuideLine(clientX, clientY) {
+        const canvas = renderer ? renderer.domElement : null;
+        const camera = activeCamera();
+        if (!canvas || !camera || !maStlPillarGuideGroup || !maStlPillarGuideGroup.children.length) return null;
+        const rect = canvas.getBoundingClientRect();
+        maStlPillarFloorRaycaster.setFromCamera(new THREE.Vector2(
+            ((clientX - rect.left) / Math.max(rect.width, 1)) * 2 - 1,
+            -((clientY - rect.top) / Math.max(rect.height, 1)) * 2 + 1
+        ), camera);
+        const hits = maStlPillarFloorRaycaster.intersectObjects(maStlPillarGuideGroup.children, false);
+        if (!hits.length || !hits[0].object.userData) return null;
+        return maStlPillarLineById(hits[0].object.userData.pillarLineId);
+    }
+
+    function maStlPillarPlanContainsPoint(ud, x, z) {
+        if (!ud || !ud.p1Mm || !ud.p2Mm) return false;
+        const cx = (ud.p1Mm.x + ud.p2Mm.x) * 0.5;
+        const cz = (ud.p1Mm.z + ud.p2Mm.z) * 0.5;
+        const dx = ud.p2Mm.x - ud.p1Mm.x;
+        const dz = ud.p2Mm.z - ud.p1Mm.z;
+        const longMm = Math.hypot(dx, dz);
+        if (longMm < 1) return false;
+        const widthMm = ud.pillarWidthMm >= 100 ? ud.pillarWidthMm : 300;
+        const ax = dx / longMm;
+        const az = dz / longMm;
+        const lx = (x - cx) * ax + (z - cz) * az;
+        const lz = (x - cx) * -az + (z - cz) * ax;
+        const pad = 40;
+        return Math.abs(lx) <= longMm * 0.5 + pad && Math.abs(lz) <= widthMm * 0.5 + pad;
+    }
+
+    function maStlPickPillarLineAt(clientX, clientY) {
+        const fromGuide = maStlPickPillarGuideLine(clientX, clientY);
+        if (fromGuide) return fromGuide;
+        const canvas = renderer ? renderer.domElement : null;
+        const camera = activeCamera();
+        if (!canvas || !camera) return null;
+        const rect = canvas.getBoundingClientRect();
+        maStlPillarFloorRaycaster.setFromCamera(new THREE.Vector2(
+            ((clientX - rect.left) / Math.max(rect.width, 1)) * 2 - 1,
+            -((clientY - rect.top) / Math.max(rect.height, 1)) * 2 + 1
+        ), camera);
+        if (maStlWall3dMeshesGroup && maStlWall3dMeshesGroup.visible) {
+            const hits = maStlPillarFloorRaycaster.intersectObjects(maStlWall3dMeshesGroup.children, true);
+            for (let i = 0; i < hits.length; i++) {
+                let obj = hits[i].object;
+                while (obj) {
+                    if (obj.userData && obj.userData.pillarLineId != null) {
+                        return maStlPillarLineById(obj.userData.pillarLineId);
+                    }
+                    obj = obj.parent;
+                }
+            }
+        }
+        if (!maStlClientRayToWorkspaceFloor(
+            clientX, clientY, canvas, camera, null, maStlPillarFloorRaycaster, maStlPillarFloorPoint
+        )) {
+            return null;
+        }
+        let found = null;
+        maStlForEachPillarPlanLine(function (line, ud) {
+            if (found) return;
+            if (maStlPillarPlanContainsPoint(ud, maStlPillarFloorPoint.x, maStlPillarFloorPoint.z)) found = line;
+        });
+        return found;
+    }
+
+    function maStlPickPillarUnderPointer(clientX, clientY) {
+        const fromGuide = maStlPickPillarGuideLine(clientX, clientY);
+        if (fromGuide) return fromGuide;
+        const canvas = renderer ? renderer.domElement : null;
+        const camera = activeCamera();
+        if (!canvas || !camera) return null;
+        const rect = canvas.getBoundingClientRect();
+        maStlPillarFloorRaycaster.setFromCamera(new THREE.Vector2(
+            ((clientX - rect.left) / Math.max(rect.width, 1)) * 2 - 1,
+            -((clientY - rect.top) / Math.max(rect.height, 1)) * 2 + 1
+        ), camera);
+        const groups = [maStlWall3dMeshesGroup, maStlWall2dModelMeshesGroup];
+        for (let g = 0; g < groups.length; g++) {
+            const group = groups[g];
+            if (!group || !group.visible) continue;
+            const hits = maStlPillarFloorRaycaster.intersectObjects(group.children, true);
+            for (let i = 0; i < hits.length; i++) {
+                let obj = hits[i].object;
+                while (obj) {
+                    if (obj.userData && obj.userData.pillarLineId != null) {
+                        return maStlPillarLineById(obj.userData.pillarLineId);
+                    }
+                    obj = obj.parent;
+                }
+            }
+        }
+        if (maStlDesing2ModelMode !== 'lines' && maStlDesing2ModelMode != null) return null;
+        return maStlPickPillarLineAt(clientX, clientY);
+    }
+
+    function maStlDeletePillarLine(line) {
+        if (!line) return false;
+        const undoBefore = maStlDesing2SerializeEditSnapshot();
+        maStlDisposeUserFloorPlanLineObject(line);
+        maStlRefreshPillarGuides();
+        maStlRefreshPillarModelIfVisible();
+        maStlDesing2PushEditSnapshotUndo('deletePillar', undoBefore, maStlDesing2SerializeEditSnapshot());
+        return true;
+    }
+
+    function maStlPlacePillarAt(point) {
+        if (!point) return false;
+        const half = (point.longMm || 300) * 0.5;
+        const a = { x: point.x - half, y: point.y || 0, z: point.z };
+        const b = { x: point.x + half, y: point.y || 0, z: point.z };
+        maStlCommitUserPlanLineSegmentMm(a, b, false, null, {
+            wallRole: 'pillar',
+            pillarWidthMm: point.widthMm || 300,
+            skipWeld: true,
+            skipCollinearMerge: true,
+        });
+        maStlRefreshPillarGuides();
+        return true;
+    }
+
+    const MA_STL_PILLAR_SIDE_MIN_MM = 100;
+    const MA_STL_PILLAR_SIDE_MAX_MM = 650;
+
+    function maStlPillarSideMmAllowed(mm) {
+        return mm != null && mm >= MA_STL_PILLAR_SIDE_MIN_MM - 1e-6 && mm <= MA_STL_PILLAR_SIDE_MAX_MM + 1e-6;
+    }
+
+    function maStlResizePillarAboutCenterMm(line, longMm, widthMm) {
+        const ud = line && line.userData && line.userData.maStlUserPlanLine;
+        if (!ud || ud.wallRole !== 'pillar' || !ud.p1Mm || !ud.p2Mm) return false;
+        if (!maStlPillarSideMmAllowed(longMm) || !maStlPillarSideMmAllowed(widthMm)) {
+            maStlDesing2ShowSaveViewToast('El lado del pilar va de 0,10 a 0,65 m');
+            return false;
+        }
+        const cx = (ud.p1Mm.x + ud.p2Mm.x) * 0.5;
+        const cz = (ud.p1Mm.z + ud.p2Mm.z) * 0.5;
+        const y = ud.p1Mm.y || 0;
+        let dx = ud.p2Mm.x - ud.p1Mm.x;
+        let dz = ud.p2Mm.z - ud.p1Mm.z;
+        const cur = Math.hypot(dx, dz) || 1;
+        dx /= cur;
+        dz /= cur;
+        const half = longMm * 0.5;
+        ud.p1Mm.x = cx - dx * half;
+        ud.p1Mm.y = y;
+        ud.p1Mm.z = cz - dz * half;
+        ud.p2Mm.x = cx + dx * half;
+        ud.p2Mm.y = y;
+        ud.p2Mm.z = cz + dz * half;
+        ud.pillarWidthMm = Math.round(widthMm);
+        maStlWallLineEnsureAttrs(ud);
+        maStlApplyUserFloorLineSegmentGeometryFromMm(line);
+        maStlRefreshPillarGuides();
+        return true;
+    }
+
+    function maStlStartPillarTool() {
+        if (maStlIsPillarToolActive()) return;
+        if (maStlIsWorkerToolActive()) maStlStopWorkerTool();
+        if (maStlIsWall2dToolActive()) maStlStopWall2dToolModesToolbar(false);
+        if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
+        if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
+        if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
+        if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
+        if (maStlIsImageSketchToolActive()) maStlStopImageSketchToolModesToolbar(false);
+        if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
+        if (maStlIsInsertEnclosureToolActive()) maStlStopInsertEnclosureToolModesToolbar(false);
+        maStlStopWallDimToolModesToolbar();
+        maStlDesing2SetLastToolbarCommandId('ma-stl-tool-pillars');
+        maStlStopRulerAnchorPickModesToolbar();
+        maStlTeardownPickHighlightsOnly();
+        maStlLockOrbitForRulerAnchorPick();
+        if (renderer && renderer.domElement) renderer.domElement.style.cursor = 'crosshair';
+        maStlDesing2PillarTool.start();
+        maStlSyncLineToolToggleBtnUi();
+        if (maStlInsertPillarToolToggleBtn && document.activeElement === maStlInsertPillarToolToggleBtn) {
+            maStlInsertPillarToolToggleBtn.blur();
+        }
+    }
     const skyBackgroundTexture = createMasterArticleStlSkyBackgroundTexture();
     const skyOffBackground = new THREE.Color(MA_STL_SKY_OFF_HEX);
     const skyToggleBtn = document.getElementById('ma-stl-sky-toggle');
@@ -4057,11 +4620,35 @@ function bootMasterArticleDetailsStlViewer() {
         const midY = (ud.p1Mm.y + ud.p2Mm.y) * 0.5;
         const midZ = (ud.p1Mm.z + ud.p2Mm.z) * 0.5;
 
+        const isPillar = ud.wallRole === 'pillar' || ud._TypeMesh === 'Pilar';
         ud._idObject = wallId;
-        ud._TypeMesh = 'Wall';
+        ud._TypeMesh = isPillar ? 'Pilar' : 'Wall';
+        if (isPillar) ud.wallRole = 'pillar';
         ud._Datalong = maStlRoundMeters3(lenMm / 1000);
-        ud._DataWith = maStlRoundMeters3(widthMm / 1000);
-        if (ud._DataHeight == null || !Number.isFinite(Number(ud._DataHeight))) {
+        if (isPillar) {
+            const storedMm = Number(ud.pillarWidthMm);
+            const fromAttr = Number(ud._DataWith);
+            let widthM = 0.3;
+            if (storedMm >= 100 && storedMm <= 650) widthM = storedMm / 1000;
+            else if (fromAttr >= 0.1 && fromAttr <= 0.65) widthM = fromAttr;
+            ud.pillarWidthMm = Math.round(widthM * 1000);
+            ud._DataWith = maStlRoundMeters3(widthM);
+            ud._CHeckBracketInside = false;
+            ud._CHeckBracketOutside = false;
+            ud._CHeckPropOutside = false;
+            ud._CHeckPropOutsideInf = false;
+            if (ud._CHeckPropInside == null) ud._CHeckPropInside = true;
+            if (ud._CHeckPropInsideInf == null) ud._CHeckPropInsideInf = true;
+        } else {
+            ud._DataWith = maStlRoundMeters3(widthMm / 1000);
+        }
+        if (isPillar) {
+            if (ud._DataHeight != null && Number.isFinite(Number(ud._DataHeight))) {
+                ud._DataHeight = maStlRoundMeters3(Number(ud._DataHeight));
+            } else {
+                ud._DataHeight = null;
+            }
+        } else if (ud._DataHeight == null || !Number.isFinite(Number(ud._DataHeight))) {
             ud._DataHeight = maStlRoundMeters3(MA_STL_WALL3D_DEFAULT_HEIGHT_MM / 1000);
         } else {
             ud._DataHeight = maStlRoundMeters3(Number(ud._DataHeight));
@@ -4310,6 +4897,7 @@ function bootMasterArticleDetailsStlViewer() {
                     numberOffsetMm: row.numberOffsetMm,
                     numberWallFaceSideSign: row.numberWallFaceSideSign,
                     _DataHeight: row._DataHeight,
+                    _DataWith: row._DataWith,
                     _Tape_1: row._Tape_1,
                     _Tape_2: row._Tape_2,
                     _Idconnection_1: row._Idconnection_1,
@@ -4325,6 +4913,7 @@ function bootMasterArticleDetailsStlViewer() {
             nextSegId: snap.nextSegId,
             nextPolylineGroupId: snap.nextPolylineGroupId,
             nextWallGroupId: snap.nextWallGroupId,
+            workers: maStlDesing2WorkerTool.list(),
         });
     }
 
@@ -4350,6 +4939,41 @@ function bootMasterArticleDetailsStlViewer() {
         panel.style.visibility = hidden ? 'hidden' : '';
     }
 
+    function maStlDesing2SaveDesignPhotoLater() {
+        window.setTimeout(function () {
+            var dataUrl = '';
+            try {
+                dataUrl = maStlCaptureDesignPngDataUrl();
+            } catch (_cap) {
+                dataUrl = '';
+            }
+            if (!dataUrl) return;
+            maStlPersistDesignPhoto(dataUrl);
+        }, 80);
+    }
+
+    function maStlDesing2CaptureAndPersistDesignPhoto() {
+        var dataUrl = '';
+        try {
+            dataUrl = maStlCaptureDesignPngDataUrl();
+        } catch (_cap) {
+            dataUrl = '';
+        }
+        if (!dataUrl) {
+            return Promise.resolve({ failed: true, message: 'No se pudo tomar la foto del diseño' });
+        }
+        return maStlPersistDesignPhoto(dataUrl);
+    }
+
+    /** Deja pintar el DOM (el aviso ya oculto) antes de la captura síncrona. */
+    function maStlDesing2AfterPaint() {
+        return new Promise(function (resolve) {
+            window.requestAnimationFrame(function () {
+                window.setTimeout(resolve, 0);
+            });
+        });
+    }
+
     function maStlDesing2SaveDesignWallsToServer(options) {
         if (!maStlDesingV2Viewer) {
             return Promise.resolve({ skipped: true });
@@ -4366,7 +4990,7 @@ function bootMasterArticleDetailsStlViewer() {
         const includePhoto = !(options && options.includePhoto === false);
         const quiet = !!(options && options.quiet);
         const hideForms = !!(options && options.hideForms);
-        if (!quiet) maStlDesing2SetPersistOverlay(true, 'save');
+        if (!quiet) maStlDesing2SetPersistOverlay(true, 'save', options && options.overlayMessage);
         return Promise.resolve()
             .then(function () {
                 const body = articlesOnly
@@ -4383,13 +5007,21 @@ function bootMasterArticleDetailsStlViewer() {
                             NextSegId: snap.nextSegId,
                             NextPolylineGroupId: snap.nextPolylineGroupId,
                             NextWallGroupId: snap.nextWallGroupId,
+                            Workers: maStlDesing2WorkerTool.list(),
                         };
                     })();
+                var ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
+                var abortTimer = ac
+                    ? window.setTimeout(function () { ac.abort(); }, 20000)
+                    : 0;
                 return fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
                     body: JSON.stringify(body),
                     credentials: 'same-origin',
+                    signal: ac ? ac.signal : undefined,
+                }).finally(function () {
+                    if (abortTimer) window.clearTimeout(abortTimer);
                 });
             })
             .then(function (res) {
@@ -4401,38 +5033,58 @@ function bootMasterArticleDetailsStlViewer() {
                     throw new Error((resp && resp.Mensaje) || 'No se pudieron guardar los muros');
                 }
                 if (!articlesOnly) maStlDesing2MarkWallsPersisted();
-                var photoDataUrl = '';
-                if (includePhoto && hideForms) {
-                    maStlDesing2SetCountFormHidden(true);
-                    photoDataUrl = maStlCaptureDesignPngDataUrl();
-                    maStlDesing2SetCountFormHidden(false);
+                var saved = {
+                    ok: true,
+                    count: resp.Count != null ? resp.Count : resp.count,
+                    articleCount: resp.ArticleCount != null ? resp.ArticleCount : (resp.articleCount != null ? resp.articleCount : null),
+                    photoOk: false,
+                    photoFailed: false,
+                    photoMessage: ''
+                };
+                maStlDesing2SetPersistOverlay(false);
+                if (!includePhoto) return saved;
+                return maStlDesing2AfterPaint()
+                    .then(maStlDesing2CaptureAndPersistDesignPhoto)
+                    .then(function (photo) {
+                        if (photo && photo.ok) {
+                            saved.photoOk = true;
+                        } else if (photo && !photo.skipped) {
+                            saved.photoFailed = true;
+                            saved.photoMessage = photo.message || 'No se pudo guardar la foto del diseño';
+                        }
+                        return saved;
+                    });
+            })
+            .catch(function (err) {
+                if (err && err.name === 'AbortError') {
+                    throw new Error('El guardado no respondió. Vuelve a intentarlo.');
                 }
-                const photoStep = !includePhoto
-                    ? Promise.resolve({ skipped: true })
-                    : (hideForms
-                        ? (photoDataUrl
-                            ? maStlPersistDesignPhoto(photoDataUrl)
-                            : Promise.resolve({ failed: true, message: 'No se pudo tomar la foto del diseño' }))
-                        : maStlPersistDesignPhoto());
-                return photoStep.then(function (photo) {
-                    return {
-                        ok: true,
-                        count: resp.Count != null ? resp.Count : resp.count,
-                        articleCount: resp.ArticleCount != null ? resp.ArticleCount : (resp.articleCount != null ? resp.articleCount : null),
-                        photoOk: !!(photo && photo.ok),
-                        photoFailed: !!(photo && photo.failed),
-                        photoMessage: photo && photo.message ? photo.message : ''
-                    };
-                });
+                throw err;
             })
             .finally(function () {
-                if (!quiet) maStlDesing2SetPersistOverlay(false);
+                maStlDesing2SetPersistOverlay(false);
                 if (hideForms) maStlDesing2SetCountFormHidden(false);
             });
     }
 
     window.maStlDesing2WallsHaveUnsavedChanges = maStlDesing2WallsHaveUnsavedChanges;
     window.maStlDesing2SaveDesignWallsToServer = maStlDesing2SaveDesignWallsToServer;
+
+    let maStlDesing2WorkerSaveChain = Promise.resolve();
+
+    function maStlDesing2SaveWorkersNow() {
+        const run = maStlDesing2WorkerSaveChain.then(function () {
+            return maStlDesing2SaveDesignWallsToServer({
+                includePhoto: false,
+                overlayMessage: 'Guardando trabajador…',
+            });
+        });
+        maStlDesing2WorkerSaveChain = run.catch(function () { return null; });
+        return run.catch(function (err) {
+            const message = err && err.message ? err.message : 'No se pudo guardar el trabajador';
+            maStlDesing2ShowSaveViewToast(message, true);
+        });
+    }
 
     function maStlDesing2LoadDesignWallsFromServer() {
         if (!maStlDesingV2Viewer || !maStlUserLinesGroup) {
@@ -4488,8 +5140,11 @@ function bootMasterArticleDetailsStlViewer() {
                 }
                 maStlDesing2RenderManualWallArticles(rawArticles);
                 maStlDesing2SyncManualArticleVisibility();
-                maStlDesing2MarkWallsPersisted();
-                return { ok: true, count: lines.length, articles: rawArticles.length };
+                const workerRows = snap.workers || snap.Workers || [];
+                return maStlDesing2WorkerTool.restore(workerRows).then(function () {
+                    maStlDesing2MarkWallsPersisted();
+                    return { ok: true, count: lines.length, articles: rawArticles.length, workers: workerRows.length };
+                });
             })
             .catch(function (err) {
                 if (window.console && console.warn) {
@@ -4974,6 +5629,59 @@ function bootMasterArticleDetailsStlViewer() {
         return n;
     }
 
+    function maStlDesing2WallManualArticleCount(wall) {
+        const keys = [];
+        function add(v) {
+            if (v == null || v === '') return;
+            const s = String(v);
+            if (keys.indexOf(s) < 0) keys.push(s);
+        }
+        const list = maStlDesing2WallKeyList(wall);
+        for (let i = 0; i < list.length; i++) add(list[i]);
+        if (wall && wall.Attributes && typeof wall.Attributes === 'object') {
+            const more = maStlDesing2WallKeyList(wall.Attributes);
+            for (let j = 0; j < more.length; j++) add(more[j]);
+        }
+        if (wall) {
+            add(wall.LineId);
+            add(wall.Id);
+            add(wall.WallDbId);
+            add(wall.wallDbId);
+        }
+        let n = 0;
+        for (let k = 0; k < keys.length; k++) n += maStlDesing2RemainingManualCount(keys[k]);
+        return n;
+    }
+
+    /** Un muro sin paneles puestos a mano no se deja fuera del encofrado. */
+    function maStlDesing2ReleaseEmptySpecialWalls() {
+        if (!maStlUserLinesGroup) return 0;
+        const ch = maStlUserLinesGroup.children;
+        let cleared = 0;
+        for (let i = 0; i < ch.length; i++) {
+            const ln = ch[i];
+            if (!maStlIsUserFloorPlanLineObject(ln)) continue;
+            const ud = ln.userData && ln.userData.maStlUserPlanLine;
+            if (!ud || ud.wallRole === 'face') continue;
+            const flagged = ud.isSpecial === true || ud.IsSpecial === true
+                || ud._IsFormwork === false || ud._IsFormwork === 0;
+            if (!flagged) continue;
+            if (maStlDesing2WallManualArticleCount(ud) > 0) continue;
+            const lineKeys = maStlDesing2WallKeyList(ud);
+            for (let k = 0; k < lineKeys.length; k++) {
+                delete maStlDesing2FormworkEditedKeys[lineKeys[k]];
+            }
+            ud.isSpecial = false;
+            ud.IsSpecial = false;
+            ud._IsFormwork = true;
+            cleared++;
+        }
+        if (cleared > 0) {
+            maStlDesing2SaveDesignWallsToServer({ includePhoto: false, quiet: true }).catch(function () {});
+        }
+        return cleared;
+    }
+
     function maStlDesing2RefreshSpecialFlags(keys) {
         const bag = Object.create(null);
         const src = Array.isArray(keys) ? keys : [];
@@ -4991,13 +5699,16 @@ function bootMasterArticleDetailsStlViewer() {
                 const ln = lines[li];
                 const ud = ln.userData && ln.userData.maStlUserPlanLine;
                 const lineKeys = maStlDesing2WallKeyList(ud);
-                let edited = false;
                 let manuals = 0;
                 for (let k = 0; k < lineKeys.length; k++) {
-                    if (maStlDesing2FormworkEditedKeys[lineKeys[k]]) edited = true;
                     manuals += maStlDesing2RemainingManualCount(lineKeys[k]);
                 }
-                maStlDesing2SetLineSpecial(ln, manuals > 0 || edited);
+                if (manuals === 0) {
+                    for (let k = 0; k < lineKeys.length; k++) {
+                        delete maStlDesing2FormworkEditedKeys[lineKeys[k]];
+                    }
+                }
+                maStlDesing2SetLineSpecial(ln, manuals > 0);
             }
         }
     }
@@ -5503,6 +6214,38 @@ function bootMasterArticleDetailsStlViewer() {
         return out;
     }
 
+    function maStlCollectPillarFormworkWalls() {
+        const out = [];
+        if (!maStlUserLinesGroup) return out;
+        const ch = maStlUserLinesGroup.children;
+        for (let i = 0; i < ch.length; i++) {
+            const line = ch[i];
+            if (!maStlIsUserFloorPlanLineObject(line)) continue;
+            const ud = line.userData && line.userData.maStlUserPlanLine;
+            if (!ud || ud.wallRole !== 'pillar' || !ud.p1Mm || !ud.p2Mm) continue;
+            maStlWallLineEnsureAttrs(ud);
+            const id = String(ud.wallId != null ? ud.wallId : ud.id);
+            out.push({
+                Id: id,
+                LineId: ud.id,
+                WallId: id,
+                WallRole: 'pillar',
+                P1: { xMm: ud.p1Mm.x, yMm: ud.p1Mm.y || 0, zMm: ud.p1Mm.z },
+                P2: { xMm: ud.p2Mm.x, yMm: ud.p2Mm.y || 0, zMm: ud.p2Mm.z },
+                Attributes: Object.assign({}, ud, {
+                    _TypeMesh: 'Pilar',
+                    InicioX: ud.p1Mm.x,
+                    InicioY: ud.p1Mm.z,
+                    InicioZ: ud.p1Mm.y || 0,
+                    FinX: ud.p2Mm.x,
+                    FinY: ud.p2Mm.z,
+                    FinZ: ud.p2Mm.y || 0,
+                }),
+            });
+        }
+        return out;
+    }
+
     function maStlBuildStraightWallsFromWallModelSource() {
         // Prioridad: sólidos/mallas de muro dibujados en 3D (fuente real para encofrado).
         const solidWalls = [];
@@ -5570,8 +6313,9 @@ function bootMasterArticleDetailsStlViewer() {
             });
         }
 
+        const pillarWalls = maStlCollectPillarFormworkWalls();
         if (solidWalls.length) {
-            return solidWalls;
+            return solidWalls.concat(pillarWalls);
         }
 
         // Fallback robusto: usar ejes de muros (maStlUserPlanLine) que alimentan
@@ -5583,7 +6327,7 @@ function bootMasterArticleDetailsStlViewer() {
             w.Attributes.__SourceSolid3D = false;
             w.Attributes.__SourceWallAxis3D = true;
         }
-        return axisWalls;
+        return axisWalls.concat(pillarWalls);
     }
 
     const MA_STL_DESING2_ATK60_SAMPLE_GLB_URL = '/Content/DesignTools/Atk-60NewGeneration/GLB/27904209.glb';
@@ -5599,6 +6343,190 @@ function bootMasterArticleDetailsStlViewer() {
     const maStlDesing2Atk60ElementTemplatePromises = Object.create(null);
     let maStlDesing2Atk60WoodRemateMaterial = null;
     let maStlDesing2Atk60SampleGroup = null;
+
+    function maStlDesing2WorkerDeckMeshes() {
+        const meshes = [];
+        const root = maStlDesing2Atk60SampleGroup;
+        if (!root) return meshes;
+        root.traverse(function (obj) {
+            if (!obj || !obj.isMesh) return;
+            let node = obj;
+            while (node) {
+                const code = node.userData && node.userData.maStlAtk60ElementCode;
+                if (code != null && (String(code) === 'Tablon24x15x5' || String(code) === 'Tablon24x15x5-2')) {
+                    meshes.push(obj);
+                    return;
+                }
+                node = node.parent;
+            }
+        });
+        return meshes;
+    }
+
+    /** El trabajador a ras de suelo queda del muro más cercano, hasta 40 m. */
+    const MA_STL_DESING2_WORKER_WALL_REACH_MM = 40000;
+    const maStlDesing2WorkerWallBox = new THREE.Box3();
+
+    function maStlDesing2XzDistanceToBox(x, z, box) {
+        const cx = Math.max(box.min.x, Math.min(x, box.max.x));
+        const cz = Math.max(box.min.z, Math.min(z, box.max.z));
+        const dx = x - cx;
+        const dz = z - cz;
+        return Math.sqrt(dx * dx + dz * dz);
+    }
+
+    function maStlDesing2XzDistanceToSegment(x, z, x1, z1, x2, z2) {
+        const dx = x2 - x1;
+        const dz = z2 - z1;
+        const len2 = dx * dx + dz * dz;
+        let t = 0;
+        if (len2 > 1e-6) {
+            t = ((x - x1) * dx + (z - z1) * dz) / len2;
+            if (t < 0) t = 0;
+            else if (t > 1) t = 1;
+        }
+        const px = x1 + dx * t;
+        const pz = z1 + dz * t;
+        const ox = x - px;
+        const oz = z - pz;
+        return Math.sqrt(ox * ox + oz * oz);
+    }
+
+    function maStlDesing2WorkerWallIdFromNode(node) {
+        let current = node;
+        while (current) {
+            const id = current.userData && current.userData.maStlAtk60SampleWallId;
+            if (id != null && id !== '') return String(id);
+            current = current.parent;
+        }
+        return '';
+    }
+
+    function maStlDesing2NearestWorkingWallKey(x, z, y) {
+        let bestKey = '';
+        let bestD = Infinity;
+        if (y != null && Number.isFinite(y)) {
+            const decks = maStlDesing2WorkerDeckMeshes();
+            const seen = [];
+            for (let i = 0; i < decks.length; i++) {
+                let node = decks[i];
+                let carrier = null;
+                while (node) {
+                    const code = node.userData && node.userData.maStlAtk60ElementCode;
+                    if (code != null && (String(code) === 'Tablon24x15x5' || String(code) === 'Tablon24x15x5-2')) {
+                        carrier = node;
+                        break;
+                    }
+                    node = node.parent;
+                }
+                if (!carrier || seen.indexOf(carrier) >= 0) continue;
+                seen.push(carrier);
+                const wallId = maStlDesing2WorkerWallIdFromNode(carrier);
+                if (!wallId) continue;
+                carrier.updateMatrixWorld(true);
+                maStlDesing2WorkerWallBox.setFromObject(carrier);
+                const pad = 250;
+                if (x < maStlDesing2WorkerWallBox.min.x - pad || x > maStlDesing2WorkerWallBox.max.x + pad) continue;
+                if (z < maStlDesing2WorkerWallBox.min.z - pad || z > maStlDesing2WorkerWallBox.max.z + pad) continue;
+                const dy = Math.abs(y - maStlDesing2WorkerWallBox.max.y);
+                if (dy > 400 || dy >= bestD) continue;
+                bestD = dy;
+                bestKey = wallId;
+            }
+            if (bestKey) return bestKey;
+            bestD = Infinity;
+        }
+        const sample = maStlDesing2Atk60SampleGroup;
+        if (sample) {
+            const boxes = Object.create(null);
+            const kids = sample.children || [];
+            for (let i = 0; i < kids.length; i++) {
+                const child = kids[i];
+                const wallId = maStlDesing2WorkerWallIdFromNode(child);
+                if (!wallId) continue;
+                child.updateMatrixWorld(true);
+                maStlDesing2WorkerWallBox.setFromObject(child);
+                if (maStlDesing2WorkerWallBox.isEmpty()) continue;
+                const slot = boxes[wallId];
+                if (!slot) {
+                    boxes[wallId] = maStlDesing2WorkerWallBox.clone();
+                } else {
+                    slot.union(maStlDesing2WorkerWallBox);
+                }
+            }
+            const keys = Object.keys(boxes);
+            for (let i = 0; i < keys.length; i++) {
+                const d = maStlDesing2XzDistanceToBox(x, z, boxes[keys[i]]);
+                if (d < bestD) {
+                    bestD = d;
+                    bestKey = keys[i];
+                }
+            }
+        }
+        if (maStlUserLinesGroup) {
+            const lines = maStlUserLinesGroup.children || [];
+            for (let i = 0; i < lines.length; i++) {
+                const ln = lines[i];
+                if (!maStlIsUserFloorPlanLineObject(ln)) continue;
+                const ud = ln.userData && ln.userData.maStlUserPlanLine;
+                if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+                const role = String(ud.wallRole || ud.WallRole || '').toLowerCase();
+                if (role !== 'axis' && role !== 'pillar') continue;
+                const wallId = ud.wallId != null
+                    ? String(ud.wallId)
+                    : (ud.wallGroupId != null ? String(ud.wallGroupId) : String(ud.id));
+                if (!wallId) continue;
+                const d = maStlDesing2XzDistanceToSegment(
+                    x, z, ud.p1Mm.x, ud.p1Mm.z, ud.p2Mm.x, ud.p2Mm.z
+                );
+                if (d < bestD) {
+                    bestD = d;
+                    bestKey = wallId;
+                }
+            }
+        }
+        if (!bestKey || bestD > MA_STL_DESING2_WORKER_WALL_REACH_MM) return null;
+        return bestKey;
+    }
+
+    function maStlDesing2DeletedWallKeySet(lineList) {
+        const set = Object.create(null);
+        const lines = Array.isArray(lineList) ? lineList : [];
+        for (let i = 0; i < lines.length; i++) {
+            const ud = lines[i] && lines[i].userData && lines[i].userData.maStlUserPlanLine;
+            if (!ud) continue;
+            const role = String(ud.wallRole || ud.WallRole || '').toLowerCase();
+            if (role !== 'axis' && role !== 'face' && role !== 'pillar' && ud.wallGroupId == null && ud.wallId == null) {
+                continue;
+            }
+            const keys = maStlDesing2WallKeyList(ud);
+            for (let k = 0; k < keys.length; k++) set[keys[k]] = true;
+        }
+        return set;
+    }
+
+    function maStlDesing2WorkerMatchesWallKeys(mesh, keySet) {
+        if (!mesh || !keySet) return false;
+        const stored = mesh.userData && mesh.userData.maStlWorkerWallId;
+        if (stored && keySet[String(stored)]) {
+            mesh.userData.maStlWorkerWallId = String(stored);
+            return true;
+        }
+        const resolved = maStlDesing2NearestWorkingWallKey(mesh.position.x, mesh.position.z, mesh.position.y);
+        if (!resolved || !keySet[String(resolved)]) return false;
+        if (!mesh.userData) mesh.userData = {};
+        mesh.userData.maStlWorkerWallId = String(resolved);
+        return true;
+    }
+
+    function maStlDesing2DropWorkersOfWallKeys(keySet) {
+        if (!maStlDesing2WorkerTool || typeof maStlDesing2WorkerTool.removeWhere !== 'function') return [];
+        if (!keySet || !Object.keys(keySet).length) return [];
+        return maStlDesing2WorkerTool.removeWhere(function (mesh) {
+            return maStlDesing2WorkerMatchesWallKeys(mesh, keySet);
+        });
+    }
+
     let maStlDesing2LastAtk60PaintPayload = { walls: [], elements: [] };
 
     function maStlDesing2EnsureAtk60SampleGroup() {
@@ -5634,7 +6562,7 @@ function bootMasterArticleDetailsStlViewer() {
             map[code] = (map[code] || 0) + 1;
         }
         return Object.keys(map).sort().map(function (code) {
-            return { code: code, qty: map[code] };
+            return { code: code, sceneCode: code, qty: map[code] };
         });
     }
 
@@ -5654,12 +6582,303 @@ function bootMasterArticleDetailsStlViewer() {
 
     window.maStlDesing2FormworkCountRows = maStlDesing2FormworkCountRows;
 
+    function maStlDesing2CountArticleCode(raw) {
+        let code = maStlDesing2Atk60CodeName(raw);
+        if (!code) return '';
+        return code.replace(/_FRAME$/i, '').replace(/_PHENOLIC$/i, '');
+    }
+
+    const maStlDesing2PropComponentCodes = [
+        'HTipo0', 'HTipo1', 'HTipo2', 'HTipo3', 'HTipo3-2', 'HTipo4-41',
+        'H03', 'H0_203', 'H0_2045', 'H0_2060', 'H0_2075', 'H0_2090',
+        'H0_2110', 'H0_2120', 'H0_2150', 'H0_2180', 'H0_2195',
+        'H0_2210', 'H0_2225', 'H0_2240', 'H0_2270', 'H0_2300', 'H0_237', 'H0_2375'
+    ];
+
+    function maStlDesing2CountComponentCodes(code, altCode) {
+        const keys = Object.create(null);
+        [code, altCode].forEach(function (value) {
+            const key = maStlDesing2CountArticleCode(value);
+            if (key) keys[key.toLowerCase()] = true;
+        });
+        if (keys['10000221'] || keys['10000221b']) {
+            keys['10000221'] = true;
+            keys['10000221b'] = true;
+        }
+        for (let i = 0; i < maStlDesing2PropComponentCodes.length; i++) {
+            if (keys[maStlDesing2PropComponentCodes[i].toLowerCase()]) {
+                for (let j = 0; j < maStlDesing2PropComponentCodes.length; j++) {
+                    keys[maStlDesing2PropComponentCodes[j].toLowerCase()] = true;
+                }
+                break;
+            }
+        }
+        return keys;
+    }
+
+    const maStlDesing2CountFadeOn = Object.create(null);
+    const maStlDesing2CountHideOn = Object.create(null);
+    let maStlDesing2CountSoloKey = '';
+    let maStlDesing2CountSoloHideKey = '';
+
+    function maStlDesing2PlacedArticleCode(obj) {
+        const ud = obj && obj.userData;
+        if (!ud) return '';
+        return maStlDesing2CountArticleCode(ud.maStlAtk60ElementCode || ud.maStlManualTextCode || '');
+    }
+
+    function maStlDesing2RememberBaseMat(mesh) {
+        if (!mesh || !mesh.userData) return null;
+        if (mesh.userData.maStlCountBaseMat) return mesh.userData.maStlCountBaseMat;
+        const cur = Array.isArray(mesh.material) ? null : mesh.material;
+        if (!cur || (cur.userData && cur.userData.maStlCountFade)) return null;
+        mesh.userData.maStlCountBaseMat = cur;
+        return cur;
+    }
+
+    function maStlDesing2SolidBaseMat(mat) {
+        if (!mat) return;
+        mat.opacity = 1;
+        mat.transparent = false;
+        mat.depthWrite = true;
+        mat.alphaTest = 0;
+        mat.needsUpdate = true;
+    }
+
+    function maStlDesing2CountFadeOpacity(root) {
+        const ud = (root && root.userData) || {};
+        const type = String(ud.maStlAtk60ElementType || '').toLowerCase();
+        const code = String(ud.maStlAtk60ElementCode || '');
+        if (type === 'panel' || /^PANEL_/i.test(code)) return 0.7;
+        return 0.5;
+    }
+
+    function maStlDesing2FadeMesh(mesh, faded, opacity) {
+        if (!mesh || !mesh.isMesh) return;
+        const base = maStlDesing2RememberBaseMat(mesh);
+        if (!base) return;
+        if (faded !== true) {
+            maStlDesing2SolidBaseMat(base);
+            mesh.material = base;
+            return;
+        }
+        const op = typeof opacity === 'number' ? opacity : 0.5;
+        let fadeMat = mesh.userData._maCountFadeMat;
+        if (!fadeMat || mesh.userData._maCountFadeOp !== op || fadeMat.userData.maStlCountFadeBase !== base.uuid) {
+            fadeMat = base.clone();
+            fadeMat.userData = { maStlCountFade: true, maStlCountFadeBase: base.uuid };
+            fadeMat.transparent = true;
+            fadeMat.opacity = op;
+            fadeMat.depthWrite = false;
+            fadeMat.alphaTest = 0;
+            fadeMat.needsUpdate = true;
+            mesh.userData._maCountFadeMat = fadeMat;
+            mesh.userData._maCountFadeOp = op;
+        }
+        maStlDesing2SolidBaseMat(base);
+        mesh.material = fadeMat;
+    }
+
+    function maStlDesing2ForEachPlacedArticle(code, altCode, fn) {
+        const wants = maStlDesing2CountComponentCodes(code, altCode);
+        if (!Object.keys(wants).length || !scene || typeof fn !== 'function') return;
+        scene.traverse(function (obj) {
+            if (!obj || !obj.userData) return;
+            const ud = obj.userData;
+            const placed = ud.maStlAtk60Element || ud.maStlAtk60SamplePlaced || ud.maStlManualWallArticle;
+            if (!placed) return;
+            const parentUd = obj.parent && obj.parent.userData;
+            if (parentUd && (parentUd.maStlAtk60Element || parentUd.maStlAtk60SamplePlaced || parentUd.maStlManualWallArticle)) return;
+            const got = maStlDesing2PlacedArticleCode(obj);
+            if (!got || !wants[got.toLowerCase()]) return;
+            fn(obj);
+        });
+    }
+
+    function maStlDesing2ApplyCountArticleOpacity(code, faded, altCode) {
+        maStlDesing2ForEachPlacedArticle(code, altCode, function (root) {
+            const op = maStlDesing2CountFadeOpacity(root);
+            root.traverse(function (child) {
+                if (child && child.isMesh) maStlDesing2FadeMesh(child, faded === true, op);
+            });
+        });
+    }
+
+    function maStlDesing2SetCountArticleOpacity(code, faded, altCode) {
+        const on = faded === true;
+        const key = maStlDesing2CountArticleCode(code) || maStlDesing2CountArticleCode(altCode);
+        if (key) {
+            if (on) maStlDesing2CountFadeOn[key.toLowerCase()] = altCode || '';
+            else delete maStlDesing2CountFadeOn[key.toLowerCase()];
+        }
+        maStlDesing2ApplyCountArticleOpacity(code, on, altCode);
+    }
+
+    function maStlDesing2SetCountArticleHidden(code, hidden, altCode) {
+        const on = hidden === true;
+        const key = maStlDesing2CountArticleCode(code) || maStlDesing2CountArticleCode(altCode);
+        if (key) {
+            if (on) maStlDesing2CountHideOn[key.toLowerCase()] = altCode || '';
+            else delete maStlDesing2CountHideOn[key.toLowerCase()];
+        }
+        maStlDesing2ApplyCountArticleHidden(code, on, altCode);
+    }
+
+    function maStlDesing2ApplyCountArticleHidden(code, hidden, altCode) {
+        maStlDesing2ForEachPlacedArticle(code, altCode, function (root) {
+            root.visible = hidden !== true;
+        });
+    }
+
+    function maStlDesing2EachPlacedRoot(fn) {
+        if (!scene || typeof fn !== 'function') return;
+        scene.traverse(function (obj) {
+            if (!obj || !obj.userData) return;
+            const ud = obj.userData;
+            const placed = ud.maStlAtk60Element || ud.maStlAtk60SamplePlaced || ud.maStlManualWallArticle;
+            if (!placed) return;
+            const parentUd = obj.parent && obj.parent.userData;
+            if (parentUd && (parentUd.maStlAtk60Element || parentUd.maStlAtk60SamplePlaced || parentUd.maStlManualWallArticle)) return;
+            fn(obj);
+        });
+    }
+
+    function maStlDesing2ResetCountArticleAppearance() {
+        Object.keys(maStlDesing2CountFadeOn).forEach(function (key) { delete maStlDesing2CountFadeOn[key]; });
+        Object.keys(maStlDesing2CountHideOn).forEach(function (key) { delete maStlDesing2CountHideOn[key]; });
+        maStlDesing2CountSoloKey = '';
+        maStlDesing2CountSoloHideKey = '';
+        maStlDesing2EachPlacedRoot(function (root) {
+            root.visible = true;
+            root.traverse(function (child) {
+                if (child && child.isMesh) maStlDesing2FadeMesh(child, false);
+            });
+        });
+    }
+
+    function maStlDesing2ApplyCountArticleSolo(code, altCode) {
+        const keep = maStlDesing2CountComponentCodes(code, altCode);
+        if (!Object.keys(keep).length) return;
+        const keepKey = (maStlDesing2CountArticleCode(code) || maStlDesing2CountArticleCode(altCode) || '').toLowerCase();
+        if (!keepKey) return;
+        maStlDesing2CountSoloKey = keepKey;
+        maStlDesing2EachPlacedRoot(function (root) {
+            root.visible = true;
+            const got = maStlDesing2PlacedArticleCode(root).toLowerCase();
+            const fade = !!got && !keep[got];
+            const op = maStlDesing2CountFadeOpacity(root);
+            root.traverse(function (child) {
+                if (child && child.isMesh) maStlDesing2FadeMesh(child, fade, op);
+            });
+        });
+    }
+
+    function maStlDesing2SetCountArticleSolo(code, on, altCode) {
+        maStlDesing2ResetCountArticleAppearance();
+        if (on === true) maStlDesing2ApplyCountArticleSolo(code, altCode);
+    }
+
+    function maStlDesing2ApplyCountArticleSoloHide(code, altCode) {
+        const keep = maStlDesing2CountComponentCodes(code, altCode);
+        if (!Object.keys(keep).length) return;
+        const keepKey = (maStlDesing2CountArticleCode(code) || maStlDesing2CountArticleCode(altCode) || '').toLowerCase();
+        if (!keepKey) return;
+        maStlDesing2CountSoloHideKey = keepKey;
+        maStlDesing2EachPlacedRoot(function (root) {
+            const got = maStlDesing2PlacedArticleCode(root).toLowerCase();
+            root.visible = !got || !!keep[got];
+        });
+    }
+
+    function maStlDesing2SetCountArticleSoloHide(code, on, altCode) {
+        maStlDesing2ResetCountArticleAppearance();
+        if (on === true) maStlDesing2ApplyCountArticleSoloHide(code, altCode);
+    }
+
+    function maStlDesing2ReapplyCountArticleOpacity() {
+        if (maStlDesing2CountSoloKey) {
+            maStlDesing2ApplyCountArticleSolo(maStlDesing2CountSoloKey, '');
+            return;
+        }
+        if (maStlDesing2CountSoloHideKey) {
+            maStlDesing2ApplyCountArticleSoloHide(maStlDesing2CountSoloHideKey, '');
+            return;
+        }
+        const fadeKeys = Object.keys(maStlDesing2CountFadeOn);
+        for (let i = 0; i < fadeKeys.length; i++) {
+            maStlDesing2ApplyCountArticleOpacity(fadeKeys[i], true, maStlDesing2CountFadeOn[fadeKeys[i]]);
+        }
+        const hideKeys = Object.keys(maStlDesing2CountHideOn);
+        for (let h = 0; h < hideKeys.length; h++) {
+            maStlDesing2ApplyCountArticleHidden(hideKeys[h], true, maStlDesing2CountHideOn[hideKeys[h]]);
+        }
+    }
+
+    function maStlDesing2MeshPaintHex(mesh) {
+        if (!mesh || !mesh.isMesh) return '';
+        const mat = (mesh.userData && mesh.userData.maStlCountBaseMat)
+            || (Array.isArray(mesh.material) ? mesh.material[0] : mesh.material);
+        if (!mat || !mat.color || typeof mat.color.getHexString !== 'function') return '';
+        const hex = '#' + mat.color.getHexString();
+        return hex.toLowerCase() === '#000000' ? '' : hex;
+    }
+
+    function maStlDesing2CountArticlePaintColors(code, altCode) {
+        let frame = '';
+        let phenolic = '';
+        let any = '';
+        maStlDesing2ForEachPlacedArticle(code, altCode, function (root) {
+            const ud = root.userData || {};
+            const type = String(ud.maStlAtk60ElementType || '').toLowerCase();
+            const raw = String(ud.maStlAtk60ElementCode || '');
+            const isPanel = type === 'panel' || /^PANEL_/i.test(raw);
+            root.traverse(function (child) {
+                const hex = maStlDesing2MeshPaintHex(child);
+                if (!hex) return;
+                if (isPanel && maStlDesing2Atk60IsPhenolicMesh(child)) {
+                    if (!phenolic) phenolic = hex;
+                    return;
+                }
+                if (isPanel && maStlDesing2Atk60IsFrameMesh(child)) {
+                    if (!frame) frame = hex;
+                    return;
+                }
+                if (!any) any = hex;
+            });
+        });
+        const color1 = frame || any;
+        if (!color1 && !phenolic) return null;
+        return { color1: color1 || phenolic, color2: phenolic || color1 };
+    }
+
+    window.maStlDesing2SetCountArticleOpacity = maStlDesing2SetCountArticleOpacity;
+    window.maStlDesing2SetCountArticleHidden = maStlDesing2SetCountArticleHidden;
+    window.maStlDesing2ResetCountArticleAppearance = maStlDesing2ResetCountArticleAppearance;
+    window.maStlDesing2SetCountArticleSolo = maStlDesing2SetCountArticleSolo;
+    window.maStlDesing2SetCountArticleSoloHide = maStlDesing2SetCountArticleSoloHide;
+    window.maStlDesing2CountArticlePaintColors = maStlDesing2CountArticlePaintColors;
+
     function maStlDesing2SyncAtk60SampleVisibility() {
         const show = maStlDesing2SpecialWallArticlesVisible();
         if (maStlDesing2Atk60SampleGroup)
             maStlDesing2Atk60SampleGroup.visible = show;
         maStlDesing2SyncManualArticleVisibility();
         maStlDesing2SyncMaterialCountButton();
+        maStlDesing2SyncWorkerVisibility();
+    }
+
+    function maStlDesing2FormworkViewOn() {
+        if (maStlDesing2ModelMode !== 'wall3d') return false;
+        if (!maStlDesing2SpecialWallArticlesVisible()) return false;
+        const items = maStlDesing2LastAtk60PaintPayload && maStlDesing2LastAtk60PaintPayload.elements;
+        return Array.isArray(items) && items.length > 0;
+    }
+
+    function maStlDesing2SyncWorkerVisibility() {
+        if (!maStlDesing2WorkerTool || typeof maStlDesing2WorkerTool.setVisible !== 'function') return;
+        const on = maStlDesing2FormworkViewOn();
+        maStlDesing2WorkerTool.setVisible(on);
+        if (!on && maStlIsWorkerToolActive()) maStlStopWorkerTool();
     }
 
     function maStlDesing2MaybeMetersToSceneMm(v) {
@@ -5821,10 +7040,8 @@ function bootMasterArticleDetailsStlViewer() {
 
     function maStlDesing2GetAtk60RigidMaterial() {
         if (!maStlDesing2GetAtk60RigidMaterial._mat) {
-            maStlDesing2GetAtk60RigidMaterial._mat = new THREE.MeshStandardMaterial({
-                color: 0x3498db,
-                metalness: 0.35,
-                roughness: 0.45,
+            maStlDesing2GetAtk60RigidMaterial._mat = new THREE.MeshLambertMaterial({
+                color: 0x2a7ab8,
             });
         }
         return maStlDesing2GetAtk60RigidMaterial._mat;
@@ -5832,10 +7049,8 @@ function bootMasterArticleDetailsStlViewer() {
 
     function maStlDesing2GetAtk60PropMaterial() {
         if (!maStlDesing2GetAtk60PropMaterial._mat) {
-            maStlDesing2GetAtk60PropMaterial._mat = new THREE.MeshStandardMaterial({
+            maStlDesing2GetAtk60PropMaterial._mat = new THREE.MeshLambertMaterial({
                 color: 0x908f8e,
-                metalness: 0.35,
-                roughness: 0.5,
             });
         }
         return maStlDesing2GetAtk60PropMaterial._mat;
@@ -5843,10 +7058,8 @@ function bootMasterArticleDetailsStlViewer() {
 
     function maStlDesing2GetAtk60PropInnerMaterial() {
         if (!maStlDesing2GetAtk60PropInnerMaterial._mat) {
-            maStlDesing2GetAtk60PropInnerMaterial._mat = new THREE.MeshStandardMaterial({
+            maStlDesing2GetAtk60PropInnerMaterial._mat = new THREE.MeshLambertMaterial({
                 color: 0xdcdbda,
-                metalness: 0.28,
-                roughness: 0.48,
             });
         }
         return maStlDesing2GetAtk60PropInnerMaterial._mat;
@@ -5854,10 +7067,8 @@ function bootMasterArticleDetailsStlViewer() {
 
     function maStlDesing2GetAtk60WoodMaterial() {
         if (!maStlDesing2GetAtk60WoodMaterial._mat) {
-            maStlDesing2GetAtk60WoodMaterial._mat = new THREE.MeshStandardMaterial({
+            maStlDesing2GetAtk60WoodMaterial._mat = new THREE.MeshLambertMaterial({
                 color: 0xc4894a,
-                metalness: 0.02,
-                roughness: 0.78,
             });
         }
         return maStlDesing2GetAtk60WoodMaterial._mat;
@@ -6451,6 +7662,8 @@ function bootMasterArticleDetailsStlViewer() {
     function maStlDesing2ClearAtk60Visuals() {
         maStlDesing2LastAtk60PaintPayload = { walls: [], elements: [] };
         maStlDesing2SyncMaterialCountButton();
+        maStlSyncDesing2ModeToolbarUi();
+        maStlDesing2SyncWorkerVisibility();
         if (!maStlDesing2Atk60SampleGroup) return;
         for (let i = maStlDesing2Atk60SampleGroup.children.length - 1; i >= 0; i--) {
             maStlDesing2Atk60SampleGroup.remove(maStlDesing2Atk60SampleGroup.children[i]);
@@ -6469,6 +7682,7 @@ function bootMasterArticleDetailsStlViewer() {
         const drawDebugProxy = options.drawDebugProxy === true;
         maStlDesing2LastAtk60PaintPayload.elements = sourceElements.slice();
         maStlDesing2SyncMaterialCountButton();
+        maStlDesing2SyncWorkerVisibility();
 
         if (clearPrevious) {
             for (let i = sampleGroup.children.length - 1; i >= 0; i--) {
@@ -6584,7 +7798,10 @@ function bootMasterArticleDetailsStlViewer() {
                         });
                     }
                     if (elementCode === '4120000042') {
-                        maStlDesing2PaintBracketTube(unionClone);
+                        const rigidMat = maStlDesing2GetAtk60RigidMaterial();
+                        unionClone.traverse(function (obj) {
+                            if (obj && obj.isMesh) obj.material = rigidMat;
+                        });
                     } else if (elementCode === '1850162' || elementCode === '1850163' || elementCode === '1850164') {
                         const rigidMat = maStlDesing2GetAtk60RigidMaterial();
                         unionClone.traverse(function (obj) {
@@ -6638,6 +7855,24 @@ function bootMasterArticleDetailsStlViewer() {
                 const template = await maStlDesing2EnsureAtk60ElementTemplate(item.ImportPath);
                 const clone = template.clone(true);
                 maStlDesing2ApplyAtk60PanelColors(clone);
+                const paintColor = item.Color != null ? String(item.Color).toLowerCase() : '';
+                if (paintColor === 'phenolic') {
+                    clone.traverse(function (obj) {
+                        if (obj && obj.isMesh) {
+                            maStlDesing2ApplyAtk60MeshMaterial(obj, MA_STL_DESING2_ATK60_COLOR_PHENOLIC_HEX, false);
+                        }
+                    });
+                } else if (elementCode === '1920811') {
+                    const hookMat = maStlDesing2GetAtk60RigidMaterial();
+                    clone.traverse(function (obj) {
+                        if (obj && obj.isMesh) obj.material = hookMat;
+                    });
+                } else if (elementCode === '10443020') {
+                    const nutMat = maStlDesing2GetAtk60UnionMaterial();
+                    clone.traverse(function (obj) {
+                        if (obj && obj.isMesh) obj.material = nutMat;
+                    });
+                }
 
                 const pieceWidthMm = Math.max(10, maStlDesing2ToFiniteNumber(item.PieceWidthMm) || 900);
                 const pieceHeightMm = Math.max(10, maStlDesing2ToFiniteNumber(item.PieceHeightMm) || 2700);
@@ -6652,7 +7887,9 @@ function bootMasterArticleDetailsStlViewer() {
                 const box = new THREE.Box3().setFromObject(clone);
                 const size = new THREE.Vector3();
                 box.getSize(size);
-                if (size.y > 1e-6 && size.x > 1e-6 && size.z > 1e-6) {
+                const keepNativePillarPanel = useStrictPose
+                    && /^(27104219|24104224|12104120|1920811|10443020)$/.test(elementCode);
+                if (!keepNativePillarPanel && size.y > 1e-6 && size.x > 1e-6 && size.z > 1e-6) {
                     if (isTumbado) {
                         // Tras Rz(-90) el canto corto está en Y y el largo en X.
                         // El largo tiene que medir el ancho de la pieza: si se escala
@@ -6673,16 +7910,25 @@ function bootMasterArticleDetailsStlViewer() {
                     const strictRotY = rotY + maStlDesing2NormalizeAngleToRad(item.BaseRotY);
                     const strictRotZ = maStlDesing2NormalizeAngleToRad(item.RotZ)
                         + maStlDesing2NormalizeAngleToRad(item.BaseRotZ);
-                    clone.rotation.set(strictRotX, strictRotY, strictRotZ);
-                    clone.position.set(x, y, z);
+                    if (orientationRaw === 'pillar') {
+                        const qLocal = new THREE.Quaternion().setFromEuler(
+                            new THREE.Euler(strictRotX, 0, strictRotZ, 'XYZ'));
+                        const qYaw = new THREE.Quaternion().setFromAxisAngle(
+                            new THREE.Vector3(0, 1, 0), strictRotY);
+                        clone.quaternion.copy(qYaw).multiply(qLocal);
+                        clone.position.set(x, y, z);
+                    } else {
+                        clone.rotation.set(strictRotX, strictRotY, strictRotZ);
+                        clone.position.set(x, y, z);
 
-                    const offsetX = maStlDesing2ToFiniteNumber(item.InsertOffsetX) || 0;
-                    const offsetY = maStlDesing2ToFiniteNumber(item.InsertOffsetY) || 0;
-                    const offsetZ = maStlDesing2ToFiniteNumber(item.InsertOffsetZ) || 0;
-                    if (offsetX || offsetY || offsetZ) {
-                        const offset = new THREE.Vector3(offsetX, offsetY, offsetZ);
-                        offset.applyEuler(clone.rotation);
-                        clone.position.add(offset);
+                        const offsetX = maStlDesing2ToFiniteNumber(item.InsertOffsetX) || 0;
+                        const offsetY = maStlDesing2ToFiniteNumber(item.InsertOffsetY) || 0;
+                        const offsetZ = maStlDesing2ToFiniteNumber(item.InsertOffsetZ) || 0;
+                        if (offsetX || offsetY || offsetZ) {
+                            const offset = new THREE.Vector3(offsetX, offsetY, offsetZ);
+                            offset.applyEuler(clone.rotation);
+                            clone.position.add(offset);
+                        }
                     }
                     clone.updateMatrixWorld(true);
                     clone.userData = Object.assign({}, clone.userData || {}, {
@@ -6807,6 +8053,8 @@ function bootMasterArticleDetailsStlViewer() {
         }
 
         maStlDesing2AfterAtk60SceneChange();
+        maStlDesing2ReapplyCountArticleOpacity();
+        maStlSyncDesing2ModeToolbarUi();
         return {
             inserted: inserted,
             requested: sourceElements.length,
@@ -6884,8 +8132,17 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     if (typeof window !== 'undefined') {
+        window.maStlDesing2MergeCollinearAxisRuns = maStlWall2dToolMergeCollinearAxisRuns;
+        window.maStlDesing2ReleaseEmptySpecialWalls = maStlDesing2ReleaseEmptySpecialWalls;
         window.maStlDesing2GetStraightWallsForFormwork = maStlBuildStraightWallsForFormwork;
         window.maStlDesing2GetStraightWallsFromScene = maStlBuildStraightWallsFromScene;
+        window.maStlDesing2PropSpacingMm = function () { return desing2PropSpacingMm; };
+        window.maStlDesing2ClearAtk60Visuals = maStlDesing2ClearAtk60Visuals;
+        window.maStlDesing2HasFormworkPanels = function () {
+            if (maStlFormworkEnvHasAtk60FormworkPanels()) return true;
+            const payload = maStlDesing2LastAtk60PaintPayload;
+            return !!(payload && Array.isArray(payload.elements) && payload.elements.length > 0);
+        };
         window.maStlDesing2GetStraightWallsFromWallModelSource = maStlBuildStraightWallsFromWallModelSource;
         window.maStlDesing2BuildWallConnectionsPayload = maStlBuildWallConnectionsPayload;
         window.maStlDesing2RenderAtk60AnchorPoints = maStlDesing2RenderAtk60AnchorPoints;
@@ -7093,6 +8350,7 @@ function bootMasterArticleDetailsStlViewer() {
             maStlInvalidateUserFloorDimGuideGeomCache();
             rebuildMaStlUcsOverlayDecor(lastMaxDim);
             maStlReapplyAllUserFloorWallAxisLineStyles();
+            maStlRefreshPillarGuides();
             maStlHideUserFloorLineDimHud(true);
             maStlSyncRulerAnchorCoordsHud();
         } finally {
@@ -7315,7 +8573,7 @@ function bootMasterArticleDetailsStlViewer() {
             if (!maStlIsUserFloorPlanLineObject(line)) continue;
             const ud = line.userData && line.userData.maStlUserPlanLine;
             if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
-            if (ud.wallRole === 'axis') continue;
+            if (ud.wallRole === 'axis' || ud.wallRole === 'pillar') continue;
             if (ud.wallRole === 'face') faces.push(line);
             else plain.push(line);
         }
@@ -7394,6 +8652,18 @@ function bootMasterArticleDetailsStlViewer() {
         }
         const built = maStlDesing2BuildWallModelDetectionPayload();
         if (!built.payload.Lineas.length) {
+            let pillarCount = 0;
+            maStlForEachPillarPlanLine(function () { pillarCount++; });
+            if (pillarCount > 0) {
+                if (onSuccess) {
+                    onSuccess({
+                        PolilineasADibujar: [],
+                        TotalMurosRectos: 0,
+                        TotalEsquinasDetectadas: 0,
+                    }, built.payload);
+                }
+                return;
+            }
             const noLines = new Error('No hay líneas fuente para generar el modelo');
             maStlDesing2SetWallModelRenderingVisible(false);
             if (onError) onError(noLines);
@@ -7992,6 +9262,7 @@ function bootMasterArticleDetailsStlViewer() {
      * @returns {{ stripCount: number, junctionCount: number, fromFaceStrips: boolean }}
      */
     function maStlDesing2BuildWallModelFromFaceStrips(mode) {
+        maStlDesing2PersistCollinearAxisMerge();
         const faceStrips = maStlWall2dModelCollectWallFaceStrips();
         if (!faceStrips.length) {
             return { stripCount: 0, junctionCount: 0, fromFaceStrips: false };
@@ -8627,8 +9898,115 @@ function bootMasterArticleDetailsStlViewer() {
         return segments.length > 0;
     }
 
+    function maStlPillarFootprintPointsMm(ud) {
+        const cx = (ud.p1Mm.x + ud.p2Mm.x) * 0.5;
+        const cz = (ud.p1Mm.z + ud.p2Mm.z) * 0.5;
+        const dx = ud.p2Mm.x - ud.p1Mm.x;
+        const dz = ud.p2Mm.z - ud.p1Mm.z;
+        const longMm = Math.max(Math.hypot(dx, dz), 100);
+        const widthMm = ud.pillarWidthMm >= 100 ? ud.pillarWidthMm : 300;
+        const ax = dx / longMm;
+        const az = dz / longMm;
+        const px = -az;
+        const pz = ax;
+        const hl = longMm * 0.5;
+        const hw = widthMm * 0.5;
+        return [
+            { x: cx - ax * hl - px * hw, z: cz - az * hl - pz * hw },
+            { x: cx + ax * hl - px * hw, z: cz + az * hl - pz * hw },
+            { x: cx + ax * hl + px * hw, z: cz + az * hl + pz * hw },
+            { x: cx - ax * hl + px * hw, z: cz - az * hl + pz * hw },
+        ];
+    }
+
+    function maStlForEachPillarPlanLine(fn) {
+        if (!maStlUserLinesGroup || typeof fn !== 'function') return;
+        const ch = maStlUserLinesGroup.children;
+        for (let i = 0; i < ch.length; i++) {
+            const line = ch[i];
+            if (!maStlIsUserFloorPlanLineObject(line)) continue;
+            const ud = line.userData && line.userData.maStlUserPlanLine;
+            if (!ud || ud.wallRole !== 'pillar' || !ud.p1Mm || !ud.p2Mm) continue;
+            fn(line, ud);
+        }
+    }
+
+    function maStlStampPillarsWithDefaultWallHeight() {
+        const heightM = maStlRoundMeters3(MA_STL_WALL3D_DEFAULT_HEIGHT_MM / 1000);
+        maStlForEachPillarPlanLine(function (_line, ud) {
+            const current = Number(ud._DataHeight);
+            if (ud._DataHeight == null || !Number.isFinite(current) || current <= 0) {
+                ud._DataHeight = heightM;
+            }
+            maStlWallLineEnsureAttrs(ud);
+        });
+    }
+
+    function maStlAddPillarModelMeshes(mode) {
+        maStlForEachPillarPlanLine(function (_line, ud) {
+            const points = maStlPillarFootprintPointsMm(ud);
+            if (mode === 'wall3d') {
+                if (!maStlWall3dMeshesGroup) return;
+                const shape = new THREE.Shape();
+                shape.moveTo(points[0].x, -points[0].z);
+                for (let i = 1; i < points.length; i++) {
+                    shape.lineTo(points[i].x, -points[i].z);
+                }
+                shape.closePath();
+                const geo = new THREE.ExtrudeGeometry(shape, {
+                    depth: maStlWallLineResolveHeightMm(ud),
+                    bevelEnabled: false,
+                });
+                geo.rotateX(-Math.PI / 2);
+                geo.computeVertexNormals();
+                const baseMat = maStlWall3dEnsureSharedMaterial('wall');
+                const mesh = new THREE.Mesh(geo, baseMat.clone ? baseMat.clone() : baseMat);
+                mesh.userData.maStlWall3dGenerated = true;
+                mesh.userData.maStlWall3dKind = 'pillar';
+                mesh.userData.pillarLineId = ud.id;
+                mesh.castShadow = false;
+                mesh.receiveShadow = false;
+                maStlWall3dMeshesGroup.add(mesh);
+                if (clipStlMeshes.indexOf(mesh) < 0) clipStlMeshes.push(mesh);
+                maStlWall3dExpandClipBoundsForMesh(mesh);
+                return;
+            }
+            const mesh2d = maStlWall2dModelAddPolygon(points, MA_STL_WALL_MODEL_COLOR_WALL, 1, 'pillar');
+            if (mesh2d) {
+                mesh2d.userData.pillarLineId = ud.id;
+                mesh2d.raycast = THREE.Mesh.prototype.raycast;
+            }
+        });
+    }
+
+    function maStlStripPillarModelMeshes(group) {
+        if (!group) return;
+        const drop = [];
+        group.traverse(function (obj) {
+            if (obj && obj.isMesh && obj.userData && obj.userData.pillarLineId != null) drop.push(obj);
+        });
+        for (let i = 0; i < drop.length; i++) {
+            const mesh = drop[i];
+            if (mesh.geometry) mesh.geometry.dispose();
+            if (mesh.parent) mesh.parent.remove(mesh);
+            const clipIdx = clipStlMeshes.indexOf(mesh);
+            if (clipIdx >= 0) clipStlMeshes.splice(clipIdx, 1);
+        }
+    }
+
+    function maStlRefreshPillarModelIfVisible() {
+        if (maStlDesing2ModelMode === 'wall2d') {
+            maStlStripPillarModelMeshes(maStlWall2dModelMeshesGroup);
+            maStlAddPillarModelMeshes('wall2d');
+        } else if (maStlDesing2ModelMode === 'wall3d') {
+            maStlStripPillarModelMeshes(maStlWall3dMeshesGroup);
+            maStlAddPillarModelMeshes('wall3d');
+        }
+    }
+
     function maStlDesing2SetModelModeLines() {
         maStlDesing2ModelMode = 'lines';
+        if (maStlPillarGuideGroup) maStlPillarGuideGroup.visible = true;
         maStlDesing2SyncAtk60SampleVisibility();
         maStlDesing2SetWallModelRenderingVisible(false);
         if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
@@ -8649,8 +10027,10 @@ function bootMasterArticleDetailsStlViewer() {
 
     function maStlDesing2ApplyWall2dModelMode() {
         if (maStlDesing2WallModelBusy) return;
+        maStlDesing2PersistCollinearAxisMerge();
         if (maStlDesing2WallModelCacheHit('wall2d')) {
             maStlDesing2ModelMode = 'wall2d';
+            if (maStlPillarGuideGroup) maStlPillarGuideGroup.visible = false;
             maStlDesing2SyncAtk60SampleVisibility();
             if (maStlWall3dMeshesGroup) maStlWall3dMeshesGroup.visible = false;
             if (maStlWall2dModelMeshesGroup) maStlWall2dModelMeshesGroup.visible = true;
@@ -8659,6 +10039,7 @@ function bootMasterArticleDetailsStlViewer() {
             return;
         }
         maStlDesing2ModelMode = 'wall2d';
+        if (maStlPillarGuideGroup) maStlPillarGuideGroup.visible = false;
         maStlDesing2SyncAtk60SampleVisibility();
         if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
         if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
@@ -8683,6 +10064,7 @@ function bootMasterArticleDetailsStlViewer() {
                     maStlWall2dModelAddFlatPolylinesFromDetection(datos) +
                     maStlAtk60RenderJunctionFootprints2d();
             }
+            maStlAddPillarModelMeshes('wall2d');
             maStlDesing2LastWallModelDetection = maStlDesing2SummarizeWallModelDetection(
                 'wall2d',
                 payload,
@@ -8697,6 +10079,7 @@ function bootMasterArticleDetailsStlViewer() {
         }, function (err) {
             maStlDesing2SetSourceLinesVisible(true);
             maStlDesing2ModelMode = 'lines';
+            if (maStlPillarGuideGroup) maStlPillarGuideGroup.visible = true;
             maStlSyncDesing2ModeToolbarUi();
             maStlDesing2ShowSaveViewToast(err && err.message ? err.message : String(err || 'Error modelo muro'));
         });
@@ -8704,8 +10087,13 @@ function bootMasterArticleDetailsStlViewer() {
 
     function maStlDesing2ApplyWall3dModelMode() {
         if (maStlDesing2WallModelBusy) return;
+        maStlStampPillarsWithDefaultWallHeight();
+        maStlDesing2ReleaseEmptySpecialWalls();
+        maStlDesing2PersistCollinearAxisMerge();
         if (maStlDesing2WallModelCacheHit('wall3d')) {
+            maStlDesing2ClearAtk60Visuals();
             maStlDesing2ModelMode = 'wall3d';
+            if (maStlPillarGuideGroup) maStlPillarGuideGroup.visible = false;
             maStlDesing2SyncAtk60SampleVisibility();
             if (maStlWall2dModelMeshesGroup) maStlWall2dModelMeshesGroup.visible = false;
             if (maStlWall3dMeshesGroup) maStlWall3dMeshesGroup.visible = true;
@@ -8715,6 +10103,7 @@ function bootMasterArticleDetailsStlViewer() {
         }
         maStlDesing2ClearAtk60Visuals();
         maStlDesing2ModelMode = 'wall3d';
+        if (maStlPillarGuideGroup) maStlPillarGuideGroup.visible = false;
         maStlDesing2SyncAtk60SampleVisibility();
         if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
         if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
@@ -8728,6 +10117,8 @@ function bootMasterArticleDetailsStlViewer() {
         maStlClearUserFloorLineSelection();
         maStlWall3dModelClearGenerated();
         maStlDesing2LastWallModelDetection = null;
+        if (maStlWall2dModelMeshesGroup) maStlWall2dModelMeshesGroup.visible = false;
+        if (maStlWall3dMeshesGroup) maStlWall3dMeshesGroup.visible = true;
         maStlDesing2SetSourceLinesVisible(false);
         maStlSyncDesing2ModeToolbarUi();
         maStlDesing2RequestWallModelDetection('wall3d', function (datos, payload) {
@@ -8738,6 +10129,7 @@ function bootMasterArticleDetailsStlViewer() {
                 count =
                     maStlWall3dAddMeshesFromDetection(datos) + maStlAtk60RenderJunctionFootprints3d();
             }
+            maStlAddPillarModelMeshes('wall3d');
             maStlDesing2LastWallModelDetection = maStlDesing2SummarizeWallModelDetection(
                 'wall3d',
                 payload,
@@ -8755,6 +10147,7 @@ function bootMasterArticleDetailsStlViewer() {
         }, function (err) {
             maStlDesing2SetSourceLinesVisible(true);
             maStlDesing2ModelMode = 'lines';
+            if (maStlPillarGuideGroup) maStlPillarGuideGroup.visible = true;
             maStlSyncDesing2ModeToolbarUi();
             var message = err && err.message ? err.message : String(err || 'Error modelo 3D');
             maStlDesing2ShowSaveViewToast(message);
@@ -9664,6 +11057,16 @@ function bootMasterArticleDetailsStlViewer() {
             maStlInsertEnclosureToolToggleBtn.setAttribute('aria-pressed', onInsertEnclosure ? 'true' : 'false');
             maStlInsertEnclosureToolToggleBtn.classList.toggle('active', onInsertEnclosure);
         }
+        if (maStlInsertWorkerToolToggleBtn) {
+            const onWorker = maStlIsWorkerToolActive();
+            maStlInsertWorkerToolToggleBtn.setAttribute('aria-pressed', onWorker ? 'true' : 'false');
+            maStlInsertWorkerToolToggleBtn.classList.toggle('active', onWorker);
+        }
+        if (maStlInsertPillarToolToggleBtn) {
+            const onPillar = maStlIsPillarToolActive();
+            maStlInsertPillarToolToggleBtn.setAttribute('aria-pressed', onPillar ? 'true' : 'false');
+            maStlInsertPillarToolToggleBtn.classList.toggle('active', onPillar);
+        }
         if (maStlWall2dToolToggleBtn) {
             const onWall2d = maStlIsWall2dToolActive();
             maStlWall2dToolToggleBtn.setAttribute('aria-pressed', onWall2d ? 'true' : 'false');
@@ -9675,6 +11078,11 @@ function bootMasterArticleDetailsStlViewer() {
 
     function maStlSyncDesing2ModeToolbarUi() {
         const mode = maStlIsWall3dToolActive() ? 'wall3d' : maStlDesing2ModelMode || 'lines';
+        var formworkBtn = document.getElementById('ma-stl-mode-formwork');
+        var formed = mode === 'wall3d'
+            && maStlDesing2LastAtk60PaintPayload
+            && Array.isArray(maStlDesing2LastAtk60PaintPayload.elements)
+            && maStlDesing2LastAtk60PaintPayload.elements.length > 0;
         const rows = [
             { btn: maStlModeLinesToggleBtn, mode: 'lines' },
             { btn: maStlModeWall2dToggleBtn, mode: 'wall2d' },
@@ -9683,9 +11091,13 @@ function bootMasterArticleDetailsStlViewer() {
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             if (!row.btn) continue;
-            const on = row.mode === mode;
+            const on = row.mode === mode && !(formed && row.mode === 'wall3d');
             row.btn.setAttribute('aria-pressed', on ? 'true' : 'false');
             row.btn.classList.toggle('active', on);
+        }
+        if (formworkBtn) {
+            formworkBtn.classList.toggle('active', formed);
+            formworkBtn.setAttribute('aria-pressed', formed ? 'true' : 'false');
         }
     }
 
@@ -10211,6 +11623,13 @@ function bootMasterArticleDetailsStlViewer() {
     function maStlDesing2ActivateToolbarCommandById(btnId, options) {
         if (!btnId || !maStlDesingV2Viewer) return false;
         if (btnId === 'ma-stl-tool-line') btnId = 'ma-stl-tool-polyline';
+        if (btnId === 'ma-stl-tool-insert-worker') {
+            if (maStlIsWorkerToolActive()) return false;
+            maStlStartWorkerTool();
+            return true;
+        }
+        if (maStlIsWorkerToolActive()) maStlStopWorkerTool();
+        if (btnId !== 'ma-stl-tool-pillars' && maStlIsPillarToolActive()) maStlStopPillarTool();
         if (maStlDesing2ModelMode !== 'lines') {
             maStlDesing2SetModelModeLines();
         }
@@ -10252,6 +11671,10 @@ function bootMasterArticleDetailsStlViewer() {
             case 'ma-stl-tool-insert-enclosure':
                 if (maStlIsInsertEnclosureToolActive()) return false;
                 maStlStartInsertEnclosureToolModesToolbar();
+                return true;
+            case 'ma-stl-tool-pillars':
+                if (maStlIsPillarToolActive()) return false;
+                maStlStartPillarTool();
                 return true;
             default:
                 return false;
@@ -11384,6 +12807,7 @@ function bootMasterArticleDetailsStlViewer() {
     /** Activa polilínea Desing_2 → `picking1`; cada clic posterior encadena un segmento independiente. */
     function maStlStartPolylineToolModesToolbar() {
         if (maStlIsPolylineToolPlacementActive()) return;
+        if (maStlIsWorkerToolActive()) maStlStopWorkerTool();
         maStlDesing2ClearAtk60Visuals();
         maStlWall2dToolResumeState = null;
         if (maStlIsWall2dToolActive()) maStlStopWall2dToolModesToolbar(false);
@@ -11418,6 +12842,7 @@ function bootMasterArticleDetailsStlViewer() {
     /** Activa muro 2D Desing_2 → polilínea con eje + caras (±espesor/2) y esquinas a inglete. */
     function maStlStartWall2dToolModesToolbar(options) {
         if (maStlIsWall2dToolPlacementActive()) return;
+        if (maStlIsWorkerToolActive()) maStlStopWorkerTool();
         maStlDesing2ClearAtk60Visuals();
         if (maStlIsPolylineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
         if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
@@ -12827,6 +14252,111 @@ function bootMasterArticleDetailsStlViewer() {
         return true;
     }
 
+    /** Une los tramos colineales y, si quitó alguno, guarda los muros sin foto. */
+    function maStlDesing2PersistCollinearAxisMerge() {
+        const removed = maStlWall2dToolMergeCollinearAxisRuns();
+        if (!(removed > 0)) return 0;
+        maStlDesing2SaveDesignWallsToServer({ includePhoto: false, quiet: true }).catch(function () {});
+        return removed;
+    }
+
+    /**
+     * Une ejes colineales que se tocan o se solapan, misma recta y mismo espesor.
+     * Un tramo seguido no puede quedar en dos muros. Se alarga el eje de id menor y se quita el otro, con sus caras.
+     * @returns {number} ejes eliminados
+     */
+    function maStlWall2dToolMergeCollinearAxisRuns() {
+        if (!maStlUserLinesGroup) return 0;
+        const minSeg = maStlUserFloorSegmentMinMm();
+        const latTol = Math.max(MA_STL_WALL_DIM_LENGTH_VALUE_TOL_MM, 2);
+        const thickTol = MA_STL_WALL_DIM_LENGTH_VALUE_TOL_MM;
+        const touchMm = 50;
+        let removed = 0;
+        let guard = 0;
+        let changed = true;
+        while (changed && guard++ < 64) {
+            changed = false;
+            const axes = maStlWall2dToolCollectAllAxisLines();
+            for (let i = 0; i < axes.length && !changed; i++) {
+                const lineA = axes[i];
+                if (!lineA || !lineA.parent) continue;
+                const udA = lineA.userData && lineA.userData.maStlUserPlanLine;
+                if (!udA || udA.id == null || !udA.p1Mm || !udA.p2Mm) continue;
+                if (!(maStlUserFloorLineLengthMm(udA) >= minSeg)) continue;
+                for (let j = i + 1; j < axes.length; j++) {
+                    const lineB = axes[j];
+                    if (!lineB || !lineB.parent || lineB === lineA) continue;
+                    const udB = lineB.userData && lineB.userData.maStlUserPlanLine;
+                    if (!udB || udB.id == null || !udB.p1Mm || !udB.p2Mm) continue;
+                    if (!(maStlUserFloorLineLengthMm(udB) >= minSeg)) continue;
+                    if (!maStlUserFloorPlanLinesCollinearParallelXz(udA, udB)) continue;
+                    const dir = maStlUserFloorPlanLineDirUnitXz(udA);
+                    if (!dir) continue;
+                    const lateral = function (p) {
+                        const vx = p.x - udA.p1Mm.x;
+                        const vz = p.z - udA.p1Mm.z;
+                        return Math.abs(vx * dir.uz - vz * dir.ux);
+                    };
+                    if (lateral(udB.p1Mm) > latTol || lateral(udB.p2Mm) > latTol) continue;
+                    const halfA = maStlWall2dToolAxisHalfThicknessFromAxisUd(udA);
+                    const halfB = maStlWall2dToolAxisHalfThicknessFromAxisUd(udB);
+                    if (Math.abs(halfA - halfB) > thickTol) continue;
+                    const tOf = function (p) {
+                        return (p.x - udA.p1Mm.x) * dir.ux + (p.z - udA.p1Mm.z) * dir.uz;
+                    };
+                    const a0 = Math.min(tOf(udA.p1Mm), tOf(udA.p2Mm));
+                    const a1 = Math.max(tOf(udA.p1Mm), tOf(udA.p2Mm));
+                    const b0 = Math.min(tOf(udB.p1Mm), tOf(udB.p2Mm));
+                    const b1 = Math.max(tOf(udB.p1Mm), tOf(udB.p2Mm));
+                    const gap = b0 > a1 ? b0 - a1 : a0 > b1 ? a0 - b1 : 0;
+                    if (gap > touchMm) continue;
+                    const keepA = Number(udA.id) <= Number(udB.id);
+                    const keepLine = keepA ? lineA : lineB;
+                    const dropLine = keepA ? lineB : lineA;
+                    const keepUd = keepLine.userData.maStlUserPlanLine;
+                    const dropUd = dropLine.userData.maStlUserPlanLine;
+                    const span = maStlUserFloorPlanLineMergedSpanCollinearMm(keepUd, dropUd);
+                    if (!span || !span.p1Mm || !span.p2Mm) continue;
+                    keepUd.p1Mm.x = span.p1Mm.x;
+                    keepUd.p1Mm.y = span.p1Mm.y;
+                    keepUd.p1Mm.z = span.p1Mm.z;
+                    keepUd.p2Mm.x = span.p2Mm.x;
+                    keepUd.p2Mm.y = span.p2Mm.y;
+                    keepUd.p2Mm.z = span.p2Mm.z;
+                    maStlWall2dToolEnsureClockwiseAxisEndsMm(keepUd.p1Mm, keepUd.p2Mm);
+                    keepUd.wallDrawP1Mm = maStlDesing2ClonePlanPointMm(keepUd.p1Mm);
+                    keepUd.wallDrawP2Mm = maStlDesing2ClonePlanPointMm(keepUd.p2Mm);
+                    if (dropUd.isSpecial === true || dropUd.IsSpecial === true) {
+                        keepUd.isSpecial = true;
+                        keepUd.IsSpecial = true;
+                    }
+                    maStlWallLineEnsureAttrs(keepUd);
+                    maStlApplyUserFloorLineSegmentGeometryFromMm(keepLine);
+                    const dropFaces = maStlWall2dToolFindFaceLinesForCenterId(dropUd.id);
+                    for (let fi = 0; fi < dropFaces.length; fi++) {
+                        maStlDisposeUserFloorPlanLineObject(dropFaces[fi]);
+                    }
+                    maStlDisposeUserFloorPlanLineObject(dropLine);
+                    removed++;
+                    changed = true;
+                    break;
+                }
+            }
+        }
+        if (removed > 0) {
+            const left = maStlWall2dToolCollectAllAxisLines();
+            for (let ai = 0; ai < left.length; ai++) {
+                maStlWall2dToolApplyParallelFaceOffsetsOnlyMm(
+                    left[ai],
+                    maStlWall2dToolAxisFaceHalfThicknessMm(left[ai])
+                );
+            }
+            maStlWall2dToolRefactorAllWallJunctionsMm();
+            maStlReapplyAllUserFloorWallAxisLineStyles();
+        }
+        return removed;
+    }
+
     /** Confirma un tramo de muro: eje + dos caras; refactoriza esquinas del tramo anterior. */
     function maStlWall2dToolCommitWallSegmentMm(a, b, skipUndo) {
         const halfT = maStlWall2dToolThicknessHalfMm();
@@ -12889,6 +14419,7 @@ function bootMasterArticleDetailsStlViewer() {
         maStlWall2dToolRefactorAllWallJunctionsMm();
         maStlWeldAllUserFloorLineEndpointsMm();
         maStlWall2dToolRefactorAllWallJunctionsMm();
+        maStlWall2dToolMergeCollinearAxisRuns();
         maStlWall2dToolResumeState = {
             wallGroupId: wallGroupId,
             pointMm: maStlDesing2ClonePlanPointMm(b),
@@ -13445,6 +14976,9 @@ function bootMasterArticleDetailsStlViewer() {
             maStlWall2dToolSplitAllAxisInteriorCrossingsMm();
         }
         maStlWall2dToolRefactorAllWallJunctionsMm();
+        if (wasWall2d) {
+            maStlWall2dToolMergeCollinearAxisRuns();
+        }
         maStlPolylineToolActiveGroupId = null;
         maStlWall2dToolActiveGroupId = null;
         maStlWall2dToolHideFaceRubberBands();
@@ -15190,6 +16724,8 @@ function bootMasterArticleDetailsStlViewer() {
         if (lineList.length === 0 && meshList.length === 0) return false;
 
         const specialInspect = maStlDesing2InspectDeletedMeshes(meshList);
+        const wallKeySet = maStlDesing2DeletedWallKeySet(lineList);
+        const droppedWorkers = maStlDesing2DropWorkersOfWallKeys(wallKeySet);
         const undoBefore = maStlDesing2SerializeEditSnapshot();
         for (let di = 0; di < lineList.length; di++) {
             const ln = lineList[di];
@@ -15210,11 +16746,26 @@ function bootMasterArticleDetailsStlViewer() {
         if (currentRoot && clipStlMeshes.length > 0) {
             refitCamerasToObject(currentRoot);
         }
-        maStlDesing2PushEditSnapshotUndo(
-            'deleteUserFloorLinesAndStlMeshes',
-            undoBefore,
-            maStlDesing2SerializeEditSnapshot()
-        );
+        const undoAfter = maStlDesing2SerializeEditSnapshot();
+        if (droppedWorkers.length && maStlDesing2WorkerTool && typeof maStlDesing2WorkerTool.appendRows === 'function') {
+            maStlDesing2PushUndoAction({
+                label: 'deleteUserFloorLinesAndStlMeshes',
+                undo: function () {
+                    maStlDesing2ApplyEditSnapshot(undoBefore);
+                    maStlDesing2WorkerTool.appendRows(droppedWorkers);
+                },
+                redo: function () {
+                    maStlDesing2ApplyEditSnapshot(undoAfter);
+                    maStlDesing2DropWorkersOfWallKeys(wallKeySet);
+                },
+            });
+        } else {
+            maStlDesing2PushEditSnapshotUndo(
+                'deleteUserFloorLinesAndStlMeshes',
+                undoBefore,
+                undoAfter
+            );
+        }
         if (specialInspect && specialInspect.articleChange) {
             maStlDesing2RefreshSpecialFlags(specialInspect.keys);
             maStlDesing2SaveDesignWallsToServer({ includePhoto: false }).catch(function (err) {
@@ -19237,6 +20788,7 @@ function bootMasterArticleDetailsStlViewer() {
     /** Activa insertar recinto Desing_2 → `picking1`; segundo clic fija orientación (orto 15° opcional). */
     function maStlStartInsertEnclosureToolModesToolbar() {
         if (maStlIsInsertEnclosureToolActive()) return;
+        if (maStlIsWorkerToolActive()) maStlStopWorkerTool();
         if (maStlIsWall2dToolActive()) maStlStopWall2dToolModesToolbar(false);
         if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
         if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
@@ -20712,6 +22264,8 @@ function bootMasterArticleDetailsStlViewer() {
         maStlStopImageSketchToolModesToolbar(false);
         maStlStopInsertCornerToolModesToolbar(false);
         maStlStopInsertEnclosureToolModesToolbar(false);
+        maStlStopWorkerTool();
+        maStlStopPillarTool();
         maStlStopWall2dToolModesToolbar(false);
         maStlStopWallDimToolModesToolbar();
         if (maStlIsRulerAnchorPickModeActive()) {
@@ -20740,12 +22294,15 @@ function bootMasterArticleDetailsStlViewer() {
             !skipUndo && maStlDesingV2Viewer ? maStlDesing2SerializeEditSnapshot() : null;
         maStlQuantizeUserFloorPlanPointToGridMm(a);
         maStlQuantizeUserFloorPlanPointToGridMm(b);
+        const skipWeld = !!(planExtras && planExtras.skipWeld);
         const weldEps = Math.max(
             maStlUserFloorLineMergeEndpointEpsMm(),
             MA_STL_WALL_DIM_LENGTH_VALUE_TOL_MM
         );
-        maStlWeldUserFloorPlanPointToExistingEndpointsMm(a, weldEps);
-        maStlWeldUserFloorPlanPointToExistingEndpointsMm(b, weldEps);
+        if (!skipWeld) {
+            maStlWeldUserFloorPlanPointToExistingEndpointsMm(a, weldEps);
+            maStlWeldUserFloorPlanPointToExistingEndpointsMm(b, weldEps);
+        }
         const geo = maStlCreateUserFloorLineGeometryMm(a, b);
         let mat;
         if (planExtras && planExtras.wallRole === 'axis') {
@@ -20793,19 +22350,21 @@ function bootMasterArticleDetailsStlViewer() {
             if (planExtras.wallDrawP2Mm) {
                 planUd.wallDrawP2Mm = maStlDesing2ClonePlanPointMm(planExtras.wallDrawP2Mm);
             }
+            if (planExtras.pillarWidthMm != null) planUd.pillarWidthMm = planExtras.pillarWidthMm;
+            if (planExtras._DataHeight != null) planUd._DataHeight = planExtras._DataHeight;
         }
         maStlWallLineEnsureAttrs(planUd);
         line.userData.maStlUserPlanLine = planUd;
         maStlDisableRaycastOnOverlay(line);
         maStlUserLinesGroup.add(line);
         maStlUserFloorLineSyncAxisDashDistances(line);
-        maStlWeldAllUserFloorLineEndpointsMm();
+        if (!skipWeld) maStlWeldAllUserFloorLineEndpointsMm();
         const skipCollinearMerge = !!(planExtras && planExtras.skipCollinearMerge);
         if (!skipCollinearMerge) {
             maStlTryMergeUserFloorLineWithConnected(line);
             maStlRefactorUserFloorLinesMergeCollinear();
         }
-        maStlWeldAllUserFloorLineEndpointsMm();
+        if (!skipWeld) maStlWeldAllUserFloorLineEndpointsMm();
         if (undoBefore) {
             maStlDesing2PushEditSnapshotUndo(
                 'createUserFloorLine',
@@ -20899,6 +22458,8 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     function maStlUserFloorLineEndpointHandlesVisibleForLine(line) {
+        const pillarUd = line && line.userData && line.userData.maStlUserPlanLine;
+        if (pillarUd && pillarUd.wallRole === 'pillar') return false;
         return (
             !!line &&
             maStlIsUserFloorPlanLineSelectable(line) &&
@@ -23343,9 +24904,11 @@ function bootMasterArticleDetailsStlViewer() {
         maStlUserFloorDimHudWorldMid.chThickExtHi = null;
         maStlUserFloorDimHudWorldMid.drawDx =
             !lengthOnlyMode &&
+            ud.wallRole !== 'pillar' &&
             Math.abs(dxRefMm) >= MA_STL_USER_FLOOR_LINE_DIM_MIN_PLAN_DRAW_MM;
         maStlUserFloorDimHudWorldMid.drawDz =
             !lengthOnlyMode &&
+            ud.wallRole !== 'pillar' &&
             Math.abs(dzRefMm) >= MA_STL_USER_FLOOR_LINE_DIM_MIN_PLAN_DRAW_MM;
 
         const alongAnchorT =
@@ -23437,6 +25000,41 @@ function bootMasterArticleDetailsStlViewer() {
             pts.push(new THREE.Vector3(xChord, floorYB, p1.z));
             maStlUserFloorDimHudWorldMid.chDzA = { x: xChord, z: refZ };
             maStlUserFloorDimHudWorldMid.chDzB = { x: xChord, z: p1.z };
+        }
+        if (!lengthOnlyMode && ud.wallRole === 'pillar' && lenXZ > 1e-4) {
+            const halfW = (ud.pillarWidthMm >= 100 ? ud.pillarWidthMm : 300) * 0.5;
+            const ax = p1.x + dxMm * alongAnchorT;
+            const az = p1.z + dzMm * alongAnchorT;
+            const tAx = ax + px * halfW;
+            const tAz = az + pz * halfW;
+            const tBx = ax - px * halfW;
+            const tBz = az - pz * halfW;
+            const thLen = Math.hypot(tBx - tAx, tBz - tAz) || 1;
+            const tx = dxMm / lenXZ;
+            const tz = dzMm / lenXZ;
+            let tangSign = 1;
+            if (px * tx + pz * tz > 0) tangSign = -1;
+            const thGuide = maStlUserFloorDimPushAlignedDimGuide(
+                pts,
+                posTri,
+                floorYB,
+                { x: tAx, z: tAz },
+                { x: tBx, z: tBz },
+                tx * tangSign,
+                tz * tangSign,
+                thLen,
+                wpp
+            );
+            maStlUserFloorDimHudWorldMid.drawThickness = true;
+            maStlUserFloorDimHudWorldMid.validThickness = true;
+            maStlUserFloorDimHudWorldMid.chThickA = { x: tAx, z: tAz };
+            maStlUserFloorDimHudWorldMid.chThickB = { x: tBx, z: tBz };
+            maStlUserFloorDimHudWorldMid.chThickExtLo = thGuide.dimA;
+            maStlUserFloorDimHudWorldMid.chThickExtHi = thGuide.dimB;
+            maStlUserFloorDimHudWorldMid.midThickness = {
+                x: thGuide.dimA.x + (thGuide.dimB.x - thGuide.dimA.x) * alongAnchorT,
+                z: thGuide.dimA.z + (thGuide.dimB.z - thGuide.dimA.z) * alongAnchorT,
+            };
         }
         if (!lengthOnlyMode && ud.wallRole === 'axis' && ud.id != null && lenXZ > 1e-4) {
             const axisLine = maStlWall2dToolFindLineByPlanId(ud.id);
@@ -23878,12 +25476,14 @@ function bootMasterArticleDetailsStlViewer() {
             h.inputThicknessEl &&
             !h.inputThicknessEl.hidden
         ) {
-            const axisLn =
-                ud.wallRole === 'axis' ? line : maStlWall2dToolEditableAxisLineForDimension(line);
+            const axisLn = ud.wallRole === 'pillar'
+                ? line
+                : (ud.wallRole === 'axis' ? line : maStlWall2dToolEditableAxisLineForDimension(line));
             if (document.activeElement !== h.inputThicknessEl && axisLn) {
-                h.inputThicknessEl.value = maStlDesing2DimEditableMetersInputDisplayFromMm(
-                    maStlWall2dToolAxisTotalThicknessMm(axisLn)
-                );
+                const thicknessMm = ud.wallRole === 'pillar'
+                    ? (ud.pillarWidthMm >= 100 ? ud.pillarWidthMm : 300)
+                    : maStlWall2dToolAxisTotalThicknessMm(axisLn);
+                h.inputThicknessEl.value = maStlDesing2DimEditableMetersInputDisplayFromMm(thicknessMm);
             }
         } else if (
             h.inputEl &&
@@ -24052,6 +25652,8 @@ function bootMasterArticleDetailsStlViewer() {
 
     function maStlPickUserFloorLineNearScreenMm(clientX, clientY, maxPx) {
         if (!renderer || maStlUserLinesGroup.children.length === 0) return null;
+        const pillarLine = maStlPickPillarLineAt(clientX, clientY);
+        if (pillarLine) return pillarLine;
         const pickTolSq = maxPx * maxPx;
         let best = null;
         let bestD = Infinity;
@@ -24187,8 +25789,11 @@ function bootMasterArticleDetailsStlViewer() {
             hdom.readoutDxBtn.textContent = maStlDesing2SignedDeltaMetersDisplayFromMm(dxHud);
             hdom.readoutDzBtn.textContent = maStlDesing2SignedDeltaMetersDisplayFromMm(dzHud);
             if (hdom.readoutThicknessBtn && maStlUserFloorDimHudWorldMid.drawThickness) {
+                const thicknessMm = udd.wallRole === 'pillar'
+                    ? (udd.pillarWidthMm >= 100 ? udd.pillarWidthMm : 300)
+                    : maStlWall2dToolAxisTotalThicknessMm(line);
                 hdom.readoutThicknessBtn.textContent = maStlDesing2DimEditableMetersDisplayFromMm(
-                    maStlWall2dToolAxisTotalThicknessMm(line)
+                    thicknessMm
                 );
                 hdom.readoutThicknessBtn.hidden = false;
                 hdom.readoutThicknessBtn.removeAttribute('hidden');
@@ -24199,6 +25804,12 @@ function bootMasterArticleDetailsStlViewer() {
                 hdom.readoutThicknessBtn.textContent = '';
             }
             maStlApplyFloorDimHudLengthOnlyMode(hdom, false);
+            if (udd.wallRole === 'pillar') {
+                hdom.readoutDxBtn.hidden = true;
+                hdom.readoutDxBtn.setAttribute('aria-hidden', 'true');
+                hdom.readoutDzBtn.hidden = true;
+                hdom.readoutDzBtn.setAttribute('aria-hidden', 'true');
+            }
         }
         maStlPlaceAllFloorDimHudReadouts(lengthOnlyMode);
         maStlApplyFloorDimHudReadoutBrightClass(maStlUserFloorDimReadoutHoveredKind);
@@ -24347,6 +25958,16 @@ function bootMasterArticleDetailsStlViewer() {
                     dimensionLineWas &&
                     dimensionLineWas.userData &&
                     dimensionLineWas.userData.maStlUserPlanLine &&
+                    dimensionLineWas.userData.maStlUserPlanLine.wallRole === 'pillar'
+                ) {
+                    const pv = maStlParseLengthInputValueToMm(raw);
+                    const longNow = maStlUserFloorLineLengthMm(dimensionLineWas.userData.maStlUserPlanLine);
+                    commitOk = pv != null && maStlResizePillarAboutCenterMm(dimensionLineWas, longNow, pv);
+                } else if (
+                    snapDimKind === 'thickness' &&
+                    dimensionLineWas &&
+                    dimensionLineWas.userData &&
+                    dimensionLineWas.userData.maStlUserPlanLine &&
                     dimensionLineWas.userData.maStlUserPlanLine.wallRole === 'axis'
                 ) {
                     const pv = maStlParseLengthInputValueToMm(raw);
@@ -24360,6 +25981,16 @@ function bootMasterArticleDetailsStlViewer() {
                     dimensionLineWas.userData &&
                     dimensionLineWas.userData.maStlUserPlanLine
                 ) {
+                    const pillarUd = dimensionLineWas.userData.maStlUserPlanLine;
+                    if (pillarUd.wallRole === 'pillar') {
+                        const lenMmParsed = maStlParseLengthInputValueToMm(raw);
+                        const widthNow = pillarUd.pillarWidthMm >= 100 ? pillarUd.pillarWidthMm : 300;
+                        commitOk = lenMmParsed != null && maStlResizePillarAboutCenterMm(
+                            dimensionLineWas,
+                            lenMmParsed,
+                            widthNow
+                        );
+                    } else {
                     const polarOk = maStlApplyEditedUserFloorLineLengthAngleMm(dimensionLineWas, raw);
                     const lenMmParsed = polarOk ? null : maStlParseLengthInputValueToMm(raw);
                     const minAllowed = maStlUserFloorSegmentMinMm();
@@ -24378,10 +26009,15 @@ function bootMasterArticleDetailsStlViewer() {
                         );
                         commitOk = true;
                     }
+                    }
                 }
             }
             if (commitOk) {
-                if (snapDimKind !== 'thickness') {
+                const editedPillar = dimensionLineWas
+                    && dimensionLineWas.userData
+                    && dimensionLineWas.userData.maStlUserPlanLine
+                    && dimensionLineWas.userData.maStlUserPlanLine.wallRole === 'pillar';
+                if (!editedPillar && snapDimKind !== 'thickness') {
                     if (
                         !maStlWall2dToolApplyAxisEditPropagation(
                             dimensionLineWas,
@@ -24423,6 +26059,10 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     function maStlBeginUserFloorLineDimensionEdit(line, editKindOpt) {
+        const pillarLineUd = line && line.userData && line.userData.maStlUserPlanLine;
+        if (pillarLineUd && pillarLineUd.wallRole === 'pillar' && editKindOpt === 'all') {
+            editKindOpt = 'length';
+        }
         const editableLine = maStlWall2dToolEditableAxisLineForDimension(line);
         line = editableLine || line;
         const isAll = editKindOpt === 'all';
@@ -25812,13 +27452,43 @@ function bootMasterArticleDetailsStlViewer() {
         maStlUpdateObjectInsertionPickHover(ev.clientX, ev.clientY);
     }
 
+    function maStlPillarHoverMesh(line) {
+        const ud = line && line.userData && line.userData.maStlUserPlanLine;
+        if (!ud || !maStlWall3dMeshesGroup || !maStlWall3dMeshesGroup.visible) return null;
+        let found = null;
+        maStlWall3dMeshesGroup.traverse(function (obj) {
+            if (found || !obj || !obj.isMesh || !obj.userData) return;
+            if (obj.userData.pillarLineId === ud.id) found = obj;
+        });
+        return found;
+    }
+
     function onCanvasPointerMoveWall3dInspectGlobal(ev) {
         if (!maStlDesingV2Viewer) return;
+        const pillar = maStlPickPillarUnderPointer(ev.clientX, ev.clientY);
+        const pillarMesh = pillar ? maStlPillarHoverMesh(pillar) : null;
+        if (pillarMesh) {
+            maStlWall3dInspectSetHoverMesh(pillarMesh);
+            return;
+        }
         maStlWallInspectSyncHoverAtPointer(ev.clientX, ev.clientY);
     }
 
     function onHudContextMenuWallInspectGlobal(ev) {
-        if (!maStlDesingV2Viewer || !maStlWall3dInspectInteractionEnabled()) return;
+        if (!maStlDesingV2Viewer) return;
+        const rawTargetEarly = ev.target;
+        if (rawTargetEarly && typeof rawTargetEarly.closest === 'function') {
+            if (rawTargetEarly.closest('button, input, select, textarea, [role="button"], label')) return;
+        }
+        const pillarHit = maStlPickPillarUnderPointer(ev.clientX, ev.clientY);
+        if (pillarHit) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation();
+            maStlOpenPillarEditPopup(pillarHit, ev.clientX, ev.clientY);
+            return;
+        }
+        if (!maStlWall3dInspectInteractionEnabled()) return;
         if (maStlWallInspectActiveMode() === 'wall3d') return;
         const rawTarget = ev.target;
         if (rawTarget && typeof rawTarget.closest === 'function') {
@@ -26346,6 +28016,11 @@ function bootMasterArticleDetailsStlViewer() {
         const out = [];
         if (!maStlUserLinesGroup) return out;
 
+        if (selectedUd && selectedUd.wallRole === 'pillar' && !applyAll) {
+            if (selectedLine) out.push(selectedLine);
+            return out;
+        }
+
         if (applyAll) {
             const ch = maStlUserLinesGroup.children;
             for (let i = 0; i < ch.length; i++) {
@@ -26419,6 +28094,11 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     function maStlWallInspectLengthLabelFromSelection(selection) {
+        if (selection && selection.ud && selection.ud.wallRole === 'pillar' && selection.ud.p1Mm && selection.ud.p2Mm) {
+            const dx = selection.ud.p2Mm.x - selection.ud.p1Mm.x;
+            const dz = selection.ud.p2Mm.z - selection.ud.p1Mm.z;
+            return maStlDesing2DimEditableMetersDisplayFromMm(Math.hypot(dx, dz)) + ' m';
+        }
         const lengthMm = selection && selection.ud
             ? maStlWallInspectResolveEffectiveLengthMm(selection.ud)
             : null;
@@ -26861,6 +28541,9 @@ function bootMasterArticleDetailsStlViewer() {
             : maStlRoundMeters3(MA_STL_WALL3D_DEFAULT_HEIGHT_MM / 1000);
         if (maStlWallInspectFormState.lengthValueEl) {
             maStlWallInspectFormState.lengthValueEl.textContent = maStlWallInspectLengthLabelFromSelection(selection);
+        }
+        if (maStlWallInspectFormState.titleEl) {
+            maStlWallInspectFormState.titleEl.textContent = 'Modificar muro';
         }
         maStlWallInspectFormState.heightInput.value = String(hUse);
         maStlWallInspectFormState.applyAllCheckbox.checked = true;
@@ -27378,6 +29061,27 @@ function bootMasterArticleDetailsStlViewer() {
             }
             maStlDesing2SetLastToolbarCommandId('ma-stl-tool-insert-enclosure');
             maStlDesing2ActivateToolbarCommandById('ma-stl-tool-insert-enclosure');
+        });
+    }
+    if (maStlDesingV2Viewer && maStlInsertWorkerToolToggleBtn) {
+        maStlInsertWorkerToolToggleBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            if (maStlIsWorkerToolActive()) {
+                maStlStopWorkerTool();
+                return;
+            }
+            maStlStartWorkerTool();
+        });
+    }
+    if (maStlDesingV2Viewer && maStlInsertPillarToolToggleBtn) {
+        maStlInsertPillarToolToggleBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            if (maStlIsPillarToolActive()) {
+                maStlStopPillarTool();
+                return;
+            }
+            maStlDesing2SetLastToolbarCommandId('ma-stl-tool-pillars');
+            maStlDesing2ActivateToolbarCommandById('ma-stl-tool-pillars');
         });
     }
     if (maStlDesingV2Viewer && maStlLineToolOrtho15ToggleBtn) {
@@ -28401,6 +30105,441 @@ function bootMasterArticleDetailsStlViewer() {
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownInsertCornerTool, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownImageSketchTool, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownInsertEnclosureTool, true);
+    function maStlWorkerToolIgnoreUiTarget(ev) {
+        const rawTarget = ev.target;
+        if (rawTarget && typeof rawTarget.closest === 'function') {
+            if (rawTarget.closest('button, input, select, textarea, [role="button"], label')) return true;
+        }
+        return false;
+    }
+
+    function onCanvasPointerMoveWorkerTool(ev) {
+        if (!maStlIsWorkerToolActive()) return;
+        maStlDesing2WorkerTool.moveTo(ev.clientX, ev.clientY);
+    }
+
+    function onCanvasPointerDownWorkerTool(ev) {
+        if (!maStlIsWorkerToolActive() || !maStlDesingV2Viewer) return;
+        if (ev.button !== 0) return;
+        if (ev.currentTarget !== renderer.domElement) return;
+        if (maStlWorkerToolIgnoreUiTarget(ev)) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+    }
+
+    function onCanvasClickWorkerTool(ev) {
+        if (!maStlIsWorkerToolActive() || !maStlDesingV2Viewer) return;
+        if (ev.button !== 0) return;
+        if (ev.currentTarget !== renderer.domElement) return;
+        if (maStlWorkerToolIgnoreUiTarget(ev)) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+    }
+
+    function onCanvasDblClickWorkerTool(ev) {
+        if (!maStlDesingV2Viewer || ev.button !== 0) return;
+        if (ev.currentTarget !== renderer.domElement) return;
+        if (maStlWorkerToolIgnoreUiTarget(ev)) return;
+        const removed = maStlDesing2WorkerTool.deleteAt(ev.clientX, ev.clientY);
+        if (removed) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            ev.stopImmediatePropagation();
+            return;
+        }
+        if (!maStlIsWorkerToolActive()) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+        maStlDesing2WorkerTool.placeAtPointer(ev.clientX, ev.clientY);
+    }
+
+    function onCanvasPointerMovePillarTool(ev) {
+        if (!maStlIsPillarToolActive()) return;
+        maStlDesing2PillarTool.moveTo(ev.clientX, ev.clientY);
+    }
+
+    function onCanvasPointerDownPillarTool(ev) {
+        if (!maStlIsPillarToolActive() || !maStlDesingV2Viewer) return;
+        if (ev.button !== 0) return;
+        if (ev.currentTarget !== renderer.domElement) return;
+        if (maStlWorkerToolIgnoreUiTarget(ev)) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+    }
+
+    function onCanvasClickPillarTool(ev) {
+        if (!maStlIsPillarToolActive() || !maStlDesingV2Viewer) return;
+        if (ev.button !== 0) return;
+        if (ev.currentTarget !== renderer.domElement) return;
+        if (maStlWorkerToolIgnoreUiTarget(ev)) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+    }
+
+    let maStlPillarEditLine = null;
+    let maStlPillarEditPopup = null;
+
+    function maStlIsPillarEditPopupOpen() {
+        return !!(maStlPillarEditPopup && maStlPillarEditPopup.style.display !== 'none');
+    }
+
+    function maStlClosePillarEditPopup() {
+        if (maStlPillarEditPopup) maStlPillarEditPopup.style.display = 'none';
+        maStlPillarEditLine = null;
+        const err = document.getElementById('ma-stl-pillar-edit-error');
+        if (err) {
+            err.textContent = '';
+            err.style.display = 'none';
+        }
+    }
+
+    function maStlPillarEditShowError(msg) {
+        const err = document.getElementById('ma-stl-pillar-edit-error');
+        if (!err) return;
+        err.textContent = msg || '';
+        err.style.display = msg ? 'block' : 'none';
+    }
+
+    function maStlParsePillarFormNumber(raw) {
+        const n = Number(String(raw == null ? '' : raw).trim().replace(',', '.'));
+        return Number.isFinite(n) ? n : null;
+    }
+
+    function maStlEnsurePillarEditPopup() {
+        if (maStlPillarEditPopup) return maStlPillarEditPopup;
+
+        const root = document.createElement('div');
+        root.style.position = 'fixed';
+        root.style.zIndex = '2147483200';
+        root.style.width = '520px';
+        root.style.maxWidth = 'calc(100vw - 24px)';
+        root.style.background = '#ffffff';
+        root.style.border = '1px solid #cbd5e1';
+        root.style.borderRadius = '10px';
+        root.style.boxShadow = '0 16px 36px rgba(2,6,23,0.22)';
+        root.style.display = 'none';
+        root.style.fontFamily = "'Segoe UI', Tahoma, sans-serif";
+        root.style.userSelect = 'none';
+
+        const head = document.createElement('div');
+        head.style.padding = '10px 12px';
+        head.style.background = '#0f172a';
+        head.style.color = '#ffffff';
+        head.style.borderTopLeftRadius = '10px';
+        head.style.borderTopRightRadius = '10px';
+        head.style.display = 'flex';
+        head.style.alignItems = 'center';
+        head.style.justifyContent = 'space-between';
+        head.style.cursor = 'move';
+        const title = document.createElement('div');
+        title.textContent = 'Modificar pilar';
+        title.style.fontSize = '13px';
+        title.style.fontWeight = '600';
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.textContent = 'x';
+        closeBtn.style.border = 'none';
+        closeBtn.style.background = 'transparent';
+        closeBtn.style.color = '#ffffff';
+        closeBtn.style.cursor = 'pointer';
+        closeBtn.style.fontSize = '15px';
+        closeBtn.style.padding = '0 4px';
+        head.appendChild(title);
+        head.appendChild(closeBtn);
+
+        const body = document.createElement('div');
+        body.style.padding = '12px';
+        body.style.userSelect = 'text';
+
+        function maStlPillarEditLabel(text) {
+            const label = document.createElement('label');
+            label.textContent = text;
+            label.style.display = 'block';
+            label.style.fontSize = '12px';
+            label.style.fontWeight = '600';
+            label.style.color = '#334155';
+            label.style.marginBottom = '4px';
+            return label;
+        }
+
+        function maStlPillarEditInput(id, step) {
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.id = id;
+            input.step = step;
+            input.style.width = '100%';
+            input.style.boxSizing = 'border-box';
+            input.style.padding = '8px 10px';
+            input.style.border = '1px solid #cbd5e1';
+            input.style.borderRadius = '8px';
+            input.style.marginBottom = '10px';
+            input.style.fontSize = '13px';
+            input.style.color = '#0f172a';
+            return input;
+        }
+
+        function maStlPillarEditCheck(id, text, disabled) {
+            const wrap = document.createElement('label');
+            wrap.style.display = 'flex';
+            wrap.style.alignItems = 'flex-start';
+            wrap.style.gap = '8px';
+            wrap.style.fontSize = '13px';
+            wrap.style.color = '#0f172a';
+            wrap.style.marginBottom = '14px';
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.id = id;
+            input.checked = true;
+            input.disabled = !!disabled;
+            input.style.marginTop = '2px';
+            const span = document.createElement('span');
+            span.textContent = text;
+            wrap.appendChild(input);
+            wrap.appendChild(span);
+            return { wrap: wrap, input: input };
+        }
+
+        const grid = document.createElement('div');
+        grid.style.display = 'grid';
+        grid.style.gridTemplateColumns = '1fr 1fr';
+        grid.style.columnGap = '12px';
+
+        function maStlPillarEditField(host, text, id, step, full) {
+            const cell = document.createElement('div');
+            if (full) cell.style.gridColumn = '1 / -1';
+            const label = maStlPillarEditLabel(text);
+            label.htmlFor = id;
+            const input = maStlPillarEditInput(id, step);
+            cell.appendChild(label);
+            cell.appendChild(input);
+            host.appendChild(cell);
+            return input;
+        }
+
+        maStlPillarEditField(grid, 'Número de grupo', 'ma-stl-pillar-edit-group', '1', true);
+        maStlPillarEditField(grid, 'Longitud del Pilar', 'ma-stl-pillar-edit-length', '0.001', false);
+        maStlPillarEditField(grid, 'Espesor del Pilar', 'ma-stl-pillar-edit-width', '0.001', false);
+        maStlPillarEditField(grid, 'Altura del Pilar', 'ma-stl-pillar-edit-height', '0.001', false);
+        grid.appendChild(document.createElement('div'));
+        maStlPillarEditField(grid, 'Cordenad X del Pilar', 'ma-stl-pillar-edit-x', '1', false);
+        maStlPillarEditField(grid, 'Cordenad Y del Pilar', 'ma-stl-pillar-edit-y', '1', false);
+        body.appendChild(grid);
+
+        const panel750 = maStlPillarEditCheck('ma-stl-pillar-edit-panel750', 'Utilizar Paneles 0,75 Regulables', true);
+        body.appendChild(panel750.wrap);
+        const propGrid = document.createElement('div');
+        propGrid.style.display = 'grid';
+        propGrid.style.gridTemplateColumns = '1fr 1fr';
+        propGrid.style.columnGap = '16px';
+        const propsUpper = maStlPillarEditCheck('ma-stl-pillar-edit-props-upper', 'Puntales superiores', false);
+        const propsLower = maStlPillarEditCheck('ma-stl-pillar-edit-props-lower', 'Puntales Inferiores', false);
+        propGrid.appendChild(propsUpper.wrap);
+        propGrid.appendChild(propsLower.wrap);
+        body.appendChild(propGrid);
+        const stiff = maStlPillarEditCheck('ma-stl-pillar-edit-stiff', 'Insertar Rigidizadores', false);
+        body.appendChild(stiff.wrap);
+
+        const error = document.createElement('div');
+        error.id = 'ma-stl-pillar-edit-error';
+        error.style.display = 'none';
+        error.style.color = '#b91c1c';
+        error.style.fontSize = '12px';
+        error.style.marginBottom = '10px';
+        body.appendChild(error);
+
+        const actions = document.createElement('div');
+        actions.style.display = 'flex';
+        actions.style.justifyContent = 'space-between';
+        actions.style.gap = '8px';
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.textContent = 'Eliminar Pilar';
+        deleteBtn.style.padding = '7px 12px';
+        deleteBtn.style.border = 'none';
+        deleteBtn.style.borderRadius = '8px';
+        deleteBtn.style.background = '#dc2626';
+        deleteBtn.style.color = '#ffffff';
+        deleteBtn.style.cursor = 'pointer';
+        const acceptBtn = document.createElement('button');
+        acceptBtn.type = 'button';
+        acceptBtn.textContent = 'Aceptar';
+        acceptBtn.style.padding = '7px 12px';
+        acceptBtn.style.border = 'none';
+        acceptBtn.style.borderRadius = '8px';
+        acceptBtn.style.background = '#2563eb';
+        acceptBtn.style.color = '#ffffff';
+        acceptBtn.style.cursor = 'pointer';
+        actions.appendChild(deleteBtn);
+        actions.appendChild(acceptBtn);
+        body.appendChild(actions);
+
+        root.appendChild(head);
+        root.appendChild(body);
+        document.body.appendChild(root);
+
+        propsUpper.input.addEventListener('change', function () {
+            if (!propsUpper.input.checked) propsLower.input.checked = false;
+        });
+        closeBtn.addEventListener('click', maStlClosePillarEditPopup);
+        deleteBtn.addEventListener('click', function () {
+            const line = maStlPillarEditLine;
+            maStlClosePillarEditPopup();
+            if (line) maStlDeletePillarLine(line);
+        });
+        acceptBtn.addEventListener('click', maStlApplyPillarEditPopup);
+        root.addEventListener('pointerdown', function (ev) {
+            ev.stopPropagation();
+        });
+
+        let dragState = null;
+        head.addEventListener('mousedown', function (ev) {
+            if (ev.button !== 0 || ev.target === closeBtn) return;
+            const rect = root.getBoundingClientRect();
+            dragState = { dx: ev.clientX - rect.left, dy: ev.clientY - rect.top };
+            ev.preventDefault();
+        });
+        window.addEventListener('mousemove', function (ev) {
+            if (!dragState || root.style.display === 'none') return;
+            const vw = window.innerWidth || document.documentElement.clientWidth || 1280;
+            const vh = window.innerHeight || document.documentElement.clientHeight || 720;
+            const w = Math.max(root.offsetWidth, 320);
+            const h = Math.max(root.offsetHeight, 160);
+            root.style.left = Math.round(THREE.MathUtils.clamp(ev.clientX - dragState.dx, 8, Math.max(8, vw - w - 8))) + 'px';
+            root.style.top = Math.round(THREE.MathUtils.clamp(ev.clientY - dragState.dy, 8, Math.max(8, vh - h - 8))) + 'px';
+        });
+        window.addEventListener('mouseup', function () {
+            dragState = null;
+        });
+
+        maStlPillarEditPopup = root;
+        return root;
+    }
+
+    function maStlApplyPillarEditPopup() {
+        const line = maStlPillarEditLine;
+        const ud = line && line.userData && line.userData.maStlUserPlanLine;
+        if (!ud || ud.wallRole !== 'pillar') {
+            maStlClosePillarEditPopup();
+            return;
+        }
+        const longM = maStlParsePillarFormNumber(document.getElementById('ma-stl-pillar-edit-length').value);
+        const widthM = maStlParsePillarFormNumber(document.getElementById('ma-stl-pillar-edit-width').value);
+        const heightM = maStlParsePillarFormNumber(document.getElementById('ma-stl-pillar-edit-height').value);
+        const xMm = maStlParsePillarFormNumber(document.getElementById('ma-stl-pillar-edit-x').value);
+        const yMm = maStlParsePillarFormNumber(document.getElementById('ma-stl-pillar-edit-y').value);
+        const longMm = longM == null ? NaN : longM * 1000;
+        const widthMm = widthM == null ? NaN : widthM * 1000;
+        if (!maStlPillarSideMmAllowed(longMm) || !maStlPillarSideMmAllowed(widthMm)) {
+            maStlPillarEditShowError('El lado del pilar va de 0,10 a 0,65 m');
+            return;
+        }
+        if (heightM == null || heightM <= 0 || xMm == null || yMm == null) {
+            maStlPillarEditShowError('La altura y las coordenadas tienen que ser números, y la altura mayor que cero');
+            return;
+        }
+        const undoBefore = maStlDesing2SerializeEditSnapshot();
+        if (!maStlResizePillarAboutCenterMm(line, longMm, widthMm)) {
+            maStlPillarEditShowError('El lado del pilar va de 0,10 a 0,65 m');
+            return;
+        }
+        const ncx = (ud.p1Mm.x + ud.p2Mm.x) * 0.5;
+        const ncz = (ud.p1Mm.z + ud.p2Mm.z) * 0.5;
+        ud.p1Mm.x += xMm - ncx;
+        ud.p2Mm.x += xMm - ncx;
+        ud.p1Mm.z += yMm - ncz;
+        ud.p2Mm.z += yMm - ncz;
+        ud._DataHeight = maStlRoundMeters3(heightM);
+        const groupRaw = maStlParsePillarFormNumber(document.getElementById('ma-stl-pillar-edit-group').value);
+        ud.wallGroupId = groupRaw != null && groupRaw >= 0 ? Math.round(groupRaw) : 0;
+        const upper = !!document.getElementById('ma-stl-pillar-edit-props-upper').checked;
+        ud._CHeckPropInside = upper;
+        ud._CHeckPropInsideInf = upper && !!document.getElementById('ma-stl-pillar-edit-props-lower').checked;
+        const stiffOn = !!document.getElementById('ma-stl-pillar-edit-stiff').checked;
+        ud._CHeckRijiOutside = stiffOn;
+        ud._CHeckRijiInside = stiffOn;
+        ud._CHeck750R = true;
+        ud._CHeckBracketInside = false;
+        ud._CHeckBracketOutside = false;
+        ud._CHeckPropOutside = false;
+        ud._CHeckPropOutsideInf = false;
+        maStlWallLineEnsureAttrs(ud);
+        maStlApplyUserFloorLineSegmentGeometryFromMm(line);
+        maStlRefreshPillarGuides();
+        maStlRefreshPillarModelIfVisible();
+        maStlDesing2PushEditSnapshotUndo('editPillar', undoBefore, maStlDesing2SerializeEditSnapshot());
+        maStlClosePillarEditPopup();
+    }
+
+    function maStlOpenPillarEditPopup(line, clientX, clientY) {
+        const ud = line && line.userData && line.userData.maStlUserPlanLine;
+        if (!ud || ud.wallRole !== 'pillar') return false;
+        maStlWallInspectClosePopup();
+        maStlWallLineEnsureAttrs(ud);
+        const root = maStlEnsurePillarEditPopup();
+        maStlPillarEditLine = line;
+        const longM = maStlUserFloorLineLengthMm(ud) / 1000;
+        const widthM = (ud.pillarWidthMm >= 100 ? ud.pillarWidthMm : 300) / 1000;
+        const storedH = Number(ud._DataHeight);
+        const heightM = ud._DataHeight != null && Number.isFinite(storedH) && storedH > 0
+            ? storedH
+            : MA_STL_WALL3D_DEFAULT_HEIGHT_MM / 1000;
+        const groupN = Number(ud.wallGroupId);
+        document.getElementById('ma-stl-pillar-edit-group').value =
+            Number.isFinite(groupN) && groupN >= 0 ? String(Math.round(groupN)) : '0';
+        document.getElementById('ma-stl-pillar-edit-length').value = maStlRoundMeters3(longM).toFixed(3);
+        document.getElementById('ma-stl-pillar-edit-width').value = maStlRoundMeters3(widthM).toFixed(3);
+        document.getElementById('ma-stl-pillar-edit-height').value = maStlRoundMeters3(heightM).toFixed(3);
+        document.getElementById('ma-stl-pillar-edit-x').value = String(Math.round((ud.p1Mm.x + ud.p2Mm.x) * 0.5));
+        document.getElementById('ma-stl-pillar-edit-y').value = String(Math.round((ud.p1Mm.z + ud.p2Mm.z) * 0.5));
+        document.getElementById('ma-stl-pillar-edit-panel750').checked = true;
+        const upperOn = ud._CHeckPropInside !== false;
+        document.getElementById('ma-stl-pillar-edit-props-upper').checked = upperOn;
+        document.getElementById('ma-stl-pillar-edit-props-lower').checked = upperOn && ud._CHeckPropInsideInf !== false;
+        document.getElementById('ma-stl-pillar-edit-stiff').checked = ud._CHeckRijiOutside !== false;
+        maStlPillarEditShowError('');
+        root.style.display = 'block';
+        const vw = window.innerWidth || document.documentElement.clientWidth || 1280;
+        const vh = window.innerHeight || document.documentElement.clientHeight || 720;
+        const w = Math.max(root.offsetWidth, 320);
+        const h = Math.max(root.offsetHeight, 160);
+        root.style.left = Math.round(THREE.MathUtils.clamp((clientX || 20) + 14, 8, Math.max(8, vw - w - 8))) + 'px';
+        root.style.top = Math.round(THREE.MathUtils.clamp((clientY || 20) + 14, 8, Math.max(8, vh - h - 8))) + 'px';
+        return true;
+    }
+
+    function onCanvasDblClickPillarTool(ev) {
+        if (!maStlDesingV2Viewer || ev.button !== 0) return;
+        if (ev.currentTarget !== renderer.domElement) return;
+        if (maStlWorkerToolIgnoreUiTarget(ev)) return;
+        const hit = maStlPickPillarLineAt(ev.clientX, ev.clientY);
+        if (hit) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            ev.stopImmediatePropagation();
+            return;
+        }
+        if (!maStlIsPillarToolActive()) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+        const placed = maStlDesing2PillarTool.placeAtPointer(ev.clientX, ev.clientY);
+        if (placed) maStlPlacePillarAt(placed);
+    }
+
+
+    renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownWorkerTool, true);
+    renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveWorkerTool, true);
+    renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownPillarTool, true);
+    renderer.domElement.addEventListener('pointermove', onCanvasPointerMovePillarTool, true);
+    renderer.domElement.addEventListener('click', onCanvasClickPillarTool, true);
+    renderer.domElement.addEventListener('dblclick', onCanvasDblClickPillarTool, true);
+    renderer.domElement.addEventListener('click', onCanvasClickWorkerTool, true);
+    renderer.domElement.addEventListener('dblclick', onCanvasDblClickWorkerTool, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownOffsetTool, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownDeleteTool, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownCopyTool, true);
@@ -28805,8 +30944,17 @@ function bootMasterArticleDetailsStlViewer() {
         window.maStlDesing2IsWindowSelectionBusy = maStlDesing2IsWindowSelectionBusy;
         window.maStlDesing2ComputeWindowSelectionHits = maStlDesing2ComputeWindowSelectionHits;
         window.maStlDesing2WindowSelectionPointerDown = maStlDesing2WindowSelectionPointerDown;
+        window.maStlDesing2MergeCollinearAxisRuns = maStlWall2dToolMergeCollinearAxisRuns;
+        window.maStlDesing2ReleaseEmptySpecialWalls = maStlDesing2ReleaseEmptySpecialWalls;
         window.maStlDesing2GetStraightWallsForFormwork = maStlBuildStraightWallsForFormwork;
         window.maStlDesing2GetStraightWallsFromScene = maStlBuildStraightWallsFromScene;
+        window.maStlDesing2PropSpacingMm = function () { return desing2PropSpacingMm; };
+        window.maStlDesing2ClearAtk60Visuals = maStlDesing2ClearAtk60Visuals;
+        window.maStlDesing2HasFormworkPanels = function () {
+            if (maStlFormworkEnvHasAtk60FormworkPanels()) return true;
+            const payload = maStlDesing2LastAtk60PaintPayload;
+            return !!(payload && Array.isArray(payload.elements) && payload.elements.length > 0);
+        };
         window.maStlDesing2GetStraightWallsFromWallModelSource = maStlBuildStraightWallsFromWallModelSource;
         window.maStlDesing2BuildWallConnectionsPayload = maStlBuildWallConnectionsPayload;
         window.maStlDesing2RenderAtk60AnchorPoints = maStlDesing2RenderAtk60AnchorPoints;
@@ -28883,15 +31031,101 @@ function bootMasterArticleDetailsStlViewer() {
                 if (!resp || resp.Exito !== true) {
                     return { failed: true, message: (resp && resp.Mensaje) || 'No se pudo guardar la foto' };
                 }
-                return { ok: true, fileName: resp.FileName || '' };
+                var photo = {
+                    ok: true,
+                    designId: resp.DesignId || designId,
+                    attPhoto: resp.AttPhoto || '',
+                    photoUrl: resp.PhotoUrl || '',
+                    version: resp.Version || '',
+                    fileName: resp.FileName || ''
+                };
+                maStlPublishDesignPhotoUpdated(photo);
+                return photo;
             })
             .catch(function (err) {
                 return { failed: true, message: err && err.message ? err.message : 'No se pudo guardar la foto' };
             });
     }
 
-    /** Foto del lienzo WebGL, sin barras ni menús. Devuelve el PNG en data URL. */
+    function maStlPublishDesignPhotoUpdated(photo) {
+        if (!photo || !photo.designId || !photo.photoUrl) return;
+        var detail = {
+            designId: Number(photo.designId) || photo.designId,
+            photoUrl: photo.photoUrl,
+            attPhoto: photo.attPhoto || '',
+            version: photo.version || String(Date.now())
+        };
+        try {
+            window.dispatchEvent(new CustomEvent('tandem:design-photo-updated', { detail: detail }));
+        } catch (_ev) { /* ignore */ }
+        try {
+            window.localStorage.setItem('tandem:design-photo-updated', JSON.stringify(detail));
+        } catch (_st) { /* ignore */ }
+    }
+
+    /** Foto del lienzo. Sin SSAO ni sombras. El PNG se codifica a 1280 px de lado largo, o a 960 si el buffer sigue grande. */
+    function maStlCaptureDesignPngFitBuffer(canvas, cssW, cssH, prevRatio, maxLong) {
+        var longCss = Math.max(cssW, cssH);
+        var captureRatio = Math.min(prevRatio > 0 ? prevRatio : 1, maxLong / longCss);
+        if (!isFinite(captureRatio) || captureRatio <= 0) captureRatio = 1;
+        renderer.setPixelRatio(captureRatio);
+        renderer.setSize(cssW, cssH, false);
+        var bufLong = Math.max(canvas.width || 0, canvas.height || 0);
+        if (bufLong > maxLong && bufLong > 0) {
+            var fit = maxLong / bufLong;
+            renderer.setPixelRatio(1);
+            renderer.setSize(
+                Math.max(1, Math.round(canvas.width * fit)),
+                Math.max(1, Math.round(canvas.height * fit)),
+                false
+            );
+        }
+    }
+
     function maStlCaptureDesignPngDataUrl() {
+        if (!renderer) return '';
+        var canvas = renderer.domElement;
+        var prevSize = new THREE.Vector2();
+        renderer.getSize(prevSize);
+        var prevRatio = renderer.getPixelRatio();
+        var prevShadow = !!(renderer.shadowMap && renderer.shadowMap.enabled);
+        var keyLight = mainDirLight;
+        var prevCast = !!(keyLight && keyLight.castShadow);
+        var cssW = canvas.clientWidth || prevSize.x;
+        var cssH = canvas.clientHeight || prevSize.y;
+        if (!(cssW > 0) || !(cssH > 0)) return '';
+        if (renderer.shadowMap) renderer.shadowMap.enabled = false;
+        if (keyLight) keyLight.castShadow = false;
+        maStlCaptureDesignPngFitBuffer(canvas, cssW, cssH, prevRatio, 1280);
+        if (Math.max(canvas.width || 0, canvas.height || 0) > 1280) {
+            maStlCaptureDesignPngFitBuffer(canvas, cssW, cssH, prevRatio, 960);
+        }
+        try {
+            return maStlCaptureDesignPngFromBuffer();
+        } finally {
+            if (keyLight) keyLight.castShadow = prevCast;
+            if (renderer.shadowMap) renderer.shadowMap.enabled = prevShadow;
+            renderer.setPixelRatio(prevRatio);
+            renderer.setSize(prevSize.x, prevSize.y, false);
+        }
+    }
+
+    function maStlDownscaleCanvasToLongSide(source, maxLong) {
+        var w = source.width;
+        var h = source.height;
+        var longSide = Math.max(w, h);
+        if (!(longSide > maxLong)) return source;
+        var scale = maxLong / longSide;
+        var small = document.createElement('canvas');
+        small.width = Math.max(1, Math.round(w * scale));
+        small.height = Math.max(1, Math.round(h * scale));
+        var sctx = small.getContext('2d');
+        sctx.imageSmoothingEnabled = true;
+        sctx.drawImage(source, 0, 0, small.width, small.height);
+        return small;
+    }
+
+    function maStlCaptureDesignPngFromBuffer() {
         if (!renderer) return '';
         var camMain = activeCamera();
         if (controls && !maStlIsRulerAnchorPickModeActive()) controls.update();
@@ -28905,22 +31139,7 @@ function bootMasterArticleDetailsStlViewer() {
                 maStlFormworkEnvHorizonColorHex()
             );
         }
-        if (maStlFormworkEnvRig && maStlFormworkEnvRig.settings.ssaoEnabled) {
-            maStlFormworkEnvEnsureSsaoComposer(renderer, scene, camMain, maStlFormworkEnvRig);
-            if (maStlFormworkEnvRig.ssaoComposer) {
-                maStlFormworkEnvResizeSsao(
-                    maStlFormworkEnvRig,
-                    renderer.domElement.width,
-                    renderer.domElement.height,
-                    camMain
-                );
-                maStlFormworkEnvRig.ssaoComposer.render();
-            } else {
-                renderer.render(scene, camMain);
-            }
-        } else {
-            renderer.render(scene, camMain);
-        }
+        renderer.render(scene, camMain);
         var gl = renderer.getContext();
         var w = gl.drawingBufferWidth;
         var h = gl.drawingBufferHeight;
@@ -28938,7 +31157,8 @@ function bootMasterArticleDetailsStlViewer() {
             imageData.data.set(pixels.subarray(src, src + rowBytes), y * rowBytes);
         }
         ctx2.putImageData(imageData, 0, 0);
-        return out.toDataURL('image/png');
+        var encoded = Math.max(w, h) > 1280 ? maStlDownscaleCanvasToLongSide(out, 960) : out;
+        return encoded.toDataURL('image/png');
     }
 
     function maStlDownloadDesignScreenshot() {
@@ -29322,15 +31542,74 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     /** @returns {boolean} */
-    function maStlDesing2SaveViewerStateToCookie() {
+    function maStlDesing2SaveViewerStateToCookie(state) {
         if (!maStlDesingV2Viewer || maStlDesing2RestoringViewerState) return false;
         try {
-            const json = JSON.stringify(maStlDesing2BuildViewerStateSnapshot());
-            return maStlWriteCookie(MA_STL_DESING2_VIEWER_COOKIE_GLOBAL, json, MA_STL_DESING2_VIEWER_COOKIE_MAX_AGE_SEC);
+            const json = JSON.stringify(state || maStlDesing2BuildViewerStateSnapshot());
+            const perDesign = maStlDesing2PerDesignViewerCookieName();
+            const perDesignOk = perDesign
+                ? maStlWriteCookie(perDesign, json, MA_STL_DESING2_VIEWER_COOKIE_MAX_AGE_SEC)
+                : false;
+            const globalOk = maStlWriteCookie(
+                MA_STL_DESING2_VIEWER_COOKIE_GLOBAL,
+                json,
+                MA_STL_DESING2_VIEWER_COOKIE_MAX_AGE_SEC
+            );
+            return perDesignOk || globalOk;
         } catch (_e) {
             return false;
         }
     }
+
+    function maStlDesing2SaveViewerStateApiUrl() {
+        const boot = maStlDesing2ViewerStateBootEl();
+        return boot ? boot.getAttribute('data-ma-stl-save-viewer-state-api-url') || '' : '';
+    }
+
+    function maStlDesing2SaveViewerStateToServer(state) {
+        const designId = maStlDesing2CurrentDesignId();
+        const apiUrl = maStlDesing2SaveViewerStateApiUrl();
+        if (!designId || !apiUrl || !state) {
+            return Promise.resolve({ skipped: true });
+        }
+        return fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ DesignId: designId, State: state })
+        })
+            .then(function (res) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            })
+            .then(function (resp) {
+                if (!resp || resp.Exito !== true) {
+                    return { failed: true, message: (resp && resp.Mensaje) || 'No se pudo guardar la vista de cámara' };
+                }
+                return { ok: true };
+            })
+            .catch(function (err) {
+                return { failed: true, message: err && err.message ? err.message : 'No se pudo guardar la vista de cámara' };
+            });
+    }
+
+    function maStlDesing2SaveCurrentViewerState(state) {
+        let viewerState = state;
+        let cookieOk = false;
+        try {
+            viewerState = viewerState || maStlDesing2BuildViewerStateSnapshot();
+            cookieOk = maStlDesing2SaveViewerStateToCookie(viewerState);
+        } catch (err) {
+            return Promise.resolve({ failed: true, message: err && err.message ? err.message : 'No se pudo preparar la vista de cámara' });
+        }
+        return maStlDesing2SaveViewerStateToServer(viewerState).then(function (result) {
+            result = result || {};
+            result.cookieOk = cookieOk;
+            return result;
+        });
+    }
+
+    window.maStlDesing2SaveCurrentViewerState = maStlDesing2SaveCurrentViewerState;
 
     let maStlDesing2SaveViewFeedbackTimer = null;
 
@@ -29384,6 +31663,8 @@ function bootMasterArticleDetailsStlViewer() {
         }, 3000);
     }
 
+    window.maStlDesing2ShowSaveViewToast = maStlDesing2ShowSaveViewToast;
+
     /**
      * @param {HTMLButtonElement | null | undefined} btn
      */
@@ -29407,11 +31688,25 @@ function bootMasterArticleDetailsStlViewer() {
     if (maStlSaveViewerStateBtn instanceof HTMLButtonElement && maStlDesingV2Viewer) {
         const saveStateBtn = maStlSaveViewerStateBtn;
         saveStateBtn.addEventListener('click', function () {
-            const cookieOk = maStlDesing2SaveViewerStateToCookie();
+            const viewerState = maStlDesing2BuildViewerStateSnapshot();
             maStlDesing2SaveDesignWallsToServer()
                 .then(function (wallsResult) {
+                    return maStlDesing2SaveCurrentViewerState(viewerState).then(function (viewResult) {
+                        return { wallsResult: wallsResult, viewResult: viewResult };
+                    });
+                })
+                .then(function (result) {
+                    const wallsResult = result.wallsResult;
+                    const viewResult = result.viewResult;
                     if (wallsResult && wallsResult.ok) {
                         maStlDesing2FlashSaveViewFeedback(saveStateBtn);
+                        if (viewResult && viewResult.failed) {
+                            maStlDesing2ShowSaveViewToast(
+                                viewResult.message || 'No se pudo guardar la vista de cámara',
+                                true
+                            );
+                            return;
+                        }
                         if (wallsResult.photoFailed) {
                             maStlDesing2ShowSaveViewToast(
                                 wallsResult.photoMessage || 'No se pudo guardar la foto del diseño',
@@ -29434,7 +31729,7 @@ function bootMasterArticleDetailsStlViewer() {
                         return;
                     }
                     if (wallsResult && wallsResult.needDesign) {
-                        if (cookieOk) {
+                        if (viewResult && viewResult.cookieOk) {
                             maStlDesing2FlashSaveViewFeedback(saveStateBtn);
                         }
                         const needTpl = saveStateBtn.getAttribute('data-ma-stl-save-walls-need-design') || '';
@@ -29571,8 +31866,11 @@ function bootMasterArticleDetailsStlViewer() {
             if (yesBtn.disabled) return;
             setLeaveBusy(true);
             hideLeaveModal();
-            maStlDesing2SaveViewerStateToCookie();
+            const viewerState = maStlDesing2BuildViewerStateSnapshot();
             maStlDesing2SaveDesignWallsToServer()
+                .then(function () {
+                    return maStlDesing2SaveCurrentViewerState(viewerState);
+                })
                 .then(function () {
                     leaveDesignNow();
                 })
@@ -29615,6 +31913,39 @@ function bootMasterArticleDetailsStlViewer() {
             const el = ev.target;
             if (!(el instanceof HTMLInputElement)) return;
             const id = el.id;
+            if (id === 'ma-stl-config-prop-spacing') {
+                if (ev.type === 'change' || ev.type === 'blur') {
+                    const parsed = maStlParseLengthInputValueToMm(el.value);
+                    if (parsed != null && parsed >= 300 && parsed <= 6000) {
+                        const changed = Math.abs(parsed - desing2PropSpacingMm) >= 1;
+                        desing2PropSpacingMm = parsed;
+                        el.value = maStlDesing2DimEditableMetersDisplayFromMm(desing2PropSpacingMm);
+                        const saveUrl = viewerShell && viewerShell.getAttribute('data-ma-stl-save-prop-spacing-api-url');
+                        const designId = viewerShell && viewerShell.getAttribute('data-ma-stl-design-id');
+                        if (saveUrl && designId) {
+                            const body = 'designId=' + encodeURIComponent(designId)
+                                + '&spacingMm=' + encodeURIComponent(String(desing2PropSpacingMm));
+                            fetch(saveUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+                                body: body,
+                                credentials: 'same-origin'
+                            }).catch(function () { });
+                        }
+                        if (changed && typeof window.maStlDesing2HasFormworkPanels === 'function'
+                            && window.maStlDesing2HasFormworkPanels()) {
+                            if (typeof window.maStlDesing2ClearAtk60Visuals === 'function') {
+                                window.maStlDesing2ClearAtk60Visuals();
+                            }
+                            const formBtn = document.getElementById('ma-stl-mode-formwork');
+                            if (formBtn && !formBtn.disabled) formBtn.click();
+                        }
+                    } else {
+                        el.value = maStlDesing2DimEditableMetersDisplayFromMm(desing2PropSpacingMm);
+                    }
+                }
+                return;
+            }
             if (id === 'ma-stl-config-offset-default') {
                 if (ev.type === 'change' || ev.type === 'blur') {
                     applyDesing2ConfigOffsetDefaultFromInput();
@@ -29722,9 +32053,15 @@ function bootMasterArticleDetailsStlViewer() {
 
         function onEscapeKeyDown(ev) {
             if (!(ev instanceof KeyboardEvent)) return;
-            if (escapeTargetTypingOrModalHost(ev.target)) return;
             if (ev.repeat) return;
             if (ev.key !== 'Escape' && ev.key !== 'Esc') return;
+            if (maStlIsPillarEditPopupOpen()) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                maStlClosePillarEditPopup();
+                return;
+            }
+            if (escapeTargetTypingOrModalHost(ev.target)) return;
             if (!maStlDesing2TransientEscapeHandledBeforeCancel()) return;
             ev.preventDefault();
             maStlDesing2CancelTransientToolsEscape();

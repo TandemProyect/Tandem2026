@@ -91,12 +91,6 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     moduleBaseAlongMm, moduleIndex, countInWall,
                     yawRad, ux, uz, faceSign,
                     wallHeightMm, wallThicknessMm, wallLengthMm, idWall);
-                PushPullProp.Place(
-                    outElements, anchor, idWall,
-                    moduleBaseAlongMm, moduleLengthMm,
-                    yawRad, ux, uz, faceSign,
-                    wallHeightMm, wallThicknessMm, wallLengthMm,
-                    attrs);
             }
 
             return outElements;

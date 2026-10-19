@@ -109,7 +109,11 @@ namespace Desing.Controllers
 
                 DesignId = designId,
 
-                BrandLogoUrl = ResolvePlantillaLogoUrl(Url, ViewBag.PlantillaLogo as string)
+                InitialViewerStateJson = LoadInitialViewerStateJson(designId),
+
+                PropSpacingMm = ReadDesignPropSpacingMm(designId),
+
+                BrandLogoUrl = ResolvePlantillaLogoUrl(Url, (ViewBag.PlantillaMark as string) ?? (ViewBag.PlantillaLogo as string))
 
             };
 
@@ -253,6 +257,7 @@ namespace Desing.Controllers
                     return Json(new { Exito = false, Mensaje = "Diseño no indicado." });
                 }
 
+                db.Database.CommandTimeout = 15;
                 var repository = new DesignWallRepository(db);
                 var design = repository.FindActiveDesign(request.DesignId);
                 if (design == null)
@@ -275,14 +280,13 @@ namespace Desing.Controllers
                     else
                     {
                         saved = repository.ReplaceWalls(request.DesignId, request.Lines, userId);
+                        if (request.Workers != null)
+                        {
+                            new DesignWorkerRepository(db).Replace(request.DesignId, request.Workers, userId);
+                        }
                         db.SaveChanges();
                     }
                     trans.Commit();
-                }
-
-                if (articleRepo != null)
-                {
-                    articleRepo.QueueRetirePrevious(userId);
                 }
 
                 return Json(new
@@ -301,6 +305,25 @@ namespace Desing.Controllers
             {
                 return Json(new { Exito = false, Mensaje = ex.Message });
             }
+        }
+
+        /// <summary>
+        /// El primer usuario del día arranca la limpieza y recibe los segundos previstos.
+        /// </summary>
+        [HttpPost]
+        public JsonResult BeginArticleMaintenance()
+        {
+            return Json(DesignWallArticleRepository.TryBeginDailyPurge());
+        }
+
+        [HttpGet]
+        public JsonResult ArticleMaintenanceState()
+        {
+            return Json(new
+            {
+                running = DesignWallArticleRepository.MaintenanceSecondsLeft() > 0 && DesignWallArticleRepository.IsMaintenanceNoticeDue(),
+                seconds = DesignWallArticleRepository.MaintenanceSecondsLeft()
+            }, JsonRequestBehavior.AllowGet);
         }
 
         /// <summary>
@@ -362,6 +385,8 @@ namespace Desing.Controllers
                 Directory.CreateDirectory(dir);
                 var physical = Path.Combine(dir, fileName);
                 System.IO.File.WriteAllBytes(physical, png);
+                var photoVersion = DateTime.UtcNow.Ticks.ToString(CultureInfo.InvariantCulture);
+                var photoUrl = Url.Content(virtualPath) + "?v=" + photoVersion;
 
                 var userId = IntranetAuditHelper.ResolveCurrentUserId(User) ?? "";
                 var updated = db.Database.ExecuteSqlCommand(
@@ -380,7 +405,83 @@ namespace Desing.Controllers
                     Exito = true,
                     DesignId = design.SysObjectID,
                     AttPhoto = virtualPath,
+                    PhotoUrl = photoUrl,
+                    Version = photoVersion,
                     FileName = fileName
+                });
+            }
+            catch (JsonReaderException ex)
+            {
+                return Json(new { Exito = false, Mensaje = "JSON inválido: " + ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Exito = false, Mensaje = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public JsonResult SaveViewerState()
+        {
+            try
+            {
+                if (Request.InputStream.CanSeek)
+                {
+                    Request.InputStream.Position = 0;
+                }
+
+                string rawJson;
+                using (var reader = new StreamReader(Request.InputStream, Encoding.UTF8))
+                {
+                    rawJson = reader.ReadToEnd();
+                }
+
+                if (string.IsNullOrWhiteSpace(rawJson))
+                {
+                    return Json(new { Exito = false, Mensaje = "JSON vacío." });
+                }
+
+                var request = JsonConvert.DeserializeObject<Desing2ViewerStateSaveRequest>(rawJson);
+                if (request == null || request.DesignId <= 0)
+                {
+                    return Json(new { Exito = false, Mensaje = "Diseño no indicado." });
+                }
+
+                var state = NormalizeViewerState(request.State);
+                if (state == null)
+                {
+                    return Json(new { Exito = false, Mensaje = "Vista no válida." });
+                }
+
+                var stateJson = state.ToString(Formatting.None);
+                if (Encoding.UTF8.GetByteCount(stateJson) > 32 * 1024)
+                {
+                    return Json(new { Exito = false, Mensaje = "La vista es demasiado grande." });
+                }
+
+                var activeType = ResolveViewerStateActiveCameraType(state);
+                var userId = IntranetAuditHelper.ResolveCurrentUserId(User) ?? "";
+                var updated = db.Database.ExecuteSqlCommand(
+                    "UPDATE dbo.TSql_Design_V2 SET AttActiveCameraType = @p0, AttChange = @p1, LinModifiedBy = @p2, SysUpdateNumber = SysUpdateNumber + 1 WHERE SysObjectID = @p3 AND AttIsDeleted = 0",
+                    activeType,
+                    DateTime.Now,
+                    userId,
+                    request.DesignId);
+                if (updated != 1)
+                {
+                    return Json(new { Exito = false, Mensaje = "Diseño no encontrado." });
+                }
+
+                var serverStateSaved = TrySaveOptionalViewerStateJson(request.DesignId, stateJson);
+                var legacyCameraSaved = TrySaveLegacyDesignCameras(request.DesignId, userId, activeType, state);
+
+                return Json(new
+                {
+                    Exito = true,
+                    DesignId = request.DesignId,
+                    ActiveCameraType = activeType,
+                    ServerStateSaved = serverStateSaved,
+                    LegacyCameraSaved = legacyCameraSaved
                 });
             }
             catch (JsonReaderException ex)
@@ -473,21 +574,12 @@ namespace Desing.Controllers
                     .Select(a => new { a.TextCode, a.LinkMasterArticle })
                     .ToList();
 
-                var grouped = pieces
-                    .Select(p => new
-                    {
-                        Code = NormalizeMaterialCode(p.TextCode),
-                        p.LinkMasterArticle
-                    })
-                    .Where(p => p.Code.Length > 0)
-                    .GroupBy(p => p.Code)
-                    .Select(g => new
-                    {
-                        Code = g.Key,
-                        Qty = g.Count(),
-                        MasterId = g.Select(x => x.LinkMasterArticle).FirstOrDefault(id => id.HasValue)
-                    })
-                    .ToList();
+                var groupedMap = new Dictionary<string, MaterialCountGroup>(StringComparer.OrdinalIgnoreCase);
+                for (var i = 0; i < pieces.Count; i++)
+                {
+                    AddSceneMaterialCountGroup(groupedMap, pieces[i].TextCode, 1, pieces[i].LinkMasterArticle, null);
+                }
+                var grouped = ResolveReplacementMaterialGroups(groupedMap.Values.ToList());
 
                 var codes = grouped.Select(g => g.Code).ToList();
                 var ids = grouped.Where(g => g.MasterId.HasValue).Select(g => g.MasterId.Value).Distinct().ToList();
@@ -504,7 +596,9 @@ namespace Desing.Controllers
                         IdObject = m.IdObject,
                         TextCode = m.TextCode,
                         AddAtenkoCode = m.AddAtenkoCode,
-                        TextLabel = m.TextLabel
+                        TextLabel = m.TextLabel,
+                        NumberWeight = m.NumberWeight,
+                        NumberMts2 = m.NumberMts2
                     }).ToList();
 
                 var rows = grouped
@@ -518,7 +612,18 @@ namespace Desing.Controllers
                             ? g.Code
                             : (!string.IsNullOrWhiteSpace(master.AddAtenkoCode) ? master.AddAtenkoCode : (master.TextCode ?? g.Code));
                         var name = master == null ? "" : (master.TextLabel ?? "");
-                        return new { code = code, name = name, qty = g.Qty };
+                        var unitWeight = master == null ? 0d : (master.NumberWeight ?? 0d);
+                        var unitMts2 = master == null ? 0d : (master.NumberMts2 ?? 0d);
+                        return new
+                        {
+                            code = code,
+                            name = name,
+                            qty = g.Qty,
+                            unitWeight = unitWeight,
+                            totalWeight = unitWeight * g.Qty,
+                            unitMts2 = unitMts2,
+                            totalMts2 = unitMts2 * g.Qty
+                        };
                     })
                     .ToList();
 
@@ -549,7 +654,7 @@ namespace Desing.Controllers
                     rawJson = reader.ReadToEnd();
                 }
 
-                var grouped = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                var groupedMap = new Dictionary<string, MaterialCountGroup>(StringComparer.OrdinalIgnoreCase);
                 if (!string.IsNullOrWhiteSpace(rawJson))
                 {
                     var parsed = JToken.Parse(rawJson);
@@ -558,19 +663,6 @@ namespace Desing.Controllers
                     {
                         foreach (var item in items)
                         {
-                            var code = NormalizeMaterialCode(item.Value<string>("code"));
-                            if (code.Length == 0 || code.EndsWith("_PHENOLIC", StringComparison.OrdinalIgnoreCase))
-                            {
-                                continue;
-                            }
-                            if (code.EndsWith("_FRAME", StringComparison.OrdinalIgnoreCase))
-                            {
-                                code = code.Substring(0, code.Length - 6).Trim();
-                            }
-                            if (code.Length == 0)
-                            {
-                                continue;
-                            }
                             var qty = 1;
                             var qtyToken = item["qty"];
                             if (qtyToken != null && qtyToken.Type != JTokenType.Null)
@@ -581,38 +673,67 @@ namespace Desing.Controllers
                                     qty = parsedQty;
                                 }
                             }
-                            int current;
-                            grouped.TryGetValue(code, out current);
-                            grouped[code] = current + qty;
+                            AddSceneMaterialCountGroup(groupedMap, item.Value<string>("code"), qty, null, item.Value<string>("sceneCode"));
                         }
                     }
                 }
 
-                var codes = grouped.Keys.ToList();
+                var grouped = ResolveReplacementMaterialGroups(groupedMap.Values.ToList());
+                var codes = grouped.Select(g => g.Code).ToList();
+                var ids = grouped.Where(g => g.MasterId.HasValue).Select(g => g.MasterId.Value).Distinct().ToList();
                 var masters = codes.Count == 0
                     ? new List<MasterArticleCountRow>()
                     : db.Tsql_Master_Articles.AsNoTracking()
-                        .Where(m => codes.Contains(m.TextCode) || codes.Contains(m.AddAtenkoCode))
+                        .Where(m => ids.Contains(m.IdObject) || codes.Contains(m.TextCode) || codes.Contains(m.AddAtenkoCode))
                         .Select(m => new MasterArticleCountRow
                         {
                             IdObject = m.IdObject,
                             TextCode = m.TextCode,
                             AddAtenkoCode = m.AddAtenkoCode,
-                            TextLabel = m.TextLabel
+                            TextLabel = m.TextLabel,
+                            TextColor1 = m.TextColor1,
+                            TextColor2 = m.TextColor2,
+                            NumberWeight = m.NumberWeight,
+                            NumberMts2 = m.NumberMts2,
+                            NumberHigh = m.NumberHigh,
+                            NumberWidth = m.NumberWidth,
+                            LinkBlockDwgPlantStl = m.LinkBlockDwgPlantStl,
+                            LinkBlockDwgVerticalElevationStl = m.LinkBlockDwgVerticalElevationStl,
+                            LinkBlockDwgHorizontalElevationStl = m.LinkBlockDwgHorizontalElevationStl,
+                            LinkBlockDwg3D = m.LinkBlockDwg3D,
+                            LinkBlockDwgPlant3D = m.LinkBlockDwgPlant3D
                         })
                         .ToList();
 
                 var rows = grouped
-                    .OrderBy(g => g.Key)
+                    .OrderBy(g => g.Code)
                     .Select(g =>
                     {
-                        var master = masters.FirstOrDefault(m => string.Equals(m.TextCode, g.Key, StringComparison.OrdinalIgnoreCase))
-                            ?? masters.FirstOrDefault(m => string.Equals(m.AddAtenkoCode, g.Key, StringComparison.OrdinalIgnoreCase));
+                        var master = masters.FirstOrDefault(m => g.MasterId.HasValue && m.IdObject == g.MasterId.Value)
+                            ?? masters.FirstOrDefault(m => string.Equals(m.TextCode, g.Code, StringComparison.OrdinalIgnoreCase))
+                            ?? masters.FirstOrDefault(m => string.Equals(m.AddAtenkoCode, g.Code, StringComparison.OrdinalIgnoreCase));
                         var code = master == null
-                            ? g.Key
-                            : (!string.IsNullOrWhiteSpace(master.AddAtenkoCode) ? master.AddAtenkoCode : (master.TextCode ?? g.Key));
+                            ? g.Code
+                            : (!string.IsNullOrWhiteSpace(master.AddAtenkoCode) ? master.AddAtenkoCode : (master.TextCode ?? g.Code));
                         var name = master == null ? "" : (master.TextLabel ?? "");
-                        return new { code = code, name = name, qty = g.Value };
+                        var stl = ResolveCountArticleStl(master, g.Code);
+                        var unitWeight = master == null ? 0d : (master.NumberWeight ?? 0d);
+                        var unitMts2 = master == null ? 0d : (master.NumberMts2 ?? 0d);
+                        return new
+                        {
+                            code = code,
+                            sceneCode = !string.IsNullOrWhiteSpace(g.SceneCode) ? g.SceneCode : g.Code,
+                            name = name,
+                            qty = g.Qty,
+                            unitWeight = unitWeight,
+                            totalWeight = unitWeight * g.Qty,
+                            unitMts2 = unitMts2,
+                            totalMts2 = unitMts2 * g.Qty,
+                            stlUrl = stl.StlUrl,
+                            stlUrl2 = stl.StlUrl2,
+                            color1 = stl.Color1,
+                            color2 = stl.Color2
+                        };
                     })
                     .ToList();
 
@@ -637,8 +758,7 @@ namespace Desing.Controllers
                     return Json(new { ok = true, pieceCount = 0, stale = false }, JsonRequestBehavior.AllowGet);
                 }
 
-                var pieceDates = db.TSql_DesignWallArticle.AsNoTracking()
-                    .Where(a => a.LinkDesign_V2 == designId && !a.Is_Delete && a.Is_Active)
+                var pieceDates = new DesignWallArticleRepository(db).QueryLatestActive(designId)
                     .Select(a => a.AddDateMade)
                     .ToList();
                 var wallDates = db.TSql_DesignWall.AsNoTracking()
@@ -699,6 +819,277 @@ namespace Desing.Controllers
             return code;
         }
 
+        private static string NormalizeMaterialCountCode(string raw)
+        {
+            var code = NormalizeMaterialCode(raw);
+            if (code.Length == 0 || code.EndsWith("_PHENOLIC", StringComparison.OrdinalIgnoreCase))
+            {
+                return "";
+            }
+
+            if (code.EndsWith("_FRAME", StringComparison.OrdinalIgnoreCase))
+            {
+                code = code.Substring(0, code.Length - 6).Trim();
+            }
+
+            return string.Equals(code, "10000221B", StringComparison.OrdinalIgnoreCase) ? "" : code;
+        }
+
+        private static void AddMaterialCountGroup(IDictionary<string, MaterialCountGroup> groups, string rawCode, int qty, long? masterId, string sceneCode)
+        {
+            if (groups == null || qty <= 0)
+            {
+                return;
+            }
+
+            var code = NormalizeMaterialCountCode(rawCode);
+            if (code.Length == 0)
+            {
+                return;
+            }
+
+            MaterialCountGroup group;
+            if (!groups.TryGetValue(code, out group))
+            {
+                var scene = NormalizeMaterialCode(sceneCode);
+                group = new MaterialCountGroup
+                {
+                    Code = code,
+                    SceneCode = string.IsNullOrWhiteSpace(scene) ? code : scene
+                };
+                groups[code] = group;
+            }
+
+            group.Qty += qty;
+            if (!group.MasterId.HasValue && masterId.HasValue)
+            {
+                group.MasterId = masterId;
+            }
+        }
+
+        private static void AddSceneMaterialCountGroup(IDictionary<string, MaterialCountGroup> groups, string rawCode, int qty, long? masterId, string sceneCode)
+        {
+            var code = NormalizeMaterialCountCode(rawCode);
+            if (string.IsNullOrWhiteSpace(code) || qty <= 0)
+            {
+                return;
+            }
+
+            if (IsLegacyPropHiddenPart(code))
+            {
+                return;
+            }
+
+            var propMaterials = LegacyPropMaterialCodes(code);
+            if (propMaterials != null)
+            {
+                for (var i = 0; i < propMaterials.Length; i++)
+                {
+                    AddMaterialCountGroup(groups, propMaterials[i], qty, null, code);
+                }
+                return;
+            }
+
+            AddMaterialCountGroup(groups, code, qty, masterId, sceneCode);
+        }
+
+        private static bool IsLegacyPropHiddenPart(string code)
+        {
+            return !string.IsNullOrWhiteSpace(code)
+                && code.StartsWith("H0_2", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string[] LegacyPropMaterialCodes(string code)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                return null;
+            }
+
+            if (code.StartsWith("HTipo4-41", StringComparison.OrdinalIgnoreCase))
+            {
+                return new[] { "551", "551", "738", "738", "738", "550", "550" };
+            }
+
+            if (code.StartsWith("HTipo3-2", StringComparison.OrdinalIgnoreCase))
+            {
+                return new[] { "551", "551", "737", "737", "737", "550", "550" };
+            }
+
+            if (code.StartsWith("HTipo3", StringComparison.OrdinalIgnoreCase))
+            {
+                return new[] { "551", "551", "736", "736", "736", "550", "550" };
+            }
+
+            if (code.StartsWith("HTipo2", StringComparison.OrdinalIgnoreCase))
+            {
+                return new[] { "1920804", "1900144", "546" };
+            }
+
+            if (code.StartsWith("HTipo1", StringComparison.OrdinalIgnoreCase))
+            {
+                return new[] { "1920804", "1900144", "1900135" };
+            }
+
+            if (code.StartsWith("HTipo0", StringComparison.OrdinalIgnoreCase))
+            {
+                return new[] { "1920804", "1900144", "1900134" };
+            }
+
+            return null;
+        }
+
+        private List<MaterialCountGroup> ResolveReplacementMaterialGroups(List<MaterialCountGroup> groups)
+        {
+            if (groups == null || groups.Count == 0)
+            {
+                return new List<MaterialCountGroup>();
+            }
+
+            var codes = groups.Select(g => g.Code).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            var directIds = groups.Where(g => g.MasterId.HasValue).Select(g => g.MasterId.Value).Distinct().ToList();
+            if (codes.Count == 0 && directIds.Count == 0)
+            {
+                return groups;
+            }
+
+            var masters = db.Tsql_Master_Articles.AsNoTracking()
+                .Where(m => directIds.Contains(m.IdObject) || codes.Contains(m.TextCode) || codes.Contains(m.AddAtenkoCode))
+                .Select(m => new MasterArticleCountRow
+                {
+                    IdObject = m.IdObject,
+                    TextCode = m.TextCode,
+                    AddAtenkoCode = m.AddAtenkoCode,
+                    TextLabel = m.TextLabel
+                })
+                .ToList();
+
+            var parentIds = new List<long>();
+            for (var i = 0; i < groups.Count; i++)
+            {
+                var master = FindCountMaster(masters, groups[i]);
+                if (master == null)
+                {
+                    continue;
+                }
+
+                if (!groups[i].MasterId.HasValue)
+                {
+                    groups[i].MasterId = master.IdObject;
+                }
+
+                if (!parentIds.Contains(master.IdObject))
+                {
+                    parentIds.Add(master.IdObject);
+                }
+            }
+
+            if (parentIds.Count == 0)
+            {
+                return groups;
+            }
+
+            var replacements = db.Tsql_RemplaceArticleStok.AsNoTracking()
+                .Where(r => parentIds.Contains(r.LinkMaster_Articles))
+                .Select(r => new { r.IdObject, r.LinkMaster_Articles })
+                .ToList();
+            if (replacements.Count == 0)
+            {
+                return groups;
+            }
+
+            var replacementIds = replacements.Select(r => r.IdObject).Distinct().ToList();
+            var childLinks = db.Tsql_RemplaceArticleStokChildren.AsNoTracking()
+                .Where(c => replacementIds.Contains(c.LinkRemplaceArticleStok))
+                .Select(c => new { c.LinkRemplaceArticleStok, c.LinkMaster_Articles })
+                .ToList();
+            if (childLinks.Count == 0)
+            {
+                return groups;
+            }
+
+            var childIds = childLinks.Select(c => c.LinkMaster_Articles).Distinct().ToList();
+            var childMasters = db.Tsql_Master_Articles.AsNoTracking()
+                .Where(m => childIds.Contains(m.IdObject))
+                .Select(m => new MasterArticleCountRow
+                {
+                    IdObject = m.IdObject,
+                    TextCode = m.TextCode,
+                    AddAtenkoCode = m.AddAtenkoCode,
+                    TextLabel = m.TextLabel
+                })
+                .ToList()
+                .ToDictionary(m => m.IdObject);
+
+            var output = new Dictionary<string, MaterialCountGroup>(StringComparer.OrdinalIgnoreCase);
+            for (var i = 0; i < groups.Count; i++)
+            {
+                var group = groups[i];
+                var master = FindCountMaster(masters, group);
+                var expanded = false;
+                if (master != null)
+                {
+                    var groupReplacements = replacements.Where(r => r.LinkMaster_Articles == master.IdObject).ToList();
+                    for (var r = 0; r < groupReplacements.Count; r++)
+                    {
+                        var replacementId = groupReplacements[r].IdObject;
+                        var children = childLinks.Where(c => c.LinkRemplaceArticleStok == replacementId).ToList();
+                        for (var c = 0; c < children.Count; c++)
+                        {
+                            MasterArticleCountRow childMaster;
+                            if (!childMasters.TryGetValue(children[c].LinkMaster_Articles, out childMaster))
+                            {
+                                continue;
+                            }
+
+                            var childCode = CountCodeForMaster(childMaster, group.Code);
+                            AddMaterialCountGroup(output, childCode, group.Qty, childMaster.IdObject, group.SceneCode);
+                            expanded = true;
+                        }
+                    }
+                }
+
+                if (!expanded)
+                {
+                    AddMaterialCountGroup(output, group.Code, group.Qty, group.MasterId, group.SceneCode);
+                }
+            }
+
+            return output.Values.ToList();
+        }
+
+        private static MasterArticleCountRow FindCountMaster(List<MasterArticleCountRow> masters, MaterialCountGroup group)
+        {
+            if (masters == null || group == null)
+            {
+                return null;
+            }
+
+            if (group.MasterId.HasValue)
+            {
+                var byId = masters.FirstOrDefault(m => m.IdObject == group.MasterId.Value);
+                if (byId != null)
+                {
+                    return byId;
+                }
+            }
+
+            return masters.FirstOrDefault(m => string.Equals(m.TextCode, group.Code, StringComparison.OrdinalIgnoreCase))
+                ?? masters.FirstOrDefault(m => string.Equals(m.AddAtenkoCode, group.Code, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static string CountCodeForMaster(MasterArticleCountRow master, string fallback)
+        {
+            if (master == null)
+            {
+                return fallback;
+            }
+
+            return !string.IsNullOrWhiteSpace(master.AddAtenkoCode)
+                ? master.AddAtenkoCode
+                : (master.TextCode ?? fallback);
+        }
+
         /// <summary>
         /// Devuelve el snapshot de muros activos de un diseño V2 para restaurar el visor.
         /// </summary>
@@ -752,9 +1143,16 @@ namespace Desing.Controllers
                 var walls = solved.Walls;
                 var modulos = solved.Modulos;
                 var elementsForThreeJs = solved.ElementsForThreeJs;
-                SaveAtk60RequestDebugToTemp(jsonRaw, walls, modulos, elementsForThreeJs, buildStamp);
+                try
+                {
+                    SaveAtk60RequestDebugToTemp(jsonRaw, walls, modulos, elementsForThreeJs, buildStamp);
+                }
+                catch
+                {
+                    // El servidor publicado no puede escribir C:\temp. Eso no debe anular el encofrado.
+                }
 
-                return Json(new
+                var result = Json(new
                 {
                     Exito = true,
                     System = solved.System,
@@ -770,6 +1168,8 @@ namespace Desing.Controllers
                     ElementsForThreeJs = elementsForThreeJs,
                     Walls = walls
                 });
+                result.MaxJsonLength = int.MaxValue;
+                return result;
             }
             catch (Exception ex)
             {
@@ -1244,13 +1644,19 @@ namespace Desing.Controllers
             public double Z { get; set; }
         }
 
+        private sealed class Desing2ViewerStateSaveRequest
+        {
+            public long DesignId { get; set; }
+            public JObject State { get; set; }
+        }
+
         private static string ResolvePlantillaLogoUrl(UrlHelper url, string plantillaLogoRaw)
 
         {
 
             var plantillaLogo = string.IsNullOrWhiteSpace(plantillaLogoRaw)
 
-                ? "/Content/images/Login/at.png"
+                ? PluginCadDeviceHelper.DefaultMarkVirtualPath
 
                 : plantillaLogoRaw.Trim();
 
@@ -1268,6 +1674,279 @@ namespace Desing.Controllers
 
             return url.Content("~" + (plantillaLogo.StartsWith("/") ? plantillaLogo : "/" + plantillaLogo));
 
+        }
+
+        private string LoadInitialViewerStateJson(long? designId)
+        {
+            if (!designId.HasValue || designId.Value <= 0)
+            {
+                return null;
+            }
+
+            var optionalState = TryLoadOptionalViewerStateJson(designId.Value);
+            if (!string.IsNullOrWhiteSpace(optionalState))
+            {
+                return optionalState;
+            }
+
+            return TryBuildViewerStateJsonFromLegacyCameras(designId.Value);
+        }
+
+        private string TryLoadOptionalViewerStateJson(long designId)
+        {
+            try
+            {
+                var exists = db.Database.SqlQuery<int>(
+                    "SELECT CASE WHEN COL_LENGTH('dbo.TSql_Design_V2', 'AttViewerStateJson') IS NULL THEN 0 ELSE 1 END")
+                    .FirstOrDefault();
+                if (exists != 1)
+                {
+                    return null;
+                }
+
+                var raw = db.Database.SqlQuery<string>(
+                    "SELECT CAST(AttViewerStateJson AS nvarchar(max)) FROM dbo.TSql_Design_V2 WHERE SysObjectID = @p0 AND AttIsDeleted = 0",
+                    designId)
+                    .FirstOrDefault();
+                var state = NormalizeViewerState(raw);
+                return state == null ? null : state.ToString(Formatting.None);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private string TryBuildViewerStateJsonFromLegacyCameras(long designId)
+        {
+            try
+            {
+                var userId = IntranetAuditHelper.ResolveCurrentUserId(User);
+                if (string.IsNullOrWhiteSpace(userId))
+                {
+                    return null;
+                }
+
+                var design = db.TSql_Design_V2.FirstOrDefault(d => d.SysObjectID == designId && !d.AttIsDeleted);
+                if (design == null)
+                {
+                    return null;
+                }
+
+                var cameras = db.TSql_DesignCamera
+                    .Where(c => c.LinDesaing == designId && c.LinUser == userId && c.AttIsActive)
+                    .ToList();
+                if (cameras.Count == 0)
+                {
+                    return null;
+                }
+
+                var state = new JObject
+                {
+                    ["v"] = 1,
+                    ["activeCamera"] = design.AttActiveCameraType == 1L ? "iso" : "ortho",
+                    ["target"] = BuildViewerStateVector(0d, 0d, 0d)
+                };
+
+                foreach (var cam in cameras)
+                {
+                    var cameraState = new JObject
+                    {
+                        ["position"] = BuildViewerStateVector(cam.AttPositionX, cam.AttPositionY, cam.AttPositionZ),
+                        ["target"] = BuildViewerStateVector(cam.AttTargetX, cam.AttTargetY, cam.AttTargetZ),
+                        ["zoom"] = cam.AttZoom
+                    };
+                    if (cam.AttCameraType == 1L)
+                    {
+                        state["cameraIso"] = cameraState;
+                    }
+                    else
+                    {
+                        state["cameraOrtho"] = cameraState;
+                    }
+                }
+
+                return state.ToString(Formatting.None);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static JArray BuildViewerStateVector(double x, double y, double z)
+        {
+            return new JArray(x, y, z);
+        }
+
+        private bool TrySaveOptionalViewerStateJson(long designId, string stateJson)
+        {
+            try
+            {
+                var exists = db.Database.SqlQuery<int>(
+                    "SELECT CASE WHEN COL_LENGTH('dbo.TSql_Design_V2', 'AttViewerStateJson') IS NULL THEN 0 ELSE 1 END")
+                    .FirstOrDefault();
+                if (exists != 1)
+                {
+                    return false;
+                }
+
+                db.Database.ExecuteSqlCommand(
+                    "UPDATE dbo.TSql_Design_V2 SET AttViewerStateJson = @p0 WHERE SysObjectID = @p1 AND AttIsDeleted = 0",
+                    stateJson,
+                    designId);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private bool TrySaveLegacyDesignCameras(long designId, string userId, long activeType, JObject state)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(userId))
+                {
+                    return false;
+                }
+
+                var oldDesign = db.TSql_Design.FirstOrDefault(d => d.SysObjectID == designId && !d.AttIsDeleted);
+                if (oldDesign == null)
+                {
+                    return false;
+                }
+
+                var target = ReadViewerStateVector(state["target"]);
+                var existing = db.TSql_DesignCamera
+                    .Where(c => c.LinDesaing == designId && c.LinUser == userId && (c.AttCameraType == 0L || c.AttCameraType == 1L))
+                    .ToList();
+                foreach (var row in existing)
+                {
+                    db.TSql_DesignCamera.Remove(row);
+                }
+
+                AddLegacyDesignCamera(designId, userId, 0L, state["cameraOrtho"] as JObject, target);
+                AddLegacyDesignCamera(designId, userId, 1L, state["cameraIso"] as JObject, target);
+                oldDesign.AttActiveCameraType = activeType;
+                oldDesign.AttChange = DateTime.Now;
+                oldDesign.LinModifiedBy = userId;
+                oldDesign.SysUpdateNumber += 1;
+                db.SaveChanges();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private void AddLegacyDesignCamera(long designId, string userId, long cameraType, JObject cameraState, double[] target)
+        {
+            if (cameraState == null)
+            {
+                return;
+            }
+
+            var position = ReadViewerStateVector(cameraState["position"]);
+            var zoom = cameraState.Value<double?>("zoom") ?? 1d;
+            db.TSql_DesignCamera.Add(new TSql_DesignCamera
+            {
+                LinUser = userId,
+                LinDesaing = designId,
+                AttCameraType = cameraType,
+                AttPositionX = position[0],
+                AttPositionY = position[1],
+                AttPositionZ = position[2],
+                AttTargetX = target[0],
+                AttTargetY = target[1],
+                AttTargetZ = target[2],
+                AttZoom = zoom,
+                AttLastModification = DateTime.UtcNow,
+                AttIsActive = true,
+                LinModifiedBy = userId
+            });
+        }
+
+        private static JObject NormalizeViewerState(string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                return null;
+            }
+
+            try
+            {
+                return NormalizeViewerState(JObject.Parse(raw));
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static JObject NormalizeViewerState(JObject state)
+        {
+            if (state == null)
+            {
+                return null;
+            }
+
+            var version = state.Value<int?>("v") ?? 0;
+            if (version != 1)
+            {
+                return null;
+            }
+
+            NormalizeViewerCameraState(state["cameraOrtho"] as JObject);
+            NormalizeViewerCameraState(state["cameraIso"] as JObject);
+            return state;
+        }
+
+        private static void NormalizeViewerCameraState(JObject cameraState)
+        {
+            if (cameraState == null)
+            {
+                return;
+            }
+
+            var zoom = cameraState.Value<double?>("zoom");
+            if (zoom.HasValue && (!double.IsNaN(zoom.Value) && !double.IsInfinity(zoom.Value)))
+            {
+                cameraState["zoom"] = Math.Max(0.01d, Math.Min(zoom.Value, 1000d));
+            }
+            else
+            {
+                cameraState.Remove("zoom");
+            }
+        }
+
+        private static long ResolveViewerStateActiveCameraType(JObject state)
+        {
+            var active = (state.Value<string>("activeCamera") ?? "").Trim();
+            return active.Equals("iso", StringComparison.OrdinalIgnoreCase) ? 1L : 0L;
+        }
+
+        private static double[] ReadViewerStateVector(JToken token)
+        {
+            var values = new[] { 0d, 0d, 0d };
+            var array = token as JArray;
+            if (array == null)
+            {
+                return values;
+            }
+
+            for (var i = 0; i < values.Length && i < array.Count; i++)
+            {
+                var n = array[i].Value<double?>();
+                if (n.HasValue && !double.IsNaN(n.Value) && !double.IsInfinity(n.Value))
+                {
+                    values[i] = n.Value;
+                }
+            }
+
+            return values;
         }
 
 
@@ -1402,12 +2081,384 @@ namespace Desing.Controllers
 
         }
 
+        private sealed class MaterialCountGroup
+        {
+            public string Code { get; set; }
+            public string SceneCode { get; set; }
+            public int Qty { get; set; }
+            public long? MasterId { get; set; }
+        }
+
         private sealed class MasterArticleCountRow
         {
             public long IdObject { get; set; }
             public string TextCode { get; set; }
             public string AddAtenkoCode { get; set; }
             public string TextLabel { get; set; }
+            public string TextColor1 { get; set; }
+            public string TextColor2 { get; set; }
+            public double? NumberWeight { get; set; }
+            public double? NumberMts2 { get; set; }
+            public double? NumberHigh { get; set; }
+            public double? NumberWidth { get; set; }
+            public string LinkBlockDwgPlantStl { get; set; }
+            public string LinkBlockDwgVerticalElevationStl { get; set; }
+            public string LinkBlockDwgHorizontalElevationStl { get; set; }
+            public string LinkBlockDwg3D { get; set; }
+            public string LinkBlockDwgPlant3D { get; set; }
+        }
+
+        private sealed class CountArticleStlInfo
+        {
+            public string StlUrl { get; set; }
+            public string StlUrl2 { get; set; }
+            public string Color1 { get; set; }
+            public string Color2 { get; set; }
+        }
+
+        /// <summary>
+        /// Misma resolución que el maestro de artículos y el plugin: panel ATK-60, STL del bloque, o fichero en ATK60.
+        /// </summary>
+        private CountArticleStlInfo ResolveCountArticleStl(MasterArticleCountRow master, string sceneCode)
+        {
+            var info = new CountArticleStlInfo
+            {
+                Color1 = NormalizeCountArticleHex(master == null ? null : master.TextColor1),
+                Color2 = NormalizeCountArticleHex(master == null ? null : master.TextColor2)
+            };
+
+            if (IsAdjustableClampCode(sceneCode)
+                || IsAdjustableClampCode(master == null ? null : master.TextCode)
+                || IsAdjustableClampCode(master == null ? null : master.AddAtenkoCode))
+            {
+                info.StlUrl = PublicStlIfExists("~/Content/DesignTools/Stl/ATK60/10000221.stl");
+                info.StlUrl2 = PublicStlIfExists("~/Content/DesignTools/Stl/ATK60/10000221-2.stl");
+                return info;
+            }
+
+            if (master != null)
+            {
+                var stub = new Tsql_Master_Articles
+                {
+                    TextCode = master.TextCode,
+                    AddAtenkoCode = master.AddAtenkoCode,
+                    TextLabel = master.TextLabel,
+                    NumberHigh = master.NumberHigh,
+                    NumberWidth = master.NumberWidth
+                };
+                string frame;
+                string phenolic;
+                if (PluginCadAtk60PanelStlHelper.TryResolve(stub, out frame, out phenolic))
+                {
+                    info.StlUrl = PublicStlIfExists(frame);
+                    info.StlUrl2 = PublicStlIfExists(phenolic);
+                }
+
+                if (string.IsNullOrWhiteSpace(info.StlUrl))
+                {
+                    var candidates = new[]
+                    {
+                        master.LinkBlockDwgPlantStl,
+                        master.LinkBlockDwgVerticalElevationStl,
+                        master.LinkBlockDwgHorizontalElevationStl
+                    };
+                    for (var i = 0; i < candidates.Length && string.IsNullOrWhiteSpace(info.StlUrl); i++)
+                    {
+                        info.StlUrl = PublicStlIfExists(candidates[i]);
+                    }
+
+                    if (string.IsNullOrWhiteSpace(info.StlUrl))
+                    {
+                        var dwg = FirstCountNonEmpty(master.LinkBlockDwg3D, master.LinkBlockDwgPlant3D);
+                        if (!string.IsNullOrWhiteSpace(dwg))
+                        {
+                            var sibling = Path.ChangeExtension(dwg.Trim().Replace('\\', '/'), ".stl");
+                            info.StlUrl = PublicStlIfExists(sibling);
+                        }
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(info.StlUrl))
+                    {
+                        info.StlUrl2 = PublicStlIfExists(Stem2StlVirtual(info.StlUrl));
+                        if (string.IsNullOrWhiteSpace(info.StlUrl2))
+                        {
+                            info.StlUrl2 = PublicStlIfExists(PhenolicStlVirtual(info.StlUrl));
+                        }
+                    }
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(info.StlUrl))
+            {
+                var names = new[]
+                {
+                    sceneCode,
+                    master == null ? null : master.TextCode,
+                    master == null ? null : master.AddAtenkoCode
+                };
+                for (var i = 0; i < names.Length && string.IsNullOrWhiteSpace(info.StlUrl); i++)
+                {
+                    var name = CountArticleStlFileName(names[i]);
+                    if (name == null)
+                    {
+                        continue;
+                    }
+
+                    info.StlUrl = PublicStlIfExists("~/Content/DesignTools/Stl/ATK60/" + name + ".stl");
+                    if (!string.IsNullOrWhiteSpace(info.StlUrl))
+                    {
+                        info.StlUrl2 = PublicStlIfExists("~/Content/DesignTools/Stl/ATK60/" + name + "_F.stl");
+                    }
+                }
+            }
+
+            return info;
+        }
+
+        private static bool IsAdjustableClampCode(string code)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                return false;
+            }
+
+            var key = NormalizeMaterialCode(code);
+            return string.Equals(key, "10000221", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(key, "10000221B", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(key, "1120100040", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string NormalizeCountArticleHex(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return "#000000";
+            }
+
+            var t = input.Trim();
+            if (t.Length > 0 && t[0] != '#')
+            {
+                t = "#" + t;
+            }
+
+            if (t.Length > 7)
+            {
+                t = t.Substring(0, 7);
+            }
+
+            if (Regex.IsMatch(t, "^#[0-9a-fA-F]{6}$") || Regex.IsMatch(t, "^#[0-9a-fA-F]{3}$"))
+            {
+                return t;
+            }
+
+            return "#000000";
+        }
+
+        private static string FirstCountNonEmpty(params string[] values)
+        {
+            if (values == null)
+            {
+                return null;
+            }
+
+            for (var i = 0; i < values.Length; i++)
+            {
+                if (!string.IsNullOrWhiteSpace(values[i]))
+                {
+                    return values[i].Trim();
+                }
+            }
+
+            return null;
+        }
+
+        private static string CountArticleStlFileName(string code)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                return null;
+            }
+
+            var name = code.Trim();
+            if (name.StartsWith("PANEL_", StringComparison.OrdinalIgnoreCase))
+            {
+                name = name.Substring(6);
+            }
+
+            if (name.EndsWith("_FRAME", StringComparison.OrdinalIgnoreCase))
+            {
+                name = name.Substring(0, name.Length - 6);
+            }
+
+            return Regex.IsMatch(name, "^[A-Za-z0-9._-]+$") ? name : null;
+        }
+
+        private static string Stem2StlVirtual(string publicUrl)
+        {
+            var path = CountArticleStlPathOnly(publicUrl);
+            if (path == null || path.Length < 5)
+            {
+                return null;
+            }
+
+            return path.Substring(0, path.Length - 4) + "2.stl";
+        }
+
+        private static string PhenolicStlVirtual(string publicUrl)
+        {
+            var path = CountArticleStlPathOnly(publicUrl);
+            if (path == null || path.Length < 5)
+            {
+                return null;
+            }
+
+            if (path.EndsWith("P.stl", StringComparison.OrdinalIgnoreCase))
+            {
+                return path.Substring(0, path.Length - 5) + "P2.stl";
+            }
+
+            return path.Substring(0, path.Length - 4) + "_F.stl";
+        }
+
+        private static string CountArticleStlPathOnly(string publicUrl)
+        {
+            if (string.IsNullOrWhiteSpace(publicUrl))
+            {
+                return null;
+            }
+
+            var path = publicUrl.Trim().Replace('\\', '/');
+            var q = path.IndexOf('?');
+            if (q >= 0)
+            {
+                path = path.Substring(0, q);
+            }
+
+            return path.EndsWith(".stl", StringComparison.OrdinalIgnoreCase) ? path : null;
+        }
+
+        private string PublicStlIfExists(string virtualPath)
+        {
+            if (string.IsNullOrWhiteSpace(virtualPath))
+            {
+                return null;
+            }
+
+            var t = virtualPath.Trim().Replace('\\', '/');
+            var q = t.IndexOf('?');
+            if (q >= 0)
+            {
+                t = t.Substring(0, q);
+            }
+
+            if (t.StartsWith("http", StringComparison.OrdinalIgnoreCase) || t.StartsWith("//", StringComparison.Ordinal))
+            {
+                return null;
+            }
+
+            string appRel;
+            if (t.StartsWith("~/", StringComparison.Ordinal))
+            {
+                appRel = t;
+            }
+            else if (t.StartsWith("/", StringComparison.Ordinal))
+            {
+                appRel = "~" + t;
+            }
+            else
+            {
+                appRel = "~/" + t.TrimStart('/');
+            }
+
+            if (!appRel.EndsWith(".stl", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            try
+            {
+                var physical = Server.MapPath(appRel);
+                if (string.IsNullOrWhiteSpace(physical) || !System.IO.File.Exists(physical))
+                {
+                    return null;
+                }
+
+                return Url.Content(appRel);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private const double DesignPropSpacingDefaultMm = 2400d;
+
+        private double ReadDesignPropSpacingMm(long? designId)
+        {
+            if (!designId.HasValue || designId.Value <= 0)
+            {
+                return DesignPropSpacingDefaultMm;
+            }
+
+            try
+            {
+                var value = db.Database.SqlQuery<double>(
+                    "SELECT CAST(ISNULL(NumberPropSpacingMm, 2400) AS float) FROM dbo.TSql_Design_V2 WHERE SysObjectID = @p0 AND AttIsDeleted = 0",
+                    designId.Value).FirstOrDefault();
+                if (value < 300d || value > 6000d)
+                {
+                    return DesignPropSpacingDefaultMm;
+                }
+
+                return value;
+            }
+            catch
+            {
+                return DesignPropSpacingDefaultMm;
+            }
+        }
+
+        /// <summary>
+        /// Guarda la distancia máxima entre puntales del diseño (mm). NULL en lectura = 2,40 m.
+        /// </summary>
+        [HttpPost]
+        public JsonResult SavePropSpacing(long designId, double spacingMm)
+        {
+            try
+            {
+                if (designId <= 0)
+                {
+                    return Json(new { Exito = false, Mensaje = "Diseño no indicado." });
+                }
+
+                if (spacingMm > 0d && spacingMm < 20d)
+                {
+                    spacingMm *= 1000d;
+                }
+
+                if (spacingMm < 300d || spacingMm > 6000d)
+                {
+                    return Json(new { Exito = false, Mensaje = "La distancia tiene que estar entre 0,30 m y 6 m." });
+                }
+
+                var userId = IntranetAuditHelper.ResolveCurrentUserId(User) ?? "";
+                var updated = db.Database.ExecuteSqlCommand(
+                    "UPDATE dbo.TSql_Design_V2 SET NumberPropSpacingMm = @p0, AttChange = @p1, LinModifiedBy = @p2, SysUpdateNumber = SysUpdateNumber + 1 WHERE SysObjectID = @p3 AND AttIsDeleted = 0",
+                    spacingMm,
+                    DateTime.Now,
+                    userId,
+                    designId);
+                if (updated != 1)
+                {
+                    return Json(new { Exito = false, Mensaje = "Diseño no encontrado." });
+                }
+
+                return Json(new { Exito = true, SpacingMm = spacingMm });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Exito = false, Mensaje = ex.Message });
+            }
         }
 
     }

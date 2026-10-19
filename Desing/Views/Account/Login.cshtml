@@ -6,11 +6,15 @@
     var brandText = (ViewBag.PlantillaBrandText as string) ?? Common.App_BrandFallback;
     ViewBag.Title = Common.Login_PageTitle + " - " + brandText;
     var isPluginCad = ViewBag.PluginCadLogin as bool? == true;
-    var loginLogo = (ViewBag.PlantillaLogo as string)
-        ?? (isPluginCad ? "/Content/images/tDesing/t-desing-net.png" : "/Content/images/Login/at.png");
+    var loginLogo = ViewBag.PlantillaLogo as string;
+    if (string.IsNullOrWhiteSpace(loginLogo))
+    {
+        loginLogo = Desing.Helpers.PluginCadDeviceHelper.DefaultWordmarkVirtualPath;
+    }
     var loginLogoUrl = loginLogo.StartsWith("http", StringComparison.OrdinalIgnoreCase)
         ? loginLogo
         : Url.Content("~" + (loginLogo.StartsWith("/") ? loginLogo : "/" + loginLogo));
+    var loginLogoIsLockup = loginLogo.IndexOf("t-desingc.png", StringComparison.OrdinalIgnoreCase) >= 0;
 }
 @if (isPluginCad)
 {
@@ -102,9 +106,9 @@
                 <div class="app-brand justify-content-center mt-5">
                     <a href="@Url.Action("Index", "Home")" class="app-brand-link gap-3">
                         <span class="app-brand-logo demo">
-                            <img src="@loginLogoUrl" alt="TDesing" style="height:@(isPluginCad ? "48px" : "36px")" />
+                            <img src="@loginLogoUrl" alt="TDesing" style="height:@(loginLogoIsLockup ? (isPluginCad ? "48px" : "72px") : (isPluginCad ? "48px" : "36px"));width:auto;max-width:100%" />
                         </span>
-                        @if (!isPluginCad)
+                        @if (!isPluginCad && !loginLogoIsLockup)
                         {
                             <span class="app-brand-text demo text-heading brand-svg-login">
                                 @Html.Partial("_BrandSvg")

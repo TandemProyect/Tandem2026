@@ -24,7 +24,7 @@
     <title>@(ViewBag.Title ?? ViewBag.PlantillaBrandText ?? Common.App_BrandFallback)</title>
 
     @{
-        var faviconPath = (ViewBag.PlantillaFavicon as string) ?? "/assets/client/images/Default/Ico/at.ico";
+        var faviconPath = (ViewBag.PlantillaFavicon as string) ?? Desing.Helpers.PluginCadDeviceHelper.DefaultMarkVirtualPath;
         var faviconUrl = faviconPath.StartsWith("http", StringComparison.OrdinalIgnoreCase)
             ? faviconPath
             : Url.Content("~" + (faviconPath.StartsWith("/") ? faviconPath : "/" + faviconPath));
@@ -244,6 +244,54 @@
     </script>
 
     @Html.Partial("_PasswordEyeScript")
+    @if (ViewBag.ArticleMaintenanceDue == true)
+    {
+        <div id="tandem-article-maintenance" class="tandem-article-maintenance" hidden="hidden"
+             data-begin="@Url.Action("BeginArticleMaintenance", "Desing_2")"
+             data-state="@Url.Action("ArticleMaintenanceState", "Desing_2")"
+             data-title="@Html.Ui("Common.ArticleMaintenanceTitle", "Un momento. Mantenimiento", "Common")"
+             data-seconds="@Html.Ui("Common.ArticleMaintenanceSeconds", "Tardará unos {0} segundos.", "Common")"
+             data-calculating="@Html.Ui("Common.ArticleMaintenanceCalculating", "Calculando el tiempo…", "Common")">
+            <div class="tandem-article-maintenance__card" role="status" aria-live="polite">
+                <div class="spinner-border text-primary" role="status"></div>
+                <div class="tandem-article-maintenance__title"></div>
+                <div class="tandem-article-maintenance__seconds"></div>
+            </div>
+        </div>
+        <script>
+            (function () {
+                var box = document.getElementById('tandem-article-maintenance');
+                if (!box) return;
+                var titleEl = box.querySelector('.tandem-article-maintenance__title');
+                var secondsEl = box.querySelector('.tandem-article-maintenance__seconds');
+                titleEl.textContent = box.getAttribute('data-title') || '';
+                secondsEl.textContent = box.getAttribute('data-calculating') || '';
+                box.hidden = false;
+                function paint(seconds) {
+                    var tpl = box.getAttribute('data-seconds') || '';
+                    secondsEl.textContent = tpl.replace('{0}', String(seconds));
+                }
+                function poll() {
+                    fetch(box.getAttribute('data-state'), { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+                        .then(function (res) { return res.json(); })
+                        .then(function (data) {
+                            if (!data || !data.running) { box.hidden = true; return; }
+                            if (data.seconds) paint(data.seconds);
+                            window.setTimeout(poll, 1000);
+                        })
+                        .catch(function () { box.hidden = true; });
+                }
+                fetch(box.getAttribute('data-begin'), { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json' } })
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        if (!data || !data.show) { box.hidden = true; return; }
+                        paint(data.seconds || 1);
+                        window.setTimeout(poll, 1000);
+                    })
+                    .catch(function () { box.hidden = true; });
+            })();
+        </script>
+    }
     @RenderSection("scripts", required: false)
 </body>
 </html>

@@ -10,23 +10,11 @@
   <data name="BlockSlot_3DRef" xml:space="preserve">
     <value>3DRef</value>
   </data>
-  <data name="BlockSlot_HorzElev3D" xml:space="preserve">
-    <value>Elevación horizontal 3D</value>
-  </data>
-  <data name="BlockSlot_HorzElevMockup" xml:space="preserve">
-    <value>Elevación horizontal mock-up</value>
-  </data>
   <data name="BlockSlot_HorzElevStl" xml:space="preserve">
     <value>Elevación horizontal — archivo .stl</value>
   </data>
   <data name="BlockSlot_OpenFile" xml:space="preserve">
     <value>Abrir archivo</value>
-  </data>
-  <data name="BlockSlot_Plant3D" xml:space="preserve">
-    <value>Planta 3D</value>
-  </data>
-  <data name="BlockSlot_PlantMockup" xml:space="preserve">
-    <value>Planta mock-up</value>
   </data>
   <data name="BlockSlot_PlantStl" xml:space="preserve">
     <value>Planta — archivo .stl</value>
@@ -36,12 +24,6 @@
   </data>
   <data name="BlockSlot_SavedFile" xml:space="preserve">
     <value>Archivo guardado:</value>
-  </data>
-  <data name="BlockSlot_VertElev3D" xml:space="preserve">
-    <value>Elevación vertical 3D</value>
-  </data>
-  <data name="BlockSlot_VertElevMockup" xml:space="preserve">
-    <value>Elevación vertical mock-up</value>
   </data>
   <data name="BlockSlot_VertElevStl" xml:space="preserve">
     <value>Elevación vertical — archivo .stl</value>
@@ -85,14 +67,17 @@
   <data name="Col_Description" xml:space="preserve">
     <value>Descripción</value>
   </data>
+  <data name="Col_Dwg3D" xml:space="preserve">
+    <value>DWG 3D</value>
+  </data>
+  <data name="Col_Dwg3DRef" xml:space="preserve">
+    <value>DWG 3DRef</value>
+  </data>
+  <data name="Col_DwgXr" xml:space="preserve">
+    <value>DWG Xr</value>
+  </data>
   <data name="Col_High" xml:space="preserve">
     <value>Alto</value>
-  </data>
-  <data name="Col_HorzElev3D" xml:space="preserve">
-    <value>Elev. horiz. 3D</value>
-  </data>
-  <data name="Col_HorzElevMockup" xml:space="preserve">
-    <value>Elev. horiz. mock-up</value>
   </data>
   <data name="Col_HorzElevStl" xml:space="preserve">
     <value>Elev. horiz. STL</value>
@@ -109,21 +94,6 @@
   <data name="Col_Mts3" xml:space="preserve">
     <value>M³</value>
   </data>
-  <data name="Col_Dwg3D" xml:space="preserve">
-    <value>DWG 3D</value>
-  </data>
-  <data name="Col_Dwg3DRef" xml:space="preserve">
-    <value>DWG 3DRef</value>
-  </data>
-  <data name="Col_DwgXr" xml:space="preserve">
-    <value>DWG Xr</value>
-  </data>
-  <data name="Col_Plant3D" xml:space="preserve">
-    <value>Planta 3D</value>
-  </data>
-  <data name="Col_PlantMockup" xml:space="preserve">
-    <value>Planta mock-up</value>
-  </data>
   <data name="Col_PlantStl" xml:space="preserve">
     <value>Planta STL</value>
   </data>
@@ -135,12 +105,6 @@
   </data>
   <data name="Col_System" xml:space="preserve">
     <value>Sistema</value>
-  </data>
-  <data name="Col_VertElev3D" xml:space="preserve">
-    <value>Elev. vert. 3D</value>
-  </data>
-  <data name="Col_VertElevMockup" xml:space="preserve">
-    <value>Elev. vert. mock-up</value>
   </data>
   <data name="Col_VertElevStl" xml:space="preserve">
     <value>Elev. vert. STL</value>
@@ -418,6 +382,15 @@
   <data name="StlPreview_ClipYTitle" xml:space="preserve">
     <value>Corte por altura: 1000 = vista completa; al bajar el control, recorta desde arriba hacia abajo.</value>
   </data>
+  <data name="StlPreview_CopyToolInstructionBasePoint" xml:space="preserve">
+    <value>Punto base: clic en planta o teclee X,Z (p. ej. 0,0) + Intro.</value>
+  </data>
+  <data name="StlPreview_CopyToolInstructionDisplacement" xml:space="preserve">
+    <value>Segundo punto (desplazamiento): clic, #X,Z, o @distancia&lt;grados + Intro. Repita para más copias; Esc para terminar.</value>
+  </data>
+  <data name="StlPreview_CopyToolInstructionSelecting" xml:space="preserve">
+    <value>Seleccione qué copiar: clic simple o arrastre (izq→der ventana, der→izq cruce). Intro para continuar, Esc cancelar.</value>
+  </data>
   <data name="StlPreview_DarkBgAria" xml:space="preserve">
     <value>Fondo negro</value>
   </data>
@@ -427,32 +400,11 @@
   <data name="StlPreview_DeleteToolInstruction" xml:space="preserve">
     <value>Seleccione líneas u objetos STL para borrar (clic o selección por ventana). Enter/Espacio/Supr para borrar, Esc cancelar</value>
   </data>
-  <data name="StlPreview_CopyToolInstructionSelecting" xml:space="preserve">
-    <value>Seleccione qué copiar: clic simple o arrastre (izq→der ventana, der→izq cruce). Intro para continuar, Esc cancelar.</value>
+  <data name="StlPreview_DesignLoading" xml:space="preserve">
+    <value>Cargando diseño…</value>
   </data>
-  <data name="StlPreview_CopyToolInstructionBasePoint" xml:space="preserve">
-    <value>Punto base: clic en planta o teclee X,Z (p. ej. 0,0) + Intro.</value>
-  </data>
-  <data name="StlPreview_CopyToolInstructionDisplacement" xml:space="preserve">
-    <value>Segundo punto (desplazamiento): clic, #X,Z, o @distancia&lt;grados + Intro. Repita para más copias; Esc para terminar.</value>
-  </data>
-  <data name="StlPreview_MoveToolInstructionSelecting" xml:space="preserve">
-    <value>Seleccione qué mover: clic simple o arrastre (izq→der ventana, der→izq cruce). Intro para continuar, Esc cancelar.</value>
-  </data>
-  <data name="StlPreview_MoveToolInstructionBasePoint" xml:space="preserve">
-    <value>Punto base: clic en planta o teclee X,Z (p. ej. 0,0) + Intro.</value>
-  </data>
-  <data name="StlPreview_MoveToolInstructionDisplacement" xml:space="preserve">
-    <value>Segundo punto (desplazamiento): clic, #X,Z, o @distancia&lt;grados + Intro. Repita para más movimientos; Esc para terminar.</value>
-  </data>
-  <data name="StlPreview_StretchToolInstructionSelecting" xml:space="preserve">
-    <value>Seleccione el muro o línea a estirar: clic o ventana. Intro para el primer punto, Esc cancelar.</value>
-  </data>
-  <data name="StlPreview_StretchToolInstructionBasePoint" xml:space="preserve">
-    <value>Primer punto: clic en planta o teclee X,Z + Intro.</value>
-  </data>
-  <data name="StlPreview_StretchToolInstructionDisplacement" xml:space="preserve">
-    <value>Segundo punto: clic o @distancia&lt;ángulos + Intro. Al confirmar se aplica el estiramiento y termina la herramienta.</value>
+  <data name="StlPreview_DesignSaving" xml:space="preserve">
+    <value>Guardando diseño…</value>
   </data>
   <data name="StlPreview_Desing2BottomToolbarAria" xml:space="preserve">
     <value>Barra inferior del visor STL (deshacer, orto, reglas)</value>
@@ -532,6 +484,15 @@
   <data name="StlPreview_Desing2ConfigOffsetDefaultPlaceholder" xml:space="preserve">
     <value>p. ej. 0,30 · 300 mm</value>
   </data>
+  <data name="StlPreview_Desing2ConfigPropSpacingAria" xml:space="preserve">
+    <value>Distancia máxima entre puntales, en metros. Por defecto 2,40. No se rebasa al encofrar.</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigPropSpacingLabel" xml:space="preserve">
+    <value>Distancia entre puntales</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigPropSpacingPlaceholder" xml:space="preserve">
+    <value>p. ej. 2,40 · máximo</value>
+  </data>
   <data name="StlPreview_Desing2ConfigWallSectionTitle" xml:space="preserve">
     <value>Sección en L — espesores</value>
   </data>
@@ -553,11 +514,44 @@
   <data name="StlPreview_Desing2ConfigWallWidthYPlaceholder" xml:space="preserve">
     <value>p. ej. 0,30 · 300 mm</value>
   </data>
+  <data name="StlPreview_Desing2EntornoAmbientIntensityAria" xml:space="preserve">
+    <value>Intensidad de la luz ambiental global.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoAmbientIntensityLabel" xml:space="preserve">
+    <value>Luz ambiental</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoExposureAria" xml:space="preserve">
+    <value>Exposición de la cámara (tone mapping).</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoExposureLabel" xml:space="preserve">
+    <value>Exposición</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoFogEnabledAria" xml:space="preserve">
+    <value>Activa o desactiva la niebla atmosférica.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoFogEnabledLabel" xml:space="preserve">
+    <value>Niebla</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoFogStrengthAria" xml:space="preserve">
+    <value>Intensidad de la niebla de profundidad.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoFogStrengthLabel" xml:space="preserve">
+    <value>Niebla atmosférica</value>
+  </data>
   <data name="StlPreview_Desing2EntornoGridSnapAria" xml:space="preserve">
     <value>Espaciado menor de rejilla en planta y paso del snap en modo punto de rejilla para las cotas.</value>
   </data>
   <data name="StlPreview_Desing2EntornoGridSnapLabel" xml:space="preserve">
     <value>Incremental de rejilla y snap</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoIblIntensityAria" xml:space="preserve">
+    <value>Intensidad del mapa de entorno para materiales PBR.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoIblIntensityLabel" xml:space="preserve">
+    <value>Reflejos ambiente (IBL)</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoLightingSectionTitle" xml:space="preserve">
+    <value>Iluminación encofrado</value>
   </data>
   <data name="StlPreview_Desing2EntornoRulerExtentAria" xml:space="preserve">
     <value>Distancia física máxima de los trazados de cotas desde el punto de referencia.</value>
@@ -565,80 +559,92 @@
   <data name="StlPreview_Desing2EntornoRulerExtentLabel" xml:space="preserve">
     <value>Alcance máximo del trazado de reglas</value>
   </data>
-  <data name="StlPreview_Desing2EntornoLightingSectionTitle" xml:space="preserve">
-    <value>Iluminación encofrado</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoSunAzimuthLabel" xml:space="preserve">
-    <value>Azimut del sol</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoSunAzimuthAria" xml:space="preserve">
-    <value>Ángulo horizontal de la luz principal en grados.</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoSunElevationLabel" xml:space="preserve">
-    <value>Elevación del sol</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoSunElevationAria" xml:space="preserve">
-    <value>Ángulo de elevación de la luz principal en grados.</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoSunIntensityLabel" xml:space="preserve">
-    <value>Intensidad del sol</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoSunIntensityAria" xml:space="preserve">
-    <value>Intensidad de la luz direccional principal.</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoAmbientIntensityLabel" xml:space="preserve">
-    <value>Luz ambiental</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoAmbientIntensityAria" xml:space="preserve">
-    <value>Intensidad de la luz ambiental global.</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoIblIntensityLabel" xml:space="preserve">
-    <value>Reflejos ambiente (IBL)</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoIblIntensityAria" xml:space="preserve">
-    <value>Intensidad del mapa de entorno para materiales PBR.</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoExposureLabel" xml:space="preserve">
-    <value>Exposición</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoExposureAria" xml:space="preserve">
-    <value>Exposición de la cámara (tone mapping).</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoFogStrengthLabel" xml:space="preserve">
-    <value>Niebla atmosférica</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoFogStrengthAria" xml:space="preserve">
-    <value>Intensidad de la niebla de profundidad.</value>
+  <data name="StlPreview_Desing2EntornoShadowQualityAria" xml:space="preserve">
+    <value>Resolución del mapa de sombras.</value>
   </data>
   <data name="StlPreview_Desing2EntornoShadowQualityLabel" xml:space="preserve">
     <value>Calidad de sombras</value>
   </data>
-  <data name="StlPreview_Desing2EntornoShadowQualityAria" xml:space="preserve">
-    <value>Resolución del mapa de sombras.</value>
+  <data name="StlPreview_Desing2EntornoShadowsEnabledAria" xml:space="preserve">
+    <value>Activa o desactiva sombras proyectadas.</value>
   </data>
   <data name="StlPreview_Desing2EntornoShadowsEnabledLabel" xml:space="preserve">
     <value>Sombras en suelo y paneles</value>
   </data>
-  <data name="StlPreview_Desing2EntornoShadowsEnabledAria" xml:space="preserve">
-    <value>Activa o desactiva sombras proyectadas.</value>
+  <data name="StlPreview_Desing2EntornoSiteFloorEnabledAria" xml:space="preserve">
+    <value>Muestra un plano de suelo con textura de obra.</value>
   </data>
   <data name="StlPreview_Desing2EntornoSiteFloorEnabledLabel" xml:space="preserve">
     <value>Suelo de obra</value>
   </data>
-  <data name="StlPreview_Desing2EntornoSiteFloorEnabledAria" xml:space="preserve">
-    <value>Muestra un plano de suelo con textura de obra.</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoFogEnabledLabel" xml:space="preserve">
-    <value>Niebla</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoFogEnabledAria" xml:space="preserve">
-    <value>Activa o desactiva la niebla atmosférica.</value>
+  <data name="StlPreview_Desing2EntornoSsaoEnabledAria" xml:space="preserve">
+    <value>Sombras de contacto en postprocesado; puede reducir FPS con muchos objetos.</value>
   </data>
   <data name="StlPreview_Desing2EntornoSsaoEnabledLabel" xml:space="preserve">
     <value>SSAO (contacto, más costoso)</value>
   </data>
-  <data name="StlPreview_Desing2EntornoSsaoEnabledAria" xml:space="preserve">
-    <value>Sombras de contacto en postprocesado; puede reducir FPS con muchos objetos.</value>
+  <data name="StlPreview_Desing2EntornoSunAzimuthAria" xml:space="preserve">
+    <value>Ángulo horizontal de la luz principal en grados.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoSunAzimuthLabel" xml:space="preserve">
+    <value>Azimut del sol</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoSunElevationAria" xml:space="preserve">
+    <value>Ángulo de elevación de la luz principal en grados.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoSunElevationLabel" xml:space="preserve">
+    <value>Elevación del sol</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoSunIntensityAria" xml:space="preserve">
+    <value>Intensidad de la luz direccional principal.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoSunIntensityLabel" xml:space="preserve">
+    <value>Intensidad del sol</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormAccept" xml:space="preserve">
+    <value>Aceptar</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormDelete" xml:space="preserve">
+    <value>Eliminar Pilar</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormGroup" xml:space="preserve">
+    <value>Número de grupo</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormHeight" xml:space="preserve">
+    <value>Altura del Pilar</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormHeightInvalid" xml:space="preserve">
+    <value>La altura y las coordenadas del pilar tienen que ser números, y la altura mayor que cero</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormLength" xml:space="preserve">
+    <value>Longitud del Pilar</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormPanel750" xml:space="preserve">
+    <value>Utilizar Paneles 0,75 Regulables</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormPropsLower" xml:space="preserve">
+    <value>Puntales Inferiores</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormPropsUpper" xml:space="preserve">
+    <value>Puntales superiores</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormSideInvalid" xml:space="preserve">
+    <value>El lado del pilar va de 0,10 a 0,65 m</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormStiffeners" xml:space="preserve">
+    <value>Insertar Rigidizadores</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormTitle" xml:space="preserve">
+    <value>Modificar Pilar</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormWidth" xml:space="preserve">
+    <value>Espesor del Pilar</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormX" xml:space="preserve">
+    <value>Cordenad X del Pilar</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormY" xml:space="preserve">
+    <value>Cordenad Y del Pilar</value>
   </data>
   <data name="StlPreview_Desing2RedoAria" xml:space="preserve">
     <value>Rehacer acción deshecha</value>
@@ -690,6 +696,12 @@
   </data>
   <data name="StlPreview_Desing2SideMenuTabEntorno" xml:space="preserve">
     <value>Entorno</value>
+  </data>
+  <data name="StlPreview_Desing2ToolInsertPillarAria" xml:space="preserve">
+    <value>Insertar pilar: sigue al ratón; doble clic para dejarlo; doble clic sobre él abre Modificar pilar. Sale de 0,30 × 0,30 m y 2,70 m de alto</value>
+  </data>
+  <data name="StlPreview_Desing2ToolInsertWorkerAria" xml:space="preserve">
+    <value>Insertar trabajador: sigue al ratón; doble clic para dejarlo; doble clic sobre él lo quita</value>
   </data>
   <data name="StlPreview_Desing2ToolPolyline" xml:space="preserve">
     <value>Polilínea</value>
@@ -814,6 +826,27 @@
   <data name="StlPreview_EscapeCancelToolsToast" xml:space="preserve">
     <value>Cancelado</value>
   </data>
+  <data name="StlPreview_FormworkRenderingAlmostDone" xml:space="preserve">
+    <value>Casi listo…</value>
+  </data>
+  <data name="StlPreview_FormworkRenderingPhasePaint" xml:space="preserve">
+    <value>Pintando paneles…</value>
+  </data>
+  <data name="StlPreview_FormworkRenderingPhaseServer" xml:space="preserve">
+    <value>Calculando módulos…</value>
+  </data>
+  <data name="StlPreview_FormworkRenderingRemainingMinute" xml:space="preserve">
+    <value>Queda 1 min</value>
+  </data>
+  <data name="StlPreview_FormworkRenderingRemainingMinutes" xml:space="preserve">
+    <value>Quedan unos {0} min</value>
+  </data>
+  <data name="StlPreview_FormworkRenderingRemainingSeconds" xml:space="preserve">
+    <value>Quedan unos {0} s</value>
+  </data>
+  <data name="StlPreview_FormworkRenderingTitle" xml:space="preserve">
+    <value>Renderizando sistema {0}</value>
+  </data>
   <data name="StlPreview_FullscreenTitle" xml:space="preserve">
     <value>Pantalla completa</value>
   </data>
@@ -897,6 +930,18 @@
   </data>
   <data name="StlPreview_InsertEnclosureToolInvalidDimsToast" xml:space="preserve">
     <value>Dimensiones del recinto no válidas. Revise L, W y espesores Ex1, Ex2, Ey1, Ey2 en Configuración.</value>
+  </data>
+  <data name="StlPreview_LeaveSaveMessage" xml:space="preserve">
+    <value>¿Quieres guardar los muros antes de salir?</value>
+  </data>
+  <data name="StlPreview_LeaveSaveNo" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="StlPreview_LeaveSaveTitle" xml:space="preserve">
+    <value>Salir del diseño</value>
+  </data>
+  <data name="StlPreview_LeaveSaveYes" xml:space="preserve">
+    <value>Sí</value>
   </data>
   <data name="StlPreview_LineToolDistanceInvalidToast" xml:space="preserve">
     <value>Introduzca una distancia válida (p. ej. 5, 5,5 ó 5000 mm) o pulse clic para el segundo punto.</value>
@@ -983,16 +1028,16 @@
     <value>Se insertaron {0} muro(s) con caras desde el edificio</value>
   </data>
   <data name="StlPreview_MaterialCountActionFade" xml:space="preserve">
-    <value>Atenuar</value>
+    <value>Mostrar solo este</value>
   </data>
   <data name="StlPreview_MaterialCountActionSelect" xml:space="preserve">
-    <value>Seleccionar y ocultar el resto</value>
+    <value>Atenuar</value>
   </data>
   <data name="StlPreview_MaterialCountActionSelectFade" xml:space="preserve">
-    <value>Seleccionar y atenuar el resto</value>
+    <value>Ocultar</value>
   </data>
   <data name="StlPreview_MaterialCountActionToggle" xml:space="preserve">
-    <value>Mostrar u ocultar</value>
+    <value>Dejar solo este</value>
   </data>
   <data name="StlPreview_MaterialCountAria" xml:space="preserve">
     <value>Recuento de materiales</value>
@@ -1014,6 +1059,9 @@
   </data>
   <data name="StlPreview_MaterialCountExportPdf" xml:space="preserve">
     <value>Exportar a PDF</value>
+  </data>
+  <data name="StlPreview_MaterialCountReset" xml:space="preserve">
+    <value>Restablecer</value>
   </data>
   <data name="StlPreview_MaterialCountSave" xml:space="preserve">
     <value>Guardar recuento</value>
@@ -1072,6 +1120,15 @@
   <data name="StlPreview_MaterialCountTitle" xml:space="preserve">
     <value>Recuento de materiales</value>
   </data>
+  <data name="StlPreview_MoveToolInstructionBasePoint" xml:space="preserve">
+    <value>Punto base: clic en planta o teclee X,Z (p. ej. 0,0) + Intro.</value>
+  </data>
+  <data name="StlPreview_MoveToolInstructionDisplacement" xml:space="preserve">
+    <value>Segundo punto (desplazamiento): clic, #X,Z, o @distancia&lt;grados + Intro. Repita para más movimientos; Esc para terminar.</value>
+  </data>
+  <data name="StlPreview_MoveToolInstructionSelecting" xml:space="preserve">
+    <value>Seleccione qué mover: clic simple o arrastre (izq→der ventana, der→izq cruce). Intro para continuar, Esc cancelar.</value>
+  </data>
   <data name="StlPreview_NoFile" xml:space="preserve">
     <value>Sin archivo.</value>
   </data>
@@ -1102,13 +1159,6 @@
   <data name="StlPreview_PolylineToolInstructionSecond" xml:space="preserve">
     <value>Siguiente vértice: clic, distancia + Intro, o #X,Z en metros. Escape cancela el tramo en curso.</value>
   </data>
-  <data name="StlPreview_Wall2dToolInstructionFirst" xml:space="preserve">
-    <value>Clic o teclee X,Z en metros (p. ej. 0,0) + Intro para el primer vértice del eje.</value>
-  </data>
-  <data name="StlPreview_Wall2dToolInstructionSecond" xml:space="preserve">
-    <value>Siguiente vértice del eje: clic, distancia + Intro, o #X,Z en metros. Escape termina.</value>
-  </data>
-
   <data name="StlPreview_RowLabel3D" xml:space="preserve">
     <value>3D</value>
   </data>
@@ -1166,6 +1216,15 @@
   <data name="StlPreview_SaveWallsAndPhotoToast" xml:space="preserve">
     <value>Muros guardados. La foto se ha guardado en el servidor.</value>
   </data>
+  <data name="StlPreview_SaveWallsErrorToast" xml:space="preserve">
+    <value>No se pudieron guardar los muros</value>
+  </data>
+  <data name="StlPreview_SaveWallsNeedDesignToast" xml:space="preserve">
+    <value>Abre un diseño para guardar los muros</value>
+  </data>
+  <data name="StlPreview_SaveWallsSavedToast" xml:space="preserve">
+    <value>Muros guardados</value>
+  </data>
   <data name="StlPreview_ScreenshotAria" xml:space="preserve">
     <value>Foto del diseño</value>
   </data>
@@ -1190,6 +1249,15 @@
   <data name="StlPreview_StatusInitial" xml:space="preserve">
     <value>Seleccione un bloque con STL disponible (botón naranja) para verlo aquí.</value>
   </data>
+  <data name="StlPreview_StretchToolInstructionBasePoint" xml:space="preserve">
+    <value>Primer punto: clic en planta o teclee X,Z + Intro.</value>
+  </data>
+  <data name="StlPreview_StretchToolInstructionDisplacement" xml:space="preserve">
+    <value>Segundo punto: clic o @distancia&lt;ángulos + Intro. Al confirmar se aplica el estiramiento y termina la herramienta.</value>
+  </data>
+  <data name="StlPreview_StretchToolInstructionSelecting" xml:space="preserve">
+    <value>Seleccione el muro o línea a estirar: clic o ventana. Intro para el primer punto, Esc cancelar.</value>
+  </data>
   <data name="StlPreview_UcsRulersAria" xml:space="preserve">
     <value>Reglas de plano en suelo</value>
   </data>
@@ -1211,14 +1279,14 @@
   <data name="StlPreview_UserFloorLineDimEditDeltaZAria" xml:space="preserve">
     <value>ΔZ desde el punto de anclaje de reglas hasta el segundo punto del segmento (P2) en metros, con signo (o mm). Intro aplicar; Escape cancela.</value>
   </data>
+  <data name="StlPreview_UserFloorLineDimEditThicknessAria" xml:space="preserve">
+    <value>Espesor total del muro seleccionado en metros (o mm con sufijo). Simétrico respecto al eje; los muros conectados adaptan la unión. Intro para aplicar; Escape cancela.</value>
+  </data>
   <data name="StlPreview_UserFloorLineDimReadoutDeltaXAria" xml:space="preserve">
     <value>ΔX desde el cruce de reglas hasta el extremo libre del segmento (metros, con signo). Doble clic para editar.</value>
   </data>
   <data name="StlPreview_UserFloorLineDimReadoutDeltaZAria" xml:space="preserve">
     <value>ΔZ desde el cruce de reglas hasta el extremo libre del segmento (metros, con signo). Doble clic para editar.</value>
-  </data>
-  <data name="StlPreview_UserFloorLineDimEditThicknessAria" xml:space="preserve">
-    <value>Espesor total del muro seleccionado en metros (o mm con sufijo). Simétrico respecto al eje; los muros conectados adaptan la unión. Intro para aplicar; Escape cancela.</value>
   </data>
   <data name="StlPreview_UserFloorLineDimReadoutThicknessAria" xml:space="preserve">
     <value>Espesor total del muro seleccionado (metros). Clic para editar.</value>
@@ -1231,6 +1299,12 @@
   </data>
   <data name="StlPreview_UserFloorLineP2HandleAria" xml:space="preserve">
     <value>Arrastrar el punto final del segmento para alargarlo o acortarlo a lo largo del eje; se conecta al soltar sobre otro extremo</value>
+  </data>
+  <data name="StlPreview_Wall2dToolInstructionFirst" xml:space="preserve">
+    <value>Clic o teclee X,Z en metros (p. ej. 0,0) + Intro para el primer vértice del eje.</value>
+  </data>
+  <data name="StlPreview_Wall2dToolInstructionSecond" xml:space="preserve">
+    <value>Siguiente vértice del eje: clic, distancia + Intro, o #X,Z en metros. Escape termina.</value>
   </data>
   <data name="StlPreview_Wall3dMapError" xml:space="preserve">
     <value>No se pudo cargar la textura: {0}</value>

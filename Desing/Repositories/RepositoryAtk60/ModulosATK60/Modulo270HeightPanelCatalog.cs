@@ -7,6 +7,7 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
     internal static class Modulo270HeightPanelCatalog
     {
         private const string BaseGlbPath = "/Content/DesignTools/Atk-60NewGeneration/GLB/";
+        private const double MaxSupportedWallHeightMm = 12000d;
 
         internal static Modulo270Layout Resolve(double wallHeightMm)
         {
@@ -50,13 +51,9 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
                 return RemapLayoutToModuleLength(BuildGreedyTumbadoLayout(target), moduleLengthMm, useAdjustable750);
             }
 
-            Modulo270Layout layout;
-            if (!TryGetKnownLayout(target, out layout) || layout == null)
-            {
-                layout = target > 2700d
-                    ? BuildMixedVerticalPlusTumbadoLayout(target)
-                    : BuildGreedyTumbadoLayout(target);
-            }
+            var layout = target > 2700d
+                ? BuildTallVerticalStackLayout(target)
+                : BuildLayoutForNormalizedHeight(target);
 
             return RemapLayoutToModuleLength(layout, moduleLengthMm, useAdjustable750);
         }
@@ -116,8 +113,84 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
 
         private static double NormalizeTargetHeightMm(double wallHeightMm)
         {
-            var h = Math.Max(300d, Math.Min(6000d, wallHeightMm));
+            var h = Math.Max(300d, Math.Min(MaxSupportedWallHeightMm, wallHeightMm));
             return Math.Ceiling(h / 150d) * 150d;
+        }
+
+        private static Modulo270Layout BuildLayoutForNormalizedHeight(double targetHeightMm)
+        {
+            Modulo270Layout layout;
+            if (!TryGetKnownLayout(targetHeightMm, out layout) || layout == null)
+            {
+                layout = targetHeightMm > 2700d
+                    ? BuildMixedVerticalPlusTumbadoLayout(targetHeightMm)
+                    : BuildGreedyTumbadoLayout(targetHeightMm);
+            }
+
+            return layout;
+        }
+
+        private static Modulo270Layout BuildTallVerticalStackLayout(double targetHeightMm)
+        {
+            var pieces = new List<Modulo270PieceLayout>();
+            var remaining = targetHeightMm;
+            var up = 0;
+
+            while (remaining > 2700d && remaining - 2700d >= 299.5d)
+            {
+                Add2700VerticalBand(pieces, up);
+                remaining -= 2700d;
+                up += 2700;
+            }
+
+            var top = BuildLayoutForNormalizedHeight(remaining);
+            if (top != null && top.Pieces != null)
+            {
+                for (var i = 0; i < top.Pieces.Count; i++)
+                {
+                    pieces.Add(OffsetPiece(top.Pieces[i], up));
+                }
+            }
+
+            if (pieces.Count == 0)
+            {
+                return BuildLayoutForNormalizedHeight(targetHeightMm);
+            }
+
+            return Build((int)targetHeightMm, pieces.ToArray());
+        }
+
+        private static void Add2700VerticalBand(List<Modulo270PieceLayout> pieces, int upOffsetMm)
+        {
+            pieces.Add(PieceVertical("27904209", 900, 2700, 0, upOffsetMm));
+            pieces.Add(PieceVertical("27904209", 900, 2700, 900, upOffsetMm));
+            pieces.Add(PieceVertical("27904209", 900, 2700, 1800, upOffsetMm));
+        }
+
+        private static Modulo270PieceLayout OffsetPiece(Modulo270PieceLayout source, int upOffsetMm)
+        {
+            if (source == null)
+            {
+                return null;
+            }
+
+            return new Modulo270PieceLayout
+            {
+                ElementCode = source.ElementCode,
+                ImportPath = source.ImportPath,
+                Orientation = source.Orientation,
+                PieceWidthMm = source.PieceWidthMm,
+                PieceHeightMm = source.PieceHeightMm,
+                AlongOffsetMm = source.AlongOffsetMm,
+                UpOffsetMm = source.UpOffsetMm + upOffsetMm,
+                InsertOffsetX = source.InsertOffsetX,
+                InsertOffsetY = source.InsertOffsetY,
+                InsertOffsetZ = source.InsertOffsetZ,
+                BaseRotX = source.BaseRotX,
+                BaseRotY = source.BaseRotY,
+                BaseRotZ = source.BaseRotZ,
+                UseStrictPose = source.UseStrictPose
+            };
         }
 
         private static bool TryGetKnownLayout(double targetHeightMm, out Modulo270Layout layout)

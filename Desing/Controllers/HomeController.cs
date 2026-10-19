@@ -438,7 +438,7 @@ namespace Desing.Controllers
                     }
                     return new
                     {
-                        photo = BuildDesignRowPhoto(photo, p.DesignName, url),
+                        photo = BuildDesignRowPhoto(photo, p.DesignName, url, p.DesignId, p.Changed),
                         DesignName = HttpUtility.HtmlEncode(p.DesignName),
                         OfferNumber = OfferDisplayHelper.BuildOfferNumberCellHtml(p.OfferNumber, p.OfferStateColor),
                         Description = HttpUtility.HtmlEncode(p.Description),
@@ -588,27 +588,49 @@ namespace Desing.Controllers
             return map;
         }
 
-        private string BuildDesignRowPhoto(string photoRaw, string designName, string viewerUrl)
+        private string BuildDesignRowPhoto(string photoRaw, string designName, string viewerUrl, long designId, DateTime changed)
         {
-            var path = (photoRaw ?? "").Trim().Replace('\\', '/');
-            var photoUrl = path.StartsWith("~/Content/images/desing/", StringComparison.OrdinalIgnoreCase)
-                ? Url.Content(path)
-                : "";
+            var photoUrl = BuildDesignPhotoUrl(photoRaw, changed);
             var href = HttpUtility.HtmlAttributeEncode(viewerUrl);
             var alt = HttpUtility.HtmlAttributeEncode(designName ?? "");
             var inner = string.IsNullOrEmpty(photoUrl)
                 ? "<span class=\"dash-design-row-photo-empty\" aria-hidden=\"true\"></span>"
                 : "<img src=\"" + HttpUtility.HtmlAttributeEncode(photoUrl) + "\" alt=\"" + alt + "\" width=\"100\" height=\"76\" />";
-            return "<a class=\"dash-design-row-photo\" href=\"" + href + "\">" + inner + "</a>";
+            return "<a class=\"dash-design-row-photo\" data-design-id=\"" + designId.ToString(CultureInfo.InvariantCulture) + "\" href=\"" + href + "\">" + inner + "</a>";
+        }
+
+        private string BuildDesignPhotoUrl(string photoRaw, DateTime changed)
+        {
+            var photo = (photoRaw ?? "").Trim().Replace('\\', '/');
+            if (string.IsNullOrWhiteSpace(photo))
+            {
+                return "";
+            }
+
+            string url;
+            if (photo.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                photo.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
+                photo.StartsWith("//", StringComparison.Ordinal))
+            {
+                url = photo;
+            }
+            else
+            {
+                url = photo.StartsWith("~/", StringComparison.Ordinal)
+                    ? Url.Content(photo)
+                    : Url.Content("~" + (photo.StartsWith("/", StringComparison.Ordinal) ? photo : "/" + photo));
+            }
+
+            var version = changed == default(DateTime)
+                ? DateTime.UtcNow.Ticks
+                : changed.ToUniversalTime().Ticks;
+            return url + (url.IndexOf('?') >= 0 ? "&" : "?") + "v=" + version.ToString(CultureInfo.InvariantCulture);
         }
 
         private string BuildDesignPhotoCard(DashDesignCardInput card)
         {
             var name = card.DesignName ?? "";
-            var path = (card.PhotoRaw ?? "").Trim().Replace('\\', '/');
-            var photoUrl = path.StartsWith("~/Content/images/desing/", StringComparison.OrdinalIgnoreCase)
-                ? Url.Content(path)
-                : "";
+            var photoUrl = BuildDesignPhotoUrl(card.PhotoRaw, card.Changed);
             var href = HttpUtility.HtmlAttributeEncode(card.ViewerUrl);
             var encName = HttpUtility.HtmlEncode(name);
             var encNameAttr = HttpUtility.HtmlAttributeEncode(name);

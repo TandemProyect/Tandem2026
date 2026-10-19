@@ -131,15 +131,9 @@ namespace Desing.Repositories.RepositoryDesing2
                 designId);
         }
 
-        private readonly List<TSql_DesignWallArticle> _batch = new List<TSql_DesignWallArticle>();
-        private long _batchDesignId;
-        private DateTime _batchAt;
-
         public int ReplaceAll(long designId, IList<PluginSaveWallArticleRequest> articles, string userId)
         {
-            _batch.Clear();
-            _batchDesignId = designId;
-            _batchAt = DateTime.Now;
+            var batchAt = DateTime.Now;
 
             if (articles == null || articles.Count == 0)
             {
@@ -214,76 +208,176 @@ namespace Desing.Repositories.RepositoryDesing2
                     TextHandleCad = Truncate(request.HandleCad, 50)
                 };
                 IntranetAuditHelper.SetAuditOnCreate(article, userId);
-                article.AddDateMade = _batchAt;
+                article.AddDateMade = batchAt;
                 _db.TSql_DesignWallArticle.Add(article);
-                _batch.Add(article);
                 count++;
             }
 
             return count;
         }
 
+        private static DateTime _lastPurgeDay = DateTime.MinValue;
+        private static readonly object _purgeGate = new object();
+        private static bool _purgeRunning;
+        private static int _estimateSeconds;
+        private static DateTime _purgeStartedUtc;
+
+        private const string PurgeDeleteSql =
+            "DELETE a FROM dbo.TSql_DesignWallArticle a WHERE NOT EXISTS (SELECT 1 FROM (SELECT LinkDesign_V2, MAX(AddDateMade) AS BatchAt FROM dbo.TSql_DesignWallArticle WHERE Is_Delete = 0 GROUP BY LinkDesign_V2) latest WHERE latest.LinkDesign_V2 = a.LinkDesign_V2 AND latest.BatchAt = a.AddDateMade AND a.Is_Delete = 0)";
+
         /// <summary>
-        /// Tras guardar el recuento nuevo, marca borradas solo las piezas anteriores de este diseño.
-        /// No espera: el aviso ya puede cerrarse. El recuento visible es el lote recién guardado.
+        /// El primer usuario que entra a partir de las 02:00 ve el aviso. Una vez al día.
         /// </summary>
-        public void QueueRetirePrevious(string userId)
+        public static bool IsMaintenanceNoticeDue()
         {
-            if (_batchDesignId <= 0)
+            if (_purgeRunning)
             {
-                return;
+                return true;
             }
 
-            long? keepFromId = null;
-            if (_batch.Count > 0)
+            var now = DateTime.Now;
+            lock (_purgeGate)
             {
-                var min = _batch[0].IdObject;
-                for (var i = 1; i < _batch.Count; i++)
+                if (_purgeRunning)
                 {
-                    if (_batch[i].IdObject < min)
-                    {
-                        min = _batch[i].IdObject;
-                    }
+                    return true;
                 }
-                if (min <= 0)
+                if (_lastPurgeDay.Date == now.Date)
                 {
-                    return;
+                    return false;
                 }
-                keepFromId = min;
+                if (now.Hour < 2 && _lastPurgeDay.Date >= now.Date.AddDays(-1))
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        public static int MaintenanceSecondsLeft()
+        {
+            if (!_purgeRunning)
+            {
+                return 0;
+            }
+            var elapsed = (int)(DateTime.UtcNow - _purgeStartedUtc).TotalSeconds;
+            var left = _estimateSeconds - elapsed;
+            return left < 1 ? 1 : left;
+        }
+
+        /// <summary>
+        /// Cuenta las piezas viejas, estima los segundos y lanza la limpieza sin esperar a que termine.
+        /// </summary>
+        public static object TryBeginDailyPurge()
+        {
+            lock (_purgeGate)
+            {
+                if (_purgeRunning)
+                {
+                    return new { show = true, seconds = MaintenanceSecondsLeft() };
+                }
+                if (!IsMaintenanceNoticeDue())
+                {
+                    return new { show = false, seconds = 0 };
+                }
+                _lastPurgeDay = DateTime.Now.Date;
+                _purgeRunning = true;
+                _purgeStartedUtc = DateTime.UtcNow;
+                _estimateSeconds = 8;
             }
 
-            var designId = _batchDesignId;
-            var user = userId ?? "";
+            int rows;
+            try
+            {
+                using (var db = new ConexionData())
+                {
+                    db.Database.CommandTimeout = 120;
+                    rows = db.Database.SqlQuery<int>("SELECT COUNT(*) FROM dbo.TSql_DesignWallArticle a WHERE NOT EXISTS (SELECT 1 FROM (SELECT LinkDesign_V2, MAX(AddDateMade) AS BatchAt FROM dbo.TSql_DesignWallArticle WHERE Is_Delete = 0 GROUP BY LinkDesign_V2) latest WHERE latest.LinkDesign_V2 = a.LinkDesign_V2 AND latest.BatchAt = a.AddDateMade AND a.Is_Delete = 0)").FirstOrDefault();
+                }
+            }
+            catch
+            {
+                lock (_purgeGate)
+                {
+                    _purgeRunning = false;
+                    _lastPurgeDay = DateTime.MinValue;
+                }
+                return new { show = false, seconds = 0 };
+            }
+
+            if (rows <= 0)
+            {
+                lock (_purgeGate)
+                {
+                    _purgeRunning = false;
+                }
+                return new { show = false, seconds = 0 };
+            }
+
+            var seconds = (int)Math.Ceiling(rows / 800d);
+            if (seconds < 8)
+            {
+                seconds = 8;
+            }
+            if (seconds > 900)
+            {
+                seconds = 900;
+            }
+
+            lock (_purgeGate)
+            {
+                _estimateSeconds = seconds;
+                _purgeStartedUtc = DateTime.UtcNow;
+            }
+
             System.Web.Hosting.HostingEnvironment.QueueBackgroundWorkItem(delegate
             {
                 try
                 {
                     using (var db = new ConexionData())
                     {
-                        db.Database.CommandTimeout = 0;
-                        if (keepFromId.HasValue)
+                        db.Database.CommandTimeout = 60;
+                        var batchSql = PurgeDeleteSql.Replace("DELETE a FROM", "DELETE TOP (2000) a FROM");
+                        int removed;
+                        do
                         {
-                            db.Database.ExecuteSqlCommand(
-                                "UPDATE dbo.TSql_DesignWallArticle SET Is_Delete = 1, LinModifiedBy = @p0, AddLastDateChange = @p1, Ntimeschanged = Ntimeschanged + 1 WHERE LinkDesign_V2 = @p2 AND Is_Delete = 0 AND IdObject < @p3",
-                                user,
-                                DateTime.Now,
-                                designId,
-                                keepFromId.Value);
+                            removed = db.Database.ExecuteSqlCommand(batchSql);
                         }
-                        else
-                        {
-                            db.Database.ExecuteSqlCommand(
-                                "UPDATE dbo.TSql_DesignWallArticle SET Is_Delete = 1, LinModifiedBy = @p0, AddLastDateChange = @p1, Ntimeschanged = Ntimeschanged + 1 WHERE LinkDesign_V2 = @p2 AND Is_Delete = 0",
-                                user,
-                                DateTime.Now,
-                                designId);
-                        }
+                        while (removed > 0);
                     }
                 }
                 catch
                 {
+                    lock (_purgeGate)
+                    {
+                        _lastPurgeDay = DateTime.MinValue;
+                    }
+                }
+                finally
+                {
+                    lock (_purgeGate)
+                    {
+                        _purgeRunning = false;
+                    }
                 }
             });
+
+            return new { show = true, seconds = seconds };
+        }
+
+        public IQueryable<TSql_DesignWallArticle> QueryLatestActive(long designId)
+        {
+            var latest = _db.TSql_DesignWallArticle.AsNoTracking()
+                .Where(a => a.LinkDesign_V2 == designId && !a.Is_Delete && a.Is_Active)
+                .Max(a => (DateTime?)a.AddDateMade);
+            if (!latest.HasValue)
+            {
+                return _db.TSql_DesignWallArticle.AsNoTracking().Where(a => a.IdObject < 0);
+            }
+
+            var stamp = latest.Value;
+            return _db.TSql_DesignWallArticle.AsNoTracking()
+                .Where(a => a.LinkDesign_V2 == designId && !a.Is_Delete && a.Is_Active && a.AddDateMade == stamp);
         }
 
         private static long? FindMasterId(List<Tsql_Master_Articles> masters, long? requestedId, string code)

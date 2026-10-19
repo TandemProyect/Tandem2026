@@ -78,7 +78,7 @@ namespace Desing.Repositories.RepositoryAtk60
 
             foreach (var item in walls)
             {
-                if (item == null)
+                if (item == null || PillarFormwork.IsPillar(item))
                 {
                     continue;
                 }
@@ -132,7 +132,7 @@ namespace Desing.Repositories.RepositoryAtk60
             for (var i = 0; i < walls.Count; i++)
             {
                 var wall = walls[i];
-                if (wall == null)
+                if (wall == null || PillarFormwork.IsPillar(wall))
                 {
                     continue;
                 }
@@ -482,7 +482,20 @@ namespace Desing.Repositories.RepositoryAtk60
             List<Atk60WallPaintAnchor> anchors)
         {
             var outElements = new List<Atk60ElementPaintItem>();
-            if (walls == null || walls.Count == 0 || modulos == null || modulos.Count == 0 || anchors == null || anchors.Count == 0)
+            if (walls == null || walls.Count == 0)
+            {
+                return outElements;
+            }
+
+            for (var pi = 0; pi < walls.Count; pi++)
+            {
+                if (PillarFormwork.IsPillar(walls[pi]))
+                {
+                    outElements.AddRange(PillarFormwork.Place(walls[pi]));
+                }
+            }
+
+            if (modulos == null || modulos.Count == 0 || anchors == null || anchors.Count == 0)
             {
                 return outElements;
             }
@@ -513,14 +526,19 @@ namespace Desing.Repositories.RepositoryAtk60
                     continue;
                 }
 
-                Atk60WallPaintAnchor anchor;
-                if (!anchorById.TryGetValue(moduloWall.IdWall, out anchor) || anchor == null)
+                Desing2FormworkWallDto wall;
+                if (!wallById.TryGetValue(moduloWall.IdWall, out wall) || wall == null)
                 {
                     continue;
                 }
 
-                Desing2FormworkWallDto wall;
-                if (!wallById.TryGetValue(moduloWall.IdWall, out wall) || wall == null)
+                if (PillarFormwork.IsPillar(wall))
+                {
+                    continue;
+                }
+
+                Atk60WallPaintAnchor anchor;
+                if (!anchorById.TryGetValue(moduloWall.IdWall, out anchor) || anchor == null)
                 {
                     continue;
                 }
@@ -573,6 +591,8 @@ namespace Desing.Repositories.RepositoryAtk60
                     cursorMm += chunk.Count * (double)chunk.Builder.ModuleLengthMm;
                     indexOffset += chunk.Count;
                 }
+
+                PushPullProp.PlaceAlongWall(outElements, wall, anchor);
 
                 outElements.AddRange(
                     Modulo270WorkBracketGenerator.Build(wall, anchor, cursorMm, protectionWoodPending, stiffenerAlongMm));

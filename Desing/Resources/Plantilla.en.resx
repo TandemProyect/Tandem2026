@@ -209,10 +209,10 @@
     <value>Empty = primary color</value>
   </data>
   <data name="Ph_FaviconPath" xml:space="preserve">
-    <value>/assets/client/images/Default/Ico/at.ico</value>
+    <value>/Content/images/tDesing/tDesing.png</value>
   </data>
   <data name="Ph_LogoPath" xml:space="preserve">
-    <value>/Content/images/Login/at.png</value>
+    <value>/Content/images/tDesing/t-desingc.png</value>
   </data>
   <data name="Ph_Name" xml:space="preserve">
     <value>E.g.: Acme Client Template</value>

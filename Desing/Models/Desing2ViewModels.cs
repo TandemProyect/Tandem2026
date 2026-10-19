@@ -54,11 +54,18 @@ namespace Desing.Models
 
         public long? DesignId { get; set; }
 
+        /// <summary>Distancia máxima entre puntales del diseño, en mm. Por defecto 2400.</summary>
+        public double PropSpacingMm { get; set; }
+
 
 
         /// <summary>Logo de la plantilla activa (misma resolución que el menú lateral).</summary>
 
         public string BrandLogoUrl { get; set; }
+
+        /// <summary>Estado inicial de cámara/vista en JSON para restaurar el diseño al abrir.</summary>
+
+        public string InitialViewerStateJson { get; set; }
 
 
 

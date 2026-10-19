@@ -1,5 +1,6 @@
 using DAL;
 using Desing.Helpers;
+using Desing.Repositories.RepositoryDesing2;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Configuration;
@@ -19,7 +20,12 @@ namespace Desing.Controllers
         public const string PlantillaCookieName = "tandem_plantilla";
         public const string PlantillaColorCookieName = "tandem_plantilla_color";
         public const string PlantillaTextColorCookieName = "tandem_plantilla_text";
+        public const string PlantillaLogoCookieName = "tandem_plantilla_logo";
+        public const string PlantillaFaviconCookieName = "tandem_plantilla_favicon";
+        public const string PlantillaIsDefaultCookieName = "tandem_plantilla_isdefault";
         public const string MaterioDefaultColor = "#7367F0";
+        public const string TdesingDefaultColor = "#349d7d";
+        public const string TdesingFaviconVirtualPath = PluginCadDeviceHelper.DefaultMarkVirtualPath;
         private const string PlantillaCacheKeyPrefix = "TandemPlantilla_";
         private const string PlantillaDefaultCacheKey = "TandemPlantilla_Default";
         private const string LanguageByIdCacheKeyPrefix = "TandemLanguage_ById_";
@@ -38,6 +44,7 @@ namespace Desing.Controllers
             public string BrandText { get; set; }
             public string BrandTextColor { get; set; }
             public string BrandAccentColor { get; set; }
+            public bool IsDefault { get; set; }
         }
 
         private sealed class LanguageViewData
@@ -76,11 +83,10 @@ namespace Desing.Controllers
 
             // Plantilla por defecto del sitio (color + logo + favicon) - fallback si no hay usuario.
             var pluginCadChrome = IsPluginCadRequest();
-            ViewBag.PlantillaColor = pluginCadChrome ? MaterioDefaultColor : "#349d7d";
-            ViewBag.PlantillaLogo = pluginCadChrome
-                ? "/Content/images/tDesing/t-desing-net.png"
-                : "/Content/images/Login/at.png";
-            ViewBag.PlantillaFavicon = "/assets/client/images/Default/Ico/at.ico";
+            ViewBag.PlantillaColor = pluginCadChrome ? MaterioDefaultColor : TdesingDefaultColor;
+            ViewBag.PlantillaLogo = PluginCadDeviceHelper.DefaultWordmarkVirtualPath;
+            ViewBag.PlantillaMark = PluginCadDeviceHelper.DefaultMarkVirtualPath;
+            ViewBag.PlantillaFavicon = TdesingFaviconVirtualPath;
             ViewBag.PlantillaBrandText = "T Desing.net";
             ViewBag.PlantillaBrandTextColor = "";
             ViewBag.PlantillaBrandAccentColor = "#f29100";
@@ -102,6 +108,7 @@ namespace Desing.Controllers
                 }
                 else if (User != null && User.Identity != null && User.Identity.IsAuthenticated)
                 {
+                    ViewBag.ArticleMaintenanceDue = DesignWallArticleRepository.IsMaintenanceNoticeDue();
                     var idUser = User.Identity.GetUserId();
                     if (!string.IsNullOrEmpty(idUser))
                     {
@@ -148,24 +155,7 @@ namespace Desing.Controllers
                     plantilla = GetCachedDefaultPlantilla();
                 }
 
-                if (plantilla != null)
-                {
-                    if (!string.IsNullOrWhiteSpace(plantilla.Color))
-                        ViewBag.PlantillaColor = plantilla.Color;
-                    if (!string.IsNullOrWhiteSpace(plantilla.Logo))
-                        ViewBag.PlantillaLogo = plantilla.Logo;
-                    if (!string.IsNullOrWhiteSpace(plantilla.Favicon))
-                        ViewBag.PlantillaFavicon = plantilla.Favicon;
-                    ViewBag.PlantillaBrandText = string.IsNullOrWhiteSpace(plantilla.BrandText)
-                        ? "T Desing.net"
-                        : plantilla.BrandText.Trim();
-                    ViewBag.PlantillaBrandTextColor = plantilla.BrandTextColor != null
-                        ? plantilla.BrandTextColor.Trim()
-                        : "";
-                    ViewBag.PlantillaBrandAccentColor = string.IsNullOrWhiteSpace(plantilla.BrandAccentColor)
-                        ? "#f29100"
-                        : plantilla.BrandAccentColor.Trim();
-                }
+                ApplyResolvedPlantilla(plantilla);
             }
             catch
             {
@@ -265,7 +255,8 @@ namespace Desing.Controllers
                     Favicon = p.AttFavicon,
                     BrandText = p.AttBrandText,
                     BrandTextColor = p.AttBrandTextColor,
-                    BrandAccentColor = p.AttBrandAccentColor
+                    BrandAccentColor = p.AttBrandAccentColor,
+                    IsDefault = p.AttIsDefault
                 })
                 .FirstOrDefault();
 
@@ -292,7 +283,8 @@ namespace Desing.Controllers
                     Favicon = p.AttFavicon,
                     BrandText = p.AttBrandText,
                     BrandTextColor = p.AttBrandTextColor,
-                    BrandAccentColor = p.AttBrandAccentColor
+                    BrandAccentColor = p.AttBrandAccentColor,
+                    IsDefault = p.AttIsDefault
                 })
                 .FirstOrDefault();
 
@@ -407,9 +399,7 @@ namespace Desing.Controllers
                     Path = "/"
                 };
                 Response.Cookies.Set(cookie);
-                WritePlantillaColorCookies(
-                    row != null ? row.Color : null,
-                    row != null ? row.BrandTextColor : null);
+                WritePlantillaBrandCookies(row);
             }
             catch { }
         }
@@ -428,6 +418,57 @@ namespace Desing.Controllers
             }
         }
 
+        private void ApplyResolvedPlantilla(PlantillaViewData plantilla)
+        {
+            if (plantilla == null)
+                return;
+
+            if (!string.IsNullOrWhiteSpace(plantilla.Color))
+                ViewBag.PlantillaColor = plantilla.Color;
+
+            if (plantilla.IsDefault)
+            {
+                ViewBag.PlantillaLogo = PluginCadDeviceHelper.DefaultWordmarkVirtualPath;
+                ViewBag.PlantillaMark = PluginCadDeviceHelper.DefaultMarkVirtualPath;
+                ViewBag.PlantillaFavicon = TdesingFaviconVirtualPath;
+            }
+            else
+            {
+                ViewBag.PlantillaMark = null;
+                if (IsSafeBrandPath(plantilla.Logo))
+                    ViewBag.PlantillaLogo = plantilla.Logo.Trim();
+                if (IsSafeBrandPath(plantilla.Favicon))
+                    ViewBag.PlantillaFavicon = plantilla.Favicon.Trim();
+            }
+
+            ViewBag.PlantillaBrandText = string.IsNullOrWhiteSpace(plantilla.BrandText)
+                ? "T Desing.net"
+                : plantilla.BrandText.Trim();
+            ViewBag.PlantillaBrandTextColor = plantilla.BrandTextColor != null
+                ? plantilla.BrandTextColor.Trim()
+                : "";
+            ViewBag.PlantillaBrandAccentColor = string.IsNullOrWhiteSpace(plantilla.BrandAccentColor)
+                ? "#f29100"
+                : plantilla.BrandAccentColor.Trim();
+        }
+
+        private void WritePlantillaBrandCookies(PlantillaViewData row)
+        {
+            var isDefault = row == null || row.IsDefault;
+            WritePlainCookie(PlantillaIsDefaultCookieName, isDefault ? "1" : "0");
+            var logo = isDefault || !IsSafeBrandPath(row != null ? row.Logo : null)
+                ? PluginCadDeviceHelper.DefaultWordmarkVirtualPath
+                : row.Logo.Trim();
+            var favicon = isDefault || !IsSafeBrandPath(row != null ? row.Favicon : null)
+                ? TdesingFaviconVirtualPath
+                : row.Favicon.Trim();
+            WritePlainCookie(PlantillaLogoCookieName, logo);
+            WritePlainCookie(PlantillaFaviconCookieName, favicon);
+            WritePlantillaColorCookies(
+                row != null ? row.Color : null,
+                row != null ? row.BrandTextColor : null);
+        }
+
         private void WritePlantillaColorCookies(string color, string textColor)
         {
             WritePlainCookie(PlantillaColorCookieName, NormalizeHexCookie(color, MaterioDefaultColor));
@@ -444,6 +485,30 @@ namespace Desing.Controllers
                 ViewBag.PlantillaColor = color;
             if (LooksLikeHex(text))
                 ViewBag.PlantillaBrandTextColor = text;
+
+            var isDefault = ReadCookieValue(PlantillaIsDefaultCookieName);
+            if (!string.Equals(isDefault, "0", StringComparison.Ordinal))
+                return;
+
+            ViewBag.PlantillaMark = null;
+            var logo = ReadCookieValue(PlantillaLogoCookieName);
+            var favicon = ReadCookieValue(PlantillaFaviconCookieName);
+            if (IsSafeBrandPath(logo))
+                ViewBag.PlantillaLogo = logo;
+            if (IsSafeBrandPath(favicon))
+                ViewBag.PlantillaFavicon = favicon;
+        }
+
+        private static bool IsSafeBrandPath(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+                return false;
+            var value = path.Trim();
+            if (!value.StartsWith("/", StringComparison.Ordinal) || value.StartsWith("//", StringComparison.Ordinal))
+                return false;
+            if (value.IndexOf("..", StringComparison.Ordinal) >= 0 || value.IndexOf('\\') >= 0)
+                return false;
+            return true;
         }
 
         private bool IsPluginCadRequest()

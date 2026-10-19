@@ -403,6 +403,16 @@
                 return out;
             }
 
+            if (typeof window.maStlDesing2MergeCollinearAxisRuns === 'function') {
+                const mergedAxes = window.maStlDesing2MergeCollinearAxisRuns();
+                if (mergedAxes > 0 && typeof window.maStlDesing2SaveDesignWallsToServer === 'function') {
+                    window.maStlDesing2SaveDesignWallsToServer({ includePhoto: false, quiet: true }).catch(function () {});
+                }
+            }
+            if (typeof window.maStlDesing2ReleaseEmptySpecialWalls === 'function') {
+                window.maStlDesing2ReleaseEmptySpecialWalls();
+            }
+
             const getWallsFromScene = window.maStlDesing2GetStraightWallsFromScene;
             const wallsFromScene = typeof getWallsFromScene === 'function' ? getWallsFromScene() : [];
 
@@ -583,6 +593,13 @@
                     const baseAttrs = (w && w.Attributes && typeof w.Attributes === 'object')
                         ? Object.assign({}, w.Attributes)
                         : Object.assign({}, w || {});
+
+                    if (typeof window.maStlDesing2PropSpacingMm === 'function') {
+                        const propSpacingMm = Number(window.maStlDesing2PropSpacingMm());
+                        if (Number.isFinite(propSpacingMm) && propSpacingMm > 0) {
+                            baseAttrs._PropSpacingMm = propSpacingMm;
+                        }
+                    }
 
                     if (geom) {
                         // Convención del backend: InicioY/FinY corresponden a Z en planta, InicioZ/FinZ a Y vertical.
@@ -771,7 +788,9 @@
         }
 
         function syncVisibility() {
-            const visible = isWall3dActive();
+            const formworkOn = formworkBtn.classList.contains('active')
+                || formworkBtn.getAttribute('aria-pressed') === 'true';
+            const visible = isWall3dActive() || formworkOn;
             formworkBtn.classList.toggle('d-none', !visible);
             formworkBtn.setAttribute('aria-hidden', visible ? 'false' : 'true');
             if (visible) {

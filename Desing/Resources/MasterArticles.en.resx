@@ -10,23 +10,11 @@
   <data name="BlockSlot_3DRef" xml:space="preserve">
     <value>3DRef</value>
   </data>
-  <data name="BlockSlot_HorzElev3D" xml:space="preserve">
-    <value>Horizontal elevation 3D</value>
-  </data>
-  <data name="BlockSlot_HorzElevMockup" xml:space="preserve">
-    <value>Horizontal elevation mock-up</value>
-  </data>
   <data name="BlockSlot_HorzElevStl" xml:space="preserve">
     <value>Horizontal elevation — .stl file</value>
   </data>
   <data name="BlockSlot_OpenFile" xml:space="preserve">
     <value>Open file</value>
-  </data>
-  <data name="BlockSlot_Plant3D" xml:space="preserve">
-    <value>Plan 3D</value>
-  </data>
-  <data name="BlockSlot_PlantMockup" xml:space="preserve">
-    <value>Plan mock-up</value>
   </data>
   <data name="BlockSlot_PlantStl" xml:space="preserve">
     <value>Plan — .stl file</value>
@@ -36,12 +24,6 @@
   </data>
   <data name="BlockSlot_SavedFile" xml:space="preserve">
     <value>Saved file:</value>
-  </data>
-  <data name="BlockSlot_VertElev3D" xml:space="preserve">
-    <value>Vertical elevation 3D</value>
-  </data>
-  <data name="BlockSlot_VertElevMockup" xml:space="preserve">
-    <value>Vertical elevation mock-up</value>
   </data>
   <data name="BlockSlot_VertElevStl" xml:space="preserve">
     <value>Vertical elevation — .stl file</value>
@@ -85,14 +67,17 @@
   <data name="Col_Description" xml:space="preserve">
     <value>Description</value>
   </data>
+  <data name="Col_Dwg3D" xml:space="preserve">
+    <value>DWG 3D</value>
+  </data>
+  <data name="Col_Dwg3DRef" xml:space="preserve">
+    <value>DWG 3DRef</value>
+  </data>
+  <data name="Col_DwgXr" xml:space="preserve">
+    <value>DWG Xr</value>
+  </data>
   <data name="Col_High" xml:space="preserve">
     <value>Height</value>
-  </data>
-  <data name="Col_HorzElev3D" xml:space="preserve">
-    <value>Horz. elev. 3D</value>
-  </data>
-  <data name="Col_HorzElevMockup" xml:space="preserve">
-    <value>Horz. elev. mock-up</value>
   </data>
   <data name="Col_HorzElevStl" xml:space="preserve">
     <value>Horz. elev. STL</value>
@@ -109,21 +94,6 @@
   <data name="Col_Mts3" xml:space="preserve">
     <value>M³</value>
   </data>
-  <data name="Col_Dwg3D" xml:space="preserve">
-    <value>DWG 3D</value>
-  </data>
-  <data name="Col_Dwg3DRef" xml:space="preserve">
-    <value>DWG 3DRef</value>
-  </data>
-  <data name="Col_DwgXr" xml:space="preserve">
-    <value>DWG Xr</value>
-  </data>
-  <data name="Col_Plant3D" xml:space="preserve">
-    <value>Plan 3D</value>
-  </data>
-  <data name="Col_PlantMockup" xml:space="preserve">
-    <value>Plan mock-up</value>
-  </data>
   <data name="Col_PlantStl" xml:space="preserve">
     <value>Plan STL</value>
   </data>
@@ -135,12 +105,6 @@
   </data>
   <data name="Col_System" xml:space="preserve">
     <value>System</value>
-  </data>
-  <data name="Col_VertElev3D" xml:space="preserve">
-    <value>Vert. elev. 3D</value>
-  </data>
-  <data name="Col_VertElevMockup" xml:space="preserve">
-    <value>Vert. elev. mock-up</value>
   </data>
   <data name="Col_VertElevStl" xml:space="preserve">
     <value>Vert. elev. STL</value>
@@ -418,6 +382,15 @@
   <data name="StlPreview_ClipYTitle" xml:space="preserve">
     <value>Height clipping: 1000 = full view; lowering the slider clips from top to bottom.</value>
   </data>
+  <data name="StlPreview_CopyToolInstructionBasePoint" xml:space="preserve">
+    <value>Base point: click on the floor or type X,Z (e.g. 0,0) + Enter.</value>
+  </data>
+  <data name="StlPreview_CopyToolInstructionDisplacement" xml:space="preserve">
+    <value>Second point (displacement): click, #X,Z, or @distance&lt;angle + Enter. Repeat for more copies; Esc to finish.</value>
+  </data>
+  <data name="StlPreview_CopyToolInstructionSelecting" xml:space="preserve">
+    <value>Select what to copy: single click or drag (L→R window, R→L crossing). Enter to continue, Esc to cancel.</value>
+  </data>
   <data name="StlPreview_DarkBgAria" xml:space="preserve">
     <value>Dark background</value>
   </data>
@@ -427,32 +400,11 @@
   <data name="StlPreview_DeleteToolInstruction" xml:space="preserve">
     <value>Select floor lines or STL objects to delete (click or window selection). Enter/Space/Delete to delete, Esc to cancel</value>
   </data>
-  <data name="StlPreview_CopyToolInstructionSelecting" xml:space="preserve">
-    <value>Select what to copy: single click or drag (L→R window, R→L crossing). Enter to continue, Esc to cancel.</value>
+  <data name="StlPreview_DesignLoading" xml:space="preserve">
+    <value>Loading design…</value>
   </data>
-  <data name="StlPreview_CopyToolInstructionBasePoint" xml:space="preserve">
-    <value>Base point: click on the floor or type X,Z (e.g. 0,0) + Enter.</value>
-  </data>
-  <data name="StlPreview_CopyToolInstructionDisplacement" xml:space="preserve">
-    <value>Second point (displacement): click, #X,Z, or @distance&lt;angle + Enter. Repeat for more copies; Esc to finish.</value>
-  </data>
-  <data name="StlPreview_MoveToolInstructionSelecting" xml:space="preserve">
-    <value>Select what to move: single click or drag (L→R window, R→L crossing). Enter to continue, Esc to cancel.</value>
-  </data>
-  <data name="StlPreview_MoveToolInstructionBasePoint" xml:space="preserve">
-    <value>Base point: click on the floor or type X,Z (e.g. 0,0) + Enter.</value>
-  </data>
-  <data name="StlPreview_MoveToolInstructionDisplacement" xml:space="preserve">
-    <value>Second point (displacement): click, #X,Z, or @distance&lt;angle + Enter. Repeat for more moves; Esc to finish.</value>
-  </data>
-  <data name="StlPreview_StretchToolInstructionSelecting" xml:space="preserve">
-    <value>Select the wall or line to stretch: click or window. Enter for the first point, Esc to cancel.</value>
-  </data>
-  <data name="StlPreview_StretchToolInstructionBasePoint" xml:space="preserve">
-    <value>First point: click on the floor or type X,Z + Enter.</value>
-  </data>
-  <data name="StlPreview_StretchToolInstructionDisplacement" xml:space="preserve">
-    <value>Second point: click or @distance&lt;angle + Enter. Stretch is applied on confirm and the tool ends.</value>
+  <data name="StlPreview_DesignSaving" xml:space="preserve">
+    <value>Saving design…</value>
   </data>
   <data name="StlPreview_Desing2BottomToolbarAria" xml:space="preserve">
     <value>STL viewer bottom bar (undo, ortho, rulers)</value>
@@ -532,6 +484,15 @@
   <data name="StlPreview_Desing2ConfigOffsetDefaultPlaceholder" xml:space="preserve">
     <value>e.g. 0.30 · 300 mm</value>
   </data>
+  <data name="StlPreview_Desing2ConfigPropSpacingAria" xml:space="preserve">
+    <value>Maximum distance between props, in meters. Default 2.40. Formwork does not exceed it.</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigPropSpacingLabel" xml:space="preserve">
+    <value>Distance between props</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigPropSpacingPlaceholder" xml:space="preserve">
+    <value>e.g. 2.40 · maximum</value>
+  </data>
   <data name="StlPreview_Desing2ConfigWallSectionTitle" xml:space="preserve">
     <value>L-section — wall thickness</value>
   </data>
@@ -553,11 +514,44 @@
   <data name="StlPreview_Desing2ConfigWallWidthYPlaceholder" xml:space="preserve">
     <value>e.g. 0.30 · 300 mm</value>
   </data>
+  <data name="StlPreview_Desing2EntornoAmbientIntensityAria" xml:space="preserve">
+    <value>Global ambient light intensity.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoAmbientIntensityLabel" xml:space="preserve">
+    <value>Ambient light</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoExposureAria" xml:space="preserve">
+    <value>Camera exposure (tone mapping).</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoExposureLabel" xml:space="preserve">
+    <value>Exposure</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoFogEnabledAria" xml:space="preserve">
+    <value>Enable or disable atmospheric fog.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoFogEnabledLabel" xml:space="preserve">
+    <value>Fog</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoFogStrengthAria" xml:space="preserve">
+    <value>Depth fog intensity.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoFogStrengthLabel" xml:space="preserve">
+    <value>Atmospheric fog</value>
+  </data>
   <data name="StlPreview_Desing2EntornoGridSnapAria" xml:space="preserve">
     <value>Minor grid spacing on the floor plane and snap step in grid pick mode for ruler placement.</value>
   </data>
   <data name="StlPreview_Desing2EntornoGridSnapLabel" xml:space="preserve">
     <value>Grid increment and snap</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoIblIntensityAria" xml:space="preserve">
+    <value>Environment map intensity for PBR materials.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoIblIntensityLabel" xml:space="preserve">
+    <value>Environment reflections (IBL)</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoLightingSectionTitle" xml:space="preserve">
+    <value>Formwork lighting</value>
   </data>
   <data name="StlPreview_Desing2EntornoRulerExtentAria" xml:space="preserve">
     <value>Maximum physical distance of ruler tick marks from the reference point.</value>
@@ -565,80 +559,92 @@
   <data name="StlPreview_Desing2EntornoRulerExtentLabel" xml:space="preserve">
     <value>Maximum ruler drawing reach</value>
   </data>
-  <data name="StlPreview_Desing2EntornoLightingSectionTitle" xml:space="preserve">
-    <value>Formwork lighting</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoSunAzimuthLabel" xml:space="preserve">
-    <value>Sun azimuth</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoSunAzimuthAria" xml:space="preserve">
-    <value>Horizontal angle of the key light in degrees.</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoSunElevationLabel" xml:space="preserve">
-    <value>Sun elevation</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoSunElevationAria" xml:space="preserve">
-    <value>Elevation angle of the key light in degrees.</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoSunIntensityLabel" xml:space="preserve">
-    <value>Sun intensity</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoSunIntensityAria" xml:space="preserve">
-    <value>Intensity of the main directional light.</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoAmbientIntensityLabel" xml:space="preserve">
-    <value>Ambient light</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoAmbientIntensityAria" xml:space="preserve">
-    <value>Global ambient light intensity.</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoIblIntensityLabel" xml:space="preserve">
-    <value>Environment reflections (IBL)</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoIblIntensityAria" xml:space="preserve">
-    <value>Environment map intensity for PBR materials.</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoExposureLabel" xml:space="preserve">
-    <value>Exposure</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoExposureAria" xml:space="preserve">
-    <value>Camera exposure (tone mapping).</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoFogStrengthLabel" xml:space="preserve">
-    <value>Atmospheric fog</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoFogStrengthAria" xml:space="preserve">
-    <value>Depth fog intensity.</value>
+  <data name="StlPreview_Desing2EntornoShadowQualityAria" xml:space="preserve">
+    <value>Shadow map resolution.</value>
   </data>
   <data name="StlPreview_Desing2EntornoShadowQualityLabel" xml:space="preserve">
     <value>Shadow quality</value>
   </data>
-  <data name="StlPreview_Desing2EntornoShadowQualityAria" xml:space="preserve">
-    <value>Shadow map resolution.</value>
+  <data name="StlPreview_Desing2EntornoShadowsEnabledAria" xml:space="preserve">
+    <value>Enable or disable cast shadows.</value>
   </data>
   <data name="StlPreview_Desing2EntornoShadowsEnabledLabel" xml:space="preserve">
     <value>Ground and panel shadows</value>
   </data>
-  <data name="StlPreview_Desing2EntornoShadowsEnabledAria" xml:space="preserve">
-    <value>Enable or disable cast shadows.</value>
+  <data name="StlPreview_Desing2EntornoSiteFloorEnabledAria" xml:space="preserve">
+    <value>Show a textured construction-site ground plane.</value>
   </data>
   <data name="StlPreview_Desing2EntornoSiteFloorEnabledLabel" xml:space="preserve">
     <value>Site floor</value>
   </data>
-  <data name="StlPreview_Desing2EntornoSiteFloorEnabledAria" xml:space="preserve">
-    <value>Show a textured construction-site ground plane.</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoFogEnabledLabel" xml:space="preserve">
-    <value>Fog</value>
-  </data>
-  <data name="StlPreview_Desing2EntornoFogEnabledAria" xml:space="preserve">
-    <value>Enable or disable atmospheric fog.</value>
+  <data name="StlPreview_Desing2EntornoSsaoEnabledAria" xml:space="preserve">
+    <value>Contact shadows in post-processing; may reduce FPS with many objects.</value>
   </data>
   <data name="StlPreview_Desing2EntornoSsaoEnabledLabel" xml:space="preserve">
     <value>SSAO (contact, heavier)</value>
   </data>
-  <data name="StlPreview_Desing2EntornoSsaoEnabledAria" xml:space="preserve">
-    <value>Contact shadows in post-processing; may reduce FPS with many objects.</value>
+  <data name="StlPreview_Desing2EntornoSunAzimuthAria" xml:space="preserve">
+    <value>Horizontal angle of the key light in degrees.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoSunAzimuthLabel" xml:space="preserve">
+    <value>Sun azimuth</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoSunElevationAria" xml:space="preserve">
+    <value>Elevation angle of the key light in degrees.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoSunElevationLabel" xml:space="preserve">
+    <value>Sun elevation</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoSunIntensityAria" xml:space="preserve">
+    <value>Intensity of the main directional light.</value>
+  </data>
+  <data name="StlPreview_Desing2EntornoSunIntensityLabel" xml:space="preserve">
+    <value>Sun intensity</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormAccept" xml:space="preserve">
+    <value>Accept</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormDelete" xml:space="preserve">
+    <value>Delete column</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormGroup" xml:space="preserve">
+    <value>Group number</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormHeight" xml:space="preserve">
+    <value>Column height</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormHeightInvalid" xml:space="preserve">
+    <value>Height and coordinates must be numbers, and the height must be greater than zero</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormLength" xml:space="preserve">
+    <value>Column length</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormPanel750" xml:space="preserve">
+    <value>Use adjustable 0.75 panels</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormPropsLower" xml:space="preserve">
+    <value>Lower props</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormPropsUpper" xml:space="preserve">
+    <value>Upper props</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormSideInvalid" xml:space="preserve">
+    <value>Each side of the column must be from 0.10 to 0.65 m</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormStiffeners" xml:space="preserve">
+    <value>Insert stiffeners</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormTitle" xml:space="preserve">
+    <value>Modify column</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormWidth" xml:space="preserve">
+    <value>Column thickness</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormX" xml:space="preserve">
+    <value>Column X coordinate</value>
+  </data>
+  <data name="StlPreview_Desing2PillarFormY" xml:space="preserve">
+    <value>Column Y coordinate</value>
   </data>
   <data name="StlPreview_Desing2RedoAria" xml:space="preserve">
     <value>Redo undone action</value>
@@ -690,6 +696,12 @@
   </data>
   <data name="StlPreview_Desing2SideMenuTabEntorno" xml:space="preserve">
     <value>Environment</value>
+  </data>
+  <data name="StlPreview_Desing2ToolInsertPillarAria" xml:space="preserve">
+    <value>Insert column: it follows the pointer; double-click to place it; double-click on the column opens Modify column. It starts as a 0.30 × 0.30 m square, 2.70 m high</value>
+  </data>
+  <data name="StlPreview_Desing2ToolInsertWorkerAria" xml:space="preserve">
+    <value>Insert worker: it follows the pointer; double-click to place it; double-click on the worker removes it</value>
   </data>
   <data name="StlPreview_Desing2ToolPolyline" xml:space="preserve">
     <value>Polyline</value>
@@ -814,6 +826,27 @@
   <data name="StlPreview_EscapeCancelToolsToast" xml:space="preserve">
     <value>Canceled</value>
   </data>
+  <data name="StlPreview_FormworkRenderingAlmostDone" xml:space="preserve">
+    <value>Almost done…</value>
+  </data>
+  <data name="StlPreview_FormworkRenderingPhasePaint" xml:space="preserve">
+    <value>Painting panels…</value>
+  </data>
+  <data name="StlPreview_FormworkRenderingPhaseServer" xml:space="preserve">
+    <value>Calculating modules…</value>
+  </data>
+  <data name="StlPreview_FormworkRenderingRemainingMinute" xml:space="preserve">
+    <value>About 1 min left</value>
+  </data>
+  <data name="StlPreview_FormworkRenderingRemainingMinutes" xml:space="preserve">
+    <value>About {0} min left</value>
+  </data>
+  <data name="StlPreview_FormworkRenderingRemainingSeconds" xml:space="preserve">
+    <value>About {0} s left</value>
+  </data>
+  <data name="StlPreview_FormworkRenderingTitle" xml:space="preserve">
+    <value>Rendering {0} system</value>
+  </data>
   <data name="StlPreview_FullscreenTitle" xml:space="preserve">
     <value>Fullscreen</value>
   </data>
@@ -897,6 +930,18 @@
   </data>
   <data name="StlPreview_InsertEnclosureToolInvalidDimsToast" xml:space="preserve">
     <value>Invalid enclosure dimensions. Check L, W and thicknesses Ex1, Ex2, Ey1, Ey2 in Configuration.</value>
+  </data>
+  <data name="StlPreview_LeaveSaveMessage" xml:space="preserve">
+    <value>Do you want to save the walls before leaving?</value>
+  </data>
+  <data name="StlPreview_LeaveSaveNo" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="StlPreview_LeaveSaveTitle" xml:space="preserve">
+    <value>Leave design</value>
+  </data>
+  <data name="StlPreview_LeaveSaveYes" xml:space="preserve">
+    <value>Yes</value>
   </data>
   <data name="StlPreview_LineToolDistanceInvalidToast" xml:space="preserve">
     <value>Enter a valid distance (e.g. 5, 5.5 or 5000 mm) or click for the second point.</value>
@@ -983,16 +1028,16 @@
     <value>Inserted {0} wall(s) with faces from building</value>
   </data>
   <data name="StlPreview_MaterialCountActionFade" xml:space="preserve">
-    <value>Fade</value>
+    <value>Show only this one</value>
   </data>
   <data name="StlPreview_MaterialCountActionSelect" xml:space="preserve">
-    <value>Select and hide the rest</value>
+    <value>Fade</value>
   </data>
   <data name="StlPreview_MaterialCountActionSelectFade" xml:space="preserve">
-    <value>Select and fade the rest</value>
+    <value>Hide</value>
   </data>
   <data name="StlPreview_MaterialCountActionToggle" xml:space="preserve">
-    <value>Show or hide</value>
+    <value>Show only this</value>
   </data>
   <data name="StlPreview_MaterialCountAria" xml:space="preserve">
     <value>Material count</value>
@@ -1014,6 +1059,9 @@
   </data>
   <data name="StlPreview_MaterialCountExportPdf" xml:space="preserve">
     <value>Export to PDF</value>
+  </data>
+  <data name="StlPreview_MaterialCountReset" xml:space="preserve">
+    <value>Reset</value>
   </data>
   <data name="StlPreview_MaterialCountSave" xml:space="preserve">
     <value>Save count</value>
@@ -1072,6 +1120,15 @@
   <data name="StlPreview_MaterialCountTitle" xml:space="preserve">
     <value>Material count</value>
   </data>
+  <data name="StlPreview_MoveToolInstructionBasePoint" xml:space="preserve">
+    <value>Base point: click on the floor or type X,Z (e.g. 0,0) + Enter.</value>
+  </data>
+  <data name="StlPreview_MoveToolInstructionDisplacement" xml:space="preserve">
+    <value>Second point (displacement): click, #X,Z, or @distance&lt;angle + Enter. Repeat for more moves; Esc to finish.</value>
+  </data>
+  <data name="StlPreview_MoveToolInstructionSelecting" xml:space="preserve">
+    <value>Select what to move: single click or drag (L→R window, R→L crossing). Enter to continue, Esc to cancel.</value>
+  </data>
   <data name="StlPreview_NoFile" xml:space="preserve">
     <value>No file.</value>
   </data>
@@ -1102,13 +1159,6 @@
   <data name="StlPreview_PolylineToolInstructionSecond" xml:space="preserve">
     <value>Next vertex: click, distance + Enter, or #X,Z in metres. Escape cancels the current segment.</value>
   </data>
-  <data name="StlPreview_Wall2dToolInstructionFirst" xml:space="preserve">
-    <value>Click or type X,Z in metres (e.g. 0,0) + Enter for the first wall axis vertex.</value>
-  </data>
-  <data name="StlPreview_Wall2dToolInstructionSecond" xml:space="preserve">
-    <value>Next axis vertex: click, distance + Enter, or #X,Z in metres. Escape finishes.</value>
-  </data>
-
   <data name="StlPreview_RowLabel3D" xml:space="preserve">
     <value>3D</value>
   </data>
@@ -1166,6 +1216,15 @@
   <data name="StlPreview_SaveWallsAndPhotoToast" xml:space="preserve">
     <value>Walls saved. The picture was saved on the server.</value>
   </data>
+  <data name="StlPreview_SaveWallsErrorToast" xml:space="preserve">
+    <value>Could not save walls</value>
+  </data>
+  <data name="StlPreview_SaveWallsNeedDesignToast" xml:space="preserve">
+    <value>Open a design to save walls</value>
+  </data>
+  <data name="StlPreview_SaveWallsSavedToast" xml:space="preserve">
+    <value>Walls saved</value>
+  </data>
   <data name="StlPreview_ScreenshotAria" xml:space="preserve">
     <value>Design picture</value>
   </data>
@@ -1190,6 +1249,15 @@
   <data name="StlPreview_StatusInitial" xml:space="preserve">
     <value>Select a block with available STL (orange button) to view it here.</value>
   </data>
+  <data name="StlPreview_StretchToolInstructionBasePoint" xml:space="preserve">
+    <value>First point: click on the floor or type X,Z + Enter.</value>
+  </data>
+  <data name="StlPreview_StretchToolInstructionDisplacement" xml:space="preserve">
+    <value>Second point: click or @distance&lt;angle + Enter. Stretch is applied on confirm and the tool ends.</value>
+  </data>
+  <data name="StlPreview_StretchToolInstructionSelecting" xml:space="preserve">
+    <value>Select the wall or line to stretch: click or window. Enter for the first point, Esc to cancel.</value>
+  </data>
   <data name="StlPreview_UcsRulersAria" xml:space="preserve">
     <value>Floor plan rulers</value>
   </data>
@@ -1211,14 +1279,14 @@
   <data name="StlPreview_UserFloorLineDimEditDeltaZAria" xml:space="preserve">
     <value>ΔZ from the ruler anchor to the line’s second endpoint (P2) in metres (signed; mm suffix OK). Enter to apply; Escape cancels.</value>
   </data>
+  <data name="StlPreview_UserFloorLineDimEditThicknessAria" xml:space="preserve">
+    <value>Total thickness of the selected wall in metres (or type mm suffix). Symmetric about the axis; connected walls adapt at junctions. Enter to apply; Escape cancels.</value>
+  </data>
   <data name="StlPreview_UserFloorLineDimReadoutDeltaXAria" xml:space="preserve">
     <value>ΔX from ruler intersection to the free end of the segment (signed metres). Double-click to edit.</value>
   </data>
   <data name="StlPreview_UserFloorLineDimReadoutDeltaZAria" xml:space="preserve">
     <value>ΔZ from ruler intersection to the free end of the segment (signed metres). Double-click to edit.</value>
-  </data>
-  <data name="StlPreview_UserFloorLineDimEditThicknessAria" xml:space="preserve">
-    <value>Total thickness of the selected wall in metres (or type mm suffix). Symmetric about the axis; connected walls adapt at junctions. Enter to apply; Escape cancels.</value>
   </data>
   <data name="StlPreview_UserFloorLineDimReadoutThicknessAria" xml:space="preserve">
     <value>Total thickness of the selected wall (metres). Click to edit.</value>
@@ -1231,6 +1299,12 @@
   </data>
   <data name="StlPreview_UserFloorLineP2HandleAria" xml:space="preserve">
     <value>Drag the segment end point to lengthen or shorten along the segment axis; snaps to another endpoint on release</value>
+  </data>
+  <data name="StlPreview_Wall2dToolInstructionFirst" xml:space="preserve">
+    <value>Click or type X,Z in metres (e.g. 0,0) + Enter for the first wall axis vertex.</value>
+  </data>
+  <data name="StlPreview_Wall2dToolInstructionSecond" xml:space="preserve">
+    <value>Next axis vertex: click, distance + Enter, or #X,Z in metres. Escape finishes.</value>
   </data>
   <data name="StlPreview_Wall3dMapError" xml:space="preserve">
     <value>Could not load texture: {0}</value>

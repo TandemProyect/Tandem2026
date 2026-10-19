@@ -430,10 +430,12 @@
     <Compile Include="Repositories\Repository_Desing_2\Atk60\PanelFormwork.cs" />
     <Compile Include="Repositories\Repository_Desing_2\Atk60\PanelStiffener.cs" />
     <Compile Include="Repositories\Repository_Desing_2\Atk60\PushPullProp.cs" />
+    <Compile Include="Repositories\Repository_Desing_2\Atk60\PillarFormwork.cs" />
     <Compile Include="Repositories\Repository_Desing_2\Atk60\WorkingBracket.cs" />
     <Compile Include="Repositories\RepositoryCommun\FormworkDtos.cs" />
     <Compile Include="Repositories\RepositoryCommun\FormworkJsonCommonRepository.cs" />
     <Compile Include="Repositories\RepositoryDesing2\DesignWallRepository.cs" />
+    <Compile Include="Repositories\RepositoryDesing2\DesignWorkerRepository.cs" />
     <Compile Include="Repositories\RepositoryDesing2\DesignWallArticleRepository.cs" />
     <Compile Include="Repositories\Atk60\Wall\Bracket_0.cs" />
     <Compile Include="Repositories\Atk60\Wall\Bracket_180.cs" />
@@ -802,6 +804,8 @@
     <Content Include="Content\images\ico\Logo.ico" />
     <Content Include="Content\images\tDesing\Logo_TDesing_450.png" />
     <Content Include="Content\images\tDesing\t-desing-net.png" />
+    <Content Include="Content\images\tDesing\t-desingc.png" />
+    <Content Include="Content\images\tDesing\tDesing.png" />
     <Content Include="Files\MaterialIco\10000221.png" />
     <Content Include="Files\MaterialIco\18501164.png" />
     <Content Include="Files\MaterialIco\1861122.png" />
@@ -840,6 +844,8 @@
     <Content Include="Scripts\MasterArticles\ma-stl-formwork-environment.js" />
     <Content Include="Scripts\MasterArticles\ma-stl-wall-edit-finalize.js" />
     <Content Include="Scripts\MasterArticles\master-article-aps-dwg-viewer-boot.js" />
+    <Content Include="Scripts\MasterArticles\desing2-worker-tool.js" />
+    <Content Include="Scripts\MasterArticles\desing2-pillar-tool.js" />
     <Content Include="Scripts\MasterArticles\master-article-details-stl-viewer.js" />
     <Content Include="Scripts\MasterArticles\master-article-preview.js" />
     <Content Include="Scripts\MasterArticles\vendor\three-dxf-loader.js" />
@@ -2502,6 +2508,12 @@
     <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\12604213.glb">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\12754120.glb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\12904215.glb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\24304244.glb">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -2511,10 +2523,22 @@
     <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\24604242.glb">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\24754224.glb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\24904240.glb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\27304205.glb">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\27454206.glb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\27604207.glb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\27754219.glb">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\27904209.glb">
@@ -3455,6 +3479,8 @@
     <Content Include="Scripts\MasterArticles\master-article-preview.js" />
     <Content Include="Scripts\MasterArticles\ma-stl-wall-edit-finalize.js" />
     <Content Include="Scripts\MasterArticles\ma-stl-formwork-environment.js" />
+    <Content Include="Scripts\MasterArticles\desing2-worker-tool.js" />
+    <Content Include="Scripts\MasterArticles\desing2-pillar-tool.js" />
     <Content Include="Scripts\MasterArticles\master-article-details-stl-viewer.js" />
     <Content Include="Scripts\Desing2\desing2-stl-viewer-toolbar-wiring.js" />
     <Content Include="Scripts\Desing2\desing2-map-building-import.js" />

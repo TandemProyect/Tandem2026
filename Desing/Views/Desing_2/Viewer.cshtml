@@ -200,12 +200,15 @@
             { "@masterarticles/InfiniteGridHelper", Url.Content("~/Scripts/MasterArticles/infinite-grid-helper.module.js") }
         };
         var masterArticleImportMap = new System.Collections.Generic.Dictionary<string, object> { { "imports", masterArticleImports } };
+        var masterArticleViewerUrl = Url.Content("~/Scripts/MasterArticles/master-article-details-stl-viewer.js") + "?v=" + System.IO.File.GetLastWriteTimeUtc(Server.MapPath("~/Scripts/MasterArticles/master-article-details-stl-viewer.js")).Ticks;
+        var cadBlockPreviewUrl = Url.Content("~/Scripts/DesignToolsAutocad/plugin-cad-block-preview.js") + "?v=" + System.IO.File.GetLastWriteTimeUtc(Server.MapPath("~/Scripts/DesignToolsAutocad/plugin-cad-block-preview.js")).Ticks;
     }
     <script type="importmap">
 @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(masterArticleImportMap))
     </script>
     <script src="@Url.Content("~/Scripts/Desing2/desing2-map-building-import.js")"></script>
-    <script type="module" src="@Url.Content("~/Scripts/MasterArticles/master-article-details-stl-viewer.js")"></script>
+    <script type="module" src="@masterArticleViewerUrl"></script>
+    <script type="module" src="@cadBlockPreviewUrl"></script>
     <script src="@Url.Content("~/Scripts/Desing2/desing2-stl-viewer-toolbar-wiring.js")"></script>
     <script src="@Url.Content("~/Scripts/Desing2/desing2-connection-test.js")"></script>
 }

@@ -6,9 +6,9 @@ using System.Collections.Generic;
 namespace Desing.Repositories.Repository_Desing_2.Atk60
 {
     /// <summary>
-    /// Tirante completo: placa, placa de ala, tuerca hexagonal y barra.
+    /// Tirante completo: placa y barra Dywidag.
     /// La placa va en el agujero, a 120 mm de la cara. La barra cruza por el centro del muro.
-    /// El primer panel tumbado en el suelo lleva ala y tuerca en la fila baja.
+    /// En cada franja tumbada el tirante va en el borde alto, a los dos lados.
     /// </summary>
     internal static class FormTie
     {
@@ -54,42 +54,23 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             {
                 if (IsTumbado(piece))
                 {
-                    var below = Touching(layout.Pieces, piece, true);
-                    var above = Touching(layout.Pieces, piece, false);
-                    var belowTumbado = below != null && IsTumbado(below);
-                    var aboveTumbado = above != null && IsTumbado(above);
-                    var belowVertical = below != null && !IsTumbado(below);
-                    double[] rowHeights;
-                    var wing = false;
-                    if (belowTumbado)
+                    // El agujero alto es el mismo canto que en vertical: 43,7 mm
+                    // bajo el borde superior de esta franja, no el de la de abajo.
+                    var topHole = piece.PieceHeightMm - HoleInsetMm;
+                    if (topHole < 1d)
                     {
-                        rowHeights = new[] { HoleInsetMm };
-                    }
-                    else if (aboveTumbado && !belowVertical)
-                    {
-                        if (piece.UpOffsetMm >= 1d)
-                        {
-                            continue;
-                        }
-
-                        rowHeights = new[] { HoleInsetMm };
-                        wing = true;
-                    }
-                    else
-                    {
-                        var topHole = piece.PieceHeightMm - HoleInsetMm;
-                        rowHeights = topHole > HoleInsetMm + 1d
-                            ? new[] { HoleInsetMm, topHole }
-                            : new[] { HoleInsetMm };
-                        wing = piece.UpOffsetMm < 1d;
+                        continue;
                     }
 
-                    var alongFar = piece.PieceWidthMm - 550d;
+                    var alongInset = TumbadoAlongInsetMm(piece.PieceWidthMm);
+                    var pieceTop = piece.UpOffsetMm + piece.PieceHeightMm;
+                    var heightLimit = wallHeightMm > pieceTop ? wallHeightMm : pieceTop;
                     PlaceRow(
                         outElements, anchor, idWall, moduleBaseAlongMm + piece.AlongOffsetMm,
-                        piece.UpOffsetMm, new[] { 550d, alongFar }, rowHeights,
-                        wing, yawRad, ux, uz, faceSign,
-                        wallHeightMm, wallThicknessMm, wallLengthMm, piece.PieceWidthMm);
+                        piece.UpOffsetMm, new[] { alongInset, piece.PieceWidthMm - alongInset },
+                        new[] { topHole },
+                        false, yawRad, ux, uz, faceSign,
+                        heightLimit, wallThicknessMm, wallLengthMm, piece.PieceWidthMm);
                     continue;
                 }
 
@@ -239,6 +220,25 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             return "230" + (step / 10).ToString("000");
         }
 
+        /// <summary>
+        /// Misma distancia al extremo que el panel vertical de esa longitud:
+        /// 550 mm en 2,40 y 2,70; 350 mm en 1,20.
+        /// </summary>
+        private static double TumbadoAlongInsetMm(int pieceWidthMm)
+        {
+            if (pieceWidthMm >= 2000)
+            {
+                return 550d;
+            }
+
+            if (pieceWidthMm >= 1000)
+            {
+                return 350d;
+            }
+
+            return HoleInsetMm;
+        }
+
         private static double[] VerticalHeights(int pieceHeightMm)
         {
             double fromEnd;
@@ -270,31 +270,5 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 && string.Equals(piece.Orientation, "Tumbado", StringComparison.OrdinalIgnoreCase);
         }
 
-        private static Modulo270PieceLayout Touching(
-            IList<Modulo270PieceLayout> pieces,
-            Modulo270PieceLayout piece,
-            bool below)
-        {
-            var boundary = below
-                ? piece.UpOffsetMm
-                : piece.UpOffsetMm + piece.PieceHeightMm;
-            foreach (var other in pieces)
-            {
-                if (ReferenceEquals(other, piece))
-                {
-                    continue;
-                }
-
-                var otherEdge = below
-                    ? other.UpOffsetMm + other.PieceHeightMm
-                    : other.UpOffsetMm;
-                if (Math.Abs(otherEdge - boundary) < 25d)
-                {
-                    return other;
-                }
-            }
-
-            return null;
-        }
     }
 }

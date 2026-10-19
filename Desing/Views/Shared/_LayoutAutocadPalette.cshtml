@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="@Url.Content("~/assets/materio/css/site.css")" />
     @Html.Partial("_PlantillaStyles")
     @{
-        var pluginLogoRaw = (ViewBag.PlantillaLogo as string) ?? "/Content/images/tDesing/t-desing-net.png";
+        var pluginLogoRaw = (ViewBag.PlantillaMark as string) ?? (ViewBag.PlantillaLogo as string) ?? Desing.Helpers.PluginCadDeviceHelper.DefaultMarkVirtualPath;
         string pluginPlantillaLogoAbs;
         if (pluginLogoRaw.StartsWith("http", StringComparison.OrdinalIgnoreCase)
             || pluginLogoRaw.StartsWith("//", StringComparison.Ordinal))
@@ -84,6 +84,21 @@
                     var payload = { action: menu.getAttribute('data-plugin-menu') };
                     var view = menu.getAttribute('data-view');
                     if (view) payload.view = view;
+                    if (payload.action === 'save-walls' && typeof window.maStlDesing2SaveDesignWallsToServer === 'function') {
+                        window.maStlDesing2SaveDesignWallsToServer().then(function () {
+                            if (typeof window.maStlDesing2SaveCurrentViewerState === 'function') {
+                                return window.maStlDesing2SaveCurrentViewerState();
+                            }
+                            return null;
+                        }).catch(function (err) {
+                            if (typeof window.maStlDesing2ShowSaveViewToast === 'function') {
+                                window.maStlDesing2ShowSaveViewToast(
+                                    err && err.message ? err.message : 'No se pudo guardar el diseño',
+                                    true
+                                );
+                            }
+                        });
+                    }
                     post(payload);
                     return;
                 }

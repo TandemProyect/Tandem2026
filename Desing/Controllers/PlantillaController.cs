@@ -118,7 +118,7 @@ namespace Desing.Controllers
                 var ttDeleteLocked = HttpUtility.HtmlAttributeEncode(Plantilla.List_DefaultLockedTooltip);
                 var labelDefault = HttpUtility.HtmlEncode(Plantilla.State_Default);
                 var labelNotDefault = HttpUtility.HtmlEncode(Plantilla.State_NotDefault);
-                var logoFallback = Url.Content("~/Content/images/Login/at.png");
+                var logoFallback = Url.Content("~" + PluginCadDeviceHelper.DefaultWordmarkVirtualPath);
 
                 var data = query.ToList().Select(p =>
                 {
@@ -200,8 +200,8 @@ namespace Desing.Controllers
             var model = new PlantillaViewModel
             {
                 AttColor = "#349d7d",
-                AttLogo = "/Content/images/Login/at.png",
-                AttFavicon = "/assets/client/images/Default/Ico/at.ico",
+                AttLogo = PluginCadDeviceHelper.DefaultWordmarkVirtualPath,
+                AttFavicon = PluginCadDeviceHelper.DefaultMarkVirtualPath,
                 AttIsDefault = false,
                 IsEdit = false,
                 AttBrandText = "T Desing.net",
@@ -326,7 +326,7 @@ namespace Desing.Controllers
                 AttColor = entity.AttColor,
                 AttLogo = entity.AttLogo,
                 AttFavicon = string.IsNullOrWhiteSpace(entity.AttFavicon)
-                    ? "/assets/client/images/Default/Ico/at.ico"
+                    ? "/Content/images/tDesing/tDesing.png"
                     : entity.AttFavicon,
                 AttIsDefault = entity.AttIsDefault,
                 IsEdit = true

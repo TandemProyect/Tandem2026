@@ -10,6 +10,8 @@ namespace Desing.Helpers
         private static readonly Lazy<string> ReleaseNumberLazy =
             new Lazy<string>(BuildReleaseNumber);
 
+        public const string ProductVersion = "v2.00";
+
         public static string CurrentReleaseNumber
         {
             get { return ReleaseNumberLazy.Value; }
@@ -18,26 +20,29 @@ namespace Desing.Helpers
         private static string BuildReleaseNumber()
         {
             var stamp = ResolveApplicationStamp();
-            return stamp.ToString("yyyyMMdd.HHmm");
+            return stamp.ToString("dd/MM/yyyy HH:mm") + " " + ProductVersion;
         }
 
         private static DateTime ResolveApplicationStamp()
         {
+            DateTime utc;
             var assemblyPath = Assembly.GetExecutingAssembly().Location;
             if (!string.IsNullOrWhiteSpace(assemblyPath) && File.Exists(assemblyPath))
             {
-                return File.GetLastWriteTime(assemblyPath);
+                utc = File.GetLastWriteTimeUtc(assemblyPath);
             }
-
-            var webConfigPath = HttpContext.Current != null
-                ? HttpContext.Current.Server.MapPath("~/Web.config")
-                : null;
-            if (!string.IsNullOrWhiteSpace(webConfigPath) && File.Exists(webConfigPath))
+            else
             {
-                return File.GetLastWriteTime(webConfigPath);
+                var webConfigPath = HttpContext.Current != null
+                    ? HttpContext.Current.Server.MapPath("~/Web.config")
+                    : null;
+                utc = !string.IsNullOrWhiteSpace(webConfigPath) && File.Exists(webConfigPath)
+                    ? File.GetLastWriteTimeUtc(webConfigPath)
+                    : DateTime.UtcNow;
             }
 
-            return DateTime.Now;
+            var madrid = TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time");
+            return TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), madrid);
         }
     }
 }

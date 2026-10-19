@@ -86,8 +86,8 @@ const es = Object.fromEntries(
     Ph_Name: "Ej.: Plantilla Cliente Acme",
     Ph_BrandText: "Ej.: T Desing.net",
     Ph_BrandTextColor: "Vacío = color primario",
-    Ph_LogoPath: "/Content/images/Login/at.png",
-    Ph_FaviconPath: "/assets/client/images/Default/Ico/at.ico",
+    Ph_LogoPath: "/Content/images/tDesing/t-desingc.png",
+    Ph_FaviconPath: "/Content/images/tDesing/tDesing.png",
 
     Help_BrandText:
       "Se muestra en cabecera, login y pie. La primera letra usa el color de acento.",
@@ -205,8 +205,8 @@ const en = Object.assign({}, es, {
   Ph_Name: "E.g.: Acme Client Template",
   Ph_BrandText: "E.g.: T Desing.net",
   Ph_BrandTextColor: "Empty = primary color",
-  Ph_LogoPath: "/Content/images/Login/at.png",
-  Ph_FaviconPath: "/assets/client/images/Default/Ico/at.ico",
+  Ph_LogoPath: "/Content/images/tDesing/t-desingc.png",
+  Ph_FaviconPath: "/Content/images/tDesing/tDesing.png",
 
   Help_BrandText:
     "Shown in the navbar, login and footer. The first letter uses the accent color.",

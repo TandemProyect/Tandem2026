@@ -542,6 +542,13 @@ public class ProjectServiceTests
 
 ---
 
+## 🧭 Continuidad Reciente Desing_2
+
+- **Handover 2026-10-18:** [`HANDOVER-2026-10-18-Desing2-ATK60-Recuento-Guardado.md`](HANDOVER-2026-10-18-Desing2-ATK60-Recuento-Guardado.md)
+- **Trabajos activos:** [`TRABAJOS-ACTIVOS-Desing2-2026-10-18.md`](TRABAJOS-ACTIVOS-Desing2-2026-10-18.md)
+
+---
+
 ## 📞 Contacto
 
 **Problemas o preguntas:**

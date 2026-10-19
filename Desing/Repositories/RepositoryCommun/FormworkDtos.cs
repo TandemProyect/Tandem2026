@@ -182,6 +182,8 @@ namespace Desing.Repositories.RepositoryCommun
         public bool? _CHeckPropOutside { get; set; }
         public bool? _CHeckPropInsideInf { get; set; }
         public bool? _CHeckPropOutsideInf { get; set; }
+        /// <summary>Distancia máxima entre puntales, en mm. Si llega en metros (&lt; 20), se pasa a mm.</summary>
+        public double? _PropSpacingMm { get; set; }
 
         [JsonExtensionData]
         public IDictionary<string, JToken> Extra { get; set; }

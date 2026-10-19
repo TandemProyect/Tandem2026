@@ -5,6 +5,7 @@ import { STLLoader } from '@masterarticles/STLLoader';
 const FRAME_HEX = 0xefb608;
 const PHENOLIC_HEX = 0x1a1816;
 const GENERIC_HEX = 0xc5d86d;
+const PROP_HEX = 0x908f8e;
 const VC_CSS_TZ = -230;
 const FACE_DIR = {
     front: new THREE.Vector3(0, 0, 1),
@@ -18,11 +19,28 @@ const FACE_DIR = {
 const prefs = {
     frameHex: FRAME_HEX,
     phenolicHex: PHENOLIC_HEX,
+    colorsSet: false,
     dark: false,
     clipOn: false,
     axesOn: true,
     expanded: false
 };
+
+function parseArticleHex(raw, fallback) {
+    const s = (raw || '').trim().replace('#', '');
+    if (/^[0-9a-fA-F]{6}$/.test(s)) return parseInt(s, 16);
+    if (/^[0-9a-fA-F]{3}$/.test(s)) {
+        return parseInt(s[0] + s[0] + s[1] + s[1] + s[2] + s[2], 16);
+    }
+    return fallback;
+}
+
+function setColors(frameHex, phenolicHex) {
+    prefs.colorsSet = true;
+    prefs.frameHex = parseArticleHex(frameHex, FRAME_HEX);
+    prefs.phenolicHex = parseArticleHex(phenolicHex, PHENOLIC_HEX);
+    applyColors();
+}
 
 let state = null;
 let cameraMode = 'ortho';
@@ -249,10 +267,20 @@ function updateClipPlanes() {
 
 function applyColors() {
     if (!state || !state.meshes) return;
+    if (state.singleColorHex != null) {
+        state.meshes.forEach(function (mesh) {
+            if (mesh && mesh.material) mesh.material.color.setHex(state.singleColorHex);
+        });
+        return;
+    }
     if (state.frameMesh && state.frameMesh.material)
         state.frameMesh.material.color.setHex(prefs.frameHex);
     if (state.phenolicMesh && state.phenolicMesh.material)
         state.phenolicMesh.material.color.setHex(prefs.phenolicHex);
+    for (let i = 2; i < state.meshes.length; i++) {
+        if (state.meshes[i] && state.meshes[i].material)
+            state.meshes[i].material.color.setHex(prefs.phenolicHex);
+    }
 }
 
 function applyDark() {
@@ -281,16 +309,34 @@ function makeMaterial(hex) {
     });
 }
 
+function pushStlUrl(list, value) {
+    if (Array.isArray(value)) {
+        value.forEach(function (item) { pushStlUrl(list, item); });
+        return;
+    }
+    const text = value ? String(value).trim() : '';
+    if (text && list.indexOf(text) < 0) list.push(text);
+}
+
+function isPropOrClampStlUrl(url) {
+    const file = String(url || '').split(/[\\/]/).pop().toLowerCase();
+    return /^10000221(?:-2|b)?\.stl$/.test(file)
+        || /^h(?:\d{2,3}|\d{2,3}_2|\d{2,3}inf|\d{2,3}inf_2)\.stl$/.test(file)
+        || /^puntal_tipo3(?:-2|-41|inf)?\.stl$/.test(file);
+}
+
 function loadStl(host, url, emptyText, phenolicUrl) {
     dispose();
     if (!host) return;
     host.innerHTML = '';
-    const frameUrl = url ? String(url).trim() : '';
-    const phenolic = phenolicUrl ? String(phenolicUrl).trim() : '';
-    if (!frameUrl) {
+    const urls = [];
+    pushStlUrl(urls, url);
+    pushStlUrl(urls, phenolicUrl);
+    if (!urls.length) {
         host.innerHTML = '<p class="plugin-blocks__empty">' + (emptyText || '') + '</p>';
         return;
     }
+    const singleColorHex = urls.some(isPropOrClampStlUrl) ? PROP_HEX : null;
 
     const w = Math.max(host.clientWidth || 280, 120);
     const h = Math.max(host.clientHeight || 160, 120);
@@ -318,9 +364,9 @@ function loadStl(host, url, emptyText, phenolicUrl) {
 
     const cubeEl = document.getElementById('plugin-blocks-vc-cube');
     const loader = new STLLoader();
-    const phenolicJob = phenolic
-        ? loadGeometry(loader, phenolic).catch(function () { return null; })
-        : Promise.resolve(null);
+    const geometryJobs = urls.map(function (stlUrl) {
+        return loadGeometry(loader, stlUrl).catch(function () { return null; });
+    });
 
     let alive = true;
     const axes = new THREE.AxesHelper(1);
@@ -341,6 +387,7 @@ function loadStl(host, url, emptyText, phenolicUrl) {
         host: host,
         axes: axes,
         meshes: [],
+        singleColorHex: singleColorHex,
         group: null,
         frameMesh: null,
         phenolicMesh: null,
@@ -351,33 +398,30 @@ function loadStl(host, url, emptyText, phenolicUrl) {
     syncCamButtons();
     syncToolButtons();
 
-    Promise.all([loadGeometry(loader, frameUrl), phenolicJob]).then(function (geoms) {
+    Promise.all(geometryJobs).then(function (geoms) {
         if (!alive) return;
         const group = new THREE.Group();
-        const frameGeom = geoms[0];
-        const phenolicGeom = geoms[1];
-        const hasPair = !!phenolicGeom;
-        frameGeom.computeVertexNormals();
-        const frameMesh = new THREE.Mesh(
-            frameGeom,
-            makeMaterial(hasPair ? prefs.frameHex : GENERIC_HEX)
-        );
-        frameMesh.rotation.x = -0.5 * Math.PI;
-        group.add(frameMesh);
-
-        let phenolicMesh = null;
-        if (phenolicGeom) {
-            phenolicGeom.computeVertexNormals();
-            phenolicMesh = new THREE.Mesh(phenolicGeom, makeMaterial(prefs.phenolicHex));
-            phenolicMesh.rotation.x = -0.5 * Math.PI;
-            group.add(phenolicMesh);
+        const hasPair = geoms.length > 1;
+        const meshes = [];
+        for (let i = 0; i < geoms.length; i++) {
+            const geom = geoms[i];
+            if (!geom) continue;
+            geom.computeVertexNormals();
+            const mesh = new THREE.Mesh(
+                geom,
+                makeMaterial(singleColorHex != null ? singleColorHex : (i === 0 ? (prefs.colorsSet || hasPair ? prefs.frameHex : GENERIC_HEX) : prefs.phenolicHex))
+            );
+            mesh.rotation.x = -0.5 * Math.PI;
+            group.add(mesh);
+            meshes.push(mesh);
         }
+        if (!meshes.length) throw new Error('STL');
 
         scene.add(group);
         state.group = group;
-        state.frameMesh = frameMesh;
-        state.phenolicMesh = phenolicMesh;
-        state.meshes = phenolicMesh ? [frameMesh, phenolicMesh] : [frameMesh];
+        state.frameMesh = meshes[0];
+        state.phenolicMesh = meshes.length > 1 ? meshes[1] : null;
+        state.meshes = meshes;
         frameObject(activeCamera(), controls, group);
         bindControls(activeCamera());
         applyColors();
@@ -475,4 +519,4 @@ function bindViewerChrome() {
 
 bindViewerChrome();
 
-window.TandemCadBlockPreview = { loadStl, lookFace, setCameraMode };
+window.TandemCadBlockPreview = { loadStl, lookFace, setCameraMode, setColors };

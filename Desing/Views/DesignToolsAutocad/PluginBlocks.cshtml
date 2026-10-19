@@ -6,7 +6,7 @@
     ViewBag.Title = Common.PluginCad_BlocksTitle;
     Layout = "~/Views/Shared/_LayoutAutocadPalette.cshtml";
     var items = Model != null && Model.Items != null ? Model.Items : new List<PluginCadBlockRow>();
-    var brandLogoUrl = Url.Content("~/Content/images/ico/Logo.ico");
+    var brandLogoUrl = Url.Content("~" + Desing.Helpers.PluginCadDeviceHelper.DefaultMarkVirtualPath);
     var searchUrl = Url.Action("PluginSearchBlocks", "DesignToolsAutocad");
     ViewBag.BootSplashHold = false;
 }

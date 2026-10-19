@@ -51,10 +51,10 @@ namespace Desing.Models
             ErrorMessageResourceType = typeof(Desing.Resources.Plantilla),
             ErrorMessageResourceName = "Val_LogoPathRequired")]
         [StringLength(500)]
-        public string AttLogo { get; set; } = "/Content/images/Login/at.png";
+        public string AttLogo { get; set; } = "/Content/images/tDesing/t-desingc.png";
 
         [StringLength(500)]
-        public string AttFavicon { get; set; } = "/assets/client/images/Default/Ico/at.ico";
+        public string AttFavicon { get; set; } = "/Content/images/tDesing/tDesing.png";
 
         public bool AttIsDefault { get; set; }
 

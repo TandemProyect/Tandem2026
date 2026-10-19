@@ -15,7 +15,7 @@
     <title>@(ViewBag.Title ?? ViewBag.PlantillaBrandText ?? "T Desing.net")</title>
 
     @{
-        var faviconPath = (ViewBag.PlantillaFavicon as string) ?? "/assets/client/images/Default/Ico/at.ico";
+        var faviconPath = (ViewBag.PlantillaFavicon as string) ?? Desing.Helpers.PluginCadDeviceHelper.DefaultMarkVirtualPath;
         var faviconUrl = faviconPath.StartsWith("http", StringComparison.OrdinalIgnoreCase)
             ? faviconPath
             : Url.Content("~" + (faviconPath.StartsWith("/") ? faviconPath : "/" + faviconPath));

@@ -16,13 +16,13 @@ export const MA_STL_FORMWORK_ENV_DEFAULTS = Object.freeze({
     ambientIntensity: 0.55,
     hemisphereSkyColor: 0xdce8ff,
     hemisphereGroundColor: 0xe4e4e4,
-    hemisphereIntensity: 0.22,
+    hemisphereIntensity: 0.08,
     fillIntensity: 0.35,
     fillColor: 0xeef2ff,
     rimIntensity: 0,
     rimColor: 0xffffff,
     iblIntensity: 0,
-    exposure: 1.22,
+    exposure: 1,
     fogEnabled: false,
     fogStrength: 0,
     shadowsEnabled: true,
@@ -71,6 +71,12 @@ function mergeFormworkEnvSettings(partial) {
         out.fillIntensity = MA_STL_FORMWORK_ENV_DEFAULTS.fillIntensity;
         out.hemisphereIntensity = MA_STL_FORMWORK_ENV_DEFAULTS.hemisphereIntensity;
         out.sunIntensity = MA_STL_FORMWORK_ENV_DEFAULTS.sunIntensity;
+        out.exposure = MA_STL_FORMWORK_ENV_DEFAULTS.exposure;
+    }
+    const prevHemi = Number(partial && partial.hemisphereIntensity);
+    const prevExposure = Number(partial && partial.exposure);
+    if (Math.abs(prevHemi - 0.22) < 0.021 && Math.abs(prevExposure - 1.22) < 0.031) {
+        out.hemisphereIntensity = MA_STL_FORMWORK_ENV_DEFAULTS.hemisphereIntensity;
         out.exposure = MA_STL_FORMWORK_ENV_DEFAULTS.exposure;
     }
     out.hemisphereIntensity = THREE.MathUtils.clamp(Number(out.hemisphereIntensity) || 0, 0, 1.5);
@@ -209,6 +215,7 @@ export function maStlFormworkEnvCreateRig(scene, renderer, opts) {
     };
 
     maStlFormworkEnvSyncIbl(scene, renderer, rig, settings);
+    renderer.toneMapping = THREE.NoToneMapping;
     renderer.toneMappingExposure = settings.exposure;
     scene.fog = null;
     return rig;
@@ -261,6 +268,7 @@ export function maStlFormworkEnvApplySettings(rig, partial, scene, renderer) {
     rig.rimLight.intensity = settings.rimIntensity;
 
     maStlFormworkEnvSyncIbl(scene, renderer, rig, settings);
+    renderer.toneMapping = THREE.NoToneMapping;
     renderer.toneMappingExposure = settings.exposure;
     if (rig.shadowCatcherMat) {
         rig.shadowCatcherMat.opacity = settings.shadowOpacity;

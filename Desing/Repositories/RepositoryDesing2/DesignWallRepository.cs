@@ -68,6 +68,7 @@ namespace Desing.Repositories.RepositoryDesing2
         public string DeviceId { get; set; }
         public List<Desing2DesignWallLineDto> Lines { get; set; }
         public List<PluginSaveWallArticleRequest> Articles { get; set; }
+        public List<Desing2DesignWorkerDto> Workers { get; set; }
         public bool ArticlesOnly { get; set; }
         public long? NextSegId { get; set; }
         public long? NextPolylineGroupId { get; set; }
@@ -78,6 +79,7 @@ namespace Desing.Repositories.RepositoryDesing2
     {
         public List<Desing2DesignWallLineDto> Lines { get; set; }
         public List<Desing2DesignWallArticleDto> Articles { get; set; }
+        public List<Desing2DesignWorkerDto> Workers { get; set; }
         public long NextSegId { get; set; }
         public long NextPolylineGroupId { get; set; }
         public long NextWallGroupId { get; set; }
@@ -319,6 +321,7 @@ namespace Desing.Repositories.RepositoryDesing2
             {
                 Lines = lines,
                 Articles = new DesignWallArticleRepository(_db).ListActive(designId),
+                Workers = new DesignWorkerRepository(_db).ListActive(designId),
                 NextSegId = maxId + 1,
                 NextPolylineGroupId = maxPolyline + 1,
                 NextWallGroupId = maxWallGroup + 1

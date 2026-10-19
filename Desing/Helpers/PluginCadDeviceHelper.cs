@@ -15,7 +15,9 @@ namespace Desing.Helpers
     {
         public const string CookieName = "tandem_plugin_device";
         public const string LogoCookieName = "tandem_plugin_company_logo";
-        public const string DefaultLogoVirtualPath = "/Content/images/tDesing/t-desing-net.png";
+        public const string DefaultMarkVirtualPath = "/Content/images/tDesing/tDesing.png";
+        public const string DefaultWordmarkVirtualPath = "/Content/images/tDesing/t-desingc.png";
+        public const string DefaultLogoVirtualPath = DefaultWordmarkVirtualPath;
         private static readonly TimeSpan AuthCacheDuration = TimeSpan.FromSeconds(45);
 
         public sealed class Snapshot
