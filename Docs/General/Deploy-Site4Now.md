@@ -87,6 +87,7 @@ Más ayuda local: `Desing\Scripts\TemporalScript\GOOGLE_MAPS_LOCALHOST_REFERRERS
 
 | Síntoma | Causa probable | Acción |
 |---------|----------------|--------|
+| El flujo falla al arrancar, en pocos segundos, sin compilar | La etiqueta `SamKirkland/FTP-Deploy-Action@v4` no existe. Hay que fijar una versión publicada, ahora `v4.4.0` | No usar `@v4` suelto |
 | `550`/`530` FTP | Credenciales o ruta FTP incorrectos | Comparar las del panel vs secrets; revisar `./` inicial de `SITE4NOW_FTP_SERVER_DIR`. |
 | Mapas sin cargar | Sin `Web.GoogleMaps.config` ni env en servidor; referentes GCP mal | Crear archivo en servidor; añadir dominio producción en consola GCP. |
 | Sitio muy antiguo | Deploy no ejecutado o FTP a carpeta equivocada | Comprobar en panel qué directorio sirve tu dominio. |

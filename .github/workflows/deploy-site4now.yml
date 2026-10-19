@@ -138,7 +138,7 @@ jobs:
       # Secrets Actions: SITE4NOW_FTP_SERVER, SITE4NOW_FTP_USERNAME, SITE4NOW_FTP_PASSWORD
       # Variable opcional repo: SITE4NOW_FTP_SERVER_DIR (fallback ./tandemdesing/)
       - name: Deploy via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
           server: ${{ secrets.SITE4NOW_FTP_SERVER }}
           username: ${{ secrets.SITE4NOW_FTP_USERNAME }}
