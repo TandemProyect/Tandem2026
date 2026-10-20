@@ -1,0 +1,1186 @@
+using Desing.Repositories.RepositoryAtk60;
+using Desing.Repositories.RepositoryAtk60.ModulosATK60;
+using Desing.Repositories.RepositoryCommun;
+using System;
+using System.Collections.Generic;
+
+namespace Desing.Repositories.Repository_Desing_2.Atk60
+{
+    /// <summary>
+    /// Cierre de los dos extremos.
+    /// 0,30, 0,45, 0,60 y 0,90: panel (TapeS4 / TapeS5) o tape de solape.
+    /// Menos de 0,30: relleno naranja entre dos tablones laterales y placa (TapeS3).
+    /// TapeS1: 0,30 m más de encofrado, naranja de 22 mm, dos tablones de 75 mm y barras.
+    /// TapeS2 sigue siendo el tablón del canto hasta que se pida.
+    /// El final es el simétrico del inicio. Un extremo unido a otro muro no se cierra.
+    /// </summary>
+    internal static class ExactWidthEndTape
+    {
+        private const double BoardDepthMm = 120d;
+        private const string ClampPath = "../../Content/DesignTools/Stl/ATK60/10004220.stl";
+        private const string ClampCode = "10004220";
+
+        private const string PlatePath = "../../Content/DesignTools/Stl/ATK60/10443020.stl";
+        private const string PlateCode = "10443020";
+        private const string StiffenerPath = "../../Content/DesignTools/Stl/ATK60/1850162.stl";
+        private const string StiffenerCode = "1850162";
+        private const string HookCode = "1920811";
+        private const double TapeS1SupplementMm = 300d;
+        private const double TapeS1OrangeMm = 22d;
+        private const double TapeS1SideMm = 75d;
+        private const double TapeS1StiffenerDepthMm = 60d;
+        private const double TapeS1HookIntoProfileMm = 50d;
+
+        /// <summary>
+        /// Menos de 0,30 m (TapeS3): igual que FilerSEMeS01.
+        /// Naranja de 22 mm entre las caras, 120 mm por fuera de cada una,
+        /// y un tablón de 120 × 75 mm en cada lado. La placa va en esa cara exterior.
+        /// </summary>
+        private static void AddUnder300(
+            List<Atk60ElementPaintItem> outElements,
+            Desing2FormworkWallDto wall,
+            Atk60WallPaintAnchor anchor,
+            AttributesList attrs,
+            string idWall,
+            bool atStart,
+            double alongMm,
+            double ux,
+            double uz,
+            int widthMm,
+            double wallHeightMm,
+            double wallLengthMm)
+        {
+            double originX;
+            double originZ;
+            double rotY;
+            EndPose(anchor, atStart, alongMm, ux, uz, widthMm, out originX, out originZ, out rotY);
+
+            var tape = ResolveTape(attrs, atStart);
+            if (tape == "TapeS2")
+            {
+                outElements.Add(Wood(anchor, idWall, originX, originZ, rotY, widthMm, wallHeightMm, wallLengthMm, alongMm));
+                return;
+            }
+
+            if (tape == "TapeS1")
+            {
+                AddTapeS1(
+                    outElements, wall, anchor, idWall,
+                    atStart, alongMm, ux, uz, widthMm,
+                    wallHeightMm, wallLengthMm, originX, originZ, rotY);
+                return;
+            }
+
+            // Pegados al extremo del muro. El Desing antiguo sumaba 22 y 73 mm
+            // porque su coordenada no era el canto del panel.
+            outElements.Add(SideWood(anchor, idWall, originX, originZ, rotY, widthMm + 240d, -120d, 22d, 0d, "wood-orange", wallHeightMm, wallLengthMm, alongMm));
+            outElements.Add(SideWood(anchor, idWall, originX, originZ, rotY, 120d, -120d, 75d, 0d, "wood-side", wallHeightMm, wallLengthMm, alongMm));
+            outElements.Add(SideWood(anchor, idWall, originX, originZ, rotY, 120d, widthMm, 75d, 0d, "wood-side", wallHeightMm, wallLengthMm, alongMm));
+
+            var bands = HeightBands(wallHeightMm);
+            for (var i = 0; i < bands.Count; i++)
+            {
+                var heights = Under300HeightsMm(bands[i].HeightMm);
+                for (var hi = 0; hi < heights.Length; hi++)
+                {
+                    var upMm = bands[i].UpMm + heights[hi];
+                    AddSidePlate(outElements, anchor, idWall, alongMm, upMm, ux, uz, widthMm, wallHeightMm, wallLengthMm, true, atStart);
+                    AddSidePlate(outElements, anchor, idWall, alongMm, upMm, ux, uz, widthMm, wallHeightMm, wallLengthMm, false, atStart);
+                }
+            }
+        }
+
+        /// <summary>
+        /// TapeS1, como FilerSExS01. El encofrado sigue 0,30 m más allá del hormigón.
+        /// El fenólico naranja de 22 mm va pegado al canto del muro. Cada tablón de 75 mm
+        /// sale de esa cara exterior, en el canto del fenólico. El fijador 1850164 no se pinta.
+        /// </summary>
+        private static void AddTapeS1(
+            List<Atk60ElementPaintItem> outElements,
+            Desing2FormworkWallDto wall,
+            Atk60WallPaintAnchor anchor,
+            string idWall,
+            bool atStart,
+            double alongMm,
+            double ux,
+            double uz,
+            int widthMm,
+            double wallHeightMm,
+            double wallLengthMm,
+            double originX,
+            double originZ,
+            double rotY)
+        {
+            var outSign = atStart ? -1d : 1d;
+            var moduleStartMm = alongMm + (outSign < 0d ? -TapeS1SupplementMm : 0d);
+            outElements.AddRange(Atk60ModuleAssembly.Build(
+                wall, anchor, 1, TapeS1SupplementMm, moduleStartMm, 0, 1));
+
+            outElements.Add(SideWood(
+                anchor, idWall, originX, originZ, rotY,
+                widthMm, 0d, TapeS1OrangeMm, 0d,
+                "wood-orange", wallHeightMm, wallLengthMm, alongMm));
+            var plankRunMm = TapeS1SupplementMm - TapeS1OrangeMm;
+            outElements.Add(SideWood(
+                anchor, idWall, originX, originZ, rotY,
+                TapeS1SideMm, 0d, plankRunMm, TapeS1OrangeMm,
+                "wood-side", wallHeightMm, wallLengthMm, alongMm));
+            outElements.Add(SideWood(
+                anchor, idWall, originX, originZ, rotY,
+                TapeS1SideMm, widthMm - TapeS1SideMm, plankRunMm, TapeS1OrangeMm,
+                "wood-side", wallHeightMm, wallLengthMm, alongMm));
+
+            var stiffenerAlongMm = alongMm + (outSign * (TapeS1SupplementMm + (TapeS1StiffenerDepthMm * 0.5d)));
+            var tieAlongMm = stiffenerAlongMm + (outSign * (TapeS1StiffenerDepthMm * 0.5d));
+            var outX = ux * outSign;
+            var outZ = uz * outSign;
+            var nx = anchor.NormalX;
+            var nz = anchor.NormalZ;
+            var nLen = Math.Sqrt((nx * nx) + (nz * nz));
+            if (nLen > 1e-6)
+            {
+                nx /= nLen;
+                nz /= nLen;
+            }
+
+            var yaw = Math.Atan2(outZ, outX);
+            var faceGapMm = Atk60FaceInsertion.PanelFaceMm - 60d;
+            var hookAlongMm = tieAlongMm - (outSign * TapeS1HookIntoProfileMm);
+            var bands = HeightBands(wallHeightMm);
+            for (var i = 0; i < bands.Count; i++)
+            {
+                var heights = HookHeightsMm(bands[i].HeightMm);
+                for (var hi = 0; hi < heights.Length; hi++)
+                {
+                    var upMm = bands[i].UpMm + heights[hi];
+                    AddTapeS1Stiffener(
+                        outElements, anchor, idWall,
+                        stiffenerAlongMm, upMm, ux, uz, widthMm, wallHeightMm, wallLengthMm);
+                    AddSidePlate(
+                        outElements, anchor, idWall, alongMm, upMm, ux, uz,
+                        widthMm, wallHeightMm, wallLengthMm, true, atStart, tieAlongMm, 0d, true, true, Math.PI);
+                    AddSidePlate(
+                        outElements, anchor, idWall, alongMm, upMm, ux, uz,
+                        widthMm, wallHeightMm, wallLengthMm, false, atStart, tieAlongMm, 0d, false, true, Math.PI);
+                    var plateY = anchor.Y + upMm;
+                    AddTapeS1Hook(
+                        outElements, anchor, idWall, yaw,
+                        anchor.X + (ux * hookAlongMm) + (nx * faceGapMm),
+                        plateY,
+                        anchor.Z + (uz * hookAlongMm) + (nz * faceGapMm));
+                    AddTapeS1Hook(
+                        outElements, anchor, idWall, yaw,
+                        anchor.X + (ux * hookAlongMm) - (nx * (widthMm + faceGapMm)),
+                        plateY,
+                        anchor.Z + (uz * hookAlongMm) - (nz * (widthMm + faceGapMm)));
+                }
+            }
+        }
+
+        /// <summary>
+        /// El tornillo del 1920811 pasa por el centro de la placa.
+        /// </summary>
+        private static void AddTapeS1Hook(
+            List<Atk60ElementPaintItem> outElements,
+            Atk60WallPaintAnchor anchor,
+            string idWall,
+            double yaw,
+            double plateX,
+            double plateY,
+            double plateZ)
+        {
+            const double rodY = 0.6d;
+            const double rodZ = 83.6d;
+            var sin = Math.Sin(yaw);
+            var cos = Math.Cos(yaw);
+            AddPillarPiece(
+                outElements, anchor, idWall, HookCode, "hook",
+                plateX - (rodZ * sin),
+                plateY - rodY,
+                plateZ - (rodZ * cos),
+                yaw, Math.PI, 0, 0d, false);
+        }
+
+        /// <summary>
+        /// Un solo 1850162. El centro del STL (750 mm) cae en el eje del muro.
+        /// </summary>
+        private static void AddTapeS1Stiffener(
+            List<Atk60ElementPaintItem> outElements,
+            Atk60WallPaintAnchor anchor,
+            string idWall,
+            double barAlongMm,
+            double upMm,
+            double ux,
+            double uz,
+            int widthMm,
+            double wallHeightMm,
+            double wallLengthMm)
+        {
+            const double centerXmm = -1.6d;
+            const double centerYmm = -50.3d;
+            const double centerZmm = 19.8d;
+            var baseX = -centerZmm;
+            var baseY = centerXmm;
+            var baseZ = -centerYmm;
+            var wallYaw = Math.Atan2(-anchor.NormalX, anchor.NormalZ);
+            var alpha = (Math.PI * 0.5d) - wallYaw;
+            var cos = Math.Cos(alpha);
+            var sin = Math.Sin(alpha);
+            var offsetX = (baseX * cos) + (baseZ * sin);
+            var offsetY = baseY;
+            var offsetZ = (-baseX * sin) + (baseZ * cos);
+            var mid = widthMm * 0.5d;
+            var faceSign = anchor.FaceSign >= 0d ? 1d : -1d;
+            Atk60FaceInsertion.OneFace(
+                outElements, anchor, idWall, StiffenerPath,
+                anchor.X + (ux * barAlongMm) - (anchor.NormalX * mid) - offsetX,
+                anchor.Y + upMm - offsetY,
+                anchor.Z + (uz * barAlongMm) - (anchor.NormalZ * mid) - offsetZ,
+                0d,
+                Math.PI * 0.5d,
+                anchor.NormalX,
+                anchor.NormalZ,
+                faceSign,
+                false,
+                barAlongMm,
+                upMm,
+                wallHeightMm,
+                widthMm,
+                wallLengthMm,
+                StiffenerCode,
+                "blue");
+        }
+
+        /// <summary>
+        /// Placa en el medio del ancho del tablón.
+        /// Hacia fuera del canto: 37,5 mm y, además, media anchura (60 mm).
+        /// La rotación no se toca.
+        /// </summary>
+        private static void AddSidePlate(
+            List<Atk60ElementPaintItem> outElements,
+            Atk60WallPaintAnchor anchor,
+            string idWall,
+            double alongMm,
+            double upMm,
+            double ux,
+            double uz,
+            int widthMm,
+            double wallHeightMm,
+            double wallLengthMm,
+            bool primaryFace,
+            bool atStart,
+            double? plateAlongOverrideMm = null,
+            double faceOutExtraMm = 0d,
+            bool extraHalfTurn = false,
+            bool lockMateYaw = false,
+            double extraRotZ = 0d)
+        {
+            const double tablonDepthMm = 75d;
+            const double tablonWidthMm = 120d;
+            var outSign = atStart ? -1d : 1d;
+            var plateAlong = plateAlongOverrideMm
+                ?? (alongMm + (outSign * ((tablonDepthMm * 0.5d) + (tablonWidthMm * 0.5d))));
+            var faceGapMm = Atk60FaceInsertion.PanelFaceMm - (tablonWidthMm * 0.5d) + faceOutExtraMm;
+            var nx = anchor.NormalX;
+            var nz = anchor.NormalZ;
+            var faceNx = primaryFace ? nx : -nx;
+            var faceNz = primaryFace ? nz : -nz;
+            var x = anchor.X + (ux * plateAlong) + (faceNx * faceGapMm);
+            var z = anchor.Z + (uz * plateAlong) + (faceNz * faceGapMm);
+            if (!primaryFace)
+            {
+                x -= nx * widthMm;
+                z -= nz * widthMm;
+            }
+
+            var plateRotY = Math.Atan2(nx, nz) + Math.PI;
+            if (!lockMateYaw)
+            {
+                plateRotY = Math.Atan2(faceNx, faceNz) + Math.PI;
+                var rightX = -uz;
+                var rightZ = ux;
+                if (!atStart && (faceNx * rightX) + (faceNz * rightZ) > 0d)
+                {
+                    plateRotY += Math.PI;
+                }
+            }
+            else if (!primaryFace)
+            {
+                plateRotY += Math.PI;
+            }
+
+            if (extraHalfTurn)
+            {
+                plateRotY += Math.PI;
+            }
+
+            outElements.Add(new Atk60ElementPaintItem
+            {
+                IdWall = !string.IsNullOrWhiteSpace(idWall) ? idWall : anchor.IdWall,
+                ElementType = "Panel",
+                ElementCode = PlateCode,
+                Orientation = "pillar",
+                ImportPath = PlatePath,
+                Color = "zinc",
+                X = x,
+                Y = anchor.Y + upMm,
+                Z = z,
+                RotX = Math.PI * 0.5,
+                RotY = plateRotY,
+                RotZ = (Math.PI * 0.5) + extraRotZ,
+                NormalX = faceNx,
+                NormalZ = faceNz,
+                FaceSign = anchor.FaceSign,
+                UseStrictPose = true,
+                PieceWidthMm = 117d,
+                PieceHeightMm = 117d,
+                WallHeightMm = wallHeightMm,
+                WallThicknessMm = widthMm,
+                WallLengthMm = wallLengthMm,
+                LocalAlongMm = plateAlong,
+                LocalUpMm = upMm,
+            });
+        }
+
+        private static double[] Under300HeightsMm(int bandHeightMm)
+        {
+            if (bandHeightMm <= 1200) return new[] { 250d, 1150d };
+            if (bandHeightMm <= 2400) return new[] { 550d, 1400d, 2250d };
+            return new[] { 650d, 1400d, 2200d };
+        }
+
+        internal static List<Atk60ElementPaintItem> Place(
+            Desing2FormworkWallDto wall,
+            Atk60WallPaintAnchor anchor)
+        {
+            var outElements = new List<Atk60ElementPaintItem>();
+            if (wall == null || anchor == null || PillarFormwork.IsPillar(wall))
+            {
+                return outElements;
+            }
+
+            var attrs = wall.Attributes;
+            var thicknessMm = Atk60FaceInsertion.ResolveWallThicknessMm(attrs);
+            var mm = (int)Math.Round(thicknessMm);
+            var yawRad = Atk60FaceInsertion.NormalizeYawToRad(anchor.RotY);
+            var ux = Math.Cos(yawRad);
+            var uz = Math.Sin(yawRad);
+            var wallHeightMm = Atk60FaceInsertion.ResolveWallHeightMm(attrs);
+            var wallLengthMm = WallRunMm(anchor, attrs);
+            var idWall = !string.IsNullOrWhiteSpace(wall.WallId)
+                ? wall.WallId
+                : (!string.IsNullOrWhiteSpace(wall.Id) ? wall.Id : wall.LineId);
+
+            if (mm > 20 && mm < 300)
+            {
+                if (EndIsFree(attrs, true))
+                {
+                    AddUnder300(outElements, wall, anchor, attrs, idWall, true, 0d, ux, uz, mm, wallHeightMm, wallLengthMm);
+                }
+
+                if (wallLengthMm > 1d && EndIsFree(attrs, false))
+                {
+                    AddUnder300(outElements, wall, anchor, attrs, idWall, false, wallLengthMm, ux, uz, mm, wallHeightMm, wallLengthMm);
+                }
+
+                return outElements;
+            }
+
+            var widthMm = ExactWidthMm(thicknessMm);
+            if (!widthMm.HasValue)
+            {
+                return outElements;
+            }
+
+            var layout = Modulo270HeightPanelCatalog.ResolveForModule(wallHeightMm, widthMm.Value, true, true);
+
+            if (EndIsFree(attrs, true))
+            {
+                AddEnd(outElements, wall, anchor, attrs, layout, idWall, true, 0d, ux, uz, widthMm.Value, wallHeightMm, wallLengthMm);
+            }
+
+            if (wallLengthMm > 1d && EndIsFree(attrs, false))
+            {
+                AddEnd(outElements, wall, anchor, attrs, layout, idWall, false, wallLengthMm, ux, uz, widthMm.Value, wallHeightMm, wallLengthMm);
+            }
+
+            return outElements;
+        }
+
+        private static void AddEnd(
+            List<Atk60ElementPaintItem> outElements,
+            Desing2FormworkWallDto wall,
+            Atk60WallPaintAnchor anchor,
+            AttributesList attrs,
+            Modulo270Layout layout,
+            string idWall,
+            bool atStart,
+            double alongMm,
+            double ux,
+            double uz,
+            int widthMm,
+            double wallHeightMm,
+            double wallLengthMm)
+        {
+            var tape = ResolveTape(attrs, atStart);
+            double originX;
+            double originZ;
+            double rotY;
+            EndPose(anchor, atStart, alongMm, ux, uz, widthMm, out originX, out originZ, out rotY);
+
+            if (tape == "TapeS2")
+            {
+                outElements.Add(Wood(
+                    anchor, idWall, originX, originZ, rotY,
+                    widthMm, wallHeightMm, wallLengthMm, alongMm));
+                return;
+            }
+
+            if (tape == "TapeS1")
+            {
+                AddTapeS1(
+                    outElements, wall, anchor, idWall,
+                    atStart, alongMm, ux, uz, widthMm,
+                    wallHeightMm, wallLengthMm, originX, originZ, rotY);
+                return;
+            }
+
+            if (tape == "TapeS5")
+            {
+                AddSolution2(
+                    outElements, anchor, idWall,
+                    atStart, alongMm, ux, uz, widthMm, wallHeightMm);
+                return;
+            }
+
+            if (layout == null || layout.Pieces == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < layout.Pieces.Count; i++)
+            {
+                var piece = layout.Pieces[i];
+                if (piece == null)
+                {
+                    continue;
+                }
+
+                var y = anchor.Y + piece.UpOffsetMm;
+                if (string.Equals(piece.Orientation, "Tumbado", StringComparison.OrdinalIgnoreCase))
+                {
+                    y += piece.PieceHeightMm;
+                }
+
+                outElements.Add(new Atk60ElementPaintItem
+                {
+                    IdWall = !string.IsNullOrWhiteSpace(idWall) ? idWall : anchor.IdWall,
+                    ElementType = "Panel",
+                    ElementCode = piece.ElementCode,
+                    Orientation = piece.Orientation,
+                    ImportPath = piece.ImportPath,
+                    Color = "frame-yellow",
+                    X = originX,
+                    Y = y,
+                    Z = originZ,
+                    RotX = 0,
+                    RotY = rotY,
+                    RotZ = 0,
+                    NormalX = atStart ? -ux : ux,
+                    NormalZ = atStart ? -uz : uz,
+                    FaceSign = anchor.FaceSign,
+                    IsMirrored = !atStart,
+                    ModuleLengthMm = widthMm,
+                    ModuleIndex = 1,
+                    ModuleCountInWall = 1,
+                    WallHeightMm = wallHeightMm,
+                    WallThicknessMm = widthMm,
+                    WallLengthMm = wallLengthMm,
+                    PieceWidthMm = piece.PieceWidthMm,
+                    PieceHeightMm = piece.PieceHeightMm,
+                    LocalAlongMm = alongMm,
+                    LocalUpMm = piece.UpOffsetMm,
+                    UseStrictPose = true,
+                    PieceIndexInModule = i + 1,
+                    PieceCountInModule = layout.Pieces.Count,
+                    CatalogHeightMm = layout.CatalogHeightMm,
+                });
+            }
+
+            AddAnglesAndClamps(
+                outElements, anchor, layout, idWall,
+                atStart, alongMm, ux, uz, widthMm, wallHeightMm, wallLengthMm);
+        }
+
+        /// <summary>
+        /// Solución 2 del Desing antiguo (TapeS5).
+        /// Hasta 0,35 m: panel regulable de 0,75 y gancho de cierre en las dos caras.
+        /// De 0,45 en adelante: el regulable (y un 0,30 si no cubre) con el sobrante
+        /// hacia una cara, angular en la otra y gancho de cierre en la del sobrante.
+        /// </summary>
+        private static void AddSolution2(
+            List<Atk60ElementPaintItem> outElements,
+            Atk60WallPaintAnchor anchor,
+            string idWall,
+            bool atStart,
+            double alongMm,
+            double ux,
+            double uz,
+            int widthMm,
+            double wallHeightMm)
+        {
+            var end = atStart ? -1d : 1d;
+            var outX = ux * end;
+            var outZ = uz * end;
+            var nx = anchor.NormalX;
+            var nz = anchor.NormalZ;
+            var nLen = Math.Sqrt((nx * nx) + (nz * nz));
+            if (nLen > 1e-6)
+            {
+                nx /= nLen;
+                nz /= nLen;
+            }
+
+            var yaw = Math.Atan2(outZ, outX);
+            var wallId = !string.IsNullOrWhiteSpace(idWall) ? idWall : anchor.IdWall;
+            var narrow = widthMm <= 350;
+            var bands = HeightBands(wallHeightMm);
+
+            for (var i = 0; i < bands.Count; i++)
+            {
+                var up = bands[i].UpMm;
+                var height = bands[i].HeightMm;
+                var baseY = anchor.Y + up;
+
+                if (narrow)
+                {
+                    AddStopPanel(outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz, yaw, widthMm * 0.5 - 350d, 750d, AdjustableCode(height), baseY, height, wallHeightMm);
+                }
+                else if (widthMm <= 550)
+                {
+                    AddStopPanel(outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz, yaw, widthMm - 750d, 750d, AdjustableCode(height), baseY, height, wallHeightMm);
+                }
+                else
+                {
+                    AddStopPanel(outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz, yaw, widthMm - 300d, 300d, NarrowCode(height), baseY, height, wallHeightMm);
+                    AddStopPanel(outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz, yaw, widthMm - 1050d, 750d, AdjustableCode(height), baseY, height, wallHeightMm);
+                    var seamHeights = ClampHeightsMm(height);
+                    for (var hi = 0; hi < seamHeights.Length; hi++)
+                    {
+                        AddEndClamp(
+                            outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                            widthMm - 300d, anchor.Y + up + seamHeights[hi], up + seamHeights[hi],
+                            wallHeightMm, widthMm, alongMm > 1d ? alongMm : widthMm);
+                    }
+                }
+
+                var hooks = HookHeightsMm(height);
+                for (var hi = 0; hi < hooks.Length; hi++)
+                {
+                    var y = baseY + hooks[hi];
+                    AddClosure(outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz, yaw, -60d, 0d, y, "1920811", Math.PI, false);
+                    AddClosure(outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz, yaw, -150d, 120d, y, "10443020", Math.PI * 0.5, false);
+                    if (narrow)
+                    {
+                        AddClosure(outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz, yaw, widthMm + 60d, 0d, y, "1920811", 0d, true);
+                        AddClosure(outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz, yaw, widthMm + 140d, 120d, y, "10443020", Math.PI * 0.5, false);
+                    }
+                }
+
+                if (!narrow)
+                {
+                    AddAngle(outElements, anchor, wallId, false, alongMm, ux, uz, outX, outZ, nx, nz, widthMm, baseY, height, wallHeightMm, alongMm > 1d ? alongMm : widthMm);
+                }
+            }
+        }
+
+        private static void AddStopPanel(
+            List<Atk60ElementPaintItem> outElements,
+            Atk60WallPaintAnchor anchor,
+            string idWall,
+            double alongMm,
+            double ux,
+            double uz,
+            double outX,
+            double outZ,
+            double nx,
+            double nz,
+            double yaw,
+            double tStartMm,
+            double pieceWidthMm,
+            string code,
+            double baseY,
+            int heightMm,
+            double wallHeightMm)
+        {
+            var growsTowardOpposite = ((-outZ * nx) + (outX * nz)) >= 0d;
+            var originT = growsTowardOpposite ? tStartMm : tStartMm + pieceWidthMm;
+            double x;
+            double z;
+            EndOffset(anchor, alongMm, ux, uz, nx, nz, outX, outZ, originT, 0d, out x, out z);
+            AddPillarPiece(outElements, anchor, idWall, code, "frame-yellow", x, baseY, z, yaw, -Math.PI * 1.5, heightMm, wallHeightMm, false);
+            AddPillarPiece(outElements, anchor, idWall, code, "phenolic", x, baseY, z, yaw, -Math.PI * 1.5, heightMm, wallHeightMm, true);
+        }
+
+        private static void AddClosure(
+            List<Atk60ElementPaintItem> outElements,
+            Atk60WallPaintAnchor anchor,
+            string idWall,
+            double alongMm,
+            double ux,
+            double uz,
+            double outX,
+            double outZ,
+            double nx,
+            double nz,
+            double yaw,
+            double tMm,
+            double outMm,
+            double y,
+            string code,
+            double rotZ,
+            bool oppositeHook)
+        {
+            double x;
+            double z;
+            EndOffset(anchor, alongMm, ux, uz, nx, nz, outX, outZ, tMm, outMm, out x, out z);
+            AddPillarPiece(
+                outElements, anchor, idWall, code, code == "1920811" ? "hook" : "nut",
+                x, y, z, oppositeHook ? yaw + Math.PI : yaw, rotZ, 0, 0d, false);
+        }
+
+        private static void AddPillarPiece(
+            List<Atk60ElementPaintItem> outElements,
+            Atk60WallPaintAnchor anchor,
+            string idWall,
+            string code,
+            string color,
+            double x,
+            double y,
+            double z,
+            double yaw,
+            double rotZ,
+            int heightMm,
+            double wallHeightMm,
+            bool phenolic)
+        {
+            var path = phenolic
+                ? "../../Content/DesignTools/Stl/ATK60/" + code + "_F.stl"
+                : "../../Content/DesignTools/Stl/ATK60/" + code + ".stl";
+            outElements.Add(new Atk60ElementPaintItem
+            {
+                IdWall = idWall,
+                ElementType = "Panel",
+                ElementCode = code,
+                Orientation = "pillar",
+                ImportPath = path,
+                Color = color,
+                X = x,
+                Y = y,
+                Z = z,
+                RotX = code == "10443020" ? Math.PI * 0.5 : Math.PI * 1.5,
+                RotY = yaw,
+                RotZ = rotZ,
+                UseStrictPose = true,
+                PieceWidthMm = 750d,
+                PieceHeightMm = heightMm,
+                WallHeightMm = wallHeightMm,
+                FaceSign = anchor.FaceSign,
+            });
+        }
+
+        private static void EndOffset(
+            Atk60WallPaintAnchor anchor,
+            double alongMm,
+            double ux,
+            double uz,
+            double nx,
+            double nz,
+            double outX,
+            double outZ,
+            double tMm,
+            double outMm,
+            out double x,
+            out double z)
+        {
+            x = anchor.X + (ux * alongMm) - (nx * tMm) + (outX * outMm);
+            z = anchor.Z + (uz * alongMm) - (nz * tMm) + (outZ * outMm);
+        }
+
+        private static List<HeightBand> HeightBands(double wallHeightMm)
+        {
+            var bands = new List<HeightBand>();
+            var full = (int)((wallHeightMm + 249d) / 2700d);
+            var used = 0;
+            for (var i = 0; i < full; i++)
+            {
+                bands.Add(new HeightBand { UpMm = used, HeightMm = 2700 });
+                used += 2700;
+            }
+
+            var rest = (int)Math.Round(wallHeightMm - used);
+            if (rest > 1)
+            {
+                if (rest <= 1200) bands.Add(new HeightBand { UpMm = used, HeightMm = 1200 });
+                else if (rest <= 2400) bands.Add(new HeightBand { UpMm = used, HeightMm = 2400 });
+                else bands.Add(new HeightBand { UpMm = used, HeightMm = 2700 });
+            }
+
+            if (bands.Count == 0)
+            {
+                bands.Add(new HeightBand { UpMm = 0, HeightMm = 2700 });
+            }
+
+            return bands;
+        }
+
+        private static string AdjustableCode(int heightMm)
+        {
+            if (heightMm <= 1200) return "12104120";
+            if (heightMm <= 2400) return "24104224";
+            return "27104219";
+        }
+
+        private static string NarrowCode(int heightMm)
+        {
+            if (heightMm <= 1200) return "12304211";
+            if (heightMm <= 2400) return "24304244";
+            return "27304205";
+        }
+
+        private static double[] HookHeightsMm(int pieceHeightMm)
+        {
+            if (pieceHeightMm <= 1200) return new[] { 350d, 1150d };
+            if (pieceHeightMm <= 2400) return new[] { 400d, 2000d };
+            return new[] { 550d, 1350d, 2150d };
+        }
+
+        private sealed class HeightBand
+        {
+            public int UpMm;
+            public int HeightMm;
+        }
+
+        /// <summary>
+        /// Angular de esquina en las dos caras y grapa fija en la junta.
+        /// El angular mide el canto en X/Y y la altura en Z: la escala usa el canto
+        /// para no estirarlo.
+        /// </summary>
+        private static void AddAnglesAndClamps(
+            List<Atk60ElementPaintItem> outElements,
+            Atk60WallPaintAnchor anchor,
+            Modulo270Layout layout,
+            string idWall,
+            bool atStart,
+            double alongMm,
+            double ux,
+            double uz,
+            int widthMm,
+            double wallHeightMm,
+            double wallLengthMm)
+        {
+            if (layout == null || layout.Pieces == null)
+            {
+                return;
+            }
+
+            var end = atStart ? -1d : 1d;
+            var outX = ux * end;
+            var outZ = uz * end;
+            var nx = anchor.NormalX;
+            var nz = anchor.NormalZ;
+            var nLen = Math.Sqrt((nx * nx) + (nz * nz));
+            if (nLen > 1e-6)
+            {
+                nx /= nLen;
+                nz /= nLen;
+            }
+
+            var yawRad = Math.Atan2(uz, ux);
+            var faceSign = anchor.FaceSign >= 0d ? 1d : -1d;
+            var wallId = !string.IsNullOrWhiteSpace(idWall) ? idWall : anchor.IdWall;
+
+            for (var i = 0; i < layout.Pieces.Count; i++)
+            {
+                var piece = layout.Pieces[i];
+                if (piece == null || piece.PieceHeightMm < 200)
+                {
+                    continue;
+                }
+
+                var baseY = anchor.Y + piece.UpOffsetMm;
+                AddAngle(outElements, anchor, wallId, true, alongMm, ux, uz, outX, outZ, nx, nz, widthMm, baseY, piece.PieceHeightMm, wallHeightMm, wallLengthMm);
+                AddAngle(outElements, anchor, wallId, false, alongMm, ux, uz, outX, outZ, nx, nz, widthMm, baseY, piece.PieceHeightMm, wallHeightMm, wallLengthMm);
+
+                var heights = ClampHeightsMm(piece.PieceHeightMm);
+                for (var hi = 0; hi < heights.Length; hi++)
+                {
+                    var upMm = piece.UpOffsetMm + heights[hi];
+                    Atk60FaceInsertion.BothFaces(
+                        outElements, anchor, wallId, ClampPath,
+                        alongMm, upMm, yawRad, ux, uz, faceSign,
+                        wallHeightMm, widthMm, wallLengthMm,
+                        Atk60FaceInsertion.PanelFaceMm, 0d, ClampCode, "zinc");
+
+                    var y = anchor.Y + upMm;
+                    AddEndClamp(outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz, 40d, y, upMm, wallHeightMm, widthMm, wallLengthMm);
+                    AddEndClamp(outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz, widthMm - 40d, y, upMm, wallHeightMm, widthMm, wallLengthMm);
+                }
+            }
+        }
+
+        private static void AddAngle(
+            List<Atk60ElementPaintItem> outElements,
+            Atk60WallPaintAnchor anchor,
+            string idWall,
+            bool primaryFace,
+            double alongMm,
+            double ux,
+            double uz,
+            double outX,
+            double outZ,
+            double nx,
+            double nz,
+            int widthMm,
+            double baseY,
+            int pieceHeightMm,
+            double wallHeightMm,
+            double wallLengthMm)
+        {
+            var faceNx = primaryFace ? nx : -nx;
+            var faceNz = primaryFace ? nz : -nz;
+            var x = anchor.X + (ux * alongMm);
+            var z = anchor.Z + (uz * alongMm);
+            if (!primaryFace)
+            {
+                x -= nx * widthMm;
+                z -= nz * widthMm;
+            }
+
+            var code = AngleCode(pieceHeightMm);
+            outElements.Add(new Atk60ElementPaintItem
+            {
+                IdWall = idWall,
+                ElementType = "Panel",
+                ElementCode = code,
+                Orientation = "Vertical",
+                ImportPath = "../../Content/DesignTools/Stl/ATK60/EEx" + code + ".stl",
+                Color = "frame-yellow",
+                X = x,
+                Y = baseY,
+                Z = z,
+                // RotX deja el largo en vertical. El giro en planta va en RotZ:
+                // con RotY el angular se tumba.
+                RotX = -Math.PI * 0.5,
+                RotY = 0,
+                RotZ = AngleYaw(outX, outZ, faceNx, faceNz),
+                NormalX = faceNx,
+                NormalZ = faceNz,
+                FaceSign = anchor.FaceSign,
+                IsMirrored = !primaryFace,
+                ModuleLengthMm = widthMm,
+                WallHeightMm = wallHeightMm,
+                WallThicknessMm = widthMm,
+                WallLengthMm = wallLengthMm,
+                PieceWidthMm = Atk60FaceInsertion.PanelFaceMm,
+                PieceHeightMm = Atk60FaceInsertion.PanelFaceMm,
+                LocalAlongMm = alongMm,
+                LocalUpMm = baseY - anchor.Y,
+                UseStrictPose = true,
+                PieceIndexInModule = 1,
+                PieceCountInModule = 1,
+                CatalogHeightMm = pieceHeightMm,
+            });
+        }
+
+        private static void AddEndClamp(
+            List<Atk60ElementPaintItem> outElements,
+            Atk60WallPaintAnchor anchor,
+            string idWall,
+            double alongMm,
+            double ux,
+            double uz,
+            double outX,
+            double outZ,
+            double nx,
+            double nz,
+            double acrossMm,
+            double y,
+            double upMm,
+            double wallHeightMm,
+            int widthMm,
+            double wallLengthMm)
+        {
+            var x = anchor.X + (ux * alongMm) - (nx * acrossMm) + (outX * Atk60FaceInsertion.PanelFaceMm);
+            var z = anchor.Z + (uz * alongMm) - (nz * acrossMm) + (outZ * Atk60FaceInsertion.PanelFaceMm);
+            Atk60FaceInsertion.OneFace(
+                outElements, anchor, idWall, ClampPath,
+                x, y, z, 0d, 0d,
+                outX, outZ, anchor.FaceSign, false,
+                alongMm, upMm,
+                wallHeightMm, widthMm, wallLengthMm,
+                ClampCode, "zinc");
+        }
+
+        /// <summary>
+        /// Giro en planta (RotZ) con RotX = -90°. El -X del angular cae en (ax, az)
+        /// y el -Y en (bx, bz): los dos cantos hacia fuera de la esquina.
+        /// </summary>
+        private static double AngleYaw(double ax, double az, double bx, double bz)
+        {
+            var yaw = Math.Atan2(az, -ax);
+            var dot = (Math.Sin(yaw) * bx) + (Math.Cos(yaw) * bz);
+            if (dot > 0.5d)
+            {
+                return yaw;
+            }
+
+            return Math.Atan2(bz, -bx);
+        }
+
+        private static string AngleCode(int pieceHeightMm)
+        {
+            if (pieceHeightMm >= 2500)
+            {
+                return "27000000";
+            }
+
+            if (pieceHeightMm >= 2000)
+            {
+                return "24000000";
+            }
+
+            return "12000000";
+        }
+
+        private static double[] ClampHeightsMm(int pieceHeightMm)
+        {
+            if (pieceHeightMm >= 2500)
+            {
+                return new[] { 450d, 1350d, 2250d };
+            }
+
+            if (pieceHeightMm >= 2000)
+            {
+                return new[] { 400d, 2000d };
+            }
+
+            if (pieceHeightMm >= 1000)
+            {
+                return new[] { 600d };
+            }
+
+            return new[] { Math.Max(50d, pieceHeightMm * 0.5) };
+        }
+
+        /// <summary>
+        /// El ancho del panel (eje local +X) cruza el espesor.
+        /// El canto (eje local +Z) sale hacia fuera del muro.
+        /// </summary>
+        private static void EndPose(
+            Atk60WallPaintAnchor anchor,
+            bool atStart,
+            double alongMm,
+            double ux,
+            double uz,
+            double thicknessMm,
+            out double originX,
+            out double originZ,
+            out double rotY)
+        {
+            var faceSign = anchor.FaceSign >= 0d ? 1d : -1d;
+            var primaryX = anchor.X + (ux * alongMm);
+            var primaryZ = anchor.Z + (uz * alongMm);
+            var oppositeX = primaryX - (anchor.NormalX * thicknessMm);
+            var oppositeZ = primaryZ - (anchor.NormalZ * thicknessMm);
+            var fromOpposite = atStart ? faceSign >= 0d : faceSign < 0d;
+            originX = fromOpposite ? oppositeX : primaryX;
+            originZ = fromOpposite ? oppositeZ : primaryZ;
+
+            var sin = atStart ? -ux : ux;
+            var cos = atStart ? -uz : uz;
+            rotY = Math.Atan2(sin, cos);
+        }
+
+        private static Atk60ElementPaintItem Wood(
+            Atk60WallPaintAnchor anchor,
+            string idWall,
+            double originX,
+            double originZ,
+            double rotY,
+            int widthMm,
+            double wallHeightMm,
+            double wallLengthMm,
+            double alongMm)
+        {
+            return new Atk60ElementPaintItem
+            {
+                IdWall = !string.IsNullOrWhiteSpace(idWall) ? idWall : anchor.IdWall,
+                ElementType = "Remate",
+                ElementCode = "REMATE_WOOD",
+                Orientation = "Vertical",
+                ImportPath = string.Empty,
+                Color = "wood-remate",
+                X = originX,
+                Y = anchor.Y,
+                Z = originZ,
+                RotX = 0,
+                RotY = rotY,
+                RotZ = 0,
+                NormalX = 0,
+                NormalZ = 0,
+                FaceSign = anchor.FaceSign,
+                IsMirrored = false,
+                ModuleLengthMm = widthMm,
+                ModuleIndex = 1,
+                ModuleCountInWall = 1,
+                WallHeightMm = wallHeightMm,
+                WallThicknessMm = BoardDepthMm,
+                WallLengthMm = wallLengthMm,
+                PieceWidthMm = widthMm,
+                PieceHeightMm = wallHeightMm,
+                LocalAlongMm = alongMm,
+                LocalUpMm = 0,
+                UseStrictPose = true,
+                PieceIndexInModule = 1,
+                PieceCountInModule = 1,
+                CatalogHeightMm = wallHeightMm,
+            };
+        }
+
+        private static Atk60ElementPaintItem SideWood(
+            Atk60WallPaintAnchor anchor,
+            string idWall,
+            double originX,
+            double originZ,
+            double rotY,
+            double widthMm,
+            double offsetAcrossMm,
+            double depthMm,
+            double offsetOutMm,
+            string color,
+            double wallHeightMm,
+            double wallLengthMm,
+            double alongMm)
+        {
+            var piece = Wood(anchor, idWall, originX, originZ, rotY, (int)Math.Round(widthMm), wallHeightMm, wallLengthMm, alongMm);
+            piece.Color = color;
+            piece.PieceWidthMm = widthMm;
+            piece.WallThicknessMm = depthMm;
+            piece.InsertOffsetX = offsetAcrossMm;
+            piece.InsertOffsetZ = offsetOutMm;
+            return piece;
+        }
+
+        private static int? ExactWidthMm(double thicknessMm)
+        {
+            var mm = (int)Math.Round(thicknessMm);
+            if (mm == 300 || mm == 450 || mm == 600 || mm == 900)
+            {
+                return mm;
+            }
+
+            return null;
+        }
+
+        private static string ResolveTape(AttributesList attrs, bool atStart)
+        {
+            var stored = StoredId(attrs, atStart);
+            if (string.Equals(stored, "TapeS1", StringComparison.OrdinalIgnoreCase))
+            {
+                return "TapeS1";
+            }
+
+            if (string.Equals(stored, "TapeS2", StringComparison.OrdinalIgnoreCase))
+            {
+                return "TapeS2";
+            }
+
+            if (string.Equals(stored, "TapeS5", StringComparison.OrdinalIgnoreCase))
+            {
+                return "TapeS5";
+            }
+
+            var solape = Flag(attrs, atStart ? "_ChekSolapeIni" : "_ChekSolapeEnd");
+            return solape ? "TapeS1" : "TapeS4";
+        }
+
+        private static string StoredId(AttributesList attrs, bool atStart)
+        {
+            if (attrs == null)
+            {
+                return null;
+            }
+
+            if (atStart)
+            {
+                return Known(attrs._Tape_1) ? attrs._Tape_1 : attrs.ExtraValueAsString("_Tape_1");
+            }
+
+            if (Known(attrs._Tape_2))
+            {
+                return attrs._Tape_2;
+            }
+
+            var fromExtra = attrs.ExtraValueAsString("_Tape_2");
+            if (Known(fromExtra))
+            {
+                return fromExtra;
+            }
+
+            return attrs.ExtraValueAsString("_Tape_0");
+        }
+
+        private static bool Known(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            return value.StartsWith("TapeS", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "Solucion_2", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool EndIsFree(AttributesList attrs, bool atStart)
+        {
+            if (attrs == null)
+            {
+                return true;
+            }
+
+            var id = atStart ? attrs._Idconnection_1 : attrs._Idconnection_2;
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                id = attrs.ExtraValueAsString(atStart ? "_Idconnection_1" : "_Idconnection_2");
+            }
+
+            return string.IsNullOrWhiteSpace(id)
+                || string.Equals(id, "null", StringComparison.OrdinalIgnoreCase)
+                || id == "0";
+        }
+
+        private static bool Flag(AttributesList attrs, string key)
+        {
+            var value = attrs != null ? attrs.ExtraValueAsString(key) : null;
+            return string.Equals(value, "true", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "1", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static double WallRunMm(Atk60WallPaintAnchor anchor, AttributesList attrs)
+        {
+            if (anchor.Debug != null)
+            {
+                var dx = anchor.Debug.EndX - anchor.Debug.StartX;
+                var dz = anchor.Debug.EndZ - anchor.Debug.StartZ;
+                var len = Math.Sqrt((dx * dx) + (dz * dz));
+                if (len > 1d)
+                {
+                    return len;
+                }
+            }
+
+            return Atk60FaceInsertion.ResolveWallLengthMm(attrs);
+        }
+    }
+}

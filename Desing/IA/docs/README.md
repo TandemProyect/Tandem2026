@@ -49,6 +49,7 @@ Documentos de continuidad, handovers, guías para agentes IA y notas de trabajo.
 | [HANDOVER-ENCOFRADO-AT60-SESION-T-2026-07-10.md](HANDOVER-ENCOFRADO-AT60-SESION-T-2026-07-10.md) | **Sesión 2026-07-10** — rectos, recorte, guía T P-1…P-8, pendientes |
 | [HANDOVER-MUROS-T-CRUCE.md](HANDOVER-MUROS-T-CRUCE.md) | Uniones T y cruce (+), topología 2D |
 | [SISTEMA-ATK60.md](SISTEMA-ATK60.md) | Sistema ATK60 |
+| [agente-tapes-atk60.md](agente-tapes-atk60.md) | Tapes del visor Desing_2. Apartado 21 cerrado el 20 oct 2026 |
 | [AGENTE-US619-INFO.md](AGENTE-US619-INFO.md) | Documentación técnica US-619 |
 | [AGENTE-US619-RESUMEN.md](AGENTE-US619-RESUMEN.md) | Resumen ejecutivo US-619 |
 | [US619_RESUMEN_ICONOS.md](US619_RESUMEN_ICONOS.md) | Resumen de iconos US-619 |

@@ -191,6 +191,45 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 - **Muro 3D solo con pilares:** el generador saltaba los pilares y, si no había muros, avisaba «No hay líneas fuente para generar el modelo». Con pilares y sin muros entra en 3D y levanta los pilares.
 - **Puntal según el encofrado:** la pieza no sale de la altura del hormigón. Sale de la suma de los paneles. A 4,00 m van 2,70 y 2,40, y el puntal es el de 5,10 m. Igual en el resto de alturas.
 
+### 21. Tapes
+
+- **Estado:** cerrado. **20 de octubre de 2026, 10:03.** Se pasa a otra cosa. No va al trimestral.
+- **Cierre:** abierto el 19 oct a las 13:10. El 19 oct, 13:10–17:06 (3 h 56 min). El 20 oct, 8:47–10:03 (1 h 16 min). Estimación **5 h 12 min**. No se suma la noche.
+- **Documentación:** `Desing/IA/docs/agente-tapes-atk60.md`.
+- **Qué se hace:** el formulario del botón derecho sobre el muro. Tres pestañas: Muro, Configurar Tapes y Configurar Puntales. En Tapes, según el espesor, salen unas soluciones u otras. Hay una marcada por defecto y el usuario elige.
+- **Dónde está ahora:** el formulario antiguo, `Desing/Views/DesignTools/Form/_Form_DesignEdit.cshtml`. Las figuras están en `Content/DesignTools/MenuIcon/` (`TapeS1.png` a `TapeS13.png`, y `Solucion_2.png`). Quién abre cada bloque está en `ChangeSolape0Final` (`Design_3d_Action_EditForm.js`). Al crear el muro, la solución por defecto se escribe en `Design_3d_InsertWall.js`. En el visor nuevo la misma pestaña dice «Pendiente.»
+- **Láminas del 19 oct.** Siete bloques. Con solape, el remate no pasa de 0,45. Sin solape, no pasa de 0,20. Por debajo de 0,30 el tope es 0,29.
+  - **Con solape** (`DivTape_End_01`): TapeS1 y TapeS2.
+  - **Menor de 0,30** (`DivTape_End_02`): TapeS3.
+  - **Mayor de 0,30 y exacto** (`DivTape_End_03`): TapeS4 y TapeS5.
+  - **Mayor de 0,30, no exacto, múltiplo de 0,050 y menor de 0,60** (`DivTape_End_04`): TapeS6 y TapeS7.
+  - **Mayor de 0,30, no exacto, no múltiplo de 0,050 y menor de 0,60** (`DivTape_End_05`): TapeS8 y `Solucion_2.png`.
+  - **Mayor de 0,60, no exacto y múltiplo de 0,050** (`DivTape_End_06`): TapeS9, TapeS10 y TapeS11. En 0,65 mirar si hace falta meter el panel de 0,30.
+  - **Mayor de 0,60, no exacto y no múltiplo de 0,050** (`DivTape_End_07`): TapeS12 y TapeS13.
+- **Formulario (19 oct, a partir de las 13:10):** la pestaña Configurar Tapes del botón derecho tiene tape inicial y tape final en la misma fila. La frase del espesor sale una sola vez. El de la derecha va en simetría. Abajo: Solape inicial y Solape final. El sentido sale del primer punto al segundo, sea 0°, 90° o 33,5°. El Desing antiguo solo cerraba un extremo y siempre a 0°; de ahí se toman las piezas, no la orientación. Aceptar guarda el inicio en `_Tape_1` y el final en `_Tape_2`.
+- **Sigue fuera de este formulario:** el panel de 0,30 en 0,65, el panel que no entra por encima de 0,75, y centrar las costillas cambiando las uniones. El remate con solape no pasa de 0,45, y sin solape no pasa de 0,20.
+- **Espesor exacto (19 oct).** El bloque de TapeS4 y TapeS5 solo abre en **0,30, 0,45, 0,60 y 0,90**. El 0,75 ya no entra. Al encofrar, esos cuatro espesores cierran el inicio y el final, en el sentido real del muro. Sin solape, panel del mismo ancho (TapeS4) o la solución 2 (TapeS5). Con solape, tablón (TapeS1 o TapeS2). Un extremo unido a otro muro no se cierra. La solución 1 lleva el panel del espesor, angular en las dos esquinas y grapa fija. La solución 2 sigue el Desing antiguo: panel regulable de 0,75 (en 0,60 y 0,90 junto a un 0,30), gancho de cierre `1920811` y tuerca `10443020`. En 0,30 el gancho va en las dos caras. De 0,45 en adelante el angular queda en una cara y el gancho en la del sobrante.
+- **Menos de 0,30 (TapeS3).** En el inicio y en el final, como `FilerSEMeS01`: relleno naranja de 22 mm (espesor + 240 mm) y un tablón marrón de 120 × 75 mm a cada lado. Las placas quedan en el medio del ancho del tablón (60 mm) y, hacia fuera del canto, 37,5 mm más media anchura (60 mm). La rotación no se toca. El fijador `1850164` no se dibuja en este cierre: salía como barra azul por fuera del tablón, y el dibujo del Desing antiguo es el naranja entre los dos tablones con la placa.
+
+### 22. Medidas del muro en el formulario
+
+- **Estado:** cerrado. **20 de octubre de 2026, 10:52.** Se pasa a otra cosa. No va al trimestral.
+- **Sesión 20 oct:** 10:15–10:52. Estimación **37 min**.
+- **Qué quedó:** en Modificar muro se cambian longitud, espesor y altura, en metros. Longitud y espesor usan `maStlCommitWallAxisLengthMm` y `maStlCommitWallAxisThicknessMm`, las mismas que la cota del modo líneas. La altura sigue por su camino.
+
+### 23. Quitar el modelo de muro en planta
+
+- **Estado:** cerrado. **20 de octubre de 2026, 11:33.** Se pasa a otra cosa. No va al trimestral.
+- **Sesión 20 oct:** 10:52–11:33. Estimación **41 min**.
+- **Qué quedó:** el botón de muro en planta ya no está. Ese modo no se abre. Se quitó el código que dibujaba ese modelo. Siguen la polilínea, la herramienta de dibujar el muro y generar muro 3D.
+
+### 24. Tape con solape
+
+- **Estado:** abierto. **20 de octubre de 2026, 11:33.**
+- **Qué se hace:** cuando el muro lleva solape, no se pone el remate. Se suplementa el encofrado con 0,30 m o más y en ese suplemento va el TapeS1 (solución 1) o el TapeS2 (solución 2). Puede ser solo el inicio, solo el final, o los dos.
+- **Hecho:** el TapeS1 deja de ser el tablón claro del canto. En el extremo libre salen 0,30 m más de panel, el naranja de 22 mm, un tablón de 75 mm a cada lado y las barras azules `1850162` con su placa. El fijador no se pinta. El TapeS2 sigue igual, pendiente.
+- **Corrección:** el fenólico naranja iba a 278 mm del canto. Ahora su cara interior queda pegada al extremo del muro. Tablones y barras se revisan después.
+
 ## Heredado del informe 01 (sigue abierto)
 
 1. Posición de las uniones, del panel de 0,30 × 2,70 m y de la ménsula (no cae en su agujero).
@@ -224,6 +263,10 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 | Insertar trabajador | Cursor, 18–19 oct | Apartado 18 cerrado de momento. 12:22–16:18, 3 h 56 min. El 19 oct, al borrar el muro se borra también el trabajador de ese muro |
 | Posición de plataformas y puntales | Cursor, 18 oct | Apartado 19 cerrado de momento. 16:18–17:41, 1 h 23 min. Queda para testear |
 | Pilares | Cursor, 18–19 oct | Apartado 20 cerrado el 19 oct. Abierto el 18 oct, 17:41. Encofrado de pilar en el visor; el pasador del puntal queda para retomarlo |
+| Tapes | Cursor, 19–20 oct | Apartado 21 cerrado el 20 oct, 10:03. 19 oct 13:10–17:06 y 20 oct 8:47–10:03, estimación 5 h 12 min. Queda en `Desing/IA/docs/agente-tapes-atk60.md` |
+| Medidas del muro | Cursor, 20 oct | Apartado 22 cerrado. 10:15–10:52, estimación 37 min. Longitud, espesor y altura en Modificar muro |
+| Modelo muro en planta | Cursor, 20 oct | Apartado 23 cerrado. 10:52–11:33, estimación 41 min. Botón y código del modelo en planta fuera |
+| Tape con solape | Cursor, 20 oct | Apartado 24 abierto el 20 oct, 11:33. Fenólico naranja pegado al canto. Tablones y barras por revisar. TapeS2 pendiente |
 
 ## Al cerrar el 22 de octubre
 

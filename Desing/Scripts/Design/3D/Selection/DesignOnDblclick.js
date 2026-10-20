@@ -332,6 +332,10 @@ function ondblclick(event) {
             document.getElementById("TapeS8").checked = true;
             $("#DivTape_End_05").show("slide", { direction: "right" }, 4);
         }
+        if (obWall.Tape_0 === "Solucion_2") {
+            document.getElementById("Solucion_2").checked = true;
+            $("#DivTape_End_05").show("slide", { direction: "right" }, 4);
+        }
         if (obWall.Tape_0 === "TapeS9") {
             document.getElementById("TapeS9").checked = true;
             $("#DivTape_End_06").show("slide", { direction: "right" }, 4);
@@ -478,6 +482,10 @@ function ondblclick(event) {
         }
         if (obWall.Tape_0 === "TapeS8") {
             document.getElementById("TapeS8").checked = true;
+            $("#DivTape_End_05").show("slide", { direction: "right" }, 4);
+        }
+        if (obWall.Tape_0 === "Solucion_2") {
+            document.getElementById("Solucion_2").checked = true;
             $("#DivTape_End_05").show("slide", { direction: "right" }, 4);
         }
         if (obWall.Tape_0 === "TapeS9") {

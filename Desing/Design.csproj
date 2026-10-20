@@ -425,6 +425,7 @@
     <Compile Include="Repositories\Repository_Desing_2\Atk60\Atk60FaceInsertion.cs" />
     <Compile Include="Repositories\Repository_Desing_2\Atk60\Atk60ModuleAssembly.cs" />
     <Compile Include="Repositories\Repository_Desing_2\Atk60\EndFiller.cs" />
+    <Compile Include="Repositories\Repository_Desing_2\Atk60\ExactWidthEndTape.cs" />
     <Compile Include="Repositories\Repository_Desing_2\Atk60\FormTie.cs" />
     <Compile Include="Repositories\Repository_Desing_2\Atk60\PanelClamp.cs" />
     <Compile Include="Repositories\Repository_Desing_2\Atk60\PanelFormwork.cs" />
@@ -2476,6 +2477,7 @@
     <Content Include="IA\docs\04-pipeline-2d-a-3d.md" />
     <Content Include="IA\docs\05-pendientes-y-preguntas.md" />
     <Content Include="IA\docs\agente-foto-diseno-y-menu.md" />
+    <Content Include="IA\docs\agente-tapes-atk60.md" />
     <Content Include="IA\docs\agente-traducciones-modulos.md" />
     <Content Include="IA\docs\agente-ui-materio-datatables.md" />
     <Content Include="IA\docs\AGENTE-US619-INFO.md" />

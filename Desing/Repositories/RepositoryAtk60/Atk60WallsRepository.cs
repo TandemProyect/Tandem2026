@@ -596,6 +596,7 @@ namespace Desing.Repositories.RepositoryAtk60
 
                 outElements.AddRange(
                     Modulo270WorkBracketGenerator.Build(wall, anchor, cursorMm, protectionWoodPending, stiffenerAlongMm));
+                outElements.AddRange(ExactWidthEndTape.Place(wall, anchor));
                 protectionWoodPending = false;
             }
 

@@ -1,4 +1,18 @@
 ﻿//angel
+function tapeEndDefaultForWidth(w) {
+    var mm = Math.round((Number(w) || 0) * 1000);
+    var multiple = function (stepMm) { return mm > 0 && mm % stepMm === 0; };
+    if (mm < 300) return { div: "DivTape_End_02", id: "TapeS3" };
+    if (mm === 300 || mm === 450 || mm === 600 || mm === 900) return { div: "DivTape_End_03", id: "TapeS4" };
+    if (mm < 600) {
+        return multiple(50)
+            ? { div: "DivTape_End_04", id: "TapeS6" }
+            : { div: "DivTape_End_05", id: "TapeS8" };
+    }
+    return multiple(50)
+        ? { div: "DivTape_End_06", id: "TapeS9" }
+        : { div: "DivTape_End_07", id: "TapeS12" };
+}
 function DrawDesign() {
     var addMesh0 = false;
     var addMesh90 = false;
@@ -542,29 +556,7 @@ function AddWall_R000(
         meshWall.IsTypeConexion = null;
         //Add Tape
         if (TypeWall === 'Wall_R000') {
-            var w = _widthWall;
-            if (w >= 0.3) {
-                if (w === 0.3 || w === 0.45 || w === 0.60 || w === 0.75 || w === 0.90) {
-                    meshWall.Tape_0 = "TapeS4";
-                }
-                else {
-                    if (w === 0.35 || w === 0.40 || w === 0.55)
-                    {
-                        meshWall.Tape_0 = "TapeS6";
-                    }
-                    else {
-                        if (Number.isInteger(w / 0.05)) {
-                            meshWall.Tape_0 = "TapeS9";
-                        }
-                        else {
-                            meshWall.Tape_0 = "TapeS12";
-                        }
-                    }
-                }
-            }
-            else {
-                meshWall.Tape_0 = "TapeS3";
-            }
+            meshWall.Tape_0 = tapeEndDefaultForWidth(_widthWall).id;
         }
 
 

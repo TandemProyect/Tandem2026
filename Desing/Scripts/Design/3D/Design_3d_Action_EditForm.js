@@ -119,43 +119,25 @@ function CalculationEndSolape() {
     var n2 = parseFloat((0.15 - n).toFixed(2));
     document.getElementById("DataSupEnd").value = n2 + 0.15;
 }
+function tapeEndDefaultForWidth(w) {
+    var mm = Math.round((Number(w) || 0) * 1000);
+    var multiple = function (stepMm) { return mm > 0 && mm % stepMm === 0; };
+    if (mm < 300) return { div: "DivTape_End_02", id: "TapeS3" };
+    if (mm === 300 || mm === 450 || mm === 600 || mm === 900) return { div: "DivTape_End_03", id: "TapeS4" };
+    if (mm < 600) {
+        return multiple(50)
+            ? { div: "DivTape_End_04", id: "TapeS6" }
+            : { div: "DivTape_End_05", id: "TapeS8" };
+    }
+    return multiple(50)
+        ? { div: "DivTape_End_06", id: "TapeS9" }
+        : { div: "DivTape_End_07", id: "TapeS12" };
+}
 function ChangeSolape0Final() {
     resetDivTapeFinal();
-    var w = $("#DataWith").val() * 1;
-    var Iniciall_Wall = $("#DataSupInicial").val() * 1;
-    var End_Wall = $("#DataSupEnd").val() * 1;
-    ///Tape Inicial
-    if (Iniciall_Wall === 0) {
-        if (w >= 0.3) {
-            if (w === 0.3 || w === 0.45 || w === 0.60 || w === 0.75 || w === 0.90) {
-                resetDivTape();
-                $("#DivTape_End_03").show("slide", { direction: "right" }, 4);
-                document.getElementById("TapeS4").checked = true;
-
-            }
-            else {
-                if (w === 0.35 || w === 0.40 || w === 0.55 || w === 0.65 || w === 0.70 || w === 0.80 || w === 0.85) {
-                    resetDivTape();
-                    $("#DivTape_End_04").show("slide", { direction: "right" }, 4);
-                    document.getElementById("TapeS6").checked = true;
-                }
-                else {
-                    if (Number.isInteger(w / 0.05)) {
-                        $("#DivTape_End_04").show("slide", { direction: "right" }, 4);
-                        document.getElementById("TapeS6").checked = true;
-                    }
-                    else {
-                        $("#DivTape_End_05").show("slide", { direction: "right" }, 4);
-                        document.getElementById("TapeS8").checked = true;
-                    }
-                }
-            }
-        }
-        else {
-            $("#DivTape_End_02").show("slide", { direction: "right" }, 4);
-            document.getElementById("TapeS3").checked = true;
-        }
-    }
+    var choice = tapeEndDefaultForWidth($("#DataWith").val() * 1);
+    $("#" + choice.div).show("slide", { direction: "right" }, 4);
+    document.getElementById(choice.id).checked = true;
 };
 
 function resetDivTape() {
@@ -621,44 +603,12 @@ $("#btnChangeDimension").on("click", function ()
     obWall.End_Wall = _dataSupEnd;
 
     obWall.userData.name = "SupInicial_" + $("#DataSupInicial").val() + "SupEnd_" + $("#DataSupEnd").val();
-    if (document.getElementById("TapeS1").checked === true) {
-        obWall.Tape_0 = "TapeS1";
-    }
-    if (document.getElementById("TapeS2").checked === true) {
-        obWall.Tape_0 = "TapeS2";
-    }
-    if (document.getElementById("TapeS3").checked === true) {
-        obWall.Tape_0 = "TapeS3";
-    }
-    if (document.getElementById("TapeS4").checked === true) {
-        obWall.Tape_0 = "TapeS4";
-    }
-    if (document.getElementById("TapeS5").checked === true) {
-        obWall.Tape_0 = "TapeS5";
-    }
-    if (document.getElementById("TapeS6").checked === true) {
-        obWall.Tape_0 = "TapeS5";
-    }
-    if (document.getElementById("TapeS9").checked === true) {
-        obWall.Tape_0 = "TapeS5";
-    }
-    if (document.getElementById("TapeS7").checked === true) {
-        obWall.Tape_0 = "TapeS7";
-    }
-    if (document.getElementById("TapeS8").checked === true) {
-        obWall.Tape_0 = "TapeS7";
-    }
-    if (document.getElementById("TapeS10").checked === true) {
-        obWall.Tape_0 = "TapeS7";
-    }
-    if (document.getElementById("TapeS12").checked === true) {
-        obWall.Tape_0 = "TapeS7";
-    }
-    if (document.getElementById("TapeS11").checked === true) {
-        obWall.Tape_0 = "TapeS11";
-    }
-    if (document.getElementById("TapeS13").checked === true) {
-        obWall.Tape_0 = "TapeS13";
+    var tapeChoiceIds = ["TapeS1", "TapeS2", "TapeS3", "TapeS4", "TapeS5", "TapeS6", "TapeS7", "TapeS8", "Solucion_2", "TapeS9", "TapeS10", "TapeS11", "TapeS12", "TapeS13"];
+    for (var tapeChoiceIndex = 0; tapeChoiceIndex < tapeChoiceIds.length; tapeChoiceIndex++) {
+        var tapeChoiceEl = document.getElementById(tapeChoiceIds[tapeChoiceIndex]);
+        if (tapeChoiceEl && tapeChoiceEl.checked === true) {
+            obWall.Tape_0 = tapeChoiceIds[tapeChoiceIndex];
+        }
     }
     obWall.Grupo = document.getElementById("ÌdGrup").value;
     //Tape Inicial
@@ -960,6 +910,10 @@ $("#TapeS8").on('click', function (e) {
     OnclickResetFinalMenuTape();
     document.getElementById("TapeS8").checked = true;
 });
+$("#Solucion_2").on('click', function (e) {
+    OnclickResetFinalMenuTape();
+    document.getElementById("Solucion_2").checked = true;
+});
 $("#TapeS9").on('click', function (e) {
     OnclickResetFinalMenuTape();
     document.getElementById("TapeS9").checked = true;
@@ -1012,6 +966,7 @@ function OnclickResetFinalMenuTape() {
     document.getElementById("TapeS6").checked = false;
     document.getElementById("TapeS7").checked = false;
     document.getElementById("TapeS8").checked = false;
+    document.getElementById("Solucion_2").checked = false;
     document.getElementById("TapeS9").checked = false;
     document.getElementById("TapeS10").checked = false;
     document.getElementById("TapeS11").checked = false;

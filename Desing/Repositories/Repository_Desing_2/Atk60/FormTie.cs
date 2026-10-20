@@ -126,6 +126,14 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     continue;
                 }
 
+                // Menos de 0,30: el cierre lo pone el tablón del extremo.
+                // El tirante del panel, a 44 mm del borde, caía en el fenólico.
+                if (wallThicknessMm < 300d
+                    && (alongMm < 100d || (wallLengthMm > 1d && alongMm > wallLengthMm - 100d)))
+                {
+                    continue;
+                }
+
                 foreach (var height in heightsMm)
                 {
                     var wing = wingOnLowRow && height < 50d;
