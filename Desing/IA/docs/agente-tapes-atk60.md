@@ -1,11 +1,13 @@
 # Tapes ATK-60 en el visor Desing_2
 
-Para el siguiente agente. Hecho el **19 y 20 de octubre de 2026**.
+Para el siguiente agente. Hecho el **19, 20 y 21 de octubre de 2026**.
 
 - Apartado 21 del informe quincenal 02: tapes del formulario y el cierre sin solape. Cerrado el 20 oct, 10:03.
 - Apartado 24: Tape con solape (TapeS1). Cerrado el 20 oct, 15:54. El usuario lo dio por bueno.
+- Apartado 25: TapeS2. Cerrado el 21 oct, 10:37.
+- Apartado 26: módulos, rigidizadores, solape repartido y placas del final. Cerrado el 21 oct, 10:37.
 
-No reabrir la posición ni la rotación de la placa del TapeS3. No mover el TapeS1 si el usuario no lo pide. El TapeS2 no está hecho.
+No reabrir la posición ni la rotación de la placa del TapeS3. El giro del TapeS1 en el inicio no se toca. En el final las dos placas van a 180° por `RotZ`, no cruzando `RotY`.
 
 ## Qué hace
 
@@ -15,8 +17,8 @@ El formulario del botón derecho (pestaña Configurar Tapes) guarda el inicio en
 
 | Espesor | Sin solape | Con solape |
 |---------|------------|------------|
-| Menos de 0,30 m | TapeS3 | TapeS1. TapeS2 sigue siendo el tablón claro |
-| 0,30, 0,45, 0,60 y 0,90 m | TapeS4 (solución 1) o TapeS5 (solución 2) | TapeS1. TapeS2 pendiente |
+| Menos de 0,30 m | TapeS3 | TapeS1 o TapeS2 |
+| 0,30, 0,45, 0,60 y 0,90 m | TapeS4 (solución 1) o TapeS5 (solución 2) | TapeS1 o TapeS2 |
 | 0,75 m | No entra en el bloque exacto | — |
 
 `ResolveTape`: si está guardado TapeS1, TapeS2 o TapeS5, manda eso. Si no, con solape es TapeS1 y sin solape es TapeS4.
@@ -26,7 +28,7 @@ El formulario del botón derecho (pestaña Configurar Tapes) guarda el inicio en
 | Archivo | Rol |
 |---------|-----|
 | `Repositories/Repository_Desing_2/Atk60/ExactWidthEndTape.cs` | Cierre de los dos extremos. Lo llama `Atk60WallsRepository.BuildPanel270ElementsForThreeJs`. |
-| `Repositories/Repository_Desing_2/Atk60/FormTie.cs` | En espesor menor de 300 mm no pone tirante de panel a menos de 100 mm de un extremo. Taladros del panel: 550 mm desde cada extremo en 2,40 y 2,70. |
+| `Repositories/Repository_Desing_2/Atk60/FormTie.cs` | Tirante del canto solo si el extremo es TapeS2. En el resto no. En espesor menor de 300 mm tampoco pone tirante de panel a menos de 100 mm de un extremo, salvo el suplemento del TapeS2. |
 | `Scripts/MasterArticles/master-article-details-stl-viewer.js` | Malla del remate de madera, pose de pilar de la placa y el giro en planta del rigidizador horizontal. |
 | `Scripts/Design/3D/Design_3d_Object.js` | Referencia antigua: `FilerSEMeS01`, `FilerSExS01`, `FilerRigiSExS01`. No editarla para este visor. |
 | `Repositories/Atk60/Wall/CommonElement.cs` | `SedUnionRigiHorizontal_0`: un `1850162` centrado en el espesor y placas `10443020`. El fijador `1850164` el filer antiguo no lo dibuja. |
@@ -87,10 +89,11 @@ La misma pieza y la misma pose de pilar que el TapeS3. Va en las dos caras, a la
 Argumentos que solo usa el TapeS1. El TapeS3 no los pasa y no debe heredarlos:
 
 - `lockMateYaw`: el giro de la cara de detrás es el de la cara principal más π. No aplica el volteo extra del extremo final del TapeS3.
-- Cara principal: `extraHalfTurn`. Cara de detrás: sin ese medio giro.
-- Las dos llevan `extraRotZ = π`, así que `RotZ = 3π/2`.
+- Cara principal: `extraHalfTurn`. Cara de detrás: sin ese medio giro. Igual en el inicio y en el final.
+- En el inicio las dos llevan `extraRotZ = π`, así que `RotZ = 3π/2`.
+- En el final las dos llevan `extraRotZ = 0`, así que `RotZ = π/2`. Esos 180° respecto al inicio. El ángulo tiene que caber en una vuelta: si pasa de `2π`, el visor lo lee como grados y en pantalla se quedan 90°.
 
-No volver a cruzar solo las banderas de `RotY`: una cara gira 180° y la otra solo unos grados. El medio giro común va en `RotZ`.
+No volver a cruzar solo las banderas de `RotY`: una cara gira 180° y la otra solo unos grados. El medio giro común va en `RotZ`. El inicio no se vuelve a girar.
 
 ### Gancho de cierre `1920811`
 
@@ -104,7 +107,32 @@ El fijador `1850164` no se pinta. `FilerRigiSExS01` sale enseguida cuando el có
 
 ## TapeS2
 
-Pendiente. Hoy `AddUnder300` y `AddEnd`, si el tape es TapeS2, pintan el tablón claro del canto (`Wood`) y vuelven. No suplementar, no fenólico, no rigidizador.
+Aceptado el 21 oct, 10:37. Mismo suplemento de 300 mm y mismo fenólico de canto que el TapeS1. Donde el TapeS1 lleva tablón de 75 mm, aquí hay fenólico naranja de 22 mm. No lleva el rigidizador `1850162` ni el gancho `1920811`.
+
+Los tirantes son los del panel suplementario (`tiesBeyondWall`). El del panel anterior, a unos 44 mm por dentro del canto, no se pinta: ventana de 100 mm hacia dentro del canto y 20 mm hacia fuera. Igual si el TapeS2 está al inicio.
+
+La grapa fija `10004220` va en la junta con el panel de 0,30 m, en las dos caras, también en el TapeS1. Esa junta queda fuera del muro y el módulo solo no la pintaba.
+
+## Tirante del canto
+
+Solo el TapeS2. En TapeS1, TapeS3, TapeS4 y TapeS5 el extremo lo cierran el angular, la unión o las grapas, y no se pinta el tirante del final del panel ni el del arranque del primer panel. `SkipsPanelEndTie`. En el suplemento del TapeS1 tampoco va el tirante del canto exterior, el que quedaba junto al rigidizador.
+
+## Solape en los dos extremos
+
+Si el TapeS1 o el TapeS2 está en los dos cantos, no se pintan dos suplementos de 0,30 m. Entra un módulo de 0,60 m. El sobrante se reparte: la misma salida antes del inicio y después del final. La madera del tape mide esa mitad, no los 300 mm enteros en un solo lado.
+
+## Módulos y rigidizadores del muro
+
+Aceptado el 21 oct, 10:37.
+
+- Módulo de 1,20, 2,40 o 2,70: dos rigidizadores, a 300 mm de cada extremo.
+- Panel solo (0,30, 0,45, 0,60, 0,75 o 0,90): uno, al centro.
+- Modulación de mayor a menor: 2,70, si no 2,40, si no 1,20, y después 0,90, 0,75, 0,60, 0,45 y 0,30. No se parte un 2,70 en paneles pequeños.
+- El remate de madera, si queda, es el resto por debajo de 300 mm.
+
+## Remate
+
+Si un extremo libre, o los dos, es TapeS1 o TapeS2, no se pinta el remate de madera. Esos tapes lo sustituyen. El fenólico naranja sigue en el canto del hormigón.
 
 ## Fuera de este cierre
 

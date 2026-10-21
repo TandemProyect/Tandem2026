@@ -20,6 +20,11 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         private const double BoardDepthMm = 120d;
         private const string ClampPath = "../../Content/DesignTools/Stl/ATK60/10004220.stl";
         private const string ClampCode = "10004220";
+        private const string VariableClampPath = "../../Content/DesignTools/Stl/ATK60/10000221.stl";
+        private const string VariableClampCode = "10000221";
+        private const string VariableClampSlidePath = "../../Content/DesignTools/Stl/ATK60/10000221-2.stl";
+        private const string VariableClampSlideCode = "10000221B";
+        private const double VariableClampRaiseMm = 200d;
 
         private const string PlatePath = "../../Content/DesignTools/Stl/ATK60/10443020.stl";
         private const string PlateCode = "10443020";
@@ -535,6 +540,12 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 return false;
             }
 
+            var tape = ResolveTape(attrs, atStart);
+            if (tape == "TapeS7" || tape == "TapeS8")
+            {
+                return true;
+            }
+
             var mm = (int)Math.Round(Atk60FaceInsertion.ResolveWallThicknessMm(attrs));
             var closes = (mm > 20 && mm < 300)
                 || mm == 300 || mm == 450 || mm == 600 || mm == 900;
@@ -568,7 +579,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         }
 
         /// <summary>
-        /// TapeS1 y TapeS2 sustituyen al remate de madera.
+        /// El solape (TapeS1 o TapeS2) sustituye al remate de madera.
+        /// El cierre de panel y taco no lo sustituye.
         /// </summary>
         internal static bool ReplacesRemate(Desing2FormworkWallDto wall, bool atStart)
         {
@@ -578,12 +590,26 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 return false;
             }
 
+            if (IsPanelAndWood(attrs, atStart))
+            {
+                return false;
+            }
+
             var tape = ResolveTape(attrs, atStart);
             return tape == "TapeS1" || tape == "TapeS2";
         }
 
+        /// <summary>
+        /// El remate sigue en el muro. Solo desaparece si un extremo libre, o los dos, lleva solape.
+        /// </summary>
         internal static bool SuppressesRemate(Desing2FormworkWallDto wall)
         {
+            var attrs = wall != null ? wall.Attributes : null;
+            if (IsPanelAndWood(attrs, true) || IsPanelAndWood(attrs, false))
+            {
+                return false;
+            }
+
             return ReplacesRemate(wall, true) || ReplacesRemate(wall, false);
         }
 
@@ -631,6 +657,21 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 if (wallLengthMm > 1d && EndIsFree(attrs, false))
                 {
                     AddUnder300(outElements, wall, anchor, attrs, idWall, false, wallLengthMm, ux, uz, mm, wallHeightMm, wallLengthMm, coverEndMm, withYellowModule, solapeEachEndMm);
+                }
+
+                return outElements;
+            }
+
+            if (IsPanelAndWood(attrs, true) || IsPanelAndWood(attrs, false))
+            {
+                if (EndIsFree(attrs, true))
+                {
+                    AddTapeS7(outElements, anchor, idWall, true, 0d, ux, uz, mm, wallHeightMm, wallLengthMm);
+                }
+
+                if (wallLengthMm > 1d && EndIsFree(attrs, false))
+                {
+                    AddTapeS7(outElements, anchor, idWall, false, wallLengthMm, ux, uz, mm, wallHeightMm, wallLengthMm);
                 }
 
                 return outElements;
@@ -764,6 +805,157 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             AddAnglesAndClamps(
                 outElements, anchor, layout, idWall,
                 atStart, alongMm, ux, uz, widthMm, wallHeightMm, wallLengthMm);
+        }
+
+        /// <summary>
+        /// TapeS7 del Desing antiguo, y el TapeS8 del formulario (0,44 y el resto
+        /// que no es múltiplo de 0,050). Angular en las dos caras, el panel que cabe
+        /// y el taco en el sobrante. En 0,44 m: panel de 0,30 y taco de 0,14.
+        /// La grapa fija del muro se copia en las dos caras: la del panel y la del angular del tablón.
+        /// En el canto une el panel de fondo con el angular. El tablón lo cierra la regulable.
+        /// </summary>
+        private static bool IsPanelAndWood(AttributesList attrs, bool atStart)
+        {
+            var tape = ResolveTape(attrs, atStart);
+            return tape == "TapeS7" || tape == "TapeS8";
+        }
+
+        private static void AddTapeS7(
+            List<Atk60ElementPaintItem> outElements,
+            Atk60WallPaintAnchor anchor,
+            string idWall,
+            bool atStart,
+            double alongMm,
+            double ux,
+            double uz,
+            int thicknessMm,
+            double wallHeightMm,
+            double wallLengthMm)
+        {
+            var panelMm = 300;
+            if (thicknessMm >= 450) panelMm = 450;
+            if (thicknessMm >= 600) panelMm = 600;
+            if (thicknessMm >= 750) panelMm = 750;
+            if (thicknessMm >= 900) panelMm = 900;
+            if (panelMm > thicknessMm) panelMm = 300;
+            var woodMm = thicknessMm - panelMm;
+            if (woodMm < 1)
+            {
+                return;
+            }
+
+            var end = atStart ? -1d : 1d;
+            var outX = ux * end;
+            var outZ = uz * end;
+            var nx = anchor.NormalX;
+            var nz = anchor.NormalZ;
+            var nLen = Math.Sqrt((nx * nx) + (nz * nz));
+            if (nLen > 1e-6)
+            {
+                nx /= nLen;
+                nz /= nLen;
+            }
+
+            var yaw = Math.Atan2(outZ, outX);
+            var wallId = !string.IsNullOrWhiteSpace(idWall) ? idWall : anchor.IdWall;
+            double originX;
+            double originZ;
+            double rotY;
+            EndPose(anchor, atStart, alongMm, ux, uz, thicknessMm, out originX, out originZ, out rotY);
+
+            // El +X del taco, con este RotY, es (outZ, -outX). Si eso aumenta el espesor,
+            // el taco sale desde el panel. Si no, sale desde la cara de detrás.
+            var acrossX = outZ;
+            var acrossZ = -outX;
+            var woodFromPanel = ((-nx * acrossX) + (-nz * acrossZ)) >= 0d;
+            double woodX;
+            double woodZ;
+            EndOffset(
+                anchor, alongMm, ux, uz, nx, nz, outX, outZ,
+                woodFromPanel ? panelMm : thicknessMm, 0d, out woodX, out woodZ);
+            var wood = Wood(anchor, wallId, woodX, woodZ, rotY, woodMm, wallHeightMm, wallLengthMm, alongMm);
+            wood.Color = "wood-side";
+            wood.WallThicknessMm = BoardDepthMm;
+            outElements.Add(wood);
+
+            var bands = HeightBands(wallHeightMm);
+            for (var i = 0; i < bands.Count; i++)
+            {
+                var baseY = anchor.Y + bands[i].UpMm;
+                var height = bands[i].HeightMm;
+                AddStopPanel(
+                    outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz, yaw,
+                    0d, panelMm, FittingStopCode(panelMm, height), baseY, height, wallHeightMm);
+                AddAngle(
+                    outElements, anchor, wallId, true, alongMm, ux, uz, outX, outZ, nx, nz,
+                    thicknessMm, baseY, height, wallHeightMm, wallLengthMm);
+                AddAngle(
+                    outElements, anchor, wallId, false, alongMm, ux, uz, outX, outZ, nx, nz,
+                    thicknessMm, baseY, height, wallHeightMm, wallLengthMm);
+
+                var clampHeights = ClampHeightsMm(height);
+                var wallYaw = Math.Atan2(uz, ux);
+                var faceSign = anchor.FaceSign >= 0d ? 1d : -1d;
+                for (var hi = 0; hi < clampHeights.Length; hi++)
+                {
+                    var upMm = bands[i].UpMm + clampHeights[hi];
+                    Atk60FaceInsertion.BothFaces(
+                        outElements, anchor, wallId, ClampPath,
+                        alongMm, upMm, wallYaw, ux, uz, faceSign,
+                        wallHeightMm, thicknessMm, wallLengthMm,
+                        Atk60FaceInsertion.PanelFaceMm, 0d, ClampCode, "zinc",
+                        false, true, true);
+                    AddEndClamp(
+                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                        40d, anchor.Y + upMm, upMm, wallHeightMm, thicknessMm, wallLengthMm);
+                    AddEndClamp(
+                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                        panelMm - 40d, anchor.Y + upMm, upMm, wallHeightMm, thicknessMm, wallLengthMm);
+
+                    var variableUp = upMm + VariableClampRaiseMm;
+                    if (variableUp > bands[i].UpMm + height - 40d)
+                    {
+                        continue;
+                    }
+
+                    AddEndClampPiece(
+                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                        panelMm, anchor.Y + variableUp, variableUp, wallHeightMm, thicknessMm, wallLengthMm,
+                        VariableClampPath, VariableClampCode);
+                    AddEndClampPiece(
+                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                        thicknessMm, anchor.Y + variableUp, variableUp, wallHeightMm, thicknessMm, wallLengthMm,
+                        VariableClampSlidePath, VariableClampSlideCode);
+                }
+            }
+        }
+
+        private static string FittingStopCode(int panelMm, int heightMm)
+        {
+            var family = heightMm <= 1200 ? 1200 : (heightMm <= 2400 ? 2400 : 2700);
+            if (family == 1200)
+            {
+                if (panelMm >= 900) return "12904215";
+                if (panelMm >= 750) return "12754120";
+                if (panelMm >= 600) return "12604213";
+                if (panelMm >= 450) return "12454212";
+                return "12304211";
+            }
+
+            if (family == 2400)
+            {
+                if (panelMm >= 900) return "24904240";
+                if (panelMm >= 750) return "24754224";
+                if (panelMm >= 600) return "24604242";
+                if (panelMm >= 450) return "24454243";
+                return "24304244";
+            }
+
+            if (panelMm >= 900) return "27904209";
+            if (panelMm >= 750) return "27754219";
+            if (panelMm >= 600) return "27604207";
+            if (panelMm >= 450) return "27454206";
+            return "27304205";
         }
 
         /// <summary>
@@ -1163,17 +1355,45 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double upMm,
             double wallHeightMm,
             int widthMm,
-            double wallLengthMm)
+            double wallLengthMm,
+            double rotZ = 0d)
+        {
+            AddEndClampPiece(
+                outElements, anchor, idWall, alongMm, ux, uz, outX, outZ, nx, nz,
+                acrossMm, y, upMm, wallHeightMm, widthMm, wallLengthMm,
+                ClampPath, ClampCode, rotZ);
+        }
+
+        private static void AddEndClampPiece(
+            List<Atk60ElementPaintItem> outElements,
+            Atk60WallPaintAnchor anchor,
+            string idWall,
+            double alongMm,
+            double ux,
+            double uz,
+            double outX,
+            double outZ,
+            double nx,
+            double nz,
+            double acrossMm,
+            double y,
+            double upMm,
+            double wallHeightMm,
+            int widthMm,
+            double wallLengthMm,
+            string path,
+            string code,
+            double rotZ = 0d)
         {
             var x = anchor.X + (ux * alongMm) - (nx * acrossMm) + (outX * Atk60FaceInsertion.PanelFaceMm);
             var z = anchor.Z + (uz * alongMm) - (nz * acrossMm) + (outZ * Atk60FaceInsertion.PanelFaceMm);
             Atk60FaceInsertion.OneFace(
-                outElements, anchor, idWall, ClampPath,
-                x, y, z, 0d, 0d,
+                outElements, anchor, idWall, path,
+                x, y, z, 0d, rotZ,
                 outX, outZ, anchor.FaceSign, false,
                 alongMm, upMm,
                 wallHeightMm, widthMm, wallLengthMm,
-                ClampCode, "zinc");
+                code, "zinc");
         }
 
         /// <summary>
@@ -1353,6 +1573,17 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             if (string.Equals(stored, "TapeS5", StringComparison.OrdinalIgnoreCase))
             {
                 return "TapeS5";
+            }
+
+            if (string.Equals(stored, "Solucion_2", StringComparison.OrdinalIgnoreCase))
+            {
+                return "TapeS8";
+            }
+
+            if (string.Equals(stored, "TapeS7", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(stored, "TapeS8", StringComparison.OrdinalIgnoreCase))
+            {
+                return stored;
             }
 
             var solape = Flag(attrs, atStart ? "_ChekSolapeIni" : "_ChekSolapeEnd");

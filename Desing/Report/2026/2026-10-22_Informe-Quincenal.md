@@ -233,19 +233,30 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 
 ### 25. TapeS2
 
-- **Estado:** abierto. **20 de octubre de 2026, 16:03.**
-- **Qué se hace:** el TapeS2 deja de ser el tablón claro del canto. El fenólico de 22 mm es el del TapeS1. Donde el TapeS1 lleva tablones de 75 mm, el TapeS2 lleva fenólico de 22 mm. No lleva rigidizador. Los tirantes son los del fin del panel suplementario, como en el Desing antiguo (`FilerTapeS2`).
+- **Estado:** cerrado. **21 de octubre de 2026, 10:37.** Queda aceptado. No va al trimestral.
+- **Sesión 20 oct:** 16:03–17:08. Estimación **1 h 5 min**. El tirante del canto se acaba el 21 oct, de 10:02 a 10:37; ese rato está en el apartado 26, que es la misma sentada.
+- **Qué quedó:** el TapeS2 deja de ser el tablón claro del canto. El fenólico de 22 mm es el del TapeS1. Donde el TapeS1 lleva tablones de 75 mm, el TapeS2 lleva fenólico de 22 mm. No lleva rigidizador. Los tirantes son los del fin del panel suplementario, como en el Desing antiguo (`FilerTapeS2`).
 - **Corrección:** con TapeS2 no se pinta el tirante del extremo del panel anterior (los 100 mm de dentro del canto). Queda el del inicio del panel suplementario. Igual en el arranque si el TapeS2 está al inicio.
 - **Grapas:** la junta con el panel de 0,30 m queda fuera del muro, así que no salía la grapa fija. Se pinta en ese canto, en las dos caras, en TapeS1 y en TapeS2.
 - **Tirante del canto:** solo el TapeS2 lo lleva. En las demás soluciones el extremo lo cierran el angular, la unión o las grapas, y ese tirante del final del panel no se pinta.
 - **Remate:** si un extremo, o los dos, es TapeS1 o TapeS2, no se pinta el remate de madera. Esos tapes lo sustituyen. Los paneles cierran y el panel de 0,30 m cubre el tramo que ocupaba el listón. El fenólico naranja sigue en el canto del hormigón.
+- **Documentación:** `Desing/IA/docs/agente-tapes-atk60.md`.
 
 ### 26. Módulos y rigidizadores
 
-- **Estado:** abierto. **20 de octubre de 2026, 18:17.**
-- **Qué se hace:** en un módulo de 1,20, 2,40 o 2,70 van dos rigidizadores, a 300 mm de cada extremo. En un panel solo (0,30, 0,45, 0,60, 0,75 o 0,90) va uno, al centro. La modulación usa el módulo más grande que quepa: 2,70, si no 2,40, si no 1,20, y después 0,90, 0,75, 0,60, 0,45 y 0,30. No se parte un 2,70 en paneles pequeños. Si el TapeS1 o el TapeS2 está en los dos extremos, los dos paneles de 0,30 m pasan a un solo módulo de 0,60 m. En un muro de 5,50 m eso queda en dos de 2,70 y uno de 0,60.
+- **Estado:** cerrado. **21 de octubre de 2026, 10:37.** Queda aceptado. No va al trimestral.
+- **Sesión:** 20 oct 17:08–17:18 y 21 oct 9:26–10:37. Estimación **1 h 21 min**. A las 18:17 del 20 oct se dijo «sigue»; el testeo es el de la mañana del 21.
+- **Qué quedó:** en un módulo de 1,20, 2,40 o 2,70 van dos rigidizadores, a 300 mm de cada extremo. En un panel solo (0,30, 0,45, 0,60, 0,75 o 0,90) va uno, al centro. La modulación usa el módulo más grande que quepa: 2,70, si no 2,40, si no 1,20, y después 0,90, 0,75, 0,60, 0,45 y 0,30. No se parte un 2,70 en paneles pequeños. Si el TapeS1 o el TapeS2 está en los dos extremos, los dos paneles de 0,30 m pasan a un solo módulo de 0,60 m. En un muro de 5,50 m eso queda en dos de 2,70 y uno de 0,60.
 - **Solape en los dos extremos:** con TapeS1 o TapeS2 en los dos cantos, el sobrante no se deja en un solo lado. Se reparte por la mitad: la misma salida antes del inicio y después del final.
 - **Placas en el final:** el solape del inicio con TapeS1 se deja como estaba. En el final, las dos placas giran 180° en el eje común, sin pasar de una vuelta: si el ángulo la pasa, el visor lo lee como grados y el giro se queda en 90°. El tirante del panel anterior, pegado al del suplemento, no se pinta. Tampoco el del canto exterior del panel de 0,30 m, el que queda junto al rigidizador.
+
+### 27. TapeS7
+
+- **Estado:** abierto. **21 de octubre de 2026, 10:44.**
+- **Qué se hace:** espesor que no es múltiplo de 0,050, por ejemplo 0,44 m. Angular, el panel que quepa (en 0,44 un panel de 0,30) y el resto un taco de madera. Se toma del Desing antiguo.
+- **Para probar:** en 0,44 m el formulario guarda TapeS8. El TapeS7 del formulario es la solución 2 del múltiplo de 0,05. Los dos pintan este cierre. En 0,44: angular en las dos caras, panel de 0,30 y taco de 0,14, en el inicio y en el final si el extremo está libre. Sin gancho, placa ni rigidizador. La grapa fija del muro se copia en las dos caras y en el canto. El tablón lo cierra la grapa variable, 200 mm más arriba. El remate de madera del muro sigue; solo desaparece si hay solape en un extremo o en los dos.
+- En 0,44 m el formulario repetía la misma solución. En el inicio y en el final se quita la de abajo y queda solo la solución 1.
+- Al cambiar el espesor, las soluciones de tape del inicio y del final se actualizan en el formulario, sin tener que aceptar y volver a entrar.
 
 ## Heredado del informe 01 (sigue abierto)
 
@@ -284,8 +295,9 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 | Medidas del muro | Cursor, 20 oct | Apartado 22 cerrado. 10:15–10:52, estimación 37 min. Longitud, espesor y altura en Modificar muro |
 | Modelo muro en planta | Cursor, 20 oct | Apartado 23 cerrado. 10:52–11:33, estimación 41 min. Botón y código del modelo en planta fuera |
 | Tape con solape | Cursor, 20 oct | Apartado 24 cerrado. 11:33–15:54, estimación 4 h 21 min. TapeS1 aceptado. Queda en `Desing/IA/docs/agente-tapes-atk60.md` |
-| TapeS2 | Cursor, 20 oct | Apartado 25 abierto el 20 oct, 16:03. Fenólico como el TapeS1; sin rigidizador; tirantes del fin del panel |
-| Módulos y rigidizadores | Cursor, 20 oct | Apartado 26 abierto el 20 oct, 18:17. Dos rigidizadores en 1,20, 2,40 y 2,70. Modulación de mayor a menor. En 5,50 m: dos de 2,70 y uno de 0,60 |
+| TapeS2 | Cursor, 20–21 oct | Apartado 25 cerrado el 21 oct, 10:37. 20 oct 16:03–17:08, estimación 1 h 5 min. Fenólico como el TapeS1; el tirante del canto solo en TapeS2. Queda en `Desing/IA/docs/agente-tapes-atk60.md` |
+| Módulos y rigidizadores | Cursor, 20–21 oct | Apartado 26 cerrado el 21 oct, 10:37. 20 oct 17:08–17:18 y 21 oct 9:26–10:37, estimación 1 h 21 min. Dos rigidizadores en 1,20, 2,40 y 2,70. Solape repartido. Placas del final a 180° |
+| TapeS7 | Cursor, 21 oct | Apartado 27 abierto el 21 oct, 10:44. Angular, panel que quepa y taco de madera. Ejemplo 0,44 m |
 
 ## Al cerrar el 22 de octubre
 

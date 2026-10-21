@@ -27525,6 +27525,11 @@ let maStlWallApplyAllHeightMm = 0;
 
     /** Espesor del muro en metros, el mismo `_DataWith` del formulario antiguo. */
     function maStlWallTapeWidthMeters(ud) {
+        const input = maStlWallInspectFormState && maStlWallInspectFormState.widthInput;
+        if (input && String(input.value || '').trim()) {
+            const typedMm = maStlParseLengthInputValueToMm(input.value);
+            if (typedMm != null && typedMm >= 20) return typedMm / 1000;
+        }
         const fromAttr = Number(ud && ud._DataWith);
         if (Number.isFinite(fromAttr) && fromAttr > 0) return fromAttr;
         return maStlWallLineResolveWidthMm(ud) / 1000;
@@ -27584,7 +27589,7 @@ let maStlWallApplyAllHeightMm = 0;
                 text: 'El ancho de muro no tiene solape, es mayor de 0,30, no es exacto, no es múltiplo de 0,05 y menor de 0,60',
                 thickness: 'El ancho de muro es mayor de 0,30, no es exacto, no es múltiplo de 0,05 y menor de 0,60',
                 defaultId: 'TapeS8',
-                options: [opt('TapeS8', 'Solución 1', 'TapeS8.png'), opt('Solucion_2', 'Solución 2', 'Solucion_2.png')],
+                options: [opt('TapeS8', 'Solución 1', 'TapeS8.png')],
             },
             end06: {
                 text: 'El ancho de muro no tiene solape, es mayor de 0,60, no es exacto y es múltiplo de 0,05',
@@ -27988,6 +27993,10 @@ let maStlWallApplyAllHeightMm = 0;
         muroPane.appendChild(widthLabel);
 
         const widthInput = maStlWallInspectMakeMeasureInput();
+        widthInput.addEventListener('input', function () {
+            const ud = maStlWallInspectFormState.selectedUd;
+            if (ud) maStlWallInspectPaintTapes(ud);
+        });
         muroPane.appendChild(widthInput);
 
         const rowLabel = document.createElement('label');
