@@ -6,6 +6,7 @@ Para el siguiente agente. Hecho el **19, 20 y 21 de octubre de 2026**.
 - Apartado 24: Tape con solape (TapeS1). Cerrado el 20 oct, 15:54. El usuario lo dio por bueno.
 - Apartado 25: TapeS2. Cerrado el 21 oct, 10:37.
 - Apartado 26: módulos, rigidizadores, solape repartido y placas del final. Cerrado el 21 oct, 10:37.
+- Apartado 27: TapeS7 y TapeS8. Cerrado el 21 oct, 12:43. El usuario lo dio por bueno. Pendiente un testeo total de altura.
 
 No reabrir la posición ni la rotación de la placa del TapeS3. El giro del TapeS1 en el inicio no se toca. En el final las dos placas van a 180° por `RotZ`, no cruzando `RotY`.
 
@@ -20,8 +21,9 @@ El formulario del botón derecho (pestaña Configurar Tapes) guarda el inicio en
 | Menos de 0,30 m | TapeS3 | TapeS1 o TapeS2 |
 | 0,30, 0,45, 0,60 y 0,90 m | TapeS4 (solución 1) o TapeS5 (solución 2) | TapeS1 o TapeS2 |
 | 0,75 m | No entra en el bloque exacto | — |
+| Mayor de 0,30, menor de 0,60, no exacto | TapeS7 o TapeS8: angular, panel que quepa y taco | TapeS1 o TapeS2 |
 
-`ResolveTape`: si está guardado TapeS1, TapeS2 o TapeS5, manda eso. Si no, con solape es TapeS1 y sin solape es TapeS4.
+`ResolveTape`: si está guardado TapeS1, TapeS2, TapeS5, TapeS7 o TapeS8, manda eso. `Solucion_2` se lee como TapeS8. Si no, con solape es TapeS1 y sin solape es TapeS4.
 
 ## Archivos
 
@@ -130,9 +132,22 @@ Aceptado el 21 oct, 10:37.
 - Modulación de mayor a menor: 2,70, si no 2,40, si no 1,20, y después 0,90, 0,75, 0,60, 0,45 y 0,30. No se parte un 2,70 en paneles pequeños.
 - El remate de madera, si queda, es el resto por debajo de 300 mm.
 
+## TapeS7 y TapeS8
+
+Aceptado el 21 oct, 12:43. Espesor mayor de 0,30 y menor de 0,60 que no es 0,30, 0,45 ni 0,60. En 0,44 m el formulario guarda TapeS8. El TapeS7 del formulario es la solución 2 de 0,35, 0,40, 0,50 y 0,55. Los dos pintan `AddTapeS7`.
+
+- El panel es el mayor de 0,30, 0,45, 0,60, 0,75 o 0,90 que quepa. En 0,44: panel de 0,30 y taco de 0,14.
+- Angular en las dos caras. Sin gancho `1920811`, sin placa `10443020` y sin rigidizador `1850162`.
+- Grapa fija `10004220` en las dos caras del muro, en el canto, y otra en el panel a 40 mm del tablón. Unen el angular con el panel.
+- Grapa variable `10000221` en el taco, 200 mm más arriba que las fijas, para no coincidir.
+- En 0,44 el formulario solo ofrece la solución 1. Al cambiar el espesor, las soluciones del inicio y del final se recalculan en el acto.
+- Si un extremo es TapeS7 o TapeS8, el otro extremo libre pinta el mismo cierre.
+- No lleva tirante en el canto del panel.
+- Pendiente: un testeo total de altura.
+
 ## Remate
 
-Si un extremo libre, o los dos, es TapeS1 o TapeS2, no se pinta el remate de madera. Esos tapes lo sustituyen. El fenólico naranja sigue en el canto del hormigón.
+Si un extremo libre, o los dos, es TapeS1 o TapeS2, no se pinta el remate de madera. Esos tapes lo sustituyen. El fenólico naranja sigue en el canto del hormigón. El cierre de panel y taco no lo quita: en ese muro el remate sigue.
 
 ## Fuera de este cierre
 

@@ -252,11 +252,13 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 
 ### 27. TapeS7
 
-- **Estado:** abierto. **21 de octubre de 2026, 10:44.**
-- **Qué se hace:** espesor que no es múltiplo de 0,050, por ejemplo 0,44 m. Angular, el panel que quepa (en 0,44 un panel de 0,30) y el resto un taco de madera. Se toma del Desing antiguo.
-- **Para probar:** en 0,44 m el formulario guarda TapeS8. El TapeS7 del formulario es la solución 2 del múltiplo de 0,05. Los dos pintan este cierre. En 0,44: angular en las dos caras, panel de 0,30 y taco de 0,14, en el inicio y en el final si el extremo está libre. Sin gancho, placa ni rigidizador. La grapa fija del muro se copia en las dos caras y en el canto. El tablón lo cierra la grapa variable, 200 mm más arriba. El remate de madera del muro sigue; solo desaparece si hay solape en un extremo o en los dos.
-- En 0,44 m el formulario repetía la misma solución. En el inicio y en el final se quita la de abajo y queda solo la solución 1.
-- Al cambiar el espesor, las soluciones de tape del inicio y del final se actualizan en el formulario, sin tener que aceptar y volver a entrar.
+- **Estado:** cerrado. **21 de octubre de 2026, 12:43.** Queda aceptado. No va al trimestral.
+- **Sesión 21 oct:** 10:44–12:43. Estimación **1 h 59 min**.
+- **Qué quedó:** espesor que no es múltiplo de 0,050, por ejemplo 0,44 m. Angular en las dos caras, el panel que quepa (en 0,44 un panel de 0,30) y el resto un taco de madera (0,14). Sin gancho, placa ni rigidizador. La grapa fija `10004220` va en las dos caras del muro y en el canto, uniendo el angular con el panel. El tablón con el angular lo cierra la grapa variable, 200 mm más arriba que las fijas. En el inicio y en el final, si el extremo está libre. El TapeS7 del formulario (solución 2 del múltiplo de 0,05) y el TapeS8 (0,44 y el resto que no es múltiplo) pintan este mismo cierre.
+- **Formulario:** en 0,44 m se quitó la solución de abajo, que era la misma, y queda solo la solución 1. Al cambiar el espesor, las soluciones del inicio y del final se actualizan sin aceptar y volver a entrar.
+- **Remate:** el de madera del muro sigue. Solo desaparece si hay solape en un extremo o en los dos.
+- **Pendiente:** un testeo total de altura.
+- **Documentación:** `Desing/IA/docs/agente-tapes-atk60.md`.
 
 ## Heredado del informe 01 (sigue abierto)
 
@@ -297,7 +299,7 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 | Tape con solape | Cursor, 20 oct | Apartado 24 cerrado. 11:33–15:54, estimación 4 h 21 min. TapeS1 aceptado. Queda en `Desing/IA/docs/agente-tapes-atk60.md` |
 | TapeS2 | Cursor, 20–21 oct | Apartado 25 cerrado el 21 oct, 10:37. 20 oct 16:03–17:08, estimación 1 h 5 min. Fenólico como el TapeS1; el tirante del canto solo en TapeS2. Queda en `Desing/IA/docs/agente-tapes-atk60.md` |
 | Módulos y rigidizadores | Cursor, 20–21 oct | Apartado 26 cerrado el 21 oct, 10:37. 20 oct 17:08–17:18 y 21 oct 9:26–10:37, estimación 1 h 21 min. Dos rigidizadores en 1,20, 2,40 y 2,70. Solape repartido. Placas del final a 180° |
-| TapeS7 | Cursor, 21 oct | Apartado 27 abierto el 21 oct, 10:44. Angular, panel que quepa y taco de madera. Ejemplo 0,44 m |
+| TapeS7 | Cursor, 21 oct | Apartado 27 cerrado el 21 oct, 12:43. 10:44–12:43, estimación 1 h 59 min. Angular, panel que quepa y taco. Pendiente el testeo de altura |
 
 ## Al cerrar el 22 de octubre
 
