@@ -1,5 +1,5 @@
 {
-  "generatedAtUtc": "2026-10-20T13:52:08.752Z",
+  "generatedAtUtc": "2026-10-21T08:24:08.486Z",
   "pageUrl": "https://localhost:44384/Desing_2/Viewer?offerId=1&designId=20004",
   "schema": "WallConnections.v1",
   "source": "Desing_2",
@@ -70,8 +70,8 @@
       "_XCoordinate": 3500,
       "_YCoordinate": 0,
       "_ZCoordinate": -1750,
-      "_Tape_1": "TapeS1",
-      "_Tape_2": "TapeS4",
+      "_Tape_1": "TapeS4",
+      "_Tape_2": "TapeS1",
       "_Idconnection_1": null,
       "_Idconnection_2": null,
       "_CHeckBracketInside": true,
@@ -576,7 +576,7 @@
   "generatedWallModel": {
     "mode": "wall3d",
     "system": "Atk-60",
-    "generatedAtUtc": "2026-10-20T13:52:08.747Z",
+    "generatedAtUtc": "2026-10-21T08:24:08.48Z",
     "counts": {
       "generatedMeshes": 1,
       "sourceLines": 2,

@@ -117,6 +117,49 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         }
 
         /// <summary>
+        /// Grapa fija en la junta del TapeS2. Ese canto queda fuera del muro,
+        /// así que la junta entre módulos no la ve PlaceOnModule.
+        /// </summary>
+        internal static void PlaceBeyondWall(
+            List<Atk60ElementPaintItem> outElements,
+            Atk60WallPaintAnchor anchor,
+            string idWall,
+            double alongMm,
+            Modulo270Layout layout,
+            double yawRad,
+            double ux,
+            double uz,
+            double faceSign,
+            double wallHeightMm,
+            double wallThicknessMm,
+            double wallLengthMm)
+        {
+            if (layout == null || layout.Pieces == null)
+            {
+                return;
+            }
+
+            for (var pi = 0; pi < layout.Pieces.Count; pi++)
+            {
+                var piece = layout.Pieces[pi];
+                if (string.Equals(piece.Orientation, "Tumbado", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var heights = VerticalHeightsMm(piece.PieceHeightMm);
+                for (var hi = 0; hi < heights.Length; hi++)
+                {
+                    Atk60FaceInsertion.BothFaces(
+                        outElements, anchor, idWall, FixedPath,
+                        alongMm, piece.UpOffsetMm + heights[hi], yawRad, ux, uz, faceSign,
+                        wallHeightMm, wallThicknessMm, wallLengthMm,
+                        Atk60FaceInsertion.PanelFaceMm, 0d, FixedCode, "zinc");
+                }
+            }
+        }
+
+        /// <summary>
         /// Grapa regulable del remate (10–300 mm): fija al inicio y corredera al final de la madera.
         /// </summary>
         internal static void PlaceOnEndFiller(

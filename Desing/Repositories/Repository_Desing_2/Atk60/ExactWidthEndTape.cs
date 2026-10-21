@@ -11,7 +11,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
     /// 0,30, 0,45, 0,60 y 0,90: panel (TapeS4 / TapeS5) o tape de solape.
     /// Menos de 0,30: relleno naranja entre dos tablones laterales y placa (TapeS3).
     /// TapeS1: 0,30 m más de encofrado, naranja de 22 mm, dos tablones de 75 mm y barras.
-    /// TapeS2 sigue siendo el tablón del canto hasta que se pida.
+    /// TapeS2: el mismo naranja y, en el sitio de los tablones, fenólico de 22 mm.
+    /// Sin rigidizador. Los tirantes son los del fin del panel suplementario.
     /// El final es el simétrico del inicio. Un extremo unido a otro muro no se cierra.
     /// </summary>
     internal static class ExactWidthEndTape
@@ -48,7 +49,10 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double uz,
             int widthMm,
             double wallHeightMm,
-            double wallLengthMm)
+            double wallLengthMm,
+            double coverMm,
+            bool withYellowModule,
+            double solapeEachEndMm)
         {
             double originX;
             double originZ;
@@ -58,7 +62,10 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             var tape = ResolveTape(attrs, atStart);
             if (tape == "TapeS2")
             {
-                outElements.Add(Wood(anchor, idWall, originX, originZ, rotY, widthMm, wallHeightMm, wallLengthMm, alongMm));
+                AddTapeS2(
+                    outElements, wall, anchor, idWall,
+                    atStart, alongMm, ux, uz, widthMm,
+                    wallHeightMm, wallLengthMm, originX, originZ, rotY, coverMm, withYellowModule, solapeEachEndMm);
                 return;
             }
 
@@ -67,7 +74,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 AddTapeS1(
                     outElements, wall, anchor, idWall,
                     atStart, alongMm, ux, uz, widthMm,
-                    wallHeightMm, wallLengthMm, originX, originZ, rotY);
+                    wallHeightMm, wallLengthMm, originX, originZ, rotY, coverMm, withYellowModule, solapeEachEndMm);
                 return;
             }
 
@@ -91,6 +98,57 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         }
 
         /// <summary>
+        /// TapeS2, como FilerTapeS2. Mismo suplemento y mismo fenólico de canto que el TapeS1.
+        /// Donde el TapeS1 lleva tablón de 75 mm, aquí hay fenólico naranja de 22 mm.
+        /// No hay rigidizador ni gancho. Los tirantes son los del fin de ese panel.
+        /// </summary>
+        private static void AddTapeS2(
+            List<Atk60ElementPaintItem> outElements,
+            Desing2FormworkWallDto wall,
+            Atk60WallPaintAnchor anchor,
+            string idWall,
+            bool atStart,
+            double alongMm,
+            double ux,
+            double uz,
+            int widthMm,
+            double wallHeightMm,
+            double wallLengthMm,
+            double originX,
+            double originZ,
+            double rotY,
+            double coverMm,
+            bool withYellowModule,
+            double solapeEachEndMm)
+        {
+            var moduleStartMm = SupplementStartMm(atStart, alongMm, coverMm);
+            var outerRunMm = solapeEachEndMm > 1d
+                ? solapeEachEndMm
+                : TapeS1SupplementMm - Math.Max(0d, coverMm);
+            if (withYellowModule)
+            {
+                outElements.AddRange(Atk60ModuleAssembly.Build(
+                    wall, anchor, 1, TapeS1SupplementMm, moduleStartMm, 0, 1, false, true));
+                PlaceSupplementJointClamps(
+                    outElements, wall, anchor, idWall, SupplementJointMm(atStart, moduleStartMm), ux, uz, widthMm, wallHeightMm, wallLengthMm);
+            }
+
+            outElements.Add(SideWood(
+                anchor, idWall, originX, originZ, rotY,
+                widthMm, 0d, TapeS1OrangeMm, 0d,
+                "wood-orange", wallHeightMm, wallLengthMm, alongMm));
+            var runMm = outerRunMm - TapeS1OrangeMm;
+            outElements.Add(SideWood(
+                anchor, idWall, originX, originZ, rotY,
+                TapeS1OrangeMm, 0d, runMm, TapeS1OrangeMm,
+                "wood-orange", wallHeightMm, wallLengthMm, alongMm));
+            outElements.Add(SideWood(
+                anchor, idWall, originX, originZ, rotY,
+                TapeS1OrangeMm, widthMm - TapeS1OrangeMm, runMm, TapeS1OrangeMm,
+                "wood-orange", wallHeightMm, wallLengthMm, alongMm));
+        }
+
+        /// <summary>
         /// TapeS1, como FilerSExS01. El encofrado sigue 0,30 m más allá del hormigón.
         /// El fenólico naranja de 22 mm va pegado al canto del muro. Cada tablón de 75 mm
         /// sale de esa cara exterior, en el canto del fenólico. El fijador 1850164 no se pinta.
@@ -109,18 +167,31 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double wallLengthMm,
             double originX,
             double originZ,
-            double rotY)
+            double rotY,
+            double coverMm,
+            bool withYellowModule,
+            double solapeEachEndMm)
         {
             var outSign = atStart ? -1d : 1d;
-            var moduleStartMm = alongMm + (outSign < 0d ? -TapeS1SupplementMm : 0d);
-            outElements.AddRange(Atk60ModuleAssembly.Build(
-                wall, anchor, 1, TapeS1SupplementMm, moduleStartMm, 0, 1));
+            var moduleStartMm = SupplementStartMm(atStart, alongMm, coverMm);
+            var outerRunMm = solapeEachEndMm > 1d
+                ? solapeEachEndMm
+                : TapeS1SupplementMm - Math.Max(0d, coverMm);
+            if (withYellowModule)
+            {
+                // El TapeS1 no lleva el tirante del canto: lo cierran las placas.
+                outElements.AddRange(Atk60ModuleAssembly.Build(
+                    wall, anchor, 1, TapeS1SupplementMm, moduleStartMm, 0, 1, false, !atStart,
+                    false, false, 0d, -1d, false, true));
+                PlaceSupplementJointClamps(
+                    outElements, wall, anchor, idWall, SupplementJointMm(atStart, moduleStartMm), ux, uz, widthMm, wallHeightMm, wallLengthMm);
+            }
 
             outElements.Add(SideWood(
                 anchor, idWall, originX, originZ, rotY,
                 widthMm, 0d, TapeS1OrangeMm, 0d,
                 "wood-orange", wallHeightMm, wallLengthMm, alongMm));
-            var plankRunMm = TapeS1SupplementMm - TapeS1OrangeMm;
+            var plankRunMm = outerRunMm - TapeS1OrangeMm;
             outElements.Add(SideWood(
                 anchor, idWall, originX, originZ, rotY,
                 TapeS1SideMm, 0d, plankRunMm, TapeS1OrangeMm,
@@ -130,7 +201,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 TapeS1SideMm, widthMm - TapeS1SideMm, plankRunMm, TapeS1OrangeMm,
                 "wood-side", wallHeightMm, wallLengthMm, alongMm));
 
-            var stiffenerAlongMm = alongMm + (outSign * (TapeS1SupplementMm + (TapeS1StiffenerDepthMm * 0.5d)));
+            var stiffenerAlongMm = alongMm + (outSign * (outerRunMm + (TapeS1StiffenerDepthMm * 0.5d)));
             var tieAlongMm = stiffenerAlongMm + (outSign * (TapeS1StiffenerDepthMm * 0.5d));
             var outX = ux * outSign;
             var outZ = uz * outSign;
@@ -156,12 +227,15 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     AddTapeS1Stiffener(
                         outElements, anchor, idWall,
                         stiffenerAlongMm, upMm, ux, uz, widthMm, wallHeightMm, wallLengthMm);
+                    // Inicio: RotZ 3π/2. Final: π/2, los mismos 180°.
+                    // Por encima de una vuelta el visor lee el ángulo como grados.
+                    var plateRotZ = atStart ? Math.PI : 0d;
                     AddSidePlate(
                         outElements, anchor, idWall, alongMm, upMm, ux, uz,
-                        widthMm, wallHeightMm, wallLengthMm, true, atStart, tieAlongMm, 0d, true, true, Math.PI);
+                        widthMm, wallHeightMm, wallLengthMm, true, atStart, tieAlongMm, 0d, true, true, plateRotZ);
                     AddSidePlate(
                         outElements, anchor, idWall, alongMm, upMm, ux, uz,
-                        widthMm, wallHeightMm, wallLengthMm, false, atStart, tieAlongMm, 0d, false, true, Math.PI);
+                        widthMm, wallHeightMm, wallLengthMm, false, atStart, tieAlongMm, 0d, false, true, plateRotZ);
                     var plateY = anchor.Y + upMm;
                     AddTapeS1Hook(
                         outElements, anchor, idWall, yaw,
@@ -175,6 +249,60 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                         anchor.Z + (uz * hookAlongMm) - (nz * (widthMm + faceGapMm)));
                 }
             }
+        }
+
+        internal static void PlaceSharedJoint(
+            List<Atk60ElementPaintItem> outElements,
+            Desing2FormworkWallDto wall,
+            Atk60WallPaintAnchor anchor,
+            double alongMm)
+        {
+            if (wall == null || anchor == null)
+            {
+                return;
+            }
+
+            var attrs = wall.Attributes;
+            var yawRad = Atk60FaceInsertion.NormalizeYawToRad(anchor.RotY);
+            var ux = Math.Cos(yawRad);
+            var uz = Math.Sin(yawRad);
+            var wallHeightMm = Atk60FaceInsertion.ResolveWallHeightMm(attrs);
+            var wallLengthMm = WallRunMm(anchor, attrs);
+            var widthMm = (int)Math.Round(Atk60FaceInsertion.ResolveWallThicknessMm(attrs));
+            var idWall = !string.IsNullOrWhiteSpace(wall.WallId)
+                ? wall.WallId
+                : (!string.IsNullOrWhiteSpace(wall.Id) ? wall.Id : wall.LineId);
+            PlaceSupplementJointClamps(
+                outElements, wall, anchor, idWall, alongMm, ux, uz, widthMm, wallHeightMm, wallLengthMm, 600d);
+        }
+
+        /// <summary>
+        /// Grapa fija en la junta del panel de 0,30 m. Ese canto queda fuera del muro.
+        /// </summary>
+        private static void PlaceSupplementJointClamps(
+            List<Atk60ElementPaintItem> outElements,
+            Desing2FormworkWallDto wall,
+            Atk60WallPaintAnchor anchor,
+            string idWall,
+            double alongMm,
+            double ux,
+            double uz,
+            int widthMm,
+            double wallHeightMm,
+            double wallLengthMm,
+            double moduleLengthMm = TapeS1SupplementMm)
+        {
+            var attrs = wall != null ? wall.Attributes : null;
+            var yawRad = Atk60FaceInsertion.NormalizeYawToRad(anchor.RotY);
+            var faceSign = anchor.FaceSign >= 0d ? 1d : -1d;
+            var supplementLayout = Modulo270HeightPanelCatalog.ResolveForModule(
+                wallHeightMm,
+                (int)moduleLengthMm,
+                Atk60FaceInsertion.UseAdjustable750(attrs),
+                Atk60FaceInsertion.FlagOn(attrs != null ? attrs._CHeckTypeFormworkMode : null));
+            PanelClamp.PlaceBeyondWall(
+                outElements, anchor, idWall, alongMm, supplementLayout,
+                yawRad, ux, uz, faceSign, wallHeightMm, widthMm, wallLengthMm);
         }
 
         /// <summary>
@@ -349,9 +477,127 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             return new[] { 650d, 1400d, 2200d };
         }
 
+        private static void CoverMm(
+            Desing2FormworkWallDto wall,
+            double absorbedRemateMm,
+            out double startMm,
+            out double endMm)
+        {
+            startMm = 0d;
+            endMm = 0d;
+            if (absorbedRemateMm <= 1d || absorbedRemateMm >= 150d)
+            {
+                return;
+            }
+
+            if (ReplacesRemate(wall, false))
+            {
+                endMm = absorbedRemateMm;
+                return;
+            }
+
+            if (ReplacesRemate(wall, true))
+            {
+                startMm = absorbedRemateMm;
+            }
+        }
+
+        private static double SupplementStartMm(bool atStart, double alongMm, double coverMm)
+        {
+            var cover = Math.Max(0d, coverMm);
+            if (atStart)
+            {
+                return alongMm - (TapeS1SupplementMm - cover);
+            }
+
+            return alongMm - cover;
+        }
+
+        private static double SupplementJointMm(bool atStart, double moduleStartMm)
+        {
+            if (atStart)
+            {
+                return moduleStartMm + TapeS1SupplementMm;
+            }
+
+            return moduleStartMm;
+        }
+
+        /// <summary>
+        /// El tirante del canto del panel solo va en el TapeS2.
+        /// En el resto el extremo lo cierran el angular, la unión o las grapas.
+        /// </summary>
+        internal static bool SkipsPanelEndTie(Desing2FormworkWallDto wall, bool atStart)
+        {
+            var attrs = wall != null ? wall.Attributes : null;
+            if (!EndIsFree(attrs, atStart))
+            {
+                return false;
+            }
+
+            var mm = (int)Math.Round(Atk60FaceInsertion.ResolveWallThicknessMm(attrs));
+            var closes = (mm > 20 && mm < 300)
+                || mm == 300 || mm == 450 || mm == 600 || mm == 900;
+            if (!closes)
+            {
+                return false;
+            }
+
+            return ResolveTape(attrs, atStart) != "TapeS2";
+        }
+
+        /// <summary>
+        /// El suplemento ya trae su tirante. El del panel anterior, pegado a ese, no se pinta.
+        /// TapeS2 en los dos cantos. TapeS1 solo en el final: en el inicio ya queda uno.
+        /// </summary>
+        internal static bool EndUsesPanelTies(Desing2FormworkWallDto wall, bool atStart)
+        {
+            var attrs = wall != null ? wall.Attributes : null;
+            if (!EndIsFree(attrs, atStart))
+            {
+                return false;
+            }
+
+            var tape = ResolveTape(attrs, atStart);
+            if (tape == "TapeS2")
+            {
+                return true;
+            }
+
+            return tape == "TapeS1" && !atStart;
+        }
+
+        /// <summary>
+        /// TapeS1 y TapeS2 sustituyen al remate de madera.
+        /// </summary>
+        internal static bool ReplacesRemate(Desing2FormworkWallDto wall, bool atStart)
+        {
+            var attrs = wall != null ? wall.Attributes : null;
+            if (!EndIsFree(attrs, atStart))
+            {
+                return false;
+            }
+
+            var tape = ResolveTape(attrs, atStart);
+            return tape == "TapeS1" || tape == "TapeS2";
+        }
+
+        internal static bool SuppressesRemate(Desing2FormworkWallDto wall)
+        {
+            return ReplacesRemate(wall, true) || ReplacesRemate(wall, false);
+        }
+
+        internal static double RunMm(Atk60WallPaintAnchor anchor, Desing2FormworkWallDto wall)
+        {
+            return WallRunMm(anchor, wall != null ? wall.Attributes : null);
+        }
+
         internal static List<Atk60ElementPaintItem> Place(
             Desing2FormworkWallDto wall,
-            Atk60WallPaintAnchor anchor)
+            Atk60WallPaintAnchor anchor,
+            double absorbedRemateMm = 0d,
+            bool withYellowModule = true,
+            double solapeEachEndMm = 0d)
         {
             var outElements = new List<Atk60ElementPaintItem>();
             if (wall == null || anchor == null || PillarFormwork.IsPillar(wall))
@@ -371,16 +617,20 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 ? wall.WallId
                 : (!string.IsNullOrWhiteSpace(wall.Id) ? wall.Id : wall.LineId);
 
+            double coverStartMm;
+            double coverEndMm;
+            CoverMm(wall, absorbedRemateMm, out coverStartMm, out coverEndMm);
+
             if (mm > 20 && mm < 300)
             {
                 if (EndIsFree(attrs, true))
                 {
-                    AddUnder300(outElements, wall, anchor, attrs, idWall, true, 0d, ux, uz, mm, wallHeightMm, wallLengthMm);
+                    AddUnder300(outElements, wall, anchor, attrs, idWall, true, 0d, ux, uz, mm, wallHeightMm, wallLengthMm, coverStartMm, withYellowModule, solapeEachEndMm);
                 }
 
                 if (wallLengthMm > 1d && EndIsFree(attrs, false))
                 {
-                    AddUnder300(outElements, wall, anchor, attrs, idWall, false, wallLengthMm, ux, uz, mm, wallHeightMm, wallLengthMm);
+                    AddUnder300(outElements, wall, anchor, attrs, idWall, false, wallLengthMm, ux, uz, mm, wallHeightMm, wallLengthMm, coverEndMm, withYellowModule, solapeEachEndMm);
                 }
 
                 return outElements;
@@ -396,12 +646,12 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
 
             if (EndIsFree(attrs, true))
             {
-                AddEnd(outElements, wall, anchor, attrs, layout, idWall, true, 0d, ux, uz, widthMm.Value, wallHeightMm, wallLengthMm);
+                AddEnd(outElements, wall, anchor, attrs, layout, idWall, true, 0d, ux, uz, widthMm.Value, wallHeightMm, wallLengthMm, coverStartMm, withYellowModule, solapeEachEndMm);
             }
 
             if (wallLengthMm > 1d && EndIsFree(attrs, false))
             {
-                AddEnd(outElements, wall, anchor, attrs, layout, idWall, false, wallLengthMm, ux, uz, widthMm.Value, wallHeightMm, wallLengthMm);
+                AddEnd(outElements, wall, anchor, attrs, layout, idWall, false, wallLengthMm, ux, uz, widthMm.Value, wallHeightMm, wallLengthMm, coverEndMm, withYellowModule, solapeEachEndMm);
             }
 
             return outElements;
@@ -420,7 +670,10 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double uz,
             int widthMm,
             double wallHeightMm,
-            double wallLengthMm)
+            double wallLengthMm,
+            double coverMm,
+            bool withYellowModule,
+            double solapeEachEndMm)
         {
             var tape = ResolveTape(attrs, atStart);
             double originX;
@@ -430,9 +683,10 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
 
             if (tape == "TapeS2")
             {
-                outElements.Add(Wood(
-                    anchor, idWall, originX, originZ, rotY,
-                    widthMm, wallHeightMm, wallLengthMm, alongMm));
+                AddTapeS2(
+                    outElements, wall, anchor, idWall,
+                    atStart, alongMm, ux, uz, widthMm,
+                    wallHeightMm, wallLengthMm, originX, originZ, rotY, coverMm, withYellowModule, solapeEachEndMm);
                 return;
             }
 
@@ -441,7 +695,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 AddTapeS1(
                     outElements, wall, anchor, idWall,
                     atStart, alongMm, ux, uz, widthMm,
-                    wallHeightMm, wallLengthMm, originX, originZ, rotY);
+                    wallHeightMm, wallLengthMm, originX, originZ, rotY, coverMm, withYellowModule, solapeEachEndMm);
                 return;
             }
 

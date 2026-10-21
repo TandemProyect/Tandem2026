@@ -29,7 +29,14 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double startAlongMm,
             int moduleIndexOffset,
             int moduleCountInWall,
-            bool suppressLastEndJoint = false)
+            bool suppressLastEndJoint = false,
+            bool tiesBeyondWall = false,
+            bool trimStartTie = false,
+            bool trimEndTie = false,
+            double trimStartJointMm = 0d,
+            double trimEndJointMm = -1d,
+            bool skipStartTie = false,
+            bool skipFreeEndTie = false)
         {
             var outElements = new List<Atk60ElementPaintItem>();
             if (wall == null || anchor == null || moduleCount <= 0 || moduleLengthMm < 299d)
@@ -90,7 +97,9 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     outElements, layout, anchor,
                     moduleBaseAlongMm, moduleIndex, countInWall,
                     yawRad, ux, uz, faceSign,
-                    wallHeightMm, wallThicknessMm, wallLengthMm, idWall);
+                    wallHeightMm, wallThicknessMm, wallLengthMm, idWall, tiesBeyondWall,
+                    trimStartTie, trimEndTie, trimStartJointMm, trimEndJointMm,
+                    skipStartTie, skipFreeEndTie);
             }
 
             return outElements;

@@ -121,11 +121,12 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
 
         /// <summary>
         /// Puestos del rigidizador a lo largo del módulo.
-        /// A partir de 1,50 m: a 300 mm de cada extremo. Si es más corto, al centro.
+        /// 1,20, 2,40 y 2,70: dos, a 300 mm de cada extremo.
+        /// Un panel solo (0,30, 0,45, 0,60, 0,75, 0,90): uno, al centro.
         /// </summary>
         internal static double[] AlongLocals(double moduleLengthMm)
         {
-            if (moduleLengthMm >= 1500d)
+            if (moduleLengthMm >= 1200d)
             {
                 return new[] { 300d, moduleLengthMm - 300d };
             }
@@ -155,11 +156,6 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             for (var ai = 0; ai < alongLocal.Length; ai++)
             {
                 var alongMm = moduleBaseAlongMm + alongLocal[ai];
-                if (alongMm < 30d || alongMm > wallLengthMm - 30d)
-                {
-                    continue;
-                }
-
                 Atk60FaceInsertion.BothFaces(
                     outElements, anchor, idWall, path,
                     alongMm, upMm, yawRad, ux, uz, faceSign,

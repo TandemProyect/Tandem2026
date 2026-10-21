@@ -16,7 +16,6 @@ namespace Desing.Repositories.RepositoryAtk60
 
         private static readonly int[] Atk60FillModuleMm = { 2400, 1200, 900, 750, 600, 450, 300 };
         private const int Atk60BaseModuleMm = 2700;
-        private const int Atk60MaxRemateMm = 149;
         private const double ConnectedEndTrimMm = 450d;
 
         public Atk60WallsRepository(FormworkJsonCommonRepository common)
@@ -68,12 +67,11 @@ namespace Desing.Repositories.RepositoryAtk60
             }
 
             // Normas ATK60 para CUALQUIER longitud de muro:
-            // 1) Catalogo: 2,70  2,40  1,20  0,90  0,75  0,60  0,45  0,30.
-            // 2) Remate de madera estrictamente < 0,15 m (max 149 mm).
-            // 3) Se combinan esos modulos hasta que el resto cumpla (2); no se acepta
-            //    un greedy que deje 0,15..0,29 (p.ej. 1,20 sobre 1,45 deja 0,25).
-            // 4) Si hace falta, se cambia un 2,70 por modulacion menor.
-            // 5) Si hay remate, va SIEMPRE el penultimo; el muro acaba en un modulo.
+            // 1) El módulo más grande que quepa: 2,70, si no 2,40, si no 1,20,
+            //    y luego 0,90  0,75  0,60  0,45  0,30.
+            // 2) No se parte un 2,70 en paneles pequeños. Menos módulos, menos uniones.
+            // 3) Lo que no llega a 0,30 m queda de remate.
+            // 4) Si hay remate, va el penúltimo; el muro acaba en un módulo.
             const int epsMm = 1;
 
             foreach (var item in walls)
@@ -551,17 +549,49 @@ namespace Desing.Repositories.RepositoryAtk60
 
                 var remateMm = Math.Round(moduloWall.M_Remate * 1000d, 3);
                 var chunks = BuildAtk60AlongChunks(moduloWall);
+                var skipRemate = ExactWidthEndTape.SuppressesRemate(wall)
+                    && remateMm > 1d && remateMm < 300d;
+                var leadMm = skipRemate
+                    && ExactWidthEndTape.ReplacesRemate(wall, true)
+                    && !ExactWidthEndTape.ReplacesRemate(wall, false)
+                    ? remateMm
+                    : 0d;
+                var wallRunMm = ExactWidthEndTape.RunMm(anchor, wall);
+                var bothTapes = ExactWidthEndTape.ReplacesRemate(wall, true)
+                    && ExactWidthEndTape.ReplacesRemate(wall, false);
+                var moduleSpanMm = bothTapes ? 600d : 0d;
+                for (var si = 0; si < chunks.Count; si++)
+                {
+                    if (chunks[si].Builder == null)
+                    {
+                        continue;
+                    }
+
+                    moduleSpanMm += chunks[si].Count * (double)chunks[si].Builder.ModuleLengthMm;
+                }
+
+                var halfSolapeMm = 0d;
+                if (bothTapes && wallRunMm > 1d && moduleSpanMm > wallRunMm + 1d)
+                {
+                    halfSolapeMm = (moduleSpanMm - wallRunMm) * 0.5d;
+                }
+
+                var endJointMm = skipRemate && leadMm <= 0d ? wallRunMm - remateMm : wallRunMm;
                 var stiffenerAlongMm = new List<double>();
-                var cursorMm = 0d;
+                var cursorMm = leadMm - halfSolapeMm;
                 var indexOffset = 0;
                 for (var ci = 0; ci < chunks.Count; ci++)
                 {
                     var chunk = chunks[ci];
                     if (chunk.Builder == null)
                     {
-                        outElements.AddRange(
-                            Modulo270PanelElementGenerator.BuildRemate(wall, anchor, remateMm, cursorMm));
-                        cursorMm += remateMm;
+                        if (!skipRemate)
+                        {
+                            outElements.AddRange(
+                                Modulo270PanelElementGenerator.BuildRemate(wall, anchor, remateMm, cursorMm));
+                            cursorMm += remateMm;
+                        }
+
                         continue;
                     }
 
@@ -576,7 +606,9 @@ namespace Desing.Repositories.RepositoryAtk60
                         }
                     }
 
-                    var remateFollows = ci + 1 < chunks.Count && chunks[ci + 1].Builder == null;
+                    var remateFollows = !skipRemate
+                        && ci + 1 < chunks.Count
+                        && chunks[ci + 1].Builder == null;
                     outElements.AddRange(
                         Modulo270PanelElementGenerator.Build(
                             wall,
@@ -586,7 +618,13 @@ namespace Desing.Repositories.RepositoryAtk60
                             cursorMm,
                             indexOffset,
                             totalModules > 0 ? totalModules : chunk.Count,
-                            remateFollows));
+                            remateFollows,
+                            ExactWidthEndTape.EndUsesPanelTies(wall, true),
+                            ExactWidthEndTape.EndUsesPanelTies(wall, false),
+                            leadMm,
+                            endJointMm,
+                            ExactWidthEndTape.SkipsPanelEndTie(wall, true),
+                            ExactWidthEndTape.SkipsPanelEndTie(wall, false)));
 
                     cursorMm += chunk.Count * (double)chunk.Builder.ModuleLengthMm;
                     indexOffset += chunk.Count;
@@ -594,9 +632,22 @@ namespace Desing.Repositories.RepositoryAtk60
 
                 PushPullProp.PlaceAlongWall(outElements, wall, anchor);
 
+                if (bothTapes)
+                {
+                    outElements.AddRange(Atk60ModuleAssembly.Build(
+                        wall, anchor, 1, 600d, cursorMm, indexOffset,
+                        (totalModules > 0 ? totalModules : indexOffset) + 1,
+                        false, true));
+                    ExactWidthEndTape.PlaceSharedJoint(outElements, wall, anchor, cursorMm);
+                }
+
                 outElements.AddRange(
                     Modulo270WorkBracketGenerator.Build(wall, anchor, cursorMm, protectionWoodPending, stiffenerAlongMm));
-                outElements.AddRange(ExactWidthEndTape.Place(wall, anchor));
+                outElements.AddRange(ExactWidthEndTape.Place(
+                    wall, anchor,
+                    bothTapes ? 0d : (skipRemate ? remateMm : 0d),
+                    !bothTapes,
+                    halfSolapeMm));
                 protectionWoodPending = false;
             }
 
@@ -1025,7 +1076,7 @@ namespace Desing.Repositories.RepositoryAtk60
             }
 
             var remateMm = Math.Round(moduloWall.M_Remate * 1000d, 3);
-            var hasRemate = remateMm > 1d && remateMm < 150d;
+            var hasRemate = remateMm > 1d && remateMm < 300d;
             var closer = hasRemate ? ResolveAtk60ClosingBuilder(moduloWall) : null;
 
             for (var bi = 0; bi < _moduleBuilders.Count; bi++)
@@ -1096,8 +1147,8 @@ namespace Desing.Repositories.RepositoryAtk60
         }
 
         /// <summary>
-        /// Despiece longitudinal para cualquier L: maximos 2,70 y relleno
-        /// 2,40..0,30 de modo que el remate quede siempre en 0..149 mm.
+        /// Despiece longitudinal: primero 2,70, luego el mayor que quepa.
+        /// El resto, si no llega a 0,30 m, es remate.
         /// </summary>
         private static int[] Atk60FillSizesMm(bool useAdjustable750)
         {
@@ -1114,67 +1165,21 @@ namespace Desing.Repositories.RepositoryAtk60
             n270 = longMm / Atk60BaseModuleMm;
             var remainingMm = longMm - (n270 * Atk60BaseModuleMm);
             var fillCounts = new int[fillSizes.Length];
-
-            while (!TryFillAtk60RemainderMm(remainingMm, fillCounts, 0, fillSizes))
+            for (var i = 0; i < fillSizes.Length && remainingMm >= 300; i++)
             {
-                if (n270 <= 0)
+                var sizeMm = fillSizes[i];
+                if (sizeMm < 300 || remainingMm < sizeMm)
                 {
-                    for (var i = 0; i < fillCounts.Length; i++)
-                    {
-                        fillCounts[i] = 0;
-                    }
-
-                    remateMm = remainingMm;
-                    return fillCounts;
+                    continue;
                 }
 
-                n270--;
-                remainingMm += Atk60BaseModuleMm;
+                var n = remainingMm / sizeMm;
+                fillCounts[i] = n;
+                remainingMm -= n * sizeMm;
             }
 
-            remateMm = remainingMm;
-            for (var i = 0; i < fillCounts.Length; i++)
-            {
-                remateMm -= fillCounts[i] * fillSizes[i];
-            }
-
-            if (remateMm < 0)
-            {
-                remateMm = 0;
-            }
-
+            remateMm = remainingMm < 0 ? 0 : remainingMm;
             return fillCounts;
-        }
-
-        private static bool TryFillAtk60RemainderMm(int remainingMm, int[] counts, int index, int[] fillSizes)
-        {
-            if (remainingMm <= Atk60MaxRemateMm)
-            {
-                for (var i = index; i < counts.Length; i++)
-                {
-                    counts[i] = 0;
-                }
-
-                return true;
-            }
-
-            if (index >= fillSizes.Length)
-            {
-                return false;
-            }
-
-            var sizeMm = fillSizes[index];
-            var maxN = remainingMm / sizeMm;
-            for (var n = maxN; n >= 0; n--)
-            {
-                counts[index] = n;
-                if (TryFillAtk60RemainderMm(remainingMm - (n * sizeMm), counts, index + 1, fillSizes))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private static void AddModuleCount(ModulosAtk60Wall module, double moduleValueM, long count)

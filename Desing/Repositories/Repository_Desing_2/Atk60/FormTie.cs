@@ -32,7 +32,14 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double wallHeightMm,
             double wallThicknessMm,
             double wallLengthMm,
-            string idWall)
+            string idWall,
+            bool tiesBeyondWall = false,
+            bool trimStartTie = false,
+            bool trimEndTie = false,
+            double trimStartJointMm = 0d,
+            double trimEndJointMm = -1d,
+            bool skipStartTie = false,
+            bool skipFreeEndTie = false)
         {
             var isLast = moduleIndex >= countInWall;
             double rightmost = -1d;
@@ -70,7 +77,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                         piece.UpOffsetMm, new[] { alongInset, piece.PieceWidthMm - alongInset },
                         new[] { topHole },
                         false, yawRad, ux, uz, faceSign,
-                        heightLimit, wallThicknessMm, wallLengthMm, piece.PieceWidthMm);
+                        heightLimit, wallThicknessMm, wallLengthMm, piece.PieceWidthMm, tiesBeyondWall, trimStartTie, trimEndTie, trimStartJointMm, trimEndJointMm);
                     continue;
                 }
 
@@ -80,8 +87,18 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     continue;
                 }
 
-                var alongs = new List<double> { HoleInsetMm };
-                var atFreeEnd = isLast && Math.Abs((piece.AlongOffsetMm + piece.PieceWidthMm) - rightmost) < 1d;
+                var alongs = new List<double>();
+                var atPanelStart = moduleIndex <= 1 && piece.AlongOffsetMm < 1d;
+                if (!(skipStartTie && atPanelStart))
+                {
+                    alongs.Add(HoleInsetMm);
+                }
+
+                // El tirante del canto solo lo lleva el TapeS2.
+                // Angular, unión y grapas cierran el panel sin ese tirante.
+                var atFreeEnd = !skipFreeEndTie
+                    && isLast
+                    && Math.Abs((piece.AlongOffsetMm + piece.PieceWidthMm) - rightmost) < 1d;
                 if (atFreeEnd)
                 {
                     alongs.Add(piece.PieceWidthMm - HoleInsetMm);
@@ -91,7 +108,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     outElements, anchor, idWall, moduleBaseAlongMm + piece.AlongOffsetMm,
                     piece.UpOffsetMm, alongs.ToArray(), heights,
                     false, yawRad, ux, uz, faceSign,
-                    wallHeightMm, wallThicknessMm, wallLengthMm, piece.PieceWidthMm);
+                    wallHeightMm, wallThicknessMm, wallLengthMm, piece.PieceWidthMm, tiesBeyondWall, trimStartTie, trimEndTie, trimStartJointMm, trimEndJointMm);
             }
         }
 
@@ -111,7 +128,12 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double wallHeightMm,
             double wallThicknessMm,
             double wallLengthMm,
-            double moduleLengthMm)
+            double moduleLengthMm,
+            bool tiesBeyondWall = false,
+            bool trimStartTie = false,
+            bool trimEndTie = false,
+            double trimStartJointMm = 0d,
+            double trimEndJointMm = -1d)
         {
             foreach (var local in alongLocal)
             {
@@ -121,14 +143,30 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 }
 
                 var alongMm = alongOriginMm + local;
-                if (alongMm < -1d || alongMm > wallLengthMm + 1d)
+                if (!tiesBeyondWall && (alongMm < -1d || alongMm > wallLengthMm + 1d))
+                {
+                    continue;
+                }
+
+                // TapeS2: el suplemento ya trae su tirante. El del panel
+                // anterior, a 44 mm del canto, queda duplicado.
+                var endJointMm = trimEndJointMm >= 0d ? trimEndJointMm : wallLengthMm;
+                if (trimEndTie && endJointMm > 1d
+                    && alongMm > endJointMm - 100d && alongMm < endJointMm + 20d)
+                {
+                    continue;
+                }
+
+                if (trimStartTie && alongMm > trimStartJointMm - 20d && alongMm < trimStartJointMm + 100d)
                 {
                     continue;
                 }
 
                 // Menos de 0,30: el cierre lo pone el tablón del extremo.
                 // El tirante del panel, a 44 mm del borde, caía en el fenólico.
-                if (wallThicknessMm < 300d
+                // El suplemento del TapeS2 sí usa ese tirante de fin de panel.
+                if (!tiesBeyondWall
+                    && wallThicknessMm < 300d
                     && (alongMm < 100d || (wallLengthMm > 1d && alongMm > wallLengthMm - 100d)))
                 {
                     continue;

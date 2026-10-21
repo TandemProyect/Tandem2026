@@ -25,11 +25,18 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
             double startAlongMm,
             int moduleIndexOffset,
             int moduleCountInWall,
-            bool suppressLastEndJoint = false)
+            bool suppressLastEndJoint = false,
+            bool trimStartTie = false,
+            bool trimEndTie = false,
+            double trimStartJointMm = 0d,
+            double trimEndJointMm = -1d,
+            bool skipStartTie = false,
+            bool skipFreeEndTie = false)
         {
             return Atk60ModuleAssembly.Build(
                 wall, anchor, moduleCount, moduleLengthMm, startAlongMm,
-                moduleIndexOffset, moduleCountInWall, suppressLastEndJoint);
+                moduleIndexOffset, moduleCountInWall, suppressLastEndJoint, false, trimStartTie, trimEndTie,
+                trimStartJointMm, trimEndJointMm, skipStartTie, skipFreeEndTie);
         }
 
         public static List<Atk60ElementPaintItem> BuildRemate(
