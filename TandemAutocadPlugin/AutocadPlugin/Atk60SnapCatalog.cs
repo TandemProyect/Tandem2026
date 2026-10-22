@@ -11,6 +11,7 @@ namespace AutocadPlugin
         public string Id { get; set; }
         public string Role { get; set; }
         public Point3d LocalMeters { get; set; }
+        public double RzDeg { get; set; }
     }
 
     internal static class Atk60SnapCatalog
@@ -40,7 +41,8 @@ namespace AutocadPlugin
                                 LocalMeters = new Point3d(
                                     ReadD(token, "x"),
                                     ReadD(token, "y"),
-                                    ReadD(token, "z"))
+                                    ReadD(token, "z")),
+                                RzDeg = ReadD(token, "rzDeg")
                             });
                         }
                     }

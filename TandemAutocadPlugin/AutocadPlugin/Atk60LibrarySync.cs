@@ -172,10 +172,74 @@ namespace AutocadPlugin
         public static string ReadCatalogJson()
         {
             var arr = ReadCatalogFromDisk();
-            if (arr != null && arr.Count > 0)
-                return arr.ToString(Formatting.None);
-            arr = CatalogFromBlocks();
+            if (arr == null || arr.Count == 0)
+                arr = CatalogFromBlocks();
+            arr = EnsureFixedClampRow(arr);
             return arr != null ? arr.ToString(Formatting.None) : "[]";
+        }
+
+        /// <summary>
+        /// La grapa fija no está en el maestro de artículos. Si el DWG existe,
+        /// el bloquín la lista igual para poder ponerla sobre los paneles.
+        /// </summary>
+        private static JArray EnsureFixedClampRow(JArray arr)
+        {
+            if (arr == null)
+                arr = new JArray();
+            JObject found = null;
+            foreach (var row in arr)
+            {
+                var code = ((string)row["CodeName"] ?? (string)row["codeName"]
+                    ?? (string)row["Code"] ?? (string)row["code"] ?? "").Trim();
+                if (code.IndexOf("10004220", StringComparison.OrdinalIgnoreCase) < 0)
+                    continue;
+                found = row as JObject;
+                break;
+            }
+            if (found == null && !FixedClampDwgExists())
+                return arr;
+            if (found == null)
+            {
+                found = new JObject
+                {
+                    ["Id"] = 0,
+                    ["Code"] = "10004220",
+                    ["CodeName"] = "10004220",
+                    ["Label"] = "Grapa fija",
+                    ["Caption"] = "10004220 Grapa fija"
+                };
+                arr.Add(found);
+            }
+            FillFixedClampUrls(found);
+            return arr;
+        }
+
+        private static void FillFixedClampUrls(JObject row)
+        {
+            const string code = "10004220";
+            if (row == null)
+                return;
+            if (string.IsNullOrWhiteSpace((string)row["StlUrl"] ?? (string)row["stlUrl"]))
+                row["StlUrl"] = "/Content/DesignTools/Stl/ATK60/" + code + ".stl";
+            if (string.IsNullOrWhiteSpace((string)row["DwgUrl3D"] ?? (string)row["dwgUrl3D"]))
+                row["DwgUrl3D"] = "/Content/DesignTools/DWG/AtkSystem60/3D/" + code + ".dwg";
+            if (string.IsNullOrWhiteSpace((string)row["DwgUrl3DRef"] ?? (string)row["dwgUrl3DRef"]))
+                row["DwgUrl3DRef"] = "/Content/DesignTools/DWG/AtkSystem60/3DRef/" + code + "R.dwg";
+            if (string.IsNullOrWhiteSpace((string)row["DwgUrl"] ?? (string)row["dwgUrl"]))
+                row["DwgUrl"] = (string)row["DwgUrl3DRef"];
+        }
+
+        private static bool FixedClampDwgExists()
+        {
+            foreach (var root in SourceRoots())
+            {
+                if (IsUsable(Path.Combine(root, "3DRef", "10004220R.dwg"))
+                    || IsUsable(Path.Combine(root, "3D", "10004220.dwg")))
+                    return true;
+            }
+            var cache = BlockRoot();
+            return IsUsable(Path.Combine(cache, "3DRef", "10004220R.dwg"))
+                || IsUsable(Path.Combine(cache, "3D", "10004220.dwg"));
         }
 
         private static JArray ReadCatalogFromDisk()
@@ -270,6 +334,35 @@ namespace AutocadPlugin
                 return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Si el DWG del repo es más nuevo que la copia de %LocalAppData%, la sustituye.
+        /// Sin esto, un bloque recién guardado no entra en el dibujo.
+        /// </summary>
+        public static void RefreshFromSourceIfNewer(string codeName, string view)
+        {
+            string folder;
+            string file;
+            Normalize(view, codeName, out folder, out file);
+            var dest = Path.Combine(BlockRoot(), folder, file);
+            try
+            {
+                foreach (var root in SourceRoots())
+                {
+                    var src = FindSourceFile(root, folder, file);
+                    if (!IsUsable(src))
+                        continue;
+                    if (IsUsable(dest)
+                        && File.GetLastWriteTimeUtc(src) <= File.GetLastWriteTimeUtc(dest))
+                        return;
+                    TryCopyFromSource(folder, file, dest);
+                    return;
+                }
+            }
+            catch
+            {
+            }
         }
 
         public static bool EnsureCached(string codeName, string view, string destFile = null)
@@ -561,7 +654,7 @@ namespace AutocadPlugin
             {
                 foreach (var root in SourceRoots())
                 {
-                    var src = Path.Combine(root, folder, file);
+                    var src = FindSourceFile(root, folder, file);
                     if (!IsUsable(src))
                         continue;
                     var dir = Path.GetDirectoryName(dest);
@@ -637,6 +730,27 @@ namespace AutocadPlugin
             if (v == "xr") return "xr";
             if (v == "snap") return "snap";
             return "3dref";
+        }
+
+        /// <summary>
+        /// El visor pide 1850162 y 1850163. Los DWG se guardaron con otro nombre.
+        /// </summary>
+        private static string FindSourceFile(string root, string folder, string file)
+        {
+            var canonical = Path.Combine(root, folder, file);
+            if (IsUsable(canonical))
+                return canonical;
+            string alias;
+            if (string.Equals(file, "1850162.dwg", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(file, "1850162R.dwg", StringComparison.OrdinalIgnoreCase))
+                alias = "18550162R.dwg";
+            else if (string.Equals(file, "1850163.dwg", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(file, "1850163R.dwg", StringComparison.OrdinalIgnoreCase))
+                alias = "1850159R.dwg";
+            else
+                return canonical;
+            var alt = Path.Combine(root, folder, alias);
+            return IsUsable(alt) ? alt : canonical;
         }
 
         private static void Normalize(string view, string codeName, out string folder, out string file)

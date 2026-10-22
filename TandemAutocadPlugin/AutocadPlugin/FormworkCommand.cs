@@ -50,7 +50,7 @@ namespace AutocadPlugin
             Wall3dProgressWindow overlay = null;
             try
             {
-                overlay = Wall3dProgressWindow.ShowOverAcad();
+                overlay = Wall3dProgressWindow.ShowOverAcad("Encofrando ATK-60…");
                 var api = new MVCApiService();
                 resp = overlay.Wait(() =>
                     api.EncofrarAtk60Async(idsJson)
@@ -83,12 +83,17 @@ namespace AutocadPlugin
                 return;
             }
 
+            ed.WriteMessage($"\nServidor: {elements.Count} pieza(s). Insertando paneles...\n");
+
             int inserted;
+            int panels;
+            int clamps;
+            int stiffeners;
             int skipped;
+            var problems = new List<string>();
             try
             {
-                using (doc.LockDocument())
-                    InsertPanels(doc, elements, out inserted, out skipped);
+                InsertPanels(doc, elements, problems, out inserted, out panels, out clamps, out stiffeners, out skipped);
             }
             catch (System.Exception ex)
             {
@@ -97,9 +102,11 @@ namespace AutocadPlugin
             }
 
             ed.WriteMessage(
-                $"\nEncofrado ATK-60: {inserted} panel(es) DWG"
+                $"\nEncofrado ATK-60: {inserted} pieza(s) DWG ({panels} paneles, {clamps} grapas, {stiffeners} rigidizadores)"
                 + (skipped > 0 ? $", {skipped} sin DWG local" : "")
                 + $" (muros {resp.WallsCount}, piezas {elements.Count}).\n");
+            for (var i = 0; i < problems.Count; i++)
+                ed.WriteMessage("\n" + problems[i] + "\n");
         }
 
         private sealed class AxisWall
@@ -112,6 +119,8 @@ namespace AutocadPlugin
             public double EndYmm;
             public double ThicknessM;
             public double LengthMm;
+            public double HeightM;
+            public WallEditAttrs Attrs;
         }
 
         private static List<AxisWall> CollectAxisWalls(Database db)
@@ -149,6 +158,7 @@ namespace AutocadPlugin
                     if (len < 1)
                         continue;
 
+                    var attrs = WallEditAttrs.Load(WallCadXData.ReadAttrsJson(line));
                     walls.Add(new AxisWall
                     {
                         Id = wallDbId > 0
@@ -160,7 +170,9 @@ namespace AutocadPlugin
                         EndXmm = ex,
                         EndYmm = ey,
                         ThicknessM = ThicknessMeters(line),
-                        LengthMm = len
+                        LengthMm = len,
+                        HeightM = attrs.HeightM > 0 ? attrs.HeightM : DefaultHeightM,
+                        Attrs = attrs
                     });
                 }
                 tr.Commit();
@@ -204,31 +216,62 @@ namespace AutocadPlugin
                     Id = w.Id,
                     LineId = w.Id,
                     WallId = w.Id,
-                    Attributes = new Dictionary<string, object>
-                    {
-                        { "_Datalong", w.LengthMm / 1000.0 },
-                        { "_DataWith", w.ThicknessM },
-                        { "_DataHeight", DefaultHeightM },
-                        { "InicioX", w.StartXmm },
-                        { "InicioY", w.StartYmm },
-                        { "InicioZ", 0d },
-                        { "FinX", w.EndXmm },
-                        { "FinY", w.EndYmm },
-                        { "FinZ", 0d },
-                        { "Tipo", "Line" }
-                    }
+                    Attributes = WallAttributes(w)
                 });
             }
             return JsonConvert.SerializeObject(list);
         }
 
+        private static Dictionary<string, object> WallAttributes(AxisWall w)
+        {
+            var a = w.Attrs ?? new WallEditAttrs();
+            var map = new Dictionary<string, object>
+            {
+                { "_Datalong", w.LengthMm / 1000.0 },
+                { "_DataWith", w.ThicknessM },
+                { "_DataHeight", w.HeightM > 0 ? w.HeightM : DefaultHeightM },
+                { "InicioX", w.StartXmm },
+                { "InicioY", w.StartYmm },
+                { "InicioZ", 0d },
+                { "FinX", w.EndXmm },
+                { "FinY", w.EndYmm },
+                { "FinZ", 0d },
+                { "Tipo", "Line" },
+                { "_CHeckBracketInside", a.BracketIn },
+                { "_CHeckBracketOutside", a.BracketOut },
+                { "_CHeckRijiInside", a.StiffIn },
+                { "_CHeckRijiOutside", a.StiffOut },
+                { "_CHeck750R", a.Panel750 },
+                { "_IsUniversalPanel", a.Panel750 },
+                { "_CHeckTypeFormworkMode", a.VerticalPanels },
+                { "_CHeckPropInside", a.PropIn },
+                { "_CHeckPropOutside", a.PropOut },
+                { "_CHeckPropInsideInf", a.PropInInf },
+                { "_CHeckPropOutsideInf", a.PropOutInf },
+                { "_ChekSolapeIni", a.SolapeIni },
+                { "_ChekSolapeEnd", a.SolapeEnd }
+            };
+            if (!string.IsNullOrWhiteSpace(a.TapeIni))
+                map["_Tape_1"] = a.TapeIni;
+            if (!string.IsNullOrWhiteSpace(a.TapeEnd))
+                map["_Tape_2"] = a.TapeEnd;
+            return map;
+        }
+
         private static void InsertPanels(
             Document doc,
             List<Atk60FormworkElement> elements,
+            List<string> problems,
             out int inserted,
+            out int panels,
+            out int clamps,
+            out int stiffeners,
             out int skipped)
         {
             inserted = 0;
+            panels = 0;
+            clamps = 0;
+            stiffeners = 0;
             skipped = 0;
             var db = doc.Database;
             var prev = WallSpecialCad.SuppressEraseWatch;
@@ -237,6 +280,31 @@ namespace AutocadPlugin
             const string view = "3dref";
             var blockCache = new Dictionary<string, ObjectId>(StringComparer.OrdinalIgnoreCase);
 
+            try
+            {
+            // Primero paneles y grapas, y se confirman. Si el DWG del
+            // rigidizador no abre, el muro ya queda encofrado.
+            LoadResolvedBlocks(doc, elements, blockCache, problems, stiffenersOnly: false);
+            PlaceResolved(doc, db, elements, blockCache, view, meterToDwg, eraseFirst: true, stiffenersOnly: false,
+                ref inserted, ref panels, ref clamps, ref stiffeners, ref skipped);
+            LoadResolvedBlocks(doc, elements, blockCache, problems, stiffenersOnly: true);
+            PlaceResolved(doc, db, elements, blockCache, view, meterToDwg, eraseFirst: false, stiffenersOnly: true,
+                ref inserted, ref panels, ref clamps, ref stiffeners, ref skipped);
+            }
+            finally
+            {
+                WallSpecialCad.SuppressEraseWatch = prev;
+            }
+        }
+
+        private static void LoadResolvedBlocks(
+            Document doc,
+            List<Atk60FormworkElement> elements,
+            Dictionary<string, ObjectId> blockCache,
+            List<string> problems,
+            bool stiffenersOnly)
+        {
+            const string view = "3dref";
             foreach (var item in elements)
             {
                 if (item == null)
@@ -244,59 +312,128 @@ namespace AutocadPlugin
                 var code = CodeNameFrom(item.ElementCode, item.ImportPath);
                 if (string.IsNullOrWhiteSpace(code) || blockCache.ContainsKey(code))
                     continue;
-                var dwg = Atk60DwgResolver.ResolveDwg(code, view);
-                if (string.IsNullOrWhiteSpace(dwg))
+                if (IsStiffener(code) != stiffenersOnly)
                     continue;
-                blockCache[code] = BlockInsertCommand.EnsureBlockDefinition(
-                    doc, dwg, BlockInsertCommand.BlockNameFor(code, view));
+                string dwg;
+                try
+                {
+                    dwg = Atk60DwgResolver.ResolveDwg(code, view);
+                }
+                catch (System.Exception ex)
+                {
+                    problems.Add(code + ": " + ex.Message);
+                    blockCache[code] = ObjectId.Null;
+                    continue;
+                }
+                if (string.IsNullOrWhiteSpace(dwg))
+                {
+                    blockCache[code] = ObjectId.Null;
+                    continue;
+                }
+                try
+                {
+                    blockCache[code] = BlockInsertCommand.EnsureBlockDefinition(
+                        doc, dwg, BlockInsertCommand.BlockNameFor(code, view));
+                }
+                catch (System.Exception ex)
+                {
+                    problems.Add(code + ": no se abrió el DWG (" + ex.Message + ")");
+                    blockCache[code] = ObjectId.Null;
+                }
             }
+        }
 
-            try
-            {
+        private static void PlaceResolved(
+            Document doc,
+            Database db,
+            List<Atk60FormworkElement> elements,
+            Dictionary<string, ObjectId> blockCache,
+            string view,
+            double meterToDwg,
+            bool eraseFirst,
+            bool stiffenersOnly,
+            ref int inserted,
+            ref int panels,
+            ref int clamps,
+            ref int stiffeners,
+            ref int skipped)
+        {
+            using (doc.LockDocument())
             using (var tr = db.TransactionManager.StartTransaction())
             {
                 EnsureFormworkLayer(tr, db);
                 var bt = (BlockTable)tr.GetObject(db.BlockTableId, OpenMode.ForRead);
                 var ms = (BlockTableRecord)tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite);
-                EraseLayerEntities(tr, ms, LayerFormwork);
+                if (eraseFirst)
+                    EraseLayerEntities(tr, ms, LayerFormwork);
 
                 foreach (var item in elements)
                 {
                     if (item == null)
                         continue;
                     var code = CodeNameFrom(item.ElementCode, item.ImportPath);
+                    if (string.IsNullOrWhiteSpace(code) || IsStiffener(code) != stiffenersOnly)
+                        continue;
                     ObjectId blockId;
-                    if (string.IsNullOrWhiteSpace(code)
-                        || !blockCache.TryGetValue(code, out blockId)
-                        || blockId.IsNull)
+                    if (!blockCache.TryGetValue(code, out blockId) || blockId.IsNull)
                     {
                         skipped++;
                         continue;
                     }
 
+                    var tumbado = string.Equals(item.Orientation, "Tumbado", StringComparison.OrdinalIgnoreCase);
+                    // El servidor sube el tumbado una altura de pieza: en el visor
+                    // el giro lo deja colgando de ese punto. El DWG, al tumbarlo,
+                    // crece hacia arriba, así que aquí el origen va al suelo de la hilada.
+                    var upMm = item.Y;
+                    if (tumbado && item.PieceHeightMm > 1)
+                        upMm -= item.PieceHeightMm;
                     var at = new Point3d(
                         CadUnits.FromMillimeters(item.X),
                         CadUnits.FromMillimeters(item.Z),
-                        CadUnits.FromMillimeters(item.Y));
-                    var tumbado = string.Equals(item.Orientation, "Tumbado", StringComparison.OrdinalIgnoreCase);
-                    // Three.js gira en Y (mano izquierda al pasar a Z de AutoCAD) → -RotY.
-                    // El DWG mira al revés que el STL: 180° en vertical sobre el centro
-                    // de la base, para no desplazar la huella del muro.
-                    var yaw = -item.RotY;
-                    var orient = Matrix3d.Rotation(yaw, Vector3d.ZAxis, Point3d.Origin)
-                        * BlockInsertCommand.PanelOrient(meterToDwg, tumbado);
-                    var widthMm = item.PieceWidthMm > 1 ? item.PieceWidthMm : 900d;
-                    var along = Vector3d.XAxis.TransformBy(orient);
-                    if (along.Length > 1e-9)
-                        along = along.GetNormal();
-                    var pivot = at + along * (CadUnits.FromMillimeters(widthMm) * 0.5);
-                    var placed = Matrix3d.Rotation(Math.PI, Vector3d.ZAxis, pivot)
-                        * Matrix3d.Displacement(at.GetAsVector())
-                        * orient;
+                        CadUnits.FromMillimeters(upMm));
+                    Matrix3d placed;
+                    string role;
+                    if (IsFixedClamp(code) || IsStiffener(code))
+                    {
+                        // Origen del punto = el del visor (ancla y 120 mm). No usa el giro de panel.
+                        // El reflejo del paso a Z arriba va en la escala: BlockTransform
+                        // rechaza un determinante negativo.
+                        var seam = string.Equals(item.Orientation, "Horizontal", StringComparison.OrdinalIgnoreCase);
+                        placed = FixedClampRotation(item, at, IsStiffener(code), IsShortStiffener(code) && seam);
+                        if (IsStiffener(code))
+                        {
+                            // El DWG no está en los ejes del STL: el largo va en +Y y el
+                            // grueso en +Z. El STL lleva el largo en Z y el cuerpo en −Y.
+                            placed = placed * StiffenerBlockToStl(meterToDwg, code);
+                        }
+                        role = IsStiffener(code) ? "RIGI" : "UNION";
+                        tumbado = false;
+                    }
+                    else
+                    {
+                        // Three.js gira en Y (mano izquierda al pasar a Z de AutoCAD) → -RotY.
+                        // El DWG mira al revés que el STL: 180° en vertical sobre el centro
+                        // de la base, para no desplazar la huella del muro.
+                        var yaw = -item.RotY;
+                        var orient = Matrix3d.Rotation(yaw, Vector3d.ZAxis, Point3d.Origin)
+                            * BlockInsertCommand.PanelOrient(meterToDwg, tumbado);
+                        var widthMm = item.PieceWidthMm > 1 ? item.PieceWidthMm : 900d;
+                        var along = Vector3d.XAxis.TransformBy(orient);
+                        if (along.Length > 1e-9)
+                            along = along.GetNormal();
+                        var pivot = at + along * (CadUnits.FromMillimeters(widthMm) * 0.5);
+                        placed = Matrix3d.Rotation(Math.PI, Vector3d.ZAxis, pivot)
+                            * Matrix3d.Displacement(at.GetAsVector())
+                            * orient;
+                        role = "PANEL";
+                    }
 
                     var br = new BlockReference(Point3d.Origin, blockId);
                     br.Layer = LayerFormwork;
                     br.BlockTransform = placed;
+                    if (role == "UNION" || role == "RIGI")
+                        br.ScaleFactors = new Scale3d(meterToDwg, -meterToDwg, meterToDwg);
                     ms.AppendEntity(br);
                     tr.AddNewlyCreatedDBObject(br, true);
                     long wallId = 0;
@@ -309,16 +446,188 @@ namespace AutocadPlugin
                             out wallId);
                     }
                     BlockInsertCommand.ApplyAtkXData(
-                        br, tr, db, code, view, "PANEL", tumbado ? 90 : 0, wallId, at);
+                        br, tr, db, code, view, role, tumbado ? 90 : 0, wallId, at);
                     inserted++;
+                    if (role == "RIGI")
+                        stiffeners++;
+                    else if (role == "UNION")
+                        clamps++;
+                    else
+                        panels++;
                 }
 
                 tr.Commit();
             }
-            }
-            finally
+        }
+
+        private static bool IsFixedClamp(string code)
+        {
+            return string.Equals(code, "10004220", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsShortStiffener(string code)
+        {
+            return string.Equals(code, "1850162", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsStiffener(string code)
+        {
+            return IsShortStiffener(code)
+                || string.Equals(code, "1850163", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// El bloque está en metros, con el largo en +Y (de 0 a L), el ancho en +X
+        /// (0 a 105 mm) y el grueso en +Z (0 a 60 mm). El STL tiene el largo en Z,
+        /// centrado, y el cuerpo en −Y. Esta matriz se aplica antes de la escala.
+        /// </summary>
+        private static Matrix3d StiffenerBlockToStl(double meterToDwg, string code)
+        {
+            var length = IsShortStiffener(code) ? 0.75d : 1.60d;
+            var local = Matrix3d.Rotation(Math.PI * 0.5, Vector3d.XAxis, Point3d.Origin)
+                * Matrix3d.Displacement(new Vector3d(-0.0525d, -length * 0.5d + 0.02d, 0.020d));
+            var s = meterToDwg;
+            var scale = Matrix3d.AlignCoordinateSystem(
+                Point3d.Origin, Vector3d.XAxis, Vector3d.YAxis, Vector3d.ZAxis,
+                Point3d.Origin,
+                new Vector3d(s, 0d, 0d),
+                new Vector3d(0d, -s, 0d),
+                new Vector3d(0d, 0d, s));
+            return scale * local * scale.Inverse();
+        }
+
+        /// <summary>
+        /// Giro del visor, pasado a Z arriba. La grapa usa el mismo Rx en las dos
+        /// caras para que la marca Atenko quede derecha. El rigidizador sí sigue
+        /// el reflejo del visor.
+        /// </summary>
+        private static Matrix3d FixedClampRotation(Atk60FormworkElement item, Point3d at)
+        {
+            return FixedClampRotation(item, at, false, false);
+        }
+
+        /// <param name="honorMirror">El visor gira la cara de detrás al revés. La grapa no: la marca Atenko tiene que quedar derecha.</param>
+        /// <param name="planQuarter">Solo el rigidizador corto en junta horizontal: +90° en planta, como el visor.</param>
+        private static Matrix3d FixedClampRotation(
+            Atk60FormworkElement item, Point3d at, bool honorMirror, bool planQuarter)
+        {
+            var seam = item != null
+                && string.Equals(item.Orientation, "Horizontal", StringComparison.OrdinalIgnoreCase);
+            var mirrored = honorMirror && item != null && item.IsMirrored;
+            var nx = item != null ? item.NormalX : 0d;
+            var nz = item != null ? item.NormalZ : 1d;
+            if (mirrored)
             {
-                WallSpecialCad.SuppressEraseWatch = prev;
+                nx = -nx;
+                nz = -nz;
+            }
+            if (nx * nx + nz * nz < 1e-12)
+            {
+                nx = 0d;
+                nz = 1d;
+            }
+            var len = Math.Sqrt(nx * nx + nz * nz);
+            nx /= len;
+            nz /= len;
+            var wallYaw = Math.Atan2(-nx, nz);
+
+            double rx;
+            double ry;
+            double rz;
+            if (seam)
+            {
+                rx = 0d;
+                ry = mirrored ? Math.PI * 0.5 : Math.PI * 1.5;
+                rz = Math.PI * 0.5;
+            }
+            else
+            {
+                rx = mirrored ? Math.PI * 0.5 : -Math.PI * 0.5;
+                ry = 0d;
+                rz = 0d;
+            }
+
+            var q = Quat.FromAxisY(-wallYaw).Multiply(Quat.FromEulerXyz(rx, ry, rz));
+            if (planQuarter)
+                q = Quat.FromAxisY(Math.PI * 0.5).Multiply(q);
+            double m00, m01, m02, m10, m11, m12, m20, m21, m22;
+            q.ToMatrix(out m00, out m01, out m02, out m10, out m11, out m12, out m20, out m21, out m22);
+
+            // S cambia (x,y,z) del visor por (x,z,y). Refleja, así que se
+            // compensa con la escala Y negativa de la inserción.
+            var x = new Vector3d(m00, m20, m10);
+            var y = new Vector3d(-m01, -m21, -m11);
+            var z = new Vector3d(m02, m22, m12);
+            var rot = Matrix3d.AlignCoordinateSystem(
+                Point3d.Origin, Vector3d.XAxis, Vector3d.YAxis, Vector3d.ZAxis,
+                Point3d.Origin, x, y, z);
+            return Matrix3d.Displacement(at.GetAsVector()) * rot;
+        }
+
+        private struct Quat
+        {
+            public double X, Y, Z, W;
+
+            public static Quat FromEulerXyz(double rx, double ry, double rz)
+            {
+                var c1 = Math.Cos(rx * 0.5);
+                var c2 = Math.Cos(ry * 0.5);
+                var c3 = Math.Cos(rz * 0.5);
+                var s1 = Math.Sin(rx * 0.5);
+                var s2 = Math.Sin(ry * 0.5);
+                var s3 = Math.Sin(rz * 0.5);
+                return new Quat
+                {
+                    X = s1 * c2 * c3 + c1 * s2 * s3,
+                    Y = c1 * s2 * c3 - s1 * c2 * s3,
+                    Z = c1 * c2 * s3 + s1 * s2 * c3,
+                    W = c1 * c2 * c3 - s1 * s2 * s3
+                };
+            }
+
+            public static Quat FromAxisY(double angle)
+            {
+                var h = angle * 0.5;
+                return new Quat { X = 0d, Y = Math.Sin(h), Z = 0d, W = Math.Cos(h) };
+            }
+
+            public Quat Multiply(Quat b)
+            {
+                return new Quat
+                {
+                    X = W * b.X + X * b.W + Y * b.Z - Z * b.Y,
+                    Y = W * b.Y - X * b.Z + Y * b.W + Z * b.X,
+                    Z = W * b.Z + X * b.Y - Y * b.X + Z * b.W,
+                    W = W * b.W - X * b.X - Y * b.Y - Z * b.Z
+                };
+            }
+
+            public void ToMatrix(
+                out double m00, out double m01, out double m02,
+                out double m10, out double m11, out double m12,
+                out double m20, out double m21, out double m22)
+            {
+                var x2 = X + X;
+                var y2 = Y + Y;
+                var z2 = Z + Z;
+                var xx = X * x2;
+                var xy = X * y2;
+                var xz = X * z2;
+                var yy = Y * y2;
+                var yz = Y * z2;
+                var zz = Z * z2;
+                var wx = W * x2;
+                var wy = W * y2;
+                var wz = W * z2;
+                m00 = 1d - (yy + zz);
+                m01 = xy - wz;
+                m02 = xz + wy;
+                m10 = xy + wz;
+                m11 = 1d - (xx + zz);
+                m12 = yz - wx;
+                m20 = xz - wy;
+                m21 = yz + wx;
+                m22 = 1d - (xx + yy);
             }
         }
 

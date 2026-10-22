@@ -257,6 +257,7 @@ namespace AutocadPlugin.Models
     public class Atk60FormworkElement
     {
         public string ElementCode { get; set; }
+        public string ElementType { get; set; }
         public string ImportPath { get; set; }
         public string Orientation { get; set; }
         public string IdWall { get; set; }
@@ -264,7 +265,11 @@ namespace AutocadPlugin.Models
         public double Y { get; set; }
         public double Z { get; set; }
         public double RotY { get; set; }
+        public double RotZ { get; set; }
+        public double NormalX { get; set; }
+        public double NormalZ { get; set; }
         public double PieceWidthMm { get; set; }
+        public double PieceHeightMm { get; set; }
         public bool IsMirrored { get; set; }
     }
 }

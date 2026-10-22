@@ -35,6 +35,7 @@ namespace AutocadPlugin
                     ComponentManager.ItemInitialized += OnRibbonReady;
 
                 AcadApp.Idle += OnIdle;
+                WallEditCommand.Hook();
                 PaletteHost.BindDocumentLifetime();
                 PluginAutoload.Disable();
                 var dll = System.Reflection.Assembly.GetExecutingAssembly().Location;
@@ -62,6 +63,7 @@ namespace AutocadPlugin
             {
                 ComponentManager.ItemInitialized -= OnRibbonReady;
                 AcadApp.Idle -= OnIdle;
+                WallEditCommand.Unhook();
                 PaletteHost.CloseAll();
             }
             catch

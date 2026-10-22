@@ -21,25 +21,25 @@ Desing/Report/<año>/yyyy-MM-dd_Informe-Quincenal.pdf
 | Informe | Fichero | Periodo | Review | Siguiente |
 |---------|---------|---------|--------|-----------|
 | 01 | `2026-10-08_Informe-Quincenal.md` | 5 ago – 8 oct 2026 | 8 oct | cerrado |
-| **02 (abierto hasta el 21 oct)** | `2026-10-22_Informe-Quincenal.md` | **9 oct – 22 oct 2026** | **22 oct** | **22 oct → informe 03** |
-| 03 | `2026-11-04_Informe-Quincenal.md` (aún no) | **22 oct – 4 nov 2026** | **4 nov** | se crea el **22 oct** |
+| 02 | `2026-10-22_Informe-Quincenal.md` | 9 oct – 22 oct 2026 | 22 oct | cerrado el 22 oct |
+| **03 (abierto)** | `2026-11-04_Informe-Quincenal.md` | **22 oct – 4 nov 2026** | **4 nov** | el **4 nov** se crea el 04 |
 
-**Mientras hoy sea el 21 de octubre de 2026 o anterior, dentro de este periodo:** el informe activo es el **02**. El **22 de octubre** el agente crea el **03** y pasa a ese fichero. No preguntar al usuario si es trimestral o quincenal, ni qué fichero usar.
+**Mientras hoy sea el 22 de octubre de 2026 o posterior, y no haya pasado el 4 de noviembre:** el informe activo es el **03**. El **4 de noviembre** el agente crea el **04** y pasa a ese fichero. No preguntar al usuario si es trimestral o quincenal, ni qué fichero usar.
 
 ### Qué hacer en un chat (nuevo o antiguo)
 
-1. Leer este `LEEME.md` y abrir el informe **abierto** (hoy: el 02).
+1. Leer este `LEEME.md` y abrir el informe **abierto** (hoy: el 03).
 2. Si el trabajo es un frente nuevo: crear el **siguiente apartado correlativo**  
    (`### N. Nombre del frente`, p. ej. `### 1. Proyecto XR`, `### 2. …`).
 3. Si el frente ya tiene apartado: **trabajar en ese apartado** (ampliar bullets, estado, fechas). No abrir otro con el mismo nombre.
 4. Si el usuario dice que empezamos algo nuevo: abrir el apartado ya y anotar la hora de la persona y la de Cursor o Copilot. Al devolver un bloque para probar, anotar la hora de esa entrega. Cuando diga que se termina o que se pasa a otra cosa, cerrar: fin de la persona en ese mensaje, fin del agente en la última entrega (o en el cierre, si siguió hasta entonces). El tramo de la persona incluye el testeo. No alargarlo. No sumar los dos relojes. Copilot solo se anota en el momento.
-5. **No** reescribir un informe cerrado (el 01).
+5. **No** reescribir un informe cerrado (el 01 y el 02).
 6. No hay informe trimestral. Las horas y el relato van en el quincenal, en el apartado del frente. El T4 de 2026 se unió al informe 01 (`2026-10-08_Informe-Quincenal.md`). No volver a crear `yyyy-T<n>_Informe-Trimestral`.
 
 ### Creación automática del siguiente informe
 
 - El día **después** del review del informe abierto, el agente **crea solo** el siguiente quincenal (nuevo número, nuevo `yyyy-MM-dd_Informe-Quincenal.md` con la fecha de corte prevista), registra MD+PDF en el `.csproj`, y deja de escribir en el anterior.
-- Ejemplo actual: el **22 oct 2026** se crea el **03** (`2026-11-04_Informe-Quincenal.md`), periodo **22 oct – 4 nov**, review **4 nov**, sin que el usuario lo pida. El 02 queda cerrado ese día.
+- Ejemplo: el **22 oct 2026** se creó el **03** (`2026-11-04_Informe-Quincenal.md`), periodo **22 oct – 4 nov**, review **4 nov**. El 02 quedó cerrado ese día. El **4 nov** se crea el **04** y se deja de escribir en el 03.
 - No hace falta que diga «abre el informe». Basta con trabajar; el agente elige el fichero abierto o crea el nuevo si ya toca.
 
 ## Calendario (tras el 01)

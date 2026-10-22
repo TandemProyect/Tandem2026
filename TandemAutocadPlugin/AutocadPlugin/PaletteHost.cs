@@ -673,6 +673,8 @@ namespace AutocadPlugin
                 return;
             }
 
+            if (string.Equals(command, FormworkCommand.CommandName, StringComparison.OrdinalIgnoreCase))
+                WriteMessage("[Tandem] Encofrar.");
             RunAcadCommand(command);
         }
 
@@ -944,6 +946,18 @@ namespace AutocadPlugin
 
                 if (string.Equals(action, "insert-block", StringComparison.OrdinalIgnoreCase))
                 {
+                    BlockInsertCommand.ReportStatus = (text, error) =>
+                    {
+                        var payload = new JObject
+                        {
+                            ["type"] = "status",
+                            ["text"] = text ?? "",
+                            ["error"] = error
+                        }.ToString(Newtonsoft.Json.Formatting.None);
+                        RunOnBlocks(() => _blocks?.PostToPage(payload));
+                        if (error)
+                            ApplyBlocksSize(expanded: true);
+                    };
                     BlockInsertCommand.QueueFromPalette(obj);
                     ApplyBlocksSize(expanded: false);
                     RunAcadCommandWhenIdle(BlockInsertCommand.CommandName);

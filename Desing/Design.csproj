@@ -848,6 +848,7 @@
     <Content Include="Scripts\MasterArticles\desing2-worker-tool.js" />
     <Content Include="Scripts\MasterArticles\desing2-pillar-tool.js" />
     <Content Include="Scripts\MasterArticles\master-article-details-stl-viewer.js" />
+    <Content Include="Scripts\MasterArticles\wall-edit-form.js" />
     <Content Include="Scripts\MasterArticles\master-article-preview.js" />
     <Content Include="Scripts\MasterArticles\vendor\three-dxf-loader.js" />
     <Content Include="assets\js\lib\datepicker\bootstrap-datepicker.js" />
@@ -2580,6 +2581,10 @@
     <None Include="Report\2026\2026-10-08_Informe-Quincenal.pdf" />
     <None Include="Report\2026\2026-10-22_Informe-Quincenal.md" />
     <None Include="Report\2026\2026-10-22_Informe-Quincenal.pdf" />
+    <None Include="Report\2026\2026-11-04_Informe-Quincenal.md" />
+    <None Include="Report\2026\2026-11-04_Informe-Quincenal.pdf" />
+    <None Include="Report\2026\img\2026-10-22-paneles-030-elevados.png" />
+    <None Include="Report\2026\img\2026-10-22-grapa-atenko.png" />
     <None Include="Properties\PublishProfiles\atenko Develop.pubxml" />
     <None Include="Properties\PublishProfiles\atenko.net.pubxml" />
     <None Include="Properties\PublishProfiles\Athosstaging.pubxml" />
@@ -3483,6 +3488,7 @@
     <Content Include="Scripts\MasterArticles\desing2-worker-tool.js" />
     <Content Include="Scripts\MasterArticles\desing2-pillar-tool.js" />
     <Content Include="Scripts\MasterArticles\master-article-details-stl-viewer.js" />
+    <Content Include="Scripts\MasterArticles\wall-edit-form.js" />
     <Content Include="Scripts\Desing2\desing2-stl-viewer-toolbar-wiring.js" />
     <Content Include="Scripts\Desing2\desing2-map-building-import.js" />
     <Content Include="Scripts\Desing2\desing2-connection-test.js" />
@@ -3599,6 +3605,7 @@
     <Content Include="Views\DesignToolsAutocad\PluginBlocks.cshtml" />
     <Content Include="Views\DesignToolsAutocad\InstallPlugin.cshtml" />
     <Content Include="Views\DesignToolsAutocad\PluginCadAuth.cshtml" />
+    <Content Include="Views\DesignToolsAutocad\WallForm.cshtml" />
     <Content Include="Content\DesignTools\CadPlugin\web.config" />
     <Content Include="Content\DesignTools\CadPlugin\AtDesing.bundle\PackageContents.xml" />
     <Content Include="Content\DesignTools\CadPlugin\AtDesing.bundle\setup.ps1" />

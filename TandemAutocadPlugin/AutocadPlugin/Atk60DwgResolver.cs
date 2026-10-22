@@ -27,6 +27,7 @@ namespace AutocadPlugin
             string folder;
             string file;
             NormalizeView(view, codeName, out folder, out file);
+            Atk60LibrarySync.RefreshFromSourceIfNewer(codeName, view);
 
             var cached = Path.Combine(BlockRoot(), folder, file);
             if (IsUsable(cached))
@@ -53,6 +54,7 @@ namespace AutocadPlugin
             if (string.IsNullOrWhiteSpace(codeName))
                 return null;
             Atk60LibrarySync.EnsureStarted();
+            Atk60LibrarySync.RefreshFromSourceIfNewer(codeName, "snap");
             string fromIndex;
             if (Atk60LibrarySync.TryFindLocal(codeName, "snap", out fromIndex) && IsUsable(fromIndex))
                 return fromIndex;

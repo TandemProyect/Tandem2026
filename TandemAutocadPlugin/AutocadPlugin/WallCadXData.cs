@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using AutocadPlugin.Models;
 using Autodesk.AutoCAD.DatabaseServices;
@@ -29,6 +30,52 @@ namespace AutocadPlugin
                 new TypedValue((int)DxfCode.ExtendedDataReal, thickness),
                 new TypedValue((int)DxfCode.ExtendedDataAsciiString, "WID:" + wallDbId.ToString(CultureInfo.InvariantCulture)),
                 new TypedValue((int)DxfCode.ExtendedDataAsciiString, isSpecial ? "SPC:1" : "SPC:0"));
+        }
+
+        public static void Write(
+            Entity ent,
+            string role,
+            int groupId,
+            double thickness,
+            long wallDbId,
+            bool isSpecial,
+            string attrsJson)
+        {
+            if (ent == null)
+                return;
+            var values = new List<TypedValue>
+            {
+                new TypedValue((int)DxfCode.ExtendedDataRegAppName, AppName),
+                new TypedValue((int)DxfCode.ExtendedDataAsciiString, role ?? "axis"),
+                new TypedValue((int)DxfCode.ExtendedDataInteger32, groupId),
+                new TypedValue((int)DxfCode.ExtendedDataReal, thickness),
+                new TypedValue((int)DxfCode.ExtendedDataAsciiString, "WID:" + wallDbId.ToString(CultureInfo.InvariantCulture)),
+                new TypedValue((int)DxfCode.ExtendedDataAsciiString, isSpecial ? "SPC:1" : "SPC:0")
+            };
+            if (!string.IsNullOrWhiteSpace(attrsJson))
+                values.Add(new TypedValue((int)DxfCode.ExtendedDataAsciiString, "ATR:" + attrsJson));
+            ent.XData = new ResultBuffer(values.ToArray());
+        }
+
+        public static string ReadAttrsJson(Entity ent)
+        {
+            if (ent == null || ent.XData == null)
+                return null;
+            var inApp = false;
+            foreach (var t in ent.XData.AsArray())
+            {
+                if (t.TypeCode == (int)DxfCode.ExtendedDataRegAppName)
+                {
+                    inApp = string.Equals(t.Value as string, AppName, StringComparison.OrdinalIgnoreCase);
+                    continue;
+                }
+                if (!inApp || t.TypeCode != (int)DxfCode.ExtendedDataAsciiString)
+                    continue;
+                var text = (t.Value as string ?? "").Trim();
+                if (text.StartsWith("ATR:", StringComparison.OrdinalIgnoreCase))
+                    return text.Substring(4);
+            }
+            return null;
         }
 
         public static void Read(
@@ -73,6 +120,9 @@ namespace AutocadPlugin
                         else if (text.StartsWith("SPC:", StringComparison.OrdinalIgnoreCase))
                         {
                             isSpecial = text.Length > 4 && text[4] == '1';
+                        }
+                        else if (text.StartsWith("ATR:", StringComparison.OrdinalIgnoreCase))
+                        {
                         }
                         else if (!gotRole)
                         {

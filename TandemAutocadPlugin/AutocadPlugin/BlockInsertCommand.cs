@@ -30,6 +30,9 @@ namespace AutocadPlugin
         private static BlockInsertRequest _pending;
         private static BlockInsertRequest _last;
 
+        /// <summary>Aviso a la paleta: texto y si es un fallo (vuelve a abrir el bloquín).</summary>
+        internal static Action<string, bool> ReportStatus;
+
         public static void QueueFromPalette(JObject obj)
         {
             _pending = BlockInsertRequest.FromJson(obj);
@@ -94,23 +97,22 @@ namespace AutocadPlugin
                 return;
             }
 
+            if (IsFixedClampRequest(req))
+                req.CodeName = "10004220";
             Atk60DwgResolver.RememberArticleUrls(req.CodeName, req.DwgUrl3D, req.DwgUrl3DRef, req.DwgUrlXr);
             var dwg = Atk60DwgResolver.ResolveDwg(req.CodeName, view, req.UrlForView(view));
             if (string.IsNullOrWhiteSpace(dwg))
             {
-                ed.WriteMessage("\n[Tandem] No se encontró el DWG de " + req.CodeName + " (" + view + "). Pulsa Actualizar en bloquing.\n");
+                var missing = "No se encontró el DWG de " + req.CodeName + " (" + view + "). Pulsa Actualizar en bloquing.";
+                if (IsFixedClampRequest(req))
+                    Report(ed, missing, true);
+                else
+                    ed.WriteMessage("\n[Tandem] " + missing + "\n");
                 return;
             }
 
             var blockName = BlockNameFor(req.CodeName, view);
             var meterToDwg = CadUnits.FromMillimeters(1000.0);
-            double newW;
-            double newH;
-            PanelSizeMeters(req.CodeName, out newW, out newH);
-            var hosts = CollectHostVertices(doc.Database, "PANEL");
-            var walls = CollectAxisHosts(doc.Database, hosts);
-            AddStraightWallMarks(hosts, walls);
-
             ObjectId blockId;
             try
             {
@@ -121,6 +123,26 @@ namespace AutocadPlugin
                 ed.WriteMessage("\n[Tandem] No se pudo cargar el DWG: " + ex.Message + "\n");
                 return;
             }
+
+            if (string.Equals(req.CodeName, "10004220", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    InsertFixedClamp(doc, ed, blockId, req, meterToDwg);
+                }
+                catch (System.Exception ex)
+                {
+                    Report(ed, "No se pudo insertar la grapa: " + ex.Message, true);
+                }
+                return;
+            }
+
+            double newW;
+            double newH;
+            PanelSizeMeters(req.CodeName, out newW, out newH);
+            var hosts = CollectHostVertices(doc.Database, "PANEL");
+            var walls = CollectAxisHosts(doc.Database, hosts);
+            AddStraightWallMarks(hosts, walls);
 
             var overlay = new VertexOverlay(hosts, ed);
             bool snapped;
@@ -163,9 +185,23 @@ namespace AutocadPlugin
             public Vector3d WidthDir;
             public Vector3d HeightDir;
             public Vector3d ThickDir;
+            public double RzDeg;
             public long WallDbId;
             public ObjectId WallLineId;
             public bool FromWall;
+            public int PanelKey;
+        }
+
+        /// <summary>
+        /// Junta donde se puede poner la grapa: los puntos GRAPA_V de un canto,
+        /// unidos. Horizontal si la junta corre por el muro y no hacia arriba.
+        /// </summary>
+        private sealed class SeamLine
+        {
+            public Point3d A;
+            public Point3d B;
+            public bool Horizontal;
+            public HostVertex Sample;
         }
 
         private sealed class AxisHost
@@ -183,10 +219,218 @@ namespace AutocadPlugin
             public bool HasPanels;
         }
 
-        private static List<HostVertex> CollectHostVertices(Database db, string role)
+        private static void InsertFixedClamp(
+            Document doc,
+            Editor ed,
+            ObjectId blockId,
+            BlockInsertRequest req,
+            double meterToDwg)
+        {
+            var hosts = CollectHostVertices(doc.Database, "GRAPA_V", includeFormwork: true);
+            var seams = BuildClampSeams(hosts);
+            if (seams.Count == 0)
+            {
+                Report(ed, "No hay líneas de grapa. Primero inserta o encofra los paneles.", true);
+                return;
+            }
+
+            var overlay = new VertexOverlay(hosts, ed);
+            overlay.SetSeams(seams);
+            var jig = new ClampDragJig(blockId, overlay, meterToDwg);
+            FocusDrawing();
+            var oldOsmode = AcadApp.GetSystemVariable("OSMODE");
+            var oldOrtho = AcadApp.GetSystemVariable("ORTHOMODE");
+            PromptResult drag;
+            try
+            {
+                AcadApp.SetSystemVariable("OSMODE", 0);
+                AcadApp.SetSystemVariable("ORTHOMODE", 0);
+                var started = DateTime.UtcNow;
+                drag = ed.Drag(jig);
+                if (drag.Status == PromptStatus.Cancel
+                    && (DateTime.UtcNow - started).TotalMilliseconds < 400)
+                {
+                    jig.ReleaseGhost();
+                    drag = ed.Drag(jig);
+                }
+            }
+            finally
+            {
+                jig.ReleaseGhost();
+                try { AcadApp.SetSystemVariable("OSMODE", oldOsmode); } catch { }
+                try { AcadApp.SetSystemVariable("ORTHOMODE", oldOrtho); } catch { }
+            }
+
+            if (drag.Status != PromptStatus.OK || !jig.Snapped || jig.Hit == null)
+            {
+                Report(ed, "La grapa solo entra sobre una línea entre paneles.", true);
+                return;
+            }
+
+            var hit = jig.Hit;
+            using (doc.LockDocument())
+            using (var tr = doc.Database.TransactionManager.StartTransaction())
+            {
+                var ms = (BlockTableRecord)tr.GetObject(doc.Database.CurrentSpaceId, OpenMode.ForWrite);
+                var br = new BlockReference(Point3d.Origin, blockId);
+                ApplyPanelMatrix(br, jig.At, jig.Orient);
+                br.ScaleFactors = new Scale3d(meterToDwg, -meterToDwg, meterToDwg);
+                ms.AppendEntity(br);
+                tr.AddNewlyCreatedDBObject(br, true);
+                ApplyAtkXData(
+                    br, tr, doc.Database, req.CodeName, req.View ?? "3dref",
+                    "UNION", jig.Horizontal ? 90 : 0, hit.WallDbId, jig.At);
+                tr.Commit();
+            }
+
+            Report(ed, "Grapa en la línea.", false);
+        }
+
+        private static void Report(Editor ed, string text, bool error)
+        {
+            try { ed?.WriteMessage("\n[Tandem] " + text + "\n"); }
+            catch { }
+            var tell = ReportStatus;
+            if (tell == null)
+                return;
+            try { tell(text, error); }
+            catch { }
+        }
+
+        private static bool IsFixedClampRequest(BlockInsertRequest req)
+        {
+            if (req == null)
+                return false;
+            return HasClampCode(req.CodeName)
+                || HasClampCode(req.Code)
+                || HasClampCode(req.Caption)
+                || HasClampCode(req.DwgUrl)
+                || HasClampCode(req.DwgUrl3D)
+                || HasClampCode(req.DwgUrl3DRef)
+                || HasClampCode(req.DwgUrlXr);
+        }
+
+        private static bool HasClampCode(string value)
+        {
+            return !string.IsNullOrWhiteSpace(value)
+                && value.IndexOf("10004220", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        /// <summary>
+        /// Junta vertical: Rx −90° deja el canto de 30 mm en vertical y Atenko derecho.
+        /// Junta horizontal: un cuarto de vuelta sobre la normal de la cara,
+        /// para que la grapa cruce esa línea. El reflejo (boca hacia fuera)
+        /// va en ScaleFactors, porque BlockTransform no admite determinante negativo.
+        /// </summary>
+        private static Matrix3d ClampOrient(HostVertex host, bool horizontal)
+        {
+            var x = host.WidthDir.Length > 1e-9 ? host.WidthDir.GetNormal() : Vector3d.XAxis;
+            var y = host.ThickDir.Length > 1e-9 ? host.ThickDir.GetNormal() : Vector3d.YAxis;
+            var z = host.HeightDir.Length > 1e-9 ? host.HeightDir.GetNormal() : Vector3d.ZAxis;
+            if (x.CrossProduct(y).DotProduct(z) < 0)
+                y = -y;
+            var align = Matrix3d.AlignCoordinateSystem(
+                Point3d.Origin, Vector3d.XAxis, Vector3d.YAxis, Vector3d.ZAxis,
+                Point3d.Origin, x, y, z);
+            var rz = host.RzDeg * Math.PI / 180.0;
+            var orient = align
+                * Matrix3d.Rotation(rz, Vector3d.ZAxis, Point3d.Origin)
+                * Matrix3d.Rotation(-Math.PI * 0.5, Vector3d.XAxis, Point3d.Origin);
+            if (!horizontal)
+                return orient;
+            var axis = y;
+            return Matrix3d.Rotation(Math.PI * 0.5, axis, Point3d.Origin) * orient;
+        }
+
+        private static List<SeamLine> BuildClampSeams(IList<HostVertex> hosts)
+        {
+            var lines = new List<SeamLine>();
+            if (hosts == null || hosts.Count == 0)
+                return lines;
+            var groups = new Dictionary<string, List<HostVertex>>();
+            foreach (var host in hosts)
+            {
+                if (host == null || host.FromWall)
+                    continue;
+                var id = (host.Id ?? "").ToUpperInvariant();
+                var side = id.StartsWith("L") ? "L" : (id.StartsWith("R") ? "R" : (Math.Abs(host.RzDeg) < 90 ? "R" : "L"));
+                var key = host.PanelKey.ToString(CultureInfo.InvariantCulture) + "|" + side;
+                List<HostVertex> group;
+                if (!groups.TryGetValue(key, out group))
+                {
+                    group = new List<HostVertex>();
+                    groups[key] = group;
+                }
+                group.Add(host);
+            }
+
+            foreach (var group in groups.Values)
+            {
+                if (group.Count == 0)
+                    continue;
+                var sample = group[0];
+                Point3d a;
+                Point3d b;
+                if (group.Count == 1)
+                {
+                    var dir = sample.HeightDir.Length > 1e-9 ? sample.HeightDir.GetNormal() : Vector3d.ZAxis;
+                    var half = CadUnits.FromMillimeters(600);
+                    a = sample.World - dir * half;
+                    b = sample.World + dir * half;
+                }
+                else
+                {
+                    var axis = DominantAxis(group);
+                    group.Sort((p, q) => p.World.GetAsVector().DotProduct(axis).CompareTo(q.World.GetAsVector().DotProduct(axis)));
+                    a = group[0].World;
+                    b = group[group.Count - 1].World;
+                    var extend = CadUnits.FromMillimeters(80);
+                    var span = b - a;
+                    if (span.Length > 1e-6)
+                    {
+                        var u = span.GetNormal();
+                        a -= u * extend;
+                        b += u * extend;
+                    }
+                }
+                if (a.DistanceTo(b) < CadUnits.FromMillimeters(40))
+                    continue;
+                var delta = b - a;
+                var run = Math.Sqrt(delta.X * delta.X + delta.Y * delta.Y);
+                lines.Add(new SeamLine
+                {
+                    A = a,
+                    B = b,
+                    Horizontal = run > Math.Abs(delta.Z),
+                    Sample = sample
+                });
+            }
+            return lines;
+        }
+
+        private static Vector3d DominantAxis(IList<HostVertex> group)
+        {
+            var min = group[0].World;
+            var max = min;
+            foreach (var p in group)
+            {
+                var w = p.World;
+                min = new Point3d(Math.Min(min.X, w.X), Math.Min(min.Y, w.Y), Math.Min(min.Z, w.Z));
+                max = new Point3d(Math.Max(max.X, w.X), Math.Max(max.Y, w.Y), Math.Max(max.Z, w.Z));
+            }
+            var d = max - min;
+            if (Math.Abs(d.Z) >= Math.Abs(d.X) && Math.Abs(d.Z) >= Math.Abs(d.Y))
+                return Vector3d.ZAxis;
+            if (Math.Abs(d.X) >= Math.Abs(d.Y))
+                return Vector3d.XAxis;
+            return Vector3d.YAxis;
+        }
+
+        private static List<HostVertex> CollectHostVertices(Database db, string role, bool includeFormwork = false)
         {
             var pts = new List<HostVertex>();
             var cache = new Dictionary<string, IList<Atk60Snap>>(StringComparer.OrdinalIgnoreCase);
+            var panelKey = 0;
             using (var tr = db.TransactionManager.StartTransaction())
             {
                 var bt = (BlockTable)tr.GetObject(db.BlockTableId, OpenMode.ForRead);
@@ -196,7 +440,8 @@ namespace AutocadPlugin
                     var br = tr.GetObject(id, OpenMode.ForRead) as BlockReference;
                     if (br == null)
                         continue;
-                    if (string.Equals(br.Layer, WallArticleCad.LayerFormwork, StringComparison.OrdinalIgnoreCase))
+                    if (!includeFormwork
+                        && string.Equals(br.Layer, WallArticleCad.LayerFormwork, StringComparison.OrdinalIgnoreCase))
                         continue;
                     var codeName = CodeNameFromInsert(br);
                     if (string.IsNullOrWhiteSpace(codeName))
@@ -213,6 +458,7 @@ namespace AutocadPlugin
                     Vector3d tDir;
                     WallAlignedAxes(tf, out wDir, out hDir, out tDir);
                     var wallId = WallIdFromInsert(br);
+                    panelKey++;
                     foreach (var snap in snaps)
                     {
                         pts.Add(new HostVertex
@@ -222,7 +468,9 @@ namespace AutocadPlugin
                             WidthDir = wDir,
                             HeightDir = hDir,
                             ThickDir = tDir,
-                            WallDbId = wallId
+                            RzDeg = snap.RzDeg,
+                            WallDbId = wallId,
+                            PanelKey = panelKey
                         });
                     }
                 }
@@ -1440,16 +1688,149 @@ namespace AutocadPlugin
             tr.AddNewlyCreatedDBObject(rec, true);
         }
 
+        private sealed class ClampDragJig : DrawJig
+        {
+            private readonly ObjectId _blockId;
+            private readonly VertexOverlay _overlay;
+            private readonly double _scale;
+            private Point3d _at = Point3d.Origin;
+            private Matrix3d _orient = Matrix3d.Identity;
+            private BlockReference _ghost;
+            private HostVertex _hit;
+            private SeamLine _seam;
+
+            public ClampDragJig(ObjectId blockId, VertexOverlay overlay, double scale)
+            {
+                _blockId = blockId;
+                _overlay = overlay;
+                _scale = scale;
+            }
+
+            public bool Snapped { get; private set; }
+            public bool Horizontal { get { return _seam != null && _seam.Horizontal; } }
+            public Point3d At { get { return _at; } }
+            public Matrix3d Orient { get { return _orient; } }
+            public HostVertex Hit { get { return _hit; } }
+
+            public void ReleaseGhost()
+            {
+                if (_ghost == null)
+                    return;
+                try { _ghost.Dispose(); } catch { }
+                _ghost = null;
+            }
+
+            protected override SamplerStatus Sampler(JigPrompts prompts)
+            {
+                var opts = new JigPromptPointOptions(
+                    "\nMueve la grapa sobre la línea y haz clic. ESC cancela: ");
+                opts.UserInputControls =
+                    UserInputControls.Accept3dCoordinates
+                    | UserInputControls.GovernedByOrthoMode
+                    | UserInputControls.GovernedByUCSDetect;
+                opts.Cursor = CursorType.Crosshair;
+                var res = prompts.AcquirePoint(opts);
+                if (res.Status != PromptStatus.OK)
+                    return SamplerStatus.Cancel;
+
+                SeamLine seam;
+                Point3d onLine;
+                var snap = _overlay.TryNearestSeam(res.Value, out seam, out onLine);
+                var next = snap ? onLine : res.Value;
+                var orient = snap ? ClampOrient(seam.Sample, seam.Horizontal) : Matrix3d.Identity;
+                if (next.IsEqualTo(_at, new Tolerance(1e-6, 1e-6)) && Snapped == snap
+                    && ReferenceEquals(_seam, seam))
+                    return SamplerStatus.NoChange;
+                _at = next;
+                _orient = orient;
+                _seam = snap ? seam : null;
+                _hit = snap ? seam.Sample : null;
+                Snapped = snap;
+                return SamplerStatus.OK;
+            }
+
+            protected override bool WorldDraw(WorldDraw draw)
+            {
+                if (draw == null)
+                    return true;
+                if (Snapped)
+                {
+                    if (_ghost == null)
+                        _ghost = new BlockReference(Point3d.Origin, _blockId);
+                    ApplyPanelMatrix(_ghost, _at, _orient);
+                    _ghost.ScaleFactors = new Scale3d(_scale, -_scale, _scale);
+                    draw.Geometry.Draw(_ghost);
+                }
+                _overlay.WorldDraw(draw, Snapped ? (Point3d?)_at : null);
+                return true;
+            }
+        }
+
         private sealed class VertexOverlay
         {
             private readonly IList<HostVertex> _hosts;
             private readonly Editor _ed;
+            private IList<SeamLine> _seams;
             private const double PixelTol = 56;
 
             public VertexOverlay(IList<HostVertex> hosts, Editor ed)
             {
                 _hosts = hosts ?? new List<HostVertex>();
                 _ed = ed;
+            }
+
+            public void SetSeams(IList<SeamLine> seams)
+            {
+                _seams = seams;
+            }
+
+            public bool TryNearestSeam(Point3d cursor, out SeamLine seam, out Point3d onLine)
+            {
+                seam = null;
+                onLine = Point3d.Origin;
+                if (_seams == null || _seams.Count == 0)
+                    return false;
+                var best = double.MaxValue;
+                foreach (var line in _seams)
+                {
+                    Point3d projected;
+                    if (!ProjectOnSegment(cursor, line.A, line.B, out projected))
+                        continue;
+                    var d = ScreenDist(cursor, projected);
+                    if (d < best)
+                    {
+                        best = d;
+                        seam = line;
+                        onLine = projected;
+                    }
+                }
+                return seam != null && best <= PixelTol;
+            }
+
+            private static bool ProjectOnSegment(Point3d cursor, Point3d a, Point3d b, out Point3d onLine)
+            {
+                var ab = b - a;
+                var len2 = ab.DotProduct(ab);
+                if (len2 < 1e-12)
+                {
+                    onLine = a;
+                    return false;
+                }
+                var t = (cursor - a).DotProduct(ab) / len2;
+                if (t < 0)
+                    t = 0;
+                else if (t > 1)
+                    t = 1;
+                onLine = a + ab * t;
+                return true;
+            }
+
+            private static double DistanceToSegment(Point3d cursor, Point3d a, Point3d b)
+            {
+                Point3d onLine;
+                if (!ProjectOnSegment(cursor, a, b, out onLine))
+                    return cursor.DistanceTo(a);
+                return cursor.DistanceTo(onLine);
             }
 
             public bool TryNearestPanel(Point3d cursor, out HostVertex nearest)
@@ -1655,7 +2036,19 @@ namespace AutocadPlugin
 
             public void WorldDraw(WorldDraw draw, Point3d? hot)
             {
-                if (draw == null || _hosts.Count == 0)
+                if (draw == null)
+                    return;
+                if (_seams != null && _seams.Count > 0)
+                {
+                    foreach (var line in _seams)
+                    {
+                        var hotLine = hot.HasValue && DistanceToSegment(hot.Value, line.A, line.B) < CadUnits.FromMillimeters(30);
+                        draw.SubEntityTraits.Color = (short)(hotLine ? 30 : 4);
+                        draw.Geometry.WorldLine(line.A, line.B);
+                    }
+                    return;
+                }
+                if (_hosts.Count == 0)
                     return;
                 var mark = CadUnits.FromMillimeters(180);
                 foreach (var p in _hosts)

@@ -623,7 +623,8 @@
                     var btn = document.createElement('button');
                     btn.type = 'button';
                     btn.className = 'plugin-blocks__item';
-                    btn.setAttribute('data-id', row.Id || row.id);
+                    var rowId = row.Id != null && row.Id !== '' ? row.Id : row.id;
+                    btn.setAttribute('data-id', rowId != null && rowId !== '' ? String(rowId) : '0');
                     btn.setAttribute('data-ico', row.IcoUrl || row.icoUrl || '');
                     btn.setAttribute('data-stl', row.StlUrl || row.stlUrl || '');
                     btn.setAttribute('data-stl-phenolic', row.StlPhenolicUrl || row.stlPhenolicUrl || '');
@@ -645,7 +646,7 @@
                     el.classList.toggle('is-selected', el === btn);
                 });
                 selected = {
-                    id: parseInt(btn.getAttribute('data-id') || '0', 10),
+                    id: parseInt(btn.getAttribute('data-id') || '0', 10) || 0,
                     stl: btn.getAttribute('data-stl') || '',
                     stlPhenolic: btn.getAttribute('data-stl-phenolic') || '',
                     dwg: btn.getAttribute('data-dwg') || '',
@@ -706,7 +707,15 @@
                     if (typeof data === 'string') {
                         try { data = JSON.parse(data); } catch (e) { return; }
                     }
-                    if (!data || data.type !== 'catalog' || !Array.isArray(data.rows))
+                    if (!data)
+                        return;
+                    if (data.type === 'status') {
+                        setStatus(data.text || '', !!data.error);
+                        if (data.error)
+                            setCollapsed(false);
+                        return;
+                    }
+                    if (data.type !== 'catalog' || !Array.isArray(data.rows))
                         return;
                     catalogRows = data.rows;
                     loadList(qEl ? (qEl.value || '') : '', true);

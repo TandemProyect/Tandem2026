@@ -189,6 +189,16 @@ namespace Desing.Controllers
             return View();
         }
 
+        /// <summary>
+        /// El mismo formulario «Modificar muro» que el visor. Lo abre el plugin.
+        /// </summary>
+        [HttpGet]
+        [Authorize]
+        public ActionResult WallForm()
+        {
+            return View();
+        }
+
         private static int _edmxWarmStarted;
 
         private static void TryWarmEdmxInBackground()
@@ -713,6 +723,8 @@ namespace Desing.Controllers
                 catalog.Add(MapPluginBlock(article, icoById));
             }
 
+            AppendFixedClampLibrary(files, catalog);
+
             return Json(new PluginCadLibraryManifest
             {
                 Ok = true,
@@ -720,6 +732,70 @@ namespace Desing.Controllers
                 Files = files,
                 Catalog = catalog
             }, JsonRequestBehavior.AllowGet);
+        }
+
+        /// <summary>
+        /// La grapa fija tiene DWG en disco y no fila en el maestro.
+        /// Sin esta entrada el bloquín no la enseña.
+        /// </summary>
+        private void AppendFixedClampLibrary(List<PluginCadLibraryFile> files, List<PluginCadBlockRow> catalog)
+        {
+            const string code = "10004220";
+            if (catalog.Exists(r => r != null && (
+                string.Equals(r.CodeName, code, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(r.Code, code, StringComparison.OrdinalIgnoreCase))))
+                return;
+
+            var dwg3 = "~/Content/DesignTools/DWG/AtkSystem60/3D/" + code + ".dwg";
+            var dwgR = "~/Content/DesignTools/DWG/AtkSystem60/3DRef/" + code + "R.dwg";
+            long size;
+            long ticks;
+            if (!TryFileStamp(dwgR, out size, out ticks) && !TryFileStamp(dwg3, out size, out ticks))
+                return;
+
+            AddLooseLibraryFile(files, code, "3d", "3D", code + ".dwg");
+            AddLooseLibraryFile(files, code, "3dref", "3DRef", code + "R.dwg");
+            var stl = "~/Content/DesignTools/Stl/ATK60/" + code + ".stl";
+            catalog.Add(new PluginCadBlockRow
+            {
+                Id = 0,
+                Code = code,
+                CodeName = code,
+                Label = "Grapa fija",
+                Caption = "10004220 Grapa fija",
+                StlUrl = ToPublicUrl(stl),
+                DwgUrl = ToPublicUrl(dwgR),
+                DwgUrl3D = ToPublicUrl(dwg3),
+                DwgUrl3DRef = ToPublicUrl(dwgR)
+            });
+        }
+
+        private void AddLooseLibraryFile(
+            List<PluginCadLibraryFile> files,
+            string codeName,
+            string view,
+            string folder,
+            string fileName)
+        {
+            var virtualPath = "~/Content/DesignTools/DWG/AtkSystem60/" + folder + "/" + fileName;
+            long size;
+            long ticks;
+            if (!TryFileStamp(virtualPath, out size, out ticks))
+                return;
+            var url = Url.Action("PluginLibraryFile", "DesignToolsAutocad", new { folder, file = fileName });
+            if (string.IsNullOrWhiteSpace(url))
+                return;
+            var version = size.ToString(CultureInfo.InvariantCulture) + "|" + ticks.ToString(CultureInfo.InvariantCulture);
+            files.Add(new PluginCadLibraryFile
+            {
+                Code = codeName,
+                View = view,
+                Folder = folder,
+                File = fileName,
+                Url = url,
+                Version = version + "|" + url,
+                Size = size
+            });
         }
 
         private void AddLibraryFile(

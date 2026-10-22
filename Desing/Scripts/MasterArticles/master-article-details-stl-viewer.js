@@ -8,6 +8,7 @@ import { LineMaterial } from '../Design/jsm/lines/LineMaterial.js';
 import { GLTFLoader } from '../Design/jsm/loaders/GLTFLoader.js';
 import { createDesing2WorkerTool } from './desing2-worker-tool.js';
 import { createDesing2PillarTool } from './desing2-pillar-tool.js';
+import { mountWallEditForm } from './wall-edit-form.js';
 import { MaStlWallEditFinalize, MaStlWallStretchMath } from './ma-stl-wall-edit-finalize.js';
 import {
     maAtk60BuildFootprintDimPlacements,
@@ -27292,6 +27293,8 @@ let maStlWallApplyAllHeightMm = 0;
         maStlWall3dInspectSetHoverMesh(hit ? hit.object : null);
     }
 
+    let maStlWallFormApi = null;
+
     const maStlWallInspectFormState = {
         root: null,
         titleEl: null,
@@ -27519,100 +27522,6 @@ let maStlWallApplyAllHeightMm = 0;
         }
     }
 
-    function maStlWallTapeIconUrl(fileName) {
-        return '/Content/DesignTools/MenuIcon/' + fileName;
-    }
-
-    /** Espesor del muro en metros, el mismo `_DataWith` del formulario antiguo. */
-    function maStlWallTapeWidthMeters(ud) {
-        const input = maStlWallInspectFormState && maStlWallInspectFormState.widthInput;
-        if (input && String(input.value || '').trim()) {
-            const typedMm = maStlParseLengthInputValueToMm(input.value);
-            if (typedMm != null && typedMm >= 20) return typedMm / 1000;
-        }
-        const fromAttr = Number(ud && ud._DataWith);
-        if (Number.isFinite(fromAttr) && fromAttr > 0) return fromAttr;
-        return maStlWallLineResolveWidthMm(ud) / 1000;
-    }
-
-    function maStlWallTapeIsMultipleMm(widthMm, stepMm) {
-        return widthMm > 0 && stepMm > 0 && widthMm % stepMm === 0;
-    }
-
-    /** Exacto = 0,30, 0,45, 0,60 o 0,90 m. El 0,75 no entra. */
-    function maStlWallTapeIsExactWidthMm(mm) {
-        return mm === 300 || mm === 450 || mm === 600 || mm === 900;
-    }
-
-    /**
-     * Bloque de tapes del final según las láminas.
-     * Exacto = 0,30, 0,45, 0,60 o 0,90. El de 0,60 se queda en ese bloque.
-     */
-    function maStlWallTapeResolveBlockKey(widthM, solape) {
-        if (solape) return 'end01';
-        const mm = Math.round((Number(widthM) || 0) * 1000);
-        if (mm < 300) return 'end02';
-        if (maStlWallTapeIsExactWidthMm(mm)) return 'end03';
-        if (mm < 600) return maStlWallTapeIsMultipleMm(mm, 50) ? 'end04' : 'end05';
-        return maStlWallTapeIsMultipleMm(mm, 50) ? 'end06' : 'end07';
-    }
-
-    function maStlWallTapeBlocks() {
-        const opt = function (id, label, fileName) {
-            return { id: id, label: label, image: maStlWallTapeIconUrl(fileName) };
-        };
-        return {
-            end01: {
-                text: 'El ancho de muro tiene solape final',
-                defaultId: 'TapeS1',
-                options: [opt('TapeS1', 'Solución 1', 'TapeS1.png'), opt('TapeS2', 'Solución 2', 'TapeS2.png')],
-            },
-            end02: {
-                text: 'El ancho de muro es menor de 0,30',
-                thickness: 'El ancho de muro es menor de 0,30',
-                defaultId: 'TapeS3',
-                options: [opt('TapeS3', 'Solución 1', 'TapeS3.png')],
-            },
-            end03: {
-                text: 'El ancho de muro no tiene solape y es 0,30, 0,45, 0,60 o 0,90',
-                thickness: 'El ancho de muro es 0,30, 0,45, 0,60 o 0,90',
-                defaultId: 'TapeS4',
-                options: [opt('TapeS4', 'Solución 1', 'TapeS4.png'), opt('TapeS5', 'Solución 2', 'TapeS5.png')],
-            },
-            end04: {
-                text: 'El ancho de muro no tiene solape, es mayor de 0,30, no es exacto, es múltiplo de 0,05 y menor de 0,60',
-                thickness: 'El ancho de muro es mayor de 0,30, no es exacto, es múltiplo de 0,05 y menor de 0,60',
-                defaultId: 'TapeS6',
-                options: [opt('TapeS6', 'Solución 1', 'TapeS6.png'), opt('TapeS7', 'Solución 2', 'TapeS7.png')],
-            },
-            end05: {
-                text: 'El ancho de muro no tiene solape, es mayor de 0,30, no es exacto, no es múltiplo de 0,05 y menor de 0,60',
-                thickness: 'El ancho de muro es mayor de 0,30, no es exacto, no es múltiplo de 0,05 y menor de 0,60',
-                defaultId: 'TapeS8',
-                options: [opt('TapeS8', 'Solución 1', 'TapeS8.png')],
-            },
-            end06: {
-                text: 'El ancho de muro no tiene solape, es mayor de 0,60, no es exacto y es múltiplo de 0,05',
-                thickness: 'El ancho de muro es mayor de 0,60, no es exacto y es múltiplo de 0,05',
-                defaultId: 'TapeS9',
-                options: [
-                    opt('TapeS9', 'Solución 1', 'TapeS9.png'),
-                    opt('TapeS10', 'Solución 2', 'TapeS10.png'),
-                    opt('TapeS11', 'Solución 3', 'TapeS11.png'),
-                ],
-            },
-            end07: {
-                text: 'El ancho de muro no tiene solape, es mayor de 0,60, no es exacto y no es múltiplo de 0,05',
-                thickness: 'El ancho de muro es mayor de 0,60, no es exacto y no es múltiplo de 0,05',
-                defaultId: 'TapeS12',
-                options: [
-                    opt('TapeS13', 'Solución 1', 'TapeS12.png'),
-                    opt('TapeS12', 'Solución 2', 'TapeS13.png'),
-                ],
-            },
-        };
-    }
-
     function maStlWallTapeKnownId(value) {
         return typeof value === 'string' && (value.indexOf('TapeS') === 0 || value === 'Solucion_2');
     }
@@ -27644,97 +27553,6 @@ let maStlWallApplyAllHeightMm = 0;
         return '';
     }
 
-    function maStlWallTapeSharedLegend(ud, iniSolape, endSolape) {
-        const blocks = maStlWallTapeBlocks();
-        const thick = blocks[maStlWallTapeResolveBlockKey(maStlWallTapeWidthMeters(ud), false)] || blocks.end03;
-        if (iniSolape && endSolape) return 'El ancho de muro tiene solape';
-        if (!iniSolape && !endSolape) return thick.text;
-        return thick.thickness || thick.text;
-    }
-
-    function maStlWallInspectPaintTapeSide(ud, side) {
-        if (!side || !side.optionsEl || !side.checkbox) return '';
-        const stored = side.storedId || '';
-        const solape = !!side.checkbox.checked;
-        const blocks = maStlWallTapeBlocks();
-        const block = blocks[maStlWallTapeResolveBlockKey(maStlWallTapeWidthMeters(ud), solape)] || blocks.end03;
-        const optionIds = {};
-        for (let i = 0; i < block.options.length; i++) optionIds[block.options[i].id] = true;
-        let selected = optionIds[side.selectedId] ? side.selectedId : stored;
-        if (!optionIds[selected]) selected = block.defaultId;
-        side.optionsEl.textContent = '';
-        for (let n = 0; n < block.options.length; n++) {
-            const item = block.options[n];
-            const row = document.createElement('label');
-            row.style.display = 'flex';
-            row.style.alignItems = 'center';
-            row.style.gap = '10px';
-            row.style.margin = '0 0 10px';
-            row.style.cursor = 'pointer';
-            row.style.color = '#0f172a';
-            const input = document.createElement('input');
-            input.type = 'checkbox';
-            input.checked = item.id === selected;
-            input.style.margin = '0';
-            input.addEventListener('change', function () {
-                side.onSelect(item.id);
-                const boxes = side.optionsEl.querySelectorAll('input[type="checkbox"]');
-                for (let b = 0; b < boxes.length; b++) boxes[b].checked = boxes[b] === input;
-                input.checked = true;
-            });
-            const caption = document.createElement('span');
-            caption.textContent = item.label;
-            caption.style.minWidth = '0';
-            caption.style.fontSize = '13px';
-            const image = document.createElement('img');
-            image.src = item.image;
-            image.alt = item.label;
-            image.style.height = '64px';
-            image.style.width = 'auto';
-            image.style.maxWidth = '120px';
-            image.style.objectFit = 'contain';
-            image.style.background = '#ffffff';
-            if (side.mirror) image.style.transform = 'scaleX(-1)';
-            row.appendChild(input);
-            row.appendChild(caption);
-            row.appendChild(image);
-            side.optionsEl.appendChild(row);
-        }
-        return selected;
-    }
-
-    function maStlWallInspectPaintTapes(ud) {
-        const st = maStlWallInspectFormState;
-        if (st.tapeHeadingEl) st.tapeHeadingEl.textContent = maStlWallTapeHeadingLabel(ud);
-        if (st.tapeMessageEl) {
-            st.tapeMessageEl.textContent = maStlWallTapeSharedLegend(
-                ud,
-                !!(st.tapeIniSolapeCheckbox && st.tapeIniSolapeCheckbox.checked),
-                !!(st.tapeSolapeCheckbox && st.tapeSolapeCheckbox.checked)
-            );
-        }
-        if (st.tapeIniOptionsEl) {
-            st.tapeIniSelectedId = maStlWallInspectPaintTapeSide(ud, {
-                checkbox: st.tapeIniSolapeCheckbox,
-                optionsEl: st.tapeIniOptionsEl,
-                selectedId: st.tapeIniSelectedId,
-                storedId: maStlWallTapeStoredIniId(ud),
-                mirror: false,
-                onSelect: function (id) { st.tapeIniSelectedId = id; },
-            });
-        }
-        if (st.tapeOptionsEl) {
-            st.tapeSelectedId = maStlWallInspectPaintTapeSide(ud, {
-                checkbox: st.tapeSolapeCheckbox,
-                optionsEl: st.tapeOptionsEl,
-                selectedId: st.tapeSelectedId,
-                storedId: maStlWallTapeStoredEndId(ud),
-                mirror: true,
-                onSelect: function (id) { st.tapeSelectedId = id; },
-            });
-        }
-    }
-
     function maStlWallInspectWriteTapeChoice() {
         const st = maStlWallInspectFormState;
         const ud = st.selectedUd;
@@ -27746,516 +27564,145 @@ let maStlWallApplyAllHeightMm = 0;
         ud._ChekSolapeEnd = !!(st.tapeSolapeCheckbox && st.tapeSolapeCheckbox.checked);
     }
 
+    function maStlWallInspectPaintTapes(ud) {
+        if (!maStlWallFormApi) return;
+        const st = maStlWallInspectFormState;
+        maStlWallFormApi.setSelection(st.tapeIniSelectedId, st.tapeSelectedId);
+        maStlWallFormApi.paint(ud);
+    }
+
     function maStlWallInspectEnsurePopup() {
         if (maStlWallInspectFormState.root && (!maStlWallInspectFormState.bracketInCheckbox || !maStlWallInspectFormState.applyConfigAllCheckbox || !maStlWallInspectFormState.tapeIniSolapeCheckbox || maStlWallInspectFormState.tapeLayout !== 'pair')) {
             maStlWallInspectFormState.root.remove();
             maStlWallInspectFormState.root = null;
+            maStlWallFormApi = null;
         }
         if (maStlWallInspectFormState.root) return maStlWallInspectFormState.root;
 
-        const root = document.createElement('div');
-        root.style.position = 'fixed';
-        root.style.zIndex = '2147483200';
-        root.style.width = '680px';
-        root.style.maxWidth = 'calc(100vw - 24px)';
-        root.style.background = '#ffffff';
-        root.style.border = '1px solid #cbd5e1';
-        root.style.borderRadius = '10px';
-        root.style.boxShadow = '0 16px 36px rgba(2,6,23,0.22)';
-        root.style.display = 'none';
-        root.style.fontFamily = "'Segoe UI', Tahoma, sans-serif";
-        root.style.userSelect = 'none';
-
-        const head = document.createElement('div');
-        head.style.padding = '10px 12px';
-        head.style.background = '#0f172a';
-        head.style.color = '#ffffff';
-        head.style.borderTopLeftRadius = '10px';
-        head.style.borderTopRightRadius = '10px';
-        head.style.display = 'flex';
-        head.style.alignItems = 'center';
-        head.style.justifyContent = 'space-between';
-        head.style.cursor = 'move';
-
-        const title = document.createElement('div');
-        title.textContent = 'Modificar muro';
-        title.style.fontSize = '13px';
-        title.style.fontWeight = '600';
-        head.appendChild(title);
-
-        const closeBtn = document.createElement('button');
-        closeBtn.type = 'button';
-        closeBtn.textContent = 'x';
-        closeBtn.style.border = 'none';
-        closeBtn.style.background = 'transparent';
-        closeBtn.style.color = '#ffffff';
-        closeBtn.style.cursor = 'pointer';
-        closeBtn.style.fontSize = '15px';
-        closeBtn.style.padding = '0 4px';
-        head.appendChild(closeBtn);
-
-        const body = document.createElement('div');
-        body.style.padding = '12px';
-        body.style.userSelect = 'text';
-
-        const tabRow = document.createElement('div');
-        tabRow.style.display = 'flex';
-        tabRow.style.gap = '6px';
-        tabRow.style.marginBottom = '12px';
-
-        function maStlWallInspectMakeTab(label) {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.textContent = label;
-            btn.style.flex = '1';
-            btn.style.padding = '7px 6px';
-            btn.style.border = 'none';
-            btn.style.borderRadius = '4px';
-            btn.style.cursor = 'pointer';
-            btn.style.fontSize = '12px';
-            return btn;
-        }
-
-        const tabMuro = maStlWallInspectMakeTab('Muro');
-        const tabTapes = maStlWallInspectMakeTab('Configurar Tapes');
-        const tabProps = maStlWallInspectMakeTab('Configurar Puntales');
-        tabRow.appendChild(tabMuro);
-        tabRow.appendChild(tabTapes);
-        tabRow.appendChild(tabProps);
-        body.appendChild(tabRow);
-
-        const muroPane = document.createElement('div');
-        const tapesPane = document.createElement('div');
-        tapesPane.style.display = 'none';
-        tapesPane.style.fontSize = '13px';
-        tapesPane.style.color = '#0f172a';
-        tapesPane.style.padding = '4px 2px 8px';
-        tapesPane.style.maxHeight = '62vh';
-        tapesPane.style.overflow = 'auto';
-
-        const tapeMessageEl = document.createElement('div');
-        tapeMessageEl.style.fontSize = '13px';
-        tapeMessageEl.style.fontWeight = '600';
-        tapeMessageEl.style.margin = '0 0 8px';
-        tapeMessageEl.style.lineHeight = '1.35';
-        tapesPane.appendChild(tapeMessageEl);
-
-        const tapeHeadingEl = document.createElement('div');
-        tapeHeadingEl.style.fontSize = '12px';
-        tapeHeadingEl.style.color = '#334155';
-        tapeHeadingEl.style.margin = '0 0 10px';
-        tapeHeadingEl.style.lineHeight = '1.35';
-        tapesPane.appendChild(tapeHeadingEl);
-
-        const tapePairRow = document.createElement('div');
-        tapePairRow.style.display = 'grid';
-        tapePairRow.style.gridTemplateColumns = '1fr 1fr';
-        tapePairRow.style.columnGap = '16px';
-        tapesPane.appendChild(tapePairRow);
-
-        function maStlWallInspectMakeTapeSection(solapeLabel) {
-            const section = document.createElement('div');
-            const solapeWrap = document.createElement('label');
-            solapeWrap.style.display = 'flex';
-            solapeWrap.style.alignItems = 'center';
-            solapeWrap.style.gap = '8px';
-            solapeWrap.style.marginBottom = '10px';
-            const solapeCheckbox = document.createElement('input');
-            solapeCheckbox.type = 'checkbox';
-            solapeCheckbox.style.margin = '0';
-            const solapeText = document.createElement('span');
-            solapeText.textContent = solapeLabel;
-            solapeWrap.appendChild(solapeCheckbox);
-            solapeWrap.appendChild(solapeText);
-            section.appendChild(solapeWrap);
-            const optionsEl = document.createElement('div');
-            section.appendChild(optionsEl);
-            solapeCheckbox.addEventListener('change', function () {
-                maStlWallInspectPaintTapes(maStlWallInspectFormState.selectedUd);
-            });
-            tapePairRow.appendChild(section);
-            return { solapeCheckbox: solapeCheckbox, optionsEl: optionsEl };
-        }
-
-        const tapeIniSection = maStlWallInspectMakeTapeSection('Solape');
-        const tapeEndSection = maStlWallInspectMakeTapeSection('Solape');
-        const tapeSolapeCheckbox = tapeEndSection.solapeCheckbox;
-        const tapeOptionsEl = tapeEndSection.optionsEl;
-
-        const tapeLegendRow = document.createElement('div');
-        tapeLegendRow.style.display = 'grid';
-        tapeLegendRow.style.gridTemplateColumns = '1fr 1fr';
-        tapeLegendRow.style.columnGap = '16px';
-        tapeLegendRow.style.marginTop = '4px';
-        function maStlWallInspectMakeTapeLegend(text) {
-            const cell = document.createElement('div');
-            cell.textContent = text;
-            cell.style.textAlign = 'center';
-            cell.style.fontSize = '12px';
-            cell.style.fontWeight = '700';
-            cell.style.color = '#0f172a';
-            cell.style.paddingTop = '6px';
-            cell.style.borderTop = '1px solid #e2e8f0';
-            tapeLegendRow.appendChild(cell);
-        }
-        maStlWallInspectMakeTapeLegend('Solape inicial');
-        maStlWallInspectMakeTapeLegend('Solape final');
-        tapesPane.appendChild(tapeLegendRow);
-        const propsPane = document.createElement('div');
-        propsPane.style.display = 'none';
-
-        function maStlWallInspectMakeCheck(text) {
-            const wrap = document.createElement('label');
-            wrap.style.display = 'flex';
-            wrap.style.alignItems = 'flex-start';
-            wrap.style.gap = '8px';
-            wrap.style.fontSize = '13px';
-            wrap.style.color = '#0f172a';
-            wrap.style.marginBottom = '14px';
-            const input = document.createElement('input');
-            input.type = 'checkbox';
-            input.checked = true;
-            input.style.marginTop = '2px';
-            const span = document.createElement('span');
-            span.textContent = text;
-            wrap.appendChild(input);
-            wrap.appendChild(span);
-            return { wrap: wrap, input: input };
-        }
-
-        const propGrid = document.createElement('div');
-        propGrid.style.display = 'grid';
-        propGrid.style.gridTemplateColumns = '1fr 1fr';
-        propGrid.style.columnGap = '16px';
-        const propIn = maStlWallInspectMakeCheck('Puntales superiores en cara interior');
-        const propOut = maStlWallInspectMakeCheck('Puntales superiores en cara exterior');
-        const propInInf = maStlWallInspectMakeCheck('Puntales Inferiores en cara interior');
-        const propOutInf = maStlWallInspectMakeCheck('Puntales Inferiores en cara exterior');
-        propGrid.appendChild(propIn.wrap);
-        propGrid.appendChild(propOut.wrap);
-        propGrid.appendChild(propInInf.wrap);
-        propGrid.appendChild(propOutInf.wrap);
-        propsPane.appendChild(propGrid);
-
-        body.appendChild(muroPane);
-        body.appendChild(tapesPane);
-        body.appendChild(propsPane);
-
-        function maStlWallInspectPaintTab(btn, active) {
-            btn.style.background = active ? '#2563eb' : '#e8eef5';
-            btn.style.color = active ? '#ffffff' : '#334155';
-        }
-
-        function maStlWallInspectShowEditTab(which) {
-            muroPane.style.display = which === 'muro' ? 'block' : 'none';
-            tapesPane.style.display = which === 'tapes' ? 'block' : 'none';
-            propsPane.style.display = which === 'props' ? 'block' : 'none';
-            maStlWallInspectPaintTab(tabMuro, which === 'muro');
-            maStlWallInspectPaintTab(tabTapes, which === 'tapes');
-            maStlWallInspectPaintTab(tabProps, which === 'props');
-        }
-
-        tabMuro.addEventListener('click', function () { maStlWallInspectShowEditTab('muro'); });
-        tabTapes.addEventListener('click', function () { maStlWallInspectShowEditTab('tapes'); });
-        tabProps.addEventListener('click', function () { maStlWallInspectShowEditTab('props'); });
-        maStlWallInspectShowEditTab('muro');
-
-        const lengthLabel = document.createElement('label');
-        lengthLabel.textContent = 'Longitud del muro (m)';
-        lengthLabel.style.display = 'block';
-        lengthLabel.style.fontSize = '12px';
-        lengthLabel.style.fontWeight = '600';
-        lengthLabel.style.color = '#334155';
-        lengthLabel.style.marginBottom = '6px';
-        muroPane.appendChild(lengthLabel);
-
-        function maStlWallInspectMakeMeasureInput() {
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.inputMode = 'decimal';
-            input.autocomplete = 'off';
-            input.style.width = '100%';
-            input.style.boxSizing = 'border-box';
-            input.style.padding = '8px 10px';
-            input.style.border = '1px solid #cbd5e1';
-            input.style.borderRadius = '8px';
-            input.style.marginBottom = '10px';
-            return input;
-        }
-
-        const lengthInput = maStlWallInspectMakeMeasureInput();
-        muroPane.appendChild(lengthInput);
-
-        const widthLabel = document.createElement('label');
-        widthLabel.textContent = 'Espesor del muro (m)';
-        widthLabel.style.display = 'block';
-        widthLabel.style.fontSize = '12px';
-        widthLabel.style.fontWeight = '600';
-        widthLabel.style.color = '#334155';
-        widthLabel.style.marginBottom = '6px';
-        muroPane.appendChild(widthLabel);
-
-        const widthInput = maStlWallInspectMakeMeasureInput();
-        widthInput.addEventListener('input', function () {
-            const ud = maStlWallInspectFormState.selectedUd;
-            if (ud) maStlWallInspectPaintTapes(ud);
+        maStlWallFormApi = mountWallEditForm(document.body, {
+            floating: true,
+            parseMeters: function (text) {
+                const mm = maStlParseLengthInputValueToMm(text);
+                return mm == null ? null : mm / 1000;
+            },
+            headingFromUd: function (ud) { return maStlWallTapeHeadingLabel(ud); },
+            onRepaint: function () { maStlWallInspectPaintTapes(maStlWallInspectFormState.selectedUd); },
+            onTapeSelection: function (ini, end) {
+                maStlWallInspectFormState.tapeIniSelectedId = ini;
+                maStlWallInspectFormState.tapeSelectedId = end;
+            },
+            onAccept: function () { maStlWallInspectAccept(); },
+            onCancel: function () { maStlWallInspectClosePopup(); },
         });
-        muroPane.appendChild(widthInput);
-
-        const rowLabel = document.createElement('label');
-        rowLabel.textContent = 'Altura del muro (m)';
-        rowLabel.style.display = 'block';
-        rowLabel.style.fontSize = '12px';
-        rowLabel.style.fontWeight = '600';
-        rowLabel.style.color = '#334155';
-        rowLabel.style.marginBottom = '6px';
-        muroPane.appendChild(rowLabel);
-
-        const heightInput = document.createElement('input');
-        heightInput.type = 'number';
-        heightInput.min = '0.30';
-        heightInput.max = '10.00';
-        heightInput.step = '0.15';
-        heightInput.value = '2.70';
-        heightInput.style.width = '100%';
-        heightInput.style.boxSizing = 'border-box';
-        heightInput.style.padding = '8px 10px';
-        heightInput.style.border = '1px solid #cbd5e1';
-        heightInput.style.borderRadius = '8px';
-        heightInput.style.marginBottom = '10px';
-        muroPane.appendChild(heightInput);
-
-        const applyRow = document.createElement('div');
-        applyRow.style.display = 'grid';
-        applyRow.style.gridTemplateColumns = '1fr 1fr';
-        applyRow.style.columnGap = '12px';
-        applyRow.style.marginBottom = '12px';
-
-        const applyAllWrap = document.createElement('label');
-        applyAllWrap.style.display = 'flex';
-        applyAllWrap.style.alignItems = 'flex-start';
-        applyAllWrap.style.gap = '8px';
-        applyAllWrap.style.fontSize = '12px';
-        applyAllWrap.style.color = '#334155';
-        const applyAllCheckbox = document.createElement('input');
-        applyAllCheckbox.type = 'checkbox';
-        applyAllCheckbox.checked = true;
-        applyAllCheckbox.style.marginTop = '2px';
-        const applyAllText = document.createElement('span');
-        applyAllText.textContent = 'Aplicar altura a todos los muros';
-        applyAllWrap.appendChild(applyAllCheckbox);
-        applyAllWrap.appendChild(applyAllText);
-
-        const applyConfigWrap = document.createElement('label');
-        applyConfigWrap.style.display = 'flex';
-        applyConfigWrap.style.alignItems = 'flex-start';
-        applyConfigWrap.style.gap = '8px';
-        applyConfigWrap.style.fontSize = '12px';
-        applyConfigWrap.style.color = '#334155';
-        const applyConfigAllCheckbox = document.createElement('input');
-        applyConfigAllCheckbox.type = 'checkbox';
-        applyConfigAllCheckbox.checked = false;
-        applyConfigAllCheckbox.style.marginTop = '2px';
-        const applyConfigText = document.createElement('span');
-        applyConfigText.textContent = 'Aplicar la configuración a todos los muros y esquinas';
-        applyConfigWrap.appendChild(applyConfigAllCheckbox);
-        applyConfigWrap.appendChild(applyConfigText);
-
-        applyRow.appendChild(applyAllWrap);
-        applyRow.appendChild(applyConfigWrap);
-        muroPane.appendChild(applyRow);
-
-        const muroChecksTitle = document.createElement('div');
-        muroChecksTitle.textContent = 'En este muro';
-        muroChecksTitle.style.fontSize = '12px';
-        muroChecksTitle.style.fontWeight = '600';
-        muroChecksTitle.style.color = '#334155';
-        muroChecksTitle.style.margin = '4px 0 8px';
-        muroPane.appendChild(muroChecksTitle);
-
-        const muroGrid = document.createElement('div');
-        muroGrid.style.display = 'grid';
-        muroGrid.style.gridTemplateColumns = '1fr 1fr';
-        muroGrid.style.columnGap = '16px';
-        muroGrid.style.marginTop = '4px';
-        const bracketIn = maStlWallInspectMakeCheck('Ménsulas en cara interior');
-        const bracketOut = maStlWallInspectMakeCheck('Ménsulas en cara exterior');
-        const stiffIn = maStlWallInspectMakeCheck('Rigidizadores en cara interior');
-        const stiffOut = maStlWallInspectMakeCheck('Rigidizadores en cara exterior');
-        muroGrid.appendChild(bracketIn.wrap);
-        muroGrid.appendChild(bracketOut.wrap);
-        muroGrid.appendChild(stiffIn.wrap);
-        muroGrid.appendChild(stiffOut.wrap);
-        muroPane.appendChild(muroGrid);
-
-        const panel750 = maStlWallInspectMakeCheck('Utilizar paneles 0,75 regulables');
-        const verticalPanels = maStlWallInspectMakeCheck('Paneles verticales');
-        muroPane.appendChild(panel750.wrap);
-        muroPane.appendChild(verticalPanels.wrap);
-
-        const actions = document.createElement('div');
-        actions.style.display = 'flex';
-        actions.style.justifyContent = 'flex-end';
-        actions.style.gap = '8px';
-
-        const cancelBtn = document.createElement('button');
-        cancelBtn.type = 'button';
-        cancelBtn.textContent = 'Cancelar';
-        cancelBtn.style.padding = '7px 10px';
-        cancelBtn.style.border = '1px solid #cbd5e1';
-        cancelBtn.style.borderRadius = '8px';
-        cancelBtn.style.background = '#ffffff';
-        cancelBtn.style.cursor = 'pointer';
-
-        const acceptBtn = document.createElement('button');
-        acceptBtn.type = 'button';
-        acceptBtn.textContent = 'Aceptar';
-        acceptBtn.style.padding = '7px 12px';
-        acceptBtn.style.border = 'none';
-        acceptBtn.style.borderRadius = '8px';
-        acceptBtn.style.background = '#2563eb';
-        acceptBtn.style.color = '#ffffff';
-        acceptBtn.style.cursor = 'pointer';
-
-        actions.appendChild(cancelBtn);
-        actions.appendChild(acceptBtn);
-        body.appendChild(actions);
-
-        root.appendChild(head);
-        root.appendChild(body);
-        document.body.appendChild(root);
-
-        let dragState = null;
-        head.addEventListener('mousedown', function (ev) {
-            if (ev.button !== 0) return;
-            const rect = root.getBoundingClientRect();
-            dragState = {
-                dx: ev.clientX - rect.left,
-                dy: ev.clientY - rect.top,
-            };
-            ev.preventDefault();
-        });
-        window.addEventListener('mousemove', function (ev) {
-            if (!dragState || root.style.display === 'none') return;
-            const vw = window.innerWidth || document.documentElement.clientWidth || 1280;
-            const vh = window.innerHeight || document.documentElement.clientHeight || 720;
-            const w = Math.max(root.offsetWidth, 320);
-            const h = Math.max(root.offsetHeight, 160);
-            const left = THREE.MathUtils.clamp(ev.clientX - dragState.dx, 8, Math.max(8, vw - w - 8));
-            const top = THREE.MathUtils.clamp(ev.clientY - dragState.dy, 8, Math.max(8, vh - h - 8));
-            root.style.left = Math.round(left) + 'px';
-            root.style.top = Math.round(top) + 'px';
-        });
-        window.addEventListener('mouseup', function () {
-            dragState = null;
-        });
-
-        closeBtn.addEventListener('click', maStlWallInspectClosePopup);
-        cancelBtn.addEventListener('click', maStlWallInspectClosePopup);
-        acceptBtn.addEventListener('click', function () {
-            const axisLine = maStlWallInspectFormState.selectedLine
-                || maStlWallInspectFindLineFromUd(maStlWallInspectFormState.selectedUd);
-            const editableAxis = maStlWall2dToolEditableAxisLineForDimension(axisLine) || axisLine;
-            const axisUd = editableAxis && editableAxis.userData
-                ? editableAxis.userData.maStlUserPlanLine
-                : null;
-            const lenMm = maStlParseLengthInputValueToMm(lengthInput.value);
-            const thickMm = maStlParseLengthInputValueToMm(widthInput.value);
-            const h = Number.parseFloat(String(heightInput.value || '').trim().replace(',', '.'));
-            if (lenMm == null) {
-                maStlDesing2ShowSaveViewToast('Longitud invalida');
-                return;
-            }
-            if (thickMm == null) {
-                maStlDesing2ShowSaveViewToast('Espesor invalido');
-                return;
-            }
-            if (!Number.isFinite(h) || h <= 0) {
-                maStlDesing2ShowSaveViewToast('Altura invalida');
-                return;
-            }
-            if (!editableAxis || !axisUd || axisUd.wallRole !== 'axis') {
-                maStlDesing2ShowSaveViewToast('No se pudo aplicar la medida');
-                return;
-            }
-            const undoBefore = maStlDesing2SerializeEditSnapshot();
-            const nextLen = maStlDesing2LengthMmRoundedEditableFromMm(lenMm);
-            const nextThick = maStlDesing2LengthMmRoundedEditableFromMm(thickMm);
-            const curLen = maStlUserFloorLineLengthMm(axisUd);
-            const curThick = maStlWall2dToolAxisTotalThicknessMm(editableAxis);
-            let measureChanged = false;
-            function maStlWallInspectPushMeasureUndo() {
-                maStlDesing2PushEditSnapshotUndo(
-                    'editUserFloorLineDimension',
-                    undoBefore,
-                    maStlDesing2SerializeEditSnapshot()
-                );
-            }
-            if (Math.abs(curLen - nextLen) > MA_STL_WALL_DIM_LENGTH_VALUE_TOL_MM) {
-                if (!maStlCommitWallAxisLengthMm(editableAxis, lenMm)) {
-                    maStlDesing2ShowSaveViewToast('No se pudo aplicar la longitud');
-                    return;
-                }
-                measureChanged = true;
-            }
-            let thickLine = editableAxis;
-            if (axisUd.id != null) {
-                const again = maStlWall2dToolFindLineByPlanId(axisUd.id);
-                if (again) thickLine = again;
-            }
-            if (Math.abs(curThick - nextThick) > MA_STL_WALL_DIM_LENGTH_VALUE_TOL_MM) {
-                if (!maStlCommitWallAxisThicknessMm(thickLine, thickMm)) {
-                    if (measureChanged) maStlWallInspectPushMeasureUndo();
-                    maStlDesing2ShowSaveViewToast('No se pudo aplicar el espesor');
-                    return;
-                }
-                measureChanged = true;
-            }
-            maStlWallInspectWritePropFlags();
-            maStlWallInspectWriteTapeChoice();
-            const ok = maStlWallInspectApplyHeightMeters(h, !!applyAllCheckbox.checked);
-            if (!ok) {
-                if (measureChanged) maStlWallInspectPushMeasureUndo();
-                maStlDesing2ShowSaveViewToast('No se pudo aplicar la altura');
-                return;
-            }
-            if (measureChanged) maStlWallInspectPushMeasureUndo();
-            maStlWallInspectClosePopup();
-        });
-
-        maStlWallInspectFormState.root = root;
-        maStlWallInspectFormState.titleEl = title;
-        maStlWallInspectFormState.lengthInput = lengthInput;
-        maStlWallInspectFormState.widthInput = widthInput;
-        maStlWallInspectFormState.heightInput = heightInput;
-        maStlWallInspectFormState.applyAllCheckbox = applyAllCheckbox;
-        maStlWallInspectFormState.applyConfigAllCheckbox = applyConfigAllCheckbox;
-        maStlWallInspectFormState.bracketInCheckbox = bracketIn.input;
-        maStlWallInspectFormState.bracketOutCheckbox = bracketOut.input;
-        maStlWallInspectFormState.stiffInCheckbox = stiffIn.input;
-        maStlWallInspectFormState.stiffOutCheckbox = stiffOut.input;
-        maStlWallInspectFormState.panel750Checkbox = panel750.input;
-        maStlWallInspectFormState.verticalPanelsCheckbox = verticalPanels.input;
-        maStlWallInspectFormState.propInCheckbox = propIn.input;
-        maStlWallInspectFormState.propOutCheckbox = propOut.input;
-        maStlWallInspectFormState.propInInfCheckbox = propInInf.input;
-        maStlWallInspectFormState.propOutInfCheckbox = propOutInf.input;
-        maStlWallInspectFormState.muroPane = muroPane;
+        const r = maStlWallFormApi.refs;
+        maStlWallInspectFormState.root = r.root;
+        maStlWallInspectFormState.titleEl = r.titleEl;
+        maStlWallInspectFormState.lengthInput = r.lengthInput;
+        maStlWallInspectFormState.widthInput = r.widthInput;
+        maStlWallInspectFormState.heightInput = r.heightInput;
+        maStlWallInspectFormState.applyAllCheckbox = r.applyAllCheckbox;
+        maStlWallInspectFormState.applyConfigAllCheckbox = r.applyConfigAllCheckbox;
+        maStlWallInspectFormState.bracketInCheckbox = r.bracketInCheckbox;
+        maStlWallInspectFormState.bracketOutCheckbox = r.bracketOutCheckbox;
+        maStlWallInspectFormState.stiffInCheckbox = r.stiffInCheckbox;
+        maStlWallInspectFormState.stiffOutCheckbox = r.stiffOutCheckbox;
+        maStlWallInspectFormState.panel750Checkbox = r.panel750Checkbox;
+        maStlWallInspectFormState.verticalPanelsCheckbox = r.verticalPanelsCheckbox;
+        maStlWallInspectFormState.propInCheckbox = r.propInCheckbox;
+        maStlWallInspectFormState.propOutCheckbox = r.propOutCheckbox;
+        maStlWallInspectFormState.propInInfCheckbox = r.propInInfCheckbox;
+        maStlWallInspectFormState.propOutInfCheckbox = r.propOutInfCheckbox;
+        maStlWallInspectFormState.muroPane = r.muroPane;
         maStlWallInspectFormState.tapeLayout = 'pair';
-        maStlWallInspectFormState.tapeHeadingEl = tapeHeadingEl;
-        maStlWallInspectFormState.tapeIniSolapeCheckbox = tapeIniSection.solapeCheckbox;
-        maStlWallInspectFormState.tapeIniOptionsEl = tapeIniSection.optionsEl;
-        maStlWallInspectFormState.tapeSolapeCheckbox = tapeSolapeCheckbox;
-        maStlWallInspectFormState.tapeMessageEl = tapeMessageEl;
-        maStlWallInspectFormState.tapeOptionsEl = tapeOptionsEl;
-        maStlWallInspectFormState.tapesPane = tapesPane;
-        maStlWallInspectFormState.propsPane = propsPane;
-        maStlWallInspectFormState.acceptBtn = acceptBtn;
-        maStlWallInspectFormState.cancelBtn = cancelBtn;
-        maStlWallInspectFormState.closeBtn = closeBtn;
-
-        return root;
+        maStlWallInspectFormState.tapeHeadingEl = r.tapeHeadingEl;
+        maStlWallInspectFormState.tapeIniSolapeCheckbox = r.tapeIniSolapeCheckbox;
+        maStlWallInspectFormState.tapeIniOptionsEl = r.tapeIniOptionsEl;
+        maStlWallInspectFormState.tapeSolapeCheckbox = r.tapeSolapeCheckbox;
+        maStlWallInspectFormState.tapeMessageEl = r.tapeMessageEl;
+        maStlWallInspectFormState.tapeOptionsEl = r.tapeOptionsEl;
+        maStlWallInspectFormState.tapesPane = r.tapesPane;
+        maStlWallInspectFormState.propsPane = r.propsPane;
+        maStlWallInspectFormState.acceptBtn = r.acceptBtn;
+        maStlWallInspectFormState.cancelBtn = r.cancelBtn;
+        maStlWallInspectFormState.closeBtn = r.closeBtn;
+        return r.root;
     }
+
+    function maStlWallInspectAccept() {
+        const st = maStlWallInspectFormState;
+        const lengthInput = st.lengthInput;
+        const widthInput = st.widthInput;
+        const heightInput = st.heightInput;
+        const applyAllCheckbox = st.applyAllCheckbox;
+        const axisLine = st.selectedLine || maStlWallInspectFindLineFromUd(st.selectedUd);
+        const editableAxis = maStlWall2dToolEditableAxisLineForDimension(axisLine) || axisLine;
+        const axisUd = editableAxis && editableAxis.userData
+            ? editableAxis.userData.maStlUserPlanLine
+            : null;
+        const lenMm = maStlParseLengthInputValueToMm(lengthInput.value);
+        const thickMm = maStlParseLengthInputValueToMm(widthInput.value);
+        const h = Number.parseFloat(String(heightInput.value || '').trim().replace(',', '.'));
+        if (lenMm == null) {
+            maStlDesing2ShowSaveViewToast('Longitud invalida');
+            return;
+        }
+        if (thickMm == null) {
+            maStlDesing2ShowSaveViewToast('Espesor invalido');
+            return;
+        }
+        if (!Number.isFinite(h) || h <= 0) {
+            maStlDesing2ShowSaveViewToast('Altura invalida');
+            return;
+        }
+        if (!editableAxis || !axisUd || axisUd.wallRole !== 'axis') {
+            maStlDesing2ShowSaveViewToast('No se pudo aplicar la medida');
+            return;
+        }
+        const undoBefore = maStlDesing2SerializeEditSnapshot();
+        const nextLen = maStlDesing2LengthMmRoundedEditableFromMm(lenMm);
+        const nextThick = maStlDesing2LengthMmRoundedEditableFromMm(thickMm);
+        const curLen = maStlUserFloorLineLengthMm(axisUd);
+        const curThick = maStlWall2dToolAxisTotalThicknessMm(editableAxis);
+        let measureChanged = false;
+        function maStlWallInspectPushMeasureUndo() {
+            maStlDesing2PushEditSnapshotUndo(
+                'editUserFloorLineDimension',
+                undoBefore,
+                maStlDesing2SerializeEditSnapshot()
+            );
+        }
+        if (Math.abs(curLen - nextLen) > MA_STL_WALL_DIM_LENGTH_VALUE_TOL_MM) {
+            if (!maStlCommitWallAxisLengthMm(editableAxis, lenMm)) {
+                maStlDesing2ShowSaveViewToast('No se pudo aplicar la longitud');
+                return;
+            }
+            measureChanged = true;
+        }
+        let thickLine = editableAxis;
+        if (axisUd.id != null) {
+            const again = maStlWall2dToolFindLineByPlanId(axisUd.id);
+            if (again) thickLine = again;
+        }
+        if (Math.abs(curThick - nextThick) > MA_STL_WALL_DIM_LENGTH_VALUE_TOL_MM) {
+            if (!maStlCommitWallAxisThicknessMm(thickLine, thickMm)) {
+                if (measureChanged) maStlWallInspectPushMeasureUndo();
+                maStlDesing2ShowSaveViewToast('No se pudo aplicar el espesor');
+                return;
+            }
+            measureChanged = true;
+        }
+        maStlWallInspectWritePropFlags();
+        maStlWallInspectWriteTapeChoice();
+        const ok = maStlWallInspectApplyHeightMeters(h, !!applyAllCheckbox.checked);
+        if (!ok) {
+            if (measureChanged) maStlWallInspectPushMeasureUndo();
+            maStlDesing2ShowSaveViewToast('No se pudo aplicar la altura');
+            return;
+        }
+        if (measureChanged) maStlWallInspectPushMeasureUndo();
+        maStlWallInspectClosePopup();
+    }
+
 
     function maStlWallInspectOpenPopup(selection, clientX, clientY) {
         if (!selection || !selection.ud) return false;

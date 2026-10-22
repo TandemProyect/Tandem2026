@@ -39,7 +39,12 @@ namespace AutocadPlugin
             Run(replaceExisting: true);
         }
 
-        private static void Run(bool replaceExisting)
+        internal static void RebuildFromFaces(double heightMm)
+        {
+            Run(replaceExisting: true, heightMm);
+        }
+
+        private static void Run(bool replaceExisting, double heightMm = 0)
         {
             Document doc = AcadApp.DocumentManager.MdiActiveDocument;
             if (doc == null) return;
@@ -64,7 +69,7 @@ namespace AutocadPlugin
                 TotalPolilineas = 0,
                 FechaSeleccion = DateTime.Now,
                 Usuario = Environment.UserName,
-                AlturaMuroMm = DefaultHeightMm
+                AlturaMuroMm = heightMm > 200 ? heightMm : ReadStoredHeightMm(db)
             };
 
             ApiResponse<DeteccionEsquinasLDTO> respuesta = null;
@@ -107,6 +112,29 @@ namespace AutocadPlugin
                 (restored > 0 ? $", paneles: {restored}" : "") + ".\n");
             if (solids == 0)
                 ed.WriteMessage("No se pudo extruir ningún perímetro ModelDesing. Revisa las caras 2D (capa TANDEM_MURO_CARA).\n");
+        }
+
+        private static double ReadStoredHeightMm(Database db)
+        {
+            var height = DefaultHeightMm;
+            using (var tr = db.TransactionManager.StartTransaction())
+            {
+                var bt = (BlockTable)tr.GetObject(db.BlockTableId, OpenMode.ForRead);
+                var ms = (BlockTableRecord)tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForRead);
+                foreach (ObjectId id in ms)
+                {
+                    var line = tr.GetObject(id, OpenMode.ForRead) as Line;
+                    if (line == null)
+                        continue;
+                    if (!string.Equals(line.Layer, WallCadXData.LayerAxis, StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    var attrs = WallEditAttrs.Load(WallCadXData.ReadAttrsJson(line));
+                    if (attrs.HeightM > 0.2)
+                        height = attrs.HeightM * 1000.0;
+                }
+                tr.Commit();
+            }
+            return height;
         }
 
         private static List<LineaDTO> CollectFaceLines(Database db)

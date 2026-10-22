@@ -321,6 +321,7 @@ function pushStlUrl(list, value) {
 function isPropOrClampStlUrl(url) {
     const file = String(url || '').split(/[\\/]/).pop().toLowerCase();
     return /^10000221(?:-2|b)?\.stl$/.test(file)
+        || /^10004220(?:-2)?\.stl$/.test(file)
         || /^h(?:\d{2,3}|\d{2,3}_2|\d{2,3}inf|\d{2,3}inf_2)\.stl$/.test(file)
         || /^puntal_tipo3(?:-2|-41|inf)?\.stl$/.test(file);
 }

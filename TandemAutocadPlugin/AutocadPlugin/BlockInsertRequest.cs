@@ -26,6 +26,39 @@ namespace AutocadPlugin
             return FirstNonEmpty(DwgUrl3DRef, DwgUrl);
         }
 
+        private static string ReadText(JToken token)
+        {
+            if (token == null || token.Type == JTokenType.Null)
+                return "";
+            return (token.ToString() ?? "").Trim();
+        }
+
+        private static string FirstText(JToken a, JToken b)
+        {
+            var first = ReadText(a);
+            return string.IsNullOrWhiteSpace(first) ? ReadText(b) : first;
+        }
+
+        private static long ReadLong(JToken token)
+        {
+            long n;
+            if (token == null || token.Type == JTokenType.Null)
+                return 0L;
+            return long.TryParse(token.ToString(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out n)
+                ? n
+                : 0L;
+        }
+
+        private static int ReadInt(JToken token)
+        {
+            int n;
+            if (token == null || token.Type == JTokenType.Null)
+                return 0;
+            return int.TryParse(token.ToString(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out n)
+                ? n
+                : 0;
+        }
+
         private static string FirstNonEmpty(params string[] values)
         {
             if (values == null)
@@ -52,23 +85,19 @@ namespace AutocadPlugin
                 return null;
             var req = new BlockInsertRequest
             {
-                Id = obj["id"] != null ? (long)obj["id"] : 0L,
-                Code = ((string)obj["code"] ?? "").Trim(),
-                CodeName = ((string)obj["codeName"] ?? (string)obj["CodeName"] ?? "").Trim(),
-                View = ((string)obj["view"] ?? "3dref").Trim(),
-                Caption = ((string)obj["caption"] ?? "").Trim(),
-                DwgUrl = ((string)obj["dwg"] ?? (string)obj["DwgUrl"] ?? "").Trim(),
-                DwgUrl3D = ((string)obj["dwg3d"] ?? (string)obj["DwgUrl3D"] ?? "").Trim(),
-                DwgUrl3DRef = ((string)obj["dwg3dref"] ?? (string)obj["DwgUrl3DRef"] ?? "").Trim(),
-                DwgUrlXr = ((string)obj["dwgXr"] ?? (string)obj["DwgUrlXr"] ?? "").Trim()
+                Id = ReadLong(obj["id"]),
+                Code = ReadText(obj["code"]),
+                CodeName = FirstText(obj["codeName"], obj["CodeName"]),
+                View = FirstText(obj["view"], obj["View"]),
+                Caption = ReadText(obj["caption"]),
+                DwgUrl = FirstText(obj["dwg"], obj["DwgUrl"]),
+                DwgUrl3D = FirstText(obj["dwg3d"], obj["DwgUrl3D"]),
+                DwgUrl3DRef = FirstText(obj["dwg3dref"], obj["DwgUrl3DRef"]),
+                DwgUrlXr = FirstText(obj["dwgXr"], obj["DwgUrlXr"])
             };
-            int rot;
-            if (int.TryParse((string)obj["rotation"] ?? (string)obj["rotationDeg"] ?? "0", out rot))
-                req.RotationDeg = rot;
-            else if (obj["rotation"] != null)
-                req.RotationDeg = (int)obj["rotation"];
             if (string.IsNullOrWhiteSpace(req.View))
                 req.View = "3dref";
+            req.RotationDeg = ReadInt(obj["rotation"] ?? obj["rotationDeg"]);
             if (string.IsNullOrWhiteSpace(req.CodeName))
                 req.CodeName = Atk60CodeNames.FromArticleCode(req.Code);
             return req;
