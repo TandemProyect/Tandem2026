@@ -32,16 +32,22 @@ Controlador: `Desing/Controllers/TandemXrApiController.cs`
 
 ---
 
-## Roadmap
+## Roadmap (base de producto)
 
-| Fase | Entregable |
-|------|------------|
-| v0 | API + Unity carga manifest (hecho) |
-| v0.5 | Dispositivos XR + Enviar a XR + cola Pending/Ack (hecho) |
-| v1 | STL real + lista instancias completa |
-| v2 | Interacción XRI (agarrar, mover) en Quest |
-| v3 | AR tablet (AR Foundation) |
-| v4 | Passthrough MR en Quest 3S |
+| Fase | Entregable | Estado |
+|------|------------|--------|
+| v0 | API + Unity carga manifest | Hecho (esqueleto) |
+| v0.5 | Dispositivos XR + Enviar a XR + Pending/Ack | Hecho (Desing); Unity pendiente de licencia/Play |
+| v1 | Manifest completo (piezas ATK-60) + Play en Editor / APK | Pendiente |
+| v2 | APK tablet + Quest; tiendas más adelante | Pendiente |
+| v3 | Marca / suelo: AR tablet + passthrough Quest 3S | Pendiente |
+| v4 | Interacción XRI (agarrar, mover, ocultar) | Pendiente |
+| v5 | API de comandos en Desing (crear muro, etc.) | Pendiente |
+| v6 | Voz en Quest → comando → Desing → refrescar XR | Pendiente (futuro) |
+
+**Voz:** las gafas pueden oír órdenes («muro 10 m × 0,30 × 3 m»). Unity hace STT e intención; **Desing** crea el muro con las mismas reglas que el diseñador; XR solo pinta el resultado. No se construye encofrado “a ojo” en las gafas.
+
+**Informe:** quincenal **02**, apartado **1. Proyecto XR** (`Desing/Report/2026/2026-10-22_Informe-Quincenal.md` / `.pdf`).
 
 ---
 

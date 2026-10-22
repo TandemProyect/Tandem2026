@@ -2,11 +2,14 @@
 
 Para el siguiente agente. Hecho el **19, 20 y 21 de octubre de 2026**.
 
+Los nombres para hablar de un tape (tipo 1 a 7), cuándo se usa cada uno y el PDF de prueba están en `tapes-tipos.md` y `tapes-tipos.pdf`, en esta misma carpeta.
+
 - Apartado 21 del informe quincenal 02: tapes del formulario y el cierre sin solape. Cerrado el 20 oct, 10:03.
 - Apartado 24: Tape con solape (TapeS1). Cerrado el 20 oct, 15:54. El usuario lo dio por bueno.
 - Apartado 25: TapeS2. Cerrado el 21 oct, 10:37.
 - Apartado 26: módulos, rigidizadores, solape repartido y placas del final. Cerrado el 21 oct, 10:37.
 - Apartado 27: TapeS7 y TapeS8. Cerrado el 21 oct, 12:43. El usuario lo dio por bueno. Pendiente un testeo total de altura.
+- Apartado 28: espesor mayor de 0,60 que no es múltiplo de 0,050. Cerrado el 21 oct, 13:43. El usuario lo dio por bueno.
 
 No reabrir la posición ni la rotación de la placa del TapeS3. El giro del TapeS1 en el inicio no se toca. En el final las dos placas van a 180° por `RotZ`, no cruzando `RotY`.
 
@@ -22,8 +25,9 @@ El formulario del botón derecho (pestaña Configurar Tapes) guarda el inicio en
 | 0,30, 0,45, 0,60 y 0,90 m | TapeS4 (solución 1) o TapeS5 (solución 2) | TapeS1 o TapeS2 |
 | 0,75 m | No entra en el bloque exacto | — |
 | Mayor de 0,30, menor de 0,60, no exacto | TapeS7 o TapeS8: angular, panel que quepa y taco | TapeS1 o TapeS2 |
+| Mayor de 0,60, no múltiplo de 0,050 | Solución 1 (TapeS13): el mismo TapeS7. Solución 2 (TapeS12): taco en el medio | TapeS1 o TapeS2 |
 
-`ResolveTape`: si está guardado TapeS1, TapeS2, TapeS5, TapeS7 o TapeS8, manda eso. `Solucion_2` se lee como TapeS8. Si no, con solape es TapeS1 y sin solape es TapeS4.
+`ResolveTape`: si está guardado TapeS1, TapeS2, TapeS5, TapeS7, TapeS8, TapeS12 o TapeS13, manda eso. `Solucion_2` se lee como TapeS8. Si no, con solape es TapeS1 y sin solape es TapeS4.
 
 ## Archivos
 
@@ -31,7 +35,7 @@ El formulario del botón derecho (pestaña Configurar Tapes) guarda el inicio en
 |---------|-----|
 | `Repositories/Repository_Desing_2/Atk60/ExactWidthEndTape.cs` | Cierre de los dos extremos. Lo llama `Atk60WallsRepository.BuildPanel270ElementsForThreeJs`. |
 | `Repositories/Repository_Desing_2/Atk60/FormTie.cs` | Tirante del canto solo si el extremo es TapeS2. En el resto no. En espesor menor de 300 mm tampoco pone tirante de panel a menos de 100 mm de un extremo, salvo el suplemento del TapeS2. |
-| `Scripts/MasterArticles/master-article-details-stl-viewer.js` | Malla del remate de madera, pose de pilar de la placa y el giro en planta del rigidizador horizontal. |
+| `Scripts/MasterArticles/master-article-details-stl-viewer.js` | Malla del remate de madera, pose de pilar de la placa, el giro en planta del rigidizador horizontal y el tamaño nativo de los paneles de canto de 0,45, 0,60, 0,75 y 0,90. |
 | `Scripts/Design/3D/Design_3d_Object.js` | Referencia antigua: `FilerSEMeS01`, `FilerSExS01`, `FilerRigiSExS01`. No editarla para este visor. |
 | `Repositories/Atk60/Wall/CommonElement.cs` | `SedUnionRigiHorizontal_0`: un `1850162` centrado en el espesor y placas `10443020`. El fijador `1850164` el filer antiguo no lo dibuja. |
 | `Repositories/Atk60/Wall/WallTapeSolape/ModuloTape_0_01.cs` | Alturas antiguas del solape, en cm: 65, 140 y 220 en el panel de 2,70. El visor nuevo usa los taladros, no esas cotas. |
@@ -145,9 +149,20 @@ Aceptado el 21 oct, 12:43. Espesor mayor de 0,30 y menor de 0,60 que no es 0,30,
 - No lleva tirante en el canto del panel.
 - Pendiente: un testeo total de altura.
 
+## Mayor de 0,60 m, no múltiplo de 0,050
+
+Aceptado el 21 oct, 13:43. Ejemplo 0,67 m. En el formulario es el bloque «mayor de 0,60, no exacto y no es múltiplo de 0,05».
+
+- Solución 1 guarda `TapeS13` y pinta `AddTapeS7`. El panel es el mayor que quepa. En 0,67: panel de 0,60 y taco de 0,07 en el extremo. Mismas grapas, angulares y sin gancho, placa ni rigidizador que el TapeS7.
+- Solución 2 guarda `TapeS12` y pinta `AddTapeS11`. El taco va en el medio, entre paneles, unido con la grapa variable. En 0,67: angular, panel de 0,30, taco de 0,07, panel de 0,30 y angular. Si el espesor pide más pieza, entran paneles de 0,45, 0,60, 0,75 o 0,90 y el taco, de 10 a 300 mm, queda entre los dos lados.
+- En el formulario la solución 1 muestra el dibujo del taco en el extremo (`TapeS12.png`) y la solución 2 el del taco en el medio (`TapeS13.png`). El id guardado no coincide con el número del fichero: la 1 es TapeS13 y la 2 es TapeS12.
+- La grapa fija `10004220` une cada angular con su panel, en las dos caras y en el canto. La variable `10000221` cierra el taco, 200 mm más arriba.
+- No lleva tirante en el canto del panel.
+- El panel de 0,60 (y el de 0,45, 0,75 y 0,90) en pose de pilar no se escala por altura. El STL está en metros y el canto mide 120 mm en Y. Si se divide la altura del muro entre esa Y, el panel se estira. Esos códigos van en la lista que conserva el tamaño del fichero, igual que el panel de 0,30. Hace falta Ctrl+F5.
+
 ## Remate
 
-Si un extremo libre, o los dos, es TapeS1 o TapeS2, no se pinta el remate de madera. Esos tapes lo sustituyen. El fenólico naranja sigue en el canto del hormigón. El cierre de panel y taco no lo quita: en ese muro el remate sigue.
+Si un extremo libre, o los dos, es TapeS1 o TapeS2, no se pinta el remate de madera. Esos tapes lo sustituyen. El fenólico naranja sigue en el canto del hormigón. El cierre de panel y taco no lo quita, ni el de taco en el medio: en ese muro el remate sigue.
 
 ## Fuera de este cierre
 

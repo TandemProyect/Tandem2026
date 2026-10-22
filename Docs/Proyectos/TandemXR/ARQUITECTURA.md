@@ -1,7 +1,7 @@
 # Tandem XR — Arquitectura (tablet Android + Meta Quest 3S)
 
-**Última actualización:** 2026-07-08  
-**Estado:** v0 — esqueleto proyecto + API Desing
+**Última actualización:** 2026-10-21  
+**Estado:** v0.5 — API + dispositivos + Enviar a XR; Unity esqueleto; voz y marca en suelo en roadmap futuro
 
 ---
 
@@ -78,6 +78,19 @@ En tablet: cámara táctil + fase posterior AR Foundation.
 | v1 | Lista completa de instancias (`ListRenderElement`) | Igual |
 | v2 | Agarrar / mover / ocultar piezas | AR: colocar diseño en suelo |
 | v3 | Passthrough MR (diseño sobre entorno real) | Medición en obra |
+| v4+ | Voz → API Desing (crear muro, etc.) → refrescar escena | Misma API; entrada táctil o voz si hay mic |
+
+### Comandos (voz u otros)
+
+```
+Cliente XR (voz / UI)
+  → HTTPS JSON /TandemXrApi/... (comando tipado)
+  → Desing aplica reglas ATK-60 / muros
+  → Manifest o delta actualizado
+  → Unity vuelve a montar la escena
+```
+
+Unity **nunca** sustituye al generador de encofrado.
 
 ---
 

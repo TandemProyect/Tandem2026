@@ -2580,8 +2580,6 @@
     <None Include="Report\2026\2026-10-08_Informe-Quincenal.pdf" />
     <None Include="Report\2026\2026-10-22_Informe-Quincenal.md" />
     <None Include="Report\2026\2026-10-22_Informe-Quincenal.pdf" />
-    <None Include="Report\2026\2026-T4_Informe-Trimestral.md" />
-    <None Include="Report\2026\2026-T4_Informe-Trimestral.pdf" />
     <None Include="Properties\PublishProfiles\atenko Develop.pubxml" />
     <None Include="Properties\PublishProfiles\atenko.net.pubxml" />
     <None Include="Properties\PublishProfiles\Athosstaging.pubxml" />

@@ -540,6 +540,11 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 return false;
             }
 
+            if (IsMiddleWood(attrs, atStart) || IsWideEndWood(attrs, atStart))
+            {
+                return true;
+            }
+
             var tape = ResolveTape(attrs, atStart);
             if (tape == "TapeS7" || tape == "TapeS8")
             {
@@ -590,7 +595,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 return false;
             }
 
-            if (IsPanelAndWood(attrs, atStart))
+            if (IsPanelAndWood(attrs, atStart) || IsMiddleWood(attrs, atStart) || IsWideEndWood(attrs, atStart))
             {
                 return false;
             }
@@ -605,7 +610,9 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         internal static bool SuppressesRemate(Desing2FormworkWallDto wall)
         {
             var attrs = wall != null ? wall.Attributes : null;
-            if (IsPanelAndWood(attrs, true) || IsPanelAndWood(attrs, false))
+            if (IsPanelAndWood(attrs, true) || IsPanelAndWood(attrs, false)
+                || IsMiddleWood(attrs, true) || IsMiddleWood(attrs, false)
+                || IsWideEndWood(attrs, true) || IsWideEndWood(attrs, false))
             {
                 return false;
             }
@@ -657,6 +664,36 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 if (wallLengthMm > 1d && EndIsFree(attrs, false))
                 {
                     AddUnder300(outElements, wall, anchor, attrs, idWall, false, wallLengthMm, ux, uz, mm, wallHeightMm, wallLengthMm, coverEndMm, withYellowModule, solapeEachEndMm);
+                }
+
+                return outElements;
+            }
+
+            if (IsMiddleWood(attrs, true) || IsMiddleWood(attrs, false)
+                || IsWideEndWood(attrs, true) || IsWideEndWood(attrs, false))
+            {
+                if (EndIsFree(attrs, true))
+                {
+                    if (IsMiddleWood(attrs, true))
+                    {
+                        AddTapeS11(outElements, anchor, idWall, true, 0d, ux, uz, mm, wallHeightMm, wallLengthMm);
+                    }
+                    else if (IsWideEndWood(attrs, true))
+                    {
+                        AddTapeS7(outElements, anchor, idWall, true, 0d, ux, uz, mm, wallHeightMm, wallLengthMm);
+                    }
+                }
+
+                if (wallLengthMm > 1d && EndIsFree(attrs, false))
+                {
+                    if (IsMiddleWood(attrs, false))
+                    {
+                        AddTapeS11(outElements, anchor, idWall, false, wallLengthMm, ux, uz, mm, wallHeightMm, wallLengthMm);
+                    }
+                    else if (IsWideEndWood(attrs, false))
+                    {
+                        AddTapeS7(outElements, anchor, idWall, false, wallLengthMm, ux, uz, mm, wallHeightMm, wallLengthMm);
+                    }
                 }
 
                 return outElements;
@@ -817,7 +854,55 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         private static bool IsPanelAndWood(AttributesList attrs, bool atStart)
         {
             var tape = ResolveTape(attrs, atStart);
-            return tape == "TapeS7" || tape == "TapeS8";
+            if (tape != "TapeS7" && tape != "TapeS8")
+            {
+                return false;
+            }
+
+            var mm = (int)Math.Round(Atk60FaceInsertion.ResolveWallThicknessMm(attrs));
+            return mm > 300 && mm < 600;
+        }
+
+        /// <summary>
+        /// Solución 2 del espesor mayor de 0,60 m que no es múltiplo de 0,050.
+        /// En el formulario se guarda como TapeS12. Angular, paneles y taco en el medio.
+        /// </summary>
+        private static bool IsMiddleWood(AttributesList attrs, bool atStart)
+        {
+            if (IsSolapeEnd(attrs, atStart))
+            {
+                return false;
+            }
+
+            var stored = StoredId(attrs, atStart);
+            return string.Equals(stored, "TapeS12", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Solución 1 de ese mismo espesor. Es el TapeS7: el panel que cabe y el taco en el extremo.
+        /// En 0,67 m el panel es de 0,60 y el taco de 0,07. Se guarda como TapeS13.
+        /// </summary>
+        private static bool IsWideEndWood(AttributesList attrs, bool atStart)
+        {
+            if (IsSolapeEnd(attrs, atStart))
+            {
+                return false;
+            }
+
+            var stored = StoredId(attrs, atStart);
+            return string.Equals(stored, "TapeS13", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsSolapeEnd(AttributesList attrs, bool atStart)
+        {
+            if (Flag(attrs, atStart ? "_ChekSolapeIni" : "_ChekSolapeEnd"))
+            {
+                return true;
+            }
+
+            var stored = StoredId(attrs, atStart);
+            return string.Equals(stored, "TapeS1", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(stored, "TapeS2", StringComparison.OrdinalIgnoreCase);
         }
 
         private static void AddTapeS7(
@@ -928,6 +1013,364 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                         VariableClampSlidePath, VariableClampSlideCode);
                 }
             }
+        }
+
+        /// <summary>
+        /// Angular, paneles, taco en el medio y paneles, angular.
+        /// En 0,67 m: panel de 0,30, taco de 0,07 y panel de 0,30.
+        /// La grapa fija une cada angular con su panel. La variable cierra el taco.
+        /// </summary>
+        private static void AddTapeS11(
+            List<Atk60ElementPaintItem> outElements,
+            Atk60WallPaintAnchor anchor,
+            string idWall,
+            bool atStart,
+            double alongMm,
+            double ux,
+            double uz,
+            int thicknessMm,
+            double wallHeightMm,
+            double wallLengthMm)
+        {
+            List<int> primaryPanels;
+            List<int> oppositePanels;
+            int woodMm;
+            if (!TryMiddleLayout(thicknessMm, out primaryPanels, out woodMm, out oppositePanels))
+            {
+                return;
+            }
+
+            var woodStart = 0;
+            for (var p = 0; p < primaryPanels.Count; p++)
+            {
+                woodStart += primaryPanels[p];
+            }
+
+            var end = atStart ? -1d : 1d;
+            var outX = ux * end;
+            var outZ = uz * end;
+            var nx = anchor.NormalX;
+            var nz = anchor.NormalZ;
+            var nLen = Math.Sqrt((nx * nx) + (nz * nz));
+            if (nLen > 1e-6)
+            {
+                nx /= nLen;
+                nz /= nLen;
+            }
+
+            var yaw = Math.Atan2(outZ, outX);
+            var wallId = !string.IsNullOrWhiteSpace(idWall) ? idWall : anchor.IdWall;
+            double originX;
+            double originZ;
+            double rotY;
+            EndPose(anchor, atStart, alongMm, ux, uz, thicknessMm, out originX, out originZ, out rotY);
+
+            var acrossX = outZ;
+            var acrossZ = -outX;
+            var woodGrowsAcross = ((-nx * acrossX) + (-nz * acrossZ)) >= 0d;
+            double woodX;
+            double woodZ;
+            EndOffset(
+                anchor, alongMm, ux, uz, nx, nz, outX, outZ,
+                woodGrowsAcross ? woodStart : woodStart + woodMm, 0d, out woodX, out woodZ);
+            var wood = Wood(anchor, wallId, woodX, woodZ, rotY, woodMm, wallHeightMm, wallLengthMm, alongMm);
+            wood.Color = "wood-side";
+            wood.WallThicknessMm = BoardDepthMm;
+            outElements.Add(wood);
+
+            var bands = HeightBands(wallHeightMm);
+            for (var i = 0; i < bands.Count; i++)
+            {
+                var baseY = anchor.Y + bands[i].UpMm;
+                var height = bands[i].HeightMm;
+                var t = 0d;
+                for (var p = 0; p < primaryPanels.Count; p++)
+                {
+                    var panelMm = primaryPanels[p];
+                    AddStopPanel(
+                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz, yaw,
+                        t, panelMm, FittingStopCode(panelMm, height), baseY, height, wallHeightMm);
+                    t += panelMm;
+                }
+
+                t = woodStart + woodMm;
+                for (var p = 0; p < oppositePanels.Count; p++)
+                {
+                    var panelMm = oppositePanels[p];
+                    AddStopPanel(
+                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz, yaw,
+                        t, panelMm, FittingStopCode(panelMm, height), baseY, height, wallHeightMm);
+                    t += panelMm;
+                }
+
+                AddAngle(
+                    outElements, anchor, wallId, true, alongMm, ux, uz, outX, outZ, nx, nz,
+                    thicknessMm, baseY, height, wallHeightMm, wallLengthMm);
+                AddAngle(
+                    outElements, anchor, wallId, false, alongMm, ux, uz, outX, outZ, nx, nz,
+                    thicknessMm, baseY, height, wallHeightMm, wallLengthMm);
+
+                var clampHeights = ClampHeightsMm(height);
+                var wallYaw = Math.Atan2(uz, ux);
+                var faceSign = anchor.FaceSign >= 0d ? 1d : -1d;
+                for (var hi = 0; hi < clampHeights.Length; hi++)
+                {
+                    var upMm = bands[i].UpMm + clampHeights[hi];
+                    Atk60FaceInsertion.BothFaces(
+                        outElements, anchor, wallId, ClampPath,
+                        alongMm, upMm, wallYaw, ux, uz, faceSign,
+                        wallHeightMm, thicknessMm, wallLengthMm,
+                        Atk60FaceInsertion.PanelFaceMm, 0d, ClampCode, "zinc",
+                        false, true, true);
+                    AddEndClamp(
+                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                        40d, anchor.Y + upMm, upMm, wallHeightMm, thicknessMm, wallLengthMm);
+                    AddEndClamp(
+                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                        thicknessMm - 40d, anchor.Y + upMm, upMm, wallHeightMm, thicknessMm, wallLengthMm);
+                    AddPanelSeamClamps(
+                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                        primaryPanels, 0d, anchor.Y + upMm, upMm, wallHeightMm, thicknessMm, wallLengthMm);
+                    AddPanelSeamClamps(
+                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                        oppositePanels, woodStart + woodMm, anchor.Y + upMm, upMm, wallHeightMm, thicknessMm, wallLengthMm);
+
+                    var variableUp = upMm + VariableClampRaiseMm;
+                    if (variableUp > bands[i].UpMm + height - 40d)
+                    {
+                        continue;
+                    }
+
+                    AddEndClampPiece(
+                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                        woodStart, anchor.Y + variableUp, variableUp, wallHeightMm, thicknessMm, wallLengthMm,
+                        VariableClampPath, VariableClampCode);
+                    AddEndClampPiece(
+                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                        woodStart + woodMm, anchor.Y + variableUp, variableUp, wallHeightMm, thicknessMm, wallLengthMm,
+                        VariableClampSlidePath, VariableClampSlideCode);
+                }
+            }
+        }
+
+        private static void AddPanelSeamClamps(
+            List<Atk60ElementPaintItem> outElements,
+            Atk60WallPaintAnchor anchor,
+            string wallId,
+            double alongMm,
+            double ux,
+            double uz,
+            double outX,
+            double outZ,
+            double nx,
+            double nz,
+            List<int> panels,
+            double tStart,
+            double y,
+            double upMm,
+            double wallHeightMm,
+            int thicknessMm,
+            double wallLengthMm)
+        {
+            if (panels == null || panels.Count < 2)
+            {
+                return;
+            }
+
+            var seam = tStart;
+            for (var i = 0; i < panels.Count - 1; i++)
+            {
+                seam += panels[i];
+                AddEndClamp(
+                    outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                    seam - 40d, y, upMm, wallHeightMm, thicknessMm, wallLengthMm);
+                AddEndClamp(
+                    outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                    seam + 40d, y, upMm, wallHeightMm, thicknessMm, wallLengthMm);
+            }
+        }
+
+        /// <summary>
+        /// Paneles de 0,90, 0,75, 0,60, 0,45 o 0,30. El taco, de 10 a 300 mm, queda entre los dos lados.
+        /// Primero se cubre el espesor. Si empatan, el taco se acerca al centro.
+        /// </summary>
+        private static bool TryMiddleLayout(
+            int thicknessMm,
+            out List<int> primaryPanels,
+            out int woodMm,
+            out List<int> oppositePanels)
+        {
+            primaryPanels = null;
+            oppositePanels = null;
+            woodMm = 0;
+            if (thicknessMm < 610)
+            {
+                return false;
+            }
+
+            var sizes = new[] { 900, 750, 600, 450, 300 };
+            var current = new List<int>();
+            List<int> best = null;
+            var bestWood = int.MaxValue;
+            var bestImbalance = int.MaxValue;
+            var bestMask = 0;
+            SearchMiddle(sizes, thicknessMm, current, 900, ref best, ref bestWood, ref bestImbalance, ref bestMask);
+            if (best == null)
+            {
+                return false;
+            }
+
+            primaryPanels = new List<int>();
+            oppositePanels = new List<int>();
+            for (var i = 0; i < best.Count; i++)
+            {
+                if ((bestMask & (1 << i)) != 0)
+                {
+                    primaryPanels.Add(best[i]);
+                }
+                else
+                {
+                    oppositePanels.Add(best[i]);
+                }
+            }
+
+            primaryPanels.Sort((a, b) => b.CompareTo(a));
+            oppositePanels.Sort((a, b) => a.CompareTo(b));
+            woodMm = bestWood;
+            return primaryPanels.Count > 0 && oppositePanels.Count > 0;
+        }
+
+        private static void SearchMiddle(
+            int[] sizes,
+            int thicknessMm,
+            List<int> current,
+            int maxSize,
+            ref List<int> best,
+            ref int bestWood,
+            ref int bestImbalance,
+            ref int bestMask)
+        {
+            if (current.Count >= 2)
+            {
+                var sum = 0;
+                for (var i = 0; i < current.Count; i++)
+                {
+                    sum += current[i];
+                }
+
+                var wood = thicknessMm - sum;
+                if (wood >= 10 && wood <= 300)
+                {
+                    int imbalance;
+                    int mask;
+                    if (MiddleSplit(current, out imbalance, out mask)
+                        && (wood < bestWood
+                            || (wood == bestWood && imbalance < bestImbalance)
+                            || (wood == bestWood && imbalance == bestImbalance && (best == null || current.Count < best.Count))))
+                    {
+                        best = new List<int>(current);
+                        bestWood = wood;
+                        bestImbalance = imbalance;
+                        bestMask = mask;
+                    }
+                }
+            }
+
+            if (current.Count >= 8)
+            {
+                return;
+            }
+
+            for (var s = 0; s < sizes.Length; s++)
+            {
+                var size = sizes[s];
+                if (size > maxSize)
+                {
+                    continue;
+                }
+
+                var sum = 0;
+                for (var i = 0; i < current.Count; i++)
+                {
+                    sum += current[i];
+                }
+
+                if (sum + size > thicknessMm - 10)
+                {
+                    continue;
+                }
+
+                current.Add(size);
+                SearchMiddle(sizes, thicknessMm, current, size, ref best, ref bestWood, ref bestImbalance, ref bestMask);
+                current.RemoveAt(current.Count - 1);
+            }
+        }
+
+        private static bool MiddleSplit(List<int> panels, out int imbalance, out int mask)
+        {
+            imbalance = int.MaxValue;
+            mask = 0;
+            var n = panels.Count;
+            if (n < 2 || n > 12)
+            {
+                return false;
+            }
+
+            var total = 0;
+            for (var i = 0; i < n; i++)
+            {
+                total += panels[i];
+            }
+
+            var limit = 1 << n;
+            var found = false;
+            for (var candidate = 1; candidate < limit - 1; candidate++)
+            {
+                if ((candidate & 1) == 0)
+                {
+                    continue;
+                }
+
+                var left = 0;
+                var leftCount = 0;
+                for (var i = 0; i < n; i++)
+                {
+                    if ((candidate & (1 << i)) != 0)
+                    {
+                        left += panels[i];
+                        leftCount++;
+                    }
+                }
+
+                if (leftCount == 0 || leftCount == n)
+                {
+                    continue;
+                }
+
+                var diff = Math.Abs((left * 2) - total);
+                var countGap = Math.Abs((leftCount * 2) - n);
+                var bestCountGap = Math.Abs((BitCount(mask) * 2) - n);
+                if (!found || diff < imbalance || (diff == imbalance && countGap < bestCountGap))
+                {
+                    imbalance = diff;
+                    mask = candidate;
+                    found = true;
+                }
+            }
+
+            return found;
+        }
+
+        private static int BitCount(int value)
+        {
+            var count = 0;
+            while (value != 0)
+            {
+                count += value & 1;
+                value >>= 1;
+            }
+
+            return count;
         }
 
         private static string FittingStopCode(int panelMm, int heightMm)
@@ -1581,7 +2024,9 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             }
 
             if (string.Equals(stored, "TapeS7", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(stored, "TapeS8", StringComparison.OrdinalIgnoreCase))
+                || string.Equals(stored, "TapeS8", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(stored, "TapeS12", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(stored, "TapeS13", StringComparison.OrdinalIgnoreCase))
             {
                 return stored;
             }

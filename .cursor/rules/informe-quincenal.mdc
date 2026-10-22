@@ -10,20 +10,21 @@ Seguir siempre `Desing/Report/LEEME.md`.
 ## Informe abierto ahora (oct 2026)
 
 - **02** — `Desing/Report/2026/2026-10-22_Informe-Quincenal.md`
-- Periodo: **9–22 oct 2026**. Review: **22 oct**. El **23 oct** se crea el **03** automáticamente.
-- El **01** (`2026-10-08_…`) está **cerrado**. No reescribirlo.
+- Periodo: **9–22 oct 2026**. Review: **22 oct**. Hoy, **21 oct**, este sigue abierto.
+- El **22 oct** se crea el **03** y se deja de escribir en el 02. Fichero: `Desing/Report/2026/2026-11-04_Informe-Quincenal.md`. Periodo: **22 oct – 4 nov 2026**. Review: **4 nov**.
+- El **01** (`2026-10-08_…`) está **cerrado**. No reescribirlo. El **02**, a partir del 22 oct, tampoco.
 
 ## Qué hacer el agente (sin preguntar)
 
 1. Si hay que documentar trabajo en un frente: ir al informe **abierto**.
 2. Si el frente no tiene apartado: crear `### N. Nombre` con el **siguiente número correlativo**.
 3. Si ya existe (p. ej. `### 1. Proyecto XR`): **ampliar ese apartado**, no duplicar.
-4. No preguntar «¿trimestral o quincenal?». Quincenal = relato/apartados. Trimestral = **horas de programación** ya cerradas (otra regla).
-5. Si el usuario dice que empezamos algo nuevo: abrir el apartado en ese momento, con la hora de inicio. Al decir que está terminado o que se pasa a otra cosa, cerrar el apartado y anotar el tramo de reloj (inicio → ese momento). Es una estimación de la sesión, con el testeo y las pausas cortas; no es el tiempo del agente. No inventar un tramo más largo. El año que viene se separará el tiempo de la persona y el del agente para facturar; hasta entonces solo va esta estimación en el apartado.
-6. El día **posterior** al review, si aún no existe el siguiente fichero: crearlo, registrarlo en `Design.csproj` como `None`, y usar ese como abierto.
+4. No hay informe trimestral. Relato y horas van en el quincenal.
+5. Si el usuario dice que empezamos algo nuevo: abrir el apartado en ese momento y anotar dos inicios, con la hora del mensaje: **Persona** y **Cursor** o **Copilot**, según quién haga el trabajo. Al devolver un bloque para probar, anotar **entrega** con la hora de ese momento. Al decir que está terminado o que se pasa a otra cosa, cerrar y anotar el fin de la **persona** (hora de ese mensaje). El fin del agente es la última entrega; si siguió tocando código hasta el cierre, el fin del agente es la hora de la respuesta de cierre. El tramo de la persona incluye el testeo y las pausas cortas. No inventar un tramo más largo. No sumar persona + agente: son dos relojes del mismo rato. Copilot solo se puede anotar en el momento; sus chats no guardan la hora de las respuestas. Al final del informe: resumen, suma de la persona, suma de Cursor y suma de Copilot, por separado.
+6. El día en que toca el siguiente informe, si aún no existe el fichero: crearlo, registrarlo en `Design.csproj` como `None`, y usar ese como abierto. El **03** toca el **22 oct 2026**, no el 23.
 
 ## No hacer
 
-- No volcar esa estimación al trimestral como horas de programación. El trimestral sigue con las horas que ya se cierran aparte.
+- No abrir un fichero trimestral. Las horas se quedan en el apartado.
 - No abrir un informe nuevo antes del día que toca.
 - No usar el historial de git como fuente del texto.

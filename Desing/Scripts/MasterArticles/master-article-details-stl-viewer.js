@@ -7902,7 +7902,7 @@ function bootMasterArticleDetailsStlViewer() {
                 const size = new THREE.Vector3();
                 box.getSize(size);
                 const keepNativePillarPanel = useStrictPose
-                    && /^(27104219|24104224|12104120|27304205|24304244|12304211|1920811|10443020)$/.test(elementCode);
+                    && /^(27104219|24104224|12104120|27304205|24304244|12304211|27454206|24454243|12454212|27604207|24604242|12604213|27754219|24754224|12754120|27904209|24904240|12904215|1920811|10443020)$/.test(elementCode);
                 if (!keepNativePillarPanel && size.y > 1e-6 && size.x > 1e-6 && size.z > 1e-6) {
                     if (isTumbado) {
                         // Tras Rz(-90) el canto corto está en Y y el largo en X.
@@ -27605,7 +27605,10 @@ let maStlWallApplyAllHeightMm = 0;
                 text: 'El ancho de muro no tiene solape, es mayor de 0,60, no es exacto y no es múltiplo de 0,05',
                 thickness: 'El ancho de muro es mayor de 0,60, no es exacto y no es múltiplo de 0,05',
                 defaultId: 'TapeS12',
-                options: [opt('TapeS12', 'Solución 1', 'TapeS12.png'), opt('TapeS13', 'Solución 2', 'TapeS13.png')],
+                options: [
+                    opt('TapeS13', 'Solución 1', 'TapeS12.png'),
+                    opt('TapeS12', 'Solución 2', 'TapeS13.png'),
+                ],
             },
         };
     }

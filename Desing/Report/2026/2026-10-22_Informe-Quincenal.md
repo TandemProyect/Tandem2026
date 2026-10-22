@@ -2,40 +2,54 @@
 
 **Periodo:** 9 de octubre – 22 de octubre de 2026  
 **Review / corte:** 22 de octubre de 2026  
-**Siguiente informe:** el **23 de octubre de 2026** se crea el 03 automáticamente (sin que el usuario lo pida).  
+**Siguiente informe:** el **22 de octubre de 2026** se crea el 03, periodo **22 oct – 4 nov 2026**, review **4 nov**, fichero `2026-11-04_Informe-Quincenal.md`.  
 **Norma:** `Desing/Report/LEEME.md` (apartados quincenales).  
 **Anterior:** `2026-10-08_Informe-Quincenal.md` (01, cerrado).
 
-Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, los agentes **no preguntan** qué informe usar: abren o siguen un **apartado** aquí. Las horas van al trimestral (`2026-T4_Informe-Trimestral.md`), no aquí.
+Este fichero es el informe **abierto hasta el 21 oct 2026**. El **22 oct** se abre el 03 y aquí ya no se escribe. No hay informe trimestral aparte: las horas cerradas del 9 al 13 de octubre están en el informe 01. Las estimaciones de sesión de este fichero se quedan en cada apartado.
 
 ## Apartados
 
 ### 1. Proyecto XR
 
-- **Estado:** abierto. Sesión en curso desde el **10 de octubre de 2026, 8:16**.
-- **Sesiones 9 oct:** 16:40–17:34 (54 min) + 17:57–18:05 (8 min). **1 h 2 min** (en el trimestral T4).
-- **Sesión 10 oct:** inicio **8:16**. Aún sin cierre.
-- **Contexto:** se retoma el cliente XR conectado a Desing — dispositivos, Enviar a XR, app Unity. Base: `Docs/Proyectos/TandemXR/`.
+- **Estado:** abierto (en pañales; se construye la base). Informe **02**, apartado **1** (no abrir otro).
+- **Sesiones 9 oct:** 16:40–17:34 (54 min) + 17:57–18:05 (8 min). **1 h 2 min** (en el informe 01).
+- **Sesión 10 oct:** inicio **8:16**. Sin cierre de reloj en este fichero.
+- **21 oct (~19:11):** se recoge el producto futuro (voz, muro por orden, tiendas) y se deja escrito abajo y en `Docs/Proyectos/TandemXR/`.
+- **Contexto:** cliente XR conectado a Desing — dispositivos, Enviar a XR, app Unity. El **cerebro es Desing**; Unity solo visualiza y, más adelante, manda órdenes. Docs: `Docs/Proyectos/TandemXR/`.
 - **Hardware de primera fase:** gafas **Meta Quest 3S 128GB**; tablet **Xiaomi Pad 6 128GB**.
-- **Modelo de uso (cliente):** la app se instala **una vez**; luego el cliente diseña en Desing → **Enviar a XR** y ve el diseño en obra sin depender del equipo de desarrollo en cada envío.
+- **Modelo de uso (cliente):** la app se instala **una vez** (tienda); luego diseña en Desing → **Enviar a XR** → ve el diseño en obra sin depender del equipo en cada envío.
 - **Distribución (no es un solo Market):**
   - **Tablet (Pad 6):** Google Play Store.
   - **Gafas (Quest 3S):** Meta Horizon Store (no Play Store).
-  - Misma marca Tandem XR; dos canales de instalación. En prototipo: APK a mano; en producto: tiendas.
-- **Costes de tienda (orientativos, app gratuita para el cliente; revisar al publicar):**
+  - Prototipo: APK a mano; producto: tiendas.
+- **Costes de tienda (orientativos, app gratuita; revisar al publicar):**
 
   | Tienda | Coste fijo típico | Comisión |
   |--------|-------------------|----------|
-  | **Google Play** | ~**25 USD una vez** (~23 €) cuenta desarrollador; sin cuota anual tipo Apple | ~15–30 % solo si se cobra la app o compras in-app |
-  | **Meta Horizon Store** | Cuenta developer **gratis**; publicar gratis si la app es gratis | ~**30 %** solo de ventas de pago / IAP |
+  | **Google Play** | ~**25 USD una vez** (~23 €) cuenta desarrollador | ~15–30 % solo si se cobra la app o IAP |
+  | **Meta Horizon Store** | Cuenta developer **gratis** | ~**30 %** solo de ventas de pago / IAP |
 
-  Si Tandem XR es **gratis**, casi no hay comisión: Play ≈ 25 USD de alta; Meta ≈ 0 € de cuota. Costes reales aparte: desarrollo, capturas, privacidad, verificación de empresa y actualizaciones.
-- **Qué se hizo:** relectura XR; docs quincenal 02; Play/Meta y costes; Unity fuera de Design.sln. Esqueleto proyecto en `TandemXR-Unity` (ProjectSettings, Packages, menú Setup escena). Pendiente activar licencia Personal en Hub para abrir el Editor.
-- **Siguiente (al retomar):** Hub → Licencias → Personal; Importar `TandemXR-Unity`; **TandemXR → Setup escena principal**; Play con Desing en marcha.
+  Si la app es **gratis**: Play ≈ 25 USD de alta; Meta ≈ 0 € de cuota.
+- **Hecho hasta ahora:** API `TandemXrApi` (Manifest, ListDevices, SendToDevice, Pending, Ack); CRUD Dispositivos XR; botón Enviar a XR; tablas `TSql_XrDevice` / `TSql_XrPushJob`; esqueleto `TandemXR-Unity` (menú Setup escena). Pendiente: licencia Personal en Hub y primer Play/APK.
+- **Base futura (orden de construcción — no saltar a voz antes de ver el diseño):**
+
+  | # | Entregable | Notas |
+  |---|-------------|--------|
+  | 1 | Abrir Unity + escena + Play con Desing | Licencia Hub; pairingCode |
+  | 2 | Manifest completo (todas las piezas ATK-60) | Misma escena que el visor web |
+  | 3 | APK tablet + APK Quest | Sideload; luego Play / Meta Store |
+  | 4 | Marca / ancla en el suelo (AR / passthrough) | Ver el diseño en obra a escala real |
+  | 5 | Interacción (agarrar, ocultar, recorrer) | XRI en Quest; touch en tablet |
+  | 6 | API de **comandos** en Desing | Crear muro, etc., con las mismas reglas que el diseñador |
+  | 7 | **Voz en Quest** | Ej.: «inserta un muro de 10 m, espesor 0,30 m, altura 3 m» → STT en gafas → Desing inserta → XR refresca. Unity no inventa el encofrado |
+
+  Regla de producto: la voz (y cualquier gesto) solo dispara APIs de Desing; el resultado se vuelve a pintar en XR.
+- **Siguiente técnico inmediato:** Hub → Licencias → Personal; Importar `TandemXR-Unity`; **TandemXR → Setup escena principal**; Play con Desing.
 
 ### 2. Ménsulas de trabajo
 
-- **Estado:** cerrado. **11 de octubre de 2026, 9:22–10:39.** **1 h 17 min** en el trimestral T4.
+- **Estado:** cerrado. **11 de octubre de 2026, 9:22–10:39.** **1 h 17 min** en el informe 01.
 - **Qué quedó:** ménsulas `4120000042` en las dos caras, cada 2,40 m (a 600 y a 1 800), 300 mm bajo la coronación. Madera de protección una sola vez, en el primer muro y en la cara de inicio. El tubo vertical va en gris metal; el brazo sigue azul.
 - **Pendiente de posición:** la ménsula no cae en el agujero que le toca. Queda en el fallo de posición de las piezas, no en este apartado.
 - **Bug, 14 oct:** en el piso de la ménsula sobraba el tablón del extremo. Los tubos lo atravesaban. Se quita ese tablón; el piso queda en cuatro.
@@ -51,19 +65,19 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 
 ### 4. Altura de las esquinas
 
-- **Estado:** cerrado, solucionado. **12 de octubre de 2026, 9:41–9:52.** **11 min** en el trimestral T4.
+- **Estado:** cerrado, solucionado. **12 de octubre de 2026, 9:41–9:52.** **11 min** en el informe 01.
 - **Qué quedó:** con «Aplicar altura a todos los muros» marcado, las esquinas se extruyen a esa misma altura. Sin el check, la esquina no cambia.
 
 ### 5. Editar muro
 
-- **Estado:** cerrado. **12 de octubre de 2026, 10:13–13:28.** **3 h 15 min** en el trimestral T4.
+- **Estado:** cerrado. **12 de octubre de 2026, 10:13–13:28.** **3 h 15 min** en el informe 01.
 - **Qué quedó:** formulario «Modificar muro» con las pestañas Muro, Configurar Tapes y Configurar Puntales. En Muro: altura aparte, y otro check que copia ménsulas, rigidizadores, paneles y puntales a todos los muros y a las esquinas. Puntales con los cuatro checks. Sin paneles verticales, los módulos de 2,70, 2,40 y 1,20 van todos tumbados.
 - **No se testeó bien.** Queda pendiente una pasada de verdad en el visor. La pestaña Tapes sigue sin hacer.
 - **Código:** visor Desing_2 y catálogo de paneles ATK-60.
 
 ### 6. Salvar la configuración del muro
 
-- **Estado:** cerrado. **12 de octubre de 2026, 13:28–15:05.** **1 h 37 min** en el trimestral T4.
+- **Estado:** cerrado. **12 de octubre de 2026, 13:28–15:05.** **1 h 37 min** en el informe 01.
 - **Qué quedó:** al reabrir el diseño, cada muro recupera ménsulas, rigidizadores, puntales (superiores e inferiores, las dos caras), paneles de 0,75 y paneles verticales. También longitud, espesor, altura y coordenadas.
 - **Bases:** `db_a197cd_desingproducction` y `db_a197cd_desingdevelop`. En develop se creó `TSql_DesignWall`.
 - **Prueba:** pendiente de testeo. Si algo no vuelve igual, se abre un bug.
@@ -71,7 +85,7 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 ### 7. Poder crear oferta desde el panel principal de diseño
 
 - **Estado:** abierto. Sesión en curso desde el **12 de octubre de 2026, 15:14**.
-- **Sesión 12 oct:** inicio **15:14**. Aún sin cierre. Las horas van al trimestral T4 cuando se cierre.
+- **Sesión 12 oct:** inicio **15:14**. Aún sin cierre. Si se cierran horas, se anotan en el quincenal.
 - **Qué se hace:** poder crear una oferta desde el panel principal de diseño.
 - **Hecho en el panel Diseños:** icono «+» en la cabecera para crear la oferta (obra, nombre, cliente, estado). Además, junto a cada número de oferta ya registrado, otro «+» crea el diseño dentro de esa oferta y solo pide el nombre. Diseños queda abajo, en tres de los cuatro huecos, con la columna Cliente, orden y buscador. El alta es el botón «Nuevo diseño» y el título indica la oferta. Arriba: obras, ofertas y clientes. Abrir un diseño usa el mismo ojo que el resto. Cada panel lleva paginación, selector de registros y exportación, como el resto de tablas, y la barra vertical en el listado. En Diseños, Ofertas muestra la fecha de creación. Título, pestañas, menú, buscador y alta van en una sola línea. Un botón amplía el panel a toda la pantalla y lo devuelve a su sitio. En Diseños la paginación queda fija bajo los registros, también con el panel ampliado, y el hueco entre la cabecera y la tabla es menor. En Ofertas hay una fila por oferta: número, descripción de la oferta, número de obra, descripción de la obra, número de diseños y un + para crear el diseño. En Clientes hay una fila por cliente con el número de diseños. En las dos, un más abre los meses y años; otro más, sobre cada mes, abre los diseños. En Ofertas cada diseño muestra nombre, cliente, fecha y el ojo. En Clientes muestra nombre, oferta, fecha y el ojo. Esas columnas llevan encabezado y el ojo queda al final. Las filas van más separadas. El fondo del desglose se queda blanco al pasar el ratón, en Ofertas y en Clientes. El + de crear el diseño se ve en azul. Su título dice crear diseño en el cliente o en la oferta, con el nombre entre comillas. El ojo dice «Abrir Diseño». El menos los pliega. Los desplegables llevan líneas de árbol: de la fila a la fecha y de la fecha a cada diseño, en Ofertas y en Clientes. El cliente y el número de oferta van en negrita y en azul, en las dos pestañas. El título Diseños queda solo; las pestañas van junto al selector de registros, como carpetas pegadas a la línea del listado, en la misma fila que el selector y el buscador. La activa se lee en blanco sobre azul. Hay una tercera pestaña, Gráficos. Al pasar el ratón, el ojo y el más se marcan en color para que se vean sobre la fila iluminada. En el inicio, Diseños ocupa todo el ancho de abajo. La paginación es texto pequeño, sin recuadro. El menú de registros va en blanco con línea gris, y desaparece la línea azul bajo los títulos. Todo encabezado, también el del desglose de diseños, va en gris. El orden de los paneles del inicio es el último movimiento de la tabla de diseños, el más reciente primero. Al ampliar Diseños, el menú izquierdo no se mete en el formulario: el panel empieza después del menú y el icono para volver queda visible bajo la barra superior y la paginación cabe dentro de la ventana. Obras, ofertas y clientes del inicio muestran los cinco últimos registros que dio de alta el usuario que ha entrado, con el ojo al detalle y el enlace al listado completo, sin buscador, paginación ni menú. Esas filas van más bajas, sin márgenes de sobra, para que los cinco quepan en el panel, y el ojo sigue viéndose. El estilo y el comportamiento de estos paneles y de sus tablas quedan escritos como regla del proyecto: encabezado gris, paginación en texto, menú de registros en blanco con línea gris, cinco últimos del usuario que entra, árbol de diseños en fila y detalles al tamaño del 80 % sin recortar el lado derecho.
 
@@ -260,6 +274,30 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 - **Pendiente:** un testeo total de altura.
 - **Documentación:** `Desing/IA/docs/agente-tapes-atk60.md`.
 
+### 28. TapeS11
+
+- **Estado:** cerrado. **21 de octubre de 2026, 13:43.** Queda aceptado. No va al trimestral.
+- **Sesión 21 oct:** 12:52–13:43. Estimación **51 min**.
+- **Qué quedó:** espesor mayor de 0,60 m que no es múltiplo de 0,050, por ejemplo 0,67 m. Dos soluciones. La 1 es el TapeS7: panel de 0,60 y taco de 0,07 en el extremo. La 2 lleva el taco en el medio: angular, panel de 0,30, taco de 0,07, panel de 0,30 y angular. Grapas fijas como el TapeS7. La variable cierra el taco, 200 mm más arriba. Según el espesor pueden entrar paneles de 0,45, 0,60 u otras medidas, y el taco queda entre los dos lados.
+- **Formulario:** la solución 1 guarda TapeS13 y pinta el TapeS7. La solución 2 guarda TapeS12 y pinta el taco en el medio. El panel de 0,60 se queda a su tamaño; el visor lo estiraba porque medía el canto de 120 mm como si fuera la altura.
+- **Remate:** el de la longitud del muro sigue. Solo desaparece si hay solape.
+- **Documentación:** `Desing/IA/docs/agente-tapes-atk60.md`.
+
+### 29. Tipología de tapes
+
+- **Estado:** abierto. Sesión en curso desde el **21 de octubre de 2026, 16:31**. No va al trimestral.
+- **Qué se hace:** tipos 1 a 7 para nombrar los tapes. Cada tipo dice cuándo se usa, según el espesor y si hay solape, con el dibujo del formulario. PDF para testear las notas de las ayudas.
+- **Documentación:** `Desing/IA/docs/tapes-tipos.md` y `Desing/IA/docs/tapes-tipos.pdf`.
+- **21 oct, 19:34:** se deja el día. Sigue abierto. No se cierra el reloj desde las 16:31.
+
+### 30. Bloques de AutoCAD que faltan
+
+- **Estado:** en pausa. **21 de octubre de 2026, 19:29–19:34.** Seguimos mañana.
+- **Persona:** 19:29–19:34. **5 min**.
+- **Cursor:** 19:29–19:34. Misma sentada. No se suma aparte.
+- **Qué quedó:** lista de piezas que Desing 2 coloca y AutoCAD no tiene en bloque. `Desing/IA/docs/articulos-desing2-sin-bloque-autocad.md` y `.pdf`. Los bloques no están hechos.
+- **Mañana:** el 22 oct este trabajo pasa al informe 03.
+
 ## Heredado del informe 01 (sigue abierto)
 
 1. Posición de las uniones, del panel de 0,30 × 2,70 m y de la ménsula (no cae en su agujero).
@@ -274,7 +312,7 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 
 | Frente | Quién | En qué quedó |
 |--------|-------|----------------|
-| Proyecto XR | Cursor, 9–10 oct | Apartado 1 en curso desde el 10 oct, 8:16. El 9 oct, 1 h 2 min. Esqueleto Unity listo; falta licencia Hub |
+| Proyecto XR | Cursor, 9–10 y 21 oct | Apartado **1**. Base futura (voz, suelo, APIs de comando) escrita el 21 oct. Esqueleto Unity; falta licencia Hub |
 | Ménsulas de trabajo | Cursor, 11 oct | Apartado 2 cerrado. 9:22–10:39, 1 h 17 min. El agujero de la ménsula queda en el fallo de posición. Bug 14 oct: tablón de más en el extremo, quitado |
 | Puntales | Cursor, 11–16 oct | Apartado 3 cerrado el 16 oct, 11:19. El reparto queda en el apartado 17 |
 | Altura de las esquinas | Cursor, 12 oct | Apartado 4 cerrado, solucionado. 9:41–9:52, 11 min. Con el check, las esquinas suben con los muros |
@@ -300,9 +338,50 @@ Este fichero es el informe **abierto**. Mientras la fecha sea ≤ 22 oct 2026, l
 | TapeS2 | Cursor, 20–21 oct | Apartado 25 cerrado el 21 oct, 10:37. 20 oct 16:03–17:08, estimación 1 h 5 min. Fenólico como el TapeS1; el tirante del canto solo en TapeS2. Queda en `Desing/IA/docs/agente-tapes-atk60.md` |
 | Módulos y rigidizadores | Cursor, 20–21 oct | Apartado 26 cerrado el 21 oct, 10:37. 20 oct 17:08–17:18 y 21 oct 9:26–10:37, estimación 1 h 21 min. Dos rigidizadores en 1,20, 2,40 y 2,70. Solape repartido. Placas del final a 180° |
 | TapeS7 | Cursor, 21 oct | Apartado 27 cerrado el 21 oct, 12:43. 10:44–12:43, estimación 1 h 59 min. Angular, panel que quepa y taco. Pendiente el testeo de altura |
+| TapeS11 | Cursor, 21 oct | Apartado 28 cerrado el 21 oct, 13:43. 12:52–13:43, estimación 51 min. Mayor de 0,60 no múltiplo de 0,050. Solución 1 como el TapeS7. Solución 2 con el taco en el medio |
+| Tipología de tapes | Cursor, 21 oct | Apartado 29 en curso desde el 21 oct, 16:31. Tipos 1 a 7 y PDF de prueba. El día se deja a las 19:34, sin cerrar el reloj |
+| Bloques de AutoCAD que faltan | Cursor, 21 oct | Apartado 30 en pausa. 19:29–19:34, 5 min. Lista en `articulos-desing2-sin-bloque-autocad.pdf`. Los bloques no están hechos. Sigue mañana, en el informe 03 |
 
 ## Al cerrar el 22 de octubre
 
 - Completar apartados abiertos o dejarlos explícitos como pendientes para el 03.
 - Regenerar el PDF de este fichero.
-- El **23 de octubre** el agente crea `yyyy-MM-dd_Informe-Quincenal.md` del 03 sin que se lo pidan, si ese día hay trabajo o al primer mensaje de ese día.
+- El **22 de octubre** el agente crea `2026-11-04_Informe-Quincenal.md` (periodo 22 oct – 4 nov, review 4 nov), lo registra en `Design.csproj` y deja de escribir en este fichero.
+
+## Horas
+
+El reloj de cada apartado es el tiempo delante del ordenador, con el testeo y las pausas cortas. El tiempo del agente no se apuntó en esta quincena: no hay una cifra distinta y no se inventa. En la práctica el agente trabajó dentro de esos mismos tramos. A partir del informe 03, al cerrar un apartado se anota el tramo de quien está delante, y al final se suma. El del agente solo entra si hay un reloj propio.
+
+### Resumen
+
+Del 9 al 21 de octubre el visor pasó de las ménsulas, los puntales y el formulario del muro al recuento, el trabajador, los pilares y los tapes. También quedaron el login, los logos, la foto del diseño y las ofertas y diseños del inicio, y el arranque de XR. Los tapes aceptados son el solape (TapeS1 y TapeS2), el panel con taco (TapeS7 y TapeS8) y el muro ancho (solución 1 como el TapeS7, solución 2 con el taco en el medio). La tipología 1 a 7 sigue abierta.
+
+### Delante del ordenador
+
+Suma de los tramos con inicio y fin en este fichero: **40 h 9 min**.
+
+| Día | Horas | Qué entra |
+|-----|-------|-----------|
+| 9 oct | 1 h 2 min | XR. Los tirantes (2 h 40 min) están en el informe 01 |
+| 10 oct | sin cierre | XR desde las 8:16 |
+| 11 oct | 1 h 17 min | Ménsulas. Puntales sin cierre |
+| 12 oct | 5 h 3 min | Esquinas, editar muro y salvar. Oferta y SQL sin cierre |
+| 13 oct | sin cierre | Adjuntar diseños desde las 8:30 |
+| 14 oct | 43 min | Color del estado y pestaña Diseños. La foto no tiene tramo |
+| 15 oct | 6 h 57 min | Recuento, login y tirantes en paneles tumbados |
+| 16 oct | 3 h 36 min | Login, logos, recuento, muros colineales y distancia entre puntales |
+| 17 oct | — | No hay tramo |
+| 18 oct | 5 h 19 min | Trabajador y posición de plataformas. Pilares desde las 17:41, sin tramo |
+| 19 oct | 3 h 56 min | Tapes desde las 13:10. La mañana no tiene tramo |
+| 20 oct | 8 h 10 min | Tapes, medidas, modelo en planta, solape, TapeS2 y el arranque de módulos |
+| 21 oct | 4 h 6 min | Módulos, TapeS7 y TapeS11. Bloques de AutoCAD, 19:29–19:34 (5 min). Tipología abierta desde las 16:31 |
+
+Los tirantes del 9 oct (2 h 40 min, 9:14–11:52) están en el informe 01. Con ellos, lo apuntado del 9 al 21 oct son **42 h 49 min**.
+
+No entran en la suma, porque el apartado no cerró el reloj: XR desde el 10 oct a las 8:16; puntales desde el 11 oct a las 10:39; oferta desde el 12 oct a las 15:14; SQL desde el 12 oct a las 18:09; adjuntar diseños desde el 13 oct a las 8:30; la foto del diseño; los pilares; la tipología desde el 21 oct a las 16:31. El 19 oct, hasta las 13:10, tampoco tiene tramo.
+
+### Tiempo del agente
+
+No medido. No se suma encima de las horas de delante del ordenador.
+
+En los chats de Cursor la hora solo va en el mensaje de la persona. La respuesta del agente no la lleva. El hueco hasta el mensaje siguiente mezcla el trabajo del agente, la prueba y el tiempo fuera, y no se puede partir. Los chats de Copilot no están en esas transcripciones. Por eso esta quincena no se reconstruye. Desde el informe 03, al abrir un apartado se anota la hora de Cursor o de Copilot, al entregar se anota la hora de esa entrega y al cerrar la de la persona. Son dos relojes del mismo rato: no se suman.

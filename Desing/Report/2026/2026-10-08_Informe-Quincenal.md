@@ -221,6 +221,30 @@ El 7 y el 8 se llamó tirante al gancho `1850164`. No lo es: ese gancho sigue si
 
 El apartado queda cerrado. Grapa, rigidizador, gancho y el panel de 0,30 × 2,70 m siguen con la posición abierta.
 
+## Horas de programación
+
+Estas horas se habían apuntado en un informe trimestral. El nombre era un error: iban al quincenal. Quedan aquí. El relato largo del 9 de octubre en adelante, salvo los tirantes, está en el informe 02 (`2026-10-22_Informe-Quincenal.md`).
+
+| Clase | Horas |
+|-------|-------|
+| Programación | 10 h 2 min |
+| Manual | 0 h |
+| Total | 10 h 2 min |
+
+- **9 oct — Tirantes.** 2 h 40 min (9:14–11:52). Es el apartado de arriba.
+- **9 oct — Proyecto XR.** 1 h 2 min (16:40–17:34 y 17:57–18:05). Quest 3S, Pad 6, Play y Meta. Informe 02, apartado 1.
+- **10 oct — Proyecto XR.** Empezó a las 8:16. Sin horas cerradas. Informe 02, apartado 1.
+- **11 oct — Ménsulas de trabajo.** 1 h 17 min (9:22–10:39). Informe 02, apartado 2.
+- **11 oct — Puntales.** Empezó a las 10:39. Sin horas cerradas. Informe 02, apartado 3.
+- **12 oct — Altura de las esquinas.** 11 min (9:41–9:52). Informe 02, apartado 4.
+- **12 oct — Editar muro.** 3 h 15 min (10:13–13:28). Informe 02, apartado 5.
+- **12 oct — Salvar la configuración del muro.** 1 h 37 min (13:28–15:05). Informe 02, apartado 6.
+- **12 oct — Crear oferta desde el panel de diseño.** Empezó a las 15:14. Sin horas cerradas. Informe 02, apartado 7.
+- **12 oct — Conexión SQL al publicar.** Empezó a las 18:09. Sin horas cerradas. Informe 02, apartado 8.
+- **13 oct — Adjuntar diseños al cliente.** Empezó a las 8:30. Sin horas cerradas. Informe 02, apartado 9.
+
+No hay horas manuales.
+
 ## Dónde está cada frente
 
 | Frente | Quién lo llevó | En qué quedó |
@@ -251,7 +275,13 @@ El apartado queda cerrado. Grapa, rigidizador, gancho y el panel de 0,30 × 2,70
 | Informe | Periodo | Review / corte | Siguiente informe |
 |---------|---------|----------------|-------------------|
 | 01, este | 5 ago – 8 oct 2026 | 8 oct 2026 | — |
-| 02 | 9 oct – 22 oct 2026 | 22 oct 2026 | **23 oct** (se crea solo) |
-| 03 | 23 oct – … | según el LEEME | — |
+| 02 | 9 oct – 22 oct 2026 | 22 oct 2026 | el 22 oct se abre el 03 |
+| 03 | 22 oct – 4 nov 2026 | 4 nov 2026 | `2026-11-04_Informe-Quincenal.md` |
 
 El trabajo del 9 de octubre en adelante va en `2026-10-22_Informe-Quincenal.md` (informe 02). No reescribir este 01.
+
+## Tiempo del agente y delante del ordenador
+
+En este informe no hay reloj del agente. Agosto, septiembre y casi todo el periodo hasta el 8 de octubre no tienen tramo de quien estuvo delante: no se inventa. Lo único cerrado aquí es la tabla de arriba, **10 h 2 min**, y es tiempo delante del ordenador, no una cifra aparte del agente.
+
+La suma del 9 al 21 de octubre, con los huecos que no tienen reloj, está al final del informe 02.
