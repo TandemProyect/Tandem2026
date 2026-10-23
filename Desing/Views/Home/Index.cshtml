@@ -434,10 +434,8 @@
 
 
 
-            .home-dash-tile table.dataTable tbody tr:hover .tandem-col-actions .btn-icon:not(.dash-new-design),
             .home-dash-tile table.dataTable tbody tr .tandem-col-actions .btn-icon:not(.dash-new-design):hover,
             .home-dash-tile table.dataTable tbody tr .tandem-col-actions .btn-icon:not(.dash-new-design):focus-visible,
-            .home-dash-tile .dash-client-tree .dash-client-tree-design:hover .btn-icon,
             .home-dash-tile .dash-client-tree .btn-icon:hover,
             .home-dash-tile .dash-client-tree .btn-icon:focus-visible {
 
@@ -3324,6 +3322,10 @@
                 }).done(function (r) {
 
                     if (r && r.ok) {
+                        if (r.openUrl) {
+                            window.location.href = r.openUrl;
+                            return;
+                        }
 
                         var modalEl = document.getElementById('dashNewOfferModal');
 
@@ -3942,6 +3944,10 @@
                 }).done(function (r) {
 
                     if (r && r.ok) {
+                        if (r.openUrl) {
+                            window.location.href = r.openUrl;
+                            return;
+                        }
 
                         var modalEl = document.getElementById('dashNewDesignModal');
 
@@ -4014,6 +4020,10 @@
                 }).done(function (r) {
 
                     if (r && r.ok) {
+                        if (r.openUrl) {
+                            window.location.href = r.openUrl;
+                            return;
+                        }
 
                         var modalEl = document.getElementById('dashNewClientDesignModal');
 

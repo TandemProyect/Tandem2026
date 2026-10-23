@@ -214,7 +214,7 @@ namespace Desing.Controllers
             TempData["ToastType"] = "Act";
             TempData["ToastTitle"] = Company.ToastTitle_CreateCompany;
             TempData["ToastMessage"] = Company.ToastMessage_CompanySaved;
-            return RedirectToAction("Index");
+            return RedirectToAction("Details", new { id = model.SysObjectID });
         }
 
         public ActionResult Edit(long id)

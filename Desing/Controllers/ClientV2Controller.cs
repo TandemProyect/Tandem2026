@@ -289,7 +289,7 @@ namespace Desing.Controllers
             TempData["ToastType"] = "Act";
             TempData["ToastTitle"] = ClientV2.ToastTitle_CreateClient;
             TempData["ToastMessage"] = string.Format(ClientV2.ToastMessage_ClientCreated, model.TextLabel);
-            return RedirectToAction("Index");
+            return RedirectToAction("Details", new { id = model.IdObject });
         }
 
         // ---------------------------------------------------------------------
@@ -709,6 +709,8 @@ namespace Desing.Controllers
                     "attChange|attChangeFmt", "AttChange"));
                 var rows = query.ApplyDataTablesPaging(requestModel.Start, requestModel.Length).ToList();
                 var tip = HttpUtility.HtmlAttributeEncode(ClientV2.Ws_OpenTooltip);
+                var withCount = DesignMaterialCountUi.IdsWithSavedCount(db, rows.Select(p => p.IdObject));
+                var countTip = MasterArticles.StlPreview_MaterialCountTitle;
                 var data = rows.Select(p =>
                 {
                     var name = p.AttLabel ?? "";
@@ -716,6 +718,9 @@ namespace Desing.Controllers
                     var numForDisplay = string.IsNullOrEmpty(numRaw) ? ClientV2.Details_NoValue : numRaw;
                     var href = HttpUtility.HtmlAttributeEncode(
                         OfferDesignWorkspaceHelper.BuildViewerUrl(Url, p.OfferId, p.IdObject, p.AttThumbnail));
+                    var countBtn = withCount.Contains(p.IdObject)
+                        ? DesignMaterialCountUi.Button(p.IdObject, name, countTip, true)
+                        : "";
                     return new
                     {
                         IdObject = p.IdObject,
@@ -725,7 +730,7 @@ namespace Desing.Controllers
                         offerNumberPlain = numRaw,
                         attChange = p.AttChange,
                         attChangeFmt = HttpUtility.HtmlEncode(p.AttChange.ToString("g")),
-                        rowActions = EyeLink(href, tip)
+                        rowActions = "<div class=\"d-inline-flex align-items-center gap-1\">" + EyeLink(href, tip) + countBtn + "</div>"
                     };
                 }).ToList();
 

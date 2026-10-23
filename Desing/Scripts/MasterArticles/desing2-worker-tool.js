@@ -1,9 +1,17 @@
 import * as THREE from 'three';
 import { OBJLoader } from '../Design/jsm/loaders/OBJLoader.js';
 
-/** Alto real del trabajador en la escena (mm). El OBJ mide 28 mm. */
+/** Alto real del trabajador en la escena (mm). Worker.obj mide 28 mm. */
 const MA_STL_WORKER_TARGET_HEIGHT_MM = 1750;
-const MA_STL_WORKER_OBJ_URL = '/Content/DesignTools/Stl/Worker/Worker.obj';
+const MA_STL_WORKER_MODELS = {
+    Worker: '/Content/DesignTools/Stl/Worker/Worker.obj',
+    Worker2: '/Content/DesignTools/Stl/Worker/Worker2.obj?v=20261022c',
+};
+
+function maStlWorkerKind(value) {
+    const text = value != null ? String(value) : '';
+    return text === 'Worker2' ? 'Worker2' : 'Worker';
+}
 
 const MA_STL_WORKER_COLOR = {
     helmet: new THREE.Color(0xf2b43a),
@@ -100,6 +108,137 @@ function maStlPaintWorkerGeometry(geometry) {
     };
 }
 
+/**
+ * Worker2 echa el hormigón hacia +X, que es el muro.
+ * La pintura va por partes: casco, cara, chaleco, pantalón, botas y la manguera.
+ * @param {THREE.BufferGeometry} geometry
+ */
+function maStlPaintWorker2Geometry(geometry) {
+    const srcPos = geometry.attributes.position;
+    let minY = Infinity;
+    for (let i = 0; i < srcPos.count; i++) {
+        const x = srcPos.getX(i);
+        const y = srcPos.getY(i);
+        const z = srcPos.getZ(i);
+        srcPos.setXYZ(i, x, z, y);
+        if (z < minY) minY = z;
+    }
+    const floor = minY + 2.2;
+    const kept = [];
+    for (let i = 0; i + 2 < srcPos.count; i += 3) {
+        const y0 = srcPos.getY(i);
+        const y1 = srcPos.getY(i + 1);
+        const y2 = srcPos.getY(i + 2);
+        if (y0 < floor && y1 < floor && y2 < floor) continue;
+        kept.push(i, i + 1, i + 2);
+    }
+    const next = new Float32Array(kept.length * 3);
+    for (let k = 0; k < kept.length; k++) {
+        next[k * 3] = srcPos.getX(kept[k]);
+        next[k * 3 + 1] = srcPos.getY(kept[k]);
+        next[k * 3 + 2] = srcPos.getZ(kept[k]);
+    }
+    geometry.setAttribute('position', new THREE.BufferAttribute(next, 3));
+    geometry.deleteAttribute('normal');
+    const pos = geometry.attributes.position;
+    minY = Infinity;
+    let maxY = -Infinity;
+    for (let i = 0; i < pos.count; i++) {
+        const y = pos.getY(i);
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+    }
+    const height = maxY - minY > 1e-6 ? maxY - minY : 1;
+    let sumX = 0;
+    let sumZ = 0;
+    let torso = 0;
+    let headX = 0;
+    let headY = 0;
+    let headZ = 0;
+    let headN = 0;
+    for (let i = 0; i < pos.count; i++) {
+        const y = pos.getY(i) - minY;
+        const ny = y / height;
+        if (ny > 0.48 && ny < 0.78) {
+            sumX += pos.getX(i);
+            sumZ += pos.getZ(i);
+            torso++;
+        }
+        if (ny > 0.9) {
+            headX += pos.getX(i);
+            headY += y;
+            headZ += pos.getZ(i);
+            headN++;
+        }
+    }
+    const cx = torso ? sumX / torso : 0;
+    const cz = torso ? sumZ / torso : 0;
+    const headCx = (headN ? headX / headN : cx) - cx;
+    const headCy = headN ? headY / headN : height * 0.94;
+    const headCz = (headN ? headZ / headN : cz) - cz;
+    for (let i = 0; i < pos.count; i++) {
+        pos.setXYZ(i, pos.getX(i) - cx, pos.getY(i) - minY, pos.getZ(i) - cz);
+    }
+    const colors = new Float32Array(pos.count * 3);
+    let bodyMinX = Infinity;
+    let bodyMaxX = -Infinity;
+    let bodyMinZ = Infinity;
+    let bodyMaxZ = -Infinity;
+    for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const y = pos.getY(i);
+        const z = pos.getZ(i);
+        const ny = y / height;
+        const dx = x - headCx;
+        const dy = y - headCy;
+        const dz = z - headCz;
+        const hd = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        let col = MA_STL_WORKER_COLOR.pants;
+        if (hd < 16) {
+            if (dy > -4) col = MA_STL_WORKER_COLOR.helmet;
+            else if (dx > -4 && dy > -13) col = MA_STL_WORKER_COLOR.skin;
+            else if (dy > -9) col = MA_STL_WORKER_COLOR.helmet;
+        } else if (x < -16 && ny > 0.28 && ny < 0.88) {
+            col = MA_STL_WORKER_COLOR.tool;
+        } else if (ny > 0.4 && ny < 0.78 && Math.abs(z) > 14 && Math.abs(z) < 26 && x > -12) {
+            col = MA_STL_WORKER_COLOR.skin;
+        } else if (ny > 0.58 && ny < 0.84 && x > -10 && x < 18 && Math.abs(z) < 15) {
+            if (Math.abs(ny - 0.65) < 0.018 || Math.abs(ny - 0.74) < 0.018) col = MA_STL_WORKER_COLOR.stripe;
+            else if (x > 0 && Math.abs(z) < 6 && ny > 0.6 && ny < 0.76) col = MA_STL_WORKER_COLOR.shirt;
+            else col = MA_STL_WORKER_COLOR.vest;
+        } else if (ny < 0.055 && x > -8) {
+            col = MA_STL_WORKER_COLOR.boots;
+        }
+        if (col !== MA_STL_WORKER_COLOR.tool && ny > 0.08 && ny < 0.9 && x > -14 && x < 22) {
+            if (x < bodyMinX) bodyMinX = x;
+            if (x > bodyMaxX) bodyMaxX = x;
+            if (z < bodyMinZ) bodyMinZ = z;
+            if (z > bodyMaxZ) bodyMaxZ = z;
+        }
+        colors[i * 3] = col.r;
+        colors[i * 3 + 1] = col.g;
+        colors[i * 3 + 2] = col.b;
+    }
+    pos.needsUpdate = true;
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geometry.computeVertexNormals();
+    geometry.computeBoundingSphere();
+    if (!Number.isFinite(bodyMinX)) {
+        bodyMinX = -8;
+        bodyMaxX = 12;
+        bodyMinZ = -8;
+        bodyMaxZ = 8;
+    }
+    return {
+        geometry: geometry,
+        height: height,
+        bodyMinX: bodyMinX,
+        bodyMaxX: bodyMaxX,
+        bodyMinZ: bodyMinZ,
+        bodyMaxZ: bodyMaxZ,
+    };
+}
+
 function maStlWorkerRakeSplitX(pos, minX, spanX) {
     const bins = 48;
     const counts = new Array(bins).fill(0);
@@ -156,11 +295,16 @@ export function createDesing2WorkerTool(deps) {
     const outward = new THREE.Vector3();
     const deckQuat = new THREE.Quaternion();
 
-    let painted = null;
-    let loadPromise = null;
+    const paintedByKind = {};
+    const loadByKind = {};
     let ghost = null;
     let active = false;
+    let activeKind = 'Worker';
     let lastPose = null;
+
+    function modelOf(kind) {
+        return paintedByKind[maStlWorkerKind(kind || activeKind)] || null;
+    }
 
     function setPointer(clientX, clientY) {
         const canvas = deps.getCanvas();
@@ -276,8 +420,9 @@ export function createDesing2WorkerTool(deps) {
         return null;
     }
 
-    function baseScale() {
-        return painted ? MA_STL_WORKER_TARGET_HEIGHT_MM / painted.height : 1;
+    function baseScale(kind) {
+        const model = modelOf(kind);
+        return model ? MA_STL_WORKER_TARGET_HEIGHT_MM / model.height : 1;
     }
 
     function platformSpan(carrier, fx, fz) {
@@ -314,10 +459,11 @@ export function createDesing2WorkerTool(deps) {
     }
 
     function fitWorkerPose(pose, carrier) {
-        const heightScale = baseScale();
+        const model = modelOf(activeKind);
+        const heightScale = baseScale(activeKind);
         pose.scale = heightScale;
-        if (!painted || !carrier) return pose;
-        const depth = painted.bodyMaxX - painted.bodyMinX;
+        if (!model || !carrier) return pose;
+        const depth = model.bodyMaxX - model.bodyMinX;
         if (!(depth > 1)) return pose;
         const fx = Math.cos(pose.rotY);
         const fz = -Math.sin(pose.rotY);
@@ -327,9 +473,9 @@ export function createDesing2WorkerTool(deps) {
         const usable = span.max - span.min - pad * 2;
         if (usable > 200 && depth * heightScale > usable) pose.scale = usable / depth;
         let along = pose.x * fx + pose.z * fz;
-        const back = along + painted.bodyMinX * pose.scale;
+        const back = along + model.bodyMinX * pose.scale;
         if (back < span.min + pad) along += span.min + pad - back;
-        const front = along + painted.bodyMaxX * pose.scale;
+        const front = along + model.bodyMaxX * pose.scale;
         if (front > span.max - pad) along -= front - (span.max - pad);
         const side = pose.x * (-fz) + pose.z * fx;
         pose.x = along * fx + side * (-fz);
@@ -338,54 +484,68 @@ export function createDesing2WorkerTool(deps) {
     }
 
     function applyBodyScale(mesh, scaleX) {
-        const heightScale = baseScale();
+        const heightScale = baseScale(mesh.userData.workerKind || activeKind);
         const widthScale = scaleX > 0.05 ? scaleX : heightScale;
         mesh.scale.set(widthScale, heightScale, heightScale);
     }
 
-    function ensureGeometry() {
-        if (painted) return Promise.resolve(painted);
-        if (loadPromise) return loadPromise;
-        loadPromise = new Promise(function (resolve, reject) {
+    function ensureGeometry(kind) {
+        const key = maStlWorkerKind(kind);
+        if (paintedByKind[key]) return Promise.resolve(paintedByKind[key]);
+        if (loadByKind[key]) return loadByKind[key];
+        loadByKind[key] = new Promise(function (resolve, reject) {
             const loader = new OBJLoader();
             loader.load(
-                MA_STL_WORKER_OBJ_URL,
+                MA_STL_WORKER_MODELS[key],
                 function (obj) {
                     let source = null;
                     obj.traverse(function (child) {
                         if (!source && child.isMesh && child.geometry) source = child.geometry;
                     });
                     if (!source) {
+                        loadByKind[key] = null;
                         reject(new Error('El OBJ del trabajador no tiene malla'));
                         return;
                     }
-                    painted = maStlPaintWorkerGeometry(source);
+                    const painted = key === 'Worker2'
+                        ? maStlPaintWorker2Geometry(source)
+                        : maStlPaintWorkerGeometry(source);
+                    paintedByKind[key] = painted;
                     resolve(painted);
                 },
                 undefined,
                 function (err) {
-                    loadPromise = null;
+                    loadByKind[key] = null;
                     reject(err || new Error('No se pudo cargar el trabajador'));
                 }
             );
         });
-        return loadPromise;
+        return loadByKind[key];
     }
 
-    function makeMesh(opacity) {
-        const scale = MA_STL_WORKER_TARGET_HEIGHT_MM / painted.height;
-        const mesh = new THREE.Mesh(painted.geometry, maStlWorkerMaterial(opacity));
+    function makeMesh(opacity, kind) {
+        const key = maStlWorkerKind(kind || activeKind);
+        const model = modelOf(key);
+        const scale = MA_STL_WORKER_TARGET_HEIGHT_MM / model.height;
+        const mesh = new THREE.Mesh(model.geometry, maStlWorkerMaterial(opacity));
         mesh.scale.setScalar(scale);
         mesh.castShadow = opacity >= 0.999;
         mesh.receiveShadow = true;
         mesh.name = 'desing2-worker';
+        mesh.userData.workerKind = key;
         return mesh;
     }
 
     function showGhostAt(point) {
-        if (!painted || !point) return;
+        const model = modelOf(activeKind);
+        if (!model || !point) return;
+        if (ghost && ghost.userData.workerKind !== activeKind) {
+            group.remove(ghost);
+            if (ghost.material && ghost.material.dispose) ghost.material.dispose();
+            ghost = null;
+        }
         if (!ghost) {
-            ghost = makeMesh(0.55);
+            ghost = makeMesh(0.55, activeKind);
             ghost.userData.ghost = true;
             ghost.raycast = function () {};
             group.add(ghost);
@@ -415,8 +575,8 @@ export function createDesing2WorkerTool(deps) {
     }
 
     function placeAt(point) {
-        if (!painted || !point || !active) return;
-        const mesh = makeMesh(1);
+        if (!modelOf(activeKind) || !point || !active) return;
+        const mesh = makeMesh(1, activeKind);
         mesh.position.set(point.x, point.y || 0, point.z);
         mesh.rotation.y = point.rotY || 0;
         if (point.scale > 0) applyBodyScale(mesh, point.scale);
@@ -441,6 +601,7 @@ export function createDesing2WorkerTool(deps) {
             RotY: mesh.rotation.y,
             Scale: mesh.scale.x,
             wallId: mesh.userData.maStlWorkerWallId || null,
+            TextCode: mesh.userData.workerKind || 'Worker',
         };
     }
 
@@ -452,8 +613,9 @@ export function createDesing2WorkerTool(deps) {
         const rot = Number(item.RotY != null ? item.RotY : item.rotY);
         const scale = Number(item.Scale != null ? item.Scale : item.scale);
         const wallId = item.wallId != null ? item.wallId : item.WallId;
-        if (!Number.isFinite(x) || !Number.isFinite(z)) return;
-        const mesh = makeMesh(1);
+        const kind = maStlWorkerKind(item.TextCode != null ? item.TextCode : item.textCode);
+        if (!Number.isFinite(x) || !Number.isFinite(z) || !modelOf(kind)) return;
+        const mesh = makeMesh(1, kind);
         mesh.position.set(x, Number.isFinite(y) ? y : 0, z);
         if (Number.isFinite(rot)) mesh.rotation.y = rot;
         applyBodyScale(mesh, scale);
@@ -485,13 +647,15 @@ export function createDesing2WorkerTool(deps) {
         setVisible: function (on) {
             group.visible = !!on;
         },
-        isReady: function () {
-            return !!painted;
+        isReady: function (kind) {
+            return !!modelOf(kind || activeKind);
         },
-        start: function () {
+        start: function (kind) {
+            activeKind = maStlWorkerKind(kind);
             active = true;
-            return ensureGeometry().then(function () {
+            return ensureGeometry(activeKind).then(function () {
                 if (!active) return;
+                if (lastPose) lastPose.scale = 0;
                 showGhostAt(lastPose);
             });
         },
@@ -529,6 +693,7 @@ export function createDesing2WorkerTool(deps) {
                     ZMm: mesh.position.z,
                     RotY: mesh.rotation.y,
                     Scale: mesh.scale.x,
+                    TextCode: mesh.userData.workerKind || 'Worker',
                 };
             });
         },
@@ -546,7 +711,7 @@ export function createDesing2WorkerTool(deps) {
         },
         appendRows: function (rows) {
             const list = Array.isArray(rows) ? rows : [];
-            if (!painted || !list.length) return;
+            if (!list.length) return;
             for (let i = 0; i < list.length; i++) addRow(list[i]);
         },
         restore: function (rows) {
@@ -555,7 +720,13 @@ export function createDesing2WorkerTool(deps) {
                 clearPlaced();
                 return Promise.resolve();
             }
-            return ensureGeometry().then(function () {
+            const kinds = [];
+            for (let i = 0; i < list.length; i++) {
+                const row = list[i] || {};
+                const key = maStlWorkerKind(row.TextCode != null ? row.TextCode : row.textCode);
+                if (kinds.indexOf(key) < 0) kinds.push(key);
+            }
+            return Promise.all(kinds.map(function (key) { return ensureGeometry(key); })).then(function () {
                 clearPlaced();
                 for (let i = 0; i < list.length; i++) addRow(list[i]);
             });

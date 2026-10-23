@@ -113,7 +113,7 @@
                     <i class="icon-base ri ri-arrow-left-line me-1"></i> @Common.Btn_Back
                 </a>
             }
-            <button type="button" class="btn btn-sm btn-warning" id="offerWorkspaceOpenOfferEditBtn"
+            <button type="button" class="btn btn-warning js-offer-workspace-open-edit" id="offerWorkspaceOpenOfferEditBtn"
                     title="@Jobside.Offers_EditTooltip" aria-label="@Jobside.Offers_EditTooltip">
                 <i class="icon-base ri ri-pencil-line me-1" aria-hidden="true"></i> @Jobside.Offers_Btn_EditRow
             </button>
@@ -411,6 +411,10 @@
                     var msgOk = cfg.saveSuccess || '';
                     var msgFail = cfg.saveFailed || '';
                     if (r && r.ok) {
+                        if (r.openUrl) {
+                            window.location.href = r.openUrl;
+                            return;
+                        }
                         var modalEl = document.getElementById('offerWorkspaceNewDesignModal');
                         if (modalEl && window.bootstrap) {
                             var inst = bootstrap.Modal.getInstance(modalEl);
@@ -541,9 +545,9 @@
                 });
             });
 
-            var openEdit = document.getElementById('offerWorkspaceOpenOfferEditBtn');
-            if (openEdit) {
-                openEdit.addEventListener('click', function (e) {
+            var openEditButtons = document.querySelectorAll('.js-offer-workspace-open-edit');
+            for (var editBtnIndex = 0; editBtnIndex < openEditButtons.length; editBtnIndex++) {
+                openEditButtons[editBtnIndex].addEventListener('click', function (e) {
                     e.preventDefault();
                     var ui = offerWorkspaceOfferUi || {};
                     offerWorkspaceLoadOfferForm(ui.offerId);

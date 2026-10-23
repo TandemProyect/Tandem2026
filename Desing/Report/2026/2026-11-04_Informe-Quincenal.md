@@ -2,7 +2,7 @@
 
 **Periodo:** 22 de octubre – 4 de noviembre de 2026  
 **Review / corte:** 4 de noviembre de 2026  
-**Siguiente informe:** el **4 de noviembre de 2026** se crea el 04.  
+**Siguiente informe:** el **4 de noviembre de 2026** se cierra este y se crea el 04, ya semanal (`2026-11-11_Informe-Semanal.md`, review el 11 nov).  
 **Norma:** `Desing/Report/LEEME.md` (apartados quincenales).  
 **Anterior:** `2026-10-22_Informe-Quincenal.md` (02, cerrado el 22 oct).
 
@@ -57,6 +57,55 @@ Este fichero es el informe **abierto desde el 22 oct 2026**. El 02 ya no se escr
 - **Manual, 14:06.** Antes del bloquín van el fijador `1850164` y la tuerca placa fija `10443020`. El visor ya los pone: dos uniones por barra, por encima y por debajo, en las dos caras. El modelo de 3 m del manual (cuatro uniones) no se emite. En `3D` y `3DRef` aún no hay DWG de estas dos piezas. Los de febrero, en la raíz de `AtkSystem60`, no se usan. En TapeS1 y TapeS2 el fijador sigue sin pintarse.
 - **Cursor:** entrega **14:26**. `Debug140`. `ENCOFRAR` confirma paneles y grapas antes de abrir el DWG del rigidizador. Si ese bloque falla, el muro sigue encofrado y la línea dice cuál pieza no abrió.
 - **Cursor:** entrega **14:45**. `Debug141`. El STL lleva el largo en Z y el cuerpo en −Y. El DWG lo tenía en +Y y el grueso en +Z. Antes del giro del visor se pasa el bloque a esos ejes. El centro del largo queda en el origen, como el STL.
+- **Parón, 15:06.** Se deja el plugin aquí. Falta el fijador, la tuerca y el bloquín.
+
+### 4. Segundo trabajador
+
+- **Estado:** abierto. **22 de octubre de 2026, 15:06.**
+- **Persona:** inicio **15:06**.
+- **Cursor:** inicio **15:06**.
+- **Qué se hace:** insertar un segundo trabajador. El que ya está es el OBJ `Content/DesignTools/Stl/Worker/Worker.obj`, en el visor (`desing2-worker-tool.js`). Mide 1,75 m. Solo se ve en el encofrado.
+- **Dónde queda el de ahora:** si el clic cae en un tablón de plataforma (`Tablon24x15x5`), los pies van en la cara de arriba de ese tablón y mira al muro. El ancho se estrecha para caber, con 40 mm de margen; la altura no se toca. Si el clic no da en la plataforma, los pies van en el suelo (Y = 0), en el punto del ratón, sin girar hacia el muro. Ese del suelo pertenece al muro más cercano, hasta 40 m. El de la plataforma pertenece al muro de ese tablón.
+- **Cursor:** entrega **15:28**. Insertar trabajador abre un popup para elegir el de siempre o `Worker2.obj`. El dibujo del popup es provisional. `Worker2` venía tumbado en Z; se pone de pie y se pinta como el primero: casco amarillo, chaleco con rayas, camiseta gris, pantalón azul y botas negras. Para que al guardar se recuerde el modelo, hace falta `Scripts/TemporalScript/2026-10-22_alter_TSql_DesignWorker_TextCode.sql`.
+- **Cursor:** entrega **15:34**. `Worker2.obj` pasa de 181 MB a 4 MB. La pintura es la misma función que el primero.
+- **Cursor:** entrega **15:50**. El selector pasa al mismo popup que el resto. Elegir uno carga el trabajador y vuelve a seguir al ratón. Las dos figuras miden igual y no llevan nombre.
+- **Cursor:** entrega **16:17**. Trabajador 2 gira 180° para echar el hormigón al muro. La cara pasa a piel, el pantalón queda azul y el chaleco en el torso.
+- **Cursor:** entrega **16:52**. Las dos fotos sustituyen los dibujos del formulario. Quedan en `Content/DesignTools/Stl/Worker/`, las dos a 480×640 y sin nombre.
+- **Cursor:** entrega **17:10**. `Worker2.obj` entra en el proyecto, junto a las dos fotos. Sin eso, al publicar no se sube el segundo trabajador.
+- **Cursor:** entrega **17:19**. Los scripts del trabajador quedan en develop y en producción, en local y en el servidor. La columna `TextCode` ya existe. En el servidor no hay base develop.
+
+### 5. Direcciones Google en la intranet
+
+- **Estado:** cerrado. **22 de octubre de 2026, 21:35.**
+- **Persona:** primer tramo **20:31–21:09**. Segundo tramo **21:17–21:35**.
+- **Cursor:** primer tramo **20:31–21:08**. Segundo tramo **21:17–21:19**.
+- **Qué se hace:** al escribir una dirección, Google solo proponía resultados de España. Tiene que proponer también Uruguay, Argentina y el resto.
+- **Cursor:** entrega **20:33**. Se quita el filtro de país del autocompletado. España sigue como sesgo del mapa.
+- **Cursor:** entrega **20:50**. Sin lista de países el buscador deja de proponer, también en España. Vuelve la lista: España, Uruguay, Argentina y otros doce. Google admite 15 como máximo.
+- **Cursor:** entrega **20:56**. Edge bloquea el cuadro de Google. Las propuestas salen en una lista propia: España, Uruguay, Argentina y los otros doce países.
+- **Cursor:** entrega **21:05**. La lista se pinta debajo del campo, sin depender del cuadro de Google. La búsqueda ya no lleva filtro de país.
+- **Cursor:** entrega **21:08**. En Crear obra la dirección se escribía en Dirección formateada, y ese campo no buscaba. Ahora también propone.
+- **Persona:** a las **21:09** confirma que propone. El mismo script cubre obra, cliente, empresa y delegación. Esos ficheros ya están en el proyecto. Se publica.
+- **Persona:** a las **21:17** la dirección se rellena y el mapa no. Si guarda y vuelve a entrar, el mapa sí sale.
+- **Cursor:** entrega **21:19**. El mapa se pide al elegir la dirección y se reajusta cuando el recuadro ya tiene tamaño. Antes solo se pintaba al recargar.
+- **Persona:** a las **21:35** confirma que el mapa sale al elegir. El mismo bloque es el de obra (local y facturación), cliente, empresa y delegación. En empresa, Dirección y Dirección 2 siguen siendo texto libre.
+
+### 6. Botón Editar en las fichas
+
+- **Estado:** abierto. **22 de octubre de 2026, 21:40.**
+- **Persona:** inicio **21:40**.
+- **Cursor:** inicio **21:40**.
+- **Qué se hace:** en las fichas de detalle hay que poder pasar al formulario para cambiar los datos.
+- **Cursor:** entrega **21:42**. Editar queda en la ficha de la obra, de la oferta y del cliente, junto a los datos. Empresa, delegación y los catálogos ya lo tenían arriba.
+
+### 7. Documentación para el siguiente agente
+
+- **Estado:** abierto. **23 de octubre de 2026, 8:58.**
+- **Persona:** inicio **8:58**.
+- **Cursor:** inicio **8:58**.
+- **Qué se hace:** dejar por escrito la sesión del 22 y pasar el informe de quincenal a semanal.
+- **Cursor:** entrega **9:01**. Guía en `Desing/IA/docs/HANDOVER-SESION-2026-10-23.md`. El 03 sigue hasta el 4 nov. El 04, ese día, ya es semanal: del 4 al 11 nov.
+- **Persona:** a las **9:18** pide el informe `Informe Semanal 26102026-2112026` (26 oct – 2 nov), con lo del 22 y el fallo del cliente al editar la obra. El relato de esa semana va en ese fichero.
 
 ## Dónde está cada frente (esta quincena)
 
@@ -64,17 +113,28 @@ Este fichero es el informe **abierto desde el 22 oct 2026**. El 02 ya no se escr
 |--------|-------|----------------|
 | Bloques de AutoCAD: grapas | Cursor, 22 oct | Apartado 1 cerrado a las 12:32. `Debug138` a las 12:24: la grapa se mueve sobre la línea de junta. La variable queda fuera, sin DWG |
 | Formulario del muro | Cursor, 22 oct | Apartado 2 a prueba. A las 12:56 el doble clic del visor vuelve a abrir Modificar muro |
-| Bloques de AutoCAD: rigidizadores | Cursor, 22 oct | Apartado 3 abierto. `Debug141`: el DWG se gira a los ejes del STL. Falta fijador y tuerca. El bloquín queda pendiente |
+| Bloques de AutoCAD: rigidizadores | Cursor, 22 oct | Apartado 3 en parón a las 15:06. `Debug141`. Falta fijador, tuerca y bloquín |
+| Segundo trabajador | Cursor, 22 oct | Apartado 4 abierto. A las 17:19 `TextCode` está en develop y en producción |
+| Direcciones Google | Cursor, 22 oct | Apartado 5 cerrado a las 21:35. El bloque compartido cubre obra, cliente, empresa y delegación |
+| Botón Editar | Cursor, 22 oct | Apartado 6 abierto. A las 21:42 Editar está en la ficha de obra, oferta y cliente |
+| Documentación | Cursor, 23 oct | Apartado 7 abierto. Guía de la sesión y paso a informe semanal el 4 nov |
 
 ## Horas cerradas (no se suman entre sí)
 
 | Reloj | Tramo | Suma |
 |-------|--------|------|
 | Persona | Apartado 1, 8:45–12:32 | 3 h 47 min |
+| Persona | Apartado 5, 20:31–21:09 | 38 min |
+| Persona | Apartado 5, 21:17–21:35 | 18 min |
 | Cursor | Apartado 1, 8:45–12:24 | 3 h 39 min |
+| Cursor | Apartado 5, 20:31–21:08 | 37 min |
+| Cursor | Apartado 5, 21:17–21:19 | 2 min |
 | Copilot | — | 0 |
+| **Persona** | Apartados 1 y 5 | **4 h 43 min** |
+| **Cursor** | Apartados 1 y 5 | **4 h 18 min** |
+| **Copilot** | — | **0** |
 
-Los apartados 2 y 3 siguen abiertos. Su tramo no entra en estas sumas.
+Los apartados 2, 3, 4, 6 y 7 siguen abiertos. Su tramo no entra en estas sumas.
 
 ## Al cerrar el 4 de noviembre
 

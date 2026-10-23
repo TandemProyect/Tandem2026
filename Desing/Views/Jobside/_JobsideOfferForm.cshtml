@@ -33,7 +33,7 @@
     </div>
     <div class="mb-3">
         <label class="form-label" for="LinkClient_V2">@Jobside.Lbl_Client</label>
-        @Html.DropDownListFor(m => m.LinkClient_V2, (SelectList)ViewBag.LinkClient_V2, new { @class = "form-select", id = "LinkClient_V2", required = "required" })
+        @Html.DropDownListFor(m => m.LinkClient_V2, (SelectList)ViewBag.ClientOptions, new { @class = "form-select", id = "LinkClient_V2", required = "required" })
     </div>
     <div class="mb-3">
         <label class="form-label" for="LinkOfferState">@Jobside.Offers_Lbl_State</label>

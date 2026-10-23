@@ -677,6 +677,10 @@
                     data: form.serialize()
                 }).done(function (r) {
                     if (r && r.ok) {
+                        if (r.openUrl) {
+                            window.location.href = r.openUrl;
+                            return;
+                        }
                         var modalEl = document.getElementById('jobsideOfferModal');
                         if (modalEl && window.bootstrap) {
                             var inst = bootstrap.Modal.getInstance(modalEl);

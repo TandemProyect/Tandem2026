@@ -627,7 +627,9 @@ namespace Desing.Controllers
                     })
                     .ToList();
 
-                return Json(new { ok = true, rows = rows }, JsonRequestBehavior.AllowGet);
+                var result = Json(new { ok = true, rows = rows }, JsonRequestBehavior.AllowGet);
+                result.MaxJsonLength = int.MaxValue;
+                return result;
             }
             catch (Exception ex)
             {
@@ -2389,6 +2391,326 @@ namespace Desing.Controllers
             {
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Grupos del diseño: número y nombre en dbo.TSql_DesgloseGrupo.
+        /// </summary>
+        [HttpGet]
+        public JsonResult ListDesignGroups(long designId)
+        {
+            try
+            {
+                if (designId <= 0)
+                {
+                    return Json(new { ok = true, groups = new object[0] }, JsonRequestBehavior.AllowGet);
+                }
+
+                return Json(new { ok = true, groups = ReadDesignGroups(designId), nextNumber = ReadNextGroupNumber(designId) }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { ok = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
+        /// Crea, renombra y borra (lógico) los grupos de un diseño en un solo paso.
+        /// </summary>
+        [HttpPost]
+        public JsonResult SaveDesignGroups()
+        {
+            try
+            {
+                if (Request.InputStream.CanSeek)
+                {
+                    Request.InputStream.Position = 0;
+                }
+
+                string rawJson;
+                using (var reader = new StreamReader(Request.InputStream, Encoding.UTF8))
+                {
+                    rawJson = reader.ReadToEnd();
+                }
+
+                if (string.IsNullOrWhiteSpace(rawJson))
+                {
+                    return Json(new { ok = false, message = "JSON vacío." });
+                }
+
+                var body = JObject.Parse(rawJson);
+                var designId = body.Value<long?>("designId") ?? 0;
+                if (designId <= 0)
+                {
+                    return Json(new { ok = false, message = "Diseño no indicado." });
+                }
+
+                var exists = db.Database.SqlQuery<int>(
+                    "SELECT COUNT(1) FROM dbo.TSql_Design_V2 WHERE SysObjectID = @p0 AND AttIsDeleted = 0",
+                    designId).FirstOrDefault();
+                if (exists != 1)
+                {
+                    return Json(new { ok = false, message = "Diseño no encontrado." });
+                }
+
+                var existing = db.Database.SqlQuery<DesignGroupRow>(
+                    "SELECT IdObject, TextLabel, NumberGroup FROM dbo.TSql_DesgloseGrupo WHERE LinkDesign_V2 = @p0 AND Is_Delete = 0",
+                    designId).ToList();
+                var usedEver = db.Database.SqlQuery<GroupNumberRow>(
+                    "SELECT IdObject, NumberGroup FROM dbo.TSql_DesgloseGrupo WHERE LinkDesign_V2 = @p0",
+                    designId).ToList();
+                var byId = new Dictionary<long, DesignGroupRow>();
+                for (var i = 0; i < existing.Count; i++)
+                {
+                    byId[existing[i].IdObject] = existing[i];
+                }
+
+                var deleteIds = new List<long>();
+                var deletedToken = body["deleted"] as JArray;
+                if (deletedToken != null)
+                {
+                    for (var i = 0; i < deletedToken.Count; i++)
+                    {
+                        var id = deletedToken[i].Value<long?>() ?? 0;
+                        if (id <= 0)
+                        {
+                            continue;
+                        }
+
+                        if (!byId.ContainsKey(id))
+                        {
+                            return Json(new { ok = false, message = "Grupo no encontrado." });
+                        }
+
+                        if (!deleteIds.Contains(id))
+                        {
+                            deleteIds.Add(id);
+                        }
+                    }
+                }
+
+                var updates = new List<DesignGroupWrite>();
+                var inserts = new List<DesignGroupWrite>();
+                var usedNumbers = new HashSet<long>();
+                var rowsToken = body["rows"] as JArray;
+                if (rowsToken != null)
+                {
+                    for (var i = 0; i < rowsToken.Count; i++)
+                    {
+                        var row = rowsToken[i] as JObject;
+                        if (row == null)
+                        {
+                            continue;
+                        }
+
+                        var id = row.Value<long?>("id") ?? 0;
+                        var number = row.Value<long?>("number");
+                        var name = (row.Value<string>("name") ?? string.Empty).Trim();
+                        if (id <= 0 && string.IsNullOrEmpty(name) && !number.HasValue)
+                        {
+                            continue;
+                        }
+
+                        if (!number.HasValue || number.Value < 0 || string.IsNullOrEmpty(name))
+                        {
+                            return Json(new { ok = false, message = "Cada grupo necesita número y nombre." });
+                        }
+
+                        if (name.Length > 500)
+                        {
+                            name = name.Substring(0, 500);
+                        }
+
+                        if (!usedNumbers.Add(number.Value))
+                        {
+                            return Json(new { ok = false, message = "El número de grupo está repetido." });
+                        }
+
+                        if (id > 0)
+                        {
+                            if (!byId.ContainsKey(id) || deleteIds.Contains(id))
+                            {
+                                return Json(new { ok = false, message = "Grupo no encontrado." });
+                            }
+
+                            updates.Add(new DesignGroupWrite { Id = id, Number = number.Value, Name = name });
+                        }
+                        else
+                        {
+                            inserts.Add(new DesignGroupWrite { Number = number.Value, Name = name });
+                        }
+                    }
+                }
+
+                for (var i = 0; i < existing.Count; i++)
+                {
+                    var row = existing[i];
+                    if (deleteIds.Contains(row.IdObject))
+                    {
+                        continue;
+                    }
+
+                    var updated = false;
+                    for (var u = 0; u < updates.Count; u++)
+                    {
+                        if (updates[u].Id == row.IdObject)
+                        {
+                            updated = true;
+                            break;
+                        }
+                    }
+
+                    if (!updated && !usedNumbers.Add(row.NumberGroup))
+                    {
+                        return Json(new { ok = false, message = "El número de grupo está repetido." });
+                    }
+                }
+
+                for (var i = 0; i < inserts.Count; i++)
+                {
+                    if (GroupNumberWasUsed(usedEver, inserts[i].Number, 0))
+                    {
+                        return Json(new { ok = false, message = "Ese número de grupo ya se ha usado." });
+                    }
+                }
+
+                for (var i = 0; i < updates.Count; i++)
+                {
+                    if (GroupNumberWasUsed(usedEver, updates[i].Number, updates[i].Id))
+                    {
+                        return Json(new { ok = false, message = "Ese número de grupo ya se ha usado." });
+                    }
+                }
+
+                var userId = IntranetAuditHelper.ResolveCurrentUserId(User) ?? string.Empty;
+                var now = DateTime.Now;
+                using (var tx = db.Database.BeginTransaction())
+                {
+                    for (var i = 0; i < deleteIds.Count; i++)
+                    {
+                        db.Database.ExecuteSqlCommand(
+                            @"UPDATE dbo.TSql_DesgloseGrupo
+                              SET Is_Delete = 1, LinModifiedBy = @p0, AddLastDateChange = @p1, Ntimeschanged = Ntimeschanged + 1
+                              WHERE IdObject = @p2 AND LinkDesign_V2 = @p3 AND Is_Delete = 0",
+                            userId,
+                            now,
+                            deleteIds[i],
+                            designId);
+                    }
+
+                    for (var i = 0; i < updates.Count; i++)
+                    {
+                        var row = updates[i];
+                        db.Database.ExecuteSqlCommand(
+                            @"UPDATE dbo.TSql_DesgloseGrupo
+                              SET TextLabel = @p0, NumberGroup = @p1, LinModifiedBy = @p2, AddLastDateChange = @p3, Ntimeschanged = Ntimeschanged + 1
+                              WHERE IdObject = @p4 AND LinkDesign_V2 = @p5 AND Is_Delete = 0",
+                            row.Name,
+                            row.Number,
+                            userId,
+                            now,
+                            row.Id,
+                            designId);
+                    }
+
+                    for (var i = 0; i < inserts.Count; i++)
+                    {
+                        var row = inserts[i];
+                        db.Database.ExecuteSqlCommand(
+                            @"INSERT INTO dbo.TSql_DesgloseGrupo
+                                (TextLabel, LinkDesign_V2, NumberGroup, Is_Delete, Is_Active, LinkMadeBy, LinModifiedBy, AddDateMade, AddLastDateChange, Ntimeschanged)
+                              VALUES (@p0, @p1, @p2, 0, 1, @p3, NULL, @p4, NULL, 0)",
+                            row.Name,
+                            designId,
+                            row.Number,
+                            userId,
+                            now);
+                    }
+
+                    tx.Commit();
+                }
+
+                return Json(new { ok = true, groups = ReadDesignGroups(designId), nextNumber = ReadNextGroupNumber(designId) });
+            }
+            catch (JsonReaderException ex)
+            {
+                return Json(new { ok = false, message = "JSON inválido: " + ex.Message });
+            }
+            catch (Exception ex)
+            {
+                var text = ex.ToString();
+                if (text.IndexOf("UX_TSql_DesgloseGrupo_Design_NumberGroup", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return Json(new { ok = false, message = "El número de grupo está repetido." });
+                }
+
+                return Json(new { ok = false, message = ex.Message });
+            }
+        }
+
+        private IList<object> ReadDesignGroups(long designId)
+        {
+            var rows = db.Database.SqlQuery<DesignGroupRow>(
+                "SELECT IdObject, TextLabel, NumberGroup FROM dbo.TSql_DesgloseGrupo WHERE LinkDesign_V2 = @p0 AND Is_Delete = 0 ORDER BY NumberGroup, IdObject",
+                designId).ToList();
+            var list = new List<object>(rows.Count);
+            for (var i = 0; i < rows.Count; i++)
+            {
+                list.Add(new
+                {
+                    id = rows[i].IdObject,
+                    number = rows[i].NumberGroup,
+                    name = rows[i].TextLabel
+                });
+            }
+
+            return list;
+        }
+
+        private long ReadNextGroupNumber(long designId)
+        {
+            var max = db.Database.SqlQuery<long>(
+                "SELECT CAST(ISNULL(MAX(NumberGroup), 0) AS bigint) FROM dbo.TSql_DesgloseGrupo WHERE LinkDesign_V2 = @p0",
+                designId).FirstOrDefault();
+            if (max < 0)
+            {
+                max = 0;
+            }
+
+            return max + 1;
+        }
+
+        private static bool GroupNumberWasUsed(List<GroupNumberRow> usedEver, long number, long exceptId)
+        {
+            for (var i = 0; i < usedEver.Count; i++)
+            {
+                if (usedEver[i].NumberGroup == number && usedEver[i].IdObject != exceptId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public sealed class GroupNumberRow
+        {
+            public long IdObject { get; set; }
+            public long NumberGroup { get; set; }
+        }
+
+        public sealed class DesignGroupRow
+        {
+            public long IdObject { get; set; }
+            public string TextLabel { get; set; }
+            public long NumberGroup { get; set; }
+        }
+
+        public sealed class DesignGroupWrite
+        {
+            public long Id { get; set; }
+            public long Number { get; set; }
+            public string Name { get; set; }
         }
 
         private const double DesignPropSpacingDefaultMm = 2400d;

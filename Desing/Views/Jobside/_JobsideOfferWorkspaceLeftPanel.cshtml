@@ -23,8 +23,12 @@
 }
 
 <div class="card border shadow-none">
-    <div class="card-header fw-semibold text-primary py-3 px-4">
-        @Jobside.OfferWorkspace_LeftTitle
+    <div class="card-header fw-semibold text-primary py-3 px-4 d-flex align-items-center justify-content-between gap-2">
+        <span>@Jobside.OfferWorkspace_LeftTitle</span>
+        <button type="button" class="btn btn-sm btn-warning flex-shrink-0 js-offer-workspace-open-edit"
+                title="@Jobside.Offers_EditTooltip" aria-label="@Jobside.Offers_EditTooltip">
+            <i class="icon-base ri ri-pencil-line me-1" aria-hidden="true"></i>@Jobside.Offers_Btn_EditRow
+        </button>
     </div>
     <div class="card-body pt-3 px-4 pb-4 tandem-fill-scroll">
         <dl class="row mb-0">

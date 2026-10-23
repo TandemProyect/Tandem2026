@@ -8,7 +8,7 @@ Guías mantenidas en el repositorio para **desarrolladores** y **agentes Cursor*
 |-----------|-----------|
 | [UI-Formularios-y-Estilo.md](./UI-Formularios-y-Estilo.md) | Estructura MVC, tablas DataTables, formularios, plantilla de color, checkboxes, acciones, convenciones de campos |
 | [intranet-scroll-layout.md](./intranet-scroll-layout.md) | Scroll único en `.tandem-layout-main-scroll`: cadena flex, `:has(...)` para DT / Jobside / Desing_2 |
-| [Google-Places-Direcciones.md](./Google-Places-Direcciones.md) | Bloque reutilizable de dirección, `TandemAddressPlaces`, Web.config, Google Cloud, Jobside |
+| [Google-Places-Direcciones.md](./Google-Places-Direcciones.md) | Bloque reutilizable de dirección. Lista propia, sin filtro de país. Obra, cliente, empresa y delegación |
 | [../../docs/agente-ui-materio-datatables.md](../../docs/agente-ui-materio-datatables.md) | Layout Materio, cookies `dt-user`, DataTables globales, menú colapsado |
 | [../../Scripts/ThreejsDesing/README.md](../../Scripts/ThreejsDesing/README.md) | Visor STL Three.js (Master Articles) — **no** duplicar aquí |
 
@@ -26,8 +26,9 @@ Guías mantenidas en el repositorio para **desarrolladores** y **agentes Cursor*
 
 ## Módulos de referencia actuales
 
-- **Clientes V2:** `ClientV2Controller`, `Views/ClientV2/*` — CRUD sin dirección Google.
-- **Obras (Jobside):** `JobsideController`, `Views/Jobside/*` — CRUD con doble dirección (Loc/Bill) y Google Places.
+- **Clientes V2:** `ClientV2Controller`, `Views/ClientV2/*` — CRUD con el bloque Google Places. La ficha tiene Editar en la tarjeta de datos.
+- **Obras (Jobside):** `JobsideController`, `Views/Jobside/*` — doble dirección (Loc/Bill) y Google Places. La ficha y la de oferta tienen Editar junto a los datos. La oferta abre el formulario en un modal.
+- **Empresa y delegación:** el mismo bloque de dirección. Editar ya está en la cabecera de la ficha.
 
 ## Configuración (intranet)
 
@@ -46,4 +47,4 @@ Patrón CRUD: igual que ClientV2 (sin Google Places). **Obligatorio:** `TextLabe
 
 ---
 
-*Última revisión: mayo 2026 — alineado con ClientV2, Jobside, DocumentType y bloque `_GooglePlacesAddressBlock`.*
+*Última revisión: 23 oct 2026. Direcciones sin filtro de país y Editar en las fichas de obra, oferta y cliente. El relato de esa sesión está en `IA/docs/HANDOVER-SESION-2026-10-23.md`.*

@@ -29,6 +29,10 @@
                        aria-label="@Html.AttributeEncode(tooltip3d)">
                         <i class="icon-base ri ri-shape-3-line" aria-hidden="true"></i>
                     </a>
+                    @if (Model.HasMaterialCount)
+                    {
+                        @Html.Raw(DesignMaterialCountUi.Button(row.DesignId, row.Title, MasterArticles.StlPreview_MaterialCountTitle, false))
+                    }
                 </div>
                 @if (row.StlVirtualPath == null)
                 {

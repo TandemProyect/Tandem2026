@@ -222,7 +222,7 @@ namespace Desing.Controllers
             TempData["ToastType"] = "Act";
             TempData["ToastTitle"] = OfferState.ToastTitle_CreateOfferState;
             TempData["ToastMessage"] = string.Format(OfferState.ToastMessage_OfferStateCreated, nueva.TextLabel);
-            return RedirectToAction("Index");
+            return RedirectToAction("Details", new { id = nueva.IdObject });
         }
 
         public ActionResult Edit(long id)

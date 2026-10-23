@@ -1439,6 +1439,7 @@ namespace Desing.Controllers
 
             db.TSql_Design_V2.Add(entity);
             db.SaveChanges();
+            DesignGroupHelper.EnsureFirstGroup(db.Database, entity.SysObjectID, uid, now);
 
             return Json(new
             {

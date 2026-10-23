@@ -323,7 +323,9 @@
     <Compile Include="Helpers\OfferNumberHelper.cs" />
     <Compile Include="Helpers\ReleaseVersionHelper.cs" />
     <Compile Include="Helpers\ApplicationStlUrlHelper.cs" />
+    <Compile Include="Helpers\DesignGroupHelper.cs" />
     <Compile Include="Helpers\OfferDesignWorkspaceHelper.cs" />
+    <Compile Include="Helpers\DesignMaterialCountUi.cs" />
     <Compile Include="Helpers\LastUserDesignMenuHelper.cs" />
     <Compile Include="Helpers\OfferDisplayHelper.cs" />
     <Compile Include="Helpers\LanguageUiHelper.cs" />
@@ -849,6 +851,8 @@
     <Content Include="Scripts\MasterArticles\desing2-pillar-tool.js" />
     <Content Include="Scripts\MasterArticles\master-article-details-stl-viewer.js" />
     <Content Include="Scripts\MasterArticles\wall-edit-form.js" />
+    <Content Include="Scripts\MasterArticles\wall-bulk-list.js" />
+    <Content Include="Scripts\MasterArticles\design-groups.js" />
     <Content Include="Scripts\MasterArticles\master-article-preview.js" />
     <Content Include="Scripts\MasterArticles\vendor\three-dxf-loader.js" />
     <Content Include="assets\js\lib\datepicker\bootstrap-datepicker.js" />
@@ -2402,6 +2406,9 @@
     <Content Include="Content\DesignTools\Stl\ATK60\10004220-2.stl" />
     <Content Include="Content\DesignTools\Stl\ATK60\Puntal_Tipo3.stl" />
     <Content Include="Content\DesignTools\Stl\Worker\Worker.obj" />
+    <Content Include="Content\DesignTools\Stl\Worker\Worker2.obj" />
+    <Content Include="Content\DesignTools\Stl\Worker\Worker.png" />
+    <Content Include="Content\DesignTools\Stl\Worker\Worker2.png" />
     <Content Include="Content\DesignTools\Stl\ATK60\h375.stl" />
     <Content Include="Content\DesignTools\Stl\ATK60\h375_2.stl" />
     <Content Include="Content\DesignTools\Stl\ATK60\h375Inf.stl" />
@@ -2489,6 +2496,7 @@
     <Content Include="IA\docs\GUIA-AGENTE-AZURE-DEVOPS.md" />
     <Content Include="IA\docs\HANDOVER-LCornerDetector.md" />
     <Content Include="IA\docs\HANDOVER-PLUGIN-DEVICE-AUTH.md" />
+    <Content Include="IA\docs\HANDOVER-SESION-2026-10-23.md" />
     <Content Include="IA\docs\HANDOVER-US-IMG-MUROS.md" />
     <Content Include="IA\docs\IMPLEMENTACION_COMPLETADA.md" />
     <Content Include="IA\docs\QUICKREF.md" />
@@ -2501,6 +2509,8 @@
     <Content Include="IA\docs\US619_RESUMEN_ICONOS.md" />
     <Content Include="IA\Examples\README.md" />
     <Content Include="IA\readme.md" />
+    <Content Include="IA\Intranet\Google-Places-Direcciones.md" />
+    <Content Include="IA\Intranet\README.md" />
     <Content Include="Content\DesignTools\Atk-60NewGeneration\DWG\27904209.stl" />
     <Content Include="Content\DesignTools\Atk-60NewGeneration\DWG\27904209_F.stl" />
     <Content Include="Content\DesignTools\Atk-60NewGeneration\GLB\12304211.glb">
@@ -2583,8 +2593,13 @@
     <None Include="Report\2026\2026-10-22_Informe-Quincenal.pdf" />
     <None Include="Report\2026\2026-11-04_Informe-Quincenal.md" />
     <None Include="Report\2026\2026-11-04_Informe-Quincenal.pdf" />
+    <None Include="Report\2026\Informe 01-08 a 22-10 2026.md" />
+    <None Include="Report\2026\Informe 01-08 a 22-10 2026.pdf" />
+    <None Include="Report\2026\Informe Semanal 26102026-2112026.md" />
+    <None Include="Report\2026\Informe Semanal 26102026-2112026.pdf" />
     <None Include="Report\2026\img\2026-10-22-paneles-030-elevados.png" />
     <None Include="Report\2026\img\2026-10-22-grapa-atenko.png" />
+    <None Include="Report\2026\img\2026-10-23-obra-cliente-vacio.png" />
     <None Include="Properties\PublishProfiles\atenko Develop.pubxml" />
     <None Include="Properties\PublishProfiles\atenko.net.pubxml" />
     <None Include="Properties\PublishProfiles\Athosstaging.pubxml" />
@@ -3489,6 +3504,8 @@
     <Content Include="Scripts\MasterArticles\desing2-pillar-tool.js" />
     <Content Include="Scripts\MasterArticles\master-article-details-stl-viewer.js" />
     <Content Include="Scripts\MasterArticles\wall-edit-form.js" />
+    <Content Include="Scripts\MasterArticles\wall-bulk-list.js" />
+    <Content Include="Scripts\MasterArticles\design-groups.js" />
     <Content Include="Scripts\Desing2\desing2-stl-viewer-toolbar-wiring.js" />
     <Content Include="Scripts\Desing2\desing2-map-building-import.js" />
     <Content Include="Scripts\Desing2\desing2-connection-test.js" />
@@ -3579,8 +3596,10 @@
     <Content Include="Views\Shared\_GooglePlacesAddressBlock.cshtml" />
     <Content Include="Views\Shared\_IntranetAuditSection.cshtml" />
     <Content Include="Views\Shared\_GooglePlacesAddressScripts.cshtml" />
+    <Content Include="Views\Shared\_DesignMaterialCountModal.cshtml" />
     <Content Include="Content\Intranet\tandem-address-places.css" />
     <Content Include="Scripts\Intranet\tandem-address-places.js" />
+    <Content Include="Scripts\Intranet\design-material-count-popup.js" />
     <Content Include="Scripts\Intranet\intranet-datatables-list.js" />
     <Content Include="Scripts\Intranet\sidebar-menu.js" />
     <Content Include="Scripts\Intranet\jobside-google-places.js" />

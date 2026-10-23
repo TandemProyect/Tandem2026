@@ -1,27 +1,29 @@
 ---
-description: Informe quincenal de Tandem. Al anotar trabajo de producto, abrir/seguir apartados en el informe abierto; el día después del review crear el siguiente solo.
+description: Informe de trabajo de Tandem. Hasta el 4 nov 2026 el abierto es el quincenal 03; desde ese día el siguiente es semanal.
 alwaysApply: true
 ---
 
-# Informe quincenal
+# Informe de trabajo
 
 Seguir siempre `Desing/Report/LEEME.md`.
 
-## Informe abierto ahora (oct 2026)
+## Informe abierto ahora (23 oct 2026)
 
 - **03** — `Desing/Report/2026/2026-11-04_Informe-Quincenal.md`
-- Periodo: **22 oct – 4 nov 2026**. Review: **4 nov**. Hoy, **22 oct**, este está abierto.
-- El **4 nov** se crea el **04** y se deja de escribir en el 03.
-- El **01** y el **02** están **cerrados**. No reescribirlos.
+- Periodo del 03: **22 oct – 4 nov 2026**. Review: **4 nov**. No reescribirlo. No crear el 04 antes.
+- **Semanal de esta semana** — `Desing/Report/2026/Informe Semanal 26102026-2112026.md`
+- Periodo: **26 oct – 2 nov 2026**. Ahí va el relato del 22 oct y lo nuevo de esta semana. Las horas nuevas se anotan en ese fichero.
+- El **4 nov** se cierra el 03 y se crea el **04**, primer semanal: `2026-11-11_Informe-Semanal.md`, periodo **4–11 nov**, review **11 nov**. Desde ahí, cada miércoles.
+- El **01** y el **02** están **cerrados**. No reescribirlos. No renombrar el 03.
 
 ## Qué hacer el agente (sin preguntar)
 
-1. Si hay que documentar trabajo en un frente: ir al informe **abierto**.
+1. Si hay que documentar trabajo en un frente de esta semana (26 oct – 2 nov 2026): ir a `Informe Semanal 26102026-2112026.md`. El 03 no se reescribe.
 2. Si el frente no tiene apartado: crear `### N. Nombre` con el **siguiente número correlativo**.
 3. Si ya existe (p. ej. `### 1. Proyecto XR`): **ampliar ese apartado**, no duplicar.
-4. No hay informe trimestral. Relato y horas van en el quincenal.
+4. No hay informe trimestral. Relato y horas van en el informe abierto.
 5. Si el usuario dice que empezamos algo nuevo: abrir el apartado en ese momento y anotar dos inicios, con la hora del mensaje: **Persona** y **Cursor** o **Copilot**, según quién haga el trabajo. Al devolver un bloque para probar, anotar **entrega** con la hora de ese momento. Al decir que está terminado o que se pasa a otra cosa, cerrar y anotar el fin de la **persona** (hora de ese mensaje). El fin del agente es la última entrega; si siguió tocando código hasta el cierre, el fin del agente es la hora de la respuesta de cierre. El tramo de la persona incluye el testeo y las pausas cortas. No inventar un tramo más largo. No sumar persona + agente: son dos relojes del mismo rato. Copilot solo se puede anotar en el momento; sus chats no guardan la hora de las respuestas. Al final del informe: resumen, suma de la persona, suma de Cursor y suma de Copilot, por separado.
-6. El día en que toca el siguiente informe, si aún no existe el fichero: crearlo, registrarlo en `Design.csproj` como `None`, y usar ese como abierto. El **04** toca el **4 nov 2026**.
+6. El día del review, si aún no existe el fichero siguiente: crearlo, registrarlo en `Design.csproj` como `None`, y usar ese como abierto. El **04** toca el **4 nov 2026** y ya es semanal.
 
 ## No hacer
 

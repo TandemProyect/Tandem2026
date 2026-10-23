@@ -69,8 +69,11 @@
     <div class="row g-4 align-items-stretch tandem-jobside-workspace-row">
         <div class="col-12 col-lg-5 tandem-jobside-col-left">
             <div class="card border shadow-none">
-                <div class="card-header fw-semibold text-primary py-3 px-4">
-                    @ClientV2.Workspace_LeftTitle
+                <div class="card-header fw-semibold text-primary py-3 px-4 d-flex align-items-center justify-content-between gap-2">
+                    <span>@ClientV2.Workspace_LeftTitle</span>
+                    <a class="btn btn-sm btn-warning flex-shrink-0" href="@Url.Action("Edit", "ClientV2", new { id = Model.IdObject })">
+                        <i class="icon-base ri ri-pencil-line me-1"></i>@ClientV2.Btn_Edit
+                    </a>
                 </div>
                 <div class="card-body pt-3 px-4 pb-4 tandem-fill-scroll">
                     <dl class="row mb-0">

@@ -13,7 +13,7 @@
     <span class="js-tandem-maps-warning-text">@Common.Google_Err_ApiLoadFailed</span>
 </div>
 
-<link rel="stylesheet" href="@Url.Content("~/Content/Intranet/tandem-address-places.css")" />
+<link rel="stylesheet" href="@Url.Content("~/Content/Intranet/tandem-address-places.css")?v=20261022j" />
 <script>
 window.TandemAddressPlacesConfig = {
     apiKey: @Html.Raw(hasKey ? "\"" + mapsKey.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"" : "null"),
@@ -21,7 +21,7 @@ window.TandemAddressPlacesConfig = {
     region: @Html.Raw("\"" + region.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"")
 };
 </script>
-<script src="@Url.Content("~/Scripts/Intranet/tandem-address-places.js")"></script>
+<script src="@Url.Content("~/Scripts/Intranet/tandem-address-places.js")?v=20261022j"></script>
 @if (!string.IsNullOrEmpty(pageScript))
 {
     <script src="@Url.Content(pageScript)"></script>

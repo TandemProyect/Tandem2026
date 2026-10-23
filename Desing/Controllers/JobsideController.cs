@@ -196,6 +196,7 @@ namespace Desing.Controllers
 
             db.TSql_Design_V2.Add(entity);
             db.SaveChanges();
+            DesignGroupHelper.EnsureFirstGroup(db.Database, entity.SysObjectID, uid, now);
 
             var rowVm = new JobsideOfferDesignRowVm
             {
@@ -207,7 +208,8 @@ namespace Desing.Controllers
             var partialModel = new OfferWorkspaceDesignRowDisplayModel
             {
                 OfferId = offerId,
-                Row = rowVm
+                Row = rowVm,
+                HasMaterialCount = DesignMaterialCountUi.IdsWithSavedCount(db, new[] { entity.SysObjectID }).Contains(entity.SysObjectID)
             };
 
             string rowHtml;
@@ -225,6 +227,7 @@ namespace Desing.Controllers
                 ok = true,
                 message = Jobside.OfferWorkspace_Designs_SaveSuccess,
                 designId = entity.SysObjectID,
+                openUrl = OfferDesignWorkspaceHelper.BuildViewerUrl(Url, offerId, entity.SysObjectID, entity.AttThumbnail),
                 rowHtml
             });
         }
@@ -292,6 +295,8 @@ namespace Desing.Controllers
                 var names = ResolveDesignCreatorNames(rows.Select(r => r.LinCreatedBy));
                 var tipOpen = HttpUtility.HtmlAttributeEncode(Jobside.DashDesigns_Tip_OpenDesign);
                 var tipDelete = HttpUtility.HtmlAttributeEncode(Jobside.OfferWorkspace_Designs_DeleteTooltip);
+                var withCount = DesignMaterialCountUi.IdsWithSavedCount(db, rows.Select(r => r.IdObject));
+                var countTip = MasterArticles.StlPreview_MaterialCountTitle;
                 var data = rows.Select(p =>
                 {
                     var name = p.AttLabel ?? "";
@@ -307,6 +312,9 @@ namespace Desing.Controllers
                     var eye =
                         "<a class=\"btn btn-info btn-xs\" href=\"" + href + "\" title=\"" + tipOpen + "\" aria-label=\"" + tipOpen + "\">" +
                         "<span class=\"fas fa-eye\" aria-hidden=\"true\"></span></a>";
+                    var countBtn = withCount.Contains(p.IdObject)
+                        ? DesignMaterialCountUi.Button(p.IdObject, name, countTip, true)
+                        : "";
                     var del =
                         "<button type=\"button\" class=\"btn btn-danger btn-xs tandem-offer-design-delete\" data-design-id=\"" + p.IdObject +
                         "\" title=\"" + tipDelete + "\" aria-label=\"" + tipDelete + "\">" +
@@ -320,7 +328,7 @@ namespace Desing.Controllers
                         createdByPlain = creator,
                         attCreated = p.AttCreated,
                         attCreatedFmt = HttpUtility.HtmlEncode(p.AttCreated.ToString("g")),
-                        rowActions = "<div class=\"d-inline-flex align-items-center gap-1\">" + eye + del + "</div>"
+                        rowActions = "<div class=\"d-inline-flex align-items-center gap-1\">" + eye + countBtn + del + "</div>"
                     };
                 }).ToList();
 
@@ -1245,6 +1253,8 @@ namespace Desing.Controllers
                         .ToList()
                         .GroupBy(d => d.OfferId)
                         .ToDictionary(g => g.Key, g => g.ToList());
+                var withCount = DesignMaterialCountUi.IdsWithSavedCount(
+                    db, designsByOffer.Values.SelectMany(list => list).Select(d => d.DesignId));
                 var expandTip = HttpUtility.HtmlAttributeEncode(Jobside.DashDesigns_Tree_Expand);
                 var collapseTip = HttpUtility.HtmlAttributeEncode(Jobside.DashDesigns_Tree_Collapse);
                 var ttEdit = HttpUtility.HtmlAttributeEncode(Jobside.Offers_EditTooltip);
@@ -1298,7 +1308,7 @@ namespace Desing.Controllers
                     {
                         IdObject = p.IdObject,
                         treeToggle = toggle,
-                        tree = BuildJobsideOfferDesignTree(designs, clientNamePlain, expandTip, collapseTip),
+                        tree = BuildJobsideOfferDesignTree(designs, clientNamePlain, expandTip, collapseTip, withCount),
                         addOfferNumber = numCell,
                         addOfferNumberPlain = numRaw,
                         textLabel = nameCell,
@@ -1328,7 +1338,8 @@ namespace Desing.Controllers
             List<JobsideOfferTreeDesign> designs,
             string clientName,
             string expandTip,
-            string collapseTip)
+            string collapseTip,
+            HashSet<long> withCount)
         {
             if (designs == null || designs.Count == 0)
             {
@@ -1377,12 +1388,17 @@ namespace Desing.Controllers
                     sb.Append("<span class=\"dash-client-tree-name\">" + HttpUtility.HtmlEncode(d.AttLabel) + "</span>");
                     sb.Append("<span class=\"dash-client-tree-offer\">" + HttpUtility.HtmlEncode(clientName ?? "") + "</span>");
                     sb.Append("<span class=\"dash-client-tree-date\">" + d.AttCreated.ToString("dd/MM/yyyy HH:mm") + "</span>");
+                    sb.Append("<span class=\"dash-client-tree-eye\">");
                     sb.Append(
                         "<a href=\"" + HttpUtility.HtmlAttributeEncode(url) +
-                        "\" class=\"btn btn-sm btn-icon btn-text-secondary rounded-pill dash-client-tree-eye\" title=\"" + encTip +
+                        "\" class=\"btn btn-sm btn-icon btn-text-secondary rounded-pill\" title=\"" + encTip +
                         "\" aria-label=\"" + encTip +
                         "\"><i class=\"icon-base ri ri-eye-line\" aria-hidden=\"true\"></i></a>");
-                    sb.Append("</div>");
+                    if (withCount != null && withCount.Contains(d.DesignId))
+                    {
+                        sb.Append(DesignMaterialCountUi.Button(d.DesignId, d.AttLabel, MasterArticles.StlPreview_MaterialCountTitle, false));
+                    }
+                    sb.Append("</span></div>");
                 }
                 sb.Append("</div></div></div>");
             }
@@ -1514,12 +1530,13 @@ namespace Desing.Controllers
                 var brLetter = jobsideRow.TSql_Branch.AddLetter;
 
                 string addOfferNumber;
+                TSql_Offers entity = null;
                 using (var tran = db.Database.BeginTransaction(IsolationLevel.Serializable))
                 {
                     try
                     {
                         addOfferNumber = OfferNumberHelper.AllocateNextOfferNumber(db, coLetter, brLetter, jobsideRow.AddNJobside);
-                        var entity = new TSql_Offers
+                        entity = new TSql_Offers
                         {
                             AddOfferNumber = addOfferNumber,
                             TextLabel = name,
@@ -1541,7 +1558,14 @@ namespace Desing.Controllers
                     }
                 }
 
-                return Json(new { ok = true, message = Jobside.Offers_SaveSuccess, addOfferNumber });
+                return Json(new
+                {
+                    ok = true,
+                    message = Jobside.Offers_SaveSuccess,
+                    addOfferNumber,
+                    offerId = entity.IdObject,
+                    openUrl = Url.Action("OfferDetails", "Jobside", new { id = entity.IdObject })
+                });
             }
 
             var existing = db.TSql_Offers.FirstOrDefault(o => o.IdObject == model.IdObject.Value && !o.Is_Delete);
@@ -1780,7 +1804,7 @@ namespace Desing.Controllers
             TempData["ToastType"] = "Act";
             TempData["ToastTitle"] = Jobside.ToastTitle_CreateJobside;
             TempData["ToastMessage"] = string.Format(Jobside.ToastMessage_JobsideCreated, model.TextLabel);
-            return RedirectToAction("Index");
+            return RedirectToAction("Details", new { id = model.IdObject });
         }
 
         // ---------------------------------------------------------------------
@@ -2298,27 +2322,29 @@ namespace Desing.Controllers
 
         private void PopulateClients(long? selected)
         {
-            ViewBag.LinkClient_V2 = new SelectList(
-                db.TSql_Client_V2
-                    .Where(c => !c.Is_Delete && c.Is_Active)
-                    .OrderBy(c => c.TextLabel)
-                    .Select(c => new { c.IdObject, c.TextLabel })
-                    .ToList(),
+            var selectedId = selected ?? 0L;
+            var rows = db.TSql_Client_V2
+                .Where(c => (!c.Is_Delete && c.Is_Active)
+                    || (selectedId > 0 && c.IdObject == selectedId))
+                .OrderBy(c => c.TextLabel)
+                .Select(c => new { c.IdObject, c.TextLabel })
+                .ToList();
+            /* El nombre no puede ser LinkClient_V2: DropDownListFor lee ViewData
+               con la clave del campo y, si encuentra el SelectList, no marca el cliente guardado. */
+            ViewBag.ClientOptions = new SelectList(
+                rows,
                 "IdObject",
                 "TextLabel",
-                selected);
+                selectedId > 0 ? (object)selectedId : null);
         }
 
         private void PopulateBranches(long selectedSysObjectId)
         {
-            ViewBag.LinBranch = new SelectList(
-                db.TSql_Branch
-                    .OrderBy(b => b.AttLabel)
-                    .Select(b => new { b.SysObjectID, b.AttLabel })
-                    .ToList(),
-                "SysObjectID",
-                "AttLabel",
-                selectedSysObjectId);
+            var rows = db.TSql_Branch
+                .OrderBy(b => b.AttLabel)
+                .Select(b => new { b.SysObjectID, b.AttLabel })
+                .ToList();
+            ViewBag.BranchOptions = new SelectList(rows, "SysObjectID", "AttLabel", selectedSysObjectId);
         }
 
         private void PopulateOfferStates(long? selectedId)

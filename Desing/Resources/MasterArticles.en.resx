@@ -701,7 +701,7 @@
     <value>Insert column: it follows the pointer; double-click to place it; double-click on the column opens Modify column. It starts as a 0.30 × 0.30 m square, 2.70 m high</value>
   </data>
   <data name="StlPreview_Desing2ToolInsertWorkerAria" xml:space="preserve">
-    <value>Insert worker: it follows the pointer; double-click to place it; double-click on the worker removes it</value>
+    <value>Insert worker: choose the model; it follows the pointer; double-click to place it; double-click on the worker removes it</value>
   </data>
   <data name="StlPreview_Desing2ToolPolyline" xml:space="preserve">
     <value>Polyline</value>
@@ -811,6 +811,15 @@
   <data name="StlPreview_Desing2WallDimToolTitle" xml:space="preserve">
     <value>Annotate walls — segment lengths, overall span, and thickness (construction style)</value>
   </data>
+  <data name="StlPreview_Desing2WorkerPickTitle" xml:space="preserve">
+    <value>Choose the worker</value>
+  </data>
+  <data name="StlPreview_Desing2WorkerPickWorker" xml:space="preserve">
+    <value>Worker</value>
+  </data>
+  <data name="StlPreview_Desing2WorkerPickWorker2" xml:space="preserve">
+    <value>Worker 2</value>
+  </data>
   <data name="StlPreview_EdgeRulersToggleAria" xml:space="preserve">
     <value>Viewer edge rulers</value>
   </data>
@@ -879,6 +888,66 @@
   </data>
   <data name="StlPreview_GroundShadowTitle" xml:space="preserve">
     <value>Show ground shadow</value>
+  </data>
+  <data name="StlPreview_GroupAccept" xml:space="preserve">
+    <value>Accept</value>
+  </data>
+  <data name="StlPreview_GroupAddRow" xml:space="preserve">
+    <value>Add row</value>
+  </data>
+  <data name="StlPreview_GroupAria" xml:space="preserve">
+    <value>Design groups</value>
+  </data>
+  <data name="StlPreview_GroupCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="StlPreview_GroupCreated" xml:space="preserve">
+    <value>Groups created</value>
+  </data>
+  <data name="StlPreview_GroupDelete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="StlPreview_GroupDuplicate" xml:space="preserve">
+    <value>That group number is already used</value>
+  </data>
+  <data name="StlPreview_GroupEmpty" xml:space="preserve">
+    <value>No groups yet</value>
+  </data>
+  <data name="StlPreview_GroupError" xml:space="preserve">
+    <value>Groups could not be saved</value>
+  </data>
+  <data name="StlPreview_GroupExisting" xml:space="preserve">
+    <value>Design groups</value>
+  </data>
+  <data name="StlPreview_GroupIncomplete" xml:space="preserve">
+    <value>Each group needs a number and a name</value>
+  </data>
+  <data name="StlPreview_GroupModified" xml:space="preserve">
+    <value>Groups updated</value>
+  </data>
+  <data name="StlPreview_GroupName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="StlPreview_GroupNeedDesign" xml:space="preserve">
+    <value>Open a design to create groups</value>
+  </data>
+  <data name="StlPreview_GroupNew" xml:space="preserve">
+    <value>Create groups</value>
+  </data>
+  <data name="StlPreview_GroupNumber" xml:space="preserve">
+    <value>Number</value>
+  </data>
+  <data name="StlPreview_GroupNumberUsed" xml:space="preserve">
+    <value>That group number has already been used</value>
+  </data>
+  <data name="StlPreview_GroupSaved" xml:space="preserve">
+    <value>Groups saved</value>
+  </data>
+  <data name="StlPreview_GroupSelect" xml:space="preserve">
+    <value>Select a group</value>
+  </data>
+  <data name="StlPreview_GroupTitle" xml:space="preserve">
+    <value>Groups</value>
   </data>
   <data name="StlPreview_ImageSketchError" xml:space="preserve">
     <value>Could not analyze image: {0}</value>
@@ -1045,11 +1114,23 @@
   <data name="StlPreview_MaterialCountColCode" xml:space="preserve">
     <value>Code</value>
   </data>
+  <data name="StlPreview_MaterialCountColM2" xml:space="preserve">
+    <value>m²</value>
+  </data>
   <data name="StlPreview_MaterialCountColName" xml:space="preserve">
     <value>Name</value>
   </data>
   <data name="StlPreview_MaterialCountColQty" xml:space="preserve">
     <value>Quantity</value>
+  </data>
+  <data name="StlPreview_MaterialCountColTotalM2" xml:space="preserve">
+    <value>Total m²</value>
+  </data>
+  <data name="StlPreview_MaterialCountColTotalWeight" xml:space="preserve">
+    <value>Total weight</value>
+  </data>
+  <data name="StlPreview_MaterialCountColUnitWeight" xml:space="preserve">
+    <value>Unit weight</value>
   </data>
   <data name="StlPreview_MaterialCountEmpty" xml:space="preserve">
     <value>There are no pieces in this design</value>
@@ -1107,6 +1188,15 @@
   </data>
   <data name="StlPreview_MaterialCountStatusUnchanged" xml:space="preserve">
     <value>The design has not changed. Showing the saved count.</value>
+  </data>
+  <data name="StlPreview_MaterialCountSumArticles" xml:space="preserve">
+    <value>Items</value>
+  </data>
+  <data name="StlPreview_MaterialCountSumM2" xml:space="preserve">
+    <value>Total m²</value>
+  </data>
+  <data name="StlPreview_MaterialCountSumWeight" xml:space="preserve">
+    <value>Total weight</value>
   </data>
   <data name="StlPreview_MaterialCountTabArea" xml:space="preserve">
     <value>Area</value>
@@ -1335,6 +1425,30 @@
   </data>
   <data name="StlPreview_WallDimToolNoPairsToast" xml:space="preserve">
     <value>No wall thickness detected. Draw the outline and inner offset, or click a wall line while the tool is active.</value>
+  </data>
+  <data name="StlPreview_WallListAccept" xml:space="preserve">
+    <value>Accept</value>
+  </data>
+  <data name="StlPreview_WallListAria" xml:space="preserve">
+    <value>Wall variables</value>
+  </data>
+  <data name="StlPreview_WallListCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="StlPreview_WallListEmpty" xml:space="preserve">
+    <value>No walls</value>
+  </data>
+  <data name="StlPreview_WallListTabProps" xml:space="preserve">
+    <value>Configure props</value>
+  </data>
+  <data name="StlPreview_WallListTabTapes" xml:space="preserve">
+    <value>Configure tapes</value>
+  </data>
+  <data name="StlPreview_WallListTabWall" xml:space="preserve">
+    <value>Wall</value>
+  </data>
+  <data name="StlPreview_WallListTitle" xml:space="preserve">
+    <value>Walls</value>
   </data>
   <data name="StlPreview_WallModelRendering" xml:space="preserve">
     <value>Generating wall model…</value>

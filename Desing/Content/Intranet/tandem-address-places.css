@@ -8,6 +8,11 @@
   background: #f5f5f9;
 }
 
+.tandem-address-block .tandem-address-map:not(.is-empty) {
+  position: relative;
+  overflow: hidden;
+}
+
 .tandem-address-block .tandem-address-map.is-empty {
   display: flex;
   align-items: center;
@@ -91,4 +96,32 @@ body.tandem-maps-auth-failed .dismissButton {
 .tandem-address-block .tandem-place-autocomplete-host gmp-place-autocomplete {
   width: 100%;
   display: block;
+}
+
+.tandem-address-suggest {
+  position: absolute;
+  z-index: 20000;
+  background: #fff;
+  border: 1px solid rgba(51, 65, 85, 0.2);
+  border-radius: 0.375rem;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  max-height: 240px;
+  overflow: auto;
+}
+
+.tandem-address-suggest__item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.08);
+  background: #fff;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.tandem-address-suggest__item:hover,
+.tandem-address-suggest__item:focus {
+  background: #f4f6f8;
 }

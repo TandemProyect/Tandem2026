@@ -199,6 +199,8 @@
             var urlJobside = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("PluginCreateJobside", "DesignToolsAutocad")));
             var urlOffer = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("PluginCreateOffer", "DesignToolsAutocad")));
             var urlDesign = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("PluginCreateDesign", "DesignToolsAutocad")));
+            var urlOpenJobside = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("Details", "Jobside")));
+            var urlOpenOffer = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Url.Action("OfferDetails", "Jobside")));
             var companyLogoUrl = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject((ViewBag.CompanyLogoUrl as string) ?? ""));
             var statusEl = document.getElementById('plugin-home-status');
             var speedEl = document.getElementById('plugin-home-speed');
@@ -581,6 +583,11 @@
                     linBranch: document.getElementById('plugin-jobside-branch').value
                 }).then(function (data) {
                     if (!data || !data.ok) { setStatus((data && data.message) || createFailed, true); return; }
+                    var newId = parseInt(val(data.item, 'id', 'Id'), 10);
+                    if (newId && urlOpenJobside) {
+                        window.location.href = urlOpenJobside + '/' + newId;
+                        return;
+                    }
                     appendJobside(data.item);
                     document.getElementById('plugin-jobside-name').value = '';
                     document.getElementById('plugin-form-jobside').classList.remove('is-open');
@@ -597,6 +604,11 @@
                     linkOfferState: document.getElementById('plugin-offer-state').value
                 }).then(function (data) {
                     if (!data || !data.ok) { setStatus((data && data.message) || createFailed, true); return; }
+                    var newId = parseInt(val(data.item, 'id', 'Id'), 10);
+                    if (newId && urlOpenOffer) {
+                        window.location.href = urlOpenOffer + '/' + newId;
+                        return;
+                    }
                     appendOffer(data.item);
                     document.getElementById('plugin-offer-name').value = '';
                     document.getElementById('plugin-form-offer').classList.remove('is-open');
@@ -616,13 +628,12 @@
                     document.getElementById('plugin-design-name').value = '';
                     document.getElementById('plugin-form-design').classList.remove('is-open');
                     setStatus(data.message || '');
+                    var newId = parseInt(val(data.item, 'id', 'Id'), 10);
+                    if (newId) openDesign(newId);
                 }).catch(function () { setStatus(createFailed, true); });
             });
 
-            document.addEventListener('click', function (e) {
-                var btn = e.target.closest('[data-plugin-open-design]');
-                if (!btn) return;
-                var id = parseInt(btn.getAttribute('data-plugin-open-design'), 10);
+            function openDesign(id) {
                 if (!id) return;
                 setStatus(loadingText);
                 fetch(urlWalls + '?designId=' + encodeURIComponent(id), {
@@ -636,6 +647,13 @@
                     post({ action: 'open-design', designId: id, snapshot: data.Snapshot || data.snapshot });
                     setStatus('');
                 }).catch(function () { setStatus(failedText, true); });
+            }
+
+            document.addEventListener('click', function (e) {
+                var btn = e.target.closest('[data-plugin-open-design]');
+                if (!btn) return;
+                var id = parseInt(btn.getAttribute('data-plugin-open-design'), 10);
+                openDesign(id);
             });
         })();
     </script>

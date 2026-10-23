@@ -2,6 +2,12 @@
 
 Integración reutilizable: autocompletado, desglose de componentes y mapa. Basada en **`TandemAddressPlaces`** (JS), parciales Razor y columnas `*_Place_Id`, `*_Formatted_Address`, `*_Lat`, `*_Lng`, etc. en la entidad.
 
+**Estado 23 oct 2026.** La lista de propuestas es propia (`AutocompleteSuggestion.fetchAutocompleteSuggestions`). No envía `includedRegionCodes`: busca en España, Uruguay, Argentina y el resto. `GoogleMaps:Region=ES` solo sesga el mapa. Escriben en **Buscar dirección** y en **Dirección formateada**; los dos proponen y la lista se pinta bajo el campo que tiene el foco. Al elegir, el mapa se carga con `importLibrary('maps')` y un reajuste de tamaño: las coordenadas se guardan aunque el mapa tarde un instante. Caché del script y del CSS: `?v=20261022j` en `_GooglePlacesAddressScripts.cshtml`.
+
+Pantallas del mismo bloque: obra (local y facturación), cliente, empresa y delegación (también el modal de delegación en la empresa). En empresa, **Dirección** y **Dirección 2** (`TextAddress_1`, `TextAddress_2`) son texto libre. El visor 3D busca edificios por OpenStreetMap, no por este script.
+
+Si `AutocompleteSuggestion` no existe, el fallback legacy sigue limitado a cinco países (`es`, `uy`, `ar`, `cl`, `mx`). La consola de Edge puede mostrar `Marker` deprecado y Tracking Prevention: no son el fallo de la lista. `No Listener: tabs:outgoing.message.ready` es una extensión del navegador.
+
 **Relacionado:** [UI-Formularios-y-Estilo.md](./UI-Formularios-y-Estilo.md) · [README](./README.md)
 
 ---
@@ -206,6 +212,8 @@ window.TandemAddressPlacesConfig = {
 };
 ```
 
+`region` solo sesga el mapa hacia España. La petición de sugerencias no lleva países: el resultado es mundial. La lista es un `div` propio, no el cuadro de Google.
+
 Métodos principales (`tandem-address-places.js`):
 
 | Método | Uso |
@@ -217,7 +225,7 @@ Métodos principales (`tandem-address-places.js`):
 
 Campos DOM: id `{Prefix}_{Suffix}` (ej. `Loc_Formatted_Address`, `Loc_Lat`).
 
-Autocomplete: clase `js-tandem-places-autocomplete` en el input de búsqueda.
+El host de búsqueda es `.js-tandem-place-autocomplete-host` (`{Prefix}_PlacesSearch`). El campo que también busca es `{Prefix}_Formatted_Address`. El fallback legacy usa `.js-tandem-places-autocomplete`.
 
 ---
 
@@ -244,4 +252,4 @@ Estos **no** sustituyen el texto de ayuda gris bajo cada campo (sigue prohibido 
 
 ---
 
-*Widget principal: `PlaceAutocompleteElement` (Places API New). Fallback legacy: `google.maps.places.Autocomplete` si el widget nuevo no está disponible.*
+*Lista propia con `AutocompleteSuggestion` (Places API New). El mapa usa `importLibrary('maps')`. Fallback legacy: `google.maps.places.Autocomplete` si esa clase no está.*

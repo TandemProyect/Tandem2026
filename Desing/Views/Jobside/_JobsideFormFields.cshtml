@@ -49,13 +49,13 @@
 
 <div class="col-md-4">
     <label class="form-label" for="LinkClient_V2">@Jobside.Lbl_Client</label>
-    @Html.DropDownListFor(m => m.LinkClient_V2, (SelectList)ViewBag.LinkClient_V2, Jobside.Lbl_ClientEmpty, new { @class = "form-select" })
+    @Html.DropDownListFor(m => m.LinkClient_V2, (SelectList)ViewBag.ClientOptions, Jobside.Lbl_ClientEmpty, new { @class = "form-select" })
     @Html.ValidationMessageFor(m => m.LinkClient_V2, "", new { @class = "text-danger" })
 </div>
 
 <div class="col-md-4">
     <label class="form-label" for="LinBranch">@Jobside.Lbl_Branch</label>
-    @Html.DropDownListFor(m => m.LinBranch, (SelectList)ViewBag.LinBranch, Jobside.Lbl_BranchEmpty, new { @class = "form-select" })
+    @Html.DropDownListFor(m => m.LinBranch, (SelectList)ViewBag.BranchOptions, Jobside.Lbl_BranchEmpty, new { @class = "form-select" })
     @Html.ValidationMessageFor(m => m.LinBranch, "", new { @class = "text-danger" })
 </div>
 

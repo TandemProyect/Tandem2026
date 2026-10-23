@@ -255,6 +255,56 @@ export function mountWallEditForm(parent, options) {
         return input;
     }
 
+    muroPane.appendChild(makeLabel('Grupo'));
+    const groupInput = document.createElement('select');
+    groupInput.style.width = '100%';
+    groupInput.style.boxSizing = 'border-box';
+    groupInput.style.padding = '8px 10px';
+    groupInput.style.border = '1px solid #cbd5e1';
+    groupInput.style.borderRadius = '8px';
+    groupInput.style.marginBottom = '10px';
+    groupInput.style.background = '#fff';
+    muroPane.appendChild(groupInput);
+    let groupCatalog = [];
+
+    function groupPlaceholder() {
+        const el = document.getElementById('desing2GroupModal');
+        return (el && el.getAttribute('data-select')) || 'Seleccionar grupo';
+    }
+
+    function fillGroupSelect(selected) {
+        const chosen = selected != null && selected !== '' && Number.isFinite(Number(selected))
+            ? String(Math.round(Number(selected)))
+            : '';
+        groupInput.innerHTML = '';
+        const blank = document.createElement('option');
+        blank.value = '';
+        blank.textContent = groupPlaceholder();
+        groupInput.appendChild(blank);
+        const seen = {};
+        for (let i = 0; i < groupCatalog.length; i++) {
+            const item = groupCatalog[i];
+            if (!item || !Number.isFinite(Number(item.number))) continue;
+            const n = String(Math.round(Number(item.number)));
+            if (seen[n]) continue;
+            seen[n] = true;
+            const opt = document.createElement('option');
+            opt.value = n;
+            const name = item.name ? String(item.name) : '';
+            opt.textContent = name ? (n + ' — ' + name) : n;
+            groupInput.appendChild(opt);
+        }
+        if (chosen && !seen[chosen]) {
+            const extra = document.createElement('option');
+            extra.value = chosen;
+            extra.textContent = chosen;
+            groupInput.appendChild(extra);
+        }
+        groupInput.value = chosen;
+    }
+
+    fillGroupSelect('');
+
     muroPane.appendChild(makeLabel('Longitud del muro (m)'));
     const lengthInput = makeMeasureInput();
     muroPane.appendChild(lengthInput);
@@ -532,6 +582,7 @@ export function mountWallEditForm(parent, options) {
             lengthInput: lengthInput,
             widthInput: widthInput,
             heightInput: heightInput,
+            groupInput: groupInput,
             applyAllCheckbox: applyAll.input,
             applyConfigAllCheckbox: applyConfig.input,
             bracketInCheckbox: bracketIn.input,
@@ -556,6 +607,10 @@ export function mountWallEditForm(parent, options) {
             acceptBtn: acceptBtn,
             cancelBtn: cancelBtn,
             closeBtn: closeBtn,
+        },
+        setGroups: function (list, selected) {
+            groupCatalog = Array.isArray(list) ? list : [];
+            fillGroupSelect(selected != null ? selected : groupInput.value);
         },
         setSelection: function (ini, end) {
             tapeIniSelectedId = ini || '';
@@ -611,6 +666,7 @@ export function mountWallEditForm(parent, options) {
                 lengthM: lengthM,
                 widthM: widthM,
                 heightM: heightM,
+                group: parseGroupNumber(groupInput.value),
                 heightAll: !!applyAll.input.checked,
                 configAll: !!applyConfig.input.checked,
                 bracketIn: !!bracketIn.input.checked,
@@ -634,6 +690,8 @@ export function mountWallEditForm(parent, options) {
             lengthInput.value = formatMeters(model.lengthM);
             widthInput.value = formatMeters(model.widthM);
             heightInput.value = formatMeters(model.heightM != null ? model.heightM : 2.70);
+            if (Array.isArray(model.groups)) groupCatalog = model.groups;
+            fillGroupSelect(model.group);
             applyAll.input.checked = model.heightAll !== false;
             applyConfig.input.checked = !!model.configAll;
             bracketIn.input.checked = model.bracketIn !== false;
@@ -665,6 +723,15 @@ export function mountWallEditForm(parent, options) {
 
 function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
+}
+
+function parseGroupNumber(text) {
+    if (text == null) return null;
+    const s = String(text).trim().replace(',', '.');
+    if (!s) return null;
+    const n = Number(s);
+    if (!Number.isFinite(n) || n < 0) return null;
+    return Math.round(n);
 }
 
 function parseMeters(text) {
@@ -705,6 +772,16 @@ function bootWallFormHost() {
         }
         if (!data || data.action !== 'wall-form-values') return;
         form.applyModel(data);
+        const params = new URLSearchParams(window.location.search);
+        const designId = Number(params.get('designId') || '');
+        if (!Number.isFinite(designId) || designId <= 0) return;
+        fetch('/Desing_2/ListDesignGroups?designId=' + encodeURIComponent(String(designId)), { credentials: 'same-origin' })
+            .then(function (response) { return response.json(); })
+            .then(function (payload) {
+                if (!payload || payload.ok === false) return;
+                form.setGroups(payload.groups || [], data.group);
+            })
+            .catch(function () { });
     });
     window.chrome.webview.postMessage(JSON.stringify({ action: 'wall-form-ready' }));
 }

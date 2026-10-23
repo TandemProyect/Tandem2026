@@ -291,7 +291,7 @@ namespace Desing.Controllers
             TempData["ToastType"] = "Act";
             TempData["ToastTitle"] = Extension.ToastTitle_CreateExtension;
             TempData["ToastMessage"] = string.Format(Extension.ToastMessage_ExtensionCreated, nueva.TextLabel);
-            return RedirectToAction("Index");
+            return RedirectToAction("Details", new { id = nueva.IdObject });
         }
 
         // ---------------------------------------------------------------------

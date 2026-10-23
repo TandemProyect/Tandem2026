@@ -51,7 +51,7 @@
     <link rel="stylesheet" href="@Url.Content("~/assets/materio/vendor/libs/perfect-scrollbar/perfect-scrollbar.css")" />
 
     <!-- Site CSS -->
-    <link rel="stylesheet" href="@Url.Content("~/assets/materio/css/site.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/assets/materio/css/site.css?v=20261023j")" />
 
     @if (!skipIntranetDataTables)
     {
@@ -292,6 +292,8 @@
             })();
         </script>
     }
+    @Html.Partial("_DesignMaterialCountModal")
+    <script src="@Url.Content("~/Scripts/Intranet/design-material-count-popup.js?v=20261023c")"></script>
     @RenderSection("scripts", required: false)
 </body>
 </html>

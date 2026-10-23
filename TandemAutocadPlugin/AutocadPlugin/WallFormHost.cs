@@ -17,6 +17,7 @@ namespace AutocadPlugin
         public double HeightM { get; set; }
         public bool HeightAll { get; set; }
         public bool ConfigAll { get; set; }
+        public int? Group { get; set; }
         public WallEditAttrs Attrs { get; set; }
     }
 
@@ -25,7 +26,7 @@ namespace AutocadPlugin
     /// </summary>
     internal static class WallFormHost
     {
-        public static WallFormResult Show(double lengthM, double widthM, WallEditAttrs attrs, string heading)
+        public static WallFormResult Show(double lengthM, double widthM, WallEditAttrs attrs, string heading, int group)
         {
             attrs = attrs ?? new WallEditAttrs();
             WallFormResult result = null;
@@ -66,7 +67,7 @@ namespace AutocadPlugin
                         var action = (string)msg["action"] ?? "";
                         if (action == "wall-form-ready")
                         {
-                            var payload = BuildPayload(lengthM, widthM, attrs, heading);
+                            var payload = BuildPayload(lengthM, widthM, attrs, heading, group);
                             web.CoreWebView2.PostWebMessageAsString(payload);
                             return;
                         }
@@ -81,6 +82,8 @@ namespace AutocadPlugin
                         win.Dispatcher.BeginInvoke(new Action(() => win.DialogResult = result != null));
                     };
                     var url = MvcServerSettings.CurrentUrl().TrimEnd('/') + "/DesignToolsAutocad/WallForm";
+                    if (WallImportCommand.CurrentDesignId > 0)
+                        url += "?designId=" + WallImportCommand.CurrentDesignId.ToString(CultureInfo.InvariantCulture);
                     web.CoreWebView2.NavigationCompleted += (s, args) =>
                     {
                         if (args != null && args.IsSuccess)
@@ -127,7 +130,7 @@ namespace AutocadPlugin
             catch { return null; }
         }
 
-        private static string BuildPayload(double lengthM, double widthM, WallEditAttrs attrs, string heading)
+        private static string BuildPayload(double lengthM, double widthM, WallEditAttrs attrs, string heading, int group)
         {
             return JsonConvert.SerializeObject(new
             {
@@ -151,7 +154,8 @@ namespace AutocadPlugin
                 tapeEnd = attrs.TapeEnd ?? "",
                 solapeIni = attrs.SolapeIni,
                 solapeEnd = attrs.SolapeEnd,
-                heading = heading ?? ""
+                heading = heading ?? "",
+                group = group < 0 ? 0 : group
             });
         }
 
@@ -186,6 +190,10 @@ namespace AutocadPlugin
                 SolapeIni = Flag(values["solapeIni"]),
                 SolapeEnd = Flag(values["solapeEnd"])
             };
+            int? group = null;
+            double groupN;
+            if (TryNum(values["group"], out groupN) && groupN >= 0)
+                group = (int)Math.Round(groupN);
             return new WallFormResult
             {
                 LengthM = lengthM,
@@ -193,6 +201,7 @@ namespace AutocadPlugin
                 HeightM = heightM,
                 HeightAll = Flag(values["heightAll"]),
                 ConfigAll = Flag(values["configAll"]),
+                Group = group,
                 Attrs = attrs
             };
         }

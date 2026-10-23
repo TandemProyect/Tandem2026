@@ -188,6 +188,151 @@
         @Html.Partial("_Desing2StlViewerWorkspace", Model)
     </div>
 </div>
+@{
+    var wallListLogo = (ViewBag.PlantillaLogo as string) ?? Desing.Helpers.PluginCadDeviceHelper.DefaultWordmarkVirtualPath;
+    var wallListLogoIsLockup = wallListLogo.IndexOf("t-desingc.png", StringComparison.OrdinalIgnoreCase) >= 0;
+    var wallListLogoUrl = wallListLogo.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+        ? wallListLogo
+        : Url.Content("~" + (wallListLogo.StartsWith("/") ? wallListLogo : "/" + wallListLogo));
+}
+<div class="modal fade" id="desing2WallListModal" tabindex="-1" aria-hidden="true"
+     data-empty="@MasterArticles.StlPreview_WallListEmpty"
+     data-search="Buscar:"
+     data-group-select="@MasterArticles.StlPreview_GroupSelect">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content design-material-count-popup">
+            <section class="desing2-material-count desing2-wall-list is-open" aria-label="@MasterArticles.StlPreview_WallListAria">
+                <div class="desing2-material-count__head">
+                    <img src="@wallListLogoUrl" alt="" class="design-material-count-popup__logo@(wallListLogoIsLockup ? " tandem-brand-lockup" : "")" />
+                    @if (!wallListLogoIsLockup)
+                    {
+                        <span class="design-material-count-popup__brand">@Html.Partial("_BrandSvg")</span>
+                    }
+                    <span class="desing2-material-count__title">@MasterArticles.StlPreview_WallListTitle</span>
+                    <button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" data-bs-dismiss="modal" aria-label="@Common.Aria_CloseModal">
+                        <i class="icon-base ri ri-close-line" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="desing2-material-count__tabs-row">
+                    <ul class="nav nav-tabs tandem-folder-tabs desing2-material-count__tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button type="button" class="nav-link active" id="desing2WallListTabMuro" data-bs-toggle="tab" data-bs-target="#desing2WallListPaneMuro" role="tab" aria-controls="desing2WallListPaneMuro" aria-selected="true">@MasterArticles.StlPreview_WallListTabWall</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button type="button" class="nav-link" id="desing2WallListTabTapes" data-bs-toggle="tab" data-bs-target="#desing2WallListPaneTapes" role="tab" aria-controls="desing2WallListPaneTapes" aria-selected="false">@MasterArticles.StlPreview_WallListTabTapes</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button type="button" class="nav-link" id="desing2WallListTabProps" data-bs-toggle="tab" data-bs-target="#desing2WallListPaneProps" role="tab" aria-controls="desing2WallListPaneProps" aria-selected="false">@MasterArticles.StlPreview_WallListTabProps</button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="tab-content desing2-material-count__body">
+                    <div class="tab-pane fade show active" id="desing2WallListPaneMuro" role="tabpanel" aria-labelledby="desing2WallListTabMuro">
+                        <table id="desing2WallListMuro" class="table table-sm w-100"></table>
+                    </div>
+                    <div class="tab-pane fade" id="desing2WallListPaneTapes" role="tabpanel" aria-labelledby="desing2WallListTabTapes">
+                        <table id="desing2WallListTapes" class="table table-sm w-100"></table>
+                    </div>
+                    <div class="tab-pane fade" id="desing2WallListPaneProps" role="tabpanel" aria-labelledby="desing2WallListTabProps">
+                        <table id="desing2WallListProps" class="table table-sm w-100"></table>
+                    </div>
+                </div>
+                <div class="desing2-wall-list__foot">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="desing2WallListCancel">@MasterArticles.StlPreview_WallListCancel</button>
+                    <button type="button" class="btn btn-sm btn-primary" id="desing2WallListAccept">@MasterArticles.StlPreview_WallListAccept</button>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="desing2GroupModal" tabindex="-1" aria-hidden="true"
+     data-list-url="@Url.Action("ListDesignGroups", "Desing_2")"
+     data-save-url="@Url.Action("SaveDesignGroups", "Desing_2")"
+     data-existing="@MasterArticles.StlPreview_GroupExisting"
+     data-new="@MasterArticles.StlPreview_GroupNew"
+     data-col-number="@MasterArticles.StlPreview_GroupNumber"
+     data-col-name="@MasterArticles.StlPreview_GroupName"
+     data-add="@MasterArticles.StlPreview_GroupAddRow"
+     data-delete="@MasterArticles.StlPreview_GroupDelete"
+     data-need-design="@MasterArticles.StlPreview_GroupNeedDesign"
+     data-saved="@MasterArticles.StlPreview_GroupSaved"
+     data-created="@MasterArticles.StlPreview_GroupCreated"
+     data-modified="@MasterArticles.StlPreview_GroupModified"
+     data-error="@MasterArticles.StlPreview_GroupError"
+     data-duplicate="@MasterArticles.StlPreview_GroupDuplicate"
+     data-used="@MasterArticles.StlPreview_GroupNumberUsed"
+     data-incomplete="@MasterArticles.StlPreview_GroupIncomplete"
+     data-select="@MasterArticles.StlPreview_GroupSelect"
+     data-empty="@MasterArticles.StlPreview_GroupEmpty">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content design-material-count-popup">
+            <section class="desing2-material-count desing2-group-sheet is-open" aria-label="@MasterArticles.StlPreview_GroupAria">
+                <div class="desing2-material-count__head">
+                    <img src="@wallListLogoUrl" alt="" class="design-material-count-popup__logo@(wallListLogoIsLockup ? " tandem-brand-lockup" : "")" />
+                    @if (!wallListLogoIsLockup)
+                    {
+                        <span class="design-material-count-popup__brand">@Html.Partial("_BrandSvg")</span>
+                    }
+                    <span class="desing2-material-count__title">@MasterArticles.StlPreview_GroupTitle</span>
+                    <button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" data-bs-dismiss="modal" aria-label="@Common.Aria_CloseModal">
+                        <i class="icon-base ri ri-close-line" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="desing2-material-count__tabs-row">
+                    <ul class="nav nav-tabs tandem-folder-tabs desing2-material-count__tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button type="button" class="nav-link active" id="desing2GroupTabExisting" data-bs-toggle="tab" data-bs-target="#desing2GroupPaneExisting" role="tab" aria-controls="desing2GroupPaneExisting" aria-selected="true">@MasterArticles.StlPreview_GroupExisting</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button type="button" class="nav-link" id="desing2GroupTabNew" data-bs-toggle="tab" data-bs-target="#desing2GroupPaneNew" role="tab" aria-controls="desing2GroupPaneNew" aria-selected="false">@MasterArticles.StlPreview_GroupNew</button>
+                        </li>
+                    </ul>
+                    <div class="desing2-material-count__search">
+                        <div class="dataTables_filter">
+                            <label>Buscar:<input type="search" id="desing2GroupSearch" /></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-content desing2-material-count__body">
+                    <div class="tab-pane fade show active" id="desing2GroupPaneExisting" role="tabpanel" aria-labelledby="desing2GroupTabExisting">
+                        <div class="desing2-material-count__details-scroll">
+                            <table class="table table-sm table-hover w-100" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>@MasterArticles.StlPreview_GroupNumber</th>
+                                        <th>@MasterArticles.StlPreview_GroupName</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="desing2GroupExisting"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="desing2GroupPaneNew" role="tabpanel" aria-labelledby="desing2GroupTabNew">
+                        <div class="desing2-material-count__details-scroll">
+                            <table class="table table-sm table-hover w-100" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>@MasterArticles.StlPreview_GroupNumber</th>
+                                        <th>@MasterArticles.StlPreview_GroupName</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="desing2GroupNew"></tbody>
+                            </table>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary desing2-group-sheet__add" id="desing2GroupAddRow">@MasterArticles.StlPreview_GroupAddRow</button>
+                    </div>
+                </div>
+                <p id="desing2GroupMessage" class="desing2-group-sheet__message" hidden="hidden"></p>
+                <div class="desing2-wall-list__foot">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="desing2GroupCancel">@MasterArticles.StlPreview_GroupCancel</button>
+                    <button type="button" class="btn btn-sm btn-primary" id="desing2GroupAccept">@MasterArticles.StlPreview_GroupAccept</button>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
 
 @section scripts
 {

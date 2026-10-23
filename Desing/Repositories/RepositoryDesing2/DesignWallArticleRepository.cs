@@ -375,9 +375,13 @@ namespace Desing.Repositories.RepositoryDesing2
                 return _db.TSql_DesignWallArticle.AsNoTracking().Where(a => a.IdObject < 0);
             }
 
-            var stamp = latest.Value;
+            // datetime de SQL no vuelve a coincidir al milisegundo cuando se compara
+            // otra vez desde .NET. Una ventana corta coge la misma tanda.
+            var from = latest.Value.AddMilliseconds(-50);
+            var to = latest.Value.AddMilliseconds(50);
             return _db.TSql_DesignWallArticle.AsNoTracking()
-                .Where(a => a.LinkDesign_V2 == designId && !a.Is_Delete && a.Is_Active && a.AddDateMade == stamp);
+                .Where(a => a.LinkDesign_V2 == designId && !a.Is_Delete && a.Is_Active
+                    && a.AddDateMade >= from && a.AddDateMade <= to);
         }
 
         private static long? FindMasterId(List<Tsql_Master_Articles> masters, long? requestedId, string code)

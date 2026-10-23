@@ -1,10 +1,10 @@
 ---
-description: No hay informe trimestral. Las horas van en el quincenal.
+description: No hay informe trimestral. Las horas van en el informe abierto.
 alwaysApply: true
 ---
 
 # Horas
 
-No crear ni rellenar `yyyy-T<n>_Informe-Trimestral`. El usuario se refería al quincenal.
+No crear ni rellenar `yyyy-T<n>_Informe-Trimestral`. Las horas van en el informe abierto.
 
-El T4 de 2026 se unió a `Desing/Report/2026/2026-10-08_Informe-Quincenal.md`. Las horas nuevas se anotan en el apartado del informe quincenal abierto. No inventarlas.
+El T4 de 2026 se unió a `Desing/Report/2026/2026-10-08_Informe-Quincenal.md`. Hasta el 4 nov 2026 el abierto es el 03 (`2026-11-04_Informe-Quincenal.md`). Desde ese día el informe es semanal. No inventar horas.

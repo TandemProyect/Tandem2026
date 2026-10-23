@@ -189,7 +189,7 @@ namespace Desing.Controllers
             TempData["ToastType"] = "Act";
             TempData["ToastTitle"] = MasterArticles.ToastTitle_CreateArticle;
             TempData["ToastMessage"] = string.Format(MasterArticles.ToastMessage_ArticleCreated, model.TextLabel);
-            return RedirectToAction("Index");
+            return RedirectToAction("Details", new { id = model.IdObject });
         }
 
         public ActionResult Edit(long id)

@@ -286,7 +286,7 @@ namespace Desing.Controllers
             TempData["ToastType"] = "Act";
             TempData["ToastTitle"] = Plantilla.ToastTitle_CreatePlantilla;
             TempData["ToastMessage"] = string.Format(Plantilla.ToastMessage_PlantillaCreated, plantilla.AttName);
-            return RedirectToAction("Index");
+            return RedirectToAction("Details", new { id = plantilla.SysObjectID });
         }
 
         // ---------------------------------------------------------------------

@@ -299,5 +299,6 @@ namespace Desing.Models
     {
         public long OfferId { get; set; }
         public JobsideOfferDesignRowVm Row { get; set; }
+        public bool HasMaterialCount { get; set; }
     }
 }

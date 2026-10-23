@@ -1,13 +1,15 @@
-# Informes quincenales
+# Informes de trabajo
 
-Cuando el usuario pida el **informe quincenal**, o cuando un agente tenga que anotar trabajo de producto, seguir esta carpeta y la regla `.cursor/rules/informe-quincenal.mdc`.
+Cuando el usuario pida el **informe** (quincenal hasta el 03, semanal desde el 04), o cuando un agente tenga que anotar trabajo de producto, seguir esta carpeta y la regla `.cursor/rules/informe-quincenal.mdc`.
 
 ## Dónde se guarda
 
 ```text
 Desing/Report/<año>/yyyy-MM-dd_Informe-Quincenal.md
-Desing/Report/<año>/yyyy-MM-dd_Informe-Quincenal.pdf
+Desing/Report/<año>/yyyy-MM-dd_Informe-Semanal.md
 ```
+
+El 01, el 02 y el 03 llevan `Informe-Quincenal` en el nombre. Desde el 04, `Informe-Semanal`. El PDF va al lado, con el mismo nombre.
 
 `<año>` es el año del **día de corte / review** del informe.
 
@@ -24,7 +26,7 @@ Desing/Report/<año>/yyyy-MM-dd_Informe-Quincenal.pdf
 | 02 | `2026-10-22_Informe-Quincenal.md` | 9 oct – 22 oct 2026 | 22 oct | cerrado el 22 oct |
 | **03 (abierto)** | `2026-11-04_Informe-Quincenal.md` | **22 oct – 4 nov 2026** | **4 nov** | el **4 nov** se crea el 04 |
 
-**Mientras hoy sea el 22 de octubre de 2026 o posterior, y no haya pasado el 4 de noviembre:** el informe activo es el **03**. El **4 de noviembre** el agente crea el **04** y pasa a ese fichero. No preguntar al usuario si es trimestral o quincenal, ni qué fichero usar.
+**Mientras hoy sea anterior al 4 de noviembre de 2026:** el informe activo es el **03**. El **4 de noviembre** el agente crea el **04**, ya semanal, y pasa a ese fichero. No preguntar al usuario si es trimestral, quincenal o semanal.
 
 ### Qué hacer en un chat (nuevo o antiguo)
 
@@ -34,12 +36,12 @@ Desing/Report/<año>/yyyy-MM-dd_Informe-Quincenal.pdf
 3. Si el frente ya tiene apartado: **trabajar en ese apartado** (ampliar bullets, estado, fechas). No abrir otro con el mismo nombre.
 4. Si el usuario dice que empezamos algo nuevo: abrir el apartado ya y anotar la hora de la persona y la de Cursor o Copilot. Al devolver un bloque para probar, anotar la hora de esa entrega. Cuando diga que se termina o que se pasa a otra cosa, cerrar: fin de la persona en ese mensaje, fin del agente en la última entrega (o en el cierre, si siguió hasta entonces). El tramo de la persona incluye el testeo. No alargarlo. No sumar los dos relojes. Copilot solo se anota en el momento.
 5. **No** reescribir un informe cerrado (el 01 y el 02).
-6. No hay informe trimestral. Las horas y el relato van en el quincenal, en el apartado del frente. El T4 de 2026 se unió al informe 01 (`2026-10-08_Informe-Quincenal.md`). No volver a crear `yyyy-T<n>_Informe-Trimestral`.
+6. No hay informe trimestral. Relato y horas van en el informe abierto. El T4 de 2026 se unió al informe 01 (`2026-10-08_Informe-Quincenal.md`). No volver a crear `yyyy-T<n>_Informe-Trimestral`.
 
 ### Creación automática del siguiente informe
 
-- El día **después** del review del informe abierto, el agente **crea solo** el siguiente quincenal (nuevo número, nuevo `yyyy-MM-dd_Informe-Quincenal.md` con la fecha de corte prevista), registra MD+PDF en el `.csproj`, y deja de escribir en el anterior.
-- Ejemplo: el **22 oct 2026** se creó el **03** (`2026-11-04_Informe-Quincenal.md`), periodo **22 oct – 4 nov**, review **4 nov**. El 02 quedó cerrado ese día. El **4 nov** se crea el **04** y se deja de escribir en el 03.
+- El día **del review** del informe abierto, el agente **crea solo** el siguiente (nuevo número, nuevo fichero con la fecha de corte prevista), registra MD+PDF en el `.csproj`, y deja de escribir en el anterior.
+- El **03** se cierra el **4 nov 2026**. Ese día se crea el **04**: `2026-11-11_Informe-Semanal.md`, periodo **4–11 nov**, review **11 nov**. Desde ahí el corte es semanal, cada miércoles.
 - No hace falta que diga «abre el informe». Basta con trabajar; el agente elige el fichero abierto o crea el nuevo si ya toca.
 
 ## Calendario (tras el 01)
@@ -52,6 +54,19 @@ El 01 fue la excepción (dos meses). A partir del 02:
 | 03 | 22 oct – 4 nov 2026 | 4 nov 2026 |
 
 El **22 oct** es el corte del 02 y el primer día del 03. A partir de ese día el trabajo nuevo va al 03. Si más adelante cambia el corte, actualizar esta tabla.
+
+## Pasa a ser semanal (decisión del 23 oct 2026)
+
+El 03 sigue quincenal y abierto hasta su review. **No se parte ni se reescribe.**
+
+| Informe | Fichero | Periodo | Review |
+|---------|---------|---------|--------|
+| 03 (último quincenal, abierto) | `2026-11-04_Informe-Quincenal.md` | 22 oct – 4 nov 2026 | 4 nov 2026 |
+| **04 (primer semanal)** | `2026-11-11_Informe-Semanal.md` | **4 – 11 nov 2026** | **11 nov 2026** |
+
+A partir del 04 el corte es **cada miércoles**, siete días, y el nombre del fichero es `yyyy-MM-dd_Informe-Semanal.md` (la fecha es el día de review). El 11 nov se crea el 05 con review el 18 nov, y así sucesivamente. Las horas, los apartados y el PDF se hacen igual que hasta ahora. No renombrar el 01, el 02 ni el 03.
+
+El **23 oct 2026** se abrió además `Report/2026/Informe Semanal 26102026-2112026.md`, periodo **26 oct – 2 nov 2026**. Lleva el relato del 22 oct (con las imágenes) y lo de esta semana. Las horas ya cerradas del 22 no se vuelven a sumar: siguen en el 03. Las horas nuevas de esta semana van en ese semanal. El 03 no se reescribe.
 
 ## De dónde sale el contenido
 

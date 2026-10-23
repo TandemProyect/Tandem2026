@@ -255,7 +255,7 @@ namespace Desing.Controllers
             TempData["ToastType"] = "Act";
             TempData["ToastTitle"] = DocumentType.ToastTitle_CreateDocumentType;
             TempData["ToastMessage"] = string.Format(DocumentType.ToastMessage_DocumentTypeCreated, entity.TextLabel);
-            return RedirectToAction("Index");
+            return RedirectToAction("Details", new { id = entity.IdObject });
         }
 
         // ---------------------------------------------------------------------

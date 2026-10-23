@@ -701,7 +701,7 @@
     <value>Insertar pilar: sigue al ratón; doble clic para dejarlo; doble clic sobre él abre Modificar pilar. Sale de 0,30 × 0,30 m y 2,70 m de alto</value>
   </data>
   <data name="StlPreview_Desing2ToolInsertWorkerAria" xml:space="preserve">
-    <value>Insertar trabajador: sigue al ratón; doble clic para dejarlo; doble clic sobre él lo quita</value>
+    <value>Insertar trabajador: elige el modelo; sigue al ratón; doble clic para dejarlo; doble clic sobre él lo quita</value>
   </data>
   <data name="StlPreview_Desing2ToolPolyline" xml:space="preserve">
     <value>Polilínea</value>
@@ -811,6 +811,15 @@
   <data name="StlPreview_Desing2WallDimToolTitle" xml:space="preserve">
     <value>Acotar muro — longitudes, global y espesor (estilo construcción)</value>
   </data>
+  <data name="StlPreview_Desing2WorkerPickTitle" xml:space="preserve">
+    <value>Elige el trabajador</value>
+  </data>
+  <data name="StlPreview_Desing2WorkerPickWorker" xml:space="preserve">
+    <value>Trabajador</value>
+  </data>
+  <data name="StlPreview_Desing2WorkerPickWorker2" xml:space="preserve">
+    <value>Trabajador 2</value>
+  </data>
   <data name="StlPreview_EdgeRulersToggleAria" xml:space="preserve">
     <value>Reglas de borde del visor</value>
   </data>
@@ -879,6 +888,66 @@
   </data>
   <data name="StlPreview_GroundShadowTitle" xml:space="preserve">
     <value>Mostrar sombra en el suelo</value>
+  </data>
+  <data name="StlPreview_GroupAccept" xml:space="preserve">
+    <value>Aceptar</value>
+  </data>
+  <data name="StlPreview_GroupAddRow" xml:space="preserve">
+    <value>Añadir fila</value>
+  </data>
+  <data name="StlPreview_GroupAria" xml:space="preserve">
+    <value>Grupos del diseño</value>
+  </data>
+  <data name="StlPreview_GroupCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="StlPreview_GroupCreated" xml:space="preserve">
+    <value>Grupos creados</value>
+  </data>
+  <data name="StlPreview_GroupDelete" xml:space="preserve">
+    <value>Borrar</value>
+  </data>
+  <data name="StlPreview_GroupDuplicate" xml:space="preserve">
+    <value>El número de grupo está repetido</value>
+  </data>
+  <data name="StlPreview_GroupEmpty" xml:space="preserve">
+    <value>No hay grupos creados</value>
+  </data>
+  <data name="StlPreview_GroupError" xml:space="preserve">
+    <value>No se han podido guardar los grupos</value>
+  </data>
+  <data name="StlPreview_GroupExisting" xml:space="preserve">
+    <value>Grupos del diseño</value>
+  </data>
+  <data name="StlPreview_GroupIncomplete" xml:space="preserve">
+    <value>Cada grupo necesita número y nombre</value>
+  </data>
+  <data name="StlPreview_GroupModified" xml:space="preserve">
+    <value>Grupos modificados</value>
+  </data>
+  <data name="StlPreview_GroupName" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="StlPreview_GroupNeedDesign" xml:space="preserve">
+    <value>Abre un diseño para crear grupos</value>
+  </data>
+  <data name="StlPreview_GroupNew" xml:space="preserve">
+    <value>Crear Grupos</value>
+  </data>
+  <data name="StlPreview_GroupNumber" xml:space="preserve">
+    <value>Número</value>
+  </data>
+  <data name="StlPreview_GroupNumberUsed" xml:space="preserve">
+    <value>Ese número de grupo ya se ha usado</value>
+  </data>
+  <data name="StlPreview_GroupSaved" xml:space="preserve">
+    <value>Grupos guardados</value>
+  </data>
+  <data name="StlPreview_GroupSelect" xml:space="preserve">
+    <value>Seleccionar grupo</value>
+  </data>
+  <data name="StlPreview_GroupTitle" xml:space="preserve">
+    <value>Grupos</value>
   </data>
   <data name="StlPreview_ImageSketchError" xml:space="preserve">
     <value>No se pudo analizar la imagen: {0}</value>
@@ -1045,11 +1114,23 @@
   <data name="StlPreview_MaterialCountColCode" xml:space="preserve">
     <value>Código</value>
   </data>
+  <data name="StlPreview_MaterialCountColM2" xml:space="preserve">
+    <value>m²</value>
+  </data>
   <data name="StlPreview_MaterialCountColName" xml:space="preserve">
     <value>Nombre</value>
   </data>
   <data name="StlPreview_MaterialCountColQty" xml:space="preserve">
     <value>Cantidad</value>
+  </data>
+  <data name="StlPreview_MaterialCountColTotalM2" xml:space="preserve">
+    <value>m² total</value>
+  </data>
+  <data name="StlPreview_MaterialCountColTotalWeight" xml:space="preserve">
+    <value>Peso total</value>
+  </data>
+  <data name="StlPreview_MaterialCountColUnitWeight" xml:space="preserve">
+    <value>Peso uds</value>
   </data>
   <data name="StlPreview_MaterialCountEmpty" xml:space="preserve">
     <value>No hay piezas en este diseño</value>
@@ -1107,6 +1188,15 @@
   </data>
   <data name="StlPreview_MaterialCountStatusUnchanged" xml:space="preserve">
     <value>El diseño no ha cambiado. Mostrando el recuento guardado.</value>
+  </data>
+  <data name="StlPreview_MaterialCountSumArticles" xml:space="preserve">
+    <value>Nº artículos</value>
+  </data>
+  <data name="StlPreview_MaterialCountSumM2" xml:space="preserve">
+    <value>m² total</value>
+  </data>
+  <data name="StlPreview_MaterialCountSumWeight" xml:space="preserve">
+    <value>Peso total</value>
   </data>
   <data name="StlPreview_MaterialCountTabArea" xml:space="preserve">
     <value>Superficie</value>
@@ -1335,6 +1425,30 @@
   </data>
   <data name="StlPreview_WallDimToolNoPairsToast" xml:space="preserve">
     <value>No se detectó espesor de muro. Dibuje el contorno y el offset interior, o haga clic en una línea del muro con la herramienta activa.</value>
+  </data>
+  <data name="StlPreview_WallListAccept" xml:space="preserve">
+    <value>Aceptar</value>
+  </data>
+  <data name="StlPreview_WallListAria" xml:space="preserve">
+    <value>Variables de los muros</value>
+  </data>
+  <data name="StlPreview_WallListCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="StlPreview_WallListEmpty" xml:space="preserve">
+    <value>No hay muros</value>
+  </data>
+  <data name="StlPreview_WallListTabProps" xml:space="preserve">
+    <value>Configurar Puntales</value>
+  </data>
+  <data name="StlPreview_WallListTabTapes" xml:space="preserve">
+    <value>Configurar Tapes</value>
+  </data>
+  <data name="StlPreview_WallListTabWall" xml:space="preserve">
+    <value>Muro</value>
+  </data>
+  <data name="StlPreview_WallListTitle" xml:space="preserve">
+    <value>Muros</value>
   </data>
   <data name="StlPreview_WallModelRendering" xml:space="preserve">
     <value>Generando modelo de muros…</value>

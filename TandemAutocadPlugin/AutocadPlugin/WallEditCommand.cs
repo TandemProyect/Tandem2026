@@ -73,20 +73,21 @@ namespace AutocadPlugin
             double lengthM;
             double widthM;
             WallEditAttrs attrs;
-            if (!ReadAxis(doc.Database, axisId, out lengthM, out widthM, out attrs))
+            int groupId;
+            if (!ReadAxis(doc.Database, axisId, out lengthM, out widthM, out attrs, out groupId))
             {
                 doc.Editor.WriteMessage("\n[Tandem] Ese objeto no es un muro.\n");
                 return;
             }
 
-            var form = WallFormHost.Show(lengthM, widthM, attrs, HeadingText(doc.Database, axisId));
+            var form = WallFormHost.Show(lengthM, widthM, attrs, HeadingText(doc.Database, axisId), groupId);
             if (form == null || form.Attrs == null)
                 return;
 
             try
             {
                 using (doc.LockDocument())
-                    Apply(doc.Database, axisId, form.LengthM, form.WidthM, form.Attrs, form.HeightAll, form.ConfigAll);
+                    Apply(doc.Database, axisId, form.LengthM, form.WidthM, form.Attrs, form.HeightAll, form.ConfigAll, form.Group);
                 Wall3dCommand.RebuildFromFaces(form.HeightM * 1000.0);
                 doc.Editor.WriteMessage("\n[Tandem] Atributos guardados en el muro. El sólido usa la altura y la planta nuevas. Vuelve a encofrar para los paneles.\n");
             }
@@ -96,11 +97,12 @@ namespace AutocadPlugin
             }
         }
 
-        private static bool ReadAxis(Database db, ObjectId axisId, out double lengthM, out double widthM, out WallEditAttrs attrs)
+        private static bool ReadAxis(Database db, ObjectId axisId, out double lengthM, out double widthM, out WallEditAttrs attrs, out int groupId)
         {
             lengthM = 0;
             widthM = 0.30;
             attrs = new WallEditAttrs();
+            groupId = 0;
             using (var tr = db.TransactionManager.StartTransaction())
             {
                 var line = tr.GetObject(axisId, OpenMode.ForRead) as Line;
@@ -108,7 +110,6 @@ namespace AutocadPlugin
                     || !string.Equals(line.Layer, WallCadXData.LayerAxis, StringComparison.OrdinalIgnoreCase))
                     return false;
                 string role;
-                int groupId;
                 double thickness;
                 long wallDbId;
                 bool special;
@@ -147,7 +148,8 @@ namespace AutocadPlugin
             double widthM,
             WallEditAttrs attrs,
             bool heightAll,
-            bool configAll)
+            bool configAll,
+            int? newGroup)
         {
             var json = attrs.ToJson();
             if (("ATR:" + json).Length > 255)
@@ -166,6 +168,9 @@ namespace AutocadPlugin
                 long wallDbId;
                 bool special;
                 WallCadXData.Read(axis, out role, out groupId, out oldThick, out wallDbId, out special);
+                var previousGroup = groupId;
+                if (newGroup.HasValue && newGroup.Value >= 0)
+                    groupId = newGroup.Value;
 
                 var dir = new Vector3d(axis.EndPoint.X - axis.StartPoint.X, axis.EndPoint.Y - axis.StartPoint.Y, 0);
                 if (dir.Length > 1e-9)
@@ -204,7 +209,7 @@ namespace AutocadPlugin
                     long faceWall;
                     bool faceSpecial;
                     WallCadXData.Read(face, out faceRole, out faceGroup, out faceThick, out faceWall, out faceSpecial);
-                    if (groupId != 0 && faceGroup != groupId)
+                    if (previousGroup != 0 && faceGroup != previousGroup)
                         continue;
                     if (!NearAxis(face, axis, band))
                         continue;
@@ -222,7 +227,7 @@ namespace AutocadPlugin
                     face.UpgradeOpen();
                     face.StartPoint = axis.StartPoint + off;
                     face.EndPoint = axis.EndPoint + off;
-                    WallCadXData.Write(face, faceRole, faceGroup, thickDwg, faceWall, faceSpecial);
+                    WallCadXData.Write(face, faceRole, groupId, thickDwg, faceWall, faceSpecial);
                 }
 
                 WallCadXData.Write(axis, role, groupId, thickDwg, wallDbId, special, json);

@@ -312,7 +312,7 @@ namespace Desing.Controllers
             TempData["ToastType"] = "Act";
             TempData["ToastTitle"] = Language.ToastTitle_CreateLanguage;
             TempData["ToastMessage"] = string.Format(Language.ToastMessage_LanguageCreated, nuevo.TextLabel);
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Details", new { id = nuevo.IdObject });
         }
 
         // ---------------------------------------------------------------------

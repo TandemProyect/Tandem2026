@@ -3,12 +3,12 @@
  * Autocompletado Google Places + vista previa de mapa (reutilizable en formularios).
 
  * Config: window.TandemAddressPlacesConfig { apiKey, language, region }
+ *
+ * region (ES) solo sesga el mapa. La lista propia no filtra por país.
 
  *
 
- * Predicciones: PlaceAutocompleteElement (Places API New). El Autocomplete legacy
-
- * no está disponible para proyectos/clientes nuevos en Google Cloud.
+ * Predicciones: lista propia con AutocompleteSuggestion (Places API New).
 
  *
 
@@ -385,80 +385,107 @@
 
 
 
-  function updateMap(prefix, mapId, latLng) {
+  var pendingMapPaint = {};
 
-    var el = document.getElementById(mapId);
+  function ensureMapLibrary() {
 
-    if (!el || !latLng) {
+    if (window.google && window.google.maps && typeof google.maps.importLibrary === 'function') {
 
-      setMapEmpty(mapId);
-
-      return;
+      return google.maps.importLibrary('maps');
 
     }
 
+    if (window.google && window.google.maps && typeof google.maps.Map === 'function') {
 
-
-    if (!mapsUsable()) {
-
-      setMapEmpty(mapId, mapsAuthFailed ? MSG.mapUnavailable : 'Mapa no disponible');
-
-      return;
+      return Promise.resolve(google.maps);
 
     }
 
+    return Promise.reject(new Error('maps-library-missing'));
 
+  }
 
-    el.classList.remove('is-empty');
+  function resizeMapSoon(map, center) {
 
-    el.innerHTML = '';
+    function fit() {
 
+      var node = map.getDiv ? map.getDiv() : null;
 
+      if (!node || !node.offsetWidth || !node.offsetHeight) return;
 
-    var center = { lat: latLng.lat, lng: latLng.lng };
+      if (window.google && google.maps && google.maps.event) {
 
-    var state = mapState[prefix];
-
-
-
-    try {
-
-      if (!state || !state.map) {
-
-        state = {
-
-          map: new google.maps.Map(el, {
-
-            center: center,
-
-            zoom: 16,
-
-            /* Evita capturar la rueda del raton sobre el preview: el usuario puede subir/bajar la pagina. */
-            gestureHandling: 'cooperative',
-
-            mapTypeControl: false,
-
-            streetViewControl: false,
-
-            fullscreenControl: true
-
-          }),
-
-          marker: null
-
-        };
-
-        mapState[prefix] = state;
-
-      } else {
-
-        state.map.setCenter(center);
+        google.maps.event.trigger(map, 'resize');
 
       }
 
+      map.setCenter(center);
 
+    }
 
-      if (!state.marker) {
+    window.requestAnimationFrame(fit);
+
+    window.setTimeout(fit, 250);
+
+  }
+
+  function paintMap(prefix, mapId, center, mapsLib) {
+
+    var el = document.getElementById(mapId);
+
+    if (!el) return;
+
+    var MapCtor = (mapsLib && mapsLib.Map) || (window.google && google.maps && google.maps.Map);
+
+    if (typeof MapCtor !== 'function') {
+
+      setMapEmpty(mapId, MSG.mapUnavailable);
+
+      return;
+
+    }
+
+    el.classList.remove('is-empty');
+
+    var state = mapState[prefix];
+
+    if (!state || !state.map || (state.map.getDiv && state.map.getDiv() !== el)) {
+
+      el.innerHTML = '';
+
+      state = {
+
+        map: new MapCtor(el, {
+
+          center: center,
+
+          zoom: 16,
+
+          gestureHandling: 'cooperative',
+
+          mapTypeControl: false,
+
+          streetViewControl: false,
+
+          fullscreenControl: true
+
+        }),
+
+        marker: null
+
+      };
+
+      mapState[prefix] = state;
+
+    } else {
+
+      state.map.setCenter(center);
+
+    }
+
+    try {
+
+      if (!state.marker && window.google && google.maps && typeof google.maps.Marker === 'function') {
 
         state.marker = new google.maps.Marker({
 
@@ -468,7 +495,7 @@
 
         });
 
-      } else {
+      } else if (state.marker) {
 
         state.marker.setPosition(center);
 
@@ -476,19 +503,55 @@
 
       }
 
+    } catch (eMarker) {
 
+      console.error('[TandemAddressPlaces] marker failed', eMarker);
 
-      state.map.setZoom(16);
+    }
 
-    } catch (e) {
+    state.map.setZoom(16);
 
-      markAuthFailed('map-constructor', { message: e && e.message ? e.message : String(e) });
+    resizeMapSoon(state.map, center);
 
-      showApiWarning(MSG.authFailed);
+  }
+
+  function updateMap(prefix, mapId, latLng) {
+
+    var el = document.getElementById(mapId);
+
+    var lat = latLng ? Number(latLng.lat) : NaN;
+
+    var lng = latLng ? Number(latLng.lng) : NaN;
+
+    if (!el || isNaN(lat) || isNaN(lng)) {
+
+      setMapEmpty(mapId);
+
+      return;
+
+    }
+
+    var center = { lat: lat, lng: lng };
+
+    var token = (pendingMapPaint[prefix] || 0) + 1;
+
+    pendingMapPaint[prefix] = token;
+
+    ensureMapLibrary().then(function (mapsLib) {
+
+      if (pendingMapPaint[prefix] !== token) return;
+
+      paintMap(prefix, mapId, center, mapsLib);
+
+    }).catch(function (errMap) {
+
+      if (pendingMapPaint[prefix] !== token) return;
+
+      console.error('[TandemAddressPlaces] map library failed', errMap);
 
       setMapEmpty(mapId, MSG.mapUnavailable);
 
-    }
+    });
 
   }
 
@@ -781,85 +844,190 @@
 
 
     google.maps.importLibrary('places').then(function (placesLib) {
-
-      var PlaceAutocompleteElement = placesLib.PlaceAutocompleteElement;
-
-      if (!PlaceAutocompleteElement) {
-
+      var AutocompleteSuggestion = placesLib.AutocompleteSuggestion;
+      if (!AutocompleteSuggestion || typeof AutocompleteSuggestion.fetchAutocompleteSuggestions !== 'function') {
         mountLegacyAutocompleteInput();
-
         return;
-
       }
 
-
-
-      var pacOptions = {};
-
-      var cfgRegion = getConfig().region;
-
-      if (cfgRegion) {
-
-        pacOptions.includedRegionCodes = [String(cfgRegion).toLowerCase()];
-
-      }
-
-      var pac = new PlaceAutocompleteElement(pacOptions);
-
-      if (placeholder) {
-
+      var sessionToken = null;
+      function renewToken() {
+        sessionToken = null;
         try {
-
-          pac.placeholder = placeholder;
-
-        } catch (ePh) {
-
-          if (pac.setAttribute) pac.setAttribute('placeholder', placeholder);
-
+          if (placesLib.AutocompleteSessionToken) {
+            sessionToken = new placesLib.AutocompleteSessionToken();
+          }
+        } catch (eTok) {
+          sessionToken = null;
         }
-
       }
-
-
-
-      $hostEl.empty().append(pac);
+      renewToken();
 
       $hostEl.data('places-bound', true);
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'form-control form-control-sm';
+      input.setAttribute('autocomplete', 'off');
+      if (placeholder) input.setAttribute('placeholder', placeholder);
 
+      var list = document.createElement('div');
+      list.className = 'tandem-address-suggest';
+      list.hidden = true;
+      list.style.position = 'fixed';
+      list.style.zIndex = '20000';
+      list.style.background = '#fff';
+      list.style.border = '1px solid rgba(51, 65, 85, 0.2)';
+      list.style.borderRadius = '0.375rem';
+      list.style.boxShadow = '0 8px 24px rgba(15, 23, 42, 0.12)';
+      list.style.maxHeight = '240px';
+      list.style.overflow = 'auto';
+      $hostEl.empty().append(input);
+      document.body.appendChild(list);
 
+      var timer = 0;
+      var requestSeq = 0;
 
-      pac.addEventListener('gmp-select', function (event) {
+      function hideList() {
+        list.hidden = true;
+        list.innerHTML = '';
+      }
 
-        var pp = event.placePrediction;
+      var activeInput = input;
 
-        if (!pp) return;
+      function placeList() {
+        var rect = activeInput.getBoundingClientRect();
+        list.style.left = rect.left + 'px';
+        list.style.top = rect.bottom + 'px';
+        list.style.width = Math.max(rect.width, 280) + 'px';
+      }
 
-        var place = pp.toPlace();
+      function showNote(message) {
+        list.innerHTML = '';
+        var note = document.createElement('div');
+        note.className = 'tandem-address-suggest__item';
+        note.textContent = message;
+        list.appendChild(note);
+        placeList();
+        list.hidden = false;
+      }
 
+      function labelOf(prediction) {
+        if (!prediction) return '';
+        var text = prediction.text;
+        if (text && typeof text.text === 'string' && text.text) return text.text;
+        if (text && typeof text.toString === 'function') {
+          var asText = text.toString();
+          if (asText && asText !== '[object Object]') return asText;
+        }
+        return '';
+      }
+
+      function showSuggestions(predictions) {
+        list.innerHTML = '';
+        if (!predictions.length) {
+          hideList();
+          return;
+        }
+        for (var i = 0; i < predictions.length; i++) {
+          (function (prediction) {
+            var button = document.createElement('button');
+            button.type = 'button';
+            button.style.display = 'block';
+            button.style.width = '100%';
+            button.style.textAlign = 'left';
+            button.style.border = '0';
+            button.style.borderBottom = '1px solid rgba(51, 65, 85, 0.08)';
+            button.style.background = '#fff';
+            button.style.padding = '0.45rem 0.65rem';
+            button.style.fontSize = '0.8125rem';
+            button.style.cursor = 'pointer';
+            button.textContent = labelOf(prediction);
+            button.addEventListener('mousedown', function (ev) {
+              ev.preventDefault();
+              choose(prediction);
+            });
+            list.appendChild(button);
+          })(predictions[i]);
+        }
+        placeList();
+        list.hidden = false;
+      }
+
+      function choose(prediction) {
+        hideList();
+        var place = prediction && typeof prediction.toPlace === 'function' ? prediction.toPlace() : null;
+        if (!place || typeof place.fetchFields !== 'function') return;
+        input.value = labelOf(prediction);
         place.fetchFields({
-
           fields: ['id', 'formattedAddress', 'location', 'addressComponents', 'viewport']
-
         }).then(function () {
-
           populateFromNewPlace(prefix, mapId, place);
-
+          renewToken();
         }).catch(function (eSel) {
-
-          console.error('[TandemAddressPlaces] fetchFields after gmp-select failed', eSel);
-
+          console.error('[TandemAddressPlaces] fetchFields failed', eSel);
         });
+      }
 
+      function scheduleSearch(fromInput) {
+        activeInput = fromInput;
+        var value = fromInput.value.replace(/^\s+|\s+$/g, '');
+        window.clearTimeout(timer);
+        if (value.length < 2) {
+          hideList();
+          return;
+        }
+        timer = window.setTimeout(function () {
+          var seq = ++requestSeq;
+          var request = { input: value };
+          if (sessionToken) request.sessionToken = sessionToken;
+          var language = getConfig().language;
+          if (language) request.language = language;
+          AutocompleteSuggestion.fetchAutocompleteSuggestions(request).then(function (result) {
+            if (seq !== requestSeq) return;
+            var suggestions = (result && result.suggestions) || [];
+            var predictions = [];
+            for (var i = 0; i < suggestions.length; i++) {
+              if (suggestions[i] && suggestions[i].placePrediction) predictions.push(suggestions[i].placePrediction);
+            }
+            showSuggestions(predictions);
+          }).catch(function (errSug) {
+            if (seq !== requestSeq) return;
+            console.error('[TandemAddressPlaces] fetchAutocompleteSuggestions failed', errSug);
+            showNote('No se han podido cargar las direcciones.');
+          });
+        }, 250);
+      }
+
+      input.addEventListener('input', function () {
+        scheduleSearch(input);
+      });
+      input.addEventListener('focus', function () {
+        scheduleSearch(input);
       });
 
+      var formatted = document.getElementById(prefix + '_Formatted_Address');
+      if (formatted) {
+        formatted.setAttribute('autocomplete', 'off');
+        formatted.addEventListener('input', function () {
+          scheduleSearch(formatted);
+        });
+        formatted.addEventListener('focus', function () {
+          scheduleSearch(formatted);
+        });
+        formatted.addEventListener('blur', function () {
+          window.setTimeout(hideList, 200);
+        });
+      }
 
-
-      pac.addEventListener('gmp-error', function (event) {
-
-        console.error('[TandemAddressPlaces] PlaceAutocompleteElement gmp-error', event);
-
+      input.addEventListener('blur', function () {
+        window.setTimeout(hideList, 200);
       });
-
+      window.addEventListener('scroll', function () {
+        if (!list.hidden) placeList();
+      }, true);
+      window.addEventListener('resize', function () {
+        if (!list.hidden) placeList();
+      });
     }).catch(function (errLib) {
 
       console.error('[TandemAddressPlaces] importLibrary(places) failed', errLib);
@@ -926,7 +1094,9 @@
 
       autocomplete = new google.maps.places.Autocomplete($input[0], {
 
-        fields: ['place_id', 'formatted_address', 'address_components', 'geometry']
+        fields: ['place_id', 'formatted_address', 'address_components', 'geometry'],
+
+        componentRestrictions: { country: ['es', 'uy', 'ar', 'cl', 'mx'] }
 
       });
 

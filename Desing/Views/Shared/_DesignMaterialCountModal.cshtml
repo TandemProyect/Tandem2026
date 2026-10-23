@@ -1,0 +1,81 @@
+@using Desing.Resources
+@{
+    var plantillaLogo = (ViewBag.PlantillaLogo as string) ?? Desing.Helpers.PluginCadDeviceHelper.DefaultWordmarkVirtualPath;
+    var plantillaLogoIsLockup = plantillaLogo.IndexOf("t-desingc.png", StringComparison.OrdinalIgnoreCase) >= 0;
+    var plantillaLogoUrl = plantillaLogo.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+        ? plantillaLogo
+        : Url.Content("~" + (plantillaLogo.StartsWith("/") ? plantillaLogo : "/" + plantillaLogo));
+}
+<div class="modal fade" id="designMaterialCountModal" tabindex="-1" aria-hidden="true"
+     data-url="@Url.Action("ListDesignMaterialCount", "Desing_2")"
+     data-title="@MasterArticles.StlPreview_MaterialCountTitle"
+     data-empty="@MasterArticles.StlPreview_MaterialCountEmpty"
+     data-error="@MasterArticles.StlPreview_MaterialCountStatusError"
+     data-sum-articles="@MasterArticles.StlPreview_MaterialCountSumArticles"
+     data-sum-weight="@MasterArticles.StlPreview_MaterialCountSumWeight"
+     data-sum-m2="@MasterArticles.StlPreview_MaterialCountSumM2"
+     data-search="Buscar:"
+     data-excel="@MasterArticles.StlPreview_MaterialCountExportExcel"
+     data-pdf="@MasterArticles.StlPreview_MaterialCountExportPdf">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content design-material-count-popup">
+            <section class="desing2-material-count is-open" aria-label="@MasterArticles.StlPreview_MaterialCountAria">
+                <div class="desing2-material-count__head">
+                    <img src="@plantillaLogoUrl" alt="" class="design-material-count-popup__logo@(plantillaLogoIsLockup ? " tandem-brand-lockup" : "")" />
+                    @if (!plantillaLogoIsLockup)
+                    {
+                        <span class="design-material-count-popup__brand">@Html.Partial("_BrandSvg")</span>
+                    }
+                    <span class="desing2-material-count__title" id="designMaterialCountTitle">@MasterArticles.StlPreview_MaterialCountTitle</span>
+                    <div id="designMaterialCountButtons"></div>
+                    <button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" data-bs-dismiss="modal" aria-label="@Common.Aria_CloseModal">
+                        <i class="icon-base ri ri-close-line" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="desing2-material-count__tabs-row">
+                    <ul class="nav nav-tabs tandem-folder-tabs desing2-material-count__tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button type="button" class="nav-link" id="designMaterialCountTabArticles" data-bs-toggle="tab" data-bs-target="#designMaterialCountPaneArticles" role="tab" aria-controls="designMaterialCountPaneArticles" aria-selected="false">@MasterArticles.StlPreview_MaterialCountTabArticles</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button type="button" class="nav-link active" id="designMaterialCountTabDetails" data-bs-toggle="tab" data-bs-target="#designMaterialCountPaneDetails" role="tab" aria-controls="designMaterialCountPaneDetails" aria-selected="true">Detalles</button>
+                        </li>
+                    </ul>
+                    <div id="designMaterialCountSearch" class="desing2-material-count__search"></div>
+                </div>
+                <div class="tab-content desing2-material-count__body">
+                    <div class="tab-pane fade" id="designMaterialCountPaneArticles" role="tabpanel" aria-labelledby="designMaterialCountTabArticles">
+                        <table id="designMaterialCountArticles" class="table table-sm table-hover w-100" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>@MasterArticles.StlPreview_MaterialCountColCode</th>
+                                    <th>@MasterArticles.StlPreview_MaterialCountColName</th>
+                                    <th class="text-end">@MasterArticles.StlPreview_MaterialCountColQty</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                    <div class="tab-pane fade show active" id="designMaterialCountPaneDetails" role="tabpanel" aria-labelledby="designMaterialCountTabDetails">
+                        <div class="desing2-material-count__details-scroll">
+                            <table id="designMaterialCountDetails" class="table table-sm table-hover w-100" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>Nº</th>
+                                        <th>@MasterArticles.StlPreview_MaterialCountColCode</th>
+                                        <th>@MasterArticles.StlPreview_MaterialCountColName</th>
+                                        <th class="text-end">@MasterArticles.StlPreview_MaterialCountColQty</th>
+                                        <th class="text-end">@MasterArticles.StlPreview_MaterialCountColUnitWeight</th>
+                                        <th class="text-end">@MasterArticles.StlPreview_MaterialCountColTotalWeight</th>
+                                        <th class="text-end">@MasterArticles.StlPreview_MaterialCountColM2</th>
+                                        <th class="text-end">@MasterArticles.StlPreview_MaterialCountColTotalM2</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="desing2-material-count__summary" id="designMaterialCountSummary"></div>
+            </section>
+        </div>
+    </div>
+</div>

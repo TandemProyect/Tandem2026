@@ -50,7 +50,7 @@ namespace AutocadPlugin
 
             double thickness = ResolveWallThickness();
             double half = thickness * 0.5;
-            int groupId = unchecked(Environment.TickCount & 0x7fffffff);
+            int groupId = 1;
 
             PromptPointResult firstRes = ed.GetPoint("\nPunto inicial del muro: ");
             if (firstRes.Status != PromptStatus.OK) return;

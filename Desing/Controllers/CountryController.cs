@@ -278,7 +278,7 @@ namespace Desing.Controllers
             db.SaveChanges();
 
             TempData["ToastMessage"] = string.Format(Country.ToastMessage_CountryCreated, entity.TextLabel ?? "");
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Details", new { id = entity.IdObject });
         }
 
         public ActionResult Edit(long id)

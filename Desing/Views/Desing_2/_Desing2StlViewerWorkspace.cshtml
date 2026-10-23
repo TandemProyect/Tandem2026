@@ -38,6 +38,10 @@
     var imageSketchErrorModalTitle = maStr("StlPreview_ImageSketchErrorModalTitle", "Error al analizar la imagen");
     var screenshotTitle = maStr("StlPreview_ScreenshotTitle", "Descargar una foto del diseño, sin menús");
     var screenshotAria = maStr("StlPreview_ScreenshotAria", "Foto del diseño");
+    var wallListTitle = maStr("StlPreview_WallListTitle", "Muros");
+    var wallListAria = maStr("StlPreview_WallListAria", "Variables de los muros");
+    var groupTitle = maStr("StlPreview_GroupTitle", "Grupos");
+    var groupAria = maStr("StlPreview_GroupAria", "Grupos del diseño");
     var imageSketchErrorModalAccept = maStr("StlPreview_ImageSketchErrorModalAccept", "Aceptar");
 }
 @* Solo Desing_2: clase desing2-stl-view-scope; barra única marca + contexto izq., herramientas + Volver derecha.
@@ -55,6 +59,14 @@
             </div>
         </div>
         <div class="d-flex align-items-center gap-2 flex-shrink-0 flex-wrap justify-content-end">
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect" id="ma-stl-design-groups" title="@groupAria" aria-label="@groupAria" aria-haspopup="dialog" aria-controls="desing2GroupModal">
+                <i class="icon-base ri ri-list-ordered" aria-hidden="true"></i>
+                <span class="visually-hidden">@groupTitle</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect" id="ma-stl-wall-list" title="@wallListAria" aria-label="@wallListAria" aria-haspopup="dialog" aria-controls="desing2WallListModal">
+                <i class="icon-base ri ri-table-line" aria-hidden="true"></i>
+                <span class="visually-hidden">@wallListTitle</span>
+            </button>
             <button type="button" class="btn btn-sm btn-outline-secondary waves-effect" id="ma-stl-fullscreen-toggle" aria-pressed="false" title="@MasterArticles.StlPreview_FullscreenTitle">
                 <i class="icon-base ri ri-fullscreen-line" aria-hidden="true"></i>
             </button>
@@ -856,6 +868,26 @@
         <button type="button" class="d-none master-article-stl-load" id="desing2-initial-stl-boot" data-stl-url="@stlUrlAttr" data-slot-label="@stlLabelAttr"></button>
     }
     <div id="ma-stl-desing2-toast-container" class="toast-container position-fixed top-0 end-0 p-3 ma-stl-desing2-toast-container" aria-live="polite" aria-atomic="true"></div>
+    <div class="modal fade" id="ma-stl-worker-pick" tabindex="-1" aria-labelledby="ma-stl-worker-pick-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ma-stl-worker-pick-title">@MasterArticles.StlPreview_Desing2WorkerPickTitle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@Common.Btn_Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="desing2-worker-pick__choices">
+                        <button type="button" class="desing2-worker-pick__choice" data-worker-kind="Worker" aria-label="@MasterArticles.StlPreview_Desing2WorkerPickWorker">
+                            <img class="desing2-worker-pick__figure" src="@Url.Content("~/Content/DesignTools/Stl/Worker/Worker.png")?v=20261022" alt="" />
+                        </button>
+                        <button type="button" class="desing2-worker-pick__choice" data-worker-kind="Worker2" aria-label="@MasterArticles.StlPreview_Desing2WorkerPickWorker2">
+                            <img class="desing2-worker-pick__figure" src="@Url.Content("~/Content/DesignTools/Stl/Worker/Worker2.png")?v=20261022" alt="" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="modal fade" id="ma-stl-leave-save-modal" tabindex="-1" aria-labelledby="ma-stl-leave-save-modal-title" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">

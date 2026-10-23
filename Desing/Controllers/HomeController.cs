@@ -246,6 +246,8 @@ namespace Desing.Controllers
                 var ttNewFmt = Jobside.DashDesigns_Tip_NewOfferFmt;
                 var expandTip = HttpUtility.HtmlAttributeEncode(Jobside.DashDesigns_Tree_Expand);
                 var collapseTip = HttpUtility.HtmlAttributeEncode(Jobside.DashDesigns_Tree_Collapse);
+                var withCount = DesignMaterialCountUi.IdsWithSavedCount(
+                    db, designsByOffer.Values.SelectMany(list => list).Select(d => d.DesignId));
                 var data = rows.Select(p =>
                 {
                     var offerName = !string.IsNullOrWhiteSpace(p.OfferName)
@@ -276,7 +278,7 @@ namespace Desing.Controllers
                         JobDescription = HttpUtility.HtmlEncode(p.JobDescription),
                         DesignCount = p.DesignCount,
                         actions = newDesign,
-                        tree = BuildOfferDesignTree(designs, expandTip, collapseTip)
+                        tree = BuildOfferDesignTree(designs, expandTip, collapseTip, withCount)
                     };
                 }).ToList();
 
@@ -420,6 +422,8 @@ namespace Desing.Controllers
                     ? ResolveDesignCreatorNames(rows.Select(p => p.CreatedById))
                     : new Dictionary<string, string>(StringComparer.Ordinal);
                 var openTip = HttpUtility.HtmlAttributeEncode(Jobside.DashDesigns_Tip_OpenDesign);
+                var withCount = DesignMaterialCountUi.IdsWithSavedCount(db, rows.Select(p => p.DesignId));
+                var countTip = MasterArticles.StlPreview_MaterialCountTitle;
                 var data = rows.Select(p =>
                 {
                     var offerName = !string.IsNullOrWhiteSpace(p.OfferName) ? p.OfferName : p.Description;
@@ -429,6 +433,9 @@ namespace Desing.Controllers
                         "\" class=\"btn btn-sm btn-icon btn-text-secondary rounded-pill\" title=\"" + openTip +
                         "\" aria-label=\"" + openTip +
                         "\"><i class=\"icon-base ri ri-eye-line\" aria-hidden=\"true\"></i></a>";
+                    var countBtn = withCount.Contains(p.DesignId)
+                        ? DesignMaterialCountUi.Button(p.DesignId, p.DesignName, countTip, false)
+                        : "";
                     string photo = null;
                     photos.TryGetValue(p.DesignId, out photo);
                     string creator;
@@ -446,7 +453,7 @@ namespace Desing.Controllers
                         JobNumber = HttpUtility.HtmlEncode(p.JobNumber),
                         JobDescription = HttpUtility.HtmlEncode(p.JobDescription),
                         Created = p.Created.ToString("dd/MM/yyyy HH:mm"),
-                        actions = eye,
+                        actions = "<div class=\"d-inline-flex align-items-center gap-1\">" + eye + countBtn + "</div>",
                         card = wantPhotos
                             ? BuildDesignPhotoCard(new DashDesignCardInput
                             {
@@ -461,7 +468,8 @@ namespace Desing.Controllers
                                 CreatedBy = creator,
                                 Created = p.Created,
                                 Changed = p.Changed,
-                                ViewerUrl = url
+                                ViewerUrl = url,
+                                HasMaterialCount = withCount.Contains(p.DesignId)
                             })
                             : ""
                     };
@@ -667,6 +675,10 @@ namespace Desing.Controllers
             sb.Append("<a class=\"btn btn-sm btn-primary dash-design-card-open\" href=\"" + href + "\" title=\"" + tipOpen + "\">" +
                       "<i class=\"icon-base ri ri-eye-line\" aria-hidden=\"true\"></i><span>" +
                       HttpUtility.HtmlEncode(Jobside.DashDesigns_Col_Open) + "</span></a>");
+            if (card.HasMaterialCount)
+            {
+                sb.Append(DesignMaterialCountUi.Button(card.DesignId, name, MasterArticles.StlPreview_MaterialCountTitle, false));
+            }
             sb.Append("<button type=\"button\" class=\"btn btn-sm btn-icon btn-text-secondary rounded-pill dash-design-card-edit\" title=\"" +
                       tipEdit + "\" aria-label=\"" + tipEdit + "\"><i class=\"icon-base ri ri-pencil-line\" aria-hidden=\"true\"></i></button>");
             sb.Append("<button type=\"button\" class=\"btn btn-sm btn-icon btn-text-danger rounded-pill dash-design-card-delete\" title=\"" +
@@ -682,7 +694,11 @@ namespace Desing.Controllers
             sb.Append("<div><dt>" + HttpUtility.HtmlEncode(label) + "</dt><dd" + cls + ">" + HttpUtility.HtmlEncode(text) + "</dd></div>");
         }
 
-        private string BuildOfferDesignTree(List<DashOfferTreeDesign> designs, string expandTip, string collapseTip)
+        private string BuildOfferDesignTree(
+            List<DashOfferTreeDesign> designs,
+            string expandTip,
+            string collapseTip,
+            HashSet<long> withCount)
         {
             if (designs == null || designs.Count == 0)
             {
@@ -719,7 +735,9 @@ namespace Desing.Controllers
                 sb.Append("<div class=\"dash-client-tree-leaves\">");
                 foreach (var d in g.OrderByDescending(x => x.AttCreated).ThenBy(x => x.AttLabel))
                 {
-                    AppendTreeDesignRow(sb, d.OfferId, d.DesignId, d.AttThumbnail, d.AttLabel, d.ClientName, d.AttCreated);
+                    AppendTreeDesignRow(
+                        sb, d.OfferId, d.DesignId, d.AttThumbnail, d.AttLabel, d.ClientName, d.AttCreated,
+                        false, withCount != null && withCount.Contains(d.DesignId));
                 }
                 sb.Append("</div></div></div>");
             }
@@ -832,6 +850,8 @@ namespace Desing.Controllers
                 var ttNewFmt = Jobside.DashDesigns_Tip_NewClientFmt;
                 var expandTip = HttpUtility.HtmlAttributeEncode(Jobside.DashDesigns_Tree_Expand);
                 var collapseTip = HttpUtility.HtmlAttributeEncode(Jobside.DashDesigns_Tree_Collapse);
+                var withCount = DesignMaterialCountUi.IdsWithSavedCount(
+                    db, designsByClient.Values.SelectMany(list => list).Select(d => d.DesignId));
                 var data = rows.Select(p =>
                 {
                     var ttNew = HttpUtility.HtmlAttributeEncode(ttNewFmt.Replace("{0}", p.ClientName));
@@ -855,7 +875,7 @@ namespace Desing.Controllers
                         ClientName = HttpUtility.HtmlEncode(p.ClientName),
                         DesignCount = p.DesignCount,
                         actions = newDesign,
-                        tree = BuildClientDesignTree(designs, expandTip, collapseTip)
+                        tree = BuildClientDesignTree(designs, expandTip, collapseTip, withCount)
                     };
                 }).ToList();
 
@@ -885,7 +905,8 @@ namespace Desing.Controllers
             string label,
             string middle,
             DateTime created,
-            bool middleIsHtml = false)
+            bool middleIsHtml = false,
+            bool hasMaterialCount = false)
         {
             var stlPath = ApplicationStlUrlHelper.TryGetTrustedStlVirtualPath(thumbnail);
             var url = OfferDesignWorkspaceHelper.BuildViewerUrl(Url, offerId, designId, stlPath);
@@ -895,15 +916,24 @@ namespace Desing.Controllers
             sb.Append("<span class=\"dash-client-tree-name\">" + HttpUtility.HtmlEncode(label) + "</span>");
             sb.Append("<span class=\"dash-client-tree-offer\">" + middleHtml + "</span>");
             sb.Append("<span class=\"dash-client-tree-date\">" + created.ToString("dd/MM/yyyy HH:mm") + "</span>");
+            sb.Append("<span class=\"dash-client-tree-eye\">");
             sb.Append(
                 "<a href=\"" + HttpUtility.HtmlAttributeEncode(url) +
-                "\" class=\"btn btn-sm btn-icon btn-text-secondary rounded-pill dash-client-tree-eye\" title=\"" + encTip +
+                "\" class=\"btn btn-sm btn-icon btn-text-secondary rounded-pill\" title=\"" + encTip +
                 "\" aria-label=\"" + encTip +
                 "\"><i class=\"icon-base ri ri-eye-line\" aria-hidden=\"true\"></i></a>");
-            sb.Append("</div>");
+            if (hasMaterialCount)
+            {
+                sb.Append(DesignMaterialCountUi.Button(designId, label, MasterArticles.StlPreview_MaterialCountTitle, false));
+            }
+            sb.Append("</span></div>");
         }
 
-        private string BuildClientDesignTree(List<DashClientTreeDesign> designs, string expandTip, string collapseTip)
+        private string BuildClientDesignTree(
+            List<DashClientTreeDesign> designs,
+            string expandTip,
+            string collapseTip,
+            HashSet<long> withCount)
         {
             if (designs == null || designs.Count == 0)
             {
@@ -943,7 +973,7 @@ namespace Desing.Controllers
                     AppendTreeDesignRow(
                         sb, d.OfferId, d.DesignId, d.AttThumbnail, d.AttLabel,
                         OfferDisplayHelper.BuildOfferNumberCellHtml(d.OfferNumber, d.OfferStateColor),
-                        d.AttCreated, true);
+                        d.AttCreated, true, withCount != null && withCount.Contains(d.DesignId));
                 }
                 sb.Append("</div></div></div>");
             }
@@ -1071,6 +1101,7 @@ namespace Desing.Controllers
                 {
                     db.TSql_Design_V2.Add(entity);
                     db.SaveChanges();
+                    DesignGroupHelper.EnsureFirstGroup(db.Database, entity.SysObjectID, uid, now);
                     db.Database.ExecuteSqlCommand(
                         @"INSERT INTO dbo.TSql_DesgloseOfertaCliente
                             (TextLabel, LinkClient_V2, LinkOffers, LinkDesign_V2,
@@ -1096,7 +1127,8 @@ namespace Desing.Controllers
             {
                 ok = true,
                 message = Jobside.DashDesigns_SaveSuccessFmt,
-                designId = entity.SysObjectID
+                designId = entity.SysObjectID,
+                openUrl = OfferDesignWorkspaceHelper.BuildViewerUrl(Url, offer.IdObject, entity.SysObjectID, null)
             });
         }
 
@@ -1193,6 +1225,7 @@ namespace Desing.Controllers
             public DateTime Created { get; set; }
             public DateTime Changed { get; set; }
             public string ViewerUrl { get; set; }
+            public bool HasMaterialCount { get; set; }
         }
 
         private sealed class DashDesignPhotoRow
