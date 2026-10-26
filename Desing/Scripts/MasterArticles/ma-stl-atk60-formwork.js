@@ -21,6 +21,13 @@ export const MA_ATK60_MIN_PANEL_MM = 300;
 /** Máximo panel generado por catálogo (evita bucles infinitos). */
 export const MA_ATK60_MAX_PANEL_MM = 15000;
 
+/** Espesor de muro a mm de escena. 0,47 m no puede quedarse como 0,47 mm. */
+export function maAtk60ThicknessMm(value) {
+    const n = Math.max(0, Number(value) || 0);
+    if (n > 0 && n <= 50) return n * 1000;
+    return n;
+}
+
 /**
  * @param {number} needMm necesidad geométrica (E + esquina, 2×E, etc.)
  * @returns {{ panelMm: number, woodTacoMm: number, needMm: number }}
@@ -88,19 +95,23 @@ export function maAtk60BuildLFootprintMm(vertex, d1, d2, e1Mm, e2Mm) {
     const cross = d1.x * d2.z - d1.z * d2.x;
     if (Math.abs(cross) < 1e-9) return null;
 
-    const leg1 = maAtk60SelectPanelMm(Math.max(0, e1Mm) + MA_ATK60_CORNER_PANEL_MM);
-    const leg2 = maAtk60SelectPanelMm(Math.max(0, e2Mm) + MA_ATK60_CORNER_PANEL_MM);
+    const e1 = maAtk60ThicknessMm(e1Mm);
+    const e2 = maAtk60ThicknessMm(e2Mm);
+    // Cara a lo largo de cada eje: espesor del otro muro + esquina de 0,30.
+    // 0,47 + 0,30 = 0,77 → esa cara mide 0,90, no el panel de esquina de 0,30.
+    const leg1 = maAtk60SelectPanelMm(e2 + MA_ATK60_CORNER_PANEL_MM);
+    const leg2 = maAtk60SelectPanelMm(e1 + MA_ATK60_CORNER_PANEL_MM);
 
     const n1 = maAtk60NormalXz(d1, cross > 0 ? -1 : 1);
     const n2 = maAtk60NormalXz(d2, cross > 0 ? 1 : -1);
 
     const exteriorP1 = {
-        x: vertex.x + n1.x * e1Mm * 0.5,
-        z: vertex.z + n1.z * e1Mm * 0.5,
+        x: vertex.x + n1.x * e1 * 0.5,
+        z: vertex.z + n1.z * e1 * 0.5,
     };
     const exteriorP2 = {
-        x: vertex.x + n2.x * e2Mm * 0.5,
-        z: vertex.z + n2.z * e2Mm * 0.5,
+        x: vertex.x + n2.x * e2 * 0.5,
+        z: vertex.z + n2.z * e2 * 0.5,
     };
 
     const det = d1.x * d2.z - d1.z * d2.x;
@@ -115,16 +126,16 @@ export function maAtk60BuildLFootprintMm(vertex, d1, d2, e1Mm, e2Mm) {
 
     const q1Outer = { x: outer.x + d1.x * leg1.panelMm, z: outer.z + d1.z * leg1.panelMm };
     const q1Inner = {
-        x: q1Outer.x - n1.x * e1Mm,
-        z: q1Outer.z - n1.z * e1Mm,
+        x: q1Outer.x - n1.x * e1,
+        z: q1Outer.z - n1.z * e1,
     };
     const innerCorner = {
-        x: outer.x - n1.x * e1Mm - n2.x * e2Mm,
-        z: outer.z - n1.z * e1Mm - n2.z * e2Mm,
+        x: outer.x - n1.x * e1 - n2.x * e2,
+        z: outer.z - n1.z * e1 - n2.z * e2,
     };
     const q2Inner = {
-        x: outer.x + d2.x * leg2.panelMm - n2.x * e2Mm,
-        z: outer.z + d2.z * leg2.panelMm - n2.z * e2Mm,
+        x: outer.x + d2.x * leg2.panelMm - n2.x * e2,
+        z: outer.z + d2.z * leg2.panelMm - n2.z * e2,
     };
     const q2Outer = { x: outer.x + d2.x * leg2.panelMm, z: outer.z + d2.z * leg2.panelMm };
 
@@ -143,8 +154,8 @@ export function maAtk60BuildLFootprintMm(vertex, d1, d2, e1Mm, e2Mm) {
         meta: {
             kind: 'cornerL',
             system: 'Atk-60',
-            e1Mm: e1Mm,
-            e2Mm: e2Mm,
+            e1Mm: e1,
+            e2Mm: e2,
             leg1PanelMm: leg1.panelMm,
             leg2PanelMm: leg2.panelMm,
             leg1WoodTacoMm: leg1.woodTacoMm,
@@ -375,8 +386,10 @@ export function maAtk60GetTJunctionTrimMm(eThroughMm, eBranchMm) {
  * @returns {{ leg1Mm: number, leg2Mm: number }}
  */
 export function maAtk60GetLJunctionTrimMm(e1Mm, e2Mm) {
-    const leg1 = maAtk60SelectPanelMm(Math.max(0, e1Mm) + MA_ATK60_CORNER_PANEL_MM);
-    const leg2 = maAtk60SelectPanelMm(Math.max(0, e2Mm) + MA_ATK60_CORNER_PANEL_MM);
+    const e1 = maAtk60ThicknessMm(e1Mm);
+    const e2 = maAtk60ThicknessMm(e2Mm);
+    const leg1 = maAtk60SelectPanelMm(e2 + MA_ATK60_CORNER_PANEL_MM);
+    const leg2 = maAtk60SelectPanelMm(e1 + MA_ATK60_CORNER_PANEL_MM);
     return { leg1Mm: leg1.panelMm, leg2Mm: leg2.panelMm };
 }
 
@@ -392,10 +405,10 @@ export function maAtk60GetLJunctionTrimMm(e1Mm, e2Mm) {
  * @returns {{ leg1AxisTrimMm:number, leg2AxisTrimMm:number, leg1PanelMm:number, leg2PanelMm:number }}
  */
 export function maAtk60GetLJunctionAxisTrimMm(d1, d2, e1Mm, e2Mm) {
-    const e1 = Math.max(0, Number(e1Mm) || 0);
-    const e2 = Math.max(0, Number(e2Mm) || 0);
-    const leg1 = maAtk60SelectPanelMm(e1 + MA_ATK60_CORNER_PANEL_MM);
-    const leg2 = maAtk60SelectPanelMm(e2 + MA_ATK60_CORNER_PANEL_MM);
+    const e1 = maAtk60ThicknessMm(e1Mm);
+    const e2 = maAtk60ThicknessMm(e2Mm);
+    const leg1 = maAtk60SelectPanelMm(e2 + MA_ATK60_CORNER_PANEL_MM);
+    const leg2 = maAtk60SelectPanelMm(e1 + MA_ATK60_CORNER_PANEL_MM);
     if (!d1 || !d2) {
         return {
             leg1AxisTrimMm: leg1.panelMm,

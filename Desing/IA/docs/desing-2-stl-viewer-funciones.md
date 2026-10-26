@@ -328,7 +328,7 @@ Parcial: `_Desing2BottomToolBar.cshtml` (`#desing2-stl-bottom-toolbar`). Siempre
 | `#ma-stl-tool-undo` | Deshacer — `ri-arrow-go-back-line`; disabled si `maStlDesing2UndoStack` vacío |
 | `#ma-stl-tool-redo` | Rehacer — `ri-arrow-go-forward-line`; disabled si `maStlDesing2RedoStack` vacío |
 | `#ma-stl-tool-ortho-15` | Orto 15° en planta (movido desde barra superior); **F8** |
-| `#ma-stl-tool-wall-dim` | Cota espesor muro — `ri-pencil-ruler-2-line`; escaneo auto al activar |
+| `#ma-stl-tool-wall-dim` | Acotar — barra azul, junto a variables de los muros. Clic muestra u oculta. Doble clic abre `#desing2-dim-kinds-pop` |
 | `#desing2-stl-rulers-flyout-toggle` | Botón padre submenú flyout — `ri-ruler-2-line`; abre panel `#desing2-stl-rulers-flyout-panel` hacia arriba; segundo clic o clic fuera cierra (`desing2-stl-viewer-toolbar-wiring.js`) |
 
 **Submenú flyout reglas** (`#desing2-stl-rulers-flyout-panel`, grupo `#desing2-stl-rulers-flyout`):
@@ -345,15 +345,15 @@ El botón padre muestra estado `has-active-children` cuando algún toggle del su
 
 **Atajos undo/redo:** **Ctrl+Z** (deshacer), **Ctrl+Y** y **Ctrl+Shift+Z** (rehacer). No capturan teclas con foco en `input`/`textarea`/`select`/contenido editable.
 
-### Herramienta cota muro (barra inferior `#ma-stl-tool-wall-dim`)
+### Herramienta cota muro (barra azul `#ma-stl-tool-wall-dim`)
 
 Cotas CAD estilo **construcción**: longitudes de tramo en contorno exterior, cota global si no duplica un tramo, y **espesor** entre pares paralelos (exterior ↔ interior tras offset).
 
 | Elemento | Detalle |
 |----------|---------|
-| Botón | `#ma-stl-tool-wall-dim` — icono `ri-pencil-ruler-2-line` |
+| Botón | `#ma-stl-tool-wall-dim` — barra azul, junto a variables de los muros. Icono `ri-pencil-ruler-2-line` |
 | Estado | `maStlWallDimToolActive` (`boolean`) |
-| Flujo | Icono → escaneo automático → cotas visibles → segundo clic icono o **Escape** oculta |
+| Flujo | Clic → cotas de muro → otro clic o **Escape** oculta. Doble clic abre `#desing2-dim-kinds-pop`. La cabecera lo arrastra. En cada muro con encuentro: **Total** (cara exterior a cara exterior), **A ejes** (eje a eje) y **Parcial** (espesor de cada encuentro + tramo entre caras interiores). Un muro solo, sin encuentros, lleva únicamente el total. La parcial de esquina es el panel (`selectPanel` del espesor del otro muro + 0,30), no el espesor. Van en bandas distintas, la parcial la más pegada y el total la más fuera, para poder verse las tres. El resto de cotas (espesor, tramos, global, paneles, remates, alturas) no se pinta de momento. Las casillas filtran estas tres y el id de muro. Se guardan en `sessionStorage` (`desing2.dimKinds`) |
 | Longitudes tramo | Solo lados **oeste** y **sur** del contorno exterior (`MA_STL_WALL_DIM_SEGMENT_DIM_SIDES`); no se repiten norte/este (opuestos) |
 | Sin redundancia | Si una cota tiene el **mismo valor** que otra (±5 mm), solo se muestra una; la **global superior** se omite si coincide con un tramo inferior |
 | Espesor | Una cota por **espesor único** (±5 mm); pares enlazados por offset (`linkOffsetFromLineId`) |

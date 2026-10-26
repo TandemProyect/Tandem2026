@@ -27,7 +27,9 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double faceSign,
             double wallHeightMm,
             double wallThicknessMm,
-            double wallLengthMm)
+            double wallLengthMm,
+            bool showPrimary = true,
+            bool showOpposite = true)
         {
             var renderYawRad = -yawRad;
             var alongMm = moduleBaseAlongMm + piece.AlongOffsetMm;
@@ -45,13 +47,21 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             var oppositeZ = oppositeBaseZ + (!faceIsRightSide ? uz * piece.PieceWidthMm : 0d);
             var oppositeRotY = renderYawRad + (!faceIsRightSide ? Math.PI : 0d);
 
-            outElements.Add(Create(
-                piece, layout, pieceIndex, anchor, idWall,
-                primaryX, baseY, primaryZ, primaryRotY,
-                anchor.NormalX, anchor.NormalZ, anchor.FaceSign, false,
-                moduleLengthMm, moduleIndex, countInWall,
-                wallHeightMm, wallThicknessMm, wallLengthMm,
-                alongMm));
+            if (showPrimary)
+            {
+                outElements.Add(Create(
+                    piece, layout, pieceIndex, anchor, idWall,
+                    primaryX, baseY, primaryZ, primaryRotY,
+                    anchor.NormalX, anchor.NormalZ, anchor.FaceSign, false,
+                    moduleLengthMm, moduleIndex, countInWall,
+                    wallHeightMm, wallThicknessMm, wallLengthMm,
+                    alongMm));
+            }
+
+            if (!showOpposite)
+            {
+                return;
+            }
 
             outElements.Add(Create(
                 piece, layout, pieceIndex, anchor, idWall,

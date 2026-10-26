@@ -57,6 +57,7 @@ namespace Desing.Repositories.RepositoryDesing2
         public bool? _CHeckPropOutside { get; set; }
         public bool? _CHeckPropInsideInf { get; set; }
         public bool? _CHeckPropOutsideInf { get; set; }
+        public bool? _CHeckDimWall { get; set; }
 
         public long? WallDbId { get; set; }
         public bool? IsSpecial { get; set; }
@@ -388,6 +389,7 @@ namespace Desing.Repositories.RepositoryDesing2
             entity.Is_CheckPropOutside = line._CHeckPropOutside ?? true;
             entity.Is_CheckPropInsideInf = line._CHeckPropInsideInf ?? true;
             entity.Is_CheckPropOutsideInf = line._CHeckPropOutsideInf ?? true;
+            entity.Is_CheckDimWall = line._CHeckDimWall ?? true;
 
             var label = BuildTextLabel(line, clientId);
             entity.TextLabel = string.IsNullOrWhiteSpace(label) ? "Muro" : Truncate(label, 500);
@@ -435,6 +437,7 @@ namespace Desing.Repositories.RepositoryDesing2
                 _CHeckPropOutside = row.Is_CheckPropOutside,
                 _CHeckPropInsideInf = row.Is_CheckPropInsideInf,
                 _CHeckPropOutsideInf = row.Is_CheckPropOutsideInf,
+                _CHeckDimWall = row.Is_CheckDimWall,
                 WallDbId = row.IdObject,
                 IsSpecial = row.Is_Special
             };

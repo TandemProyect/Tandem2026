@@ -51,6 +51,9 @@ Documentos de continuidad, handovers, guías para agentes IA y notas de trabajo.
 | [HANDOVER-MUROS-T-CRUCE.md](HANDOVER-MUROS-T-CRUCE.md) | Uniones T y cruce (+), topología 2D |
 | [SISTEMA-ATK60.md](SISTEMA-ATK60.md) | Sistema ATK60 |
 | [agente-tapes-atk60.md](agente-tapes-atk60.md) | Tapes del visor Desing_2. Apartado 21 cerrado el 20 oct 2026 |
+| [agente-grapas-atk60.md](agente-grapas-atk60.md) | Base NEVI de juntas: grapa fija, regulable, rigidizador y tirante |
+| [esquina-L-atk60.md](esquina-L-atk60.md) | Esquina en L cerrada: punto verde sobre el rojo, giro y grapas |
+| [ATK60-Logica-Modulos-Wall.md](../../../Docs/Proyectos/Desing/ATK60-Logica-Modulos-Wall.md) | Reparto del muro según las conexiones. Sin las dos, un 8,25 no lleva tablón |
 | [AGENTE-US619-INFO.md](AGENTE-US619-INFO.md) | Documentación técnica US-619 |
 | [AGENTE-US619-RESUMEN.md](AGENTE-US619-RESUMEN.md) | Resumen ejecutivo US-619 |
 | [US619_RESUMEN_ICONOS.md](US619_RESUMEN_ICONOS.md) | Resumen de iconos US-619 |

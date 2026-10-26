@@ -379,9 +379,40 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     z-index: 21;
 }
 
-.desing2-stl-view-scope .desing2-stl-wall-dim-overlay .desing2-stl-wall-dim-readout {
+.desing2-stl-view-scope .desing2-stl-floor-dim-readout.desing2-stl-wall-dim-readout--construction,
+.desing2-stl-view-scope .desing2-stl-floor-dim-readout.desing2-stl-floor-dim-readout--compact.desing2-stl-wall-dim-readout--construction {
     pointer-events: none;
-    cursor: default;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+    min-width: 0;
+    max-width: none;
+    font-weight: 600;
+    font-size: 0.78rem;
+    line-height: 1;
+    color: #171717;
+    text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 4px #fff;
+}
+
+.desing2-stl-view-scope .desing2-stl-floor-dim-readout.desing2-stl-wall-dim-readout--construction.desing2-stl-wall-dim-readout--editable,
+.desing2-stl-view-scope .desing2-stl-floor-dim-readout.desing2-stl-floor-dim-readout--compact.desing2-stl-wall-dim-readout--construction.desing2-stl-wall-dim-readout--editable {
+    pointer-events: auto;
+    cursor: pointer;
+    color: #0a3d82;
+    text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 4px #fff;
+}
+
+.desing2-stl-view-scope .desing2-stl-floor-dim-readout.desing2-stl-wall-dim-readout--construction.desing2-stl-wall-dim-readout--editable.desing2-stl-floor-dim-readout--on-dark,
+.desing2-stl-view-scope .desing2-stl-floor-dim-readout.desing2-stl-floor-dim-readout--compact.desing2-stl-wall-dim-readout--construction.desing2-stl-wall-dim-readout--editable.desing2-stl-floor-dim-readout--on-dark {
+    color: #c5d8f5;
+    text-shadow: 0 0 3px #0f172a, 0 0 3px #0f172a;
+}
+
+.desing2-stl-view-scope .desing2-stl-wall-dim-readout--construction.desing2-stl-floor-dim-readout--on-dark {
+    color: #f5f5f5;
+    text-shadow: 0 0 3px #0f172a, 0 0 3px #0f172a;
 }
 
 .desing2-stl-view-scope .desing2-stl-wall-dim-readout--thickness {
@@ -470,6 +501,16 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     color: #fafafa;
 }
 
+.desing2-stl-view-scope .desing2-stl-floor-dim-readout.desing2-stl-floor-dim-readout--compact.desing2-stl-wall-dim-readout--construction,
+.desing2-stl-view-scope .desing2-stl-floor-dim-readout.desing2-stl-wall-dim-readout--construction {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+    max-width: none;
+}
+
 /* Cotas en vivo herramienta línea (`picking2`): sólo lectura, no compite con edición hover. */
 .desing2-stl-view-scope .desing2-stl-floor-dim-overlay.desing2-stl-floor-dim-overlay--line-tool-preview .desing2-stl-floor-dim-readout {
     pointer-events: none;
@@ -505,6 +546,32 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     max-width: 4.25rem;
     padding: 0.14rem 0.3rem;
     font-size: 0.84rem;
+}
+
+.desing2-stl-view-scope.is-wall-dim-editing #ma-stl-viewer-gl-host,
+.desing2-stl-view-scope.is-wall-dim-editing .desing2-stl-wall-dim-readout,
+.desing2-stl-view-scope.is-wall-dim-editing .ma-stl-edge-rulers-overlay {
+    opacity: 0.5;
+}
+
+.desing2-stl-view-scope.is-wall-dim-editing .desing2-stl-wall-dim-readout {
+    pointer-events: none;
+}
+
+.desing2-stl-view-scope .desing2-stl-floor-dim-input.desing2-stl-floor-dim-input--compact.desing2-stl-wall-dim-input--focus {
+    opacity: 1;
+    z-index: 6;
+    transform: translate(-50%, -50%);
+    font-size: 0.78rem;
+    line-height: 1;
+    font-weight: 600;
+    width: 6.4ch;
+    max-width: none;
+    padding: 0.28rem 0.55rem;
+    border-width: 1px;
+    border-color: rgba(10, 61, 130, 0.45);
+    color: #0a3d82;
+    box-shadow: none;
 }
 
 /* Desing_2 STL — asa azul midpoint segmento usuario (mover en planta XZ durante edición cotas) */
@@ -2503,6 +2570,129 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     color: rgba(15, 23, 42, 0.9);
     border-color: rgba(51, 65, 85, 0.32);
     opacity: 1;
+}
+
+.desing2-dim-kinds-slot {
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+}
+
+.desing2-dim-kinds[hidden],
+#ma-stl-tool-dim-kinds[hidden],
+#desing2-dim-kinds-sep[hidden] {
+    display: none !important;
+}
+
+#ma-stl-tool-dim-kinds.is-visible {
+    display: inline-flex !important;
+}
+
+#desing2-dim-kinds-sep.is-visible {
+    display: inline-block !important;
+}
+
+.desing2-dim-kinds.is-visible {
+    display: flex !important;
+}
+
+.desing2-dim-kinds-pop {
+    position: fixed;
+    inset: 0;
+    z-index: 1080;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.35);
+}
+
+.desing2-dim-kinds-pop[hidden] {
+    display: none !important;
+}
+
+.desing2-dim-kinds-pop .desing2-dim-kinds {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: min(22rem, calc(100vw - 2rem));
+}
+
+.desing2-dim-kinds {
+    position: relative;
+    z-index: 30;
+    width: 17.5rem;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid #d5dbe3;
+    border-radius: 0.7rem;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
+    overflow: hidden;
+}
+
+.desing2-dim-kinds__head {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.5rem;
+    background: var(--tandem-primary, var(--bs-primary));
+    color: #fff;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+}
+
+.desing2-dim-kinds__head:active {
+    cursor: grabbing;
+}
+
+.desing2-dim-kinds__head .desing2-material-count__title {
+    color: #fff;
+    margin-right: 0;
+}
+
+.desing2-dim-kinds__head .design-material-count-popup__logo {
+    height: 22px;
+}
+
+.desing2-dim-kinds__close {
+    margin-left: auto;
+    cursor: pointer;
+    color: #fff !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+.desing2-dim-kinds__close:hover {
+    background: rgba(255, 255, 255, 0.18) !important;
+    color: #fff !important;
+}
+
+.desing2-dim-kinds__list {
+    list-style: none;
+    margin: 0;
+    padding: 0.3rem 0.15rem 0.4rem;
+}
+
+.desing2-dim-kinds__list label {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0.32rem 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.desing2-dim-kinds__list label:hover {
+    background: #f4f7fb;
+}
+
+.desing2-dim-kinds__list .form-check-input {
+    margin: 0;
+    flex: 0 0 auto;
 }
 
 .desing2-stl-floating-toolbar__flyout-panel {

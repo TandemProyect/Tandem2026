@@ -9,13 +9,15 @@ using System.Linq;
 
 namespace Desing.Repositories.RepositoryAtk60
 {
-    public sealed class Atk60WallsRepository
+    public sealed partial class Atk60WallsRepository
     {
         private readonly FormworkJsonCommonRepository _common;
         private readonly List<IModuloAtk60ElementBuilder> _moduleBuilders;
 
-        private static readonly int[] Atk60FillModuleMm = { 2400, 1200, 900, 750, 600, 450, 300 };
+        private static readonly int[] Atk60StepModuleMm = { 2550, 2400, 2250, 2100, 1950, 1800, 1650, 1500, 1350, 1200, 1050, 900, 750, 600, 450, 300 };
         private const int Atk60BaseModuleMm = 2700;
+        private const int Atk60StepMm = 150;
+        private const int Atk60MinPanelMm = 300;
         private const double ConnectedEndTrimMm = 450d;
 
         public Atk60WallsRepository(FormworkJsonCommonRepository common)
@@ -44,8 +46,9 @@ namespace Desing.Repositories.RepositoryAtk60
         {
             var payload = BuildPayloadFromIdsJson(idsJson);
             var walls = payload.Walls ?? new List<Desing2FormworkWallDto>();
+            var connectedEnds = CountConnectedEnds(walls);
             ApplyConnectedEndTrim(walls);
-            var modulos = GetWallsForCadSystems(walls);
+            var modulos = GetWallsForCadSystems(walls, connectedEnds);
             return new Atk60FormworkSolveResult
             {
                 System = payload.System,
@@ -60,18 +63,30 @@ namespace Desing.Repositories.RepositoryAtk60
         // Docs/Proyectos/Desing/ATK60-Logica-Modulos-Wall.md
         public List<ModulosAtk60Wall> GetWallsForCadSystems(List<Desing2FormworkWallDto> walls)
         {
+            return GetWallsForCadSystems(walls, null);
+        }
+
+        private List<ModulosAtk60Wall> GetWallsForCadSystems(
+            List<Desing2FormworkWallDto> walls,
+            Dictionary<string, int> connectedEnds)
+        {
             var modulos = new List<ModulosAtk60Wall>();
             if (walls == null || walls.Count == 0)
             {
                 return modulos;
             }
 
-            // Normas ATK60 para CUALQUIER longitud de muro:
-            // 1) El módulo más grande que quepa: 2,70, si no 2,40, si no 1,20,
-            //    y luego 0,90  0,75  0,60  0,45  0,30.
-            // 2) No se parte un 2,70 en paneles pequeños. Menos módulos, menos uniones.
-            // 3) Lo que no llega a 0,30 m queda de remate.
-            // 4) Si hay remate, va el penúltimo; el muro acaba en un módulo.
+            // Normas ATK60 para cualquier longitud:
+            // 1) Los 2,70 que quepan enteros.
+            // 2) Un solo módulo final, el mayor del catálogo que quepa en el resto.
+            //    No se rellena el resto con varios paneles (1,20 y 0,45).
+            // 3) El tablón es lo que sobra de ese módulo. Si pasa de 0,15, el módulo
+            //    sube un paso de 0,15 (el 0,90 pasa a 1,05).
+            // 4) Si hay tablón, va el penúltimo. El muro acaba en un módulo.
+            // 5) Muro con ninguna conexión o con una sola, y largo múltiplo de 0,15:
+            //    no hay tablón. El desencofrado sale por el tape. 8,25 m son
+            //    dos de 2,70, uno de 2,40 y un panel de 0,45.
+            //    Con conexión en los dos extremos se queda el tablón de 0,15.
             const int epsMm = 1;
 
             foreach (var item in walls)
@@ -103,13 +118,15 @@ namespace Desing.Repositories.RepositoryAtk60
 
                 int n270;
                 int remateMm;
-                var useAdjustable750 = Atk60FaceInsertion.UseAdjustable750(item.Attributes);
-                var fillSizes = Atk60FillSizesMm(useAdjustable750);
-                var fillCounts = PackAtk60LengthMm(longMm, fillSizes, out n270, out remateMm);
+                int ends;
+                var tapeEnd = connectedEnds != null
+                    && connectedEnds.TryGetValue(idWall ?? string.Empty, out ends)
+                    && ends < 2;
+                var fillCounts = PackAtk60LengthMm(longMm, out n270, out remateMm, tapeEnd);
                 AddModuleCount(module, 2.70, n270);
-                for (var i = 0; i < fillSizes.Length; i++)
+                for (var i = 0; i < Atk60StepModuleMm.Length; i++)
                 {
-                    AddModuleCount(module, fillSizes[i] / 1000.0, fillCounts[i]);
+                    AddModuleCount(module, Atk60StepModuleMm[i] / 1000.0, fillCounts[i]);
                 }
 
                 module.M_Remate = Math.Round(remateMm / 1000.0, 3);
@@ -117,6 +134,77 @@ namespace Desing.Repositories.RepositoryAtk60
             }
 
             return modulos;
+        }
+
+        /// <summary>
+        /// Extremos que tocan otro muro. 0 = muro suelto, 1 = una conexión, 2 = las dos.
+        /// Se cuenta antes del recorte: después los extremos ya no se tocan.
+        /// </summary>
+        private static Dictionary<string, int> CountConnectedEnds(List<Desing2FormworkWallDto> walls)
+        {
+            var counts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            if (walls == null)
+            {
+                return counts;
+            }
+
+            var segs = new List<Atk60TrimSeg>();
+            for (var i = 0; i < walls.Count; i++)
+            {
+                var wall = walls[i];
+                if (wall == null || PillarFormwork.IsPillar(wall))
+                {
+                    continue;
+                }
+
+                var geom = ResolveWallGeom(wall);
+                if (geom == null || !geom.StartX.HasValue || !geom.StartZ.HasValue
+                    || !geom.EndX.HasValue || !geom.EndZ.HasValue)
+                {
+                    continue;
+                }
+
+                segs.Add(new Atk60TrimSeg
+                {
+                    Wall = wall,
+                    Sx = geom.StartX.Value,
+                    Sz = geom.StartZ.Value,
+                    Ex = geom.EndX.Value,
+                    Ez = geom.EndZ.Value
+                });
+            }
+
+            var degree = new Dictionary<string, int>(StringComparer.Ordinal);
+            for (var i = 0; i < segs.Count; i++)
+            {
+                var s = segs[i];
+                var ks = CornerKeyMm(s.Sx, s.Sz);
+                var ke = CornerKeyMm(s.Ex, s.Ez);
+                int ns;
+                degree[ks] = degree.TryGetValue(ks, out ns) ? ns + 1 : 1;
+                int ne;
+                degree[ke] = degree.TryGetValue(ke, out ne) ? ne + 1 : 1;
+            }
+
+            for (var i = 0; i < segs.Count; i++)
+            {
+                var s = segs[i];
+                var id = !string.IsNullOrWhiteSpace(s.Wall.WallId)
+                    ? s.Wall.WallId
+                    : (!string.IsNullOrWhiteSpace(s.Wall.Id) ? s.Wall.Id : s.Wall.LineId);
+                if (string.IsNullOrWhiteSpace(id))
+                {
+                    continue;
+                }
+
+                int ds;
+                int de;
+                var start = degree.TryGetValue(CornerKeyMm(s.Sx, s.Sz), out ds) && ds >= 2 ? 1 : 0;
+                var end = degree.TryGetValue(CornerKeyMm(s.Ex, s.Ez), out de) && de >= 2 ? 1 : 0;
+                counts[id] = start + end;
+            }
+
+            return counts;
         }
 
         private static void ApplyConnectedEndTrim(List<Desing2FormworkWallDto> walls)
@@ -182,13 +270,15 @@ namespace Desing.Repositories.RepositoryAtk60
 
                 var ux = dx / len;
                 var uz = dz / len;
+                var startKey = CornerKeyMm(s.Sx, s.Sz);
+                var endKey = CornerKeyMm(s.Ex, s.Ez);
                 int ds;
                 int de;
-                var trimStart = degree.TryGetValue(CornerKeyMm(s.Sx, s.Sz), out ds) && ds >= 2
-                    ? ConnectedEndTrimMm
+                var trimStart = degree.TryGetValue(startKey, out ds) && ds >= 2
+                    ? CornerTrimMm(segs, s, startKey)
                     : 0d;
-                var trimEnd = degree.TryGetValue(CornerKeyMm(s.Ex, s.Ez), out de) && de >= 2
-                    ? ConnectedEndTrimMm
+                var trimEnd = degree.TryGetValue(endKey, out de) && de >= 2
+                    ? CornerTrimMm(segs, s, endKey)
                     : 0d;
                 var trimmed = Math.Max(0d, len - trimStart - trimEnd);
                 var nsx = s.Sx + ux * trimStart;
@@ -202,6 +292,126 @@ namespace Desing.Repositories.RepositoryAtk60
         private static string CornerKeyMm(double x, double z)
         {
             return ((int)Math.Round(x)).ToString() + "|" + ((int)Math.Round(z)).ToString();
+        }
+
+        /// <summary>
+        /// En L, el recto termina donde termina el muro gris: la cara es el
+        /// espesor del otro muro más la esquina de 300 mm, al módulo siguiente.
+        /// 470 + 300 = 770, la cara mide 900.
+        /// </summary>
+        private static double CornerTrimMm(List<Atk60TrimSeg> segs, Atk60TrimSeg self, string key)
+        {
+            if (self == null || self.Wall == null || !IsSquareCorner(segs, key))
+            {
+                return ConnectedEndTrimMm;
+            }
+
+            Atk60TrimSeg neighbor = null;
+            for (var i = 0; i < segs.Count; i++)
+            {
+                var seg = segs[i];
+                if (ReferenceEquals(seg, self) || seg.Wall == null)
+                {
+                    continue;
+                }
+
+                var touch = CornerKeyMm(seg.Sx, seg.Sz) == key || CornerKeyMm(seg.Ex, seg.Ez) == key;
+                if (!touch)
+                {
+                    continue;
+                }
+
+                neighbor = seg;
+                break;
+            }
+
+            double intoX;
+            double intoZ;
+            double otherX;
+            double otherZ;
+            if (neighbor == null
+                || !TryDirIntoTrim(self, key, out intoX, out intoZ)
+                || !TryDirIntoTrim(neighbor, key, out otherX, out otherZ))
+            {
+                return ConnectedEndTrimMm;
+            }
+
+            var selfThickness = ResolveWallWidthMm(self.Wall.Attributes);
+            var otherThickness = ResolveWallWidthMm(neighbor.Wall.Attributes);
+            return LCornerFormwork.AxisTrimMm(intoX, intoZ, otherX, otherZ, selfThickness, otherThickness);
+        }
+
+        private static bool IsSquareCorner(List<Atk60TrimSeg> segs, string key)
+        {
+            Atk60TrimSeg first = null;
+            Atk60TrimSeg second = null;
+            for (var i = 0; i < segs.Count; i++)
+            {
+                var seg = segs[i];
+                var touch = CornerKeyMm(seg.Sx, seg.Sz) == key || CornerKeyMm(seg.Ex, seg.Ez) == key;
+                if (!touch)
+                {
+                    continue;
+                }
+
+                if (first == null)
+                {
+                    first = seg;
+                }
+                else if (second == null)
+                {
+                    second = seg;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            if (first == null || second == null)
+            {
+                return false;
+            }
+
+            double ax;
+            double az;
+            double bx;
+            double bz;
+            if (!TryDirIntoTrim(first, key, out ax, out az) || !TryDirIntoTrim(second, key, out bx, out bz))
+            {
+                return false;
+            }
+
+            return Math.Abs((ax * bx) + (az * bz)) < 0.45d;
+        }
+
+        private static bool TryDirIntoTrim(Atk60TrimSeg seg, string key, out double ux, out double uz)
+        {
+            ux = 0d;
+            uz = 0d;
+            var dx = seg.Ex - seg.Sx;
+            var dz = seg.Ez - seg.Sz;
+            var len = Math.Sqrt((dx * dx) + (dz * dz));
+            if (len < 1d)
+            {
+                return false;
+            }
+
+            if (CornerKeyMm(seg.Sx, seg.Sz) == key)
+            {
+                ux = dx / len;
+                uz = dz / len;
+                return true;
+            }
+
+            if (CornerKeyMm(seg.Ex, seg.Ez) == key)
+            {
+                ux = -dx / len;
+                uz = -dz / len;
+                return true;
+            }
+
+            return false;
         }
 
         private static void WriteTrimmedAxis(
@@ -517,6 +727,7 @@ namespace Desing.Repositories.RepositoryAtk60
                 .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
             var protectionWoodPending = true;
+            var faceRemates = JoinCornerFaceRemates(walls);
             foreach (var moduloWall in modulos)
             {
                 if (moduloWall == null || string.IsNullOrWhiteSpace(moduloWall.IdWall))
@@ -548,6 +759,13 @@ namespace Desing.Repositories.RepositoryAtk60
                 }
 
                 var remateMm = Math.Round(moduloWall.M_Remate * 1000d, 3);
+                FaceRemateSides faceSides = null;
+                FaceRemateSides foundSides;
+                if (faceRemates.TryGetValue(moduloWall.IdWall, out foundSides))
+                {
+                    faceSides = foundSides;
+                }
+
                 var chunks = BuildAtk60AlongChunks(moduloWall);
                 var skipRemate = ExactWidthEndTape.SuppressesRemate(wall)
                     && remateMm > 1d && remateMm < 300d;
@@ -580,6 +798,7 @@ namespace Desing.Repositories.RepositoryAtk60
                 var stiffenerAlongMm = new List<double>();
                 var cursorMm = leadMm - halfSolapeMm;
                 var indexOffset = 0;
+                var paintedFaceRemate = false;
                 for (var ci = 0; ci < chunks.Count; ci++)
                 {
                     var chunk = chunks[ci];
@@ -587,9 +806,9 @@ namespace Desing.Repositories.RepositoryAtk60
                     {
                         if (!skipRemate)
                         {
-                            outElements.AddRange(
-                                Modulo270PanelElementGenerator.BuildRemate(wall, anchor, remateMm, cursorMm));
+                            PaintFaceRemate(outElements, wall, anchor, remateMm, cursorMm, faceSides);
                             cursorMm += remateMm;
+                            paintedFaceRemate = true;
                         }
 
                         continue;
@@ -630,6 +849,11 @@ namespace Desing.Repositories.RepositoryAtk60
                     indexOffset += chunk.Count;
                 }
 
+                if (!skipRemate && !paintedFaceRemate && faceSides != null)
+                {
+                    PaintFaceRemate(outElements, wall, anchor, 0d, cursorMm, faceSides);
+                }
+
                 PushPullProp.PlaceAlongWall(outElements, wall, anchor);
 
                 if (bothTapes)
@@ -651,6 +875,7 @@ namespace Desing.Repositories.RepositoryAtk60
                 protectionWoodPending = false;
             }
 
+            LCornerFormwork.Place(outElements, walls, anchors);
             return outElements;
         }
 
@@ -1146,40 +1371,123 @@ namespace Desing.Repositories.RepositoryAtk60
             return found450 ?? found300 ?? lastAny;
         }
 
-        /// <summary>
-        /// Despiece longitudinal: primero 2,70, luego el mayor que quepa.
-        /// El resto, si no llega a 0,30 m, es remate.
-        /// </summary>
-        private static int[] Atk60FillSizesMm(bool useAdjustable750)
-        {
-            if (useAdjustable750)
-            {
-                return Atk60FillModuleMm;
-            }
-
-            return new[] { 2400, 1200, 900, 600, 450, 300 };
-        }
-
-        private static int[] PackAtk60LengthMm(int longMm, int[] fillSizes, out int n270, out int remateMm)
+        private static int[] PackAtk60LengthMm(int longMm, out int n270, out int remateMm, bool tapeEndExact = false)
         {
             n270 = longMm / Atk60BaseModuleMm;
             var remainingMm = longMm - (n270 * Atk60BaseModuleMm);
-            var fillCounts = new int[fillSizes.Length];
-            for (var i = 0; i < fillSizes.Length && remainingMm >= 300; i++)
+            if (remainingMm < 0)
             {
-                var sizeMm = fillSizes[i];
-                if (sizeMm < 300 || remainingMm < sizeMm)
+                remainingMm = 0;
+            }
+
+            var fillCounts = new int[Atk60StepModuleMm.Length];
+            var finalMm = LargestFinalModuleMm(remainingMm);
+            if (finalMm >= Atk60MinPanelMm)
+            {
+                var idx = StepIndex(finalMm);
+                if (idx >= 0)
+                {
+                    fillCounts[idx] = 1;
+                }
+
+                remainingMm -= finalMm;
+            }
+
+            // Un tablón de más de 0,15 sube el módulo final un paso. El de 0,15 se queda
+            // si el muro tiene conexión en los dos extremos.
+            var guard = 0;
+            while (remainingMm > Atk60StepMm && guard < 40 && RaiseFinalModule(fillCounts, ref remainingMm))
+            {
+                guard++;
+            }
+
+            remateMm = remainingMm;
+            if (tapeEndExact
+                && remateMm == Atk60StepMm
+                && n270 >= 1
+                && longMm % Atk60StepMm == 0)
+            {
+                n270--;
+                var i240 = StepIndex(2400);
+                var i045 = StepIndex(450);
+                if (i240 >= 0)
+                {
+                    fillCounts[i240]++;
+                }
+
+                if (i045 >= 0)
+                {
+                    fillCounts[i045]++;
+                }
+
+                remateMm = 0;
+            }
+
+            return fillCounts;
+        }
+
+        /// <summary>
+        /// El mayor módulo de catálogo que cabe en el resto. Uno solo: no se rellena
+        /// con 1,20 y un 0,45 al lado de la esquina.
+        /// </summary>
+        private static int LargestFinalModuleMm(int remainingMm)
+        {
+            if (remainingMm <= Atk60StepMm)
+            {
+                return 0;
+            }
+
+            for (var i = 0; i < Atk60StepModuleMm.Length; i++)
+            {
+                var sizeMm = Atk60StepModuleMm[i];
+                if (sizeMm <= remainingMm && sizeMm >= Atk60MinPanelMm)
+                {
+                    return sizeMm;
+                }
+            }
+
+            return 0;
+        }
+
+        /// <summary>
+        /// El tablón pasa de 0,15: el módulo final crece 0,15 y el tablón baja 0,15.
+        /// </summary>
+        private static bool RaiseFinalModule(int[] counts, ref int remateMm)
+        {
+            for (var i = 0; i < Atk60StepModuleMm.Length; i++)
+            {
+                var sizeMm = Atk60StepModuleMm[i];
+                if (counts[i] <= 0)
                 {
                     continue;
                 }
 
-                var n = remainingMm / sizeMm;
-                fillCounts[i] = n;
-                remainingMm -= n * sizeMm;
+                var next = StepIndex(sizeMm + Atk60StepMm);
+                if (next < 0)
+                {
+                    continue;
+                }
+
+                counts[i]--;
+                counts[next]++;
+                remateMm -= Atk60StepMm;
+                return true;
             }
 
-            remateMm = remainingMm < 0 ? 0 : remainingMm;
-            return fillCounts;
+            return false;
+        }
+
+        private static int StepIndex(int sizeMm)
+        {
+            for (var i = 0; i < Atk60StepModuleMm.Length; i++)
+            {
+                if (Atk60StepModuleMm[i] == sizeMm)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
         }
 
         private static void AddModuleCount(ModulosAtk60Wall module, double moduleValueM, long count)

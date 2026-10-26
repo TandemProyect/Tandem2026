@@ -128,9 +128,11 @@ woodTacoMm = panelMm - needMm
 **Fórmulas:**
 
 ```
-leg1 = selectPanel(e1Mm + 0,30)
-leg2 = selectPanel(e2Mm + 0,30)
+leg1 = selectPanel(e2Mm + 0,30)
+leg2 = selectPanel(e1Mm + 0,30)
 ```
+
+La cara a lo largo de un eje usa el espesor del **otro** muro. 0,47 + 0,30 = 0,77 → esa cara mide 0,90. El panel de esquina de 0,30 no es la longitud de la cara.
 
 **Salida:** polígono **6 vértices** CCW + `meta.kind: 'cornerL'`
 
@@ -139,6 +141,8 @@ leg2 = selectPanel(e2Mm + 0,30)
 | E | Necesidad | Panel | Taco |
 |---|-----------|-------|------|
 | 0,2345 m (234,5 mm) | 0,5345 m | **0,60 m** | **0,0655 m** |
+
+La colocación del angular y del panel de esquina interior, y el método de puntos para la T, el cruce y los pilares, están en [`esquina-L-atk60.md`](esquina-L-atk60.md) (cerrado el 25 oct 2026).
 
 ### 3.4 Unión T — `maAtk60BuildTFootprintMm`
 

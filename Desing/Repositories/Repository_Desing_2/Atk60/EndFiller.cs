@@ -14,10 +14,13 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             Desing2FormworkWallDto wall,
             Atk60WallPaintAnchor anchor,
             double fillerLengthMm,
-            double startAlongMm)
+            double startAlongMm,
+            bool showPrimary = true,
+            bool showOpposite = true,
+            bool uprightOnOppositeFace = false)
         {
             var outElements = new List<Atk60ElementPaintItem>();
-            if (wall == null || anchor == null || fillerLengthMm <= 1d)
+            if (wall == null || anchor == null || fillerLengthMm <= 1d || (!showPrimary && !showOpposite))
             {
                 return outElements;
             }
@@ -48,14 +51,22 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             var oppositeZ = oppositeBaseZ + (!faceIsRightSide ? uz * fillerLengthMm : 0d);
             var oppositeRotY = renderYawRad + (!faceIsRightSide ? System.Math.PI : 0d);
 
-            outElements.Add(Create(anchor, idWall, primaryX, baseY, primaryZ, primaryRotY, false, fillerLengthMm, wallHeightMm, wallThicknessMm, wallLengthMm, startAlongMm));
-            outElements.Add(Create(anchor, idWall, oppositeX, baseY, oppositeZ, oppositeRotY, true, fillerLengthMm, wallHeightMm, wallThicknessMm, wallLengthMm, startAlongMm));
+            if (showPrimary)
+            {
+                outElements.Add(Create(anchor, idWall, primaryX, baseY, primaryZ, primaryRotY, false, fillerLengthMm, wallHeightMm, wallThicknessMm, wallLengthMm, startAlongMm));
+            }
+
+            if (showOpposite)
+            {
+                outElements.Add(Create(anchor, idWall, oppositeX, baseY, oppositeZ, oppositeRotY, true, fillerLengthMm, wallHeightMm, wallThicknessMm, wallLengthMm, startAlongMm));
+            }
 
             PanelClamp.PlaceOnEndFiller(
                 outElements, anchor, idWall,
                 startAlongMm, fillerLengthMm,
                 yawRad, ux, uz, faceSign,
-                wallHeightMm, wallThicknessMm, wallLengthMm);
+                wallHeightMm, wallThicknessMm, wallLengthMm,
+                showPrimary, showOpposite, uprightOnOppositeFace);
 
             return outElements;
         }

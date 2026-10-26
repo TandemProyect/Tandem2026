@@ -195,10 +195,35 @@
         ? wallListLogo
         : Url.Content("~" + (wallListLogo.StartsWith("/") ? wallListLogo : "/" + wallListLogo));
 }
+<div id="desing2-dim-kinds-pop" class="desing2-dim-kinds-pop" hidden="hidden">
+    <div id="desing2-dim-kinds" class="desing2-dim-kinds" role="dialog" aria-modal="true" aria-labelledby="desing2-dim-kinds-title" data-remate-word="@MasterArticles.StlPreview_DimRemateWord">
+        <div class="desing2-dim-kinds__head">
+            <img src="@wallListLogoUrl" alt="" class="design-material-count-popup__logo@(wallListLogoIsLockup ? " tandem-brand-lockup" : "")" />
+            @if (!wallListLogoIsLockup)
+            {
+                <span class="design-material-count-popup__brand">@Html.Partial("_BrandSvg")</span>
+            }
+            <span class="desing2-material-count__title" id="desing2-dim-kinds-title">@MasterArticles.StlPreview_DimKindsTitle</span>
+            <button type="button" class="btn btn-sm btn-icon desing2-dim-kinds__close" id="desing2-dim-kinds-close" aria-label="@Common.Aria_CloseModal">
+                <i class="icon-base ri ri-close-line" aria-hidden="true"></i>
+            </button>
+        </div>
+        <ul class="desing2-dim-kinds__list">
+            <li><label><input type="checkbox" class="form-check-input" data-dim-kind="walls-total" checked="checked" /> @MasterArticles.StlPreview_DimKindWallsTotal</label></li>
+            <li><label><input type="checkbox" class="form-check-input" data-dim-kind="walls-partial" checked="checked" /> @MasterArticles.StlPreview_DimKindWallsPartial</label></li>
+            <li><label><input type="checkbox" class="form-check-input" data-dim-kind="walls-axes" checked="checked" /> @MasterArticles.StlPreview_DimKindWallAxes</label></li>
+            <li><label><input type="checkbox" class="form-check-input" data-dim-kind="panels" checked="checked" /> @MasterArticles.StlPreview_DimKindPanels</label></li>
+            <li><label><input type="checkbox" class="form-check-input" data-dim-kind="remates" checked="checked" /> @MasterArticles.StlPreview_DimKindRemates</label></li>
+            <li><label><input type="checkbox" class="form-check-input" data-dim-kind="adjustable-panel" checked="checked" /> @MasterArticles.StlPreview_DimKindAdjustable</label></li>
+            <li><label><input type="checkbox" class="form-check-input" data-dim-kind="wall-id" checked="checked" /> @MasterArticles.StlPreview_DimKindWallId</label></li>
+        </ul>
+    </div>
+</div>
 <div class="modal fade" id="desing2WallListModal" tabindex="-1" aria-hidden="true"
      data-empty="@MasterArticles.StlPreview_WallListEmpty"
      data-search="Buscar:"
-     data-group-select="@MasterArticles.StlPreview_GroupSelect">
+     data-group-select="@MasterArticles.StlPreview_GroupSelect"
+     data-dim-label="@MasterArticles.StlPreview_WallListDim">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content design-material-count-popup">
             <section class="desing2-material-count desing2-wall-list is-open" aria-label="@MasterArticles.StlPreview_WallListAria">
@@ -224,6 +249,9 @@
                         <li class="nav-item" role="presentation">
                             <button type="button" class="nav-link" id="desing2WallListTabProps" data-bs-toggle="tab" data-bs-target="#desing2WallListPaneProps" role="tab" aria-controls="desing2WallListPaneProps" aria-selected="false">@MasterArticles.StlPreview_WallListTabProps</button>
                         </li>
+                        <li class="nav-item" role="presentation">
+                            <button type="button" class="nav-link" id="desing2WallListTabDim" data-bs-toggle="tab" data-bs-target="#desing2WallListPaneDim" role="tab" aria-controls="desing2WallListPaneDim" aria-selected="false">@MasterArticles.StlPreview_WallListTabDim</button>
+                        </li>
                     </ul>
                 </div>
                 <div class="tab-content desing2-material-count__body">
@@ -235,6 +263,9 @@
                     </div>
                     <div class="tab-pane fade" id="desing2WallListPaneProps" role="tabpanel" aria-labelledby="desing2WallListTabProps">
                         <table id="desing2WallListProps" class="table table-sm w-100"></table>
+                    </div>
+                    <div class="tab-pane fade" id="desing2WallListPaneDim" role="tabpanel" aria-labelledby="desing2WallListTabDim">
+                        <table id="desing2WallListDim" class="table table-sm w-100"></table>
                     </div>
                 </div>
                 <div class="desing2-wall-list__foot">
@@ -354,6 +385,7 @@
     <script src="@Url.Content("~/Scripts/Desing2/desing2-map-building-import.js")"></script>
     <script type="module" src="@masterArticleViewerUrl"></script>
     <script type="module" src="@cadBlockPreviewUrl"></script>
-    <script src="@Url.Content("~/Scripts/Desing2/desing2-stl-viewer-toolbar-wiring.js")"></script>
+    <script src="@Url.Content("~/Scripts/Desing2/desing2-stl-viewer-toolbar-wiring.js")?v=20261023k"></script>
+    <script src="@Url.Content("~/Scripts/Desing2/desing2-dim-kinds.js")?v=20261026f"></script>
     <script src="@Url.Content("~/Scripts/Desing2/desing2-connection-test.js")"></script>
 }

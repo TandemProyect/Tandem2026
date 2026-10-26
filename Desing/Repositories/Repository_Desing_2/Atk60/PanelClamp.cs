@@ -69,7 +69,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 {
                     if (piece.UpOffsetMm > 1d)
                     {
-                        var seamAlong = new[] { 200d, 1350d, 2500d };
+                        // El lado largo es el ancho: 2,70, 2,40 o 1,20. Mismas estaciones que de pie.
+                        var seamAlong = VerticalHeightsMm(piece.PieceWidthMm);
                         for (var si = 0; si < seamAlong.Length; si++)
                         {
                             var local = seamAlong[si];
@@ -160,7 +161,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         }
 
         /// <summary>
-        /// Grapa regulable del remate (10–300 mm): fija al inicio y corredera al final de la madera.
+        /// Grapa regulable del remate (10–600 mm): fija al inicio y corredera al final de la madera.
+        /// Hasta 600 mm para poder unir el remate de la cara con el del muro vecino.
         /// </summary>
         internal static void PlaceOnEndFiller(
             List<Atk60ElementPaintItem> outElements,
@@ -174,9 +176,12 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double faceSign,
             double wallHeightMm,
             double wallThicknessMm,
-            double wallLengthMm)
+            double wallLengthMm,
+            bool showPrimary = true,
+            bool showOpposite = true,
+            bool uprightOnOppositeFace = false)
         {
-            if (fillerLengthMm < 10d || fillerLengthMm > 300d)
+            if (fillerLengthMm < 10d || fillerLengthMm > 600d || (!showPrimary && !showOpposite))
             {
                 return;
             }
@@ -189,12 +194,14 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     outElements, anchor, idWall, AdjustablePath,
                     startAlongMm, heights[hi], yawRad, ux, uz, faceSign,
                     wallHeightMm, wallThicknessMm, wallLengthMm,
-                    Atk60FaceInsertion.PanelFaceMm, 0d, AdjustableCode, "zinc");
+                    Atk60FaceInsertion.PanelFaceMm, 0d, AdjustableCode, "zinc",
+                    uprightOnOppositeFace, showPrimary, showOpposite);
                 Atk60FaceInsertion.BothFaces(
                     outElements, anchor, idWall, AdjustableSlidePath,
                     slideAlongMm, heights[hi], yawRad, ux, uz, faceSign,
                     wallHeightMm, wallThicknessMm, wallLengthMm,
-                    Atk60FaceInsertion.PanelFaceMm, 0d, AdjustableSlideCode, "zinc");
+                    Atk60FaceInsertion.PanelFaceMm, 0d, AdjustableSlideCode, "zinc",
+                    uprightOnOppositeFace, showPrimary, showOpposite);
             }
         }
 
@@ -230,21 +237,29 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             return moduleIndex < countInWall && Math.Abs(localJointMm - moduleLengthMm) < 25d;
         }
 
+        /// <summary>
+        /// Alturas de la junta vertical normal. Compensación, escuadra G
+        /// y la grapa de más junto a la esquina: agente-grapas-atk60.md.
+        /// </summary>
         private static double[] VerticalHeightsMm(int pieceHeightMm)
         {
             if (pieceHeightMm >= 2500)
             {
+                // NEVI 3.1.1 y Desing antiguo (cm 45, 135, 225).
+                // No usar 550 ni 2150: ahí está el tirante y la grapa choca.
                 return new[] { 450d, 1350d, 2250d };
             }
 
             if (pieceHeightMm >= 2000)
             {
+                // 2,40 m: dos grapas. El tirante va a 550 y 1850.
                 return new[] { 400d, 2000d };
             }
 
             if (pieceHeightMm >= 1000)
             {
-                return new[] { 600d };
+                // 1,20 m: dos grapas. El tirante va a 350 y 850.
+                return new[] { 200d, 800d };
             }
 
             return new[] { Math.Max(50d, pieceHeightMm * 0.5) };

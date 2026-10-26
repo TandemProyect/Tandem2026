@@ -820,6 +820,42 @@
   <data name="StlPreview_Desing2WorkerPickWorker2" xml:space="preserve">
     <value>Worker 2</value>
   </data>
+  <data name="StlPreview_DimKindAdjustable" xml:space="preserve">
+    <value>Adjustable panel</value>
+  </data>
+  <data name="StlPreview_DimKindPanels" xml:space="preserve">
+    <value>Panel size</value>
+  </data>
+  <data name="StlPreview_DimKindRemates" xml:space="preserve">
+    <value>End pieces</value>
+  </data>
+  <data name="StlPreview_DimKindWallAxes" xml:space="preserve">
+    <value>Wall to axes</value>
+  </data>
+  <data name="StlPreview_DimKindWallId" xml:space="preserve">
+    <value>Wall id</value>
+  </data>
+  <data name="StlPreview_DimKindWallsPartial" xml:space="preserve">
+    <value>Partial walls</value>
+  </data>
+  <data name="StlPreview_DimKindWallsTotal" xml:space="preserve">
+    <value>Total walls</value>
+  </data>
+  <data name="StlPreview_DimKindsAria" xml:space="preserve">
+    <value>Dimension types</value>
+  </data>
+  <data name="StlPreview_DimKindsTitle" xml:space="preserve">
+    <value>Dimensions</value>
+  </data>
+  <data name="StlPreview_DimRemateWord" xml:space="preserve">
+    <value>end piece</value>
+  </data>
+  <data name="StlPreview_DimToolAria" xml:space="preserve">
+    <value>Show or hide dimensions. Double-click opens the types</value>
+  </data>
+  <data name="StlPreview_DimToolTitle" xml:space="preserve">
+    <value>Dimension. Double-click: dimension types</value>
+  </data>
   <data name="StlPreview_EdgeRulersToggleAria" xml:space="preserve">
     <value>Viewer edge rulers</value>
   </data>
@@ -1435,8 +1471,14 @@
   <data name="StlPreview_WallListCancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
+  <data name="StlPreview_WallListDim" xml:space="preserve">
+    <value>Dimension this wall</value>
+  </data>
   <data name="StlPreview_WallListEmpty" xml:space="preserve">
     <value>No walls</value>
+  </data>
+  <data name="StlPreview_WallListTabDim" xml:space="preserve">
+    <value>Dimension</value>
   </data>
   <data name="StlPreview_WallListTabProps" xml:space="preserve">
     <value>Configure props</value>

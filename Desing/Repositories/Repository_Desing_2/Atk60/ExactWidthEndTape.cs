@@ -1507,8 +1507,13 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double x;
             double z;
             EndOffset(anchor, alongMm, ux, uz, nx, nz, outX, outZ, originT, 0d, out x, out z);
-            AddPillarPiece(outElements, anchor, idWall, code, "frame-yellow", x, baseY, z, yaw, -Math.PI * 1.5, heightMm, wallHeightMm, false);
-            AddPillarPiece(outElements, anchor, idWall, code, "phenolic", x, baseY, z, yaw, -Math.PI * 1.5, heightMm, wallHeightMm, true);
+            // El bastidor está en -Y del STL. Con el yaw del extremo (Atan2)
+            // esa cara mira al hormigón salvo que el muro vaya en X. El signo
+            // contrario deja el bastidor hacia fuera y el fenólico contra el
+            // hormigón. El origen en el espesor ya es el de este giro.
+            var faceYaw = -yaw;
+            AddPillarPiece(outElements, anchor, idWall, code, "frame-yellow", x, baseY, z, faceYaw, -Math.PI * 1.5, heightMm, wallHeightMm, false);
+            AddPillarPiece(outElements, anchor, idWall, code, "phenolic", x, baseY, z, faceYaw, -Math.PI * 1.5, heightMm, wallHeightMm, true);
         }
 
         private static void AddClosure(
@@ -1870,6 +1875,9 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             return "12000000";
         }
 
+        /// <summary>
+        /// Junta vertical, no el agujero del tirante. Ver agente-grapas-atk60.md.
+        /// </summary>
         private static double[] ClampHeightsMm(int pieceHeightMm)
         {
             if (pieceHeightMm >= 2500)
@@ -1884,7 +1892,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
 
             if (pieceHeightMm >= 1000)
             {
-                return new[] { 600d };
+                return new[] { 200d, 800d };
             }
 
             return new[] { Math.Max(50d, pieceHeightMm * 0.5) };

@@ -119,6 +119,27 @@ Metodo objetivo en repositorio ATK60:
 
 - `GetWallsForCadSystems(walls)` en `Desing/Repositories/RepositoryAtk60/Atk60WallsRepository.cs`
 
+## Conexiones de los extremos (26 oct 2026)
+
+El reparto de arriba sigue siendo la base. El tablon de 0,15 del eje depende de cuantos extremos tocan otro muro. Se cuenta antes del recorte: despues los extremos ya no se tocan.
+
+1. Ninguna conexion. Muro suelto.
+2. Una conexion, en un solo extremo.
+3. Conexion en los dos extremos.
+
+Casos 1 y 2. Si el largo que se empaqueta es multiplo de 0,15, no hay tablon. El desencofrado sale por el tape. Si el reparto base dejaba un tablon de 0,15, se abre un 2,70: ese 2,70 mas los 0,15 pasan a un modulo de 2,40 y un panel de 0,45.
+
+Ejemplo, muro suelto de 8,25 m:
+
+- dos modulos de 2,70
+- un modulo de 2,40
+- un panel de 0,45
+- sin tablon
+
+Caso 3. Se queda el reparto de ahora. Un 8,25 con las dos conexiones sigue en tres de 2,70 y un tablon de 0,15, salvo el recorte de las esquinas. El tablon de la esquina por diferencia de espesor es otro remate: va en la cara interior, entre la esquina interior y el panel, con grapa variable. No se quita por esta regla.
+
+Codigo: `CountConnectedEnds` y `PackAtk60LengthMm` en `Desing/Repositories/RepositoryAtk60/Atk60WallsRepository.cs`.
+
 ## Estado
-- Documentacion base creada.
-- Pendiente: implementacion de `ModulosAtk60Wall` y calculo real de descomposicion por muro.
+- Reparto por conexiones cerrado el 26 oct 2026, 10:51.
+- El caso 3 (las dos conexiones) conserva el tablon de 0,15 del eje.

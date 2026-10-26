@@ -420,6 +420,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\Atk60\Atk60Element.cs" />
     <Compile Include="Repositories\RepositoryAtk60\Atk60WallsRepository.cs" />
+    <Compile Include="Repositories\RepositoryAtk60\Atk60CornerFaceRemate.cs" />
     <Compile Include="Repositories\RepositoryAtk60\ModulosATK60\ModuloAtk60ElementBuilders.cs" />
     <Compile Include="Repositories\RepositoryAtk60\ModulosATK60\Modulo270HeightPanelCatalog.cs" />
     <Compile Include="Repositories\RepositoryAtk60\ModulosATK60\Modulo270PanelElementGenerator.cs" />
@@ -430,6 +431,7 @@
     <Compile Include="Repositories\Repository_Desing_2\Atk60\ExactWidthEndTape.cs" />
     <Compile Include="Repositories\Repository_Desing_2\Atk60\FormTie.cs" />
     <Compile Include="Repositories\Repository_Desing_2\Atk60\PanelClamp.cs" />
+    <Compile Include="Repositories\Repository_Desing_2\Atk60\LCornerFormwork.cs" />
     <Compile Include="Repositories\Repository_Desing_2\Atk60\PanelFormwork.cs" />
     <Compile Include="Repositories\Repository_Desing_2\Atk60\PanelStiffener.cs" />
     <Compile Include="Repositories\Repository_Desing_2\Atk60\PushPullProp.cs" />
@@ -2486,6 +2488,7 @@
     <Content Include="IA\docs\05-pendientes-y-preguntas.md" />
     <Content Include="IA\docs\agente-foto-diseno-y-menu.md" />
     <Content Include="IA\docs\agente-tapes-atk60.md" />
+    <Content Include="IA\docs\agente-grapas-atk60.md" />
     <Content Include="IA\docs\agente-traducciones-modulos.md" />
     <Content Include="IA\docs\agente-ui-materio-datatables.md" />
     <Content Include="IA\docs\AGENTE-US619-INFO.md" />
@@ -2495,6 +2498,7 @@
     <Content Include="IA\docs\DOCUMENTACION-AZURE-DEVOPS-ACTUALIZADA.md" />
     <Content Include="IA\docs\GUIA-AGENTE-AZURE-DEVOPS.md" />
     <Content Include="IA\docs\HANDOVER-LCornerDetector.md" />
+    <Content Include="IA\docs\esquina-L-atk60.md" />
     <Content Include="IA\docs\HANDOVER-PLUGIN-DEVICE-AUTH.md" />
     <Content Include="IA\docs\HANDOVER-SESION-2026-10-23.md" />
     <Content Include="IA\docs\HANDOVER-US-IMG-MUROS.md" />
@@ -3506,6 +3510,7 @@
     <Content Include="Scripts\MasterArticles\wall-edit-form.js" />
     <Content Include="Scripts\MasterArticles\wall-bulk-list.js" />
     <Content Include="Scripts\MasterArticles\design-groups.js" />
+    <Content Include="Scripts\Desing2\desing2-dim-kinds.js" />
     <Content Include="Scripts\Desing2\desing2-stl-viewer-toolbar-wiring.js" />
     <Content Include="Scripts\Desing2\desing2-map-building-import.js" />
     <Content Include="Scripts\Desing2\desing2-connection-test.js" />

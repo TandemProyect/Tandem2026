@@ -820,6 +820,42 @@
   <data name="StlPreview_Desing2WorkerPickWorker2" xml:space="preserve">
     <value>Trabajador 2</value>
   </data>
+  <data name="StlPreview_DimKindAdjustable" xml:space="preserve">
+    <value>Panel Regulable</value>
+  </data>
+  <data name="StlPreview_DimKindPanels" xml:space="preserve">
+    <value>Dimensión de Paneles</value>
+  </data>
+  <data name="StlPreview_DimKindRemates" xml:space="preserve">
+    <value>Remates</value>
+  </data>
+  <data name="StlPreview_DimKindWallAxes" xml:space="preserve">
+    <value>Muro a Ejes</value>
+  </data>
+  <data name="StlPreview_DimKindWallId" xml:space="preserve">
+    <value>Id de Muro</value>
+  </data>
+  <data name="StlPreview_DimKindWallsPartial" xml:space="preserve">
+    <value>Muros Parciales</value>
+  </data>
+  <data name="StlPreview_DimKindWallsTotal" xml:space="preserve">
+    <value>Muros Totales</value>
+  </data>
+  <data name="StlPreview_DimKindsAria" xml:space="preserve">
+    <value>Tipos de cota</value>
+  </data>
+  <data name="StlPreview_DimKindsTitle" xml:space="preserve">
+    <value>Cotas</value>
+  </data>
+  <data name="StlPreview_DimRemateWord" xml:space="preserve">
+    <value>remate</value>
+  </data>
+  <data name="StlPreview_DimToolAria" xml:space="preserve">
+    <value>Mostrar u ocultar las cotas. Doble clic abre los tipos</value>
+  </data>
+  <data name="StlPreview_DimToolTitle" xml:space="preserve">
+    <value>Acotar. Doble clic: tipos de cota</value>
+  </data>
   <data name="StlPreview_EdgeRulersToggleAria" xml:space="preserve">
     <value>Reglas de borde del visor</value>
   </data>
@@ -1435,8 +1471,14 @@
   <data name="StlPreview_WallListCancel" xml:space="preserve">
     <value>Cancelar</value>
   </data>
+  <data name="StlPreview_WallListDim" xml:space="preserve">
+    <value>Acotar este muro</value>
+  </data>
   <data name="StlPreview_WallListEmpty" xml:space="preserve">
     <value>No hay muros</value>
+  </data>
+  <data name="StlPreview_WallListTabDim" xml:space="preserve">
+    <value>Acotar</value>
   </data>
   <data name="StlPreview_WallListTabProps" xml:space="preserve">
     <value>Configurar Puntales</value>

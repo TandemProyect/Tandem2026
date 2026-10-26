@@ -1,6 +1,6 @@
 /**
  * Lista de muros del diseño: medidas de solo lectura y los mismos checks
- * que «Modificar muro», en las tres pestañas. Aceptar escribe las variables.
+ * que «Modificar muro», en las cuatro pestañas. Aceptar escribe las variables.
  */
 const TAPE_ICON = '/Content/DesignTools/MenuIcon/';
 
@@ -181,9 +181,11 @@ export function mountWallBulkList(deps) {
         tables.muro.clear().rows.add(rows).draw(false);
         tables.tapes.clear().rows.add(rows).draw(false);
         tables.props.clear().rows.add(rows).draw(false);
+        tables.dim.clear().rows.add(rows).draw(false);
         syncHeaderChecks(tables.muro);
         syncHeaderChecks(tables.tapes);
         syncHeaderChecks(tables.props);
+        syncHeaderChecks(tables.dim);
     }
 
     function makeTable(id, columns) {
@@ -231,6 +233,9 @@ export function mountWallBulkList(deps) {
                 Object.assign({ title: checkTitle('Puntales inferiores en cara interior', 'propInInf') }, checkCol('propInInf')),
                 Object.assign({ title: checkTitle('Puntales inferiores en cara exterior', 'propOutInf') }, checkCol('propOutInf')),
             ])),
+            dim: makeTable('desing2WallListDim', groupCols().concat([
+                Object.assign({ title: checkTitle(modalEl.getAttribute('data-dim-label') || 'Acotar este muro', 'dimWall') }, checkCol('dimWall')),
+            ])),
         };
     }
 
@@ -265,6 +270,7 @@ export function mountWallBulkList(deps) {
                 tables.muro.columns.adjust();
                 tables.tapes.columns.adjust();
                 tables.props.columns.adjust();
+                tables.dim.columns.adjust();
             }, 50);
         }).catch(function () {
             if (deps.fail) deps.fail('No se ha podido abrir la lista de muros.');
@@ -321,6 +327,7 @@ export function mountWallBulkList(deps) {
             syncHeaderChecks(tables.muro);
             syncHeaderChecks(tables.tapes);
             syncHeaderChecks(tables.props);
+            syncHeaderChecks(tables.dim);
         }
     });
 
@@ -329,6 +336,7 @@ export function mountWallBulkList(deps) {
         tables.muro.columns.adjust();
         tables.tapes.columns.adjust();
         tables.props.columns.adjust();
+        tables.dim.columns.adjust();
     }
 
     modalEl.addEventListener('shown.bs.tab', adjustTables);

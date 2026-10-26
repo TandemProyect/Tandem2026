@@ -80,9 +80,11 @@ export function mountWallEditForm(parent, options) {
     const tabMuro = makeTab('Muro');
     const tabTapes = makeTab('Configurar Tapes');
     const tabProps = makeTab('Configurar Puntales');
+    const tabDim = makeTab('Acotar');
     tabRow.appendChild(tabMuro);
     tabRow.appendChild(tabTapes);
     tabRow.appendChild(tabProps);
+    tabRow.appendChild(tabDim);
     body.appendChild(messageEl);
     body.appendChild(tabRow);
 
@@ -207,9 +209,15 @@ export function mountWallEditForm(parent, options) {
     propGrid.appendChild(propOutInf.wrap);
     propsPane.appendChild(propGrid);
 
+    const dimPane = document.createElement('div');
+    dimPane.style.display = 'none';
+    const dimWall = makeCheck('Acotar este muro', true);
+    dimPane.appendChild(dimWall.wrap);
+
     body.appendChild(muroPane);
     body.appendChild(tapesPane);
     body.appendChild(propsPane);
+    body.appendChild(dimPane);
 
     function paintTab(btn, active) {
         btn.style.background = active ? '#2563eb' : '#e8eef5';
@@ -220,14 +228,17 @@ export function mountWallEditForm(parent, options) {
         muroPane.style.display = which === 'muro' ? 'block' : 'none';
         tapesPane.style.display = which === 'tapes' ? 'block' : 'none';
         propsPane.style.display = which === 'props' ? 'block' : 'none';
+        dimPane.style.display = which === 'dim' ? 'block' : 'none';
         paintTab(tabMuro, which === 'muro');
         paintTab(tabTapes, which === 'tapes');
         paintTab(tabProps, which === 'props');
+        paintTab(tabDim, which === 'dim');
     }
 
     tabMuro.addEventListener('click', function () { showTab('muro'); });
     tabTapes.addEventListener('click', function () { showTab('tapes'); });
     tabProps.addEventListener('click', function () { showTab('props'); });
+    tabDim.addEventListener('click', function () { showTab('dim'); });
     showTab('muro');
 
     function makeLabel(text) {
@@ -595,6 +606,7 @@ export function mountWallEditForm(parent, options) {
             propOutCheckbox: propOut.input,
             propInInfCheckbox: propInInf.input,
             propOutInfCheckbox: propOutInf.input,
+            dimWallCheckbox: dimWall.input,
             tapeIniSolapeCheckbox: tapeIniSection.solapeCheckbox,
             tapeSolapeCheckbox: tapeEndSection.solapeCheckbox,
             tapeHeadingEl: tapeHeadingEl,
@@ -604,6 +616,7 @@ export function mountWallEditForm(parent, options) {
             muroPane: muroPane,
             tapesPane: tapesPane,
             propsPane: propsPane,
+            dimPane: dimPane,
             acceptBtn: acceptBtn,
             cancelBtn: cancelBtn,
             closeBtn: closeBtn,
@@ -679,6 +692,7 @@ export function mountWallEditForm(parent, options) {
                 propOut: !!propOut.input.checked,
                 propInInf: !!propInInf.input.checked,
                 propOutInf: !!propOutInf.input.checked,
+                dimWall: !!dimWall.input.checked,
                 tapeIni: tapeIniSelectedId || '',
                 tapeEnd: tapeEndSelectedId || '',
                 solapeIni: !!tapeIniSection.solapeCheckbox.checked,
@@ -704,6 +718,7 @@ export function mountWallEditForm(parent, options) {
             propOut.input.checked = model.propOut !== false;
             propInInf.input.checked = model.propInInf !== false;
             propOutInf.input.checked = model.propOutInf !== false;
+            dimWall.input.checked = model.dimWall !== false;
             tapeIniSection.solapeCheckbox.checked = !!model.solapeIni || model.tapeIni === 'TapeS1' || model.tapeIni === 'TapeS2';
             tapeEndSection.solapeCheckbox.checked = !!model.solapeEnd || model.tapeEnd === 'TapeS1' || model.tapeEnd === 'TapeS2';
             tapeIniSelectedId = model.tapeIni || '';

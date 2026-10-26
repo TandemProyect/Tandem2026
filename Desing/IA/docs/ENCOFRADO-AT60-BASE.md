@@ -66,6 +66,8 @@ Ejemplos:
 
 En el repositorio legacy existen STL de esquina (`PanelE1200`, `PanelE2400`, `PanelE2700`, etc.) según altura de encofrado; la **huella en planta** de la esquina mantiene el módulo **0,30 m** en cada dirección.
 
+El **angular** (0,12 m, 120 mm) no se acota. No encofra: es una pieza de unión.
+
 ### 2.4 Parámetros habituales del muro (independientes del panel)
 
 | Parámetro | Símbolo | Default habitual | Unidad en visor |

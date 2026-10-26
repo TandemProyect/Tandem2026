@@ -8,8 +8,8 @@ import { LineMaterial } from '../Design/jsm/lines/LineMaterial.js';
 import { GLTFLoader } from '../Design/jsm/loaders/GLTFLoader.js';
 import { createDesing2WorkerTool } from './desing2-worker-tool.js?v=20261022-worker2d';
 import { createDesing2PillarTool } from './desing2-pillar-tool.js';
-import { mountWallEditForm } from './wall-edit-form.js?v=20261023g';
-import { mountWallBulkList } from './wall-bulk-list.js?v=20261023g';
+import { mountWallEditForm } from './wall-edit-form.js?v=20261026o';
+import { mountWallBulkList } from './wall-bulk-list.js?v=20261026p';
 import { mountDesignGroups } from './design-groups.js?v=20261023j';
 import { MaStlWallEditFinalize, MaStlWallStretchMath } from './ma-stl-wall-edit-finalize.js';
 import {
@@ -20,8 +20,10 @@ import {
     maAtk60ClassifyFootprintKind,
     maAtk60GetLJunctionAxisTrimMm,
     maAtk60GetTJunctionTrimMm,
+    maAtk60SelectPanelMm,
+    MA_ATK60_CORNER_PANEL_MM,
     maAtk60UnitXz,
-} from './ma-stl-atk60-formwork.js';
+} from './ma-stl-atk60-formwork.js?v=20261024-caraA90';
 import {
     maStlFormworkEnvApplyCatalogLook,
     maStlFormworkEnvApplyIblToScene,
@@ -349,6 +351,11 @@ function maStlWorldAxesLength(maxDim, desingMmScene) {
 /** Etiquetas de reglas: solo metros enteros (`1`, `2`, `3`…). `tMeters` = coordenada en **metros** (geometría local Desing_2). */
 function maStlRulerLabelMetersFromWorldM(tMeters) {
     return String(Math.round(tMeters));
+}
+
+/** Fila de paneles: dos decimales (0,30, 0,45, 0,60, 0,75, 0,90). */
+function maStlWallDimPanelMetersLabel(lengthMm) {
+    return maStlDesing2DimEditableMetersDisplayFromMm(lengthMm);
 }
 
 /**
@@ -1009,8 +1016,11 @@ const MA_STL_WALL_DIM_STACK_STEP_MM = 1000;
 const MA_STL_WALL_DIM_BASE_OFFSET_MM = 1000;
 /** Cotas de modulación ATK-60: pegadas a la cota de longitud (1,00 m). */
 const MA_STL_ATK60_MODULE_DIM_OFFSET_MM = 880;
-/** Cota de remate: un poco más al interior que la línea de módulos. */
-const MA_STL_ATK60_REMATE_DIM_OFFSET_MM = 740;
+/** Paneles cortos: 0,30 y 0,45 más cerca del muro; 0,60 y 0,75 más fuera. */
+const MA_STL_ATK60_PANEL_DIM_IN_MM = 680;
+const MA_STL_ATK60_PANEL_DIM_OUT_MM = 1280;
+/** Cota de remate: en la fila de paneles, en el hueco del tablón. */
+const MA_STL_ATK60_REMATE_DIM_OFFSET_MM = 880;
 /** Cotas de altura ATK-60: fuera de la cara, en vertical junto al módulo representativo. */
 const MA_STL_ATK60_HEIGHT_DIM_OFFSET_MM = 480;
 /** Tolerancia para considerar dos cotas de longitud iguales (mm escena). */
@@ -3060,6 +3070,11 @@ function bootMasterArticleDetailsStlViewer() {
     maStlWallDimGroup.renderOrder = 171;
     /** @type {THREE.LineSegments|null} */
     let maStlWallDimGuideLinesMesh = null;
+    /** @type {THREE.LineSegments|null} */
+    let maStlWallDimEditableLinesMesh = null;
+    /** @type {THREE.Mesh|null} */
+    let maStlWallDimDotMesh = null;
+    let maStlWallDimLastWpp = 0;
     /** @type {THREE.Mesh|null} */
     let maStlWallDimArrowMesh = null;
     /**
@@ -4667,7 +4682,7 @@ function bootMasterArticleDetailsStlViewer() {
             ud._CHeckPropOutside = false;
             ud._CHeckPropOutsideInf = false;
             if (ud._CHeckPropInside == null) ud._CHeckPropInside = true;
-            if (ud._CHeckPropInsideInf == null) ud._CHeckPropInsideInf = true;
+            if (ud._CHeckPropInsideInf == null) ud._CHeckPropInsideInf = false;
         } else {
             ud._DataWith = maStlRoundMeters3(widthMm / 1000);
         }
@@ -4695,7 +4710,7 @@ function bootMasterArticleDetailsStlViewer() {
         if (ud._IsUniversalPanel == null) ud._IsUniversalPanel = true;
         if (ud._CHeck750R == null) ud._CHeck750R = ud._IsUniversalPanel !== false;
         if (ud._CHeckTypeFormworkMode == null) ud._CHeckTypeFormworkMode = true;
-        if (ud._CHeckDimWall == null) ud._CHeckDimWall = false;
+        if (ud._CHeckDimWall == null) ud._CHeckDimWall = true;
         ud._XCoordinate = midX;
         ud._YCoordinate = midY;
         ud._ZCoordinate = midZ;
@@ -4703,14 +4718,14 @@ function bootMasterArticleDetailsStlViewer() {
         if (ud._Tape_2 == null) ud._Tape_2 = 'Tipo 1';
         if (ud._Idconnection_1 === undefined) ud._Idconnection_1 = null;
         if (ud._Idconnection_2 === undefined) ud._Idconnection_2 = null;
-        if (ud._CHeckBracketInside == null) ud._CHeckBracketInside = true;
-        if (ud._CHeckBracketOutside == null) ud._CHeckBracketOutside = true;
+        if (ud._CHeckBracketInside == null) ud._CHeckBracketInside = false;
+        if (ud._CHeckBracketOutside == null) ud._CHeckBracketOutside = false;
         if (ud._CHeckRijiInside == null) ud._CHeckRijiInside = true;
         if (ud._CHeckRijiOutside == null) ud._CHeckRijiOutside = true;
         if (ud._CHeckPropInside == null) ud._CHeckPropInside = true;
         if (ud._CHeckPropOutside == null) ud._CHeckPropOutside = true;
-        if (ud._CHeckPropInsideInf == null) ud._CHeckPropInsideInf = true;
-        if (ud._CHeckPropOutsideInf == null) ud._CHeckPropOutsideInf = true;
+        if (ud._CHeckPropInsideInf == null) ud._CHeckPropInsideInf = false;
+        if (ud._CHeckPropOutsideInf == null) ud._CHeckPropOutsideInf = false;
     }
 
     /** Serializa líneas usuario (p1Mm/p2Mm) + anclaje reglas + uuids mallas STL visibles para undo/redo. */
@@ -6585,7 +6600,7 @@ function bootMasterArticleDetailsStlViewer() {
         for (let i = 0; i < items.length; i++) {
             const item = items[i] || {};
             let code = maStlDesing2Atk60CodeName(item.ElementCode);
-            if (!code || /_PHENOLIC$/i.test(code)) continue;
+            if (!code || /_PHENOLIC$/i.test(code) || /^MARK_/i.test(code)) continue;
             code = code.replace(/_FRAME$/i, '');
             if (!code) continue;
             map[code] = (map[code] || 0) + 1;
@@ -6891,6 +6906,7 @@ function bootMasterArticleDetailsStlViewer() {
         const show = maStlDesing2SpecialWallArticlesVisible();
         if (maStlDesing2Atk60SampleGroup)
             maStlDesing2Atk60SampleGroup.visible = show;
+        maStlWall3dSyncCornerGuideVisibility();
         maStlDesing2SyncManualArticleVisibility();
         maStlDesing2SyncMaterialCountButton();
         maStlDesing2SyncWorkerVisibility();
@@ -7697,6 +7713,7 @@ function bootMasterArticleDetailsStlViewer() {
         maStlDesing2SyncMaterialCountButton();
         maStlSyncDesing2ModeToolbarUi();
         maStlDesing2SyncWorkerVisibility();
+        maStlWall3dSyncCornerGuideVisibility();
         if (!maStlDesing2Atk60SampleGroup) return;
         for (let i = maStlDesing2Atk60SampleGroup.children.length - 1; i >= 0; i--) {
             maStlDesing2Atk60SampleGroup.remove(maStlDesing2Atk60SampleGroup.children[i]);
@@ -7752,6 +7769,25 @@ function bootMasterArticleDetailsStlViewer() {
 
             try {
                 const elementCode = item.ElementCode != null ? String(item.ElementCode) : '';
+                if (elementCode === 'MARK_GREEN' || elementCode === 'MARK_RED') {
+                    const mark = new THREE.Mesh(
+                        new THREE.SphereGeometry(15, 16, 12),
+                        new THREE.MeshBasicMaterial({
+                            color: elementCode === 'MARK_GREEN' ? 0x00c853 : 0xff1744,
+                            depthTest: false
+                        })
+                    );
+                    mark.position.set(x, y, z);
+                    mark.renderOrder = 1000;
+                    mark.userData = {
+                        maStlAtk60SamplePlaced: true,
+                        maStlAtk60Element: true,
+                        maStlAtk60ElementCode: elementCode
+                    };
+                    sampleGroup.add(mark);
+                    inserted++;
+                    continue;
+                }
                 const useStrictPose = options.strictPose === true || (item && item.UseStrictPose === true);
                 if (useStrictPose && elementCode.toUpperCase() === 'REMATE_WOOD') {
                     const remate = maStlDesing2CreateAtk60WoodRemateMesh(item);
@@ -7834,6 +7870,13 @@ function bootMasterArticleDetailsStlViewer() {
                         const qReverse = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
                         unionClone.quaternion.premultiply(qReverse);
                         unionClone.scale.y = -1;
+                        // La cara de detrás de la esquina quedaba boca abajo.
+                        // Medio giro sobre la normal de esa cara la deja de pie.
+                        const uprightOpposite = maStlDesing2ToFiniteNumber(item.BaseRotZ) > 0.5;
+                        if (uprightOpposite && mirrored) {
+                            const qFace = new THREE.Quaternion().setFromAxisAngle(faceNormal, Math.PI);
+                            unionClone.quaternion.premultiply(qFace);
+                        }
                         unionClone.traverse(function (obj) {
                             if (obj && obj.isMesh && obj.material) {
                                 const mat = obj.material.clone();
@@ -7908,9 +7951,16 @@ function bootMasterArticleDetailsStlViewer() {
                         }
                     });
                 } else if (elementCode === '27000000' || elementCode === '24000000' || elementCode === '12000000') {
+                    const angleHex = paintColor === 'frame-corner' ? 0xd4a20a : MA_STL_DESING2_ATK60_COLOR_FRAME_HEX;
                     clone.traverse(function (obj) {
                         if (obj && obj.isMesh) {
-                            maStlDesing2ApplyAtk60MeshMaterial(obj, MA_STL_DESING2_ATK60_COLOR_FRAME_HEX, true);
+                            maStlDesing2ApplyAtk60MeshMaterial(obj, angleHex, true);
+                        }
+                    });
+                } else if (paintColor === 'frame-corner') {
+                    clone.traverse(function (obj) {
+                        if (obj && obj.isMesh && maStlDesing2Atk60IsFrameMesh(obj)) {
+                            maStlDesing2ApplyAtk60MeshMaterial(obj, 0xd4a20a, true);
                         }
                     });
                 } else if (elementCode === '1920811') {
@@ -7939,7 +7989,7 @@ function bootMasterArticleDetailsStlViewer() {
                 const size = new THREE.Vector3();
                 box.getSize(size);
                 const keepNativePillarPanel = useStrictPose
-                    && /^(27104219|24104224|12104120|27304205|24304244|12304211|27454206|24454243|12454212|27604207|24604242|12604213|27754219|24754224|12754120|27904209|24904240|12904215|1920811|10443020)$/.test(elementCode);
+                    && /^(27104219|24104224|12104120|27304205|24304244|12304211|27454206|24454243|12454212|27604207|24604242|12604213|27754219|24754224|12754120|27904209|24904240|12904215|1920811|10443020|E27004210|E24004217|E12004216|27000000|24000000|12000000)$/.test(elementCode);
                 if (!keepNativePillarPanel && size.y > 1e-6 && size.x > 1e-6 && size.z > 1e-6) {
                     if (isTumbado) {
                         // Tras Rz(-90) el canto corto está en Y y el largo en X.
@@ -7956,6 +8006,16 @@ function bootMasterArticleDetailsStlViewer() {
                 }
 
                 if (useStrictPose) {
+                    if (orientationRaw === 'lcornermirror') {
+                        clone.scale.x = -1;
+                        clone.traverse(function (obj) {
+                            if (obj && obj.isMesh && obj.material) {
+                                const mat = obj.material.clone();
+                                mat.side = THREE.DoubleSide;
+                                obj.material = mat;
+                            }
+                        });
+                    }
                     const strictRotX = maStlDesing2NormalizeAngleToRad(item.RotX)
                         + maStlDesing2NormalizeAngleToRad(item.BaseRotX);
                     const strictRotY = rotY + maStlDesing2NormalizeAngleToRad(item.BaseRotY);
@@ -8103,6 +8163,8 @@ function bootMasterArticleDetailsStlViewer() {
             }
         }
 
+        maStlWall3dAddInteriorCornerPoints();
+        maStlWall3dSyncCornerGuideVisibility();
         maStlDesing2AfterAtk60SceneChange();
         maStlDesing2ReapplyCountArticleOpacity();
         maStlSyncDesing2ModeToolbarUi();
@@ -9185,7 +9247,215 @@ let maStlWallApplyAllHeightMm = 0;
             clipStlMeshes.push(mesh);
         }
         maStlWall3dExpandClipBoundsForMesh(mesh);
+        if (kind === 'cornerL' && maStlWall3dCornerGuidesForJuan()) {
+            maStlWall3dAddLCornerFaceGuides(footprint, extrudeMm);
+        }
         return mesh;
+    }
+
+    /** Temporal, hasta que existan roles. Solo Juan ve puntos y líneas de la esquina. */
+    function maStlWall3dCornerGuidesForJuan() {
+        const meta = document.querySelector('meta[name="dt-user"]');
+        const name = meta && meta.content ? String(meta.content).trim().toLowerCase() : '';
+        return name === 'juan.godoy@vscad.com';
+    }
+
+    /** Líneas 1 y 3 en el canto exterior. La 2 y la 4 cruzan por dentro. El punto rojo está en ese cruce. */
+    function maStlWall3dAddLCornerFaceGuides(footprint, topY) {
+        if (!maStlWall3dCornerGuidesForJuan()) return;
+        const pts = footprint && footprint.points;
+        if (!pts || pts.length < 6 || !maStlWall3dMeshesGroup) return;
+        const p0 = pts[0];
+        const p1 = pts[1];
+        const p2 = pts[2];
+        const p4 = pts[4];
+        const p5 = pts[5];
+        const onFace2 = { x: p0.x - p1.x + p2.x, z: p0.z - p1.z + p2.z };
+        const onFace4 = { x: p0.x - p5.x + p4.x, z: p0.z - p5.z + p4.z };
+        const segs = [
+            [p0, p1, '1', 0x00e5ff],
+            [onFace2, p2, '2', 0xff1744],
+            [p0, p5, '3', 0x00e5ff],
+            [onFace4, p4, '4', 0x2962ff],
+        ];
+        const yLine = topY + 6;
+        for (let i = 0; i < segs.length; i++) {
+            const a = segs[i][0];
+            const b = segs[i][1];
+            const dx = b.x - a.x;
+            const dz = b.z - a.z;
+            const edge = Math.hypot(dx, dz) || 1;
+            const hx = (-dz / edge) * 6;
+            const hz = (dx / edge) * 6;
+            const positions = new Float32Array([
+                a.x + hx, yLine, a.z + hz,
+                a.x - hx, yLine, a.z - hz,
+                b.x - hx, yLine, b.z - hz,
+                a.x + hx, yLine, a.z + hz,
+                b.x - hx, yLine, b.z - hz,
+                b.x + hx, yLine, b.z + hz,
+            ]);
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const line = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
+                color: segs[i][3],
+                side: THREE.DoubleSide,
+                depthTest: false,
+            }));
+            line.renderOrder = 180;
+            line.userData.maStlWall3dCornerLine = segs[i][2];
+            maStlWall3dMeshesGroup.add(line);
+        }
+        let cx = 0;
+        let cz = 0;
+        for (let pi = 0; pi < pts.length; pi++) {
+            cx += pts[pi].x;
+            cz += pts[pi].z;
+        }
+        cx /= pts.length;
+        cz /= pts.length;
+        function cornerOutward(a, b) {
+            const dx = b.x - a.x;
+            const dz = b.z - a.z;
+            const len = Math.hypot(dx, dz) || 1;
+            let nx = -dz / len;
+            let nz = dx / len;
+            const mx = (a.x + b.x) * 0.5;
+            const mz = (a.z + b.z) * 0.5;
+            if ((nx * (mx - cx)) + (nz * (mz - cz)) < 0) {
+                nx = -nx;
+                nz = -nz;
+            }
+            return { nx: nx, nz: nz };
+        }
+        function cornerCotaLine(ax, az, bx, bz, color) {
+            const geo = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(ax, yLine, az),
+                new THREE.Vector3(bx, yLine, bz),
+            ]);
+            const ln = new THREE.Line(geo, new THREE.LineBasicMaterial({
+                color: color,
+                depthTest: false,
+            }));
+            ln.renderOrder = 182;
+            ln.userData.maStlWall3dCornerCota = true;
+            maStlWall3dMeshesGroup.add(ln);
+        }
+        function cornerCota(a, b, n, offset, label, color) {
+            const ox = n.nx * offset;
+            const oz = n.nz * offset;
+            const over = offset >= 0 ? 40 : -40;
+            cornerCotaLine(a.x, a.z, a.x + (n.nx * (offset + over)), a.z + (n.nz * (offset + over)), 0x5c6b7a);
+            cornerCotaLine(b.x, b.z, b.x + (n.nx * (offset + over)), b.z + (n.nz * (offset + over)), 0x5c6b7a);
+            cornerCotaLine(a.x + ox, a.z + oz, b.x + ox, b.z + oz, color);
+            const css = '#' + ('000000' + color.toString(16)).slice(-6);
+            const sprite = maStlMakeTextSprite(label, 90, {
+                thinFillOnly: true,
+                fillColor: css,
+                fontPx: 28,
+                fontWeight: 700,
+                thinPillFill: '#ffffff',
+                thinPillStroke: css,
+                canvasPad: 8,
+            });
+            if (!sprite) return;
+            sprite.position.set(
+                ((a.x + b.x) * 0.5) + ox,
+                topY + 55,
+                ((a.z + b.z) * 0.5) + oz
+            );
+            sprite.userData.maStlWall3dCornerLabel = label;
+            sprite.userData.maStlWall3dCornerCota = true;
+            maStlWall3dMeshesGroup.add(sprite);
+        }
+        const n1 = cornerOutward(p0, p1);
+        const n3 = cornerOutward(p0, p5);
+        function along(p, n) {
+            return (p.x * n.nx) + (p.z * n.nz);
+        }
+        let far1 = along(pts[0], n1);
+        let far3 = along(pts[0], n3);
+        for (let pi = 1; pi < pts.length; pi++) {
+            const d1 = along(pts[pi], n1);
+            const d3 = along(pts[pi], n3);
+            if (d1 < far1) far1 = d1;
+            if (d3 < far3) far3 = d3;
+        }
+        const offset2 = (far1 - 320) - along(onFace2, n1);
+        const offset4 = (far3 - 320) - along(onFace4, n3);
+        cornerCota(p0, p1, n1, 320, '1', 0x00e5ff);
+        cornerCota(onFace2, p2, n1, offset2, '2', 0xff1744);
+        cornerCota(p0, p5, n3, 320, '3', 0x00e5ff);
+        cornerCota(onFace4, p4, n3, offset4, '4', 0x2962ff);
+        const mark = new THREE.Mesh(
+            new THREE.SphereGeometry(15, 16, 12),
+            new THREE.MeshBasicMaterial({ color: 0xff1744, depthTest: false })
+        );
+        mark.position.set(pts[3].x, topY + 15, pts[3].z);
+        mark.renderOrder = 190;
+        mark.userData.maStlWall3dCornerMark = 'red';
+        maStlWall3dMeshesGroup.add(mark);
+        maStlWall3dSyncCornerGuideVisibility();
+    }
+
+    function maStlWall3dSyncCornerGuideVisibility() {
+        const guidesOn = maStlWall3dCornerGuidesForJuan() && !maStlWallDimToolActive;
+        const wallOn = guidesOn && maStlDesing2ModelMode === 'wall3d';
+        const linesOn = wallOn && !maStlDesing2FormworkViewOn();
+        function apply(obj) {
+            const ud = obj && obj.userData;
+            if (!ud) return;
+            if (ud.maStlWall3dCornerLine || ud.maStlWall3dCornerLabel || ud.maStlWall3dCornerCota) {
+                obj.visible = linesOn;
+            }
+            if (ud.maStlWall3dCornerMark) obj.visible = wallOn;
+        }
+        if (maStlWall3dMeshesGroup) maStlWall3dMeshesGroup.traverse(apply);
+        if (maStlDesing2Atk60SampleGroup) maStlDesing2Atk60SampleGroup.traverse(apply);
+    }
+
+    function maStlWall3dAddInteriorCornerPoints() {
+        const group = maStlDesing2EnsureAtk60SampleGroup();
+        for (let i = group.children.length - 1; i >= 0; i--) {
+            const ch = group.children[i];
+            if (!ch.userData || ch.userData.maStlWall3dCornerMark !== 'green') continue;
+            if (ch.geometry) ch.geometry.dispose();
+            if (ch.material && ch.material.dispose) ch.material.dispose();
+            group.remove(ch);
+        }
+        if (!maStlWall3dCornerGuidesForJuan()) return;
+        const items = maStlDesing2LastAtk60PaintPayload && maStlDesing2LastAtk60PaintPayload.elements;
+        if (!Array.isArray(items)) return;
+        let yTop = null;
+        if (maStlWall3dMeshesGroup) {
+            maStlWall3dMeshesGroup.traverse(function (obj) {
+                if (obj.userData && obj.userData.maStlWall3dCornerMark === 'red') yTop = obj.position.y;
+            });
+        }
+        const seen = Object.create(null);
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i] || {};
+            const code = item.ElementCode != null ? String(item.ElementCode) : '';
+            if (!/^(E27004210|E24004217|E12004216)$/.test(code)) continue;
+            const x = maStlDesing2ToFiniteNumber(item.X);
+            const z = maStlDesing2ToFiniteNumber(item.Z);
+            if (!Number.isFinite(x) || !Number.isFinite(z)) continue;
+            const key = Math.round(x) + ':' + Math.round(z);
+            if (seen[key]) continue;
+            seen[key] = true;
+            const up = maStlDesing2ToFiniteNumber(item.LocalUpMm) || 0;
+            const wallH = maStlDesing2ToFiniteNumber(item.WallHeightMm) || 0;
+            const baseY = maStlDesing2ToFiniteNumber(item.Y) || 0;
+            const y = yTop != null ? yTop : (baseY - up + wallH + 15);
+            const mark = new THREE.Mesh(
+                new THREE.SphereGeometry(15, 16, 12),
+                new THREE.MeshBasicMaterial({ color: 0x00c853, depthTest: false })
+            );
+            mark.position.set(x, y, z);
+            mark.renderOrder = 191;
+            mark.userData.maStlWall3dCornerMark = 'green';
+            group.add(mark);
+        }
     }
 
     /** T: contorno P-1…P-8 validado; en Muro 3D se extruye desde P-1. */
@@ -20614,7 +20884,8 @@ let maStlWallApplyAllHeightMm = 0;
             if (
                 pl.kind === 'atk60-panel' ||
                 pl.kind === 'atk60-remate' ||
-                pl.kind === 'atk60-height'
+                pl.kind === 'atk60-height' ||
+                pl.kind === 'wall-id'
             ) {
                 atk60.push(pl);
             }
@@ -20842,24 +21113,310 @@ let maStlWallApplyAllHeightMm = 0;
         return placements;
     }
 
-    /** Escaneo completo: espesores (dedup) + longitudes tramo + global, sin redundancias. */
-    function maStlWallDimCollectAllPlacements(thicknessReps) {
-        const entries = maStlWallDimCollectLineEntries();
-        const exterior = maStlWallDimFilterExteriorEntries(entries);
-        const centroid = maStlWallDimPlanCentroidXz(exterior);
-        const bbox = maStlWallDimPlanBBoxXz(exterior);
-        const lengthPlacements = maStlWallDimBuildExteriorLengthPlacements(exterior, centroid);
-        const placements = [];
-        placements.push.apply(placements, lengthPlacements);
-        placements.push.apply(
-            placements,
-            maStlWallDimBuildOverallPlacements(exterior, bbox, lengthPlacements)
+    function maStlWallDimKindEnabled(kindId) {
+        const map = window.desing2DimKinds;
+        if (!map || typeof map !== 'object') return true;
+        if (!Object.prototype.hasOwnProperty.call(map, kindId)) return true;
+        return !!map[kindId];
+    }
+
+    function maStlWallDimKindLabel(kindId) {
+        const input = document.querySelector(
+            '#desing2-dim-kinds input[data-dim-kind="' + kindId + '"]'
         );
-        placements.push.apply(placements, maStlWallDimBuildThicknessPlacements(thicknessReps || []));
-        placements.push.apply(placements, maStlAtk60CollectJunctionDimPlacements());
-        placements.push.apply(placements, maStlWallDimCollectAtk60ModulePlacements());
-        placements.push.apply(placements, maStlWallDimCollectAtk60HeightPlacements());
-        return maStlWallDimFilterRedundantPlacements(placements);
+        if (!input || !input.parentElement) return '';
+        return (input.parentElement.textContent || '').replace(/\s+/g, ' ').trim();
+    }
+
+    /**
+     * Medio espesor del muro perpendicular que llega a este extremo.
+     * Sirve para sacar la cara exterior (fuera del eje) y la cara interior (hacia el tramo).
+     */
+    function maStlWallDimAxisJoinedHalfMm(selfUd, endPt, alongUx, alongUz, axes) {
+        const eps = maStlWall2dToolJunctionClusterEpsMm();
+        let best = 0;
+        const scratch = { x: 0, y: 0, z: 0 };
+        for (let i = 0; i < axes.length; i++) {
+            const ud = axes[i].userData && axes[i].userData.maStlUserPlanLine;
+            if (!ud || ud === selfUd || (selfUd && ud.id === selfUd.id)) continue;
+            if (!ud.p1Mm || !ud.p2Mm) continue;
+            const dir = maStlUserFloorPlanLineDirUnitXz(ud);
+            if (!dir) continue;
+            if (Math.abs(dir.ux * alongUx + dir.uz * alongUz) > 0.35) continue;
+            let touches =
+                maStlUserFloorPlanPointNearXzMm(endPt, ud.p1Mm, eps) ||
+                maStlUserFloorPlanPointNearXzMm(endPt, ud.p2Mm, eps);
+            if (!touches) {
+                const proj = maStlProjectPointOntoUserFloorSegmentBodyXzMm(
+                    endPt,
+                    ud.p1Mm,
+                    ud.p2Mm,
+                    scratch
+                );
+                touches = !!(proj && proj.distXZ <= eps);
+            }
+            if (!touches) continue;
+            const half = maStlWall2dModelAxisThicknessMm(ud) * 0.5;
+            if (half > best) best = half;
+        }
+        return best;
+    }
+
+    /**
+     * Tres cotas de muro, en todos los ejes.
+     * Parcial va la más pegada, luego a ejes y el total la más fuera, para que no se pisen.
+     * Espesor, tramos, global y modulación quedan fuera de momento.
+     */
+    function maStlWallDimBuildClassifiedWallPlacements() {
+        const placements = [];
+        const axes = maStlWall2dToolCollectAllAxisLines();
+        if (!axes.length) return placements;
+        const showPartial = maStlWallDimKindEnabled('walls-partial');
+        const showAxes = maStlWallDimKindEnabled('walls-axes');
+        const showTotal = maStlWallDimKindEnabled('walls-total');
+        if (!showPartial && !showAxes && !showTotal) return placements;
+        const showPanels = maStlWallDimKindEnabled('panels');
+        const showRemates = maStlWallDimKindEnabled('remates');
+
+        let band = showPanels ? 2 : showRemates ? 1 : 0;
+        const offPartial = showPartial ? maStlWallDimMinOffsetMm(band++) : 0;
+        const offAxes = showAxes ? maStlWallDimMinOffsetMm(band++) : 0;
+        const offTotal = showTotal ? maStlWallDimMinOffsetMm(band++) : 0;
+        const labelPartial = maStlWallDimKindLabel('walls-partial');
+        const labelAxes = maStlWallDimKindLabel('walls-axes');
+        const labelTotal = maStlWallDimKindLabel('walls-total');
+
+        let sx = 0;
+        let sz = 0;
+        let nMid = 0;
+        for (let ai = 0; ai < axes.length; ai++) {
+            const ud = axes[ai].userData && axes[ai].userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            sx += ud.p1Mm.x + ud.p2Mm.x;
+            sz += ud.p1Mm.z + ud.p2Mm.z;
+            nMid += 2;
+        }
+        const centroid = nMid > 0 ? { x: sx / nMid, z: sz / nMid } : { x: 0, z: 0 };
+        const minSeg = 20;
+
+        for (let wi = 0; wi < axes.length; wi++) {
+            const ud = axes[wi].userData && axes[wi].userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm || ud._CHeckDimWall === false) continue;
+            const dir = maStlUserFloorPlanLineDirUnitXz(ud);
+            if (!dir || !(dir.lenMm > minSeg)) continue;
+            const ux = dir.ux;
+            const uz = dir.uz;
+            const p1 = ud.p1Mm;
+            const p2 = ud.p2Mm;
+            const mid = { x: (p1.x + p2.x) * 0.5, z: (p1.z + p2.z) * 0.5 };
+            const normal = maStlWallDimOutwardNormalXz(dir, mid, centroid);
+            const half1 = maStlWallDimAxisJoinedHalfMm(ud, p1, ux, uz, axes);
+            const half2 = maStlWallDimAxisJoinedHalfMm(ud, p2, -ux, -uz, axes);
+            const corner1 =
+                half1 > 10
+                    ? maAtk60SelectPanelMm(half1 * 2 + MA_ATK60_CORNER_PANEL_MM).panelMm
+                    : 0;
+            const corner2 =
+                half2 > 10
+                    ? maAtk60SelectPanelMm(half2 * 2 + MA_ATK60_CORNER_PANEL_MM).panelMm
+                    : 0;
+            const outer1 = { x: p1.x - ux * half1, z: p1.z - uz * half1 };
+            const outer2 = { x: p2.x + ux * half2, z: p2.z + uz * half2 };
+            const end1 = { x: outer1.x + ux * corner1, z: outer1.z + uz * corner1 };
+            const end2 = { x: outer2.x - ux * corner2, z: outer2.z - uz * corner2 };
+
+            const pushDim = function (a, b, offsetMm, kind, kindLabel, shiftX, shiftZ) {
+                const len = Math.hypot(b.x - a.x, b.z - a.z);
+                if (!(len > minSeg) || !(offsetMm > 0)) return;
+                const pl = maStlWallDimBuildAlignedPlacement(
+                    a,
+                    b,
+                    normal.nx,
+                    normal.nz,
+                    offsetMm,
+                    len,
+                    kind
+                );
+                if (!pl) return;
+                if (kindLabel) pl.kindLabel = kindLabel;
+                pl.axisId = ud.id;
+                if (kind === 'wall-total' || kind === 'wall-axes') {
+                    pl.editKind = 'length';
+                    pl.editDeltaMm = len - dir.lenMm;
+                }
+                if (shiftX || shiftZ) {
+                    pl.labelMid.x += shiftX;
+                    pl.labelMid.z += shiftZ;
+                }
+                placements.push(pl);
+                return pl;
+            };
+
+            const markOutside = function (pl, sign) {
+                if (!pl) return;
+                pl.textOutside = true;
+                pl.outsideSign = sign;
+                pl.textChars = 4;
+            };
+
+            const pushWidth = function (station, outUx, outUz) {
+                const halfSelf = maStlWall2dModelAxisThicknessMm(ud) * 0.5;
+                if (!(halfSelf > 10)) return;
+                const faceOut = {
+                    x: station.x + normal.nx * halfSelf,
+                    z: station.z + normal.nz * halfSelf,
+                };
+                const faceIn = {
+                    x: station.x - normal.nx * halfSelf,
+                    z: station.z - normal.nz * halfSelf,
+                };
+                const pl = maStlWallDimBuildAlignedPlacement(
+                    faceOut,
+                    faceIn,
+                    outUx,
+                    outUz,
+                    820,
+                    halfSelf * 2,
+                    'wall-thickness'
+                );
+                if (!pl) return;
+                pl.kindLabel = labelTotal;
+                pl.axisId = ud.id;
+                pl.editKind = 'thickness';
+                markOutside(pl, -1);
+                placements.push(pl);
+            };
+
+            const alone = !(half1 > 10) && !(half2 > 10);
+            if (alone) {
+                if (showTotal) {
+                    const offAlone = showPartial ? offPartial : showAxes ? offAxes : offTotal;
+                    pushDim(outer1, outer2, offAlone, 'wall-total', labelTotal, 0, 0);
+                    pushWidth(
+                        { x: outer2.x + ux * 280, z: outer2.z + uz * 280 },
+                        ux,
+                        uz
+                    );
+                }
+                continue;
+            }
+            if (showAxes) pushDim(p1, p2, offAxes, 'wall-axes', labelAxes, 0, 0);
+            if (showTotal) {
+                pushDim(outer1, outer2, offTotal, 'wall-total', labelTotal, 0, 0);
+                pushWidth(
+                    { x: outer2.x + ux * 280, z: outer2.z + uz * 280 },
+                    ux,
+                    uz
+                );
+            }
+            if (showPartial) {
+                const markLeader = function (pl, freeSign) {
+                    if (!pl) return;
+                    pl.leader45 = true;
+                    pl.outsideSign = freeSign;
+                    pl.textChars = 4;
+                };
+                if (corner1 > 10) {
+                    markLeader(
+                        pushDim(outer1, end1, offPartial, 'wall-partial', labelPartial, 0, 0),
+                        -1
+                    );
+                }
+                const clear = (end2.x - end1.x) * ux + (end2.z - end1.z) * uz;
+                if (clear > minSeg) {
+                    pushDim(end1, end2, offPartial, 'wall-partial', labelPartial, 0, 0);
+                }
+                if (corner2 > 10) {
+                    markLeader(
+                        pushDim(end2, outer2, offPartial, 'wall-partial', labelPartial, 0, 0),
+                        1
+                    );
+                }
+            }
+        }
+        return placements;
+    }
+
+    function maStlWallDimRemateWord() {
+        const root = document.getElementById('desing2-dim-kinds');
+        const word = root && root.getAttribute('data-remate-word');
+        return word ? String(word).replace(/\s+/g, ' ').trim() : '';
+    }
+
+    function maStlWallDimIdLeaderMm() {
+        let band = 0;
+        if (maStlWallDimKindEnabled('panels')) band = 2;
+        else if (maStlWallDimKindEnabled('remates')) band = 1;
+        if (maStlWallDimKindEnabled('walls-partial')) band += 1;
+        if (maStlWallDimKindEnabled('walls-axes')) band += 1;
+        if (maStlWallDimKindEnabled('walls-total')) band += 1;
+        const outer = band > 0 ? maStlWallDimMinOffsetMm(band - 1) : 1600;
+        return Math.ceil((outer + 900) * Math.SQRT2);
+    }
+
+    /** Id de muro: punto en el centro del eje y línea a 45° que pasa los elementos. */
+    function maStlWallDimAppendWallIdPlacements(placements) {
+        if (!maStlWallDimKindEnabled('wall-id')) return placements;
+        const axes = maStlWall2dToolCollectAllAxisLines();
+        if (!axes.length) return placements;
+        const exterior = maStlWallDimFilterExteriorEntries(maStlWallDimCollectLineEntries());
+        const centroid = maStlWallDimPlanCentroidXz(exterior);
+        const reach = maStlWallDimIdLeaderMm();
+        for (let i = 0; i < axes.length; i++) {
+            const ud = axes[i] && axes[i].userData && axes[i].userData.maStlUserPlanLine;
+            if (!ud || ud.id == null || !ud.p1Mm || !ud.p2Mm || ud._CHeckDimWall === false) continue;
+            const dir = maStlUserFloorPlanLineDirUnitXz(ud);
+            if (!dir) continue;
+            const mid = { x: (ud.p1Mm.x + ud.p2Mm.x) * 0.5, z: (ud.p1Mm.z + ud.p2Mm.z) * 0.5 };
+            const normal = centroid
+                ? maStlWallDimOutwardNormalXz(dir, mid, centroid)
+                : { nx: -dir.uz, nz: dir.ux };
+            const a = { x: mid.x - dir.ux * 30, z: mid.z - dir.uz * 30 };
+            const b = { x: mid.x + dir.ux * 30, z: mid.z + dir.uz * 30 };
+            const pl = maStlWallDimBuildAlignedPlacement(a, b, normal.nx, normal.nz, 1, 0, 'wall-id');
+            if (!pl) continue;
+            const idText = 'ID ' + (ud.wallId != null ? ud.wallId : ud.id);
+            pl.leader45 = true;
+            pl.leaderMinMm = reach;
+            pl.outsideSign = 1;
+            pl.textLiteral = idText;
+            pl.textChars = idText.length;
+            pl.axisId = ud.id;
+            placements.push(pl);
+        }
+        return placements;
+    }
+
+    /** Acotar: cotas de muro y, si está activa, la dimensión de paneles pegada al muro. */
+    function maStlWallDimCollectAllPlacements(thicknessReps) {
+        void thicknessReps;
+        const placements = maStlWallDimBuildClassifiedWallPlacements();
+        const showPanels = maStlWallDimKindEnabled('panels');
+        const showRemates = maStlWallDimKindEnabled('remates');
+        if (!showPanels && !showRemates) {
+            return maStlWallDimAppendWallIdPlacements(placements);
+        }
+        const panels = maStlWallDimCollectAtk60ModulePlacements();
+        const labelPanels = maStlWallDimKindLabel('panels');
+        const labelRemates = maStlWallDimKindLabel('remates');
+        for (let i = 0; i < panels.length; i++) {
+            const pl = panels[i];
+            if (!pl) continue;
+            if (showPanels && (pl.kind === 'atk60-panel' || pl.kind === 'atk60-module')) {
+                if (labelPanels) pl.kindLabel = labelPanels;
+                placements.push(pl);
+            } else if (showRemates && pl.kind === 'atk60-remate') {
+                if (labelRemates) pl.kindLabel = labelRemates;
+                placements.push(pl);
+            }
+        }
+        if (showPanels) {
+            const heights = maStlWallDimCollectAtk60HeightPlacements();
+            for (let h = 0; h < heights.length; h++) {
+                if (heights[h]) placements.push(heights[h]);
+            }
+        }
+        return maStlWallDimAppendWallIdPlacements(placements);
     }
 
     function maStlAtk60ReadPaintValue(obj, pascalName) {
@@ -20904,10 +21461,30 @@ let maStlWallApplyAllHeightMm = 0;
         return clusters;
     }
 
+    function maStlWallDimMatchAtk60CatalogMm(len, catalog) {
+        if (!Number.isFinite(len)) return 0;
+        for (let i = 0; i < catalog.length; i++) {
+            if (Math.abs(len - catalog[i]) <= 25) return catalog[i];
+        }
+        return 0;
+    }
+
     /**
      * Cotas de modulación ATK-60 cuando hay encofrado pintado:
-     * 2,70 / 1,20 / 0,45 en una línea; remate en otra más interior (más cerca del muro).
+     * módulos 2,70 / 2,40 / 1,20 en una línea; paneles 0,30–0,90 en la línea de delante.
      */
+    /** El muro no se acota cuando su casilla está quitada. */
+    function maStlWallDimPaintWallIsOn(wallId) {
+        if (wallId == null || wallId === '') return true;
+        const lines = maStlDesing2FindAxisLinesByWallKey(wallId);
+        if (!lines.length) return true;
+        for (let i = 0; i < lines.length; i++) {
+            const ud = lines[i] && lines[i].userData && lines[i].userData.maStlUserPlanLine;
+            if (ud && ud._CHeckDimWall === false) return false;
+        }
+        return true;
+    }
+
     function maStlWallDimCollectAtk60ModulePlacements() {
         const out = [];
         const payload = maStlDesing2LastAtk60PaintPayload;
@@ -20932,23 +21509,31 @@ let maStlWallApplyAllHeightMm = 0;
             if (!wallId || !anchorById[wallId]) continue;
             const along = maStlAtk60ReadPaintNum(item, 'LocalAlongMm');
             if (!Number.isFinite(along)) continue;
-            const code = maStlAtk60ReadPaintStr(item, 'ElementCode').toUpperCase();
             const type = maStlAtk60ReadPaintStr(item, 'ElementType');
+            const code = maStlAtk60ReadPaintStr(item, 'ElementCode').toUpperCase();
             if (type === 'Union') continue;
             const isRemate = type === 'Remate' || code === 'REMATE_WOOD';
-            const len = isRemate
-                ? maStlAtk60ReadPaintNum(item, 'ModuleLengthMm') ||
-                  maStlAtk60ReadPaintNum(item, 'PieceWidthMm')
-                : maStlAtk60ReadPaintNum(item, 'ModuleLengthMm');
-            if (!Number.isFinite(len) || len < 2) continue;
-            if (!byWall[wallId]) {
-                byWall[wallId] = { modules: [], remates: [] };
-            }
             if (isRemate) {
-                byWall[wallId].remates.push({ along: along, len: len });
-            } else {
-                byWall[wallId].modules.push({ along: along, len: len });
+                const remateLen = maStlAtk60ReadPaintNum(item, 'PieceWidthMm');
+                if (remateLen > 15 && remateLen <= 900) {
+                    if (!byWall[wallId]) byWall[wallId] = { modules: [], panels: [], remates: [] };
+                    if (!byWall[wallId].remates) byWall[wallId].remates = [];
+                    byWall[wallId].remates.push({ along: along, len: remateLen });
+                }
+                continue;
             }
+            const moduleLen = maStlWallDimMatchAtk60CatalogMm(
+                maStlAtk60ReadPaintNum(item, 'ModuleLengthMm'),
+                [1200, 2400, 2700]
+            );
+            const panelLen = maStlWallDimMatchAtk60CatalogMm(
+                maStlAtk60ReadPaintNum(item, 'PieceWidthMm'),
+                [300, 450, 600, 750, 900]
+            );
+            if (!moduleLen && !panelLen) continue;
+            if (!byWall[wallId]) byWall[wallId] = { modules: [], panels: [], remates: [] };
+            if (moduleLen) byWall[wallId].modules.push({ along: along, len: moduleLen });
+            if (panelLen) byWall[wallId].panels.push({ along: along, len: panelLen });
         }
 
         const exterior = maStlWallDimFilterExteriorEntries(maStlWallDimCollectLineEntries());
@@ -20957,6 +21542,7 @@ let maStlWallApplyAllHeightMm = 0;
         const wallIds = Object.keys(byWall);
         for (let wi = 0; wi < wallIds.length; wi++) {
             const wallId = wallIds[wi];
+            if (!maStlWallDimPaintWallIsOn(wallId)) continue;
             const anchor = anchorById[wallId];
             const pack = byWall[wallId];
             if (!anchor || !pack) continue;
@@ -20968,13 +21554,17 @@ let maStlWallApplyAllHeightMm = 0;
             const uz = Math.sin(yawRad);
 
             const moduleList = maStlWallDimClusterAtk60Spans(pack.modules);
-            const remateList = maStlWallDimClusterAtk60Spans(pack.remates);
+            const panelList = maStlWallDimClusterAtk60Spans(pack.panels || []);
             let spanMm = 0;
             for (let ms = 0; ms < moduleList.length; ms++) {
                 spanMm = Math.max(spanMm, moduleList[ms].along + moduleList[ms].len);
             }
-            for (let rs = 0; rs < remateList.length; rs++) {
-                spanMm = Math.max(spanMm, remateList[rs].along + remateList[rs].len);
+            for (let ps = 0; ps < panelList.length; ps++) {
+                spanMm = Math.max(spanMm, panelList[ps].along + panelList[ps].len);
+            }
+            const rawRemates = pack.remates || [];
+            for (let rs = 0; rs < rawRemates.length; rs++) {
+                spanMm = Math.max(spanMm, rawRemates[rs].along + rawRemates[rs].len);
             }
             const mid = {
                 x: originX + ux * (spanMm * 0.5),
@@ -21011,30 +21601,83 @@ let maStlWallApplyAllHeightMm = 0;
                     pB,
                     nx,
                     nz,
-                    MA_STL_ATK60_MODULE_DIM_OFFSET_MM,
+                    MA_STL_ATK60_MODULE_DIM_OFFSET_MM + MA_STL_WALL_DIM_STACK_STEP_MM,
                     mod.len,
-                    'atk60-panel'
+                    'atk60-module'
                 );
                 if (pl) out.push(pl);
             }
 
-            for (let ri = 0; ri < remateList.length; ri++) {
-                const rem = remateList[ri];
-                const rA = { x: originX + ux * rem.along, z: originZ + uz * rem.along };
+            let prevPanelBand = '';
+            for (let pi = 0; pi < panelList.length; pi++) {
+                const pan = panelList[pi];
+                const prev = pi > 0 ? panelList[pi - 1] : null;
+                const next = pi + 1 < panelList.length ? panelList[pi + 1] : null;
+                const packed = prev && pan.along - (prev.along + prev.len) < 80;
+                let band = 'base';
+                if (pan.len <= 450) band = 'in';
+                else if (pan.len <= 750) band = 'out';
+                if (packed && band === prevPanelBand && band !== 'base') {
+                    band = band === 'in' ? 'out' : 'in';
+                }
+                prevPanelBand = band;
+                const panelOffset =
+                    band === 'in'
+                        ? MA_STL_ATK60_PANEL_DIM_IN_MM
+                        : band === 'out'
+                          ? MA_STL_ATK60_PANEL_DIM_OUT_MM
+                          : MA_STL_ATK60_MODULE_DIM_OFFSET_MM;
+                const rA = { x: originX + ux * pan.along, z: originZ + uz * pan.along };
                 const rB = {
-                    x: originX + ux * (rem.along + rem.len),
-                    z: originZ + uz * (rem.along + rem.len),
+                    x: originX + ux * (pan.along + pan.len),
+                    z: originZ + uz * (pan.along + pan.len),
                 };
                 const rPl = maStlWallDimBuildAlignedPlacement(
                     rA,
                     rB,
                     nx,
                     nz,
+                    panelOffset,
+                    pan.len,
+                    'atk60-panel'
+                );
+                if (!rPl) continue;
+                if (pan.len < 820) {
+                    const gapBefore = prev ? pan.along - (prev.along + prev.len) : 10000;
+                    const gapAfter = next ? next.along - (pan.along + pan.len) : 10000;
+                    const panelLabel = maStlWallDimPanelMetersLabel(pan.len);
+                    rPl.leader45 = true;
+                    rPl.outsideSign = gapAfter >= gapBefore ? 1 : -1;
+                    rPl.textChars = panelLabel.length;
+                }
+                out.push(rPl);
+            }
+
+            const remateList = maStlWallDimClusterAtk60Spans(pack.remates || []);
+            for (let ri = 0; ri < remateList.length; ri++) {
+                const rem = remateList[ri];
+                const qA = { x: originX + ux * rem.along, z: originZ + uz * rem.along };
+                const qB = {
+                    x: originX + ux * (rem.along + rem.len),
+                    z: originZ + uz * (rem.along + rem.len),
+                };
+                const qPl = maStlWallDimBuildAlignedPlacement(
+                    qA,
+                    qB,
+                    nx,
+                    nz,
                     MA_STL_ATK60_REMATE_DIM_OFFSET_MM,
                     rem.len,
                     'atk60-remate'
                 );
-                if (rPl) out.push(rPl);
+                if (!qPl) continue;
+                const remateLabel = maStlDesing2DimEditableMetersDisplayFromMm(rem.len);
+                const remateWord = maStlWallDimRemateWord();
+                qPl.textLiteral = remateWord ? remateLabel + ' ' + remateWord : remateLabel;
+                qPl.leader45 = true;
+                qPl.outsideSign = rem.along + rem.len * 0.5 < spanMm * 0.5 ? -1 : 1;
+                qPl.textChars = String(qPl.textLiteral || '').length || 4;
+                out.push(qPl);
             }
         }
         return out;
@@ -21140,6 +21783,7 @@ let maStlWallApplyAllHeightMm = 0;
         const wallIds = Object.keys(byWall);
         for (let wi = 0; wi < wallIds.length; wi++) {
             const wallId = wallIds[wi];
+            if (!maStlWallDimPaintWallIsOn(wallId)) continue;
             const anchor = anchorById[wallId];
             const wallMods = byWall[wallId];
             if (!anchor || !wallMods) continue;
@@ -21197,11 +21841,17 @@ let maStlWallApplyAllHeightMm = 0;
                     })
                     .join('|');
                 if (!signature || seenStacks[signature]) continue;
+                const course = layers.filter(function (layer) {
+                    return maStlWallDimMatchAtk60CatalogMm(layer.h, [
+                        300, 450, 600, 750, 900, 1200, 2400, 2700,
+                    ]);
+                });
+                if (!course.length) continue;
                 seenStacks[signature] = true;
                 const px = originX + ux * mod.along;
                 const pz = originZ + uz * mod.along;
-                for (let li = 0; li < layers.length; li++) {
-                    const layer = layers[li];
+                for (let li = 0; li < course.length; li++) {
+                    const layer = course[li];
                     const pl = maStlWallDimBuildVerticalPlacement(
                         px,
                         pz,
@@ -21268,6 +21918,7 @@ let maStlWallApplyAllHeightMm = 0;
     }
 
     function maStlWallDimDisposeDomReadouts() {
+        maStlWallDimCloseEdit(false);
         for (let i = 0; i < maStlWallDimEntries.length; i++) {
             const el = maStlWallDimEntries[i].readoutEl;
             if (el && el.parentNode) el.parentNode.removeChild(el);
@@ -21287,6 +21938,18 @@ let maStlWallApplyAllHeightMm = 0;
             if (maStlWallDimGuideLinesMesh.material) maStlWallDimGuideLinesMesh.material.dispose();
             maStlWallDimGuideLinesMesh = null;
         }
+        if (maStlWallDimEditableLinesMesh) {
+            maStlWallDimGroup.remove(maStlWallDimEditableLinesMesh);
+            if (maStlWallDimEditableLinesMesh.geometry) maStlWallDimEditableLinesMesh.geometry.dispose();
+            if (maStlWallDimEditableLinesMesh.material) maStlWallDimEditableLinesMesh.material.dispose();
+            maStlWallDimEditableLinesMesh = null;
+        }
+        if (maStlWallDimDotMesh) {
+            maStlWallDimGroup.remove(maStlWallDimDotMesh);
+            if (maStlWallDimDotMesh.geometry) maStlWallDimDotMesh.geometry.dispose();
+            if (maStlWallDimDotMesh.material) maStlWallDimDotMesh.material.dispose();
+            maStlWallDimDotMesh = null;
+        }
         if (maStlWallDimArrowMesh) {
             maStlWallDimGroup.remove(maStlWallDimArrowMesh);
             if (maStlWallDimArrowMesh.geometry) maStlWallDimArrowMesh.geometry.dispose();
@@ -21301,11 +21964,18 @@ let maStlWallApplyAllHeightMm = 0;
     }
 
     function maStlWallDimApplyGuideLineColors() {
-        let hex = 0x202020;
-        if (darkBgVisible) hex = 0xdddddd;
+        let hex = darkBgVisible ? 0xdddddd : 0x202020;
         if (maStlWallDimGuideLinesMesh && maStlWallDimGuideLinesMesh.material) {
             maStlWallDimGuideLinesMesh.material.color.setHex(hex);
             maStlWallDimGuideLinesMesh.material.needsUpdate = true;
+        }
+        if (maStlWallDimEditableLinesMesh && maStlWallDimEditableLinesMesh.material) {
+            maStlWallDimEditableLinesMesh.material.color.setHex(darkBgVisible ? 0xc5d8f5 : 0x0a3d82);
+            maStlWallDimEditableLinesMesh.material.needsUpdate = true;
+        }
+        if (maStlWallDimDotMesh && maStlWallDimDotMesh.material) {
+            maStlWallDimDotMesh.material.color.setHex(hex);
+            maStlWallDimDotMesh.material.needsUpdate = true;
         }
         if (maStlWallDimArrowMesh && maStlWallDimArrowMesh.material) {
             maStlWallDimArrowMesh.material.color.setHex(hex);
@@ -21347,6 +22017,35 @@ let maStlWallApplyAllHeightMm = 0;
             maStlWallDimGroup.add(mesh);
             maStlWallDimGuideLinesMesh = mesh;
         }
+        if (!maStlWallDimEditableLinesMesh) {
+            const editGeo = new THREE.BufferGeometry();
+            const editMat = new THREE.LineBasicMaterial({
+                color: 0x0a3d82,
+                transparent: false,
+                depthTest: false,
+                depthWrite: false,
+            });
+            const editMesh = new THREE.LineSegments(editGeo, editMat);
+            editMesh.renderOrder = 174;
+            maStlDisableRaycastOnOverlay(editMesh);
+            maStlWallDimGroup.add(editMesh);
+            maStlWallDimEditableLinesMesh = editMesh;
+        }
+        if (!maStlWallDimDotMesh) {
+            const dotGeo = new THREE.BufferGeometry();
+            const dotMat = new THREE.MeshBasicMaterial({
+                color: 0x272727,
+                transparent: false,
+                side: THREE.DoubleSide,
+                depthTest: false,
+                depthWrite: false,
+            });
+            const dot = new THREE.Mesh(dotGeo, dotMat);
+            dot.renderOrder = 176;
+            maStlDisableRaycastOnOverlay(dot);
+            maStlWallDimGroup.add(dot);
+            maStlWallDimDotMesh = dot;
+        }
         if (!maStlWallDimArrowMesh) {
             const arGeo = new THREE.BufferGeometry();
             const arMat = new THREE.MeshBasicMaterial({
@@ -21365,46 +22064,234 @@ let maStlWallApplyAllHeightMm = 0;
         maStlWallDimApplyGuideLineColors();
     }
 
+    function maStlWallDimLinesCrossT(a, b, c, d, loose) {
+        const rx = b.x - a.x;
+        const rz = b.z - a.z;
+        const sx = d.x - c.x;
+        const sz = d.z - c.z;
+        const den = rx * sz - rz * sx;
+        if (Math.abs(den) < 1e-4) return null;
+        const qx = c.x - a.x;
+        const qz = c.z - a.z;
+        const t = (qx * sz - qz * sx) / den;
+        const u = (qx * rz - qz * rx) / den;
+        const lo = loose ? 0.002 : 0.02;
+        const hi = loose ? 0.998 : 0.98;
+        if (t <= lo || t >= hi || u <= lo || u >= hi) return null;
+        return t;
+    }
+
+    function maStlWallDimPushGappedSegment(pts, y, a, b, cuts, dropAxisEnd, extraBlocks) {
+        const len = Math.hypot(b.x - a.x, b.z - a.z) || 1;
+        const gapT = Math.min(0.42, 170 / len);
+        const blocks = [];
+        for (let i = 0; i < cuts.length; i++) {
+            const cut = cuts[i];
+            if (dropAxisEnd && cut < 0.42) blocks.push([0, Math.min(0.94, cut + 280 / len)]);
+            else if (dropAxisEnd && cut > 0.58) blocks.push([Math.max(0.06, cut - 280 / len), 1]);
+            else blocks.push([cut - gapT, cut + gapT]);
+        }
+        if (extraBlocks) {
+            for (let eb = 0; eb < extraBlocks.length; eb++) blocks.push(extraBlocks[eb]);
+        }
+        blocks.sort(function (p, q) {
+            return p[0] - q[0];
+        });
+        const merged = [];
+        for (let i = 0; i < blocks.length; i++) {
+            const blk = blocks[i];
+            if (!merged.length || blk[0] > merged[merged.length - 1][1]) merged.push(blk);
+            else merged[merged.length - 1][1] = Math.max(merged[merged.length - 1][1], blk[1]);
+        }
+        let cursor = 0;
+        const ends = [];
+        for (let i = 0; i < merged.length; i++) {
+            const lo = Math.max(0, merged[i][0]);
+            const hi = Math.min(1, merged[i][1]);
+            if (lo - cursor > 0.03) {
+                pts.push(
+                    new THREE.Vector3(a.x + (b.x - a.x) * cursor, y, a.z + (b.z - a.z) * cursor),
+                    new THREE.Vector3(a.x + (b.x - a.x) * lo, y, a.z + (b.z - a.z) * lo)
+                );
+                ends.push(cursor, lo);
+            }
+            cursor = Math.max(cursor, hi);
+        }
+        if (1 - cursor > 0.03) {
+            pts.push(
+                new THREE.Vector3(a.x + (b.x - a.x) * cursor, y, a.z + (b.z - a.z) * cursor),
+                new THREE.Vector3(b.x, y, b.z)
+            );
+            ends.push(cursor, 1);
+        }
+        return ends;
+    }
+
+    function maStlWallDimLabelTextMm(placement, wpp) {
+        const shown = placement && placement.textLiteral
+            ? placement.textLiteral
+            : placement && placement.kind === 'atk60-panel'
+                ? maStlWallDimPanelMetersLabel(placement.labelMm)
+                : maStlDesing2DimEditableMetersDisplayFromMm(placement ? placement.labelMm : 0);
+        const px = wpp > 0 ? wpp : 6;
+        return String(shown || '').length * 7.2 * px + Math.max(48, px * 3);
+    }
+
+    function maStlWallDimLabelFits(placement, wpp) {
+        if (!placement || !placement.extA_end || !placement.extB_end) return true;
+        const span = Math.hypot(
+            placement.extB_end.x - placement.extA_end.x,
+            placement.extB_end.z - placement.extA_end.z
+        );
+        if (!(span > 1)) return false;
+        return maStlWallDimLabelTextMm(placement, wpp) <= span * 0.86;
+    }
+
+    /** Cota corta: punto en el centro y número al final de una línea a 45°. */
+    function maStlWallDimPlaceLeader45(placement, y, pts, dotPos, leaders, wpp) {
+        const eA = placement.extA_end;
+        const eB = placement.extB_end;
+        const pA = placement.pA;
+        if (!eA || !eB || !pA) return;
+        const span = Math.hypot(eB.x - eA.x, eB.z - eA.z) || 1;
+        const alongX = (eB.x - eA.x) / span;
+        const alongZ = (eB.z - eA.z) / span;
+        const nlen = Math.hypot(eA.x - pA.x, eA.z - pA.z) || 1;
+        const nx = (eA.x - pA.x) / nlen;
+        const nz = (eA.z - pA.z) / nlen;
+        const anchor = { x: (eA.x + eB.x) * 0.5, z: (eA.z + eB.z) * 0.5 };
+        const chars = placement.textChars > 0 ? placement.textChars : 4;
+        const textHalf = Math.max(180, chars * 7.2 * (wpp > 0 ? wpp : 6) * 0.5);
+        const sign0 = placement.outsideSign < 0 ? -1 : 1;
+        const sides = [sign0, -sign0];
+        const baseLen = placement.leaderMinMm > 0 ? placement.leaderMinMm : 1100;
+        const lengths = [baseLen, baseLen + 550, baseLen + 1100, baseLen + 1650];
+        const distPointSeg = function (p, a, b) {
+            const abx = b.x - a.x;
+            const abz = b.z - a.z;
+            const len2 = abx * abx + abz * abz || 1;
+            let t = ((p.x - a.x) * abx + (p.z - a.z) * abz) / len2;
+            if (t < 0) t = 0;
+            else if (t > 1) t = 1;
+            return Math.hypot(p.x - (a.x + abx * t), p.z - (a.z + abz * t));
+        };
+        const hits = function (tip, text) {
+            for (let i = 0; i < leaders.length; i++) {
+                const o = leaders[i];
+                if (maStlWallDimLinesCrossT(anchor, tip, o.a, o.b) != null) return true;
+                if (Math.hypot(text.x - o.text.x, text.z - o.text.z) < textHalf + o.half) return true;
+                if (distPointSeg(o.text, anchor, tip) < o.half) return true;
+                if (distPointSeg(text, o.a, o.b) < textHalf) return true;
+            }
+            return false;
+        };
+        let chosen = null;
+        for (let si = 0; si < sides.length && !chosen; si++) {
+            const side = sides[si];
+            const dx = nx + alongX * side;
+            const dz = nz + alongZ * side;
+            const dl = Math.hypot(dx, dz) || 1;
+            const ux = dx / dl;
+            const uz = dz / dl;
+            for (let li = 0; li < lengths.length; li++) {
+                const tip = { x: anchor.x + ux * lengths[li], z: anchor.z + uz * lengths[li] };
+                const text = { x: tip.x + ux * (textHalf + 50), z: tip.z + uz * (textHalf + 50) };
+                if (!hits(tip, text)) {
+                    chosen = { tip: tip, text: text };
+                    break;
+                }
+            }
+        }
+        if (!chosen) {
+            const dx = nx + alongX * sign0;
+            const dz = nz + alongZ * sign0;
+            const dl = Math.hypot(dx, dz) || 1;
+            const ux = dx / dl;
+            const uz = dz / dl;
+            const tip = { x: anchor.x + ux * lengths[lengths.length - 1], z: anchor.z + uz * lengths[lengths.length - 1] };
+            chosen = {
+                tip: tip,
+                text: { x: tip.x + ux * (textHalf + 50), z: tip.z + uz * (textHalf + 50) },
+            };
+        }
+        pts.push(
+            new THREE.Vector3(anchor.x, y, anchor.z),
+            new THREE.Vector3(chosen.tip.x, y, chosen.tip.z)
+        );
+        const radius = 45;
+        const wedges = 14;
+        for (let k = 0; k < wedges; k++) {
+            const a0 = (k / wedges) * Math.PI * 2;
+            const a1 = ((k + 1) / wedges) * Math.PI * 2;
+            dotPos.push(
+                anchor.x,
+                y,
+                anchor.z,
+                anchor.x + Math.cos(a0) * radius,
+                y,
+                anchor.z + Math.sin(a0) * radius,
+                anchor.x + Math.cos(a1) * radius,
+                y,
+                anchor.z + Math.sin(a1) * radius
+            );
+        }
+        placement.labelMid.x = chosen.text.x;
+        placement.labelMid.z = chosen.text.z;
+        leaders.push({ a: anchor, b: chosen.tip, text: chosen.text, half: textHalf });
+    }
+
     function maStlWallDimRebuildFromPlacements(placements) {
         maStlWallDimClearAllVisuals();
         if (!placements || placements.length === 0) return 0;
         maStlWallDimEnsureGuideMeshes();
-        const pts = [];
+        const ptsBlack = [];
+        const ptsEdit = [];
         const posTri = [];
+        const dotPos = [];
+        const leaders = [];
         const wpp = maStlUserFloorDimHudWorldMmPerPixel();
+        maStlWallDimLastWpp = wpp > 0 ? wpp : 0;
         for (let i = 0; i < placements.length; i++) {
             const placement = placements[i];
+            const pts =
+                placement.editKind === 'length' || placement.editKind === 'thickness'
+                    ? ptsEdit
+                    : ptsBlack;
             const y = placement.floorY;
             const pA = placement.pA;
             const pB = placement.pB;
             const eA = placement.extA_end;
             const eB = placement.extB_end;
+            if (placement.kind === 'wall-id') {
+                maStlWallDimPlaceLeader45(placement, y, pts, dotPos, leaders, wpp);
+                continue;
+            }
             if (placement.kind === 'atk60-height' || placement.vertical) {
                 const yA = Number.isFinite(placement.yA) ? placement.yA : y;
                 const yB = Number.isFinite(placement.yB) ? placement.yB : y;
+                const shownH = String(maStlDesing2DimEditableMetersDisplayFromMm(placement.labelMm) || '');
+                const halfH = shownH.length * 7.2 * (wpp > 0 ? wpp : 6) * 0.5 + Math.max(36, (wpp > 0 ? wpp : 6) * 3);
+                const midY = (yA + yB) * 0.5;
+                const gapLo = Math.max(yA, midY - halfH);
+                const gapHi = Math.min(yB, midY + halfH);
                 pts.push(
                     new THREE.Vector3(pA.x, yA, pA.z),
                     new THREE.Vector3(eA.x, yA, eA.z),
                     new THREE.Vector3(pB.x, yB, pB.z),
-                    new THREE.Vector3(eB.x, yB, eB.z),
-                    new THREE.Vector3(eA.x, yA, eA.z),
                     new THREE.Vector3(eB.x, yB, eB.z)
                 );
-                const spanMm = Math.max(placement.labelMm || 0, Math.abs(yB - yA));
-                const hArrow = maStlUserFloorDimComputeLengthArrowDeepWingMm(spanMm, wpp);
-                maStlWallDimPushVerticalChordArrows(
-                    posTri,
-                    eA.x,
-                    yA,
-                    eA.z,
-                    eB.x,
-                    yB,
-                    eB.z,
-                    hArrow.deep,
-                    hArrow.wing,
-                    placement.nx || 0,
-                    placement.nz || 0
-                );
+                if (gapLo - yA > 20) {
+                    pts.push(
+                        new THREE.Vector3(eA.x, yA, eA.z),
+                        new THREE.Vector3(eA.x, gapLo, eA.z)
+                    );
+                }
+                if (yB - gapHi > 20) {
+                    pts.push(
+                        new THREE.Vector3(eA.x, gapHi, eA.z),
+                        new THREE.Vector3(eA.x, yB, eA.z)
+                    );
+                }
                 continue;
             }
             if (placement.kind === 'thickness') {
@@ -21433,35 +22320,281 @@ let maStlWallApplyAllHeightMm = 0;
                 );
                 continue;
             }
-            pts.push(
-                new THREE.Vector3(pA.x, y, pA.z),
-                new THREE.Vector3(eA.x, y, eA.z),
-                new THREE.Vector3(pB.x, y, pB.z),
-                new THREE.Vector3(eB.x, y, eB.z),
-                new THREE.Vector3(eA.x, y, eA.z),
-                new THREE.Vector3(eB.x, y, eB.z)
-            );
             const spanMm = Math.max(
                 placement.labelMm || 0,
                 Math.hypot(eB.x - eA.x, eB.z - eA.z)
             );
-            const lenArrow = maStlUserFloorDimComputeLengthArrowDeepWingMm(spanMm, wpp);
-            maStlUserFloorDimPushChordArrows(
-                posTri,
-                y,
-                eA.x,
-                eA.z,
-                eB.x,
-                eB.z,
-                lenArrow.deep,
-                lenArrow.wing
+            const wallKind = placement.kind && String(placement.kind).indexOf('wall-') === 0;
+            const constructionKind =
+                wallKind ||
+                placement.kind === 'atk60-panel' ||
+                placement.kind === 'atk60-module' ||
+                placement.kind === 'atk60-remate';
+            const dx = eA.x - pA.x;
+            const dz = eA.z - pA.z;
+            const dlen = Math.hypot(dx, dz) || 1;
+            const over = constructionKind ? 120 : 0;
+            let extCutsA = [];
+            let extCutsB = [];
+            let dimCuts = [];
+            if (wallKind) {
+                for (let oi = 0; oi < placements.length; oi++) {
+                    if (oi === i) continue;
+                    const other = placements[oi];
+                    if (!other || !other.kind || String(other.kind).indexOf('wall-') !== 0) continue;
+                    if (!other.extA_end || !other.extB_end) continue;
+                    const hitA = maStlWallDimLinesCrossT(pA, eA, other.extA_end, other.extB_end);
+                    const hitB = maStlWallDimLinesCrossT(pB, eB, other.extA_end, other.extB_end);
+                    const hitD = maStlWallDimLinesCrossT(eA, eB, other.extA_end, other.extB_end);
+                    if (hitA != null) extCutsA.push(hitA);
+                    if (hitB != null) extCutsB.push(hitB);
+                    if (hitD != null) dimCuts.push(hitD);
+                    if (placement.kind === 'wall-axes') {
+                        const hitWa = maStlWallDimLinesCrossT(eA, eB, other.pA, other.extA_end, true);
+                        const hitWb = maStlWallDimLinesCrossT(eA, eB, other.pB, other.extB_end, true);
+                        if (hitWa != null) dimCuts.push(hitWa);
+                        if (hitWb != null) dimCuts.push(hitWb);
+                    }
+                }
+            }
+            const extStart = function (p, e, cuts) {
+                let tMax = 0;
+                for (let ci = 0; ci < cuts.length; ci++) {
+                    if (cuts[ci] > tMax) tMax = cuts[ci];
+                }
+                if (!(tMax > 0)) return p;
+                const span = Math.hypot(e.x - p.x, e.z - p.z) || 1;
+                const t0 = Math.min(0.94, tMax + 170 / span);
+                return {
+                    x: p.x + (e.x - p.x) * t0,
+                    z: p.z + (e.z - p.z) * t0,
+                };
+            };
+            const sA = extStart(pA, eA, extCutsA);
+            const sB = extStart(pB, eB, extCutsB);
+            const eAx = eA.x + (dx / dlen) * over;
+            const eAz = eA.z + (dz / dlen) * over;
+            const eBx = eB.x + ((eB.x - pB.x) / (Math.hypot(eB.x - pB.x, eB.z - pB.z) || 1)) * over;
+            const eBz = eB.z + ((eB.z - pB.z) / (Math.hypot(eB.x - pB.x, eB.z - pB.z) || 1)) * over;
+            pts.push(
+                new THREE.Vector3(sA.x, y, sA.z),
+                new THREE.Vector3(eAx, y, eAz),
+                new THREE.Vector3(sB.x, y, sB.z),
+                new THREE.Vector3(eBx, y, eBz)
             );
+            const spanLine = Math.hypot(eB.x - eA.x, eB.z - eA.z) || 1;
+            const textBlocks = [];
+            if (constructionKind) {
+                const lx = eB.x - eA.x;
+                const lz = eB.z - eA.z;
+                for (let ti = 0; ti < placements.length; ti++) {
+                    const other = placements[ti];
+                    const lab = other && other.labelMid;
+                    if (!lab || other.textOutside) continue;
+                    if (other.leader45 && !maStlWallDimLabelFits(other, wpp)) continue;
+                    const t = ((lab.x - eA.x) * lx + (lab.z - eA.z) * lz) / (spanLine * spanLine);
+                    if (t <= 0.02 || t >= 0.98) continue;
+                    const qx = eA.x + lx * t;
+                    const qz = eA.z + lz * t;
+                    if (Math.hypot(lab.x - qx, lab.z - qz) > 160) continue;
+                    const shown = String(
+                        (other.kind === 'atk60-panel'
+                            ? maStlWallDimPanelMetersLabel(other.labelMm)
+                            : maStlDesing2DimEditableMetersDisplayFromMm(other.labelMm)) || ''
+                    );
+                    const halfMm =
+                        shown.length * 7.2 * (wpp > 0 ? wpp : 6) * 0.5 +
+                        Math.max(40, (wpp > 0 ? wpp : 6) * 3);
+                    if (halfMm * 2 >= spanLine * 0.82) continue;
+                    textBlocks.push([t - halfMm / spanLine, t + halfMm / spanLine]);
+                }
+            }
+            const dimEnds =
+                dimCuts.length || textBlocks.length
+                    ? maStlWallDimPushGappedSegment(
+                          pts,
+                          y,
+                          eA,
+                          eB,
+                          dimCuts,
+                          placement.kind === 'wall-axes',
+                          textBlocks
+                      )
+                    : null;
+            if (!dimCuts.length && !textBlocks.length) {
+                pts.push(
+                    new THREE.Vector3(eA.x, y, eA.z),
+                    new THREE.Vector3(eB.x, y, eB.z)
+                );
+            }
+            const drawLeader = placement.leader45 && !maStlWallDimLabelFits(placement, wpp);
+            if (drawLeader) {
+                maStlWallDimPlaceLeader45(placement, y, pts, dotPos, leaders, wpp);
+            } else if ((wallKind || placement.kind === 'atk60-panel') && placement.textOutside) {
+                const spanLab = Math.hypot(eB.x - eA.x, eB.z - eA.z) || 1;
+                const alongX = (eB.x - eA.x) / spanLab;
+                const alongZ = (eB.z - eA.z) / spanLab;
+                const sign0 = placement.outsideSign < 0 ? -1 : 1;
+                const chars = placement.textChars > 0 ? placement.textChars : 4;
+                const textMm = Math.max(340, chars * 7.4 * (wpp > 0 ? wpp : 6) + 70);
+                const offN = Math.hypot(dx, dz) || 1;
+                const nx = dx / offN;
+                const nz = dz / offN;
+                const nearSeg = function (p, a, b, tol) {
+                    if (!a || !b) return false;
+                    const abx = b.x - a.x;
+                    const abz = b.z - a.z;
+                    const len2 = abx * abx + abz * abz || 1;
+                    let t = ((p.x - a.x) * abx + (p.z - a.z) * abz) / len2;
+                    if (t < 0) t = 0;
+                    else if (t > 1) t = 1;
+                    return Math.hypot(p.x - (a.x + abx * t), p.z - (a.z + abz * t)) < tol;
+                };
+                const slotBlocked = function (segA, segB, mid) {
+                    for (let oi = 0; oi < placements.length; oi++) {
+                        if (oi === i) continue;
+                        const other = placements[oi];
+                        const otherKind = other && other.kind ? String(other.kind) : '';
+                        if (otherKind.indexOf('wall-') !== 0 && otherKind !== 'atk60-panel') continue;
+                        if (
+                            other.extA_end &&
+                            other.extB_end &&
+                            (nearSeg(mid, other.extA_end, other.extB_end, 380) ||
+                                maStlWallDimLinesCrossT(segA, segB, other.extA_end, other.extB_end) != null)
+                        ) {
+                            return true;
+                        }
+                        if (other.pA && other.extA_end && nearSeg(mid, other.pA, other.extA_end, 280)) {
+                            return true;
+                        }
+                        if (other.pB && other.extB_end && nearSeg(mid, other.pB, other.extB_end, 280)) {
+                            return true;
+                        }
+                        if (
+                            other._textA &&
+                            other._textB &&
+                            (nearSeg(mid, other._textA, other._textB, 360) ||
+                                maStlWallDimLinesCrossT(segA, segB, other._textA, other._textB) != null)
+                        ) {
+                            return true;
+                        }
+                    }
+                    return false;
+                };
+                const makeSlot = function (dirSign, slide) {
+                    const anchor = dirSign < 0 ? eA : eB;
+                    const base = {
+                        x: anchor.x + nx * slide,
+                        z: anchor.z + nz * slide,
+                    };
+                    const far = {
+                        x: base.x + alongX * dirSign * textMm,
+                        z: base.z + alongZ * dirSign * textMm,
+                    };
+                    const mid = { x: (base.x + far.x) * 0.5, z: (base.z + far.z) * 0.5 };
+                    return { anchor: anchor, base: base, far: far, mid: mid, slide: slide };
+                };
+                const candidates = placement.keepOnDimLine
+                    ? [makeSlot(sign0, 0)]
+                    : [
+                          makeSlot(sign0, 0),
+                          makeSlot(-sign0, 0),
+                          makeSlot(sign0, 720),
+                          makeSlot(-sign0, 720),
+                      ];
+                let chosen = candidates[0];
+                for (let ci = 0; ci < candidates.length; ci++) {
+                    const slot = candidates[ci];
+                    const lineA = slot.slide ? slot.base : slot.anchor;
+                    if (!slotBlocked(lineA, slot.far, slot.mid)) {
+                        chosen = slot;
+                        break;
+                    }
+                }
+                if (chosen.slide) {
+                    pts.push(
+                        new THREE.Vector3(chosen.anchor.x, y, chosen.anchor.z),
+                        new THREE.Vector3(chosen.base.x, y, chosen.base.z)
+                    );
+                }
+                pts.push(
+                    new THREE.Vector3(chosen.base.x, y, chosen.base.z),
+                    new THREE.Vector3(chosen.far.x, y, chosen.far.z)
+                );
+                placement._textA = chosen.base;
+                placement._textB = chosen.far;
+                const margin = Math.max(70, (wpp > 0 ? wpp : 6) * 6);
+                placement.labelMid.x = chosen.mid.x + nx * margin;
+                placement.labelMid.z = chosen.mid.z + nz * margin;
+            }
+            if (constructionKind) {
+                const ux = eB.x - eA.x;
+                const uz = eB.z - eA.z;
+                const ulen = Math.hypot(ux, uz) || 1;
+                const c = Math.SQRT1_2;
+                const tx = c * (ux / ulen - uz / ulen);
+                const tz = c * (ux / ulen + uz / ulen);
+                const halfTick = 110;
+                const tickAt = function (ex, ez) {
+                    pts.push(
+                        new THREE.Vector3(ex - tx * halfTick, y, ez - tz * halfTick),
+                        new THREE.Vector3(ex + tx * halfTick, y, ez + tz * halfTick)
+                    );
+                };
+                const keepEnd = function (tEnd) {
+                    if (!dimEnds) return true;
+                    for (let ei = 0; ei < dimEnds.length; ei += 2) {
+                        if (Math.abs(dimEnds[ei] - tEnd) < 0.04 || Math.abs(dimEnds[ei + 1] - tEnd) < 0.04) {
+                            return true;
+                        }
+                    }
+                    return false;
+                };
+                if (keepEnd(0)) tickAt(eA.x, eA.z);
+                if (keepEnd(1)) tickAt(eB.x, eB.z);
+            } else {
+                const lenArrow = maStlUserFloorDimComputeLengthArrowDeepWingMm(spanMm, wpp);
+                maStlUserFloorDimPushChordArrows(
+                    posTri,
+                    y,
+                    eA.x,
+                    eA.z,
+                    eB.x,
+                    eB.z,
+                    lenArrow.deep,
+                    lenArrow.wing
+                );
+            }
         }
-        if (pts.length >= 2 && maStlWallDimGuideLinesMesh) {
+        if (ptsBlack.length >= 2 && maStlWallDimGuideLinesMesh) {
             maStlWallDimGuideLinesMesh.geometry.dispose();
-            maStlWallDimGuideLinesMesh.geometry = new THREE.BufferGeometry().setFromPoints(pts);
+            maStlWallDimGuideLinesMesh.geometry = new THREE.BufferGeometry().setFromPoints(ptsBlack);
             maStlWallDimGuideLinesMesh.geometry.computeBoundingSphere();
             maStlWallDimGuideLinesMesh.visible = true;
+        }
+        if (maStlWallDimEditableLinesMesh) {
+            if (ptsEdit.length >= 2) {
+                maStlWallDimEditableLinesMesh.geometry.dispose();
+                maStlWallDimEditableLinesMesh.geometry = new THREE.BufferGeometry().setFromPoints(ptsEdit);
+                maStlWallDimEditableLinesMesh.geometry.computeBoundingSphere();
+                maStlWallDimEditableLinesMesh.visible = true;
+            } else {
+                maStlWallDimEditableLinesMesh.visible = false;
+            }
+        }
+        if (maStlWallDimDotMesh) {
+            if (dotPos.length > 0) {
+                maStlWallDimDotMesh.geometry.dispose();
+                maStlWallDimDotMesh.geometry = new THREE.BufferGeometry();
+                maStlWallDimDotMesh.geometry.setAttribute(
+                    'position',
+                    new THREE.BufferAttribute(new Float32Array(dotPos), 3)
+                );
+                maStlWallDimDotMesh.geometry.computeBoundingSphere();
+                maStlWallDimDotMesh.visible = true;
+            } else {
+                maStlWallDimDotMesh.visible = false;
+            }
         }
         if (maStlWallDimArrowMesh) {
             if (posTri.length > 0) {
@@ -21487,7 +22620,15 @@ let maStlWallApplyAllHeightMm = 0;
                 btn.type = 'button';
                 btn.className =
                     'desing2-stl-floor-dim-readout desing2-stl-wall-dim-readout desing2-stl-floor-dim-readout--compact';
-                if (pl.kind === 'thickness') {
+                const constructionReadout =
+                    (pl.kind && String(pl.kind).indexOf('wall-') === 0) ||
+                    pl.kind === 'atk60-panel' ||
+                    pl.kind === 'atk60-module' ||
+                    pl.kind === 'atk60-height' ||
+                    pl.kind === 'atk60-remate';
+                if (constructionReadout) {
+                    btn.className += ' desing2-stl-wall-dim-readout--construction';
+                } else if (pl.kind === 'thickness') {
                     btn.className += ' desing2-stl-wall-dim-readout--thickness';
                 } else if (pl.kind === 'atk60-panel') {
                     btn.className += ' desing2-stl-wall-dim-readout--atk60-panel';
@@ -21496,16 +22637,47 @@ let maStlWallApplyAllHeightMm = 0;
                 } else if (pl.kind === 'atk60-remate') {
                     btn.className += ' desing2-stl-wall-dim-readout--atk60-remate';
                 }
-                btn.textContent = maStlDesing2DimEditableMetersDisplayFromMm(pl.labelMm);
-                btn.setAttribute('aria-hidden', 'false');
-                btn.tabIndex = -1;
-                maStlWallDimOverlayRoot.appendChild(btn);
-                maStlWallDimEntries.push({
+                btn.textContent = pl.textLiteral
+                    ? pl.textLiteral
+                    : pl.kind === 'atk60-panel'
+                      ? maStlWallDimPanelMetersLabel(pl.labelMm)
+                      : maStlDesing2DimEditableMetersDisplayFromMm(pl.labelMm);
+                if (pl.editKind === 'thickness') {
+                    const thickBtn = document.getElementById('ma-stl-floor-dim-readout-thickness');
+                    const thickTitle = thickBtn && thickBtn.getAttribute('aria-label');
+                    if (thickTitle) btn.title = thickTitle;
+                } else if (pl.kindLabel) {
+                    btn.title = pl.kindLabel;
+                }
+                const entry = {
                     labelMm: pl.labelMm,
                     labelMid: pl.labelMid,
                     kind: pl.kind,
+                    axisId: pl.axisId,
+                    editKind: pl.editKind || '',
+                    editDeltaMm: pl.editDeltaMm || 0,
+                    extA: pl.extA_end ? { x: pl.extA_end.x, z: pl.extA_end.z } : null,
+                    extB: pl.extB_end ? { x: pl.extB_end.x, z: pl.extB_end.z } : null,
                     readoutEl: btn,
-                });
+                };
+                if (entry.editKind === 'length' || entry.editKind === 'thickness') {
+                    btn.className += ' desing2-stl-wall-dim-readout--editable';
+                    btn.tabIndex = 0;
+                    btn.addEventListener('pointerdown', function (ev) {
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                    });
+                    btn.addEventListener('click', function (ev) {
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                        maStlWallDimBeginEdit(entry);
+                    });
+                } else {
+                    btn.tabIndex = -1;
+                }
+                btn.setAttribute('aria-hidden', 'false');
+                maStlWallDimOverlayRoot.appendChild(btn);
+                maStlWallDimEntries.push(entry);
             }
             maStlWallDimApplyGuideLineColors();
         }
@@ -21513,6 +22685,9 @@ let maStlWallApplyAllHeightMm = 0;
     }
 
     function maStlWallDimAppendAxisIdLabels() {
+        /* El id se dibuja con las demás cotas: punto en el centro y línea a 45°. */
+        return 0;
+        if (!maStlWallDimKindEnabled('wall-id')) return 0;
         if (!maStlWallDimOverlayRoot) return 0;
         const axes = maStlWall2dToolCollectAllAxisLines();
         if (!axes.length) return 0;
@@ -21577,6 +22752,12 @@ let maStlWallApplyAllHeightMm = 0;
         return count + idLabelCount;
     }
 
+    window.desing2RefreshWallDims = function () {
+        if (typeof maStlIsWallDimToolActive === 'function' && !maStlIsWallDimToolActive()) return;
+        if (!maStlWallDimToolActive) return;
+        maStlWallDimRefreshScanAndDraw();
+    };
+
     function maStlWallDimRefreshFromPickedLine(pickedLine) {
         let pairs = maStlWallDimDetectWallPairsMm();
         if (pairs.length === 0) {
@@ -21594,6 +22775,111 @@ let maStlWallApplyAllHeightMm = 0;
         return count + idLabelCount;
     }
 
+    let maStlWallDimEditSession = null;
+
+    function maStlWallDimCloseEdit(commit) {
+        const ses = maStlWallDimEditSession;
+        if (!ses) return;
+        maStlWallDimEditSession = null;
+        if (viewerShell) viewerShell.classList.remove('is-wall-dim-editing');
+        const input = ses.input;
+        const entry = ses.entry;
+        if (input) {
+            input.removeEventListener('keydown', ses.onKey);
+            input.removeEventListener('blur', ses.onBlur);
+            if (input.parentNode) input.parentNode.removeChild(input);
+        }
+        if (entry && entry.readoutEl) {
+            entry.readoutEl.hidden = false;
+            entry.readoutEl.removeAttribute('hidden');
+        }
+        if (!commit || !entry || !input) return;
+        const parsed = maStlParseLengthInputValueToMm(String(input.value != null ? input.value : '').trim());
+        if (parsed == null) {
+            maStlDesing2ShowSaveViewToast(entry.editKind === 'thickness' ? 'Espesor invalido' : 'Longitud invalida');
+            return;
+        }
+        const line = maStlWall2dToolFindLineByPlanId(entry.axisId);
+        if (!line) {
+            maStlDesing2ShowSaveViewToast('No se pudo aplicar la medida');
+            return;
+        }
+        const undoBefore = maStlDesing2SerializeEditSnapshot();
+        const ok =
+            entry.editKind === 'thickness'
+                ? maStlCommitWallAxisThicknessMm(line, parsed)
+                : maStlCommitWallAxisLengthMm(
+                      line,
+                      parsed - (Number.isFinite(entry.editDeltaMm) ? entry.editDeltaMm : 0)
+                  );
+        if (!ok) {
+            maStlDesing2ShowSaveViewToast(
+                entry.editKind === 'thickness' ? 'No se pudo aplicar el espesor' : 'No se pudo aplicar la longitud'
+            );
+            return;
+        }
+        maStlDesing2PushEditSnapshotUndo(
+            'editUserFloorLineDimension',
+            undoBefore,
+            maStlDesing2SerializeEditSnapshot()
+        );
+        maStlWallDimRefreshScanAndDraw();
+    }
+
+    function maStlWallDimBeginEdit(entry) {
+        if (!entry || (entry.editKind !== 'length' && entry.editKind !== 'thickness')) return;
+        if (!entry.readoutEl || !maStlWallDimOverlayRoot) return;
+        if (maStlWallDimEditSession) {
+            maStlWallDimCloseEdit(true);
+            return;
+        }
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className =
+            'desing2-stl-floor-dim-input desing2-stl-floor-dim-input--compact desing2-stl-wall-dim-input--focus';
+        input.autocomplete = 'off';
+        input.value = maStlDesing2DimEditableMetersInputDisplayFromMm(entry.labelMm);
+        input.style.position = 'absolute';
+        input.style.zIndex = '6';
+        maStlWallDimOverlayRoot.appendChild(input);
+        entry.readoutEl.hidden = true;
+        entry.readoutEl.setAttribute('hidden', 'hidden');
+        const ses = { input: input, entry: entry, onKey: null, onBlur: null };
+        ses.onKey = function (ev) {
+            if (ev.key === 'Enter') {
+                ev.preventDefault();
+                ev.stopPropagation();
+                input.removeEventListener('blur', ses.onBlur);
+                maStlWallDimCloseEdit(true);
+            } else if (ev.key === 'Escape') {
+                ev.preventDefault();
+                ev.stopPropagation();
+                input.removeEventListener('blur', ses.onBlur);
+                maStlWallDimCloseEdit(false);
+            }
+        };
+        ses.onBlur = function () {
+            maStlWallDimCloseEdit(true);
+        };
+        input.addEventListener('keydown', ses.onKey);
+        input.addEventListener('blur', ses.onBlur);
+        maStlWallDimEditSession = ses;
+        if (viewerShell) viewerShell.classList.add('is-wall-dim-editing');
+        maStlSyncWallDimReadoutScreens();
+        input.focus();
+        input.select();
+    }
+
+    function maStlWallDimUprightAngleDeg(ax, ay, bx, by) {
+        const dx = bx - ax;
+        const dy = by - ay;
+        if (dx * dx + dy * dy < 9) return 0;
+        let deg = (Math.atan2(dy, dx) * 180) / Math.PI;
+        if (deg >= 90) deg -= 180;
+        else if (deg < -90) deg += 180;
+        return deg;
+    }
+
     function maStlSyncWallDimReadoutScreens() {
         if (!maStlWallDimToolActive || maStlWallDimEntries.length === 0) return;
         const wrap = document.getElementById('master-article-details-stl-viewer-canvas');
@@ -21608,16 +22894,43 @@ let maStlWallApplyAllHeightMm = 0;
             if (!el) continue;
             const labelY =
                 entry.labelMid && Number.isFinite(entry.labelMid.y) ? entry.labelMid.y : floorY;
+            const editingThis =
+                maStlWallDimEditSession && maStlWallDimEditSession.entry === entry;
             if (maStlWorldMmToScreenPx(entry.labelMid.x, labelY, entry.labelMid.z, scr)) {
-                el.hidden = false;
-                el.removeAttribute('hidden');
+                if (editingThis) {
+                    el.hidden = true;
+                    el.setAttribute('hidden', 'hidden');
+                } else {
+                    el.hidden = false;
+                    el.removeAttribute('hidden');
+                }
                 el.style.position = 'absolute';
                 el.style.left = scr.x - rWrap.left + 'px';
                 el.style.top = scr.y - rWrap.top + 'px';
+                let rotDeg = 0;
+                if (entry.extA && entry.extB && !editingThis) {
+                    const sa = { x: 0, y: 0 };
+                    const sb = { x: 0, y: 0 };
+                    if (
+                        maStlWorldMmToScreenPx(entry.extA.x, labelY, entry.extA.z, sa) &&
+                        maStlWorldMmToScreenPx(entry.extB.x, labelY, entry.extB.z, sb)
+                    ) {
+                        rotDeg = maStlWallDimUprightAngleDeg(sa.x, sa.y, sb.x, sb.y);
+                    }
+                }
+                const rot = rotDeg ? ' rotate(' + rotDeg + 'deg)' : '';
                 el.style.transform =
-                    entry.kind === 'thickness'
+                    (entry.kind === 'thickness'
                         ? 'translate(-50%, calc(-100% - 8px))'
-                        : 'translate(-50%, -50%)';
+                        : 'translate(-50%, -50%)') + rot;
+                if (
+                    maStlWallDimEditSession &&
+                    maStlWallDimEditSession.entry === entry &&
+                    maStlWallDimEditSession.input
+                ) {
+                    maStlWallDimEditSession.input.style.left = el.style.left;
+                    maStlWallDimEditSession.input.style.top = el.style.top;
+                }
             } else {
                 el.hidden = true;
                 el.setAttribute('hidden', 'hidden');
@@ -21635,6 +22948,7 @@ let maStlWallApplyAllHeightMm = 0;
         if (!maStlIsWallDimToolActive()) return;
         maStlWallDimToolActive = false;
         maStlWallDimClearAllVisuals();
+        maStlWall3dSyncCornerGuideVisibility();
         maStlSyncWallDimToolToggleBtnUi();
     }
 
@@ -21656,6 +22970,7 @@ let maStlWallApplyAllHeightMm = 0;
         maStlHideUserFloorLineDimHud(true);
         maStlWallDimToolActive = true;
         maStlSyncLineToolToggleBtnUi();
+        maStlWall3dSyncCornerGuideVisibility();
         maStlWallDimRefreshScanAndDraw();
         maStlSyncWallDimToolToggleBtnUi();
         if (maStlWallDimToggleBtn && document.activeElement === maStlWallDimToggleBtn) {
@@ -23970,6 +25285,7 @@ let maStlWallApplyAllHeightMm = 0;
     }
 
     function maStlSyncUserFloorDimHudScreenOnly() {
+        if (maStlWallDimToolActive) return;
         if (
             !maStlDesingV2Viewer ||
             !maStlUserFloorLineHudTargetLine() ||
@@ -25164,6 +26480,10 @@ let maStlWallApplyAllHeightMm = 0;
     }
 
     function maStlUpdateUserFloorLineDimHud(lengthOnlyOpt) {
+        if (maStlWallDimToolActive) {
+            maStlHideUserFloorLineDimHud(true);
+            return;
+        }
         const line = maStlUserFloorLineHudTargetLine();
         const udd = line && line.userData ? line.userData.maStlUserPlanLine : null;
         if (!udd || !udd.p1Mm || !udd.p2Mm) {
@@ -27558,6 +28878,7 @@ let maStlWallApplyAllHeightMm = 0;
         const stiffOut = !!(st.stiffOutCheckbox && st.stiffOutCheckbox.checked);
         const use750 = !!(st.panel750Checkbox && st.panel750Checkbox.checked);
         const verticalPanels = !!(st.verticalPanelsCheckbox && st.verticalPanelsCheckbox.checked);
+        const dimWall = !!(st.dimCheckbox && st.dimCheckbox.checked);
         for (let i = 0; i < targets.length; i++) {
             const ln = targets[i];
             const ud = ln && ln.userData ? ln.userData.maStlUserPlanLine : null;
@@ -27576,6 +28897,7 @@ let maStlWallApplyAllHeightMm = 0;
                 ud._IsUniversalPanel = use750;
             }
             if (st.verticalPanelsCheckbox) ud._CHeckTypeFormworkMode = verticalPanels;
+            if (st.dimCheckbox) ud._CHeckDimWall = dimWall;
         }
     }
 
@@ -27629,7 +28951,7 @@ let maStlWallApplyAllHeightMm = 0;
     }
 
     function maStlWallInspectEnsurePopup() {
-        if (maStlWallInspectFormState.root && (!maStlWallInspectFormState.bracketInCheckbox || !maStlWallInspectFormState.groupInput || !maStlWallInspectFormState.applyConfigAllCheckbox || !maStlWallInspectFormState.tapeIniSolapeCheckbox || maStlWallInspectFormState.tapeLayout !== 'pair')) {
+        if (maStlWallInspectFormState.root && (!maStlWallInspectFormState.bracketInCheckbox || !maStlWallInspectFormState.dimCheckbox || !maStlWallInspectFormState.groupInput || !maStlWallInspectFormState.applyConfigAllCheckbox || !maStlWallInspectFormState.tapeIniSolapeCheckbox || maStlWallInspectFormState.tapeLayout !== 'pair')) {
             maStlWallInspectFormState.root.remove();
             maStlWallInspectFormState.root = null;
             maStlWallFormApi = null;
@@ -27670,6 +28992,7 @@ let maStlWallApplyAllHeightMm = 0;
         maStlWallInspectFormState.propOutCheckbox = r.propOutCheckbox;
         maStlWallInspectFormState.propInInfCheckbox = r.propInInfCheckbox;
         maStlWallInspectFormState.propOutInfCheckbox = r.propOutInfCheckbox;
+        maStlWallInspectFormState.dimCheckbox = r.dimWallCheckbox;
         maStlWallInspectFormState.muroPane = r.muroPane;
         maStlWallInspectFormState.tapeLayout = 'pair';
         maStlWallInspectFormState.tapeHeadingEl = r.tapeHeadingEl;
@@ -27787,6 +29110,7 @@ let maStlWallApplyAllHeightMm = 0;
             return;
         }
         if (measureChanged || groupChanged) maStlWallInspectPushMeasureUndo();
+        if (maStlWallDimToolActive) maStlWallDimRefreshScanAndDraw();
         maStlWallInspectClosePopup();
     }
 
@@ -27871,6 +29195,9 @@ let maStlWallApplyAllHeightMm = 0;
         }
         if (maStlWallInspectFormState.verticalPanelsCheckbox) {
             maStlWallInspectFormState.verticalPanelsCheckbox.checked = maStlWallInspectFlagOn(propUd, '_CHeckTypeFormworkMode');
+        }
+        if (maStlWallInspectFormState.dimCheckbox) {
+            maStlWallInspectFormState.dimCheckbox.checked = maStlWallInspectFlagOn(propUd, '_CHeckDimWall');
         }
         if (maStlWallInspectFormState.tapeSolapeCheckbox && maStlWallInspectFormState.tapeIniSolapeCheckbox) {
             const storedIni = maStlWallTapeStoredIniId(propUd);
@@ -28388,13 +29715,36 @@ let maStlWallApplyAllHeightMm = 0;
         });
     }
     if (maStlDesingV2Viewer && maStlWallDimToggleBtn) {
-        maStlWallDimToggleBtn.addEventListener('click', (ev) => {
-            ev.stopPropagation();
+        let maStlDimClickTimer = 0;
+        const maStlToggleWallDimFromButton = () => {
             if (maStlIsWallDimToolActive()) {
                 maStlStopWallDimToolModesToolbar();
                 return;
             }
             maStlStartWallDimToolModesToolbar();
+        };
+        const maStlOpenDimKindsPopup = () => {
+            const pop = document.getElementById('desing2-dim-kinds-pop');
+            if (pop && pop.parentNode !== document.body) document.body.appendChild(pop);
+            if (typeof window.desing2OpenDimKindsPopup === 'function') {
+                window.desing2OpenDimKindsPopup();
+                return;
+            }
+            if (!pop) return;
+            pop.hidden = false;
+            pop.removeAttribute('hidden');
+        };
+        maStlWallDimToggleBtn.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            clearTimeout(maStlDimClickTimer);
+            maStlDimClickTimer = setTimeout(maStlToggleWallDimFromButton, 280);
+        });
+        maStlWallDimToggleBtn.addEventListener('dblclick', (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            clearTimeout(maStlDimClickTimer);
+            maStlOpenDimKindsPopup();
         });
     }
     maStlDesing2SyncUndoRedoToolbarUi();
@@ -31482,7 +32832,12 @@ let maStlWallApplyAllHeightMm = 0;
             maStlRefreshUserFloorLineDimEditHudPositions();
         }
         if (maStlDesingV2Viewer && maStlIsWallDimToolActive()) {
-            maStlSyncWallDimReadoutScreens();
+            const wppNow = maStlUserFloorDimHudWorldMmPerPixel();
+            const prevWpp = maStlWallDimLastWpp;
+            const zoomMoved =
+                prevWpp > 0 && wppNow > 0 && Math.abs(wppNow - prevWpp) / prevWpp > 0.08;
+            if (zoomMoved && !maStlWallDimEditSession) maStlWallDimRefreshScanAndDraw();
+            else maStlSyncWallDimReadoutScreens();
         }
         if (maStlRulersGate && maStlEdgeRulersManualOn) {
             maStlSyncEdgeRulersOverlay();
@@ -31559,6 +32914,7 @@ let maStlWallApplyAllHeightMm = 0;
                 propOut: maStlWallInspectFlagOn(ud, '_CHeckPropOutside'),
                 propInInf: maStlWallInspectFlagOn(ud, '_CHeckPropInsideInf'),
                 propOutInf: maStlWallInspectFlagOn(ud, '_CHeckPropOutsideInf'),
+                dimWall: maStlWallInspectFlagOn(ud, '_CHeckDimWall'),
                 solapeIni: storedIni === 'TapeS1' || storedIni === 'TapeS2' || ud._ChekSolapeIni === true,
                 solapeEnd: storedEnd === 'TapeS1' || storedEnd === 'TapeS2' || ud._ChekSolapeEnd === true,
                 tapeIni: storedIni,
@@ -31589,6 +32945,7 @@ let maStlWallApplyAllHeightMm = 0;
             ud._CHeckPropOutside = !!row.propOut;
             ud._CHeckPropInsideInf = !!row.propInInf;
             ud._CHeckPropOutsideInf = !!row.propOutInf;
+            ud._CHeckDimWall = !!row.dimWall;
             if (row.group != null && Number.isFinite(Number(row.group)) && Number(row.group) >= 0) {
                 const groupN = Math.round(Number(row.group));
                 ud.wallGroupId = groupN;
@@ -31611,6 +32968,7 @@ let maStlWallApplyAllHeightMm = 0;
     function maStlWallBulkListRefreshScene() {
         maStlSaveWallConnectionsNow({ force: true, reason: 'wall-bulk-list' });
         if (maStlDesing2ModelMode === 'wall3d') maStlDesing2ApplyWall3dModelMode();
+        if (maStlWallDimToolActive) maStlWallDimRefreshScanAndDraw();
     }
 
     function maStlWallBulkListApply(rows) {

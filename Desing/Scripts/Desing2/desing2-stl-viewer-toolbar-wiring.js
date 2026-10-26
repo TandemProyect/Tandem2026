@@ -580,6 +580,66 @@
             }
 
             // Lista de envío al controlador con atributos normalizados desde geometría 3D real.
+            function cornerFacesForAxis(connections, axisId) {
+                const lines = connections && Array.isArray(connections.lines) ? connections.lines : [];
+                const id = axisId == null ? '' : String(axisId);
+                const out = [];
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    if (!line || String(line.wallRole || '') !== 'face') continue;
+                    if (String(line.linkOffsetFromLineId) !== id) continue;
+                    const p1 = line.p1 || {};
+                    const p2 = line.p2 || {};
+                    const x1 = toNum(p1.xMm != null ? p1.xMm : p1.x);
+                    const z1 = toNum(p1.zMm != null ? p1.zMm : p1.z);
+                    const x2 = toNum(p2.xMm != null ? p2.xMm : p2.x);
+                    const z2 = toNum(p2.zMm != null ? p2.zMm : p2.z);
+                    if (x1 == null || z1 == null || x2 == null || z2 == null) continue;
+                    let lengthMm = toNum(line.lengthMm);
+                    if (lengthMm == null) {
+                        const dx = x2 - x1;
+                        const dz = z2 - z1;
+                        lengthMm = Math.sqrt((dx * dx) + (dz * dz));
+                    }
+                    out.push({
+                        side: Number(line.numberWallFaceSideSign) < 0 ? -1 : 1,
+                        lengthMm: lengthMm,
+                        x1: x1,
+                        z1: z1,
+                        x2: x2,
+                        z2: z2,
+                    });
+                }
+                return out;
+            }
+
+            function planAxisIdNearWall(connections, startX, startZ, endX, endZ, fallbackId) {
+                const lines = connections && Array.isArray(connections.lines) ? connections.lines : [];
+                let bestId = null;
+                let best = 150 * 150;
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    if (!line || String(line.wallRole || '') !== 'axis') continue;
+                    const p1 = line.p1 || {};
+                    const p2 = line.p2 || {};
+                    const x1 = toNum(p1.xMm != null ? p1.xMm : p1.x);
+                    const z1 = toNum(p1.zMm != null ? p1.zMm : p1.z);
+                    const x2 = toNum(p2.xMm != null ? p2.xMm : p2.x);
+                    const z2 = toNum(p2.zMm != null ? p2.zMm : p2.z);
+                    if (x1 == null || z1 == null || x2 == null || z2 == null) continue;
+                    const same = ((startX - x1) * (startX - x1)) + ((startZ - z1) * (startZ - z1))
+                        + ((endX - x2) * (endX - x2)) + ((endZ - z2) * (endZ - z2));
+                    const flip = ((startX - x2) * (startX - x2)) + ((startZ - z2) * (startZ - z2))
+                        + ((endX - x1) * (endX - x1)) + ((endZ - z1) * (endZ - z1));
+                    const dist = same < flip ? same : flip;
+                    if (dist < best) {
+                        best = dist;
+                        bestId = line.id;
+                    }
+                }
+                return bestId != null ? bestId : fallbackId;
+            }
+
             const idsDetailed = walls
                 .map(function (w) {
                     const id = w && w.LineId != null
@@ -642,6 +702,21 @@
                             trimStartMm: geom.TrimStartMm,
                             trimEndMm: geom.TrimEndMm,
                         };
+                    }
+
+                    if (geom) {
+                        const axisId = planAxisIdNearWall(
+                            wallConnections,
+                            geom.StartXmm,
+                            geom.StartZmm,
+                            geom.EndXmm,
+                            geom.EndZmm,
+                            lineId || id
+                        );
+                        const cornerFaces = cornerFacesForAxis(wallConnections, axisId);
+                        if (cornerFaces.length) {
+                            baseAttrs.CornerFaces = cornerFaces;
+                        }
                     }
 
                     return {

@@ -60,6 +60,8 @@ Solo 0,30, 0,45, 0,60 y 0,90 m. Sin solape.
 - Solución 1 (TapeS4): panel del espesor, angular en las dos esquinas y grapa fija `10004220`.
 - Solución 2 (TapeS5): panel regulable de 0,75 m. En 0,60 y 0,90 va junto a un panel de 0,30. Gancho `1920811` y tuerca `10443020`. En 0,30 el gancho va en las dos caras. De 0,45 en adelante el angular queda en una cara y el gancho en la del sobrante.
 
+El panel de cierre (`AddStopPanel`, también en TapeS7 y en el mayor de 0,60) lleva el bastidor hacia fuera. El fenólico del STL está en Y ≈ 0 y el bastidor en −Y. El yaw del panel es el contrario del extremo (`-Atan2(outZ, outX)`): con el signo positivo el bastidor mira al hormigón en cualquier muro que no vaya sobre el eje X, y en pantalla se ve la cara lisa. El origen en el espesor no se mueve con ese signo. No tocar con esto el giro de las placas del TapeS3 ni el del inicio del TapeS1.
+
 ## TapeS1 (con solape)
 
 Aceptado el 20 oct, 15:54. Sustituye al tablón claro del canto. Puede ir solo al inicio, solo al final, o en los dos. El final es el simétrico del inicio: `outSign` es −1 al inicio y +1 al final.

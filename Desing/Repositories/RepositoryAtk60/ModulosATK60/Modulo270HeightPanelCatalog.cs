@@ -443,13 +443,20 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
         {
             var options = useAdjustable750
                 ? new[] { 900, 750, 600, 450, 300 }
-                : new[] { 900, 600, 450, 300 };
+                : new[] { 900, 750, 600, 450, 300 };
             var columns = new List<int>();
             var remaining = Math.Max(0, lengthMm);
             for (var i = 0; i < options.Length && remaining >= 299; i++)
             {
                 while (remaining >= options[i])
                 {
+                    var left = remaining - options[i];
+                    // 1,05 no es un 0,90 con un hueco de 0,15: es 0,75 + 0,30.
+                    if (left != 0 && left < 300)
+                    {
+                        break;
+                    }
+
                     columns.Add(options[i]);
                     remaining -= options[i];
                 }
