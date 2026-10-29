@@ -102,6 +102,38 @@
 
         </div>
 
+        <span class="desing2-stl-floating-toolbar__group-gap" aria-hidden="true"></span>
+
+        <div class="desing2-stl-floating-toolbar__group desing2-stl-floating-toolbar__group--phase" role="group" aria-label="@MasterArticles.StlPreview_Desing2PhaseAria">
+
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-phase" title="@MasterArticles.StlPreview_Desing2PhaseAria" aria-label="@MasterArticles.StlPreview_Desing2PhaseAria">
+
+                <i class="icon-base ri ri-stack-line" aria-hidden="true"></i>
+
+            </button>
+
+        </div>
+
+        <span class="desing2-stl-floating-toolbar__group-gap" aria-hidden="true"></span>
+
+        <div class="desing2-stl-floating-toolbar__group desing2-stl-floating-toolbar__group--exchange" role="group" aria-label="@MasterArticles.StlPreview_Desing2WallExchangeGroupAria">
+
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-wall-export" title="@MasterArticles.StlPreview_Desing2WallExportAria" aria-label="@MasterArticles.StlPreview_Desing2WallExportAria" data-ma-export-ok="@MasterArticles.StlPreview_Desing2WallExportOk" data-ma-export-fail="@MasterArticles.StlPreview_Desing2WallExchangeFail">
+
+                <i class="icon-base ri ri-download-2-line" aria-hidden="true"></i>
+
+            </button>
+
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-wall-import" title="@MasterArticles.StlPreview_Desing2WallImportAria" aria-label="@MasterArticles.StlPreview_Desing2WallImportAria" data-ma-import-url="@Url.Action("ImportWallExchange", "Desing_2")" data-ma-import-confirm="@MasterArticles.StlPreview_Desing2WallImportConfirm" data-ma-import-ok="@MasterArticles.StlPreview_Desing2WallImportOk" data-ma-import-fail="@MasterArticles.StlPreview_Desing2WallExchangeFail">
+
+                <i class="icon-base ri ri-upload-2-line" aria-hidden="true"></i>
+
+            </button>
+
+            <input type="file" id="ma-stl-tool-wall-import-file" accept=".tnwall,text/plain" class="d-none" tabindex="-1" aria-hidden="true" />
+
+        </div>
+
         @* Esquina L: fuera de la barra visible; el atajo y el JS siguen usando este id. *@
         <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn d-none" id="ma-stl-tool-insert-corner" data-ma-stl-tool="insert-corner" title="@MasterArticles.StlPreview_Desing2TopToolInsertCornerAria" aria-label="@MasterArticles.StlPreview_Desing2TopToolInsertCornerAria" tabindex="-1" aria-hidden="true">
 

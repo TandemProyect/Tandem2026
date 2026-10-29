@@ -8,7 +8,7 @@ import { LineMaterial } from '../Design/jsm/lines/LineMaterial.js';
 import { GLTFLoader } from '../Design/jsm/loaders/GLTFLoader.js';
 import { createDesing2WorkerTool } from './desing2-worker-tool.js?v=20261022-worker2d';
 import { createDesing2PillarTool } from './desing2-pillar-tool.js';
-import { mountWallEditForm } from './wall-edit-form.js?v=20261026o';
+import { mountWallEditForm } from './wall-edit-form.js?v=20261027a';
 import { mountWallBulkList } from './wall-bulk-list.js?v=20261026p';
 import { mountDesignGroups } from './design-groups.js?v=20261023j';
 import { MaStlWallEditFinalize, MaStlWallStretchMath } from './ma-stl-wall-edit-finalize.js';
@@ -23,7 +23,7 @@ import {
     maAtk60SelectPanelMm,
     MA_ATK60_CORNER_PANEL_MM,
     maAtk60UnitXz,
-} from './ma-stl-atk60-formwork.js?v=20261024-caraA90';
+} from './ma-stl-atk60-formwork.js?v=20261028-t2xy';
 import {
     maStlFormworkEnvApplyCatalogLook,
     maStlFormworkEnvApplyIblToScene,
@@ -128,9 +128,46 @@ const MA_STL_WALL3D_DEFAULT_HEIGHT_MM = 2.7 * MA_STL_SCENE_MM_PER_PHYSICAL_METER
 /** Opacidad muro recto / esquina L (MeshStandardMaterial). */
 const MA_STL_WALL3D_OPACITY_WALL = 0.7;
 const MA_STL_WALL3D_OPACITY_CORNER = 1;
-/** Colores compartidos Modelo Muro / Muro 3D. */
+/** El sólido entra unos milímetros para no compartir cara con el fenólico. */
+const MA_STL_WALL3D_FACE_INSET_MM = 6;
+
+function maStlWall3dInsetSides(geo) {
+    const pos = geo && geo.attributes && geo.attributes.position;
+    const norm = geo && geo.attributes && geo.attributes.normal;
+    if (!pos || !norm || pos.count < 1) return;
+    const mm = MA_STL_WALL3D_FACE_INSET_MM;
+    let cx = 0;
+    let cz = 0;
+    for (let i = 0; i < pos.count; i++) {
+        cx += pos.getX(i);
+        cz += pos.getZ(i);
+    }
+    cx /= pos.count;
+    cz /= pos.count;
+    let vote = 0;
+    for (let j = 0; j < pos.count; j++) {
+        const nx = norm.getX(j);
+        const nz = norm.getZ(j);
+        if (Math.hypot(nx, nz) < 0.15) continue;
+        vote += ((pos.getX(j) - cx) * nx) + ((pos.getZ(j) - cz) * nz);
+    }
+    const dir = vote >= 0 ? -1 : 1;
+    for (let k = 0; k < pos.count; k++) {
+        const nx = norm.getX(k);
+        const nz = norm.getZ(k);
+        const h = Math.hypot(nx, nz);
+        if (h < 0.15) continue;
+        pos.setX(k, pos.getX(k) + (dir * (nx / h) * mm));
+        pos.setZ(k, pos.getZ(k) + (dir * (nz / h) * mm));
+    }
+    pos.needsUpdate = true;
+    geo.computeVertexNormals();
+    geo.computeBoundingBox();
+    geo.computeBoundingSphere();
+}
 const MA_STL_WALL_MODEL_COLOR_WALL = 0xb8d7ee;
-const MA_STL_WALL_MODEL_COLOR_CORNER = 0xffc107;
+/** La esquina (L, T y cruce) va en #A9F527. */
+const MA_STL_WALL_MODEL_COLOR_CORNER = 0xa9f527;
 /** Recinto rectangular — longitud exterior L por defecto (6 m físicos → mm escena). */
 const MA_STL_DESING2_ENCLOSURE_L_DEFAULT_MM = 6 * MA_STL_SCENE_MM_PER_PHYSICAL_METER;
 /** Recinto rectangular — anchura exterior W por defecto (4 m físicos → mm escena). */
@@ -5111,8 +5148,103 @@ function bootMasterArticleDetailsStlViewer() {
             });
     }
 
+    function maStlDesing2CollectManualArticlesForExchange(lines) {
+        const out = [];
+        const group = maStlDesing2ManualArticleGroup;
+        if (!group) return out;
+        const byDb = Object.create(null);
+        const rows = lines || [];
+        for (let i = 0; i < rows.length; i++) {
+            const line = rows[i];
+            if (!line) continue;
+            const dbId = line.WallDbId != null ? line.WallDbId : line.wallDbId;
+            if (dbId != null) byDb[String(dbId)] = line;
+        }
+        const kids = group.children || [];
+        for (let k = 0; k < kids.length; k++) {
+            const root = kids[k];
+            const ud = root && root.userData;
+            if (!ud || !ud.maStlManualWallArticle) continue;
+            const payload = ud.maStlManualArticlePayload || {};
+            const code = ud.maStlManualTextCode || payload.TextCode || payload.textCode || payload.CodeName || '';
+            if (!code) continue;
+            const insert = payload.InsertMm || payload.insertMm || {};
+            const pos = root.position || { x: 0, y: 0, z: 0 };
+            const sx = Number(insert.X != null ? insert.X : insert.x);
+            const sy = Number(insert.Y != null ? insert.Y : insert.y);
+            const sz = Number(insert.Z != null ? insert.Z : insert.z);
+            const wallDbId = ud.maStlManualWallDbId != null ? ud.maStlManualWallDbId : payload.WallDbId;
+            const wall = wallDbId != null ? byDb[String(wallDbId)] : null;
+            out.push({
+                CodeName: code,
+                View: payload.TextView || payload.View || payload.textView || '3dref',
+                InsertMm: {
+                    X: Number.isFinite(sx) ? sx : Number(pos.x),
+                    Y: Number.isFinite(sy) ? sy : Number(pos.y),
+                    Z: Number.isFinite(sz) ? sz : Number(pos.z)
+                },
+                RotationX: Number(payload.RotationX != null ? payload.RotationX : payload.rotationX) || 0,
+                RotationY: Number(payload.RotationY != null ? payload.RotationY : payload.rotationY) || 0,
+                RotationZ: Number(payload.RotationZ != null ? payload.RotationZ : payload.rotationZ) || 0,
+                HandleCad: payload.TextHandleCad || payload.HandleCad || '',
+                WallDbId: wallDbId != null ? Number(wallDbId) : null,
+                StlUrl: payload.StlUrl || payload.stlUrl || '',
+                StlPhenolicUrl: payload.StlPhenolicUrl || payload.stlPhenolicUrl || '',
+                P1Mm: wall && wall.p1Mm ? wall.p1Mm : (payload.P1Mm || null),
+                P2Mm: wall && wall.p2Mm ? wall.p2Mm : (payload.P2Mm || null),
+                TextSystem: 'Atk-60'
+            });
+        }
+        return out;
+    }
+
+    function maStlDesing2BuildWallExchangePayload() {
+        const snap = maStlDesing2SerializeEditSnapshot();
+        const lines = snap.lines || [];
+        return {
+            version: 1,
+            kind: 'tandem-walls',
+            designId: maStlDesing2CurrentDesignId(),
+            exportedAt: new Date().toISOString(),
+            walls: lines,
+            nextSegId: snap.nextSegId,
+            nextPolylineGroupId: snap.nextPolylineGroupId,
+            nextWallGroupId: snap.nextWallGroupId,
+            specialArticles: maStlDesing2CollectManualArticlesForExchange(lines),
+            view: maStlDesing2BuildViewerStateSnapshot()
+        };
+    }
+
     window.maStlDesing2WallsHaveUnsavedChanges = maStlDesing2WallsHaveUnsavedChanges;
     window.maStlDesing2SaveDesignWallsToServer = maStlDesing2SaveDesignWallsToServer;
+    window.maStlDesing2BuildWallExchangePayload = maStlDesing2BuildWallExchangePayload;
+
+    window.maStlDesing2PaintWallPhaseColors = function (byWallId) {
+        if (!maStlUserLinesGroup || !byWallId) return;
+        const ch = maStlUserLinesGroup.children;
+        const colorByLineId = {};
+        for (let i = 0; i < ch.length; i++) {
+            const ud = ch[i].userData && ch[i].userData.maStlUserPlanLine;
+            if (!ud || ud.wallRole !== 'axis') continue;
+            const wallId = String(ud.wallId != null ? ud.wallId : ud.id);
+            if (byWallId[wallId]) colorByLineId[String(ud.id)] = byWallId[wallId];
+        }
+        for (let j = 0; j < ch.length; j++) {
+            const line = ch[j];
+            const ud = line.userData && line.userData.maStlUserPlanLine;
+            if (!ud || !line.material || !line.material.color) continue;
+            let hex = '';
+            if (ud.wallRole === 'axis') {
+                const wallId = String(ud.wallId != null ? ud.wallId : ud.id);
+                hex = byWallId[wallId] || '';
+            } else if (ud.linkOffsetFromLineId != null) {
+                hex = colorByLineId[String(ud.linkOffsetFromLineId)] || '';
+            }
+            if (!hex) continue;
+            if (ud.wallRole !== 'axis' && line.material.clone) line.material = line.material.clone();
+            line.material.color.set(hex);
+        }
+    };
 
     let maStlDesing2WorkerSaveChain = Promise.resolve();
 
@@ -5198,8 +5330,11 @@ function bootMasterArticleDetailsStlViewer() {
             })
             .finally(function () {
                 maStlDesing2SetPersistOverlay(false);
+                document.dispatchEvent(new CustomEvent('desing2-walls-loaded'));
             });
     }
+
+    window.maStlDesing2LoadDesignWallsFromServer = maStlDesing2LoadDesignWallsFromServer;
 
     function maStlDesing2WallDiagnosticsApiUrl() {
         return viewerShell ? viewerShell.getAttribute('data-ma-stl-wall-diagnostics-api-url') || '' : '';
@@ -7870,12 +8005,14 @@ function bootMasterArticleDetailsStlViewer() {
                         const qReverse = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
                         unionClone.quaternion.premultiply(qReverse);
                         unionClone.scale.y = -1;
-                        // La cara de detrás de la esquina quedaba boca abajo.
-                        // Medio giro sobre la normal de esa cara la deja de pie.
-                        const uprightOpposite = maStlDesing2ToFiniteNumber(item.BaseRotZ) > 0.5;
-                        if (uprightOpposite && mirrored) {
-                            const qFace = new THREE.Quaternion().setFromAxisAngle(faceNormal, Math.PI);
-                            unionClone.quaternion.premultiply(qFace);
+                        // La cara de detrás sale con el golpe abajo. Medio giro sobre el
+                        // mismo eje que pone la grapa de pie la deja como el remate recto:
+                        // la parte que se golpea queda arriba. El remate recto no lleva la marca.
+                        const uprightOnFace = maStlDesing2ToFiniteNumber(item.BaseRotZ) > 0.5;
+                        if (uprightOnFace && mirrored) {
+                            const tiltAxis = new THREE.Vector3(1, 0, 0).applyQuaternion(qYaw);
+                            const qUpright = new THREE.Quaternion().setFromAxisAngle(tiltAxis, Math.PI);
+                            unionClone.quaternion.premultiply(qUpright);
                         }
                         unionClone.traverse(function (obj) {
                             if (obj && obj.isMesh && obj.material) {
@@ -8164,6 +8301,9 @@ function bootMasterArticleDetailsStlViewer() {
         }
 
         maStlWall3dAddInteriorCornerPoints();
+        sampleGroup.traverse(function (obj) {
+            if (obj && obj.isMesh && obj.renderOrder < 145) obj.renderOrder = 145;
+        });
         maStlWall3dSyncCornerGuideVisibility();
         maStlDesing2AfterAtk60SceneChange();
         maStlDesing2ReapplyCountArticleOpacity();
@@ -9029,8 +9169,12 @@ function bootMasterArticleDetailsStlViewer() {
         return null;
     }
 
+    /** El brazo fino se corre hacia fuera, hasta Cara X. La cara de la rama no se mueve. */
+    let maStlAtk60ThinThroughShiftByAxisId = new Map();
+
     function maStlAtk60BuildAxisEndpointTrimMap() {
         const trimMap = new Map();
+        maStlAtk60ThinThroughShiftByAxisId = new Map();
         const bucket = maStlAtk60BuildJunctionBucket();
         const keys = Object.keys(bucket);
         for (let bi = 0; bi < keys.length; bi++) {
@@ -9099,14 +9243,30 @@ function bootMasterArticleDetailsStlViewer() {
                         const throughDir = maStlAtk60CanonicalThroughDirFromTJunction(intoA, intoB, intoBr);
                         if (!throughDir) continue;
                         const throughThicknessMm = maStlWall2dModelAxisThicknessMm(a);
+                        const otherThroughMm = maStlWall2dModelAxisThicknessMm(b);
                         const branchThicknessMm = maStlWall2dModelAxisThicknessMm(branch);
+                        const eHi = Math.max(throughThicknessMm, otherThroughMm);
+                        const branchUx = intoBr.ux || 0;
+                        const branchUz = intoBr.uz || 0;
+                        function noteThinShift(axisUd, eArm) {
+                            if (!axisUd || axisUd.id == null) return;
+                            const delta = (eHi - eArm) * 0.5;
+                            if (!(delta > 1)) return;
+                            maStlAtk60ThinThroughShiftByAxisId.set(axisUd.id, {
+                                x: -branchUx * delta,
+                                z: -branchUz * delta,
+                            });
+                        }
+                        noteThinShift(a, throughThicknessMm);
+                        noteThinShift(b, otherThroughMm);
                         const fp = maAtk60BuildTFootprintMm(
                             vertex,
-                            intoA,
-                            intoBr,
+                            { x: intoA.ux, z: intoA.uz },
+                            { x: intoBr.ux, z: intoBr.uz },
                             throughThicknessMm,
                             branchThicknessMm,
-                            throughDir
+                            throughDir,
+                            otherThroughMm
                         );
                         const trims = maAtk60GetTJunctionTrimMm(throughThicknessMm, branchThicknessMm);
                         const trimAFromShape = fp && fp.points ? maStlAtk60RayPolygonFirstHitMm(vertex, intoA, fp.points) : null;
@@ -9128,15 +9288,17 @@ function bootMasterArticleDetailsStlViewer() {
                             );
                         }
                         if (branch.id != null && endBr) {
+                            const stemTipTrim =
+                                fp && fp.meta && Number.isFinite(fp.meta.stemLenMm) && Number.isFinite(fp.meta.vBaseOffsetMm)
+                                    ? fp.meta.stemLenMm + fp.meta.vBaseOffsetMm
+                                    : null;
                             const baseBranchTrim =
-                                trimBrFromShape != null ? trimBrFromShape : trims.branchStemMm;
-                            // Crecer solo el muro rama hasta conectar mejor con la esquina T,
-                            // sin modificar la geometría de la esquina encofrado.
-                            const grownBranchTrim = Math.max(0, baseBranchTrim - throughThicknessMm * 0.5);
-                            trimMap.set(
-                                branch.id + '|' + endBr,
-                                grownBranchTrim
-                            );
+                                stemTipTrim != null
+                                    ? stemTipTrim
+                                    : trimBrFromShape != null
+                                      ? trimBrFromShape
+                                      : trims.branchStemMm;
+                            trimMap.set(branch.id + '|' + endBr, Math.max(0, baseBranchTrim));
                         }
                         break;
                     }
@@ -9227,6 +9389,7 @@ let maStlWallApplyAllHeightMm = 0;
         });
         geo.rotateX(-Math.PI / 2);
         geo.computeVertexNormals();
+        maStlWall3dInsetSides(geo);
         const pieceKind = kind === 'cornerT' || kind === 'cornerL' || kind === 'cornerX' ? 'corner' : 'wall';
         const baseMat = maStlWall3dEnsureSharedMaterial(pieceKind);
         const mat = baseMat.clone ? baseMat.clone() : baseMat;
@@ -9250,6 +9413,9 @@ let maStlWallApplyAllHeightMm = 0;
         if (kind === 'cornerL' && maStlWall3dCornerGuidesForJuan()) {
             maStlWall3dAddLCornerFaceGuides(footprint, extrudeMm);
         }
+        if (kind === 'cornerT' && maStlWall3dCornerGuidesForJuan()) {
+            maStlWall3dAddTCornerTipo1Guides(footprint, extrudeMm);
+        }
         return mesh;
     }
 
@@ -9258,6 +9424,20 @@ let maStlWallApplyAllHeightMm = 0;
         const meta = document.querySelector('meta[name="dt-user"]');
         const name = meta && meta.content ? String(meta.content).trim().toLowerCase() : '';
         return name === 'juan.godoy@vscad.com';
+    }
+
+    function maStlWall3dDevelopGuidesOn() {
+        if (!maStlWall3dCornerGuidesForJuan()) return false;
+        const input = document.querySelector('#desing2-dim-kinds input[data-dim-kind="develop"]');
+        if (!input) return false;
+        return !!input.checked;
+    }
+
+    function maStlWall3dHideWallOn() {
+        if (!maStlWall3dCornerGuidesForJuan()) return false;
+        const input = document.querySelector('#desing2-dim-kinds input[data-dim-kind="hide-wall"]');
+        if (!input) return false;
+        return !!input.checked;
     }
 
     /** Líneas 1 y 3 en el canto exterior. La 2 y la 4 cruzan por dentro. El punto rojo está en ese cruce. */
@@ -9398,10 +9578,163 @@ let maStlWallApplyAllHeightMm = 0;
         maStlWall3dSyncCornerGuideVisibility();
     }
 
+    /**
+     * Tipo 1 de la T: solo las líneas de las caras, de 0,30 m, y los dos puntos.
+     * A y C van por la cara de arriba del muro de paso. B y D, por el muro que llega.
+     * E mide 0,30 + 0,30 + espesor, en la cara que no recibe al otro.
+     */
+    function maStlWall3dAddTCornerTipo1Guides(footprint, topY) {
+        if (!maStlWall3dCornerGuidesForJuan()) return;
+        const pts = footprint && footprint.points;
+        if (!pts || pts.length !== 8 || !maStlWall3dMeshesGroup) return;
+        const p1 = pts[0];
+        const p8 = pts[1];
+        const p7 = pts[2];
+        const p6 = pts[3];
+        const p4 = pts[5];
+        const p3 = pts[6];
+        const p2 = pts[7];
+        const yLine = topY + 6;
+        const faceMm = 300;
+        const red = 0xff1744;
+        const blue = 0x2962ff;
+
+        function unitXZ(a, b) {
+            const dx = b.x - a.x;
+            const dz = b.z - a.z;
+            const len = Math.hypot(dx, dz) || 1;
+            return { x: dx / len, z: dz / len };
+        }
+
+        function addSeg(a, b, name, color) {
+            const dx = b.x - a.x;
+            const dz = b.z - a.z;
+            const edge = Math.hypot(dx, dz) || 1;
+            const hx = (-dz / edge) * 6;
+            const hz = (dx / edge) * 6;
+            const positions = new Float32Array([
+                a.x + hx, yLine, a.z + hz,
+                a.x - hx, yLine, a.z - hz,
+                b.x - hx, yLine, b.z - hz,
+                a.x + hx, yLine, a.z + hz,
+                b.x - hx, yLine, b.z - hz,
+                b.x + hx, yLine, b.z + hz,
+            ]);
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const line = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
+                color: color,
+                side: THREE.DoubleSide,
+                depthTest: false,
+            }));
+            line.renderOrder = 180;
+            line.userData.maStlWall3dCornerLine = name;
+            maStlWall3dMeshesGroup.add(line);
+        }
+
+        function addLabel(text, x, z, color) {
+            const css = '#' + ('000000' + color.toString(16)).slice(-6);
+            const sprite = maStlMakeTextSprite(text, 120, {
+                thinFillOnly: true,
+                fillColor: css,
+                fontPx: 28,
+                fontWeight: 700,
+                thinPillFill: '#ffffff',
+                thinPillStroke: css,
+                canvasPad: 8,
+            });
+            if (!sprite) return;
+            sprite.position.set(x, topY + 55, z);
+            sprite.userData.maStlWall3dCornerLabel = text;
+            maStlWall3dMeshesGroup.add(sprite);
+        }
+
+        function addPoint(x, z, color, mark) {
+            const sphere = new THREE.Mesh(
+                new THREE.SphereGeometry(15, 16, 12),
+                new THREE.MeshBasicMaterial({ color: color, depthTest: false })
+            );
+            sphere.position.set(x, topY + 15, z);
+            sphere.renderOrder = 190;
+            sphere.userData.maStlWall3dCornerMark = mark;
+            maStlWall3dMeshesGroup.add(sphere);
+        }
+
+        function step(origin, dir, dist) {
+            return {
+                x: origin.x + dir.x * dist,
+                z: origin.z + dir.z * dist,
+            };
+        }
+
+        function mid(a, b) {
+            return { x: (a.x + b.x) * 0.5, z: (a.z + b.z) * 0.5 };
+        }
+
+        const stemL = unitXZ(p8, p1);
+        const awayL = unitXZ(p8, p7);
+        const stemR = unitXZ(p3, p2);
+        const awayR = unitXZ(p3, p4);
+        const along = unitXZ(p8, p3);
+        const espesor = Math.hypot(p3.x - p8.x, p3.z - p8.z);
+        const toFar = { x: p6.x - p7.x, z: p6.z - p7.z };
+        const farOut = { x: -stemL.x, z: -stemL.z };
+        const centerNear = mid(p8, p3);
+        const centerE = { x: centerNear.x + toFar.x, z: centerNear.z + toFar.z };
+        const halfE = faceMm + espesor * 0.5;
+
+        const aEnd = step(p8, awayL, faceMm);
+        const bEnd = step(p8, stemL, faceMm);
+        const cEnd = step(p3, awayR, faceMm);
+        const dEnd = step(p3, stemR, faceMm);
+        const eLeft = step(centerE, along, -halfE);
+        const eRight = step(centerE, along, halfE);
+
+        addSeg(p8, aEnd, 'A', red);
+        addSeg(p8, bEnd, 'B', red);
+        addSeg(p3, cEnd, 'C', red);
+        addSeg(p3, dEnd, 'D', red);
+        addSeg(eLeft, eRight, 'E', red);
+
+        const mA = mid(p8, aEnd);
+        const mB = mid(p8, bEnd);
+        const mC = mid(p3, cEnd);
+        const mD = mid(p3, dEnd);
+        const mE = mid(eLeft, eRight);
+        addLabel('Cara A', mA.x + stemL.x * 180, mA.z + stemL.z * 180, red);
+        addLabel('Cara B', mB.x + awayL.x * 180, mB.z + awayL.z * 180, red);
+        addLabel('Cara C', mC.x + stemR.x * 180, mC.z + stemR.z * 180, red);
+        addLabel('Cara D', mD.x + awayR.x * 180, mD.z + awayR.z * 180, red);
+        addLabel('Cara E', mE.x + farOut.x * 220, mE.z + farOut.z * 220, red);
+        addLabel(
+            '0,30 + 0,30 + ESPESOR',
+            mE.x + farOut.x * 400,
+            mE.z + farOut.z * 400,
+            red
+        );
+
+        addPoint(p8.x, p8.z, red, 'red');
+        addPoint(p3.x, p3.z, blue, 'blue');
+        addLabel(
+            'Punto 1',
+            p8.x + awayL.x * 90 + farOut.x * 90,
+            p8.z + awayL.z * 90 + farOut.z * 90,
+            red
+        );
+        addLabel(
+            'Punto 2',
+            p3.x + awayR.x * 90 + farOut.x * 90,
+            p3.z + awayR.z * 90 + farOut.z * 90,
+            blue
+        );
+        maStlWall3dSyncCornerGuideVisibility();
+    }
+
     function maStlWall3dSyncCornerGuideVisibility() {
-        const guidesOn = maStlWall3dCornerGuidesForJuan() && !maStlWallDimToolActive;
+        const guidesOn = maStlWall3dDevelopGuidesOn() && !maStlWallDimToolActive;
         const wallOn = guidesOn && maStlDesing2ModelMode === 'wall3d';
         const linesOn = wallOn && !maStlDesing2FormworkViewOn();
+        const hideWall = maStlWall3dHideWallOn();
         function apply(obj) {
             const ud = obj && obj.userData;
             if (!ud) return;
@@ -9409,10 +9742,15 @@ let maStlWallApplyAllHeightMm = 0;
                 obj.visible = linesOn;
             }
             if (ud.maStlWall3dCornerMark) obj.visible = wallOn;
+            if (ud.maStlWall3dGenerated && (ud.maStlWall3dKind === 'wall' || ud.maStlWall3dKind === 'corner')) {
+                obj.visible = !hideWall;
+            }
         }
         if (maStlWall3dMeshesGroup) maStlWall3dMeshesGroup.traverse(apply);
         if (maStlDesing2Atk60SampleGroup) maStlDesing2Atk60SampleGroup.traverse(apply);
     }
+
+    window.desing2SyncCornerGuides = maStlWall3dSyncCornerGuideVisibility;
 
     function maStlWall3dAddInteriorCornerPoints() {
         const group = maStlDesing2EnsureAtk60SampleGroup();
@@ -9456,6 +9794,7 @@ let maStlWallApplyAllHeightMm = 0;
             mark.userData.maStlWall3dCornerMark = 'green';
             group.add(mark);
         }
+        maStlWall3dSyncCornerGuideVisibility();
     }
 
     /** T: contorno P-1…P-8 validado; en Muro 3D se extruye desde P-1. */
@@ -9519,7 +9858,8 @@ let maStlWallApplyAllHeightMm = 0;
                         { x: branchInto.ux, z: branchInto.uz },
                         maStlWall2dModelAxisThicknessMm(a),
                         maStlWall2dModelAxisThicknessMm(branch),
-                        { x: uThrough.x, z: uThrough.z }
+                        { x: uThrough.x, z: uThrough.z },
+                        maStlWall2dModelAxisThicknessMm(b)
                     );
                     if (!fp) return 0;
                     if (!MA_STL_ATK60_T_EXTRUDE_3D) return 1;
@@ -9612,7 +9952,8 @@ let maStlWallApplyAllHeightMm = 0;
                                 { x: branchInto.ux, z: branchInto.uz },
                                 maStlWall2dModelAxisThicknessMm(a),
                                 maStlWall2dModelAxisThicknessMm(branch),
-                                { x: uThrough.x, z: uThrough.z }
+                                { x: uThrough.x, z: uThrough.z },
+                                maStlWall2dModelAxisThicknessMm(b)
                             );
                             break;
                         }
@@ -9701,6 +10042,7 @@ let maStlWallApplyAllHeightMm = 0;
             });
             geo.rotateX(-Math.PI / 2);
             geo.computeVertexNormals();
+            maStlWall3dInsetSides(geo);
             const baseMat = maStlWall3dEnsureSharedMaterial('wall');
             const mesh = new THREE.Mesh(geo, baseMat.clone ? baseMat.clone() : baseMat);
             mesh.userData.maStlWall3dGenerated = true;
@@ -9759,6 +10101,7 @@ let maStlWallApplyAllHeightMm = 0;
         if (maStlDesing2WallModelBusy) return;
         maStlStampPillarsWithDefaultWallHeight();
         maStlDesing2ReleaseEmptySpecialWalls();
+        maStlWall2dToolRepairAllWallConnectionsMm();
         maStlDesing2PersistCollinearAxisMerge();
         if (maStlDesing2WallModelCacheHit('wall3d')) {
             maStlDesing2ClearAtk60Visuals();
@@ -9798,6 +10141,7 @@ let maStlWallApplyAllHeightMm = 0;
                     maStlWall3dAddMeshesFromDetection(datos) + maStlAtk60RenderJunctionFootprints3d();
             }
             maStlAddPillarModelMeshes();
+            maStlWall3dSyncCornerGuideVisibility();
             maStlDesing2LastWallModelDetection = maStlDesing2SummarizeWallModelDetection(
                 'wall3d',
                 payload,
@@ -13755,6 +14099,48 @@ let maStlWallApplyAllHeightMm = 0;
     }
 
     /**
+     * Acerca un extremo de eje que se queda corto al cuerpo del muro que atraviesa (unión en T).
+     * @returns {boolean}
+     */
+    function maStlWall2dToolSnapAllAxisEndpointsToBodiesMm() {
+        if (!maStlUserLinesGroup) return false;
+        const axes = maStlWall2dToolCollectAllAxisLines();
+        const moved = [];
+        for (let i = 0; i < axes.length; i++) {
+            const line = axes[i];
+            const ud = line && line.userData && line.userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            const moved1 = maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(ud.p1Mm);
+            const moved2 = maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(ud.p2Mm);
+            if (moved1 || moved2) moved.push(line);
+        }
+        for (let i = 0; i < moved.length; i++) {
+            const line = moved[i];
+            maStlApplyUserFloorLineSegmentGeometryFromMm(line);
+            maStlWall2dToolApplyParallelFaceOffsetsOnlyMm(
+                line,
+                maStlWall2dToolAxisFaceHalfThicknessMm(line)
+            );
+        }
+        return moved.length > 0;
+    }
+
+    /**
+     * Arregla las uniones del plano antes de levantar el muro 3D:
+     * acerca la T que se queda corta, parte el cruce y cierra ingletes.
+     */
+    function maStlWall2dToolRepairAllWallConnectionsMm() {
+        if (!maStlUserLinesGroup) return;
+        maStlWall2dToolSnapAllAxisEndpointsToBodiesMm();
+        maStlWall2dToolRefactorAllWallJunctionsMm();
+        maStlWall2dToolSplitAllAxisInteriorCrossingsMm();
+        maStlWall2dToolRefactorAllWallJunctionsMm();
+        maStlWeldAllUserFloorLineEndpointsMm();
+        maStlWall2dToolRefactorAllWallJunctionsMm();
+        maStlReapplyAllUserFloorWallAxisLineStyles();
+    }
+
+    /**
      * Cierra caras interior/exterior en esquinas del grupo (delega en refactor global de uniones).
      */
     function maStlWall2dToolRefactorWallGroupCornersMm(wallGroupId) {
@@ -13946,6 +14332,46 @@ let maStlWallApplyAllHeightMm = 0;
     }
 
     /**
+     * Dos ejes colineales que se tocan en un nudo con otro muro (T o cruce) no se funden:
+     * el sólido de la esquina necesita un extremo en ese punto.
+     */
+    function maStlWall2dToolCollinearPairMeetsBranchMm(udA, udB) {
+        if (!udA || !udB || !udA.p1Mm || !udA.p2Mm || !udB.p1Mm || !udB.p2Mm) return false;
+        const eps = Math.max(maStlWall2dToolJunctionClusterEpsMm(), 50);
+        const eps2 = eps * eps;
+        const aEnds = [udA.p1Mm, udA.p2Mm];
+        const bEnds = [udB.p1Mm, udB.p2Mm];
+        const joints = [];
+        for (let i = 0; i < aEnds.length; i++) {
+            for (let j = 0; j < bEnds.length; j++) {
+                const dx = aEnds[i].x - bEnds[j].x;
+                const dz = aEnds[i].z - bEnds[j].z;
+                if (dx * dx + dz * dz > eps2) continue;
+                joints.push({
+                    x: (aEnds[i].x + bEnds[j].x) * 0.5,
+                    z: (aEnds[i].z + bEnds[j].z) * 0.5,
+                });
+            }
+        }
+        if (!joints.length) return false;
+        const axes = maStlWall2dToolCollectAllAxisLines();
+        for (let ai = 0; ai < axes.length; ai++) {
+            const ud = axes[ai].userData && axes[ai].userData.maStlUserPlanLine;
+            if (!ud || ud === udA || ud === udB || !ud.p1Mm || !ud.p2Mm) continue;
+            if (maStlUserFloorPlanLinesCollinearParallelXz(ud, udA)) continue;
+            const ends = [ud.p1Mm, ud.p2Mm];
+            for (let ei = 0; ei < ends.length; ei++) {
+                for (let ji = 0; ji < joints.length; ji++) {
+                    const dx = ends[ei].x - joints[ji].x;
+                    const dz = ends[ei].z - joints[ji].z;
+                    if (dx * dx + dz * dz <= eps2) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Une ejes colineales que se tocan o se solapan, misma recta y mismo espesor.
      * Un tramo seguido no puede quedar en dos muros. Se alarga el eje de id menor y se quita el otro, con sus caras.
      * @returns {number} ejes eliminados
@@ -13995,6 +14421,7 @@ let maStlWallApplyAllHeightMm = 0;
                     const b1 = Math.max(tOf(udB.p1Mm), tOf(udB.p2Mm));
                     const gap = b0 > a1 ? b0 - a1 : a0 > b1 ? a0 - b1 : 0;
                     if (gap > touchMm) continue;
+                    if (maStlWall2dToolCollinearPairMeetsBranchMm(udA, udB)) continue;
                     const keepA = Number(udA.id) <= Number(udB.id);
                     const keepLine = keepA ? lineA : lineB;
                     const dropLine = keepA ? lineB : lineA;
@@ -19135,12 +19562,13 @@ let maStlWallApplyAllHeightMm = 0;
             if (!cached.map) cached.color.setHex(maStlWall3dColorForKind(key));
             cached.opacity = opacity;
             cached.transparent = isTranslucent;
-            // Evita artefactos al alejar (z-fighting/ghosting entre muro y panel cercano).
+            // Muro y esquina comparten cara con el fenólico. Sin este offset
+            // el color (azul o verde) tapa el tablero al alejar.
             cached.depthWrite = true;
             cached.depthTest = true;
-            cached.polygonOffset = isTranslucent;
-            cached.polygonOffsetFactor = 1;
-            cached.polygonOffsetUnits = 1;
+            cached.polygonOffset = true;
+            cached.polygonOffsetFactor = 4;
+            cached.polygonOffsetUnits = 8;
             cached.needsUpdate = true;
             return cached;
         }
@@ -19153,9 +19581,9 @@ let maStlWallApplyAllHeightMm = 0;
             opacity: opacity,
             depthWrite: true,
             depthTest: true,
-            polygonOffset: isTranslucent,
-            polygonOffsetFactor: 1,
-            polygonOffsetUnits: 1,
+            polygonOffset: true,
+            polygonOffsetFactor: 4,
+            polygonOffsetUnits: 8,
         });
         maStlWall3dSharedMaterials[key] = mat;
         return mat;
@@ -19178,6 +19606,7 @@ let maStlWallApplyAllHeightMm = 0;
         });
         geo.rotateX(-Math.PI / 2);
         geo.computeVertexNormals();
+        maStlWall3dInsetSides(geo);
         const baseMat = maStlWall3dEnsureSharedMaterial(pieceKind);
         const mat = baseMat.clone ? baseMat.clone() : baseMat;
         const mesh = new THREE.Mesh(geo, mat);
@@ -19203,6 +19632,16 @@ let maStlWallApplyAllHeightMm = 0;
     function maStlWall3dAddMeshFromFaceStrip(strip, axisEndpointTrimMap) {
         const quad = maStlWall2dModelBuildStripQuadXzMm(strip, axisEndpointTrimMap);
         if (!quad || quad.length < 4 || !maStlWall3dMeshesGroup) return null;
+        const thinShift =
+            strip.axis && strip.axis.id != null
+                ? maStlAtk60ThinThroughShiftByAxisId.get(strip.axis.id)
+                : null;
+        if (thinShift) {
+            for (let qi = 0; qi < quad.length; qi++) {
+                quad[qi].x += thinShift.x;
+                quad[qi].z += thinShift.z;
+            }
+        }
         const hMm = maStlWallLineResolveHeightMm(strip && strip.axis ? strip.axis : null);
         const poly = {
             Capa: 'ModelDesing',
@@ -19333,6 +19772,7 @@ let maStlWallApplyAllHeightMm = 0;
                         maStlWall3dAddMeshesFromDetection(resp.Datos) +
                         maStlAtk60RenderJunctionFootprints3d();
                 }
+                maStlWall3dSyncCornerGuideVisibility();
                 maStlDesing2LastWallModelDetection = maStlDesing2SummarizeWallModelDetection(
                     'wall3d',
                     payload,
@@ -21504,13 +21944,15 @@ let maStlWallApplyAllHeightMm = 0;
         const byWall = Object.create(null);
         for (let ei = 0; ei < elements.length; ei++) {
             const item = elements[ei];
-            if (!item || maStlAtk60ReadPaintBool(item, 'IsMirrored')) continue;
+            if (!item) continue;
+            const type = maStlAtk60ReadPaintStr(item, 'ElementType');
+            const code = maStlAtk60ReadPaintStr(item, 'ElementCode').toUpperCase();
+            const isRemateEarly = type === 'Remate' || code === 'REMATE_WOOD';
+            if (maStlAtk60ReadPaintBool(item, 'IsMirrored') && !isRemateEarly) continue;
             const wallId = maStlAtk60ReadPaintStr(item, 'IdWall');
             if (!wallId || !anchorById[wallId]) continue;
             const along = maStlAtk60ReadPaintNum(item, 'LocalAlongMm');
             if (!Number.isFinite(along)) continue;
-            const type = maStlAtk60ReadPaintStr(item, 'ElementType');
-            const code = maStlAtk60ReadPaintStr(item, 'ElementCode').toUpperCase();
             if (type === 'Union') continue;
             const isRemate = type === 'Remate' || code === 'REMATE_WOOD';
             if (isRemate) {
@@ -28801,6 +29243,8 @@ let maStlWallApplyAllHeightMm = 0;
 
         if (applyAll) {
             maStlWallApplyAllHeightMm = Math.max(300, hMeters * 1000);
+        } else {
+            maStlWallApplyAllHeightMm = 0;
         }
 
         maStlSaveWallConnectionsNow({
@@ -28970,7 +29414,7 @@ let maStlWallApplyAllHeightMm = 0;
                 maStlWallInspectFormState.tapeIniSelectedId = ini;
                 maStlWallInspectFormState.tapeSelectedId = end;
             },
-            onAccept: function () { maStlWallInspectAccept(); },
+            onAccept: function (values) { maStlWallInspectAccept(values); },
             onCancel: function () { maStlWallInspectClosePopup(); },
         });
         const r = maStlWallFormApi.refs;
@@ -29024,7 +29468,7 @@ let maStlWallApplyAllHeightMm = 0;
         }
     }
 
-    function maStlWallInspectAccept() {
+    function maStlWallInspectAccept(values) {
         const st = maStlWallInspectFormState;
         const lengthInput = st.lengthInput;
         const widthInput = st.widthInput;
@@ -29103,7 +29547,10 @@ let maStlWallApplyAllHeightMm = 0;
         const groupBefore = Number(axisUd.wallGroupId);
         if (nextGroup != null) maStlWallWriteGroupOnSegment(thickLine, nextGroup);
         const groupChanged = nextGroup != null && (!Number.isFinite(groupBefore) || Math.round(groupBefore) !== nextGroup);
-        const ok = maStlWallInspectApplyHeightMeters(h, !!applyAllCheckbox.checked);
+        const applyHeightAll = values && typeof values.heightAll === 'boolean'
+            ? values.heightAll
+            : !!(applyAllCheckbox && applyAllCheckbox.checked);
+        const ok = maStlWallInspectApplyHeightMeters(h, applyHeightAll);
         if (!ok) {
             if (measureChanged || groupChanged) maStlWallInspectPushMeasureUndo();
             maStlDesing2ShowSaveViewToast('No se pudo aplicar la altura');
@@ -29158,7 +29605,9 @@ let maStlWallApplyAllHeightMm = 0;
             maStlWallInspectFormState.groupInput.value = groupSelected === '' ? '' : String(groupSelected);
         }
         maStlWallInspectFormState.heightInput.value = String(hUse);
-        maStlWallInspectFormState.applyAllCheckbox.checked = true;
+        if (maStlWallInspectFormState.applyAllCheckbox) {
+            maStlWallInspectFormState.applyAllCheckbox.checked = false;
+        }
         if (maStlWallInspectFormState.applyConfigAllCheckbox) {
             maStlWallInspectFormState.applyConfigAllCheckbox.checked = false;
         }
@@ -30157,9 +30606,29 @@ let maStlWallApplyAllHeightMm = 0;
         return activeMode === 'iso' ? cameraIso : cameraOrtho;
     }
 
+    function maStlFitPerspectiveClip(cam) {
+        if (!cam || !cam.isPerspectiveCamera) return;
+        const tgt = controls && controls.target;
+        if (!tgt) return;
+        const dx = cam.position.x - tgt.x;
+        const dy = cam.position.y - tgt.y;
+        const dz = cam.position.z - tgt.z;
+        const dist = Math.sqrt((dx * dx) + (dy * dy) + (dz * dz));
+        if (!(dist > 1)) return;
+        // near fijo en 1 mm y far en 10 km: al alejar, muro y fenólico comparten
+        // el mismo bit de profundidad y el color del muro se trasluce. De cerca no.
+        const near = Math.max(dist / 100, 1);
+        const extent = Math.max(lastMaxDim || 0, dist);
+        const far = Math.max(dist + (extent * 8), near * 2000, 100000);
+        if (Math.abs(cam.near - near) < near * 0.08 && Math.abs(cam.far - far) < far * 0.08) return;
+        cam.near = near;
+        cam.far = far;
+    }
+
     function applyFrustumToCamera(cam) {
         if (cam.isPerspectiveCamera) {
             cam.aspect = lastAspect;
+            maStlFitPerspectiveClip(cam);
             cam.updateProjectionMatrix();
             return;
         }
@@ -32282,6 +32751,7 @@ let maStlWallApplyAllHeightMm = 0;
     }
 
     window.maStlDesing2ShowSaveViewToast = maStlDesing2ShowSaveViewToast;
+    window.maStlApplyDesing2ViewerStateFromCookie = maStlApplyDesing2ViewerStateFromCookie;
 
     /**
      * @param {HTMLButtonElement | null | undefined} btn
@@ -32772,6 +33242,8 @@ let maStlWallApplyAllHeightMm = 0;
         setViewCubeCssFromCamera(orthoCubeEl, cameraOrtho);
         setViewCubeCssFromCamera(isoCubeEl, cameraIso);
         const camMain = activeCamera();
+        maStlFitPerspectiveClip(camMain);
+        if (camMain.isPerspectiveCamera) camMain.updateProjectionMatrix();
         maStlCameraHeadLight.position.copy(camMain.position);
         maStlCameraHeadLight.visible = maStlDesing2ModelMode === 'wall3d';
         if (maStlFormworkEnvRig) {

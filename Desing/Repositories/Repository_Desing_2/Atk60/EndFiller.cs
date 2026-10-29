@@ -9,6 +9,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
     internal static class EndFiller
     {
         private const double DepthMm = 120d;
+        private const double MaxLengthMm = 150d;
 
         internal static List<Atk60ElementPaintItem> Build(
             Desing2FormworkWallDto wall,
@@ -17,12 +18,26 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double startAlongMm,
             bool showPrimary = true,
             bool showOpposite = true,
-            bool uprightOnOppositeFace = false)
+            bool uprightOnOppositeFace = false,
+            double maxLengthMm = MaxLengthMm)
         {
             var outElements = new List<Atk60ElementPaintItem>();
             if (wall == null || anchor == null || fillerLengthMm <= 1d || (!showPrimary && !showOpposite))
             {
                 return outElements;
+            }
+
+            // Tope fijo: 0,15 m. No subirlo para sumar huecos de la esquina.
+            // Un 0,12 más un 0,15 no es un tablón de 0,27: el sobrante entra
+            // en el módulo (PackAtk60LengthMm). El parámetro no puede abrirlo.
+            if (maxLengthMm > MaxLengthMm || maxLengthMm < 1d)
+            {
+                maxLengthMm = MaxLengthMm;
+            }
+
+            if (fillerLengthMm > maxLengthMm)
+            {
+                fillerLengthMm = maxLengthMm;
             }
 
             var attrs = wall.Attributes;

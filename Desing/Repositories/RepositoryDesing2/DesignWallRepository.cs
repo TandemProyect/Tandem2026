@@ -63,6 +63,14 @@ namespace Desing.Repositories.RepositoryDesing2
         public bool? IsSpecial { get; set; }
     }
 
+    public sealed class Desing2WallExchangeRequest
+    {
+        public long DesignId { get; set; }
+        public long SourceDesignId { get; set; }
+        public List<Desing2DesignWallLineDto> Walls { get; set; }
+        public List<PluginSaveWallArticleRequest> SpecialArticles { get; set; }
+    }
+
     public sealed class Desing2DesignWallSaveRequest
     {
         public long DesignId { get; set; }

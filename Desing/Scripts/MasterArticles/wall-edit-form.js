@@ -349,7 +349,7 @@ export function mountWallEditForm(parent, options) {
     applyRow.style.columnGap = '12px';
     applyRow.style.marginBottom = '12px';
 
-    const applyAll = makeCheck('Aplicar altura a todos los muros', true);
+    const applyAll = makeCheck('Aplicar altura a todos los muros', false);
     applyAll.wrap.style.fontSize = '12px';
     applyAll.wrap.style.color = '#334155';
     const applyConfig = makeCheck('Aplicar la configuración a todos los muros y esquinas', false);

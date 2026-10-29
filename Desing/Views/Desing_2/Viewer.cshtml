@@ -217,6 +217,16 @@
             <li><label><input type="checkbox" class="form-check-input" data-dim-kind="adjustable-panel" checked="checked" /> @MasterArticles.StlPreview_DimKindAdjustable</label></li>
             <li><label><input type="checkbox" class="form-check-input" data-dim-kind="wall-id" checked="checked" /> @MasterArticles.StlPreview_DimKindWallId</label></li>
         </ul>
+        @if (string.Equals(User != null && User.Identity != null ? User.Identity.Name : "", "juan.godoy@vscad.com", StringComparison.OrdinalIgnoreCase))
+        {
+            <div class="desing2-dim-kinds__develop">
+                <div class="desing2-dim-kinds__develop-title">@MasterArticles.StlPreview_DimDevelopTitle</div>
+                <ul class="desing2-dim-kinds__list">
+                    <li><label><input type="checkbox" class="form-check-input" data-dim-kind="develop" checked="checked" /> @MasterArticles.StlPreview_DimDevelopGuides</label></li>
+                    <li><label><input type="checkbox" class="form-check-input" data-dim-kind="hide-wall" /> @MasterArticles.StlPreview_DimDevelopHideWall</label></li>
+                </ul>
+            </div>
+        }
     </div>
 </div>
 <div class="modal fade" id="desing2WallListModal" tabindex="-1" aria-hidden="true"
@@ -365,6 +375,95 @@
     </div>
 </div>
 
+<div class="modal fade" id="desing2PhaseModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="true"
+     aria-labelledby="desing2PhaseTitle"
+     data-wall-option="@MasterArticles.StlPreview_Desing2PhaseWallOption"
+     data-need-numbers="@MasterArticles.StlPreview_Desing2PhaseNeedNumbers"
+     data-too-many-teams="@MasterArticles.StlPreview_Desing2PhaseTooManyTeams"
+     data-no-walls="@MasterArticles.StlPreview_Desing2PhaseNoWalls"
+     data-wall-taken="@MasterArticles.StlPreview_Desing2PhaseWallTaken"
+     data-noted="@MasterArticles.StlPreview_Desing2PhaseNoted"
+     data-pick-wall="@MasterArticles.StlPreview_Desing2PhasePickWall"
+     data-pick-hint="@MasterArticles.StlPreview_Desing2PhasePickHint"
+     data-team-default="@MasterArticles.StlPreview_Desing2PhaseTeamDefault"
+     data-need-name="@MasterArticles.StlPreview_Desing2PhaseNeedName"
+     data-need-workers="@MasterArticles.StlPreview_Desing2PhaseNeedWorkers"
+     data-need-all-walls="@MasterArticles.StlPreview_Desing2PhaseNeedAllWalls"
+     data-legend="@MasterArticles.StlPreview_Desing2PhaseLegend"
+     data-ground="@MasterArticles.StlPreview_Desing2PhaseGround"
+     data-ground-none="@MasterArticles.StlPreview_Desing2PhaseGroundNone"
+     data-same="@MasterArticles.StlPreview_Desing2PhaseSame"
+     data-solve-fail="@MasterArticles.StlPreview_Desing2PhaseSolveFail"
+     data-save-plan-url="@Url.Action("SavePhasePlan", "Desing_2")"
+     data-load-plan-url="@Url.Action("LoadPhasePlan", "Desing_2")">
+    <div class="modal-dialog modal-dialog-centered desing2-phase-dialog">
+        <div class="modal-content design-material-count-popup">
+            <section class="desing2-material-count desing2-phase-sheet is-open" aria-label="@MasterArticles.StlPreview_Desing2PhaseAria">
+                <div class="desing2-material-count__head">
+                    <img src="@wallListLogoUrl" alt="" class="design-material-count-popup__logo@(wallListLogoIsLockup ? " tandem-brand-lockup" : "")" />
+                    @if (!wallListLogoIsLockup)
+                    {
+                        <span class="design-material-count-popup__brand">@Html.Partial("_BrandSvg")</span>
+                    }
+                    <span class="desing2-material-count__title" id="desing2PhaseTitle">@MasterArticles.StlPreview_Desing2PhaseTitle</span>
+                    <button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" data-bs-dismiss="modal" aria-label="@Common.Aria_CloseModal">
+                        <i class="icon-base ri ri-close-line" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="desing2-material-count__tabs-row">
+                    <ul class="nav nav-tabs tandem-folder-tabs desing2-material-count__tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button type="button" class="nav-link active" id="desing2PhaseTabTeams" role="tab" aria-selected="true">@MasterArticles.StlPreview_Desing2PhaseTabTeams</button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="tab-content desing2-material-count__body">
+                    <div class="tab-pane fade show active" id="desing2PhasePaneTeams" role="tabpanel" aria-labelledby="desing2PhaseTabTeams">
+                        <div class="desing2-phase-setup">
+                            <label class="desing2-phase-sheet__field" for="desing2PhaseCount">
+                                @MasterArticles.StlPreview_Desing2PhaseCount
+                                <input type="number" class="desing2-phase-qty" id="desing2PhaseCount" min="1" step="1" inputmode="numeric" />
+                            </label>
+                            <label class="desing2-phase-sheet__field" for="desing2PhaseTeams">
+                                @MasterArticles.StlPreview_Desing2PhaseTeams
+                                <input type="number" class="desing2-phase-qty" id="desing2PhaseTeams" min="1" step="1" inputmode="numeric" />
+                            </label>
+                        </div>
+                        <div class="desing2-material-count__details-scroll" id="desing2PhaseTableWrap" hidden="hidden">
+                            <table class="table table-sm table-hover w-100" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>@MasterArticles.StlPreview_Desing2PhaseColNumber</th>
+                                        <th>@MasterArticles.StlPreview_Desing2PhaseColName</th>
+                                        <th>@MasterArticles.StlPreview_Desing2PhaseColWorkers</th>
+                                        <th>@MasterArticles.StlPreview_Desing2PhaseColColor</th>
+                                        <th>@MasterArticles.StlPreview_Desing2PhaseColWall</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="desing2PhaseTeamsBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="desing2-phase-stage">
+                            <div id="desing2PhaseView" class="desing2-phase-view" hidden="hidden">
+                                <canvas id="desing2PhaseCanvas"></canvas>
+                                <p class="desing2-phase-view__hint" id="desing2PhaseViewHint"></p>
+                            </div>
+                            <div id="desing2PhaseLegend" class="desing2-phase-legend" hidden="hidden"></div>
+                        </div>
+                    </div>
+                </div>
+                <p id="desing2PhaseMessage" class="desing2-group-sheet__message" hidden="hidden"></p>
+                <div class="desing2-wall-list__foot">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">@MasterArticles.StlPreview_Desing2PhaseCancel</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="desing2PhaseAnother" hidden="hidden">@MasterArticles.StlPreview_Desing2PhaseAnother</button>
+                    <button type="button" class="btn btn-sm btn-primary" id="desing2PhaseAccept">@MasterArticles.StlPreview_Desing2PhaseAccept</button>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
 @section scripts
 {
     @{
@@ -385,7 +484,9 @@
     <script src="@Url.Content("~/Scripts/Desing2/desing2-map-building-import.js")"></script>
     <script type="module" src="@masterArticleViewerUrl"></script>
     <script type="module" src="@cadBlockPreviewUrl"></script>
-    <script src="@Url.Content("~/Scripts/Desing2/desing2-stl-viewer-toolbar-wiring.js")?v=20261023k"></script>
-    <script src="@Url.Content("~/Scripts/Desing2/desing2-dim-kinds.js")?v=20261026f"></script>
+    <script src="@Url.Content("~/Scripts/Desing2/desing2-stl-viewer-toolbar-wiring.js")?v=20261029l"></script>
+    <script src="@Url.Content("~/Scripts/Desing2/desing2-wall-exchange.js")?v=20261029a"></script>
+    <script type="module" src="@Url.Content("~/Scripts/Desing2/desing2-phase-start.js")?v=20261029k"></script>
+    <script src="@Url.Content("~/Scripts/Desing2/desing2-dim-kinds.js")?v=20261028a"></script>
     <script src="@Url.Content("~/Scripts/Desing2/desing2-connection-test.js")"></script>
 }

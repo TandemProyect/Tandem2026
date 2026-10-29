@@ -301,6 +301,8 @@
                 'Renderizando sistema {0}'
             );
             if (overlayTitle) overlayTitle.textContent = overlayFill(titleTpl, systemName || 'ATK-60');
+            const spinner = overlayRoot.querySelector('.spinner-border');
+            if (spinner) spinner.classList.remove('d-none');
             overlayRoot.classList.remove('d-none');
             overlayRoot.setAttribute('aria-hidden', 'false');
             overlayRoot.setAttribute('aria-busy', 'true');
@@ -326,10 +328,13 @@
             refreshFormworkOverlay();
         }
 
-        function hideFormworkOverlay(ok, message) {
-            stopFormworkTicker();
-            formworkState = null;
-            if (overlayBar) overlayBar.style.width = '100%';
+        function clockNow() {
+            const now = new Date();
+            const pad = function (n) { return n < 10 ? '0' + n : String(n); };
+            return pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+        }
+
+        function finishHideFormworkOverlay(ok, message) {
             if (overlayRoot) {
                 overlayRoot.classList.add('d-none');
                 overlayRoot.setAttribute('aria-hidden', 'true');
@@ -343,14 +348,206 @@
             }));
         }
 
+        function hideFormworkOverlay(ok, message) {
+            stopFormworkTicker();
+            formworkState = null;
+            const showing = overlayRoot && !overlayRoot.classList.contains('d-none');
+            if (ok !== false && showing) {
+                if (overlayBar) overlayBar.style.width = '100%';
+                if (overlayProgress) overlayProgress.setAttribute('aria-valuenow', '100');
+                const clock = clockNow();
+                if (overlayEta) overlayEta.textContent = clock;
+                if (overlayStatus) overlayStatus.textContent = clock;
+                const spinner = overlayRoot.querySelector('.spinner-border');
+                if (spinner) spinner.classList.add('d-none');
+                overlayRoot.setAttribute('aria-busy', 'false');
+                window.setTimeout(function () { finishHideFormworkOverlay(true, message); }, 1600);
+                return;
+            }
+            if (overlayBar) overlayBar.style.width = '100%';
+            finishHideFormworkOverlay(ok, message);
+        }
+
         function settleFormworkEarly(message) {
             document.dispatchEvent(new CustomEvent('desing2-formwork-settled', {
                 detail: { ok: false, message: message || '' }
             }));
         }
 
+        let skipPhaseAsk = false;
+        let selectedPhase = 0;
+        let askingPhase = false;
+
+        function phasesFromByWall(byWall) {
+            const seen = {};
+            Object.keys(byWall || {}).forEach(function (id) {
+                const n = Number(byWall[id]);
+                if (n >= 1) seen[n] = true;
+            });
+            return Object.keys(seen).map(Number).sort(function (a, b) { return a - b; });
+        }
+
+        function loadPhaseNumbers() {
+            const plan = window.desing2PhaseStartPlan;
+            const local = phasesFromByWall(plan && plan.byWall);
+            if (local.length >= 2) return Promise.resolve(local);
+            if (local.length === 1 && plan && plan.byWall) return Promise.resolve(local);
+            const shell = document.getElementById('ma-stl-viewer-shell');
+            const designId = shell ? Number(shell.getAttribute('data-ma-stl-design-id')) : 0;
+            const url = btn.getAttribute('data-phase-load-url') || '';
+            if (!designId || !url) return Promise.resolve(local);
+            const join = url.indexOf('?') >= 0 ? '&' : '?';
+            return fetch(url + join + 'designId=' + encodeURIComponent(String(designId)), {
+                method: 'GET',
+                headers: { Accept: 'application/json' },
+                credentials: 'same-origin'
+            }).then(function (res) {
+                return res.ok ? res.json() : null;
+            }).then(function (resp) {
+                const rows = resp && (resp.Walls || resp.walls) ? (resp.Walls || resp.walls) : [];
+                if (!rows.length) return local;
+                const byWall = {};
+                rows.forEach(function (row) {
+                    const phase = Number(row.Phase != null ? row.Phase : row.phase);
+                    const wallId = String(row.WallId != null ? row.WallId : (row.wallId || ''));
+                    if (wallId && phase >= 1) byWall[wallId] = phase;
+                });
+                if (!window.desing2PhaseStartPlan) window.desing2PhaseStartPlan = {};
+                window.desing2PhaseStartPlan.byWall = byWall;
+                return phasesFromByWall(byWall);
+            }).catch(function () { return local; });
+        }
+
+        function phaseSegments(phaseNo) {
+            const plan = window.desing2PhaseStartPlan || {};
+            const byWall = plan.byWall || {};
+            const wanted = Object.create(null);
+            Object.keys(byWall).forEach(function (wallId) {
+                if (Number(byWall[wallId]) === Number(phaseNo)) wanted[String(wallId)] = true;
+            });
+            const segs = [];
+            if (typeof window.maStlDesing2BuildWallExchangePayload !== 'function') return segs;
+            let lines = [];
+            try {
+                const payload = window.maStlDesing2BuildWallExchangePayload();
+                lines = payload && payload.walls ? payload.walls : [];
+            } catch (_err) {
+                return segs;
+            }
+            lines.forEach(function (line) {
+                if (!line || line.wallRole !== 'axis' || !line.p1Mm || !line.p2Mm) return;
+                const wid = line.wallId != null ? String(line.wallId) : String(line.id);
+                const lid = line.id != null ? String(line.id) : '';
+                if (!wanted[wid] && !wanted[lid]) return;
+                segs.push({
+                    id: lid,
+                    wallId: wid,
+                    x1: Number(line.p1Mm.x),
+                    z1: Number(line.p1Mm.z),
+                    x2: Number(line.p2Mm.x),
+                    z2: Number(line.p2Mm.z)
+                });
+            });
+            return segs;
+        }
+
+        function wallOnPhase(wall, segs) {
+            if (!wall || !segs.length) return false;
+            const attrs = wall.Attributes || {};
+            const lineKeys = [wall.Id, wall.LineId, attrs._idObject, attrs.id];
+            const wallKeys = [wall.WallId, attrs.wallId, attrs.WallId];
+            for (let s = 0; s < segs.length; s++) {
+                const seg = segs[s];
+                for (let i = 0; i < lineKeys.length; i++) {
+                    if (lineKeys[i] != null && lineKeys[i] !== '' && String(lineKeys[i]) === seg.id) return true;
+                }
+                for (let j = 0; j < wallKeys.length; j++) {
+                    if (wallKeys[j] != null && wallKeys[j] !== '' && String(wallKeys[j]) === seg.wallId) return true;
+                }
+            }
+            const p1 = wall.P1 || {};
+            const p2 = wall.P2 || {};
+            const x1 = Number(p1.xMm != null ? p1.xMm : attrs.InicioX);
+            const z1 = Number(p1.zMm != null ? p1.zMm : attrs.InicioY);
+            const x2 = Number(p2.xMm != null ? p2.xMm : attrs.FinX);
+            const z2 = Number(p2.zMm != null ? p2.zMm : attrs.FinY);
+            if (![x1, z1, x2, z2].every(function (n) { return Number.isFinite(n); })) return false;
+            for (let s = 0; s < segs.length; s++) {
+                const seg = segs[s];
+                const same = ((x1 - seg.x1) * (x1 - seg.x1)) + ((z1 - seg.z1) * (z1 - seg.z1))
+                    + ((x2 - seg.x2) * (x2 - seg.x2)) + ((z2 - seg.z2) * (z2 - seg.z2));
+                const flip = ((x1 - seg.x2) * (x1 - seg.x2)) + ((z1 - seg.z2) * (z1 - seg.z2))
+                    + ((x2 - seg.x1) * (x2 - seg.x1)) + ((z2 - seg.z1) * (z2 - seg.z1));
+                if (Math.min(same, flip) < 500 * 500) return true;
+            }
+            return false;
+        }
+
+        function phaseColor(phaseNo) {
+            const summary = window.desing2PhaseStartPlan && window.desing2PhaseStartPlan.phaseSummary;
+            if (Array.isArray(summary)) {
+                for (let i = 0; i < summary.length; i++) {
+                    if (Number(summary[i].phase) === Number(phaseNo) && summary[i].color) return summary[i].color;
+                }
+            }
+            const colors = ['#3b82f6', '#16a34a', '#d97706', '#9333ea', '#dc2626', '#0891b2'];
+            return colors[(Number(phaseNo) - 1) % colors.length];
+        }
+
+        function fillPhaseLabel(phaseNo) {
+            const tpl = btn.getAttribute('data-phase-label') || 'Fase {0}';
+            return String(tpl).replace('{0}', String(phaseNo));
+        }
+
+        function openPhasePicker(phases, onChoose) {
+            let modal = document.getElementById('desing2FormworkPhaseModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'desing2FormworkPhaseModal';
+                modal.className = 'modal fade';
+                modal.tabIndex = -1;
+                modal.innerHTML =
+                    '<div class="modal-dialog modal-dialog-centered modal-sm">' +
+                    '<div class="modal-content">' +
+                    '<div class="modal-header py-2"><h6 class="modal-title mb-0"></h6>' +
+                    '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>' +
+                    '<div class="modal-body d-grid gap-2" data-choices></div>' +
+                    '<div class="modal-footer py-2"><button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal" data-cancel></button></div>' +
+                    '</div></div>';
+                document.body.appendChild(modal);
+            }
+            const title = modal.querySelector('.modal-title');
+            const choices = modal.querySelector('[data-choices]');
+            const cancel = modal.querySelector('[data-cancel]');
+            if (title) title.textContent = btn.getAttribute('data-phase-ask') || '¿Qué fase quieres ver?';
+            if (cancel) cancel.textContent = btn.getAttribute('data-phase-cancel') || 'Cancelar';
+            choices.innerHTML = '';
+            phases.forEach(function (phaseNo) {
+                const choice = document.createElement('button');
+                choice.type = 'button';
+                choice.className = 'btn btn-outline-primary text-start';
+                choice.innerHTML = '<i class="d-inline-block rounded-circle me-2" style="width:.7rem;height:.7rem;background:' +
+                    phaseColor(phaseNo) + '"></i>' + fillPhaseLabel(phaseNo);
+                choice.addEventListener('click', function () {
+                    if (window.bootstrap && window.bootstrap.Modal) {
+                        window.bootstrap.Modal.getOrCreateInstance(modal).hide();
+                    }
+                    onChoose(phaseNo);
+                });
+                choices.appendChild(choice);
+            });
+            if (!window.bootstrap || !window.bootstrap.Modal) {
+                onChoose(phases[0]);
+                return;
+            }
+            modal.addEventListener('hidden.bs.modal', function () {
+                if (askingPhase) askingPhase = false;
+            }, { once: true });
+            window.bootstrap.Modal.getOrCreateInstance(modal).show();
+        }
+
         btn.addEventListener('click', function () {
-            if (formworkBusy || btn.disabled) return;
+            if (formworkBusy || btn.disabled || askingPhase) return;
             const selectedSystem = ((systemToggle && systemToggle.textContent) || '').trim();
 
             if (selectedSystem !== 'Atk-60') {
@@ -365,6 +562,34 @@
                 settleFormworkEarly('No existe URL configurada para Encofrar ATK-60.');
                 return;
             }
+
+            if (!skipPhaseAsk) {
+                askingPhase = true;
+                loadPhaseNumbers().then(function (phases) {
+                    if (!phases || phases.length < 2) {
+                        askingPhase = false;
+                        skipPhaseAsk = true;
+                        selectedPhase = 0;
+                        btn.click();
+                        return;
+                    }
+                    openPhasePicker(phases, function (phaseNo) {
+                        askingPhase = false;
+                        skipPhaseAsk = true;
+                        selectedPhase = phaseNo;
+                        btn.click();
+                    });
+                }).catch(function () {
+                    askingPhase = false;
+                    skipPhaseAsk = true;
+                    selectedPhase = 0;
+                    btn.click();
+                });
+                return;
+            }
+            skipPhaseAsk = false;
+            const formPhase = selectedPhase;
+            selectedPhase = 0;
 
             function normalizeWall(raw) {
                 if (!raw) return null;
@@ -453,6 +678,17 @@
                     return;
                 }
                 console.warn('ATK60 fallback: usando ejes 3D de escena por wallModelSource vacío.');
+            }
+
+            if (formPhase > 0) {
+                const segs = phaseSegments(formPhase);
+                walls = walls.filter(function (w) { return wallOnPhase(w, segs); });
+                if (!walls.length) {
+                    const none = btn.getAttribute('data-phase-none') || 'Esa fase no tiene muros para encofrar.';
+                    window.alert(none);
+                    settleFormworkEarly(none);
+                    return;
+                }
             }
 
             // Flujo legacy (ayer): inserta panel GLB + marcas.

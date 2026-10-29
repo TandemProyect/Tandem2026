@@ -73,6 +73,7 @@
         if (shell) shell.setAttribute("data-ma-stl-dim-kinds", on.join(","));
         window.desing2DimKinds = map;
         if (typeof window.desing2RefreshWallDims === 'function') window.desing2RefreshWallDims();
+        if (typeof window.desing2SyncCornerGuides === 'function') window.desing2SyncCornerGuides();
     }
 
     function boot() {

@@ -46,6 +46,7 @@ namespace Desing.Repositories.RepositoryAtk60
         {
             var payload = BuildPayloadFromIdsJson(idsJson);
             var walls = payload.Walls ?? new List<Desing2FormworkWallDto>();
+            ReleaseEndsWithoutNeighbor(walls);
             var connectedEnds = CountConnectedEnds(walls);
             ApplyConnectedEndTrim(walls);
             var modulos = GetWallsForCadSystems(walls, connectedEnds);
@@ -82,11 +83,10 @@ namespace Desing.Repositories.RepositoryAtk60
             //    No se rellena el resto con varios paneles (1,20 y 0,45).
             // 3) El tablón es lo que sobra de ese módulo. Si pasa de 0,15, el módulo
             //    sube un paso de 0,15 (el 0,90 pasa a 1,05).
-            // 4) Si hay tablón, va el penúltimo. El muro acaba en un módulo.
-            // 5) Muro con ninguna conexión o con una sola, y largo múltiplo de 0,15:
-            //    no hay tablón. El desencofrado sale por el tape. 8,25 m son
-            //    dos de 2,70, uno de 2,40 y un panel de 0,45.
-            //    Con conexión en los dos extremos se queda el tablón de 0,15.
+            // 4) Si el resto queda entre 0,16 y 0,29, no cabe un panel de 0,30.
+            //    Se abre un 2,70 en 2,55 + 0,30 y el tablón baja 0,15.
+            // 5) Si hay tablón, va el penúltimo. El muro acaba en un módulo.
+            //    El de 0,15 se queda: el largo múltiplo de 0,15 lleva taco.
             const int epsMm = 1;
 
             foreach (var item in walls)
@@ -118,11 +118,15 @@ namespace Desing.Repositories.RepositoryAtk60
 
                 int n270;
                 int remateMm;
-                int ends;
-                var tapeEnd = connectedEnds != null
-                    && connectedEnds.TryGetValue(idWall ?? string.Empty, out ends)
-                    && ends < 2;
-                var fillCounts = PackAtk60LengthMm(longMm, out n270, out remateMm, tapeEnd);
+                int ends = 0;
+                if (connectedEnds != null)
+                {
+                    connectedEnds.TryGetValue(idWall ?? string.Empty, out ends);
+                }
+
+                // 0 conexiones, 1 conexión o las dos: si el largo es múltiplo de 0,15
+                // el tablón de 0,15 se queda. El hueco lo cierra ese taco.
+                var fillCounts = PackAtk60LengthMm(longMm, out n270, out remateMm, ends);
                 AddModuleCount(module, 2.70, n270);
                 for (var i = 0; i < Atk60StepModuleMm.Length; i++)
                 {
@@ -134,6 +138,106 @@ namespace Desing.Repositories.RepositoryAtk60
             }
 
             return modulos;
+        }
+
+        /// <summary>
+        /// Un extremo enlazado a un muro que no se está encofrando queda libre.
+        /// Si no, no sale el tape y el hormigón se escapa por ese canto.
+        /// </summary>
+        private static void ReleaseEndsWithoutNeighbor(List<Desing2FormworkWallDto> walls)
+        {
+            if (walls == null)
+            {
+                return;
+            }
+
+            var present = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            for (var i = 0; i < walls.Count; i++)
+            {
+                var wall = walls[i];
+                if (wall == null)
+                {
+                    continue;
+                }
+
+                AddPresentId(present, wall.Id);
+                AddPresentId(present, wall.LineId);
+                AddPresentId(present, wall.WallId);
+                if (wall.Attributes == null)
+                {
+                    continue;
+                }
+
+                AddPresentId(present, wall.Attributes._idObject);
+                AddPresentId(present, wall.Attributes.ExtraValueAsString("wallId"));
+                AddPresentId(present, wall.Attributes.ExtraValueAsString("id"));
+            }
+
+            for (var i = 0; i < walls.Count; i++)
+            {
+                var attrs = walls[i] != null ? walls[i].Attributes : null;
+                if (attrs == null)
+                {
+                    continue;
+                }
+
+                ClearConnectionIfNeighborMissing(attrs, present, true);
+                ClearConnectionIfNeighborMissing(attrs, present, false);
+            }
+        }
+
+        private static void AddPresentId(HashSet<string> present, string id)
+        {
+            if (!string.IsNullOrWhiteSpace(id) && id != "0"
+                && !string.Equals(id, "null", StringComparison.OrdinalIgnoreCase))
+            {
+                present.Add(id.Trim());
+            }
+        }
+
+        private static void ClearConnectionIfNeighborMissing(AttributesList attrs, HashSet<string> present, bool atStart)
+        {
+            var key = atStart ? "_Idconnection_1" : "_Idconnection_2";
+            var id = atStart ? attrs._Idconnection_1 : attrs._Idconnection_2;
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                id = attrs.ExtraValueAsString(key);
+            }
+
+            if (string.IsNullOrWhiteSpace(id) || id == "0"
+                || string.Equals(id, "null", StringComparison.OrdinalIgnoreCase)
+                || present.Contains(id.Trim()))
+            {
+                return;
+            }
+
+            if (atStart)
+            {
+                attrs._Idconnection_1 = null;
+            }
+            else
+            {
+                attrs._Idconnection_2 = null;
+            }
+
+            if (attrs.Extra == null)
+            {
+                return;
+            }
+
+            var drop = new List<string>();
+            foreach (var pair in attrs.Extra)
+            {
+                if (string.Equals(pair.Key, key, StringComparison.OrdinalIgnoreCase))
+                {
+                    drop.Add(pair.Key);
+                }
+            }
+
+            for (var i = 0; i < drop.Count; i++)
+            {
+                attrs.Extra.Remove(drop[i]);
+            }
         }
 
         /// <summary>
@@ -301,6 +405,17 @@ namespace Desing.Repositories.RepositoryAtk60
         /// </summary>
         private static double CornerTrimMm(List<Atk60TrimSeg> segs, Atk60TrimSeg self, string key)
         {
+            double tTrim;
+            if (TryTCornerTrimMm(segs, self, key, out tTrim))
+            {
+                return tTrim;
+            }
+
+            if (TryPlusCornerTrimMm(segs, self, key, out tTrim))
+            {
+                return tTrim;
+            }
+
             if (self == null || self.Wall == null || !IsSquareCorner(segs, key))
             {
                 return ConnectedEndTrimMm;
@@ -383,6 +498,209 @@ namespace Desing.Repositories.RepositoryAtk60
             }
 
             return Math.Abs((ax * bx) + (az * bz)) < 0.45d;
+        }
+
+        /// <summary>
+        /// En la T, el recto del muro de paso se retira medio espesor del que llega más 0,30.
+        /// El que llega se retira medio espesor del de paso más 0,30.
+        /// </summary>
+        private static bool TryTCornerTrimMm(List<Atk60TrimSeg> segs, Atk60TrimSeg self, string key, out double trimMm)
+        {
+            trimMm = 0d;
+            if (self == null || self.Wall == null || segs == null)
+            {
+                return false;
+            }
+
+            var touch = new List<Atk60TrimSeg>();
+            for (var i = 0; i < segs.Count; i++)
+            {
+                var seg = segs[i];
+                if (seg == null || seg.Wall == null)
+                {
+                    continue;
+                }
+
+                if (CornerKeyMm(seg.Sx, seg.Sz) == key || CornerKeyMm(seg.Ex, seg.Ez) == key)
+                {
+                    touch.Add(seg);
+                }
+            }
+
+            if (touch.Count != 3)
+            {
+                return false;
+            }
+
+            Atk60TrimSeg pairA = null;
+            Atk60TrimSeg pairB = null;
+            var best = 1d;
+            for (var i = 0; i < touch.Count; i++)
+            {
+                double aix;
+                double aiz;
+                if (!TryDirIntoTrim(touch[i], key, out aix, out aiz))
+                {
+                    continue;
+                }
+
+                for (var j = i + 1; j < touch.Count; j++)
+                {
+                    double bix;
+                    double biz;
+                    if (!TryDirIntoTrim(touch[j], key, out bix, out biz))
+                    {
+                        continue;
+                    }
+
+                    var dot = (aix * bix) + (aiz * biz);
+                    if (dot < best)
+                    {
+                        best = dot;
+                        pairA = touch[i];
+                        pairB = touch[j];
+                    }
+                }
+            }
+
+            if (pairA == null || pairB == null || best > -0.85d)
+            {
+                return false;
+            }
+
+            Atk60TrimSeg branch = null;
+            for (var i = 0; i < touch.Count; i++)
+            {
+                if (!ReferenceEquals(touch[i], pairA) && !ReferenceEquals(touch[i], pairB))
+                {
+                    branch = touch[i];
+                }
+            }
+
+            if (branch == null)
+            {
+                return false;
+            }
+
+            var throughThick = (ResolveWallWidthMm(pairA.Wall.Attributes) + ResolveWallWidthMm(pairB.Wall.Attributes)) * 0.5d;
+            var branchThick = ResolveWallWidthMm(branch.Wall.Attributes);
+            var selfIsThrough = ReferenceEquals(self, pairA) || ReferenceEquals(self, pairB);
+            trimMm = selfIsThrough ? (branchThick * 0.5d) + 300d : (throughThick * 0.5d) + 300d;
+            return true;
+        }
+
+        /// <summary>
+        /// Cruce en +. Cada brazo se retira medio espesor del eje que cruza, más 0,30.
+        /// Ahí entran los paneles de esquina interior. No hay cara E ni angular.
+        /// </summary>
+        private static bool TryPlusCornerTrimMm(List<Atk60TrimSeg> segs, Atk60TrimSeg self, string key, out double trimMm)
+        {
+            trimMm = 0d;
+            if (self == null || self.Wall == null || segs == null)
+            {
+                return false;
+            }
+
+            var touch = new List<Atk60TrimSeg>();
+            for (var i = 0; i < segs.Count; i++)
+            {
+                var seg = segs[i];
+                if (seg == null || seg.Wall == null)
+                {
+                    continue;
+                }
+
+                if (CornerKeyMm(seg.Sx, seg.Sz) == key || CornerKeyMm(seg.Ex, seg.Ez) == key)
+                {
+                    touch.Add(seg);
+                }
+            }
+
+            if (touch.Count != 4)
+            {
+                return false;
+            }
+
+            Atk60TrimSeg pairA = null;
+            Atk60TrimSeg pairB = null;
+            var best = 1d;
+            for (var i = 0; i < touch.Count; i++)
+            {
+                double aix;
+                double aiz;
+                if (!TryDirIntoTrim(touch[i], key, out aix, out aiz))
+                {
+                    continue;
+                }
+
+                for (var j = i + 1; j < touch.Count; j++)
+                {
+                    double bix;
+                    double biz;
+                    if (!TryDirIntoTrim(touch[j], key, out bix, out biz))
+                    {
+                        continue;
+                    }
+
+                    var dot = (aix * bix) + (aiz * biz);
+                    if (dot < best)
+                    {
+                        best = dot;
+                        pairA = touch[i];
+                        pairB = touch[j];
+                    }
+                }
+            }
+
+            if (pairA == null || pairB == null || best > -0.85d)
+            {
+                return false;
+            }
+
+            Atk60TrimSeg crossA = null;
+            Atk60TrimSeg crossB = null;
+            for (var i = 0; i < touch.Count; i++)
+            {
+                if (ReferenceEquals(touch[i], pairA) || ReferenceEquals(touch[i], pairB))
+                {
+                    continue;
+                }
+
+                if (crossA == null)
+                {
+                    crossA = touch[i];
+                }
+                else
+                {
+                    crossB = touch[i];
+                }
+            }
+
+            if (crossA == null || crossB == null)
+            {
+                return false;
+            }
+
+            double cax;
+            double caz;
+            double cbx;
+            double cbz;
+            if (!TryDirIntoTrim(crossA, key, out cax, out caz) || !TryDirIntoTrim(crossB, key, out cbx, out cbz))
+            {
+                return false;
+            }
+
+            if ((cax * cbx) + (caz * cbz) > -0.85d)
+            {
+                return false;
+            }
+
+            var selfOnPair = ReferenceEquals(self, pairA) || ReferenceEquals(self, pairB);
+            var otherA = selfOnPair ? crossA : pairA;
+            var otherB = selfOnPair ? crossB : pairB;
+            var otherThick = (ResolveWallWidthMm(otherA.Wall.Attributes) + ResolveWallWidthMm(otherB.Wall.Attributes)) * 0.5d;
+            trimMm = (otherThick * 0.5d) + 300d;
+            return true;
         }
 
         private static bool TryDirIntoTrim(Atk60TrimSeg seg, string key, out double ux, out double uz)
@@ -768,7 +1086,7 @@ namespace Desing.Repositories.RepositoryAtk60
 
                 var chunks = BuildAtk60AlongChunks(moduloWall);
                 var skipRemate = ExactWidthEndTape.SuppressesRemate(wall)
-                    && remateMm > 1d && remateMm < 300d;
+                    && remateMm > 1d && remateMm <= Atk60StepMm;
                 var leadMm = skipRemate
                     && ExactWidthEndTape.ReplacesRemate(wall, true)
                     && !ExactWidthEndTape.ReplacesRemate(wall, false)
@@ -1301,7 +1619,8 @@ namespace Desing.Repositories.RepositoryAtk60
             }
 
             var remateMm = Math.Round(moduloWall.M_Remate * 1000d, 3);
-            var hasRemate = remateMm > 1d && remateMm < 300d;
+            // Más de 0,15 no es remate. El filtro antiguo (< 0,30) pintaba el 0,27.
+            var hasRemate = remateMm > 1d && remateMm <= Atk60StepMm;
             var closer = hasRemate ? ResolveAtk60ClosingBuilder(moduloWall) : null;
 
             for (var bi = 0; bi < _moduleBuilders.Count; bi++)
@@ -1371,7 +1690,7 @@ namespace Desing.Repositories.RepositoryAtk60
             return found450 ?? found300 ?? lastAny;
         }
 
-        private static int[] PackAtk60LengthMm(int longMm, out int n270, out int remateMm, bool tapeEndExact = false)
+        private static int[] PackAtk60LengthMm(int longMm, out int n270, out int remateMm, int connectedEnds = 0)
         {
             n270 = longMm / Atk60BaseModuleMm;
             var remainingMm = longMm - (n270 * Atk60BaseModuleMm);
@@ -1393,33 +1712,34 @@ namespace Desing.Repositories.RepositoryAtk60
                 remainingMm -= finalMm;
             }
 
-            // Un tablón de más de 0,15 sube el módulo final un paso. El de 0,15 se queda
-            // si el muro tiene conexión en los dos extremos.
+            // Un tablón de más de 0,15 sube el módulo final un paso.
+            // Entre 0,16 y 0,29 no cabe el panel de 0,30: se abre un 2,70.
+            // El de 0,15 no se absorbe: el largo múltiplo de 0,15 lleva taco.
             var guard = 0;
-            while (remainingMm > Atk60StepMm && guard < 40 && RaiseFinalModule(fillCounts, ref remainingMm))
+            while (remainingMm > Atk60StepMm && guard < 40)
             {
                 guard++;
+                if (RaiseFinalModule(fillCounts, ref remainingMm))
+                {
+                    continue;
+                }
+
+                if (!SplitBaseModuleForRemate(ref n270, fillCounts, ref remainingMm))
+                {
+                    break;
+                }
             }
 
             remateMm = remainingMm;
-            if (tapeEndExact
-                && remateMm == Atk60StepMm
-                && n270 >= 1
-                && longMm % Atk60StepMm == 0)
+            // Muro más corto que 0,30, sin un 2,70 que abrir: el bucle no puede
+            // meter el sobrante en un panel. No se guarda un tablón de 0,27.
+            if (remateMm > Atk60StepMm)
             {
-                n270--;
-                var i240 = StepIndex(2400);
-                var i045 = StepIndex(450);
-                if (i240 >= 0)
-                {
-                    fillCounts[i240]++;
-                }
-
-                if (i045 >= 0)
-                {
-                    fillCounts[i045]++;
-                }
-
+                remateMm = Atk60StepMm;
+            }
+            // 0 conexiones, 1 conexión y las dos: el múltiplo de 0,15 conserva el taco.
+            if (connectedEnds < 0)
+            {
                 remateMm = 0;
             }
 
@@ -1447,6 +1767,31 @@ namespace Desing.Repositories.RepositoryAtk60
             }
 
             return 0;
+        }
+
+        /// <summary>
+        /// El resto no llega a un panel de 0,30 y pasa de 0,15.
+        /// Un 2,70 pasa a 2,55 + 0,30 y el tablón baja 0,15.
+        /// </summary>
+        private static bool SplitBaseModuleForRemate(ref int n270, int[] counts, ref int remateMm)
+        {
+            if (n270 <= 0 || counts == null)
+            {
+                return false;
+            }
+
+            var i2550 = StepIndex(2550);
+            var i300 = StepIndex(300);
+            if (i2550 < 0 || i300 < 0)
+            {
+                return false;
+            }
+
+            n270--;
+            counts[i2550]++;
+            counts[i300]++;
+            remateMm -= Atk60StepMm;
+            return true;
         }
 
         /// <summary>

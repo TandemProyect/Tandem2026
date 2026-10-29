@@ -2489,6 +2489,9 @@
     <Content Include="IA\docs\agente-foto-diseno-y-menu.md" />
     <Content Include="IA\docs\agente-tapes-atk60.md" />
     <Content Include="IA\docs\agente-grapas-atk60.md" />
+    <Content Include="IA\docs\nevi-rendimiento-puesta.md" />
+    <Content Include="IA\docs\encofrado-fases-diseno-30008.md" />
+    <Content Include="IA\docs\muro-json-cifrado.md" />
     <Content Include="IA\docs\agente-traducciones-modulos.md" />
     <Content Include="IA\docs\agente-ui-materio-datatables.md" />
     <Content Include="IA\docs\AGENTE-US619-INFO.md" />
@@ -2499,6 +2502,7 @@
     <Content Include="IA\docs\GUIA-AGENTE-AZURE-DEVOPS.md" />
     <Content Include="IA\docs\HANDOVER-LCornerDetector.md" />
     <Content Include="IA\docs\esquina-L-atk60.md" />
+    <Content Include="IA\docs\esquina-T-atk60.md" />
     <Content Include="IA\docs\HANDOVER-PLUGIN-DEVICE-AUTH.md" />
     <Content Include="IA\docs\HANDOVER-SESION-2026-10-23.md" />
     <Content Include="IA\docs\HANDOVER-US-IMG-MUROS.md" />
@@ -3512,6 +3516,10 @@
     <Content Include="Scripts\MasterArticles\design-groups.js" />
     <Content Include="Scripts\Desing2\desing2-dim-kinds.js" />
     <Content Include="Scripts\Desing2\desing2-stl-viewer-toolbar-wiring.js" />
+    <Content Include="Scripts\Desing2\desing2-wall-exchange.js" />
+    <Content Include="Scripts\Desing2\desing2-phase-start.js" />
+    <Content Include="Scripts\Desing2\desing2-phase-solve.js" />
+    <Content Include="IA\tools\decrypt-wall-export.mjs" />
     <Content Include="Scripts\Desing2\desing2-map-building-import.js" />
     <Content Include="Scripts\Desing2\desing2-connection-test.js" />
     <Content Include="Scripts\ResourceGenerators\_gen_branch_resources.js" />

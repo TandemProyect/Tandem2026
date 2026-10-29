@@ -91,9 +91,11 @@ Cada extremo del muro es un caso. El otro extremo, si el vecino tiene otro espes
 
 El angular y la esquina interior no se mueven. La grapa del angular va en su canto. Las de los paneles van en cada junta entre dos paneles, como en el apartado «Dos paneles juntos». El tablón del escalón no las sustituye.
 
-El sobrante de la cara (módulo menos la necesidad) es el tablón. Va en la cara interior, entre la esquina interior y el panel, con grapa variable en los dos cantos. No va en el rincón del angular: ahí está el angular, pegado al panel exterior. En ese hueco interior no se pone grapa fija, porque no une dos paneles. El remate que el eje pintaba en el recorte se quita: ese extremo ya no es el hueco, y si se deja el tablón y las variables quedan metidos hacia el muro.
+El sobrante de la cara (módulo menos la necesidad) es el tablón. Va en la cara interior, entre la esquina interior y el panel, con grapa variable en los dos cantos. No va en el rincón del angular: ahí está el angular, pegado al panel exterior. En ese hueco interior no se pone grapa fija, porque no une dos paneles.
 
-Ese tablón es el de la esquina, por el espesor. El tablón del eje es otro. Si el muro no tiene las dos conexiones y el largo es múltiplo de 0,15, el eje no lleva tablón: el desencofrado sale por el tape. Un 8,25 suelto son dos de 2,70, uno de 2,40 y un panel de 0,45. Con conexión en los dos extremos, el tablón de 0,15 del eje se queda. El reparto está en `Docs/Proyectos/Desing/ATK60-Logica-Modulos-Wall.md`.
+Ese tablón es el de la esquina, por el espesor. El del eje es el de la longitud. Desde el 28 oct 2026 los dos miden igual: a lo largo, el hueco, nunca más de 0,15 m; de ancho, 0,12 m, el del panel. Grapa variable en los dos cantos. Si el largo es múltiplo de 0,15 el taco se queda, tenga el muro ninguna conexión, una o las dos. La regla del 26 oct que lo quitaba en 0 y 1 conexión ya no vale. El detalle del reparto está en `Docs/Proyectos/Desing/ATK60-Logica-Modulos-Wall.md`. La T de tipo 2, en `esquina-T-atk60.md`.
+
+Pendiente, sin hacer: las grapas variables que salen al revés.
 
 ## Esquina que no es de 90°, con escuadra G
 

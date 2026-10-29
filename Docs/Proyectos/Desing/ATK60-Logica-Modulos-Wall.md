@@ -119,27 +119,22 @@ Metodo objetivo en repositorio ATK60:
 
 - `GetWallsForCadSystems(walls)` en `Desing/Repositories/RepositoryAtk60/Atk60WallsRepository.cs`
 
-## Conexiones de los extremos (26 oct 2026)
+## Conexiones de los extremos (28 oct 2026)
 
-El reparto de arriba sigue siendo la base. El tablon de 0,15 del eje depende de cuantos extremos tocan otro muro. Se cuenta antes del recorte: despues los extremos ya no se tocan.
+El apartado del 26 oct, que quitaba el tablón en 0 y 1 conexión, ya no vale.
 
-1. Ninguna conexion. Muro suelto.
-2. Una conexion, en un solo extremo.
-3. Conexion en los dos extremos.
+El reparto de módulos de arriba sigue siendo la base. El tablón se cuenta antes del recorte.
 
-Casos 1 y 2. Si el largo que se empaqueta es multiplo de 0,15, no hay tablon. El desencofrado sale por el tape. Si el reparto base dejaba un tablon de 0,15, se abre un 2,70: ese 2,70 mas los 0,15 pasan a un modulo de 2,40 y un panel de 0,45.
+Si el largo que se empaqueta es múltiplo de 0,15, el muro lleva el taco de 0,15, tenga ninguna conexión, una o las dos. A lo largo no pasa de 0,15 m. El ancho es 0,12 m, el del panel. Grapa variable en los dos cantos.
 
-Ejemplo, muro suelto de 8,25 m:
+Si el sobrante pasa de 0,15, el módulo final sube un paso de 0,15. Si entre 0,16 y 0,29 no cabe un panel de 0,30, se abre un 2,70 en 2,55 + 0,30 y el taco baja 0,15. El taco de 0,15 justo no se absorbe.
 
-- dos modulos de 2,70
-- un modulo de 2,40
-- un panel de 0,45
-- sin tablon
+Si en el mismo muro hay otro remate y uno está en la esquina, los paneles de en medio se corren y el hueco del tramo se cierra. El tablón de la esquina y el de la otra cara se quedan, cada uno con su largo. Ninguno pasa de 0,15. No se suman: 0,12 más 0,15 no es un tablón de 0,27. Lo que pasa de 0,15 entra en el módulo, no en la madera. Los dos se acotan.
 
-Caso 3. Se queda el reparto de ahora. Un 8,25 con las dos conexiones sigue en tres de 2,70 y un tablon de 0,15, salvo el recorte de las esquinas. El tablon de la esquina por diferencia de espesor es otro remate: va en la cara interior, entre la esquina interior y el panel, con grapa variable. No se quita por esta regla.
+No volver a abrir el tope. `EndFiller` recorta a 0,15 aunque quien llame pase 0,60. El pintado solo dibuja un remate de más de 1 mm y como mucho 0,15 (`remateMm <= 150`). El filtro antiguo `remateMm < 300` es el que dejaba salir el 0,27. `PackAtk60LengthMm` no guarda un resto mayor de 0,15: si el muro es más corto que 0,30 y no hay un 2,70 que abrir, el tablón se queda en 0,15 y el resto no se pinta como madera.
 
-Codigo: `CountConnectedEnds` y `PackAtk60LengthMm` en `Desing/Repositories/RepositoryAtk60/Atk60WallsRepository.cs`.
+Código: `CountConnectedEnds` y `PackAtk60LengthMm` en `Desing/Repositories/RepositoryAtk60/Atk60WallsRepository.cs`. La suma en la esquina está en `SumRematesAtCorner` de `LCornerFormwork.cs`. La T de tipo 2 está en `Desing/IA/docs/esquina-T-atk60.md`.
 
 ## Estado
-- Reparto por conexiones cerrado el 26 oct 2026, 10:51.
-- El caso 3 (las dos conexiones) conserva el tablon de 0,15 del eje.
+- Reparto por conexiones del 26 oct 2026 sustituido el 28 oct 2026.
+- El múltiplo de 0,15 conserva el tablón en 0, 1 y 2 conexiones.

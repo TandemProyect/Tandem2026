@@ -308,6 +308,101 @@ namespace Desing.Controllers
         }
 
         /// <summary>
+        /// Sustituye los muros del diseño abierto por los de un archivo de intercambio,
+        /// y los artículos de los muros especiales. No toca el encofrado generado.
+        /// </summary>
+        [HttpPost]
+        public JsonResult ImportWallExchange()
+        {
+            try
+            {
+                if (Request.InputStream.CanSeek)
+                {
+                    Request.InputStream.Position = 0;
+                }
+
+                string rawJson;
+                using (var reader = new StreamReader(Request.InputStream, Encoding.UTF8))
+                {
+                    rawJson = reader.ReadToEnd();
+                }
+
+                if (string.IsNullOrWhiteSpace(rawJson))
+                {
+                    return Json(new { Exito = false, Mensaje = "JSON vacío." });
+                }
+
+                var request = JsonConvert.DeserializeObject<Desing2WallExchangeRequest>(rawJson);
+                if (request == null || request.DesignId <= 0)
+                {
+                    return Json(new { Exito = false, Mensaje = "Diseño no indicado." });
+                }
+
+                var trustIds = request.SourceDesignId > 0 && request.SourceDesignId == request.DesignId;
+                if (!trustIds)
+                {
+                    if (request.Walls != null)
+                    {
+                        for (var i = 0; i < request.Walls.Count; i++)
+                        {
+                            if (request.Walls[i] != null)
+                            {
+                                request.Walls[i].WallDbId = null;
+                            }
+                        }
+                    }
+                    if (request.SpecialArticles != null)
+                    {
+                        for (var i = 0; i < request.SpecialArticles.Count; i++)
+                        {
+                            if (request.SpecialArticles[i] != null)
+                            {
+                                request.SpecialArticles[i].WallDbId = null;
+                            }
+                        }
+                    }
+                }
+
+                db.Database.CommandTimeout = 30;
+                var repository = new DesignWallRepository(db);
+                var design = repository.FindActiveDesign(request.DesignId);
+                if (design == null)
+                {
+                    return Json(new { Exito = false, Mensaje = "Diseño no encontrado." });
+                }
+
+                var userId = IntranetAuditHelper.ResolveCurrentUserId(User);
+                int saved;
+                int articleCount;
+                using (var trans = db.Database.BeginTransaction())
+                {
+                    saved = repository.ReplaceWalls(request.DesignId, request.Walls, userId, true);
+                    db.SaveChanges();
+                    articleCount = new DesignWallArticleRepository(db)
+                        .ReplaceArticlesOnSpecialWalls(request.DesignId, request.SpecialArticles, userId, trustIds);
+                    db.SaveChanges();
+                    trans.Commit();
+                }
+
+                return Json(new
+                {
+                    Exito = true,
+                    Count = saved,
+                    ArticleCount = articleCount,
+                    DesignId = request.DesignId
+                });
+            }
+            catch (JsonReaderException ex)
+            {
+                return Json(new { Exito = false, Mensaje = "JSON inválido: " + ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Exito = false, Mensaje = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// El primer usuario del día arranca la limpieza y recibe los segundos previstos.
         /// </summary>
         [HttpPost]
@@ -483,6 +578,92 @@ namespace Desing.Controllers
                     ServerStateSaved = serverStateSaved,
                     LegacyCameraSaved = legacyCameraSaved
                 });
+            }
+            catch (JsonReaderException ex)
+            {
+                return Json(new { Exito = false, Mensaje = "JSON inválido: " + ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Exito = false, Mensaje = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public JsonResult LoadPhasePlan(long designId)
+        {
+            try
+            {
+                if (designId <= 0)
+                {
+                    return Json(new { Exito = false, Mensaje = "Diseño no indicado." }, JsonRequestBehavior.AllowGet);
+                }
+
+                var raw = TryLoadPhasePlanJson(designId);
+                var walls = TryLoadPhaseDetails(designId);
+                return Json(new { Exito = true, DesignId = designId, PlanJson = raw ?? "", Walls = walls }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Exito = false, Mensaje = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpPost]
+        public JsonResult SavePhasePlan()
+        {
+            try
+            {
+                if (Request.InputStream.CanSeek)
+                {
+                    Request.InputStream.Position = 0;
+                }
+
+                string rawJson;
+                using (var reader = new StreamReader(Request.InputStream, Encoding.UTF8))
+                {
+                    rawJson = reader.ReadToEnd();
+                }
+
+                if (string.IsNullOrWhiteSpace(rawJson))
+                {
+                    return Json(new { Exito = false, Mensaje = "JSON vacío." });
+                }
+
+                var request = JsonConvert.DeserializeObject<Desing2PhasePlanSaveRequest>(rawJson);
+                if (request == null || request.DesignId <= 0)
+                {
+                    return Json(new { Exito = false, Mensaje = "Diseño no indicado." });
+                }
+
+                if (request.Plan == null || request.Plan.Type != JTokenType.Object)
+                {
+                    return Json(new { Exito = false, Mensaje = "El plan de fases no es válido." });
+                }
+
+                var planJson = request.Plan.ToString(Formatting.None);
+                if (Encoding.UTF8.GetByteCount(planJson) > 512 * 1024)
+                {
+                    return Json(new { Exito = false, Mensaje = "El plan de fases es demasiado grande." });
+                }
+
+                var repository = new DesignWallRepository(db);
+                if (repository.FindActiveDesign(request.DesignId) == null)
+                {
+                    return Json(new { Exito = false, Mensaje = "Diseño no encontrado." });
+                }
+
+                var userId = IntranetAuditHelper.ResolveCurrentUserId(User) ?? "";
+                int detailCount;
+                string detailError;
+                if (!TryReplacePhaseDetails(request.DesignId, userId, request.Plan, out detailCount, out detailError))
+                {
+                    return Json(new { Exito = false, Mensaje = detailError ?? "No se han podido guardar las fases." });
+                }
+
+                TrySavePhasePlanJson(request.DesignId, userId, planJson);
+
+                return Json(new { Exito = true, DesignId = request.DesignId, Count = detailCount });
             }
             catch (JsonReaderException ex)
             {
@@ -1652,6 +1833,18 @@ namespace Desing.Controllers
             public JObject State { get; set; }
         }
 
+        private sealed class Desing2PhasePlanSaveRequest
+        {
+            public long DesignId { get; set; }
+            public JObject Plan { get; set; }
+        }
+
+        private sealed class PhaseDetailRow
+        {
+            public long NumberPhase { get; set; }
+            public string TextWallId { get; set; }
+        }
+
         private static string ResolvePlantillaLogoUrl(UrlHelper url, string plantillaLogoRaw)
 
         {
@@ -1779,6 +1972,177 @@ namespace Desing.Controllers
         private static JArray BuildViewerStateVector(double x, double y, double z)
         {
             return new JArray(x, y, z);
+        }
+
+        private bool TryReplacePhaseDetails(long designId, string userId, JObject plan, out int count, out string error)
+        {
+            count = 0;
+            error = null;
+            var rows = ReadPhaseWalls(plan);
+            if (rows.Count == 0)
+            {
+                error = "El plan no trae muros por fase.";
+                return false;
+            }
+
+            try
+            {
+                var exists = db.Database.SqlQuery<int>(
+                    "SELECT CASE WHEN OBJECT_ID(N'dbo.TSql_DesingFasesDetail', N'U') IS NULL THEN 0 ELSE 1 END")
+                    .FirstOrDefault();
+                if (exists != 1)
+                {
+                    error = "Falta la tabla TSql_DesingFasesDetail.";
+                    return false;
+                }
+
+                var now = DateTime.Now;
+                var madeBy = string.IsNullOrWhiteSpace(userId) ? "" : userId;
+                using (var tx = db.Database.BeginTransaction())
+                {
+                    db.Database.ExecuteSqlCommand(
+                        "UPDATE dbo.TSql_DesingFasesDetail SET Is_Delete = 1, Is_Active = 0, LinModifiedBy = @p0, AddLastDateChange = @p1, Ntimeschanged = Ntimeschanged + 1 WHERE LinkDesign_V2 = @p2 AND Is_Delete = 0",
+                        madeBy,
+                        now,
+                        designId);
+
+                    foreach (var row in rows)
+                    {
+                        var label = "Fase " + row.NumberPhase.ToString(CultureInfo.InvariantCulture) + " · muro " + row.TextWallId;
+                        if (label.Length > 500)
+                        {
+                            label = label.Substring(0, 500);
+                        }
+
+                        db.Database.ExecuteSqlCommand(
+                            "INSERT INTO dbo.TSql_DesingFasesDetail (TextLabel, LinkDesign_V2, NumberPhase, TextWallId, Is_Delete, Is_Active, LinkMadeBy, LinModifiedBy, AddDateMade, AddLastDateChange, Ntimeschanged) VALUES (@p0, @p1, @p2, @p3, 0, 1, @p4, NULL, @p5, NULL, 0)",
+                            label,
+                            designId,
+                            row.NumberPhase,
+                            row.TextWallId,
+                            madeBy,
+                            now);
+                    }
+
+                    tx.Commit();
+                }
+
+                count = rows.Count;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                error = ex.Message;
+                return false;
+            }
+        }
+
+        private static List<PhaseDetailRow> ReadPhaseWalls(JObject plan)
+        {
+            var list = new List<PhaseDetailRow>();
+            var byWall = plan["byWall"] as JObject ?? plan["ByWall"] as JObject;
+            if (byWall == null)
+            {
+                return list;
+            }
+
+            foreach (var prop in byWall.Properties())
+            {
+                var wallId = (prop.Name ?? "").Trim();
+                if (wallId.Length == 0 || wallId.Length > 128)
+                {
+                    continue;
+                }
+
+                long phase;
+                if (!long.TryParse(prop.Value == null ? "" : prop.Value.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out phase) || phase < 1)
+                {
+                    continue;
+                }
+
+                list.Add(new PhaseDetailRow { NumberPhase = phase, TextWallId = wallId });
+            }
+
+            return list;
+        }
+
+        private List<object> TryLoadPhaseDetails(long designId)
+        {
+            try
+            {
+                var exists = db.Database.SqlQuery<int>(
+                    "SELECT CASE WHEN OBJECT_ID(N'dbo.TSql_DesingFasesDetail', N'U') IS NULL THEN 0 ELSE 1 END")
+                    .FirstOrDefault();
+                if (exists != 1)
+                {
+                    return new List<object>();
+                }
+
+                var rows = db.Database.SqlQuery<PhaseDetailRow>(
+                    "SELECT NumberPhase, TextWallId FROM dbo.TSql_DesingFasesDetail WHERE LinkDesign_V2 = @p0 AND Is_Delete = 0 AND Is_Active = 1 ORDER BY NumberPhase, TextWallId",
+                    designId)
+                    .ToList();
+                var result = new List<object>();
+                foreach (var row in rows)
+                {
+                    result.Add(new { Phase = row.NumberPhase, WallId = row.TextWallId });
+                }
+
+                return result;
+            }
+            catch
+            {
+                return new List<object>();
+            }
+        }
+
+        private string TryLoadPhasePlanJson(long designId)
+        {
+            try
+            {
+                var exists = db.Database.SqlQuery<int>(
+                    "SELECT CASE WHEN COL_LENGTH('dbo.TSql_Design_V2', 'AttPhasePlanJson') IS NULL THEN 0 ELSE 1 END")
+                    .FirstOrDefault();
+                if (exists != 1)
+                {
+                    return null;
+                }
+
+                return db.Database.SqlQuery<string>(
+                    "SELECT CAST(AttPhasePlanJson AS nvarchar(max)) FROM dbo.TSql_Design_V2 WHERE SysObjectID = @p0 AND AttIsDeleted = 0",
+                    designId)
+                    .FirstOrDefault();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private bool TrySavePhasePlanJson(long designId, string userId, string planJson)
+        {
+            try
+            {
+                var exists = db.Database.SqlQuery<int>(
+                    "SELECT CASE WHEN COL_LENGTH('dbo.TSql_Design_V2', 'AttPhasePlanJson') IS NULL THEN 0 ELSE 1 END")
+                    .FirstOrDefault();
+                if (exists != 1)
+                {
+                    return false;
+                }
+
+                var updated = db.Database.ExecuteSqlCommand(
+                    "UPDATE dbo.TSql_Design_V2 SET AttPhasePlanJson = @p0, AttChange = @p1, LinModifiedBy = @p2, SysUpdateNumber = SysUpdateNumber + 1 WHERE SysObjectID = @p3 AND AttIsDeleted = 0",
+                    planJson,
+                    DateTime.Now,
+                    userId ?? "",
+                    designId);
+                return updated == 1;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private bool TrySaveOptionalViewerStateJson(long designId, string stateJson)

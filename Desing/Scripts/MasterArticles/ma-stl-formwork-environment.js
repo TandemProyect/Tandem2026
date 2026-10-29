@@ -415,6 +415,10 @@ export function maStlFormworkEnvCreateAtk60Material(targetHex, isFrame, clipPlan
         clippingPlanes: clipPlanes || [],
         clipShadows: false,
         fog: false,
+        // El fenólico queda por delante del muro y de la esquina cuando comparten cara.
+        polygonOffset: !isFrame,
+        polygonOffsetFactor: isFrame ? 0 : -2,
+        polygonOffsetUnits: isFrame ? 0 : -4,
     });
 }
 

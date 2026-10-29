@@ -161,8 +161,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         }
 
         /// <summary>
-        /// Grapa regulable del remate (10–600 mm): fija al inicio y corredera al final de la madera.
-        /// Hasta 600 mm para poder unir el remate de la cara con el del muro vecino.
+        /// Grapa regulable del remate. La madera no pasa de 0,15.
+        /// El 600 es el recorrido de la grapa, no un permiso para alargar el tablón.
         /// </summary>
         internal static void PlaceOnEndFiller(
             List<Atk60ElementPaintItem> outElements,

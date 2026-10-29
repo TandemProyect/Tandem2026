@@ -1,6 +1,7 @@
 using Desing.Repositories.RepositoryAtk60;
 using Desing.Repositories.RepositoryAtk60.ModulosATK60;
 using Desing.Repositories.RepositoryCommun;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 
@@ -623,6 +624,110 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         internal static double RunMm(Atk60WallPaintAnchor anchor, Desing2FormworkWallDto wall)
         {
             return WallRunMm(anchor, wall != null ? wall.Attributes : null);
+        }
+
+        /// <summary>
+        /// El canto ya está libre: el tape de ese extremo se pintó en el pase normal.
+        /// </summary>
+        internal static bool EndIsOpen(Desing2FormworkWallDto wall, bool atStart)
+        {
+            return EndIsFree(wall != null ? wall.Attributes : null, atStart);
+        }
+
+        /// <summary>
+        /// Tape de un canto aunque el muro siga enlazado. En el cruce en + el
+        /// canto queda abierto entre las esquinas y, sin este cierre, el hormigón se escapa.
+        /// El otro canto no se vuelve a pintar.
+        /// </summary>
+        internal static List<Atk60ElementPaintItem> PlaceOneEnd(
+            Desing2FormworkWallDto wall,
+            Atk60WallPaintAnchor anchor,
+            bool atStart)
+        {
+            var empty = new List<Atk60ElementPaintItem>();
+            if (wall == null || wall.Attributes == null || anchor == null || EndIsOpen(wall, atStart))
+            {
+                return empty;
+            }
+
+            var attrs = wall.Attributes;
+            var savedStart = attrs._Idconnection_1;
+            var savedEnd = attrs._Idconnection_2;
+            JToken extraStart;
+            JToken extraEnd;
+            var hadStart = TakeExtra(attrs, "_Idconnection_1", out extraStart);
+            var hadEnd = TakeExtra(attrs, "_Idconnection_2", out extraEnd);
+            if (atStart)
+            {
+                attrs._Idconnection_1 = null;
+                if (string.IsNullOrWhiteSpace(attrs._Idconnection_2))
+                {
+                    attrs._Idconnection_2 = "1";
+                }
+            }
+            else
+            {
+                attrs._Idconnection_2 = null;
+                if (string.IsNullOrWhiteSpace(attrs._Idconnection_1))
+                {
+                    attrs._Idconnection_1 = "1";
+                }
+            }
+
+            try
+            {
+                return Place(wall, anchor);
+            }
+            finally
+            {
+                attrs._Idconnection_1 = savedStart;
+                attrs._Idconnection_2 = savedEnd;
+                PutExtra(attrs, "_Idconnection_1", hadStart, extraStart);
+                PutExtra(attrs, "_Idconnection_2", hadEnd, extraEnd);
+            }
+        }
+
+        private static bool TakeExtra(AttributesList attrs, string key, out JToken token)
+        {
+            token = null;
+            if (attrs == null || attrs.Extra == null)
+            {
+                return false;
+            }
+
+            string found = null;
+            foreach (var pair in attrs.Extra)
+            {
+                if (string.Equals(pair.Key, key, StringComparison.OrdinalIgnoreCase))
+                {
+                    found = pair.Key;
+                    token = pair.Value;
+                    break;
+                }
+            }
+
+            if (found == null)
+            {
+                return false;
+            }
+
+            attrs.Extra.Remove(found);
+            return true;
+        }
+
+        private static void PutExtra(AttributesList attrs, string key, bool had, JToken token)
+        {
+            if (!had || attrs == null)
+            {
+                return;
+            }
+
+            if (attrs.Extra == null)
+            {
+                attrs.Extra = new Dictionary<string, JToken>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            attrs.Extra[key] = token;
         }
 
         internal static List<Atk60ElementPaintItem> Place(

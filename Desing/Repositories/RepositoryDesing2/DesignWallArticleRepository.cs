@@ -216,6 +216,150 @@ namespace Desing.Repositories.RepositoryDesing2
             return count;
         }
 
+        /// <summary>
+        /// Sustituye solo los artículos de los muros especiales (puestos a mano).
+        /// Entran en la tanda visible del diseño, para no tapar el encofrado generado.
+        /// </summary>
+        public int ReplaceArticlesOnSpecialWalls(long designId, IList<PluginSaveWallArticleRequest> articles, string userId, bool trustWallIds)
+        {
+            var specialWalls = _db.TSql_DesignWall
+                .Where(w => w.LinkDesign_V2 == designId && !w.Is_Delete && w.Is_Special)
+                .ToList();
+            var specialIds = new List<long>();
+            for (var s = 0; s < specialWalls.Count; s++)
+            {
+                specialIds.Add(specialWalls[s].IdObject);
+            }
+
+            if (specialIds.Count > 0)
+            {
+                var old = _db.TSql_DesignWallArticle
+                    .Where(a => a.LinkDesign_V2 == designId && !a.Is_Delete && specialIds.Contains(a.LinkDesignWall))
+                    .ToList();
+                for (var i = 0; i < old.Count; i++)
+                {
+                    IntranetAuditHelper.SetAuditOnDelete(old[i], userId);
+                }
+                if (old.Count > 0)
+                {
+                    _db.SaveChanges();
+                }
+            }
+
+            var batchAt = _db.TSql_DesignWallArticle.AsNoTracking()
+                .Where(a => a.LinkDesign_V2 == designId && !a.Is_Delete && a.Is_Active)
+                .Max(a => (DateTime?)a.AddDateMade) ?? DateTime.Now;
+
+            if (articles == null || articles.Count == 0)
+            {
+                return 0;
+            }
+
+            var walls = _db.TSql_DesignWall
+                .Where(w => w.LinkDesign_V2 == designId && !w.Is_Delete)
+                .ToList();
+            var codes = new List<string>();
+            for (var c = 0; c < articles.Count; c++)
+            {
+                var code = articles[c] == null ? "" : (articles[c].CodeName ?? "").Trim();
+                if (code.Length > 0 && !codes.Contains(code))
+                {
+                    codes.Add(code);
+                }
+            }
+
+            var masters = codes.Count == 0
+                ? new List<Tsql_Master_Articles>()
+                : _db.Tsql_Master_Articles.AsNoTracking()
+                    .Where(m => m.AddIsActive && (codes.Contains(m.TextCode) || codes.Contains(m.AddAtenkoCode) || codes.Contains(m.TextBlockNumber)))
+                    .ToList();
+
+            var seqByWall = new Dictionary<long, long>();
+            var count = 0;
+            for (var i = 0; i < articles.Count; i++)
+            {
+                var request = articles[i];
+                if (request == null || string.IsNullOrWhiteSpace(request.CodeName))
+                {
+                    continue;
+                }
+
+                request.DesignId = designId;
+                if (!trustWallIds)
+                {
+                    request.WallDbId = null;
+                }
+
+                var wall = ResolveSpecialWall(request, walls, userId);
+                if (wall == null)
+                {
+                    continue;
+                }
+
+                long seq;
+                if (!seqByWall.TryGetValue(wall.IdObject, out seq))
+                {
+                    seq = 0;
+                }
+                seq++;
+                seqByWall[wall.IdObject] = seq;
+
+                var code = Truncate((request.CodeName ?? string.Empty).Trim(), 50);
+                var view = NormalizeView(request.View);
+                var masterId = FindMasterId(masters, request.MasterArticleId, code);
+                var insert = request.InsertMm ?? new Desing2XyzMmDto();
+                var label = string.IsNullOrWhiteSpace(code) ? "Artículo" : (code + " " + view);
+                var article = new TSql_DesignWallArticle
+                {
+                    TextLabel = Truncate(label, 500),
+                    LinkDesign_V2 = designId,
+                    LinkDesignWall = wall.IdObject,
+                    LinkMasterArticle = masterId,
+                    TextCode = code,
+                    TextView = Truncate(view, 20),
+                    NumberSequence = seq,
+                    NumberInsertX = insert.X ?? 0d,
+                    NumberInsertY = insert.Y ?? 0d,
+                    NumberInsertZ = insert.Z ?? 0d,
+                    NumberXRotation = request.RotationX,
+                    NumberYRotation = request.RotationY,
+                    NumberZRotation = request.RotationZ,
+                    TextHandleCad = Truncate(request.HandleCad, 50)
+                };
+                IntranetAuditHelper.SetAuditOnCreate(article, userId);
+                article.AddDateMade = batchAt;
+                _db.TSql_DesignWallArticle.Add(article);
+                count++;
+            }
+
+            return count;
+        }
+
+        private TSql_DesignWall ResolveSpecialWall(PluginSaveWallArticleRequest request, IList<TSql_DesignWall> walls, string userId)
+        {
+            if (request.WallDbId.HasValue && request.WallDbId.Value > 0 && walls != null)
+            {
+                for (var i = 0; i < walls.Count; i++)
+                {
+                    if (walls[i].IdObject == request.WallDbId.Value)
+                    {
+                        walls[i].Is_Special = true;
+                        walls[i].Is_Formwork = false;
+                        return walls[i];
+                    }
+                }
+            }
+
+            if (request.P1Mm == null || request.P2Mm == null
+                || !request.P1Mm.X.HasValue || !request.P1Mm.Z.HasValue
+                || !request.P2Mm.X.HasValue || !request.P2Mm.Z.HasValue)
+            {
+                return null;
+            }
+
+            return _walls.FindOrCreateAxisForManual(request, userId);
+        }
+
         private static DateTime _lastPurgeDay = DateTime.MinValue;
         private static readonly object _purgeGate = new object();
         private static bool _purgeRunning;

@@ -73,7 +73,7 @@ Cada vez que dos paneles se tocan, esa junta lleva una grapa fija, en las dos ca
 
 La grapa solo va donde dos paneles se tocan, o en el canto del angular. A 300 mm del angular, si no hay otra pieza, es el vano: ahí no se pone. Si la cara se parte en varios paneles, cada corte lleva la suya.
 
-El tablón del sobrante de la esquina va en la cara interior, entre la esquina interior y el panel, con grapa variable en los dos cantos. No va en el rincón del angular. El detalle está en `agente-grapas-atk60.md`. El tablón del eje, el de la longitud, es otro: en un muro sin las dos conexiones y con largo múltiplo de 0,15 no se pone. El 8,25 suelto son dos de 2,70, uno de 2,40 y un panel de 0,45. Está en `Docs/Proyectos/Desing/ATK60-Logica-Modulos-Wall.md`.
+El tablón del sobrante de la esquina va en la cara interior, entre la esquina interior y el panel, con grapa variable en los dos cantos. No va en el rincón del angular. Ese sobrante es el de la cuenta del módulo (espesor del otro más 0,30, al módulo siguiente). Si la cuenta da 0, no hay tablón. No se mide otra vez el extremo para poner un panel y un tablón de más: el módulo de fuera ya cerró ese sitio. El detalle está en `agente-grapas-atk60.md`. El del eje mide igual desde el 28 oct 2026: como mucho 0,15 m a lo largo y 0,12 m de ancho, también si el muro no tiene las dos conexiones. Está en `Docs/Proyectos/Desing/ATK60-Logica-Modulos-Wall.md`.
 
 ## Lo que ya se probó y no vale
 

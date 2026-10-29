@@ -601,6 +601,117 @@
   <data name="StlPreview_Desing2EntornoSunIntensityLabel" xml:space="preserve">
     <value>Sun intensity</value>
   </data>
+  <data name="StlPreview_Desing2FormworkPhaseAsk" xml:space="preserve">
+    <value>Which phase do you want to see?</value>
+  </data>
+  <data name="StlPreview_Desing2FormworkPhaseLabel" xml:space="preserve">
+    <value>Phase {0}</value>
+  </data>
+  <data name="StlPreview_Desing2FormworkPhaseNone" xml:space="preserve">
+    <value>That phase has no walls to form.</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseAccept" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseAnother" xml:space="preserve">
+    <value>Another solution</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseAria" xml:space="preserve">
+    <value>Formwork by phases</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseColColor" xml:space="preserve">
+    <value>Colour</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseColName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseColNumber" xml:space="preserve">
+    <value>No.</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseColWall" xml:space="preserve">
+    <value>Wall</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseColWorkers" xml:space="preserve">
+    <value>Workers</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseCount" xml:space="preserve">
+    <value>How many phases should the formwork take?</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseGround" xml:space="preserve">
+    <value>On the ground: {0}</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseGroundNone" xml:space="preserve">
+    <value>On the ground: nothing</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseLegend" xml:space="preserve">
+    <value>Phase {0} · {1} m² · {2} corners · {3} tapes</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseNeedAllWalls" xml:space="preserve">
+    <value>Choose the starting wall of each crew.</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseNeedName" xml:space="preserve">
+    <value>Each crew needs a name.</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseNeedNumbers" xml:space="preserve">
+    <value>Enter the phases and the crews, from 1 up.</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseNeedWall" xml:space="preserve">
+    <value>Choose the wall this crew starts on.</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseNeedWorkers" xml:space="preserve">
+    <value>Enter the workers of each crew, from 1 up.</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseNoWalls" xml:space="preserve">
+    <value>This design has no walls.</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseNoted" xml:space="preserve">
+    <value>Saved: {0} phases and {1} crews, with the camera.</value>
+  </data>
+  <data name="StlPreview_Desing2PhasePickHint" xml:space="preserve">
+    <value>{0}. Click the wall it starts on.</value>
+  </data>
+  <data name="StlPreview_Desing2PhasePickWall" xml:space="preserve">
+    <value>Origin wall</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseSame" xml:space="preserve">
+    <value>This solution was already shown</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseSolveFail" xml:space="preserve">
+    <value>The design could not be split into phases.</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseTabTeams" xml:space="preserve">
+    <value>Crews</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseTeamDefault" xml:space="preserve">
+    <value>Crew {0}</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseTeamStart" xml:space="preserve">
+    <value>Crew {0} of {1}. Which wall does it start on?</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseTeams" xml:space="preserve">
+    <value>How many crews will work?</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseTitle" xml:space="preserve">
+    <value>Formwork by phases</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseTooManyTeams" xml:space="preserve">
+    <value>There are more crews than walls.</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseWallEmpty" xml:space="preserve">
+    <value>Choose a wall</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseWallLabel" xml:space="preserve">
+    <value>Starting wall</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseWallOption" xml:space="preserve">
+    <value>Wall {0} · {1} m</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseWallTaken" xml:space="preserve">
+    <value>Another crew already starts on that wall.</value>
+  </data>
   <data name="StlPreview_Desing2PillarFormAccept" xml:space="preserve">
     <value>Accept</value>
   </data>
@@ -811,6 +922,27 @@
   <data name="StlPreview_Desing2WallDimToolTitle" xml:space="preserve">
     <value>Annotate walls — segment lengths, overall span, and thickness (construction style)</value>
   </data>
+  <data name="StlPreview_Desing2WallExchangeFail" xml:space="preserve">
+    <value>The wall file could not be read</value>
+  </data>
+  <data name="StlPreview_Desing2WallExchangeGroupAria" xml:space="preserve">
+    <value>Export and import walls</value>
+  </data>
+  <data name="StlPreview_Desing2WallExportAria" xml:space="preserve">
+    <value>Export walls, variables and the view to an encrypted file</value>
+  </data>
+  <data name="StlPreview_Desing2WallExportOk" xml:space="preserve">
+    <value>Walls exported</value>
+  </data>
+  <data name="StlPreview_Desing2WallImportAria" xml:space="preserve">
+    <value>Import walls from an encrypted file</value>
+  </data>
+  <data name="StlPreview_Desing2WallImportConfirm" xml:space="preserve">
+    <value>The walls in this design are replaced by the file. Generated formwork stays and is recalculated the next time you form.</value>
+  </data>
+  <data name="StlPreview_Desing2WallImportOk" xml:space="preserve">
+    <value>Walls imported</value>
+  </data>
   <data name="StlPreview_Desing2WorkerPickTitle" xml:space="preserve">
     <value>Choose the worker</value>
   </data>
@@ -819,6 +951,15 @@
   </data>
   <data name="StlPreview_Desing2WorkerPickWorker2" xml:space="preserve">
     <value>Worker 2</value>
+  </data>
+  <data name="StlPreview_DimDevelopGuides" xml:space="preserve">
+    <value>Points and labels</value>
+  </data>
+  <data name="StlPreview_DimDevelopHideWall" xml:space="preserve">
+    <value>Hide wall</value>
+  </data>
+  <data name="StlPreview_DimDevelopTitle" xml:space="preserve">
+    <value>Develop</value>
   </data>
   <data name="StlPreview_DimKindAdjustable" xml:space="preserve">
     <value>Adjustable panel</value>

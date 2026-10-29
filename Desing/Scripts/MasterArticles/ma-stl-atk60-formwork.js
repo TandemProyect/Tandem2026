@@ -178,7 +178,8 @@ export function maAtk60BuildTFootprintMm(
     branchInto,
     eThroughMm,
     eBranchMm,
-    throughAxisDir
+    throughAxisDir,
+    eThroughOtherMm
 ) {
     if (!vertex || !branchInto) return null;
     const axisSrc = throughAxisDir || throughInto;
@@ -189,30 +190,38 @@ export function maAtk60BuildTFootprintMm(
     const dot = uUnit.x * vUnit.x + uUnit.z * vUnit.z;
     if (Math.abs(dot) > 0.15) return null;
 
-    const eThrough = Math.max(0, eThroughMm);
     const eBranch = Math.max(0, eBranchMm);
-    // En T, el atravesado incluye la constante de esquina (+0,30 m) para
-    // que los hombros queden en 0,30 m y la cota total sea consistente.
-    const throughPanel = maAtk60SelectPanelMm(2 * eThrough + MA_ATK60_CORNER_PANEL_MM);
-    const stemPanel = maAtk60SelectPanelMm(eThrough + MA_ATK60_CORNER_PANEL_MM);
-    const innerSpan = maAtk60SelectPanelMm(2 * MA_ATK60_CORNER_PANEL_MM + eBranch);
-    const branchPanel = maAtk60SelectPanelMm(eBranch);
-    const trims = maAtk60GetTJunctionTrimMm(eThroughMm, eBranchMm);
 
     const u = { x: uUnit.x, z: uUnit.z };
     const v = { x: vUnit.x, z: vUnit.z };
+    const intoX = throughInto && throughInto.x != null ? throughInto.x : throughInto && throughInto.ux;
+    const intoZ = throughInto && throughInto.z != null ? throughInto.z : throughInto && throughInto.uz;
+    const alongA = (u.x * (intoX || 0)) + (u.z * (intoZ || 0));
+    const eA = maAtk60ThicknessMm(eThroughMm);
+    const eB = maAtk60ThicknessMm(eThroughOtherMm != null ? eThroughOtherMm : eThroughMm);
+    const ePos = alongA >= 0 ? eA : eB;
+    const eNeg = alongA >= 0 ? eB : eA;
+    const eRef = Math.max(ePos, eNeg);
 
     /** Cara atravesado hacia la rama (near) / opuesta (far) — no el eje. */
     const nProbe = maAtk60NormalXz(u, 1);
     const nearSign = nProbe.x * v.x + nProbe.z * v.z >= 0 ? 1 : -1;
 
+    const eBranchNorm = maAtk60ThicknessMm(eBranch);
+    const throughPanel = maAtk60SelectPanelMm(2 * eRef + MA_ATK60_CORNER_PANEL_MM);
+    const stemPanel = maAtk60SelectPanelMm(eRef + MA_ATK60_CORNER_PANEL_MM);
+    const innerSpan = maAtk60SelectPanelMm(2 * MA_ATK60_CORNER_PANEL_MM + eBranchNorm);
+    const branchPanel = maAtk60SelectPanelMm(eBranchNorm);
+    const trims = maAtk60GetTJunctionTrimMm(eRef, eBranchNorm);
     const throughHalf = trims.throughHalfMm;
     const stemLen = trims.branchStemMm;
-    // Igual que en L: usar espesor real del muro rama para conectar sin desfase.
-    const branchHalf = eBranch * 0.5;
+    const branchHalf = eBranchNorm * 0.5;
     const vShoulder = Math.max(0, stemLen - MA_ATK60_CORNER_PANEL_MM);
-    // La huella T debe anclarse sobre la cara exterior del atravesado, no sobre su eje.
-    const vBaseOffset = -eThrough * 0.5;
+    /** av = 0: cara opuesta a la rama, una sola recta (Cara X / A / B).
+     *  Hacia la rama, el brazo fino retrocede el espesor que le falta (escalón en Cara D). */
+    const vBaseOffset = -eRef * 0.5;
+    const nearNeg = vShoulder - Math.max(0, eRef - eNeg);
+    const nearPos = vShoulder - Math.max(0, eRef - ePos);
 
     const y = vertex.y;
     /** Punto local en la base T: u = atravesado, v = rama. */
@@ -225,17 +234,16 @@ export function maAtk60BuildTFootprintMm(
         };
     };
 
-    // Orden boceto: P-1 → P-8 → P-7 → P-6 → P-5 → P-4 → P-3 → P-2
-    const points = [
-        pLocal(-branchHalf, stemLen), // P-1: cara izquierda rama, conecta con recto rama
-        pLocal(-branchHalf, vShoulder), // P-8: esquina fija a 0,30m desde P-1
-        pLocal(-throughHalf, vShoulder), // P-7: extremo superior recto atravesado izquierdo
-        pLocal(-throughHalf, 0), // P-6: extremo inferior recto atravesado izquierdo
-        pLocal(throughHalf, 0), // P-5: extremo inferior recto atravesado derecho
-        pLocal(throughHalf, vShoulder), // P-4: extremo superior recto atravesado derecho
-        pLocal(branchHalf, vShoulder), // P-3: esquina fija a 0,30m desde P-2
-        pLocal(branchHalf, stemLen), // P-2: cara derecha rama, conecta con recto rama
-    ];
+    const points = [pLocal(-branchHalf, stemLen)];
+    points.push(pLocal(-branchHalf, vShoulder));
+    if (vShoulder - nearNeg > 1) points.push(pLocal(-branchHalf, nearNeg));
+    points.push(pLocal(-throughHalf, nearNeg));
+    points.push(pLocal(-throughHalf, 0));
+    points.push(pLocal(throughHalf, 0));
+    points.push(pLocal(throughHalf, nearPos));
+    if (vShoulder - nearPos > 1) points.push(pLocal(branchHalf, nearPos));
+    points.push(pLocal(branchHalf, vShoulder));
+    points.push(pLocal(branchHalf, stemLen));
 
     return {
         points: points,
@@ -568,7 +576,7 @@ export function maAtk60BuildLFootprintDimPlacements(footprint, floorY, panelOffs
 export function maAtk60BuildTFootprintDimPlacements(footprint, floorY, panelOffsetMm) {
     const pts = footprint && footprint.points;
     const meta = footprint && footprint.meta;
-    if (!pts || pts.length < 8 || !meta || meta.kind !== 'cornerT') return [];
+    if (!pts || pts.length !== 8 || !meta || meta.kind !== 'cornerT') return [];
     const off = panelOffsetMm != null ? panelOffsetMm : MA_ATK60_DIM_PANEL_OFFSET_MM;
     const out = [];
     // P-6 → P-5: ancho atravesado

@@ -52,8 +52,12 @@ Documentos de continuidad, handovers, guías para agentes IA y notas de trabajo.
 | [SISTEMA-ATK60.md](SISTEMA-ATK60.md) | Sistema ATK60 |
 | [agente-tapes-atk60.md](agente-tapes-atk60.md) | Tapes del visor Desing_2. Apartado 21 cerrado el 20 oct 2026 |
 | [agente-grapas-atk60.md](agente-grapas-atk60.md) | Base NEVI de juntas: grapa fija, regulable, rigidizador y tirante |
+| [nevi-rendimiento-puesta.md](nevi-rendimiento-puesta.md) | Metros por jornada, hormigonado y plazo para desencofrar. Base del encofrado por fases |
+| [encofrado-fases-diseno-30008.md](encofrado-fases-diseno-30008.md) | Diseño 30008: m² por muro, y el cuadro de fases, equipos y muro de inicio |
+| [muro-json-cifrado.md](muro-json-cifrado.md) | Exportar e importar muros cifrados, y cómo leer el archivo |
 | [esquina-L-atk60.md](esquina-L-atk60.md) | Esquina en L cerrada: punto verde sobre el rojo, giro y grapas |
-| [ATK60-Logica-Modulos-Wall.md](../../../Docs/Proyectos/Desing/ATK60-Logica-Modulos-Wall.md) | Reparto del muro según las conexiones. Sin las dos, un 8,25 no lleva tablón |
+| [esquina-T-atk60.md](esquina-T-atk60.md) | Esquina en T, 28 oct 2026: tipo 2, tablón de 0,15 por 0,12 y visor |
+| [ATK60-Logica-Modulos-Wall.md](../../../Docs/Proyectos/Desing/ATK60-Logica-Modulos-Wall.md) | Reparto del muro. Desde el 28 oct el múltiplo de 0,15 lleva tablón, tenga las conexiones que tenga |
 | [AGENTE-US619-INFO.md](AGENTE-US619-INFO.md) | Documentación técnica US-619 |
 | [AGENTE-US619-RESUMEN.md](AGENTE-US619-RESUMEN.md) | Resumen ejecutivo US-619 |
 | [US619_RESUMEN_ICONOS.md](US619_RESUMEN_ICONOS.md) | Resumen de iconos US-619 |

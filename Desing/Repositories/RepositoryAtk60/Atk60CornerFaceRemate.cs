@@ -172,35 +172,46 @@ namespace Desing.Repositories.RepositoryAtk60
                 return;
             }
 
+            // El hueco del eje está en las dos caras. El tablón y las grapas regulables van en las dos.
+            if (axisRemateMm > 1d)
+            {
+                outElements.AddRange(EndFiller.Build(wall, anchor, axisRemateMm, startAlongMm));
+                return;
+            }
+
             var anchorSign = anchor.FaceSign >= 0d ? 1 : -1;
             var primaryMm = CornerFaceMm(sides, anchorSign > 0, axisRemateMm);
             var oppositeMm = CornerFaceMm(sides, anchorSign < 0, axisRemateMm);
-            // La cara del diseño es la de antes del recorte. Su resto no cabe
-            // en el hueco que dejaron los módulos: el tablón se salía. El hueco
-            // es el remate del eje recortado. Si la otra cara se quedó el taco, sigue en 0.
-            if (primaryMm > 1d)
+            if (primaryMm > 150d)
             {
-                primaryMm = axisRemateMm;
+                primaryMm = 150d;
             }
 
-            if (oppositeMm > 1d)
+            if (oppositeMm > 150d)
             {
-                oppositeMm = axisRemateMm;
+                oppositeMm = 150d;
             }
+
             if (primaryMm > 1d && oppositeMm > 1d && Math.Abs(primaryMm - oppositeMm) < 0.5d)
             {
                 outElements.AddRange(EndFiller.Build(wall, anchor, primaryMm, startAlongMm));
                 return;
             }
 
-            if (primaryMm > 1d)
+            if (primaryMm > 1d && oppositeMm > 1d)
             {
                 outElements.AddRange(EndFiller.Build(wall, anchor, primaryMm, startAlongMm, true, false));
+                outElements.AddRange(EndFiller.Build(wall, anchor, oppositeMm, startAlongMm, false, true));
+                return;
             }
 
-            if (oppositeMm > 1d)
+            if (primaryMm > 1d)
             {
-                outElements.AddRange(EndFiller.Build(wall, anchor, oppositeMm, startAlongMm, false, true));
+                outElements.AddRange(EndFiller.Build(wall, anchor, primaryMm, startAlongMm));
+            }
+            else if (oppositeMm > 1d)
+            {
+                outElements.AddRange(EndFiller.Build(wall, anchor, oppositeMm, startAlongMm));
             }
         }
 
