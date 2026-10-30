@@ -122,3 +122,49 @@ El botón es el de las capas, en la barra superior, a la izquierda de exportar e
 No puede haber más equipos que tramos. Las fases sí pueden ser menos o más que los equipos: dos equipos y siete fases quieren decir que el primer día arrancan dos, y las puestas siguientes siguen con ese material.
 
 El juego que se trae es el máximo de cada pieza entre todas las fases, no la suma. En una fase, la pieza que solo hace falta en otra se queda en el suelo. Vale igual si hay 3 fases o más. La cuenta usa la configuración de cada muro: alto, largo, tape de cada extremo, puntal, rigidizador y ménsula. La esquina solo se monta en la fase que reúne sus muros.
+
+## Estudio: primero los m², después las esquinas
+
+30 oct 2026, 11:09. El plano de ejemplo sigue siendo el 30008, ahora en 3 fases porque es el número que se ha pedido en el cuadro. El botón todavía no usa este corte. Es el estudio. La experiencia de obras ya hechas y la planificación a mano vendrán después y pueden mover el corte.
+
+El orden es este:
+
+1. Se parte el plano por metros cuadrados. Con 336,71 m² y 3 fases, cada fase busca unos 112 m². Se entra por el muro de origen (el 1) y se añade el tramo de al lado que más acerca la fase a 112 sin pasarse, mientras queden tramos que quepan.
+2. Después se miran las esquinas que el corte ha dejado partidas. Cerrar una esquina solo compensa si las fases siguen cerca de 112. Si para cerrarla hay que meter en la fase 1 un tramo grande, la esquina espera a la fase siguiente.
+3. El material de una fase es el de sus muros, no el del plano entero. El camión lleva el máximo de cada pieza entre las fases. Lo que esa fase no monta se queda en el suelo. La fase 1 no tiene por qué gastar el juego completo ni llevarse las 15 esquinas.
+
+### Corte por m², antes de tocar las esquinas
+
+| Fase | Tramos | m² | Distancia a 112 |
+|---:|---|---:|---:|
+| 1 | 1, 22, 34, 40, 37, 28, 49 | 109,13 | 3 |
+| 2 | 43, 52, 31, 4, 25, 19 | 110,83 | 1 |
+| 3 | 16, 13, 10, 7, 46 | 116,78 | 5 |
+
+La fase 1 cierra entera la T `1-22-28`, el cruce `22-34-37-40` y la L `34-49`. Son 3 esquinas, no las 15. El resto del juego de esa fase es el de esos siete tramos.
+
+### Esquinas que el corte deja abiertas
+
+En cada fila, «cerrar» es meter los brazos que faltan en la fase que ya tiene uno. El número es cuánto se alejan las dos fases de 112 si se hace. Dejarla abierta es el corte de la tabla de arriba.
+
+| Esquina | Cómo queda | Si se cierra | Si se deja |
+|---|---|---:|---:|
+| L `40-43` | 40 en fase 1, 43 en fase 2 | 78 | 4 |
+| T `25-28-31` | 28 en fase 1, 25 y 31 en fase 2 | 43, o 22 si el 28 pasa a la fase 2 | 4 |
+| T `4-49-52` | 49 en fase 1, 4 y 52 en fase 2 | 62, o 20 si el 49 pasa a la fase 2 | 4 |
+| L `46-52` | 52 en fase 2, 46 en fase 3 | 43 | 6 |
+| L `4-7` | 4 en fase 2, 7 en fase 3 | 32 | 6 |
+
+En este plano, con 3 fases iguales, cerrar esas cinco esquinas empeora el reparto de m². La mejor solución de este estudio es dejarlas para la fase siguiente. En obra, el tape de la salida cierra el hormigón y la fase siguiente solapa unos 0,15 m. No hace falta meter la esquina entera en la fase 1 solo por existir.
+
+La T `1-22-28` y el cruce sí caen dentro de los 112 m² de la fase 1, así que ahí sí van enteros. No se buscan más esquinas para rellenar la fase.
+
+### Material
+
+Cada fase monta sus tramos. Unos 109, 111 y 117 m² de muro, el doble en cara de panel. El juego que viaja es el de la fase mayor, cerca de 117 m² de muro, no los 337 del plano ni la suma de las tres. En la fase 1, el panel que solo entra en la 2 o en la 3 está en el suelo.
+
+Qué pieza conviene de verdad en cada fase no se cierra aquí. Hace falta la experiencia de diseños ya puestos. Hasta entonces el estudio no cambia el botón.
+
+### Planificación a mano
+
+Lo siguiente, aparte de esos datos, es poder pintar las fases a mano: elegir qué muros van en cada fase, ver el color y el material de esa elección, y guardarla. El estudio de arriba es una propuesta automática. La manual será la que mande cuando no coincidan.

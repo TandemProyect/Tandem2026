@@ -394,8 +394,12 @@
      data-ground-none="@MasterArticles.StlPreview_Desing2PhaseGroundNone"
      data-same="@MasterArticles.StlPreview_Desing2PhaseSame"
      data-solve-fail="@MasterArticles.StlPreview_Desing2PhaseSolveFail"
+     data-clear-ask="@MasterArticles.StlPreview_Desing2PhaseClearAsk"
+     data-cleared="@MasterArticles.StlPreview_Desing2PhaseCleared"
+     data-clear-fail="@MasterArticles.StlPreview_Desing2PhaseClearFail"
      data-save-plan-url="@Url.Action("SavePhasePlan", "Desing_2")"
-     data-load-plan-url="@Url.Action("LoadPhasePlan", "Desing_2")">
+     data-load-plan-url="@Url.Action("LoadPhasePlan", "Desing_2")"
+     data-clear-plan-url="@Url.Action("ClearPhasePlan", "Desing_2")">
     <div class="modal-dialog modal-dialog-centered desing2-phase-dialog">
         <div class="modal-content design-material-count-popup">
             <section class="desing2-material-count desing2-phase-sheet is-open" aria-label="@MasterArticles.StlPreview_Desing2PhaseAria">
@@ -455,6 +459,7 @@
                 </div>
                 <p id="desing2PhaseMessage" class="desing2-group-sheet__message" hidden="hidden"></p>
                 <div class="desing2-wall-list__foot">
+                    <button type="button" class="btn btn-sm btn-outline-danger" id="desing2PhaseClear">@MasterArticles.StlPreview_Desing2PhaseClear</button>
                     <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">@MasterArticles.StlPreview_Desing2PhaseCancel</button>
                     <button type="button" class="btn btn-sm btn-outline-primary" id="desing2PhaseAnother" hidden="hidden">@MasterArticles.StlPreview_Desing2PhaseAnother</button>
                     <button type="button" class="btn btn-sm btn-primary" id="desing2PhaseAccept">@MasterArticles.StlPreview_Desing2PhaseAccept</button>
@@ -484,9 +489,9 @@
     <script src="@Url.Content("~/Scripts/Desing2/desing2-map-building-import.js")"></script>
     <script type="module" src="@masterArticleViewerUrl"></script>
     <script type="module" src="@cadBlockPreviewUrl"></script>
-    <script src="@Url.Content("~/Scripts/Desing2/desing2-stl-viewer-toolbar-wiring.js")?v=20261029l"></script>
+    <script src="@Url.Content("~/Scripts/Desing2/desing2-stl-viewer-toolbar-wiring.js")?v=20261030h"></script>
     <script src="@Url.Content("~/Scripts/Desing2/desing2-wall-exchange.js")?v=20261029a"></script>
-    <script type="module" src="@Url.Content("~/Scripts/Desing2/desing2-phase-start.js")?v=20261029k"></script>
+    <script type="module" src="@Url.Content("~/Scripts/Desing2/desing2-phase-start.js")?v=20261030i"></script>
     <script src="@Url.Content("~/Scripts/Desing2/desing2-dim-kinds.js")?v=20261028a"></script>
     <script src="@Url.Content("~/Scripts/Desing2/desing2-connection-test.js")"></script>
 }

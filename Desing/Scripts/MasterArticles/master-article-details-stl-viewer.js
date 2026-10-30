@@ -5219,32 +5219,262 @@ function bootMasterArticleDetailsStlViewer() {
     window.maStlDesing2SaveDesignWallsToServer = maStlDesing2SaveDesignWallsToServer;
     window.maStlDesing2BuildWallExchangePayload = maStlDesing2BuildWallExchangePayload;
 
-    window.maStlDesing2PaintWallPhaseColors = function (byWallId) {
-        if (!maStlUserLinesGroup || !byWallId) return;
-        const ch = maStlUserLinesGroup.children;
-        const colorByLineId = {};
-        for (let i = 0; i < ch.length; i++) {
-            const ud = ch[i].userData && ch[i].userData.maStlUserPlanLine;
-            if (!ud || ud.wallRole !== 'axis') continue;
-            const wallId = String(ud.wallId != null ? ud.wallId : ud.id);
-            if (byWallId[wallId]) colorByLineId[String(ud.id)] = byWallId[wallId];
-        }
-        for (let j = 0; j < ch.length; j++) {
-            const line = ch[j];
-            const ud = line.userData && line.userData.maStlUserPlanLine;
-            if (!ud || !line.material || !line.material.color) continue;
-            let hex = '';
-            if (ud.wallRole === 'axis') {
-                const wallId = String(ud.wallId != null ? ud.wallId : ud.id);
-                hex = byWallId[wallId] || '';
-            } else if (ud.linkOffsetFromLineId != null) {
-                hex = colorByLineId[String(ud.linkOffsetFromLineId)] || '';
+    function maStlDesing2PhaseHexForKeys(keys, byWallId) {
+        if (!byWallId || !keys || !keys.length) return '';
+        const plan = window.desing2PhaseStartPlan;
+        let hex = '';
+        let bestPhase = 0;
+        for (let i = 0; i < keys.length; i++) {
+            const candidate = byWallId[keys[i]];
+            if (!candidate) continue;
+            const phaseNo = plan && plan.byWall ? Number(plan.byWall[keys[i]]) || 0 : 0;
+            if (!hex || (phaseNo && (bestPhase === 0 || phaseNo < bestPhase))) {
+                hex = candidate;
+                bestPhase = phaseNo;
             }
-            if (!hex) continue;
-            if (ud.wallRole !== 'axis' && line.material.clone) line.material = line.material.clone();
-            line.material.color.set(hex);
         }
+        return hex;
+    }
+
+    function maStlDesing2PaintWall3dPhaseColors(byWallId) {
+        if (!maStlWall3dMeshesGroup) return;
+        maStlWall3dMeshesGroup.traverse(function (obj) {
+            if (!obj.isMesh || !obj.material || !obj.material.color) return;
+            if (!obj.userData || obj.userData.maStlWall3dKind === 'pillar') return;
+            if (obj.userData.maStlWall3dMapped && obj.material.map) return;
+            let hex = '';
+            if (byWallId) {
+                const wallId = obj.userData.maStlPhaseWallId;
+                const lineId = obj.userData.maStlPhaseLineId;
+                if (wallId && byWallId[wallId]) hex = byWallId[wallId];
+                else if (lineId && byWallId[lineId]) hex = byWallId[lineId];
+                else hex = maStlDesing2PhaseHexForKeys(obj.userData.maStlPhaseWallIds, byWallId);
+            }
+            if (hex) obj.material.color.set(hex);
+            else obj.material.color.setHex(maStlWall3dColorForKind(obj.userData.maStlWall3dKind));
+            obj.material.needsUpdate = true;
+        });
+    }
+
+    window.maStlDesing2PaintWallPhaseColors = function (byWallId) {
+        const colors = byWallId && Object.keys(byWallId).length ? byWallId : null;
+        window.maStlDesing2PhaseColorByWall = colors;
+        if (maStlUserLinesGroup) {
+            const ch = maStlUserLinesGroup.children;
+            const colorByLineId = {};
+            if (colors) {
+                for (let i = 0; i < ch.length; i++) {
+                    const ud = ch[i].userData && ch[i].userData.maStlUserPlanLine;
+                    if (!ud || ud.wallRole !== 'axis') continue;
+                    const wallId = String(ud.wallId != null ? ud.wallId : ud.id);
+                    if (colors[wallId]) colorByLineId[String(ud.id)] = colors[wallId];
+                }
+            }
+            for (let j = 0; j < ch.length; j++) {
+                const line = ch[j];
+                const ud = line.userData && line.userData.maStlUserPlanLine;
+                if (!ud || !line.material || !line.material.color) continue;
+                let hex = '';
+                if (colors && ud.wallRole === 'axis') {
+                    const wallId = String(ud.wallId != null ? ud.wallId : ud.id);
+                    hex = colors[wallId] || '';
+                } else if (colors && ud.linkOffsetFromLineId != null) {
+                    hex = colorByLineId[String(ud.linkOffsetFromLineId)] || '';
+                }
+                if (!hex) {
+                    if (!colors && ud.maStlPhaseBaseColor) line.material.color.set(ud.maStlPhaseBaseColor);
+                    continue;
+                }
+                if (!ud.maStlPhaseBaseColor) ud.maStlPhaseBaseColor = '#' + line.material.color.getHexString();
+                if (ud.wallRole !== 'axis' && line.material.clone) line.material = line.material.clone();
+                line.material.color.set(hex);
+            }
+        }
+        maStlDesing2PaintWall3dPhaseColors(colors);
     };
+
+    function maStlDesing2PhasesOnMesh(obj, byWall) {
+        if (!byWall || !obj || !obj.userData) return [];
+        const ud = obj.userData;
+        const keys = [];
+        if (ud.maStlPhaseWallId) keys.push(String(ud.maStlPhaseWallId));
+        if (ud.maStlPhaseLineId) keys.push(String(ud.maStlPhaseLineId));
+        if (Array.isArray(ud.maStlPhaseWallIds)) {
+            for (let i = 0; i < ud.maStlPhaseWallIds.length; i++) keys.push(String(ud.maStlPhaseWallIds[i]));
+        }
+        const found = [];
+        const seen = Object.create(null);
+        for (let k = 0; k < keys.length; k++) {
+            const phaseNo = Number(byWall[keys[k]]);
+            if (!(phaseNo >= 1) || seen[phaseNo]) continue;
+            seen[phaseNo] = true;
+            found.push(phaseNo);
+        }
+        return found;
+    }
+
+    let maStlPhaseOverlapGroup = null;
+
+    function maStlDesing2ClearPhaseOverlap() {
+        if (!maStlPhaseOverlapGroup) return;
+        while (maStlPhaseOverlapGroup.children.length) {
+            const child = maStlPhaseOverlapGroup.children.pop();
+            if (child.geometry) child.geometry.dispose();
+            if (child.material && child.material !== maStlWall3dConcreteTexture && child.material.dispose) {
+                child.material.dispose();
+            }
+        }
+        if (maStlPhaseOverlapGroup.parent) maStlPhaseOverlapGroup.parent.remove(maStlPhaseOverlapGroup);
+        maStlPhaseOverlapGroup = null;
+    }
+
+    function maStlDesing2ShowPhaseOverlapConcrete(formPhase) {
+        maStlDesing2ClearPhaseOverlap();
+        const want = Number(formPhase) || 0;
+        if (want <= 1 || !scene || !maStlWall3dConcreteTexture) return;
+        const plan = window.desing2PhaseStartPlan;
+        const byWall = plan && plan.byWall;
+        if (!byWall || typeof maStlDesing2BuildWallExchangePayload !== 'function') return;
+        let lines = [];
+        try {
+            const payload = maStlDesing2BuildWallExchangePayload();
+            lines = payload && payload.walls ? payload.walls : [];
+        } catch (_err) {
+            return;
+        }
+        const axes = [];
+        lines.forEach(function (line) {
+            if (!line || line.wallRole !== 'axis' || !line.p1Mm || !line.p2Mm) return;
+            const id = line.wallId != null ? String(line.wallId) : String(line.id);
+            const lid = line.id != null ? String(line.id) : id;
+            axes.push({
+                id: id,
+                lid: lid,
+                phase: Number(byWall[id] || byWall[lid] || 0),
+                x1: Number(line.p1Mm.x),
+                z1: Number(line.p1Mm.z),
+                x2: Number(line.p2Mm.x),
+                z2: Number(line.p2Mm.z),
+                conn: [line._Idconnection_1 || '', line._Idconnection_2 || ''],
+                height: Math.max(300, (Number(line._DataHeight) || 2.7) * 1000),
+                thick: Math.max(50, (Number(line._DataWith) || 0.3) * 1000)
+            });
+        });
+        function phaseOf(member) {
+            const key = String(member);
+            const direct = Number(byWall[key] || 0);
+            if (direct >= 1) return direct;
+            for (let i = 0; i < axes.length; i++) {
+                if (axes[i].id === key || axes[i].lid === key) return axes[i].phase;
+            }
+            return 0;
+        }
+        function jointMembers(raw) {
+            const text = String(raw || '').trim();
+            const cut = text.indexOf(':');
+            if (cut < 1) return null;
+            const kind = text.slice(0, cut);
+            if (kind !== 'L' && kind !== 'T' && kind !== 'Cross') return null;
+            return text.slice(cut + 1).split('-').map(function (part) { return part.trim(); }).filter(Boolean);
+        }
+        const pouredMm = 1200 + 500;
+        const group = new THREE.Group();
+        group.name = 'phase-overlap-concrete';
+        axes.forEach(function (ax) {
+            if (ax.phase !== want) return;
+            const dx = ax.x2 - ax.x1;
+            const dz = ax.z2 - ax.z1;
+            const len = Math.hypot(dx, dz);
+            if (!(len > 400)) return;
+            const ux = dx / len;
+            const uz = dz / len;
+            [0, 1].forEach(function (endIndex) {
+                const members = jointMembers(ax.conn[endIndex]);
+                if (!members) return;
+                let earlier = false;
+                members.forEach(function (id) {
+                    if (id === ax.id || id === ax.lid) return;
+                    const phase = phaseOf(id);
+                    if (phase >= 1 && phase < want) earlier = true;
+                });
+                if (!earlier) return;
+                const span = Math.min(pouredMm, len - 200);
+                if (!(span > 200)) return;
+                const geo = new THREE.BoxGeometry(span, ax.height, ax.thick);
+                const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
+                    color: 0xffffff,
+                    roughness: 0.9,
+                    metalness: 0,
+                    side: THREE.DoubleSide
+                }));
+                maStlWall3dApplyConcreteToMesh(mesh);
+                const dir = endIndex === 0 ? 1 : -1;
+                const sx = endIndex === 0 ? ax.x1 : ax.x2;
+                const sz = endIndex === 0 ? ax.z1 : ax.z2;
+                mesh.position.set(sx + (ux * dir * span * 0.5), ax.height * 0.5, sz + (uz * dir * span * 0.5));
+                mesh.rotation.y = -Math.atan2(dz, dx);
+                mesh.userData.maStlPhaseOverlap = true;
+                group.add(mesh);
+            });
+        });
+        if (!group.children.length) return;
+        scene.add(group);
+        maStlPhaseOverlapGroup = group;
+    }
+
+    function maStlDesing2ShowPouredPhases(formPhase) {
+        const want = Number(formPhase) || 0;
+        const apply = function () {
+            if (!maStlWall3dMeshesGroup) return;
+            const byWall = window.desing2PhaseStartPlan && window.desing2PhaseStartPlan.byWall;
+            if (want > 1) maStlWall3dMeshesGroup.visible = true;
+            maStlWall3dMeshesGroup.traverse(function (obj) {
+                if (!obj.isMesh || !obj.userData || !obj.userData.maStlWall3dGenerated) return;
+                if (obj.userData.maStlWall3dKind === 'pillar') return;
+                if (maStlWall3dConcreteMapActive && !obj.userData.maStlPhasePoured) return;
+                const phases = maStlDesing2PhasesOnMesh(obj, byWall);
+                const inCurrent = want > 1 && phases.some(function (phaseNo) { return phaseNo === want; });
+                const poured = want > 1 && phases.length > 0 && phases.every(function (phaseNo) { return phaseNo < want; });
+                if (inCurrent) {
+                    obj.visible = false;
+                    obj.userData.maStlPhasePourHidden = true;
+                    if (obj.userData.maStlPhasePoured) {
+                        maStlWall3dRemoveConcreteFromMesh(obj);
+                        obj.userData.maStlPhasePoured = false;
+                    }
+                    return;
+                }
+                if (obj.userData.maStlPhasePourHidden) {
+                    obj.visible = true;
+                    obj.userData.maStlPhasePourHidden = false;
+                }
+                if (poured && maStlWall3dConcreteTexture) {
+                    obj.visible = true;
+                    maStlWall3dApplyConcreteToMesh(obj);
+                    obj.userData.maStlPhasePoured = true;
+                    return;
+                }
+                if (obj.userData.maStlPhasePoured) {
+                    maStlWall3dRemoveConcreteFromMesh(obj);
+                    obj.userData.maStlPhasePoured = false;
+                }
+            });
+            maStlDesing2PaintWall3dPhaseColors(window.maStlDesing2PhaseColorByWall);
+            maStlDesing2ShowPhaseOverlapConcrete(want);
+        };
+        if (want > 1 && !maStlWall3dConcreteTexture) {
+            const prev = maStlWall3dPendingMapCallback;
+            maStlWall3dPendingMapCallback = function (err) {
+                if (typeof prev === 'function') prev(err);
+                if (!err) apply();
+            };
+            if (!maStlWall3dConcreteTextureLoading) maStlWall3dEnsureConcreteTexture();
+            return;
+        }
+        apply();
+    }
+
+    window.maStlDesing2ShowPouredPhases = maStlDesing2ShowPouredPhases;
 
     let maStlDesing2WorkerSaveChain = Promise.resolve();
 
@@ -5955,8 +6185,9 @@ function bootMasterArticleDetailsStlViewer() {
                 if (obj.parent && obj.parent.userData && (obj.parent.userData.maStlAtk60Element || obj.parent.userData.maStlAtk60SamplePlaced)) {
                     return;
                 }
-                const wallKey = ud.maStlAtk60SampleWallId;
+                let wallKey = ud.maStlAtk60SampleWallId;
                 if (wallKey == null || wallKey === '') return;
+                if (typeof wallKey === 'string') wallKey = wallKey.replace(/-exit$/i, '');
                 if (seen[obj.uuid]) return;
                 seen[obj.uuid] = true;
                 let code = maStlDesing2Atk60CodeName(ud.maStlAtk60ElementCode);
@@ -5965,7 +6196,8 @@ function bootMasterArticleDetailsStlViewer() {
                 if (!code) return;
                 const tumbado = String(ud.maStlAtk60ElementOrientation || '').toLowerCase().indexOf('tumbado') >= 0;
                 const pos = obj.position || { x: 0, y: 0, z: 0 };
-                articles.push({
+                const phaseNo = Number(window.desing2FormPhase) || 0;
+                const row = {
                     DesignId: designId,
                     WallDbId: (function () {
                         const key = String(wallKey);
@@ -5985,7 +6217,10 @@ function bootMasterArticleDetailsStlViewer() {
                     RotationY: 0,
                     RotationZ: Number.isFinite(obj.rotation && obj.rotation.y) ? (obj.rotation.y * 180 / Math.PI) : 0,
                     TextSystem: 'Atk-60'
-                });
+                };
+                if (phaseNo > 0) row.NumberPhase = phaseNo;
+                if (phaseNo > 0 && !(Number(row.WallDbId) > 0)) return;
+                articles.push(row);
             });
         }
         return articles;
@@ -7844,6 +8079,7 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     function maStlDesing2ClearAtk60Visuals() {
+        maStlDesing2ShowPouredPhases(0);
         maStlDesing2LastAtk60PaintPayload = { walls: [], elements: [] };
         maStlDesing2SyncMaterialCountButton();
         maStlSyncDesing2ModeToolbarUi();
@@ -9800,6 +10036,20 @@ let maStlWallApplyAllHeightMm = 0;
     /** T: contorno P-1…P-8 validado; en Muro 3D se extruye desde P-1. */
     const MA_STL_ATK60_T_EXTRUDE_3D = true;
 
+    function maStlAtk60PlaceJunctionMesh(fp, axisUds) {
+        const mesh = maStlWall3dAddMeshFromAtk60Footprint(fp);
+        if (!mesh) return 0;
+        const keys = [];
+        for (let i = 0; i < axisUds.length; i++) {
+            const ud = axisUds[i];
+            if (!ud) continue;
+            if (ud.wallId != null) keys.push(String(ud.wallId));
+            if (ud.id != null) keys.push(String(ud.id));
+        }
+        mesh.userData.maStlPhaseWallIds = keys;
+        return 1;
+    }
+
     function maStlAtk60TryRenderJunctionAtBucket(junction) {
         if (!junction || !junction.axes || junction.axes.length < 2) return 0;
         const vertex = junction.vertexMm;
@@ -9818,13 +10068,13 @@ let maStlWallApplyAllHeightMm = 0;
                 maStlWall2dModelAxisThicknessMm(axisUds[1])
             );
             if (!fp) return 0;
-            return maStlWall3dAddMeshFromAtk60Footprint(fp) ? 1 : 0;
+            return maStlAtk60PlaceJunctionMesh(fp, axisUds);
         }
         if (axisUds.length < 3) return 0;
         if (axisUds.length >= 4) {
             const cross = maStlAtk60TryBuildCrossFootprintAtJunction(vertex, axisUds);
             if (cross && cross.footprint) {
-                return maStlWall3dAddMeshFromAtk60Footprint(cross.footprint) ? 1 : 0;
+                return maStlAtk60PlaceJunctionMesh(cross.footprint, axisUds);
             }
         }
         for (let i = 0; i < axisUds.length; i++) {
@@ -9863,7 +10113,7 @@ let maStlWallApplyAllHeightMm = 0;
                     );
                     if (!fp) return 0;
                     if (!MA_STL_ATK60_T_EXTRUDE_3D) return 1;
-                    return maStlWall3dAddMeshFromAtk60Footprint(fp) ? 1 : 0;
+                    return maStlAtk60PlaceJunctionMesh(fp, axisUds);
                 }
             }
         }
@@ -10111,6 +10361,7 @@ let maStlWallApplyAllHeightMm = 0;
             if (maStlWall3dMeshesGroup) maStlWall3dMeshesGroup.visible = true;
             maStlDesing2SetSourceLinesVisible(false);
             maStlSyncDesing2ModeToolbarUi();
+            maStlDesing2PaintWall3dPhaseColors(window.maStlDesing2PhaseColorByWall);
             return;
         }
         maStlDesing2ClearAtk60Visuals();
@@ -10149,6 +10400,7 @@ let maStlWallApplyAllHeightMm = 0;
                 count
             );
             maStlDesing2RememberWallModel('wall3d');
+            maStlDesing2PaintWall3dPhaseColors(window.maStlDesing2PhaseColorByWall);
             maStlSaveWallConnectionsNow({
                 force: true,
                 reason: 'wall3d-model-mode-regenerate',
@@ -19411,6 +19663,7 @@ let maStlWallApplyAllHeightMm = 0;
         }
         maStlWall3dConcreteMapActive = false;
         maStlSyncWall3dMapBtnUi();
+        maStlDesing2PaintWall3dPhaseColors(window.maStlDesing2PhaseColorByWall);
     }
 
     function maStlWall3dApplyConcreteMappingToMeshes(showToasts) {
@@ -19652,6 +19905,11 @@ let maStlWallApplyAllHeightMm = 0;
         };
         const mesh = maStlWall3dCreateMeshFromPolylineDto(poly, 'wall');
         if (!mesh) return null;
+        const axis = strip && strip.axis;
+        if (axis) {
+            mesh.userData.maStlPhaseWallId = axis.wallId != null ? String(axis.wallId) : '';
+            mesh.userData.maStlPhaseLineId = axis.id != null ? String(axis.id) : '';
+        }
         maStlWall3dMeshesGroup.add(mesh);
         if (clipStlMeshes.indexOf(mesh) < 0) {
             clipStlMeshes.push(mesh);
@@ -19773,6 +20031,7 @@ let maStlWallApplyAllHeightMm = 0;
                         maStlAtk60RenderJunctionFootprints3d();
                 }
                 maStlWall3dSyncCornerGuideVisibility();
+                maStlDesing2PaintWall3dPhaseColors(window.maStlDesing2PhaseColorByWall);
                 maStlDesing2LastWallModelDetection = maStlDesing2SummarizeWallModelDetection(
                     'wall3d',
                     payload,

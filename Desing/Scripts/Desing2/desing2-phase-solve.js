@@ -1,8 +1,9 @@
-/* Reparte los muros en fases.
+/* Reparte los muros en fases y los deja pintados por color.
    El juego que se trae a obra es el máximo de cada pieza, no la suma.
    En una fase, lo que solo hace falta en otra se queda en el suelo.
-   Una esquina se cierra si todos sus muros van en la misma fase.
-   Si se parte, cada tramo lleva el tape de su configuración. */
+   La esquina que se toma de nuevas entra entera. La esquina siguiente
+   puede ir en otra fase: si no, la primera se queda el plano entero
+   y las demás no se pintan. */
 
 var PHASE_COLORS = ['#3b82f6', '#16a34a', '#d97706', '#9333ea', '#dc2626', '#0891b2'];
 
@@ -186,6 +187,7 @@ function growPhase(graph, byWall, phase, origins, target, strategy) {
         if (!candidates.length) break;
         var next = chooseWall(graph, byWall, candidates, phase, origins, strategy);
         byWall[next] = phase;
+        claimJoints(graph, byWall, next, phase);
     }
 }
 
@@ -360,16 +362,43 @@ function packWidths(longMm) {
     return { widths: widths, plankMm: rem > 1 ? rem : 0 };
 }
 
+function endSides(graph, byWall, wallId, raw) {
+    var joint = graph.joints[String(raw || '').trim()];
+    var phase = Number(byWall[wallId]);
+    var earlier = false;
+    var later = false;
+    if (!joint) return { earlier: false, later: false };
+    for (var i = 0; i < joint.members.length; i++) {
+        var member = joint.members[i];
+        if (member === wallId || !graph.byId[member]) continue;
+        var other = Number(byWall[member]);
+        if (other > phase) later = true;
+        else if (other >= 1 && other < phase) earlier = true;
+    }
+    return { earlier: earlier, later: later };
+}
+
 function endIsOpen(graph, byWall, wallId, raw) {
     if (!raw) return true;
     var joint = graph.joints[String(raw).trim()];
     if (!joint) return true;
-    var phase = byWall[wallId];
-    for (var i = 0; i < joint.members.length; i++) {
-        var member = joint.members[i];
-        if (graph.byId[member] && byWall[member] !== phase) return true;
+    var sides = endSides(graph, byWall, wallId, raw);
+    if (sides.earlier && !sides.later) return false;
+    return sides.later;
+}
+
+function addPacked(used, wall, lengthMm) {
+    if (!(lengthMm > 40)) return;
+    var packed = packWidths(Math.round(lengthMm));
+    var courses = panelCourses(wall.height);
+    var widthKeys = Object.keys(packed.widths);
+    for (var c = 0; c < courses.length; c++) {
+        for (var w = 0; w < widthKeys.length; w++) {
+            var width = Number(widthKeys[w]);
+            addPiece(used, 'Panel ' + courses[c].label + '×' + widthLabel(width), packed.widths[width] * courses[c].count * 2);
+        }
+        if (packed.plankMm > 1) addPiece(used, 'Tablón', courses[c].count * 2);
     }
-    return false;
 }
 
 function fillMaterial(graph, byWall, phases) {
@@ -380,17 +409,14 @@ function fillMaterial(graph, byWall, phases) {
         var phaseNo = byWall[wall.id];
         if (!phaseNo || !phases[phaseNo - 1]) continue;
         var used = phases[phaseNo - 1].used;
-        var packed = packWidths(Math.round((Number(wall.length) || 0) * 1000));
-        var courses = panelCourses(wall.height);
-        var widthKeys = Object.keys(packed.widths);
-        for (var c = 0; c < courses.length; c++) {
-            for (var w = 0; w < widthKeys.length; w++) {
-                var width = Number(widthKeys[w]);
-                addPiece(used, 'Panel ' + courses[c].label + '×' + widthLabel(width), packed.widths[width] * courses[c].count * 2);
-            }
-            if (packed.plankMm > 1) addPiece(used, 'Tablón', courses[c].count * 2);
-        }
+        var lengthMm = Math.round((Number(wall.length) || 0) * 1000);
         var ends = wall.conn || [];
+        for (var e = 0; e < ends.length; e++) {
+            var sides = endSides(graph, byWall, wall.id, ends[e]);
+            if (sides.earlier && !sides.later) lengthMm -= 1200;
+        }
+        if (lengthMm < 300) lengthMm = 300;
+        addPacked(used, wall, lengthMm);
         if (endIsOpen(graph, byWall, wall.id, ends[0])) addPiece(used, 'Tape ' + (wall.tapeIni || 'extremo'), 1);
         if (endIsOpen(graph, byWall, wall.id, ends[1])) addPiece(used, 'Tape ' + (wall.tapeEnd || 'extremo'), 1);
         if (wall.prop) addPiece(used, 'Puntal', 1);
@@ -406,14 +432,30 @@ function fillMaterial(graph, byWall, phases) {
             if (graph.byId[joint.members[m]]) present.push(joint.members[m]);
         }
         if (present.length < 2) continue;
-        var owner = byWall[present[0]];
+        var owner = 0;
         var closed = true;
-        for (var q = 1; q < present.length; q++) {
-            if (byWall[present[q]] !== owner) closed = false;
+        for (var q = 0; q < present.length; q++) {
+            var memberPhase = Number(byWall[present[q]]);
+            if (!(memberPhase >= 1)) continue;
+            if (!owner || memberPhase < owner) owner = memberPhase;
+            if (q > 0 && byWall[present[q]] !== byWall[present[0]]) closed = false;
         }
-        if (!closed || !owner || !phases[owner - 1]) continue;
-        var cornerName = joint.kind === 'T' ? 'Esquina T' : (joint.kind === 'Cross' ? 'Cruce' : 'Esquina L');
-        addPiece(phases[owner - 1].used, cornerName, 1);
+        if (!owner || !phases[owner - 1]) continue;
+        if (closed) {
+            var cornerName = joint.kind === 'T' ? 'Esquina T' : (joint.kind === 'Cross' ? 'Cruce' : 'Esquina L');
+            addPiece(phases[owner - 1].used, cornerName, 1);
+            continue;
+        }
+        var cornerSplit = joint.kind === 'T' ? 'Esquina T' : (joint.kind === 'Cross' ? 'Cruce' : 'Esquina L');
+        addPiece(phases[owner - 1].used, cornerSplit, 1);
+        for (var arm = 0; arm < present.length; arm++) {
+            var armPhase = Number(byWall[present[arm]]);
+            if (!(armPhase > owner)) continue;
+            var laterWall = graph.byId[present[arm]];
+            var stubMm = Math.min(1350, Math.round((Number(laterWall.length) || 0) * 1000));
+            addPacked(phases[owner - 1].used, laterWall, stubMm);
+            addPiece(phases[owner - 1].used, 'Tape extremo', 1);
+        }
     }
     var kit = {};
     for (var a = 0; a < phases.length; a++) {
@@ -433,6 +475,50 @@ function fillMaterial(graph, byWall, phases) {
     return kit;
 }
 
+function claimJoints(graph, byWall, wallId, phase) {
+    var wall = graph.byId[wallId];
+    var ends = wall && wall.conn ? wall.conn : [];
+    for (var i = 0; i < ends.length; i++) {
+        var joint = graph.joints[String(ends[i] || '').trim()];
+        if (!joint) continue;
+        for (var m = 0; m < joint.members.length; m++) {
+            var member = joint.members[m];
+            if (!graph.byId[member] || byWall[member]) continue;
+            byWall[member] = phase;
+        }
+    }
+}
+
+/* No se llama. Si se usa, una esquina compartida arrastra el plano
+   entero a la fase 1 y las demás quedan sin color. */
+function sealSplitCorners(graph, byWall) {
+    var guard = 0;
+    var changed = true;
+    while (changed && guard < 8) {
+        guard += 1;
+        changed = false;
+        var keys = Object.keys(graph.joints);
+        for (var j = 0; j < keys.length; j++) {
+            var joint = graph.joints[keys[j]];
+            var owner = 0;
+            var members = [];
+            for (var m = 0; m < joint.members.length; m++) {
+                var id = joint.members[m];
+                if (!graph.byId[id]) continue;
+                members.push(id);
+                var phase = Number(byWall[id]);
+                if (phase >= 1 && (owner === 0 || phase < owner)) owner = phase;
+            }
+            if (!owner || members.length < 2) continue;
+            for (var k = 0; k < members.length; k++) {
+                if (Number(byWall[members[k]]) === owner) continue;
+                byWall[members[k]] = owner;
+                changed = true;
+            }
+        }
+    }
+}
+
 function solveOne(walls, origins, phaseCount, strategy) {
     var graph = indexWalls(walls);
     var byWall = {};
@@ -441,7 +527,10 @@ function solveOne(walls, origins, phaseCount, strategy) {
         if (graph.byId[origins[o]] && usable.indexOf(origins[o]) < 0) usable.push(origins[o]);
     }
     if (!usable.length && walls.length) usable.push(walls[0].id);
-    for (var s = 0; s < usable.length; s++) byWall[usable[s]] = 1;
+    for (var s = 0; s < usable.length; s++) {
+        byWall[usable[s]] = 1;
+        claimJoints(graph, byWall, usable[s], 1);
+    }
     var total = 0;
     for (var i = 0; i < walls.length; i++) total += areaOf(walls[i]);
     var target = total / Math.max(1, phaseCount);
@@ -457,6 +546,7 @@ function solveOne(walls, origins, phaseCount, strategy) {
         if (!open.length) break;
         var seed = chooseWall(graph, byWall, open, phase, usable, strategy);
         byWall[seed] = phase;
+        claimJoints(graph, byWall, seed, phase);
         if (phase < phaseCount) growPhase(graph, byWall, phase, usable, target, strategy);
     }
     var rest = Object.keys(graph.byId);

@@ -1666,6 +1666,10 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     background: #fff;
 }
 
+#desing2PhaseClear {
+    margin-right: auto;
+}
+
 .desing2-wall-list table.dataTable tbody td {
     padding: 2px 4px;
     height: 36px;

@@ -622,6 +622,18 @@
   <data name="StlPreview_Desing2PhaseCancel" xml:space="preserve">
     <value>Cancelar</value>
   </data>
+  <data name="StlPreview_Desing2PhaseClear" xml:space="preserve">
+    <value>Borrar planificación</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseClearAsk" xml:space="preserve">
+    <value>¿Borrar la planificación de este diseño?</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseClearFail" xml:space="preserve">
+    <value>No se ha podido borrar la planificación.</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseCleared" xml:space="preserve">
+    <value>Planificación borrada.</value>
+  </data>
   <data name="StlPreview_Desing2PhaseColColor" xml:space="preserve">
     <value>Color</value>
   </data>

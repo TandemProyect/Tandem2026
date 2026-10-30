@@ -80,7 +80,7 @@ El color del muro y el de la esquina (`#A9F527`) se colaban en el fenólico al a
 
 Cuatro brazos, dos ejes. En planta es una cruz. Las esquinas interiores son las de la T, y al otro lado se repite la misma pareja. Son cuatro paneles de esquina interior: dos simétricos a un lado del eje y los otros dos al lado contrario.
 
-No lleva cara E. No lleva angular. El panel recto de la T cierra un testero que aquí no existe, porque el muro sigue. Cada brazo sí lleva su tape: entre las dos esquinas el canto queda abierto y, sin ese cierre, el hormigón se escapa. Si el muro de enfrente no entra en esta fase, ese canto también se cierra con tape.
+No lleva cara E. No lleva angular. El panel recto de la T cierra un testero que aquí no existe, porque el muro sigue.
 
 Cada brazo se retira medio espesor del eje que cruza, más 0,30 m. Ahí apoya la pata del panel de esquina. `TryPlusCornerTrimMm` en `Atk60WallsRepository`. El recorte de 0,45 m de un extremo suelto no vale en la cruz: en un muro de 0,30 coincide por casualidad y en otro espesor no.
 

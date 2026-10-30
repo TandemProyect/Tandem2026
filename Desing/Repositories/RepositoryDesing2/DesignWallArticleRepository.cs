@@ -25,6 +25,7 @@ namespace Desing.Repositories.RepositoryDesing2
         public double RotationY { get; set; }
         public double RotationZ { get; set; }
         public string HandleCad { get; set; }
+        public long? NumberPhase { get; set; }
     }
 
     public sealed class PluginSaveWallArticleResult
@@ -159,8 +160,15 @@ namespace Desing.Repositories.RepositoryDesing2
                     .Where(m => m.AddIsActive && (codes.Contains(m.TextCode) || codes.Contains(m.AddAtenkoCode) || codes.Contains(m.TextBlockNumber)))
                     .ToList();
 
+            var phase = SinglePhase(articles);
+            if (phase > 0)
+            {
+                SoftDeletePhase(designId, phase, userId);
+            }
+
             var seqByWall = new Dictionary<long, long>();
             var count = 0;
+            var stamped = new List<TSql_DesignWallArticle>();
             for (var i = 0; i < articles.Count; i++)
             {
                 var request = articles[i];
@@ -173,6 +181,11 @@ namespace Desing.Repositories.RepositoryDesing2
                 var wall = _walls.ResolveExistingWall(request, walls);
                 if (wall == null)
                 {
+                    if (request.NumberPhase.GetValueOrDefault() > 0)
+                    {
+                        continue;
+                    }
+
                     throw new InvalidOperationException("Este diseño no tiene muros guardados.");
                 }
 
@@ -210,10 +223,91 @@ namespace Desing.Repositories.RepositoryDesing2
                 IntranetAuditHelper.SetAuditOnCreate(article, userId);
                 article.AddDateMade = batchAt;
                 _db.TSql_DesignWallArticle.Add(article);
+                if (phase > 0)
+                {
+                    stamped.Add(article);
+                }
                 count++;
             }
 
+            StampPhase(stamped, phase);
             return count;
+        }
+
+        private static long SinglePhase(IList<PluginSaveWallArticleRequest> articles)
+        {
+            long phase = 0;
+            if (articles == null)
+            {
+                return 0;
+            }
+
+            for (var i = 0; i < articles.Count; i++)
+            {
+                var request = articles[i];
+                var next = request == null ? 0 : request.NumberPhase.GetValueOrDefault();
+                if (next <= 0)
+                {
+                    continue;
+                }
+
+                if (phase == 0)
+                {
+                    phase = next;
+                }
+                else if (phase != next)
+                {
+                    return 0;
+                }
+            }
+
+            return phase;
+        }
+
+        private bool HasNumberPhaseColumn()
+        {
+            var found = _db.Database.SqlQuery<int>(
+                "SELECT CASE WHEN COL_LENGTH(N'dbo.TSql_DesignWallArticle', N'NumberPhase') IS NULL THEN 0 ELSE 1 END")
+                .FirstOrDefault();
+            return found == 1;
+        }
+
+        private void SoftDeletePhase(long designId, long phase, string userId)
+        {
+            if (designId <= 0 || phase <= 0 || !HasNumberPhaseColumn())
+            {
+                return;
+            }
+
+            _db.Database.ExecuteSqlCommand(
+                "UPDATE dbo.TSql_DesignWallArticle SET Is_Delete = 1, Is_Active = 0, LinModifiedBy = @p0, AddLastDateChange = @p1, Ntimeschanged = Ntimeschanged + 1 WHERE LinkDesign_V2 = @p2 AND NumberPhase = @p3 AND Is_Delete = 0",
+                userId ?? "",
+                DateTime.Now,
+                designId,
+                phase);
+        }
+
+        private void StampPhase(IList<TSql_DesignWallArticle> articles, long phase)
+        {
+            if (phase <= 0 || articles == null || articles.Count == 0 || !HasNumberPhaseColumn())
+            {
+                return;
+            }
+
+            _db.SaveChanges();
+            for (var i = 0; i < articles.Count; i++)
+            {
+                var article = articles[i];
+                if (article == null || article.IdObject <= 0)
+                {
+                    continue;
+                }
+
+                _db.Database.ExecuteSqlCommand(
+                    "UPDATE dbo.TSql_DesignWallArticle SET NumberPhase = @p0 WHERE IdObject = @p1",
+                    phase,
+                    article.IdObject);
+            }
         }
 
         /// <summary>

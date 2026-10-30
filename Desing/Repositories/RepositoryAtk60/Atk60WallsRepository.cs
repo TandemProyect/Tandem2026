@@ -46,7 +46,6 @@ namespace Desing.Repositories.RepositoryAtk60
         {
             var payload = BuildPayloadFromIdsJson(idsJson);
             var walls = payload.Walls ?? new List<Desing2FormworkWallDto>();
-            ReleaseEndsWithoutNeighbor(walls);
             var connectedEnds = CountConnectedEnds(walls);
             ApplyConnectedEndTrim(walls);
             var modulos = GetWallsForCadSystems(walls, connectedEnds);
@@ -138,106 +137,6 @@ namespace Desing.Repositories.RepositoryAtk60
             }
 
             return modulos;
-        }
-
-        /// <summary>
-        /// Un extremo enlazado a un muro que no se está encofrando queda libre.
-        /// Si no, no sale el tape y el hormigón se escapa por ese canto.
-        /// </summary>
-        private static void ReleaseEndsWithoutNeighbor(List<Desing2FormworkWallDto> walls)
-        {
-            if (walls == null)
-            {
-                return;
-            }
-
-            var present = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            for (var i = 0; i < walls.Count; i++)
-            {
-                var wall = walls[i];
-                if (wall == null)
-                {
-                    continue;
-                }
-
-                AddPresentId(present, wall.Id);
-                AddPresentId(present, wall.LineId);
-                AddPresentId(present, wall.WallId);
-                if (wall.Attributes == null)
-                {
-                    continue;
-                }
-
-                AddPresentId(present, wall.Attributes._idObject);
-                AddPresentId(present, wall.Attributes.ExtraValueAsString("wallId"));
-                AddPresentId(present, wall.Attributes.ExtraValueAsString("id"));
-            }
-
-            for (var i = 0; i < walls.Count; i++)
-            {
-                var attrs = walls[i] != null ? walls[i].Attributes : null;
-                if (attrs == null)
-                {
-                    continue;
-                }
-
-                ClearConnectionIfNeighborMissing(attrs, present, true);
-                ClearConnectionIfNeighborMissing(attrs, present, false);
-            }
-        }
-
-        private static void AddPresentId(HashSet<string> present, string id)
-        {
-            if (!string.IsNullOrWhiteSpace(id) && id != "0"
-                && !string.Equals(id, "null", StringComparison.OrdinalIgnoreCase))
-            {
-                present.Add(id.Trim());
-            }
-        }
-
-        private static void ClearConnectionIfNeighborMissing(AttributesList attrs, HashSet<string> present, bool atStart)
-        {
-            var key = atStart ? "_Idconnection_1" : "_Idconnection_2";
-            var id = atStart ? attrs._Idconnection_1 : attrs._Idconnection_2;
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                id = attrs.ExtraValueAsString(key);
-            }
-
-            if (string.IsNullOrWhiteSpace(id) || id == "0"
-                || string.Equals(id, "null", StringComparison.OrdinalIgnoreCase)
-                || present.Contains(id.Trim()))
-            {
-                return;
-            }
-
-            if (atStart)
-            {
-                attrs._Idconnection_1 = null;
-            }
-            else
-            {
-                attrs._Idconnection_2 = null;
-            }
-
-            if (attrs.Extra == null)
-            {
-                return;
-            }
-
-            var drop = new List<string>();
-            foreach (var pair in attrs.Extra)
-            {
-                if (string.Equals(pair.Key, key, StringComparison.OrdinalIgnoreCase))
-                {
-                    drop.Add(pair.Key);
-                }
-            }
-
-            for (var i = 0; i < drop.Count; i++)
-            {
-                attrs.Extra.Remove(drop[i]);
-            }
         }
 
         /// <summary>

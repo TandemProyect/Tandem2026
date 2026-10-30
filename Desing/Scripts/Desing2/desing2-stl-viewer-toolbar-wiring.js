@@ -418,6 +418,430 @@
             }).catch(function () { return local; });
         }
 
+        const PHASE_OVERLAP_MM = 150;
+
+        function jointOf(raw) {
+            const text = String(raw || '').trim();
+            const cut = text.indexOf(':');
+            if (cut < 1) return null;
+            const kind = text.slice(0, cut);
+            if (kind !== 'L' && kind !== 'T' && kind !== 'Cross') return null;
+            const members = text.slice(cut + 1).split('-').map(function (part) { return part.trim(); }).filter(Boolean);
+            if (members.length < 2) return null;
+            return { kind: kind, members: members };
+        }
+
+        function readPhaseAxes() {
+            if (typeof window.maStlDesing2BuildWallExchangePayload !== 'function') return [];
+            let lines = [];
+            try {
+                const payload = window.maStlDesing2BuildWallExchangePayload();
+                lines = payload && payload.walls ? payload.walls : [];
+            } catch (_err) {
+                return [];
+            }
+            const out = [];
+            lines.forEach(function (line) {
+                if (!line || line.wallRole !== 'axis' || !line.p1Mm || !line.p2Mm) return;
+                out.push({
+                    lineId: line.id != null ? String(line.id) : '',
+                    wallId: line.wallId != null ? String(line.wallId) : (line.id != null ? String(line.id) : ''),
+                    conn: [line._Idconnection_1 || '', line._Idconnection_2 || ''],
+                    x1: Number(line.p1Mm.x),
+                    z1: Number(line.p1Mm.z),
+                    x2: Number(line.p2Mm.x),
+                    z2: Number(line.p2Mm.z)
+                });
+            });
+            return out;
+        }
+
+        function phaseOfId(byWall, id) {
+            if (id == null || id === '') return 0;
+            const n = Number(byWall[String(id)]);
+            return n >= 1 ? n : 0;
+        }
+
+        function cornerOwner(members, byWall, axes) {
+            let best = 0;
+            members.forEach(function (id) {
+                const phase = phaseOfMember(byWall, axes, id);
+                if (phase >= 1 && (best === 0 || phase < best)) best = phase;
+            });
+            return best;
+        }
+
+        function phaseOfMember(byWall, axes, id) {
+            const direct = phaseOfId(byWall, id);
+            if (direct) return direct;
+            const key = String(id);
+            for (let i = 0; i < axes.length; i++) {
+                if (axes[i].lineId === key || axes[i].wallId === key) {
+                    return phaseOfId(byWall, axes[i].wallId) || phaseOfId(byWall, axes[i].lineId);
+                }
+            }
+            return 0;
+        }
+
+        function forgetId(bag, axes, id) {
+            const key = String(id);
+            delete bag[key];
+            for (let i = 0; i < axes.length; i++) {
+                if (axes[i].lineId !== key && axes[i].wallId !== key) continue;
+                if (axes[i].lineId) delete bag[axes[i].lineId];
+                if (axes[i].wallId) delete bag[axes[i].wallId];
+            }
+        }
+
+        function rememberId(bag, axes, id) {
+            const key = String(id);
+            bag[key] = true;
+            for (let i = 0; i < axes.length; i++) {
+                if (axes[i].lineId !== key && axes[i].wallId !== key) continue;
+                if (axes[i].lineId) bag[axes[i].lineId] = true;
+                if (axes[i].wallId) bag[axes[i].wallId] = true;
+            }
+        }
+
+        function phaseWallIds(phaseNo) {
+            const byWall = (window.desing2PhaseStartPlan && window.desing2PhaseStartPlan.byWall) || {};
+            const axes = readPhaseAxes();
+            const include = Object.create(null);
+            const want = Number(phaseNo);
+            Object.keys(byWall).forEach(function (id) {
+                if (Number(byWall[id]) === want) rememberId(include, axes, id);
+            });
+            return { include: include, axes: axes, byWall: byWall };
+        }
+
+        function memberInPour(id, picked) {
+            const key = String(id);
+            if (picked.include[key]) return true;
+            for (let i = 0; i < picked.axes.length; i++) {
+                const ax = picked.axes[i];
+                if (ax.lineId !== key && ax.wallId !== key) continue;
+                return !!(picked.include[ax.wallId] || picked.include[ax.lineId]);
+            }
+            return false;
+        }
+
+        function endNeighbors(ax, endIndex, picked, phaseNo) {
+            const want = Number(phaseNo);
+            const joint = jointOf(ax.conn[endIndex]);
+            let later = false;
+            let earlier = false;
+            if (joint) {
+                joint.members.forEach(function (id) {
+                    if (String(id) === ax.wallId || String(id) === ax.lineId) return;
+                    if (memberInPour(id, picked)) return;
+                    const phase = phaseOfMember(picked.byWall, picked.axes, id);
+                    if (phase > want) later = true;
+                    else if (phase >= 1 && phase < want) earlier = true;
+                });
+            } else if (continuationAt(ax, endIndex === 0, picked.axes, picked.include, picked.byWall, phaseNo)) {
+                later = true;
+            }
+            return { later: later, earlier: earlier, joint: joint };
+        }
+
+        function setConnectionAt(wall, x, z, value) {
+            if (!wall || !wall.Attributes) return;
+            const p1 = wallPoint(wall.P1);
+            const p2 = wallPoint(wall.P2);
+            const d1 = p1 ? ((p1.x - x) * (p1.x - x)) + ((p1.z - z) * (p1.z - z)) : 1e12;
+            const d2 = p2 ? ((p2.x - x) * (p2.x - x)) + ((p2.z - z) * (p2.z - z)) : 1e12;
+            wall.Attributes[d1 <= d2 ? '_Idconnection_1' : '_Idconnection_2'] = value;
+        }
+
+        function trimPouredOverlaps(list, phaseNo, picked) {
+            const skip = cornerStubMm() - PHASE_OVERLAP_MM;
+            if (!(skip > 40)) return;
+            list.forEach(function (wall) {
+                const ax = axisOfWall(wall, picked.axes);
+                if (!ax || !wall.Attributes) return;
+                [0, 1].forEach(function (endIndex) {
+                    const near = endNeighbors(ax, endIndex, picked, phaseNo);
+                    if (!near.joint || !near.earlier || near.later) return;
+                    const x = endIndex === 0 ? ax.x1 : ax.x2;
+                    const z = endIndex === 0 ? ax.z1 : ax.z2;
+                    const p1 = wallPoint(wall.P1);
+                    const p2 = wallPoint(wall.P2);
+                    if (!p1 || !p2) return;
+                    const d1 = ((p1.x - x) * (p1.x - x)) + ((p1.z - z) * (p1.z - z));
+                    const d2 = ((p2.x - x) * (p2.x - x)) + ((p2.z - z) * (p2.z - z));
+                    const atP1 = d1 <= d2;
+                    const here = atP1 ? p1 : p2;
+                    const other = atP1 ? p2 : p1;
+                    const dx = other.x - here.x;
+                    const dz = other.z - here.z;
+                    const len = Math.hypot(dx, dz);
+                    if (!(len > skip + 300)) return;
+                    writeWallPoint(atP1 ? wall.P1 : wall.P2, here.x + (dx / len) * skip, here.z + (dz / len) * skip);
+                    wall.Attributes._Datalong = (len - skip) / 1000;
+                    wall.Attributes[atP1 ? '_Idconnection_1' : '_Idconnection_2'] = 'Overlap';
+                });
+            });
+        }
+
+        function releasePhaseEnds(list, phaseNo, picked) {
+            list.forEach(function (wall) {
+                const ax = axisOfWall(wall, picked.axes);
+                if (!ax || !wall.Attributes) return;
+                [0, 1].forEach(function (endIndex) {
+                    if (picked.cornerEnds && (picked.cornerEnds[ax.lineId + ':' + endIndex] || picked.cornerEnds[ax.wallId + ':' + endIndex])) return;
+                    const near = endNeighbors(ax, endIndex, picked, phaseNo);
+                    const x = endIndex === 0 ? ax.x1 : ax.x2;
+                    const z = endIndex === 0 ? ax.z1 : ax.z2;
+                    if (near.earlier && !near.later) {
+                        setConnectionAt(wall, x, z, 'Overlap');
+                        return;
+                    }
+                    if (near.later && !near.joint) setConnectionAt(wall, x, z, '');
+                });
+            });
+        }
+
+        function cornerStubMm() {
+            // El recorte de la esquina y el borrado del tape (0,50 m) se comen
+            // un cabo corto. 1,20 m de esquina + 0,50 m + 0,15 m dejan el tape
+            // al final del encofrado.
+            return 1200 + 500 + PHASE_OVERLAP_MM;
+        }
+
+        function axisByMember(axes, id) {
+            const key = String(id);
+            for (let i = 0; i < axes.length; i++) {
+                if (axes[i].lineId === key || axes[i].wallId === key) return axes[i];
+            }
+            return null;
+        }
+
+        function wallForAxis(pool, ax) {
+            for (let i = 0; i < pool.length; i++) {
+                if (axisOfWall(pool[i], [ax])) return pool[i];
+            }
+            return null;
+        }
+
+        function makeCornerStub(source, vx, vz) {
+            const stub = cloneFormworkWall(source);
+            const p1 = wallPoint(stub.P1);
+            const p2 = wallPoint(stub.P2);
+            if (!p1 || !p2) return null;
+            const d1 = ((p1.x - vx) * (p1.x - vx)) + ((p1.z - vz) * (p1.z - vz));
+            const d2 = ((p2.x - vx) * (p2.x - vx)) + ((p2.z - vz) * (p2.z - vz));
+            const near = d1 <= d2 ? p1 : p2;
+            const far = d1 <= d2 ? p2 : p1;
+            const atStart = d1 <= d2;
+            const dx = far.x - near.x;
+            const dz = far.z - near.z;
+            const len = Math.hypot(dx, dz);
+            if (!(len > 40)) return null;
+            const stubLen = Math.min(len, cornerStubMm());
+            const tipX = near.x + (dx / len) * stubLen;
+            const tipZ = near.z + (dz / len) * stubLen;
+            writeWallPoint(stub.P1, near.x, near.z);
+            writeWallPoint(stub.P2, tipX, tipZ);
+            if (stub.Attributes) {
+                const kept = stub.Attributes[atStart ? '_Idconnection_1' : '_Idconnection_2'] || '';
+                stub.Attributes._Idconnection_1 = kept;
+                stub.Attributes._Idconnection_2 = '';
+                stub.Attributes._Datalong = stubLen / 1000;
+            }
+            const tag = String(stub.LineId || stub.Id || stub.WallId || 'w') + '-exit';
+            stub.Id = tag;
+            stub.LineId = tag;
+            stub.WallId = tag;
+            return stub;
+        }
+
+        function addCornerStubs(list, pool, phaseNo, picked) {
+            const want = Number(phaseNo);
+            const seen = Object.create(null);
+            picked.cornerEnds = Object.create(null);
+            picked.axes.forEach(function (ax) {
+                if (!picked.include[ax.wallId] && !picked.include[ax.lineId]) return;
+                ax.conn.forEach(function (raw, endIndex) {
+                    const joint = jointOf(raw);
+                    if (!joint) return;
+                    const vx = endIndex === 0 ? ax.x1 : ax.x2;
+                    const vz = endIndex === 0 ? ax.z1 : ax.z2;
+                    let stubbed = false;
+                    joint.members.forEach(function (id) {
+                        if (String(id) === ax.wallId || String(id) === ax.lineId) return;
+                        if (memberInPour(id, picked)) return;
+                        const phase = phaseOfMember(picked.byWall, picked.axes, id);
+                        if (!(phase > want)) return;
+                        const other = axisByMember(picked.axes, id);
+                        if (!other) return;
+                        const mark = other.lineId + '@' + Math.round(vx) + ',' + Math.round(vz);
+                        if (seen[mark]) {
+                            stubbed = true;
+                            return;
+                        }
+                        const source = wallForAxis(pool, other);
+                        if (!source) return;
+                        const stub = makeCornerStub(source, vx, vz);
+                        if (!stub) return;
+                        seen[mark] = true;
+                        stubbed = true;
+                        list.push(stub);
+                    });
+                    if (stubbed) {
+                        picked.cornerEnds[ax.lineId + ':' + endIndex] = true;
+                        picked.cornerEnds[ax.wallId + ':' + endIndex] = true;
+                    }
+                });
+            });
+        }
+
+        function segsForIds(axes, include) {
+            const segs = [];
+            axes.forEach(function (ax) {
+                if (!include[ax.wallId] && !include[ax.lineId]) return;
+                segs.push({
+                    id: ax.lineId,
+                    wallId: ax.wallId,
+                    x1: ax.x1,
+                    z1: ax.z1,
+                    x2: ax.x2,
+                    z2: ax.z2
+                });
+            });
+            return segs;
+        }
+
+        function cloneFormworkWall(wall) {
+            return Object.assign({}, wall, {
+                P1: Object.assign({}, wall && wall.P1 ? wall.P1 : {}),
+                P2: Object.assign({}, wall && wall.P2 ? wall.P2 : {}),
+                Attributes: Object.assign({}, wall && wall.Attributes ? wall.Attributes : {})
+            });
+        }
+
+        function wallPoint(p) {
+            if (!p) return null;
+            const x = Number(p.xMm != null ? p.xMm : p.x);
+            const z = Number(p.zMm != null ? p.zMm : p.z);
+            if (!Number.isFinite(x) || !Number.isFinite(z)) return null;
+            return { x: x, z: z };
+        }
+
+        function writeWallPoint(p, x, z) {
+            if (!p) return;
+            if (p.xMm != null || p.zMm != null) {
+                p.xMm = x;
+                p.zMm = z;
+            } else {
+                p.x = x;
+                p.z = z;
+            }
+        }
+
+        function axisOfWall(wall, axes) {
+            const attrs = wall && wall.Attributes ? wall.Attributes : {};
+            const keys = [wall && wall.LineId, wall && wall.Id, wall && wall.WallId, attrs._idObject, attrs.wallId, attrs.id];
+            for (let i = 0; i < axes.length; i++) {
+                const ax = axes[i];
+                for (let k = 0; k < keys.length; k++) {
+                    if (keys[k] != null && keys[k] !== '' && (String(keys[k]) === ax.lineId || String(keys[k]) === ax.wallId)) {
+                        return ax;
+                    }
+                }
+            }
+            return null;
+        }
+
+        function continuationAt(ax, atStart, axes, include, byWall, phaseNo) {
+            if (jointOf(atStart ? ax.conn[0] : ax.conn[1])) return null;
+            const x = atStart ? ax.x1 : ax.x2;
+            const z = atStart ? ax.z1 : ax.z2;
+            const dx = ax.x2 - ax.x1;
+            const dz = ax.z2 - ax.z1;
+            const len = Math.hypot(dx, dz) || 1;
+            const ux = dx / len;
+            const uz = dz / len;
+            const outX = atStart ? -ux : ux;
+            const outZ = atStart ? -uz : uz;
+            for (let i = 0; i < axes.length; i++) {
+                const other = axes[i];
+                if (!other || other.lineId === ax.lineId) continue;
+                if (include[other.wallId] || include[other.lineId]) continue;
+                const otherPhase = phaseOfId(byWall, other.wallId) || phaseOfId(byWall, other.lineId);
+                if (!(otherPhase > Number(phaseNo))) continue;
+                const d1 = ((other.x1 - x) * (other.x1 - x)) + ((other.z1 - z) * (other.z1 - z));
+                const d2 = ((other.x2 - x) * (other.x2 - x)) + ((other.z2 - z) * (other.z2 - z));
+                if (d1 > 80 * 80 && d2 > 80 * 80) continue;
+                const intoStart = d1 <= d2;
+                const odx = other.x2 - other.x1;
+                const odz = other.z2 - other.z1;
+                const olen = Math.hypot(odx, odz) || 1;
+                const intoX = (odx / olen) * (intoStart ? 1 : -1);
+                const intoZ = (odz / olen) * (intoStart ? 1 : -1);
+                if ((intoX * outX) + (intoZ * outZ) < 0.85) continue;
+                return { outX: outX, outZ: outZ, room: Math.hypot(odx, odz) };
+            }
+            return null;
+        }
+
+        function extendPhaseExits(list, phaseNo, picked) {
+            list.forEach(function (wall) {
+                const ax = axisOfWall(wall, picked.axes);
+                if (!ax) return;
+                [true, false].forEach(function (atStart) {
+                    const step = continuationAt(ax, atStart, picked.axes, picked.include, picked.byWall, phaseNo);
+                    if (!step || !(step.room > 40)) return;
+                    const extra = Math.min(PHASE_OVERLAP_MM, step.room);
+                    const target = { x: atStart ? ax.x1 : ax.x2, z: atStart ? ax.z1 : ax.z2 };
+                    const p1 = wallPoint(wall.P1);
+                    const p2 = wallPoint(wall.P2);
+                    const d1 = p1 ? ((p1.x - target.x) * (p1.x - target.x)) + ((p1.z - target.z) * (p1.z - target.z)) : 1e12;
+                    const d2 = p2 ? ((p2.x - target.x) * (p2.x - target.x)) + ((p2.z - target.z) * (p2.z - target.z)) : 1e12;
+                    const point = d1 <= d2 ? wall.P1 : wall.P2;
+                    const here = d1 <= d2 ? p1 : p2;
+                    if (!here || !point) return;
+                    writeWallPoint(point, here.x + (step.outX * extra), here.z + (step.outZ * extra));
+                });
+            });
+        }
+
+        function markPhaseOverlaps(list, phaseNo, picked) {
+            list.forEach(function (wall) {
+                const ax = axisOfWall(wall, picked.axes);
+                if (!ax || !wall.Attributes) return;
+                [true, false].forEach(function (atStart) {
+                    const endIndex = atStart ? 0 : 1;
+                    if (picked.cornerEnds && (picked.cornerEnds[ax.lineId + ':' + endIndex] || picked.cornerEnds[ax.wallId + ':' + endIndex])) return;
+                    const near = endNeighbors(ax, endIndex, picked, phaseNo);
+                    if (near.joint && !(near.earlier && !near.later)) return;
+                    const x = atStart ? ax.x1 : ax.x2;
+                    const z = atStart ? ax.z1 : ax.z2;
+                    if (near.earlier && !near.later) {
+                        setConnectionAt(wall, x, z, 'Overlap');
+                        return;
+                    }
+                    for (let i = 0; i < picked.axes.length; i++) {
+                        const other = picked.axes[i];
+                        if (!other || other.lineId === ax.lineId) continue;
+                        const otherPhase = phaseOfId(picked.byWall, other.wallId) || phaseOfId(picked.byWall, other.lineId);
+                        if (!(otherPhase >= 1 && otherPhase < Number(phaseNo))) continue;
+                        const d1 = ((other.x1 - x) * (other.x1 - x)) + ((other.z1 - z) * (other.z1 - z));
+                        const d2 = ((other.x2 - x) * (other.x2 - x)) + ((other.z2 - z) * (other.z2 - z));
+                        if (d1 > 80 * 80 && d2 > 80 * 80) continue;
+                        const p1 = wallPoint(wall.P1);
+                        const p2 = wallPoint(wall.P2);
+                        const jd1 = p1 ? ((p1.x - x) * (p1.x - x)) + ((p1.z - z) * (p1.z - z)) : 1e12;
+                        const jd2 = p2 ? ((p2.x - x) * (p2.x - x)) + ((p2.z - z) * (p2.z - z)) : 1e12;
+                        const key = jd1 <= jd2 ? '_Idconnection_1' : '_Idconnection_2';
+                        const current = wall.Attributes[key];
+                        if (current && jointOf(current)) return;
+                        if (!current || current === 'null' || current === '0') wall.Attributes[key] = 'Overlap';
+                        return;
+                    }
+                });
+            });
+        }
+
         function phaseSegments(phaseNo) {
             const plan = window.desing2PhaseStartPlan || {};
             const byWall = plan.byWall || {};
@@ -681,14 +1105,21 @@
             }
 
             if (formPhase > 0) {
-                const segs = phaseSegments(formPhase);
-                walls = walls.filter(function (w) { return wallOnPhase(w, segs); });
+                const picked = phaseWallIds(formPhase);
+                const segs = segsForIds(picked.axes, picked.include);
+                const pool = walls.map(cloneFormworkWall);
+                walls = pool.filter(function (w) { return wallOnPhase(w, segs.length ? segs : phaseSegments(formPhase)); });
                 if (!walls.length) {
                     const none = btn.getAttribute('data-phase-none') || 'Esa fase no tiene muros para encofrar.';
                     window.alert(none);
                     settleFormworkEarly(none);
                     return;
                 }
+                addCornerStubs(walls, pool, formPhase, picked);
+                extendPhaseExits(walls, formPhase, picked);
+                trimPouredOverlaps(walls, formPhase, picked);
+                releasePhaseEnds(walls, formPhase, picked);
+                markPhaseOverlaps(walls, formPhase, picked);
             }
 
             // Flujo legacy (ayer): inserta panel GLB + marcas.
@@ -1077,7 +1508,12 @@
 
                     const wallsReturned = Array.isArray(resp.Walls) ? resp.Walls : [];
                     console.info('Muros recibidos (' + wallsReturned.length + '):', wallsReturned);
-                    paintDone.then(function () { hideFormworkOverlay(true); }, function () { hideFormworkOverlay(false, 'Error al pintar paneles'); });
+                    paintDone.then(function () {
+                        if (typeof window.maStlDesing2ShowPouredPhases === 'function') {
+                            window.maStlDesing2ShowPouredPhases(formPhase);
+                        }
+                        hideFormworkOverlay(true);
+                    }, function () { hideFormworkOverlay(false, 'Error al pintar paneles'); });
                 },
                 error: function (xhr, _status, err) {
                     const serverMsg = xhr && xhr.responseJSON && xhr.responseJSON.Mensaje;

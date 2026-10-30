@@ -3,7 +3,7 @@
    en el visor de abajo. No reparte los tramos. */
 import * as THREE from 'three';
 import { OrbitControls } from '@masterarticles/OrbitControls';
-import { solvePhasePlans } from './desing2-phase-solve.js';
+import { solvePhasePlans } from './desing2-phase-solve.js?v=20261030f';
 
 var DEFAULT_COLOR = '#c9a0a8';
 var DEFAULT_WORKERS = '4';
@@ -16,6 +16,7 @@ var phasePlanIndex = 0;
 var viewer = null;
 var viewerDirty = true;
 var running = false;
+var frameQueued = false;
 
 function modalEl() {
     return document.getElementById('desing2PhaseModal');
@@ -215,6 +216,7 @@ function assignWall(wallId) {
     var label = tr.querySelector('.desing2-phase-wall');
     if (label) label.textContent = wallLabel(wallId);
     paintWalls();
+    previewIfReady();
 }
 
 function currentPhasePlan() {
@@ -327,11 +329,8 @@ function showPhaseResult() {
         paintWalls();
         resizeView();
     }
-    if (!running) {
-        running = true;
-        frame();
-    }
-    window.requestAnimationFrame(resizeView);
+    ensureFrame();
+    schedulePresentWalls();
     applyPlanToDesign(plan);
     var starts = [];
     var list = rows();
@@ -374,10 +373,39 @@ function designId() {
 }
 
 function frame() {
+    frameQueued = false;
     if (!running || !viewer) return;
-    viewer.controls.update();
-    viewer.renderer.render(viewer.scene, viewer.camera);
+    try {
+        var gl = viewer.renderer.getContext();
+        if (gl && gl.isContextLost()) {
+            releaseViewer();
+            return;
+        }
+        viewer.controls.update();
+        viewer.renderer.render(viewer.scene, viewer.camera);
+    } catch (_err) {
+        running = false;
+        return;
+    }
+    frameQueued = true;
     window.requestAnimationFrame(frame);
+}
+
+function ensureFrame() {
+    running = true;
+    if (frameQueued) return;
+    frameQueued = true;
+    window.requestAnimationFrame(frame);
+}
+
+function releaseViewer() {
+    running = false;
+    frameQueued = false;
+    if (!viewer) return;
+    try { viewer.controls.dispose(); } catch (_err) { /* el visor ya no responde */ }
+    try { viewer.renderer.dispose(); } catch (_err2) { /* el visor ya no responde */ }
+    viewer = null;
+    viewerDirty = true;
 }
 
 function resizeView() {
@@ -389,6 +417,35 @@ function resizeView() {
     viewer.camera.aspect = width / height;
     viewer.camera.updateProjectionMatrix();
     viewer.renderer.setSize(width, height, false);
+}
+
+function cameraSeesWalls() {
+    if (!viewer || !viewer.group.children.length || !viewer.controls) return false;
+    var bounds = new THREE.Box3().setFromObject(viewer.group);
+    if (bounds.isEmpty()) return false;
+    var center = bounds.getCenter(new THREE.Vector3());
+    var size = bounds.getSize(new THREE.Vector3());
+    var span = Math.max(size.x, size.y, size.z, 1000);
+    return viewer.controls.target.distanceTo(center) < span * 2;
+}
+
+function presentWalls() {
+    if (!viewer || !viewer.canvas) return;
+    var box = viewer.canvas.parentElement;
+    if (!box || box.clientWidth < 40 || box.clientHeight < 40) return;
+    var bufferLate = Math.abs(viewer.canvas.width - box.clientWidth) > 2
+        || Math.abs(viewer.canvas.height - box.clientHeight) > 2;
+    if (!viewer.group.children.length && walls.length) rebuildMeshes();
+    resizeView();
+    if (bufferLate || !cameraSeesWalls()) fitCamera();
+    paintWalls();
+    ensureFrame();
+}
+
+function schedulePresentWalls() {
+    window.requestAnimationFrame(presentWalls);
+    window.setTimeout(presentWalls, 260);
+    window.setTimeout(presentWalls, 480);
 }
 
 function fitCamera() {
@@ -530,6 +587,7 @@ function showView(teamIndex) {
     if (host.scrollIntoView) host.scrollIntoView({ block: 'nearest' });
     var data = rowData(tr);
     if (hint) hint.textContent = fill(text('data-pick-hint'), data.name || fill(text('data-team-default'), teamIndex + 1));
+    if (viewer && viewer.renderer.getContext && viewer.renderer.getContext().isContextLost()) releaseViewer();
     if (viewerDirty || !viewer) {
         rebuildMeshes();
         viewerDirty = false;
@@ -537,11 +595,8 @@ function showView(teamIndex) {
         paintWalls();
         resizeView();
     }
-    if (!running) {
-        running = true;
-        frame();
-    }
-    window.requestAnimationFrame(resizeView);
+    ensureFrame();
+    schedulePresentWalls();
 }
 
 function hideView() {
@@ -585,6 +640,8 @@ function syncForm() {
     showMessage('');
     if (dialog) dialog.classList.add('is-expanded');
     renderTeams(teams);
+    previewIfReady();
+    if (!currentPhasePlan()) showView(0);
 }
 
 function onAccept() {
@@ -624,30 +681,59 @@ function onAccept() {
         seen[item.wallId] = true;
         starts.push(item);
     }
-    var origins = [];
-    for (var s = 0; s < starts.length; s++) origins.push(starts[s].wallId);
     if (formMatchesPlan(phases, teamCount, starts)) {
-        var dialogSame = phaseDialog();
-        if (dialogSame) dialogSame.classList.add('is-expanded');
-        showPhaseResult();
         persistAccepted();
         return;
     }
+    var origins = [];
+    for (var s = 0; s < starts.length; s++) origins.push(starts[s].wallId);
+    buildPreview(phases, origins);
+}
+
+function readStarts() {
+    var list = rows();
+    var starts = [];
+    var seen = {};
+    for (var i = 0; i < list.length; i++) {
+        var item = rowData(list[i]);
+        if (!item.name || !item.workers || !item.wallId || !wallById(item.wallId)) return null;
+        if (seen[item.wallId]) return null;
+        seen[item.wallId] = true;
+        starts.push(item);
+    }
+    return starts;
+}
+
+function buildPreview(phases, origins) {
     try {
         phasePlans = solvePhasePlans(walls, origins, phases);
     } catch (_err) {
         showMessage(text('data-solve-fail') || 'No se ha podido repartir.');
-        return;
+        return false;
     }
     phasePlanIndex = 0;
     if (!phasePlans.length) {
         showMessage(text('data-need-all-walls'));
-        return;
+        return false;
     }
+    showMessage('');
     var dialog = phaseDialog();
     if (dialog) dialog.classList.add('is-expanded');
     showPhaseResult();
-    persistAccepted();
+    return true;
+}
+
+function previewIfReady() {
+    var phases = wholeNumber(document.getElementById('desing2PhaseCount'));
+    var teamCount = wholeNumber(document.getElementById('desing2PhaseTeams'));
+    var list = rows();
+    if (!phases || !teamCount || list.length !== teamCount || teamCount > walls.length) return;
+    var starts = readStarts();
+    if (!starts || starts.length !== teamCount) return;
+    if (formMatchesPlan(phases, teamCount, starts)) return;
+    var origins = [];
+    for (var s = 0; s < starts.length; s++) origins.push(starts[s].wallId);
+    buildPreview(phases, origins);
 }
 
 function formMatchesPlan(phases, teamCount, starts) {
@@ -662,12 +748,81 @@ function formMatchesPlan(phases, teamCount, starts) {
     return true;
 }
 
+function clearSavedPlan() {
+    var ask = text('data-clear-ask');
+    if (ask && !window.confirm(ask)) return;
+    var id = designId();
+    var url = text('data-clear-plan-url');
+    if (!id || !url) {
+        toast(text('data-clear-fail') || 'No se ha podido borrar la planificación.', true);
+        return;
+    }
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ DesignId: id })
+    }).then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+    }).then(function (resp) {
+        if (!resp || resp.Exito !== true) {
+            throw new Error((resp && resp.Mensaje) || text('data-clear-fail') || 'No se ha podido borrar la planificación.');
+        }
+        window.desing2PhaseStartPlan = null;
+        phasePlans = [];
+        phasePlanIndex = 0;
+        if (typeof window.maStlDesing2PaintWallPhaseColors === 'function') {
+            window.maStlDesing2PaintWallPhaseColors(null);
+        }
+        var legend = document.getElementById('desing2PhaseLegend');
+        if (legend) {
+            legend.hidden = true;
+            legend.innerHTML = '';
+        }
+        var another = document.getElementById('desing2PhaseAnother');
+        if (another) another.hidden = true;
+        hideView();
+        viewerDirty = true;
+        walls = readAxes();
+        savedRows = [];
+        var phasesInput = document.getElementById('desing2PhaseCount');
+        var teamsInput = document.getElementById('desing2PhaseTeams');
+        if (phasesInput) phasesInput.value = '';
+        if (teamsInput) teamsInput.value = '';
+        var body = document.getElementById('desing2PhaseTeamsBody');
+        if (body) body.innerHTML = '';
+        var dialog = phaseDialog();
+        if (dialog) dialog.classList.remove('is-expanded');
+        renderTeams(0);
+        showMessage('');
+        if (phasesInput) phasesInput.focus();
+        toast(text('data-cleared') || 'Planificación borrada.', false);
+    }).catch(function (err) {
+        var message = err && err.message ? err.message : (text('data-clear-fail') || 'No se ha podido borrar la planificación.');
+        showMessage(message);
+        toast(message, true);
+    });
+}
+
 function persistAccepted() {
     var payload = window.desing2PhaseStartPlan;
     var id = designId();
     if (!payload || !id) {
         toast(text('data-solve-fail') || 'No se ha podido guardar.', true);
         return;
+    }
+    var freshStarts = readStarts();
+    if (freshStarts && freshStarts.length) {
+        payload.starts = freshStarts;
+        payload.teams = freshStarts.length;
+        payload.phases = wholeNumber(document.getElementById('desing2PhaseCount')) || payload.phases;
+        payload.camera = readPhaseCamera() || payload.camera || null;
+    }
+    var el = modalEl();
+    if (el) el.setAttribute('data-completed', '1');
+    if (el && window.bootstrap && window.bootstrap.Modal) {
+        window.bootstrap.Modal.getOrCreateInstance(el).hide();
     }
     var saveUrl = text('data-save-plan-url');
     var wallsSave = typeof window.maStlDesing2SaveDesignWallsToServer === 'function'
@@ -693,11 +848,6 @@ function persistAccepted() {
     Promise.all([wallsSave, cameraSave, phaseSave]).then(function (results) {
         var camera = results[1] || {};
         if (camera.failed) throw new Error(camera.message || 'No se ha podido guardar la cámara.');
-        var el = modalEl();
-        if (el) el.setAttribute('data-completed', '1');
-        if (el && window.bootstrap && window.bootstrap.Modal) {
-            window.bootstrap.Modal.getOrCreateInstance(el).hide();
-        }
         var now = new Date();
         var hh = now.getHours();
         var mm = now.getMinutes();
@@ -821,12 +971,14 @@ function openModal() {
     var host = document.fullscreenElement || document.body;
     if (el.parentNode !== host) host.appendChild(el);
     window.bootstrap.Modal.getOrCreateInstance(el).show();
+    schedulePresentWalls();
     if (phasesInput) phasesInput.focus();
 }
 
 function wire() {
     var button = document.getElementById('ma-stl-tool-phase');
     var accept = document.getElementById('desing2PhaseAccept');
+    var clear = document.getElementById('desing2PhaseClear');
     var another = document.getElementById('desing2PhaseAnother');
     var phasesInput = document.getElementById('desing2PhaseCount');
     var teamsInput = document.getElementById('desing2PhaseTeams');
@@ -842,6 +994,12 @@ function wire() {
         ev.preventDefault();
         onAccept();
     });
+    if (clear) {
+        clear.addEventListener('click', function (ev) {
+            ev.preventDefault();
+            clearSavedPlan();
+        });
+    }
     if (another) {
         another.addEventListener('click', function (ev) {
             ev.preventDefault();

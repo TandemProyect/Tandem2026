@@ -675,6 +675,59 @@ namespace Desing.Controllers
             }
         }
 
+        [HttpPost]
+        public JsonResult ClearPhasePlan()
+        {
+            try
+            {
+                if (Request.InputStream.CanSeek)
+                {
+                    Request.InputStream.Position = 0;
+                }
+
+                string rawJson;
+                using (var reader = new StreamReader(Request.InputStream, Encoding.UTF8))
+                {
+                    rawJson = reader.ReadToEnd();
+                }
+
+                if (string.IsNullOrWhiteSpace(rawJson))
+                {
+                    return Json(new { Exito = false, Mensaje = "JSON vacío." });
+                }
+
+                var request = JsonConvert.DeserializeObject<Desing2PhasePlanSaveRequest>(rawJson);
+                if (request == null || request.DesignId <= 0)
+                {
+                    return Json(new { Exito = false, Mensaje = "Diseño no indicado." });
+                }
+
+                var repository = new DesignWallRepository(db);
+                if (repository.FindActiveDesign(request.DesignId) == null)
+                {
+                    return Json(new { Exito = false, Mensaje = "Diseño no encontrado." });
+                }
+
+                var userId = IntranetAuditHelper.ResolveCurrentUserId(User) ?? "";
+                string detailError;
+                if (!TryClearPhaseDetails(request.DesignId, userId, out detailError))
+                {
+                    return Json(new { Exito = false, Mensaje = detailError ?? "No se ha podido borrar la planificación." });
+                }
+
+                TrySavePhasePlanJson(request.DesignId, userId, "");
+                return Json(new { Exito = true, DesignId = request.DesignId });
+            }
+            catch (JsonReaderException ex)
+            {
+                return Json(new { Exito = false, Mensaje = "JSON inválido: " + ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Exito = false, Mensaje = ex.Message });
+            }
+        }
+
         private static byte[] DecodeDesignPhotoPng(string raw)
         {
             if (string.IsNullOrWhiteSpace(raw))
@@ -2028,6 +2081,34 @@ namespace Desing.Controllers
                 }
 
                 count = rows.Count;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                error = ex.Message;
+                return false;
+            }
+        }
+
+        private bool TryClearPhaseDetails(long designId, string userId, out string error)
+        {
+            error = null;
+            try
+            {
+                var exists = db.Database.SqlQuery<int>(
+                    "SELECT CASE WHEN OBJECT_ID(N'dbo.TSql_DesingFasesDetail', N'U') IS NULL THEN 0 ELSE 1 END")
+                    .FirstOrDefault();
+                if (exists != 1)
+                {
+                    error = "Falta la tabla TSql_DesingFasesDetail.";
+                    return false;
+                }
+
+                db.Database.ExecuteSqlCommand(
+                    "UPDATE dbo.TSql_DesingFasesDetail SET Is_Delete = 1, Is_Active = 0, LinModifiedBy = @p0, AddLastDateChange = @p1, Ntimeschanged = Ntimeschanged + 1 WHERE LinkDesign_V2 = @p2 AND Is_Delete = 0",
+                    string.IsNullOrWhiteSpace(userId) ? "" : userId,
+                    DateTime.Now,
+                    designId);
                 return true;
             }
             catch (Exception ex)

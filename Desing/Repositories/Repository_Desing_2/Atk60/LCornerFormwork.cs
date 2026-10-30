@@ -1162,8 +1162,6 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         /// <summary>
         /// Cruce en +. Las esquinas interiores son las de la T, y la otra
         /// mitad es la misma pareja al otro lado. Sin cara E y sin angular.
-        /// Cada brazo conserva el tape: el canto queda abierto y, si no se
-        /// cierra, el hormigón se escapa.
         /// </summary>
         private static void PlacePlus(
             List<Atk60ElementPaintItem> outElements,
@@ -1186,12 +1184,20 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 return;
             }
 
+            StripTapePanelAtEnd(outElements, branchA.Run, branchA.AtEnd);
+            StripTapePanelAtEnd(outElements, branchB.Run, branchB.AtEnd);
+            if (throughA != null)
+            {
+                StripTapePanelAtEnd(outElements, throughA.Run, throughA.AtEnd);
+            }
+
+            if (throughB != null)
+            {
+                StripTapePanelAtEnd(outElements, throughB.Run, throughB.AtEnd);
+            }
+
             PlacePlusSide(outElements, branchA, throughThickMm, vx, vz);
             PlacePlusSide(outElements, branchB, throughThickMm, vx, vz);
-            PlaceEndTape(outElements, branchA);
-            PlaceEndTape(outElements, branchB);
-            PlaceEndTape(outElements, throughA);
-            PlaceEndTape(outElements, throughB);
             PlaceClamps(outElements, branchA.Run, branchA.AtEnd);
             PlaceClamps(outElements, branchB.Run, branchB.AtEnd);
             if (throughA != null)
@@ -1779,8 +1785,6 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
 
                     if (branch == null)
                     {
-                        PlaceEndTape(outElements, endA);
-                        PlaceEndTape(outElements, endB);
                         continue;
                     }
 
@@ -2197,19 +2201,6 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             ix = ax + (aox * ta);
             iz = az + (aoz * ta);
             return true;
-        }
-
-        /// <summary>
-        /// Cierra el canto del brazo. Si ya estaba libre, el tape salió en el pase anterior.
-        /// </summary>
-        private static void PlaceEndTape(List<Atk60ElementPaintItem> outElements, EndHit hit)
-        {
-            if (outElements == null || hit == null || hit.Run == null || hit.Run.Wall == null || hit.Run.Anchor == null)
-            {
-                return;
-            }
-
-            outElements.AddRange(ExactWidthEndTape.PlaceOneEnd(hit.Run.Wall, hit.Run.Anchor, !hit.AtEnd));
         }
 
         /// <summary>

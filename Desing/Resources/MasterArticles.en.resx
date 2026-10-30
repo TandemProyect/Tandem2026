@@ -622,6 +622,18 @@
   <data name="StlPreview_Desing2PhaseCancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
+  <data name="StlPreview_Desing2PhaseClear" xml:space="preserve">
+    <value>Delete plan</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseClearAsk" xml:space="preserve">
+    <value>Delete the plan for this design?</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseClearFail" xml:space="preserve">
+    <value>The plan could not be deleted.</value>
+  </data>
+  <data name="StlPreview_Desing2PhaseCleared" xml:space="preserve">
+    <value>Plan deleted.</value>
+  </data>
   <data name="StlPreview_Desing2PhaseColColor" xml:space="preserve">
     <value>Colour</value>
   </data>
