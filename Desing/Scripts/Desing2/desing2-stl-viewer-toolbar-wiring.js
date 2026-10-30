@@ -544,13 +544,38 @@
             return { later: later, earlier: earlier, joint: joint };
         }
 
-        function setConnectionAt(wall, x, z, value) {
-            if (!wall || !wall.Attributes) return;
-            const p1 = wallPoint(wall.P1);
-            const p2 = wallPoint(wall.P2);
+        function axisFlips(p1, p2) {
+            if (!p1 || !p2) return false;
+            const dx = p2.x - p1.x;
+            const dz = p2.z - p1.z;
+            return dx < -1e-9 || (Math.abs(dx) <= 1e-9 && dz < -1e-9);
+        }
+
+        function connectionKeyForPoint(wall, x, z) {
+            const p1 = wallPoint(wall && wall.P1);
+            const p2 = wallPoint(wall && wall.P2);
             const d1 = p1 ? ((p1.x - x) * (p1.x - x)) + ((p1.z - z) * (p1.z - z)) : 1e12;
             const d2 = p2 ? ((p2.x - x) * (p2.x - x)) + ((p2.z - z) * (p2.z - z)) : 1e12;
-            wall.Attributes[d1 <= d2 ? '_Idconnection_1' : '_Idconnection_2'] = value;
+            const nearerP1 = d1 <= d2;
+            if (!axisFlips(p1, p2)) return nearerP1 ? '_Idconnection_1' : '_Idconnection_2';
+            return nearerP1 ? '_Idconnection_2' : '_Idconnection_1';
+        }
+
+        function clearTapeOnFreeEnd(attrs, atStart) {
+            if (!attrs) return;
+            if (atStart) {
+                attrs._Tape_1 = '';
+                attrs._ChekSolapeIni = false;
+            } else {
+                attrs._Tape_2 = '';
+                attrs._ChekSolapeEnd = false;
+            }
+            attrs._Tape_0 = '';
+        }
+
+        function setConnectionAt(wall, x, z, value) {
+            if (!wall || !wall.Attributes) return;
+            wall.Attributes[connectionKeyForPoint(wall, x, z)] = value;
         }
 
         function trimPouredOverlaps(list, phaseNo, picked) {
@@ -576,9 +601,10 @@
                     const dz = other.z - here.z;
                     const len = Math.hypot(dx, dz);
                     if (!(len > skip + 300)) return;
+                    const overlapKey = connectionKeyForPoint(wall, here.x, here.z);
                     writeWallPoint(atP1 ? wall.P1 : wall.P2, here.x + (dx / len) * skip, here.z + (dz / len) * skip);
                     wall.Attributes._Datalong = (len - skip) / 1000;
-                    wall.Attributes[atP1 ? '_Idconnection_1' : '_Idconnection_2'] = 'Overlap';
+                    wall.Attributes[overlapKey] = 'Overlap';
                 });
             });
         }
@@ -644,8 +670,10 @@
             writeWallPoint(stub.P2, tipX, tipZ);
             if (stub.Attributes) {
                 const kept = stub.Attributes[atStart ? '_Idconnection_1' : '_Idconnection_2'] || '';
-                stub.Attributes._Idconnection_1 = kept;
-                stub.Attributes._Idconnection_2 = '';
+                const tipAtEnd = !axisFlips({ x: near.x, z: near.z }, { x: tipX, z: tipZ });
+                stub.Attributes._Idconnection_1 = tipAtEnd ? kept : '';
+                stub.Attributes._Idconnection_2 = tipAtEnd ? '' : kept;
+                clearTapeOnFreeEnd(stub.Attributes, !tipAtEnd);
                 stub.Attributes._Datalong = stubLen / 1000;
             }
             const tag = String(stub.LineId || stub.Id || stub.WallId || 'w') + '-exit';
@@ -832,7 +860,7 @@
                         const p2 = wallPoint(wall.P2);
                         const jd1 = p1 ? ((p1.x - x) * (p1.x - x)) + ((p1.z - z) * (p1.z - z)) : 1e12;
                         const jd2 = p2 ? ((p2.x - x) * (p2.x - x)) + ((p2.z - z) * (p2.z - z)) : 1e12;
-                        const key = jd1 <= jd2 ? '_Idconnection_1' : '_Idconnection_2';
+                        const key = connectionKeyForPoint(wall, x, z);
                         const current = wall.Attributes[key];
                         if (current && jointOf(current)) return;
                         if (!current || current === 'null' || current === '0') wall.Attributes[key] = 'Overlap';

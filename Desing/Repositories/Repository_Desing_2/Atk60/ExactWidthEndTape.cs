@@ -639,6 +639,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             }
 
             var attrs = wall.Attributes;
+            FlushPhaseExitTape(wall, attrs);
             var thicknessMm = Atk60FaceInsertion.ResolveWallThicknessMm(attrs);
             var mm = (int)Math.Round(thicknessMm);
             var yawRad = Atk60FaceInsertion.NormalizeYawToRad(anchor.RotY);
@@ -2078,6 +2079,39 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
 
             return value.StartsWith("TapeS", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(value, "Solucion_2", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// En la salida de fase el tape cierra el último panel.
+        /// El solape dejaría el cierre 0,30 m más atrás.
+        /// </summary>
+        private static void FlushPhaseExitTape(Desing2FormworkWallDto wall, AttributesList attrs)
+        {
+            if (attrs == null || wall == null)
+            {
+                return;
+            }
+
+            var id = !string.IsNullOrWhiteSpace(wall.WallId)
+                ? wall.WallId
+                : (!string.IsNullOrWhiteSpace(wall.Id) ? wall.Id : wall.LineId);
+            if (string.IsNullOrEmpty(id) || !id.EndsWith("-exit", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            attrs._Tape_1 = null;
+            attrs._Tape_2 = null;
+            if (attrs.Extra == null)
+            {
+                return;
+            }
+
+            attrs.Extra.Remove("_Tape_0");
+            attrs.Extra.Remove("_Tape_1");
+            attrs.Extra.Remove("_Tape_2");
+            attrs.Extra.Remove("_ChekSolapeIni");
+            attrs.Extra.Remove("_ChekSolapeEnd");
         }
 
         private static bool EndIsFree(AttributesList attrs, bool atStart)

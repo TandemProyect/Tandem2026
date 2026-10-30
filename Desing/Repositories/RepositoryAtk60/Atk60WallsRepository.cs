@@ -277,10 +277,13 @@ namespace Desing.Repositories.RepositoryAtk60
                 var endKey = CornerKeyMm(s.Ex, s.Ez);
                 int ds;
                 int de;
-                var trimStart = degree.TryGetValue(startKey, out ds) && ds >= 2
+                // El cabo de la fase sale del vértice y el tape va en su punta.
+                // Recortarlo aparta los paneles de la esquina y el tape queda suelto.
+                var phaseExit = IsPhaseExitWall(s.Wall);
+                var trimStart = !phaseExit && degree.TryGetValue(startKey, out ds) && ds >= 2
                     ? CornerTrimMm(segs, s, startKey)
                     : 0d;
-                var trimEnd = degree.TryGetValue(endKey, out de) && de >= 2
+                var trimEnd = !phaseExit && degree.TryGetValue(endKey, out de) && de >= 2
                     ? CornerTrimMm(segs, s, endKey)
                     : 0d;
                 var trimmed = Math.Max(0d, len - trimStart - trimEnd);
@@ -290,6 +293,22 @@ namespace Desing.Repositories.RepositoryAtk60
                 var nez = nsz + uz * trimmed;
                 WriteTrimmedAxis(s.Wall, nsx, nsz, nex, nez, trimmed);
             }
+        }
+
+        private static bool IsPhaseExitWall(Desing2FormworkWallDto wall)
+        {
+            if (wall == null)
+            {
+                return false;
+            }
+
+            return EndsWithExit(wall.Id) || EndsWithExit(wall.LineId) || EndsWithExit(wall.WallId);
+        }
+
+        private static bool EndsWithExit(string id)
+        {
+            return !string.IsNullOrEmpty(id)
+                && id.EndsWith("-exit", System.StringComparison.OrdinalIgnoreCase);
         }
 
         private static string CornerKeyMm(double x, double z)
