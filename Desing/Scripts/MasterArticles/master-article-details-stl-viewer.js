@@ -5377,7 +5377,7 @@ function bootMasterArticleDetailsStlViewer() {
             if (kind !== 'L' && kind !== 'T' && kind !== 'Cross') return null;
             return text.slice(cut + 1).split('-').map(function (part) { return part.trim(); }).filter(Boolean);
         }
-        const pouredMm = 1200 + 500;
+        const pouredMm = 600;
         const group = new THREE.Group();
         group.name = 'phase-overlap-concrete';
         axes.forEach(function (ax) {

@@ -2204,11 +2204,22 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         }
 
         /// <summary>
+        /// Cabo de la fase siguiente. El angular cierra la esquina.
+        /// El módulo de 0,90 no se alarga por ese cabo: el tape queda a 0,15 m.
+        /// </summary>
+        private static bool IsPhaseExit(Run run)
+        {
+            var id = run != null ? run.Id : null;
+            return !string.IsNullOrEmpty(id)
+                && id.EndsWith("-exit", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
         /// El tape del extremo de esquina deja su panel girado. Ahí va la esquina, no el tape.
         /// </summary>
         private static void StripTapePanelAtEnd(List<Atk60ElementPaintItem> items, Run run, bool atEnd)
         {
-            if (items == null || run == null)
+            if (items == null || run == null || IsPhaseExit(run))
             {
                 return;
             }
@@ -2322,21 +2333,23 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 up += band;
             }
 
-            var ownerCover = PlaceExteriorCover(outElements, owner, ownerAtEnd, ownerInside, other.ThicknessMm);
-            var otherCover = PlaceExteriorCover(outElements, other, otherAtEnd, otherInside, owner.ThicknessMm);
+            var ownerExit = IsPhaseExit(owner);
+            var otherExit = IsPhaseExit(other);
+            var ownerCover = !ownerExit && PlaceExteriorCover(outElements, owner, ownerAtEnd, ownerInside, other.ThicknessMm);
+            var otherCover = !otherExit && PlaceExteriorCover(outElements, other, otherAtEnd, otherInside, owner.ThicknessMm);
             var stepMm = Math.Abs(owner.ThicknessMm - other.ThicknessMm);
             var unequal = stepMm > 5d && stepMm <= 600d;
-            if (!ownerCover)
+            if (!ownerCover && !ownerExit)
             {
                 PlaceGap(outElements, owner, ownerAtEnd, ownerInside, cornerX, cornerZ, !unequal, other.ThicknessMm);
             }
 
-            if (!otherCover)
+            if (!otherCover && !otherExit)
             {
                 PlaceGap(outElements, other, otherAtEnd, otherInside, cornerX, cornerZ, !unequal, owner.ThicknessMm);
             }
 
-            if (unequal && !ownerCover && !otherCover)
+            if (unequal && !ownerCover && !otherCover && !ownerExit && !otherExit)
             {
                 PlaceStepWood(
                     outElements, owner, ownerAtEnd, ownerInside,
@@ -2346,12 +2359,12 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             {
                 // El módulo de fuera ya cierra ese extremo. Medirlo otra vez
                 // ponía un panel y un tablón de más, justo en la esquina.
-                if (!ownerCover)
+                if (!ownerCover && !ownerExit)
                 {
                     PlaceInteriorGap(outElements, owner, ownerAtEnd, ownerInside, other.ThicknessMm, panelX, panelZ);
                 }
 
-                if (!otherCover)
+                if (!otherCover && !otherExit)
                 {
                     PlaceInteriorGap(outElements, other, otherAtEnd, otherInside, owner.ThicknessMm, panelX, panelZ);
                 }

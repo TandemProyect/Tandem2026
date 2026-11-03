@@ -1,6 +1,6 @@
 # Encofrado por fases — diseño 30008
 
-29 de octubre de 2026. Estudio del archivo `muros-30008-20261029-1510.tnwall` y de las dos vistas del mismo plano (muros con pilares verdes, y el mismo plano ya encofrado). No hay función nueva. El encofrado del visor no se ha tocado.
+29 de octubre de 2026. Estudio del archivo `muros-30008-20261029-1510.tnwall` y de las dos vistas del mismo plano (muros con pilares verdes, y el mismo plano ya encofrado). Es el caso de prueba y una lectura de puestas. La función del visor está en [HANDOVER-ENCOFRADO-FASES.md](HANDOVER-ENCOFRADO-FASES.md). El corte de este documento no es el botón.
 
 El archivo se abrió con `Desing/IA/tools/decrypt-wall-export.mjs`. Diseño 30008, exportado el 29 oct 2026 a las 15:10. 54 líneas: 18 ejes y 36 caras (dos por eje). Ningún muro especial. El encofrado generado de la segunda imagen no viaja en el archivo.
 

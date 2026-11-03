@@ -579,8 +579,6 @@
         }
 
         function trimPouredOverlaps(list, phaseNo, picked) {
-            const skip = cornerStubMm() - PHASE_OVERLAP_MM;
-            if (!(skip > 40)) return;
             list.forEach(function (wall) {
                 const ax = axisOfWall(wall, picked.axes);
                 if (!ax || !wall.Attributes) return;
@@ -589,6 +587,15 @@
                     if (!near.joint || !near.earlier || near.later) return;
                     const x = endIndex === 0 ? ax.x1 : ax.x2;
                     const z = endIndex === 0 ? ax.z1 : ax.z2;
+                    let hostAx = null;
+                    near.joint.members.forEach(function (id) {
+                        if (hostAx) return;
+                        if (String(id) === ax.wallId || String(id) === ax.lineId) return;
+                        const phase = phaseOfMember(picked.byWall, picked.axes, id);
+                        if (phase >= 1 && phase < Number(phaseNo)) hostAx = axisByMember(picked.axes, id);
+                    });
+                    const skip = (hostAx ? cornerStubMm(hostAx, ax, x, z, null, wall) : (600 + PHASE_OVERLAP_MM)) - PHASE_OVERLAP_MM;
+                    if (!(skip > 40)) return;
                     const p1 = wallPoint(wall.P1);
                     const p2 = wallPoint(wall.P2);
                     if (!p1 || !p2) return;
@@ -622,16 +629,71 @@
                         setConnectionAt(wall, x, z, 'Overlap');
                         return;
                     }
-                    if (near.later && !near.joint) setConnectionAt(wall, x, z, '');
+                    if (near.later && !near.joint) setConnectionAt(wall, x, z, 'Overlap');
                 });
             });
         }
 
-        function cornerStubMm() {
-            // El recorte de la esquina y el borrado del tape (0,50 m) se comen
-            // un cabo corto. 1,20 m de esquina + 0,50 m + 0,15 m dejan el tape
-            // al final del encofrado.
-            return 1200 + 500 + PHASE_OVERLAP_MM;
+        function wallThicknessMm(wall) {
+            const attrs = wall && wall.Attributes ? wall.Attributes : {};
+            let width = Number(attrs._DataWith);
+            if (Number.isFinite(width) && width > 0) {
+                if (width < 20) width *= 1000;
+                return width;
+            }
+            width = Number(attrs.ThicknessMm);
+            if (Number.isFinite(width) && width > 0) return width;
+            return 300;
+        }
+
+        function exteriorModuleMm(otherThicknessMm) {
+            const span = otherThicknessMm + 300;
+            let module = 300;
+            const steps = [300, 450, 600, 750, 900, 1050];
+            for (let i = 0; i < steps.length; i++) {
+                if (span > steps[i]) module = steps[i] + 150;
+            }
+            return module;
+        }
+
+        function dirFromVertex(ax, vx, vz) {
+            const d1 = ((ax.x1 - vx) * (ax.x1 - vx)) + ((ax.z1 - vz) * (ax.z1 - vz));
+            const d2 = ((ax.x2 - vx) * (ax.x2 - vx)) + ((ax.z2 - vz) * (ax.z2 - vz));
+            const farX = d1 <= d2 ? ax.x2 : ax.x1;
+            const farZ = d1 <= d2 ? ax.z2 : ax.z1;
+            const dx = farX - vx;
+            const dz = farZ - vz;
+            const len = Math.hypot(dx, dz);
+            if (!(len > 40)) return null;
+            return { x: dx / len, z: dz / len };
+        }
+
+        function axisTrimMm(intoX, intoZ, otherX, otherZ, selfT, otherT) {
+            const module = exteriorModuleMm(otherT);
+            const cross = (intoX * otherZ) - (intoZ * otherX);
+            if (Math.abs(cross) < 1e-9) return module;
+            function planNormal(ux, uz, sign) {
+                const s = sign >= 0 ? 1 : -1;
+                return { x: -uz * s, z: ux * s };
+            }
+            const n1 = planNormal(intoX, intoZ, cross > 0 ? -1 : 1);
+            const n2 = planNormal(otherX, otherZ, cross > 0 ? 1 : -1);
+            const dx = (n2.x * otherT * 0.5) - (n1.x * selfT * 0.5);
+            const dz = (n2.z * otherT * 0.5) - (n1.z * selfT * 0.5);
+            const along = ((dx * otherZ) - (dz * otherX)) / cross;
+            return Math.max(0, along + module);
+        }
+
+        function cornerStubMm(hostAx, laterAx, vx, vz, hostWall, laterWall) {
+            const hostInto = dirFromVertex(hostAx, vx, vz);
+            const laterInto = dirFromVertex(laterAx, vx, vz);
+            const laterT = wallThicknessMm(laterWall);
+            const hostT = wallThicknessMm(hostWall);
+            let trim = hostT * 0.5 + 300;
+            if (hostInto && laterInto) {
+                trim = Math.max(trim, axisTrimMm(laterInto.x, laterInto.z, hostInto.x, hostInto.z, laterT, hostT));
+            }
+            return trim + PHASE_OVERLAP_MM;
         }
 
         function axisByMember(axes, id) {
@@ -649,34 +711,108 @@
             return null;
         }
 
-        function makeCornerStub(source, vx, vz) {
+        function pointRecord(x, z) {
+            return { x: x, y: 0, z: z, xMm: x, yMm: 0, zMm: z };
+        }
+
+        function writeAxisGeometry(wall, x1, z1, x2, z2) {
+            if (!wall) return;
+            if (!wall.P1) wall.P1 = {};
+            if (!wall.P2) wall.P2 = {};
+            writeWallPoint(wall.P1, x1, z1);
+            writeWallPoint(wall.P2, x2, z2);
+            if (!wall.Attributes) wall.Attributes = {};
+            const attrs = wall.Attributes;
+            const len = Math.hypot(x2 - x1, z2 - z1);
+            attrs.InicioX = x1;
+            attrs.InicioY = z1;
+            attrs.InicioZ = 0;
+            attrs.FinX = x2;
+            attrs.FinY = z2;
+            attrs.FinZ = 0;
+            attrs._Datalong = len / 1000;
+            attrs.p1 = pointRecord(x1, z1);
+            attrs.P1 = pointRecord(x1, z1);
+            attrs.p2 = pointRecord(x2, z2);
+            attrs.P2 = pointRecord(x2, z2);
+            if (attrs.Extra && typeof attrs.Extra === 'object') {
+                attrs.Extra.p1 = pointRecord(x1, z1);
+                attrs.Extra.P1 = pointRecord(x1, z1);
+                attrs.Extra.p2 = pointRecord(x2, z2);
+                attrs.Extra.P2 = pointRecord(x2, z2);
+                attrs.Extra.InicioX = x1;
+                attrs.Extra.InicioY = z1;
+                attrs.Extra.FinX = x2;
+                attrs.Extra.FinY = z2;
+            }
+        }
+
+        function connectionAt(wall, x, z) {
+            if (!wall || !wall.Attributes) return '';
+            return String(wall.Attributes[connectionKeyForPoint(wall, x, z)] || '');
+        }
+
+        function snapEndTo(wall, vx, vz) {
+            const p1 = wallPoint(wall && wall.P1);
+            const p2 = wallPoint(wall && wall.P2);
+            if (!p1 || !p2) return;
+            const d1 = ((p1.x - vx) * (p1.x - vx)) + ((p1.z - vz) * (p1.z - vz));
+            const d2 = ((p2.x - vx) * (p2.x - vx)) + ((p2.z - vz) * (p2.z - vz));
+            const near = Math.min(d1, d2);
+            if (near < 1 || near > 800 * 800) return;
+            const moveP1 = d1 <= d2;
+            const keep = moveP1 ? p2 : p1;
+            const movedConn = connectionAt(wall, (moveP1 ? p1 : p2).x, (moveP1 ? p1 : p2).z);
+            const keepConn = connectionAt(wall, keep.x, keep.z);
+            if (moveP1) writeAxisGeometry(wall, vx, vz, keep.x, keep.z);
+            else writeAxisGeometry(wall, keep.x, keep.z, vx, vz);
+            wall.Attributes._Idconnection_1 = '';
+            wall.Attributes._Idconnection_2 = '';
+            if (movedConn) setConnectionAt(wall, vx, vz, movedConn);
+            if (keepConn) setConnectionAt(wall, keep.x, keep.z, keepConn);
+        }
+
+        function syncAxisJoints(list, picked) {
+            list.forEach(function (wall) {
+                const ax = axisOfWall(wall, picked.axes);
+                if (!ax || !wall.Attributes) return;
+                [0, 1].forEach(function (endIndex) {
+                    const raw = ax.conn[endIndex] || '';
+                    if (!jointOf(raw)) return;
+                    const x = endIndex === 0 ? ax.x1 : ax.x2;
+                    const z = endIndex === 0 ? ax.z1 : ax.z2;
+                    setConnectionAt(wall, x, z, raw);
+                });
+            });
+        }
+
+        function makeCornerStub(source, vx, vz, jointRaw, stubLenMm) {
             const stub = cloneFormworkWall(source);
             const p1 = wallPoint(stub.P1);
             const p2 = wallPoint(stub.P2);
             if (!p1 || !p2) return null;
             const d1 = ((p1.x - vx) * (p1.x - vx)) + ((p1.z - vz) * (p1.z - vz));
             const d2 = ((p2.x - vx) * (p2.x - vx)) + ((p2.z - vz) * (p2.z - vz));
-            const near = d1 <= d2 ? p1 : p2;
             const far = d1 <= d2 ? p2 : p1;
-            const atStart = d1 <= d2;
-            const dx = far.x - near.x;
-            const dz = far.z - near.z;
+            const dx = far.x - vx;
+            const dz = far.z - vz;
             const len = Math.hypot(dx, dz);
             if (!(len > 40)) return null;
-            const stubLen = Math.min(len, cornerStubMm());
-            const tipX = near.x + (dx / len) * stubLen;
-            const tipZ = near.z + (dz / len) * stubLen;
-            writeWallPoint(stub.P1, near.x, near.z);
-            writeWallPoint(stub.P2, tipX, tipZ);
+            const stubLen = Math.min(len, stubLenMm > 40 ? stubLenMm : (600 + PHASE_OVERLAP_MM));
+            const tipX = vx + (dx / len) * stubLen;
+            const tipZ = vz + (dz / len) * stubLen;
+            writeAxisGeometry(stub, vx, vz, tipX, tipZ);
             if (stub.Attributes) {
-                const kept = stub.Attributes[atStart ? '_Idconnection_1' : '_Idconnection_2'] || '';
-                const tipAtEnd = !axisFlips({ x: near.x, z: near.z }, { x: tipX, z: tipZ });
-                stub.Attributes._Idconnection_1 = tipAtEnd ? kept : '';
-                stub.Attributes._Idconnection_2 = tipAtEnd ? '' : kept;
-                clearTapeOnFreeEnd(stub.Attributes, !tipAtEnd);
-                stub.Attributes._Datalong = stubLen / 1000;
+                stub.Attributes._Idconnection_1 = '';
+                stub.Attributes._Idconnection_2 = '';
+                stub.Attributes._Tape_1 = '';
+                stub.Attributes._Tape_2 = '';
+                stub.Attributes._ChekSolapeIni = false;
+                stub.Attributes._ChekSolapeEnd = false;
+                if (jointRaw) setConnectionAt(stub, vx, vz, jointRaw);
+                clearTapeOnFreeEnd(stub.Attributes, connectionKeyForPoint(stub, tipX, tipZ) === '_Idconnection_1');
             }
-            const tag = String(stub.LineId || stub.Id || stub.WallId || 'w') + '-exit';
+            const tag = String(source.LineId || source.Id || source.WallId || 'w') + '-exit';
             stub.Id = tag;
             stub.LineId = tag;
             stub.WallId = tag;
@@ -692,6 +828,7 @@
                 ax.conn.forEach(function (raw, endIndex) {
                     const joint = jointOf(raw);
                     if (!joint) return;
+                    if (cornerOwner(joint.members, picked.byWall, picked.axes) !== want) return;
                     const vx = endIndex === 0 ? ax.x1 : ax.x2;
                     const vz = endIndex === 0 ? ax.z1 : ax.z2;
                     let stubbed = false;
@@ -709,18 +846,73 @@
                         }
                         const source = wallForAxis(pool, other);
                         if (!source) return;
-                        const stub = makeCornerStub(source, vx, vz);
+                        const host = wallForAxis(list, ax);
+                        const stubLen = cornerStubMm(ax, other, vx, vz, host, source);
+                        const stub = makeCornerStub(source, vx, vz, raw, stubLen);
                         if (!stub) return;
                         seen[mark] = true;
                         stubbed = true;
                         list.push(stub);
                     });
                     if (stubbed) {
+                        const host = wallForAxis(list, ax);
+                        if (host) snapEndTo(host, vx, vz);
                         picked.cornerEnds[ax.lineId + ':' + endIndex] = true;
                         picked.cornerEnds[ax.wallId + ':' + endIndex] = true;
                     }
                 });
             });
+        }
+
+        function sealCollinearRuns(list) {
+            let changed = true;
+            while (changed) {
+                changed = false;
+                for (let i = 0; i < list.length && !changed; i++) {
+                    const a1 = wallPoint(list[i] && list[i].P1);
+                    const a2 = wallPoint(list[i] && list[i].P2);
+                    if (!a1 || !a2) continue;
+                    const adx = a2.x - a1.x;
+                    const adz = a2.z - a1.z;
+                    const alen = Math.hypot(adx, adz);
+                    if (!(alen > 40)) continue;
+                    for (let j = i + 1; j < list.length && !changed; j++) {
+                        const b1 = wallPoint(list[j] && list[j].P1);
+                        const b2 = wallPoint(list[j] && list[j].P2);
+                        if (!b1 || !b2) continue;
+                        const bdx = b2.x - b1.x;
+                        const bdz = b2.z - b1.z;
+                        const blen = Math.hypot(bdx, bdz);
+                        if (!(blen > 40)) continue;
+                        if (Math.abs(((adx / alen) * (bdx / blen)) + ((adz / alen) * (bdz / blen))) < 0.85) continue;
+                        const endsA = [a1, a2];
+                        const endsB = [b1, b2];
+                        let hit = null;
+                        for (let ia = 0; ia < 2 && !hit; ia++) {
+                            for (let ib = 0; ib < 2 && !hit; ib++) {
+                                const dx = endsA[ia].x - endsB[ib].x;
+                                const dz = endsA[ia].z - endsB[ib].z;
+                                if ((dx * dx) + (dz * dz) > 80 * 80) continue;
+                                if (jointOf(connectionAt(list[i], endsA[ia].x, endsA[ia].z))) continue;
+                                if (jointOf(connectionAt(list[j], endsB[ib].x, endsB[ib].z))) continue;
+                                hit = { ia: ia, ib: ib };
+                            }
+                        }
+                        if (!hit) continue;
+                        const farA = hit.ia === 0 ? a2 : a1;
+                        const farB = hit.ib === 0 ? b2 : b1;
+                        const connA = connectionAt(list[i], farA.x, farA.z);
+                        const connB = connectionAt(list[j], farB.x, farB.z);
+                        writeAxisGeometry(list[i], farA.x, farA.z, farB.x, farB.z);
+                        list[i].Attributes._Idconnection_1 = '';
+                        list[i].Attributes._Idconnection_2 = '';
+                        if (connA) setConnectionAt(list[i], farA.x, farA.z, connA);
+                        if (connB) setConnectionAt(list[i], farB.x, farB.z, connB);
+                        list.splice(j, 1);
+                        changed = true;
+                    }
+                }
+            }
         }
 
         function segsForIds(axes, include) {
@@ -757,12 +949,11 @@
 
         function writeWallPoint(p, x, z) {
             if (!p) return;
+            p.x = x;
+            p.z = z;
             if (p.xMm != null || p.zMm != null) {
                 p.xMm = x;
                 p.zMm = z;
-            } else {
-                p.x = x;
-                p.z = z;
             }
         }
 
@@ -1143,11 +1334,13 @@
                     settleFormworkEarly(none);
                     return;
                 }
+                syncAxisJoints(walls, picked);
                 addCornerStubs(walls, pool, formPhase, picked);
                 extendPhaseExits(walls, formPhase, picked);
                 trimPouredOverlaps(walls, formPhase, picked);
                 releasePhaseEnds(walls, formPhase, picked);
                 markPhaseOverlaps(walls, formPhase, picked);
+                sealCollinearRuns(walls);
             }
 
             // Flujo legacy (ayer): inserta panel GLB + marcas.
