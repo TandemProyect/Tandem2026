@@ -14,6 +14,10 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
     {
         private const double LegMm = 300d;
         private const double ReachMm = 450d;
+        private const double LegacyCornerHookAlongMm = 10d;
+        private const double LegacyCornerPlateAlongMm = 120d;
+        private const double LegacyCornerHookFaceBaseMm = 300d;
+        private const double LegacyCornerPlateFaceBaseMm = 390d;
         private const string FixedPath = "../../Content/DesignTools/Stl/ATK60/10004220.stl";
         private const string FixedCode = "10004220";
         private const string StiffPath = "../../Content/DesignTools/Stl/ATK60/1850162.stl";
@@ -2658,6 +2662,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     run,
                     atEnd,
                     moduleMm,
+                    otherThicknessMm,
                     showPrimary,
                     showOpposite,
                     true,
@@ -2704,6 +2709,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             Run run,
             bool atEnd,
             int moduleMm,
+            double otherThicknessMm,
             bool showPrimary,
             bool showOpposite,
             bool includeTieColumn = true,
@@ -2716,7 +2722,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             }
             else
             {
-                PlaceCornerUnionHookAndPlate(outElements, run, atEnd, showPrimary, showOpposite);
+                PlaceCornerUnionHookAndPlate(
+                    outElements, run, atEnd, otherThicknessMm, showPrimary, showOpposite);
             }
             if (includeTieColumn)
             {
@@ -2742,6 +2749,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             List<Atk60ElementPaintItem> outElements,
             Run run,
             bool atEnd,
+            double otherThicknessMm,
             bool showPrimary,
             bool showOpposite)
         {
@@ -2752,21 +2760,24 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
 
             if (showPrimary)
             {
-                PlaceCornerHardwareFromPillarPattern(
-                    outElements, run, atEnd, run.Anchor.NormalX, run.Anchor.NormalZ);
+                PlaceCornerHardwareFromLegacyTapePattern(
+                    outElements, run, atEnd, otherThicknessMm,
+                    run.Anchor.NormalX, run.Anchor.NormalZ);
             }
 
             if (showOpposite)
             {
-                PlaceCornerHardwareFromPillarPattern(
-                    outElements, run, atEnd, -run.Anchor.NormalX, -run.Anchor.NormalZ);
+                PlaceCornerHardwareFromLegacyTapePattern(
+                    outElements, run, atEnd, otherThicknessMm,
+                    -run.Anchor.NormalX, -run.Anchor.NormalZ);
             }
         }
 
-        private static void PlaceCornerHardwareFromPillarPattern(
+        private static void PlaceCornerHardwareFromLegacyTapePattern(
             List<Atk60ElementPaintItem> outElements,
             Run run,
             bool atEnd,
+            double otherThicknessMm,
             double faceNormalX,
             double faceNormalZ)
         {
@@ -2776,10 +2787,43 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 run.Anchor.Y, run.HeightMm, run.ThicknessMm, atEnd,
                 faceNormalX, faceNormalZ);
 
+            var cornerX = atEnd ? run.Ex : run.Sx;
+            var cornerZ = atEnd ? run.Ez : run.Sz;
+            var alongSign = atEnd ? 1d : -1d;
+            var alongX = run.Ux * alongSign;
+            var alongZ = run.Uz * alongSign;
+            var sideX = -run.Uz;
+            var sideZ = run.Ux;
+            if ((sideX * faceNormalX) + (sideZ * faceNormalZ) < 0d)
+            {
+                sideX = -sideX;
+                sideZ = -sideZ;
+            }
+
             for (var i = firstNewItem; i < outElements.Count; i++)
             {
                 var item = outElements[i];
-                if (item != null && item.Color == "nut")
+                if (item == null)
+                {
+                    continue;
+                }
+
+                if (item.ElementCode == "1920811" || item.ElementCode == "10443020")
+                {
+                    var isHook = item.ElementCode == "1920811";
+                    var alongMm = isHook ? LegacyCornerHookAlongMm : LegacyCornerPlateAlongMm;
+                    var faceMm = (isHook ? LegacyCornerHookFaceBaseMm : LegacyCornerPlateFaceBaseMm)
+                        + otherThicknessMm;
+                    item.X = cornerX + (alongX * alongMm) + (sideX * faceMm);
+                    item.Z = cornerZ + (alongZ * alongMm) + (sideZ * faceMm);
+
+                    if (isHook)
+                    {
+                        item.RotZ = (item.RotZ + Math.PI) % (Math.PI * 2d);
+                    }
+                }
+
+                if (item.Color == "nut")
                 {
                     item.RotZ = (item.RotZ + Math.PI) % (Math.PI * 2d);
                 }

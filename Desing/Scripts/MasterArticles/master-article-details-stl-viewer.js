@@ -8406,6 +8406,13 @@ function bootMasterArticleDetailsStlViewer() {
                             new THREE.Vector3(0, 1, 0), strictRotY);
                         clone.quaternion.copy(qYaw).multiply(qLocal);
                         clone.position.set(x, y, z);
+                        if (String(item.ElementType || '').toLowerCase() === 'panel') {
+                            // Evita z-fighting entre la cara exterior del panel y el volumen del pilar.
+                            const outward = new THREE.Vector3(0, -1, 0).applyQuaternion(clone.quaternion);
+                            if (outward.lengthSq() > 1e-8) {
+                                clone.position.addScaledVector(outward.normalize(), 1);
+                            }
+                        }
                     } else {
                         clone.rotation.set(strictRotX, strictRotY, strictRotZ);
                         clone.position.set(x, y, z);
