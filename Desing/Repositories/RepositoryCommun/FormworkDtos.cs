@@ -170,6 +170,7 @@ namespace Desing.Repositories.RepositoryCommun
         public double? _XCoordinate { get; set; }
         public double? _YCoordinate { get; set; }
         public double? _ZCoordinate { get; set; }
+        public string _Tape_0 { get; set; }
         public string _Tape_1 { get; set; }
         public string _Tape_2 { get; set; }
         public string _Idconnection_1 { get; set; }

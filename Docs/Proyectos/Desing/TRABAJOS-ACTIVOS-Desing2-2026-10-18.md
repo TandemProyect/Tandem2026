@@ -9,6 +9,21 @@ Documento vivo para continuar sin perder contexto. El handover completo esta en 
 - Recuento: muestra carga, resumen, articulos, detalles y superficies.
 - ATK60: altura alta corregida para caso 7 m.
 - Barra superior: botones `Pilares` e `Insertar worker` visibles, pero deshabilitados.
+- Esquinas L en modo muro 3D: doble click sobre mesh de esquina abre formulario para tipo de esquina (Angular / Panel regulable vertical / horizontal) y guarda `_Tape_0`.
+- Al aceptar esquina L, el recorte de muros conectados ahora cambia segun tipo: Angular mantiene recorte ATK60 por panel; Universal_X / Universal_Y aplican recorte directo `espesor + 30 mm` en el eje seleccionado (legacy).
+- Corregido cache de modelo 3D: `_Tape_0` entra en fingerprint y al cambiar tipo de esquina se invalida cache `wall3d`, forzando regeneracion visual inmediata.
+- Si faltan lineas `face` en memoria, se sintetizan desde el eje para poder aplicar recortes en muro 3D sin depender del fallback del detector.
+- Tipo de esquina por vertice de eje (`_CornerTypeP1/_CornerTypeP2`) para que cada esquina L aplique su solucion local sin contaminar otras esquinas del mismo muro.
+- Regla de longitud de esquina L ajustada por tipo: `Angular = espesor opuesto + 0,30` (sin +0,03), `Universal_X/Y = espesor opuesto + 0,30 + 0,03`; Angular paneliza ambos catetos y Universal paneliza solo el no regulable.
+- Esquina Angular: en la junta interior angular+panel se añade columna de tirantes (placa + Dywidag) con cotas por banda (2,70: 0,55/2,15; 2,40: 0,55/1,85; 1,20: 0,35/0,85).
+- Insercion del tirante de esquina angular anclada al panel horizontal interior en el borde del muro (`+/- 43,714 mm` desde el borde), tanto en ruta de cover como en ruta de gap.
+- Regla Universal (ajustada segun referencia de pilares): la cara sin panel regulable mantiene panelizacion tipo angular pero sin angular ni uniones de esquina; la cara regulable conserva la union de esquina (estilo pilar) sin angular.
+- Regla Universal refinada: la cara regulable fuerza modulo de 0,75 m y conserva union de esquina de una sola cara (estilo pilar); la cara no regulable mantiene panelizacion sin angular ni uniones de esquina.
+- En la cara regulable Universal se elimina la grapa fija de union de esquina y se sustituye por hardware tipo pilar (gancho `1850164` + placa `10443020`) en alturas de agujero por banda.
+- Ajuste de posicion: el tirante de esquina angular se coloca en el agujero del panel (offset 43,714 mm desde la junta), no en el canto del angular.
+- Ajuste robusto de posicion: el offset del tirante se calcula segun lado real de la junta (fuera por inicio/fin), sin depender de `atEnd`.
+- Regla temporal solicitada: al elegir Universal en una esquina, se desactiva `_IsFormwork` en el eje regulable de ese vertice (muro completo) hasta implementar su encofrado dedicado.
+- Acotacion de muro parcial/total: ahora lee el cateto real de esquina por vertice (Angular/Universal local) en vez del calculo fijo original por espesor.
 
 ## Pendiente 1: activar Pilares
 

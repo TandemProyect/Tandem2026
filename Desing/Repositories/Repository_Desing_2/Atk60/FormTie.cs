@@ -13,10 +13,48 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
     internal static class FormTie
     {
         private const double HoleInsetMm = 43.714d;
+        internal static double JointPanelHoleInsetMm { get { return HoleInsetMm; } }
         private const string PlatePath = "../../Content/DesignTools/Stl/ATK60/10443020.stl";
         private const string WingPath = "../../Content/DesignTools/Stl/ATK60/1920894.stl";
         private const string NutPath = "../../Content/DesignTools/Stl/ATK60/7238001.stl";
         private const string BarPath = "../../Content/DesignTools/Stl/ATK60/dywidag.stl";
+
+        internal static void PlaceJointColumn(
+            List<Atk60ElementPaintItem> outElements,
+            Atk60WallPaintAnchor anchor,
+            string idWall,
+            double alongMm,
+            double yawRad,
+            double ux,
+            double uz,
+            double faceSign,
+            double wallHeightMm,
+            double wallThicknessMm,
+            double wallLengthMm,
+            bool showPrimary = true,
+            bool showOpposite = true)
+        {
+            if (outElements == null || anchor == null || (!showPrimary && !showOpposite))
+            {
+                return;
+            }
+
+            var heights = WallJointTieHeights(wallHeightMm);
+            for (var i = 0; i < heights.Count; i++)
+            {
+                var upMm = heights[i];
+                Atk60FaceInsertion.BothFaces(
+                    outElements, anchor, idWall, PlatePath,
+                    alongMm, upMm, yawRad, ux, uz, faceSign,
+                    wallHeightMm, wallThicknessMm, wallLengthMm,
+                    Atk60FaceInsertion.PanelFaceMm, 0d, "10443020", "zinc",
+                    false, showPrimary, showOpposite);
+                PlaceBar(
+                    outElements, anchor, idWall,
+                    alongMm, upMm, yawRad, ux, uz, faceSign,
+                    wallHeightMm, wallThicknessMm, wallLengthMm);
+            }
+        }
 
         internal static void Place(
             List<Atk60ElementPaintItem> outElements,
@@ -316,5 +354,39 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 && string.Equals(piece.Orientation, "Tumbado", StringComparison.OrdinalIgnoreCase);
         }
 
+        private static List<double> WallJointTieHeights(double wallHeightMm)
+        {
+            var found = new List<double>();
+            var total = (int)Math.Round(wallHeightMm);
+            if (total < 1000)
+            {
+                return found;
+            }
+
+            var full = total / 2700;
+            var rest = total - (full * 2700);
+            var offset = 0d;
+            for (var i = 0; i < full; i++)
+            {
+                AddPieceTieHeights(found, 2700, offset);
+                offset += 2700d;
+            }
+
+            if (rest >= 1000)
+            {
+                AddPieceTieHeights(found, rest, offset);
+            }
+
+            return found;
+        }
+
+        private static void AddPieceTieHeights(List<double> found, int pieceHeightMm, double offsetMm)
+        {
+            var heights = VerticalHeights(pieceHeightMm);
+            for (var i = 0; i < heights.Length; i++)
+            {
+                found.Add(offsetMm + heights[i]);
+            }
+        }
     }
 }

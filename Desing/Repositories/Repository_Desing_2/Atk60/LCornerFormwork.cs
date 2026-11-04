@@ -1578,6 +1578,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
 
                 up += bands[i];
             }
+
         }
 
         private static void AddVariableClamp(
@@ -2262,6 +2263,14 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             Run other,
             bool otherAtEnd)
         {
+            var cornerType = CornerTypeAtVertex(owner, ownerAtEnd, other, otherAtEnd);
+            var isUniversalCorner = IsUniversalCornerType(cornerType);
+            var regulatedRun = UniversalRegulatedRun(cornerType, owner, other);
+            var suppressAngularAndCornerUnions = isUniversalCorner;
+            var ownerIsRegulated = isUniversalCorner && ReferenceEquals(owner, regulatedRun);
+            var otherIsRegulated = isUniversalCorner && ReferenceEquals(other, regulatedRun);
+            var ownerSuppressCornerUnion = suppressAngularAndCornerUnions && !ownerIsRegulated;
+            var otherSuppressCornerUnion = suppressAngularAndCornerUnions && !otherIsRegulated;
             var intoOx = -OutX(owner, ownerAtEnd);
             var intoOz = -OutZ(owner, ownerAtEnd);
             var intoTx = -OutX(other, otherAtEnd);
@@ -2327,26 +2336,37 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 AddStoodPiece(
                     outElements, owner, facePath, panelCode,
                     panelX, panelZ, up, yaw, false, tipX, tipY, LegMm, band);
-                AddStoodPiece(
-                    outElements, owner, anglePath, angleCode,
-                    angleX, angleZ, up, angleYaw, false, 0d, 0d, 120d, band);
+                if (!suppressAngularAndCornerUnions)
+                {
+                    AddStoodPiece(
+                        outElements, owner, anglePath, angleCode,
+                        angleX, angleZ, up, angleYaw, false, 0d, 0d, 120d, band);
+                }
                 up += band;
             }
 
             var ownerExit = IsPhaseExit(owner);
             var otherExit = IsPhaseExit(other);
-            var ownerCover = !ownerExit && PlaceExteriorCover(outElements, owner, ownerAtEnd, ownerInside, other.ThicknessMm);
-            var otherCover = !otherExit && PlaceExteriorCover(outElements, other, otherAtEnd, otherInside, owner.ThicknessMm);
+            var ownerCover = !ownerExit && PlaceExteriorCover(
+                outElements, owner, ownerAtEnd, ownerInside, other.ThicknessMm,
+                ownerSuppressCornerUnion, ownerIsRegulated);
+            var otherCover = !otherExit && PlaceExteriorCover(
+                outElements, other, otherAtEnd, otherInside, owner.ThicknessMm,
+                otherSuppressCornerUnion, otherIsRegulated);
             var stepMm = Math.Abs(owner.ThicknessMm - other.ThicknessMm);
             var unequal = stepMm > 5d && stepMm <= 600d;
             if (!ownerCover && !ownerExit)
             {
-                PlaceGap(outElements, owner, ownerAtEnd, ownerInside, cornerX, cornerZ, !unequal, other.ThicknessMm);
+                PlaceGap(
+                    outElements, owner, ownerAtEnd, ownerInside, cornerX, cornerZ,
+                    !unequal && !ownerSuppressCornerUnion, other.ThicknessMm);
             }
 
             if (!otherCover && !otherExit)
             {
-                PlaceGap(outElements, other, otherAtEnd, otherInside, cornerX, cornerZ, !unequal, owner.ThicknessMm);
+                PlaceGap(
+                    outElements, other, otherAtEnd, otherInside, cornerX, cornerZ,
+                    !unequal && !otherSuppressCornerUnion, owner.ThicknessMm);
             }
 
             if (unequal && !ownerCover && !otherCover && !ownerExit && !otherExit)
@@ -2574,11 +2594,21 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             Run run,
             bool atEnd,
             bool inside,
-            double otherThicknessMm)
+            double otherThicknessMm,
+            bool suppressCornerSeam = false,
+            bool forceRegulated750 = false)
         {
             int moduleMm;
             int remateMm;
-            ExteriorCoverMm(otherThicknessMm, out moduleMm, out remateMm);
+            if (forceRegulated750)
+            {
+                moduleMm = 750;
+                remateMm = 0;
+            }
+            else
+            {
+                ExteriorCoverMm(otherThicknessMm, out moduleMm, out remateMm);
+            }
             if (moduleMm < 300 || run.Wall == null)
             {
                 return false;
@@ -2621,7 +2651,18 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             }
 
             // Solo el canto del angular, en la cara donde está el panel.
-            PlaceCornerSeamClamps(outElements, run, atEnd, moduleMm, showPrimary, showOpposite);
+            if (!suppressCornerSeam)
+            {
+                PlaceCornerSeamClamps(
+                    outElements,
+                    run,
+                    atEnd,
+                    moduleMm,
+                    showPrimary,
+                    showOpposite,
+                    true,
+                    forceRegulated750);
+            }
             PlaceLayoutUnions(outElements, run, panelAlong, layout, showPrimary, showOpposite);
             return true;
         }
@@ -2664,10 +2705,85 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             bool atEnd,
             int moduleMm,
             bool showPrimary,
-            bool showOpposite)
+            bool showOpposite,
+            bool includeTieColumn = true,
+            bool usePillarHardware = false)
         {
             var cornerAlong = atEnd ? run.LengthMm + moduleMm : -moduleMm;
-            PlaceUnionAlong(outElements, run, cornerAlong, showPrimary, showOpposite);
+            if (!usePillarHardware)
+            {
+                PlaceUnionAlong(outElements, run, cornerAlong, showPrimary, showOpposite);
+            }
+            else
+            {
+                PlaceCornerUnionHookAndPlate(outElements, run, atEnd, showPrimary, showOpposite);
+            }
+            if (includeTieColumn)
+            {
+                var clampYaw = Atk60FaceInsertion.NormalizeYawToRad(run.Anchor.RotY);
+                FormTie.PlaceJointColumn(
+                    outElements,
+                    run.Anchor,
+                    run.Id,
+                    JointTieAlongOnPanel(cornerAlong, run.LengthMm),
+                    clampYaw,
+                    run.Ux,
+                    run.Uz,
+                    run.Anchor.FaceSign,
+                    run.HeightMm,
+                    run.ThicknessMm,
+                    run.LengthMm,
+                    showPrimary,
+                    showOpposite);
+            }
+        }
+
+        private static void PlaceCornerUnionHookAndPlate(
+            List<Atk60ElementPaintItem> outElements,
+            Run run,
+            bool atEnd,
+            bool showPrimary,
+            bool showOpposite)
+        {
+            if (outElements == null || run == null || run.Anchor == null)
+            {
+                return;
+            }
+
+            if (showPrimary)
+            {
+                PlaceCornerHardwareFromPillarPattern(
+                    outElements, run, atEnd, run.Anchor.NormalX, run.Anchor.NormalZ);
+            }
+
+            if (showOpposite)
+            {
+                PlaceCornerHardwareFromPillarPattern(
+                    outElements, run, atEnd, -run.Anchor.NormalX, -run.Anchor.NormalZ);
+            }
+        }
+
+        private static void PlaceCornerHardwareFromPillarPattern(
+            List<Atk60ElementPaintItem> outElements,
+            Run run,
+            bool atEnd,
+            double faceNormalX,
+            double faceNormalZ)
+        {
+            var firstNewItem = outElements.Count;
+            PillarFormwork.PlaceCornerHardware(
+                outElements, run.Id, run.Sx, run.Sz, run.Ex, run.Ez,
+                run.Anchor.Y, run.HeightMm, run.ThicknessMm, atEnd,
+                faceNormalX, faceNormalZ);
+
+            for (var i = firstNewItem; i < outElements.Count; i++)
+            {
+                var item = outElements[i];
+                if (item != null && item.Color == "nut")
+                {
+                    item.RotZ = (item.RotZ + Math.PI) % (Math.PI * 2d);
+                }
+            }
         }
 
         /// <summary>
@@ -2699,6 +2815,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
 
                 up += bands[i];
             }
+
         }
 
         /// <summary>
@@ -2871,6 +2988,140 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
 
                 up += bands[i];
             }
+
+            FormTie.PlaceJointColumn(
+                outElements,
+                run.Anchor,
+                run.Id,
+                JointTieAlongOnPanel(jointAlong, run.LengthMm),
+                clampYaw,
+                run.Ux,
+                run.Uz,
+                run.Anchor.FaceSign,
+                run.HeightMm,
+                run.ThicknessMm,
+                run.LengthMm);
+        }
+
+        private static double JointTieAlongOnPanel(double jointAlong, double wallLengthMm)
+        {
+            if (jointAlong <= 0d)
+            {
+                return FormTie.JointPanelHoleInsetMm;
+            }
+
+            if (jointAlong >= wallLengthMm)
+            {
+                return wallLengthMm - FormTie.JointPanelHoleInsetMm;
+            }
+
+            return jointAlong;
+        }
+
+        private static bool IsUniversalCornerAtEnd(Run run, bool atEnd)
+        {
+            return IsUniversalCornerType(CornerTypeAtEnd(run, atEnd));
+        }
+
+        private static bool IsUniversalCornerType(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            return string.Equals(value, "Universal_X", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "Universal_Y", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string CornerTypeAtVertex(Run owner, bool ownerAtEnd, Run other, bool otherAtEnd)
+        {
+            var ownerType = CornerTypeAtEnd(owner, ownerAtEnd);
+            if (IsUniversalCornerType(ownerType))
+            {
+                return ownerType;
+            }
+
+            var otherType = CornerTypeAtEnd(other, otherAtEnd);
+            if (IsUniversalCornerType(otherType))
+            {
+                return otherType;
+            }
+
+            return ownerType ?? otherType ?? "Angular";
+        }
+
+        private static string CornerTypeAtEnd(Run run, bool atEnd)
+        {
+            var attrs = run != null && run.Wall != null ? run.Wall.Attributes : null;
+            if (attrs == null)
+            {
+                return null;
+            }
+
+            var endpointType = AttrExtraAsString(attrs, atEnd ? "_CornerTypeP2" : "_CornerTypeP1");
+            if (!string.IsNullOrWhiteSpace(endpointType))
+            {
+                return endpointType;
+            }
+
+            var tape = attrs._Tape_0;
+            if (!string.IsNullOrWhiteSpace(tape))
+            {
+                return tape;
+            }
+
+            return AttrExtraAsString(attrs, "_Tape_0");
+        }
+
+        private static Run UniversalRegulatedRun(string cornerType, Run owner, Run other)
+        {
+            if (!IsUniversalCornerType(cornerType))
+            {
+                return null;
+            }
+
+            var ownerScore = UniversalAxisScore(cornerType, owner);
+            var otherScore = UniversalAxisScore(cornerType, other);
+            return ownerScore >= otherScore ? owner : other;
+        }
+
+        private static double UniversalAxisScore(string cornerType, Run run)
+        {
+            if (run == null)
+            {
+                return double.NegativeInfinity;
+            }
+
+            var ax = Math.Abs(run.Ux);
+            var az = Math.Abs(run.Uz);
+            if (string.Equals(cornerType, "Universal_X", StringComparison.OrdinalIgnoreCase))
+            {
+                return ax - az;
+            }
+
+            return az - ax;
+        }
+
+        private static string AttrExtraAsString(AttributesList attrs, string key)
+        {
+            if (attrs == null || attrs.Extra == null || string.IsNullOrWhiteSpace(key))
+            {
+                return null;
+            }
+
+            foreach (var pair in attrs.Extra)
+            {
+                if (!string.Equals(pair.Key, key, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var value = pair.Value != null ? pair.Value.ToString() : null;
+                return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+            }
+
+            return null;
         }
 
         private static List<int> PackGap(int gapMm)

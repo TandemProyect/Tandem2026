@@ -811,6 +811,8 @@
     <Content Include="Content\images\tDesing\t-desing-net.png" />
     <Content Include="Content\images\tDesing\t-desingc.png" />
     <Content Include="Content\images\tDesing\tDesing.png" />
+    <Content Include="Files\Intranet\ClientV2\ico_20260519_073518_9193e61d.png" />
+    <Content Include="Files\Intranet\ClientV2\logo_20260519_081139_14d194df.png" />
     <Content Include="Files\MaterialIco\10000221.png" />
     <Content Include="Files\MaterialIco\18501164.png" />
     <Content Include="Files\MaterialIco\1861122.png" />
@@ -2594,6 +2596,11 @@
     <Content Include="docs\recovered-chats-2026-07-11\d318f80b-fc8f-4f10-b945-ade0e8b284d9-resumen.md" />
     <Content Include="docs\recovered-chats-2026-07-11\d318f80b-fc8f-4f10-b945-ade0e8b284d9.jsonl" />
     <Content Include="docs\recovered-chats-2026-07-11\INDICE.md" />
+    <Content Include="Files\IfcSamples\Duplex_A_20110907.ifc" />
+    <Content Include="Files\IfcSamples\README.md" />
+    <Content Include="Files\IfcSamples\SampleBuilding_Demo.ifc" />
+    <Content Include="Files\Offer\2026\-Mo-02-01-3.dwg" />
+    <Content Include="Report\2026\2026-10-08 22-10 2026_Informe-Quincenal.pdf" />
     <None Include="Report\LEEME.md" />
     <None Include="Report\2026\2026-10-08_Informe-Quincenal.md" />
     <None Include="Report\2026\2026-10-08_Informe-Quincenal.pdf" />
@@ -2605,6 +2612,14 @@
     <None Include="Report\2026\Informe 01-08 a 22-10 2026.pdf" />
     <None Include="Report\2026\Informe Semanal 26102026-2112026.md" />
     <None Include="Report\2026\Informe Semanal 26102026-2112026.pdf" />
+    <None Include="Report\2026\Informe Semanal 05112026-19112026.md" />
+    <None Include="Report\2026\Informe Semanal 05112026-19112026.pdf" />
+    <None Include="Report\2026\img\2026-11-04-esquina-regulable-bugs.png" />
+    <None Include="Report\2026\img\2026-11-04-esquina-regulable-sin-herraje-visible.png" />
+    <None Include="Report\2026\img\2026-11-04-esquina-regulable-sin-union-1036.png" />
+    <None Include="Report\2026\img\2026-11-04-esquina-regulable-union-cara-incorrecta-1111.png" />
+    <None Include="Report\2026\img\2026-11-04-esquina-regulable-placa-giro-180-1303.png" />
+    <None Include="Report\2026\img\2026-11-04-esquina-regulable-placa-sin-giro-1320.png" />
     <None Include="Report\2026\img\2026-10-22-paneles-030-elevados.png" />
     <None Include="Report\2026\img\2026-10-22-grapa-atenko.png" />
     <None Include="Report\2026\img\2026-10-23-obra-cliente-vacio.png" />

@@ -2,6 +2,28 @@
 
 Cuando el usuario pida el **informe** (quincenal hasta el 03, semanal desde el 04), o cuando un agente tenga que anotar trabajo de producto, seguir esta carpeta y la regla `.cursor/rules/informe-quincenal.mdc`.
 
+## Norma vigente desde 2026-11-04 (Proyecto Desing)
+
+Desde este momento, para trabajo de **Desing** realizado en **Visual Studio 2026** o **Cursor**:
+
+- El informe activo es único y se llama:
+  - `Desing/Report/2026/Informe_DesingNoviembre_2026.md`
+  - `Desing/Report/2026/Informe_DesingNoviembre_2026.pdf`
+- Se registra **todo** el trabajo con detalle y tiempos.
+- Cadencia de presentación: **cada 15 días**.
+- Este fichero pasa a ser la referencia principal para ese periodo.
+- Si hay informes históricos en la carpeta, se consideran antecedentes; no se reabren salvo petición explícita.
+
+## Actualización operativa (nuevo semanal)
+
+- Nuevo informe activo creado por solicitud de usuario:
+  - `Desing/Report/2026/Informe Semanal 05112026-19112026.md`
+  - `Desing/Report/2026/Informe Semanal 05112026-19112026.pdf`
+- El informe sigue la misma idea del semanal anterior: abrir tema, detallar trabajo, adjuntar imágenes y registrar horas del detalle.
+- Clasificación obligatoria por tema:
+  - <span style="color:#1d4ed8"><strong>US</strong></span> (azul y negrita).
+  - <span style="color:#b91c1c"><strong>BUG</strong></span> (rojo y negrita).
+
 ## Dónde se guarda
 
 ```text

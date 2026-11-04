@@ -88,9 +88,10 @@ export function maAtk60PointXz(vertex, u, v, alongU, alongV, y) {
  * @param {{ x: number, z: number }} d2 dirección hacia el cuerpo eje 2
  * @param {number} e1Mm espesor muro eje 1 (completo)
  * @param {number} e2Mm espesor muro eje 2 (completo)
+ * @param {{ leg1Mm?: number, leg2Mm?: number }=} opts
  * @returns {{ points: {x:number,y:number,z:number}[], meta: object }|null}
  */
-export function maAtk60BuildLFootprintMm(vertex, d1, d2, e1Mm, e2Mm) {
+export function maAtk60BuildLFootprintMm(vertex, d1, d2, e1Mm, e2Mm, opts) {
     if (!vertex || !d1 || !d2) return null;
     const cross = d1.x * d2.z - d1.z * d2.x;
     if (Math.abs(cross) < 1e-9) return null;
@@ -99,8 +100,14 @@ export function maAtk60BuildLFootprintMm(vertex, d1, d2, e1Mm, e2Mm) {
     const e2 = maAtk60ThicknessMm(e2Mm);
     // Cara a lo largo de cada eje: espesor del otro muro + esquina de 0,30.
     // 0,47 + 0,30 = 0,77 → esa cara mide 0,90, no el panel de esquina de 0,30.
-    const leg1 = maAtk60SelectPanelMm(e2 + MA_ATK60_CORNER_PANEL_MM);
-    const leg2 = maAtk60SelectPanelMm(e1 + MA_ATK60_CORNER_PANEL_MM);
+    const leg1NeedMm = e2 + MA_ATK60_CORNER_PANEL_MM;
+    const leg2NeedMm = e1 + MA_ATK60_CORNER_PANEL_MM;
+    const leg1Auto = maAtk60SelectPanelMm(leg1NeedMm);
+    const leg2Auto = maAtk60SelectPanelMm(leg2NeedMm);
+    const leg1PanelMm = Number(opts && opts.leg1Mm);
+    const leg2PanelMm = Number(opts && opts.leg2Mm);
+    const leg1Mm = Number.isFinite(leg1PanelMm) && leg1PanelMm > 0 ? leg1PanelMm : leg1Auto.panelMm;
+    const leg2Mm = Number.isFinite(leg2PanelMm) && leg2PanelMm > 0 ? leg2PanelMm : leg2Auto.panelMm;
 
     const n1 = maAtk60NormalXz(d1, cross > 0 ? -1 : 1);
     const n2 = maAtk60NormalXz(d2, cross > 0 ? 1 : -1);
@@ -124,7 +131,7 @@ export function maAtk60BuildLFootprintMm(vertex, d1, d2, e1Mm, e2Mm) {
         z: exteriorP1.z + d1.z * t,
     };
 
-    const q1Outer = { x: outer.x + d1.x * leg1.panelMm, z: outer.z + d1.z * leg1.panelMm };
+    const q1Outer = { x: outer.x + d1.x * leg1Mm, z: outer.z + d1.z * leg1Mm };
     const q1Inner = {
         x: q1Outer.x - n1.x * e1,
         z: q1Outer.z - n1.z * e1,
@@ -134,10 +141,10 @@ export function maAtk60BuildLFootprintMm(vertex, d1, d2, e1Mm, e2Mm) {
         z: outer.z - n1.z * e1 - n2.z * e2,
     };
     const q2Inner = {
-        x: outer.x + d2.x * leg2.panelMm - n2.x * e2,
-        z: outer.z + d2.z * leg2.panelMm - n2.z * e2,
+        x: outer.x + d2.x * leg2Mm - n2.x * e2,
+        z: outer.z + d2.z * leg2Mm - n2.z * e2,
     };
-    const q2Outer = { x: outer.x + d2.x * leg2.panelMm, z: outer.z + d2.z * leg2.panelMm };
+    const q2Outer = { x: outer.x + d2.x * leg2Mm, z: outer.z + d2.z * leg2Mm };
 
     const y = vertex.y;
     const points = [
@@ -156,10 +163,12 @@ export function maAtk60BuildLFootprintMm(vertex, d1, d2, e1Mm, e2Mm) {
             system: 'Atk-60',
             e1Mm: e1,
             e2Mm: e2,
-            leg1PanelMm: leg1.panelMm,
-            leg2PanelMm: leg2.panelMm,
-            leg1WoodTacoMm: leg1.woodTacoMm,
-            leg2WoodTacoMm: leg2.woodTacoMm,
+            leg1PanelMm: leg1Mm,
+            leg2PanelMm: leg2Mm,
+            leg1WoodTacoMm: Math.max(0, leg1Mm - leg1NeedMm),
+            leg2WoodTacoMm: Math.max(0, leg2Mm - leg2NeedMm),
+            leg1NeedMm: leg1NeedMm,
+            leg2NeedMm: leg2NeedMm,
         },
     };
 }

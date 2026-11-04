@@ -45,6 +45,7 @@ namespace Desing.Repositories.RepositoryDesing2
         public double? _XCoordinate { get; set; }
         public double? _YCoordinate { get; set; }
         public double? _ZCoordinate { get; set; }
+        public string _Tape_0 { get; set; }
         public string _Tape_1 { get; set; }
         public string _Tape_2 { get; set; }
         public string _Idconnection_1 { get; set; }
@@ -385,6 +386,7 @@ namespace Desing.Repositories.RepositoryDesing2
             {
                 entity.Is_Special = line.IsSpecial.Value;
             }
+            entity.TextTape_0 = Truncate(line._Tape_0, 50);
             entity.TextTape_1 = Truncate(line._Tape_1, 50);
             entity.TextTape_2 = Truncate(line._Tape_2, 50);
             entity.TextIdConnection_1 = Truncate(line._Idconnection_1, 128);
@@ -433,6 +435,7 @@ namespace Desing.Repositories.RepositoryDesing2
                 _IsUniversalPanel = row.Is_UniversalPanel,
                 _CHeck750R = row.Is_Check750R,
                 _CHeckTypeFormworkMode = row.Is_FormworkMode,
+                _Tape_0 = row.TextTape_0,
                 _Tape_1 = row.TextTape_1,
                 _Tape_2 = row.TextTape_2,
                 _Idconnection_1 = row.TextIdConnection_1,

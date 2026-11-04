@@ -72,6 +72,116 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             return outElements;
         }
 
+        internal static void PlaceCornerHardware(
+            List<Atk60ElementPaintItem> outElements,
+            string idWall,
+            double startX,
+            double startZ,
+            double endX,
+            double endZ,
+            double baseY,
+            double heightMm,
+            double widthMm,
+            bool atEnd,
+            double faceNormalX,
+            double faceNormalZ)
+        {
+            if (outElements == null || widthMm <= 0d || heightMm <= 0d)
+            {
+                return;
+            }
+
+            var dx = endX - startX;
+            var dz = endZ - startZ;
+            var lengthMm = Math.Sqrt((dx * dx) + (dz * dz));
+            if (lengthMm < 1d)
+            {
+                return;
+            }
+
+            var ax = dx / lengthMm;
+            var az = dz / lengthMm;
+            var yx = -az;
+            var yz = ax;
+            var frame = new Frame
+            {
+                IdWall = idWall,
+                BaseY = baseY,
+                HeightMm = heightMm,
+                WidthMm = widthMm,
+                LongMm = lengthMm,
+                Ax = ax,
+                Az = az,
+                Yx = yx,
+                Yz = yz,
+                Yaw = Math.Atan2(az, ax),
+                CornerX = startX + (yx * widthMm * 0.5d),
+                CornerZ = startZ + (yz * widthMm * 0.5d),
+            };
+            var positiveFace = ((yx * faceNormalX) + (yz * faceNormalZ)) >= 0d;
+            var longCm = lengthMm / 10d;
+            var widthCm = widthMm / 10d;
+            var bands = Bands(heightMm);
+
+            for (var i = 0; i < bands.Count; i++)
+            {
+                double hookXcm;
+                double hookYcm;
+                double nutXcm;
+                double nutYcm;
+                double hookRotZ;
+                double nutRotX;
+                double nutRotZ;
+
+                if (atEnd && positiveFace)
+                {
+                    hookXcm = longCm + 1d;
+                    hookYcm = 6d;
+                    nutXcm = longCm + 12d;
+                    nutYcm = 15d;
+                    hookRotZ = Math.PI;
+                    nutRotX = Math.PI * 0.5d;
+                    nutRotZ = Math.PI * 0.5d;
+                }
+                else if (!atEnd && positiveFace)
+                {
+                    hookXcm = -4d;
+                    hookYcm = 1d;
+                    nutXcm = -12d;
+                    nutYcm = 12d;
+                    hookRotZ = Math.PI * 0.5d;
+                    nutRotX = Math.PI * 1.5d;
+                    nutRotZ = 0d;
+                }
+                else if (!atEnd)
+                {
+                    hookXcm = -2d;
+                    hookYcm = -widthCm - 5d;
+                    nutXcm = -12d;
+                    nutYcm = -widthCm - 14d;
+                    hookRotZ = 0d;
+                    nutRotX = Math.PI * 0.5d;
+                    nutRotZ = Math.PI * 1.5d;
+                }
+                else
+                {
+                    hookXcm = longCm + 5d;
+                    hookYcm = -widthCm - 1d;
+                    nutXcm = longCm + 14d;
+                    nutYcm = -widthCm - 12d;
+                    hookRotZ = Math.PI * 1.5d;
+                    nutRotX = Math.PI * 0.5d;
+                    nutRotZ = 0d;
+                }
+
+                AddCorner(
+                    outElements, frame, bands[i].UpMm / 10d,
+                    HookHeightsCm(bands[i].HeightMm),
+                    hookXcm, hookYcm, nutXcm, nutYcm,
+                    hookRotZ, nutRotX, nutRotZ);
+            }
+        }
+
         private static void AddBand(List<Atk60ElementPaintItem> outElements, Frame frame, Band band)
         {
             var longCm = frame.LongMm / 10d;

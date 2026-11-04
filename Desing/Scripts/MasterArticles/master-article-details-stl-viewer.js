@@ -4636,6 +4636,8 @@ function bootMasterArticleDetailsStlViewer() {
         '_YCoordinate',
         '_ZCoordinate',
         '_Tape_0',
+        '_CornerTypeP1',
+        '_CornerTypeP2',
         '_Tape_1',
         '_Tape_2',
         '_ChekSolapeIni',
@@ -4979,6 +4981,9 @@ function bootMasterArticleDetailsStlViewer() {
                     numberWallFaceSideSign: row.numberWallFaceSideSign,
                     _DataHeight: row._DataHeight,
                     _DataWith: row._DataWith,
+                    _Tape_0: row._Tape_0,
+                    _CornerTypeP1: row._CornerTypeP1,
+                    _CornerTypeP2: row._CornerTypeP2,
                     _Tape_1: row._Tape_1,
                     _Tape_2: row._Tape_2,
                     _Idconnection_1: row._Idconnection_1,
@@ -9199,10 +9204,31 @@ function bootMasterArticleDetailsStlViewer() {
                 stripsByAxisId.set(key, row);
             }
         }
+
+        function synthFaceFromAxis(axisUd, sideSign) {
+            if (!axisUd || !axisUd.p1Mm || !axisUd.p2Mm) return null;
+            const halfT = maStlWall2dToolAxisHalfThicknessFromAxisUd(axisUd);
+            if (!(halfT > 0)) return null;
+            const p1 = maStlWall2dToolFaceOffsetPointAtAxisPointMm(axisUd, axisUd.p1Mm, halfT, sideSign);
+            const p2 = maStlWall2dToolFaceOffsetPointAtAxisPointMm(axisUd, axisUd.p2Mm, halfT, sideSign);
+            if (!p1 || !p2) return null;
+            return {
+                wallRole: 'face',
+                linkOffsetFromLineId: axisUd.id,
+                numberWallFaceSideSign: sideSign,
+                numberOffsetMm: halfT,
+                p1Mm: p1,
+                p2Mm: p2,
+            };
+        }
+
         const out = [];
         const minLen = maStlUserFloorSegmentMinMm();
         stripsByAxisId.forEach(function (row) {
-            if (!row || !row.axis || !row.facePos || !row.faceNeg) return;
+            if (!row || !row.axis) return;
+            if (!row.facePos) row.facePos = synthFaceFromAxis(row.axis, 1);
+            if (!row.faceNeg) row.faceNeg = synthFaceFromAxis(row.axis, -1);
+            if (!row.facePos || !row.faceNeg) return;
             if (!row.facePos.p1Mm || !row.facePos.p2Mm || !row.faceNeg.p1Mm || !row.faceNeg.p2Mm) return;
             if (!(maStlUserFloorLineLengthMm(row.axis) >= minLen)) return;
             out.push(row);
@@ -9408,6 +9434,107 @@ function bootMasterArticleDetailsStlViewer() {
     /** El brazo fino se corre hacia fuera, hasta Cara X. La cara de la rama no se mueve. */
     let maStlAtk60ThinThroughShiftByAxisId = new Map();
 
+    function maStlCornerEndpointKeyNearVertexMm(axisUd, vertexMm) {
+        if (!axisUd || !vertexMm || !axisUd.p1Mm || !axisUd.p2Mm) return null;
+        const d1 = maStlUserFloorPlanPointDistSqXzMm(axisUd.p1Mm, vertexMm);
+        const d2 = maStlUserFloorPlanPointDistSqXzMm(axisUd.p2Mm, vertexMm);
+        return d1 <= d2 ? 'p1' : 'p2';
+    }
+
+    function maStlCornerTypeFromAxisUdAtVertex(axisUd, vertexMm) {
+        if (!axisUd) return 'Angular';
+        const key = maStlCornerEndpointKeyNearVertexMm(axisUd, vertexMm);
+        if (key === 'p1') {
+            const fromP1 = maStlCornerTypeFromTape(axisUd._CornerTypeP1);
+            if (fromP1 !== 'Angular') return fromP1;
+        } else if (key === 'p2') {
+            const fromP2 = maStlCornerTypeFromTape(axisUd._CornerTypeP2);
+            if (fromP2 !== 'Angular') return fromP2;
+        }
+        const fromTape0 = maStlCornerTypeFromTape(axisUd._Tape_0);
+        if (fromTape0 !== 'Angular') return fromTape0;
+        const fromTape2 = maStlCornerTypeFromTape(axisUd._Tape_2);
+        if (fromTape2 !== 'Angular') return fromTape2;
+        return 'Angular';
+    }
+
+    function maStlCornerSetTypeOnAxisUdAtVertex(axisUd, vertexMm, cornerType) {
+        if (!axisUd) return;
+        const key = maStlCornerEndpointKeyNearVertexMm(axisUd, vertexMm);
+        if (key === 'p1') axisUd._CornerTypeP1 = cornerType;
+        else if (key === 'p2') axisUd._CornerTypeP2 = cornerType;
+    }
+
+    function maStlCornerTypeFromAxisUds(axisUds, vertexMm) {
+        if (!axisUds || !axisUds.length) return 'Angular';
+        for (let i = 0; i < axisUds.length; i++) {
+            const ud = axisUds[i];
+            if (!ud) continue;
+            const type = maStlCornerTypeFromAxisUdAtVertex(ud, vertexMm);
+            if (type !== 'Angular') return type;
+        }
+        return 'Angular';
+    }
+
+    function maStlApplyCornerTemporaryFormworkRule(selection, cornerType) {
+        if (!selection || !selection.lines || selection.lines.length < 2) return;
+        if (cornerType !== MA_STL_CORNER_TYPE_UNIVERSAL_X && cornerType !== MA_STL_CORNER_TYPE_UNIVERSAL_Y) return;
+        const vertex = selection.cornerPoint || null;
+        const axes = [];
+        for (let i = 0; i < selection.lines.length; i++) {
+            const ln = selection.lines[i];
+            const ud = ln && ln.userData ? ln.userData.maStlUserPlanLine : null;
+            if (!ud || ud.wallRole !== 'axis') continue;
+            const dir = maStlWall2dModelDirIntoAxisFromVertexMm(ud, vertex);
+            if (!dir) continue;
+            axes.push({ ud: ud, dir: dir });
+        }
+        if (axes.length < 2) return;
+        const targetIdx = maStlCornerUniversalTargetAxisIndex(cornerType, axes[0].dir, axes[1].dir);
+        if (targetIdx < 0) return;
+        for (let i = 0; i < axes.length; i++) {
+            const ud = axes[i].ud;
+            maStlWallLineEnsureAttrs(ud);
+            if (i === targetIdx) ud._IsFormwork = false;
+            else ud._IsFormwork = true;
+        }
+    }
+
+    function maStlCornerUniversalTargetAxisIndex(cornerType, dA, dB) {
+        if ((cornerType !== 'Universal_X' && cornerType !== 'Universal_Y') || !dA || !dB) return -1;
+        const wantX = cornerType === 'Universal_X';
+        const scoreA = wantX ? Math.abs(dA.x) - Math.abs(dA.z) : Math.abs(dA.z) - Math.abs(dA.x);
+        const scoreB = wantX ? Math.abs(dB.x) - Math.abs(dB.z) : Math.abs(dB.z) - Math.abs(dB.x);
+        return scoreA >= scoreB ? 0 : 1;
+    }
+
+    function maStlAtk60ResolveLJunctionGeometry(dA, dB, eA, eB, cornerType) {
+        const MA_STL_CORNER_INNER_MM = 300;
+        const MA_STL_CORNER_TIRANTE_MM = 30;
+        const withTiranteMm = (cornerType === 'Universal_X' || cornerType === 'Universal_Y')
+            ? MA_STL_CORNER_TIRANTE_MM
+            : 0;
+        const trims = maAtk60GetLJunctionAxisTrimMm(dA, dB, eA, eB);
+        const baseA = trims.leg1AxisTrimMm - trims.leg1PanelMm;
+        const baseB = trims.leg2AxisTrimMm - trims.leg2PanelMm;
+        const needLeg1Mm = Math.max(0, eB + MA_STL_CORNER_INNER_MM + withTiranteMm);
+        const needLeg2Mm = Math.max(0, eA + MA_STL_CORNER_INNER_MM + withTiranteMm);
+        let leg1Mm = maAtk60SelectPanelMm(needLeg1Mm).panelMm;
+        let leg2Mm = maAtk60SelectPanelMm(needLeg2Mm).panelMm;
+        const universalAxisIndex = maStlCornerUniversalTargetAxisIndex(cornerType, dA, dB);
+        if (universalAxisIndex === 0) {
+            leg1Mm = needLeg1Mm;
+        } else if (universalAxisIndex === 1) {
+            leg2Mm = needLeg2Mm;
+        }
+        return {
+            leg1Mm: leg1Mm,
+            leg2Mm: leg2Mm,
+            leg1AxisTrimMm: Math.max(0, baseA + leg1Mm),
+            leg2AxisTrimMm: Math.max(0, baseB + leg2Mm),
+        };
+    }
+
     function maStlAtk60BuildAxisEndpointTrimMap() {
         const trimMap = new Map();
         maStlAtk60ThinThroughShiftByAxisId = new Map();
@@ -9426,14 +9553,15 @@ function bootMasterArticleDetailsStlViewer() {
                 if (!dA || !dB || maStlWall2dModelDirsCollinear(dA, dB)) continue;
                 const eA = maStlWall2dModelAxisThicknessMm(axisUds[0]);
                 const eB = maStlWall2dModelAxisThicknessMm(axisUds[1]);
-                const trims = maAtk60GetLJunctionAxisTrimMm(dA, dB, eA, eB);
+                const cornerType = maStlCornerTypeFromAxisUds(axisUds, vertex);
+                const geom = maStlAtk60ResolveLJunctionGeometry(dA, dB, eA, eB, cornerType);
                 const endA = maStlWall2dToolAxisEndpointKeyNearVertexMm(axisUds[0], vertex);
                 const endB = maStlWall2dToolAxisEndpointKeyNearVertexMm(axisUds[1], vertex);
                 if (endA && axisUds[0].id != null) {
-                    trimMap.set(axisUds[0].id + '|' + endA, trims.leg1AxisTrimMm);
+                    trimMap.set(axisUds[0].id + '|' + endA, geom.leg1AxisTrimMm);
                 }
                 if (endB && axisUds[1].id != null) {
-                    trimMap.set(axisUds[1].id + '|' + endB, trims.leg2AxisTrimMm);
+                    trimMap.set(axisUds[1].id + '|' + endB, geom.leg2AxisTrimMm);
                 }
                 continue;
             }
@@ -10060,12 +10188,20 @@ let maStlWallApplyAllHeightMm = 0;
             const dA = maStlWall2dModelDirIntoAxisFromVertexMm(axisUds[0], vertex);
             const dB = maStlWall2dModelDirIntoAxisFromVertexMm(axisUds[1], vertex);
             if (!dA || !dB || maStlWall2dModelDirsCollinear(dA, dB)) return 0;
+            const eA = maStlWall2dModelAxisThicknessMm(axisUds[0]);
+            const eB = maStlWall2dModelAxisThicknessMm(axisUds[1]);
+            const cornerType = maStlCornerTypeFromAxisUds(axisUds, vertex);
+            const geom = maStlAtk60ResolveLJunctionGeometry(dA, dB, eA, eB, cornerType);
             const fp = maAtk60BuildLFootprintMm(
                 vertex,
                 dA,
                 dB,
-                maStlWall2dModelAxisThicknessMm(axisUds[0]),
-                maStlWall2dModelAxisThicknessMm(axisUds[1])
+                eA,
+                eB,
+                {
+                    leg1Mm: geom.leg1Mm,
+                    leg2Mm: geom.leg2Mm,
+                }
             );
             if (!fp) return 0;
             return maStlAtk60PlaceJunctionMesh(fp, axisUds);
@@ -10157,12 +10293,20 @@ let maStlWallApplyAllHeightMm = 0;
                 const dA = maStlWall2dModelDirIntoAxisFromVertexMm(axisUds[0], vertex);
                 const dB = maStlWall2dModelDirIntoAxisFromVertexMm(axisUds[1], vertex);
                 if (!dA || !dB || maStlWall2dModelDirsCollinear(dA, dB)) continue;
+                const eA = maStlWall2dModelAxisThicknessMm(axisUds[0]);
+                const eB = maStlWall2dModelAxisThicknessMm(axisUds[1]);
+                const cornerType = maStlCornerTypeFromAxisUds(axisUds, vertex);
+                const geom = maStlAtk60ResolveLJunctionGeometry(dA, dB, eA, eB, cornerType);
                 footprint = maAtk60BuildLFootprintMm(
                     vertex,
                     dA,
                     dB,
-                    maStlWall2dModelAxisThicknessMm(axisUds[0]),
-                    maStlWall2dModelAxisThicknessMm(axisUds[1])
+                    eA,
+                    eB,
+                    {
+                        leg1Mm: geom.leg1Mm,
+                        leg2Mm: geom.leg2Mm,
+                    }
                 );
             } else if (axisUds.length >= 3) {
                 if (axisUds.length >= 4) {
@@ -21861,6 +22005,49 @@ let maStlWallApplyAllHeightMm = 0;
         return best;
     }
 
+    function maStlWallDimCornerLegMm(selfUd, endpointKey, axes) {
+        if (!selfUd || !axes || !axes.length || !selfUd.p1Mm || !selfUd.p2Mm) return 0;
+        const vertex = endpointKey === 'p2' ? selfUd.p2Mm : selfUd.p1Mm;
+        const selfInto = maStlWall2dToolDirFromVertexIntoAxisMm(selfUd, endpointKey);
+        if (!selfInto) return 0;
+        const selfDir = { x: selfInto.ux, z: selfInto.uz };
+        const selfThick = maStlWall2dModelAxisThicknessMm(selfUd);
+        const eps = maStlWall2dToolJunctionClusterEpsMm();
+        const scratch = { x: 0, y: 0, z: 0 };
+        let best = 0;
+        for (let i = 0; i < axes.length; i++) {
+            const ud = axes[i].userData && axes[i].userData.maStlUserPlanLine;
+            if (!ud || ud === selfUd || (selfUd && ud.id === selfUd.id)) continue;
+            if (!ud.p1Mm || !ud.p2Mm) continue;
+            let touches =
+                maStlUserFloorPlanPointNearXzMm(vertex, ud.p1Mm, eps) ||
+                maStlUserFloorPlanPointNearXzMm(vertex, ud.p2Mm, eps);
+            if (!touches) {
+                const proj = maStlProjectPointOntoUserFloorSegmentBodyXzMm(
+                    vertex,
+                    ud.p1Mm,
+                    ud.p2Mm,
+                    scratch
+                );
+                touches = !!(proj && proj.distXZ <= eps);
+            }
+            if (!touches) continue;
+            const otherDir = maStlWall2dModelDirIntoAxisFromVertexMm(ud, vertex);
+            if (!otherDir || maStlWall2dModelDirsCollinear(selfDir, otherDir)) continue;
+            const cornerType = maStlCornerTypeFromAxisUds([selfUd, ud], vertex);
+            const otherThick = maStlWall2dModelAxisThicknessMm(ud);
+            const geom = maStlAtk60ResolveLJunctionGeometry(
+                selfDir,
+                otherDir,
+                selfThick,
+                otherThick,
+                cornerType
+            );
+            if (geom && Number.isFinite(geom.leg1Mm) && geom.leg1Mm > best) best = geom.leg1Mm;
+        }
+        return best;
+    }
+
     /**
      * Tres cotas de muro, en todos los ejes.
      * Parcial va la más pegada, luego a ejes y el total la más fuera, para que no se pisen.
@@ -21912,13 +22099,15 @@ let maStlWallApplyAllHeightMm = 0;
             const half1 = maStlWallDimAxisJoinedHalfMm(ud, p1, ux, uz, axes);
             const half2 = maStlWallDimAxisJoinedHalfMm(ud, p2, -ux, -uz, axes);
             const corner1 =
-                half1 > 10
+                maStlWallDimCornerLegMm(ud, 'p1', axes) ||
+                (half1 > 10
                     ? maAtk60SelectPanelMm(half1 * 2 + MA_ATK60_CORNER_PANEL_MM).panelMm
-                    : 0;
+                    : 0);
             const corner2 =
-                half2 > 10
+                maStlWallDimCornerLegMm(ud, 'p2', axes) ||
+                (half2 > 10
                     ? maAtk60SelectPanelMm(half2 * 2 + MA_ATK60_CORNER_PANEL_MM).panelMm
-                    : 0;
+                    : 0);
             const outer1 = { x: p1.x - ux * half1, z: p1.z - uz * half1 };
             const outer2 = { x: p2.x + ux * half2, z: p2.z + uz * half2 };
             const end1 = { x: outer1.x + ux * corner1, z: outer1.z + uz * corner1 };
@@ -28977,6 +29166,13 @@ let maStlWallApplyAllHeightMm = 0;
         if (rawTarget && typeof rawTarget.closest === 'function') {
             if (rawTarget.closest('button, input, select, textarea, [role="button"], label')) return;
         }
+        const cornerSelection = maStlWall3dResolveCornerSelectionAtPointer(ev.clientX, ev.clientY);
+        if (cornerSelection && maStlOpenCornerEditPopup(cornerSelection, ev.clientX, ev.clientY)) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation();
+            return;
+        }
         if (maStlWallInspectTryAlertAtPointer(ev.clientX, ev.clientY)) {
             ev.preventDefault();
             ev.stopPropagation();
@@ -29372,6 +29568,11 @@ let maStlWallApplyAllHeightMm = 0;
     }
 
     let maStlWallFormApi = null;
+    const MA_STL_CORNER_TYPE_ANGULAR = 'Angular';
+    const MA_STL_CORNER_TYPE_UNIVERSAL_X = 'Universal_X';
+    const MA_STL_CORNER_TYPE_UNIVERSAL_Y = 'Universal_Y';
+    let maStlCornerEditPopup = null;
+    let maStlCornerEditSelection = null;
 
     const maStlWallInspectFormState = {
         root: null,
@@ -29521,6 +29722,358 @@ let maStlWallApplyAllHeightMm = 0;
         const root = maStlWallInspectFormState.root;
         if (!root) return;
         root.style.display = 'none';
+    }
+
+    function maStlCornerTypeFromTape(raw) {
+        const value = String(raw || '').trim();
+        if (value === MA_STL_CORNER_TYPE_UNIVERSAL_X) return MA_STL_CORNER_TYPE_UNIVERSAL_X;
+        if (value === MA_STL_CORNER_TYPE_UNIVERSAL_Y) return MA_STL_CORNER_TYPE_UNIVERSAL_Y;
+        return MA_STL_CORNER_TYPE_ANGULAR;
+    }
+
+    function maStlResolveCornerEditType(selection) {
+        if (!selection || !selection.lines || !selection.lines.length) return MA_STL_CORNER_TYPE_ANGULAR;
+        const axisUds = [];
+        for (let i = 0; i < selection.lines.length; i++) {
+            const ud = selection.lines[i] && selection.lines[i].userData
+                ? selection.lines[i].userData.maStlUserPlanLine
+                : null;
+            if (ud) axisUds.push(ud);
+        }
+        return maStlCornerTypeFromAxisUds(axisUds, selection.cornerPoint || null);
+    }
+
+    function maStlResolveCornerImageProfile(selection) {
+        if (!selection || !selection.lines || !selection.lines.length) return 50;
+        let sum = 0;
+        let count = 0;
+        for (let i = 0; i < selection.lines.length; i++) {
+            const ln = selection.lines[i];
+            const ud = ln && ln.userData ? ln.userData.maStlUserPlanLine : null;
+            if (!ud || ud.wallRole !== 'axis') continue;
+            const thickMm = maStlWall2dModelAxisThicknessMm(ud);
+            if (!Number.isFinite(thickMm) || thickMm <= 0) continue;
+            sum += thickMm;
+            count++;
+        }
+        if (!count) return 50;
+        const cm = (sum / count) / 10;
+        const families = [10, 30, 50, 70];
+        let best = 50;
+        let bestDist = Infinity;
+        for (let i = 0; i < families.length; i++) {
+            const d = Math.abs(families[i] - cm);
+            if (d < bestDist) {
+                bestDist = d;
+                best = families[i];
+            }
+        }
+        return best;
+    }
+
+    function maStlCornerImageVariantForType(type) {
+        if (type === MA_STL_CORNER_TYPE_UNIVERSAL_X) return 3;
+        if (type === MA_STL_CORNER_TYPE_UNIVERSAL_Y) return 2;
+        return 1;
+    }
+
+    function maStlCornerImageSrc(profile, type) {
+        const p = profile === 10 || profile === 30 || profile === 50 || profile === 70 ? profile : 50;
+        const v = maStlCornerImageVariantForType(type);
+        return '../../Content/DesignTools/MenuIcon/Esq_' + p + '_S_' + v + '.png';
+    }
+
+    function maStlCornerEditPopupRefreshPreview(root) {
+        if (!root || !root._maStlCornerInputs) return;
+        const refs = root._maStlCornerInputs;
+        const img = refs.previewImg;
+        if (!img) return;
+        const type = refs.vertical && refs.vertical.checked
+            ? MA_STL_CORNER_TYPE_UNIVERSAL_X
+            : refs.horizontal && refs.horizontal.checked
+              ? MA_STL_CORNER_TYPE_UNIVERSAL_Y
+              : MA_STL_CORNER_TYPE_ANGULAR;
+        const profile = refs.profile || 50;
+        img.src = maStlCornerImageSrc(profile, type);
+    }
+
+    function maStlCloseCornerEditPopup() {
+        if (maStlCornerEditPopup) maStlCornerEditPopup.style.display = 'none';
+        maStlCornerEditSelection = null;
+    }
+
+    function maStlIsCornerEditPopupOpen() {
+        return !!(maStlCornerEditPopup && maStlCornerEditPopup.style.display !== 'none');
+    }
+
+    function maStlEnsureCornerEditPopup() {
+        if (maStlCornerEditPopup) return maStlCornerEditPopup;
+
+        const root = document.createElement('div');
+        root.style.position = 'fixed';
+        root.style.zIndex = '2147483200';
+        root.style.width = '450px';
+        root.style.maxWidth = 'calc(100vw - 24px)';
+        root.style.background = '#ffffff';
+        root.style.border = '1px solid #cbd5e1';
+        root.style.borderRadius = '10px';
+        root.style.boxShadow = '0 16px 36px rgba(2,6,23,0.22)';
+        root.style.display = 'none';
+        root.style.fontFamily = "'Segoe UI', Tahoma, sans-serif";
+        root.style.userSelect = 'none';
+
+        const head = document.createElement('div');
+        head.style.padding = '10px 12px';
+        head.style.background = '#0f172a';
+        head.style.color = '#ffffff';
+        head.style.borderTopLeftRadius = '10px';
+        head.style.borderTopRightRadius = '10px';
+        head.style.display = 'flex';
+        head.style.alignItems = 'center';
+        head.style.justifyContent = 'space-between';
+        head.style.cursor = 'move';
+        const title = document.createElement('div');
+        title.textContent = 'Modificar esquina';
+        title.style.fontSize = '13px';
+        title.style.fontWeight = '600';
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.textContent = 'x';
+        closeBtn.style.border = 'none';
+        closeBtn.style.background = 'transparent';
+        closeBtn.style.color = '#ffffff';
+        closeBtn.style.cursor = 'pointer';
+        closeBtn.style.fontSize = '15px';
+        closeBtn.style.padding = '0 4px';
+        head.appendChild(title);
+        head.appendChild(closeBtn);
+
+        const body = document.createElement('div');
+        body.style.padding = '12px';
+        body.style.userSelect = 'text';
+
+        const previewWrap = document.createElement('div');
+        previewWrap.style.display = 'flex';
+        previewWrap.style.justifyContent = 'center';
+        previewWrap.style.marginBottom = '12px';
+        const previewImg = document.createElement('img');
+        previewImg.alt = 'Vista previa de solución de esquina';
+        previewImg.style.width = '200px';
+        previewImg.style.height = '200px';
+        previewImg.style.objectFit = 'contain';
+        previewImg.style.border = '1px solid #e2e8f0';
+        previewImg.style.borderRadius = '6px';
+        previewImg.src = maStlCornerImageSrc(50, MA_STL_CORNER_TYPE_ANGULAR);
+        previewWrap.appendChild(previewImg);
+        body.appendChild(previewWrap);
+
+        const options = document.createElement('div');
+        options.style.display = 'grid';
+        options.style.rowGap = '10px';
+        options.style.marginBottom = '14px';
+
+        function makeCornerOption(id, text) {
+            const row = document.createElement('label');
+            row.style.display = 'flex';
+            row.style.alignItems = 'center';
+            row.style.gap = '8px';
+            row.style.fontSize = '13px';
+            row.style.color = '#0f172a';
+            const input = document.createElement('input');
+            input.type = 'radio';
+            input.name = 'ma-stl-corner-type';
+            input.id = id;
+            input.style.margin = '0';
+            const span = document.createElement('span');
+            span.textContent = text;
+            row.appendChild(input);
+            row.appendChild(span);
+            options.appendChild(row);
+            return input;
+        }
+
+        const optionAngular = makeCornerOption(
+            'ma-stl-corner-type-angular',
+            'Solución de Esquina con Angular'
+        );
+        const optionVertical = makeCornerOption(
+            'ma-stl-corner-type-universal-x',
+            'Solución de Esquina con P. Universal en Muro Vertical'
+        );
+        const optionHorizontal = makeCornerOption(
+            'ma-stl-corner-type-universal-y',
+            'Solución de Esquina con P. Universal en Muro Horizontal'
+        );
+        body.appendChild(options);
+
+        const actions = document.createElement('div');
+        actions.style.display = 'flex';
+        actions.style.justifyContent = 'flex-end';
+        actions.style.gap = '8px';
+        const cancelBtn = document.createElement('button');
+        cancelBtn.type = 'button';
+        cancelBtn.textContent = 'Cancelar';
+        cancelBtn.style.padding = '7px 10px';
+        cancelBtn.style.border = '1px solid #cbd5e1';
+        cancelBtn.style.borderRadius = '8px';
+        cancelBtn.style.background = '#ffffff';
+        cancelBtn.style.cursor = 'pointer';
+        const applyBtn = document.createElement('button');
+        applyBtn.type = 'button';
+        applyBtn.textContent = 'Cambiar';
+        applyBtn.style.padding = '7px 12px';
+        applyBtn.style.border = 'none';
+        applyBtn.style.borderRadius = '8px';
+        applyBtn.style.background = '#f59e0b';
+        applyBtn.style.color = '#ffffff';
+        applyBtn.style.cursor = 'pointer';
+        actions.appendChild(cancelBtn);
+        actions.appendChild(applyBtn);
+        body.appendChild(actions);
+
+        root.appendChild(head);
+        root.appendChild(body);
+        document.body.appendChild(root);
+
+        let dragState = null;
+        head.addEventListener('mousedown', function (ev) {
+            if (ev.button !== 0 || ev.target === closeBtn) return;
+            const rect = root.getBoundingClientRect();
+            dragState = { dx: ev.clientX - rect.left, dy: ev.clientY - rect.top };
+            ev.preventDefault();
+        });
+        window.addEventListener('mousemove', function (ev) {
+            if (!dragState || root.style.display === 'none') return;
+            const vw = window.innerWidth || document.documentElement.clientWidth || 1280;
+            const vh = window.innerHeight || document.documentElement.clientHeight || 720;
+            const w = Math.max(root.offsetWidth, 320);
+            const h = Math.max(root.offsetHeight, 160);
+            const left = THREE.MathUtils.clamp(ev.clientX - dragState.dx, 8, Math.max(8, vw - w - 8));
+            const top = THREE.MathUtils.clamp(ev.clientY - dragState.dy, 8, Math.max(8, vh - h - 8));
+            root.style.left = Math.round(left) + 'px';
+            root.style.top = Math.round(top) + 'px';
+        });
+        window.addEventListener('mouseup', function () { dragState = null; });
+
+        function selectedType() {
+            if (optionVertical.checked) return MA_STL_CORNER_TYPE_UNIVERSAL_X;
+            if (optionHorizontal.checked) return MA_STL_CORNER_TYPE_UNIVERSAL_Y;
+            return MA_STL_CORNER_TYPE_ANGULAR;
+        }
+
+        function applyCornerEdit() {
+            if (!maStlCornerEditSelection || !maStlCornerEditSelection.lines || !maStlCornerEditSelection.lines.length) {
+                maStlCloseCornerEditPopup();
+                return;
+            }
+            const undoBefore = maStlDesing2SerializeEditSnapshot();
+            const tapeType = selectedType();
+            for (let i = 0; i < maStlCornerEditSelection.lines.length; i++) {
+                const ln = maStlCornerEditSelection.lines[i];
+                const ud = ln && ln.userData ? ln.userData.maStlUserPlanLine : null;
+                if (!ud) continue;
+                maStlWallLineEnsureAttrs(ud);
+                ud._Tape_0 = tapeType;
+                maStlCornerSetTypeOnAxisUdAtVertex(
+                    ud,
+                    maStlCornerEditSelection.cornerPoint || null,
+                    tapeType
+                );
+            }
+            maStlApplyCornerTemporaryFormworkRule(maStlCornerEditSelection, tapeType);
+            maStlDesing2WallModelReadyKey.wall3d = '';
+            maStlSaveWallConnectionsNow({ force: true, reason: 'corner-type-edit' });
+            if (maStlDesing2ModelMode === 'wall3d') {
+                maStlDesing2ApplyWall3dModelMode();
+            }
+            maStlDesing2PushEditSnapshotUndo(
+                'editCornerType',
+                undoBefore,
+                maStlDesing2SerializeEditSnapshot()
+            );
+            maStlCloseCornerEditPopup();
+        }
+
+        closeBtn.addEventListener('click', maStlCloseCornerEditPopup);
+        cancelBtn.addEventListener('click', maStlCloseCornerEditPopup);
+        applyBtn.addEventListener('click', applyCornerEdit);
+        optionAngular.addEventListener('change', function () { maStlCornerEditPopupRefreshPreview(root); });
+        optionVertical.addEventListener('change', function () { maStlCornerEditPopupRefreshPreview(root); });
+        optionHorizontal.addEventListener('change', function () { maStlCornerEditPopupRefreshPreview(root); });
+
+        root._maStlCornerInputs = {
+            angular: optionAngular,
+            vertical: optionVertical,
+            horizontal: optionHorizontal,
+            previewImg: previewImg,
+            profile: 50,
+        };
+        maStlCornerEditPopup = root;
+        return root;
+    }
+
+    function maStlWall3dResolveCornerSelectionAtPointer(clientX, clientY) {
+        if (maStlWallInspectActiveMode() !== 'wall3d') return null;
+        const hit = maStlWall3dInspectPickMeshHitAtPointer(clientX, clientY);
+        const obj = hit && hit.object;
+        if (!obj || !obj.userData || obj.userData.maStlWall3dKind !== 'corner') return null;
+        if (!hit.point) return null;
+        const axes = maStlWall2dToolCollectAllAxisLines();
+        if (!axes || !axes.length) return null;
+        const eps = Math.max(maStlWall2dToolJunctionClusterEpsMm(), 120);
+        let bestPt = null;
+        let bestDist = Infinity;
+        for (let i = 0; i < axes.length; i++) {
+            const ud = axes[i] && axes[i].userData ? axes[i].userData.maStlUserPlanLine : null;
+            if (!ud || ud.wallRole !== 'axis' || !ud.p1Mm || !ud.p2Mm) continue;
+            const pts = [ud.p1Mm, ud.p2Mm];
+            for (let p = 0; p < pts.length; p++) {
+                const dx = pts[p].x - hit.point.x;
+                const dz = pts[p].z - hit.point.z;
+                const d = Math.hypot(dx, dz);
+                if (d < bestDist) {
+                    bestDist = d;
+                    bestPt = pts[p];
+                }
+            }
+        }
+        if (!bestPt) return null;
+        const lines = [];
+        for (let i = 0; i < axes.length; i++) {
+            const ud = axes[i] && axes[i].userData ? axes[i].userData.maStlUserPlanLine : null;
+            if (!ud || ud.wallRole !== 'axis' || !ud.p1Mm || !ud.p2Mm) continue;
+            if (maStlUserFloorPlanPointNearXzMm(ud.p1Mm, bestPt, eps) || maStlUserFloorPlanPointNearXzMm(ud.p2Mm, bestPt, eps)) {
+                lines.push(axes[i]);
+            }
+        }
+        if (!lines.length) return null;
+        return {
+            hit: hit,
+            cornerPoint: bestPt,
+            lines: lines,
+        };
+    }
+
+    function maStlOpenCornerEditPopup(selection, clientX, clientY) {
+        if (!selection || !selection.lines || !selection.lines.length) return false;
+        maStlWallInspectClosePopup();
+        const root = maStlEnsureCornerEditPopup();
+        maStlCornerEditSelection = selection;
+        const type = maStlResolveCornerEditType(selection);
+        const refs = root._maStlCornerInputs || {};
+        refs.angular.checked = type === MA_STL_CORNER_TYPE_ANGULAR;
+        refs.vertical.checked = type === MA_STL_CORNER_TYPE_UNIVERSAL_X;
+        refs.horizontal.checked = type === MA_STL_CORNER_TYPE_UNIVERSAL_Y;
+        refs.profile = maStlResolveCornerImageProfile(selection);
+        maStlCornerEditPopupRefreshPreview(root);
+        root.style.display = 'block';
+        const vw = window.innerWidth || document.documentElement.clientWidth || 1280;
+        const vh = window.innerHeight || document.documentElement.clientHeight || 720;
+        const w = Math.max(root.offsetWidth, 320);
+        const h = Math.max(root.offsetHeight, 160);
+        root.style.left = Math.round(THREE.MathUtils.clamp((clientX || 20) + 14, 8, Math.max(8, vw - w - 8))) + 'px';
+        root.style.top = Math.round(THREE.MathUtils.clamp((clientY || 20) + 14, 8, Math.max(8, vh - h - 8))) + 'px';
+        return true;
     }
 
     function maStlWallInspectLengthLabelFromSelection(selection) {
@@ -29823,6 +30376,7 @@ let maStlWallApplyAllHeightMm = 0;
 
     function maStlWallInspectOpenPopup(selection, clientX, clientY) {
         if (!selection || !selection.ud) return false;
+        maStlCloseCornerEditPopup();
         const root = maStlWallInspectEnsurePopup();
         if (!root) return false;
 
@@ -31825,6 +32379,7 @@ let maStlWallApplyAllHeightMm = 0;
         const ud = line && line.userData && line.userData.maStlUserPlanLine;
         if (!ud || ud.wallRole !== 'pillar') return false;
         maStlWallInspectClosePopup();
+        maStlCloseCornerEditPopup();
         maStlWallLineEnsureAttrs(ud);
         const root = maStlEnsurePillarEditPopup();
         maStlPillarEditLine = line;
@@ -33406,6 +33961,12 @@ let maStlWallApplyAllHeightMm = 0;
                 ev.preventDefault();
                 ev.stopPropagation();
                 maStlClosePillarEditPopup();
+                return;
+            }
+            if (maStlIsCornerEditPopupOpen()) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                maStlCloseCornerEditPopup();
                 return;
             }
             if (escapeTargetTypingOrModalHost(ev.target)) return;
