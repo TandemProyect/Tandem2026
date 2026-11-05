@@ -5073,13 +5073,20 @@ function bootMasterArticleDetailsStlViewer() {
             return Promise.resolve({ skipped: true });
         }
         const articlesOnly = !!(options && options.articlesOnly);
+        const cornerReferencePointsOnly = !!(options && options.cornerReferencePointsOnly);
         const includePhoto = !(options && options.includePhoto === false);
         const quiet = !!(options && options.quiet);
         const hideForms = !!(options && options.hideForms);
         if (!quiet) maStlDesing2SetPersistOverlay(true, 'save', options && options.overlayMessage);
         return Promise.resolve()
             .then(function () {
-                const body = articlesOnly
+                const body = cornerReferencePointsOnly
+                    ? {
+                        DesignId: designId,
+                        CornerReferencePointsOnly: true,
+                        CornerReferencePoints: maStlAtk60CollectCornerReferencePoints(),
+                    }
+                    : articlesOnly
                     ? {
                         DesignId: designId,
                         ArticlesOnly: true,
@@ -5093,6 +5100,7 @@ function bootMasterArticleDetailsStlViewer() {
                             NextSegId: snap.nextSegId,
                             NextPolylineGroupId: snap.nextPolylineGroupId,
                             NextWallGroupId: snap.nextWallGroupId,
+                            CornerReferencePoints: maStlAtk60CollectCornerReferencePoints(),
                             Workers: maStlDesing2WorkerTool.list(),
                         };
                     })();
@@ -5118,7 +5126,7 @@ function bootMasterArticleDetailsStlViewer() {
                 if (!resp || resp.Exito !== true) {
                     throw new Error((resp && resp.Mensaje) || 'No se pudieron guardar los muros');
                 }
-                if (!articlesOnly) maStlDesing2MarkWallsPersisted();
+                if (!articlesOnly && !cornerReferencePointsOnly) maStlDesing2MarkWallsPersisted();
                 var saved = {
                     ok: true,
                     count: resp.Count != null ? resp.Count : resp.count,
@@ -5128,7 +5136,7 @@ function bootMasterArticleDetailsStlViewer() {
                     photoMessage: ''
                 };
                 maStlDesing2SetPersistOverlay(false);
-                if (!includePhoto) return saved;
+                if (!includePhoto || cornerReferencePointsOnly) return saved;
                 return maStlDesing2AfterPaint()
                     .then(maStlDesing2CaptureAndPersistDesignPhoto)
                     .then(function (photo) {
@@ -5216,6 +5224,7 @@ function bootMasterArticleDetailsStlViewer() {
             nextPolylineGroupId: snap.nextPolylineGroupId,
             nextWallGroupId: snap.nextWallGroupId,
             specialArticles: maStlDesing2CollectManualArticlesForExchange(lines),
+            cornerReferencePoints: maStlAtk60CollectCornerReferencePoints(),
             view: maStlDesing2BuildViewerStateSnapshot()
         };
     }
@@ -10159,34 +10168,44 @@ let maStlWallApplyAllHeightMm = 0;
         return 1;
     }
 
-    function maStlAtk60TryRenderJunctionAtBucket(junction) {
-        if (!junction || !junction.axes || junction.axes.length < 2) return 0;
+    function maStlAtk60BuildLJunctionFootprint(junction) {
+        if (!junction || !junction.axes || junction.axes.length !== 2) return null;
         const vertex = junction.vertexMm;
         const axisUds = junction.axes.map(function (e) {
             return e && e.axisUd;
         }).filter(Boolean);
-        if (axisUds.length === 2) {
-            const dA = maStlWall2dModelDirIntoAxisFromVertexMm(axisUds[0], vertex);
-            const dB = maStlWall2dModelDirIntoAxisFromVertexMm(axisUds[1], vertex);
-            if (!dA || !dB || maStlWall2dModelDirsCollinear(dA, dB)) return 0;
-            const eA = maStlWall2dModelAxisThicknessMm(axisUds[0]);
-            const eB = maStlWall2dModelAxisThicknessMm(axisUds[1]);
-            const cornerType = maStlCornerTypeFromAxisUds(axisUds, vertex);
-            const geom = maStlAtk60ResolveLJunctionGeometry(dA, dB, eA, eB, cornerType);
-            const fp = maAtk60BuildLFootprintMm(
-                vertex,
-                dA,
-                dB,
-                eA,
-                eB,
-                {
-                    leg1Mm: geom.leg1Mm,
-                    leg2Mm: geom.leg2Mm,
-                }
-            );
-            if (!fp) return 0;
-            return maStlAtk60PlaceJunctionMesh(fp, axisUds);
+        if (axisUds.length !== 2) return null;
+        const dA = maStlWall2dModelDirIntoAxisFromVertexMm(axisUds[0], vertex);
+        const dB = maStlWall2dModelDirIntoAxisFromVertexMm(axisUds[1], vertex);
+        if (!dA || !dB || maStlWall2dModelDirsCollinear(dA, dB)) return null;
+        const eA = maStlWall2dModelAxisThicknessMm(axisUds[0]);
+        const eB = maStlWall2dModelAxisThicknessMm(axisUds[1]);
+        const cornerType = maStlCornerTypeFromAxisUds(axisUds, vertex);
+        const geom = maStlAtk60ResolveLJunctionGeometry(dA, dB, eA, eB, cornerType);
+        const footprint = maAtk60BuildLFootprintMm(
+            vertex,
+            dA,
+            dB,
+            eA,
+            eB,
+            {
+                leg1Mm: geom.leg1Mm,
+                leg2Mm: geom.leg2Mm,
+            }
+        );
+        return footprint ? { footprint: footprint, axisUds: axisUds } : null;
+    }
+
+    function maStlAtk60TryRenderJunctionAtBucket(junction) {
+        if (!junction || !junction.axes || junction.axes.length < 2) return 0;
+        const lJunction = maStlAtk60BuildLJunctionFootprint(junction);
+        if (lJunction) {
+            return maStlAtk60PlaceJunctionMesh(lJunction.footprint, lJunction.axisUds);
         }
+        const vertex = junction.vertexMm;
+        const axisUds = junction.axes.map(function (e) {
+            return e && e.axisUd;
+        }).filter(Boolean);
         if (axisUds.length < 3) return 0;
         if (axisUds.length >= 4) {
             const cross = maStlAtk60TryBuildCrossFootprintAtJunction(vertex, axisUds);
@@ -10253,6 +10272,29 @@ let maStlWallApplyAllHeightMm = 0;
             });
         }
         return bucket;
+    }
+
+    function maStlAtk60CollectCornerReferencePoints() {
+        const bucket = maStlAtk60BuildJunctionBucket();
+        const points = [];
+        const topY = maStlWall3dResolveCornerExtrudeMm();
+        for (const key in bucket) {
+            const junction = bucket[key];
+            const lJunction = maStlAtk60BuildLJunctionFootprint(junction);
+            if (!lJunction) continue;
+            const point = lJunction.footprint.points[0];
+            const vertex = junction.vertexMm;
+            points.push({
+                id: 'L:' + Number(vertex.x).toFixed(3) + ':' + Number(vertex.z).toFixed(3),
+                positionMm: {
+                    x: point.x,
+                    y: topY,
+                    z: point.z,
+                },
+            });
+        }
+        points.sort(function (a, b) { return a.id.localeCompare(b.id); });
+        return points;
     }
 
     function maStlAtk60CollectJunctionDimPlacements() {

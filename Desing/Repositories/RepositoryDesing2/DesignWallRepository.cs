@@ -14,6 +14,12 @@ namespace Desing.Repositories.RepositoryDesing2
         public double? Z { get; set; }
     }
 
+    public sealed class Desing2CornerReferencePointDto
+    {
+        public string Id { get; set; }
+        public Desing2XyzMmDto PositionMm { get; set; }
+    }
+
     public sealed class Desing2DesignWallLineDto
     {
         public long? Id { get; set; }
@@ -70,6 +76,7 @@ namespace Desing.Repositories.RepositoryDesing2
         public long SourceDesignId { get; set; }
         public List<Desing2DesignWallLineDto> Walls { get; set; }
         public List<PluginSaveWallArticleRequest> SpecialArticles { get; set; }
+        public List<Desing2CornerReferencePointDto> CornerReferencePoints { get; set; }
     }
 
     public sealed class Desing2DesignWallSaveRequest
@@ -79,7 +86,9 @@ namespace Desing.Repositories.RepositoryDesing2
         public List<Desing2DesignWallLineDto> Lines { get; set; }
         public List<PluginSaveWallArticleRequest> Articles { get; set; }
         public List<Desing2DesignWorkerDto> Workers { get; set; }
+        public List<Desing2CornerReferencePointDto> CornerReferencePoints { get; set; }
         public bool ArticlesOnly { get; set; }
+        public bool CornerReferencePointsOnly { get; set; }
         public long? NextSegId { get; set; }
         public long? NextPolylineGroupId { get; set; }
         public long? NextWallGroupId { get; set; }
@@ -90,6 +99,7 @@ namespace Desing.Repositories.RepositoryDesing2
         public List<Desing2DesignWallLineDto> Lines { get; set; }
         public List<Desing2DesignWallArticleDto> Articles { get; set; }
         public List<Desing2DesignWorkerDto> Workers { get; set; }
+        public List<Desing2CornerReferencePointDto> CornerReferencePoints { get; set; }
         public long NextSegId { get; set; }
         public long NextPolylineGroupId { get; set; }
         public long NextWallGroupId { get; set; }

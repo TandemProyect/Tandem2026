@@ -2826,7 +2826,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
 
             var hook = outElements[hookIndex];
             var faceOffsetMm = LegacyCornerHookFaceBaseMm + otherThicknessMm;
-            var targetHookX = cornerX + (alongX * LegacyCornerHookAlongMm) + (sideX * faceOffsetMm);
+            var targetHookX = cornerX + (alongX * LegacyCornerHookAlongMm);
             var targetHookZ = cornerZ + (alongZ * LegacyCornerHookAlongMm) + (sideZ * faceOffsetMm);
             var deltaX = targetHookX - hook.X;
             var deltaZ = targetHookZ - hook.Z;

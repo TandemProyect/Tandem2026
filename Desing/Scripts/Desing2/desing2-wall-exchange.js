@@ -134,11 +134,16 @@
             toast(btn.getAttribute('data-ma-import-fail') || 'No se pudo leer el archivo de muros', true);
             return;
         }
+        var cornerReferencePoints = Array.isArray(payload.cornerReferencePoints)
+            ? payload.cornerReferencePoints
+            : payload.CornerReferencePoints;
+        var hasCornerReferencePoints = Array.isArray(cornerReferencePoints);
         var body = {
             DesignId: designId,
             SourceDesignId: Number(payload.designId) || 0,
             Walls: payload.walls || [],
-            SpecialArticles: payload.specialArticles || []
+            SpecialArticles: payload.specialArticles || [],
+            CornerReferencePoints: hasCornerReferencePoints ? cornerReferencePoints : null
         };
         fetch(url, {
             method: 'POST',
@@ -155,7 +160,26 @@
             var reload = typeof window.maStlDesing2LoadDesignWallsFromServer === 'function'
                 ? window.maStlDesing2LoadDesignWallsFromServer()
                 : Promise.resolve();
-            return Promise.resolve(reload).then(function () {
+            return Promise.resolve(reload).then(function (loadResult) {
+                if (!loadResult || loadResult.ok !== true) {
+                    throw new Error('No se pudieron cargar los muros importados.');
+                }
+                if (!hasCornerReferencePoints) {
+                    if (typeof window.maStlDesing2SaveDesignWallsToServer !== 'function') {
+                        throw new Error('No se pudieron reconstruir los puntos de referencia.');
+                    }
+                    return window.maStlDesing2SaveDesignWallsToServer({
+                        cornerReferencePointsOnly: true,
+                        includePhoto: false,
+                        quiet: true
+                    }).then(function (saveResult) {
+                        if (!saveResult || saveResult.ok !== true) {
+                            throw new Error('No se pudieron guardar los puntos de referencia reconstruidos.');
+                        }
+                    });
+                }
+                return null;
+            }).then(function () {
                 if (payload.view && typeof window.maStlApplyDesing2ViewerStateFromCookie === 'function') {
                     window.maStlApplyDesing2ViewerStateFromCookie(payload.view);
                 }

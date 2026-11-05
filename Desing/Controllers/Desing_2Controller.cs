@@ -256,6 +256,10 @@ namespace Desing.Controllers
                 {
                     return Json(new { Exito = false, Mensaje = "Diseño no indicado." });
                 }
+                if (request.ArticlesOnly && request.CornerReferencePointsOnly)
+                {
+                    return Json(new { Exito = false, Mensaje = "La solicitud no puede guardar solo artículos y solo puntos a la vez." });
+                }
 
                 db.Database.CommandTimeout = 15;
                 var repository = new DesignWallRepository(db);
@@ -271,7 +275,13 @@ namespace Desing.Controllers
                 DesignWallArticleRepository articleRepo = null;
                 using (var trans = db.Database.BeginTransaction())
                 {
-                    if (request.ArticlesOnly)
+                    if (request.CornerReferencePointsOnly)
+                    {
+                        SaveCornerReferencePointsJson(
+                            request.DesignId,
+                            request.CornerReferencePoints ?? new List<Desing2CornerReferencePointDto>());
+                    }
+                    else if (request.ArticlesOnly)
                     {
                         articleRepo = new DesignWallArticleRepository(db);
                         articleCount = articleRepo.ReplaceAll(request.DesignId, request.Articles, userId);
@@ -280,6 +290,10 @@ namespace Desing.Controllers
                     else
                     {
                         saved = repository.ReplaceWalls(request.DesignId, request.Lines, userId);
+                        if (request.CornerReferencePoints != null)
+                        {
+                            SaveCornerReferencePointsJson(request.DesignId, request.CornerReferencePoints);
+                        }
                         if (request.Workers != null)
                         {
                             new DesignWorkerRepository(db).Replace(request.DesignId, request.Workers, userId);
@@ -378,6 +392,9 @@ namespace Desing.Controllers
                 {
                     saved = repository.ReplaceWalls(request.DesignId, request.Walls, userId, true);
                     db.SaveChanges();
+                    SaveCornerReferencePointsJson(
+                        request.DesignId,
+                        request.CornerReferencePoints ?? new List<Desing2CornerReferencePointDto>());
                     articleCount = new DesignWallArticleRepository(db)
                         .ReplaceArticlesOnSpecialWalls(request.DesignId, request.SpecialArticles, userId, trustIds);
                     db.SaveChanges();
@@ -1347,6 +1364,7 @@ namespace Desing.Controllers
                 }
 
                 var snapshot = repository.LoadSnapshot(designId);
+                snapshot.CornerReferencePoints = LoadCornerReferencePointsJson(designId);
                 var result = Json(new
                 {
                     Exito = true,
@@ -2025,6 +2043,88 @@ namespace Desing.Controllers
         private static JArray BuildViewerStateVector(double x, double y, double z)
         {
             return new JArray(x, y, z);
+        }
+
+        private List<Desing2CornerReferencePointDto> LoadCornerReferencePointsJson(long designId)
+        {
+            EnsureCornerReferencePointsColumn();
+            var raw = db.Database.SqlQuery<string>(
+                "SELECT CAST(AttCornerReferencePointsJson AS nvarchar(max)) FROM dbo.TSql_Design_V2 WHERE SysObjectID = @p0 AND AttIsDeleted = 0",
+                designId)
+                .FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                return new List<Desing2CornerReferencePointDto>();
+            }
+
+            var points = JsonConvert.DeserializeObject<List<Desing2CornerReferencePointDto>>(raw)
+                ?? new List<Desing2CornerReferencePointDto>();
+            ValidateCornerReferencePoints(points);
+            return points;
+        }
+
+        private void SaveCornerReferencePointsJson(
+            long designId,
+            IList<Desing2CornerReferencePointDto> points)
+        {
+            EnsureCornerReferencePointsColumn();
+            var normalized = points == null
+                ? new List<Desing2CornerReferencePointDto>()
+                : points.ToList();
+            ValidateCornerReferencePoints(normalized);
+            var json = JsonConvert.SerializeObject(normalized, Formatting.None);
+            var updated = db.Database.ExecuteSqlCommand(
+                "UPDATE dbo.TSql_Design_V2 SET AttCornerReferencePointsJson = @p0 WHERE SysObjectID = @p1 AND AttIsDeleted = 0",
+                json,
+                designId);
+            if (updated != 1)
+            {
+                throw new InvalidOperationException("No se pudieron guardar los puntos de referencia del diseño.");
+            }
+        }
+
+        private void EnsureCornerReferencePointsColumn()
+        {
+            var exists = db.Database.SqlQuery<int>(
+                "SELECT CASE WHEN COL_LENGTH(N'dbo.TSql_Design_V2', N'AttCornerReferencePointsJson') IS NULL THEN 0 ELSE 1 END")
+                .FirstOrDefault();
+            if (exists != 1)
+            {
+                throw new InvalidOperationException(
+                    "Falta dbo.TSql_Design_V2.AttCornerReferencePointsJson. Ejecuta el script de migración correspondiente.");
+            }
+        }
+
+        private static void ValidateCornerReferencePoints(IList<Desing2CornerReferencePointDto> points)
+        {
+            if (points == null || points.Count > 10000)
+            {
+                throw new InvalidOperationException("La lista de puntos de referencia no es válida.");
+            }
+
+            var ids = new HashSet<string>(StringComparer.Ordinal);
+            for (var i = 0; i < points.Count; i++)
+            {
+                var point = points[i];
+                if (point == null
+                    || string.IsNullOrWhiteSpace(point.Id)
+                    || point.Id.Length > 128
+                    || !ids.Add(point.Id)
+                    || point.PositionMm == null
+                    || !IsFiniteCoordinate(point.PositionMm.X)
+                    || !IsFiniteCoordinate(point.PositionMm.Y)
+                    || !IsFiniteCoordinate(point.PositionMm.Z))
+                {
+                    throw new InvalidOperationException("La lista contiene un punto de referencia inválido.");
+                }
+            }
+        }
+
+        private static bool IsFiniteCoordinate(double? value)
+        {
+            return value.HasValue
+                && !double.IsNaN(value.Value)
+                && !double.IsInfinity(value.Value);
         }
 
         private bool TryReplacePhaseDetails(long designId, string userId, JObject plan, out int count, out string error)
@@ -3231,4 +3331,3 @@ namespace Desing.Controllers
     }
 
 }
-
