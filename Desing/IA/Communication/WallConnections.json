@@ -1,5 +1,5 @@
 {
-  "generatedAtUtc": "2026-11-04T15:47:54.781Z",
+  "generatedAtUtc": "2026-11-05T07:30:57.239Z",
   "pageUrl": "https://localhost:44384/Desing_2/Viewer?offerId=1&designId=30009",
   "schema": "WallConnections.v1",
   "source": "Desing_2",
@@ -20,8 +20,8 @@
     "zM": 0
   },
   "counts": {
-    "lines": 8,
-    "nodes": 13,
+    "lines": 6,
+    "nodes": 9,
     "endpointConnections": 3,
     "bodyConnections": 0,
     "polylines": 0,
@@ -394,122 +394,6 @@
       "wallDbId": 30557,
       "IsSpecial": false,
       "isSpecial": false
-    },
-    {
-      "id": 7,
-      "kind": "userLine",
-      "p1NodeId": "N10",
-      "p2NodeId": "N11",
-      "p1": {
-        "xMm": 4115.08372879608,
-        "yMm": 0,
-        "zMm": -16930.393827813765,
-        "xM": 4.1150837287960806,
-        "yM": 0,
-        "zM": -16.930393827813766
-      },
-      "p2": {
-        "xMm": 4415.08372879608,
-        "yMm": 0,
-        "zMm": -16930.393827813765,
-        "xM": 4.4150837287960805,
-        "yM": 0,
-        "zM": -16.930393827813766
-      },
-      "lengthMm": 300,
-      "wallId": "7",
-      "wallRole": "pillar",
-      "_idObject": 7,
-      "_TypeMesh": "Pilar",
-      "_Datalong": 0.3,
-      "_DataWith": 0.3,
-      "_DataHeight": 2.7,
-      "_XRotation": 0,
-      "_YrRtation": 0,
-      "_ZRotation": 0,
-      "_IsFormwork": true,
-      "_IsUniversalPanel": true,
-      "_CHeck750R": true,
-      "_CHeckTypeFormworkMode": true,
-      "_CHeckDimWall": true,
-      "_XCoordinate": 4265.08372879608,
-      "_YCoordinate": 0,
-      "_ZCoordinate": -16930.393827813765,
-      "_Tape_0": null,
-      "_Tape_1": "Tipo 1",
-      "_Tape_2": "Tipo 1",
-      "_Idconnection_1": null,
-      "_Idconnection_2": null,
-      "_CHeckBracketInside": false,
-      "_CHeckBracketOutside": false,
-      "_CHeckRijiInside": true,
-      "_CHeckRijiOutside": true,
-      "_CHeckPropInside": true,
-      "_CHeckPropOutside": false,
-      "_CHeckPropInsideInf": false,
-      "_CHeckPropOutsideInf": false,
-      "WallDbId": 30558,
-      "wallDbId": 30558,
-      "IsSpecial": false,
-      "isSpecial": false
-    },
-    {
-      "id": 8,
-      "kind": "userLine",
-      "p1NodeId": "N12",
-      "p2NodeId": "N13",
-      "p1": {
-        "xMm": 6174.96884230588,
-        "yMm": 0,
-        "zMm": -17778.782328287507,
-        "xM": 6.17496884230588,
-        "yM": 0,
-        "zM": -17.778782328287505
-      },
-      "p2": {
-        "xMm": 6500,
-        "yMm": 0,
-        "zMm": -17750,
-        "xM": 6.5,
-        "yM": 0,
-        "zM": -17.75
-      },
-      "lengthMm": 326.30304303458456,
-      "wallId": "8",
-      "wallRole": "pillar",
-      "_idObject": 8,
-      "_TypeMesh": "Pilar",
-      "_Datalong": 0.326,
-      "_DataWith": 0.3,
-      "_DataHeight": 2.7,
-      "_XRotation": 0,
-      "_YrRtation": 5.06,
-      "_ZRotation": 0,
-      "_IsFormwork": true,
-      "_IsUniversalPanel": true,
-      "_CHeck750R": true,
-      "_CHeckTypeFormworkMode": true,
-      "_CHeckDimWall": true,
-      "_XCoordinate": 6337.48442115294,
-      "_YCoordinate": 0,
-      "_ZCoordinate": -17764.391164143752,
-      "_Tape_0": null,
-      "_Tape_1": "Tipo 1",
-      "_Tape_2": "Tipo 1",
-      "_Idconnection_1": null,
-      "_Idconnection_2": null,
-      "_CHeckBracketInside": false,
-      "_CHeckBracketOutside": false,
-      "_CHeckRijiInside": true,
-      "_CHeckRijiOutside": true,
-      "_CHeckPropInside": true,
-      "_CHeckPropOutside": false,
-      "_CHeckPropInsideInf": false,
-      "_CHeckPropOutsideInf": false,
-      "WallDbId": 30559,
-      "wallDbId": 30559,
-      "IsSpecial": false,
-      "isSpecial": false
     }
   ],
   "polylines": [],
@@ -700,78 +584,6 @@
         {
           "lineId": 6,
           "endpoint": "p1"
-        }
-      ],
-      "junctionType": "Free"
-    },
-    {
-      "id": "N10",
-      "point": {
-        "xMm": 4115.08372879608,
-        "yMm": 0,
-        "zMm": -16930.393827813765,
-        "xM": 4.1150837287960806,
-        "yM": 0,
-        "zM": -16.930393827813766
-      },
-      "incidentEndpoints": [
-        {
-          "lineId": 7,
-          "endpoint": "p1"
-        }
-      ],
-      "junctionType": "Free"
-    },
-    {
-      "id": "N11",
-      "point": {
-        "xMm": 4415.08372879608,
-        "yMm": 0,
-        "zMm": -16930.393827813765,
-        "xM": 4.4150837287960805,
-        "yM": 0,
-        "zM": -16.930393827813766
-      },
-      "incidentEndpoints": [
-        {
-          "lineId": 7,
-          "endpoint": "p2"
-        }
-      ],
-      "junctionType": "Free"
-    },
-    {
-      "id": "N12",
-      "point": {
-        "xMm": 6174.96884230588,
-        "yMm": 0,
-        "zMm": -17778.782328287507,
-        "xM": 6.17496884230588,
-        "yM": 0,
-        "zM": -17.778782328287505
-      },
-      "incidentEndpoints": [
-        {
-          "lineId": 8,
-          "endpoint": "p1"
-        }
-      ],
-      "junctionType": "Free"
-    },
-    {
-      "id": "N13",
-      "point": {
-        "xMm": 6500,
-        "yMm": 0,
-        "zMm": -17750,
-        "xM": 6.5,
-        "yM": 0,
-        "zM": -17.75
-      },
-      "incidentEndpoints": [
-        {
-          "lineId": 8,
-          "endpoint": "p2"
         }
       ],
       "junctionType": "Free"
@@ -1306,7 +1118,7 @@
   "generatedWallModel": {
     "mode": "wall3d",
     "system": "Atk-60",
-    "generatedAtUtc": "2026-11-04T15:47:54.77Z",
+    "generatedAtUtc": "2026-11-05T07:30:57.233Z",
     "counts": {
       "generatedMeshes": 3,
       "sourceLines": 4,

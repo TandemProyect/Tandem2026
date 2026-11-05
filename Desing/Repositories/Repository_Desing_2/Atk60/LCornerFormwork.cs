@@ -15,9 +15,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         private const double LegMm = 300d;
         private const double ReachMm = 450d;
         private const double LegacyCornerHookAlongMm = 10d;
-        private const double LegacyCornerPlateAlongMm = 120d;
         private const double LegacyCornerHookFaceBaseMm = 300d;
-        private const double LegacyCornerPlateFaceBaseMm = 390d;
         private const string FixedPath = "../../Content/DesignTools/Stl/ATK60/10004220.stl";
         private const string FixedCode = "10004220";
         private const string StiffPath = "../../Content/DesignTools/Stl/ATK60/1850162.stl";
@@ -2352,10 +2350,10 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             var ownerExit = IsPhaseExit(owner);
             var otherExit = IsPhaseExit(other);
             var ownerCover = !ownerExit && PlaceExteriorCover(
-                outElements, owner, ownerAtEnd, ownerInside, other.ThicknessMm,
+                outElements, owner, ownerAtEnd, ownerInside, other.ThicknessMm, cornerX, cornerZ,
                 ownerSuppressCornerUnion, ownerIsRegulated);
             var otherCover = !otherExit && PlaceExteriorCover(
-                outElements, other, otherAtEnd, otherInside, owner.ThicknessMm,
+                outElements, other, otherAtEnd, otherInside, owner.ThicknessMm, cornerX, cornerZ,
                 otherSuppressCornerUnion, otherIsRegulated);
             var stepMm = Math.Abs(owner.ThicknessMm - other.ThicknessMm);
             var unequal = stepMm > 5d && stepMm <= 600d;
@@ -2599,6 +2597,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             bool atEnd,
             bool inside,
             double otherThicknessMm,
+            double cornerX,
+            double cornerZ,
             bool suppressCornerSeam = false,
             bool forceRegulated750 = false)
         {
@@ -2663,6 +2663,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     atEnd,
                     moduleMm,
                     otherThicknessMm,
+                    cornerX,
+                    cornerZ,
                     showPrimary,
                     showOpposite,
                     true,
@@ -2710,6 +2712,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             bool atEnd,
             int moduleMm,
             double otherThicknessMm,
+            double cornerX,
+            double cornerZ,
             bool showPrimary,
             bool showOpposite,
             bool includeTieColumn = true,
@@ -2723,7 +2727,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             else
             {
                 PlaceCornerUnionHookAndPlate(
-                    outElements, run, atEnd, otherThicknessMm, showPrimary, showOpposite);
+                    outElements, run, atEnd, otherThicknessMm, cornerX, cornerZ,
+                    showPrimary, showOpposite);
             }
             if (includeTieColumn)
             {
@@ -2750,6 +2755,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             Run run,
             bool atEnd,
             double otherThicknessMm,
+            double cornerX,
+            double cornerZ,
             bool showPrimary,
             bool showOpposite)
         {
@@ -2760,24 +2767,26 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
 
             if (showPrimary)
             {
-                PlaceCornerHardwareFromLegacyTapePattern(
-                    outElements, run, atEnd, otherThicknessMm,
+                PlaceCornerHardwareFromPillarPattern(
+                    outElements, run, atEnd, otherThicknessMm, cornerX, cornerZ,
                     run.Anchor.NormalX, run.Anchor.NormalZ);
             }
 
             if (showOpposite)
             {
-                PlaceCornerHardwareFromLegacyTapePattern(
-                    outElements, run, atEnd, otherThicknessMm,
+                PlaceCornerHardwareFromPillarPattern(
+                    outElements, run, atEnd, otherThicknessMm, cornerX, cornerZ,
                     -run.Anchor.NormalX, -run.Anchor.NormalZ);
             }
         }
 
-        private static void PlaceCornerHardwareFromLegacyTapePattern(
+        private static void PlaceCornerHardwareFromPillarPattern(
             List<Atk60ElementPaintItem> outElements,
             Run run,
             bool atEnd,
             double otherThicknessMm,
+            double cornerX,
+            double cornerZ,
             double faceNormalX,
             double faceNormalZ)
         {
@@ -2787,8 +2796,23 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 run.Anchor.Y, run.HeightMm, run.ThicknessMm, atEnd,
                 faceNormalX, faceNormalZ);
 
-            var cornerX = atEnd ? run.Ex : run.Sx;
-            var cornerZ = atEnd ? run.Ez : run.Sz;
+            var hookIndex = -1;
+            for (var i = firstNewItem; i < outElements.Count; i++)
+            {
+                var item = outElements[i];
+                if (item != null && item.ElementCode == "1920811")
+                {
+                    hookIndex = i;
+                    break;
+                }
+            }
+
+            if (hookIndex < 0)
+            {
+                throw new InvalidOperationException(
+                    "No se generó el gancho necesario para alinear el herraje de esquina.");
+            }
+
             var alongSign = atEnd ? 1d : -1d;
             var alongX = run.Ux * alongSign;
             var alongZ = run.Uz * alongSign;
@@ -2800,6 +2824,13 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 sideZ = -sideZ;
             }
 
+            var hook = outElements[hookIndex];
+            var faceOffsetMm = LegacyCornerHookFaceBaseMm + otherThicknessMm;
+            var targetHookX = cornerX + (alongX * LegacyCornerHookAlongMm) + (sideX * faceOffsetMm);
+            var targetHookZ = cornerZ + (alongZ * LegacyCornerHookAlongMm) + (sideZ * faceOffsetMm);
+            var deltaX = targetHookX - hook.X;
+            var deltaZ = targetHookZ - hook.Z;
+
             for (var i = firstNewItem; i < outElements.Count; i++)
             {
                 var item = outElements[i];
@@ -2808,14 +2839,12 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     continue;
                 }
 
-                if (item.ElementCode == "1920811" || item.ElementCode == "10443020")
+                var isHook = item.ElementCode == "1920811";
+                var isPlate = item.ElementCode == "10443020";
+                if (isHook || isPlate)
                 {
-                    var isHook = item.ElementCode == "1920811";
-                    var alongMm = isHook ? LegacyCornerHookAlongMm : LegacyCornerPlateAlongMm;
-                    var faceMm = (isHook ? LegacyCornerHookFaceBaseMm : LegacyCornerPlateFaceBaseMm)
-                        + otherThicknessMm;
-                    item.X = cornerX + (alongX * alongMm) + (sideX * faceMm);
-                    item.Z = cornerZ + (alongZ * alongMm) + (sideZ * faceMm);
+                    item.X += deltaX;
+                    item.Z += deltaZ;
 
                     if (isHook)
                     {
