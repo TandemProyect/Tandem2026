@@ -8548,7 +8548,6 @@ function bootMasterArticleDetailsStlViewer() {
             }
         }
 
-        maStlWall3dAddInteriorCornerPoints();
         sampleGroup.traverse(function (obj) {
             if (obj && obj.isMesh && obj.renderOrder < 145) obj.renderOrder = 145;
         });
@@ -9781,8 +9780,11 @@ let maStlWallApplyAllHeightMm = 0;
             clipStlMeshes.push(mesh);
         }
         maStlWall3dExpandClipBoundsForMesh(mesh);
-        if (kind === 'cornerL' && maStlWall3dCornerGuidesForJuan()) {
-            maStlWall3dAddLCornerFaceGuides(footprint, extrudeMm);
+        if (kind === 'cornerL') {
+            maStlWall3dAddLCornerReferencePoint(footprint, extrudeMm);
+            if (maStlWall3dCornerGuidesForJuan()) {
+                maStlWall3dAddLCornerFaceGuides(footprint, extrudeMm);
+            }
         }
         if (kind === 'cornerT' && maStlWall3dCornerGuidesForJuan()) {
             maStlWall3dAddTCornerTipo1Guides(footprint, extrudeMm);
@@ -9804,6 +9806,11 @@ let maStlWallApplyAllHeightMm = 0;
         return !!input.checked;
     }
 
+    function maStlWall3dCornerReferencePointOn() {
+        const input = document.querySelector('#desing2-dim-kinds input[data-dim-kind="corner-reference-point"]');
+        return !!(input && input.checked);
+    }
+
     function maStlWall3dHideWallOn() {
         if (!maStlWall3dCornerGuidesForJuan()) return false;
         const input = document.querySelector('#desing2-dim-kinds input[data-dim-kind="hide-wall"]');
@@ -9811,7 +9818,24 @@ let maStlWallApplyAllHeightMm = 0;
         return !!input.checked;
     }
 
-    /** Líneas 1 y 3 en el canto exterior. La 2 y la 4 cruzan por dentro. El punto rojo está en ese cruce. */
+    /** Líneas 1 y 3 en el canto exterior. La 2 y la 4 cruzan por dentro. */
+    function maStlWall3dAddLCornerReferencePoint(footprint, topY) {
+        const input = document.querySelector('#desing2-dim-kinds input[data-dim-kind="corner-reference-point"]');
+        const pts = footprint && footprint.points;
+        if (!input || !pts || pts.length < 6 || !maStlWall3dMeshesGroup) return;
+        const p0 = pts[0];
+        const mark = new THREE.Mesh(
+            new THREE.SphereGeometry(45, 16, 12),
+            new THREE.MeshBasicMaterial({ color: 0xff1744, depthTest: false })
+        );
+        mark.position.set(p0.x, topY + 45, p0.z);
+        mark.renderOrder = 190;
+        mark.userData.maStlWall3dCornerMark = 'red';
+        mark.userData.maStlWall3dCornerReferencePoint = true;
+        maStlWall3dMeshesGroup.add(mark);
+        maStlWall3dSyncCornerGuideVisibility();
+    }
+
     function maStlWall3dAddLCornerFaceGuides(footprint, topY) {
         if (!maStlWall3dCornerGuidesForJuan()) return;
         const pts = footprint && footprint.points;
@@ -9938,14 +9962,6 @@ let maStlWallApplyAllHeightMm = 0;
         cornerCota(onFace2, p2, n1, offset2, '2', 0xff1744);
         cornerCota(p0, p5, n3, 320, '3', 0x00e5ff);
         cornerCota(onFace4, p4, n3, offset4, '4', 0x2962ff);
-        const mark = new THREE.Mesh(
-            new THREE.SphereGeometry(15, 16, 12),
-            new THREE.MeshBasicMaterial({ color: 0xff1744, depthTest: false })
-        );
-        mark.position.set(pts[3].x, topY + 15, pts[3].z);
-        mark.renderOrder = 190;
-        mark.userData.maStlWall3dCornerMark = 'red';
-        maStlWall3dMeshesGroup.add(mark);
         maStlWall3dSyncCornerGuideVisibility();
     }
 
@@ -10105,6 +10121,8 @@ let maStlWallApplyAllHeightMm = 0;
         const guidesOn = maStlWall3dDevelopGuidesOn() && !maStlWallDimToolActive;
         const wallOn = guidesOn && maStlDesing2ModelMode === 'wall3d';
         const linesOn = wallOn && !maStlDesing2FormworkViewOn();
+        const referencePointOn = maStlWall3dCornerReferencePointOn() &&
+            !maStlWallDimToolActive && maStlDesing2ModelMode === 'wall3d';
         const hideWall = maStlWall3dHideWallOn();
         function apply(obj) {
             const ud = obj && obj.userData;
@@ -10112,7 +10130,8 @@ let maStlWallApplyAllHeightMm = 0;
             if (ud.maStlWall3dCornerLine || ud.maStlWall3dCornerLabel || ud.maStlWall3dCornerCota) {
                 obj.visible = linesOn;
             }
-            if (ud.maStlWall3dCornerMark) obj.visible = wallOn;
+            if (ud.maStlWall3dCornerReferencePoint) obj.visible = referencePointOn;
+            else if (ud.maStlWall3dCornerMark) obj.visible = wallOn;
             if (ud.maStlWall3dGenerated && (ud.maStlWall3dKind === 'wall' || ud.maStlWall3dKind === 'corner')) {
                 obj.visible = !hideWall;
             }
@@ -10122,51 +10141,6 @@ let maStlWallApplyAllHeightMm = 0;
     }
 
     window.desing2SyncCornerGuides = maStlWall3dSyncCornerGuideVisibility;
-
-    function maStlWall3dAddInteriorCornerPoints() {
-        const group = maStlDesing2EnsureAtk60SampleGroup();
-        for (let i = group.children.length - 1; i >= 0; i--) {
-            const ch = group.children[i];
-            if (!ch.userData || ch.userData.maStlWall3dCornerMark !== 'green') continue;
-            if (ch.geometry) ch.geometry.dispose();
-            if (ch.material && ch.material.dispose) ch.material.dispose();
-            group.remove(ch);
-        }
-        if (!maStlWall3dCornerGuidesForJuan()) return;
-        const items = maStlDesing2LastAtk60PaintPayload && maStlDesing2LastAtk60PaintPayload.elements;
-        if (!Array.isArray(items)) return;
-        let yTop = null;
-        if (maStlWall3dMeshesGroup) {
-            maStlWall3dMeshesGroup.traverse(function (obj) {
-                if (obj.userData && obj.userData.maStlWall3dCornerMark === 'red') yTop = obj.position.y;
-            });
-        }
-        const seen = Object.create(null);
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i] || {};
-            const code = item.ElementCode != null ? String(item.ElementCode) : '';
-            if (!/^(E27004210|E24004217|E12004216)$/.test(code)) continue;
-            const x = maStlDesing2ToFiniteNumber(item.X);
-            const z = maStlDesing2ToFiniteNumber(item.Z);
-            if (!Number.isFinite(x) || !Number.isFinite(z)) continue;
-            const key = Math.round(x) + ':' + Math.round(z);
-            if (seen[key]) continue;
-            seen[key] = true;
-            const up = maStlDesing2ToFiniteNumber(item.LocalUpMm) || 0;
-            const wallH = maStlDesing2ToFiniteNumber(item.WallHeightMm) || 0;
-            const baseY = maStlDesing2ToFiniteNumber(item.Y) || 0;
-            const y = yTop != null ? yTop : (baseY - up + wallH + 15);
-            const mark = new THREE.Mesh(
-                new THREE.SphereGeometry(15, 16, 12),
-                new THREE.MeshBasicMaterial({ color: 0x00c853, depthTest: false })
-            );
-            mark.position.set(x, y, z);
-            mark.renderOrder = 191;
-            mark.userData.maStlWall3dCornerMark = 'green';
-            group.add(mark);
-        }
-        maStlWall3dSyncCornerGuideVisibility();
-    }
 
     /** T: contorno P-1…P-8 validado; en Muro 3D se extruye desde P-1. */
     const MA_STL_ATK60_T_EXTRUDE_3D = true;

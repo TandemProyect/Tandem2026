@@ -9,7 +9,8 @@
         "panels",
         "remates",
         "adjustable-panel",
-        "wall-id"
+        "wall-id",
+        "corner-reference-point"
     ];
 
     function safeId(value) {

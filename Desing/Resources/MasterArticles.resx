@@ -967,6 +967,9 @@
   <data name="StlPreview_DimDevelopGuides" xml:space="preserve">
     <value>Puntos y leyendas</value>
   </data>
+  <data name="StlPreview_DimDevelopCornerReferencePoint" xml:space="preserve">
+    <value>Punto de referencia de esquina</value>
+  </data>
   <data name="StlPreview_DimDevelopHideWall" xml:space="preserve">
     <value>Oculta muro</value>
   </data>

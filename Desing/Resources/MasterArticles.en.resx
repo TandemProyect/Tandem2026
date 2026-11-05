@@ -967,6 +967,9 @@
   <data name="StlPreview_DimDevelopGuides" xml:space="preserve">
     <value>Points and labels</value>
   </data>
+  <data name="StlPreview_DimDevelopCornerReferencePoint" xml:space="preserve">
+    <value>Corner reference point</value>
+  </data>
   <data name="StlPreview_DimDevelopHideWall" xml:space="preserve">
     <value>Hide wall</value>
   </data>
