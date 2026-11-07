@@ -5,6 +5,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Windows;
+using System.Windows.Interop;
 
 namespace FreeCadPluging
 {
@@ -12,6 +13,7 @@ namespace FreeCadPluging
     {
         private readonly string _url;
         private WebView2 _web;
+        private IntPtr _ownerHandle;
 
         public event Action<string> MessageReceived;
         public event Action<Uri> Navigated;
@@ -33,6 +35,23 @@ namespace FreeCadPluging
         {
             if (_web != null && _web.CoreWebView2 != null && !string.IsNullOrWhiteSpace(url))
                 _web.CoreWebView2.Navigate(url);
+        }
+
+        public void SetOwnerHandle(IntPtr ownerHandle)
+        {
+            if (ownerHandle == IntPtr.Zero)
+                return;
+            _ownerHandle = ownerHandle;
+            new WindowInteropHelper(this).Owner = ownerHandle;
+            ShowInTaskbar = false;
+            SourceInitialized += (_, __) => ApplyNativeOwner();
+        }
+
+        private void ApplyNativeOwner()
+        {
+            var handle = new WindowInteropHelper(this).Handle;
+            if (handle != IntPtr.Zero && _ownerHandle != IntPtr.Zero)
+                SetWindowLongPtr(handle, GwlHwndParent, _ownerHandle);
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -107,5 +126,10 @@ namespace FreeCadPluging
 
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool SetDllDirectory(string lpPathName);
+
+        private const int GwlHwndParent = -8;
+
+        [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW", SetLastError = true)]
+        private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr newValue);
     }
 }

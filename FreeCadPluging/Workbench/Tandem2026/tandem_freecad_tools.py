@@ -7,14 +7,17 @@ import tempfile
 
 import FreeCAD
 import Part
+from pivy import coin
 
 import tandem_host
 
 
-DEFAULT_THICKNESS = 120.0
+DEFAULT_THICKNESS = 300.0
 DEFAULT_HEIGHT = 2700.0
 DEFAULT_LENGTH = 3000.0
 DEFAULT_ARTICLE = "27904209"
+MIN_WALL_SEGMENT = 1.0
+_wall_drawing = None
 
 
 def _message(text):
@@ -60,28 +63,244 @@ def _formwork_objects(doc):
 
 
 def create_wall_2d():
-    doc = _document()
-    index = len(_wall_objects(doc)) + 1
-    offset = (index - 1) * (DEFAULT_THICKNESS * 3.0)
-    start = FreeCAD.Vector(0.0, offset, 0.0)
-    end = FreeCAD.Vector(DEFAULT_LENGTH, offset, 0.0)
+    """Start interactive wall-axis capture in the XY plan view."""
+    global _wall_drawing
+    import FreeCADGui
 
-    obj = doc.addObject("Part::Feature", "TandemWall2D_{0}".format(index))
-    obj.Shape = Part.makeLine(start, end)
-    obj.Label = "Tandem Muro 2D {0}".format(index)
-    _set_string(obj, "TandemKind", "Wall2D")
-    _set_string(obj, "TandemStart", _format_vector(start))
-    _set_string(obj, "TandemEnd", _format_vector(end))
-    _set_string(obj, "TandemThickness", DEFAULT_THICKNESS)
-    _set_string(obj, "TandemHeight", DEFAULT_HEIGHT)
-    _set_string(obj, "TandemSource", "FreeCAD")
-    if getattr(obj, "ViewObject", None) is not None:
-        obj.ViewObject.LineColor = (0.0, 0.25, 1.0)
-        obj.ViewObject.LineWidth = 4.0
+    if _wall_drawing is not None:
+        _warning("Ya hay un dibujo de muro activo. Termina con clic derecho/Enter o cancela con Escape.")
+        return _wall_drawing
+
+    gui_doc = FreeCADGui.activeDocument()
+    if gui_doc is None:
+        _warning("Abre un documento FreeCAD antes de dibujar el muro.")
+        return None
+
+    view = gui_doc.activeView()
+    view.viewTop()
+    _wall_drawing = _WallDrawing(view)
+    _wall_drawing.start()
+    return _wall_drawing
+
+
+def _create_wall_segments(points, thickness=DEFAULT_THICKNESS, height=DEFAULT_HEIGHT):
+    doc = _document()
+    valid_points = []
+    for point in points:
+        point = FreeCAD.Vector(point.x, point.y, 0.0)
+        if not valid_points or point.sub(valid_points[-1]).Length >= MIN_WALL_SEGMENT:
+            valid_points.append(point)
+    if len(valid_points) < 2:
+        raise ValueError("El muro necesita al menos dos puntos separados 1 mm o mas.")
+
+    index = len(_wall_objects(doc)) + 1
+    created = []
+    for segment_index in range(len(valid_points) - 1):
+        start = valid_points[segment_index]
+        end = valid_points[segment_index + 1]
+        if end.sub(start).Length < MIN_WALL_SEGMENT:
+            continue
+        edges = _wall_outline_edges(start, end, thickness)
+        if len(edges) < 2:
+            continue
+        obj = doc.addObject("Part::Feature", "TandemWall2D_{0}".format(index + segment_index))
+        obj.Shape = Part.makeCompound(edges)
+        obj.Label = "Tandem Muro 2D {0}".format(index + segment_index)
+        _set_string(obj, "TandemKind", "Wall2D")
+        _set_string(obj, "TandemStart", _format_vector(start))
+        _set_string(obj, "TandemEnd", _format_vector(end))
+        _set_string(obj, "TandemThickness", thickness)
+        _set_string(obj, "TandemHeight", height)
+        _set_string(obj, "TandemSource", "FreeCAD")
+        if getattr(obj, "ViewObject", None) is not None:
+            obj.ViewObject.LineColor = (0.0, 0.25, 1.0)
+            obj.ViewObject.LineWidth = 2.0
+        created.append(obj)
+
     doc.recompute()
-    _message("Muro 2D creado: longitud {0} mm, espesor {1} mm, altura {2} mm.".format(
-        int(DEFAULT_LENGTH), int(DEFAULT_THICKNESS), int(DEFAULT_HEIGHT)))
-    return obj
+    _message("Muro 2D creado: {0} tramo(s), espesor {1} mm, altura {2} mm.".format(
+        len(created), int(thickness), int(height)))
+    return created
+
+
+class _WallDrawing:
+    def __init__(self, view):
+        self.view = view
+        self.points = []
+        self.preview = None
+        self.mouse_callback = self._on_mouse
+        self.move_callback = self._on_move
+        self.keyboard_callback = self._on_keyboard
+        self._callback_handles = []
+        self._preview_error_reported = False
+
+    def start(self):
+        self._add_callback(coin.SoMouseButtonEvent.getClassTypeId(), self.mouse_callback, "SoMouseButtonEvent")
+        self._add_callback(coin.SoLocation2Event.getClassTypeId(), self.move_callback, "SoLocation2Event")
+        self._add_callback(coin.SoKeyboardEvent.getClassTypeId(), self.keyboard_callback, "SoKeyboardEvent")
+        _message("Dibuja el eje del muro: primer clic inicio, segundo clic fin. Escape cancela.")
+
+    def _add_callback(self, pivy_type, callback, legacy_name):
+        try:
+            handle = self.view.addEventCallbackPivy(pivy_type, callback)
+            self._callback_handles.append(("pivy", pivy_type, handle if handle is not None else callback, callback))
+            return
+        except Exception:
+            pass
+        try:
+            handle = self.view.addEventCallback(legacy_name, callback)
+            self._callback_handles.append(("legacy", legacy_name, handle, callback))
+            return
+        except Exception as ex:
+            _warning("No se pudo registrar callback {0}: {1}".format(legacy_name, ex))
+
+    def _point_from_event(self, event):
+        position = event.getPosition()
+        x, y = self._xy_from_position(position)
+        if x is None or y is None:
+            return None
+        point = self.view.getPoint(x, y)
+        return FreeCAD.Vector(point.x, point.y, 0.0)
+
+    def _xy_from_position(self, position):
+        try:
+            return int(position[0]), int(position[1])
+        except Exception:
+            pass
+        try:
+            values = position.getValue()
+            return int(values[0]), int(values[1])
+        except Exception:
+            pass
+        return None, None
+
+    def _on_mouse(self, event_callback):
+        event = event_callback.getEvent()
+        if event.getState() != coin.SoMouseButtonEvent.DOWN:
+            return
+        if event.getButton() == coin.SoMouseButtonEvent.BUTTON3:
+            self.finish()
+            return
+        if event.getButton() != coin.SoMouseButtonEvent.BUTTON1:
+            return
+
+        point = self._point_from_event(event)
+        if point is None:
+            return
+        if self.points and point.sub(self.points[-1]).Length < MIN_WALL_SEGMENT:
+            _warning("Tramo ignorado: debe medir al menos 1 mm.")
+            return
+        self.points.append(point)
+        self._update_preview(point)
+        _message("Punto {0}: ({1:.1f}, {2:.1f}) mm.".format(len(self.points), point.x, point.y))
+
+        # Flujo robusto en FreeCAD 1.1.4: con dos clics cerramos el tramo.
+        if len(self.points) >= 2:
+            self.finish()
+
+    def _on_move(self, event_callback):
+        if not self.points:
+            return
+        event = event_callback.getEvent()
+        point = self._point_from_event(event)
+        if point is not None:
+            self._update_preview(point)
+
+    def _on_keyboard(self, event_callback):
+        event = event_callback.getEvent()
+        if event.getState() != coin.SoKeyboardEvent.DOWN:
+            return
+        if event.getKey() in (coin.SoKeyboardEvent.RETURN, coin.SoKeyboardEvent.ENTER):
+            self.finish()
+        elif event.getKey() == coin.SoKeyboardEvent.ESCAPE:
+            self.cancel()
+
+    def _update_preview(self, cursor):
+        doc = _document()
+        if self.preview is None:
+            self.preview = doc.addObject("Part::Feature", "TandemWallPreview")
+            self.preview.Label = "Vista previa muro"
+            if getattr(self.preview, "ViewObject", None) is not None:
+                self.preview.ViewObject.LineColor = (1.0, 0.45, 0.0)
+                self.preview.ViewObject.LineWidth = 2.0
+        edges = []
+        for index in range(len(self.points) - 1):
+            edges.extend(_wall_outline_edges(self.points[index], self.points[index + 1], DEFAULT_THICKNESS))
+        if self.points and cursor.sub(self.points[-1]).Length >= MIN_WALL_SEGMENT:
+            edges.extend(_wall_outline_edges(self.points[-1], cursor, DEFAULT_THICKNESS))
+        if edges:
+            try:
+                self.preview.Shape = Part.makeCompound(edges)
+                doc.recompute()
+                self._preview_error_reported = False
+            except Exception as ex:
+                if not self._preview_error_reported:
+                    _warning("Vista previa de muro omitida por geometria invalida: {0}".format(ex))
+                    self._preview_error_reported = True
+
+    def finish(self):
+        if len(self.points) < 2:
+            _warning("Dibuja al menos dos puntos antes de terminar.")
+            return
+        points = list(self.points)
+        self._detach()
+        _create_wall_segments(points)
+
+    def cancel(self):
+        self._detach()
+        _message("Dibujo de muro cancelado.")
+
+    def _detach(self):
+        global _wall_drawing
+        for kind, event_key, handle, callback in self._callback_handles:
+            try:
+                if kind == "pivy":
+                    try:
+                        self.view.removeEventCallbackPivy(event_key, handle)
+                    except Exception:
+                        self.view.removeEventCallbackPivy(event_key, callback)
+                else:
+                    self.view.removeEventCallback(event_key, handle)
+            except Exception:
+                pass
+        self._callback_handles = []
+        doc = FreeCAD.ActiveDocument
+        if doc is not None and self.preview is not None:
+            doc.removeObject(self.preview.Name)
+            doc.recompute()
+        _wall_drawing = None
+
+
+def _wall_outline_edges(start, end, thickness):
+    delta = end.sub(start)
+    length = delta.Length
+    if length < MIN_WALL_SEGMENT:
+        return []
+    normal = FreeCAD.Vector(-delta.y / length, delta.x / length, 0.0)
+    half = float(thickness) / 2.0
+    left_start = start.add(normal.multiply(half))
+    left_end = end.add(normal.multiply(half))
+    right_start = start.add(normal.multiply(-half))
+    right_end = end.add(normal.multiply(-half))
+    edges = []
+    left = _safe_make_line(left_start, left_end)
+    right = _safe_make_line(right_start, right_end)
+    if left is not None:
+        edges.append(left)
+    if right is not None:
+        edges.append(right)
+    return edges
+
+
+def _safe_make_line(start, end):
+    if start is None or end is None:
+        return None
+    if end.sub(start).Length < MIN_WALL_SEGMENT:
+        return None
+    try:
+        return Part.makeLine(start, end)
+    except Exception:
+        return None
 
 
 def _make_wall_shape(start, end, thickness, height):

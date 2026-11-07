@@ -1762,6 +1762,68 @@ namespace Desing.Controllers
         /// <returns>Respuesta JSON con el resultado del procesamiento</returns>
         [HttpPost]
         [AllowAnonymous]
+        public ActionResult PluginWall2dStep(PluginWall2dStepRequestDTO request)
+        {
+            try
+            {
+                if (request == null || request.Points == null || request.Points.Count < 2)
+                    request = ReadJsonBody<PluginWall2dStepRequestDTO>() ?? request;
+
+                if (request == null || request.Points == null || request.Points.Count < 2)
+                {
+                    return Json(new ApiResponse<PluginWall2dStepResponseDTO>
+                    {
+                        Exito = false,
+                        Mensaje = "Se requieren al menos 2 puntos para calcular el tramo de muro.",
+                        Datos = null
+                    });
+                }
+
+                var points = request.Points
+                    .Where(p => p != null)
+                    .Select(p => new PuntoDTO { X = p.X, Y = p.Y, Z = p.Z })
+                    .ToList();
+                if (points.Count < 2)
+                {
+                    return Json(new ApiResponse<PluginWall2dStepResponseDTO>
+                    {
+                        Exito = false,
+                        Mensaje = "La colección de puntos no es válida.",
+                        Datos = null
+                    });
+                }
+
+                var thickness = request.Thickness > 1e-8 ? request.Thickness : 0.30;
+                var lines = CadWall2dService.BuildStepAdditions(
+                    points,
+                    thickness,
+                    request.ReserveEndForNextStep,
+                    request.ExistingAxisSegments);
+
+                return Json(new ApiResponse<PluginWall2dStepResponseDTO>
+                {
+                    Exito = true,
+                    Mensaje = $"Wall2D step calculado: {lines.Count} línea(s).",
+                    Datos = new PluginWall2dStepResponseDTO
+                    {
+                        Lines = lines,
+                        Message = "OK"
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new ApiResponse<PluginWall2dStepResponseDTO>
+                {
+                    Exito = false,
+                    Mensaje = "Error calculando wall2d step: " + ex.Message,
+                    Datos = null
+                });
+            }
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
         public ActionResult ProcesarLineasZwcad(SeleccionLineasDTO seleccion)
         {
             try

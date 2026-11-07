@@ -537,6 +537,7 @@
     <Compile Include="Services\ImageAnalysisService.cs" />
     <Compile Include="Services\MasterArticleViewerDxfConverter.cs" />
     <Compile Include="Services\LCornerDetector.cs" />
+    <Compile Include="Services\CadWall2dService.cs" />
     <Compile Include="Services\SketchWallBuilder.cs" />
     <Compile Include="Services\OsmBuildingImportService.cs" />
     <Compile Include="Startup.cs" />

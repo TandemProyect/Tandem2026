@@ -5,6 +5,7 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Collections.Generic;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -14,6 +15,10 @@ namespace FreeCadPluging
     {
         private const string LocalUrl = "https://localhost:44384/";
         private const string ProductionUrl = "https://tdesing.net/";
+        private const string ShowUiEventName = @"Local\Tandem2026FreeCadHostShowUi";
+
+        private static EventWaitHandle _showUiEvent;
+        private static RegisteredWaitHandle _showUiRegistration;
 
         [STAThread]
         private static int Main(string[] args)
@@ -51,7 +56,7 @@ namespace FreeCadPluging
                 case "connect-ui":
                 case "prepare":
                 case "atdesing":
-                    return RunConnectUi();
+                    return RunConnectUi(args);
                 case "wall-2d":
                     Console.WriteLine("Muro 2D en FreeCAD pendiente. La UI y API seran comunes via MVC.");
                     return 0;
@@ -70,15 +75,67 @@ namespace FreeCadPluging
             }
         }
 
-        private static int RunConnectUi()
+        private static int RunConnectUi(string[] args)
         {
-            FreeCadPluginEnvironment.EnsureFolders();
-            var app = new Application
+            _showUiEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ShowUiEventName);
+            using (var uiMutex = new Mutex(true, @"Local\Tandem2026FreeCadHost", out var createdNew))
             {
-                ShutdownMode = ShutdownMode.OnLastWindowClose
-            };
-            FreeCadPaletteHost.Show();
-            return app.Run();
+                if (!createdNew)
+                {
+                    try { _showUiEvent.Set(); } catch { }
+                    return 0;
+                }
+
+                var ownerHandle = IntPtr.Zero;
+                if (args.Length > 1 && long.TryParse(args[1], out var handleValue))
+                    ownerHandle = new IntPtr(handleValue);
+
+                FreeCadPluginEnvironment.EnsureFolders();
+                var app = new Application
+                {
+                    ShutdownMode = ShutdownMode.OnLastWindowClose
+                };
+                FreeCadPaletteHost.Show(ownerHandle);
+                RegisterShowUiSignalHandler();
+                try
+                {
+                    return app.Run();
+                }
+                finally
+                {
+                    UnregisterShowUiSignalHandler();
+                }
+            }
+        }
+
+        private static void RegisterShowUiSignalHandler()
+        {
+            _showUiRegistration = ThreadPool.RegisterWaitForSingleObject(
+                _showUiEvent,
+                (_, __) =>
+                {
+                    try
+                    {
+                        var dispatcher = Application.Current?.Dispatcher;
+                        if (dispatcher == null)
+                            return;
+                        dispatcher.BeginInvoke((Action)(() => FreeCadPaletteHost.ReopenUi()));
+                    }
+                    catch
+                    {
+                    }
+                },
+                null,
+                Timeout.Infinite,
+                false);
+        }
+
+        private static void UnregisterShowUiSignalHandler()
+        {
+            try { _showUiRegistration?.Unregister(null); } catch { }
+            _showUiRegistration = null;
+            try { _showUiEvent?.Dispose(); } catch { }
+            _showUiEvent = null;
         }
 
         private static async Task<int> SolveFormworkAsync(string[] args)

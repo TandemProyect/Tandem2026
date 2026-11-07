@@ -18,6 +18,8 @@ namespace Desing.Helpers
                 return;
             }
 
+            EnsureGroupTable(database);
+
             var uid = string.IsNullOrWhiteSpace(userId) ? "system" : userId.Trim();
             if (uid.Length > 128)
             {
@@ -35,6 +37,75 @@ namespace Desing.Helpers
                 DefaultName,
                 uid,
                 now);
+        }
+
+        private static void EnsureGroupTable(Database database)
+        {
+            database.ExecuteSqlCommand(
+                @"IF OBJECT_ID(N'dbo.TSql_DesgloseGrupo', N'U') IS NULL
+                  BEGIN
+                    CREATE TABLE [dbo].[TSql_DesgloseGrupo]
+                    (
+                      [IdObject] BIGINT IDENTITY(1,1) NOT NULL
+                        CONSTRAINT [PK_TSql_DesgloseGrupo] PRIMARY KEY CLUSTERED,
+                      [TextLabel] NVARCHAR(500) NOT NULL,
+                      [LinkDesign_V2] BIGINT NOT NULL,
+                      [NumberGroup] BIGINT NOT NULL,
+                      [Is_Delete] BIT NOT NULL CONSTRAINT [DF_TSql_DesgloseGrupo_Is_Delete] DEFAULT (0),
+                      [Is_Active] BIT NOT NULL CONSTRAINT [DF_TSql_DesgloseGrupo_Is_Active] DEFAULT (1),
+                      [LinkMadeBy] NVARCHAR(128) NOT NULL,
+                      [LinModifiedBy] NVARCHAR(128) NULL,
+                      [AddDateMade] DATETIME NOT NULL CONSTRAINT [DF_TSql_DesgloseGrupo_AddDateMade] DEFAULT (GETDATE()),
+                      [AddLastDateChange] DATETIME NULL,
+                      [Ntimeschanged] BIGINT NOT NULL CONSTRAINT [DF_TSql_DesgloseGrupo_Ntimeschanged] DEFAULT (0)
+                    );
+                  END");
+
+            database.ExecuteSqlCommand(
+                @"IF OBJECT_ID(N'dbo.TSql_Design_V2', N'U') IS NOT NULL
+                    AND NOT EXISTS (
+                      SELECT 1
+                      FROM sys.foreign_keys
+                      WHERE name = N'FK_TSql_DesgloseGrupo_TSql_Design_V2'
+                        AND parent_object_id = OBJECT_ID(N'dbo.TSql_DesgloseGrupo')
+                    )
+                  BEGIN
+                    ALTER TABLE [dbo].[TSql_DesgloseGrupo] WITH CHECK
+                    ADD CONSTRAINT [FK_TSql_DesgloseGrupo_TSql_Design_V2]
+                      FOREIGN KEY ([LinkDesign_V2]) REFERENCES [dbo].[TSql_Design_V2] ([SysObjectID]);
+                  END");
+
+            database.ExecuteSqlCommand(
+                @"IF NOT EXISTS (
+                      SELECT 1 FROM sys.indexes
+                      WHERE name = N'UX_TSql_DesgloseGrupo_Design_NumberGroup'
+                        AND object_id = OBJECT_ID(N'dbo.TSql_DesgloseGrupo')
+                    )
+                  CREATE UNIQUE NONCLUSTERED INDEX [UX_TSql_DesgloseGrupo_Design_NumberGroup]
+                  ON [dbo].[TSql_DesgloseGrupo] ([LinkDesign_V2], [NumberGroup])
+                  WHERE [Is_Delete] = 0;");
+
+            database.ExecuteSqlCommand(
+                @"IF NOT EXISTS (
+                      SELECT 1 FROM sys.indexes
+                      WHERE name = N'IX_TSql_DesgloseGrupo_TextLabel_Active'
+                        AND object_id = OBJECT_ID(N'dbo.TSql_DesgloseGrupo')
+                    )
+                  CREATE NONCLUSTERED INDEX [IX_TSql_DesgloseGrupo_TextLabel_Active]
+                  ON [dbo].[TSql_DesgloseGrupo] ([TextLabel])
+                  INCLUDE ([Is_Active])
+                  WHERE [Is_Delete] = 0;");
+
+            database.ExecuteSqlCommand(
+                @"IF NOT EXISTS (
+                      SELECT 1 FROM sys.indexes
+                      WHERE name = N'IX_TSql_DesgloseGrupo_LinkDesign_Active'
+                        AND object_id = OBJECT_ID(N'dbo.TSql_DesgloseGrupo')
+                    )
+                  CREATE NONCLUSTERED INDEX [IX_TSql_DesgloseGrupo_LinkDesign_Active]
+                  ON [dbo].[TSql_DesgloseGrupo] ([LinkDesign_V2])
+                  INCLUDE ([NumberGroup], [Is_Active])
+                  WHERE [Is_Delete] = 0;");
         }
     }
 }

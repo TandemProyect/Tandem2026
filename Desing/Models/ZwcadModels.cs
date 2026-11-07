@@ -256,6 +256,46 @@ namespace Desing.Models
     }
 
     /// <summary>
+    /// Solicitud para calcular adiciones del siguiente tramo de muro 2D desde una cadena de puntos.
+    /// Todas las magnitudes van en unidades del dibujo CAD (no forzadas a mm).
+    /// </summary>
+    public class PluginWall2dStepRequestDTO
+    {
+        public List<PuntoDTO> Points { get; set; }
+        public double Thickness { get; set; }
+        public bool ReserveEndForNextStep { get; set; } = false;
+        public List<PluginWall2dAxisSegmentDTO> ExistingAxisSegments { get; set; }
+    }
+
+    /// <summary>
+    /// Segmento de eje existente en dibujo para resolver encuentros T/+ en servidor.
+    /// </summary>
+    public class PluginWall2dAxisSegmentDTO
+    {
+        public PuntoDTO Start { get; set; }
+        public PuntoDTO End { get; set; }
+    }
+
+    /// <summary>
+    /// Línea resultante para el plugin CAD (eje o cara).
+    /// </summary>
+    public class PluginWall2dStepLineDTO
+    {
+        public string Role { get; set; } // "axis" | "face"
+        public PuntoDTO Start { get; set; }
+        public PuntoDTO End { get; set; }
+    }
+
+    /// <summary>
+    /// Respuesta de cálculo incremental del siguiente tramo de muro 2D.
+    /// </summary>
+    public class PluginWall2dStepResponseDTO
+    {
+        public List<PluginWall2dStepLineDTO> Lines { get; set; }
+        public string Message { get; set; }
+    }
+
+    /// <summary>
     /// Registro de foto recibida desde Telegram para un diseno.
     /// </summary>
     public class TelegramDesignPhotoDTO

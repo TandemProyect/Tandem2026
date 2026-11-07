@@ -10,10 +10,8 @@ class TandemWorkbench(Workbench):
     def Initialize(self):
         import tandem_commands
 
-        commands = tandem_commands.register_commands()
-
-        self.appendToolbar("Tandem 2026", commands)
-        self.appendMenu("Tandem 2026", commands)
+        tandem_commands.register_gui_commands()
+        self.appendMenu("Tandem 2026", ["Tandem_OpenMvcPalettes"])
 
     def Activated(self):
         import FreeCAD

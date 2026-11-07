@@ -1,0 +1,17 @@
+[package]
+name = "tandem-opencadstudio-plugin"
+version = "0.1.0"
+edition = "2021"
+description = "Tandem 2026 ribbon plugin for Open CAD Studio."
+license = "GPL-3.0-only"
+
+[workspace]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+ocs_plugin_api = { git = "https://github.com/HakanSeven12/OpenCADStudio", rev = "0e77cae65227", features = ["host"] }
+
+[patch."https://github.com/HakanSeven12/acadrust.git"]
+acadrust = { git = "https://github.com/hakanaktt/acadrust.git", rev = "53e6420" }

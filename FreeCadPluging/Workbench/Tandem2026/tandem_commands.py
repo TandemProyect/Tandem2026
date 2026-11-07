@@ -4,7 +4,6 @@ import FreeCAD
 import FreeCADGui
 
 import tandem_host
-import tandem_freecad_tools
 import tandem_command_bridge
 
 _environment_started = False
@@ -18,22 +17,16 @@ def _warning(text):
     FreeCAD.Console.PrintWarning("[Tandem] {0}\n".format(text))
 
 
-def _run(command):
-    code, output, error = tandem_host.run_host(command)
-    if output:
-        _message(output)
-    if error:
-        _warning(error)
-    if code != 0 and not error:
-        _warning("FreeCadPluging.exe devolvio codigo {0}.".format(code))
-
-
 def activate_environment(force=False):
     global _environment_started
     tandem_command_bridge.start()
     if _environment_started and not force:
         return
-    ok, error = tandem_host.run_host_detached("connect-ui")
+    try:
+        owner_handle = str(int(FreeCADGui.getMainWindow().winId()))
+    except Exception:
+        owner_handle = "0"
+    ok, error = tandem_host.run_host_detached("connect-ui", owner_handle)
     if not ok:
         _warning(error)
         return
@@ -41,11 +34,11 @@ def activate_environment(force=False):
     _message("Entorno Tandem 2026 abierto. Las herramientas se cargan desde MVC.")
 
 
-class ConnectCommand:
+class _OpenMvcPalettesCommand:
     def GetResources(self):
         return {
-            "MenuText": "Conectar / Preparar entorno",
-            "ToolTip": "Abrir sesion MVC y mostrar las herramientas Tandem",
+            "MenuText": "Abrir barras MVC",
+            "ToolTip": "Reabre la sesion y las barras MVC de Tandem 2026",
         }
 
     def Activated(self):
@@ -55,97 +48,10 @@ class ConnectCommand:
         return True
 
 
-class SetLocalServerCommand:
-    def GetResources(self):
-        return {
-            "MenuText": "Servidor local",
-            "ToolTip": "Usar https://localhost:44384/",
-        }
-
-    def Activated(self):
-        _run("set-local")
-
-    def IsActive(self):
-        return True
-
-
-class SetProductionServerCommand:
-    def GetResources(self):
-        return {
-            "MenuText": "Servidor produccion",
-            "ToolTip": "Usar https://tdesing.net/",
-        }
-
-    def Activated(self):
-        _run("set-production")
-
-    def IsActive(self):
-        return True
-
-
-class ShowServerCommand:
-    def GetResources(self):
-        return {
-            "MenuText": "Mostrar servidor",
-            "ToolTip": "Mostrar el servidor MVC activo",
-        }
-
-    def Activated(self):
-        _run("show-server")
-
-    def IsActive(self):
-        return True
-
-
-class Wall2DCommand:
-    def GetResources(self):
-        return {
-            "MenuText": "Muro 2D",
-            "ToolTip": "Entrada C# para dibujar muro 2D Tandem en FreeCAD",
-        }
-
-    def Activated(self):
-        _run("wall-2d")
-        tandem_freecad_tools.create_wall_2d()
-
-    def IsActive(self):
-        return True
-
-
-class Wall3DCommand:
-    def GetResources(self):
-        return {
-            "MenuText": "Generar 3D",
-            "ToolTip": "Entrada C# para llamar a LCornerDetector y crear solidos FreeCAD",
-        }
-
-    def Activated(self):
-        _run("wall-3d")
-        tandem_freecad_tools.generate_wall_3d()
-
-    def IsActive(self):
-        return True
-
-
-class FormworkCommand:
-    def GetResources(self):
-        return {
-            "MenuText": "Encofrar",
-            "ToolTip": "Enviar muros al encofrado MVC e insertar piezas ATK60",
-        }
-
-    def Activated(self):
-        _run("formwork")
-        tandem_freecad_tools.insert_formwork()
-
-    def IsActive(self):
-        return True
-
-
-def register_commands():
-    commands = {
-        "Tandem_Connect": ConnectCommand(),
-    }
-    for name, command in commands.items():
-        FreeCADGui.addCommand(name, command)
-    return list(commands.keys())
+def register_gui_commands():
+    try:
+        if not getattr(register_gui_commands, "_registered", False):
+            FreeCADGui.addCommand("Tandem_OpenMvcPalettes", _OpenMvcPalettesCommand())
+            register_gui_commands._registered = True
+    except Exception as ex:
+        _warning("No se pudo registrar el comando de barras MVC: {0}".format(ex))

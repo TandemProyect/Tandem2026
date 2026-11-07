@@ -45,14 +45,7 @@ Despues cierra y abre FreeCAD. Selecciona el workbench **Tandem 2026** en el des
 
 ## Comandos actuales
 
-| Comando FreeCAD | Ejecuta en C# |
-|-----------------|---------------|
-| Conectar | `FreeCadPluging.exe ping` |
-| Servidor local | `FreeCadPluging.exe set-local` |
-| Servidor produccion | `FreeCadPluging.exe set-production` |
-| Mostrar servidor | `FreeCadPluging.exe show-server` |
-| Muro 2D | `FreeCadPluging.exe wall-2d` |
-| Generar 3D | `FreeCadPluging.exe wall-3d` |
+Al activar el Workbench `Tandem 2026` se abre la sesion y las paletas MVC. Las herramientas visibles y sus acciones vienen de MVC; FreeCAD no agrega botones locales para muro, 3D o encofrado.
 
 ## Siguiente paso tecnico
 

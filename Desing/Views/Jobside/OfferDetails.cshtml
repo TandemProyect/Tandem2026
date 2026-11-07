@@ -379,6 +379,22 @@
             $('#offerWorkspaceDesignsFlash').html(html);
         }
 
+        function offerWorkspaceSetSavingState(isSaving) {
+            var form = $('#offerWorkspaceNewDesignForm');
+            var submitBtn = form.find('button[type="submit"]').first();
+            if (!submitBtn.length) return;
+            if (!submitBtn.data('defaultHtml')) {
+                submitBtn.data('defaultHtml', submitBtn.html());
+            }
+            if (isSaving) {
+                submitBtn.prop('disabled', true);
+                submitBtn.html('<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Creando...');
+                return;
+            }
+            submitBtn.prop('disabled', false);
+            submitBtn.html(submitBtn.data('defaultHtml'));
+        }
+
         $(document).ready(function () {
             var ndBtn = document.getElementById('offerWorkspaceNewDesignBtn');
             if (ndBtn) {
@@ -397,12 +413,18 @@
 
             $('#offerWorkspaceNewDesignForm').on('submit', function (e) {
                 e.preventDefault();
+                var form = $('#offerWorkspaceNewDesignForm');
+                var submitBtn = form.find('button[type="submit"]').first();
+                if (submitBtn.prop('disabled')) {
+                    return;
+                }
                 var cfg = window.offerWorkspaceDesignUi || {};
                 var tk = $('input[name="__RequestVerificationToken"]').first().val();
                 var dataArr = $('#offerWorkspaceNewDesignForm').serializeArray();
                 if (tk) {
                     dataArr.push({ name: '__RequestVerificationToken', value: tk });
                 }
+                offerWorkspaceSetSavingState(true);
                 $.ajax({
                     url: cfg.saveUrl,
                     type: 'POST',
@@ -439,6 +461,8 @@
                 }).fail(function () {
                     var cfg = window.offerWorkspaceDesignUi || {};
                     offerWorkspaceDesignsFlash('danger', cfg.saveFailed || '');
+                }).always(function () {
+                    offerWorkspaceSetSavingState(false);
                 });
             });
 

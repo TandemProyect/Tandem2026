@@ -10,13 +10,36 @@ namespace FreeCadPluging
         private static FreeCadPaletteWindow _tools;
         private static bool _authenticated;
         private static string _readyUrl;
+        private static IntPtr _ownerHandle;
 
-        public static void Show()
+        public static void Show(IntPtr ownerHandle)
         {
             FreeCadPluginEnvironment.EnsureFolders();
+            _ownerHandle = ownerHandle;
             var baseUrl = Program.CurrentUrl();
             _readyUrl = baseUrl + "DesignToolsAutocad/PluginReady";
             EnsureSession(baseUrl + "DesignToolsAutocad/PluginSession?" + SessionQuery());
+        }
+
+        public static void ReopenUi()
+        {
+            var baseUrl = Program.CurrentUrl();
+            if (string.IsNullOrWhiteSpace(_readyUrl))
+                _readyUrl = baseUrl + "DesignToolsAutocad/PluginReady";
+
+            if (_session == null)
+                EnsureSession(baseUrl + "DesignToolsAutocad/PluginSession?" + SessionQuery());
+
+            if (_authenticated)
+            {
+                ShowToolPalettes();
+                _session?.Hide();
+                return;
+            }
+
+            _session?.Show();
+            if (!string.IsNullOrWhiteSpace(_readyUrl))
+                _session?.Navigate(_readyUrl + "?t=" + DateTime.UtcNow.Ticks);
         }
 
         private static string SessionQuery()
@@ -50,6 +73,7 @@ namespace FreeCadPluging
         private static FreeCadPaletteWindow CreateWindow(string title, string url, double width, double height)
         {
             var win = new FreeCadPaletteWindow(title, url, width, height);
+            win.SetOwnerHandle(_ownerHandle);
             win.MessageReceived += OnPaletteMessage;
             return win;
         }
@@ -73,9 +97,17 @@ namespace FreeCadPluging
         private static void MarkAuthenticated()
         {
             if (_authenticated)
+            {
+                // Si ya estaba autenticado, igual forzamos visibilidad de paletas.
+                ShowToolPalettes();
+                _session?.Hide();
                 return;
+            }
             _authenticated = true;
             ShowToolPalettes();
+            // La vista PluginCadAuth es solo handshake (pantalla blanca intencional).
+            // La ocultamos al autenticar para no tapar el trabajo CAD.
+            _session?.Hide();
         }
 
         private static void ShowToolPalettes()
@@ -108,7 +140,7 @@ namespace FreeCadPluging
         private static void OnPaletteMessage(string raw)
         {
             var json = NormalizePaletteJson(raw);
-            var action = ReadAction(json);
+            var action = ParseActionFromPaletteJson(json);
             if (string.IsNullOrWhiteSpace(action))
                 return;
 
@@ -120,6 +152,13 @@ namespace FreeCadPluging
                 return;
             }
 
+            if (string.Equals(action, "session-ready", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(action, "page-ready", StringComparison.OrdinalIgnoreCase))
+            {
+                MarkAuthenticated();
+                return;
+            }
+
             if (string.Equals(action, "hide-home", StringComparison.OrdinalIgnoreCase))
             {
                 _session?.Hide();
@@ -127,6 +166,11 @@ namespace FreeCadPluging
             }
 
             FreeCadCommandBridge.Queue(MapAction(action), json);
+        }
+
+        internal static string ParseActionFromPaletteJson(string json)
+        {
+            return ReadAction(json);
         }
 
         private static string MapAction(string action)
@@ -176,21 +220,42 @@ namespace FreeCadPluging
             {
                 using (var doc = JsonDocument.Parse(json))
                 {
-                    if (doc.RootElement.TryGetProperty("action", out var action))
-                        return action.GetString();
-                    if (doc.RootElement.TryGetProperty("command", out var command))
-                        return command.GetString();
-                    if (doc.RootElement.TryGetProperty("mode", out var mode))
-                        return mode.GetString();
-                    if (doc.RootElement.TryGetProperty("tool", out var tool))
-                        return tool.GetString();
-                    if (doc.RootElement.TryGetProperty("system", out var system))
-                        return system.GetString();
+                    var root = doc.RootElement;
+                    var action = ReadString(root, "action");
+                    if (!string.IsNullOrWhiteSpace(action))
+                        return action;
+
+                    var command = ReadString(root, "command");
+                    if (!string.IsNullOrWhiteSpace(command))
+                        return command;
+
+                    // Prioriza tool sobre mode para cubrir payloads como:
+                    // { "tool": "wall-2d", "mode": null }
+                    var tool = ReadString(root, "tool");
+                    if (!string.IsNullOrWhiteSpace(tool))
+                        return tool;
+
+                    var mode = ReadString(root, "mode");
+                    if (!string.IsNullOrWhiteSpace(mode))
+                        return mode;
+
+                    var system = ReadString(root, "system");
+                    if (!string.IsNullOrWhiteSpace(system))
+                        return system;
                 }
             }
             catch
             {
             }
+            return null;
+        }
+
+        private static string ReadString(JsonElement root, string propertyName)
+        {
+            if (!root.TryGetProperty(propertyName, out var value))
+                return null;
+            if (value.ValueKind == JsonValueKind.String)
+                return value.GetString();
             return null;
         }
     }

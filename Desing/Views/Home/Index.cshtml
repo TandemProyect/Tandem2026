@@ -3677,6 +3677,22 @@
 
             }
 
+            function dashSetFormSavingState(formSelector, isSaving) {
+                var form = $(formSelector);
+                var submitBtn = form.find('button[type="submit"]').first();
+                if (!submitBtn.length) return;
+                if (!submitBtn.data('defaultHtml')) {
+                    submitBtn.data('defaultHtml', submitBtn.html());
+                }
+                if (isSaving) {
+                    submitBtn.prop('disabled', true);
+                    submitBtn.html('<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Creando...');
+                    return;
+                }
+                submitBtn.prop('disabled', false);
+                submitBtn.html(submitBtn.data('defaultHtml'));
+            }
+
 
 
             function dashShowModal(id) {
@@ -3914,6 +3930,11 @@
             $('#dashNewDesignForm').on('submit', function (e) {
 
                 e.preventDefault();
+                var form = $('#dashNewDesignForm');
+                var submitBtn = form.find('button[type="submit"]').first();
+                if (submitBtn.prop('disabled')) {
+                    return;
+                }
 
                 if (!$('#dashNewDesignOfferPick').hasClass('d-none') && !$('#dashNewDesignOfferId').val()) {
 
@@ -3932,6 +3953,7 @@
                     return;
 
                 }
+                dashSetFormSavingState('#dashNewDesignForm', true);
 
                 $.ajax({
 
@@ -3981,6 +4003,10 @@
 
                     dashDesignFlash('danger', dashDesignUi.failed);
 
+                }).always(function () {
+
+                    dashSetFormSavingState('#dashNewDesignForm', false);
+
                 });
 
             });
@@ -3990,6 +4016,11 @@
             $('#dashNewClientDesignForm').on('submit', function (e) {
 
                 e.preventDefault();
+                var form = $('#dashNewClientDesignForm');
+                var submitBtn = form.find('button[type="submit"]').first();
+                if (submitBtn.prop('disabled')) {
+                    return;
+                }
 
                 if (!$('#dashNewClientDesignClientPick').hasClass('d-none') && !$('#dashNewClientDesignClientId').val()) {
 
@@ -4008,6 +4039,7 @@
                     return;
 
                 }
+                dashSetFormSavingState('#dashNewClientDesignForm', true);
 
                 $.ajax({
 
@@ -4057,6 +4089,10 @@
 
                     dashClientDesignFlash('danger', dashClientDesignUi.failed);
 
+                }).always(function () {
+
+                    dashSetFormSavingState('#dashNewClientDesignForm', false);
+
                 });
 
             });
@@ -4082,4 +4118,3 @@
     </script>
 
 }
-

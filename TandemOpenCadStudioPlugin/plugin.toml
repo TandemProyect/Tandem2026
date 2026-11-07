@@ -1,0 +1,14 @@
+[plugin]
+id = "tandem.opencadstudio"
+name = "Tandem 2026"
+version = "0.1.0"
+description = "Ribbon Tandem 2026 para ejecutar bridge MVC/OpenCADStudio"
+author = "Tandem 2026"
+license = "GPL-3.0-only"
+repository = "TandemProyect/Tandem2026"
+
+[opencad]
+api_version = 14
+ribbon_order = 40
+command_prefixes = ["TANDEM"]
+xdata_apps = []

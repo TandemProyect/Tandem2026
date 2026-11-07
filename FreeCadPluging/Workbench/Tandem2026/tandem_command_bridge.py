@@ -70,7 +70,12 @@ def process_pending():
 
 
 def _action_from(name, payload):
-    action = str(payload.get("action") or payload.get("command") or "").strip()
+    action = str(
+        payload.get("action")
+        or payload.get("command")
+        or payload.get("mode")
+        or payload.get("tool")
+        or "").strip()
     if action:
         return _normalize(action)
     stem = os.path.splitext(name)[0]

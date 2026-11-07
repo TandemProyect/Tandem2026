@@ -114,10 +114,15 @@ namespace Desing.Controllers
         /// Borrado lógico propio de la tabla: <see cref="TSql_Design_V2.AttIsDeleted"/>.
         /// </summary>
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public JsonResult SaveOfferDesign(long offerId, long jobsideId, string attLabel, string attDescription, string attThumbnail)
         {
-            var uid = IntranetAuditHelper.ResolveCurrentUserId(User);
+            var uid = IntranetAuditHelper.ResolveCurrentUserId(User) ?? "system";
+            if (uid.Length > 128)
+            {
+                uid = uid.Substring(0, 128);
+            }
 
             var offer = db.TSql_Offers
                 .AsNoTracking()
@@ -194,9 +199,20 @@ namespace Desing.Controllers
                 LinkOffers = offerId
             };
 
-            db.TSql_Design_V2.Add(entity);
-            db.SaveChanges();
-            DesignGroupHelper.EnsureFirstGroup(db.Database, entity.SysObjectID, uid, now);
+            try
+            {
+                using (var tx = db.Database.BeginTransaction())
+                {
+                    db.TSql_Design_V2.Add(entity);
+                    db.SaveChanges();
+                    DesignGroupHelper.EnsureFirstGroup(db.Database, entity.SysObjectID, uid, now);
+                    tx.Commit();
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { ok = false, message = Jobside.OfferWorkspace_Designs_SaveFailed + " (" + ex.Message + ")" });
+            }
 
             var rowVm = new JobsideOfferDesignRowVm
             {

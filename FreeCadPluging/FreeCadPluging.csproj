@@ -43,7 +43,6 @@
       <_WorkbenchFiles Include="$(MSBuildProjectDirectory)\Workbench\Tandem2026\**\*" Exclude="$(MSBuildProjectDirectory)\Workbench\Tandem2026\**\__pycache__\**\*" />
       <_HostFiles Include="$(TargetDir)*.*" Exclude="$(TargetDir)*.pdb" />
     </ItemGroup>
-    <RemoveDir Directories="$(FreeCadWorkbenchDir)" Condition="Exists('$(FreeCadWorkbenchDir)')" />
     <MakeDir Directories="$(FreeCadWorkbenchDir)" />
     <MakeDir Directories="$(FreeCadWorkbenchDir)\Host" />
     <Copy SourceFiles="@(_WorkbenchFiles)"

@@ -13609,6 +13609,74 @@ let maStlWallApplyAllHeightMm = 0;
         return out;
     }
 
+    /**
+     * Resuelve el medio espesor del nuevo tramo desde el muro conectado en `startPtMm`.
+     * Prioriza: endpoint mismo grupo -> endpoint otro grupo -> cuerpo mismo grupo -> cuerpo otro grupo.
+     */
+    function maStlWall2dToolResolveConnectedHalfThicknessMm(startPtMm, wallGroupId, fallbackHalfT) {
+        const fallback = Number.isFinite(fallbackHalfT) && fallbackHalfT > 0
+            ? fallbackHalfT
+            : maStlWall2dToolThicknessHalfMm();
+        if (!startPtMm || !maStlUserLinesGroup) return fallback;
+        const axes = maStlWall2dToolCollectAllAxisLines();
+        if (!axes.length) return fallback;
+
+        const endpointEps = Math.max(
+            maStlUserFloorLineMergeEndpointEpsMm(),
+            MA_STL_WALL_DIM_LENGTH_VALUE_TOL_MM
+        );
+        const endpointEpsSq = endpointEps * endpointEps;
+        const bodyTol = Math.max(endpointEps, MA_STL_USER_FLOOR_LINE_VERTEX_SNAP_MM);
+        const bodyProj = { x: 0, y: 0, z: 0 };
+        let best = null;
+
+        function registerCandidate(axisLine, distSq, sameGroup, fromEndpoint) {
+            const candidateHalfT = maStlWall2dToolAxisFaceHalfThicknessMm(axisLine);
+            if (!(candidateHalfT > 0)) return;
+            const priority = fromEndpoint ? (sameGroup ? 0 : 1) : (sameGroup ? 2 : 3);
+            if (
+                !best ||
+                priority < best.priority ||
+                (priority === best.priority && distSq < best.distSq)
+            ) {
+                best = {
+                    halfT: candidateHalfT,
+                    priority: priority,
+                    distSq: distSq,
+                };
+            }
+        }
+
+        for (let ai = 0; ai < axes.length; ai++) {
+            const axisLine = axes[ai];
+            const ud = axisLine && axisLine.userData && axisLine.userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            const sameGroup = wallGroupId != null && ud.wallGroupId === wallGroupId;
+
+            const d1 = maStlUserFloorPlanPointDistSqXzMm(startPtMm, ud.p1Mm);
+            if (d1 <= endpointEpsSq) {
+                registerCandidate(axisLine, d1, sameGroup, true);
+                continue;
+            }
+            const d2 = maStlUserFloorPlanPointDistSqXzMm(startPtMm, ud.p2Mm);
+            if (d2 <= endpointEpsSq) {
+                registerCandidate(axisLine, d2, sameGroup, true);
+                continue;
+            }
+
+            const proj = maStlProjectPointOntoUserFloorSegmentBodyXzMm(
+                startPtMm,
+                ud.p1Mm,
+                ud.p2Mm,
+                bodyProj
+            );
+            if (!proj || proj.distXZ > bodyTol) continue;
+            registerCandidate(axisLine, proj.distXZ * proj.distXZ, sameGroup, false);
+        }
+
+        return best && best.halfT > 0 ? best.halfT : fallback;
+    }
+
     /** Punto offset de cara ± en un punto del eje (no necesariamente extremo). */
     function maStlWall2dToolFaceOffsetPointAtAxisPointMm(axisUd, ptOnAxis, halfT, sideSign) {
         if (!axisUd || !ptOnAxis || !(halfT > 0)) return null;
@@ -14889,8 +14957,7 @@ let maStlWallApplyAllHeightMm = 0;
     }
 
     /** Confirma un tramo de muro: eje + dos caras; refactoriza esquinas del tramo anterior. */
-    function maStlWall2dToolCommitWallSegmentMm(a, b, skipUndo) {
-        const halfT = maStlWall2dToolThicknessHalfMm();
+    function maStlWall2dToolCommitWallSegmentMm(a, b, skipUndo, halfTOverrideMm) {
         const wallGroupId = maStlWall2dToolActiveGroupId;
         if (wallGroupId == null) return false;
         const undoBefore =
@@ -14908,6 +14975,13 @@ let maStlWallApplyAllHeightMm = 0;
         maStlWeldUserFloorPlanPointToExistingEndpointsMm(b, weldEps);
         maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(a);
         maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(b);
+        const fallbackHalfT = maStlWall2dToolThicknessHalfMm();
+        let halfT = Number(halfTOverrideMm);
+        if (!(halfT > 0)) {
+            halfT = maStlWall2dToolResolveConnectedHalfThicknessMm(a, wallGroupId, fallbackHalfT);
+        } else {
+            halfT = Math.max(halfT, maStlUserFloorSegmentMinMm() * 0.05);
+        }
         const drawP1 = maStlDesing2ClonePlanPointMm(a);
         const drawP2 = maStlDesing2ClonePlanPointMm(b);
         const axisP1 = maStlDesing2ClonePlanPointMm(a);
@@ -21200,7 +21274,7 @@ let maStlWallApplyAllHeightMm = 0;
         maStlWall2dToolActiveGroupId = wallGroupId;
         let ok = true;
         for (let i = 0; i < segs.length; i++) {
-            if (!maStlWall2dToolCommitWallSegmentMm(segs[i].a, segs[i].b, true)) {
+            if (!maStlWall2dToolCommitWallSegmentMm(segs[i].a, segs[i].b, true, halfT)) {
                 ok = false;
                 break;
             }
