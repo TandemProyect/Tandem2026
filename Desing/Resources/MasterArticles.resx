@@ -505,8 +505,26 @@
   <data name="StlPreview_Desing2ConfigPropSpacingPlaceholder" xml:space="preserve">
     <value>p. ej. 2,40 · máximo</value>
   </data>
+  <data name="StlPreview_Desing2ConfigWallHeightAria" xml:space="preserve">
+    <value>Altura del muro al dibujarlo, en metros (p. ej. 2,70).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallHeightLabel" xml:space="preserve">
+    <value>Altura</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallHeightPlaceholder" xml:space="preserve">
+    <value>p. ej. 2,70 · 2700 mm</value>
+  </data>
   <data name="StlPreview_Desing2ConfigWallSectionTitle" xml:space="preserve">
-    <value>Sección en L — espesores</value>
+    <value>Muro</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallThicknessAria" xml:space="preserve">
+    <value>Espesor del muro al dibujarlo, en metros (p. ej. 0,30).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallThicknessLabel" xml:space="preserve">
+    <value>Espesor</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallThicknessPlaceholder" xml:space="preserve">
+    <value>p. ej. 0,30 · 300 mm</value>
   </data>
   <data name="StlPreview_Desing2ConfigWallWidthXAria" xml:space="preserve">
     <value>Espesor del muro medido en el eje X del plano, en metros (p. ej. 0,30).</value>

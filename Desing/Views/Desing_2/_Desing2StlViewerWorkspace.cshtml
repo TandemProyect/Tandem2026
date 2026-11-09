@@ -320,9 +320,16 @@
         <aside id="desing2-stl-hover-side-panel" class="desing2-stl-hover-side-panel" role="region" aria-label="@MasterArticles.StlPreview_Desing2SideMenuAria">
             <div class="desing2-stl-hover-side-panel__hover-zone">
                 <div class="desing2-stl-hover-side-panel__sheet border border-start-0 rounded-end shadow-sm">
-                    <div class="desing2-stl-hover-side-panel__toolbar d-flex justify-content-end align-items-center px-2 py-1 border-bottom border-light">
+                    <div class="desing2-stl-hover-side-panel__toolbar d-flex justify-content-end align-items-center gap-1 px-2 py-1 border-bottom border-light">
                         <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-hover-side-panel__collapse rounded" id="desing2-stl-side-panel-collapse" title="@MasterArticles.StlPreview_Desing2SideMenuCollapseTitle" aria-label="@MasterArticles.StlPreview_Desing2SideMenuCollapseTitle">
                             <i class="icon-base ri ri-menu-fold-line fs-6" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-primary desing2-stl-config-accept-btn" id="ma-stl-config-accept" style="background-color:#0d6efd;border-color:#0d6efd;color:#fff;"
+                                title="@MasterArticles.StlPreview_Desing2ConfigAcceptAria"
+                                aria-label="@MasterArticles.StlPreview_Desing2ConfigAcceptAria"
+                                data-ma-stl-config-accept-toast="@MasterArticles.StlPreview_Desing2ConfigAcceptToast"
+                                data-ma-stl-config-accept-error-toast="@MasterArticles.StlPreview_Desing2ConfigAcceptErrorToast">
+                            <i class="icon-base ri ri-check-line" aria-hidden="true"></i><span class="desing2-stl-config-accept-label ms-1">@MasterArticles.StlPreview_Desing2ConfigAccept</span>
                         </button>
                     </div>
                     <div class="desing2-stl-hover-side-panel__body px-0 pb-2 pt-1">
@@ -444,15 +451,6 @@
                             </div>
                             <div class="tab-pane fade" id="desing2-stl-side-pane-config" role="tabpanel" aria-labelledby="desing2-stl-side-tab-config" tabindex="0">
                                 <div class="vstack gap-3">
-                                    <div class="d-flex justify-content-end">
-                                        <button type="button" class="btn btn-sm btn-primary" id="ma-stl-config-accept"
-                                                title="@MasterArticles.StlPreview_Desing2ConfigAcceptAria"
-                                                aria-label="@MasterArticles.StlPreview_Desing2ConfigAcceptAria"
-                                                data-ma-stl-config-accept-toast="@MasterArticles.StlPreview_Desing2ConfigAcceptToast"
-                                                data-ma-stl-config-accept-error-toast="@MasterArticles.StlPreview_Desing2ConfigAcceptErrorToast">
-                                            <i class="icon-base ri ri-check-line me-1" aria-hidden="true"></i>@MasterArticles.StlPreview_Desing2ConfigAccept
-                                        </button>
-                                    </div>
                                     <div>
                                         <label class="form-label mb-1" for="ma-stl-config-prop-spacing">@MasterArticles.StlPreview_Desing2ConfigPropSpacingLabel</label>
                                         <input type="text" class="form-control form-control-sm" id="ma-stl-config-prop-spacing" maxlength="48" autocomplete="off"
@@ -468,60 +466,29 @@
                                                value="0,30"
                                                aria-label="@MasterArticles.StlPreview_Desing2ConfigOffsetDefaultAria"
                                                placeholder="@MasterArticles.StlPreview_Desing2ConfigOffsetDefaultPlaceholder" />
-                                        <button type="button"
-                                                class="btn btn-sm btn-outline-primary mt-2"
-                                                id="ma-stl-config-offset-apply"
-                                                aria-label="Actualizar default">
-                                            Actualizar default
-                                        </button>
                                     </div>
-                                    <div class="desing2-config-wall-section">
+                                                                        <div class="desing2-config-wall-section">
                                         <p class="form-label mb-2 small text-body-secondary mb-0">@MasterArticles.StlPreview_Desing2ConfigWallSectionTitle</p>
-                                        <figure class="desing2-config-wall-section__figure mb-2" aria-hidden="true">
-                                            <svg class="desing2-config-wall-section__svg" viewBox="0 0 220 170" xmlns="http://www.w3.org/2000/svg" focusable="false">
-                                                <defs>
-                                                    <pattern id="desing2-wall-section-hatch" width="6" height="6" patternUnits="userSpaceOnUse">
-                                                        <circle cx="1.2" cy="1.2" r="0.65" fill="#555" opacity="0.55" />
-                                                        <circle cx="4.5" cy="4.2" r="0.55" fill="#555" opacity="0.45" />
-                                                    </pattern>
-                                                    <marker id="desing2-wall-dim-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                                                        <path d="M0,0 L6,3 L0,6 Z" fill="#ff9800" />
-                                                    </marker>
-                                                </defs>
-                                                <path d="M 28 118 L 28 42 L 78 42 L 78 118 L 168 118 L 168 148 L 28 148 Z"
-                                                      fill="url(#desing2-wall-section-hatch)" stroke="#111" stroke-width="2.2" stroke-linejoin="miter" />
-                                                <line x1="22" y1="42" x2="22" y2="148" stroke="#111" stroke-width="1" />
-                                                <line x1="28" y1="36" x2="78" y2="36" stroke="#111" stroke-width="1" />
-                                                <line x1="84" y1="148" x2="168" y2="148" stroke="#111" stroke-width="1" />
-                                                <line x1="174" y1="118" x2="174" y2="148" stroke="#111" stroke-width="1" />
-                                                <line x1="28" y1="28" x2="78" y2="28" stroke="#ff9800" stroke-width="1.6"
-                                                      marker-start="url(#desing2-wall-dim-arrow)" marker-end="url(#desing2-wall-dim-arrow)" />
-                                                <text x="53" y="22" text-anchor="middle" fill="#ff9800" font-size="15" font-weight="700" font-family="system-ui,sans-serif">X</text>
-                                                <line x1="186" y1="118" x2="186" y2="148" stroke="#ff9800" stroke-width="1.6"
-                                                      marker-start="url(#desing2-wall-dim-arrow)" marker-end="url(#desing2-wall-dim-arrow)" />
-                                                <text x="198" y="136" text-anchor="start" fill="#ff9800" font-size="15" font-weight="700" font-family="system-ui,sans-serif">Y</text>
-                                            </svg>
-                                        </figure>
                                         <div class="row g-2">
                                             <div class="col-6">
-                                                <label class="form-label mb-1" for="ma-stl-config-wall-width-x">@MasterArticles.StlPreview_Desing2ConfigWallWidthXLabel</label>
-                                                <input type="text" class="form-control form-control-sm" id="ma-stl-config-wall-width-x" maxlength="48" autocomplete="off"
+                                                <label class="form-label mb-1" for="ma-stl-config-wall-thickness">@MasterArticles.StlPreview_Desing2ConfigWallThicknessLabel</label>
+                                                <input type="text" class="form-control form-control-sm" id="ma-stl-config-wall-thickness" maxlength="48" autocomplete="off"
                                                        inputmode="decimal"
                                                        value="0,30"
-                                                       aria-label="@MasterArticles.StlPreview_Desing2ConfigWallWidthXAria"
-                                                       placeholder="@MasterArticles.StlPreview_Desing2ConfigWallWidthXPlaceholder" />
+                                                       aria-label="@MasterArticles.StlPreview_Desing2ConfigWallThicknessAria"
+                                                       placeholder="@MasterArticles.StlPreview_Desing2ConfigWallThicknessPlaceholder" />
                                             </div>
                                             <div class="col-6">
-                                                <label class="form-label mb-1" for="ma-stl-config-wall-width-y">@MasterArticles.StlPreview_Desing2ConfigWallWidthYLabel</label>
-                                                <input type="text" class="form-control form-control-sm" id="ma-stl-config-wall-width-y" maxlength="48" autocomplete="off"
+                                                <label class="form-label mb-1" for="ma-stl-config-wall-height">@MasterArticles.StlPreview_Desing2ConfigWallHeightLabel</label>
+                                                <input type="text" class="form-control form-control-sm" id="ma-stl-config-wall-height" maxlength="48" autocomplete="off"
                                                        inputmode="decimal"
-                                                       value="0,30"
-                                                       aria-label="@MasterArticles.StlPreview_Desing2ConfigWallWidthYAria"
-                                                       placeholder="@MasterArticles.StlPreview_Desing2ConfigWallWidthYPlaceholder" />
+                                                       value="2,70"
+                                                       aria-label="@MasterArticles.StlPreview_Desing2ConfigWallHeightAria"
+                                                       placeholder="@MasterArticles.StlPreview_Desing2ConfigWallHeightPlaceholder" />
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="desing2-config-enclosure-section">
+<div class="desing2-config-enclosure-section">
                                         <p class="form-label mb-2 small text-body-secondary mb-0">@MasterArticles.StlPreview_Desing2ConfigEnclosureSectionTitle</p>
                                         <figure class="desing2-config-enclosure-section__figure mb-2" aria-hidden="true">
                                             <svg class="desing2-config-enclosure-section__svg" viewBox="0 0 240 200" xmlns="http://www.w3.org/2000/svg" focusable="false">

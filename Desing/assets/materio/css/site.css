@@ -778,6 +778,46 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     opacity: 1;
 }
 
+/* Aceptar Configuración: visible también con el panel plegado (solo icono, apilado bajo el de plegar) */
+.desing2-stl-hover-side-panel .desing2-stl-hover-side-panel__toolbar {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 3px;
+    padding: 4px 2px;
+}
+
+.desing2-stl-hover-side-panel .desing2-stl-config-accept-label {
+    display: none;
+}
+
+.desing2-stl-hover-side-panel .desing2-stl-config-accept-btn {
+    width: 26px;
+    min-width: 26px;
+    padding: 2px 0;
+}
+
+.desing2-stl-hover-side-panel:not(.is-hover-locked) .desing2-stl-hover-side-panel__hover-zone:hover .desing2-stl-hover-side-panel__toolbar,
+.desing2-stl-hover-side-panel .desing2-stl-hover-side-panel__sheet:focus-within .desing2-stl-hover-side-panel__toolbar {
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+}
+
+.desing2-stl-hover-side-panel:not(.is-hover-locked) .desing2-stl-hover-side-panel__hover-zone:hover .desing2-stl-config-accept-label,
+.desing2-stl-hover-side-panel .desing2-stl-hover-side-panel__sheet:focus-within .desing2-stl-config-accept-label {
+    display: inline;
+}
+
+.desing2-stl-hover-side-panel:not(.is-hover-locked) .desing2-stl-hover-side-panel__hover-zone:hover .desing2-stl-config-accept-btn,
+.desing2-stl-hover-side-panel .desing2-stl-hover-side-panel__sheet:focus-within .desing2-stl-config-accept-btn {
+    width: auto;
+    min-width: 0;
+    padding: 2px 8px;
+}
+
 .desing2-stl-hover-side-panel__collapse:focus-visible {
     box-shadow: 0 0 0 2px rgba(var(--bs-black-rgb), 0.2);
 }

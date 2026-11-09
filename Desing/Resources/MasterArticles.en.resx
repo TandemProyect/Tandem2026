@@ -505,8 +505,26 @@
   <data name="StlPreview_Desing2ConfigPropSpacingPlaceholder" xml:space="preserve">
     <value>e.g. 2.40 · maximum</value>
   </data>
+  <data name="StlPreview_Desing2ConfigWallHeightAria" xml:space="preserve">
+    <value>Wall height when drawing, in meters (e.g. 2.70).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallHeightLabel" xml:space="preserve">
+    <value>Height</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallHeightPlaceholder" xml:space="preserve">
+    <value>e.g. 2.70 · 2700 mm</value>
+  </data>
   <data name="StlPreview_Desing2ConfigWallSectionTitle" xml:space="preserve">
-    <value>L-section — wall thickness</value>
+    <value>Wall</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallThicknessAria" xml:space="preserve">
+    <value>Wall thickness when drawing, in meters (e.g. 0.30).</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallThicknessLabel" xml:space="preserve">
+    <value>Thickness</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigWallThicknessPlaceholder" xml:space="preserve">
+    <value>e.g. 0.30 · 300 mm</value>
   </data>
   <data name="StlPreview_Desing2ConfigWallWidthXAria" xml:space="preserve">
     <value>Wall thickness measured on the plan X axis, in meters (e.g. 0.30).</value>

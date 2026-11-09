@@ -2682,7 +2682,7 @@ const MA_STL_DESING2_VIEWER_STATE_VERSION = 1;
 /** Cookie global Desing_2: configuración aceptada con el botón Aceptar del panel Configuración. */
 const MA_STL_DESING2_CONFIG_COOKIE = 'ma_stl_desing2_config';
 const MA_STL_DESING2_CONFIG_COOKIE_MAX_AGE_SEC = 365 * 24 * 60 * 60;
-const MA_STL_DESING2_CONFIG_VERSION = 1;
+const MA_STL_DESING2_CONFIG_VERSION = 3;
 
 /**
  * Nombre cookie por oferta/diseño.
@@ -3534,8 +3534,8 @@ function bootMasterArticleDetailsStlViewer() {
     let desing2EnvLightingSettings = null;
     const maStlConfigPropSpacingInput = document.getElementById('ma-stl-config-prop-spacing');
     const maStlConfigOffsetDefaultInput = document.getElementById('ma-stl-config-offset-default');
-    const maStlConfigWallWidthXInput = document.getElementById('ma-stl-config-wall-width-x');
-    const maStlConfigWallWidthYInput = document.getElementById('ma-stl-config-wall-width-y');
+    const maStlConfigWallThicknessInput = document.getElementById('ma-stl-config-wall-thickness');
+    const maStlConfigWallHeightInput = document.getElementById('ma-stl-config-wall-height');
     const maStlConfigEnclosureLInput = document.getElementById('ma-stl-config-enclosure-l');
     const maStlConfigEnclosureWInput = document.getElementById('ma-stl-config-enclosure-w');
     const maStlConfigEnclosureEx1Input = document.getElementById('ma-stl-config-enclosure-ex1');
@@ -3573,6 +3573,12 @@ function bootMasterArticleDetailsStlViewer() {
         return maStlDesing2LengthMmRoundedEditableFromMm(n);
     }
 
+    function maStlClampDesing2WallHeightMm(mm) {
+        const n = Number(mm);
+        if (!Number.isFinite(n) || n <= 0) return MA_STL_WALL3D_DEFAULT_HEIGHT_MM;
+        return maStlDesing2LengthMmRoundedEditableFromMm(Math.min(Math.max(n, 300), 6000));
+    }
+
     function maStlSyncConfigOffsetDefaultInputFromMm(mm) {
         if (!(maStlConfigOffsetDefaultInput instanceof HTMLInputElement)) return;
         maStlConfigOffsetDefaultInput.value = maStlDesing2DimEditableMetersDisplayFromMm(
@@ -3580,14 +3586,14 @@ function bootMasterArticleDetailsStlViewer() {
         );
     }
 
-    function maStlSyncConfigWallWidthInputsFromMm(xMm, yMm) {
-        const xDisp = maStlDesing2DimEditableMetersDisplayFromMm(maStlClampDesing2OffsetDefaultMm(xMm));
-        const yDisp = maStlDesing2DimEditableMetersDisplayFromMm(maStlClampDesing2OffsetDefaultMm(yMm));
-        if (maStlConfigWallWidthXInput instanceof HTMLInputElement) {
-            maStlConfigWallWidthXInput.value = xDisp;
+    function maStlSyncConfigWallInputsFromMm(thicknessMm, heightMm) {
+        const tDisp = maStlDesing2DimEditableMetersDisplayFromMm(maStlClampDesing2OffsetDefaultMm(thicknessMm));
+        const hDisp = maStlDesing2DimEditableMetersDisplayFromMm(maStlClampDesing2WallHeightMm(heightMm));
+        if (maStlConfigWallThicknessInput instanceof HTMLInputElement) {
+            maStlConfigWallThicknessInput.value = tDisp;
         }
-        if (maStlConfigWallWidthYInput instanceof HTMLInputElement) {
-            maStlConfigWallWidthYInput.value = yDisp;
+        if (maStlConfigWallHeightInput instanceof HTMLInputElement) {
+            maStlConfigWallHeightInput.value = hDisp;
         }
     }
 
@@ -3642,6 +3648,8 @@ function bootMasterArticleDetailsStlViewer() {
     let desing2EnvOffsetDefaultMm = MA_STL_DESING2_OFFSET_DEFAULT_MM;
     let desing2EnvWallWidthXMm = MA_STL_DESING2_WALL_WIDTH_DEFAULT_MM;
     let desing2EnvWallWidthYMm = MA_STL_DESING2_WALL_WIDTH_DEFAULT_MM;
+    let desing2EnvWallThicknessMm = MA_STL_DESING2_WALL_WIDTH_DEFAULT_MM;
+    let desing2EnvWallHeightMm = MA_STL_WALL3D_DEFAULT_HEIGHT_MM;
     let desing2EnvEnclosureLMm = MA_STL_DESING2_ENCLOSURE_L_DEFAULT_MM;
     let desing2EnvEnclosureWMm = MA_STL_DESING2_ENCLOSURE_W_DEFAULT_MM;
     let desing2EnvEnclosureEx1Mm = MA_STL_DESING2_ENCLOSURE_WALL_DEFAULT_MM;
@@ -3719,6 +3727,16 @@ function bootMasterArticleDetailsStlViewer() {
         if (Number.isFinite(ei.wallWidthYMm)) {
             desing2EnvWallWidthYMm = maStlClampDesing2OffsetDefaultMm(ei.wallWidthYMm);
         }
+        if (Number.isFinite(ei.wallThicknessMm) && ei.wallThicknessMm > 0) {
+            desing2EnvWallThicknessMm = maStlClampDesing2OffsetDefaultMm(ei.wallThicknessMm);
+        } else if (Number.isFinite(ei.wallWidthXMm)) {
+            desing2EnvWallThicknessMm = maStlClampDesing2OffsetDefaultMm(ei.wallWidthXMm);
+        }
+        if (Number.isFinite(ei.wallHeightMm) && ei.wallHeightMm > 0) {
+            desing2EnvWallHeightMm = maStlClampDesing2WallHeightMm(ei.wallHeightMm);
+        }
+        desing2EnvWallWidthXMm = desing2EnvWallThicknessMm;
+        desing2EnvWallWidthYMm = desing2EnvWallThicknessMm;
         if (Number.isFinite(ei.enclosureLMm)) {
             desing2EnvEnclosureLMm = maStlClampDesing2EnclosureSpanMm(
                 ei.enclosureLMm,
@@ -3777,7 +3795,7 @@ function bootMasterArticleDetailsStlViewer() {
         maStlSyncConfigOffsetDefaultInputFromMm(desing2EnvOffsetDefaultMm);
     }
     if (maStlDesingV2Viewer) {
-        maStlSyncConfigWallWidthInputsFromMm(desing2EnvWallWidthXMm, desing2EnvWallWidthYMm);
+        maStlSyncConfigWallInputsFromMm(desing2EnvWallThicknessMm, desing2EnvWallHeightMm);
         maStlSyncConfigEnclosureInputsFromMm(
             desing2EnvEnclosureLMm,
             desing2EnvEnclosureWMm,
@@ -4766,8 +4784,13 @@ function bootMasterArticleDetailsStlViewer() {
         return MA_STL_DESING2_WALL_WIDTH_DEFAULT_MM;
     }
 
+    function maStlDesing2WallDefaultHeightMm() {
+        const n = Number(desing2EnvWallHeightMm);
+        return Number.isFinite(n) && n > 0 ? n : MA_STL_WALL3D_DEFAULT_HEIGHT_MM;
+    }
+
     function maStlWallLineResolveHeightMm(ud) {
-        const fallback = MA_STL_WALL3D_DEFAULT_HEIGHT_MM;
+        const fallback = maStlDesing2WallDefaultHeightMm();
         if (!ud) return fallback;
         const hMeters = Number(ud._DataHeight);
         if (!Number.isFinite(hMeters) || hMeters <= 0) return fallback;
@@ -4815,7 +4838,7 @@ function bootMasterArticleDetailsStlViewer() {
                 ud._DataHeight = null;
             }
         } else if (ud._DataHeight == null || !Number.isFinite(Number(ud._DataHeight))) {
-            ud._DataHeight = maStlRoundMeters3(MA_STL_WALL3D_DEFAULT_HEIGHT_MM / 1000);
+            ud._DataHeight = maStlRoundMeters3(maStlDesing2WallDefaultHeightMm() / 1000);
         } else {
             ud._DataHeight = maStlRoundMeters3(Number(ud._DataHeight));
         }
@@ -13562,6 +13585,9 @@ let maStlWallApplyAllHeightMm = 0;
         if (maStlIsDesing2FloorDrawToolActive()) return;
         maStlWall2dToolRefreshResumeStateFromScene();
         if (!maStlWall2dToolResumeState) return;
+        if (maStlDesing2ModelMode !== 'lines') {
+            maStlDesing2SetModelModeLines();
+        }
         maStlStartWall2dToolModesToolbar({ resume: true });
     }
 
@@ -30986,6 +31012,9 @@ let maStlWallApplyAllHeightMm = 0;
             if (maStlIsInsertEnclosureToolActive()) {
                 maStlStopInsertEnclosureToolModesToolbar(false);
             }
+            if (maStlDesing2ModelMode !== 'lines') {
+                maStlDesing2SetModelModeLines();
+            }
             maStlStartPolylineToolModesToolbar();
         });
     }
@@ -30997,6 +31026,9 @@ let maStlWallApplyAllHeightMm = 0;
                 return;
             }
             maStlDesing2SetLastToolbarCommandId('ma-stl-tool-wall-2d');
+            if (maStlDesing2ModelMode !== 'lines') {
+                maStlDesing2SetModelModeLines();
+            }
             maStlStartWall2dToolModesToolbar({
                 resume: false,
             });
@@ -31199,6 +31231,9 @@ let maStlWallApplyAllHeightMm = 0;
             if (maStlIsWallDimToolActive()) {
                 maStlStopWallDimToolModesToolbar();
                 return;
+            }
+            if (maStlDesing2ModelMode !== 'lines') {
+                maStlDesing2SetModelModeLines();
             }
             maStlStartWallDimToolModesToolbar();
         };
@@ -31696,22 +31731,24 @@ let maStlWallApplyAllHeightMm = 0;
         maStlSyncConfigOffsetDefaultInputFromMm(desing2EnvOffsetDefaultMm);
     }
 
-    /** Lectura espesores muro X/Y (Configuración) → mm escena; sin persistir hasta «Guardar vista». */
+    /** Lectura Espesor/Altura (Configuración) → mm escena; sin persistir hasta «Guardar vista». */
     function applyDesing2ConfigWallWidthsFromInputs() {
         if (!maStlDesingV2Viewer) return;
-        if (maStlConfigWallWidthXInput instanceof HTMLInputElement) {
-            const px = maStlParseLengthInputValueToMm(maStlConfigWallWidthXInput.value);
-            if (px != null && px > 0) {
-                desing2EnvWallWidthXMm = maStlClampDesing2OffsetDefaultMm(px);
+        if (maStlConfigWallThicknessInput instanceof HTMLInputElement) {
+            const p = maStlParseLengthInputValueToMm(maStlConfigWallThicknessInput.value);
+            if (p != null && p > 0) {
+                desing2EnvWallThicknessMm = maStlClampDesing2OffsetDefaultMm(p);
             }
         }
-        if (maStlConfigWallWidthYInput instanceof HTMLInputElement) {
-            const py = maStlParseLengthInputValueToMm(maStlConfigWallWidthYInput.value);
-            if (py != null && py > 0) {
-                desing2EnvWallWidthYMm = maStlClampDesing2OffsetDefaultMm(py);
+        if (maStlConfigWallHeightInput instanceof HTMLInputElement) {
+            const ph = maStlParseLengthInputValueToMm(maStlConfigWallHeightInput.value);
+            if (ph != null && ph > 0) {
+                desing2EnvWallHeightMm = maStlClampDesing2WallHeightMm(ph);
             }
         }
-        maStlSyncConfigWallWidthInputsFromMm(desing2EnvWallWidthXMm, desing2EnvWallWidthYMm);
+        desing2EnvWallWidthXMm = desing2EnvWallThicknessMm;
+        desing2EnvWallWidthYMm = desing2EnvWallThicknessMm;
+        maStlSyncConfigWallInputsFromMm(desing2EnvWallThicknessMm, desing2EnvWallHeightMm);
     }
 
     /** Lectura recinto rectangular (Configuración) → mm escena; sin persistir hasta «Guardar vista». */
@@ -31783,6 +31820,16 @@ let maStlWallApplyAllHeightMm = 0;
         if (Number.isFinite(cfg.wallWidthYMm) && cfg.wallWidthYMm > 0) {
             desing2EnvWallWidthYMm = maStlClampDesing2OffsetDefaultMm(cfg.wallWidthYMm);
         }
+        if (Number.isFinite(cfg.wallThicknessMm) && cfg.wallThicknessMm > 0) {
+            desing2EnvWallThicknessMm = maStlClampDesing2OffsetDefaultMm(cfg.wallThicknessMm);
+        } else if (Number.isFinite(cfg.wallWidthXMm) && cfg.wallWidthXMm > 0) {
+            desing2EnvWallThicknessMm = maStlClampDesing2OffsetDefaultMm(cfg.wallWidthXMm);
+        }
+        if (Number.isFinite(cfg.wallHeightMm) && cfg.wallHeightMm > 0) {
+            desing2EnvWallHeightMm = maStlClampDesing2WallHeightMm(cfg.wallHeightMm);
+        }
+        desing2EnvWallWidthXMm = desing2EnvWallThicknessMm;
+        desing2EnvWallWidthYMm = desing2EnvWallThicknessMm;
         if (Number.isFinite(cfg.enclosureLMm) && cfg.enclosureLMm > 0) {
             desing2EnvEnclosureLMm = maStlClampDesing2EnclosureSpanMm(
                 cfg.enclosureLMm,
@@ -31808,7 +31855,7 @@ let maStlWallApplyAllHeightMm = 0;
             desing2EnvEnclosureEy2Mm = maStlClampDesing2OffsetDefaultMm(cfg.enclosureEy2Mm);
         }
         maStlSyncConfigOffsetDefaultInputFromMm(desing2EnvOffsetDefaultMm);
-        maStlSyncConfigWallWidthInputsFromMm(desing2EnvWallWidthXMm, desing2EnvWallWidthYMm);
+        maStlSyncConfigWallInputsFromMm(desing2EnvWallThicknessMm, desing2EnvWallHeightMm);
         maStlSyncConfigEnclosureInputsFromMm(
             desing2EnvEnclosureLMm,
             desing2EnvEnclosureWMm,
@@ -31817,7 +31864,35 @@ let maStlWallApplyAllHeightMm = 0;
             desing2EnvEnclosureEy1Mm,
             desing2EnvEnclosureEy2Mm
         );
+        if (Number.isFinite(cfg.gridSnapMm) && cfg.gridSnapMm > 0) {
+            desing2EnvGridSnapMm = maStlClampAllowedDesing2GridSnapMm(cfg.gridSnapMm);
+            if (maStlEntornoGridSnapSelect instanceof HTMLSelectElement) {
+                maStlEntornoGridSnapSelect.value = String(desing2EnvGridSnapMm);
+            }
+        }
+        if (Number.isFinite(cfg.rulerExtentCapM) && cfg.rulerExtentCapM > 0) {
+            desing2EnvRulerExtentCapMm = maStlDesing2RulerExtentCapFromMeters(cfg.rulerExtentCapM);
+            desing2EnvSyncRulerExtentSelectToCapMm(desing2EnvRulerExtentCapMm);
+        }
+        if (cfg.lighting && typeof cfg.lighting === 'object') {
+            desing2EnvLightingSettings = cfg.lighting;
+        }
         return true;
+    }
+
+    /**
+     * Aplica la iluminación aceptada (cookie) al rig ya creado. Solo llamar cuando
+     * `maStlFormworkEnvRig` existe: al arrancar el rig aún no está y la referencia
+     * a `renderer`/`scene` lanzaría ReferenceError por TDZ.
+     */
+    function maStlDesing2ApplyAcceptedConfigLightingLive() {
+        if (!maStlDesingV2Viewer) return;
+        if (!maStlFormworkEnvRig || !scene || !renderer) return;
+        if (!desing2EnvLightingSettings || typeof desing2EnvLightingSettings !== 'object') return;
+        maStlFormworkEnvApplySettings(maStlFormworkEnvRig, desing2EnvLightingSettings, scene, renderer);
+        maStlFormworkEnvWriteUi(maStlFormworkEnvUiElements(), maStlFormworkEnvRig.settings);
+        groundShadowVisible = maStlFormworkEnvRig.settings.shadowsEnabled;
+        syncGroundShadowToggleUi();
     }
 
     /** Botón Aceptar: formulario → estado → cookie. Muro, offset y recinto leen después estos valores. */
@@ -31829,17 +31904,26 @@ let maStlWallApplyAllHeightMm = 0;
         applyDesing2ConfigOffsetDefaultFromInput();
         applyDesing2ConfigWallWidthsFromInputs();
         applyDesing2ConfigEnclosureFromInputs();
+        applyDesing2EntornoLive();
+        applyDesing2FormworkLightingLive();
         const cfg = {
             v: MA_STL_DESING2_CONFIG_VERSION,
             offsetDefaultMm: desing2EnvOffsetDefaultMm,
             wallWidthXMm: desing2EnvWallWidthXMm,
             wallWidthYMm: desing2EnvWallWidthYMm,
+            wallThicknessMm: desing2EnvWallThicknessMm,
+            wallHeightMm: desing2EnvWallHeightMm,
             enclosureLMm: desing2EnvEnclosureLMm,
             enclosureWMm: desing2EnvEnclosureWMm,
             enclosureEx1Mm: desing2EnvEnclosureEx1Mm,
             enclosureEx2Mm: desing2EnvEnclosureEx2Mm,
             enclosureEy1Mm: desing2EnvEnclosureEy1Mm,
-            enclosureEy2Mm: desing2EnvEnclosureEy2Mm
+            enclosureEy2Mm: desing2EnvEnclosureEy2Mm,
+            gridSnapMm: desing2EnvGridSnapMm,
+            rulerExtentCapM: desing2EnvRulerExtentCapMm / MA_STL_SCENE_MM_PER_PHYSICAL_METER,
+            lighting: maStlFormworkEnvRig
+                ? maStlFormworkEnvSerializeSettings(maStlFormworkEnvRig.settings)
+                : null
         };
         return maStlWriteCookie(
             MA_STL_DESING2_CONFIG_COOKIE,
@@ -33111,6 +33195,14 @@ let maStlWallApplyAllHeightMm = 0;
         window.maStlDesing2EnvWallWidthYMm = function maStlDesing2EnvWallWidthYMm() {
             return desing2EnvWallWidthYMm;
         };
+        /** @returns {number} mm escena — espesor de muro (Configuración). */
+        window.maStlDesing2EnvWallThicknessMm = function maStlDesing2EnvWallThicknessMm() {
+            return desing2EnvWallThicknessMm;
+        };
+        /** @returns {number} mm escena — altura de muro (Configuración). */
+        window.maStlDesing2EnvWallHeightMm = function maStlDesing2EnvWallHeightMm() {
+            return desing2EnvWallHeightMm;
+        };
         /** @returns {number} mm escena — longitud exterior L del recinto (Configuración). */
         window.maStlDesing2EnvEnclosureLMm = function maStlDesing2EnvEnclosureLMm() {
             return desing2EnvEnclosureLMm;
@@ -33540,6 +33632,8 @@ let maStlWallApplyAllHeightMm = 0;
                 offsetDefaultMm: desing2EnvOffsetDefaultMm,
                 wallWidthXMm: desing2EnvWallWidthXMm,
                 wallWidthYMm: desing2EnvWallWidthYMm,
+                wallThicknessMm: desing2EnvWallThicknessMm,
+                wallHeightMm: desing2EnvWallHeightMm,
                 enclosureLMm: desing2EnvEnclosureLMm,
                 enclosureWMm: desing2EnvEnclosureWMm,
                 enclosureEx1Mm: desing2EnvEnclosureEx1Mm,
@@ -33651,7 +33745,17 @@ let maStlWallApplyAllHeightMm = 0;
                 if (Number.isFinite(envIn.wallWidthYMm)) {
                     desing2EnvWallWidthYMm = maStlClampDesing2OffsetDefaultMm(envIn.wallWidthYMm);
                 }
-                maStlSyncConfigWallWidthInputsFromMm(desing2EnvWallWidthXMm, desing2EnvWallWidthYMm);
+                if (Number.isFinite(envIn.wallThicknessMm) && envIn.wallThicknessMm > 0) {
+                    desing2EnvWallThicknessMm = maStlClampDesing2OffsetDefaultMm(envIn.wallThicknessMm);
+                } else if (Number.isFinite(envIn.wallWidthXMm)) {
+                    desing2EnvWallThicknessMm = maStlClampDesing2OffsetDefaultMm(envIn.wallWidthXMm);
+                }
+                if (Number.isFinite(envIn.wallHeightMm) && envIn.wallHeightMm > 0) {
+                    desing2EnvWallHeightMm = maStlClampDesing2WallHeightMm(envIn.wallHeightMm);
+                }
+                desing2EnvWallWidthXMm = desing2EnvWallThicknessMm;
+                desing2EnvWallWidthYMm = desing2EnvWallThicknessMm;
+                maStlSyncConfigWallInputsFromMm(desing2EnvWallThicknessMm, desing2EnvWallHeightMm);
                 if (Number.isFinite(envIn.enclosureLMm)) {
                     desing2EnvEnclosureLMm = maStlClampDesing2EnclosureSpanMm(
                         envIn.enclosureLMm,
@@ -33699,6 +33803,8 @@ let maStlWallApplyAllHeightMm = 0;
                     groundShadowVisible = maStlFormworkEnvRig.settings.shadowsEnabled;
                     syncGroundShadowToggleUi();
                 }
+                maStlDesing2ApplyAcceptedConfigFromCookie();
+                maStlDesing2ApplyAcceptedConfigLightingLive();
             }
             if (state.rulerAnchor && typeof state.rulerAnchor === 'object') {
                 const ra = state.rulerAnchor;
@@ -34092,7 +34198,6 @@ let maStlWallApplyAllHeightMm = 0;
     })();
 
     if (maStlDesingV2Viewer && viewerShell) {
-        const maStlConfigOffsetApplyBtn = document.getElementById('ma-stl-config-offset-apply');
 
         /** Captura/select en panel Entorno puede no propagarse como en elementos sueltos; delegación sobre el shell Desing_2. */
         function maStlOnDesing2EntornoSelectInput(ev) {
@@ -34153,7 +34258,7 @@ let maStlWallApplyAllHeightMm = 0;
                 }
                 return;
             }
-            if (id === 'ma-stl-config-wall-width-x' || id === 'ma-stl-config-wall-width-y') {
+            if (id === 'ma-stl-config-wall-thickness' || id === 'ma-stl-config-wall-height') {
                 if (ev.type === 'change' || ev.type === 'blur') {
                     applyDesing2ConfigWallWidthsFromInputs();
                 }
@@ -34174,12 +34279,6 @@ let maStlWallApplyAllHeightMm = 0;
         }
         viewerShell.addEventListener('change', maStlOnDesing2ConfigOffsetDefaultInput);
         viewerShell.addEventListener('blur', maStlOnDesing2ConfigOffsetDefaultInput, true);
-
-        if (maStlConfigOffsetApplyBtn instanceof HTMLButtonElement) {
-            maStlConfigOffsetApplyBtn.addEventListener('click', function () {
-                applyDesing2ConfigOffsetDefaultFromInput();
-            });
-        }
 
         const maStlConfigAcceptBtn = document.getElementById('ma-stl-config-accept');
         if (maStlConfigAcceptBtn) {
