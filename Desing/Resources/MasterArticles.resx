@@ -418,6 +418,18 @@
   <data name="StlPreview_Desing2BottomToolbarUnpinTitle" xml:space="preserve">
     <value>Desanclar barra inferior y volver al modo expansión al pasar el puntero</value>
   </data>
+  <data name="StlPreview_Desing2ConfigAccept" xml:space="preserve">
+    <value>Aceptar</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigAcceptAria" xml:space="preserve">
+    <value>Guarda la configuración en el navegador; dibujar muro, offset y recinto usarán estos valores.</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigAcceptErrorToast" xml:space="preserve">
+    <value>No se pudo guardar la configuración en el navegador.</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigAcceptToast" xml:space="preserve">
+    <value>Configuración guardada.</value>
+  </data>
   <data name="StlPreview_Desing2ConfigEnclosureEx1Aria" xml:space="preserve">
     <value>Espesor del muro izquierdo medido en planta, en metros (p. ej. 0,30).</value>
   </data>
@@ -964,11 +976,11 @@
   <data name="StlPreview_Desing2WorkerPickWorker2" xml:space="preserve">
     <value>Trabajador 2</value>
   </data>
-  <data name="StlPreview_DimDevelopGuides" xml:space="preserve">
-    <value>Puntos y leyendas</value>
-  </data>
   <data name="StlPreview_DimDevelopCornerReferencePoint" xml:space="preserve">
     <value>Punto de referencia de esquina</value>
+  </data>
+  <data name="StlPreview_DimDevelopGuides" xml:space="preserve">
+    <value>Puntos y leyendas</value>
   </data>
   <data name="StlPreview_DimDevelopHideWall" xml:space="preserve">
     <value>Oculta muro</value>

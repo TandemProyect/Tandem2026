@@ -418,6 +418,18 @@
   <data name="StlPreview_Desing2BottomToolbarUnpinTitle" xml:space="preserve">
     <value>Unpin bottom toolbar and return to hover-to-expand mode</value>
   </data>
+  <data name="StlPreview_Desing2ConfigAccept" xml:space="preserve">
+    <value>Accept</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigAcceptAria" xml:space="preserve">
+    <value>Saves the settings in the browser; draw wall, offset and enclosure will use these values.</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigAcceptErrorToast" xml:space="preserve">
+    <value>The settings could not be saved in the browser.</value>
+  </data>
+  <data name="StlPreview_Desing2ConfigAcceptToast" xml:space="preserve">
+    <value>Settings saved.</value>
+  </data>
   <data name="StlPreview_Desing2ConfigEnclosureEx1Aria" xml:space="preserve">
     <value>Left wall thickness measured in plan view, in meters (e.g. 0.30).</value>
   </data>
@@ -964,11 +976,11 @@
   <data name="StlPreview_Desing2WorkerPickWorker2" xml:space="preserve">
     <value>Worker 2</value>
   </data>
-  <data name="StlPreview_DimDevelopGuides" xml:space="preserve">
-    <value>Points and labels</value>
-  </data>
   <data name="StlPreview_DimDevelopCornerReferencePoint" xml:space="preserve">
     <value>Corner reference point</value>
+  </data>
+  <data name="StlPreview_DimDevelopGuides" xml:space="preserve">
+    <value>Points and labels</value>
   </data>
   <data name="StlPreview_DimDevelopHideWall" xml:space="preserve">
     <value>Hide wall</value>

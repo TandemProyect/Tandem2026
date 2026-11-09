@@ -572,6 +572,7 @@ const es = Object.fromEntries(
     StlPreview_DimDevelopTitle: "Develop",
     StlPreview_DimDevelopGuides: "Puntos y leyendas",
     StlPreview_DimDevelopHideWall: "Oculta muro",
+    StlPreview_DimDevelopCornerReferencePoint: "Punto de referencia de esquina",
     StlPreview_DimRemateWord: "remate",
     StlPreview_WallListTabWall: "Muro",
     StlPreview_WallListTabTapes: "Configurar Tapes",
@@ -670,6 +671,11 @@ const es = Object.fromEntries(
     StlPreview_Desing2EntornoFogEnabledAria: "Activa o desactiva la niebla atmosférica.",
     StlPreview_Desing2EntornoSsaoEnabledLabel: "SSAO (contacto, más costoso)",
     StlPreview_Desing2EntornoSsaoEnabledAria: "Sombras de contacto en postprocesado; puede reducir FPS con muchos objetos.",
+    StlPreview_Desing2ConfigAccept: "Aceptar",
+    StlPreview_Desing2ConfigAcceptAria:
+      "Guarda la configuración en el navegador; dibujar muro, offset y recinto usarán estos valores.",
+    StlPreview_Desing2ConfigAcceptToast: "Configuración guardada.",
+    StlPreview_Desing2ConfigAcceptErrorToast: "No se pudo guardar la configuración en el navegador.",
     StlPreview_Desing2ConfigPropSpacingLabel: "Distancia entre puntales",
     StlPreview_Desing2ConfigPropSpacingAria:
       "Distancia máxima entre puntales, en metros. Por defecto 2,40. No se rebasa al encofrar.",
@@ -1284,6 +1290,7 @@ const en = Object.assign({}, es, {
   StlPreview_DimDevelopTitle: "Develop",
   StlPreview_DimDevelopGuides: "Points and labels",
   StlPreview_DimDevelopHideWall: "Hide wall",
+  StlPreview_DimDevelopCornerReferencePoint: "Corner reference point",
   StlPreview_DimRemateWord: "end piece",
   StlPreview_WallListTabWall: "Wall",
   StlPreview_WallListTabTapes: "Configure tapes",
@@ -1382,6 +1389,11 @@ const en = Object.assign({}, es, {
   StlPreview_Desing2EntornoFogEnabledAria: "Enable or disable atmospheric fog.",
   StlPreview_Desing2EntornoSsaoEnabledLabel: "SSAO (contact, heavier)",
   StlPreview_Desing2EntornoSsaoEnabledAria: "Contact shadows in post-processing; may reduce FPS with many objects.",
+  StlPreview_Desing2ConfigAccept: "Accept",
+  StlPreview_Desing2ConfigAcceptAria:
+    "Saves the settings in the browser; draw wall, offset and enclosure will use these values.",
+  StlPreview_Desing2ConfigAcceptToast: "Settings saved.",
+  StlPreview_Desing2ConfigAcceptErrorToast: "The settings could not be saved in the browser.",
   StlPreview_Desing2ConfigPropSpacingLabel: "Distance between props",
   StlPreview_Desing2ConfigPropSpacingAria:
     "Maximum distance between props, in meters. Default 2.40. Formwork does not exceed it.",

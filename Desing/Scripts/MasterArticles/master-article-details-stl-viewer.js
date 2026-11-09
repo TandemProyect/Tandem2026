@@ -2655,6 +2655,10 @@ const MA_STL_DESING2_VIEWER_COOKIE_LEGACY_BASE = 'ma_stl_desing2_viewer_state';
 const MA_STL_DESING2_VIEWER_COOKIE_MAX_AGE_SEC = 30 * 24 * 60 * 60;
 const MA_STL_DESING2_VIEWER_COOKIE_MAX_BYTES = 3800;
 const MA_STL_DESING2_VIEWER_STATE_VERSION = 1;
+/** Cookie global Desing_2: configuración aceptada con el botón Aceptar del panel Configuración. */
+const MA_STL_DESING2_CONFIG_COOKIE = 'ma_stl_desing2_config';
+const MA_STL_DESING2_CONFIG_COOKIE_MAX_AGE_SEC = 365 * 24 * 60 * 60;
+const MA_STL_DESING2_CONFIG_VERSION = 1;
 
 /**
  * Nombre cookie por oferta/diseño.
@@ -2714,6 +2718,21 @@ function maStlWriteCookie(name, value, maxAgeSec) {
         String(Math.max(0, maxAgeSec | 0)) +
         '; SameSite=Lax';
     return maStlReadCookie(name) === value;
+}
+
+/**
+ * @returns {object|null}
+ */
+function maStlDesing2ReadConfigFromCookie() {
+    const raw = maStlReadCookie(MA_STL_DESING2_CONFIG_COOKIE);
+    if (!raw) return null;
+    try {
+        const data = JSON.parse(raw);
+        if (!data || typeof data !== 'object' || data.v !== MA_STL_DESING2_CONFIG_VERSION) return null;
+        return data;
+    } catch (_e) {
+        return null;
+    }
 }
 
 /**
@@ -3704,6 +3723,7 @@ function bootMasterArticleDetailsStlViewer() {
             desing2EnvEnclosureEy1Mm,
             desing2EnvEnclosureEy2Mm
         );
+        maStlDesing2ApplyAcceptedConfigFromCookie();
     }
 
     let currentRoot = null;
@@ -31649,6 +31669,85 @@ let maStlWallApplyAllHeightMm = 0;
         );
     }
 
+    /** Configuración aceptada (cookie) → estado y formulario. Gana a la vista guardada. */
+    function maStlDesing2ApplyAcceptedConfigFromCookie() {
+        if (!maStlDesingV2Viewer) return false;
+        const cfg = maStlDesing2ReadConfigFromCookie();
+        if (!cfg) return false;
+        if (Number.isFinite(cfg.offsetDefaultMm) && cfg.offsetDefaultMm > 0) {
+            desing2EnvOffsetDefaultMm = maStlClampDesing2OffsetDefaultMm(cfg.offsetDefaultMm);
+        }
+        if (Number.isFinite(cfg.wallWidthXMm) && cfg.wallWidthXMm > 0) {
+            desing2EnvWallWidthXMm = maStlClampDesing2OffsetDefaultMm(cfg.wallWidthXMm);
+        }
+        if (Number.isFinite(cfg.wallWidthYMm) && cfg.wallWidthYMm > 0) {
+            desing2EnvWallWidthYMm = maStlClampDesing2OffsetDefaultMm(cfg.wallWidthYMm);
+        }
+        if (Number.isFinite(cfg.enclosureLMm) && cfg.enclosureLMm > 0) {
+            desing2EnvEnclosureLMm = maStlClampDesing2EnclosureSpanMm(
+                cfg.enclosureLMm,
+                MA_STL_DESING2_ENCLOSURE_L_DEFAULT_MM
+            );
+        }
+        if (Number.isFinite(cfg.enclosureWMm) && cfg.enclosureWMm > 0) {
+            desing2EnvEnclosureWMm = maStlClampDesing2EnclosureSpanMm(
+                cfg.enclosureWMm,
+                MA_STL_DESING2_ENCLOSURE_W_DEFAULT_MM
+            );
+        }
+        if (Number.isFinite(cfg.enclosureEx1Mm) && cfg.enclosureEx1Mm > 0) {
+            desing2EnvEnclosureEx1Mm = maStlClampDesing2OffsetDefaultMm(cfg.enclosureEx1Mm);
+        }
+        if (Number.isFinite(cfg.enclosureEx2Mm) && cfg.enclosureEx2Mm > 0) {
+            desing2EnvEnclosureEx2Mm = maStlClampDesing2OffsetDefaultMm(cfg.enclosureEx2Mm);
+        }
+        if (Number.isFinite(cfg.enclosureEy1Mm) && cfg.enclosureEy1Mm > 0) {
+            desing2EnvEnclosureEy1Mm = maStlClampDesing2OffsetDefaultMm(cfg.enclosureEy1Mm);
+        }
+        if (Number.isFinite(cfg.enclosureEy2Mm) && cfg.enclosureEy2Mm > 0) {
+            desing2EnvEnclosureEy2Mm = maStlClampDesing2OffsetDefaultMm(cfg.enclosureEy2Mm);
+        }
+        maStlSyncConfigOffsetDefaultInputFromMm(desing2EnvOffsetDefaultMm);
+        maStlSyncConfigWallWidthInputsFromMm(desing2EnvWallWidthXMm, desing2EnvWallWidthYMm);
+        maStlSyncConfigEnclosureInputsFromMm(
+            desing2EnvEnclosureLMm,
+            desing2EnvEnclosureWMm,
+            desing2EnvEnclosureEx1Mm,
+            desing2EnvEnclosureEx2Mm,
+            desing2EnvEnclosureEy1Mm,
+            desing2EnvEnclosureEy2Mm
+        );
+        return true;
+    }
+
+    /** Botón Aceptar: formulario → estado → cookie. Muro, offset y recinto leen después estos valores. */
+    function maStlDesing2AcceptConfigForm() {
+        if (!maStlDesingV2Viewer) return false;
+        if (maStlConfigPropSpacingInput instanceof HTMLInputElement) {
+            maStlConfigPropSpacingInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        applyDesing2ConfigOffsetDefaultFromInput();
+        applyDesing2ConfigWallWidthsFromInputs();
+        applyDesing2ConfigEnclosureFromInputs();
+        const cfg = {
+            v: MA_STL_DESING2_CONFIG_VERSION,
+            offsetDefaultMm: desing2EnvOffsetDefaultMm,
+            wallWidthXMm: desing2EnvWallWidthXMm,
+            wallWidthYMm: desing2EnvWallWidthYMm,
+            enclosureLMm: desing2EnvEnclosureLMm,
+            enclosureWMm: desing2EnvEnclosureWMm,
+            enclosureEx1Mm: desing2EnvEnclosureEx1Mm,
+            enclosureEx2Mm: desing2EnvEnclosureEx2Mm,
+            enclosureEy1Mm: desing2EnvEnclosureEy1Mm,
+            enclosureEy2Mm: desing2EnvEnclosureEy2Mm
+        };
+        return maStlWriteCookie(
+            MA_STL_DESING2_CONFIG_COOKIE,
+            JSON.stringify(cfg),
+            MA_STL_DESING2_CONFIG_COOKIE_MAX_AGE_SEC
+        );
+    }
+
     /** Lectura `#ma-stl-entorno-*` → rejilla LOD base, snap pick y alcance cotas — sin persistir hasta «Guardar vista». */
     function applyDesing2EntornoLive() {
         if (!maStlDesingV2Viewer) return;
@@ -33485,6 +33584,7 @@ let maStlWallApplyAllHeightMm = 0;
                     desing2EnvEnclosureEy1Mm,
                     desing2EnvEnclosureEy2Mm
                 );
+                maStlDesing2ApplyAcceptedConfigFromCookie();
                 if (envIn.lighting && typeof envIn.lighting === 'object' && maStlFormworkEnvRig) {
                     maStlFormworkEnvApplySettings(
                         maStlFormworkEnvRig,
@@ -33972,6 +34072,17 @@ let maStlWallApplyAllHeightMm = 0;
         }
         viewerShell.addEventListener('change', maStlOnDesing2ConfigOffsetDefaultInput);
         viewerShell.addEventListener('blur', maStlOnDesing2ConfigOffsetDefaultInput, true);
+
+        const maStlConfigAcceptBtn = document.getElementById('ma-stl-config-accept');
+        if (maStlConfigAcceptBtn) {
+            maStlConfigAcceptBtn.addEventListener('click', function () {
+                const ok = maStlDesing2AcceptConfigForm();
+                const msg = ok
+                    ? maStlConfigAcceptBtn.getAttribute('data-ma-stl-config-accept-toast')
+                    : maStlConfigAcceptBtn.getAttribute('data-ma-stl-config-accept-error-toast');
+                maStlDesing2ShowSaveViewToast(msg || '', !ok);
+            });
+        }
     }
 
     (function wireDesing2EscapeCancelTransientModes() {
