@@ -13629,74 +13629,6 @@ let maStlWallApplyAllHeightMm = 0;
         return out;
     }
 
-    /**
-     * Resuelve el medio espesor del nuevo tramo desde el muro conectado en `startPtMm`.
-     * Prioriza: endpoint mismo grupo -> endpoint otro grupo -> cuerpo mismo grupo -> cuerpo otro grupo.
-     */
-    function maStlWall2dToolResolveConnectedHalfThicknessMm(startPtMm, wallGroupId, fallbackHalfT) {
-        const fallback = Number.isFinite(fallbackHalfT) && fallbackHalfT > 0
-            ? fallbackHalfT
-            : maStlWall2dToolThicknessHalfMm();
-        if (!startPtMm || !maStlUserLinesGroup) return fallback;
-        const axes = maStlWall2dToolCollectAllAxisLines();
-        if (!axes.length) return fallback;
-
-        const endpointEps = Math.max(
-            maStlUserFloorLineMergeEndpointEpsMm(),
-            MA_STL_WALL_DIM_LENGTH_VALUE_TOL_MM
-        );
-        const endpointEpsSq = endpointEps * endpointEps;
-        const bodyTol = Math.max(endpointEps, MA_STL_USER_FLOOR_LINE_VERTEX_SNAP_MM);
-        const bodyProj = { x: 0, y: 0, z: 0 };
-        let best = null;
-
-        function registerCandidate(axisLine, distSq, sameGroup, fromEndpoint) {
-            const candidateHalfT = maStlWall2dToolAxisFaceHalfThicknessMm(axisLine);
-            if (!(candidateHalfT > 0)) return;
-            const priority = fromEndpoint ? (sameGroup ? 0 : 1) : (sameGroup ? 2 : 3);
-            if (
-                !best ||
-                priority < best.priority ||
-                (priority === best.priority && distSq < best.distSq)
-            ) {
-                best = {
-                    halfT: candidateHalfT,
-                    priority: priority,
-                    distSq: distSq,
-                };
-            }
-        }
-
-        for (let ai = 0; ai < axes.length; ai++) {
-            const axisLine = axes[ai];
-            const ud = axisLine && axisLine.userData && axisLine.userData.maStlUserPlanLine;
-            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
-            const sameGroup = wallGroupId != null && ud.wallGroupId === wallGroupId;
-
-            const d1 = maStlUserFloorPlanPointDistSqXzMm(startPtMm, ud.p1Mm);
-            if (d1 <= endpointEpsSq) {
-                registerCandidate(axisLine, d1, sameGroup, true);
-                continue;
-            }
-            const d2 = maStlUserFloorPlanPointDistSqXzMm(startPtMm, ud.p2Mm);
-            if (d2 <= endpointEpsSq) {
-                registerCandidate(axisLine, d2, sameGroup, true);
-                continue;
-            }
-
-            const proj = maStlProjectPointOntoUserFloorSegmentBodyXzMm(
-                startPtMm,
-                ud.p1Mm,
-                ud.p2Mm,
-                bodyProj
-            );
-            if (!proj || proj.distXZ > bodyTol) continue;
-            registerCandidate(axisLine, proj.distXZ * proj.distXZ, sameGroup, false);
-        }
-
-        return best && best.halfT > 0 ? best.halfT : fallback;
-    }
-
     /** Punto offset de cara ± en un punto del eje (no necesariamente extremo). */
     function maStlWall2dToolFaceOffsetPointAtAxisPointMm(axisUd, ptOnAxis, halfT, sideSign) {
         if (!axisUd || !ptOnAxis || !(halfT > 0)) return null;
@@ -14998,7 +14930,7 @@ let maStlWallApplyAllHeightMm = 0;
         const fallbackHalfT = maStlWall2dToolThicknessHalfMm();
         let halfT = Number(halfTOverrideMm);
         if (!(halfT > 0)) {
-            halfT = maStlWall2dToolResolveConnectedHalfThicknessMm(a, wallGroupId, fallbackHalfT);
+            halfT = fallbackHalfT;
         } else {
             halfT = Math.max(halfT, maStlUserFloorSegmentMinMm() * 0.05);
         }
@@ -21209,31 +21141,47 @@ let maStlWallApplyAllHeightMm = 0;
         }
     }
 
-    function maStlInsertEnclosureToolWallDimsValidMm(lMm, wMm, halfT) {
-        const minSeg = maStlUserFloorSegmentMinMm();
-        return lMm > halfT * 2 + minSeg && wMm > halfT * 2 + minSeg;
+    /** Mitad de espesor por muro del recinto (Configuración Ex1, Ex2, Ey1, Ey2). */
+    function maStlInsertEnclosureToolHalfThicknessesMm() {
+        applyDesing2ConfigEnclosureFromInputs();
+        return {
+            left: desing2EnvEnclosureEx1Mm * 0.5,
+            right: desing2EnvEnclosureEx2Mm * 0.5,
+            bottom: desing2EnvEnclosureEy1Mm * 0.5,
+            top: desing2EnvEnclosureEy2Mm * 0.5,
+        };
     }
 
-    function maStlInsertEnclosureToolBuildWallAxisSegmentsMm(p0, ux, uz, lMm, wMm, halfT) {
+    function maStlInsertEnclosureToolWallDimsValidMm(lMm, wMm, halfTs) {
+        const minSeg = maStlUserFloorSegmentMinMm();
+        return (
+            lMm > (halfTs.left + halfTs.right) * 2 + minSeg &&
+            wMm > (halfTs.bottom + halfTs.top) * 2 + minSeg
+        );
+    }
+
+    /** Ejes inferior, derecho, superior e izquierdo; cada uno con la mitad de espesor de su muro. */
+    function maStlInsertEnclosureToolBuildWallAxisSegmentsMm(p0, ux, uz, lMm, wMm, halfTs) {
         const pt = function (alongU, alongV) {
             return maStlInsertCornerToolPointFromOriginMm(p0, ux, uz, alongU, alongV);
         };
-        const a = pt(halfT, halfT);
-        const b = pt(lMm - halfT, halfT);
-        const c = pt(lMm - halfT, wMm - halfT);
-        const d = pt(halfT, wMm - halfT);
+        const a = pt(halfTs.left, halfTs.bottom);
+        const b = pt(lMm - halfTs.right, halfTs.bottom);
+        const c = pt(lMm - halfTs.right, wMm - halfTs.top);
+        const d = pt(halfTs.left, wMm - halfTs.top);
         return [
-            { a: a, b: b },
-            { a: b, b: c },
-            { a: c, b: d },
-            { a: d, b: a },
+            { a: a, b: b, halfT: halfTs.bottom },
+            { a: b, b: c, halfT: halfTs.right },
+            { a: c, b: d, halfT: halfTs.top },
+            { a: d, b: a, halfT: halfTs.left },
         ];
     }
 
-    function maStlInsertEnclosureToolBuildWallPreviewSegmentsMm(axisSegs, halfT) {
+    function maStlInsertEnclosureToolBuildWallPreviewSegmentsMm(axisSegs) {
         const preview = [];
         for (let i = 0; i < axisSegs.length; i++) {
             const s = axisSegs[i];
+            const halfT = s.halfT;
             preview.push(s);
             const plus = maStlOffsetToolParallelEndpointsMm(s.a, s.b, halfT, 1);
             if (plus) preview.push({ a: plus.p1, b: plus.p2 });
@@ -21256,13 +21204,13 @@ let maStlWallApplyAllHeightMm = 0;
         applyDesing2ConfigEnclosureFromInputs();
         const lMm = desing2EnvEnclosureLMm;
         const wMm = desing2EnvEnclosureWMm;
-        const halfT = maStlWall2dToolThicknessHalfMm();
-        if (!maStlInsertEnclosureToolWallDimsValidMm(lMm, wMm, halfT)) {
+        const halfTs = maStlInsertEnclosureToolHalfThicknessesMm();
+        if (!maStlInsertEnclosureToolWallDimsValidMm(lMm, wMm, halfTs)) {
             maStlInsertEnclosureToolHidePreview();
             return;
         }
-        const axisSegs = maStlInsertEnclosureToolBuildWallAxisSegmentsMm(p0, ux, uz, lMm, wMm, halfT);
-        const segs = maStlInsertEnclosureToolBuildWallPreviewSegmentsMm(axisSegs, halfT);
+        const axisSegs = maStlInsertEnclosureToolBuildWallAxisSegmentsMm(p0, ux, uz, lMm, wMm, halfTs);
+        const segs = maStlInsertEnclosureToolBuildWallPreviewSegmentsMm(axisSegs);
         maStlInsertEnclosureToolEnsurePreviewLines(segs.length);
         for (let i = 0; i < maStlInsertEnclosureToolPreviewLines.length; i++) {
             const line = maStlInsertEnclosureToolPreviewLines[i];
@@ -21281,12 +21229,12 @@ let maStlWallApplyAllHeightMm = 0;
         applyDesing2ConfigEnclosureFromInputs();
         const lMm = desing2EnvEnclosureLMm;
         const wMm = desing2EnvEnclosureWMm;
-        const halfT = maStlWall2dToolThicknessHalfMm();
-        if (!maStlInsertEnclosureToolWallDimsValidMm(lMm, wMm, halfT)) {
+        const halfTs = maStlInsertEnclosureToolHalfThicknessesMm();
+        if (!maStlInsertEnclosureToolWallDimsValidMm(lMm, wMm, halfTs)) {
             maStlInsertEnclosureToolShowInvalidDimsToast();
             return false;
         }
-        const segs = maStlInsertEnclosureToolBuildWallAxisSegmentsMm(p0, ux, uz, lMm, wMm, halfT);
+        const segs = maStlInsertEnclosureToolBuildWallAxisSegmentsMm(p0, ux, uz, lMm, wMm, halfTs);
         const undoBefore = maStlDesingV2Viewer ? maStlDesing2SerializeEditSnapshot() : null;
         const previousWallGroupId = maStlWall2dToolActiveGroupId;
         const previousWallResumeState = maStlWall2dToolResumeState;
@@ -21294,7 +21242,7 @@ let maStlWallApplyAllHeightMm = 0;
         maStlWall2dToolActiveGroupId = wallGroupId;
         let ok = true;
         for (let i = 0; i < segs.length; i++) {
-            if (!maStlWall2dToolCommitWallSegmentMm(segs[i].a, segs[i].b, true, halfT)) {
+            if (!maStlWall2dToolCommitWallSegmentMm(segs[i].a, segs[i].b, true, segs[i].halfT)) {
                 ok = false;
                 break;
             }
