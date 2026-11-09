@@ -24,6 +24,10 @@ Documento vivo para continuar sin perder contexto. El handover completo esta en 
 - Ajuste robusto de posicion: el offset del tirante se calcula segun lado real de la junta (fuera por inicio/fin), sin depender de `atEnd`.
 - Regla temporal solicitada: al elegir Universal en una esquina, se desactiva `_IsFormwork` en el eje regulable de ese vertice (muro completo) hasta implementar su encofrado dedicado.
 - Acotacion de muro parcial/total: ahora lee el cateto real de esquina por vertice (Angular/Universal local) en vez del calculo fijo original por espesor.
+- Bloqueo del visor: el overlay de carga ya no captura el ratón y se fuerza su cierre a los 1,5 s. Los bucles de split/soldadura de muros tienen tope de 64 pasadas para que no congelen Three.js.
+- Pan y cuelgue: borrar cookies no para Three.js. La regla de borde ahora limita las marcas si el pan abre un suelo enorme, y la carga inicial ya no recalcula uniones en el hilo principal. Abajo a la izquierda, `visor N` debe seguir contando; si se para, el hilo está muerto.
+- Configuracion: boton **Actualizar default** para aplicar el `offset default` inmediatamente.
+- Estabilidad de entrada al visor: la carga inicial de snapshot de muros usa timeout defensivo para evitar bloqueo por overlay de carga si la llamada no responde.
 
 ## Pendiente 1: activar Pilares
 

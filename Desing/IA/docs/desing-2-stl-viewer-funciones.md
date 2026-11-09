@@ -409,7 +409,7 @@ Cambiar un select aplica al alza con `applyDesing2EntornoLive()`. La persistenci
 | ID | Rol |
 |--------|-----|
 | `#ma-stl-config-accept` | Botón **Aceptar** arriba del panel. Lee todos los campos (puntales, offset, anchos X/Y, recinto L, W, Ex1, Ex2, Ey1, Ey2) y los guarda en la cookie **`ma_stl_desing2_config`** (`maStlDesing2AcceptConfigForm`). Al arrancar y al restaurar una vista guardada se aplican con `maStlDesing2ApplyAcceptedConfigFromCookie`, que gana a `environment` de la vista. Puntales se guarda además en servidor por diseño. |
-| Espesor al dibujar | **Dibujar muro**: siempre el de Configuración (`maStlWall2dToolThicknessHalfMm`, media de X e Y); no copia el del muro conectado. **Insertar recinto**: cada muro con su espesor (izquierdo Ex1, derecho Ex2, inferior Ey1, superior Ey2). **Insertar esquina**: X e Y por pata. |
+| Espesor al dibujar | **Dibujar muro**: la media de X e Y de Configuración (`maStlWall2dToolThicknessHalfMm`); si el tramo conecta con un muro existente, hereda el espesor de ese muro (`maStlWall2dToolResolveConnectedHalfThicknessMm`). **Insertar recinto**: cada muro con su espesor (izquierdo Ex1, derecho Ex2, inferior Ey1, superior Ey2). **Insertar esquina**: X e Y por pata. |
 | `#ma-stl-config-offset-default` | Input texto: distancia por defecto del offset (metros en UI, p. ej. `0,30` o `300 mm`). Commit en `change`/`blur` → `desing2EnvOffsetDefaultMm`. Persistencia en cookie `environment.offsetDefaultMm` al pulsar `#ma-stl-save-viewer-state`. |
 
 ## Persistencia en cookie (solo Desing_2)

@@ -1485,6 +1485,11 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     pointer-events: auto;
 }
 
+/* La carga/guardado no debe dejar el canvas muerto si la petición no termina. */
+#ma-stl-design-persist-overlay {
+    pointer-events: none;
+}
+
 .desing2-stl-render-overlay__card {
     min-width: 180px;
     padding: 1.25rem 1.5rem;
