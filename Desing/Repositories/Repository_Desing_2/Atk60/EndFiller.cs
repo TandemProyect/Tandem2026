@@ -10,6 +10,9 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
     {
         private const double DepthMm = 120d;
         private const double MaxLengthMm = 150d;
+        // Temporal (nov-2026): se mantienen elementos de remate en payload para acotación.
+        // El ocultado visual se controla en el visor.
+        private const bool EnableRemateVisualInsertion = true;
 
         internal static List<Atk60ElementPaintItem> Build(
             Desing2FormworkWallDto wall,
@@ -23,6 +26,11 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         {
             var outElements = new List<Atk60ElementPaintItem>();
             if (wall == null || anchor == null || fillerLengthMm <= 1d || (!showPrimary && !showOpposite))
+            {
+                return outElements;
+            }
+
+            if (!EnableRemateVisualInsertion)
             {
                 return outElements;
             }

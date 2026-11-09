@@ -459,6 +459,12 @@
                                                value="0,30"
                                                aria-label="@MasterArticles.StlPreview_Desing2ConfigOffsetDefaultAria"
                                                placeholder="@MasterArticles.StlPreview_Desing2ConfigOffsetDefaultPlaceholder" />
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary mt-2"
+                                                id="ma-stl-config-offset-apply"
+                                                aria-label="Actualizar default">
+                                            Actualizar default
+                                        </button>
                                     </div>
                                     <div class="desing2-config-wall-section">
                                         <p class="form-label mb-2 small text-body-secondary mb-0">@MasterArticles.StlPreview_Desing2ConfigWallSectionTitle</p>
@@ -1014,6 +1020,7 @@
     </div>
     <div id="ma-stl-design-persist-overlay"
          class="desing2-stl-render-overlay desing2-stl-persist-overlay d-none"
+         style="pointer-events: none;"
          aria-live="polite"
          aria-atomic="true"
          aria-hidden="true"

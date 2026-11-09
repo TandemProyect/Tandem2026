@@ -25,6 +25,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         private const string VariableClampSlidePath = "../../Content/DesignTools/Stl/ATK60/10000221-2.stl";
         private const string VariableClampSlideCode = "10000221B";
         private const double VariableClampRaiseMm = 200d;
+        // Temporal (nov-2026): remates no van en tapes durante esta fase.
+        private const bool EnableTapeRemateVisualInsertion = false;
 
         private const string PlatePath = "../../Content/DesignTools/Stl/ATK60/10443020.stl";
         private const string PlateCode = "10443020";
@@ -85,9 +87,12 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
 
             // Pegados al extremo del muro. El Desing antiguo sumaba 22 y 73 mm
             // porque su coordenada no era el canto del panel.
-            outElements.Add(SideWood(anchor, idWall, originX, originZ, rotY, widthMm + 240d, -120d, 22d, 0d, "wood-orange", wallHeightMm, wallLengthMm, alongMm));
-            outElements.Add(SideWood(anchor, idWall, originX, originZ, rotY, 120d, -120d, 75d, 0d, "wood-side", wallHeightMm, wallLengthMm, alongMm));
-            outElements.Add(SideWood(anchor, idWall, originX, originZ, rotY, 120d, widthMm, 75d, 0d, "wood-side", wallHeightMm, wallLengthMm, alongMm));
+            if (EnableTapeRemateVisualInsertion)
+            {
+                outElements.Add(SideWood(anchor, idWall, originX, originZ, rotY, widthMm + 240d, -120d, 22d, 0d, "wood-orange", wallHeightMm, wallLengthMm, alongMm));
+                outElements.Add(SideWood(anchor, idWall, originX, originZ, rotY, 120d, -120d, 75d, 0d, "wood-side", wallHeightMm, wallLengthMm, alongMm));
+                outElements.Add(SideWood(anchor, idWall, originX, originZ, rotY, 120d, widthMm, 75d, 0d, "wood-side", wallHeightMm, wallLengthMm, alongMm));
+            }
 
             var bands = HeightBands(wallHeightMm);
             for (var i = 0; i < bands.Count; i++)
@@ -134,23 +139,29 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             {
                 outElements.AddRange(Atk60ModuleAssembly.Build(
                     wall, anchor, 1, TapeS1SupplementMm, moduleStartMm, 0, 1, false, true));
-                PlaceSupplementJointClamps(
-                    outElements, wall, anchor, idWall, SupplementJointMm(atStart, moduleStartMm), ux, uz, widthMm, wallHeightMm, wallLengthMm);
+                if (EnableTapeRemateVisualInsertion)
+                {
+                    PlaceSupplementJointClamps(
+                        outElements, wall, anchor, idWall, SupplementJointMm(atStart, moduleStartMm), ux, uz, widthMm, wallHeightMm, wallLengthMm);
+                }
             }
 
-            outElements.Add(SideWood(
-                anchor, idWall, originX, originZ, rotY,
-                widthMm, 0d, TapeS1OrangeMm, 0d,
-                "wood-orange", wallHeightMm, wallLengthMm, alongMm));
-            var runMm = outerRunMm - TapeS1OrangeMm;
-            outElements.Add(SideWood(
-                anchor, idWall, originX, originZ, rotY,
-                TapeS1OrangeMm, 0d, runMm, TapeS1OrangeMm,
-                "wood-orange", wallHeightMm, wallLengthMm, alongMm));
-            outElements.Add(SideWood(
-                anchor, idWall, originX, originZ, rotY,
-                TapeS1OrangeMm, widthMm - TapeS1OrangeMm, runMm, TapeS1OrangeMm,
-                "wood-orange", wallHeightMm, wallLengthMm, alongMm));
+            if (EnableTapeRemateVisualInsertion)
+            {
+                outElements.Add(SideWood(
+                    anchor, idWall, originX, originZ, rotY,
+                    widthMm, 0d, TapeS1OrangeMm, 0d,
+                    "wood-orange", wallHeightMm, wallLengthMm, alongMm));
+                var runMm = outerRunMm - TapeS1OrangeMm;
+                outElements.Add(SideWood(
+                    anchor, idWall, originX, originZ, rotY,
+                    TapeS1OrangeMm, 0d, runMm, TapeS1OrangeMm,
+                    "wood-orange", wallHeightMm, wallLengthMm, alongMm));
+                outElements.Add(SideWood(
+                    anchor, idWall, originX, originZ, rotY,
+                    TapeS1OrangeMm, widthMm - TapeS1OrangeMm, runMm, TapeS1OrangeMm,
+                    "wood-orange", wallHeightMm, wallLengthMm, alongMm));
+            }
         }
 
         /// <summary>
@@ -188,23 +199,29 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 outElements.AddRange(Atk60ModuleAssembly.Build(
                     wall, anchor, 1, TapeS1SupplementMm, moduleStartMm, 0, 1, false, !atStart,
                     false, false, 0d, -1d, false, true));
-                PlaceSupplementJointClamps(
-                    outElements, wall, anchor, idWall, SupplementJointMm(atStart, moduleStartMm), ux, uz, widthMm, wallHeightMm, wallLengthMm);
+                if (EnableTapeRemateVisualInsertion)
+                {
+                    PlaceSupplementJointClamps(
+                        outElements, wall, anchor, idWall, SupplementJointMm(atStart, moduleStartMm), ux, uz, widthMm, wallHeightMm, wallLengthMm);
+                }
             }
 
-            outElements.Add(SideWood(
-                anchor, idWall, originX, originZ, rotY,
-                widthMm, 0d, TapeS1OrangeMm, 0d,
-                "wood-orange", wallHeightMm, wallLengthMm, alongMm));
-            var plankRunMm = outerRunMm - TapeS1OrangeMm;
-            outElements.Add(SideWood(
-                anchor, idWall, originX, originZ, rotY,
-                TapeS1SideMm, 0d, plankRunMm, TapeS1OrangeMm,
-                "wood-side", wallHeightMm, wallLengthMm, alongMm));
-            outElements.Add(SideWood(
-                anchor, idWall, originX, originZ, rotY,
-                TapeS1SideMm, widthMm - TapeS1SideMm, plankRunMm, TapeS1OrangeMm,
-                "wood-side", wallHeightMm, wallLengthMm, alongMm));
+            if (EnableTapeRemateVisualInsertion)
+            {
+                outElements.Add(SideWood(
+                    anchor, idWall, originX, originZ, rotY,
+                    widthMm, 0d, TapeS1OrangeMm, 0d,
+                    "wood-orange", wallHeightMm, wallLengthMm, alongMm));
+                var plankRunMm = outerRunMm - TapeS1OrangeMm;
+                outElements.Add(SideWood(
+                    anchor, idWall, originX, originZ, rotY,
+                    TapeS1SideMm, 0d, plankRunMm, TapeS1OrangeMm,
+                    "wood-side", wallHeightMm, wallLengthMm, alongMm));
+                outElements.Add(SideWood(
+                    anchor, idWall, originX, originZ, rotY,
+                    TapeS1SideMm, widthMm - TapeS1SideMm, plankRunMm, TapeS1OrangeMm,
+                    "wood-side", wallHeightMm, wallLengthMm, alongMm));
+            }
 
             var stiffenerAlongMm = alongMm + (outSign * (outerRunMm + (TapeS1StiffenerDepthMm * 0.5d)));
             var tieAlongMm = stiffenerAlongMm + (outSign * (TapeS1StiffenerDepthMm * 0.5d));
@@ -959,10 +976,13 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             EndOffset(
                 anchor, alongMm, ux, uz, nx, nz, outX, outZ,
                 woodFromPanel ? panelMm : thicknessMm, 0d, out woodX, out woodZ);
-            var wood = Wood(anchor, wallId, woodX, woodZ, rotY, woodMm, wallHeightMm, wallLengthMm, alongMm);
-            wood.Color = "wood-side";
-            wood.WallThicknessMm = BoardDepthMm;
-            outElements.Add(wood);
+            if (EnableTapeRemateVisualInsertion)
+            {
+                var wood = Wood(anchor, wallId, woodX, woodZ, rotY, woodMm, wallHeightMm, wallLengthMm, alongMm);
+                wood.Color = "wood-side";
+                wood.WallThicknessMm = BoardDepthMm;
+                outElements.Add(wood);
+            }
 
             var bands = HeightBands(wallHeightMm);
             for (var i = 0; i < bands.Count; i++)
@@ -985,33 +1005,39 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 for (var hi = 0; hi < clampHeights.Length; hi++)
                 {
                     var upMm = bands[i].UpMm + clampHeights[hi];
-                    Atk60FaceInsertion.BothFaces(
-                        outElements, anchor, wallId, ClampPath,
-                        alongMm, upMm, wallYaw, ux, uz, faceSign,
-                        wallHeightMm, thicknessMm, wallLengthMm,
-                        Atk60FaceInsertion.PanelFaceMm, 0d, ClampCode, "zinc",
-                        false, true, true);
-                    AddEndClamp(
-                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
-                        40d, anchor.Y + upMm, upMm, wallHeightMm, thicknessMm, wallLengthMm);
-                    AddEndClamp(
-                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
-                        panelMm - 40d, anchor.Y + upMm, upMm, wallHeightMm, thicknessMm, wallLengthMm);
-
-                    var variableUp = upMm + VariableClampRaiseMm;
-                    if (variableUp > bands[i].UpMm + height - 40d)
+                    if (EnableTapeRemateVisualInsertion)
                     {
-                        continue;
+                        Atk60FaceInsertion.BothFaces(
+                            outElements, anchor, wallId, ClampPath,
+                            alongMm, upMm, wallYaw, ux, uz, faceSign,
+                            wallHeightMm, thicknessMm, wallLengthMm,
+                            Atk60FaceInsertion.PanelFaceMm, 0d, ClampCode, "zinc",
+                            false, true, true);
+                        AddEndClamp(
+                            outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                            40d, anchor.Y + upMm, upMm, wallHeightMm, thicknessMm, wallLengthMm);
+                        AddEndClamp(
+                            outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                            panelMm - 40d, anchor.Y + upMm, upMm, wallHeightMm, thicknessMm, wallLengthMm);
                     }
 
-                    AddEndClampPiece(
-                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
-                        panelMm, anchor.Y + variableUp, variableUp, wallHeightMm, thicknessMm, wallLengthMm,
-                        VariableClampPath, VariableClampCode);
-                    AddEndClampPiece(
-                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
-                        thicknessMm, anchor.Y + variableUp, variableUp, wallHeightMm, thicknessMm, wallLengthMm,
-                        VariableClampSlidePath, VariableClampSlideCode);
+                    if (EnableTapeRemateVisualInsertion)
+                    {
+                        var variableUp = upMm + VariableClampRaiseMm;
+                        if (variableUp > bands[i].UpMm + height - 40d)
+                        {
+                            continue;
+                        }
+
+                        AddEndClampPiece(
+                            outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                            panelMm, anchor.Y + variableUp, variableUp, wallHeightMm, thicknessMm, wallLengthMm,
+                            VariableClampPath, VariableClampCode);
+                        AddEndClampPiece(
+                            outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                            thicknessMm, anchor.Y + variableUp, variableUp, wallHeightMm, thicknessMm, wallLengthMm,
+                            VariableClampSlidePath, VariableClampSlideCode);
+                    }
                 }
             }
         }
@@ -1074,10 +1100,13 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             EndOffset(
                 anchor, alongMm, ux, uz, nx, nz, outX, outZ,
                 woodGrowsAcross ? woodStart : woodStart + woodMm, 0d, out woodX, out woodZ);
-            var wood = Wood(anchor, wallId, woodX, woodZ, rotY, woodMm, wallHeightMm, wallLengthMm, alongMm);
-            wood.Color = "wood-side";
-            wood.WallThicknessMm = BoardDepthMm;
-            outElements.Add(wood);
+            if (EnableTapeRemateVisualInsertion)
+            {
+                var wood = Wood(anchor, wallId, woodX, woodZ, rotY, woodMm, wallHeightMm, wallLengthMm, alongMm);
+                wood.Color = "wood-side";
+                wood.WallThicknessMm = BoardDepthMm;
+                outElements.Add(wood);
+            }
 
             var bands = HeightBands(wallHeightMm);
             for (var i = 0; i < bands.Count; i++)
@@ -1117,39 +1146,45 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 for (var hi = 0; hi < clampHeights.Length; hi++)
                 {
                     var upMm = bands[i].UpMm + clampHeights[hi];
-                    Atk60FaceInsertion.BothFaces(
-                        outElements, anchor, wallId, ClampPath,
-                        alongMm, upMm, wallYaw, ux, uz, faceSign,
-                        wallHeightMm, thicknessMm, wallLengthMm,
-                        Atk60FaceInsertion.PanelFaceMm, 0d, ClampCode, "zinc",
-                        false, true, true);
-                    AddEndClamp(
-                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
-                        40d, anchor.Y + upMm, upMm, wallHeightMm, thicknessMm, wallLengthMm);
-                    AddEndClamp(
-                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
-                        thicknessMm - 40d, anchor.Y + upMm, upMm, wallHeightMm, thicknessMm, wallLengthMm);
-                    AddPanelSeamClamps(
-                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
-                        primaryPanels, 0d, anchor.Y + upMm, upMm, wallHeightMm, thicknessMm, wallLengthMm);
-                    AddPanelSeamClamps(
-                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
-                        oppositePanels, woodStart + woodMm, anchor.Y + upMm, upMm, wallHeightMm, thicknessMm, wallLengthMm);
-
-                    var variableUp = upMm + VariableClampRaiseMm;
-                    if (variableUp > bands[i].UpMm + height - 40d)
+                    if (EnableTapeRemateVisualInsertion)
                     {
-                        continue;
+                        Atk60FaceInsertion.BothFaces(
+                            outElements, anchor, wallId, ClampPath,
+                            alongMm, upMm, wallYaw, ux, uz, faceSign,
+                            wallHeightMm, thicknessMm, wallLengthMm,
+                            Atk60FaceInsertion.PanelFaceMm, 0d, ClampCode, "zinc",
+                            false, true, true);
+                        AddEndClamp(
+                            outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                            40d, anchor.Y + upMm, upMm, wallHeightMm, thicknessMm, wallLengthMm);
+                        AddEndClamp(
+                            outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                            thicknessMm - 40d, anchor.Y + upMm, upMm, wallHeightMm, thicknessMm, wallLengthMm);
+                        AddPanelSeamClamps(
+                            outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                            primaryPanels, 0d, anchor.Y + upMm, upMm, wallHeightMm, thicknessMm, wallLengthMm);
+                        AddPanelSeamClamps(
+                            outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                            oppositePanels, woodStart + woodMm, anchor.Y + upMm, upMm, wallHeightMm, thicknessMm, wallLengthMm);
                     }
 
-                    AddEndClampPiece(
-                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
-                        woodStart, anchor.Y + variableUp, variableUp, wallHeightMm, thicknessMm, wallLengthMm,
-                        VariableClampPath, VariableClampCode);
-                    AddEndClampPiece(
-                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
-                        woodStart + woodMm, anchor.Y + variableUp, variableUp, wallHeightMm, thicknessMm, wallLengthMm,
-                        VariableClampSlidePath, VariableClampSlideCode);
+                    if (EnableTapeRemateVisualInsertion)
+                    {
+                        var variableUp = upMm + VariableClampRaiseMm;
+                        if (variableUp > bands[i].UpMm + height - 40d)
+                        {
+                            continue;
+                        }
+
+                        AddEndClampPiece(
+                            outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                            woodStart, anchor.Y + variableUp, variableUp, wallHeightMm, thicknessMm, wallLengthMm,
+                            VariableClampPath, VariableClampCode);
+                        AddEndClampPiece(
+                            outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                            woodStart + woodMm, anchor.Y + variableUp, variableUp, wallHeightMm, thicknessMm, wallLengthMm,
+                            VariableClampSlidePath, VariableClampSlideCode);
+                    }
                 }
             }
         }

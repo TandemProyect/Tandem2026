@@ -578,6 +578,23 @@ function maStlEdgeRulerWorldToCanvasLocalPx(wx, wy, wz, glCanvas, camera, outPx)
     return true;
 }
 
+/**
+ * Paso seguro de marcas de regla de borde.
+ * Un pan en perspectiva puede dejar el suelo visible en kilómetros; sin tope el bucle no vuelve y la pestaña muere.
+ * @returns {{ step: number, skip: boolean }}
+ */
+function maStlEdgeRulerCoarsenStepMm(minWorld, maxWorld, stepMm, maxTicks) {
+    const cap = maxTicks > 0 ? maxTicks : 480;
+    const step = Number.isFinite(stepMm) && stepMm > 0 ? stepMm : 1;
+    if (!Number.isFinite(minWorld) || !Number.isFinite(maxWorld) || maxWorld < minWorld) {
+        return { step: step, skip: true };
+    }
+    const span = maxWorld - minWorld;
+    if (!(span > 0)) return { step: step, skip: false };
+    if (span / step > cap) return { step: span / cap, skip: false };
+    return { step: step, skip: false };
+}
+
 function maStlEdgeRulerFirstTickMm(minWorldMm, anchorMm, stepMm) {
     const step = Math.max(stepMm, 1e-6);
     const rel = minWorldMm - anchorMm;
@@ -604,9 +621,11 @@ function maStlEdgeRulerShouldLabelIntegerMeter(deltaMm, labelStepMm) {
  */
 function maStlEdgeRulerBuildAxisTicks(axis, opts) {
     const ticks = [];
-    const stepMm = Math.max(opts.minorStepMm, 1e-6);
     const minWorld = axis === 'x' ? opts.minX : opts.minZ;
     const maxWorld = axis === 'x' ? opts.maxX : opts.maxZ;
+    const coarsened = maStlEdgeRulerCoarsenStepMm(minWorld, maxWorld, opts.minorStepMm, 480);
+    if (coarsened.skip) return ticks;
+    const stepMm = coarsened.step;
     const anchor = axis === 'x' ? opts.anchorX : opts.anchorZ;
     const refOther = axis === 'x' ? opts.refZ : opts.refX;
     const floorY = opts.floorY;
@@ -615,7 +634,10 @@ function maStlEdgeRulerBuildAxisTicks(axis, opts) {
     const labelStepMm = opts.labelStepMm;
     const localPx = { x: 0, y: 0 };
     const start = maStlEdgeRulerFirstTickMm(minWorld - stepMm, anchor, stepMm);
-    for (let v = start; v <= maxWorld + stepMm * 0.01; v += stepMm) {
+    let tickGuard = 0;
+    for (let v = start; v <= maxWorld + stepMm * 0.01 && tickGuard < 482; v += stepMm) {
+        tickGuard++;
+        if (!Number.isFinite(v)) break;
         const wx = axis === 'x' ? v : refOther;
         const wz = axis === 'z' ? v : refOther;
         if (!maStlEdgeRulerWorldToCanvasLocalPx(wx, floorY, wz, glCanvas, camera, localPx)) {
@@ -1710,8 +1732,10 @@ function maStlBuildPlanRulers(axisLenWorld, extentGeom, minorStep, majorStep, li
     /** Brazo vertical en planta: crece en -Z (arriba en TOP); etiquetas en metros negativos. */
     segTo(linePosDefault, xr, yr, az, xr, yr, az - extentGeom);
 
-    for (let k = 1; k * minorStep <= extentGeom + 1e-6 * minorStep; k++) {
-        const t = k * minorStep;
+    const rulerMinor = minorStep > 1e-9 ? minorStep : 1;
+    const rulerMaxK = Math.min(Math.ceil(extentGeom / rulerMinor) + 2, 4000);
+    for (let k = 1; k <= rulerMaxK && k * rulerMinor <= extentGeom + 1e-6 * rulerMinor; k++) {
+        const t = k * rulerMinor;
         const isX5 = maStlPlanRulerTickAtMultipleOf5Meters(t);
         const isInteger = maStlPlanRulerTickAtIntegerMeter(t);
         const hTick = isInteger ? hTickInteger : hTickHalf;
@@ -2802,6 +2826,45 @@ function bootMasterArticleDetailsStlViewer() {
     const canvasHost = document.getElementById('ma-stl-viewer-gl-host');
     const statusEl = document.getElementById('master-article-details-stl-viewer-status');
     if (!canvasHost) return;
+    window.setTimeout(function maStlDesing2UnlockFrozenViewer() {
+        try {
+            const overlay = document.getElementById('ma-stl-design-persist-overlay');
+            if (overlay) {
+                overlay.classList.add('d-none');
+                overlay.setAttribute('aria-hidden', 'true');
+                overlay.setAttribute('aria-busy', 'false');
+                overlay.style.pointerEvents = 'none';
+            }
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+            if (!document.querySelector('.modal.show')) {
+                const backs = document.querySelectorAll('.modal-backdrop');
+                for (let i = 0; i < backs.length; i++) {
+                    if (backs[i].parentNode) backs[i].parentNode.removeChild(backs[i]);
+                }
+            }
+            if (typeof controls !== 'undefined' && controls) {
+                controls.enabled = true;
+                controls.enableRotate = true;
+                controls.enablePan = true;
+                controls.enableZoom = true;
+            }
+        } catch (_unlockErr) {}
+    }, 1500);
+    if (!document.getElementById('ma-stl-viewer-heartbeat')) {
+        const beat = document.createElement('div');
+        beat.id = 'ma-stl-viewer-heartbeat';
+        beat.setAttribute('aria-hidden', 'true');
+        beat.style.cssText =
+            'position:fixed;left:8px;bottom:8px;z-index:80;font:12px/1 monospace;color:#6b7280;pointer-events:none;';
+        document.body.appendChild(beat);
+        let beatN = 0;
+        window.setInterval(function () {
+            beatN += 1;
+            beat.textContent = 'visor ' + beatN;
+        }, 500);
+    }
 
     const viewerShell = document.getElementById('ma-stl-viewer-shell');
     const maStlViewerCanvasHudWrapEl =
@@ -5517,11 +5580,22 @@ function bootMasterArticleDetailsStlViewer() {
             return Promise.resolve({ skipped: true });
         }
         const url = apiUrl + (apiUrl.indexOf('?') >= 0 ? '&' : '?') + 'designId=' + encodeURIComponent(String(designId));
+        const timeoutMs = 12000;
+        const abortCtrl = typeof AbortController === 'function' ? new AbortController() : null;
+        let fetchTimeoutHandle = null;
+        if (abortCtrl) {
+            fetchTimeoutHandle = setTimeout(function () {
+                try {
+                    abortCtrl.abort();
+                } catch (_abortErr) {}
+            }, timeoutMs);
+        }
         maStlDesing2SetPersistOverlay(true, 'load');
         return fetch(url, {
             method: 'GET',
             headers: { Accept: 'application/json' },
             credentials: 'same-origin',
+            signal: abortCtrl ? abortCtrl.signal : undefined,
         })
             .then(function (res) {
                 if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -5554,9 +5628,8 @@ function bootMasterArticleDetailsStlViewer() {
                     if (typeof maStlWall2dToolRefreshResumeStateFromScene === 'function') {
                         maStlWall2dToolRefreshResumeStateFromScene();
                     }
-                    if (typeof maStlWall2dToolRefactorAllWallJunctionsMm === 'function') {
-                        maStlWall2dToolRefactorAllWallJunctionsMm();
-                    }
+                    // El snapshot ya trae ejes y caras. Recalcular uniones aquí es síncrono
+                    // y deja la pestaña muerta justo después del primer pan.
                 }
                 maStlDesing2RenderManualWallArticles(rawArticles);
                 maStlDesing2SyncManualArticleVisibility();
@@ -5567,12 +5640,19 @@ function bootMasterArticleDetailsStlViewer() {
                 });
             })
             .catch(function (err) {
+                if (err && err.name === 'AbortError') {
+                    maStlDesing2MarkWallsPersisted();
+                    maStlDesing2ShowSaveViewToast('Carga inicial agotó tiempo de espera. El visor seguirá operativo.', true);
+                }
                 if (window.console && console.warn) {
                     console.warn('[Desing_2] No se pudieron cargar muros del diseño', err);
                 }
                 return { ok: false, error: err };
             })
             .finally(function () {
+                if (fetchTimeoutHandle) {
+                    clearTimeout(fetchTimeoutHandle);
+                }
                 maStlDesing2SetPersistOverlay(false);
                 document.dispatchEvent(new CustomEvent('desing2-walls-loaded'));
             });
@@ -13911,7 +13991,8 @@ let maStlWallApplyAllHeightMm = 0;
         maStlWall2dToolCollectTJunctionSplitCandidatesMm(points, segA, segB, candidates);
         if (!candidates.length) return;
         let changed = true;
-        while (changed) {
+        let guard = 0;
+        while (changed && guard++ < 64) {
             changed = false;
             const axes = maStlWall2dToolCollectAllAxisLines();
             for (let pi = 0; pi < candidates.length; pi++) {
@@ -24717,7 +24798,8 @@ let maStlWallApplyAllHeightMm = 0;
     function maStlTryMergeUserFloorLineWithConnected(lnNew) {
         if (!lnNew || !maStlIsUserFloorPlanLineObject(lnNew)) return lnNew;
         let current = lnNew;
-        for (;;) {
+        let mergeGuard = 0;
+        for (; mergeGuard < 64; mergeGuard++) {
             const udNew = current.userData && current.userData.maStlUserPlanLine;
             if (!udNew) break;
             if (udNew.wallGroupId != null) break;
@@ -24751,7 +24833,8 @@ let maStlWallApplyAllHeightMm = 0;
         if (!maStlUserLinesGroup) return;
         const eps = maStlUserFloorLineMergeEndpointEpsMm();
         let welded = true;
-        while (welded) {
+        let weldGuard = 0;
+        while (welded && weldGuard++ < 64) {
             welded = false;
             const ch = maStlUserLinesGroup.children;
             for (let i = 0; i < ch.length; i++) {
@@ -24785,7 +24868,8 @@ let maStlWallApplyAllHeightMm = 0;
         maStlWeldAllUserFloorLineEndpointsMm();
         let removed = 0;
         let passMerged = true;
-        while (passMerged) {
+        let mergeGuard = 0;
+        while (passMerged && mergeGuard++ < 64) {
             passMerged = false;
             const snapshot = [];
             const ch = maStlUserLinesGroup.children;
@@ -33892,6 +33976,8 @@ let maStlWallApplyAllHeightMm = 0;
     })();
 
     if (maStlDesingV2Viewer && viewerShell) {
+        const maStlConfigOffsetApplyBtn = document.getElementById('ma-stl-config-offset-apply');
+
         /** Captura/select en panel Entorno puede no propagarse como en elementos sueltos; delegación sobre el shell Desing_2. */
         function maStlOnDesing2EntornoSelectInput(ev) {
             const el = ev.target;
@@ -33972,6 +34058,12 @@ let maStlWallApplyAllHeightMm = 0;
         }
         viewerShell.addEventListener('change', maStlOnDesing2ConfigOffsetDefaultInput);
         viewerShell.addEventListener('blur', maStlOnDesing2ConfigOffsetDefaultInput, true);
+
+        if (maStlConfigOffsetApplyBtn instanceof HTMLButtonElement) {
+            maStlConfigOffsetApplyBtn.addEventListener('click', function () {
+                applyDesing2ConfigOffsetDefaultFromInput();
+            });
+        }
     }
 
     (function wireDesing2EscapeCancelTransientModes() {
