@@ -2601,6 +2601,8 @@
     <Content Include="Files\IfcSamples\README.md" />
     <Content Include="Files\IfcSamples\SampleBuilding_Demo.ifc" />
     <Content Include="Files\Offer\2026\-Mo-02-01-3.dwg" />
+    <None Include="Properties\PublishProfiles\Develop.pubxml" />
+    <None Include="Properties\PublishProfiles\Site4Now-FileSystem.pubxml" />
     <None Include="Report\LEEME.md" />
     <None Include="Report\2026\Informe Semanal 05112026-19112026.md" />
     <None Include="Report\2026\Informe Semanal 05112026-19112026.pdf" />

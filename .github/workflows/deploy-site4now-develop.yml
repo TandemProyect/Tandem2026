@@ -1,0 +1,170 @@
+# Entorno DEVELOP: publica Design (MVC .NET Framework 4.8) en el sitio develop de SmarterASP.
+# Trigger: push a `develo` o ejecución manual. Docs: Docs/General/Deploy-Site4Now.md (sección «Entorno develop»).
+
+name: Deploy Site4Now Develop
+
+on:
+  workflow_dispatch:
+    inputs:
+      ftp_protocol:
+        description: "Protocolo FTP (panel del hosting). Valores: ftp, ftps, ftps-legacy"
+        required: false
+        default: ftp
+  push:
+    branches:
+      - develo
+    paths:
+      - '.github/workflows/deploy-site4now.yml'
+      - 'Desing/**'
+      - 'DAL/**'
+
+concurrency:
+  group: deploy-site4now-develop
+  cancel-in-progress: false
+
+jobs:
+  build-and-publish:
+    name: Publish Design & FTP sync
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore NuGet packages
+        shell: pwsh
+        run: nuget restore Design.sln -NonInteractive
+
+      - name: Instalar destinos web de MSBuild
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          $installPath = & $vswhere -latest -products * -property installationPath | Select-Object -First 1
+          if ([string]::IsNullOrWhiteSpace($installPath)) {
+            Write-Host '::error::vswhere no encontró Visual Studio en el runner.'
+            throw 'No hay Visual Studio en el runner.'
+          }
+          $targets = Get-ChildItem -Path (Join-Path $installPath 'MSBuild\Microsoft\VisualStudio') -Recurse -Filter 'Microsoft.WebApplication.targets' -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($targets) {
+            Write-Host "Web targets ya están en $($targets.FullName)"
+            exit 0
+          }
+          $setup = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\setup.exe'
+          Write-Host "Instalando componentes web en $installPath"
+          & $setup modify --installPath $installPath --add Microsoft.VisualStudio.Component.Web --quiet --norestart --wait
+          if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 3010) {
+            Write-Host "::error::setup.exe modify salió con $LASTEXITCODE."
+            throw "setup.exe modify salió con $LASTEXITCODE"
+          }
+
+      - name: Publish MVC (Filesystem)
+        shell: pwsh
+        env:
+          PUBLISH_FOLDER: ${{ github.workspace }}\artifacts\design_site4now
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $VsWhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          if (-not (Test-Path $VsWhere)) {
+            Write-Host '::error::vswhere.exe missing en el runner.'
+            throw 'vswhere.exe missing — revisar runner windows-latest.'
+          }
+
+          $installationPath = & $VsWhere -latest -products * -property installationPath | Select-Object -First 1
+          if ([string]::IsNullOrWhiteSpace($installationPath)) {
+            Write-Host '::error::vswhere no encontró Visual Studio en el runner.'
+            throw 'No hay Visual Studio en el runner.'
+          }
+          Write-Host "VS=$installationPath"
+
+          $toolRoot = Join-Path $installationPath 'MSBuild\Microsoft\VisualStudio'
+          $ordered = @(Get-ChildItem -Path $toolRoot -Directory -ErrorAction Stop |
+              Where-Object { $_.Name -match '^v\d' } |
+              Sort-Object @{ Expression = {
+                  try {
+                    $suffix = ($_.Name -replace '^v', '').Split('.')[0..3] -join '.'
+                    [version]::Parse($suffix)
+                  }
+                  catch { [version]::Parse('0.0') }
+                }; Ascending = $false })
+
+          foreach ($dir in $ordered) {
+            $targets = Join-Path $dir.FullName 'WebApplications\Microsoft.WebApplication.targets'
+            if (-not (Test-Path $targets)) { continue }
+
+            $env:VSToolsPath = $dir.FullName
+            Write-Host "Using VSToolsPath=$($env:VSToolsPath)"
+            break
+          }
+
+          if ([string]::IsNullOrWhiteSpace($env:VSToolsPath)) {
+            Write-Host "::error::No está Microsoft.WebApplication.targets bajo $toolRoot."
+            throw "No se encontró Microsoft.WebApplication.targets bajo '$toolRoot'."
+          }
+
+          $pub = $env:PUBLISH_FOLDER
+          if (Test-Path $pub) { Remove-Item $pub -Recurse -Force }
+          New-Item -ItemType Directory -Force -Path $pub | Out-Null
+
+          $proj = Join-Path $env:GITHUB_WORKSPACE 'Desing\Design.csproj'
+          Write-Host "MSBuild PublishProfile=Site4Now-FileSystem"
+
+          & msbuild $proj `
+            /m `
+            /p:Configuration=Release `
+            /p:DeployOnBuild=true `
+            /p:PublishProfile=Site4Now-FileSystem `
+            /p:VSToolsPath=$env:VSToolsPath
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::MSBuild salió con $LASTEXITCODE."
+            throw "MSBuild salió con $LASTEXITCODE"
+          }
+
+          if (-not (Test-Path (Join-Path $pub 'Web.config'))) {
+            Write-Host "::error::La publicación no dejó Web.config en $pub."
+            throw "Fallo de publicación — no hay Web.config en $pub."
+          }
+          $worker = Join-Path $pub 'Content\DesignTools\Stl\Worker\Worker.obj'
+          if (-not (Test-Path -LiteralPath $worker)) {
+            Write-Host '::error::La publicación no incluye el OBJ del trabajador.'
+            throw "Fallo de publicación — no está el OBJ del trabajador."
+          }
+
+      - name: Normalizar rutas FTP
+        id: ftpctx
+        shell: pwsh
+        run: |
+          $srv = "${{ vars.DEVELOP_SITE4NOW_FTP_SERVER_DIR }}".Trim()
+          if ([string]::IsNullOrWhiteSpace($srv)) {
+            # Subcarpeta típica (ajustable con variable de repositorio)
+            $srv = './tandemdesing/'
+          }
+          if (-not $srv.StartsWith('./') -and -not $srv.StartsWith('/') -and -not ($srv -match '^[A-Za-z]:')) {
+            $srv = "./$srv"
+          }
+          if (-not $srv.EndsWith('/')) { $srv += '/' }
+          Write-Host "server-dir será: $srv"
+          "FTP_SERVER_DIR=$srv" >> $env:GITHUB_OUTPUT
+
+      # Secrets Actions: DEVELOP_SITE4NOW_FTP_SERVER, DEVELOP_SITE4NOW_FTP_USERNAME, DEVELOP_SITE4NOW_FTP_PASSWORD
+      # Variable opcional repo: DEVELOP_SITE4NOW_FTP_SERVER_DIR (fallback ./tandemdesing/)
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.DEVELOP_SITE4NOW_FTP_SERVER }}
+          username: ${{ secrets.DEVELOP_SITE4NOW_FTP_USERNAME }}
+          password: ${{ secrets.DEVELOP_SITE4NOW_FTP_PASSWORD }}
+          protocol: ${{ vars.DEVELOP_SITE4NOW_FTP_PROTOCOL != '' && vars.DEVELOP_SITE4NOW_FTP_PROTOCOL || (github.event_name == 'workflow_dispatch' && github.event.inputs.ftp_protocol || 'ftp') }}
+          local-dir: ./artifacts/design_site4now/
+          server-dir: ${{ steps.ftpctx.outputs.FTP_SERVER_DIR }}
+          exclude: |
+            **/.ftp-deploy-sync-state*.json
+            Web.GoogleMaps.config
+          log-level: standard

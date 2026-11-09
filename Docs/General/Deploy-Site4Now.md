@@ -105,3 +105,22 @@ Más ayuda local: `Desing\Scripts\TemporalScript\GOOGLE_MAPS_LOCALHOST_REFERRERS
 - Flujo Git: [Git-Workflow.md](./Git-Workflow.md)
 
 **Última actualización:** 2026-10-19
+
+---
+
+## Entorno develop (`develo` → Site4Now develop)
+
+Desde el 09/11/2026 hay un entorno **develop** en SmarterASP (sitio «Atenko», `ccvallecano-002-site6`) que se alimenta de la rama `develo`.
+
+- **Workflow:** `.github/workflows/deploy-site4now-develop.yml` — `push` a `develo` (mismas rutas `Desing/**`, `DAL/**`) o ejecución manual. Compila en Release igual que producción y sube por FTP al sitio develop.
+- **Base de datos:** la misma de producción (`SQL5113.site4now.net`, `db_a197cd_desingproducction`), por decisión del 09/11/2026. `Desing/Web.config` lleva activas las cadenas site4now y comentadas las de SQL Express local (ver el comentario en `connectionStrings`).
+- **Secrets de GitHub** (Settings → Secrets and variables → Actions → New repository secret):
+  - `DEVELOP_SITE4NOW_FTP_SERVER` — host FTP del sitio develop (panel → «FTP: Ver información de conexión»).
+  - `DEVELOP_SITE4NOW_FTP_USERNAME` — usuario FTP del sitio develop.
+  - `DEVELOP_SITE4NOW_FTP_PASSWORD` — contraseña FTP del sitio develop.
+- **Variables de Actions** (opcionales; Settings → Secrets and variables → Actions → Variables):
+  - `DEVELOP_SITE4NOW_FTP_SERVER_DIR` — subcarpeta remota con `/` final. Si se deja vacío usa `./tandemdesing/`; ajustar a la ruta que indique el panel FTP del sitio develop.
+  - `DEVELOP_SITE4NOW_FTP_PROTOCOL` — `ftp` / `ftps` / `ftps-legacy` según el panel.
+- **Panel SmarterASP (una vez):** .NET Framework 4.x en grupo de aplicaciones **Integrated**; crear `Web.GoogleMaps.config` junto a `Web.config` con la clave de mapas y el referente HTTP del dominio develop (o la misma clave con ese referente dado de alta en Google Cloud).
+- **No usar** el perfil antiguo `site6.PublishSettings` (Web Deploy / FTP de Visual Studio): Web Deploy no está disponible en el hosting compartido y la contraseña no se guarda en el archivo. La vía soportada es el workflow FTP.
+
