@@ -526,7 +526,7 @@ namespace Desing.Controllers
             var authInfo = ObtenerPrimerEquipoAutorizado(userSystem);
             var isCadDev = ObtenerIsCadDeveloper(userSystem);
 
-            ViewBag.LinCompany = new SelectList(db.TSql_Company.Where(u => u.BitIsDeleted == false), "SysObjectID", "TextLabel");
+            ViewBag.LinCompany = new SelectList(db.TSql_Company.Where(u => u.BitIsDeleted == false), "SysObjectID", "TextLabel", linCompany);
 
             EmployeeViewModel Model = new EmployeeViewModel
             {
