@@ -22,6 +22,7 @@
             <input type="hidden" name="EmployeeID" value="@Model.EmployeeID" />
             <input type="hidden" name="IsEdit" value="@Model.IsEdit" />
             <input type="hidden" name="AttPhoto" value="@Model.AttPhoto" />
+            <input type="hidden" name="AttPhotoMenu" value="@Model.AttPhotoMenu" />
             <input type="hidden" name="LinBusiness" value="@Model.LinBusiness" />
             <input type="hidden" name="LinAspNetUsert" value="@Model.LinAspNetUsert" />
             <input type="hidden" name="AttPassAspNetUsert" value="@Model.AttPassAspNetUsert" />
@@ -45,7 +46,7 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">@Employee.Lbl_Company</label>
-                        @Html.DropDownList("LinCompany", null, htmlAttributes: new { @class = "form-select" })
+                        @Html.DropDownListFor(m => m.LinCompany, (SelectList)ViewBag.LinCompany, new { @class = "form-select" })
                         <small class="text-muted">@Employee.Lbl_CompanyHint</small>
                         @Html.ValidationMessageFor(model => model.LinCompany, "", new { @class = "text-danger" })
                     </div>

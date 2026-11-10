@@ -526,7 +526,16 @@ namespace Desing.Controllers
             var authInfo = ObtenerPrimerEquipoAutorizado(userSystem);
             var isCadDev = ObtenerIsCadDeveloper(userSystem);
 
-            ViewBag.LinCompany = new SelectList(db.TSql_Company.Where(u => u.BitIsDeleted == false), "SysObjectID", "TextLabel");
+            var companies = db.TSql_Company.Where(u => u.BitIsDeleted == false).ToList();
+            if (employee != null && !companies.Any(c => c.SysObjectID == employee.LinCompany))
+            {
+                var currentCompany = db.TSql_Company.FirstOrDefault(c => c.SysObjectID == employee.LinCompany);
+                if (currentCompany != null)
+                {
+                    companies.Add(currentCompany);
+                }
+            }
+            ViewBag.LinCompany = new SelectList(companies, "SysObjectID", "TextLabel", linCompany);
 
             EmployeeViewModel Model = new EmployeeViewModel
             {
@@ -536,6 +545,7 @@ namespace Desing.Controllers
                 LinAspNetUsert = userSystem,
                 AttPassAspNetUsert = passVscad,
                 LinCompany = linCompany,
+                LinBusiness = employee != null ? employee.LinBusiness : 1,
                 AttPhotoMenu = attPhotoMenu,
                 DeviceId = authInfo.DeviceId,
                 DeviceName = authInfo.MachineName,
@@ -564,13 +574,13 @@ namespace Desing.Controllers
             try
             {
                 var iTComeFrom = Session["ItComeFrom"] as string ?? "";
-                var isEdit = forceEdit || model.IsEdit || string.Equals(iTComeFrom, "Edit_Employee", StringComparison.OrdinalIgnoreCase);
                 var changeFoto = true;
                 long employeeId = 0;
 
                 if (model.EmployeeID > 0) employeeId = model.EmployeeID;
                 if (employeeId <= 0) long.TryParse(Session["EmployeeID"]?.ToString(), out employeeId);
                 var existing = db.TSql_Employee.FirstOrDefault(x => x.SysObjectID == employeeId);
+                var isEdit = forceEdit || model.IsEdit || existing != null || string.Equals(iTComeFrom, "Edit_Employee", StringComparison.OrdinalIgnoreCase);
                 if (existing != null && isEdit)
                 {
                     var check = existing.AttPhotoMenu?.Length >= 35 ? existing.AttPhotoMenu.Substring(35) : "";
@@ -623,7 +633,7 @@ namespace Desing.Controllers
                     LinModifiedBy = userId,
                     AttLastModification = DateTime.UtcNow,
                 };
-                if (iTComeFrom != "Edit_Employee")
+                if (existing == null)
                 {
                     db.TSql_Employee.Add(newEmployee);
                     db.SaveChanges();
