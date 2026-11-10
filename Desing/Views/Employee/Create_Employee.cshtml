@@ -1,20 +1,5 @@
-﻿@model Desing.Models.EmployeeViewModel
+@model Desing.Models.EmployeeViewModel
 @using Desing.Resources
-@{
-    try {
-        var _sl = (SelectList)ViewBag.LinCompany;
-        var _sb = new System.Text.StringBuilder("Model.LinCompany=" + Model.LinCompany + " || ");
-        if (_sl != null) { foreach (var _it in _sl) { _sb.Append(_it.Value).Append("=").Append(_it.Text).Append(_it.Selected ? "*" : "").Append("; "); } }
-        System.IO.File.AppendAllText(@"C:\00_Tandem2026\_emp_view_debug.log", _sb.ToString() + "\n");
-    } catch (System.Exception _ex) { System.IO.File.AppendAllText(@"C:\00_Tandem2026\_emp_view_debug.log", "ERR " + _ex.Message + "\n"); }
-}
-
-@{
-    try {
-        var _sel = Html.DropDownList("LinCompany", (SelectList)ViewBag.LinCompany, htmlAttributes: new { @class = "form-select" }).ToHtmlString();
-        System.IO.File.AppendAllText(@"C:\00_Tandem2026\_emp_select_html.log", _sel + System.Environment.NewLine);
-    } catch (System.Exception _ex2) { System.IO.File.AppendAllText(@"C:\00_Tandem2026\_emp_select_html.log", "ERR " + _ex2.Message + System.Environment.NewLine); }
-}
 
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="py-3 mb-0">
@@ -61,7 +46,7 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">@Employee.Lbl_Company</label>
-                        @Html.DropDownList("LinCompany", (SelectList)ViewBag.LinCompany, htmlAttributes: new { @class = "form-select" })
+                        @Html.DropDownListFor(m => m.LinCompany, (SelectList)ViewBag.LinCompany, new { @class = "form-select" })
                         <small class="text-muted">@Employee.Lbl_CompanyHint</small>
                         @Html.ValidationMessageFor(model => model.LinCompany, "", new { @class = "text-danger" })
                     </div>
@@ -117,6 +102,8 @@
     @Scripts.Render("~/bundles/jqueryval")
     <script type="text/javascript">
         $(document).ready(function () {
+            // Fija la empresa del empleado: el helper MVC no marca 'selected' de forma fiable en este desplegable.
+            $('#LinCompany').val('@Model.LinCompany');
             if ('@Model.AttPhotoMenu' == "") {
                 output.src = "~/Files/RRHH/User/AttPhotoMenu/user.png";
             }

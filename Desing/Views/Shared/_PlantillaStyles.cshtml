@@ -9,6 +9,12 @@
 @{
     var _plantillaColor = (ViewBag.PlantillaColor as string) ?? "#349d7d";
     var _brandAccent = (ViewBag.PlantillaBrandAccentColor as string) ?? "#f29100";
+    var _plantillaLinkRaw = ViewBag.PlantillaLinkColor as string;
+    var _linkColor = string.IsNullOrWhiteSpace(_plantillaLinkRaw) ? _plantillaColor : _plantillaLinkRaw.Trim();
+    var _menuLinkVars = string.IsNullOrWhiteSpace(_plantillaLinkRaw)
+        ? string.Empty
+        : "--bs-menu-color: " + _linkColor + "; --bs-menu-hover-color: " + _linkColor + "; --bs-menu-item-icon-color: " + _linkColor + ";";
+    var _activeMenuColor = string.IsNullOrWhiteSpace(_plantillaLinkRaw) ? "#fff" : _linkColor;
 }
 @*
     Tipografia de la marca "T Desing.net":
@@ -61,10 +67,12 @@
     [data-bs-theme="light"],
     [data-bs-theme="dark"] {
         --tandem-primary: @_plantillaColor;
+        --tandem-link: @_linkColor;
         --bs-primary: @_plantillaColor !important;
         --bs-primary-rgb: var(--tandem-primary-rgb, 52, 157, 125);
-        --bs-link-color: @_plantillaColor !important;
-        --bs-link-hover-color: @_plantillaColor !important;
+        --bs-link-color: @_linkColor !important;
+        --bs-link-hover-color: @_linkColor !important;
+        @Html.Raw(_menuLinkVars)
     }
 
     /* ---- Boton primary ------------------------------------------------- */
@@ -103,8 +111,14 @@
     .text-primary { color: var(--tandem-primary) !important; }
     .border-primary { border-color: var(--tandem-primary) !important; }
     .link-primary { color: var(--tandem-primary) !important; }
-    a { color: var(--tandem-primary); }
-    a:hover { color: var(--tandem-primary); filter: brightness(0.9); }
+    a { color: var(--tandem-link); text-decoration: underline; text-decoration-color: var(--tandem-primary); text-underline-offset: 0.15em; }
+    a:not([href]) { text-decoration: none; }
+    a:hover { color: var(--tandem-link); filter: brightness(0.9); }
+    /* Los iconos dentro de un enlace heredan el color de link (currentColor). */
+    a i, a svg, a .icon-base { color: inherit; }
+    /* Componentes de interfaz: se mantienen sin subrayado. */
+    .btn, .nav-link, .dropdown-item, .page-link, .menu-link,
+    .list-group-item, .breadcrumb-item, .navbar-brand { text-decoration: none; }
 
     /* ---- Badges con color primario ------------------------------------ */
     .bg-label-primary {
@@ -115,7 +129,7 @@
     /* ---- Sidebar Materio: elemento activo ----------------------------- */
     .menu-vertical .menu-item.active > .menu-link:not(.js-menu-group-toggle) {
         background: var(--tandem-primary) !important;
-        color: #fff !important;
+        color: @_activeMenuColor !important;
     }
     /* ---- Sidebar: grupos expandibles (sin menu-toggle de Materio) -----
        El click lo maneja Scripts/Intranet/sidebar-menu.js anyadiendo la

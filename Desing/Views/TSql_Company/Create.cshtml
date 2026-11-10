@@ -98,4 +98,11 @@
     }
     @Html.Partial("~/Views/Shared/_GooglePlacesAddressScripts.cshtml")
     <script src="@Url.Content("~/Scripts/Intranet/company-branches-panel.js")"></script>
+    <script>
+        $(document).ready(function () {
+            // Fija los desplegables asignados (el helper MVC no marca 'selected' de forma fiable en estos desplegables).
+            $('#LinPlantilla').val('@Model.LinPlantilla');
+            $('#LinkCountry').val('@Model.LinkCountry');
+        });
+    </script>
 }

@@ -44,6 +44,7 @@ namespace Desing.Controllers
             public string BrandText { get; set; }
             public string BrandTextColor { get; set; }
             public string BrandAccentColor { get; set; }
+            public string LinkColor { get; set; }
             public bool IsDefault { get; set; }
         }
 
@@ -256,6 +257,7 @@ namespace Desing.Controllers
                     BrandText = p.AttBrandText,
                     BrandTextColor = p.AttBrandTextColor,
                     BrandAccentColor = p.AttBrandAccentColor,
+                    LinkColor = p.AttLinkColor,
                     IsDefault = p.AttIsDefault
                 })
                 .FirstOrDefault();
@@ -284,6 +286,7 @@ namespace Desing.Controllers
                     BrandText = p.AttBrandText,
                     BrandTextColor = p.AttBrandTextColor,
                     BrandAccentColor = p.AttBrandAccentColor,
+                    LinkColor = p.AttLinkColor,
                     IsDefault = p.AttIsDefault
                 })
                 .FirstOrDefault();
@@ -450,6 +453,9 @@ namespace Desing.Controllers
             ViewBag.PlantillaBrandAccentColor = string.IsNullOrWhiteSpace(plantilla.BrandAccentColor)
                 ? "#f29100"
                 : plantilla.BrandAccentColor.Trim();
+            ViewBag.PlantillaLinkColor = string.IsNullOrWhiteSpace(plantilla.LinkColor)
+                ? ""
+                : plantilla.LinkColor.Trim();
         }
 
         private void WritePlantillaBrandCookies(PlantillaViewData row)

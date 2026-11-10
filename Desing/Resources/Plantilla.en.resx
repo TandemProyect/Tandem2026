@@ -127,6 +127,9 @@
   <data name="Help_BrandTextColor" xml:space="preserve">
     <value>If empty, the rest of the name inherits the theme primary color.</value>
   </data>
+  <data name="Help_LinkColor" xml:space="preserve">
+    <value>Color of link text and icons. Empty = main color.</value>
+  </data>
   <data name="Help_FaviconSize" xml:space="preserve">
     <value>Max. 512 KB.</value>
   </data>
@@ -171,6 +174,12 @@
   </data>
   <data name="Lbl_IsDefault" xml:space="preserve">
     <value>Mark as default template</value>
+  </data>
+  <data name="Lbl_LinkColor" xml:space="preserve">
+    <value>Link color</value>
+  </data>
+  <data name="Lbl_LinkColorTitle" xml:space="preserve">
+    <value>Color of links and icons</value>
   </data>
   <data name="Lbl_Logo" xml:space="preserve">
     <value>Logo</value>

@@ -269,6 +269,7 @@ namespace Desing.Controllers
                 AttBrandTextColor = string.IsNullOrWhiteSpace(model.AttBrandTextColor) ? null : model.AttBrandTextColor.Trim(),
                 AttBrandAccentColor = string.IsNullOrWhiteSpace(model.AttBrandAccentColor) ? "#f29100" : model.AttBrandAccentColor.Trim(),
                 AttColor = model.AttColor,
+                AttLinkColor = string.IsNullOrWhiteSpace(model.AttLinkColor) ? null : model.AttLinkColor.Trim(),
                 AttLogo = model.AttLogo,
                 AttFavicon = model.AttFavicon,
                 AttIsDefault = model.AttIsDefault,
@@ -324,6 +325,7 @@ namespace Desing.Controllers
                 AttBrandTextColor = entity.AttBrandTextColor ?? "",
                 AttBrandAccentColor = string.IsNullOrWhiteSpace(entity.AttBrandAccentColor) ? "#f29100" : entity.AttBrandAccentColor,
                 AttColor = entity.AttColor,
+                AttLinkColor = entity.AttLinkColor ?? "",
                 AttLogo = entity.AttLogo,
                 AttFavicon = string.IsNullOrWhiteSpace(entity.AttFavicon)
                     ? "/Content/images/tDesing/tDesing.png"
@@ -409,6 +411,7 @@ namespace Desing.Controllers
             entity.AttBrandTextColor = string.IsNullOrWhiteSpace(model.AttBrandTextColor) ? null : model.AttBrandTextColor.Trim();
             entity.AttBrandAccentColor = string.IsNullOrWhiteSpace(model.AttBrandAccentColor) ? "#f29100" : model.AttBrandAccentColor.Trim();
             entity.AttColor = model.AttColor;
+            entity.AttLinkColor = string.IsNullOrWhiteSpace(model.AttLinkColor) ? null : model.AttLinkColor.Trim();
             entity.AttLogo = model.AttLogo;
             entity.AttFavicon = model.AttFavicon;
             entity.AttIsDefault = model.AttIsDefault;

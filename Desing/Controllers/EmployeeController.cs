@@ -515,13 +515,13 @@ namespace Desing.Controllers
             var attName = "";
             var attSurname = "";
             var attPhotoMenu = "~/Files/RRHH/User/AttPhotoMenu/user.png";
-            var linCompany = 1;
+            long linCompany = 1;
             if (employee != null)
             {
                 attName = employee.AttName;
                 attSurname = employee.AttSurname;
                 attPhotoMenu = employee.AttPhotoMenu;
-                linCompany = (int)employee.LinCompany;
+                linCompany = employee.LinCompany;
             }
             var authInfo = ObtenerPrimerEquipoAutorizado(userSystem);
             var isCadDev = ObtenerIsCadDeveloper(userSystem);
@@ -554,7 +554,7 @@ namespace Desing.Controllers
                 EmployeeID = employee?.SysObjectID ?? 0,
                 IsEdit = isEdit,
             };
-            try { System.IO.File.AppendAllText(@"C:\00_Tandem2026\_emp_debug.log", DateTime.Now.ToString("HH:mm:ss") + " isEdit=" + isEdit + " empIdSesion=" + employeeIdSesion + " empSysId=" + (employee != null ? employee.SysObjectID.ToString() : "null") + " empLinCompany=" + (employee != null ? employee.LinCompany.ToString() : "null") + " linCompany=" + linCompany + " modelLinCompany=" + Model.LinCompany + " companies=" + string.Join(",", companies.Select(c => c.SysObjectID + ":" + c.BitIsDeleted)) + "\n"); } catch { }
+
             return View(Model);
         }
 

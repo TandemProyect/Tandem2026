@@ -82,6 +82,9 @@ namespace Desing.Resources
         public static string Lbl_IsDefault => ResourceManager.GetString(nameof(Lbl_IsDefault), resourceCulture);
         public static string Lbl_Logo => ResourceManager.GetString(nameof(Lbl_Logo), resourceCulture);
         public static string Lbl_MainColor => ResourceManager.GetString(nameof(Lbl_MainColor), resourceCulture);
+        public static string Lbl_LinkColor => ResourceManager.GetString(nameof(Lbl_LinkColor), resourceCulture);
+        public static string Lbl_LinkColorTitle => ResourceManager.GetString(nameof(Lbl_LinkColorTitle), resourceCulture);
+        public static string Help_LinkColor => ResourceManager.GetString(nameof(Help_LinkColor), resourceCulture);
         public static string Lbl_NameRequired => ResourceManager.GetString(nameof(Lbl_NameRequired), resourceCulture);
         public static string List_DefaultLockedTooltip => ResourceManager.GetString(nameof(List_DefaultLockedTooltip), resourceCulture);
         public static string List_LinkDeleteTooltip => ResourceManager.GetString(nameof(List_LinkDeleteTooltip), resourceCulture);

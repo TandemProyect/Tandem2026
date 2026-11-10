@@ -6,6 +6,7 @@
     var b1 = brand.Length > 1 ? brand.Substring(1) : "";
     var accent = string.IsNullOrWhiteSpace(Model.AttBrandAccentColor) ? "#f29100" : Model.AttBrandAccentColor.Trim();
     var textCol = string.IsNullOrWhiteSpace(Model.AttBrandTextColor) ? "" : Model.AttBrandTextColor.Trim();
+    var linkCol = string.IsNullOrWhiteSpace(Model.AttLinkColor) ? "" : Model.AttLinkColor.Trim();
 }
 
 <div class="col-lg-7">
@@ -49,6 +50,16 @@
                 @Html.TextBoxFor(m => m.AttColor, new { @class = "form-control", id = "AttColorText", maxlength = "7" })
             </div>
             @Html.ValidationMessageFor(m => m.AttColor, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">@Plantilla.Lbl_LinkColor</label>
+            <div class="d-flex align-items-center gap-2">
+                <input type="color" id="AttLinkColorPicker" value="@(string.IsNullOrEmpty(linkCol) ? Model.AttColor : linkCol)" class="form-control form-control-color p-1" style="width:3.25rem;height:2.5rem" title="@Plantilla.Lbl_LinkColorTitle" />
+                @Html.TextBoxFor(m => m.AttLinkColor, new { @class = "form-control", id = "AttLinkColor", maxlength = "7" })
+            </div>
+            <small class="text-muted">@Plantilla.Help_LinkColor</small>
+            @Html.ValidationMessageFor(m => m.AttLinkColor, "", new { @class = "text-danger" })
         </div>
 
         <div class="col-12">

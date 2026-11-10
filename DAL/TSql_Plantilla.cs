@@ -26,6 +26,7 @@ namespace DAL
         public string AttBrandTextColor { get; set; }
         public string AttBrandAccentColor { get; set; }
         public string AttColor { get; set; }
+        public string AttLinkColor { get; set; }
         public string AttLogo { get; set; }
         public string AttFavicon { get; set; }
         public bool AttIsDefault { get; set; }

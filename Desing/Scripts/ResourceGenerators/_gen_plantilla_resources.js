@@ -79,6 +79,8 @@ const es = Object.fromEntries(
     Lbl_BrandTextColor: "Color texto marca (resto)",
     Lbl_BrandTextColorTitle: "Color resto del texto (opcional)",
     Lbl_MainColor: "Color principal *",
+    Lbl_LinkColor: "Color de Link",
+    Lbl_LinkColorTitle: "Color de los enlaces y los iconos",
     Lbl_Logo: "Logo",
     Lbl_Favicon: "Favicon",
     Lbl_IsDefault: "Marcar como plantilla por defecto",
@@ -93,6 +95,8 @@ const es = Object.fromEntries(
       "Se muestra en cabecera, login y pie. La primera letra usa el color de acento.",
     Help_BrandTextColor:
       "Vacío: el resto del nombre hereda el color primario del tema.",
+    Help_LinkColor:
+      "Color de la letra de los enlaces y los iconos. Vacío = color principal.",
     Help_LogoFormats: "PNG, JPG, GIF, SVG, WEBP o ICO; máx. 2 MB.",
     Help_FaviconSize: "Máx. 512 KB.",
     Help_OnlyOneDefault:
@@ -198,6 +202,8 @@ const en = Object.assign({}, es, {
   Lbl_BrandTextColor: "Brand text color (rest)",
   Lbl_BrandTextColorTitle: "Rest-of-text color (optional)",
   Lbl_MainColor: "Main color *",
+  Lbl_LinkColor: "Link color",
+  Lbl_LinkColorTitle: "Color of links and icons",
   Lbl_Logo: "Logo",
   Lbl_Favicon: "Favicon",
   Lbl_IsDefault: "Mark as default template",
@@ -212,6 +218,8 @@ const en = Object.assign({}, es, {
     "Shown in the navbar, login and footer. The first letter uses the accent color.",
   Help_BrandTextColor:
     "If empty, the rest of the name inherits the theme primary color.",
+  Help_LinkColor:
+    "Color of link text and icons. Empty = main color.",
   Help_LogoFormats: "PNG, JPG, GIF, SVG, WEBP or ICO; max. 2 MB.",
   Help_FaviconSize: "Max. 512 KB.",
   Help_OnlyOneDefault:

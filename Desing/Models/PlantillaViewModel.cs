@@ -47,6 +47,9 @@ namespace Desing.Models
             ErrorMessageResourceName = "Val_MainColorHexFormat")]
         public string AttColor { get; set; } = "#349d7d";
 
+        [StringLength(20)]
+        public string AttLinkColor { get; set; }
+
         [Required(
             ErrorMessageResourceType = typeof(Desing.Resources.Plantilla),
             ErrorMessageResourceName = "Val_LogoPathRequired")]

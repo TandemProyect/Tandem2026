@@ -760,6 +760,7 @@
           <Property Name="AttBrandText" Type="nvarchar" MaxLength="120" Nullable="false" />
           <Property Name="AttBrandTextColor" Type="nvarchar" MaxLength="20" />
           <Property Name="AttBrandAccentColor" Type="nvarchar" MaxLength="20" Nullable="false" />
+          <Property Name="AttLinkColor" Type="nvarchar" MaxLength="20" />
         </EntityType>
         <EntityType Name="TSql_PluginDeviceAuth">
           <Key>
@@ -4926,6 +4927,7 @@
           <Property Name="AttBrandTextColor" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
           <Property Name="AttBrandAccentColor" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="true" />
           <Property Name="AttColor" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="AttLinkColor" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
           <Property Name="AttLogo" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
           <Property Name="AttFavicon" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
           <Property Name="AttIsDefault" Type="Boolean" Nullable="false" />
@@ -6666,6 +6668,7 @@
                 <ScalarProperty Name="AttLogo" ColumnName="AttLogo" />
                 <ScalarProperty Name="AttColor" ColumnName="AttColor" />
                 <ScalarProperty Name="AttBrandAccentColor" ColumnName="AttBrandAccentColor" />
+                <ScalarProperty Name="AttLinkColor" ColumnName="AttLinkColor" />
                 <ScalarProperty Name="AttBrandTextColor" ColumnName="AttBrandTextColor" />
                 <ScalarProperty Name="AttBrandText" ColumnName="AttBrandText" />
                 <ScalarProperty Name="AttName" ColumnName="AttName" />

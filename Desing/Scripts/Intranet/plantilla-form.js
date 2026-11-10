@@ -52,6 +52,7 @@
         }
         syncHexPair('#AttBrandAccentPicker', '#AttBrandAccentColor');
         syncHexPair('#AttBrandTextColorPicker', '#AttBrandTextColor');
+        syncHexPair('#AttLinkColorPicker', '#AttLinkColor');
 
         function applyBrandPreview() {
             var full = ($('#AttBrandText').val() || 'T Desing.net').trim();

@@ -127,6 +127,9 @@
   <data name="Help_BrandTextColor" xml:space="preserve">
     <value>Vacío: el resto del nombre hereda el color primario del tema.</value>
   </data>
+  <data name="Help_LinkColor" xml:space="preserve">
+    <value>Color de la letra de los enlaces y los iconos. Vacío = color principal.</value>
+  </data>
   <data name="Help_FaviconSize" xml:space="preserve">
     <value>Máx. 512 KB.</value>
   </data>
@@ -171,6 +174,12 @@
   </data>
   <data name="Lbl_IsDefault" xml:space="preserve">
     <value>Marcar como plantilla por defecto</value>
+  </data>
+  <data name="Lbl_LinkColor" xml:space="preserve">
+    <value>Color de Link</value>
+  </data>
+  <data name="Lbl_LinkColorTitle" xml:space="preserve">
+    <value>Color de los enlaces y los iconos</value>
   </data>
   <data name="Lbl_Logo" xml:space="preserve">
     <value>Logo</value>
