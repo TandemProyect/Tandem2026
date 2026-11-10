@@ -536,6 +536,7 @@ namespace Desing.Controllers
                 LinAspNetUsert = userSystem,
                 AttPassAspNetUsert = passVscad,
                 LinCompany = linCompany,
+                LinBusiness = employee != null ? employee.LinBusiness : 1,
                 AttPhotoMenu = attPhotoMenu,
                 DeviceId = authInfo.DeviceId,
                 DeviceName = authInfo.MachineName,
@@ -564,13 +565,13 @@ namespace Desing.Controllers
             try
             {
                 var iTComeFrom = Session["ItComeFrom"] as string ?? "";
-                var isEdit = forceEdit || model.IsEdit || string.Equals(iTComeFrom, "Edit_Employee", StringComparison.OrdinalIgnoreCase);
                 var changeFoto = true;
                 long employeeId = 0;
 
                 if (model.EmployeeID > 0) employeeId = model.EmployeeID;
                 if (employeeId <= 0) long.TryParse(Session["EmployeeID"]?.ToString(), out employeeId);
                 var existing = db.TSql_Employee.FirstOrDefault(x => x.SysObjectID == employeeId);
+                var isEdit = forceEdit || model.IsEdit || existing != null || string.Equals(iTComeFrom, "Edit_Employee", StringComparison.OrdinalIgnoreCase);
                 if (existing != null && isEdit)
                 {
                     var check = existing.AttPhotoMenu?.Length >= 35 ? existing.AttPhotoMenu.Substring(35) : "";
@@ -623,7 +624,7 @@ namespace Desing.Controllers
                     LinModifiedBy = userId,
                     AttLastModification = DateTime.UtcNow,
                 };
-                if (iTComeFrom != "Edit_Employee")
+                if (existing == null)
                 {
                     db.TSql_Employee.Add(newEmployee);
                     db.SaveChanges();
