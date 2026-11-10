@@ -526,7 +526,16 @@ namespace Desing.Controllers
             var authInfo = ObtenerPrimerEquipoAutorizado(userSystem);
             var isCadDev = ObtenerIsCadDeveloper(userSystem);
 
-            ViewBag.LinCompany = new SelectList(db.TSql_Company.Where(u => u.BitIsDeleted == false), "SysObjectID", "TextLabel", linCompany);
+            var companies = db.TSql_Company.Where(u => u.BitIsDeleted == false).ToList();
+            if (employee != null && !companies.Any(c => c.SysObjectID == employee.LinCompany))
+            {
+                var currentCompany = db.TSql_Company.FirstOrDefault(c => c.SysObjectID == employee.LinCompany);
+                if (currentCompany != null)
+                {
+                    companies.Add(currentCompany);
+                }
+            }
+            ViewBag.LinCompany = new SelectList(companies, "SysObjectID", "TextLabel", linCompany);
 
             EmployeeViewModel Model = new EmployeeViewModel
             {
