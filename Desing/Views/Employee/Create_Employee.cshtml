@@ -9,6 +9,13 @@
     } catch (System.Exception _ex) { System.IO.File.AppendAllText(@"C:\00_Tandem2026\_emp_view_debug.log", "ERR " + _ex.Message + "\n"); }
 }
 
+@{
+    try {
+        var _sel = Html.DropDownList("LinCompany", (SelectList)ViewBag.LinCompany, htmlAttributes: new { @class = "form-select" }).ToHtmlString();
+        System.IO.File.AppendAllText(@"C:\00_Tandem2026\_emp_select_html.log", _sel + System.Environment.NewLine);
+    } catch (System.Exception _ex2) { System.IO.File.AppendAllText(@"C:\00_Tandem2026\_emp_select_html.log", "ERR " + _ex2.Message + System.Environment.NewLine); }
+}
+
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="py-3 mb-0">
         <span class="text-muted fw-light">
@@ -54,7 +61,7 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">@Employee.Lbl_Company</label>
-                        @Html.DropDownListFor(m => m.LinCompany, (SelectList)ViewBag.LinCompany, new { @class = "form-select" })
+                        @Html.DropDownList("LinCompany", (SelectList)ViewBag.LinCompany, htmlAttributes: new { @class = "form-select" })
                         <small class="text-muted">@Employee.Lbl_CompanyHint</small>
                         @Html.ValidationMessageFor(model => model.LinCompany, "", new { @class = "text-danger" })
                     </div>
