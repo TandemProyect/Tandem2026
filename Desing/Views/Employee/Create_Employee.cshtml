@@ -1,5 +1,13 @@
 ﻿@model Desing.Models.EmployeeViewModel
 @using Desing.Resources
+@{
+    try {
+        var _sl = (SelectList)ViewBag.LinCompany;
+        var _sb = new System.Text.StringBuilder("Model.LinCompany=" + Model.LinCompany + " || ");
+        if (_sl != null) { foreach (var _it in _sl) { _sb.Append(_it.Value).Append("=").Append(_it.Text).Append(_it.Selected ? "*" : "").Append("; "); } }
+        System.IO.File.AppendAllText(@"C:\00_Tandem2026\_emp_view_debug.log", _sb.ToString() + "\n");
+    } catch (System.Exception _ex) { System.IO.File.AppendAllText(@"C:\00_Tandem2026\_emp_view_debug.log", "ERR " + _ex.Message + "\n"); }
+}
 
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="py-3 mb-0">

@@ -554,6 +554,7 @@ namespace Desing.Controllers
                 EmployeeID = employee?.SysObjectID ?? 0,
                 IsEdit = isEdit,
             };
+            try { System.IO.File.AppendAllText(@"C:\00_Tandem2026\_emp_debug.log", DateTime.Now.ToString("HH:mm:ss") + " isEdit=" + isEdit + " empIdSesion=" + employeeIdSesion + " empSysId=" + (employee != null ? employee.SysObjectID.ToString() : "null") + " empLinCompany=" + (employee != null ? employee.LinCompany.ToString() : "null") + " linCompany=" + linCompany + " modelLinCompany=" + Model.LinCompany + " companies=" + string.Join(",", companies.Select(c => c.SysObjectID + ":" + c.BitIsDeleted)) + "\n"); } catch { }
             return View(Model);
         }
 
