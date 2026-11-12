@@ -421,6 +421,22 @@ Funciones clave: `maStlWallDimCollectAllPlacements`, `maStlWallDimFilterRedundan
 
 **Extensión:** `window.maStlDesing2PushUndoAction({ label, undo: fn, redo: fn })` para comandos futuros sin tocar el stack interno.
 
+### Formulario Modificar esquina (Muro 3D) — altura
+
+Clic en una pieza de esquina en **Muro 3D** abre el popup `maStlEnsureCornerEditPopup` / `maStlOpenCornerEditPopup` (tipo de solución + **altura**). Mismo patrón que la altura de **Modificar muro** (`wall-edit-form.js`).
+
+| Elemento | Detalle |
+|----------|---------|
+| Campo | `#ma-stl-corner-height` — **Altura de la esquina (m)**, `type=number` 0,30–10,00 paso 0,15; coma → punto al aceptar. Enter acepta, Escape cierra |
+| Valor inicial | La **mayor** altura (`_DataHeight`) de los muros que llegan a la esquina (`maStlCornerEditResolveHeightRange`); si difieren, aviso con el rango (al cambiar se igualan) |
+| Qué cambia | La esquina no tiene altura propia: se escribe `_DataHeight` (m, `maStlRoundMeters3`) en **todas las líneas (eje + caras) de cada muro** de la esquina (`maStlCornerEditCollectHeightTargets` → `maStlResolveWallSegmentLinesForLine`) |
+| Aplicar a todos | Casilla **Aplicar altura a todos los muros** = misma regla que en Modificar muro (todas las líneas, fija `maStlWallApplyAllHeightMm`) |
+| 3D | Cada pieza de esquina se extruye con la altura del muro **más alto** que llega a ella (`maStlAtk60JunctionHeightMm` en `maStlAtk60PlaceJunctionMesh` y punto de referencia de esquina). Antes usaba una altura global (o 2,70 m si los muros diferían) |
+| Deshacer / guardar | Altura + tipo en **un solo paso** de deshacer (`editCornerType`); guardado `maStlSaveWallConnectionsNow` (`corner-type-edit`), `_DataHeight` ya viaja en WallConnections y DesignWalls |
+| Error | Valor vacío o ≤ 0 → toast `Altura invalida` (igual que el muro) |
+
+**Modificar muro — deshacer altura:** cambiar solo la altura (o **Aplicar altura a todos los muros**) también crea **un** paso de deshacer (`editUserFloorLineDimension`) que restaura las alturas anteriores. Se detecta comparando `id:_DataHeight` de todas las líneas antes/después (`maStlWallInspectHeightSignature`). Si además cambian longitud/espesor/grupo, sigue siendo un único paso.
+
 ### Punto de inserción modo objeto — fórmula
 
 1. Calcular `box = new THREE.Box3().setFromObject(mesh)` tras `mesh.updateMatrixWorld(true)` (AABB **alineado a ejes mundo**, no OBB local).
@@ -475,6 +491,7 @@ Cambiar un select aplica al alza con `applyDesing2EntornoLive()`. La persistenci
 |--------|-----|
 | `#ma-stl-config-accept` | Botón **Aceptar** arriba del panel. Lee todos los campos (puntales, offset, anchos X/Y, recinto L, W, Ex1, Ex2, Ey1, Ey2) y los guarda en la cookie **`ma_stl_desing2_config`** (`maStlDesing2AcceptConfigForm`). Al arrancar y al restaurar una vista guardada se aplican con `maStlDesing2ApplyAcceptedConfigFromCookie`, que gana a `environment` de la vista. Puntales se guarda además en servidor por diseño. |
 | Espesor al dibujar | **Dibujar muro**: la media de X e Y de Configuración (`maStlWall2dToolThicknessHalfMm`); si el tramo conecta con un muro existente, hereda el espesor de ese muro (`maStlWall2dToolResolveConnectedHalfThicknessMm`). **Insertar recinto**: cada muro con su espesor (izquierdo Ex1, derecho Ex2, inferior Ey1, superior Ey2). **Insertar esquina**: X e Y por pata. |
+| Unión T/X — espesor del muro atravesado | Al partir el muro atravesado (`maStlWall2dToolSplitAxisAtInteriorPointMm`) las dos mitades conservan **su** espesor (`maStlWall2dToolAxisFaceHalfThicknessMm`), no el de Configuración; antes, con muros de distinto espesor quedaban escalones en caras 2D y en la pieza 3D de la T. Cambiar el espesor de una mitad aplica también a sus tramos colineales del mismo muro (`maStlWall2dToolCollectCollinearSameWallAxisLinesMm`) |
 | `#ma-stl-config-offset-default` | Input texto: distancia por defecto del offset (metros en UI, p. ej. `0,30` o `300 mm`). Commit en `change`/`blur` → `desing2EnvOffsetDefaultMm`. Persistencia en cookie `environment.offsetDefaultMm` al pulsar `#ma-stl-save-viewer-state`. |
 
 ## Persistencia en cookie (solo Desing_2)

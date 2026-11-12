@@ -9926,12 +9926,14 @@ let maStlWallApplyAllHeightMm = 0;
         return saw ? shared : MA_STL_WALL3D_DEFAULT_HEIGHT_MM;
     }
 
-    function maStlWall3dAddMeshFromAtk60Footprint(footprint) {
+    function maStlWall3dAddMeshFromAtk60Footprint(footprint, cornerHeightMm) {
         if (!footprint || !footprint.points || footprint.points.length < 3 || !maStlWall3dMeshesGroup) return null;
         const kind = (footprint.meta && footprint.meta.kind) || maAtk60ClassifyFootprintKind(footprint.points.length);
         const pieceKindEarly = kind === 'cornerT' || kind === 'cornerL' || kind === 'cornerX' ? 'corner' : 'wall';
         const extrudeMm = pieceKindEarly === 'corner'
-            ? maStlWall3dResolveCornerExtrudeMm()
+            ? (Number.isFinite(cornerHeightMm) && cornerHeightMm > 0
+                ? cornerHeightMm
+                : maStlWall3dResolveCornerExtrudeMm())
             : MA_STL_WALL3D_DEFAULT_HEIGHT_MM;
         const shape = new THREE.Shape();
         shape.moveTo(footprint.points[0].x, -footprint.points[0].z);
@@ -10331,8 +10333,19 @@ let maStlWallApplyAllHeightMm = 0;
     /** T: contorno P-1…P-8 validado; en Muro 3D se extruye desde P-1. */
     const MA_STL_ATK60_T_EXTRUDE_3D = true;
 
+    /** Altura de la esquina = la del muro más alto que llega a ella (cada muro guarda _DataHeight). */
+    function maStlAtk60JunctionHeightMm(axisUds) {
+        let best = 0;
+        for (let i = 0; axisUds && i < axisUds.length; i++) {
+            if (!axisUds[i]) continue;
+            const h = maStlWallLineResolveHeightMm(axisUds[i]);
+            if (Number.isFinite(h) && h > best) best = h;
+        }
+        return best > 0 ? best : maStlWall3dResolveCornerExtrudeMm();
+    }
+
     function maStlAtk60PlaceJunctionMesh(fp, axisUds) {
-        const mesh = maStlWall3dAddMeshFromAtk60Footprint(fp);
+        const mesh = maStlWall3dAddMeshFromAtk60Footprint(fp, maStlAtk60JunctionHeightMm(axisUds));
         if (!mesh) return 0;
         const keys = [];
         for (let i = 0; i < axisUds.length; i++) {
@@ -10454,11 +10467,11 @@ let maStlWallApplyAllHeightMm = 0;
     function maStlAtk60CollectCornerReferencePoints() {
         const bucket = maStlAtk60BuildJunctionBucket();
         const points = [];
-        const topY = maStlWall3dResolveCornerExtrudeMm();
         for (const key in bucket) {
             const junction = bucket[key];
             const lJunction = maStlAtk60BuildLJunctionFootprint(junction);
             if (!lJunction) continue;
+            const topY = maStlAtk60JunctionHeightMm(lJunction.axisUds);
             const point = lJunction.footprint.points[0];
             const vertex = junction.vertexMm;
             points.push({
@@ -14050,7 +14063,9 @@ let maStlWallApplyAllHeightMm = 0;
     function maStlWall2dToolSplitAxisAtInteriorPointMm(axisLine, splitPtMm) {
         const ud = axisLine.userData && axisLine.userData.maStlUserPlanLine;
         if (!ud || ud.wallRole !== 'axis' || !ud.p1Mm || !ud.p2Mm) return false;
-        const halfT = maStlWall2dToolThicknessHalfMm();
+        // Las dos mitades conservan el espesor del muro partido (no el de Configuración):
+        // con el de Configuración, una T con muros de distinto espesor dejaba escalones.
+        const halfT = maStlWall2dToolAxisFaceHalfThicknessMm(axisLine);
         const wallGroupId = ud.wallGroupId;
         const oldP2 = maStlDesing2ClonePlanPointMm(ud.p2Mm);
         const J = maStlDesing2ClonePlanPointMm(splitPtMm);
@@ -15529,7 +15544,49 @@ let maStlWallApplyAllHeightMm = 0;
     }
 
     /**
-     * Espesor total simétrico (±mitad) solo en el eje seleccionado.
+     * Tramos del mismo muro (mismo wallId) en línea recta con `seedAxisLine`, unidos extremo a extremo.
+     * Son las mitades que deja una unión T o X al partir el muro atravesado: comparten espesor.
+     */
+    function maStlWall2dToolCollectCollinearSameWallAxisLinesMm(seedAxisLine) {
+        const seedUd = seedAxisLine && seedAxisLine.userData && seedAxisLine.userData.maStlUserPlanLine;
+        if (!seedUd || seedUd.wallRole !== 'axis' || !seedUd.p1Mm || !seedUd.p2Mm) return [seedAxisLine];
+        const wallKey = seedUd.wallId != null ? seedUd.wallId : seedUd.wallGroupId;
+        if (wallKey == null) return [seedAxisLine];
+        const eps = maStlWall2dToolJunctionClusterEpsMm();
+        const axes = maStlWall2dToolCollectAllAxisLines();
+        const out = [seedAxisLine];
+        let grew = true;
+        while (grew) {
+            grew = false;
+            for (let i = 0; i < axes.length; i++) {
+                const ln = axes[i];
+                if (out.indexOf(ln) >= 0) continue;
+                const ud = ln.userData && ln.userData.maStlUserPlanLine;
+                if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+                const key = ud.wallId != null ? ud.wallId : ud.wallGroupId;
+                if (key !== wallKey) continue;
+                for (let k = 0; k < out.length; k++) {
+                    const oUd = out[k].userData.maStlUserPlanLine;
+                    if (!maStlUserFloorPlanLinesCollinearParallelXz(oUd, ud)) continue;
+                    if (
+                        maStlUserFloorPlanPointNearXzMm(oUd.p1Mm, ud.p1Mm, eps) ||
+                        maStlUserFloorPlanPointNearXzMm(oUd.p1Mm, ud.p2Mm, eps) ||
+                        maStlUserFloorPlanPointNearXzMm(oUd.p2Mm, ud.p1Mm, eps) ||
+                        maStlUserFloorPlanPointNearXzMm(oUd.p2Mm, ud.p2Mm, eps)
+                    ) {
+                        out.push(ln);
+                        grew = true;
+                        break;
+                    }
+                }
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Espesor total simétrico (±mitad) en el eje seleccionado y en sus tramos colineales del mismo muro
+     * (mitades de una T/X), para que las caras del muro atravesado sigan sin escalón.
      * Ambas caras se recolocan en paralelo; luego las uniones L/T en ambos extremos se adaptan.
      * Los muros conectados conservan su espesor pero recalculan ingletes.
      * @param {number} totalThicknessMm espesor total mm escena
@@ -15546,12 +15603,13 @@ let maStlWallApplyAllHeightMm = 0;
         const halfT = thicknessMm * 0.5;
         const affected = maStlWall2dToolCollectTopologyConnectedAxisLinesMm(seedAxisLine);
         if (!affected.length) affected.push(seedAxisLine);
+        const sameWallRun = maStlWall2dToolCollectCollinearSameWallAxisLinesMm(seedAxisLine);
 
         for (let ai = 0; ai < affected.length; ai++) {
             const axisLine = affected[ai];
             if (!axisLine) continue;
             const axisHalf =
-                axisLine === seedAxisLine
+                sameWallRun.indexOf(axisLine) >= 0
                     ? halfT
                     : maStlWall2dToolAxisFaceHalfThicknessMm(axisLine);
             maStlWall2dToolApplyParallelFaceOffsetsOnlyMm(axisLine, axisHalf);
@@ -31378,6 +31436,51 @@ let maStlWallApplyAllHeightMm = 0;
         );
         body.appendChild(options);
 
+        const heightLabel = document.createElement('label');
+        heightLabel.textContent = 'Altura de la esquina (m)';
+        heightLabel.htmlFor = 'ma-stl-corner-height';
+        heightLabel.style.display = 'block';
+        heightLabel.style.fontSize = '12px';
+        heightLabel.style.fontWeight = '600';
+        heightLabel.style.color = '#334155';
+        heightLabel.style.marginBottom = '6px';
+        body.appendChild(heightLabel);
+        const heightInput = document.createElement('input');
+        heightInput.type = 'number';
+        heightInput.id = 'ma-stl-corner-height';
+        heightInput.min = '0.30';
+        heightInput.max = '10.00';
+        heightInput.step = '0.15';
+        heightInput.value = '2.70';
+        heightInput.style.width = '100%';
+        heightInput.style.boxSizing = 'border-box';
+        heightInput.style.padding = '8px 10px';
+        heightInput.style.border = '1px solid #cbd5e1';
+        heightInput.style.borderRadius = '8px';
+        heightInput.style.marginBottom = '4px';
+        body.appendChild(heightInput);
+        const heightHint = document.createElement('div');
+        heightHint.style.fontSize = '11px';
+        heightHint.style.color = '#64748b';
+        heightHint.style.marginBottom = '8px';
+        heightHint.textContent = 'Se aplica a los muros que forman la esquina.';
+        body.appendChild(heightHint);
+        const heightAllWrap = document.createElement('label');
+        heightAllWrap.style.display = 'flex';
+        heightAllWrap.style.alignItems = 'center';
+        heightAllWrap.style.gap = '8px';
+        heightAllWrap.style.fontSize = '12px';
+        heightAllWrap.style.color = '#334155';
+        heightAllWrap.style.marginBottom = '14px';
+        const heightAllInput = document.createElement('input');
+        heightAllInput.type = 'checkbox';
+        heightAllInput.style.margin = '0';
+        const heightAllText = document.createElement('span');
+        heightAllText.textContent = 'Aplicar altura a todos los muros';
+        heightAllWrap.appendChild(heightAllInput);
+        heightAllWrap.appendChild(heightAllText);
+        body.appendChild(heightAllWrap);
+
         const actions = document.createElement('div');
         actions.style.display = 'flex';
         actions.style.justifyContent = 'flex-end';
@@ -31438,8 +31541,16 @@ let maStlWallApplyAllHeightMm = 0;
                 maStlCloseCornerEditPopup();
                 return;
             }
+            const hRaw = Number.parseFloat(String(heightInput.value || '').trim().replace(',', '.'));
+            if (!Number.isFinite(hRaw) || hRaw <= 0) {
+                maStlDesing2ShowSaveViewToast('Altura invalida');
+                return;
+            }
+            const hMeters = maStlRoundMeters3(hRaw);
+            const heightAll = !!heightAllInput.checked;
             const undoBefore = maStlDesing2SerializeEditSnapshot();
             const tapeType = selectedType();
+            maStlCornerEditApplyHeightMeters(maStlCornerEditSelection, hMeters, heightAll);
             for (let i = 0; i < maStlCornerEditSelection.lines.length; i++) {
                 const ln = maStlCornerEditSelection.lines[i];
                 const ud = ln && ln.userData ? ln.userData.maStlUserPlanLine : null;
@@ -31472,16 +31583,77 @@ let maStlWallApplyAllHeightMm = 0;
         optionAngular.addEventListener('change', function () { maStlCornerEditPopupRefreshPreview(root); });
         optionVertical.addEventListener('change', function () { maStlCornerEditPopupRefreshPreview(root); });
         optionHorizontal.addEventListener('change', function () { maStlCornerEditPopupRefreshPreview(root); });
+        heightInput.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Enter') {
+                ev.preventDefault();
+                applyCornerEdit();
+            } else if (ev.key === 'Escape') {
+                ev.preventDefault();
+                maStlCloseCornerEditPopup();
+            }
+        });
 
         root._maStlCornerInputs = {
             angular: optionAngular,
             vertical: optionVertical,
             horizontal: optionHorizontal,
+            heightInput: heightInput,
+            heightHint: heightHint,
+            heightAll: heightAllInput,
             previewImg: previewImg,
             profile: 50,
         };
         maStlCornerEditPopup = root;
         return root;
+    }
+
+    /** Muros (eje + caras) de la esquina; con applyAll, todos los muros y pilares. */
+    function maStlCornerEditCollectHeightTargets(selection, applyAll) {
+        const out = [];
+        if (applyAll) {
+            return maStlWallInspectCollectTargetLines(null, null, true);
+        }
+        const lines = selection && selection.lines ? selection.lines : [];
+        for (let i = 0; i < lines.length; i++) {
+            const seg = maStlResolveWallSegmentLinesForLine(lines[i]);
+            if (!seg.length && lines[i]) seg.push(lines[i]);
+            for (let j = 0; j < seg.length; j++) {
+                if (seg[j] && out.indexOf(seg[j]) < 0) out.push(seg[j]);
+            }
+        }
+        return out;
+    }
+
+    function maStlCornerEditApplyHeightMeters(selection, hMeters, applyAll) {
+        if (!(hMeters > 0)) return false;
+        const targets = maStlCornerEditCollectHeightTargets(selection, applyAll);
+        for (let i = 0; i < targets.length; i++) {
+            const ud = targets[i] && targets[i].userData ? targets[i].userData.maStlUserPlanLine : null;
+            if (!ud) continue;
+            maStlWallLineEnsureAttrs(ud);
+            ud._DataHeight = hMeters;
+        }
+        maStlWallApplyAllHeightMm = applyAll ? Math.max(300, hMeters * 1000) : 0;
+        return targets.length > 0;
+    }
+
+    /** Altura inicial del formulario: la mayor de los muros de la esquina (m). */
+    function maStlCornerEditResolveHeightRange(selection) {
+        let minM = Infinity;
+        let maxM = 0;
+        const lines = selection && selection.lines ? selection.lines : [];
+        for (let i = 0; i < lines.length; i++) {
+            const ud = lines[i] && lines[i].userData ? lines[i].userData.maStlUserPlanLine : null;
+            if (!ud) continue;
+            const m = maStlRoundMeters3(maStlWallLineResolveHeightMm(ud) / 1000);
+            if (m < minM) minM = m;
+            if (m > maxM) maxM = m;
+        }
+        if (!(maxM > 0)) {
+            const def = maStlRoundMeters3(MA_STL_WALL3D_DEFAULT_HEIGHT_MM / 1000);
+            return { min: def, max: def };
+        }
+        return { min: minM, max: maxM };
     }
 
     function maStlWall3dResolveCornerSelectionAtPointer(clientX, clientY) {
@@ -31538,7 +31710,25 @@ let maStlWallApplyAllHeightMm = 0;
         refs.horizontal.checked = type === MA_STL_CORNER_TYPE_UNIVERSAL_Y;
         refs.profile = maStlResolveCornerImageProfile(selection);
         maStlCornerEditPopupRefreshPreview(root);
+        if (refs.heightInput) {
+            const range = maStlCornerEditResolveHeightRange(selection);
+            refs.heightInput.value = String(range.max);
+            if (refs.heightHint) {
+                refs.heightHint.textContent = Math.abs(range.max - range.min) > 0.0005
+                    ? 'Los muros de la esquina tienen alturas distintas (' + range.min + ' – ' + range.max + ' m). Al cambiar se igualan.'
+                    : 'Se aplica a los muros que forman la esquina.';
+            }
+        }
+        if (refs.heightAll) refs.heightAll.checked = false;
         root.style.display = 'block';
+        if (refs.heightInput) {
+            try {
+                refs.heightInput.focus({ preventScroll: true });
+                refs.heightInput.select();
+            } catch (_eFocusCornerPopup) {
+                refs.heightInput.focus();
+            }
+        }
         const vw = window.innerWidth || document.documentElement.clientWidth || 1280;
         const vh = window.innerHeight || document.documentElement.clientHeight || 720;
         const w = Math.max(root.offsetWidth, 320);
@@ -31752,6 +31942,21 @@ let maStlWallApplyAllHeightMm = 0;
         }
     }
 
+    /** Firma id:_DataHeight de todas las líneas de usuario (detecta cambios solo de altura). */
+    function maStlWallInspectHeightSignature() {
+        const parts = [];
+        if (!maStlUserLinesGroup) return '';
+        const ch = maStlUserLinesGroup.children;
+        for (let i = 0; i < ch.length; i++) {
+            const ln = ch[i];
+            if (!maStlIsUserFloorPlanLineObject(ln)) continue;
+            const ud = ln.userData && ln.userData.maStlUserPlanLine;
+            if (!ud) continue;
+            parts.push(String(ud.id) + ':' + String(ud._DataHeight));
+        }
+        return parts.join('|');
+    }
+
     function maStlWallInspectAccept(values) {
         const st = maStlWallInspectFormState;
         const lengthInput = st.lengthInput;
@@ -31794,6 +31999,7 @@ let maStlWallApplyAllHeightMm = 0;
             nextGroup = Math.round(groupN);
         }
         const undoBefore = maStlDesing2SerializeEditSnapshot();
+        const heightSigBefore = maStlWallInspectHeightSignature();
         const nextLen = maStlDesing2LengthMmRoundedEditableFromMm(lenMm);
         const nextThick = maStlDesing2LengthMmRoundedEditableFromMm(thickMm);
         const curLen = maStlUserFloorLineLengthMm(axisUd);
@@ -31840,7 +32046,8 @@ let maStlWallApplyAllHeightMm = 0;
             maStlDesing2ShowSaveViewToast('No se pudo aplicar la altura');
             return;
         }
-        if (measureChanged || groupChanged) maStlWallInspectPushMeasureUndo();
+        const heightChanged = maStlWallInspectHeightSignature() !== heightSigBefore;
+        if (measureChanged || groupChanged || heightChanged) maStlWallInspectPushMeasureUndo();
         if (maStlWallDimToolActive) maStlWallDimRefreshScanAndDraw();
         maStlWallInspectClosePopup();
     }

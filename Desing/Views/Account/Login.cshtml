@@ -101,7 +101,7 @@
     <div class="authentication-wrapper authentication-basic @(isPluginCad ? "" : "container-p-y")">
         <div class="authentication-inner tandem-auth-inner @(isPluginCad ? "" : "py-6 mx-4")">
 
-            <div class="card @(isPluginCad ? "tandem-cad-login-card p-3" : "p-sm-7 p-2") position-relative">
+            <div class="card @(isPluginCad ? "tandem-cad-login-card p-3" : "tandem-login-card p-sm-7 p-2") position-relative">
 
                 <div class="app-brand justify-content-center mt-5">
                     <a href="@Url.Action("Index", "Home")" class="app-brand-link gap-3">
@@ -239,7 +239,30 @@
             }
 
             var isCad = @(isPluginCad ? "true" : "false");
-            if (!isCad) return;
+            if (!isCad) {
+                /* La palabra «Desing» del skyline (fijo abajo) empieza a ~1/3 de la altura de la imagen:
+                   si la tarjeta llega hasta ahí, se reduce el skyline lo justo para que no se solapen. */
+                var WORD_TOP = 0.33;
+                var fitSkyline = function () {
+                    var sky = document.querySelector('.tandem-login-skyline');
+                    var card = document.querySelector('.tandem-login-card');
+                    if (!sky || !card || !sky.naturalWidth) return;
+                    sky.style.maxHeight = '';
+                    if (window.getComputedStyle(sky).display === 'none') return;
+                    var r = sky.getBoundingClientRect();
+                    var contentH = Math.min(r.height, r.width * sky.naturalHeight / sky.naturalWidth);
+                    var wordTop = r.bottom - contentH + contentH * WORD_TOP;
+                    var overlap = card.getBoundingClientRect().bottom + 8 - wordTop;
+                    if (overlap > 0) {
+                        sky.style.maxHeight = Math.max(120, Math.floor(contentH - overlap / (1 - WORD_TOP))) + 'px';
+                    }
+                };
+                var skyImg = document.querySelector('.tandem-login-skyline');
+                if (skyImg && !skyImg.complete) skyImg.addEventListener('load', fitSkyline);
+                fitSkyline();
+                window.addEventListener('resize', fitSkyline);
+                return;
+            }
 
             var form = document.getElementById('formAuthentication');
             var overlay = document.getElementById('cadLoginOverlay');

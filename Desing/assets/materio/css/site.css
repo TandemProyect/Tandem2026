@@ -213,6 +213,46 @@ html.tandem-intranet-chrome .layout-content-navbar .content-wrapper > .container
     z-index: 2;
 }
 
+/* Login compacto: la tarjeta no debe tapar la palabra «Desing» del skyline
+   (Login.cshtml además baja el skyline por JS si aún se solapa). */
+.tandem-login-card .app-brand {
+    margin-top: 0.75rem !important;
+}
+
+.tandem-login-card .card-body {
+    padding-top: 0.75rem;
+    padding-bottom: 0.25rem;
+}
+
+.tandem-login-card .card-body .mb-5 {
+    margin-bottom: 1rem !important;
+}
+
+@media (min-width: 576px) {
+    .tandem-login-card.p-sm-7 {
+        padding: 1.25rem 1.5rem !important;
+    }
+}
+
+@media (max-height: 800px) {
+    .authentication-wrapper.container-p-y:has(.tandem-login-card) {
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+
+    .tandem-auth-inner.py-6:has(.tandem-login-card) {
+        padding-top: 0.75rem !important;
+    }
+
+    .tandem-login-card .card-body .mb-5 {
+        margin-bottom: 0.75rem !important;
+    }
+
+    .tandem-login-card .card-body > p.mb-5 {
+        margin-bottom: 0.75rem !important;
+    }
+}
+
 /* ---- Listas DataTables: altura a viewport, scroll en la tabla -----------
    El contenedor principal deja de crecer con todas las filas; el scroll
    vertical queda en .dataTables_scrollBody (requiere scrollY en la init). */

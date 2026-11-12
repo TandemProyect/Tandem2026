@@ -3698,9 +3698,23 @@
     </ItemGroup>
     <Message Importance="high" Text="Desing2: ODA File Converter incluido en la publicacion (@(_Desing2OdaFiles->Count()) archivos)" />
   </Target>
+  <!-- "Ultima publicacion" (Helpers\ReleaseVersionHelper.cs): en cada publicacion (Atenko.net, TDESING_2027, carpeta) se genera App_Data\publish-info.json con la hora UTC; como el contenido cambia siempre, Web Deploy lo sube. No se escribe en el arbol fuente. -->
+  <Target Name="Desing2WritePublishInfo">
+    <PropertyGroup>
+      <_Desing2PublishUtc>$([System.DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"))</_Desing2PublishUtc>
+      <_Desing2PublishInfoFile>$(IntermediateOutputPath)publish-info.json</_Desing2PublishInfoFile>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(_Desing2PublishInfoFile)" Lines="{ &quot;publishedUtc&quot;: &quot;$(_Desing2PublishUtc)&quot;, &quot;profile&quot;: &quot;$(PublishProfile)&quot;, &quot;configuration&quot;: &quot;$(Configuration)&quot;, &quot;machine&quot;: &quot;$(COMPUTERNAME)&quot; }" Overwrite="true" Encoding="UTF-8" />
+    <ItemGroup>
+      <FilesForPackagingFromProject Include="$(_Desing2PublishInfoFile)">
+        <DestinationRelativePath>App_Data\publish-info.json</DestinationRelativePath>
+      </FilesForPackagingFromProject>
+    </ItemGroup>
+    <Message Importance="high" Text="Desing2: publish-info.json = $(_Desing2PublishUtc) (perfil $(PublishProfile))" />
+  </Target>
   <PropertyGroup>
-    <CopyAllFilesToSingleFolderForPackageDependsOn>Desing2IncludeOdaFileConverter;$(CopyAllFilesToSingleFolderForPackageDependsOn)</CopyAllFilesToSingleFolderForPackageDependsOn>
-    <CopyAllFilesToSingleFolderForMsdeployDependsOn>Desing2IncludeOdaFileConverter;$(CopyAllFilesToSingleFolderForMsdeployDependsOn)</CopyAllFilesToSingleFolderForMsdeployDependsOn>
+    <CopyAllFilesToSingleFolderForPackageDependsOn>Desing2IncludeOdaFileConverter;Desing2WritePublishInfo;$(CopyAllFilesToSingleFolderForPackageDependsOn)</CopyAllFilesToSingleFolderForPackageDependsOn>
+    <CopyAllFilesToSingleFolderForMsdeployDependsOn>Desing2IncludeOdaFileConverter;Desing2WritePublishInfo;$(CopyAllFilesToSingleFolderForMsdeployDependsOn)</CopyAllFilesToSingleFolderForMsdeployDependsOn>
   </PropertyGroup>
   <Target Name="MvcBuildViews" AfterTargets="AfterBuild" Condition="'$(MvcBuildViews)'=='true'">
     <AspNetCompiler VirtualPath="temp" PhysicalPath="$(WebProjectOutputDir)" />
