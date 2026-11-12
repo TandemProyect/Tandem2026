@@ -5,17 +5,15 @@ using System.Web.Mvc;
 namespace Desing.ModelBinders
 {
     /// <summary>
-    /// Binds <see cref="decimal"/> / <see cref="Nullable{Decimal}"/> using invariant
-    /// culture first (dot decimals from JS and hidden fields), then
-    /// <see cref="CultureInfo.CurrentCulture"/> so valores como "12,5" sigan
-    /// funcionando en UI es-ES.
+    /// Binds decimal / double / float (and nullable variants) accepting both
+    /// comma and dot decimal separators, so "12,5" and "12.5" save equally.
     /// </summary>
-    public sealed class CultureFallbackDecimalModelBinder : IModelBinder
+    public sealed class CultureFallbackNumberModelBinder : IModelBinder
     {
         private const NumberStyles Styles =
             NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite
             | NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint
-            | NumberStyles.AllowThousands;
+            | NumberStyles.AllowExponent;
 
         public object BindModel(ControllerContext controllerContext, ModelBindingContext bindingContext)
         {
@@ -30,13 +28,21 @@ namespace Desing.ModelBinders
             var raw = valueResult.AttemptedValue;
             var underlying = Nullable.GetUnderlyingType(bindingContext.ModelType);
             var isNullable = underlying != null;
+            var targetType = underlying ?? bindingContext.ModelType;
 
             if (string.IsNullOrWhiteSpace(raw))
             {
-                return isNullable ? (object)null : 0m;
+                if (isNullable)
+                {
+                    return null;
+                }
+
+                return targetType.IsValueType ? Activator.CreateInstance(targetType) : null;
             }
 
-            if (TryParse(raw, out var parsed))
+            var normalized = NormalizeDecimalSeparators(raw.Trim());
+            object parsed;
+            if (TryParse(normalized, targetType, out parsed))
             {
                 return parsed;
             }
@@ -53,14 +59,71 @@ namespace Desing.ModelBinders
             return null;
         }
 
-        private static bool TryParse(string raw, out decimal value)
+        private static string NormalizeDecimalSeparators(string value)
         {
-            if (decimal.TryParse(raw, Styles, CultureInfo.InvariantCulture, out value))
+            if (string.IsNullOrEmpty(value))
             {
-                return true;
+                return value;
             }
 
-            return decimal.TryParse(raw, Styles, CultureInfo.CurrentCulture, out value);
+            var lastComma = value.LastIndexOf(',');
+            var lastDot = value.LastIndexOf('.');
+            if (lastComma >= 0 && lastDot >= 0)
+            {
+                if (lastComma > lastDot)
+                {
+                    return value.Replace(".", string.Empty).Replace(",", ".");
+                }
+
+                return value.Replace(",", string.Empty);
+            }
+
+            if (lastComma >= 0)
+            {
+                return value.Replace(",", ".");
+            }
+
+            return value;
+        }
+
+        private static bool TryParse(string raw, Type targetType, out object value)
+        {
+            value = null;
+
+            if (targetType == typeof(decimal))
+            {
+                decimal decimalValue;
+                if (decimal.TryParse(raw, Styles, CultureInfo.InvariantCulture, out decimalValue))
+                {
+                    value = decimalValue;
+                    return true;
+                }
+                return false;
+            }
+
+            if (targetType == typeof(double))
+            {
+                double doubleValue;
+                if (double.TryParse(raw, Styles, CultureInfo.InvariantCulture, out doubleValue))
+                {
+                    value = doubleValue;
+                    return true;
+                }
+                return false;
+            }
+
+            if (targetType == typeof(float))
+            {
+                float floatValue;
+                if (float.TryParse(raw, Styles, CultureInfo.InvariantCulture, out floatValue))
+                {
+                    value = floatValue;
+                    return true;
+                }
+                return false;
+            }
+
+            return false;
         }
     }
 }

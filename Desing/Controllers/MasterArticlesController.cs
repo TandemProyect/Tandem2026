@@ -5,6 +5,7 @@ using Desing.Resources;
 using Desing.Services;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Dynamic.Core;
@@ -152,6 +153,7 @@ namespace Desing.Controllers
         {
             model.TextCode = (model.TextCode ?? string.Empty).Trim();
             model.TextLabel = (model.TextLabel ?? string.Empty).Trim();
+            BindMasterArticleNumbersFromForm(model);
             ValidateMasterArticleServer(model, isCreate: true);
 
             PreValidateBlockFiles(Request);
@@ -281,6 +283,7 @@ namespace Desing.Controllers
 
             model.TextCode = (model.TextCode ?? string.Empty).Trim();
             model.TextLabel = (model.TextLabel ?? string.Empty).Trim();
+            BindMasterArticleNumbersFromForm(model);
             ValidateMasterArticleServer(model, isCreate: false);
 
             PreValidateBlockFiles(Request);
@@ -370,6 +373,59 @@ namespace Desing.Controllers
                         isCreate ? MasterArticles.Val_DuplicateCodeCreate : MasterArticles.Val_DuplicateCodeEdit);
                 }
             }
+        }
+
+        private void BindMasterArticleNumbersFromForm(DAL.Tsql_Master_Articles model)
+        {
+            if (model == null)
+            {
+                return;
+            }
+
+            model.NumberHigh = BindMasterArticleNumber(Request.Form["NumberHigh"], "NumberHigh");
+            model.NumberWidth = BindMasterArticleNumber(Request.Form["NumberWidth"], "NumberWidth");
+            model.NumberLong = BindMasterArticleNumber(Request.Form["NumberLong"], "NumberLong");
+            model.NumberWeight = BindMasterArticleNumber(Request.Form["NumberWeight"], "NumberWeight");
+            model.NumberMts2 = BindMasterArticleNumber(Request.Form["NumberMts2"], "NumberMts2");
+            model.NumberMts3 = BindMasterArticleNumber(Request.Form["NumberMts3"], "NumberMts3");
+        }
+
+        private double? BindMasterArticleNumber(string raw, string fieldName)
+        {
+            ClearFieldErrors(fieldName);
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                return null;
+            }
+
+            var text = NormalizeMasterArticleNumber(raw.Trim());
+            double value;
+            if (double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value))
+            {
+                return value;
+            }
+
+            ModelState.AddModelError(fieldName, MasterArticles.Val_NumberInvalid);
+            return null;
+        }
+
+        private static string NormalizeMasterArticleNumber(string value)
+        {
+            var lastComma = value.LastIndexOf(',');
+            var lastDot = value.LastIndexOf('.');
+            if (lastComma >= 0 && lastDot >= 0)
+            {
+                if (lastComma > lastDot)
+                {
+                    return value.Replace(".", string.Empty).Replace(",", ".");
+                }
+                return value.Replace(",", string.Empty);
+            }
+            if (lastComma >= 0)
+            {
+                return value.Replace(",", ".");
+            }
+            return value;
         }
 
         private void ClearFieldErrors(string field)

@@ -13,13 +13,6 @@
 
     <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
 
-        @* Etiqueta de entorno *@
-        <div class="navbar-nav align-items-center">
-            <div class="nav-item d-flex align-items-center">
-                <span class="badge brand-env-badge fs-tiny">@Html.Ui("Navbar.EnvironmentBadge", "Entorno: Develop", "Common")</span>
-            </div>
-        </div>
-
         <ul class="navbar-nav flex-row align-items-center ms-md-auto">
 
             @Html.Action("NavbarSwitcher", "UiLanguage")

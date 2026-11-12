@@ -704,12 +704,31 @@ namespace Desing.Controllers
                     TempData["ToastTitle"] = Employee.ToastTitle_EditEmployee;
                     TempData["ToastMessage"] = Employee.ToastMessage_EmployeeUpdated;
                 }
+                RefreshUserChromeAfterCompanyChange(model.LinAspNetUsert);
                 Session.Clear();
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
                 return Json(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Tras crear/editar un empleado se invalida la cache de chrome del usuario
+        /// afectado para que el proximo request relea empresa/plantilla/idioma.
+        /// Si el empleado editado es el usuario actual, tambien se refresca la cookie
+        /// de plantilla para que el login la vuelva a pintar correctamente.
+        /// </summary>
+        private void RefreshUserChromeAfterCompanyChange(string aspNetUserId)
+        {
+            if (string.IsNullOrWhiteSpace(aspNetUserId)) return;
+            InvalidateUserChromeCache(aspNetUserId);
+            var currentUserId = User.Identity.GetUserId();
+            if (!string.IsNullOrEmpty(currentUserId)
+                && string.Equals(currentUserId, aspNetUserId, StringComparison.Ordinal))
+            {
+                WritePlantillaChromeFromUser(aspNetUserId);
             }
         }
 

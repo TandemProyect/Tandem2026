@@ -375,6 +375,18 @@ Funciones clave: `maStlWallDimCollectAllPlacements`, `maStlWallDimFilterRedundan
 3. **Justificación convención «inferior izquierda»:** en `maStlBuildPlanRulers` las marcas en dirección −Z se etiquetan como «arriba» en planta; por tanto la arista inferior del rectángulo de huella corresponde a **mayor Z**. La izquierda en planta (brazo +X hacia la derecha) es **menor X**. Es distinto de `(min.x, min.z)`, que sería la esquina superior-izquierda en esa misma convención.
 4. **STL:** el formato triangular no incluye punto de inserción DWG; en el flujo maestro artículos / Desing_2 no hay otro campo persistido para este origen — todo deriva del envolvente. Un proveedor extra en `maStlInsertionPointProviders` podría leer metadata futura si existiera.
 
+## Chrome del visor Desing_2 (colores fijos)
+
+El chrome del visor no lee la plantilla activa; usa colores fijos para que la barra y los menús de herramientas sean estables en claro/oscuro.
+
+| Zona | Regla vigente | Archivos |
+|------|---------------|----------|
+| Barra superior `#master-article-stl-viewer-toolbar.desing2-stl-actions-toolbar` | Fondo fijo `#186cb7`; iconos/textos blancos (`#fff`) | `Desing/Views/Desing_2/Viewer.cshtml` |
+| Botones del visor fuera de la barra (`.desing2-stl-view-scope .btn`) | Texto/iconos fijos `#186cb7`; borde outline `rgba(24,108,183,.45)` | `Desing/Views/Desing_2/Viewer.cshtml` |
+| Menús de herramientas (`#desing2-article-stl`, `#plugin-blocks-tools`, `.plugin-blocks__tools`, `[id$="toolbar"]`, `[class*="modes-toolbar"]`) | Fondo blanco siempre, también con fondo oscuro; `color-scheme: light`; iconos no activos `#186cb7` | `Desing/Views/Desing_2/Viewer.cshtml`, `Desing/assets/materio/css/site.css` |
+
+Notas: el toggle de fondo oscuro (`#ma-stl-dark-bg-toggle`) solo cambia escena/materiales; el chrome DOM se mantiene claro por las reglas `!important` de `site.css`. No regresar a fondos translúcidos que dejen ver el lienzo oscuro.
+
 ## Pivote de órbita y cubo 90° (Desing_2)
 
 **Guía definitiva (obligatoria antes de editar órbita/cubo):** [`desing-2-orbit-pivot.md`](desing-2-orbit-pivot.md)

@@ -21,7 +21,17 @@ Rama de referencia al redactar esto: `feature/plantilla-favicon`.
 
 ### ViewBag / plantilla
 
-En controladores o filtros se suele rellenar (nombres orientativos): `PlantillaColor`, `PlantillaLogo`, `PlantillaFavicon`, `avatar`, `userName`, etc. `_PlantillaStyles` lee al menos `PlantillaColor` con fallback `#349d7d`.
+En controladores o filtros se suele rellenar (nombres orientativos): `PlantillaColor`, `PlantillaLinkColor`, `PlantillaBrandTextColor`, `PlantillaBrandAccentColor`, `PlantillaLogo`, `PlantillaFavicon`, `avatar`, `userName`, etc. `_PlantillaStyles` lee `PlantillaColor` con fallback `#349d7d`.
+
+#### Colores de plantilla (`_PlantillaStyles.cshtml`)
+
+| ViewBag | Variable CSS | Uso |
+|---|---|---|
+| `PlantillaColor` | `--tandem-primary` | Primario Bootstrap/Materio, subrayado de enlaces, fondo del item activo del menú. |
+| `PlantillaLinkColor` | `--tandem-link` | Botones, iconos, DataTables, paginación, dropdowns y item activo del menú lateral. Si está vacío, cae al primario. |
+| `PlantillaBrandTextColor` | `--tandem-brand-text` | Enlaces de contenido subrayados y textos del panel lateral del visor Desing_2. Si está vacío, cae al primario. |
+
+Reglas vigentes: los enlaces de contenido llevan subrayado con `text-decoration-color: var(--tandem-primary)`; los componentes de interfaz (`.btn`, `.dt-button`, `.page-link`, `.dropdown-item`, `.nav-link`, etc.) no llevan subrayado. El menú lateral usa `--bs-menu-*`: en reposo toma el color de texto de marca (o primario si no hay) y el item activo usa `--tandem-link` sobre fondo primario. Al cambiar la empresa de un empleado, `BaseController.InvalidateUserChromeCache` + `EmployeeController.RefreshUserChromeAfterCompanyChange` invalidan la caché de chrome para releer plantilla/idioma.
 
 ---
 
@@ -87,6 +97,13 @@ Si ColReorder mueve columnas, **los índices DOM dejan de coincidir** con la col
 | `Scripts/datatables-resize.css` | Handles de ancho en `thead th`. |
 
 Vistas parciales que cargan DataTables **sin** layout completo enlazan también `datatables-tandem.css` y, si necesitan defaults de idioma/estado, `datatables-state.js` (p. ej. listas de materiales).
+
+### Selectores de alta de diseño en Home (ofertas y clientes)
+
+- Modales en `Views/Home/Index.cshtml`: `#dashNewDesignModal` (ofertas) y `#dashNewClientDesignModal` (clientes).
+- Ofertas: `GET Home/DashboardOffersForDesign` devuelve `id`, `jobsideId`, `number`, `client`, `created` (`yyyy-MM-dd`, para ordenar) y `createdLabel` (`dd/MM/yyyy`, para mostrar/buscar). Clientes: `GET Home/DashboardClientsForDesign` devuelve `id`, `name`, `created` y `createdLabel`.
+- Ambos pickers usan DataTables locales (`data`, sin ajax): `dom: 'ftp'`, `pageLength: 10`, `lengthChange/info: false`, `autoWidth: false`, `stateSave: false`, `colReorder: false`, `scrollY: '400px'`, `scrollCollapse: false`. El clic en una fila marca `.dash-offer-pick-selected` / `.dash-client-pick-selected` y rellena los hidden (`offerId`/`jobsideId` o `clientId`/`offerId`).
+- Las tablas llevan `dt-no-single-scroll` para que `datatables-state.js` no recalculen la altura; el CSS del propio `Index.cshtml` fija `.dataTables_scrollBody` a `height/max-height: 400px !important`. Los modales solo usan `modal-lg` cuando el picker está visible y tienen paddings/márgenes reducidos.
 
 ### Textos UI tablas
 

@@ -369,6 +369,22 @@ namespace Desing.Controllers
             return userChrome;
         }
 
+        /// <summary>
+        /// Invalida la cache de chrome (avatar/nombre/plantilla/idioma) de un usuario
+        /// para que el proximo request relea empresa y plantilla desde BD.
+        /// </summary>
+        protected void InvalidateUserChromeCache(string aspNetUserId)
+        {
+            if (string.IsNullOrWhiteSpace(aspNetUserId)) return;
+            try
+            {
+                HttpRuntime.Cache.Remove(UserChromeCacheKeyPrefix + aspNetUserId);
+            }
+            catch
+            {
+            }
+        }
+
         private static void TraceStartupTiming(string label, long elapsedMs)
         {
             if (!string.Equals(ConfigurationManager.AppSettings["TandemStartupTiming"], "true", StringComparison.OrdinalIgnoreCase))

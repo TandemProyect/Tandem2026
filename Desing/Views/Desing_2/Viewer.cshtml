@@ -15,25 +15,76 @@
     <style>
         /* Barra única: logo + contexto (izquierda); iconos + Volver (derecha) — color plantilla */
         .desing2-stl-view-scope #master-article-stl-viewer-toolbar.desing2-stl-actions-toolbar {
-            background-color: var(--tandem-primary, var(--bs-primary)) !important;
+            background-color: #186cb7 !important;
             border-bottom-color: rgba(255, 255, 255, 0.22) !important;
             min-height: calc(44px + 0.75rem);
         }
-        .desing2-stl-view-scope #master-article-stl-viewer-toolbar .btn-outline-secondary {
-            color: #fff;
-            border-color: rgba(255, 255, 255, 0.55);
+        .desing2-stl-view-scope #master-article-stl-viewer-toolbar .btn-outline-secondary,
+        .desing2-stl-view-scope #master-article-stl-viewer-toolbar .btn-outline-secondary i,
+        .desing2-stl-view-scope #master-article-stl-viewer-toolbar .btn-outline-secondary svg {
+            color: #fff !important;
+            border-color: rgba(255, 255, 255, 0.55) !important;
         }
         .desing2-stl-view-scope #master-article-stl-viewer-toolbar .btn-outline-secondary:hover,
         .desing2-stl-view-scope #master-article-stl-viewer-toolbar .btn-outline-secondary:focus {
-            background: rgba(255, 255, 255, 0.18);
-            color: #fff;
-            border-color: #fff;
+            background: rgba(255, 255, 255, 0.18) !important;
+            color: #fff !important;
+            border-color: #fff !important;
         }
         .desing2-stl-view-scope #master-article-stl-viewer-toolbar .btn-outline-secondary.active,
         .desing2-stl-view-scope #master-article-stl-viewer-toolbar .btn-check:checked + .btn-outline-secondary {
-            background: rgba(0, 0, 0, 0.2);
-            color: #fff;
-            border-color: #fff;
+            background: rgba(0, 0, 0, 0.2) !important;
+            color: #fff !important;
+            border-color: #fff !important;
+        }
+        .desing2-stl-view-scope #master-article-stl-viewer-toolbar .desing2-stl-toolbar-context {
+            color: #fff !important;
+        }
+        /* Botones del visor fuera de la barra azul: texto/iconos fijos en el azul de marca. */
+        .desing2-stl-view-scope .btn,
+        .desing2-stl-view-scope .btn i,
+        .desing2-stl-view-scope .btn svg,
+        .desing2-stl-view-scope .btn .icon-base {
+            color: #186cb7 !important;
+        }
+        .desing2-stl-view-scope .btn-outline-secondary {
+            border-color: rgba(24, 108, 183, 0.45) !important;
+        }
+        /* Panel lateral de Configuración: el botón Aceptar va sobre fondo azul → texto blanco fijo. */
+        .desing2-stl-view-scope #desing2-stl-hover-side-panel .desing2-stl-config-accept-btn,
+        .desing2-stl-view-scope #desing2-stl-hover-side-panel .desing2-stl-config-accept-btn i,
+        .desing2-stl-view-scope #desing2-stl-hover-side-panel .desing2-stl-config-accept-btn svg,
+        .desing2-stl-view-scope #desing2-stl-hover-side-panel .desing2-stl-config-accept-btn .icon-base,
+        .desing2-stl-view-scope #desing2-stl-hover-side-panel .desing2-stl-config-accept-btn .desing2-stl-config-accept-label {
+            color: #fff !important;
+        }
+        /* Pestañas del panel lateral: texto azul fijo; la activa siempre fondo azul con texto blanco. */
+        .desing2-stl-view-scope #desing2-stl-hover-side-panel .desing2-stl-hover-side-panel__tabs-bar .nav-tabs .nav-link {
+            color: #186cb7 !important;
+        }
+        .desing2-stl-view-scope #desing2-stl-hover-side-panel .desing2-stl-hover-side-panel__tabs-bar .nav-tabs .nav-link.active {
+            background-color: #186cb7 !important;
+            border-color: #186cb7 !important;
+            color: #fff !important;
+        }
+        .desing2-stl-view-scope #desing2-stl-hover-side-panel .desing2-stl-hover-side-panel__tabs-bar .nav-tabs .nav-link.active i,
+        .desing2-stl-view-scope #desing2-stl-hover-side-panel .desing2-stl-hover-side-panel__tabs-bar .nav-tabs .nav-link.active svg,
+        .desing2-stl-view-scope #desing2-stl-hover-side-panel .desing2-stl-hover-side-panel__tabs-bar .nav-tabs .nav-link.active .icon-base {
+            color: #fff !important;
+        }
+        /* Fondos blancos fijos para los menús de herramientas del visor (también en modo oscuro). */
+        #desing2-article-stl,
+        #desing2-article-stl .desing2-article-stl__head,
+        #plugin-blocks-tools,
+        #plugin-blocks-tools .plugin-blocks__tool:not(.is-on),
+        #desing2-article-stl .desing2-article-stl__head .btn,
+        #desing2-article-stl .desing2-article-stl__head select,
+        #desing2-article-stl .desing2-article-stl__head .dropdown-menu,
+        .desing2-stl-view-scope .desing2-article-stl,
+        .desing2-stl-view-scope .desing2-article-stl__head,
+        .desing2-stl-view-scope .plugin-blocks__tools,
+        .desing2-stl-view-scope .plugin-blocks__tool:not(.is-on) {
+            background-color: #ffffff !important;
         }
         .desing2-stl-toolbar-leading {
             flex-basis: 12rem;

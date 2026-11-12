@@ -1762,6 +1762,9 @@
   <data name="Val_LabelRequired" xml:space="preserve">
     <value>Description is required.</value>
   </data>
+  <data name="Val_NumberInvalid" xml:space="preserve">
+    <value>The value must be numeric.</value>
+  </data>
   <data name="Val_SystemInvalid" xml:space="preserve">
     <value>The selected system is not valid.</value>
   </data>

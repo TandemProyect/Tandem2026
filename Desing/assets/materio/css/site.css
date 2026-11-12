@@ -2445,6 +2445,35 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
     border-bottom: 0;
 }
 
+/* Fondos blancos fijos para los menús de herramientas del visor STL (también en modo oscuro). */
+#desing2-article-stl,
+#desing2-article-stl .desing2-article-stl__head,
+#plugin-blocks-tools,
+#plugin-blocks-tools .plugin-blocks__tool:not(.is-on),
+#desing2-article-stl .desing2-article-stl__head .btn,
+#desing2-article-stl .desing2-article-stl__head select,
+#desing2-article-stl .desing2-article-stl__head .dropdown-menu,
+.desing2-article-stl,
+.desing2-article-stl__head,
+.desing2-article-stl .plugin-blocks__tools,
+.desing2-article-stl .plugin-blocks__tool:not(.is-on) {
+    background-color: #ffffff !important;
+}
+
+/* Cualquier barra/menú de herramientas del visor STL: fondo blanco siempre (oscuro incluido). */
+.desing2-stl-view-scope [id$="toolbar"]:not(#master-article-stl-viewer-toolbar),
+.desing2-stl-view-scope [class*="modes-toolbar"],
+.desing2-stl-view-scope .plugin-blocks,
+.desing2-stl-view-scope .desing2-article-stl,
+.desing2-stl-view-scope .desing2-article-stl__head,
+.desing2-stl-view-scope .plugin-blocks__tools {
+    background-color: #ffffff !important;
+    color-scheme: light;
+}
+.desing2-stl-view-scope .plugin-blocks__tool:not(.is-on) {
+    color: #186cb7 !important;
+}
+
 .desing2-article-stl .plugin-blocks__tool {
     width: 28px;
     height: 26px;

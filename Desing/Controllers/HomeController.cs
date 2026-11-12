@@ -998,10 +998,27 @@ namespace Desing.Controllers
                             id = o.IdObject,
                             jobsideId = o.LinkJobside,
                             number = o.AddOfferNumber ?? "",
-                            client = c == null ? "" : (c.TextLabel ?? "")
+                            client = c == null ? "" : (c.TextLabel ?? ""),
+                            created = o.AddDateMade
                         }).ToList();
 
-            return Json(rows, JsonRequestBehavior.AllowGet);
+            var culture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+            if (culture == null || string.IsNullOrEmpty(culture.Name))
+            {
+                culture = new CultureInfo("es-ES");
+            }
+
+            var payload = rows.Select(r => new
+            {
+                r.id,
+                r.jobsideId,
+                r.number,
+                r.client,
+                created = r.created.ToString("yyyy-MM-dd"),
+                createdLabel = r.created.ToString("dd/MM/yyyy", culture)
+            });
+
+            return Json(payload, JsonRequestBehavior.AllowGet);
         }
 
         /// <summary>
@@ -1016,11 +1033,26 @@ namespace Desing.Controllers
                 .Select(c => new
                 {
                     id = c.IdObject,
-                    name = c.TextLabel ?? ""
+                    name = c.TextLabel ?? "",
+                    created = c.AddDateMade
                 })
                 .ToList();
 
-            return Json(rows, JsonRequestBehavior.AllowGet);
+            var culture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+            if (culture == null || string.IsNullOrEmpty(culture.Name))
+            {
+                culture = new CultureInfo("es-ES");
+            }
+
+            var payload = rows.Select(r => new
+            {
+                r.id,
+                r.name,
+                created = r.created.ToString("yyyy-MM-dd"),
+                createdLabel = r.created.ToString("dd/MM/yyyy", culture)
+            });
+
+            return Json(payload, JsonRequestBehavior.AllowGet);
         }
 
         /// <summary>

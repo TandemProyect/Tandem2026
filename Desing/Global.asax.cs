@@ -39,9 +39,13 @@ namespace Desing
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
 
-            var decimalBinder = new Desing.ModelBinders.CultureFallbackDecimalModelBinder();
-            System.Web.Mvc.ModelBinders.Binders.Add(typeof(decimal), decimalBinder);
-            System.Web.Mvc.ModelBinders.Binders.Add(typeof(decimal?), decimalBinder);
+            var numberBinder = new Desing.ModelBinders.CultureFallbackNumberModelBinder();
+            System.Web.Mvc.ModelBinders.Binders.Add(typeof(decimal), numberBinder);
+            System.Web.Mvc.ModelBinders.Binders.Add(typeof(decimal?), numberBinder);
+            System.Web.Mvc.ModelBinders.Binders.Add(typeof(double), numberBinder);
+            System.Web.Mvc.ModelBinders.Binders.Add(typeof(double?), numberBinder);
+            System.Web.Mvc.ModelBinders.Binders.Add(typeof(float), numberBinder);
+            System.Web.Mvc.ModelBinders.Binders.Add(typeof(float?), numberBinder);
             sw.Stop();
             TraceStartupTiming("Application_Start", sw.ElapsedMilliseconds);
             WarmEntityModelInBackground();

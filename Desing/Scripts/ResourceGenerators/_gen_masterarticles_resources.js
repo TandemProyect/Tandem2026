@@ -64,6 +64,7 @@ const es = Object.fromEntries(
     Val_LabelRequired: "La descripción es obligatoria.",
     Val_SystemRequired: "Seleccione un sistema.",
     Val_SystemInvalid: "El sistema seleccionado no es válido.",
+    Val_NumberInvalid: "El valor debe ser numérico.",
     Val_DuplicateCodeCreate:
       "Ya existe un artículo con este código en el mismo sistema.",
     Val_DuplicateCodeEdit:
@@ -684,7 +685,15 @@ const es = Object.fromEntries(
     StlPreview_Desing2ConfigOffsetDefaultAria:
       "Distancia por defecto para la herramienta offset, en metros (p. ej. 0,30).",
     StlPreview_Desing2ConfigOffsetDefaultPlaceholder: "p. ej. 0,30 · 300 mm",
-    StlPreview_Desing2ConfigWallSectionTitle: "Sección en L — espesores",
+    StlPreview_Desing2ConfigWallHeightAria:
+      "Altura del muro al dibujarlo, en metros (p. ej. 2,70).",
+    StlPreview_Desing2ConfigWallHeightLabel: "Altura",
+    StlPreview_Desing2ConfigWallHeightPlaceholder: "p. ej. 2,70 · 2700 mm",
+    StlPreview_Desing2ConfigWallSectionTitle: "Muro",
+    StlPreview_Desing2ConfigWallThicknessAria:
+      "Espesor del muro al dibujarlo, en metros (p. ej. 0,30).",
+    StlPreview_Desing2ConfigWallThicknessLabel: "Espesor",
+    StlPreview_Desing2ConfigWallThicknessPlaceholder: "p. ej. 0,30 · 300 mm",
     StlPreview_Desing2ConfigWallWidthXLabel: "Ancho de muro en X",
     StlPreview_Desing2ConfigWallWidthXAria:
       "Espesor del muro medido en el eje X del plano, en metros (p. ej. 0,30).",
@@ -784,6 +793,7 @@ const en = Object.assign({}, es, {
   Val_LabelRequired: "Description is required.",
   Val_SystemRequired: "Please select a system.",
   Val_SystemInvalid: "The selected system is not valid.",
+  Val_NumberInvalid: "The value must be numeric.",
   Val_DuplicateCodeCreate:
     "An article with this code already exists in the same system.",
   Val_DuplicateCodeEdit:
@@ -1402,7 +1412,15 @@ const en = Object.assign({}, es, {
   StlPreview_Desing2ConfigOffsetDefaultAria:
     "Default distance for the offset tool, in meters (e.g. 0.30).",
   StlPreview_Desing2ConfigOffsetDefaultPlaceholder: "e.g. 0.30 · 300 mm",
-  StlPreview_Desing2ConfigWallSectionTitle: "L-section — wall thickness",
+  StlPreview_Desing2ConfigWallHeightAria:
+    "Wall height when drawing, in meters (e.g. 2.70).",
+  StlPreview_Desing2ConfigWallHeightLabel: "Height",
+  StlPreview_Desing2ConfigWallHeightPlaceholder: "e.g. 2.70 · 2700 mm",
+  StlPreview_Desing2ConfigWallSectionTitle: "Wall",
+  StlPreview_Desing2ConfigWallThicknessAria:
+    "Wall thickness when drawing, in meters (e.g. 0.30).",
+  StlPreview_Desing2ConfigWallThicknessLabel: "Thickness",
+  StlPreview_Desing2ConfigWallThicknessPlaceholder: "e.g. 0.30 · 300 mm",
   StlPreview_Desing2ConfigWallWidthXLabel: "Wall width on X",
   StlPreview_Desing2ConfigWallWidthXAria:
     "Wall thickness measured on the plan X axis, in meters (e.g. 0.30).",

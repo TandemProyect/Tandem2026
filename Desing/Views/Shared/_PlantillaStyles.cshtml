@@ -11,10 +11,36 @@
     var _brandAccent = (ViewBag.PlantillaBrandAccentColor as string) ?? "#f29100";
     var _plantillaLinkRaw = ViewBag.PlantillaLinkColor as string;
     var _linkColor = string.IsNullOrWhiteSpace(_plantillaLinkRaw) ? _plantillaColor : _plantillaLinkRaw.Trim();
-    var _menuLinkVars = string.IsNullOrWhiteSpace(_plantillaLinkRaw)
-        ? string.Empty
-        : "--bs-menu-color: " + _linkColor + "; --bs-menu-hover-color: " + _linkColor + "; --bs-menu-item-icon-color: " + _linkColor + ";";
     var _activeMenuColor = string.IsNullOrWhiteSpace(_plantillaLinkRaw) ? "#fff" : _linkColor;
+    var _brandTextRaw = ViewBag.PlantillaBrandTextColor as string;
+    var _brandText = string.IsNullOrWhiteSpace(_brandTextRaw) ? null : _brandTextRaw.Trim();
+    var _contentLinkColor = _brandText ?? _plantillaColor;
+    var _menuIdleColor = _brandText ?? _plantillaColor;
+    var _menuUiVars =
+        "#layout-menu { --bs-menu-color: " + _menuIdleColor + "; --bs-menu-hover-color: " + _menuIdleColor + "; --bs-menu-item-icon-color: " + _menuIdleColor + "; --bs-menu-active-color: " + _activeMenuColor + "; }" +
+        "#layout-menu .menu-item.active > .menu-link:not(.js-menu-group-toggle) { color: var(--bs-menu-active-color) !important; }" +
+        "#layout-menu .menu-item.active .menu-icon, #layout-menu .menu-item.active .menu-icon-arrow { color: var(--bs-menu-active-color) !important; }";
+    var _linkUiVars = string.IsNullOrWhiteSpace(_plantillaLinkRaw)
+        ? string.Empty
+        : ":is(.btn, .dt-button, .page-link, .dropdown-item, .nav-link, .list-group-item-action, .paginate_button) { color: var(--tandem-link) !important; }" +
+          ".dt-buttons .btn, .dt-buttons .dt-button, div.dt-buttons > .btn, div.dt-buttons > .dt-button, " +
+          ".dataTables_wrapper .dt-buttons .btn, .dataTables_wrapper .dt-buttons .dt-button, .dataTables_wrapper .dt-buttons .btn-secondary, " +
+          ".dt-button-collection .dt-button, .dt-button-collection .dropdown-item, .dt-button-collection button.dt-button, " +
+          ".dt-button-collection .dropdown-header, .dt-button-collection h6, .dt-button-collection .dt-button-collection-title { color: var(--tandem-link) !important; }" +
+          ".dt-buttons .btn:hover, .dt-buttons .dt-button:hover, div.dt-buttons > .btn:hover, div.dt-buttons > .dt-button:hover, " +
+          ".dt-buttons .btn:focus, .dt-buttons .dt-button:focus, .dt-buttons .btn:active, .dt-buttons .dt-button:active, .dt-buttons .dt-button.active, " +
+          ".dt-button-collection .dt-button:hover, .dt-button-collection .dropdown-item:hover, " +
+          ".dt-button-collection .dt-button.active, .dt-button-collection .dropdown-item.active, .dt-button-collection .dropdown-item:active { color: var(--tandem-link) !important; }" +
+          ":is(.btn, .dt-button, .dropdown-item, .page-link, .nav-link, .list-group-item-action) :is(i, svg, .icon-base) { color: var(--tandem-link) !important; }";
+    var _brandTextRootVar = _brandText == null ? string.Empty : "--tandem-brand-text: " + _brandText + ";";
+    var _brandTextUi = _brandText == null ? string.Empty :
+        "#desing2-stl-hover-side-panel .form-label, " +
+        "#desing2-stl-hover-side-panel label, " +
+        "#desing2-stl-hover-side-panel .form-text, " +
+        "#desing2-stl-hover-side-panel small, " +
+        "#desing2-stl-hover-side-panel .text-muted, " +
+        "#desing2-stl-hover-side-panel .form-select, " +
+        "#desing2-stl-hover-side-panel .form-control { color: var(--tandem-brand-text) !important; }";
 }
 @*
     Tipografia de la marca "T Desing.net":
@@ -68,11 +94,12 @@
     [data-bs-theme="dark"] {
         --tandem-primary: @_plantillaColor;
         --tandem-link: @_linkColor;
+        --tandem-content-link: @_contentLinkColor;
         --bs-primary: @_plantillaColor !important;
         --bs-primary-rgb: var(--tandem-primary-rgb, 52, 157, 125);
         --bs-link-color: @_linkColor !important;
         --bs-link-hover-color: @_linkColor !important;
-        @Html.Raw(_menuLinkVars)
+        @Html.Raw(_brandTextRootVar)
     }
 
     /* ---- Boton primary ------------------------------------------------- */
@@ -111,9 +138,9 @@
     .text-primary { color: var(--tandem-primary) !important; }
     .border-primary { border-color: var(--tandem-primary) !important; }
     .link-primary { color: var(--tandem-primary) !important; }
-    a { color: var(--tandem-link); text-decoration: underline; text-decoration-color: var(--tandem-primary); text-underline-offset: 0.15em; }
+    a { color: var(--tandem-content-link); text-decoration: underline; text-decoration-color: var(--tandem-primary); text-underline-offset: 0.15em; }
     a:not([href]) { text-decoration: none; }
-    a:hover { color: var(--tandem-link); filter: brightness(0.9); }
+    a:hover { color: var(--tandem-content-link); filter: brightness(0.9); }
     /* Los iconos dentro de un enlace heredan el color de link (currentColor). */
     a i, a svg, a .icon-base { color: inherit; }
     /* Componentes de interfaz: se mantienen sin subrayado. */
@@ -129,7 +156,7 @@
     /* ---- Sidebar Materio: elemento activo ----------------------------- */
     .menu-vertical .menu-item.active > .menu-link:not(.js-menu-group-toggle) {
         background: var(--tandem-primary) !important;
-        color: @_activeMenuColor !important;
+        color: var(--bs-menu-active-color) !important;
     }
     /* ---- Sidebar: grupos expandibles (sin menu-toggle de Materio) -----
        El click lo maneja Scripts/Intranet/sidebar-menu.js anyadiendo la
@@ -163,14 +190,35 @@
     }
     .app-brand-text { color: var(--tandem-primary) !important; }
 
-    /* ---- Badge "Entorno: Develop" (estilo pill plantilla) ------------- */
-    .badge.brand-env-badge {
-        background-color: var(--tandem-primary) !important;
-        color: #fff !important;
-        border-radius: 999px !important;
-        padding: 0.35em 0.85em !important;
-        font-weight: 500 !important;
-        letter-spacing: 0.02em;
+    /* ---- Navbar: boton hamburguesa del menu en color principal -------- */
+    #layout-navbar #navbarMenuToggle,
+    #layout-navbar #navbarMenuToggle i {
+        color: var(--tandem-primary) !important;
+    }
+
+    /* ---- Tabs: textos como links subrayados en todo el proyecto ------ */
+    .nav-tabs .nav-link:not(.active),
+    .nav-pills .nav-link:not(.active) {
+        color: var(--tandem-content-link) !important;
+        text-decoration: underline !important;
+        text-decoration-color: var(--tandem-primary) !important;
+        text-underline-offset: 0.15em;
+    }
+    .nav-tabs .nav-link:not(.active) :is(i, svg, .icon-base),
+    .nav-pills .nav-link:not(.active) :is(i, svg, .icon-base) {
+        color: var(--tandem-content-link) !important;
+    }
+    .nav-tabs .nav-link.active,
+    .nav-tabs .nav-link.active:hover,
+    .nav-pills .nav-link.active,
+    .nav-pills .show > .nav-link {
+        text-decoration: underline !important;
+        text-decoration-color: currentColor !important;
+    }
+    /* El visor Desing_2 mantiene su chrome fijo sin subrayados de pestana. */
+    .desing2-stl-view-scope .nav-tabs .nav-link,
+    .desing2-stl-view-scope .nav-pills .nav-link {
+        text-decoration: none !important;
     }
 
     /* ---- DataTables: linea bajo la cabecera en color plantilla -------- */
@@ -352,4 +400,6 @@
     .card-footer:has(.btn-primary) {
         justify-content: flex-end !important;
     }
+
+    @Html.Raw(_linkUiVars + _brandTextUi + _menuUiVars)
 </style>

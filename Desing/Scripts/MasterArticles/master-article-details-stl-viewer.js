@@ -3034,6 +3034,20 @@ function bootMasterArticleDetailsStlViewer() {
     const maStlOffsetToolHudInstruction = document.getElementById('ma-stl-offset-tool-hud-instruction');
     const maStlOffsetToolHudDistanceRow = document.getElementById('ma-stl-offset-tool-hud-distance-row');
     const maStlOffsetToolHudDistanceInput = document.getElementById('ma-stl-offset-tool-hud-distance');
+    const maStlTrimToolToggleBtn = document.getElementById('ma-stl-tool-trim');
+    const maStlExtendToolToggleBtn = document.getElementById('ma-stl-tool-extend');
+    const maStlTrimToolHud = document.getElementById('ma-stl-trim-tool-hud');
+    const maStlTrimToolHudInstruction = document.getElementById('ma-stl-trim-tool-hud-instruction');
+    const maStlExtendToolHud = document.getElementById('ma-stl-extend-tool-hud');
+    const maStlExtendToolHudInstruction = document.getElementById('ma-stl-extend-tool-hud-instruction');
+    /** @type {null|'selecting'|'boundary'} */
+    let maStlLineEditToolState = null;
+    /** @type {'trim'|'extend'|null} */
+    let maStlLineEditToolKind = null;
+    /** @type {Set<THREE.Line2>} */
+    const maStlLineEditToolSelectedLines = new Set();
+    /** @type {THREE.Line2|null} */
+    let maStlLineEditToolHoverLine = null;
 
     /** Desing_2 herramienta borrar: modo pick multi-selección antes de confirmar. */
     let maStlDeleteToolActive = false;
@@ -3242,6 +3256,18 @@ function bootMasterArticleDetailsStlViewer() {
         return maStlOffsetToolState === 'pickLine' || maStlOffsetToolState === 'pickDirection';
     }
 
+    function maStlIsTrimToolActive() {
+        return maStlLineEditToolKind === 'trim' && maStlLineEditToolState !== null;
+    }
+
+    function maStlIsExtendToolActive() {
+        return maStlLineEditToolKind === 'extend' && maStlLineEditToolState !== null;
+    }
+
+    function maStlIsLineEditToolActive() {
+        return maStlIsTrimToolActive() || maStlIsExtendToolActive();
+    }
+
     function maStlIsWall2dToolActive() {
         return maStlIsWall2dToolPlacementActive();
     }
@@ -3440,6 +3466,7 @@ function bootMasterArticleDetailsStlViewer() {
             maStlIsLineToolPlacementActive() ||
             maStlIsWall2dToolActive() ||
             maStlIsOffsetToolActive() ||
+            maStlIsLineEditToolActive() ||
             maStlIsDeleteToolActive() ||
             maStlIsDupMoveToolActive() ||
             maStlIsWall3dToolActive() ||
@@ -10953,6 +10980,7 @@ let maStlWallApplyAllHeightMm = 0;
         maStlClearUserFloorLineSelection();
         const hadLinePlacement = maStlIsLineToolPlacementActive();
         const hadOffsetTool = maStlIsOffsetToolActive();
+        const hadLineEditTool = maStlIsLineEditToolActive();
         const hadDeleteTool = maStlIsDeleteToolActive();
         const hadCopyTool = maStlIsDupMoveToolActive();
         const hadWall3dTool = maStlIsWall3dToolActive();
@@ -10968,6 +10996,7 @@ let maStlWallApplyAllHeightMm = 0;
             hadWorkerPick ||
             hadLinePlacement ||
             hadOffsetTool ||
+            hadLineEditTool ||
             hadDeleteTool ||
             hadCopyTool ||
             hadWall3dTool ||
@@ -10985,6 +11014,9 @@ let maStlWallApplyAllHeightMm = 0;
         }
         if (hadOffsetTool) {
             maStlStopOffsetToolModesToolbar(false);
+        }
+        if (hadLineEditTool) {
+            maStlStopLineEditToolModesToolbar(false);
         }
         if (hadDeleteTool) {
             maStlStopDeleteToolModesToolbar(false);
@@ -11026,6 +11058,7 @@ let maStlWallApplyAllHeightMm = 0;
         }
         maStlSyncLineToolHud();
         maStlSyncOffsetToolHud();
+        maStlSyncLineEditToolHud();
         maStlSyncDeleteToolHud();
         maStlCopyToolSyncHud();
         maStlSyncWall3dToolHud();
@@ -11583,6 +11616,18 @@ let maStlWallApplyAllHeightMm = 0;
             const onOffset = maStlIsOffsetToolActive();
             maStlOffsetToolToggleBtn.setAttribute('aria-pressed', onOffset ? 'true' : 'false');
             maStlOffsetToolToggleBtn.classList.toggle('active', onOffset);
+        }
+        if (maStlTrimToolToggleBtn) {
+            const onTrim = maStlIsTrimToolActive();
+            maStlTrimToolToggleBtn.setAttribute('aria-pressed', onTrim ? 'true' : 'false');
+            maStlTrimToolToggleBtn.classList.toggle('active', onTrim);
+            maStlTrimToolToggleBtn.disabled = false;
+        }
+        if (maStlExtendToolToggleBtn) {
+            const onExtend = maStlIsExtendToolActive();
+            maStlExtendToolToggleBtn.setAttribute('aria-pressed', onExtend ? 'true' : 'false');
+            maStlExtendToolToggleBtn.classList.toggle('active', onExtend);
+            maStlExtendToolToggleBtn.disabled = false;
         }
         if (maStlDeleteToolToggleBtn) {
             const onDelete = maStlIsDeleteToolActive();
@@ -12183,6 +12228,13 @@ let maStlWallApplyAllHeightMm = 0;
         }
         if (maStlIsWorkerToolActive() || maStlIsWorkerPickOpen()) maStlStopWorkerTool();
         if (btnId !== 'ma-stl-tool-pillars' && maStlIsPillarToolActive()) maStlStopPillarTool();
+        if (
+            maStlIsLineEditToolActive() &&
+            btnId !== 'ma-stl-tool-trim' &&
+            btnId !== 'ma-stl-tool-extend'
+        ) {
+            maStlStopLineEditToolModesToolbar(false);
+        }
         if (maStlDesing2ModelMode !== 'lines') {
             maStlDesing2SetModelModeLines();
         }
@@ -12200,6 +12252,14 @@ let maStlWallApplyAllHeightMm = 0;
             case 'ma-stl-tool-offset':
                 if (maStlIsOffsetToolActive()) return false;
                 maStlStartOffsetToolModesToolbar();
+                return true;
+            case 'ma-stl-tool-trim':
+                if (maStlIsTrimToolActive()) return false;
+                maStlStartLineEditToolModesToolbar('trim');
+                return true;
+            case 'ma-stl-tool-extend':
+                if (maStlIsExtendToolActive()) return false;
+                maStlStartLineEditToolModesToolbar('extend');
                 return true;
             case 'ma-stl-tool-delete':
                 if (maStlIsDeleteToolActive()) return false;
@@ -15816,6 +15876,7 @@ let maStlWallApplyAllHeightMm = 0;
         maStlOffsetToolClearHoverLine();
     }
 
+
     function maStlOffsetToolClearHoverLine() {
         maStlOffsetToolClearHoverGroupHighlight();
     }
@@ -16676,6 +16737,7 @@ let maStlWallApplyAllHeightMm = 0;
         maStlWall2dToolResumeState = null;
         if (maStlIsWall2dToolActive()) maStlStopWall2dToolModesToolbar(false);
         if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
+        if (maStlIsLineEditToolActive()) maStlStopLineEditToolModesToolbar(false);
         if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
         if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
         if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
@@ -17638,6 +17700,7 @@ let maStlWallApplyAllHeightMm = 0;
         if (maStlIsWall2dToolActive()) maStlStopWall2dToolModesToolbar(false);
         if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
         if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
+        if (maStlIsLineEditToolActive()) maStlStopLineEditToolModesToolbar(false);
         if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
         if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
         if (maStlIsInsertEnclosureToolActive()) maStlStopInsertEnclosureToolModesToolbar(false);
@@ -19585,6 +19648,7 @@ let maStlWallApplyAllHeightMm = 0;
         if (maStlIsWall2dToolActive()) maStlStopWall2dToolModesToolbar(false);
         if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
         if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
+        if (maStlIsLineEditToolActive()) maStlStopLineEditToolModesToolbar(false);
         if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
         if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
         if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
@@ -19621,6 +19685,7 @@ let maStlWallApplyAllHeightMm = 0;
         if (maStlIsWall2dToolActive()) maStlStopWall2dToolModesToolbar(false);
         if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
         if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
+        if (maStlIsLineEditToolActive()) maStlStopLineEditToolModesToolbar(false);
         if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
         if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
         if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
@@ -19657,6 +19722,7 @@ let maStlWallApplyAllHeightMm = 0;
         if (maStlIsWall2dToolActive()) maStlStopWall2dToolModesToolbar(false);
         if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
         if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
+        if (maStlIsLineEditToolActive()) maStlStopLineEditToolModesToolbar(false);
         if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
         if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
         if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
@@ -28425,6 +28491,13 @@ let maStlWallApplyAllHeightMm = 0;
         }
     }
 
+    function onCanvasPointerMoveLineEditToolSync(ev) {
+        if (!maStlIsLineEditToolActive()) return;
+        if (maStlLineEditToolState !== 'selecting' && maStlLineEditToolState !== 'boundary') return;
+        const ln = maStlPickUserFloorLineForCanvasInteraction(ev.clientX, ev.clientY, 4);
+        maStlLineEditToolSetHoverLine(ln);
+    }
+
     function onCanvasPointerMoveDeleteToolSync(ev) {
         if (!maStlIsDeleteToolActive()) return;
         if (maStlDesing2IsWindowSelectionBusy()) return;
@@ -28795,6 +28868,20 @@ let maStlWallApplyAllHeightMm = 0;
         ev.stopImmediatePropagation();
     }
 
+    function onCanvasPointerDownLineEditTool(ev) {
+        if (!maStlIsLineEditToolActive() || !maStlDesingV2Viewer) return;
+        if (ev.button !== 0) return;
+        const canvas = renderer.domElement;
+        if (ev.currentTarget !== canvas) return;
+        const rawTarget = ev.target;
+        if (rawTarget && typeof rawTarget.closest === 'function') {
+            if (rawTarget.closest('button, input, select, textarea, [role="button"], label')) return;
+        }
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+    }
+
     function onCanvasClickOffsetTool(ev) {
         if (!maStlIsOffsetToolActive() || !maStlDesingV2Viewer) return;
         if (ev.button !== 0) return;
@@ -28846,6 +28933,48 @@ let maStlWallApplyAllHeightMm = 0;
             ) {
                 maStlStopOffsetToolModesToolbar(false);
             }
+        }
+    }
+
+    function onCanvasClickLineEditTool(ev) {
+        if (!maStlIsLineEditToolActive() || !maStlDesingV2Viewer) return;
+        if (ev.button !== 0) return;
+        const canvas = renderer.domElement;
+        if (ev.currentTarget !== canvas) return;
+        const rawTarget = ev.target;
+        if (rawTarget && typeof rawTarget.closest === 'function') {
+            if (rawTarget.closest('button, input, select, textarea, [role="button"], label')) return;
+        }
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+        const ln = maStlPickUserFloorLineForCanvasInteraction(ev.clientX, ev.clientY, 4);
+        if (maStlLineEditToolState === 'selecting') {
+            if (!ln) return;
+            maStlLineEditToolToggleLineSelection(ln);
+            maStlSyncLineEditToolHud();
+            return;
+        }
+        if (maStlLineEditToolState === 'boundary') {
+            const boundary = maStlLineEditToolResolveBoundaryLine(ln);
+            if (!boundary) {
+                maStlLineEditToolShowToast(
+                    maStlLineEditToolKind === 'extend'
+                        ? 'data-ma-stl-extend-tool-no-boundary-toast'
+                        : 'data-ma-stl-trim-tool-no-boundary-toast'
+                );
+                return;
+            }
+            const ok = maStlLineEditToolCommitAgainstBoundary(boundary);
+            if (!ok) {
+                maStlLineEditToolShowToast(
+                    maStlLineEditToolKind === 'extend'
+                        ? 'data-ma-stl-extend-tool-no-change-toast'
+                        : 'data-ma-stl-trim-tool-no-change-toast'
+                );
+                return;
+            }
+            maStlStopLineEditToolModesToolbar(false);
         }
     }
 
@@ -31003,6 +31132,9 @@ let maStlWallApplyAllHeightMm = 0;
             if (maStlIsOffsetToolActive()) {
                 maStlStopOffsetToolModesToolbar(false);
             }
+            if (maStlIsLineEditToolActive()) {
+                maStlStopLineEditToolModesToolbar(false);
+            }
             if (maStlIsDeleteToolActive()) {
                 maStlStopDeleteToolModesToolbar(false);
             }
@@ -31026,12 +31158,37 @@ let maStlWallApplyAllHeightMm = 0;
                 return;
             }
             maStlDesing2SetLastToolbarCommandId('ma-stl-tool-wall-2d');
+            if (maStlIsLineEditToolActive()) {
+                maStlStopLineEditToolModesToolbar(false);
+            }
             if (maStlDesing2ModelMode !== 'lines') {
                 maStlDesing2SetModelModeLines();
             }
             maStlStartWall2dToolModesToolbar({
                 resume: false,
             });
+        });
+    }
+    if (maStlDesingV2Viewer && maStlTrimToolToggleBtn) {
+        maStlTrimToolToggleBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            if (maStlIsTrimToolActive()) {
+                maStlStopLineEditToolModesToolbar(false);
+                return;
+            }
+            maStlDesing2SetLastToolbarCommandId('ma-stl-tool-trim');
+            maStlDesing2ActivateToolbarCommandById('ma-stl-tool-trim');
+        });
+    }
+    if (maStlDesingV2Viewer && maStlExtendToolToggleBtn) {
+        maStlExtendToolToggleBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            if (maStlIsExtendToolActive()) {
+                maStlStopLineEditToolModesToolbar(false);
+                return;
+            }
+            maStlDesing2SetLastToolbarCommandId('ma-stl-tool-extend');
+            maStlDesing2ActivateToolbarCommandById('ma-stl-tool-extend');
         });
     }
     if (maStlDesingV2Viewer && maStlDeleteToolToggleBtn) {
@@ -31084,6 +31241,9 @@ let maStlWallApplyAllHeightMm = 0;
             if (maStlIsWall3dToolActive()) {
                 maStlStopWall3dToolModesToolbar(false);
                 return;
+            }
+            if (maStlIsLineEditToolActive()) {
+                maStlStopLineEditToolModesToolbar(false);
             }
             maStlStartWall3dToolModesToolbar();
         });
@@ -32822,6 +32982,7 @@ let maStlWallApplyAllHeightMm = 0;
     renderer.domElement.addEventListener('click', onCanvasClickWorkerTool, true);
     renderer.domElement.addEventListener('dblclick', onCanvasDblClickWorkerTool, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownOffsetTool, true);
+    renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownLineEditTool, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownDeleteTool, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownCopyTool, true);
     renderer.domElement.addEventListener('pointerup', onCanvasPointerUpCopyTool, true);
@@ -32831,6 +32992,7 @@ let maStlWallApplyAllHeightMm = 0;
     renderer.domElement.addEventListener('click', onCanvasClickImageSketchTool, true);
     renderer.domElement.addEventListener('click', onCanvasClickInsertEnclosureTool, true);
     renderer.domElement.addEventListener('click', onCanvasClickOffsetTool, true);
+    renderer.domElement.addEventListener('click', onCanvasClickLineEditTool, true);
     renderer.domElement.addEventListener('click', onCanvasClickWallDimTool, true);
     renderer.domElement.addEventListener('click', onCanvasClickDeleteTool, true);
     renderer.domElement.addEventListener('click', onCanvasClickCopyTool, true);
@@ -32842,6 +33004,7 @@ let maStlWallApplyAllHeightMm = 0;
     renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveImageSketchToolSync);
     renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveInsertEnclosureToolSync);
     renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveOffsetToolSync);
+    renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveLineEditToolSync);
     renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveDeleteToolSync);
     renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveCopyToolSync);
     renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveWall3dToolSync);
@@ -33124,6 +33287,7 @@ let maStlWallApplyAllHeightMm = 0;
             if (maStlCopyToolApplyWindowKeydownConfirm(ev)) return;
             if (maStlWall3dToolApplyWindowKeydownConfirm(ev)) return;
             if (maStlDeleteToolApplyWindowKeydownConfirm(ev)) return;
+            if (maStlLineEditToolApplyWindowKeydownConfirm(ev)) return;
             maStlDesing2ApplyWindowEnterToRepeatLastToolbarCommand(ev);
         };
         window.addEventListener('keydown', _maStlDesingV2LineToolEnterActivateKeyHandler);
