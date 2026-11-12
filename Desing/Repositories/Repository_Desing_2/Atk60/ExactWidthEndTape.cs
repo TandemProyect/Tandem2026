@@ -25,8 +25,10 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         private const string VariableClampSlidePath = "../../Content/DesignTools/Stl/ATK60/10000221-2.stl";
         private const string VariableClampSlideCode = "10000221B";
         private const double VariableClampRaiseMm = 200d;
-        // Temporal (nov-2026): remates no van en tapes durante esta fase.
-        private const bool EnableTapeRemateVisualInsertion = false;
+        // Franja naranja, tablones laterales y grapas del tape: son piezas del propio
+        // tape (el tipo 1 se cierra con ellos), no remates de tramo. Apagarlas dejaba
+        // el extremo libre abierto.
+        private const bool EnableTapeRemateVisualInsertion = true;
 
         private const string PlatePath = "../../Content/DesignTools/Stl/ATK60/10443020.stl";
         private const string PlateCode = "10443020";

@@ -414,6 +414,7 @@ Cotas CAD estilo **construcción**: longitudes de tramo en contorno exterior, co
 | Visual | Grupo `maStlWallDimGroup` + overlay `#ma-stl-wall-dim-overlay` (metros, `maStlDesing2DimEditableMetersDisplayFromMm`); espesor en azul |
 | Sin geometría | Toast `StlPreview_WallDimToolNoPairsToast`; clic en línea de muro reintenta detección |
 | Órbita | **No** bloquea órbita |
+| Modo | No cambia de modo: en Líneas, Muro 3D o encofrado se queda en el mismo y al apagarla se sigue en él. Las cotas van encima (`depthTest: false`); las de paneles y remates salen del último encofrado (`maStlDesing2LastAtk60PaintPayload`). Desde `5790606` (09/11) el botón pasaba a Líneas y quitaba el encofrado; corregido el 12/11 |
 
 Funciones clave: `maStlWallDimCollectAllPlacements`, `maStlWallDimFilterRedundantPlacements`, `maStlWallDimDetectWallPairsMm`, `maStlWallDimRefreshScanAndDraw`, `maStlStartWallDimToolModesToolbar`, `maStlStopWallDimToolModesToolbar`.
 
@@ -436,6 +437,18 @@ Clic en una pieza de esquina en **Muro 3D** abre el popup `maStlEnsureCornerEdit
 | Error | Valor vacío o ≤ 0 → toast `Altura invalida` (igual que el muro) |
 
 **Modificar muro — deshacer altura:** cambiar solo la altura (o **Aplicar altura a todos los muros**) también crea **un** paso de deshacer (`editUserFloorLineDimension`) que restaura las alturas anteriores. Se detecta comparando `id:_DataHeight` de todas las líneas antes/después (`maStlWallInspectHeightSignature`). Si además cambian longitud/espesor/grupo, sigue siendo un único paso.
+
+### Cierre de una L sin partir el muro (2D → Muro 3D)
+
+Un extremo que cae junto al final de otro eje (dentro o un poco pasado) es una **L en ese extremo**, nunca una T.
+
+| Pieza | Regla |
+|-------|-------|
+| Guarda de extremo | `maStlWall2dToolAxisEndGuardMm(span)` = `maStlWall2dToolJunctionClusterEpsMm()` (1,2 × medio espesor de Configuración, ≈ 132 mm con 0,22), como mucho ¼ del eje. `maStlWall2dToolAxisParamNearEndMm(t, span)` dice si un punto del eje está a esa distancia de un extremo |
+| Snap al dibujar / reparar | `maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(p, avoidPtMm)`: a ≤ guarda de un extremo, `p` se une a ese extremo; si no, se proyecta al cuerpo (T) como antes. `avoidPtMm` (el otro extremo del tramo) impide un muro de largo cero |
+| Partir ejes | `maStlWall2dToolSplitAxisAtInteriorPointMm` no parte a ≤ guarda de un extremo. `maStlWall2dToolSplitAxesAtInteriorHitsMm` y `maStlWall2dToolSplitAllAxisInteriorCrossingsMm` usan la guarda en mm. Antes el margen era `GRID_MINOR × 0,001` (0,5 mm) y la holgura 1e-4 del cruce lo superaba en muros de más de 5 m: un extremo contaba como interior y salían trozos de pocos mm y ejes de largo cero |
+| Curar datos guardados | `maStlWall2dToolHealSpuriousAxisSplitsMm()` al principio de `maStlWall2dToolMergeCollinearAxisRuns` (al confirmar un tramo y al entrar en Muro 3D vía `maStlDesing2PersistCollinearAxisMerge`, que guarda). Quita ejes de largo < 1 mm con sus caras; un trozo colineal ≤ guarda, del mismo muro y espesor, con un extremo libre y en el otro su muro y una sola rama, se une otra vez: el muro recupera su largo y la rama se lleva a ese extremo (L) |
+| Sin cambios | T y cruces lejos de los extremos, espesor de las mitades de una T, pieza T enrasada, altura de esquina |
 
 ### Punto de inserción modo objeto — fórmula
 
@@ -492,6 +505,7 @@ Cambiar un select aplica al alza con `applyDesing2EntornoLive()`. La persistenci
 | `#ma-stl-config-accept` | Botón **Aceptar** arriba del panel. Lee todos los campos (puntales, offset, anchos X/Y, recinto L, W, Ex1, Ex2, Ey1, Ey2) y los guarda en la cookie **`ma_stl_desing2_config`** (`maStlDesing2AcceptConfigForm`). Al arrancar y al restaurar una vista guardada se aplican con `maStlDesing2ApplyAcceptedConfigFromCookie`, que gana a `environment` de la vista. Puntales se guarda además en servidor por diseño. |
 | Espesor al dibujar | **Dibujar muro**: la media de X e Y de Configuración (`maStlWall2dToolThicknessHalfMm`); si el tramo conecta con un muro existente, hereda el espesor de ese muro (`maStlWall2dToolResolveConnectedHalfThicknessMm`). **Insertar recinto**: cada muro con su espesor (izquierdo Ex1, derecho Ex2, inferior Ey1, superior Ey2). **Insertar esquina**: X e Y por pata. |
 | Unión T/X — espesor del muro atravesado | Al partir el muro atravesado (`maStlWall2dToolSplitAxisAtInteriorPointMm`) las dos mitades conservan **su** espesor (`maStlWall2dToolAxisFaceHalfThicknessMm`), no el de Configuración; antes, con muros de distinto espesor quedaban escalones en caras 2D y en la pieza 3D de la T. Cambiar el espesor de una mitad aplica también a sus tramos colineales del mismo muro (`maStlWall2dToolCollectCollinearSameWallAxisLinesMm`) |
+| Unión T — pieza 3D enrasada | `maAtk60BuildTFootprintMm` (`ma-stl-atk60-formwork.js`): los brazos de la pieza T llegan a la cara del muro atravesado por su **espesor real** (`vNear = eRef`). Antes usaban `vShoulder` = panel del vástago (redondeado a 150 mm) − 0,30 m, así que con espesores no múltiplos de 150 (p. ej. 200, 220, 250) los brazos sobresalían 50–100 mm hacia la rama (escalón/ranura en Muro 3D). Largos de brazo/vástago (paneles) sin cambios. Import `?v=20261112-tflush` |
 | `#ma-stl-config-offset-default` | Input texto: distancia por defecto del offset (metros en UI, p. ej. `0,30` o `300 mm`). Commit en `change`/`blur` → `desing2EnvOffsetDefaultMm`. Persistencia en cookie `environment.offsetDefaultMm` al pulsar `#ma-stl-save-viewer-state`. |
 
 ## Persistencia en cookie (solo Desing_2)

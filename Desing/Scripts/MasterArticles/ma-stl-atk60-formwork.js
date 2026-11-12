@@ -229,8 +229,12 @@ export function maAtk60BuildTFootprintMm(
     /** av = 0: cara opuesta a la rama, una sola recta (Cara X / A / B).
      *  Hacia la rama, el brazo fino retrocede el espesor que le falta (escalón en Cara D). */
     const vBaseOffset = -eRef * 0.5;
-    const nearNeg = vShoulder - Math.max(0, eRef - eNeg);
-    const nearPos = vShoulder - Math.max(0, eRef - ePos);
+    /** Cara del atravesado hacia la rama = su espesor real (no el panel redondeado a 150 mm):
+     *  con vShoulder (= panel - 0,30) los brazos sobresalían de la cara del muro si el espesor
+     *  no era múltiplo de 150 (escalón/ranura en Muro 3D). */
+    const vNear = eRef;
+    const nearNeg = vNear - Math.max(0, eRef - eNeg);
+    const nearPos = vNear - Math.max(0, eRef - ePos);
 
     const y = vertex.y;
     /** Punto local en la base T: u = atravesado, v = rama. */
@@ -244,14 +248,14 @@ export function maAtk60BuildTFootprintMm(
     };
 
     const points = [pLocal(-branchHalf, stemLen)];
-    points.push(pLocal(-branchHalf, vShoulder));
-    if (vShoulder - nearNeg > 1) points.push(pLocal(-branchHalf, nearNeg));
+    points.push(pLocal(-branchHalf, vNear));
+    if (vNear - nearNeg > 1) points.push(pLocal(-branchHalf, nearNeg));
     points.push(pLocal(-throughHalf, nearNeg));
     points.push(pLocal(-throughHalf, 0));
     points.push(pLocal(throughHalf, 0));
     points.push(pLocal(throughHalf, nearPos));
-    if (vShoulder - nearPos > 1) points.push(pLocal(branchHalf, nearPos));
-    points.push(pLocal(branchHalf, vShoulder));
+    if (vNear - nearPos > 1) points.push(pLocal(branchHalf, nearPos));
+    points.push(pLocal(branchHalf, vNear));
     points.push(pLocal(branchHalf, stemLen));
 
     return {

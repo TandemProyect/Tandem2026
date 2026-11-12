@@ -58,6 +58,7 @@ Documentos de continuidad, handovers, guías para agentes IA y notas de trabajo.
 | [muro-json-cifrado.md](muro-json-cifrado.md) | Exportar e importar muros cifrados, y cómo leer el archivo |
 | [esquina-L-atk60.md](esquina-L-atk60.md) | Esquina en L cerrada: punto verde sobre el rojo, giro y grapas |
 | [esquina-T-atk60.md](esquina-T-atk60.md) | Esquina en T, 28 oct 2026: tipo 2, tablón de 0,15 por 0,12 y visor |
+| [encofrado-atk-60.md](encofrado-atk-60.md) | Encofrado ATK-60 resumido: piezas NEVI, reglas de recto, L, T, X y tapes, y dónde está en el código. Leer primero |
 | [ATK60-Logica-Modulos-Wall.md](../../../Docs/Proyectos/Desing/ATK60-Logica-Modulos-Wall.md) | Reparto del muro. Desde el 28 oct el múltiplo de 0,15 lleva tablón, tenga las conexiones que tenga |
 | [AGENTE-US619-INFO.md](AGENTE-US619-INFO.md) | Documentación técnica US-619 |
 | [AGENTE-US619-RESUMEN.md](AGENTE-US619-RESUMEN.md) | Resumen ejecutivo US-619 |

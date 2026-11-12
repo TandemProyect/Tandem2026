@@ -99,7 +99,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             for (var i = 0; i < items.Count; i++)
             {
                 var item = items[i];
-                if (item != null && SameWall(item.IdWall, run.Id) && IsRemateItem(item))
+                if (item != null && SameWall(item.IdWall, run.Id) && IsRemateItem(item) && !IsTapeWood(item))
                 {
                     woods.Add(item);
                 }
@@ -116,11 +116,19 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 return;
             }
 
+            // El tablón de la esquina está pasado el extremo del tramo (zona de la esquina).
+            // Los del tramo están dentro. Antes un remate de extremo libre (junto al tape)
+            // o el de la cara E de la otra punta se tomaban por el de la esquina.
             var corner = -1;
             var cornerDist = double.MaxValue;
             var cornerLen = -1d;
             for (var s = 0; s < stations.Count; s++)
             {
+                if (!InCornerZone(stations[s], run))
+                {
+                    continue;
+                }
+
                 var dist = StationEndDist(stations[s], run);
                 var len = StationLength(stations[s]);
                 var nearer = dist < cornerDist - 1d;
@@ -145,59 +153,72 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 return;
             }
 
+            // El tablón de la esquina se queda donde está: cara interior, entre la
+            // esquina interior y el panel (no en el rincón del angular).
+            // El remate del tramo se trae junto a él y va en las dos caras, enfrentado:
+            // fuera queda entre el módulo de la esquina y el primer panel del tramo,
+            // dentro junto al tablón de la esquina. Antes el de fuera acababa pegado al
+            // angular y el de dentro dentro del otro muro, sin quedar enfrentados.
+            const double maxWoodMm = 150d;
             var grow = 0d;
-            List<Atk60ElementPaintItem> gap = null;
             for (var s = 0; s < stations.Count; s++)
             {
-                if (s == corner)
+                if (s != corner && StationLength(stations[s]) > 1d && !InCornerZone(stations[s], run))
+                {
+                    grow += StationLength(stations[s]);
+                }
+            }
+
+            // Tope 0,15 en la cara interior (tablón de la esquina + el del tramo).
+            // Si no cabe, el remate del tramo se queda en su sitio, ya enfrentado en sus dos caras.
+            if (grow <= 1d || grow > maxWoodMm || cornerLen + grow > maxWoodMm + 1d)
+            {
+                return;
+            }
+
+            var gapAlong = 0d;
+            for (var s = 0; s < stations.Count; s++)
+            {
+                if (s != corner && StationLength(stations[s]) > 1d && !InCornerZone(stations[s], run))
+                {
+                    gapAlong = stations[s][0].LocalAlongMm;
+                    break;
+                }
+            }
+
+            // La esquina está al principio del tramo si el remate del tramo queda más adelante.
+            var cornerAtStart = gapAlong >= cornerFace.LocalAlongMm;
+            for (var s = 0; s < stations.Count; s++)
+            {
+                if (s == corner || InCornerZone(stations[s], run))
                 {
                     continue;
                 }
 
-                var stationLen = StationLength(stations[s]);
-                var hole = stationLen;
+                var hole = StationLength(stations[s]);
                 if (hole <= 1d)
                 {
                     continue;
                 }
 
-                ShiftPanelsAcrossGap(items, run, kept, stations[s], hole);
+                ShiftPanelsAcrossGap(items, run, kept, stations[s], hole, cornerAtStart);
                 DropRemateStation(items, stations[s], kept);
-                grow += hole;
-                gap = stations[s];
             }
 
-            if (grow <= 1d || gap == null)
+            // El hueco queda en el extremo del tramo, igual en las dos caras: ahí va el remate, enfrentado.
+            var boardStart = cornerAtStart ? 0d : run.LengthMm - grow;
+            var built = EndFiller.Build(run.Wall, run.Anchor, grow, boardStart, true, true);
+            for (var i = 0; i < built.Count; i++)
             {
-                return;
+                if (built[i] != null)
+                {
+                    built[i].IdWall = run.Id;
+                }
             }
 
-            // Tope 0,15. Sumar esquina + tramo (0,12 + 0,15) daba 0,27 y
-            // saltaba el reparto de paneles. El tramo ya lo cierran los paneles.
-            const double maxWoodMm = 150d;
-            var longLen = cornerLen > maxWoodMm ? maxWoodMm : cornerLen;
-            var shortLen = grow > maxWoodMm ? maxWoodMm : grow;
-            if (shortLen > longLen - 1d && longLen > 1d)
-            {
-                shortLen = longLen - 1d;
-            }
-
-            double longStart;
-            double shortStart;
-            if (!BoardStarts(run, cornerFace, gap, longLen, shortLen, out longStart, out shortStart))
-            {
-                return;
-            }
-
-            PullBoardsOffPanels(items, run, cornerFace, gap, longLen, shortLen, ref longStart, ref shortStart);
-            // El corto ya está en su sitio. El largo conserva el largo y se corre ahí.
-            longStart = shortStart;
-
-            DropWoodsAndClamps(items, kept);
-            var primaryIsLong = cornerFace.FaceSign >= 0d;
-            AddFaceBoard(items, run, longLen, longStart, primaryIsLong, !primaryIsLong, !primaryIsLong);
-            AddFaceBoard(items, run, shortLen, shortStart, !primaryIsLong, primaryIsLong, primaryIsLong);
-            StripFixedOnBoards(items, run, longStart, shortStart, longLen, shortLen);
+            // Las grapas variables del canto común con el tablón de la esquina ya están.
+            AddMissing(items, built);
+            StripFixedOnBoards(items, run, boardStart, boardStart, grow, grow);
         }
 
         /// <summary>
@@ -452,7 +473,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             Run run,
             List<Atk60ElementPaintItem> corner,
             List<Atk60ElementPaintItem> gap,
-            double hole)
+            double hole,
+            bool cornerAtStart)
         {
             double cornerSide;
             double gapSide;
@@ -478,6 +500,16 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     ? along >= cornerSide - 25d && along < gapLimit
                     : along <= cornerSide + 25d && along > gapLimit;
                 if (!between)
+                {
+                    continue;
+                }
+
+                // Lo que está pasado el extremo del tramo es de la esquina (módulo de fuera,
+                // cara E, sus grapas): no se corre, sigue pegado al angular.
+                var inCornerZone = cornerAtStart
+                    ? item.LocalAlongMm < -1d
+                    : item.LocalAlongMm > run.LengthMm - 1d;
+                if (inCornerZone)
                 {
                     continue;
                 }
@@ -705,6 +737,24 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             return dist2 <= 250d * 250d;
         }
 
+        /// <summary>
+        /// Tablón pasado el extremo del tramo: es de la esquina, no del reparto del tramo.
+        /// </summary>
+        private static bool InCornerZone(List<Atk60ElementPaintItem> station, Run run)
+        {
+            for (var i = 0; i < station.Count; i++)
+            {
+                var item = station[i];
+                var len = item.PieceWidthMm > 1d ? item.PieceWidthMm : item.ModuleLengthMm;
+                if (item.LocalAlongMm < -1d || item.LocalAlongMm + len > run.LengthMm + 1d)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private static double StationLength(List<Atk60ElementPaintItem> station)
         {
             var length = 0d;
@@ -759,6 +809,18 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             var code = item.ElementCode ?? string.Empty;
             return string.Equals(item.ElementType, "Remate", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(code, "REMATE_WOOD", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Fenólico y tablones del tape (<c>ExactWidthEndTape</c>). Son el cierre del extremo
+        /// libre, no un remate de tramo: si se suman como remate, los paneles se corren
+        /// el ancho del tape y el tape del otro extremo se borra.
+        /// </summary>
+        private static bool IsTapeWood(Atk60ElementPaintItem item)
+        {
+            var color = item.Color ?? string.Empty;
+            return string.Equals(color, "wood-orange", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(color, "wood-side", StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsVariableClamp(Atk60ElementPaintItem item)
@@ -2732,9 +2794,12 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             }
             if (includeTieColumn)
             {
+                // La junta del módulo de esquina lleva tirante. Si el tramo recto ya
+                // puso uno en esa junta (muro de 0,15 o más), no se repite.
                 var clampYaw = Atk60FaceInsertion.NormalizeYawToRad(run.Anchor.RotY);
+                var tieColumn = new List<Atk60ElementPaintItem>();
                 FormTie.PlaceJointColumn(
-                    outElements,
+                    tieColumn,
                     run.Anchor,
                     run.Id,
                     JointTieAlongOnPanel(cornerAlong, run.LengthMm),
@@ -2747,6 +2812,40 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     run.LengthMm,
                     showPrimary,
                     showOpposite);
+                AddMissing(outElements, tieColumn);
+            }
+        }
+
+        /// <summary>
+        /// Añade solo las piezas que no están ya en el mismo sitio (mismo código, a menos de 25 mm).
+        /// </summary>
+        private static void AddMissing(List<Atk60ElementPaintItem> outElements, List<Atk60ElementPaintItem> items)
+        {
+            const double tolMm = 25d;
+            var existing = outElements.Count;
+            for (var i = 0; i < items.Count; i++)
+            {
+                var item = items[i];
+                if (item == null)
+                {
+                    continue;
+                }
+
+                var repeated = false;
+                for (var j = 0; j < existing && !repeated; j++)
+                {
+                    var other = outElements[j];
+                    repeated = other != null
+                        && other.ElementCode == item.ElementCode
+                        && Math.Abs(other.X - item.X) < tolMm
+                        && Math.Abs(other.Y - item.Y) < tolMm
+                        && Math.Abs(other.Z - item.Z) < tolMm;
+                }
+
+                if (!repeated)
+                {
+                    outElements.Add(item);
+                }
             }
         }
 
@@ -2809,8 +2908,9 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
 
             if (hookIndex < 0)
             {
-                throw new InvalidOperationException(
-                    "No se generó el gancho necesario para alinear el herraje de esquina.");
+                // Sin gancho no hay con qué alinear. Antes se lanzaba una excepción
+                // y se perdía el encofrado de toda la obra.
+                return;
             }
 
             var alongSign = atEnd ? 1d : -1d;
@@ -2826,7 +2926,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
 
             var hook = outElements[hookIndex];
             var faceOffsetMm = LegacyCornerHookFaceBaseMm + otherThicknessMm;
-            var targetHookX = cornerX + (alongX * LegacyCornerHookAlongMm);
+            var targetHookX = cornerX + (alongX * LegacyCornerHookAlongMm) + (sideX * faceOffsetMm);
             var targetHookZ = cornerZ + (alongZ * LegacyCornerHookAlongMm) + (sideZ * faceOffsetMm);
             var deltaX = targetHookX - hook.X;
             var deltaZ = targetHookZ - hook.Z;

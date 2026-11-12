@@ -1,0 +1,243 @@
+# Encofrado ATK-60 (resumen de consulta)
+
+Escrito el 12 nov 2026. Resume el manual NEVI de ULMA y los documentos de la carpeta. Si una ficha detallada y este resumen no coinciden, manda la ficha. **[HUECO]** marca lo que no dice ninguna fuente: no se inventa.
+
+Fuentes:
+
+- Manual: Guía del Usuario NEVI (ULMA, 89 págs.), en `Desing/Content/DesignTools/DWG/AtkSystem60/Snaps/NEVI_GUIA_USUARIO.pdf`. Páginas entre paréntesis.
+- Fichas: `ENCOFRADO-AT60-BASE.md`, `ENCOFRADO-AT60-IMPLEMENTACION.md`, `esquina-L-atk60.md`, `esquina-T-atk60.md`, `agente-tapes-atk60.md`, `tapes-tipos.md`, `agente-grapas-atk60.md`, `HANDOVER-MUROS-T-CRUCE.md`, y `Docs/Proyectos/Desing/ATK60-Logica-Modulos-Wall.md`.
+
+ATK-60 es el nombre del sistema en Desing. El manual es el del NEVI, que es el mismo sistema. Los códigos del manual (192xxxx) no son los del catálogo Desing (1000xxxx, E27…). Los dos se dan cuando se conocen.
+
+## 1. Piezas
+
+| Pieza | Manual NEVI | Desing | Para qué |
+|-------|-------------|--------|----------|
+| Panel estándar | Alto 2,7 / 2,4 / 1,2 m. Ancho 0,90 / 0,60 / 0,45 / 0,30 m. Fenólico de 15 mm. Presión máx. 60 kN/m² | Catálogo 0,30 a 0,90 en paso 0,15 (`ATK60-Logica-Modulos-Wall.md`) | Cara del muro |
+| Panel universal 0,75 | Costillas en U con 14 orificios cada 5 cm (p. 44) | Tapes tipo 3 (`TapeS5`…) | Esquina exterior a 90°, tapes, pilares |
+| Escuadra interior | 0,30 × 0,30 m. 1920881 (2,7), 1920887 (2,4), 1920893 (1,2) | `MA_ATK60_CORNER_PANEL_MM = 300`. Códigos E27004210 / E24004217 / E12004216 | Rincón de L, T, X |
+| Angular | No aparece con ese nombre **[HUECO]** | 0,12 m; une, no encofra. 27000000 / 24000000 / 12000000 | Esquina exterior de la L en Desing |
+| Escuadra G (giratoria) | 1920943 / 47 / 51 | No implementada **[HUECO]** | Esquinas distintas de 90° |
+| Grapa fija | 1920818. Solo a tope | `10004220` | Toda junta entre dos paneles |
+| Grapa regulable | 1920851. Admite suplemento hasta 50 cm | `10000221` / `10000221B` | Compensación 0–5 cm y tablón de remate |
+| Rigidizador COMAIN | 0,75 / 1,6 / 3 m (1850162 / 1850159 / 1850433), fijador 1850164 | `1850162` en `CommonElement.SedUnionRigiHorizontal_0` | Compensaciones, juntas horizontales, tapes |
+| Gancho cierre + tuerca placa | 1920811; tuerca placa fija / campana | Usados en tapes | Atar universal y rigidizador |
+| Tirante | Barra roscada Ø15 (15/1 … 15/6) | Placa `10443020` + barra; a 43,7 mm del canto | Atar las dos caras |
+| Compensadores | 5 cm (1920901/04/09), 5–18 (1920863/67/71), 8–30 (1920916/20/24) | Tablón de madera ≤ 0,15 (remate) | Cerrar medidas no modulares |
+| Puntal / estabilizador | Tensores 1,1–1,7 / 2,4–3,5 / 3,6–4,8 / 5–6 m; cabezal 1920839; base 1900144 | `PushPullProp.cs` | Aplomar |
+| Ménsula de trabajo | 1861094 | `WorkingBracket.cs` | Pasarela |
+| Gancho de izado | 1920835, máx. 1 200 kg | — | Grúa |
+
+## 2. Reglas del manual
+
+### Juntas (3.1, p. 38–39)
+
+- Grapa fija siempre que se pueda. Junta vertical: 3 grapas en panel de 2,7 m; 2 en 2,4 y 1,2 m.
+- Con compensación 0–5 cm: grapas regulables (3 / 3 / 2).
+- Con compensación 5–18 cm: grapas fijas 3 / 2 / 2 y rigidizadores 2 / 2 / 1.
+- Una junta junto a una esquina exterior a 90° o a un tape lleva una grapa más.
+- Alturas de grapa usadas en Desing: 2,70 → 450, 1 350, 2 250 mm; 2,40 → 400, 2 000; 1,20 → 200, 800. Tirante: 550 / 2 150 (2,70), 550 / 1 850 (2,40), 350 / 850 (1,20). No poner grapa a la altura del tirante (`agente-grapas-atk60.md`).
+
+### Compensaciones (3.2, p. 41–43)
+
+| Hueco | Solución |
+|-------|----------|
+| 0–5 cm | Taco de madera en obra + grapa regulable + tuerca placa campana |
+| 5 cm | Compensación 5 cm + grapa regulable |
+| 5–18 cm | Compensador 5–18 (un panel solapa la chapa) + rigidizadores + grapas fijas |
+| 8–30 cm | Compensador 8–30 (los dos paneles solapan) + rigidizadores 0,75 (4 / 4 / 3) |
+
+En Desing el hueco se cierra con un tablón de madera: ≤ 0,15 m a lo largo, 0,12 m de ancho, grapa regulable en los dos cantos. **[HUECO]** El manual no da ese tablón: es regla de Desing.
+
+### Esquina L a 90° (3.3, p. 44–45)
+
+- Rincón: escuadra interior 0,30 × 0,30, con grapas fijas 3 / 2 / 2.
+- Exterior: panel universal con estándar, o dos universales, atados con gancho cierre y tuerca placa fija.
+- Desing (`esquina-L-atk60.md`): cara exterior = `selectPanel(espesor del otro muro + 0,30)`, esquina interior 0,30 y angular 0,12. Ejemplo: 0,47 + 0,30 = 0,77 → panel de 0,90.
+
+### Esquinas que no son de 90° (3.4, p. 46–48)
+
+- 75–85°: escuadra G dentro y fuera. Dentro va con gancho rigidizador y placa excéntrica, y lleva compensación ≥ 5 cm.
+- 85–180°: escuadra G en los dos lados con grapas fijas (5 / 5 / 3).
+- Rigidizadores 0,75 fuera (2 / 2 / 1); dentro solo a partir de 100°.
+- **[HUECO]** Desing no lo hace.
+
+### T y X (3.5, p. 49)
+
+- El manual solo dice: escuadra interior combinada con anchos de panel según el espesor. El resto es dibujo (dos escuadras en la T, cuatro en la X).
+- Desing, T (`esquina-T-atk60.md`):
+  - Cara E (testero frente a la rama) = espesor de la rama + 0,30 + 0,30, sin angular. Hasta 0,90 es un panel con el remate al final; con más, dos paneles con el remate en medio.
+  - Recorte de ejes: el de paso se retira ½ espesor de la rama + 0,30. La rama se retira ½ espesor del de paso + 0,30. El espesor del de paso es la **media** de los dos tramos (`TryTCornerTrimMm`).
+  - Tipo 2: los dos tramos de paso tienen distinto espesor. El fino se corre (grueso − fino)/2 alejándose de la rama. El escalón queda en la cara de la rama y se cierra con tablón ≤ 0,15 y grapa variable.
+- Desing, X: cuatro escuadras interiores. Cada brazo se retira ½ espesor del que cruza + 0,30 (`TryPlusCornerTrimMm`). Sin cara E ni angular. La X de igual espesor está aceptada.
+- **[HUECO]** El remate con espesores distintos en T y X está pendiente desde el 29 oct (`esquina-T-atk60.md`, «Pendiente»). La T tipo 3 está nombrada pero sin definir.
+
+### Tapes (3.7, p. 52–53)
+
+- Con rigidizador: atado con gancho cierre y tuerca placa fija por la parte exterior del perfil. Rigidizadores 4 / 3 / 2. La junta contigua lleva una grapa más.
+- Con panel universal: gancho cierre y tuerca placa campana.
+- Desing usa los tipos 1 a 7 (`tapes-tipos.md`):
+
+| Espesor | Sin solape | Con solape |
+|---------|------------|------------|
+| < 0,30 | Tipo 2 (`TapeS3`) | Tipo 1 (`TapeS1` / `TapeS2`) |
+| 0,30 / 0,45 / 0,60 / 0,90 exacto | Tipo 4 (`TapeS4`) o tipo 3 (`TapeS5`) | Tipo 1 |
+| 0,30–0,60, no exacto | `TapeS6` / `TapeS7` (múltiplo de 0,05) o `TapeS8` | Tipo 1 |
+| > 0,60, no exacto | `TapeS9` / `TapeS10` / `TapeS11` (múltiplo) o `TapeS13` / `TapeS12` | Tipo 1 |
+
+- Solo se cierra un extremo libre (`EndIsFree`). Un extremo unido a otro muro no lleva tape.
+
+### Otras soluciones (3.6, 3.8, 3.9, p. 50–57)
+
+- Cambio de espesor de muro: hasta 15 cm con tacos de madera y rigidizadores 0,75; 20 cm con escuadra interior, gancho rigidizador y tuerca campana.
+- Retranqueo: escuadra interior con paneles universales y estándar.
+- Pilar: paneles universales unidos entre sí; tabla de orificios de 10×10 a 65×65 cm en paso de 5 (p. 54–55).
+- Pilar embebido en muro o esquina: escuadra interior con universal y estándar. Saliente mínimo en esquina 200 × 300.
+- **[HUECO]** En Desing solo `PillarFormwork.cs`; no se ha comprobado contra estas tablas.
+
+## 3. Reparto del muro recto
+
+`PackAtk60LengthMm` (`Atk60WallsRepository.cs`):
+
+- n paneles de 2,70 + el mayor módulo final que quepa + el remate.
+- El remate no pasa de 0,15. Si sobra más, el módulo final sube un paso.
+- Si el sobrante está entre 0,16 y 0,29, un 2,70 se abre en 2,55 + 0,30.
+- Extremo conectado: se recorta 450 mm (`ConnectedEndTrimMm`). La L usa `LCornerFormwork.AxisTrimMm`, la T `TryTCornerTrimMm` y la X `TryPlusCornerTrimMm`.
+
+## 4. Dónde está en el código
+
+**Cliente** (`Desing/Scripts/MasterArticles/`):
+
+| Qué | Dónde |
+|-----|-------|
+| Panel y taco | `ma-stl-atk60-formwork.js`: `maAtk60SelectPanelMm` (múltiplo de 150 ≥ necesidad, mín. 300) |
+| Pieza verde L / T (solo visor, **no** va al servidor) | `ma-stl-atk60-formwork.js`: `maAtk60BuildLFootprintMm`, `maAtk60BuildTFootprintMm` (P-1…P-8; brazos a ras de la cara real desde el 12 nov) |
+| Recortes, orientación T, muro fino | `master-article-details-stl-viewer.js`: `maStlAtk60BuildAxisEndpointTrimMap`, `maStlAtk60CanonicalThroughDirFromTJunction`, `maStlAtk60TryRenderJunctionAtBucket`, `maStlAtk60ThinThroughShiftByAxisId` (el signo no se invierte), `maStlAtk60JunctionHeightMm` |
+| Petición al servidor | `desing2-stl-viewer-toolbar-wiring.js`: muros desde los ejes (`maStlBuildStraightWallsFromScene` / `…ForFormwork` / `…FromWallModelSource`) con `_DataWith`, `_DataHeight`, caras, `wallConnections` y `_PropSpacingMm`. Se envía como `IdsJson` |
+| Pintado | `maStlDesing2RenderAtk60Elements`, que recibe `ElementsForThreeJs` |
+
+**Servidor** (`Desing/Repositories/`):
+
+| Qué | Dónde |
+|-----|-------|
+| Entrada, recortes, reparto | `RepositoryAtk60/Atk60WallsRepository.cs`: `SolveFromIdsJson`, `ApplyConnectedEndTrim`, `CornerTrimMm`, `PackAtk60LengthMm`, `BuildPanel270ElementsForThreeJs` |
+| L, T, X y tipo 2 | `Repository_Desing_2/Atk60/LCornerFormwork.cs`: `PlaceCorner`, `PlaceTPair`, `PlaceCaraE`, `PlacePlus`, `TryTipo2Step`, `ShiftWall`, `PlaceStepRemate`, `SumRematesAtCorner` |
+| Remates de cara | `RepositoryAtk60/Atk60CornerFaceRemate.cs` |
+| Tapes | `Repository_Desing_2/Atk60/ExactWidthEndTape.cs` (`ResolveTape`), `EndFiller.cs` (tope 0,15), `FormTie.cs` |
+| Grapas y rigidizadores | `PanelClamp.cs`, `PanelStiffener.cs` |
+| Tirantes, puntales, ménsulas, pilares | `FormTie.cs`, `PushPullProp.cs`, `WorkingBracket.cs`, `PillarFormwork.cs` |
+
+## 5. Historial de implementación (L, T, +)
+
+Sacado de `git log develo` y `git show` (12 nov 2026). Hora de Madrid. Todos los commits son de Juan Andrés Godoy López. Los commits «Agent host session…» de `refs/agents/*` son puntos de control de agentes y no cuentan aquí. «Aceptado» quiere decir que el usuario lo dio por bueno, según las fichas.
+
+### Base común
+
+| Commit | Fecha | Mensaje | Qué cambió |
+|--------|-------|---------|------------|
+| `9bbc344` | 11/07 09:32 | Esquina en T y documentación | Cliente: nace `ma-stl-atk60-formwork.js` con `maAtk60SelectPanelMm`, la huella L y la huella T (8 puntos), y las fichas BASE, IMPLEMENTACION y HANDOVER-MUROS-T-CRUCE |
+| `0596af8` / `79125ef` | 15/07 | punto de inserción / insertar | Servidor: reparto en módulos y paneles de 2,70 en `Atk60WallsRepository` (+887 líneas) |
+| `0d90910` | 08/09 16:41 | muro recto 08 09 2026 | `PackAtk60LengthMm`: reparto del muro recto |
+| `dfe1c3c` | 03/10 09:19 | pluging | `ApplyConnectedEndTrim`: recorte de 450 mm en un extremo conectado (antes de que existieran L, T y +) |
+| `2b00ef9` | 11/10 13:40 | puntal y mensulas y mas | Nacen `EndFiller`, `PanelClamp`, `FormTie`, `PanelFormwork`, `PushPullProp` y `WorkingBracket` |
+| `8df6ce2` → `d80d0ec` | 20–21/10 | Tapes / bug tapes / Tape S7 | Nace `ExactWidthEndTape.cs` (tapes 1 a 7). Aceptado el 20–21 oct |
+
+### L
+
+| Commit | Fecha | Mensaje | Qué cambió |
+|--------|-------|---------|------------|
+| `9bbc344` | 11/07 09:32 | Esquina en T y documentación | Huella L en el cliente: pata = `selectPanel(espesor del otro + 0,30)` |
+| `5e0af38` | 26/10 17:00 | cotas y mas | **Primera L en el servidor.** Nace `LCornerFormwork.cs`: `PlaceCorner`, `AxisTrimMm`, `PlaceExteriorCover`, `PlaceGap`, `PlaceCornerSeamClamps`, angular y esquina interior. Nacen `Atk60CornerFaceRemate.cs`, `esquina-L-atk60.md` y `agente-grapas-atk60.md`. La L se aceptó el 25 oct |
+| `9dfc4de` | 29/10 19:50 | fases | `SumRematesAtCorner`: el remate de la esquina y el del tramo no se suman; cada tablón ≤ 0,15 |
+| `778de4c` | 03/11 11:23 | Fases | `IsPhaseExit`: en el cabo `-exit` de una fase no se pone cubierta exterior ni hueco; el angular cierra |
+| `83550c6` | 04/11 13:44 | **mal codigo de esquina** | Esquina regulable `Universal_X` / `Universal_Y` (`_CornerTypeP1/P2`, y si no `_Tape_0`): panel de 0,75 en la cara regulable, sin angular ni grapa de esquina, y herraje de pilar. **También cambia la L angular:** `PlaceCornerSeamClamps` pone un tirante nuevo (`FormTie.PlaceJointColumn`) en la junta de toda esquina. Cliente: el visor inventa las caras que faltan a partir del eje (`synthFaceFromAxis`) y la regla temporal pone `_IsFormwork = false` en el muro regulable |
+| `1426b7d` | 04/11 17:38 | cambio para testear | Regulable: gancho y placa con desplazamientos fijos (10 / 120 mm, 300 / 390 + espesor) |
+| `ec7b9cc` | 05/11 08:37 | df | Regulable: el herraje se mueve como un bloque hasta el gancho. Si no se genera gancho, **lanza `InvalidOperationException`** |
+| `b6f1d54` | 05/11 17:38 | relise 1 | Regulable: el destino del gancho pierde el término de cara en X y lo mantiene en Z (`targetHookX` sin `sideX·faceOffsetMm`). Cliente: `CornerReferencePoints` (punto de referencia de la L) |
+
+### T
+
+| Commit | Fecha | Mensaje | Qué cambió |
+|--------|-------|---------|------------|
+| `9bbc344` | 11/07 09:32 | Esquina en T y documentación | **Primera T, solo en el cliente:** huella P-1…P-8, cotas y recortes |
+| `f0881bb` | 11/07 21:46 | esquina en t | Orientación canónica del atravesado (`maStlAtk60CanonicalThroughDirFromTJunction`) |
+| `9dfc4de` | 29/10 19:50 | fases | **Primera T en el servidor:** `PlaceTPair`, `PlaceCaraE` (rama + 0,30 + 0,30), `PlaceTFromFacingGaps`, `TryTipo2Step` / `ShiftWall` / `PlaceStepRemate` (tipo 2) y `TryTCornerTrimMm` (½ espesor del otro + 0,30). Nace `esquina-T-atk60.md`. La T se aceptó el 28 oct |
+| `5432fa4` | 30/10 14:25 | planificacioón | La T ya no pone tape en los brazos (`PlaceEndTape` y `ExactWidthEndTape.PlaceOneEnd` fuera); `StripTapePanelAtEnd` quita el panel de tape en el extremo de cada brazo. Se quita `ReleaseEndsWithoutNeighbor`: un extremo enlazado a un muro que no se encofra ya no queda libre, así que no sale tape ahí |
+| sin commit | 12/11 | — | Cliente: la pieza 3D de la T va a ras de la cara real (`vNear`). Solo visor; no va al servidor |
+
+### + (cruce)
+
+| Commit | Fecha | Mensaje | Qué cambió |
+|--------|-------|---------|------------|
+| `9e8e088` | 11/07 21:57 | esquina en X conseguido | **Primera +, solo en el cliente:** `maAtk60BuildCrossFootprintMm` |
+| `9dfc4de` | 29/10 19:50 | fases | **Primera + en el servidor:** `PlacePlus` / `PlacePlusSide`, cuatro esquinas interiores, `TryPlusCornerTrimMm` (½ espesor del que cruza + 0,30), y tape en cada brazo (`PlaceOneEnd`). La + de igual espesor se aceptó el 29 oct |
+| `5432fa4` | 30/10 14:25 | planificacioón | Fuera el tape de los brazos de la + (la ficha pasa a «No lleva cara E. No lleva angular») |
+
+### Último estado bueno conocido
+
+- **L angular:** `5e0af38` (26/10), aceptada el 25 oct. Con la suma de remates, `9dfc4de` (29/10).
+- **T y +:** `9dfc4de` (29/10 19:50), aceptadas el 28 y el 29 oct. Después vino `5432fa4`, un cambio de criterio sobre el tape de los brazos que no figura como validado.
+- **Tapes:** `d80d0ec` / `c4b2e38` (21–22/10), aceptados. Hasta `5432fa4` los tocan `5e0af38` y `9dfc4de`.
+- Candidato para comparar todo junto: `2a1b80e` (30/10 15:08), el último commit antes de los cambios de noviembre.
+
+### Sospechosos de la rotura (análisis; no se ha tocado código)
+
+| Commit | Afecta a | Evidencia | Probabilidad |
+|--------|----------|-----------|--------------|
+| `12e2e56` (09/11, «mal codigo») | **Tapes** | `ExactWidthEndTape.EnableTapeRemateVisualInsertion = false` sigue así en HEAD. Ya no salen la franja naranja ni los tablones del TapeS1/S2, las grapas del suplemento, las grapas fijas del canto (`AddEndClamp`) ni las variables del tape. Apaga piezas propias del tape, no solo remates | **Alta.** Explica «tapes rotos» |
+| `12e2e56` (visor) | T y L, posible | Al cargar ya no se llama a `maStlWall2dToolRefactorAllWallJunctionsMm()`, y los bucles de partir y soldar muros paran a las 64 pasadas. Si el diseño guardado no tenía las uniones al día, lo que se envía al servidor sale con uniones viejas | Media. Sin probar |
+| `83550c6` (04/11, «mal codigo de esquina») | **L** (todas) | En HEAD toda esquina, también la angular, lleva un tirante nuevo en la junta (`includeTieColumn = true`). El 05/11 el informe ya decía, para la angular de 0,22: «falta remate/tirante interior y solape de paneles» | **Alta** para la L |
+| `ec7b9cc` / `b6f1d54` | L regulable | `throw` sin `catch` en `SolveFromIdsJson`. Si una esquina regulable cae en un tramo de menos de 1 mm (`PillarFormwork.PlaceCornerHardware` no genera nada), falla **todo** el encofrado. `b6f1d54` deja el herraje torcido (X sin término de cara, Z con él) | Media (solo con regulable). Los datos del usuario no tienen `Universal_*` |
+| `5432fa4` (30/10) | T, + y tapes | Sin tape en los brazos de la T y la +. Sin `ReleaseEndsWithoutNeighbor`, un extremo enlazado a un muro que no se encofra (fase u `_IsFormwork = false`) se queda sin tape | Media. Fue un cambio de criterio, pero junto con `_IsFormwork = false` de `83550c6` puede dejar cantos abiertos |
+| Cambios de hoy | — | No cambian lo que se envía al servidor (comprobado con los datos guardados del usuario) | Baja |
+
+### Comparación y arreglo (12 nov)
+
+Mismo `IdsJson` (diseño guardado del usuario y casos L, T, +, tipo 2 y tape) con el servidor de `5e0af38`, `9dfc4de`, `2a1b80e`, `83550c6`~1, `83550c6`, `b6f1d54`, `12e2e56`~1 y HEAD. Arnés: el código del servidor compilado aparte, sin tocar `develo`.
+
+| Problema | Causa | Arreglo (sin commit) |
+|----------|-------|----------------------|
+| T y + sin esquinas en el diseño del usuario: 4 piezas de esquina en vez de 16 y la cruz a medias | Antiguo, no de noviembre. `ResolveSceneMm` miraba cada cota sola: ≤ 50 se leía como metros. El brazo de la T se recorta hasta x = 50 mm (muro de paso en x = 500) y ese 50 pasaba a 50 m | `Atk60WallsRepository`: las cotas del eje se leen en mm. Solo se pasan de metros si las cuatro son pequeñas y el largo cuadra con `_Datalong`. Los puntos con `xMm` ya están en mm |
+| Extremo libre recortado 450 mm y sin tape | Un eje de largo 0 (punto suelto del dibujo) contaba como muro unido | Los ejes de menos de 1 mm no cuentan como unión ni reciben tape ni placas |
+| Tapes abiertos | `12e2e56`: `EnableTapeRemateVisualInsertion = false` | Vuelve a `true`: franja naranja, tablones, grapas fijas y variables del tape |
+| Muro recto de menos de 0,30 con tape: los paneles empiezan tarde, el muro se queda sin encofrar en un extremo y el tape del otro se borra | `9dfc4de` (29/10): `SumRematesAtCorner` tomaba el fenólico y los tablones del tape como remates de tramo. Corría los paneles el ancho del tape (440–610 mm) y borraba el tape del otro extremo. `12e2e56` lo tapó al apagar las piezas del tape; al volver a encenderlas (arreglo anterior de hoy) reapareció | `LCornerFormwork.IsTapeWood`: los colores `wood-orange` y `wood-side` (piezas del tape) no entran en la suma de remates |
+| Tirante doble en la junta de la esquina | `83550c6`: `PlaceJointColumn` en toda esquina | Se mantiene la columna (en 0,22 faltaba ese tirante) pero no se repite donde el tramo ya lo puso |
+| Todo el encofrado falla si la esquina regulable no genera gancho | `ec7b9cc`: `throw` sin `catch` | Se sale sin alinear |
+| Herraje regulable mal puesto en muros en Z | `b6f1d54`: X sin el término de cara | Se suma `sideX · faceOffset`. En muros en X no cambia nada |
+| Remate del tramo junto al angular, sin enfrentar al de la otra cara (L 0,20 / 0,22 / 0,40 y T) | `9dfc4de` (29/10): `SumRunRemates` corría también el módulo de fuera de la esquina y ponía los dos tablones en el rincón: fuera, pegado al angular; dentro, metido en el otro muro. Quedaban huecos en la cara interior. Un remate de extremo libre o el de la cara E de la otra punta se tomaba por el de la esquina | Ver la regla de abajo. `InCornerZone`: solo es tablón de esquina el que pasa del extremo del tramo. El módulo de la esquina, la cara E y sus grapas no se corren. El remate del tramo va con `EndFiller.Build` en las dos caras, en el extremo del tramo |
+
+Recuento (piezas de esquina interior / tablones / grapas fijas / tirantes):
+
+| Caso | `2a1b80e` | HEAD antes | Arreglado |
+|------|-----------|------------|-----------|
+| Diseño del usuario | 4 / 23 / 204 / 66 (764) | 4 / 14 / 204 / 66 (755) | 16 / 23 / 252 / 68 (822) |
+| L 0,30 | 2 / 4 / 78 / 20 | 2 / 4 / 78 / 24 | 2 / 4 / 78 / 20 |
+| L 0,22 | 2 / 4 / 48 / 16 | 2 / 4 / 42 / 20 | 2 / 10 / 42 / 20 (las 48 grapas de `2a1b80e` eran de las juntas corridas 190 mm) |
+| + 0,30/0,20 | 8 / 11 / 96 / 12 | 8 / 8 / 96 / 12 | 8 / 14 / 96 / 12 |
+
+Muro recto suelto, «Tipo 1» en los dos extremos (paneles de la cara, del mm 0 al largo):
+
+| Espesor | `5e0af38` | `9dfc4de` a `12e2e56`~1 | HEAD antes | Arreglado |
+|---------|-----------|--------------------------|------------|-----------|
+| 0,20 / 0,22 (3,00 a 6,20 m) | 0 → L, tape en los dos | 440–610 → L + 440–610, tape solo en un extremo | 0 → L, sin tape | 0 → L, tape en los dos |
+| 0,30 / 0,40 | 0 → L | 0 → L | 0 → L | 0 → L (0,40 sigue sin tape, ver §6) |
+| T 0,30/0,30, T 0,30/0,20, T 0,22/0,40, + 0,30/0,30, T tipo 2 | iguales en todas las versiones | | iguales |
+
+Regla del remate en la esquina (12 nov, tarde):
+- El remate del tramo va **enfrentado en las dos caras**, en el extremo del tramo junto a la esquina. Fuera queda entre el módulo de la esquina (otro espesor + 0,30) y el primer panel. Dentro queda junto al tablón de la esquina.
+- El tablón de la esquina (el sobrante de la cara interior) se queda en su sitio: entre la esquina interior y el panel, nunca en el rincón del angular.
+- Si tablón de esquina + remate del tramo pasa de 0,15, el del tramo no se mueve: se queda en medio del tramo, ya enfrentado.
+- Comprobado en el arnés: L de 0,20 / 0,22 / 0,30 / 0,40, giro a izquierda y derecha, ejes en los dos sentidos y espesores mezclados (35 casos). Sin huecos ni solapes, y los remates del tramo iguales en las dos caras. T, +, tipo 2, muro recto y tapes: sin huecos. La L 0,30, T 0,30/0,30, + y muro recto salen igual que antes.
+
+Se queda como está:
+- `5432fa4`: el extremo libre lleva tape, el unido no. No se recupera `ReleaseEndsWithoutNeighbor`: pondría tape en el muro de una esquina regulable (`_IsFormwork = false`), que ya cierra el panel de 0,75.
+- Visor (`12e2e56`): no se vuelve a recalcular las uniones al cargar. El fallo no estaba ahí.
+
+## 6. Puntos abiertos
+
+- 12 nov: T, + y tapes arreglados en el servidor (§5, «Comparación y arreglo»). Falta probarlo en el visor.
+- Tape «Tipo 1» en muros de 0,30 a 0,60 que no son 0,30 / 0,45 / 0,60 (por ejemplo 0,40): el servidor no lo traduce a un `TapeS*` y el extremo queda sin tape. Pasa igual desde octubre.
+- Herraje regulable: la posición en muros en Z sale de igualarla a la de muros en X. Comprobar en el visor.
+- Remate de T y X con espesores distintos: pendiente desde el 29 oct.
+- T tipo 3: sin definir.
+- Esquinas distintas de 90°, compensadores NEVI 5–18 / 8–30 y cambio de espesor de muro: no implementados.

@@ -23,7 +23,7 @@ import {
     maAtk60SelectPanelMm,
     MA_ATK60_CORNER_PANEL_MM,
     maAtk60UnitXz,
-} from './ma-stl-atk60-formwork.js?v=20261028-t2xy';
+} from './ma-stl-atk60-formwork.js?v=20261112-tflush';
 import {
     maStlFormworkEnvApplyCatalogLook,
     maStlFormworkEnvApplyIblToScene,
@@ -13930,6 +13930,23 @@ let maStlWallApplyAllHeightMm = 0;
         );
     }
 
+    /**
+     * Distancia mínima (mm) de un corte al extremo del eje que se parte.
+     * Un punto más cerca del extremo es ese extremo (esquina L), no una T:
+     * partir ahí dejaba un trozo de muro de pocos mm o de longitud cero.
+     */
+    function maStlWall2dToolAxisEndGuardMm(spanMm) {
+        const guard = maStlWall2dToolJunctionClusterEpsMm();
+        if (!(spanMm > 0)) return guard;
+        return Math.max(maStlUserFloorSegmentMinMm(), Math.min(guard, spanMm * 0.25));
+    }
+
+    /** `t` (0…1 sobre un eje de `spanMm`) cae junto a un extremo: no es interior para partir. */
+    function maStlWall2dToolAxisParamNearEndMm(t, spanMm) {
+        const guard = maStlWall2dToolAxisEndGuardMm(spanMm);
+        return t * spanMm <= guard || (1 - t) * spanMm <= guard;
+    }
+
     /** Distancia eje→inglete en L a 90° es hipotenusa del medio espesor (~212 mm si e=300). */
     function maStlWall2dToolFaceNearJunctionEpsMm() {
         const halfT = maStlWall2dToolThicknessHalfMm();
@@ -13938,9 +13955,11 @@ let maStlWallApplyAllHeightMm = 0;
 
     /**
      * Proyecta `p` sobre el cuerpo del eje más cercano (unión T) si está a ≤ tolerancia snap.
+     * Junto a un extremo de eje (≤ guarda) se une a ese extremo (L) en vez de partir el muro.
+     * @param {{x:number,z:number}} [avoidPtMm] otro extremo del tramo: no se une al mismo punto.
      * @returns {boolean}
      */
-    function maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(p) {
+    function maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(p, avoidPtMm) {
         if (!p || !maStlUserLinesGroup) return false;
         const eps = maStlUserFloorLineMergeEndpointEpsMm();
         const distTol = Math.max(
@@ -13958,6 +13977,26 @@ let maStlWallApplyAllHeightMm = 0;
             if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
             if (maStlUserFloorPlanPointNearXzMm(ud.p1Mm, p, eps)) continue;
             if (maStlUserFloorPlanPointNearXzMm(ud.p2Mm, p, eps)) continue;
+            const span = Math.hypot(ud.p2Mm.x - ud.p1Mm.x, ud.p2Mm.z - ud.p1Mm.z);
+            if (!(span > minSeg)) continue;
+            // Junto a un extremo (dentro o un poco pasado): se une al extremo (L), no se parte el muro.
+            const endGuard = maStlWall2dToolAxisEndGuardMm(span);
+            const ends = [ud.p1Mm, ud.p2Mm];
+            let nearEnd = false;
+            for (let ei = 0; ei < 2; ei++) {
+                const dEnd = Math.hypot(p.x - ends[ei].x, p.z - ends[ei].z);
+                if (dEnd > endGuard) continue;
+                // No unir los dos extremos del tramo que se dibuja al mismo punto (muro de largo cero).
+                if (avoidPtMm && maStlUserFloorPlanPointNearXzMm(ends[ei], avoidPtMm, eps)) continue;
+                nearEnd = true;
+                if (dEnd < bestDist) {
+                    bestDist = dEnd;
+                    bestX = ends[ei].x;
+                    bestY = ends[ei].y;
+                    bestZ = ends[ei].z;
+                }
+            }
+            if (nearEnd) continue;
             const proj = maStlProjectPointOntoUserFloorSegmentBodyXzMm(
                 p,
                 ud.p1Mm,
@@ -13965,9 +14004,7 @@ let maStlWallApplyAllHeightMm = 0;
                 _maStlUserFloorSegmentBodyProj
             );
             if (!proj || proj.distXZ > distTol) continue;
-            const span = Math.hypot(ud.p2Mm.x - ud.p1Mm.x, ud.p2Mm.z - ud.p1Mm.z);
-            const minT = span > minSeg ? minSeg / span : 0.05;
-            if (proj.t <= minT || proj.t >= 1 - minT) continue;
+            if (maStlWall2dToolAxisParamNearEndMm(proj.t, span)) continue;
             if (proj.distXZ < bestDist) {
                 bestDist = proj.distXZ;
                 bestX = _maStlUserFloorSegmentBodyProj.x;
@@ -14070,6 +14107,18 @@ let maStlWallApplyAllHeightMm = 0;
         const oldP2 = maStlDesing2ClonePlanPointMm(ud.p2Mm);
         const J = maStlDesing2ClonePlanPointMm(splitPtMm);
         J.y = ud.p1Mm.y;
+        {
+            const spanMm = Math.hypot(ud.p2Mm.x - ud.p1Mm.x, ud.p2Mm.z - ud.p1Mm.z);
+            const guardMm = maStlWall2dToolAxisEndGuardMm(spanMm);
+            if (
+                !(spanMm > 0) ||
+                Math.hypot(J.x - ud.p1Mm.x, J.z - ud.p1Mm.z) <= guardMm ||
+                Math.hypot(J.x - ud.p2Mm.x, J.z - ud.p2Mm.z) <= guardMm
+            ) {
+                // Junto a un extremo no hay T: partir dejaba un trozo suelto o un eje de longitud cero.
+                return false;
+            }
+        }
 
         ud.p2Mm.x = J.x;
         ud.p2Mm.y = J.y;
@@ -14165,8 +14214,7 @@ let maStlWallApplyAllHeightMm = 0;
                     );
                     if (!proj || proj.distXZ > interiorDistTol) continue;
                     const span = Math.hypot(ud.p2Mm.x - ud.p1Mm.x, ud.p2Mm.z - ud.p1Mm.z);
-                    const minT = span > minSeg ? minSeg / span : 0.05;
-                    if (proj.t <= minT || proj.t >= 1 - minT) continue;
+                    if (!(span > minSeg) || maStlWall2dToolAxisParamNearEndMm(proj.t, span)) continue;
                     if (
                         maStlWall2dToolSplitAxisAtInteriorPointMm(
                             axisLine,
@@ -14235,8 +14283,7 @@ let maStlWallApplyAllHeightMm = 0;
                             bodyUd.p2Mm.x - bodyUd.p1Mm.x,
                             bodyUd.p2Mm.z - bodyUd.p1Mm.z
                         );
-                        const minT = span > minSeg ? minSeg / span : 0.05;
-                        if (proj.t <= minT || proj.t >= 1 - minT) continue;
+                        if (!(span > minSeg) || maStlWall2dToolAxisParamNearEndMm(proj.t, span)) continue;
                         const splitPt = { x: pt.x, y: bodyUd.p1Mm.y, z: pt.z };
                         if (maStlWall2dToolSplitAxisAtInteriorPointMm(bodyAxis, splitPt)) {
                             changed = true;
@@ -14260,8 +14307,10 @@ let maStlWallApplyAllHeightMm = 0;
                     if (maStlUserFloorPlanLinesCollinearParallelXz(udA, udB)) continue;
                     const spanA = Math.hypot(udA.p2Mm.x - udA.p1Mm.x, udA.p2Mm.z - udA.p1Mm.z);
                     const spanB = Math.hypot(udB.p2Mm.x - udB.p1Mm.x, udB.p2Mm.z - udB.p1Mm.z);
-                    const minTA = spanA > minSeg ? minSeg / spanA : 0.05;
-                    const minTB = spanB > minSeg ? minSeg / spanB : 0.05;
+                    if (!(spanA > minSeg) || !(spanB > minSeg)) continue;
+                    // Cruce lejos de los extremos de ambos ejes (en mm, no en fracción del largo).
+                    const minTA = maStlWall2dToolAxisEndGuardMm(spanA) / spanA;
+                    const minTB = maStlWall2dToolAxisEndGuardMm(spanB) / spanB;
                     const hit = maStlWall2dToolIntersectSegmentPairInteriorMm(
                         udA.p1Mm,
                         udA.p2Mm,
@@ -15089,6 +15138,112 @@ let maStlWallApplyAllHeightMm = 0;
     }
 
     /**
+     * Cura cortes falsos que dejaban versiones anteriores al cerrar una L:
+     * - ejes de longitud cero (sin muro) se quitan con sus caras;
+     * - un trozo colineal corto (≤ guarda de extremo) con un extremo libre, pegado a su muro
+     *   y a un único muro que llega en ese punto, se vuelve a unir: el muro recupera su largo
+     *   y el otro muro se lleva al extremo (esquina L).
+     * @returns {number} ejes eliminados
+     */
+    function maStlWall2dToolHealSpuriousAxisSplitsMm() {
+        if (!maStlUserLinesGroup) return 0;
+        const minSeg = maStlUserFloorSegmentMinMm();
+        const tol = MA_STL_WALL_DIM_LENGTH_VALUE_TOL_MM;
+        const thickTol = MA_STL_WALL_DIM_LENGTH_VALUE_TOL_MM;
+        const dropAxis = function (line) {
+            const ud = line.userData.maStlUserPlanLine;
+            const faces = maStlWall2dToolFindFaceLinesForCenterId(ud.id);
+            for (let fi = 0; fi < faces.length; fi++) {
+                maStlDisposeUserFloorPlanLineObject(faces[fi]);
+            }
+            maStlDisposeUserFloorPlanLineObject(line);
+        };
+        let removed = 0;
+        let axes = maStlWall2dToolCollectAllAxisLines();
+        for (let i = 0; i < axes.length; i++) {
+            const ud = axes[i].userData && axes[i].userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            if (maStlUserFloorLineLengthMm(ud) >= Math.max(minSeg, 1)) continue;
+            dropAxis(axes[i]);
+            removed++;
+        }
+        let guard = 0;
+        let changed = true;
+        while (changed && guard++ < 32) {
+            changed = false;
+            axes = maStlWall2dToolCollectAllAxisLines();
+            const endsAt = function (pt, skipUd) {
+                const out = [];
+                for (let k = 0; k < axes.length; k++) {
+                    const u = axes[k].userData && axes[k].userData.maStlUserPlanLine;
+                    if (!u || u === skipUd || !u.p1Mm || !u.p2Mm) continue;
+                    if (maStlUserFloorPlanPointNearXzMm(u.p1Mm, pt, tol)) out.push({ line: axes[k], ud: u, key: 'p1Mm' });
+                    else if (maStlUserFloorPlanPointNearXzMm(u.p2Mm, pt, tol)) out.push({ line: axes[k], ud: u, key: 'p2Mm' });
+                }
+                return out;
+            };
+            const onBody = function (pt, skipUds) {
+                for (let k = 0; k < axes.length; k++) {
+                    const u = axes[k].userData && axes[k].userData.maStlUserPlanLine;
+                    if (!u || skipUds.indexOf(u) >= 0 || !u.p1Mm || !u.p2Mm) continue;
+                    const pr = maStlProjectPointOntoUserFloorSegmentBodyXzMm(pt, u.p1Mm, u.p2Mm, _maStlUserFloorSegmentBodyProj);
+                    if (pr && pr.distXZ <= tol) return true;
+                }
+                return false;
+            };
+            for (let i = 0; i < axes.length && !changed; i++) {
+                const stubLine = axes[i];
+                const sUd = stubLine.userData && stubLine.userData.maStlUserPlanLine;
+                if (!sUd || !sUd.p1Mm || !sUd.p2Mm) continue;
+                const len = maStlUserFloorLineLengthMm(sUd);
+                if (!(len > 0) || len > maStlWall2dToolJunctionClusterEpsMm()) continue;
+                const sHalf = maStlWall2dToolAxisHalfThicknessFromAxisUd(sUd);
+                for (let e = 0; e < 2 && !changed; e++) {
+                    const J = e === 0 ? sUd.p1Mm : sUd.p2Mm;
+                    const F = e === 0 ? sUd.p2Mm : sUd.p1Mm;
+                    const atJ = endsAt(J, sUd);
+                    const skipUds = [sUd];
+                    for (let k = 0; k < atJ.length; k++) skipUds.push(atJ[k].ud);
+                    const atF = endsAt(F, sUd).filter(function (h) { return skipUds.indexOf(h.ud) < 0; });
+                    if (atF.length || onBody(F, skipUds)) continue;
+                    const runs = [];
+                    const branches = [];
+                    for (let k = 0; k < atJ.length; k++) {
+                        if (maStlUserFloorPlanLinesCollinearParallelXz(atJ[k].ud, sUd)) runs.push(atJ[k]);
+                        else branches.push(atJ[k]);
+                    }
+                    if (runs.length !== 1 || branches.length !== 1) continue;
+                    const run = runs[0];
+                    if (Math.abs(maStlWall2dToolAxisHalfThicknessFromAxisUd(run.ud) - sHalf) > thickTol) continue;
+                    const sameWall =
+                        String(run.ud.wallId != null ? run.ud.wallId : run.ud.wallGroupId) ===
+                        String(sUd.wallId != null ? sUd.wallId : sUd.wallGroupId);
+                    if (!sameWall) continue;
+                    const Fc = maStlDesing2ClonePlanPointMm(F);
+                    const runEnd = run.ud[run.key];
+                    runEnd.x = Fc.x;
+                    runEnd.y = Fc.y;
+                    runEnd.z = Fc.z;
+                    const brEnd = branches[0].ud[branches[0].key];
+                    brEnd.x = Fc.x;
+                    brEnd.z = Fc.z;
+                    dropAxis(stubLine);
+                    const touched = [run.line, branches[0].line];
+                    for (let k = 0; k < touched.length; k++) {
+                        const tUd = touched[k].userData.maStlUserPlanLine;
+                        maStlWall2dToolEnsureClockwiseAxisEndsMm(tUd.p1Mm, tUd.p2Mm);
+                        maStlWallLineEnsureAttrs(tUd);
+                        maStlApplyUserFloorLineSegmentGeometryFromMm(touched[k]);
+                    }
+                    removed++;
+                    changed = true;
+                }
+            }
+        }
+        return removed;
+    }
+
+    /**
      * Une ejes colineales que se tocan o se solapan, misma recta y mismo espesor.
      * Un tramo seguido no puede quedar en dos muros. Se alarga el eje de id menor y se quita el otro, con sus caras.
      * @returns {number} ejes eliminados
@@ -15099,7 +15254,7 @@ let maStlWallApplyAllHeightMm = 0;
         const latTol = Math.max(MA_STL_WALL_DIM_LENGTH_VALUE_TOL_MM, 2);
         const thickTol = MA_STL_WALL_DIM_LENGTH_VALUE_TOL_MM;
         const touchMm = 50;
-        let removed = 0;
+        let removed = maStlWall2dToolHealSpuriousAxisSplitsMm();
         let guard = 0;
         let changed = true;
         while (changed && guard++ < 64) {
@@ -15203,13 +15358,13 @@ let maStlWallApplyAllHeightMm = 0;
             maStlQuantizeUserFloorPlanPointToGridMm(a);
             maStlQuantizeUserFloorPlanPointToGridMm(b);
         }
-        maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(a);
-        maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(b);
+        maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(a, b);
+        maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(b, a);
         maStlWall2dToolSplitAxesAtInteriorHitsMm([a, b], a, b);
         maStlWeldUserFloorPlanPointToExistingEndpointsMm(a, weldEps);
         maStlWeldUserFloorPlanPointToExistingEndpointsMm(b, weldEps);
-        maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(a);
-        maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(b);
+        maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(a, b);
+        maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(b, a);
         const fallbackHalfT = maStlWall2dToolThicknessHalfMm();
         let halfT = Number(halfTOverrideMm);
         if (!(halfT > 0)) {
@@ -20079,13 +20234,13 @@ let maStlWallApplyAllHeightMm = 0;
             const b = maStlCopyToolOffsetPlanPointMm(ud.p2Mm, dx, dy, dz);
             maStlQuantizeUserFloorPlanPointToGridMm(a);
             maStlQuantizeUserFloorPlanPointToGridMm(b);
-            maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(a);
-            maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(b);
+            maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(a, b);
+            maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(b, a);
             maStlWall2dToolSplitAxesAtInteriorHitsMm([a, b], a, b);
             maStlWeldUserFloorPlanPointToExistingEndpointsMm(a, weldEps);
             maStlWeldUserFloorPlanPointToExistingEndpointsMm(b, weldEps);
-            maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(a);
-            maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(b);
+            maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(a, b);
+            maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(b, a);
             const centerLine = maStlWall2dToolAddSegmentMm(
                 a,
                 b,
@@ -32701,9 +32856,8 @@ let maStlWallApplyAllHeightMm = 0;
                 maStlStopWallDimToolModesToolbar();
                 return;
             }
-            if (maStlDesing2ModelMode !== 'lines') {
-                maStlDesing2SetModelModeLines();
-            }
+            /* Acotar no cambia de modo: en Muro 3D / encofrado las cotas (muro, paneles, remates y
+               alturas) se dibujan encima sin profundidad. Pasar a Líneas borraba el encofrado (5790606). */
             maStlStartWallDimToolModesToolbar();
         };
         const maStlOpenDimKindsPopup = () => {

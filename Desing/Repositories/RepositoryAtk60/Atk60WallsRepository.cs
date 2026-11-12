@@ -162,7 +162,8 @@ namespace Desing.Repositories.RepositoryAtk60
 
                 var geom = ResolveWallGeom(wall);
                 if (geom == null || !geom.StartX.HasValue || !geom.StartZ.HasValue
-                    || !geom.EndX.HasValue || !geom.EndZ.HasValue)
+                    || !geom.EndX.HasValue || !geom.EndZ.HasValue
+                    || IsDegenerateAxis(geom))
                 {
                     continue;
                 }
@@ -228,7 +229,8 @@ namespace Desing.Repositories.RepositoryAtk60
 
                 var geom = ResolveWallGeom(wall);
                 if (geom == null || !geom.StartX.HasValue || !geom.StartZ.HasValue
-                    || !geom.EndX.HasValue || !geom.EndZ.HasValue)
+                    || !geom.EndX.HasValue || !geom.EndZ.HasValue
+                    || IsDegenerateAxis(geom))
                 {
                     continue;
                 }
@@ -290,6 +292,18 @@ namespace Desing.Repositories.RepositoryAtk60
                 var nez = nsz + uz * trimmed;
                 WriteTrimmedAxis(s.Wall, nsx, nsz, nex, nez, trimmed);
             }
+        }
+
+        /// <summary>
+        /// Un eje de largo 0 (punto suelto del dibujo) no es un muro: no cuenta como
+        /// conexión ni recorta al muro que toca. Si contara, el extremo libre del muro
+        /// se recortaba 450 mm y se quedaba sin encofrar.
+        /// </summary>
+        private static bool IsDegenerateAxis(Atk60ResolvedWallGeom geom)
+        {
+            var dx = geom.EndX.Value - geom.StartX.Value;
+            var dz = geom.EndZ.Value - geom.StartZ.Value;
+            return Math.Sqrt((dx * dx) + (dz * dz)) < 1d;
         }
 
         private static string CornerKeyMm(double x, double z)
@@ -969,6 +983,12 @@ namespace Desing.Repositories.RepositoryAtk60
                     continue;
                 }
 
+                // Eje de largo 0: no es muro, no lleva tape ni placas.
+                if (ExactWidthEndTape.RunMm(anchor, wall) < 1d)
+                {
+                    continue;
+                }
+
                 var totalModules = 0;
                 for (var bi = 0; bi < _moduleBuilders.Count; bi++)
                 {
@@ -1111,12 +1131,19 @@ namespace Desing.Repositories.RepositoryAtk60
                 ?? ResolvePointFromWallDtoExtra(wall, "P2")
                 ?? ResolvePointFromWallDtoExtra(wall, "p2");
 
-            var startX = ResolveSceneMm(attrs != null ? attrs.ExtraValueAsDouble("InicioX") : null, null);
-            var startY = ResolveSceneMm(attrs != null ? attrs.ExtraValueAsDouble("InicioZ") : null, null);
-            var startZ = ResolveSceneMm(attrs != null ? attrs.ExtraValueAsDouble("InicioY") : null, null);
-            var endX = ResolveSceneMm(attrs != null ? attrs.ExtraValueAsDouble("FinX") : null, null);
-            var endY = ResolveSceneMm(attrs != null ? attrs.ExtraValueAsDouble("FinZ") : null, null);
-            var endZ = ResolveSceneMm(attrs != null ? attrs.ExtraValueAsDouble("FinY") : null, null);
+            var rawStartX = attrs != null ? attrs.ExtraValueAsDouble("InicioX") : null;
+            var rawStartY = attrs != null ? attrs.ExtraValueAsDouble("InicioZ") : null;
+            var rawStartZ = attrs != null ? attrs.ExtraValueAsDouble("InicioY") : null;
+            var rawEndX = attrs != null ? attrs.ExtraValueAsDouble("FinX") : null;
+            var rawEndY = attrs != null ? attrs.ExtraValueAsDouble("FinZ") : null;
+            var rawEndZ = attrs != null ? attrs.ExtraValueAsDouble("FinY") : null;
+            var inMeters = AxisCoordinatesInMeters(attrs, rawStartX, rawStartZ, rawEndX, rawEndZ);
+            var startX = CoordinateMm(rawStartX, inMeters);
+            var startY = CoordinateMm(rawStartY, inMeters);
+            var startZ = CoordinateMm(rawStartZ, inMeters);
+            var endX = CoordinateMm(rawEndX, inMeters);
+            var endY = CoordinateMm(rawEndY, inMeters);
+            var endZ = CoordinateMm(rawEndZ, inMeters);
 
             if (p1 != null)
             {
@@ -1296,9 +1323,9 @@ namespace Desing.Repositories.RepositoryAtk60
                 return null;
             }
 
-            var x = ResolveSceneMm(GetTokenNumber(obj, "xMm") ?? GetTokenNumber(obj, "x"), null);
-            var y = ResolveSceneMm(GetTokenNumber(obj, "yMm") ?? GetTokenNumber(obj, "y"), null);
-            var z = ResolveSceneMm(GetTokenNumber(obj, "zMm") ?? GetTokenNumber(obj, "z"), null);
+            var x = PointCoordinateMm(obj, "xMm", "x");
+            var y = PointCoordinateMm(obj, "yMm", "y");
+            var z = PointCoordinateMm(obj, "zMm", "z");
 
             if (!x.HasValue || !y.HasValue || !z.HasValue)
             {
@@ -1338,9 +1365,9 @@ namespace Desing.Repositories.RepositoryAtk60
                 return null;
             }
 
-            var x = ResolveSceneMm(GetTokenNumber(obj, "xMm") ?? GetTokenNumber(obj, "x"), null);
-            var y = ResolveSceneMm(GetTokenNumber(obj, "yMm") ?? GetTokenNumber(obj, "y"), null);
-            var z = ResolveSceneMm(GetTokenNumber(obj, "zMm") ?? GetTokenNumber(obj, "z"), null);
+            var x = PointCoordinateMm(obj, "xMm", "x");
+            var y = PointCoordinateMm(obj, "yMm", "y");
+            var z = PointCoordinateMm(obj, "zMm", "z");
 
             if (!x.HasValue || !y.HasValue || !z.HasValue)
             {
@@ -1767,6 +1794,66 @@ namespace Desing.Repositories.RepositoryAtk60
         private static double ResolveDouble(double? value)
         {
             return value.HasValue ? value.Value : 0d;
+        }
+
+        /// <summary>
+        /// Las coordenadas del eje llegan en mm. Solo se leen en metros si las cuatro
+        /// son pequeñas y el largo cuadra con <c>_Datalong</c> en metros.
+        /// Mirar cada cota por separado convertía un extremo recortado a 50 mm en 50 m
+        /// y la T o la cruz se quedaban sin esquinas.
+        /// </summary>
+        private static bool AxisCoordinatesInMeters(
+            AttributesList attrs,
+            double? startX,
+            double? startZ,
+            double? endX,
+            double? endZ)
+        {
+            if (!startX.HasValue || !startZ.HasValue || !endX.HasValue || !endZ.HasValue)
+            {
+                return false;
+            }
+
+            if (Math.Abs(startX.Value) > 50d || Math.Abs(startZ.Value) > 50d
+                || Math.Abs(endX.Value) > 50d || Math.Abs(endZ.Value) > 50d)
+            {
+                return false;
+            }
+
+            var dx = endX.Value - startX.Value;
+            var dz = endZ.Value - startZ.Value;
+            var rawLength = Math.Sqrt((dx * dx) + (dz * dz));
+            var dataLong = attrs != null ? (attrs._Datalong ?? attrs.ExtraValueAsDouble("_Datalong")) : null;
+            if (!dataLong.HasValue || dataLong.Value <= 0d)
+            {
+                return true;
+            }
+
+            return Math.Abs(rawLength - dataLong.Value) <= Math.Abs(rawLength - (dataLong.Value * 1000d));
+        }
+
+        private static double? CoordinateMm(double? value, bool inMeters)
+        {
+            if (!value.HasValue)
+            {
+                return null;
+            }
+
+            return inMeters ? value.Value * 1000d : value.Value;
+        }
+
+        /// <summary>
+        /// Punto con <c>xMm</c>: ya está en mm. Solo un punto sin <c>xMm</c> se mira como antes.
+        /// </summary>
+        private static double? PointCoordinateMm(JObject obj, string mmKey, string key)
+        {
+            var mm = GetTokenNumber(obj, mmKey);
+            if (mm.HasValue)
+            {
+                return mm.Value;
+            }
+
+            return ResolveSceneMm(GetTokenNumber(obj, key), null);
         }
 
         private static double? ResolveSceneMm(double? preferred, double? fallback)
