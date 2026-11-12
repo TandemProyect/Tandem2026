@@ -680,6 +680,14 @@
         </aside>
         <div id="ma-stl-ruler-anchor-coords-hud" class="ma-stl-ruler-anchor-coords-hud d-none" aria-live="polite" aria-atomic="true" data-ma-stl-ruler-anchor-coords-template="@MasterArticles.StlPreview_RulerAnchorGridCoordsHud"></div>
         <div id="ma-stl-line-tool-ortho-status-hud" class="ma-stl-line-tool-ortho-status-hud d-none" role="button" tabindex="0" aria-live="polite" aria-atomic="true"></div>
+        @* Offset (desfase): distancia editable junto al indicador F8; visible sólo con el comando activo. *@
+        <div id="ma-stl-offset-status-hud" class="ma-stl-offset-status-hud d-none" title="@MasterArticles.StlPreview_OffsetStatusDistanceAria">
+            <label for="ma-stl-offset-status-distance" class="ma-stl-offset-status-hud__label">@MasterArticles.StlPreview_OffsetStatusDistanceLabel</label>
+            <input id="ma-stl-offset-status-distance" type="text" class="ma-stl-offset-status-hud__input" maxlength="16" autocomplete="off" spellcheck="false"
+                   inputmode="decimal" data-decimal-input="true"
+                   aria-label="@MasterArticles.StlPreview_OffsetStatusDistanceAria" />
+            <span class="ma-stl-offset-status-hud__unit" aria-hidden="true">m</span>
+        </div>
         <div id="ma-stl-line-snap-angle-hud" class="ma-stl-line-snap-angle-hud d-none" aria-live="polite" aria-atomic="true"></div>
         <div id="ma-stl-line-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
              data-ma-stl-line-tool-instruction-first="@MasterArticles.StlPreview_LineToolInstructionFirst"

@@ -1459,6 +1459,12 @@
   <data name="StlPreview_NoStlInViewerTooltip" xml:space="preserve">
     <value>Sin STL en el visor</value>
   </data>
+  <data name="StlPreview_OffsetStatusDistanceAria" xml:space="preserve">
+    <value>Distancia del desfase en metros (coma o punto). Enter aplica y vuelve al dibujo; Esc cancela el comando.</value>
+  </data>
+  <data name="StlPreview_OffsetStatusDistanceLabel" xml:space="preserve">
+    <value>Desfase</value>
+  </data>
   <data name="StlPreview_OffsetToolDistanceInvalidToast" xml:space="preserve">
     <value>Distancia de offset no válida. Use metros o milímetros (p. ej. 0,30 o 300 mm).</value>
   </data>

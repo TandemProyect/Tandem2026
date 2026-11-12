@@ -1459,6 +1459,12 @@
   <data name="StlPreview_NoStlInViewerTooltip" xml:space="preserve">
     <value>No STL in the viewer</value>
   </data>
+  <data name="StlPreview_OffsetStatusDistanceAria" xml:space="preserve">
+    <value>Offset distance in meters (comma or dot). Enter applies and returns to the drawing; Esc cancels the command.</value>
+  </data>
+  <data name="StlPreview_OffsetStatusDistanceLabel" xml:space="preserve">
+    <value>Offset</value>
+  </data>
   <data name="StlPreview_OffsetToolDistanceInvalidToast" xml:space="preserve">
     <value>Invalid offset distance. Use meters or millimeters (e.g. 0.30 or 300 mm).</value>
   </data>

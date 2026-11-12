@@ -240,8 +240,30 @@ const MA_STL_LINE_TOOL_ORTHO15_STEP_RAD = Math.PI / 12;
 /** Celda visual hover (ligeramente menor que minor 500 mm). */
 const MA_STL_GRID_INTERSECTION_PICK_CELL_MM = 480;
 const MA_STL_DESING2_GRID_INTERSECTION_FLOOR_EPS_MM = 0.35;
-/** Hover STL en modo pick: emissive / tint azul (solo temporal; se restaura al salir). */
-const MA_STL_PICK_HOVER_EMISSIVE_HEX = 0x1a5fb4;
+/**
+ * Resaltado de selección Desing_2 — ÚNICO sitio para cambiar colores/grosores.
+ * - hover*: pre-resaltado bajo el cursor (cian) antes de hacer clic.
+ * - selected*: objeto seleccionado / sobre el que actúa el comando (borrar, offset, copiar,
+ *   mover, estirar, muro 3D, selección general): verde flúor, trazo más grueso y pulso suave.
+ * Grosores en px de pantalla (`LineMaterial.linewidth` de `Line2`). Pulso: 0 ⇒ sin pulso.
+ */
+const MA_STL_SELECTION_STYLE = Object.freeze({
+    hoverHex: 0x22d3ee,
+    hoverLinewidthPx: 4,
+    selectedHex: 0x39ff14,
+    selectedLinewidthPx: 6,
+    selectedAxisLinewidthPx: 3,
+    selectedPulseHex: 0xd9ffcc,
+    selectedPulseAmount: 0.45,
+    selectedPulsePeriodMs: 1200,
+    meshHoverEmissiveHex: 0x0e7490,
+    meshHoverColorHex: 0x22d3ee,
+    meshSelectedEmissiveHex: 0x39ff14,
+    meshSelectedEmissiveIntensity: 0.55,
+    meshSelectedColorLerp: 0.6,
+});
+/** Hover STL en modo pick: emissive / tint cian (solo temporal; se restaura al salir). */
+const MA_STL_PICK_HOVER_EMISSIVE_HEX = MA_STL_SELECTION_STYLE.meshHoverEmissiveHex;
 const MA_STL_PICK_HOVER_COLOR_LERP = 0.42;
 const MA_STL_PICK_HOVER_EMISSIVE_INTENSITY = 0.38;
 
@@ -954,6 +976,7 @@ function maStlApplyUserFloorWallAxisLineStyleToMaterial(mat) {
     mat.gapSize = MA_STL_WALL2D_AXIS_LINE_GAP_SIZE;
     mat.opacity = 1;
     mat.transparent = false;
+    if (mat.userData) mat.userData.maStlSelPulse = false;
     mat.needsUpdate = true;
 }
 
@@ -1004,10 +1027,8 @@ function maStlSetUserFloorLineGeometryMm(line, a, b) {
 /** Screen-space proximity pick for floor user lines (`Line2`). */
 const MA_STL_USER_FLOOR_LINE_SCREEN_PICK_PX = 13;
 
-/** Hover color (brighter than {@link maStlMakeUserFloorLineMaterial}). */
-const MA_STL_USER_FLOOR_LINE_HOVER_HEX = 0xffcc66;
-/** Herramienta offset: tinte sutil en línea origen (no hover brillante). */
-const MA_STL_OFFSET_TOOL_SOURCE_TINT_HEX = 0xff8833;
+/** Hover (pre-resaltado) de líneas: ver {@link MA_STL_SELECTION_STYLE}. */
+const MA_STL_USER_FLOOR_LINE_HOVER_HEX = MA_STL_SELECTION_STYLE.hoverHex;
 /** Herramienta offset: vista previa discontinua pálida (única copia visual hasta confirmar). */
 const MA_STL_OFFSET_TOOL_PREVIEW_COLOR_HEX = 0xffeedd;
 const MA_STL_OFFSET_TOOL_PREVIEW_OPACITY = 0.88;
@@ -1021,8 +1042,6 @@ const MA_STL_COPY_TOOL_PREVIEW_LINEWIDTH_PX = 2;
 const MA_STL_COPY_TOOL_PREVIEW_MESH_OPACITY = 0.42;
 /** Herramienta copiar con orto activo: solo ejes 90° (no 15° de la herramienta línea). */
 const MA_STL_COPY_TOOL_ORTHO_STEP_RAD = Math.PI / 2;
-/** Herramienta borrar: líneas marcadas para eliminación (naranja base a 50 %). */
-const MA_STL_DELETE_TOOL_PICK_OPACITY = 0.5;
 /** Arrastre mínimo (px) antes de mostrar marquee selección ventana/cruce (clic en entidad sigue siendo pick). */
 const MA_STL_WINDOW_SELECTION_DRAG_THRESHOLD_PX = 4;
 
@@ -3033,6 +3052,9 @@ function bootMasterArticleDetailsStlViewer() {
     const maStlOffsetToolHudInstruction = document.getElementById('ma-stl-offset-tool-hud-instruction');
     const maStlOffsetToolHudDistanceRow = document.getElementById('ma-stl-offset-tool-hud-distance-row');
     const maStlOffsetToolHudDistanceInput = document.getElementById('ma-stl-offset-tool-hud-distance');
+    /** Barra inferior (junto a F8): distancia del offset editable mientras el comando está activo. */
+    const maStlOffsetStatusHud = document.getElementById('ma-stl-offset-status-hud');
+    const maStlOffsetStatusDistanceInput = document.getElementById('ma-stl-offset-status-distance');
     const maStlTrimToolToggleBtn = document.getElementById('ma-stl-tool-trim');
     const maStlExtendToolToggleBtn = document.getElementById('ma-stl-tool-extend');
     const maStlTrimToolHud = document.getElementById('ma-stl-trim-tool-hud');
@@ -3061,7 +3083,7 @@ function bootMasterArticleDetailsStlViewer() {
     /** @type {THREE.Mesh|null} */
     let maStlDeleteToolHoverMesh = null;
     /**
-     * Material base de malla STL antes de pick borrar (selección 50 % opacity o hover emissive).
+     * Material base de malla STL antes de pick borrar (selección verde flúor o hover emissive cian).
      * @type {Map<THREE.Mesh, { opacity: number, transparent: boolean, color: THREE.Color, emissive: THREE.Color, emissiveIntensity: number }>}
      */
     const maStlDeleteToolStlMeshMaterialSnapshots = new Map();
@@ -3532,7 +3554,11 @@ function bootMasterArticleDetailsStlViewer() {
     );
     /** @type {{ mesh: THREE.Mesh, color: THREE.Color, emissive: THREE.Color, emissiveIntensity: number }[]} */
     let maStlPickHoverMaterialSnapshots = [];
-    const _maStlPickHoverColor = new THREE.Color(0x3d8bfd);
+    const _maStlPickHoverColor = new THREE.Color(MA_STL_SELECTION_STYLE.meshHoverColorHex);
+    /** Tinte verde flúor de mallas seleccionadas y colores del pulso de líneas seleccionadas. */
+    const _maStlSelectedMeshColor = new THREE.Color(MA_STL_SELECTION_STYLE.selectedHex);
+    const _maStlSelectedPulseBase = new THREE.Color(MA_STL_SELECTION_STYLE.selectedHex);
+    const _maStlSelectedPulseTo = new THREE.Color(MA_STL_SELECTION_STYLE.selectedPulseHex);
 
     const maStlEntornoGridSnapSelect = document.getElementById('ma-stl-entorno-grid-snap-mm');
     const maStlEntornoRulerExtentSelect = document.getElementById('ma-stl-entorno-ruler-extent-m');
@@ -4586,7 +4612,7 @@ function bootMasterArticleDetailsStlViewer() {
         thickness: { x: 0, y: 0, valid: false },
     };
     let maStlUserFloorDimGuideGeomCacheKey = '';
-    /** Hover: resaltado naranja + cota longitud (sin ΔX/ΔZ ni asas). */
+    /** Hover: pre-resaltado cian + cota longitud (sin ΔX/ΔZ ni asas). */
     let maStlHoveredUserFloorLine = null;
     /** Selección por clic simple: longitud + ΔX + ΔZ + asas P1/P2 hasta deseleccionar. */
     let maStlUserFloorLineSelected = null;
@@ -11744,6 +11770,7 @@ let maStlWallApplyAllHeightMm = 0;
             maStlLineToolOrthoStatusHud.classList.remove('d-none', 'is-on', 'is-off');
             maStlLineToolOrthoStatusHud.classList.add(maStlLineToolOrtho15Enabled ? 'is-on' : 'is-off');
         }
+        maStlSyncOffsetStatusHud();
     }
 
     function maStlToggleLineToolOrtho15FromUi() {
@@ -15901,7 +15928,7 @@ let maStlWallApplyAllHeightMm = 0;
         for (let i = 0; i < maStlOffsetToolHoverGroupLines.length; i++) {
             const ln = maStlOffsetToolHoverGroupLines[i];
             if (!ln || !ln.material || maStlOffsetToolLineInSourceGroup(ln)) continue;
-            maStlApplyUserFloorLineOffsetSourceMaterial(ln.material);
+            maStlApplyUserFloorLineHoverBrightMaterial(ln.material, maStlPlanUdForLineMaterial(ln));
         }
     }
 
@@ -16611,8 +16638,28 @@ let maStlWallApplyAllHeightMm = 0;
             maStlOffsetToolSyncDistanceInputFromMm(maStlOffsetToolDistanceMm);
             return false;
         }
-        maStlOffsetToolDistanceMm = maStlClampDesing2OffsetDefaultMm(parsed);
+        maStlOffsetToolSetDistanceMm(parsed);
         maStlOffsetToolSyncDistanceInputFromMm(maStlOffsetToolDistanceMm);
+        return true;
+    }
+
+    /**
+     * Fija la distancia del offset activo y la recuerda como «Offset por defecto» de la sesión
+     * (`desing2EnvOffsetDefaultMm` + campo de Configuración; se persiste con Aceptar / Guardar vista).
+     * Refresca la vista previa si ya hay línea elegida. No reescribe el input que tenga el foco.
+     * @param {number} mm
+     */
+    function maStlOffsetToolSetDistanceMm(mm) {
+        maStlOffsetToolDistanceMm = maStlClampDesing2OffsetDefaultMm(mm);
+        desing2EnvOffsetDefaultMm = maStlOffsetToolDistanceMm;
+        maStlSyncConfigOffsetDefaultInputFromMm(desing2EnvOffsetDefaultMm);
+        if (
+            maStlOffsetToolHudDistanceInput instanceof HTMLInputElement &&
+            document.activeElement !== maStlOffsetToolHudDistanceInput
+        ) {
+            maStlOffsetToolSyncDistanceInputFromMm(maStlOffsetToolDistanceMm);
+        }
+        maStlSyncOffsetStatusHud();
         if (maStlOffsetToolState === 'pickDirection' && renderer) {
             const cx = maStlLineToolLastPointerClientXY.x;
             const cy = maStlLineToolLastPointerClientXY.y;
@@ -16620,10 +16667,70 @@ let maStlWallApplyAllHeightMm = 0;
                 maStlOffsetToolSyncPreviewAtPointer(cx, cy);
             }
         }
-        return true;
+    }
+
+    /** Pill inferior junto a «(F8)»: visible sólo con offset activo; valor = distancia actual. */
+    function maStlSyncOffsetStatusHud() {
+        if (!maStlOffsetStatusHud || !maStlDesingV2Viewer) return;
+        const input = maStlOffsetStatusDistanceInput instanceof HTMLInputElement ? maStlOffsetStatusDistanceInput : null;
+        if (!maStlIsOffsetToolActive()) {
+            if (input && document.activeElement === input) input.blur();
+            if (input) input.classList.remove('is-invalid');
+            maStlOffsetStatusHud.classList.add('d-none');
+            return;
+        }
+        maStlOffsetStatusHud.classList.remove('d-none');
+        const ortho = maStlLineToolOrthoStatusHud;
+        if (ortho && !ortho.classList.contains('d-none') && ortho.offsetWidth > 0) {
+            maStlOffsetStatusHud.style.left = ortho.offsetLeft + ortho.offsetWidth + 8 + 'px';
+        }
+        if (input && document.activeElement !== input) {
+            input.value = maStlDesing2DimEditableMetersInputDisplayFromMm(maStlOffsetToolDistanceMm);
+            input.classList.remove('is-invalid');
+        }
+    }
+
+    /**
+     * Lee el pill inferior. Válido (> 0, m o mm, coma o punto) ⇒ aplica; si no, aviso y valor anterior.
+     * @param {boolean} commit true en Enter/blur (reescribe el texto con punto y avisa si es inválido)
+     */
+    function maStlOffsetStatusApplyFromInput(commit) {
+        const input = maStlOffsetStatusDistanceInput;
+        if (!(input instanceof HTMLInputElement) || !maStlIsOffsetToolActive()) return false;
+        const parsed = maStlParseLengthInputValueToMm(String(input.value || '').trim());
+        const ok = parsed != null && Number.isFinite(parsed) && parsed > 0;
+        if (!commit) {
+            input.classList.toggle('is-invalid', !ok && String(input.value || '').trim() !== '');
+            if (ok) maStlOffsetToolSetDistanceMm(parsed);
+            return ok;
+        }
+        input.classList.remove('is-invalid');
+        if (ok) {
+            maStlOffsetToolSetDistanceMm(parsed);
+        } else {
+            const toastTpl =
+                maStlOffsetToolHud && maStlOffsetToolHud.getAttribute('data-ma-stl-offset-tool-distance-invalid-toast');
+            if (toastTpl) maStlDesing2ShowSaveViewToast(toastTpl);
+        }
+        input.value = maStlDesing2DimEditableMetersInputDisplayFromMm(maStlOffsetToolDistanceMm);
+        return ok;
+    }
+
+    function maStlOffsetStatusFocusCanvas() {
+        const input = maStlOffsetStatusDistanceInput;
+        if (input instanceof HTMLInputElement && document.activeElement === input) input.blur();
+        const canvas = renderer && renderer.domElement;
+        if (canvas && typeof canvas.focus === 'function') {
+            try {
+                canvas.focus({ preventScroll: true });
+            } catch (_eFocus) {
+                /* canvas no enfocable: basta con quitar el foco del input */
+            }
+        }
     }
 
     function maStlSyncOffsetToolHud() {
+        maStlSyncOffsetStatusHud();
         if (!maStlOffsetToolHud || !maStlDesingV2Viewer) return;
         if (!maStlIsOffsetToolActive()) {
             maStlOffsetToolHud.classList.add('d-none');
@@ -17656,13 +17763,33 @@ let maStlWallApplyAllHeightMm = 0;
         maStlDeleteToolStlMeshMaterialSnapshots.delete(mesh);
     }
 
-    /** Herramienta borrar: malla STL seleccionada a 50 % opacity. */
+    /**
+     * Malla STL seleccionada: tinte + emissive verde flúor sobre su color original (snapshot),
+     * sin acumular tintes. Restaurar con el snapshot de la herramienta.
+     * @param {THREE.Mesh} mesh
+     * @param {{ color?: THREE.Color }|undefined} snap
+     */
+    function maStlApplyStlMeshSelectedTint(mesh, snap) {
+        if (!mesh || !mesh.material) return;
+        const mat = mesh.material;
+        if (snap && snap.color && mat.color) mat.color.copy(snap.color);
+        if (snap && snap.opacity != null) {
+            mat.opacity = snap.opacity;
+            mat.transparent = !!snap.transparent;
+        }
+        if (mat.color) mat.color.lerp(_maStlSelectedMeshColor, MA_STL_SELECTION_STYLE.meshSelectedColorLerp);
+        if (mat.emissive) {
+            mat.emissive.setHex(MA_STL_SELECTION_STYLE.meshSelectedEmissiveHex);
+            mat.emissiveIntensity = MA_STL_SELECTION_STYLE.meshSelectedEmissiveIntensity;
+        }
+        mat.needsUpdate = true;
+    }
+
+    /** Herramienta borrar: malla STL seleccionada = estilo «seleccionado» (verde flúor). */
     function maStlDeleteToolApplyStlMeshDeletePickMaterial(mesh) {
         if (!mesh || !mesh.material) return;
         maStlDeleteToolEnsureStlMeshMaterialSnapshot(mesh);
-        mesh.material.opacity = MA_STL_DELETE_TOOL_PICK_OPACITY;
-        mesh.material.transparent = true;
-        mesh.material.needsUpdate = true;
+        maStlApplyStlMeshSelectedTint(mesh, maStlDeleteToolStlMeshMaterialSnapshots.get(mesh));
     }
 
     /** Hover borrar sobre malla no seleccionada (emissive azul, mismo criterio que pick objeto). */
@@ -18616,9 +18743,7 @@ let maStlWallApplyAllHeightMm = 0;
     function maStlCopyToolApplyStlMeshPickMaterial(mesh) {
         if (!mesh || !mesh.material) return;
         maStlCopyToolEnsureStlMeshMaterialSnapshot(mesh);
-        mesh.material.opacity = MA_STL_DELETE_TOOL_PICK_OPACITY;
-        mesh.material.transparent = true;
-        mesh.material.needsUpdate = true;
+        maStlApplyStlMeshSelectedTint(mesh, maStlCopyToolStlMeshMaterialSnapshots.get(mesh));
     }
 
     function maStlCopyToolApplyStlMeshHoverMaterial(mesh) {
@@ -25266,7 +25391,11 @@ let maStlWallApplyAllHeightMm = 0;
                 maStlPlanUdForLineMaterial(maStlUserFloorLineSelected)
             );
         }
+        const wasSelected = maStlUserFloorLineSelected;
         maStlUserFloorLineSelected = null;
+        if (wasSelected && wasSelected === maStlHoveredUserFloorLine && wasSelected.material) {
+            maStlApplyUserFloorLineHoverBrightMaterialForLine(wasSelected);
+        }
         maStlUserFloorLineDimAnchor.valid = false;
         if (maStlUserFloorLineHudTargetLine()) {
             maStlUpdateUserFloorLineDimHud();
@@ -25464,10 +25593,7 @@ let maStlWallApplyAllHeightMm = 0;
             maStlUserFloorLineDimAnchor.valid = false;
         }
         if (line && line.material) {
-            maStlApplyUserFloorLineHoverBrightMaterial(
-                line.material,
-                maStlPlanUdForLineMaterial(line)
-            );
+            maStlApplyUserFloorLineSelectedMaterialForLine(line);
         }
         maStlInvalidateUserFloorDimGuideGeomCache();
         maStlUpdateUserFloorLineDimHud(false);
@@ -26760,9 +26886,11 @@ let maStlWallApplyAllHeightMm = 0;
         if (mat.isLineMaterial) {
             mat.linewidth = ref.linewidth;
         }
+        if (mat.userData) mat.userData.maStlSelPulse = false;
         mat.needsUpdate = true;
     }
 
+    /** Pre-resaltado (cursor encima): cian y algo más grueso — {@link MA_STL_SELECTION_STYLE}. */
     function maStlApplyUserFloorLineHoverBrightMaterial(mat, planUd) {
         if (planUd && planUd.wallRole === 'axis') {
             maStlApplyUserFloorLineBaseMaterial(mat, planUd);
@@ -26772,7 +26900,60 @@ let maStlWallApplyAllHeightMm = 0;
         }
         maStlApplyUserFloorLineBaseMaterial(mat, planUd);
         mat.color.setHex(MA_STL_USER_FLOOR_LINE_HOVER_HEX);
+        if (mat.isLineMaterial) mat.linewidth = MA_STL_SELECTION_STYLE.hoverLinewidthPx;
         mat.needsUpdate = true;
+    }
+
+    /**
+     * Seleccionado / objeto del comando: verde flúor, trazo grueso y pulso ({@link maStlSelectionPulseTick}).
+     * El eje discontinuo del muro conserva el discontinuo pero también se pinta verde.
+     */
+    function maStlApplyUserFloorLineSelectedMaterial(mat, planUd) {
+        if (!mat) return;
+        maStlApplyUserFloorLineBaseMaterial(mat, planUd);
+        mat.color.setHex(MA_STL_SELECTION_STYLE.selectedHex);
+        mat.opacity = 1;
+        mat.transparent = false;
+        if (mat.isLineMaterial) {
+            mat.linewidth =
+                planUd && planUd.wallRole === 'axis'
+                    ? MA_STL_SELECTION_STYLE.selectedAxisLinewidthPx
+                    : MA_STL_SELECTION_STYLE.selectedLinewidthPx;
+        }
+        if (mat.userData) mat.userData.maStlSelPulse = MA_STL_SELECTION_STYLE.selectedPulseAmount > 0;
+        mat.needsUpdate = true;
+    }
+
+    function maStlApplyUserFloorLineSelectedMaterialForLine(line) {
+        if (!line || !line.material) return;
+        maStlApplyUserFloorLineSelectedMaterial(line.material, maStlPlanUdForLineMaterial(line));
+        maStlUserFloorLineSyncAxisDashDistances(line);
+    }
+
+    /** ¿La línea está seleccionada en la selección general o en alguna herramienta activa? */
+    function maStlUserFloorLineIsMarkedSelected(line) {
+        if (!line) return false;
+        if (line === maStlUserFloorLineSelected) return true;
+        if (maStlDeleteToolSelectedLines.has(line)) return true;
+        if (maStlCopyToolSelectedLines.has(line)) return true;
+        if (maStlWall3dToolSelectedLines.has(line)) return true;
+        return maStlOffsetToolSourceGroupLines.indexOf(line) >= 0;
+    }
+
+    /** Pulso suave del verde de selección (llamado cada frame desde `tick`; sin asignaciones). */
+    function maStlSelectionPulseTick() {
+        if (!maStlDesingV2Viewer || !maStlUserLinesGroup) return;
+        const amount = MA_STL_SELECTION_STYLE.selectedPulseAmount;
+        if (!(amount > 0)) return;
+        const period = Math.max(200, MA_STL_SELECTION_STYLE.selectedPulsePeriodMs);
+        const phase = (performance.now() % period) / period;
+        const k = amount * (0.5 - 0.5 * Math.cos(phase * Math.PI * 2));
+        const ch = maStlUserLinesGroup.children;
+        for (let i = 0; i < ch.length; i++) {
+            const mat = ch[i].material;
+            if (!mat || !mat.userData || !mat.userData.maStlSelPulse || !mat.color) continue;
+            mat.color.copy(_maStlSelectedPulseBase).lerp(_maStlSelectedPulseTo, k);
+        }
     }
 
     function maStlPlanUdForLineMaterial(line) {
@@ -26788,6 +26969,11 @@ let maStlWallApplyAllHeightMm = 0;
 
     function maStlApplyUserFloorLineHoverBrightMaterialForLine(line) {
         if (!line || !line.material) return;
+        /* Lo seleccionado manda: el hover no lo «apaga» a cian. */
+        if (maStlUserFloorLineIsMarkedSelected(line)) {
+            maStlApplyUserFloorLineSelectedMaterialForLine(line);
+            return;
+        }
         const planUd = maStlPlanUdForLineMaterial(line);
         maStlApplyUserFloorLineHoverBrightMaterial(line.material, planUd);
         maStlUserFloorLineSyncAxisDashDistances(line);
@@ -26814,30 +27000,14 @@ let maStlWallApplyAllHeightMm = 0;
         }
     }
 
-    /** Resaltado sutil herramienta offset (color únicamente; sin relleno ni segunda línea sólida). */
+    /** Herramienta offset: línea/polilínea origen = estilo «seleccionado» (verde flúor). */
     function maStlApplyUserFloorLineOffsetSourceMaterial(mat) {
-        maStlApplyUserFloorLineBaseMaterial(mat);
-        mat.color.setHex(MA_STL_OFFSET_TOOL_SOURCE_TINT_HEX);
-        mat.needsUpdate = true;
+        maStlApplyUserFloorLineSelectedMaterial(mat);
     }
 
-    /** Herramienta borrar: naranja base del trazo a 50 % opacity (distinct from hover bright). */
+    /** Borrar / copiar / mover / estirar / muro 3D: elementos marcados = estilo «seleccionado». */
     function maStlApplyUserFloorLineDeletePickMaterial(mat, planUd) {
-        if (planUd && planUd.wallRole === 'axis') {
-            maStlApplyUserFloorWallAxisLineStyleToMaterial(mat);
-            mat.opacity = MA_STL_DELETE_TOOL_PICK_OPACITY;
-            mat.transparent = true;
-            mat.needsUpdate = true;
-            return;
-        }
-        const ref = maStlEnsureUserFloorLineMat();
-        mat.color.copy(ref.color);
-        mat.opacity = MA_STL_DELETE_TOOL_PICK_OPACITY;
-        mat.transparent = true;
-        if (mat.isLineMaterial) {
-            mat.linewidth = ref.linewidth;
-        }
-        mat.needsUpdate = true;
+        maStlApplyUserFloorLineSelectedMaterial(mat, planUd);
     }
 
     function maStlEnsureUserFloorDimDomHud() {
@@ -31807,6 +31977,8 @@ let maStlWallApplyAllHeightMm = 0;
                 maStlApplyUserFloorLineBaseMaterialForLine(o);
                 if (o === maStlHoveredUserFloorLine) {
                     maStlApplyUserFloorLineHoverBrightMaterialForLine(o);
+                } else if (maStlUserFloorLineIsMarkedSelected(o)) {
+                    maStlApplyUserFloorLineSelectedMaterialForLine(o);
                 }
             }
             maStlReapplyAllUserFloorWallAxisLineStyles();
@@ -33872,6 +34044,50 @@ let maStlWallApplyAllHeightMm = 0;
         window.addEventListener('pointercancel', onWindowPointerCancelUserFloorLineRefactorRmb, true);
     }
 
+    if (maStlDesingV2Viewer && maStlOffsetStatusHud && maStlOffsetStatusDistanceInput instanceof HTMLInputElement) {
+        /* El pill está sobre el lienzo: que clic/arrastre no lleguen al canvas ni a la órbita. */
+        ['pointerdown', 'pointerup', 'click', 'dblclick', 'wheel', 'contextmenu'].forEach(function (type) {
+            maStlOffsetStatusHud.addEventListener(type, function (ev) {
+                ev.stopPropagation();
+            });
+        });
+        maStlOffsetStatusDistanceInput.addEventListener('focus', function () {
+            try {
+                maStlOffsetStatusDistanceInput.select();
+            } catch (_eSel) {}
+        });
+        maStlOffsetStatusDistanceInput.addEventListener('input', function () {
+            maStlOffsetStatusApplyFromInput(false);
+        });
+        maStlOffsetStatusDistanceInput.addEventListener('blur', function () {
+            if (!maStlIsOffsetToolActive()) return;
+            maStlOffsetStatusApplyFromInput(true);
+        });
+        maStlOffsetStatusDistanceInput.addEventListener('keydown', function (ev) {
+            /* Atajos del visor (Enter repetir, Supr, letras, Ctrl+Z…) escuchan en window: no propagar. */
+            ev.stopPropagation();
+            if (ev.isComposing) return;
+            if (ev.key === 'Enter' || ev.code === 'Enter' || ev.key === 'NumpadEnter' || ev.code === 'NumpadEnter') {
+                ev.preventDefault();
+                if (ev.repeat) return;
+                maStlOffsetStatusApplyFromInput(true);
+                maStlOffsetStatusFocusCanvas();
+                return;
+            }
+            if (ev.key === 'Escape' || ev.key === 'Esc' || ev.code === 'Escape') {
+                /* Como la línea de comandos de AutoCAD: Esc cancela el comando (sin aplicar lo tecleado). */
+                ev.preventDefault();
+                if (ev.repeat) return;
+                maStlOffsetStatusDistanceInput.value = maStlDesing2DimEditableMetersInputDisplayFromMm(
+                    maStlOffsetToolDistanceMm
+                );
+                maStlOffsetStatusDistanceInput.classList.remove('is-invalid');
+                maStlOffsetStatusFocusCanvas();
+                maStlDesing2CancelTransientToolsEscape();
+            }
+        });
+    }
+
     if (maStlDesingV2Viewer && maStlOffsetToolHudDistanceInput) {
         maStlOffsetToolHudDistanceInput.autocomplete = 'off';
         maStlOffsetToolHudDistanceInput.addEventListener('input', function () {
@@ -35478,6 +35694,7 @@ let maStlWallApplyAllHeightMm = 0;
 
     function tick() {
         requestAnimationFrame(tick);
+        maStlSelectionPulseTick();
         if (controls && !maStlIsRulerAnchorPickModeActive()) {
             controls.update();
         }

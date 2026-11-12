@@ -379,6 +379,9 @@ const es = Object.fromEntries(
     StlPreview_OffsetToolHudDistanceAria:
       "Distancia del offset en metros o milímetros (p. ej. 0,30 · 300 mm)",
     StlPreview_OffsetToolHudDistancePlaceholder: "p. ej. 0,30 · 300 mm",
+    StlPreview_OffsetStatusDistanceLabel: "Desfase",
+    StlPreview_OffsetStatusDistanceAria:
+      "Distancia del desfase en metros (coma o punto). Enter aplica y vuelve al dibujo; Esc cancela el comando.",
     StlPreview_OffsetToolDistanceInvalidToast:
       "Distancia de offset no válida. Use metros o milímetros (p. ej. 0,30 o 300 mm).",
     StlPreview_Desing2TopToolInsertCorner: "Insertar esquina",
@@ -1116,6 +1119,9 @@ const en = Object.assign({}, es, {
   StlPreview_OffsetToolHudDistanceAria:
     "Offset distance in meters or millimeters (e.g. 0.30 · 300 mm)",
   StlPreview_OffsetToolHudDistancePlaceholder: "e.g. 0.30 · 300 mm",
+  StlPreview_OffsetStatusDistanceLabel: "Offset",
+  StlPreview_OffsetStatusDistanceAria:
+    "Offset distance in meters (comma or dot). Enter applies and returns to the drawing; Esc cancels the command.",
   StlPreview_OffsetToolDistanceInvalidToast:
     "Invalid offset distance. Use meters or millimeters (e.g. 0.30 or 300 mm).",
   StlPreview_Desing2TopToolInsertCorner: "Insert corner",
