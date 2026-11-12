@@ -3688,6 +3688,20 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+  <!-- Desing_2 Importar DWG: ODA File Converter portable (App_Data\Tools\ODA, fuera de git) se incluye al publicar (Web Deploy / carpeta). Si la carpeta no existe, no se publica nada. -->
+  <Target Name="Desing2IncludeOdaFileConverter" Condition="Exists('$(MSBuildProjectDirectory)\App_Data\Tools\ODA\ODAFileConverter.exe')">
+    <ItemGroup>
+      <_Desing2OdaFiles Include="App_Data\Tools\ODA\**\*" Exclude="App_Data\Tools\ODA\**\*.msi" />
+      <FilesForPackagingFromProject Include="@(_Desing2OdaFiles)">
+        <DestinationRelativePath>App_Data\Tools\ODA\%(RecursiveDir)%(Filename)%(Extension)</DestinationRelativePath>
+      </FilesForPackagingFromProject>
+    </ItemGroup>
+    <Message Importance="high" Text="Desing2: ODA File Converter incluido en la publicacion (@(_Desing2OdaFiles->Count()) archivos)" />
+  </Target>
+  <PropertyGroup>
+    <CopyAllFilesToSingleFolderForPackageDependsOn>Desing2IncludeOdaFileConverter;$(CopyAllFilesToSingleFolderForPackageDependsOn)</CopyAllFilesToSingleFolderForPackageDependsOn>
+    <CopyAllFilesToSingleFolderForMsdeployDependsOn>Desing2IncludeOdaFileConverter;$(CopyAllFilesToSingleFolderForMsdeployDependsOn)</CopyAllFilesToSingleFolderForMsdeployDependsOn>
+  </PropertyGroup>
   <Target Name="MvcBuildViews" AfterTargets="AfterBuild" Condition="'$(MvcBuildViews)'=='true'">
     <AspNetCompiler VirtualPath="temp" PhysicalPath="$(WebProjectOutputDir)" />
   </Target>

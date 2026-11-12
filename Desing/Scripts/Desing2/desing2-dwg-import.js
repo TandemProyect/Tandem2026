@@ -231,6 +231,8 @@
                                 ? t('odaMissing', 'Falta ODA File Converter en el servidor')
                                 : (res && res.message) || t('serverFail', 'No se pudo analizar el archivo');
                         if (window.console && res) window.console.warn('[Desing2 DWG]', code, res.detail || '');
+                        /* Detalle técnico (exe, código de salida, DLL que falta…) para diagnosticar en el hosting. */
+                        if (res && res.detail) msg += ' — ' + String(res.detail).slice(0, 400);
                         showStep(state.result ? 'summary' : 'select');
                         if (state.result) updateSelection();
                         setError(msg);

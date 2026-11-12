@@ -455,10 +455,11 @@ namespace Desing.Controllers
                 toMeters = parsedToMeters;
             }
 
-            var workDir = Path.Combine(Path.GetTempPath(), "Desing2DwgImport", Guid.NewGuid().ToString("N"));
+            string workDir = null;
             try
             {
-                Directory.CreateDirectory(workDir);
+                // %TEMP%\Desing2DwgImport\{guid}, o App_Data\Temp\… si el hosting no deja escribir en %TEMP%.
+                workDir = Services.Desing2DwgConverter.CreateWorkDir();
                 var inputPath = Path.Combine(workDir, "plano" + ext);
                 file.SaveAs(inputPath);
 
@@ -490,7 +491,7 @@ namespace Desing.Controllers
             {
                 try
                 {
-                    if (Directory.Exists(workDir)) Directory.Delete(workDir, true);
+                    if (workDir != null && Directory.Exists(workDir)) Directory.Delete(workDir, true);
                 }
                 catch (Exception)
                 {

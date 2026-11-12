@@ -386,3 +386,5 @@ nuget.exe
 # Google Maps API key — copiar Web.GoogleMaps.config.example → GoogleMaps.local.config (local)
 Desing/Web.GoogleMaps.config
 Desing/GoogleMaps.local.config
+# Desing_2 Importar DWG: ODA File Converter portable (~80 MB, binarios de terceros). Se publica con Web Deploy (Design.csproj), no va a git.
+/Desing/App_Data/Tools/ODA/
