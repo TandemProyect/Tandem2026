@@ -872,7 +872,7 @@
     <value>Alargar</value>
   </data>
   <data name="StlPreview_Desing2TopToolAlargarAria" xml:space="preserve">
-    <value>Herramienta alargar — próximamente (solo interfaz)</value>
+    <value>Alargar líneas y muros hasta una arista límite (como ALARGA de AutoCAD)</value>
   </data>
   <data name="StlPreview_Desing2TopToolBorrar" xml:space="preserve">
     <value>Borrar</value>
@@ -932,7 +932,7 @@
     <value>Recortar</value>
   </data>
   <data name="StlPreview_Desing2TopToolRecortarAria" xml:space="preserve">
-    <value>Herramienta recortar — próximamente (solo interfaz)</value>
+    <value>Recortar líneas y muros hasta las aristas de corte (como RECORTA de AutoCAD)</value>
   </data>
   <data name="StlPreview_Desing2TopToolbarAria" xml:space="preserve">
     <value>Barra de herramientas del lienzo STL</value>
@@ -1056,6 +1056,12 @@
   </data>
   <data name="StlPreview_EscapeCancelToolsToast" xml:space="preserve">
     <value>Cancelado</value>
+  </data>
+  <data name="StlPreview_ExtendToolInstruction" xml:space="preserve">
+    <value>Alargar: haga clic cerca del extremo de la línea o del muro que quiere alargar hasta la siguiente línea, muro o pilar. Enter/Esc terminar</value>
+  </data>
+  <data name="StlPreview_ExtendToolNoChangeToast" xml:space="preserve">
+    <value>Alargar: ninguna línea, muro o pilar corta la prolongación de ese extremo (en muros solo se alargan extremos libres).</value>
   </data>
   <data name="StlPreview_FormworkRenderingAlmostDone" xml:space="preserve">
     <value>Casi listo…</value>
@@ -1233,6 +1239,9 @@
   </data>
   <data name="StlPreview_LeaveSaveYes" xml:space="preserve">
     <value>Sí</value>
+  </data>
+  <data name="StlPreview_LineEditToolUnsupportedToast" xml:space="preserve">
+    <value>Recortar/Alargar funciona con líneas y muros (no con pilares).</value>
   </data>
   <data name="StlPreview_LineToolDistanceInvalidToast" xml:space="preserve">
     <value>Introduzca una distancia válida (p. ej. 5, 5,5 ó 5000 mm) o pulse clic para el segundo punto.</value>
@@ -1569,6 +1578,12 @@
   </data>
   <data name="StlPreview_StretchToolInstructionSelecting" xml:space="preserve">
     <value>Seleccione el muro o línea a estirar: clic o ventana. Intro para el primer punto, Esc cancelar.</value>
+  </data>
+  <data name="StlPreview_TrimToolInstruction" xml:space="preserve">
+    <value>Recortar: haga clic en la parte de la línea o del muro que quiere quitar (corta en la línea, muro o pilar más cercano a cada lado; si no cruza nada, se borra). Enter/Esc terminar</value>
+  </data>
+  <data name="StlPreview_TrimToolNoChangeToast" xml:space="preserve">
+    <value>Recortar: no se pudo recortar ese tramo.</value>
   </data>
   <data name="StlPreview_UcsRulersAria" xml:space="preserve">
     <value>Reglas de plano en suelo</value>

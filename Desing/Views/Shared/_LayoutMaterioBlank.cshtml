@@ -58,6 +58,8 @@
     <script src="@Url.Content("~/assets/materio/vendor/libs/node-waves/node-waves.js")"></script>
     <script src="@Url.Content("~/assets/materio/js/main.js")"></script>
 
+    @* Decimales: coma → punto al salir del campo / enviar (BD con punto) *@
+    <script src="@Url.Content("~/Scripts/Intranet/decimal-input-normalize.js?v=20261112a")"></script>
     @Html.Partial("_PasswordEyeScript")
     @RenderSection("scripts", required: false)
 </body>

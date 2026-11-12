@@ -423,10 +423,10 @@ const es = Object.fromEntries(
       "Desplazar líneas de planta y objetos STL — selección por clic o ventana, punto base y desplazamiento",
     StlPreview_Desing2TopToolRecortar: "Recortar",
     StlPreview_Desing2TopToolRecortarAria:
-      "Herramienta recortar — próximamente (solo interfaz)",
+      "Recortar líneas y muros hasta las aristas de corte (como RECORTA de AutoCAD)",
     StlPreview_Desing2TopToolAlargar: "Alargar",
     StlPreview_Desing2TopToolAlargarAria:
-      "Herramienta alargar — próximamente (solo interfaz)",
+      "Alargar líneas y muros hasta una arista límite (como ALARGA de AutoCAD)",
     StlPreview_Desing2TopToolEstirar: "Estirar",
     StlPreview_Desing2TopToolEstirarAria:
       "Estirar muros y líneas — selección, punto base en el extremo fijo y segundo punto para alargar",
@@ -484,6 +484,16 @@ const es = Object.fromEntries(
     StlPreview_Desing2PhaseNeedAllWalls: "Elige el muro de inicio de cada equipo.",
     StlPreview_DeleteToolInstruction:
       "Seleccione líneas u objetos STL para borrar (clic o selección por ventana). Enter/Espacio/Supr para borrar, Esc cancelar",
+    StlPreview_TrimToolInstruction:
+      "Recortar: haga clic en la parte de la línea o del muro que quiere quitar (corta en la línea, muro o pilar más cercano a cada lado; si no cruza nada, se borra). Enter/Esc terminar",
+    StlPreview_TrimToolNoChangeToast:
+      "Recortar: no se pudo recortar ese tramo.",
+    StlPreview_ExtendToolInstruction:
+      "Alargar: haga clic cerca del extremo de la línea o del muro que quiere alargar hasta la siguiente línea, muro o pilar. Enter/Esc terminar",
+    StlPreview_ExtendToolNoChangeToast:
+      "Alargar: ninguna línea, muro o pilar corta la prolongación de ese extremo (en muros solo se alargan extremos libres).",
+    StlPreview_LineEditToolUnsupportedToast:
+      "Recortar/Alargar funciona con líneas y muros (no con pilares).",
     StlPreview_WindowSelectionHint:
       "Arrastre en lienzo vacío: izquierda→derecha ventana, derecha→izquierda cruce",
     StlPreview_Desing2SideMenuCollapseTitle:
@@ -1150,10 +1160,10 @@ const en = Object.assign({}, es, {
     "Move floor-plan lines and STL meshes — click or window selection, base point and displacement",
   StlPreview_Desing2TopToolRecortar: "Trim",
   StlPreview_Desing2TopToolRecortarAria:
-    "Trim tool — coming soon (UI placeholder only)",
+    "Trim lines and walls at cutting edges (like AutoCAD TRIM)",
   StlPreview_Desing2TopToolAlargar: "Extend",
   StlPreview_Desing2TopToolAlargarAria:
-    "Extend tool — coming soon (UI placeholder only)",
+    "Extend lines and walls to a boundary edge (like AutoCAD EXTEND)",
   StlPreview_Desing2TopToolEstirar: "Stretch",
   StlPreview_Desing2TopToolEstirarAria:
     "Stretch walls and lines — selection, base point on the fixed end, second point sets new length",
@@ -1211,6 +1221,16 @@ const en = Object.assign({}, es, {
   StlPreview_Desing2PhaseNeedAllWalls: "Choose the starting wall of each crew.",
   StlPreview_DeleteToolInstruction:
     "Select floor lines or STL objects to delete (click or window selection). Enter/Space/Delete to delete, Esc to cancel",
+  StlPreview_TrimToolInstruction:
+    "Trim: click the part of the line or wall you want to remove (cuts at the nearest line, wall or pillar on each side; if it crosses nothing, it is deleted). Enter/Esc to finish",
+  StlPreview_TrimToolNoChangeToast:
+    "Trim: that segment could not be trimmed.",
+  StlPreview_ExtendToolInstruction:
+    "Extend: click near the end of the line or wall you want to extend to the next line, wall or pillar. Enter/Esc to finish",
+  StlPreview_ExtendToolNoChangeToast:
+    "Extend: no line, wall or pillar crosses the extension of that end (walls only extend from free ends).",
+  StlPreview_LineEditToolUnsupportedToast:
+    "Trim/Extend works on lines and walls (not on pillars).",
   StlPreview_WindowSelectionHint:
     "Drag on empty canvas: left-to-right window, right-to-left crossing",
   StlPreview_Desing2SideMenuCollapseTitle:

@@ -293,6 +293,8 @@
         </script>
     }
     @Html.Partial("_DesignMaterialCountModal")
+    @* Decimales: coma → punto al salir del campo / enviar (BD con punto) *@
+    <script src="@Url.Content("~/Scripts/Intranet/decimal-input-normalize.js?v=20261112a")"></script>
     <script src="@Url.Content("~/Scripts/Intranet/design-material-count-popup.js?v=20261023c")"></script>
     @RenderSection("scripts", required: false)
 </body>

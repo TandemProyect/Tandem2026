@@ -413,17 +413,16 @@ function maStlDesing2DimEditableMetersDisplayFromMm(lengthMm, localeTag) {
     }
 }
 
+/**
+ * Valor para inputs editables (metros): siempre punto decimal y sin miles, como en BD.
+ * La coma que teclee el usuario se sigue aceptando al parsear ({@link maStlParseLengthInputValueToMm}).
+ * @param {number} lengthMm
+ * @param {string=} localeTag ignorado (compatibilidad de firma)
+ */
 function maStlDesing2DimEditableMetersInputDisplayFromMm(lengthMm, localeTag) {
+    void localeTag;
     const m = Math.max(0, Number(lengthMm) || 0) / MA_STL_SCENE_MM_PER_PHYSICAL_METER;
-    try {
-        const fmt = new Intl.NumberFormat(localeTag || undefined, {
-            minimumFractionDigits: MA_STL_DESING2_DIM_EDITABLE_METERS_DECIMALS,
-            maximumFractionDigits: MA_STL_DESING2_DIM_EDITABLE_METERS_DECIMALS,
-        });
-        return fmt.format(m);
-    } catch (_eIntl) {
-        return m.toFixed(MA_STL_DESING2_DIM_EDITABLE_METERS_DECIMALS);
-    }
+    return m.toFixed(MA_STL_DESING2_DIM_EDITABLE_METERS_DECIMALS);
 }
 
 /** `true` sólo desarrollo típico (parse fallido cotas línea usuario). */
@@ -3040,14 +3039,16 @@ function bootMasterArticleDetailsStlViewer() {
     const maStlTrimToolHudInstruction = document.getElementById('ma-stl-trim-tool-hud-instruction');
     const maStlExtendToolHud = document.getElementById('ma-stl-extend-tool-hud');
     const maStlExtendToolHudInstruction = document.getElementById('ma-stl-extend-tool-hud-instruction');
-    /** @type {null|'selecting'|'boundary'} */
+    /** Recortar/Alargar (modo Rápido AutoCAD): `pick` = clic en tramos a recortar/alargar. */
+    /** @type {null|'pick'} */
     let maStlLineEditToolState = null;
     /** @type {'trim'|'extend'|null} */
     let maStlLineEditToolKind = null;
-    /** @type {Set<THREE.Line2>} */
-    const maStlLineEditToolSelectedLines = new Set();
     /** @type {THREE.Line2|null} */
     let maStlLineEditToolHoverLine = null;
+    /** Líneas resaltadas por el hover (la línea o las 2 caras del tramo de muro). */
+    let maStlLineEditToolHoverLitLines = [];
+    const _maStlLineEditToolFloorProbe = new THREE.Vector3();
 
     /** Desing_2 herramienta borrar: modo pick multi-selección antes de confirmar. */
     let maStlDeleteToolActive = false;
@@ -3608,14 +3609,14 @@ function bootMasterArticleDetailsStlViewer() {
 
     function maStlSyncConfigOffsetDefaultInputFromMm(mm) {
         if (!(maStlConfigOffsetDefaultInput instanceof HTMLInputElement)) return;
-        maStlConfigOffsetDefaultInput.value = maStlDesing2DimEditableMetersDisplayFromMm(
+        maStlConfigOffsetDefaultInput.value = maStlDesing2DimEditableMetersInputDisplayFromMm(
             maStlClampDesing2OffsetDefaultMm(mm)
         );
     }
 
     function maStlSyncConfigWallInputsFromMm(thicknessMm, heightMm) {
-        const tDisp = maStlDesing2DimEditableMetersDisplayFromMm(maStlClampDesing2OffsetDefaultMm(thicknessMm));
-        const hDisp = maStlDesing2DimEditableMetersDisplayFromMm(maStlClampDesing2WallHeightMm(heightMm));
+        const tDisp = maStlDesing2DimEditableMetersInputDisplayFromMm(maStlClampDesing2OffsetDefaultMm(thicknessMm));
+        const hDisp = maStlDesing2DimEditableMetersInputDisplayFromMm(maStlClampDesing2WallHeightMm(heightMm));
         if (maStlConfigWallThicknessInput instanceof HTMLInputElement) {
             maStlConfigWallThicknessInput.value = tDisp;
         }
@@ -3631,22 +3632,22 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     function maStlSyncConfigEnclosureInputsFromMm(lMm, wMm, ex1Mm, ex2Mm, ey1Mm, ey2Mm) {
-        const lDisp = maStlDesing2DimEditableMetersDisplayFromMm(
+        const lDisp = maStlDesing2DimEditableMetersInputDisplayFromMm(
             maStlClampDesing2EnclosureSpanMm(lMm, MA_STL_DESING2_ENCLOSURE_L_DEFAULT_MM)
         );
-        const wDisp = maStlDesing2DimEditableMetersDisplayFromMm(
+        const wDisp = maStlDesing2DimEditableMetersInputDisplayFromMm(
             maStlClampDesing2EnclosureSpanMm(wMm, MA_STL_DESING2_ENCLOSURE_W_DEFAULT_MM)
         );
-        const ex1Disp = maStlDesing2DimEditableMetersDisplayFromMm(
+        const ex1Disp = maStlDesing2DimEditableMetersInputDisplayFromMm(
             maStlClampDesing2OffsetDefaultMm(ex1Mm)
         );
-        const ex2Disp = maStlDesing2DimEditableMetersDisplayFromMm(
+        const ex2Disp = maStlDesing2DimEditableMetersInputDisplayFromMm(
             maStlClampDesing2OffsetDefaultMm(ex2Mm)
         );
-        const ey1Disp = maStlDesing2DimEditableMetersDisplayFromMm(
+        const ey1Disp = maStlDesing2DimEditableMetersInputDisplayFromMm(
             maStlClampDesing2OffsetDefaultMm(ey1Mm)
         );
-        const ey2Disp = maStlDesing2DimEditableMetersDisplayFromMm(
+        const ey2Disp = maStlDesing2DimEditableMetersInputDisplayFromMm(
             maStlClampDesing2OffsetDefaultMm(ey2Mm)
         );
         if (maStlConfigEnclosureLInput instanceof HTMLInputElement) {
@@ -3816,7 +3817,7 @@ function bootMasterArticleDetailsStlViewer() {
         }
     }
     if (maStlDesingV2Viewer && maStlConfigPropSpacingInput instanceof HTMLInputElement) {
-        maStlConfigPropSpacingInput.value = maStlDesing2DimEditableMetersDisplayFromMm(desing2PropSpacingMm);
+        maStlConfigPropSpacingInput.value = maStlDesing2DimEditableMetersInputDisplayFromMm(desing2PropSpacingMm);
     }
     if (maStlDesingV2Viewer && maStlConfigOffsetDefaultInput instanceof HTMLInputElement) {
         maStlSyncConfigOffsetDefaultInputFromMm(desing2EnvOffsetDefaultMm);
@@ -16587,7 +16588,7 @@ let maStlWallApplyAllHeightMm = 0;
 
     function maStlOffsetToolSyncDistanceInputFromMm(mm) {
         if (!(maStlOffsetToolHudDistanceInput instanceof HTMLInputElement)) return;
-        maStlOffsetToolHudDistanceInput.value = maStlDesing2DimEditableMetersDisplayFromMm(
+        maStlOffsetToolHudDistanceInput.value = maStlDesing2DimEditableMetersInputDisplayFromMm(
             maStlClampDesing2OffsetDefaultMm(mm)
         );
     }
@@ -16772,6 +16773,851 @@ let maStlWallApplyAllHeightMm = 0;
         maStlOffsetToolHidePreviewLine();
         maStlOffsetToolClearTransientOverlays();
         maStlSyncOffsetToolHud();
+        maStlSyncLineToolToggleBtnUi();
+        maStlLineToolPickCursorSync();
+        syncMaStlRulerAnchorPickCursor();
+        maStlUnlockOrbitForRulerAnchorPick(true);
+    }
+
+    /* ------------------------------------------------------------------
+     * Desing_2 Recortar / Alargar (TRIM / EXTEND de AutoCAD en modo «Rápido»).
+     * Sin paso de selección de aristas: todo lo visible en planta actúa como arista
+     * (líneas, caras de muro y contorno de pilares; el eje discontinuo del muro no).
+     * Intersecciones proyectadas en planta XZ (se ignora la cota Y).
+     * Recortar: clic en un tramo → se quita entre las intersecciones más cercanas a cada lado
+     *   (o hasta el extremo); si la línea no cruza nada se borra entera.
+     * Alargar: clic cerca de un extremo → se prolonga hasta la siguiente arista.
+     * Muros 2D: se elige el tramo (eje + 2 caras) por su cara o dentro de su huella y se
+     *   opera sobre el EJE; los límites son otros ejes de muro, líneas simples y pilares.
+     *   Las caras se recalculan con el post-proceso de muros (uniones L/T/X a ras de cara).
+     * El comando sigue activo hasta Enter/Espacio/Esc. Cada operación = un undo.
+     * ------------------------------------------------------------------ */
+
+    function maStlLineEditToolKindKey() {
+        return maStlLineEditToolKind === 'extend' ? 'extend' : 'trim';
+    }
+
+    function maStlLineEditToolHudEl() {
+        return maStlLineEditToolKind === 'extend' ? maStlExtendToolHud : maStlTrimToolHud;
+    }
+
+    /** @param {string} suffix p. ej. `no-change-toast` → `data-ma-stl-trim-tool-no-change-toast`. */
+    function maStlLineEditToolHudAttr(suffix) {
+        const hud = maStlLineEditToolHudEl();
+        if (!hud) return '';
+        return hud.getAttribute('data-ma-stl-' + maStlLineEditToolKindKey() + '-tool-' + suffix) || '';
+    }
+
+    function maStlLineEditToolShowToast(suffix) {
+        const tpl = maStlLineEditToolHudAttr(suffix);
+        if ((tpl || '').trim()) maStlDesing2ShowSaveViewToast(tpl);
+    }
+
+    function maStlLineEditToolLineIsLive(line) {
+        return !!(line && maStlIsUserFloorPlanLineObject(line) && line.parent === maStlUserLinesGroup);
+    }
+
+    /** Líneas a resaltar para el objetivo: la propia línea o las 2 caras del tramo de muro. */
+    function maStlLineEditToolHighlightLinesFor(line) {
+        const axis = maStlLineEditToolWallAxisOf(line);
+        if (!axis) return line ? [line] : [];
+        const axisUd = axis.userData.maStlUserPlanLine;
+        return maStlWall2dToolFindFaceLinesForCenterId(axisUd.id);
+    }
+
+    function maStlLineEditToolClearHoverLine() {
+        const prev = maStlLineEditToolHoverLine;
+        const lit = maStlLineEditToolHoverLitLines;
+        maStlLineEditToolHoverLine = null;
+        maStlLineEditToolHoverLitLines = [];
+        if (!lit.length && prev) lit.push(prev);
+        for (let i = 0; i < lit.length; i++) {
+            const ln = lit[i];
+            if (maStlLineEditToolLineIsLive(ln) && ln.material) {
+                maStlApplyUserFloorLineBaseMaterialForLine(ln);
+            }
+        }
+    }
+
+    function maStlLineEditToolSetHoverLine(line) {
+        const ln = maStlLineEditToolTargetSupported(line) ? line : null;
+        if (ln === maStlLineEditToolHoverLine) return;
+        maStlLineEditToolClearHoverLine();
+        maStlLineEditToolHoverLine = ln;
+        if (!ln) return;
+        const lit = maStlLineEditToolHighlightLinesFor(ln);
+        maStlLineEditToolHoverLitLines = lit;
+        for (let i = 0; i < lit.length; i++) {
+            if (lit[i] && lit[i].material) maStlApplyUserFloorLineHoverBrightMaterialForLine(lit[i]);
+        }
+    }
+
+    function maStlLineEditToolResetSessionState() {
+        maStlLineEditToolClearHoverLine();
+    }
+
+    /**
+     * Eje del tramo de muro 2D al que pertenece `line` (cara o eje); null si no es muro.
+     * @returns {THREE.Line2|null}
+     */
+    function maStlLineEditToolWallAxisOf(line) {
+        if (!maStlLineEditToolLineIsLive(line)) return null;
+        const ud = line.userData.maStlUserPlanLine;
+        if (!ud || (ud.wallRole !== 'axis' && ud.wallRole !== 'face')) return null;
+        const axis = maStlWall2dToolEditableAxisLineForDimension(line);
+        if (!maStlLineEditToolLineIsLive(axis)) return null;
+        const axisUd = axis.userData.maStlUserPlanLine;
+        if (!axisUd || axisUd.wallRole !== 'axis' || axisUd.id == null || !axisUd.p1Mm || !axisUd.p2Mm) {
+            return null;
+        }
+        return axis;
+    }
+
+    /** Líneas simples y tramos de muro 2D (cara o eje). Pilares no. */
+    function maStlLineEditToolTargetSupported(line) {
+        if (!maStlLineEditToolLineIsLive(line)) return false;
+        const ud = line.userData.maStlUserPlanLine;
+        if (!ud || !ud.p1Mm || !ud.p2Mm) return false;
+        if (ud.wallRole === 'axis' || ud.wallRole === 'face') return !!maStlLineEditToolWallAxisOf(line);
+        if (!maStlIsUserFloorPlanLineSelectable(line)) return false;
+        if (ud.wallGroupId != null || ud.wallRole) return false;
+        if (ud.pillarWidthMm != null) return false;
+        return true;
+    }
+
+    /**
+     * Aristas de corte/límite en planta: cada línea seleccionable como segmento; un pilar
+     * aporta los 4 lados de su huella (mismo rectángulo que la guía de pilar).
+     * @returns {{ a: {x:number,z:number}, b: {x:number,z:number}, line: THREE.Line2 }[]}
+     */
+    function maStlLineEditToolCollectEdgeSegments(excludeLine, forWall) {
+        const out = [];
+        if (!maStlUserLinesGroup) return out;
+        const ch = maStlUserLinesGroup.children;
+        for (let i = 0; i < ch.length; i++) {
+            const ln = ch[i];
+            if (ln === excludeLine || !maStlIsUserFloorPlanLineObject(ln)) continue;
+            const ud = ln.userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            if (forWall) {
+                /* Muro objetivo: límites = ejes de otros tramos (las caras las cierra el
+                 * refactor de uniones a ras), líneas simples y pilares; caras no. */
+                if (ud.wallRole === 'axis') {
+                    out.push({ a: ud.p1Mm, b: ud.p2Mm, line: ln });
+                    continue;
+                }
+                if (ud.wallRole === 'face') continue;
+            }
+            if (!maStlIsUserFloorPlanLineSelectable(ln)) continue;
+            if (ud.wallRole === 'pillar') {
+                const cx = (ud.p1Mm.x + ud.p2Mm.x) * 0.5;
+                const cz = (ud.p1Mm.z + ud.p2Mm.z) * 0.5;
+                const dx = ud.p2Mm.x - ud.p1Mm.x;
+                const dz = ud.p2Mm.z - ud.p1Mm.z;
+                const longMm = Math.max(Math.hypot(dx, dz), 100);
+                const hw = (ud.pillarWidthMm >= 100 ? ud.pillarWidthMm : 300) * 0.5;
+                const hl = longMm * 0.5;
+                const ax = dx / longMm;
+                const az = dz / longMm;
+                const px = -az;
+                const pz = ax;
+                const c = [
+                    { x: cx - ax * hl - px * hw, z: cz - az * hl - pz * hw },
+                    { x: cx + ax * hl - px * hw, z: cz + az * hl - pz * hw },
+                    { x: cx + ax * hl + px * hw, z: cz + az * hl + pz * hw },
+                    { x: cx - ax * hl + px * hw, z: cz - az * hl + pz * hw },
+                ];
+                for (let k = 0; k < 4; k++) out.push({ a: c[k], b: c[(k + 1) % 4], line: ln });
+                continue;
+            }
+            out.push({ a: ud.p1Mm, b: ud.p2Mm, line: ln });
+        }
+        return out;
+    }
+
+    /**
+     * Intersección en planta XZ de A(a1→a2) con B(b1→b2) como rectas infinitas.
+     * @returns {{ t: number, u: number }|null} t sobre A, u sobre B (0..1 = dentro del segmento)
+     */
+    function maStlLineEditToolIntersectXzMm(a1, a2, b1, b2) {
+        const rx = a2.x - a1.x;
+        const rz = a2.z - a1.z;
+        const sx = b2.x - b1.x;
+        const sz = b2.z - b1.z;
+        const lenA = Math.hypot(rx, rz);
+        const lenB = Math.hypot(sx, sz);
+        if (lenA < 1e-9 || lenB < 1e-9) return null;
+        const den = rx * sz - rz * sx;
+        if (Math.abs(den) <= 1e-9 * lenA * lenB) return null;
+        const qx = b1.x - a1.x;
+        const qz = b1.z - a1.z;
+        return {
+            t: (qx * sz - qz * sx) / den,
+            u: (qx * rz - qz * rx) / den,
+        };
+    }
+
+    /**
+     * Parámetros t (sobre la recta de `line`) donde la cortan las aristas (aristas finitas).
+     * @returns {number[]} ordenados ascendente
+     */
+    function maStlLineEditToolEdgeHitParams(line, p1, p2, forWall) {
+        const epsMm = maStlLineEditToolEpsMm();
+        const edges = maStlLineEditToolCollectEdgeSegments(line, !!forWall);
+        const ts = [];
+        for (let i = 0; i < edges.length; i++) {
+            const e = edges[i];
+            const lenB = Math.hypot(e.b.x - e.a.x, e.b.z - e.a.z);
+            if (lenB < 1e-6) continue;
+            const hit = maStlLineEditToolIntersectXzMm(p1, p2, e.a, e.b);
+            if (!hit) continue;
+            const uEps = epsMm / lenB;
+            if (hit.u < -uEps || hit.u > 1 + uEps) continue;
+            ts.push(hit.t);
+        }
+        ts.sort(function (a, b) {
+            return a - b;
+        });
+        return ts;
+    }
+
+    function maStlLineEditToolPointAtMm(p1, p2, t) {
+        return {
+            x: p1.x + (p2.x - p1.x) * t,
+            y: p1.y + (p2.y - p1.y) * t,
+            z: p1.z + (p2.z - p1.z) * t,
+        };
+    }
+
+    function maStlLineEditToolEpsMm() {
+        return Math.max(maStlUserFloorSegmentMinMm(), 1);
+    }
+
+    /** Parámetro 0..1 del clic sobre el segmento (rayo al suelo; si falla, proyección en pantalla). */
+    function maStlLineEditToolClickParamOnLine(line, clientX, clientY) {
+        const ud = line.userData.maStlUserPlanLine;
+        const p1 = ud.p1Mm;
+        const p2 = ud.p2Mm;
+        const dx = p2.x - p1.x;
+        const dz = p2.z - p1.z;
+        const len2 = dx * dx + dz * dz;
+        if (len2 < 1e-12) return 0.5;
+        const canvas = renderer && renderer.domElement;
+        const cam = activeCamera();
+        if (
+            canvas &&
+            cam &&
+            maStlClientRayToWorkspaceFloor(
+                clientX,
+                clientY,
+                canvas,
+                cam,
+                orbitPivotNdc,
+                orbitPivotRaycaster,
+                _maStlLineEditToolFloorProbe
+            )
+        ) {
+            const t =
+                ((_maStlLineEditToolFloorProbe.x - p1.x) * dx + (_maStlLineEditToolFloorProbe.z - p1.z) * dz) /
+                len2;
+            return Math.min(1, Math.max(0, t));
+        }
+        const s1 = {};
+        const s2 = {};
+        if (
+            maStlWorldMmToScreenPx(p1.x, p1.y, p1.z, s1) &&
+            maStlWorldMmToScreenPx(p2.x, p2.y, p2.z, s2)
+        ) {
+            const sx = s2.x - s1.x;
+            const sy = s2.y - s1.y;
+            const sl2 = sx * sx + sy * sy;
+            if (sl2 > 1e-9) {
+                return Math.min(1, Math.max(0, ((clientX - s1.x) * sx + (clientY - s1.y) * sy) / sl2));
+            }
+        }
+        return 0.5;
+    }
+
+    /**
+     * Pick en pantalla de la línea a recortar/alargar: la línea simple más cercana al cursor
+     * (ignora caras de muro/pilares aunque estén más cerca, p. ej. junto a un cruce).
+     * @returns {{ line: THREE.Line2|null, blocked: boolean }} blocked = había sólo líneas no editables cerca
+     */
+    function maStlLineEditToolPickTargetAtClient(clientX, clientY) {
+        const res = { line: null, blocked: false };
+        if (!renderer || !maStlUserLinesGroup) return res;
+        const maxPx = MA_STL_USER_FLOOR_LINE_SCREEN_PICK_PX + 4;
+        const tolSq = maxPx * maxPx;
+        let bestD = Infinity;
+        let bestWallD = Infinity;
+        let bestWallAxis = null;
+        const ch = maStlUserLinesGroup.children;
+        const s1 = {};
+        const s2 = {};
+        for (let i = 0; i < ch.length; i++) {
+            const ln = ch[i];
+            if (!maStlIsUserFloorPlanLineSelectable(ln)) continue;
+            const ud = ln.userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            if (!maStlWorldMmToScreenPx(ud.p1Mm.x, ud.p1Mm.y, ud.p1Mm.z, s1)) continue;
+            if (!maStlWorldMmToScreenPx(ud.p2Mm.x, ud.p2Mm.y, ud.p2Mm.z, s2)) continue;
+            const dSq = maStlSqDistPointToSegment2dPx(clientX, clientY, s1.x, s1.y, s2.x, s2.y);
+            if (dSq > tolSq) continue;
+            if (!maStlLineEditToolTargetSupported(ln)) {
+                res.blocked = true;
+                continue;
+            }
+            const wallAxis = maStlLineEditToolWallAxisOf(ln);
+            if (wallAxis) {
+                if (dSq < bestWallD) {
+                    bestWallD = dSq;
+                    bestWallAxis = wallAxis;
+                }
+                continue;
+            }
+            if (dSq < bestD) {
+                bestD = dSq;
+                res.line = ln;
+            }
+        }
+        /* Prioridad: línea simple cerca → cara de muro cerca → dentro de la huella de un muro. */
+        if (!res.line) res.line = bestWallAxis || maStlLineEditToolPickWallFootprintAtClient(clientX, clientY);
+        if (res.line) res.blocked = false;
+        return res;
+    }
+
+    /** Eje del tramo de muro cuya huella (eje ± medio espesor) contiene el punto del suelo. */
+    function maStlLineEditToolPickWallFootprintAtClient(clientX, clientY) {
+        const canvas = renderer && renderer.domElement;
+        const cam = activeCamera();
+        if (!canvas || !cam || !maStlUserLinesGroup) return null;
+        if (
+            !maStlClientRayToWorkspaceFloor(
+                clientX,
+                clientY,
+                canvas,
+                cam,
+                orbitPivotNdc,
+                orbitPivotRaycaster,
+                _maStlLineEditToolFloorProbe
+            )
+        ) {
+            return null;
+        }
+        const px = _maStlLineEditToolFloorProbe.x;
+        const pz = _maStlLineEditToolFloorProbe.z;
+        const axes = maStlWall2dToolCollectAllAxisLines();
+        let best = null;
+        let bestRatio = Infinity;
+        for (let i = 0; i < axes.length; i++) {
+            const axis = axes[i];
+            if (!maStlLineEditToolWallAxisOf(axis)) continue;
+            const ud = axis.userData.maStlUserPlanLine;
+            const dx = ud.p2Mm.x - ud.p1Mm.x;
+            const dz = ud.p2Mm.z - ud.p1Mm.z;
+            const len2 = dx * dx + dz * dz;
+            if (len2 < 1e-9) continue;
+            const t = ((px - ud.p1Mm.x) * dx + (pz - ud.p1Mm.z) * dz) / len2;
+            if (t < 0 || t > 1) continue;
+            const dist = Math.abs((px - ud.p1Mm.x) * dz - (pz - ud.p1Mm.z) * dx) / Math.sqrt(len2);
+            const halfT = maStlWall2dToolAxisFaceHalfThicknessMm(axis);
+            if (!(halfT > 0) || dist > halfT) continue;
+            const ratio = dist / halfT;
+            if (ratio < bestRatio) {
+                bestRatio = ratio;
+                best = axis;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Recorta (modo Rápido) la parte clicada de `line` entre las intersecciones más cercanas
+     * a cada lado; sin intersecciones borra la línea entera.
+     */
+    function maStlLineEditToolTrimLineAtClient(line, clientX, clientY) {
+        if (!maStlLineEditToolTargetSupported(line)) return false;
+        const wallAxis = maStlLineEditToolWallAxisOf(line);
+        if (wallAxis) return maStlLineEditToolTrimWallAtClient(wallAxis, clientX, clientY);
+        const ud = line.userData.maStlUserPlanLine;
+        const p1 = { x: ud.p1Mm.x, y: ud.p1Mm.y, z: ud.p1Mm.z };
+        const p2 = { x: ud.p2Mm.x, y: ud.p2Mm.y, z: ud.p2Mm.z };
+        const lenA = Math.hypot(p2.x - p1.x, p2.z - p1.z);
+        if (lenA < 1e-6) return false;
+        const tEps = maStlLineEditToolEpsMm() / lenA;
+        const cuts = maStlLineEditToolEdgeHitParams(line, p1, p2).filter(function (t) {
+            return t > tEps && t < 1 - tEps;
+        });
+        if (cuts.length === 0) {
+            /* AutoCAD Rápido: sin aristas que la crucen, el objeto se borra. */
+            maStlLineEditToolClearHoverLine();
+            return maStlCommitUserFloorLinesAndStlMeshesDelete([line], []);
+        }
+        const tc = maStlLineEditToolClickParamOnLine(line, clientX, clientY);
+        let tLo = 0;
+        let tHi = 1;
+        for (let ci = 0; ci < cuts.length; ci++) {
+            if (cuts[ci] <= tc) tLo = cuts[ci];
+            else {
+                tHi = cuts[ci];
+                break;
+            }
+        }
+        const minMm = maStlUserFloorSegmentMinMm();
+        const undoBefore = maStlDesing2SerializeEditSnapshot();
+        let changed = false;
+        if (tLo <= 0) {
+            const q = maStlLineEditToolPointAtMm(p1, p2, tHi);
+            changed = maStlSetUserFloorLineP1PlanMm(line, q.x, q.y, q.z);
+        } else if (tHi >= 1) {
+            const q = maStlLineEditToolPointAtMm(p1, p2, tLo);
+            changed = maStlSetUserFloorLineP2PlanMm(line, q.x, q.y, q.z);
+        } else {
+            const qLo = maStlLineEditToolPointAtMm(p1, p2, tLo);
+            const qHi = maStlLineEditToolPointAtMm(p1, p2, tHi);
+            const restLenMm = lenA * (1 - tHi);
+            if (!maStlSetUserFloorLineP2PlanMm(line, qLo.x, qLo.y, qLo.z)) return false;
+            changed = true;
+            if (restLenMm >= minMm && maStlUserLinesGroup) {
+                const childCountBefore = maStlUserLinesGroup.children.length;
+                maStlCommitUserPlanLineSegmentMm(
+                    { x: qHi.x, y: qHi.y, z: qHi.z },
+                    { x: p2.x, y: p2.y, z: p2.z },
+                    true,
+                    null,
+                    { skipWeld: true, skipCollinearMerge: true }
+                );
+                const newLine =
+                    maStlUserLinesGroup.children.length > childCountBefore
+                        ? maStlUserLinesGroup.children[maStlUserLinesGroup.children.length - 1]
+                        : null;
+                const newUd = newLine && newLine.userData && newLine.userData.maStlUserPlanLine;
+                if (newUd && newUd.p1Mm && newUd.p2Mm) {
+                    /* El commit cuantiza a rejilla: fijar el punto exacto de corte. */
+                    newUd.p1Mm.x = qHi.x;
+                    newUd.p1Mm.y = qHi.y;
+                    newUd.p1Mm.z = qHi.z;
+                    newUd.p2Mm.x = p2.x;
+                    newUd.p2Mm.y = p2.y;
+                    newUd.p2Mm.z = p2.z;
+                    maStlApplyUserFloorLineSegmentGeometryFromMm(newLine);
+                }
+            }
+        }
+        if (!changed) return false;
+        maStlDesing2PushEditSnapshotUndo('trimUserFloorLine', undoBefore, maStlDesing2SerializeEditSnapshot());
+        return true;
+    }
+
+    /** Alarga el extremo más cercano al clic hasta la primera arista que corte su prolongación. */
+    function maStlLineEditToolExtendLineAtClient(line, clientX, clientY) {
+        if (!maStlLineEditToolTargetSupported(line)) return false;
+        const wallAxis = maStlLineEditToolWallAxisOf(line);
+        if (wallAxis) return maStlLineEditToolExtendWallAtClient(wallAxis, clientX, clientY);
+        const ud = line.userData.maStlUserPlanLine;
+        const p1 = { x: ud.p1Mm.x, y: ud.p1Mm.y, z: ud.p1Mm.z };
+        const p2 = { x: ud.p2Mm.x, y: ud.p2Mm.y, z: ud.p2Mm.z };
+        const lenA = Math.hypot(p2.x - p1.x, p2.z - p1.z);
+        if (lenA < 1e-6) return false;
+        const tEps = maStlLineEditToolEpsMm() / lenA;
+        const extendP2 = maStlLineEditToolClickParamOnLine(line, clientX, clientY) >= 0.5;
+        const ts = maStlLineEditToolEdgeHitParams(line, p1, p2);
+        let best = null;
+        for (let i = 0; i < ts.length; i++) {
+            if (extendP2) {
+                if (ts[i] > 1 + tEps) {
+                    best = ts[i];
+                    break;
+                }
+            } else if (ts[i] < -tEps) {
+                best = ts[i];
+            }
+        }
+        if (best === null) return false;
+        const q = maStlLineEditToolPointAtMm(p1, p2, best);
+        const undoBefore = maStlDesing2SerializeEditSnapshot();
+        const ok = extendP2
+            ? maStlSetUserFloorLineP2PlanMm(line, q.x, q.y, q.z)
+            : maStlSetUserFloorLineP1PlanMm(line, q.x, q.y, q.z);
+        if (!ok) return false;
+        maStlDesing2PushEditSnapshotUndo('extendUserFloorLine', undoBefore, maStlDesing2SerializeEditSnapshot());
+        return true;
+    }
+
+    /* --- Recortar / Alargar sobre muros 2D (tramo = eje + 2 caras) --- */
+
+    function maStlLineEditToolWallConnectEpsMm() {
+        return Math.max(maStlUserFloorLineMergeEndpointEpsMm(), 1);
+    }
+
+    /** Ejes de muro (≠ `excludeAxis`) con un extremo en `pt` o que lo tienen sobre su cuerpo (T). */
+    function maStlLineEditToolAxesTouchingPointMm(pt, excludeAxis) {
+        const out = [];
+        const eps = maStlLineEditToolWallConnectEpsMm();
+        const axes = maStlWall2dToolCollectAllAxisLines();
+        for (let i = 0; i < axes.length; i++) {
+            const axis = axes[i];
+            if (axis === excludeAxis) continue;
+            const ud = axis.userData && axis.userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            if (maStlUserFloorPlanPointNearXzMm(ud.p1Mm, pt, eps) || maStlUserFloorPlanPointNearXzMm(ud.p2Mm, pt, eps)) {
+                out.push(axis);
+                continue;
+            }
+            const dx = ud.p2Mm.x - ud.p1Mm.x;
+            const dz = ud.p2Mm.z - ud.p1Mm.z;
+            const len2 = dx * dx + dz * dz;
+            if (len2 < 1e-9) continue;
+            const t = ((pt.x - ud.p1Mm.x) * dx + (pt.z - ud.p1Mm.z) * dz) / len2;
+            if (t <= 0 || t >= 1) continue;
+            const dist = Math.abs((pt.x - ud.p1Mm.x) * dz - (pt.z - ud.p1Mm.z) * dx) / Math.sqrt(len2);
+            if (dist <= eps) out.push(axis);
+        }
+        return out;
+    }
+
+    /** Claves propias de cada tramo (no se copian al trozo nuevo: geometría, ids, conexiones). */
+    const MA_STL_LINE_EDIT_TOOL_WALL_COPY_SKIP = {
+        id: 1,
+        Id: 1,
+        wallDbId: 1,
+        WallDbId: 1,
+        p1Mm: 1,
+        p2Mm: 1,
+        wallDrawP1Mm: 1,
+        wallDrawP2Mm: 1,
+        linkOffsetFromLineId: 1,
+        skipCollinearMerge: 1,
+        skipWeld: 1,
+        _idObject: 1,
+        _Datalong: 1,
+        _Idconnection_1: 1,
+        _Idconnection_2: 1,
+        _XCoordinate: 1,
+        _YCoordinate: 1,
+        _ZCoordinate: 1,
+        _YrRtation: 1,
+    };
+
+    /** Copia propiedades escalares (tipo, altura, materiales, checks…) de un tramo a otro. */
+    function maStlLineEditToolCopyWallProps(srcUd, dstUd) {
+        if (!srcUd || !dstUd) return;
+        for (const key in srcUd) {
+            if (!Object.prototype.hasOwnProperty.call(srcUd, key)) continue;
+            if (MA_STL_LINE_EDIT_TOOL_WALL_COPY_SKIP[key]) continue;
+            const v = srcUd[key];
+            if (v !== null && typeof v === 'object') continue;
+            if (typeof v === 'function') continue;
+            dstUd[key] = v;
+        }
+    }
+
+    /**
+     * Crea el trozo de muro `a`→`b` (mismo grupo, espesor y propiedades que `axis`; id nuevo).
+     * @returns {THREE.Line2|null} eje nuevo
+     */
+    function maStlLineEditToolAddWallPieceMm(axis, a, b, halfT) {
+        const ud = axis.userData.maStlUserPlanLine;
+        const srcFaces = maStlWall2dToolFindFaceLinesForCenterId(ud.id);
+        const wallId = ud.wallId != null ? ud.wallId : ud.wallGroupId;
+        const piece = maStlWall2dToolAddSegmentMm(
+            { x: a.x, y: a.y, z: a.z },
+            { x: b.x, y: b.y, z: b.z },
+            { wallGroupId: ud.wallGroupId, wallId: wallId, wallRole: 'axis', skipCollinearMerge: true },
+            true
+        );
+        const pUd = piece && piece.userData && piece.userData.maStlUserPlanLine;
+        if (!pUd || pUd.id == null || !pUd.p1Mm || !pUd.p2Mm) return null;
+        maStlLineEditToolCopyWallProps(ud, pUd);
+        /* El commit cuantiza a rejilla: fijar el punto exacto de corte. */
+        pUd.p1Mm.x = a.x;
+        pUd.p1Mm.y = a.y;
+        pUd.p1Mm.z = a.z;
+        pUd.p2Mm.x = b.x;
+        pUd.p2Mm.y = b.y;
+        pUd.p2Mm.z = b.z;
+        maStlWallLineEnsureAttrs(pUd);
+        maStlApplyUserFloorLineSegmentGeometryFromMm(piece);
+        maStlUserFloorLineSyncAxisDashDistances(piece);
+        for (let si = 0; si < 2; si++) {
+            const sideSign = si === 0 ? 1 : -1;
+            let srcFaceUd = null;
+            for (let fi = 0; fi < srcFaces.length; fi++) {
+                const fUd = srcFaces[fi].userData && srcFaces[fi].userData.maStlUserPlanLine;
+                if (fUd && (fUd.numberWallFaceSideSign === -1 ? -1 : 1) === sideSign) {
+                    srcFaceUd = fUd;
+                    break;
+                }
+            }
+            const ends = maStlOffsetToolParallelEndpointsMm(pUd.p1Mm, pUd.p2Mm, halfT, sideSign);
+            if (!ends) continue;
+            const face = maStlWall2dToolAddSegmentMm(
+                ends.p1,
+                ends.p2,
+                {
+                    wallGroupId: ud.wallGroupId,
+                    wallId: wallId,
+                    wallRole: 'face',
+                    linkOffsetFromLineId: pUd.id,
+                    numberOffsetMm: halfT,
+                    numberWallFaceSideSign: sideSign,
+                    skipCollinearMerge: true,
+                },
+                true
+            );
+            const nfUd = face && face.userData && face.userData.maStlUserPlanLine;
+            if (!nfUd) continue;
+            if (srcFaceUd) maStlLineEditToolCopyWallProps(srcFaceUd, nfUd);
+            nfUd.linkOffsetFromLineId = pUd.id;
+            nfUd.numberOffsetMm = halfT;
+            nfUd.numberWallFaceSideSign = sideSign;
+            maStlWallLineEnsureAttrs(nfUd);
+        }
+        return piece;
+    }
+
+    /**
+     * Cierra la edición de muro: caras + uniones (post-proceso común de muros) y un único undo.
+     * @param {THREE.Line2[]} axes ejes tocados (incl. vecinos que pierden/ganan unión)
+     */
+    function maStlLineEditToolFinishWallEdit(label, saveReason, undoBefore, axes, droppedWorkers, wallKeySet) {
+        const live = [];
+        for (let i = 0; i < axes.length; i++) {
+            if (maStlLineEditToolLineIsLive(axes[i]) && live.indexOf(axes[i]) < 0) live.push(axes[i]);
+        }
+        maStlWallEditFinalize().finalizeWallAxes(live, { allowWeld: false, saveReason: saveReason });
+        const undoAfter = maStlDesing2SerializeEditSnapshot();
+        if (
+            droppedWorkers &&
+            droppedWorkers.length &&
+            maStlDesing2WorkerTool &&
+            typeof maStlDesing2WorkerTool.appendRows === 'function'
+        ) {
+            maStlDesing2PushUndoAction({
+                label: label,
+                undo: function () {
+                    maStlDesing2ApplyEditSnapshot(undoBefore);
+                    maStlDesing2WorkerTool.appendRows(droppedWorkers);
+                },
+                redo: function () {
+                    maStlDesing2ApplyEditSnapshot(undoAfter);
+                    maStlDesing2DropWorkersOfWallKeys(wallKeySet);
+                },
+            });
+        } else {
+            maStlDesing2PushEditSnapshotUndo(label, undoBefore, undoAfter);
+        }
+        return true;
+    }
+
+    /**
+     * Recortar muro (modo Rápido) sobre su eje: los ejes de otros muros, líneas simples y pilares
+     * cortan. Tramo intermedio → dos muros; extremo → se acorta; sin cortes → se borra el tramo.
+     * Las uniones se rehacen, así que los trozos quedan a ras de la cara del muro que cruza.
+     */
+    function maStlLineEditToolTrimWallAtClient(axis, clientX, clientY) {
+        const ud = axis.userData.maStlUserPlanLine;
+        const p1 = { x: ud.p1Mm.x, y: ud.p1Mm.y, z: ud.p1Mm.z };
+        const p2 = { x: ud.p2Mm.x, y: ud.p2Mm.y, z: ud.p2Mm.z };
+        const lenA = Math.hypot(p2.x - p1.x, p2.z - p1.z);
+        if (lenA < 1e-6) return false;
+        const tEps = maStlLineEditToolEpsMm() / lenA;
+        const cuts = maStlLineEditToolEdgeHitParams(axis, p1, p2, true).filter(function (t) {
+            return t > tEps && t < 1 - tEps;
+        });
+        const near1 = maStlLineEditToolAxesTouchingPointMm(p1, axis);
+        const near2 = maStlLineEditToolAxesTouchingPointMm(p2, axis);
+        if (cuts.length === 0) {
+            /* Tramo entre uniones (o muro suelto): se borra el tramo (eje + caras). */
+            maStlLineEditToolClearHoverLine();
+            const lines = maStlDesing2ExpandLinesWithWallGroups([axis]);
+            const wallKeySet = maStlDesing2DeletedWallKeySet(lines);
+            const droppedWorkers = maStlDesing2DropWorkersOfWallKeys(wallKeySet);
+            const undoBefore = maStlDesing2SerializeEditSnapshot();
+            for (let i = 0; i < lines.length; i++) {
+                const ln = lines[i];
+                if (!ln || ln.parent !== maStlUserLinesGroup) continue;
+                maStlDeleteToolSelectedLines.delete(ln);
+                maStlWall3dToolSelectedLines.delete(ln);
+                if (ln === maStlDeleteToolHoverLine) maStlDeleteToolHoverLine = null;
+                if (ln === maStlWall3dToolHoverLine) maStlWall3dToolHoverLine = null;
+                maStlDisposeUserFloorPlanLineObject(ln);
+            }
+            return maStlLineEditToolFinishWallEdit(
+                'trimUserFloorWall',
+                'trim-tool-wall',
+                undoBefore,
+                near1.concat(near2),
+                droppedWorkers,
+                wallKeySet
+            );
+        }
+        const tc = maStlLineEditToolClickParamOnLine(axis, clientX, clientY);
+        let tLo = 0;
+        let tHi = 1;
+        for (let ci = 0; ci < cuts.length; ci++) {
+            if (cuts[ci] <= tc) tLo = cuts[ci];
+            else {
+                tHi = cuts[ci];
+                break;
+            }
+        }
+        const halfT = maStlWall2dToolAxisFaceHalfThicknessMm(axis);
+        const minMm = maStlUserFloorSegmentMinMm();
+        const undoBefore = maStlDesing2SerializeEditSnapshot();
+        let touched = [axis];
+        if (tLo <= 0) {
+            const q = maStlLineEditToolPointAtMm(p1, p2, tHi);
+            if (!maStlSetUserFloorLineP1PlanMm(axis, q.x, p1.y, q.z)) return false;
+            touched = touched.concat(near1);
+        } else if (tHi >= 1) {
+            const q = maStlLineEditToolPointAtMm(p1, p2, tLo);
+            if (!maStlSetUserFloorLineP2PlanMm(axis, q.x, p2.y, q.z)) return false;
+            touched = touched.concat(near2);
+        } else {
+            const qLo = maStlLineEditToolPointAtMm(p1, p2, tLo);
+            const qHi = maStlLineEditToolPointAtMm(p1, p2, tHi);
+            qLo.y = p1.y;
+            qHi.y = p1.y;
+            if (!maStlSetUserFloorLineP2PlanMm(axis, qLo.x, qLo.y, qLo.z)) return false;
+            if (lenA * (1 - tHi) >= minMm) {
+                const piece = maStlLineEditToolAddWallPieceMm(axis, qHi, p2, halfT);
+                if (piece) touched.push(piece);
+            }
+            touched = touched.concat(near2);
+        }
+        maStlWallLineEnsureAttrs(ud);
+        maStlUserFloorLineSyncAxisDashDistances(axis);
+        return maStlLineEditToolFinishWallEdit('trimUserFloorWall', 'trim-tool-wall', undoBefore, touched, null, null);
+    }
+
+    /**
+     * Alargar muro: el extremo libre más cercano al clic se prolonga sobre el eje hasta el
+     * siguiente eje de muro, línea o pilar (al llegar a otro muro queda unión en T a ras de cara).
+     * Un extremo ya unido a otro muro no se alarga.
+     */
+    function maStlLineEditToolExtendWallAtClient(axis, clientX, clientY) {
+        const ud = axis.userData.maStlUserPlanLine;
+        const p1 = { x: ud.p1Mm.x, y: ud.p1Mm.y, z: ud.p1Mm.z };
+        const p2 = { x: ud.p2Mm.x, y: ud.p2Mm.y, z: ud.p2Mm.z };
+        const lenA = Math.hypot(p2.x - p1.x, p2.z - p1.z);
+        if (lenA < 1e-6) return false;
+        const tEps = maStlLineEditToolEpsMm() / lenA;
+        const extendP2 = maStlLineEditToolClickParamOnLine(axis, clientX, clientY) >= 0.5;
+        if (maStlLineEditToolAxesTouchingPointMm(extendP2 ? p2 : p1, axis).length) return false;
+        const ts = maStlLineEditToolEdgeHitParams(axis, p1, p2, true);
+        let best = null;
+        for (let i = 0; i < ts.length; i++) {
+            if (extendP2) {
+                if (ts[i] > 1 + tEps) {
+                    best = ts[i];
+                    break;
+                }
+            } else if (ts[i] < -tEps) {
+                best = ts[i];
+            }
+        }
+        if (best === null) return false;
+        const q = maStlLineEditToolPointAtMm(p1, p2, best);
+        const undoBefore = maStlDesing2SerializeEditSnapshot();
+        const ok = extendP2
+            ? maStlSetUserFloorLineP2PlanMm(axis, q.x, p2.y, q.z)
+            : maStlSetUserFloorLineP1PlanMm(axis, q.x, p1.y, q.z);
+        if (!ok) return false;
+        maStlWallLineEnsureAttrs(ud);
+        maStlUserFloorLineSyncAxisDashDistances(axis);
+        return maStlLineEditToolFinishWallEdit('extendUserFloorWall', 'extend-tool-wall', undoBefore, [axis], null, null);
+    }
+
+    function maStlSyncLineEditToolHud() {
+        if (!maStlDesingV2Viewer) return;
+        const active = maStlIsLineEditToolActive();
+        const rows = [
+            [maStlTrimToolHud, maStlTrimToolHudInstruction, 'trim'],
+            [maStlExtendToolHud, maStlExtendToolHudInstruction, 'extend'],
+        ];
+        for (let i = 0; i < rows.length; i++) {
+            const hud = rows[i][0];
+            const ins = rows[i][1];
+            const kind = rows[i][2];
+            if (!hud) continue;
+            if (!active || maStlLineEditToolKindKey() !== kind) {
+                hud.classList.add('d-none');
+                if (ins) ins.textContent = '';
+                continue;
+            }
+            if (ins) ins.textContent = hud.getAttribute('data-ma-stl-' + kind + '-tool-instruction') || '';
+            hud.classList.remove('d-none');
+        }
+    }
+
+    /** Enter/Espacio con Recortar/Alargar activo: termina el comando (no repite último comando). */
+    function maStlLineEditToolApplyWindowKeydownConfirm(ev) {
+        if (!maStlIsLineEditToolActive() || !maStlDesingV2Viewer) return false;
+        if (!maStlIsDesing2ViewerShellVisibleForKeyboardShortcuts()) return false;
+        if (ev.defaultPrevented) return false;
+        const isEnter = ev.key === 'Enter' || ev.code === 'Enter' || ev.key === 'NumpadEnter';
+        const isSpace = ev.key === ' ' || ev.code === 'Space';
+        if (!isEnter && !isSpace) return false;
+        if (ev.shiftKey || ev.ctrlKey || ev.metaKey || ev.altKey) return false;
+        const ae = document.activeElement;
+        if (maStlIsUserFloorLineDimEditOverlayActive()) return false;
+        if (maStlDesingV2AvoidKeyboardShortcutSteal(ae)) return false;
+        ev.preventDefault();
+        if (ev.repeat) return true;
+        maStlStopLineEditToolModesToolbar(false);
+        return true;
+    }
+
+    /** Activa Recortar (`trim`) o Alargar (`extend`) directamente en `pick`. */
+    function maStlStartLineEditToolModesToolbar(kind) {
+        const k = kind === 'extend' ? 'extend' : 'trim';
+        if (maStlIsLineEditToolActive()) {
+            if (maStlLineEditToolKind === k) return;
+            maStlStopLineEditToolModesToolbar(false);
+        }
+        maStlWall2dToolResumeState = null;
+        if (maStlIsWall2dToolActive()) maStlStopWall2dToolModesToolbar(false);
+        if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
+        if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
+        if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
+        if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
+        if (maStlIsImageSketchToolActive()) maStlStopImageSketchToolModesToolbar(false);
+        if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
+        if (maStlIsInsertEnclosureToolActive()) maStlStopInsertEnclosureToolModesToolbar(false);
+        maStlStopWallDimToolModesToolbar();
+        maStlDesing2SetLastToolbarCommandId(k === 'extend' ? 'ma-stl-tool-extend' : 'ma-stl-tool-trim');
+        maStlStopRulerAnchorPickModesToolbar();
+        maStlTeardownPickHighlightsOnly();
+        maStlDisposeUserFloorLineDimEdit(false);
+        maStlClearUserFloorLineSelection();
+        maStlClearUserFloorLineHover();
+        maStlHideUserFloorLineDimHud(true);
+        maStlClearUserFloorEndpointDragSnapPreview();
+        maStlLineEditToolResetSessionState();
+        maStlLineEditToolKind = k;
+        maStlLineEditToolState = 'pick';
+        maStlLockOrbitForRulerAnchorPick();
+        maStlSyncLineToolToggleBtnUi();
+        maStlLineToolPickCursorSync();
+        maStlSyncLineEditToolHud();
+        const btn = k === 'extend' ? maStlExtendToolToggleBtn : maStlTrimToolToggleBtn;
+        if (btn && document.activeElement === btn) btn.blur();
+    }
+
+    /**
+     * Sale de Recortar/Alargar: limpia hover, HUD, cursor y bloqueo de órbita.
+     * Seguro de llamar aunque la herramienta no esté activa.
+     * @param {boolean} deferOrbitUnlock reservado; salida completa rehabilita órbita al instante.
+     */
+    function maStlStopLineEditToolModesToolbar(deferOrbitUnlock) {
+        void deferOrbitUnlock;
+        if (maStlLineEditToolState === null && maStlLineEditToolKind === null) return;
+        maStlLineEditToolState = null;
+        maStlLineEditToolResetSessionState();
+        maStlLineEditToolKind = null;
+        maStlSyncLineEditToolHud();
         maStlSyncLineToolToggleBtnUi();
         maStlLineToolPickCursorSync();
         syncMaStlRulerAnchorPickCursor();
@@ -17674,6 +18520,7 @@ let maStlWallApplyAllHeightMm = 0;
         if (
             maStlIsLineToolPlacementActive() ||
             maStlIsOffsetToolActive() ||
+            maStlIsLineEditToolActive() ||
             maStlIsRulerAnchorPickModeActive() ||
             maStlIsInsertCornerToolPlacementActive() ||
             maStlIsInsertEnclosureToolPlacementActive() ||
@@ -24184,6 +25031,7 @@ let maStlWallApplyAllHeightMm = 0;
         maStlClearUserFloorLineSelection();
         maStlStopLineToolModesToolbar(false);
         maStlStopOffsetToolModesToolbar(false);
+        maStlStopLineEditToolModesToolbar(false);
         maStlStopDeleteToolModesToolbar(false);
         maStlStopCopyToolModesToolbar(false);
         maStlStopWall3dToolModesToolbar(false);
@@ -24206,6 +25054,7 @@ let maStlWallApplyAllHeightMm = 0;
         maStlSyncLineToolToggleBtnUi();
         maStlSyncLineToolHud();
         maStlSyncOffsetToolHud();
+        maStlSyncLineEditToolHud();
         maStlSyncDeleteToolHud();
         maStlCopyToolSyncHud();
         maStlSyncWall3dToolHud();
@@ -28426,6 +29275,10 @@ let maStlWallApplyAllHeightMm = 0;
             maStlDeleteToolClearHoverMesh();
             return;
         }
+        if (maStlIsLineEditToolActive()) {
+            maStlLineEditToolClearHoverLine();
+            return;
+        }
         if (maStlIsUserFloorLineDimEditOverlayActive()) return;
         if (maStlUserFloorEndpointHandleDragActive()) return;
         maStlClearUserFloorLineHover();
@@ -28493,9 +29346,8 @@ let maStlWallApplyAllHeightMm = 0;
 
     function onCanvasPointerMoveLineEditToolSync(ev) {
         if (!maStlIsLineEditToolActive()) return;
-        if (maStlLineEditToolState !== 'selecting' && maStlLineEditToolState !== 'boundary') return;
-        const ln = maStlPickUserFloorLineForCanvasInteraction(ev.clientX, ev.clientY, 4);
-        maStlLineEditToolSetHoverLine(ln);
+        if (maStlLineEditToolState !== 'pick') return;
+        maStlLineEditToolSetHoverLine(maStlLineEditToolPickTargetAtClient(ev.clientX, ev.clientY).line);
     }
 
     function onCanvasPointerMoveDeleteToolSync(ev) {
@@ -28948,34 +29800,24 @@ let maStlWallApplyAllHeightMm = 0;
         ev.preventDefault();
         ev.stopPropagation();
         ev.stopImmediatePropagation();
-        const ln = maStlPickUserFloorLineForCanvasInteraction(ev.clientX, ev.clientY, 4);
-        if (maStlLineEditToolState === 'selecting') {
-            if (!ln) return;
-            maStlLineEditToolToggleLineSelection(ln);
-            maStlSyncLineEditToolHud();
+        if (maStlLineEditToolState !== 'pick') return;
+        const pick = maStlLineEditToolPickTargetAtClient(ev.clientX, ev.clientY);
+        const ln = pick.line;
+        if (!ln) {
+            if (pick.blocked) maStlLineEditToolShowToast('unsupported-toast');
             return;
         }
-        if (maStlLineEditToolState === 'boundary') {
-            const boundary = maStlLineEditToolResolveBoundaryLine(ln);
-            if (!boundary) {
-                maStlLineEditToolShowToast(
-                    maStlLineEditToolKind === 'extend'
-                        ? 'data-ma-stl-extend-tool-no-boundary-toast'
-                        : 'data-ma-stl-trim-tool-no-boundary-toast'
-                );
-                return;
-            }
-            const ok = maStlLineEditToolCommitAgainstBoundary(boundary);
-            if (!ok) {
-                maStlLineEditToolShowToast(
-                    maStlLineEditToolKind === 'extend'
-                        ? 'data-ma-stl-extend-tool-no-change-toast'
-                        : 'data-ma-stl-trim-tool-no-change-toast'
-                );
-                return;
-            }
-            maStlStopLineEditToolModesToolbar(false);
+        const ok =
+            maStlLineEditToolKind === 'extend'
+                ? maStlLineEditToolExtendLineAtClient(ln, ev.clientX, ev.clientY)
+                : maStlLineEditToolTrimLineAtClient(ln, ev.clientX, ev.clientY);
+        if (!ok) {
+            maStlLineEditToolShowToast('no-change-toast');
+            return;
         }
+        /* Como AutoCAD: el comando sigue activo para más tramos hasta Enter/Esc. */
+        maStlLineEditToolClearHoverLine();
+        maStlLineEditToolSetHoverLine(maStlLineEditToolPickTargetAtClient(ev.clientX, ev.clientY).line);
     }
 
     function onCanvasDblClickOffsetToolDistance(ev) {
@@ -34389,7 +35231,7 @@ let maStlWallApplyAllHeightMm = 0;
                     if (parsed != null && parsed >= 300 && parsed <= 6000) {
                         const changed = Math.abs(parsed - desing2PropSpacingMm) >= 1;
                         desing2PropSpacingMm = parsed;
-                        el.value = maStlDesing2DimEditableMetersDisplayFromMm(desing2PropSpacingMm);
+                        el.value = maStlDesing2DimEditableMetersInputDisplayFromMm(desing2PropSpacingMm);
                         const saveUrl = viewerShell && viewerShell.getAttribute('data-ma-stl-save-prop-spacing-api-url');
                         const designId = viewerShell && viewerShell.getAttribute('data-ma-stl-design-id');
                         if (saveUrl && designId) {
@@ -34411,7 +35253,7 @@ let maStlWallApplyAllHeightMm = 0;
                             if (formBtn && !formBtn.disabled) formBtn.click();
                         }
                     } else {
-                        el.value = maStlDesing2DimEditableMetersDisplayFromMm(desing2PropSpacingMm);
+                        el.value = maStlDesing2DimEditableMetersInputDisplayFromMm(desing2PropSpacingMm);
                     }
                 }
                 return;
@@ -34522,6 +35364,7 @@ let maStlWallApplyAllHeightMm = 0;
             return (
                 maStlLineToolState != null ||
                 maStlOffsetToolState != null ||
+                maStlIsLineEditToolActive() ||
                 maStlIsDeleteToolActive() ||
                 maStlIsDupMoveToolActive() ||
                 maStlRulerAnchorPickMode !== null ||

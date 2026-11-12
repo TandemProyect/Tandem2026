@@ -66,32 +66,32 @@
 
             <div class="col-md-3">
                 <label class="form-label">@MasterArticles.Lbl_High</label>
-                @Html.TextBoxFor(m => m.NumberHigh, "{0:G}", new { @class = "form-control", type = "text", inputmode = "decimal", pattern = "^-?[0-9]+([.,][0-9]+)?$" })
+                @Html.TextBoxFor(m => m.NumberHigh, "{0:G}", new { @class = "form-control", type = "text", inputmode = "decimal", pattern = "^-?[0-9]+([.,][0-9]+)?$", data_decimal_input = "true" })
                 @Html.ValidationMessageFor(m => m.NumberHigh, "", new { @class = "text-danger small" })
             </div>
             <div class="col-md-3">
                 <label class="form-label">@MasterArticles.Lbl_Width</label>
-                @Html.TextBoxFor(m => m.NumberWidth, "{0:G}", new { @class = "form-control", type = "text", inputmode = "decimal", pattern = "^-?[0-9]+([.,][0-9]+)?$" })
+                @Html.TextBoxFor(m => m.NumberWidth, "{0:G}", new { @class = "form-control", type = "text", inputmode = "decimal", pattern = "^-?[0-9]+([.,][0-9]+)?$", data_decimal_input = "true" })
                 @Html.ValidationMessageFor(m => m.NumberWidth, "", new { @class = "text-danger small" })
             </div>
             <div class="col-md-3">
                 <label class="form-label">@MasterArticles.Lbl_Long</label>
-                @Html.TextBoxFor(m => m.NumberLong, "{0:G}", new { @class = "form-control", type = "text", inputmode = "decimal", pattern = "^-?[0-9]+([.,][0-9]+)?$" })
+                @Html.TextBoxFor(m => m.NumberLong, "{0:G}", new { @class = "form-control", type = "text", inputmode = "decimal", pattern = "^-?[0-9]+([.,][0-9]+)?$", data_decimal_input = "true" })
                 @Html.ValidationMessageFor(m => m.NumberLong, "", new { @class = "text-danger small" })
             </div>
             <div class="col-md-3">
                 <label class="form-label">@MasterArticles.Lbl_Weight</label>
-                @Html.TextBoxFor(m => m.NumberWeight, "{0:G}", new { @class = "form-control", type = "text", inputmode = "decimal", pattern = "^-?[0-9]+([.,][0-9]+)?$" })
+                @Html.TextBoxFor(m => m.NumberWeight, "{0:G}", new { @class = "form-control", type = "text", inputmode = "decimal", pattern = "^-?[0-9]+([.,][0-9]+)?$", data_decimal_input = "true" })
                 @Html.ValidationMessageFor(m => m.NumberWeight, "", new { @class = "text-danger small" })
             </div>
             <div class="col-md-3">
                 <label class="form-label">@MasterArticles.Lbl_Mts2</label>
-                @Html.TextBoxFor(m => m.NumberMts2, "{0:G}", new { @class = "form-control", type = "text", inputmode = "decimal", pattern = "^-?[0-9]+([.,][0-9]+)?$" })
+                @Html.TextBoxFor(m => m.NumberMts2, "{0:G}", new { @class = "form-control", type = "text", inputmode = "decimal", pattern = "^-?[0-9]+([.,][0-9]+)?$", data_decimal_input = "true" })
                 @Html.ValidationMessageFor(m => m.NumberMts2, "", new { @class = "text-danger small" })
             </div>
             <div class="col-md-3">
                 <label class="form-label">@MasterArticles.Lbl_Mts3</label>
-                @Html.TextBoxFor(m => m.NumberMts3, "{0:G}", new { @class = "form-control", type = "text", inputmode = "decimal", pattern = "^-?[0-9]+([.,][0-9]+)?$" })
+                @Html.TextBoxFor(m => m.NumberMts3, "{0:G}", new { @class = "form-control", type = "text", inputmode = "decimal", pattern = "^-?[0-9]+([.,][0-9]+)?$", data_decimal_input = "true" })
                 @Html.ValidationMessageFor(m => m.NumberMts3, "", new { @class = "text-danger small" })
             </div>
 

@@ -3613,6 +3613,7 @@
     <Content Include="Views\Shared\_DesignMaterialCountModal.cshtml" />
     <Content Include="Content\Intranet\tandem-address-places.css" />
     <Content Include="Scripts\Intranet\tandem-address-places.js" />
+    <Content Include="Scripts\Intranet\decimal-input-normalize.js" />
     <Content Include="Scripts\Intranet\design-material-count-popup.js" />
     <Content Include="Scripts\Intranet\intranet-datatables-list.js" />
     <Content Include="Scripts\Intranet\sidebar-menu.js" />

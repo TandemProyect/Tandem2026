@@ -112,6 +112,8 @@
             });
         })();
     </script>
+    @* Decimales: coma → punto al salir del campo / enviar (BD con punto) *@
+    <script src="@Url.Content("~/Scripts/Intranet/decimal-input-normalize.js?v=20261112a")"></script>
     @RenderSection("scripts", required: false)
 </body>
 </html>

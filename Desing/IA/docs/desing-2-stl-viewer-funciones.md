@@ -298,6 +298,25 @@ Copia paralela de una línea usuario en planta XZ a distancia configurable.
 | Snap | Endpoints de la copia pasan por `maStlCommitUserPlanLineSegmentMm` (soldadura vértices ≤ 100 mm XZ) |
 | Undo | Un snapshot por copia (`createUserFloorLine` vía commit) |
 | Exclusión | Mutuamente excluyente con polilínea, pick rejilla/objeto y **borrar** |
+
+### Herramientas recortar / alargar (barra superior `#ma-stl-tool-trim` / `#ma-stl-tool-extend`)
+
+Equivalentes a RECORTA / ALARGA de AutoCAD en **modo Rápido**: sin paso de selección de aristas; editan líneas de planta simples y **tramos de muro 2D** (eje + 2 caras). Los pilares no se editan.
+
+| Elemento | Detalle |
+|----------|---------|
+| Estado | `maStlLineEditToolKind`: `null` \| `trim` \| `extend`; `maStlLineEditToolState`: `null` \| `pick` |
+| Aristas | `maStlLineEditToolCollectEdgeSegments()`: todas las líneas seleccionables de `maStlUserLinesGroup` (líneas, caras de muro `wallRole: 'face'`) + los 4 lados de la huella de cada pilar (`wallRole: 'pillar'`). El eje discontinuo del muro (`axis`) **no** cuenta. Intersección proyectada en planta XZ (ignora Y), aristas como segmentos finitos, tolerancia 1 mm |
+| Pick | `maStlLineEditToolPickTargetAtClient()`: prioridad línea simple más cercana en pantalla (≤ `MA_STL_USER_FLOOR_LINE_SCREEN_PICK_PX` + 4 px) → cara de muro cercana → punto dentro de la huella de un muro (`maStlLineEditToolPickWallFootprintAtClient`, eje ± medio espesor). Un muro se devuelve como su **eje** (`maStlLineEditToolWallAxisOf`); el hover resalta sus 2 caras. Si solo hay pilares cerca ⇒ toast `unsupported` |
+| Flujo | Icono **o Enter** (último comando) → `pick` → clic en tramo → recorta/alarga; sigue activo → **Enter/Espacio/Esc** termina |
+| Recortar | `maStlLineEditToolTrimLineAtClient`: quita el tramo entre las intersecciones que rodean el clic (o hasta el extremo). Tramo central ⇒ la línea se parte en dos (`maStlCommitUserPlanLineSegmentMm` con `skipWeld`/`skipCollinearMerge`). **Sin intersección ⇒ borra la línea** (`maStlCommitUserFloorLinesAndStlMeshesDelete`) |
+| Alargar | `maStlLineEditToolExtendLineAtClient`: extremo más cercano al clic (`t ≥ 0,5` ⇒ P2) hasta la primera arista que corta su prolongación; sin arista ⇒ toast |
+| Muro: recortar | `maStlLineEditToolTrimWallAtClient`: trabaja sobre el **eje** del tramo. Límites (`maStlLineEditToolCollectEdgeSegments(…, true)`): ejes de otros tramos de muro, líneas simples y pilares (las caras no cuentan). Tramo central ⇒ el eje se acorta y se crea otro tramo (`maStlLineEditToolAddWallPieceMm`: mismo `wallGroupId`/`wallId`, espesor y propiedades escalares copiadas; id nuevo). Extremo ⇒ se acorta. Sin cortes (tramo entre uniones o muro suelto) ⇒ se borra ese tramo (eje + caras; trabajadores asociados como en Borrar). Después `maStlWallEditFinalize().finalizeWallAxes()` sobre el tramo y los vecinos de los extremos afectados: caras, ingletes L/T/X (los trozos quedan a ras de la cara del muro que cruza) y guardado de WallConnections |
+| Muro: alargar | `maStlLineEditToolExtendWallAtClient`: extremo **libre** más cercano al clic hasta el siguiente eje de muro, línea o pilar; al llegar a otro muro el post-proceso crea la unión en T. Un extremo ya unido a otro muro no se alarga (toast) |
+| Undo | Un snapshot por operación (`trimUserFloorLine` / `extendUserFloorLine` / `trimUserFloorWall` / `extendUserFloorWall` / `deleteUserFloorLinesAndStlMeshes`) |
+| Escape | `maStlStopLineEditToolModesToolbar()` (también desde `maStlDesing2CancelTransientToolsEscape` y `maStlCancelAllViewerInteractionModes`): limpia hover, HUD, cursor y bloqueo de órbita; seguro si no está activa |
+| HUD | `#ma-stl-trim-tool-hud` / `#ma-stl-extend-tool-hud` (`StlPreview_TrimToolInstruction`, `StlPreview_ExtendToolInstruction`, `*NoChangeToast`, `StlPreview_LineEditToolUnsupportedToast`) |
+| Teclado | `maStlLineEditToolApplyWindowKeydownConfirm()` en `_maStlDesingV2LineToolEnterActivateKeyHandler` |
 | Cámara | Mismo lock que polilínea (`maStlLockOrbitForRulerAnchorPick`); Escape / segundo clic icono cancela |
 
 ### Barra superior Desing_2 — herramientas de dibujo y repetir último comando (Enter)

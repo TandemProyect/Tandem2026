@@ -872,7 +872,7 @@
     <value>Extend</value>
   </data>
   <data name="StlPreview_Desing2TopToolAlargarAria" xml:space="preserve">
-    <value>Extend tool — coming soon (UI placeholder only)</value>
+    <value>Extend lines and walls to a boundary edge (like AutoCAD EXTEND)</value>
   </data>
   <data name="StlPreview_Desing2TopToolBorrar" xml:space="preserve">
     <value>Delete</value>
@@ -932,7 +932,7 @@
     <value>Trim</value>
   </data>
   <data name="StlPreview_Desing2TopToolRecortarAria" xml:space="preserve">
-    <value>Trim tool — coming soon (UI placeholder only)</value>
+    <value>Trim lines and walls at cutting edges (like AutoCAD TRIM)</value>
   </data>
   <data name="StlPreview_Desing2TopToolbarAria" xml:space="preserve">
     <value>STL canvas tool bar</value>
@@ -1056,6 +1056,12 @@
   </data>
   <data name="StlPreview_EscapeCancelToolsToast" xml:space="preserve">
     <value>Canceled</value>
+  </data>
+  <data name="StlPreview_ExtendToolInstruction" xml:space="preserve">
+    <value>Extend: click near the end of the line or wall you want to extend to the next line, wall or pillar. Enter/Esc to finish</value>
+  </data>
+  <data name="StlPreview_ExtendToolNoChangeToast" xml:space="preserve">
+    <value>Extend: no line, wall or pillar crosses the extension of that end (walls only extend from free ends).</value>
   </data>
   <data name="StlPreview_FormworkRenderingAlmostDone" xml:space="preserve">
     <value>Almost done…</value>
@@ -1233,6 +1239,9 @@
   </data>
   <data name="StlPreview_LeaveSaveYes" xml:space="preserve">
     <value>Yes</value>
+  </data>
+  <data name="StlPreview_LineEditToolUnsupportedToast" xml:space="preserve">
+    <value>Trim/Extend works on lines and walls (not on pillars).</value>
   </data>
   <data name="StlPreview_LineToolDistanceInvalidToast" xml:space="preserve">
     <value>Enter a valid distance (e.g. 5, 5.5 or 5000 mm) or click for the second point.</value>
@@ -1569,6 +1578,12 @@
   </data>
   <data name="StlPreview_StretchToolInstructionSelecting" xml:space="preserve">
     <value>Select the wall or line to stretch: click or window. Enter for the first point, Esc to cancel.</value>
+  </data>
+  <data name="StlPreview_TrimToolInstruction" xml:space="preserve">
+    <value>Trim: click the part of the line or wall you want to remove (cuts at the nearest line, wall or pillar on each side; if it crosses nothing, it is deleted). Enter/Esc to finish</value>
+  </data>
+  <data name="StlPreview_TrimToolNoChangeToast" xml:space="preserve">
+    <value>Trim: that segment could not be trimmed.</value>
   </data>
   <data name="StlPreview_UcsRulersAria" xml:space="preserve">
     <value>Floor plan rulers</value>
