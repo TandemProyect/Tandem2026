@@ -32,6 +32,36 @@
     var designSavingText = maStr("StlPreview_DesignSaving", "Guardando diseño…");
     var designLoadingText = maStr("StlPreview_DesignLoading", "Cargando diseño…");
     var leaveSaveTitle = maStr("StlPreview_LeaveSaveTitle", "Salir del diseño");
+    var dwgImportTitle = maStr("StlPreview_Desing2DwgImportTitle", "Importar DWG");
+    var dwgImportHint = maStr("StlPreview_Desing2DwgImportHint", "Selecciona un archivo .dwg. Se importarán sus líneas y polilíneas, también las que están dentro de bloques.");
+    var dwgImportDrop = maStr("StlPreview_Desing2DwgImportDrop", "Arrastra aquí el archivo .dwg o haz clic para elegirlo");
+    var dwgImportNoFile = maStr("StlPreview_Desing2DwgImportNoFile", "Ningún archivo seleccionado");
+    var dwgImportSubmit = maStr("StlPreview_Desing2DwgImportSubmit", "Importar");
+    /* httpRuntime maxRequestLength = 50 MB: dejar margen para el multipart. */
+    const int dwgImportMaxMb = 45;
+    var dwgImportTexts = new System.Collections.Generic.Dictionary<string, string>
+    {
+        { "unitsFromFile", maStr("StlPreview_Desing2DwgImportUnitsFromFile", "Según el archivo ($INSUNITS).") },
+        { "unitsGuessed", maStr("StlPreview_Desing2DwgImportUnitsGuessed", "El archivo no indica unidades: estimadas por el tamaño del dibujo, revísalas.") },
+        { "unitsSuspicious", maStr("StlPreview_Desing2DwgImportUnitsSuspicious", "El tamaño no encaja con las unidades del archivo; ¿quizá {0}?") },
+        { "unitsCorrected", maStr("StlPreview_Desing2DwgImportUnitsCorrected", "El archivo indica {0}, pero el tamaño no encaja: se usan {1}. Revísalo.") },
+        { "unitsManual", maStr("StlPreview_Desing2DwgImportUnitsManual", "Unidades elegidas a mano.") },
+        { "counts", maStr("StlPreview_Desing2DwgImportCounts", "{0} líneas · {1} polilíneas · {2} bloques explotados") },
+        { "ignored", maStr("StlPreview_Desing2DwgImportIgnored", "No se importan: {0}") },
+        { "notConvertible", maStr("StlPreview_Desing2DwgImportNotConvertible", "También hay {0} sólidos / regiones / objetos AEC: solo se cuentan, no se pueden convertir.") },
+        { "wallLayerBadge", maStr("StlPreview_Desing2DwgImportWallLayerBadge", "muros") },
+        { "wallsSummary", maStr("StlPreview_Desing2DwgImportWallsSummary", "{0} posibles muros ({1} por pares de líneas paralelas, {2} por rectángulos / sombreados / sólidos)") },
+        { "wallsNone", maStr("StlPreview_Desing2DwgImportWallsNone", "No se han encontrado muros (pares de líneas paralelas de 5 a 50 cm).") },
+        { "willImport", maStr("StlPreview_Desing2DwgImportWillImport", "Se importarán {0} líneas y {1} muros.") },
+        { "done", maStr("StlPreview_Desing2DwgImportDone", "DWG importado: {0} líneas y {1} muros") },
+        { "nothing", maStr("StlPreview_Desing2DwgImportNothing", "No hay nada que importar con las capas elegidas") },
+        { "odaMissing", maStr("StlPreview_Desing2DwgImportOdaMissing", "Para leer DWG hay que instalar ODA File Converter en el servidor. Mientras tanto puedes importar el plano guardado como .dxf.") },
+        { "serverFail", maStr("StlPreview_Desing2DwgImportServerFail", "No se pudo analizar el archivo") },
+        { "warnTruncated", maStr("StlPreview_Desing2DwgImportWarnTruncated", "El dibujo es muy grande: solo se han leído las primeras {0} líneas.") },
+        { "warnMissingBlocks", maStr("StlPreview_Desing2DwgImportWarnMissingBlocks", "Algunos bloques no están en el archivo (referencias externas) y se han omitido.") },
+        { "warnNoGeometry", maStr("StlPreview_Desing2DwgImportWarnNoGeometry", "No se han encontrado líneas ni polilíneas visibles en el modelo.") },
+        { "viewerMissing", maStr("StlPreview_Desing2DwgImportViewerMissing", "El visor aún no está listo") },
+    };
     var leaveSaveMessage = maStr("StlPreview_LeaveSaveMessage", "¿Quieres guardar los muros antes de salir?");
     var leaveSaveYes = maStr("StlPreview_LeaveSaveYes", "Sí");
     var leaveSaveNo = maStr("StlPreview_LeaveSaveNo", "No");
@@ -912,6 +942,92 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" id="ma-stl-leave-save-no">@leaveSaveNo</button>
                     <button type="button" class="btn btn-primary" id="ma-stl-leave-save-yes" autofocus>@leaveSaveYes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade desing2-dwg-import-modal" id="ma-stl-dwg-import-modal" tabindex="-1" aria-labelledby="ma-stl-dwg-import-modal-title" aria-hidden="true" data-bs-keyboard="true" data-ma-dwg-max-mb="@dwgImportMaxMb" data-ma-dwg-invalid-ext="@HttpUtility.HtmlAttributeEncode(maStr("StlPreview_Desing2DwgImportInvalidExt", "Solo se admiten archivos .dwg o .dxf"))" data-ma-dwg-invalid-content="@HttpUtility.HtmlAttributeEncode(maStr("StlPreview_Desing2DwgImportInvalidContent", "El archivo no parece un DWG válido"))" data-ma-dwg-empty="@HttpUtility.HtmlAttributeEncode(maStr("StlPreview_Desing2DwgImportEmpty", "El archivo está vacío"))" data-ma-dwg-too-large="@HttpUtility.HtmlAttributeEncode(maStr("StlPreview_Desing2DwgImportTooLarge", "El archivo supera el tamaño máximo ({0} MB)"))" data-ma-dwg-analyze-url="@Url.Action("ImportDwg", "Desing_2")" data-ma-dwg-texts="@Newtonsoft.Json.JsonConvert.SerializeObject(dwgImportTexts)" data-ma-dwg-fail="@HttpUtility.HtmlAttributeEncode(maStr("StlPreview_Desing2DwgImportFail", "No se pudo importar el DWG"))">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ma-stl-dwg-import-modal-title"><i class="icon-base ri ri-file-upload-line me-2" aria-hidden="true"></i>@dwgImportTitle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@Common.Btn_Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="ma-stl-dwg-import-step-select">
+                        <p class="small text-muted mb-3">@dwgImportHint</p>
+                        <div class="desing2-dwg-import__drop" id="ma-stl-dwg-import-drop" role="button" tabindex="0" aria-describedby="ma-stl-dwg-import-file-info">
+                            <i class="icon-base ri ri-upload-cloud-2-line desing2-dwg-import__drop-icon" aria-hidden="true"></i>
+                            <span>@dwgImportDrop</span>
+                            <span class="small text-muted">@string.Format(maStr("StlPreview_Desing2DwgImportLimit", ".dwg / .dxf · máx. {0} MB"), dwgImportMaxMb)</span>
+                        </div>
+                        <input type="file" id="ma-stl-dwg-import-file" accept=".dwg,.dxf" class="d-none" tabindex="-1" aria-hidden="true" />
+                        <div class="small mt-2 text-muted text-truncate" id="ma-stl-dwg-import-file-info" aria-live="polite">@dwgImportNoFile</div>
+                    </div>
+                    <div class="d-none text-center py-4" id="ma-stl-dwg-import-busy" role="status" aria-live="polite">
+                        <div class="spinner-border text-primary" aria-hidden="true"></div>
+                        <div class="small mt-2" id="ma-stl-dwg-import-busy-text" data-ma-dwg-analyzing="@HttpUtility.HtmlAttributeEncode(maStr("StlPreview_Desing2DwgImportAnalyzing", "Analizando el archivo…"))" data-ma-dwg-importing="@HttpUtility.HtmlAttributeEncode(maStr("StlPreview_Desing2DwgImportImporting", "Importando líneas y muros…"))"></div>
+                    </div>
+                    <div class="d-none desing2-dwg-import__summary" id="ma-stl-dwg-import-summary">
+                        <div class="small fw-semibold text-truncate mb-2" id="ma-stl-dwg-import-summary-file"></div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-6">
+                                <label class="form-label small mb-1" for="ma-stl-dwg-import-units">@maStr("StlPreview_Desing2DwgImportUnitsLabel", "Unidades del dibujo")</label>
+                                <select class="form-select form-select-sm" id="ma-stl-dwg-import-units">
+                                    <option value="0.001" data-ma-dwg-unit="mm">@maStr("StlPreview_Desing2DwgImportUnitMm", "Milímetros (mm)")</option>
+                                    <option value="0.01" data-ma-dwg-unit="cm">@maStr("StlPreview_Desing2DwgImportUnitCm", "Centímetros (cm)")</option>
+                                    <option value="0.1" data-ma-dwg-unit="dm">@maStr("StlPreview_Desing2DwgImportUnitDm", "Decímetros (dm)")</option>
+                                    <option value="1" data-ma-dwg-unit="m">@maStr("StlPreview_Desing2DwgImportUnitM", "Metros (m)")</option>
+                                    <option value="0.0254" data-ma-dwg-unit="in">@maStr("StlPreview_Desing2DwgImportUnitIn", "Pulgadas (in)")</option>
+                                    <option value="0.3048" data-ma-dwg-unit="ft">@maStr("StlPreview_Desing2DwgImportUnitFt", "Pies (ft)")</option>
+                                </select>
+                                <div class="small text-muted mt-1" id="ma-stl-dwg-import-units-note"></div>
+                            </div>
+                            <div class="col-md-6 small">
+                                <div><span class="text-muted">@maStr("StlPreview_Desing2DwgImportSize", "Tamaño"):</span> <span id="ma-stl-dwg-import-extents"></span></div>
+                                <div id="ma-stl-dwg-import-counts"></div>
+                                <div class="text-muted" id="ma-stl-dwg-import-ignored"></div>
+                            </div>
+                        </div>
+                        <canvas class="desing2-dwg-import__preview" id="ma-stl-dwg-import-preview" aria-label="@maStr("StlPreview_Desing2DwgImportPreview", "Vista previa")" role="img"></canvas>
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span class="small fw-semibold">@maStr("StlPreview_Desing2DwgImportLayers", "Capas")</span>
+                                    <span class="small">
+                                        <button type="button" class="btn btn-link btn-sm p-0 me-2" id="ma-stl-dwg-import-layers-all">@maStr("StlPreview_Desing2DwgImportLayersAll", "Todas")</button>
+                                        <button type="button" class="btn btn-link btn-sm p-0" id="ma-stl-dwg-import-layers-none">@maStr("StlPreview_Desing2DwgImportLayersNone", "Ninguna")</button>
+                                    </span>
+                                </div>
+                                <div class="desing2-dwg-import__layers" id="ma-stl-dwg-import-layers"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="small fw-semibold">@maStr("StlPreview_Desing2DwgImportWalls", "Muros detectados")</div>
+                                <div class="small" id="ma-stl-dwg-import-walls-summary"></div>
+                                <div class="small text-muted" id="ma-stl-dwg-import-walls-solids"></div>
+                                <div class="form-check mt-1">
+                                    <input class="form-check-input" type="checkbox" id="ma-stl-dwg-import-convert-walls" />
+                                    <label class="form-check-label small" for="ma-stl-dwg-import-convert-walls">@maStr("StlPreview_Desing2DwgImportConvertWalls", "Convertir a muros")</label>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" id="ma-stl-dwg-import-only-wall-layers" />
+                                    <label class="form-check-label small" for="ma-stl-dwg-import-only-wall-layers">@maStr("StlPreview_Desing2DwgImportOnlyWallLayers", "Solo los de capas de muros")</label>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" id="ma-stl-dwg-import-keep-wall-lines" />
+                                    <label class="form-check-label small" for="ma-stl-dwg-import-keep-wall-lines">@maStr("StlPreview_Desing2DwgImportKeepWallLines", "Importar también las líneas que forman esos muros")</label>
+                                </div>
+                                <div class="small fw-semibold mt-2" id="ma-stl-dwg-import-will" aria-live="polite"></div>
+                                <div class="small text-warning mt-1" id="ma-stl-dwg-import-warnings"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="small mt-2 text-danger d-none" id="ma-stl-dwg-import-error" role="alert"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary me-auto d-none" id="ma-stl-dwg-import-back">@maStr("StlPreview_Desing2DwgImportBack", "Cambiar archivo")</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@Common.Btn_Cancel</button>
+                    <button type="button" class="btn btn-primary" id="ma-stl-dwg-import-submit" disabled>@dwgImportSubmit</button>
                 </div>
             </div>
         </div>

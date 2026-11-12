@@ -15171,8 +15171,11 @@ let maStlWallApplyAllHeightMm = 0;
         return removed;
     }
 
-    /** Confirma un tramo de muro: eje + dos caras; refactoriza esquinas del tramo anterior. */
-    function maStlWall2dToolCommitWallSegmentMm(a, b, skipUndo, halfTOverrideMm) {
+    /**
+     * Confirma un tramo de muro: eje + dos caras; refactoriza esquinas del tramo anterior.
+     * @param {boolean} [skipGridQuantize] geometría importada (DWG): no ajustar extremos a la rejilla.
+     */
+    function maStlWall2dToolCommitWallSegmentMm(a, b, skipUndo, halfTOverrideMm, skipGridQuantize) {
         const wallGroupId = maStlWall2dToolActiveGroupId;
         if (wallGroupId == null) return false;
         const undoBefore =
@@ -15181,8 +15184,10 @@ let maStlWallApplyAllHeightMm = 0;
             maStlUserFloorLineMergeEndpointEpsMm(),
             MA_STL_WALL_DIM_LENGTH_VALUE_TOL_MM
         );
-        maStlQuantizeUserFloorPlanPointToGridMm(a);
-        maStlQuantizeUserFloorPlanPointToGridMm(b);
+        if (!skipGridQuantize) {
+            maStlQuantizeUserFloorPlanPointToGridMm(a);
+            maStlQuantizeUserFloorPlanPointToGridMm(b);
+        }
         maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(a);
         maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(b);
         maStlWall2dToolSplitAxesAtInteriorHitsMm([a, b], a, b);
@@ -22482,6 +22487,86 @@ let maStlWallApplyAllHeightMm = 0;
         return true;
     }
 
+    /**
+     * Importar DWG (Desing_2): crea líneas de planta y muros (eje + caras) en **un solo paso de deshacer**.
+     * Coordenadas en mm relativas al anclaje de reglas: `x` → +X escena, `y` (arriba en el plano) → −Z escena.
+     * @param {{ segments?: Array<{x1:number,y1:number,x2:number,y2:number,group?:number}>,
+     *           walls?: Array<{x1:number,y1:number,x2:number,y2:number,thicknessMm:number}> }} payload
+     * @returns {{ ok: boolean, lines: number, walls: number }}
+     */
+    function maStlDesing2ImportDwgGeometry(payload) {
+        const out = { ok: false, lines: 0, walls: 0 };
+        if (!maStlDesingV2Viewer || !maStlUserLinesGroup) return out;
+        const segs = (payload && Array.isArray(payload.segments) && payload.segments) || [];
+        const walls = (payload && Array.isArray(payload.walls) && payload.walls) || [];
+        if (!segs.length && !walls.length) return out;
+        maStlCancelAllViewerInteractionModes();
+        const ox = maStlRulerAnchorMm ? maStlRulerAnchorMm.x : 0;
+        const oz = maStlRulerAnchorMm ? maStlRulerAnchorMm.z : 0;
+        const y = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM;
+        const minMm = Math.max(maStlUserFloorSegmentMinMm() * 0.05, 0.5);
+        const toPt = function (px, py) {
+            return { x: ox + px, y: y, z: oz - py };
+        };
+        const undoBefore = maStlDesing2SerializeEditSnapshot();
+        const groupMap = new Map();
+        for (let i = 0; i < segs.length; i++) {
+            const sg = segs[i];
+            if (!sg || ![sg.x1, sg.y1, sg.x2, sg.y2].every(Number.isFinite)) continue;
+            if (Math.hypot(sg.x2 - sg.x1, sg.y2 - sg.y1) < minMm) continue;
+            let gid = null;
+            if (Number.isFinite(sg.group) && sg.group >= 0) {
+                gid = groupMap.get(sg.group);
+                if (gid == null) {
+                    gid = maStlUserFloorLineNextPolylineGroupId++;
+                    groupMap.set(sg.group, gid);
+                }
+            }
+            maStlCommitUserPlanLineSegmentMm(toPt(sg.x1, sg.y1), toPt(sg.x2, sg.y2), true, gid, {
+                skipWeld: true,
+                skipCollinearMerge: true,
+                skipGridQuantize: true,
+            });
+            out.lines++;
+        }
+        if (walls.length) {
+            const previousWallGroupId = maStlWall2dToolActiveGroupId;
+            const previousWallResumeState = maStlWall2dToolResumeState;
+            maStlWall2dToolActiveGroupId = maStlTakeDefaultWallGroupId();
+            for (let i = 0; i < walls.length; i++) {
+                const w = walls[i];
+                if (!w || ![w.x1, w.y1, w.x2, w.y2, w.thicknessMm].every(Number.isFinite)) continue;
+                if (!(w.thicknessMm > 0) || Math.hypot(w.x2 - w.x1, w.y2 - w.y1) < minMm) continue;
+                if (
+                    maStlWall2dToolCommitWallSegmentMm(
+                        toPt(w.x1, w.y1),
+                        toPt(w.x2, w.y2),
+                        true,
+                        w.thicknessMm / 2,
+                        true
+                    )
+                ) {
+                    out.walls++;
+                }
+            }
+            maStlWall2dToolActiveGroupId = previousWallGroupId;
+            maStlWall2dToolResumeState = previousWallResumeState;
+            maStlWall2dToolSplitAllAxisInteriorCrossingsMm();
+            maStlWall2dToolRefactorAllWallJunctionsMm();
+            maStlWeldAllUserFloorLineEndpointsMm();
+            maStlWall2dToolRefactorAllWallJunctionsMm();
+            maStlReapplyAllUserFloorWallAxisLineStyles();
+        }
+        if (out.lines || out.walls) {
+            maStlDesing2PushEditSnapshotUndo('importDwg', undoBefore, maStlDesing2SerializeEditSnapshot());
+            if (out.walls) maStlSaveWallConnectionsNow({ force: true, reason: 'import-dwg-wall2d' });
+            out.ok = true;
+        }
+        return out;
+    }
+
+    window.maStlDesing2ImportDwgGeometry = maStlDesing2ImportDwgGeometry;
+
     function maStlSyncInsertEnclosureToolHud() {
         if (!maStlInsertEnclosureToolHud || !maStlDesingV2Viewer) return;
         if (!maStlIsInsertEnclosureToolPlacementActive()) {
@@ -25192,8 +25277,11 @@ let maStlWallApplyAllHeightMm = 0;
     function maStlCommitUserPlanLineSegmentMm(a, b, skipUndo, polylineGroupId, planExtras) {
         const undoBefore =
             !skipUndo && maStlDesingV2Viewer ? maStlDesing2SerializeEditSnapshot() : null;
-        maStlQuantizeUserFloorPlanPointToGridMm(a);
-        maStlQuantizeUserFloorPlanPointToGridMm(b);
+        /* `skipGridQuantize`: geometría importada (DWG) — no ajustar a la rejilla. */
+        if (!(planExtras && planExtras.skipGridQuantize)) {
+            maStlQuantizeUserFloorPlanPointToGridMm(a);
+            maStlQuantizeUserFloorPlanPointToGridMm(b);
+        }
         const skipWeld = !!(planExtras && planExtras.skipWeld);
         const weldEps = Math.max(
             maStlUserFloorLineMergeEndpointEpsMm(),
@@ -34246,6 +34334,8 @@ let maStlWallApplyAllHeightMm = 0;
 
     function maStlDesingV2AvoidKeyboardShortcutSteal(activeEl) {
         if (!activeEl || typeof activeEl.closest !== 'function') return false;
+        /* Modal abierto (p. ej. Importar DWG): los atajos del visor no actúan. */
+        if (activeEl.closest('.modal.show')) return true;
         if (activeEl.closest('textarea, select, [contenteditable="true"]')) return true;
         if (!(activeEl instanceof HTMLInputElement)) return false;
         const t = activeEl.type ? activeEl.type.toLowerCase() : '';
@@ -34358,6 +34448,7 @@ let maStlWallApplyAllHeightMm = 0;
         _maStlDesingV2F8OrthoKeydownHandler = (ev) => {
             if (ev.code !== 'F8' && ev.key !== 'F8') return;
             if (!maStlIsDesing2ViewerShellVisibleForKeyboardShortcuts()) return;
+            if (document.querySelector('.modal.show')) return;
             if (ev.defaultPrevented) return;
             if (ev.repeat) return;
             ev.preventDefault();

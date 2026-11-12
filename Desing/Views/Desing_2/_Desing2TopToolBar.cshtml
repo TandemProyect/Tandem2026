@@ -132,6 +132,13 @@
 
             <input type="file" id="ma-stl-tool-wall-import-file" accept=".tnwall,text/plain" class="d-none" tabindex="-1" aria-hidden="true" />
 
+            @* Importar DWG (fase 1: modal de selección; la importación real llega en fase 2 — desing2-dwg-import.js). *@
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-dwg-import" title="@MasterArticles.StlPreview_Desing2DwgImportAria" aria-label="@MasterArticles.StlPreview_Desing2DwgImportAria" aria-haspopup="dialog" aria-controls="ma-stl-dwg-import-modal">
+
+                <i class="icon-base ri ri-file-upload-line" aria-hidden="true"></i>
+
+            </button>
+
         </div>
 
         @* Esquina L: fuera de la barra visible; el atajo y el JS siguen usando este id. *@

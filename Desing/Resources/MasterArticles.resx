@@ -544,6 +544,159 @@
   <data name="StlPreview_Desing2ConfigWallWidthYPlaceholder" xml:space="preserve">
     <value>p. ej. 0,30 · 300 mm</value>
   </data>
+  <data name="StlPreview_Desing2DwgImportAnalyzing" xml:space="preserve">
+    <value>Analizando el archivo…</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportAria" xml:space="preserve">
+    <value>Importar DWG (líneas y polilíneas, también dentro de bloques)</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportBack" xml:space="preserve">
+    <value>Cambiar archivo</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportConvertWalls" xml:space="preserve">
+    <value>Convertir a muros</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportCounts" xml:space="preserve">
+    <value>{0} líneas · {1} polilíneas · {2} bloques explotados</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportDone" xml:space="preserve">
+    <value>DWG importado: {0} líneas y {1} muros</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportDrop" xml:space="preserve">
+    <value>Arrastra aquí el archivo .dwg / .dxf o haz clic para elegirlo</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportEmpty" xml:space="preserve">
+    <value>El archivo está vacío</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportFail" xml:space="preserve">
+    <value>No se pudo importar el DWG</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportHint" xml:space="preserve">
+    <value>Selecciona un archivo .dwg (o .dxf). Se analizan sus unidades, capas, líneas y polilíneas (también dentro de bloques) y los posibles muros antes de importar.</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportIgnored" xml:space="preserve">
+    <value>No se importan: {0}</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportImporting" xml:space="preserve">
+    <value>Importando líneas y muros…</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportInvalidContent" xml:space="preserve">
+    <value>El archivo no parece un DWG válido</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportInvalidExt" xml:space="preserve">
+    <value>Solo se admiten archivos .dwg o .dxf</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportKeepWallLines" xml:space="preserve">
+    <value>Importar también las líneas que forman esos muros</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportLayers" xml:space="preserve">
+    <value>Capas</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportLayersAll" xml:space="preserve">
+    <value>Todas</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportLayersNone" xml:space="preserve">
+    <value>Ninguna</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportLimit" xml:space="preserve">
+    <value>.dwg / .dxf · máx. {0} MB</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportNoFile" xml:space="preserve">
+    <value>Ningún archivo seleccionado</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportNotConvertible" xml:space="preserve">
+    <value>También hay {0} sólidos / regiones / objetos AEC: solo se cuentan, no se pueden convertir.</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportNothing" xml:space="preserve">
+    <value>No hay nada que importar con las capas elegidas</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportOdaMissing" xml:space="preserve">
+    <value>Para leer DWG hay que instalar ODA File Converter en el servidor. Mientras tanto puedes importar el plano guardado como .dxf.</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportOnlyWallLayers" xml:space="preserve">
+    <value>Solo los de capas de muros</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportPreview" xml:space="preserve">
+    <value>Vista previa</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportServerFail" xml:space="preserve">
+    <value>No se pudo analizar el archivo</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportSize" xml:space="preserve">
+    <value>Tamaño</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportSubmit" xml:space="preserve">
+    <value>Importar</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportTitle" xml:space="preserve">
+    <value>Importar DWG</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportTooLarge" xml:space="preserve">
+    <value>El archivo supera el tamaño máximo ({0} MB)</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportUnitCm" xml:space="preserve">
+    <value>Centímetros (cm)</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportUnitDm" xml:space="preserve">
+    <value>Decímetros (dm)</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportUnitFt" xml:space="preserve">
+    <value>Pies (ft)</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportUnitIn" xml:space="preserve">
+    <value>Pulgadas (in)</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportUnitM" xml:space="preserve">
+    <value>Metros (m)</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportUnitMm" xml:space="preserve">
+    <value>Milímetros (mm)</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportUnitsCorrected" xml:space="preserve">
+    <value>El archivo indica {0}, pero el tamaño no encaja: se usan {1}. Revísalo.</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportUnitsFromFile" xml:space="preserve">
+    <value>Según el archivo ($INSUNITS).</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportUnitsGuessed" xml:space="preserve">
+    <value>El archivo no indica unidades: estimadas por el tamaño del dibujo, revísalas.</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportUnitsLabel" xml:space="preserve">
+    <value>Unidades del dibujo</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportUnitsManual" xml:space="preserve">
+    <value>Unidades elegidas a mano.</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportUnitsSuspicious" xml:space="preserve">
+    <value>El tamaño no encaja con las unidades del archivo; ¿quizá {0}?</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportViewerMissing" xml:space="preserve">
+    <value>El visor aún no está listo</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportWallLayerBadge" xml:space="preserve">
+    <value>muros</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportWalls" xml:space="preserve">
+    <value>Muros detectados</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportWallsNone" xml:space="preserve">
+    <value>No se han encontrado muros (pares de líneas paralelas de 5 a 50 cm).</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportWallsSummary" xml:space="preserve">
+    <value>{0} posibles muros ({1} por pares de líneas paralelas, {2} por rectángulos / sombreados / sólidos)</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportWarnMissingBlocks" xml:space="preserve">
+    <value>Algunos bloques no están en el archivo (referencias externas) y se han omitido.</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportWarnNoGeometry" xml:space="preserve">
+    <value>No se han encontrado líneas ni polilíneas visibles en el modelo.</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportWarnTruncated" xml:space="preserve">
+    <value>El dibujo es muy grande: solo se han leído las primeras {0} líneas.</value>
+  </data>
+  <data name="StlPreview_Desing2DwgImportWillImport" xml:space="preserve">
+    <value>Se importarán {0} líneas y {1} muros.</value>
+  </data>
   <data name="StlPreview_Desing2EntornoAmbientIntensityAria" xml:space="preserve">
     <value>Intensidad de la luz ambiental global.</value>
   </data>

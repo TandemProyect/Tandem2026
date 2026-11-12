@@ -536,6 +536,8 @@
     <Compile Include="Services\Implements\SendGridConfig.cs" />
     <Compile Include="Services\ImageAnalysisService.cs" />
     <Compile Include="Services\MasterArticleViewerDxfConverter.cs" />
+    <Compile Include="Services\Desing2DwgConverter.cs" />
+    <Compile Include="Services\Desing2DxfImportParser.cs" />
     <Compile Include="Services\LCornerDetector.cs" />
     <Compile Include="Services\CadWall2dService.cs" />
     <Compile Include="Services\SketchWallBuilder.cs" />
@@ -3518,6 +3520,7 @@
     <Content Include="Scripts\Desing2\desing2-dim-kinds.js" />
     <Content Include="Scripts\Desing2\desing2-stl-viewer-toolbar-wiring.js" />
     <Content Include="Scripts\Desing2\desing2-wall-exchange.js" />
+    <Content Include="Scripts\Desing2\desing2-dwg-import.js" />
     <Content Include="Scripts\Desing2\desing2-phase-start.js" />
     <Content Include="Scripts\Desing2\desing2-phase-solve.js" />
     <Content Include="IA\tools\decrypt-wall-export.mjs" />

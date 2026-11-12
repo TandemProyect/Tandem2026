@@ -420,6 +420,86 @@ namespace Desing.Controllers
         }
 
         /// <summary>
+        /// Importar DWG (Desing_2): recibe un .dwg (o .dxf) en multipart (<c>file</c>), lo convierte a DXF con ODA File Converter,
+        /// lo analiza (unidades, líneas/polilíneas también dentro de bloques, capas, muros candidatos) y devuelve el resumen
+        /// con la geometría en unidades del dibujo. Opcional <c>toMeters</c> (formulario) fuerza la escala. No guarda nada:
+        /// los temporales se borran al terminar y la creación de líneas/muros la hace el visor.
+        /// </summary>
+        [HttpPost]
+        public ActionResult ImportDwg()
+        {
+            var camel = new JsonSerializerSettings
+            {
+                ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver(),
+                NullValueHandling = NullValueHandling.Ignore,
+            };
+            Func<object, ActionResult> jsonOut = o => Content(JsonConvert.SerializeObject(o, camel), "application/json", Encoding.UTF8);
+
+            var file = Request.Files.Count > 0 ? (Request.Files["file"] ?? Request.Files[0]) : null;
+            if (file == null || file.ContentLength <= 0 || string.IsNullOrWhiteSpace(file.FileName))
+            {
+                return jsonOut(new { ok = false, errorCode = "no_file", message = "No se ha recibido ningún archivo." });
+            }
+
+            var ext = (Path.GetExtension(file.FileName) ?? "").ToLowerInvariant();
+            if (ext != ".dwg" && ext != ".dxf")
+            {
+                return jsonOut(new { ok = false, errorCode = "bad_extension", message = "Solo se admiten archivos .dwg o .dxf." });
+            }
+
+            double? toMeters = null;
+            double parsedToMeters;
+            if (double.TryParse(Request.Form["toMeters"], NumberStyles.Float, CultureInfo.InvariantCulture, out parsedToMeters)
+                && parsedToMeters > 0 && parsedToMeters < 1e6)
+            {
+                toMeters = parsedToMeters;
+            }
+
+            var workDir = Path.Combine(Path.GetTempPath(), "Desing2DwgImport", Guid.NewGuid().ToString("N"));
+            try
+            {
+                Directory.CreateDirectory(workDir);
+                var inputPath = Path.Combine(workDir, "plano" + ext);
+                file.SaveAs(inputPath);
+
+                var dxfPath = inputPath;
+                if (ext == ".dwg")
+                {
+                    string errorCode;
+                    string errorDetail;
+                    if (!Services.Desing2DwgConverter.TryConvert(inputPath, workDir, out dxfPath, out errorCode, out errorDetail))
+                    {
+                        var message = errorCode == "oda_missing"
+                            ? "No está instalado ODA File Converter en el servidor (" + Services.Desing2DwgConverter.OdaDownloadUrl + ") o la ruta Desing2:OdaFileConverterExe de Web.config no es correcta."
+                            : errorCode == "convert_timeout"
+                                ? "La conversión del DWG tardó demasiado (Desing2:OdaFileConverterTimeoutMs)."
+                                : "No se pudo convertir el DWG a DXF.";
+                        return jsonOut(new { ok = false, errorCode = errorCode, message = message, detail = errorDetail });
+                    }
+                }
+
+                var result = Services.Desing2DxfImportParser.ParseFile(dxfPath, new Services.Desing2DxfImportOptions { ToMetersOverride = toMeters });
+                result.FileName = Path.GetFileName(file.FileName);
+                return jsonOut(result);
+            }
+            catch (Exception ex)
+            {
+                return jsonOut(new { ok = false, errorCode = "unknown", message = ex.Message });
+            }
+            finally
+            {
+                try
+                {
+                    if (Directory.Exists(workDir)) Directory.Delete(workDir, true);
+                }
+                catch (Exception)
+                {
+                    // El antivirus o el conversor pueden retener el archivo un instante; la carpeta queda en %TEMP%.
+                }
+            }
+        }
+
+        /// <summary>
         /// El primer usuario del día arranca la limpieza y recibe los segundos previstos.
         /// </summary>
         [HttpPost]
