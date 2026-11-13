@@ -66,6 +66,18 @@ namespace Desing.Repositories.RepositoryDesing2
         public bool? _CHeckPropOutsideInf { get; set; }
         public bool? _CHeckDimWall { get; set; }
 
+        // Muro curvo (WallRole "curved"): centro y radio exterior en mm escena, porción del círculo
+        // como fracción entera (1/33 exacto) y ángulo de inicio en grados. Null en muros rectos.
+        public double? _CurveCenterX { get; set; }
+        public double? _CurveCenterY { get; set; }
+        public double? _CurveCenterZ { get; set; }
+        public double? _CurveOuterRadiusMm { get; set; }
+        public int? _CurveFractionNum { get; set; }
+        public int? _CurveFractionDen { get; set; }
+        public double? _CurveStartAngleDeg { get; set; }
+        // Modulación (ancho del panel de encofrado, mm): 300, 450, 600, 750, 900, 1050 o 1200.
+        public int? _CurveModulationMm { get; set; }
+
         public long? WallDbId { get; set; }
         public bool? IsSpecial { get; set; }
     }
@@ -410,6 +422,7 @@ namespace Desing.Repositories.RepositoryDesing2
             entity.Is_CheckPropInsideInf = line._CHeckPropInsideInf ?? true;
             entity.Is_CheckPropOutsideInf = line._CHeckPropOutsideInf ?? true;
             entity.Is_CheckDimWall = line._CHeckDimWall ?? true;
+            MapCurveToEntity(line, entity);
 
             var label = BuildTextLabel(line, clientId);
             entity.TextLabel = string.IsNullOrWhiteSpace(label) ? "Muro" : Truncate(label, 500);
@@ -459,6 +472,14 @@ namespace Desing.Repositories.RepositoryDesing2
                 _CHeckPropInsideInf = row.Is_CheckPropInsideInf,
                 _CHeckPropOutsideInf = row.Is_CheckPropOutsideInf,
                 _CHeckDimWall = row.Is_CheckDimWall,
+                _CurveCenterX = row.NumberCurveCenterX,
+                _CurveCenterY = row.NumberCurveCenterY,
+                _CurveCenterZ = row.NumberCurveCenterZ,
+                _CurveOuterRadiusMm = row.NumberCurveOuterRadius,
+                _CurveFractionNum = row.NumberCurveFractionNum,
+                _CurveFractionDen = row.NumberCurveFractionDen,
+                _CurveStartAngleDeg = row.NumberCurveStartAngle,
+                _CurveModulationMm = row.NumberCurveModulation,
                 WallDbId = row.IdObject,
                 IsSpecial = row.Is_Special
             };
@@ -485,6 +506,53 @@ namespace Desing.Repositories.RepositoryDesing2
 
             return dto;
         }
+
+        /// <summary>
+        /// Muro curvo: guarda centro, radio exterior, porción (num/den) y ángulo de inicio.
+        /// Otros roles dejan las columnas a null. Porción no válida → círculo completo (1/1).
+        /// Modulación fuera de la lista (o sin enviar) → 900 mm: todo muro curvo se encofra con algún panel.
+        /// </summary>
+        private static void MapCurveToEntity(Desing2DesignWallLineDto line, TSql_DesignWall entity)
+        {
+            var isCurved = string.Equals((line.WallRole ?? string.Empty).Trim(), "curved", StringComparison.OrdinalIgnoreCase);
+            if (!isCurved)
+            {
+                entity.NumberCurveCenterX = null;
+                entity.NumberCurveCenterY = null;
+                entity.NumberCurveCenterZ = null;
+                entity.NumberCurveOuterRadius = null;
+                entity.NumberCurveFractionNum = null;
+                entity.NumberCurveFractionDen = null;
+                entity.NumberCurveStartAngle = null;
+                entity.NumberCurveModulation = null;
+                return;
+            }
+
+            var num = line._CurveFractionNum ?? 1;
+            var den = line._CurveFractionDen ?? 1;
+            if (num < 1 || den < 1 || num > den)
+            {
+                num = 1;
+                den = 1;
+            }
+
+            entity.NumberCurveCenterX = line._CurveCenterX ?? (line.P1Mm.X.Value + line.P2Mm.X.Value) / 2d;
+            entity.NumberCurveCenterY = line._CurveCenterY ?? ((line.P1Mm.Y ?? 0d) + (line.P2Mm.Y ?? 0d)) / 2d;
+            entity.NumberCurveCenterZ = line._CurveCenterZ ?? (line.P1Mm.Z.Value + line.P2Mm.Z.Value) / 2d;
+            entity.NumberCurveOuterRadius = line._CurveOuterRadiusMm ?? Math.Sqrt(
+                Math.Pow(line.P2Mm.X.Value - line.P1Mm.X.Value, 2) + Math.Pow(line.P2Mm.Z.Value - line.P1Mm.Z.Value, 2)) / 2d;
+            entity.NumberCurveFractionNum = num;
+            entity.NumberCurveFractionDen = den;
+            entity.NumberCurveStartAngle = line._CurveStartAngleDeg ?? 0d;
+            entity.NumberCurveModulation = line._CurveModulationMm.HasValue
+                && Array.IndexOf(CurvedWallModulationsMm, line._CurveModulationMm.Value) >= 0
+                    ? line._CurveModulationMm.Value
+                    : CurvedWallDefaultModulationMm;
+        }
+
+        /// <summary>Modulaciones admitidas del muro curvo (ancho de panel, mm). Fuera de la lista → 900.</summary>
+        private static readonly int[] CurvedWallModulationsMm = { 300, 450, 600, 750, 900, 1050, 1200 };
+        private const int CurvedWallDefaultModulationMm = 900;
 
         private static bool IsValidLine(Desing2DesignWallLineDto line)
         {

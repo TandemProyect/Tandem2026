@@ -431,6 +431,7 @@
     <Compile Include="Repositories\Repository_Desing_2\Atk60\ExactWidthEndTape.cs" />
     <Compile Include="Repositories\Repository_Desing_2\Atk60\FormTie.cs" />
     <Compile Include="Repositories\Repository_Desing_2\Atk60\PanelClamp.cs" />
+    <Compile Include="Repositories\Repository_Desing_2\Atk60\CurvedWallFormwork.cs" />
     <Compile Include="Repositories\Repository_Desing_2\Atk60\LCornerFormwork.cs" />
     <Compile Include="Repositories\Repository_Desing_2\Atk60\PanelFormwork.cs" />
     <Compile Include="Repositories\Repository_Desing_2\Atk60\PanelStiffener.cs" />

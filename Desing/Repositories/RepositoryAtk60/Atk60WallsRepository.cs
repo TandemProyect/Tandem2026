@@ -45,17 +45,27 @@ namespace Desing.Repositories.RepositoryAtk60
         public Atk60FormworkSolveResult SolveFromIdsJson(string idsJson)
         {
             var payload = BuildPayloadFromIdsJson(idsJson);
-            var walls = payload.Walls ?? new List<Desing2FormworkWallDto>();
+            var allWalls = payload.Walls ?? new List<Desing2FormworkWallDto>();
+            // Muro curvo: va aparte (CurvedWallFormwork). No tiene conexiones, así que no entra en
+            // el recorte de nudos, las esquinas ni el reparto del muro recto.
+            var curved = allWalls.Where(CurvedWallFormwork.IsCurved).ToList();
+            var walls = curved.Count == 0 ? allWalls : allWalls.Where(w => !CurvedWallFormwork.IsCurved(w)).ToList();
             var connectedEnds = CountConnectedEnds(walls);
             ApplyConnectedEndTrim(walls);
             var modulos = GetWallsForCadSystems(walls, connectedEnds);
+            var elements = BuildThreeJsPaintPayload(walls, modulos);
+            for (var ci = 0; ci < curved.Count; ci++)
+            {
+                elements.Elements.AddRange(CurvedWallFormwork.Place(curved[ci]));
+            }
+
             return new Atk60FormworkSolveResult
             {
                 System = payload.System,
                 IdsJson = idsJson,
-                Walls = walls,
+                Walls = curved.Count == 0 ? walls : walls.Concat(curved).ToList(),
                 Modulos = modulos,
-                ElementsForThreeJs = BuildThreeJsPaintPayload(walls, modulos)
+                ElementsForThreeJs = elements
             };
         }
 

@@ -1017,11 +1017,364 @@ function maStlCreateUserFloorLineGeometryMm(a, b) {
     return geo;
 }
 
+/** Muro curvo: nº de tramos del círculo dibujado en planta (línea y guía interior). */
+const MA_STL_CURVED_WALL_PLAN_SEGMENTS = 96;
+
+/**
+ * Muro curvo (`wallRole: 'curved'`): `a`/`b` son los extremos del diámetro exterior.
+ * Devuelve el círculo (cerrado) de radio exterior + `radiusDeltaMm` en planta XZ.
+ */
+function maStlCurvedWallCirclePositionsMm(a, b, radiusDeltaMm) {
+    const cx = (a.x + b.x) * 0.5;
+    const cz = (a.z + b.z) * 0.5;
+    const y = ((a.y || 0) + (b.y || 0)) * 0.5;
+    const r = Math.max(1, Math.hypot(b.x - a.x, b.z - a.z) * 0.5 + (radiusDeltaMm || 0));
+    const n = MA_STL_CURVED_WALL_PLAN_SEGMENTS;
+    const arr = new Float32Array((n + 1) * 3);
+    for (let i = 0; i <= n; i++) {
+        const ang = (i % n) / n * Math.PI * 2;
+        arr[i * 3] = cx + Math.cos(ang) * r;
+        arr[i * 3 + 1] = y;
+        arr[i * 3 + 2] = cz + Math.sin(ang) * r;
+    }
+    return arr;
+}
+
+function maStlIsCurvedWallPlanLine(line) {
+    const ud = line && line.userData && line.userData.maStlUserPlanLine;
+    return !!(ud && ud.wallRole === 'curved');
+}
+
+/** Muro curvo: columnas propias en TSql_DesignWall (NumberCurve*); viajan como atributos `_Curve*`. */
+const MA_STL_CURVED_WALL_ATTR_KEYS = [
+    '_CurveCenterX',
+    '_CurveCenterY',
+    '_CurveCenterZ',
+    '_CurveOuterRadiusMm',
+    '_CurveFractionNum',
+    '_CurveFractionDen',
+    '_CurveStartAngleDeg',
+    '_CurveModulationMm',
+];
+/** Porción máxima admitida: 1/360 (un grado). */
+const MA_STL_CURVED_WALL_FRACTION_DEN_MAX = 360;
+/** Modulación del muro curvo: ancho del panel de encofrado (mm). Columna TSql_DesignWall.NumberCurveModulation. */
+const MA_STL_CURVED_WALL_MODULATIONS_MM = Object.freeze([300, 450, 600, 750, 900, 1050, 1200]);
+const MA_STL_CURVED_WALL_DEFAULT_MODULATION_MM = 900;
+
+/** Modulación `_CurveModulationMm`; si falta o no está en la lista, 900 mm. */
+function maStlCurvedWallModulationMmOf(ud) {
+    const v = Math.round(Number(ud && ud._CurveModulationMm));
+    return MA_STL_CURVED_WALL_MODULATIONS_MM.indexOf(v) >= 0 ? v : MA_STL_CURVED_WALL_DEFAULT_MODULATION_MM;
+}
+
+/**
+ * Reparto del encofrado del muro curvo (mismo cálculo que CurvedWallFormwork.Compute en el servidor).
+ * Sectores N = el mayor, como mucho floor(barrido · R_int / b), con remate interior ≥ 50 mm
+ * (`MA_STL_CURVED_WALL_MIN_INNER_REMATE_MM`); giro por junta θ = barrido / N (Ø 10, e 0,30, b 0,90 → 31 y 11,61°).
+ * Un panel `b` por cara y sector. Remate exterior = 2·R·tan(θ/2) − b (el que salga); interior = 2·r·sin(θ/2) − b.
+ * null si no cabe ni un panel o θ pasa de 90°.
+ * @returns {{panels:number, turnDeg:number, outerRemateMm:number, innerRemateMm:number}|null}
+ */
+function maStlCurvedWallModulationInfo(rOutMm, f, panelMm, thicknessMm) {
+    const rInMm = rOutMm - (Number(thicknessMm) > 0 ? Number(thicknessMm) : 0);
+    if (!(rOutMm > 0) || !(panelMm > 0) || !(rInMm > 1)) return null;
+    const sweep = Math.PI * 2 * Math.min(1, Math.max(0, Number(f) || 1));
+    let n = Math.floor(sweep * rInMm / panelMm + 1e-9);
+    while (n > 1 && 2 * rInMm * Math.sin(sweep / n * 0.5) - panelMm < MA_STL_CURVED_WALL_MIN_INNER_REMATE_MM - 1e-6) n--;
+    if (n < 1) return null;
+    const turn = sweep / n;
+    if (turn > Math.PI * 0.5 + 1e-9) return null;
+    return {
+        panels: n,
+        turnDeg: turn * 180 / Math.PI,
+        outerRemateMm: 2 * rOutMm * Math.tan(turn * 0.5) - panelMm,
+        innerRemateMm: 2 * rInMm * Math.sin(turn * 0.5) - panelMm,
+    };
+}
+
+/**
+ * Ménsulas y puntales del muro curvo: mismos atributos (y columnas de TSql_DesignWall) que el muro recto.
+ * Por defecto, los del muro recto (`maStlWallLineEnsureAttrs`): sin ménsulas; puntales superiores en las dos caras.
+ */
+const MA_STL_CURVED_WALL_SUPPORT_FIELDS = Object.freeze([
+    { id: 'ma-stl-curved-wall-bracket-in', key: '_CHeckBracketInside', def: false },
+    { id: 'ma-stl-curved-wall-bracket-out', key: '_CHeckBracketOutside', def: false },
+    { id: 'ma-stl-curved-wall-prop-in', key: '_CHeckPropInside', def: true },
+    { id: 'ma-stl-curved-wall-prop-out', key: '_CHeckPropOutside', def: true },
+    { id: 'ma-stl-curved-wall-prop-in-inf', key: '_CHeckPropInsideInf', def: false },
+    { id: 'ma-stl-curved-wall-prop-out-inf', key: '_CHeckPropOutsideInf', def: false },
+]);
+/** Vuelo desde el origen (120 mm por fuera del panel): ménsula 1,0 m; puntal 1,6 m (h270) o 0,6 · altura. */
+const MA_STL_CURVED_WALL_BRACKET_REACH_MM = 1000;
+const MA_STL_CURVED_WALL_MIN_FOOT_GAP_MM = 400;
+
+/**
+ * Ménsulas y puntales por cara (misma regla que CurvedWallFormwork.ResolveSupports): cantidad del muro recto
+ * sobre el largo desarrollado de la cara exterior (N · 2·R·tan(θ/2)), como mucho una por sector. Ménsulas:
+ * 2 por tramo de 2,40 m (resto ≥ 1,20 → 2; ≥ 0,60 → 1). Puntales: ⌈largo / separación máx.⌉ (2,40 m), con
+ * muro de 2,00 m o más. `*InsideFit` false: hacia el centro no caben (pie fuera o a menos de 0,40 del vecino).
+ */
+function maStlCurvedWallSupportsInfo(rOutMm, f, panelMm, thicknessMm, heightMm, propSpacingMm) {
+    const mi = maStlCurvedWallModulationInfo(rOutMm, f, panelMm, thicknessMm);
+    if (!mi) return null;
+    const n = mi.panels;
+    const turn = mi.turnDeg * Math.PI / 180;
+    const developed = n * 2 * rOutMm * Math.tan(turn * 0.5);
+    let brackets = 0;
+    if (developed >= 600) {
+        const bays = Math.floor(developed / 2400);
+        const rest = developed - bays * 2400;
+        brackets = 2 * bays + (rest >= 1200 ? 2 : (rest >= 600 ? 1 : 0));
+    }
+    let spacing = Number(propSpacingMm);
+    if (!(spacing > 0)) spacing = 2400;
+    else {
+        if (spacing < 20) spacing *= 1000;
+        spacing = Math.min(6000, Math.max(300, spacing));
+    }
+    const propCount = Math.ceil(developed / spacing - 1e-9);
+    const h = Number(heightMm) || 0;
+    const rIn = rOutMm - (Number(thicknessMm) > 0 ? Number(thicknessMm) : 0);
+    const full = !(Number(f) < 1);
+    function spread(count) {
+        const out = [];
+        const c = Math.min(count, n);
+        for (let k = 0; k < c; k++) out.push(Math.floor((k + 0.5) * n / c));
+        return out;
+    }
+    function fits(reachMm, sectors) {
+        const footR = rIn * Math.cos(turn * 0.5) - 120 - reachMm;
+        if (!(footR > 0)) return false;
+        if (sectors.length < 2) return true;
+        let gap = Infinity;
+        for (let i = 1; i < sectors.length; i++) gap = Math.min(gap, sectors[i] - sectors[i - 1]);
+        if (full) gap = Math.min(gap, sectors[0] + n - sectors[sectors.length - 1]);
+        return 2 * footR * Math.sin(gap * turn * 0.5) >= MA_STL_CURVED_WALL_MIN_FOOT_GAP_MM;
+    }
+    const bracketSectors = spread(brackets);
+    const propSectors = spread(propCount);
+    return {
+        panels: n,
+        brackets: bracketSectors.length,
+        props: h >= 2000 ? propSectors.length : 0,
+        bracketsInsideFit: fits(MA_STL_CURVED_WALL_BRACKET_REACH_MM, bracketSectors),
+        propsInsideFit: fits(Math.max(1600, 0.6 * h), propSectors),
+        innerRadiusMm: rIn,
+    };
+}
+
+/**
+ * Aviso de la cara interior: {0} = «Ménsulas» / «Puntales» (o los dos), {1} = radio interior (m).
+ * Solo si esa cara está marcada y no cabe. `labels` = { brackets, props }.
+ */
+function maStlCurvedWallSupportsWarning(tpl, si, flags, labels) {
+    if (!tpl || !si || !flags) return '';
+    const names = [];
+    if (flags._CHeckBracketInside && si.brackets > 0 && !si.bracketsInsideFit) names.push(labels.brackets);
+    if ((flags._CHeckPropInside || flags._CHeckPropInsideInf) && si.props > 0 && !si.propsInsideFit) names.push(labels.props);
+    if (!names.length) return '';
+    return String(tpl)
+        .replace('{0}', names.join(' / '))
+        .replace('{1}', String(Math.round(si.innerRadiusMm / 10) / 100).replace('.', ','));
+}
+
+/** Remate de junta máximo del ATK-60 (EndFiller): por encima avisa. */
+const MA_STL_CURVED_WALL_MAX_REMATE_MM = 150;
+/** Remate interior mínimo de cada junta del muro curvo (CurvedWallFormwork.MinInnerRemateMm). */
+const MA_STL_CURVED_WALL_MIN_INNER_REMATE_MM = 50;
+
+/**
+ * Texto del reparto: {0} paneles por cara, {1} giro (°), {2} remate exterior y {3} interior (mm).
+ * Con `warnTpl`, si un remate pasa de 0,15 m o el interior no llega a 0,05 m, se añade el aviso ({0} = remate en mm).
+ */
+function maStlCurvedWallFillFormworkInfo(tpl, mi, warnTpl) {
+    const mm = function (v) { return String(Math.round(v * 10) / 10).replace('.', ','); };
+    let text = String(tpl || '')
+        .replace('{0}', String(mi.panels))
+        .replace('{1}', String(Math.round(mi.turnDeg * 100) / 100).replace('.', ','))
+        .replace('{2}', mm(mi.outerRemateMm))
+        .replace('{3}', mm(mi.innerRemateMm));
+    const worst = Math.max(mi.outerRemateMm, mi.innerRemateMm);
+    const bad = worst > MA_STL_CURVED_WALL_MAX_REMATE_MM ? worst
+        : (mi.innerRemateMm < MA_STL_CURVED_WALL_MIN_INNER_REMATE_MM - 1e-6 ? mi.innerRemateMm
+            : (mi.outerRemateMm < 0 ? mi.outerRemateMm : null));
+    if (warnTpl && bad != null) text += ' ' + String(warnTpl).replace('{0}', mm(bad));
+    return text;
+}
+
+/** Porción del círculo `_CurveFractionNum/_CurveFractionDen`; si falta o no vale, 1/1 (círculo completo). */
+function maStlCurvedWallFractionOf(ud) {
+    const num = Math.round(Number(ud && ud._CurveFractionNum));
+    const den = Math.round(Number(ud && ud._CurveFractionDen));
+    if (!(num >= 1 && den >= 1 && num <= den && den <= MA_STL_CURVED_WALL_FRACTION_DEN_MAX)) {
+        return { num: 1, den: 1, f: 1 };
+    }
+    return { num: num, den: den, f: num / den };
+}
+
+/** Espesor del muro curvo en mm (de `_DataWith` en m), siempre menor que el radio exterior. */
+function maStlCurvedWallThicknessMmOf(ud, rOutMm) {
+    const raw = Number(ud && ud._DataWith) * 1000;
+    return Math.min(Math.max(Number.isFinite(raw) && raw > 0 ? raw : 300, 10), Math.max(1, rOutMm * 0.95));
+}
+
+/**
+ * Contorno en planta del muro curvo. Porción 1/1: círculo exterior. Porción < 1: sector anular cerrado
+ * (arco exterior, tapa, arco interior, tapa). El arco empieza en la dirección p1→p2 y gira de +X hacia +Z.
+ */
+function maStlCurvedWallOutlinePositionsMm(a, b, thicknessMm, frac) {
+    if (!frac || frac.f >= 1) return maStlCurvedWallCirclePositionsMm(a, b, 0);
+    const cx = (a.x + b.x) * 0.5;
+    const cz = (a.z + b.z) * 0.5;
+    const y = ((a.y || 0) + (b.y || 0)) * 0.5;
+    const rOut = Math.max(1, Math.hypot(b.x - a.x, b.z - a.z) * 0.5);
+    const rIn = Math.max(1, rOut - (thicknessMm || 0));
+    const a0 = Math.atan2(b.z - a.z, b.x - a.x);
+    const sweep = Math.PI * 2 * frac.f;
+    const n = Math.max(4, Math.ceil(MA_STL_CURVED_WALL_PLAN_SEGMENTS * frac.f));
+    const arr = new Float32Array((2 * (n + 1) + 1) * 3);
+    let k = 0;
+    for (let i = 0; i <= n; i++) {
+        const ang = a0 + sweep * i / n;
+        arr[k++] = cx + Math.cos(ang) * rOut;
+        arr[k++] = y;
+        arr[k++] = cz + Math.sin(ang) * rOut;
+    }
+    for (let i = n; i >= 0; i--) {
+        const ang = a0 + sweep * i / n;
+        arr[k++] = cx + Math.cos(ang) * rIn;
+        arr[k++] = y;
+        arr[k++] = cz + Math.sin(ang) * rIn;
+    }
+    arr[k++] = cx + Math.cos(a0) * rOut;
+    arr[k++] = y;
+    arr[k++] = cz + Math.sin(a0) * rOut;
+    return arr;
+}
+
+/**
+ * Carga desde BD: quita los `_Curve*` nulos y, en un muro curvo con centro y radio guardados, rehace
+ * p1/p2 (diámetro exterior en la dirección del ángulo de inicio) desde esas columnas.
+ */
+function maStlCurvedWallNormalizeFromServer(out) {
+    if (!out) return;
+    const isCurved = out.wallRole === 'curved' || out._TypeMesh === 'MuroCurvo';
+    for (let i = 0; i < MA_STL_CURVED_WALL_ATTR_KEYS.length; i++) {
+        const key = MA_STL_CURVED_WALL_ATTR_KEYS[i];
+        if (!isCurved || out[key] == null) delete out[key];
+    }
+    if (!isCurved) return;
+    const cx = Number(out._CurveCenterX);
+    const cz = Number(out._CurveCenterZ);
+    const r = Number(out._CurveOuterRadiusMm);
+    if (!Number.isFinite(cx) || !Number.isFinite(cz) || !(r > 0)) return;
+    const cy = Number(out._CurveCenterY);
+    const y = Number.isFinite(cy) ? cy : ((out.p1Mm && out.p1Mm.y) || 0);
+    const ang = (Number(out._CurveStartAngleDeg) || 0) * Math.PI / 180;
+    const dx = Math.cos(ang) * r;
+    const dz = Math.sin(ang) * r;
+    out.p1Mm = { x: cx - dx, y: y, z: cz - dz };
+    out.p2Mm = { x: cx + dx, y: y, z: cz + dz };
+}
+
 function maStlSetUserFloorLineGeometryMm(line, a, b) {
     if (!line || !line.geometry || !line.isLine2) return;
+    if (maStlIsCurvedWallPlanLine(line)) {
+        /* Muro curvo: círculo exterior (1/1) o contorno del sector (porción < 1); p1/p2 = diámetro exterior. */
+        const curvedUd = line.userData.maStlUserPlanLine;
+        const curvedROut = Math.hypot(b.x - a.x, b.z - a.z) * 0.5;
+        line.geometry.setPositions(maStlCurvedWallOutlinePositionsMm(
+            a,
+            b,
+            maStlCurvedWallThicknessMmOf(curvedUd, curvedROut),
+            maStlCurvedWallFractionOf(curvedUd)
+        ));
+        line.geometry.computeBoundingBox();
+        line.geometry.computeBoundingSphere();
+        return;
+    }
+    const gapUd = line.userData && line.userData.maStlUserPlanLine;
+    if (gapUd && gapUd.wallRole === 'face' && gapUd.faceGapsMm && gapUd.faceGapsMm.length) {
+        /* Cara con aperturas: tramos sueltos (LineSegmentsGeometry), sin unir los huecos. */
+        const pcs = maStlWallFaceVisiblePiecesMm(a, b, gapUd.faceGapsMm);
+        const segs = new Float32Array(Math.max(1, pcs.length) * 6);
+        if (!pcs.length) {
+            segs.set([a.x, a.y, a.z, a.x, a.y, a.z]);
+        }
+        for (let i = 0; i < pcs.length; i++) {
+            segs.set([pcs[i].a.x, pcs[i].a.y, pcs[i].a.z, pcs[i].b.x, pcs[i].b.y, pcs[i].b.z], i * 6);
+        }
+        maStlLine2EnsureSegmentCount(line, Math.max(1, pcs.length));
+        Object.getPrototypeOf(LineGeometry.prototype).setPositions.call(line.geometry, segs);
+        line.geometry.computeBoundingBox();
+        line.geometry.computeBoundingSphere();
+        return;
+    }
+    maStlLine2EnsureSegmentCount(line, 1);
     line.geometry.setPositions(new Float32Array([a.x, a.y, a.z, b.x, b.y, b.z]));
     line.geometry.computeBoundingBox();
     line.geometry.computeBoundingSphere();
+}
+
+/**
+ * Line2 con un nº de tramos distinto del que ya se dibujó: geometría nueva. El renderer de Three
+ * fija `geometry._maxInstanceCount` (nº de tramos) la primera vez que dibuja la geometría y no lo
+ * recalcula al cambiar las posiciones, así que una cara de 1 tramo que pasa a 2 (apertura)
+ * seguiría dibujando sólo el primero.
+ */
+function maStlLine2EnsureSegmentCount(line, nSegs) {
+    const prev = line.userData && line.userData.maStlLine2SegCount ? line.userData.maStlLine2SegCount : 1;
+    if (prev !== nSegs && line.geometry) {
+        const old = line.geometry;
+        line.geometry = new LineGeometry();
+        old.dispose();
+    }
+    if (line.userData) {
+        if (nSegs === 1) delete line.userData.maStlLine2SegCount;
+        else line.userData.maStlLine2SegCount = nSegs;
+    }
+}
+
+/**
+ * Tramos visibles de una cara de muro a→b con aperturas `gaps` ({a,b} en planta, mm): cada
+ * apertura se proyecta sobre a→b, se recorta a la cara y se resta.
+ * @returns {{ a: {x:number,y:number,z:number}, b: {x:number,y:number,z:number} }[]}
+ */
+function maStlWallFaceVisiblePiecesMm(a, b, gaps) {
+    const dx = b.x - a.x;
+    const dz = b.z - a.z;
+    const len = Math.hypot(dx, dz);
+    if (!gaps || !gaps.length || len < 1e-6) return [{ a: a, b: b }];
+    const ux = dx / len;
+    const uz = dz / len;
+    const iv = [];
+    for (let i = 0; i < gaps.length; i++) {
+        const g = gaps[i];
+        if (!g || !g.a || !g.b) continue;
+        const s0 = (g.a.x - a.x) * ux + (g.a.z - a.z) * uz;
+        const s1 = (g.b.x - a.x) * ux + (g.b.z - a.z) * uz;
+        const lo = Math.max(0, Math.min(s0, s1));
+        const hi = Math.min(len, Math.max(s0, s1));
+        if (hi - lo > 1e-6) iv.push([lo, hi]);
+    }
+    if (!iv.length) return [{ a: a, b: b }];
+    iv.sort(function (p, q) {
+        return p[0] - q[0];
+    });
+    const ay = a.y || 0;
+    const by = b.y || 0;
+    const at = function (sMm) {
+        return { x: a.x + ux * sMm, y: ay + ((by - ay) * sMm) / len, z: a.z + uz * sMm };
+    };
+    const out = [];
+    let cur = 0;
+    for (let i = 0; i < iv.length; i++) {
+        if (iv[i][0] - cur >= 1) out.push({ a: at(cur), b: at(iv[i][0]) });
+        cur = Math.max(cur, iv[i][1]);
+    }
+    if (len - cur >= 1) out.push({ a: at(cur), b: at(len) });
+    return out;
 }
 
 /** Screen-space proximity pick for floor user lines (`Line2`). */
@@ -3070,6 +3423,8 @@ function bootMasterArticleDetailsStlViewer() {
     let maStlLineEditToolHoverLine = null;
     /** Líneas resaltadas por el hover (la línea o las 2 caras del tramo de muro). */
     let maStlLineEditToolHoverLitLines = [];
+    /** Recortar/Alargar cambió un muro con el encofrado puesto: re-encofrar al terminar el comando. */
+    let maStlLineEditToolReformworkPending = false;
     const _maStlLineEditToolFloorProbe = new THREE.Vector3();
 
     /** Desing_2 herramienta borrar: modo pick multi-selección antes de confirmar. */
@@ -3886,8 +4241,15 @@ function bootMasterArticleDetailsStlViewer() {
     let activeMode = 'ortho';
     /** Recorte local (planos mundo): barra vertical → corte Y; horizontal → X. Valor 0–1000 en UI; fracción f = (1000−v)/1000 ∈ [0,1]: f=0 sin recorte, f=1 máximo. */
     const clipBounds = { min: new THREE.Vector3(), max: new THREE.Vector3() };
-    const clipPlaneY = new THREE.Plane();
-    const clipPlaneX = new THREE.Plane();
+    /**
+     * Sin recorte, el plano queda «infinitamente» lejos. Antes los planos nacían con el valor por defecto de
+     * THREE.Plane (normal +X, constante 0), que descarta todo lo que tenga x < 0 hasta el primer
+     * `updateClipPlanes`; y con el deslizador a cero el corte quedaba en el máximo de `clipBounds`, que no
+     * siempre incluye lo último insertado. Así desaparecían paneles ATK-60 (medio muro curvo, algunos pilares).
+     */
+    const MA_STL_CLIP_NO_CUT_MM = 1e9;
+    const clipPlaneY = new THREE.Plane(new THREE.Vector3(0, -1, 0), MA_STL_CLIP_NO_CUT_MM);
+    const clipPlaneX = new THREE.Plane(new THREE.Vector3(-1, 0, 0), MA_STL_CLIP_NO_CUT_MM);
     /** Mallas STL con recorte / sombra (primera = principal, opcional segunda = `*2.stl`). */
     /** @type {THREE.Mesh[]} */
     let clipStlMeshes = [];
@@ -4807,6 +5169,7 @@ function bootMasterArticleDetailsStlViewer() {
         '_CHeckPropOutside',
         '_CHeckPropInsideInf',
         '_CHeckPropOutsideInf',
+        ...MA_STL_CURVED_WALL_ATTR_KEYS,
         'WallDbId',
         'wallDbId',
         'IsSpecial',
@@ -4864,9 +5227,11 @@ function bootMasterArticleDetailsStlViewer() {
         const midZ = (ud.p1Mm.z + ud.p2Mm.z) * 0.5;
 
         const isPillar = ud.wallRole === 'pillar' || ud._TypeMesh === 'Pilar';
+        const isCurved = !isPillar && (ud.wallRole === 'curved' || ud._TypeMesh === 'MuroCurvo');
         ud._idObject = wallId;
-        ud._TypeMesh = isPillar ? 'Pilar' : 'Wall';
+        ud._TypeMesh = isPillar ? 'Pilar' : (isCurved ? 'MuroCurvo' : 'Wall');
         if (isPillar) ud.wallRole = 'pillar';
+        if (isCurved) ud.wallRole = 'curved';
         ud._Datalong = maStlRoundMeters3(lenMm / 1000);
         if (isPillar) {
             const storedMm = Number(ud.pillarWidthMm);
@@ -4882,6 +5247,21 @@ function bootMasterArticleDetailsStlViewer() {
             ud._CHeckPropOutsideInf = false;
             if (ud._CHeckPropInside == null) ud._CHeckPropInside = true;
             if (ud._CHeckPropInsideInf == null) ud._CHeckPropInsideInf = false;
+        } else if (isCurved) {
+            /* Muro curvo: `_Datalong` = diámetro exterior (p1–p2); `_DataWith` = espesor (m) del formulario. */
+            const fromAttr = Number(ud._DataWith);
+            ud._DataWith = maStlRoundMeters3(fromAttr >= 0.05 && fromAttr <= 1 ? fromAttr : 0.3);
+            /* Columnas propias (TSql_DesignWall.NumberCurve*): centro y radio en mm, porción num/den,
+             * ángulo de inicio = dirección p1→p2 (grados, de +X hacia +Z). */
+            const curvedFrac = maStlCurvedWallFractionOf(ud);
+            ud._CurveFractionNum = curvedFrac.num;
+            ud._CurveFractionDen = curvedFrac.den;
+            ud._CurveCenterX = Math.round(midX * 10) / 10;
+            ud._CurveCenterY = Math.round(midY * 10) / 10;
+            ud._CurveCenterZ = Math.round(midZ * 10) / 10;
+            ud._CurveOuterRadiusMm = Math.round(lenMm * 5) / 10;
+            ud._CurveStartAngleDeg = Math.round((((yRotDeg % 360) + 360) % 360) * 1000) / 1000;
+            ud._CurveModulationMm = maStlCurvedWallModulationMmOf(ud);
         } else {
             ud._DataWith = maStlRoundMeters3(widthMm / 1000);
         }
@@ -4982,6 +5362,10 @@ function bootMasterArticleDetailsStlViewer() {
                     row._IsFormwork = false;
                 }
                 lines.push(row);
+                /* Cara con aperturas: se guarda como varias filas de cara (una por tramo visible). */
+                if (ud.wallRole === 'face' && ud.faceGapsMm && ud.faceGapsMm.length) {
+                    maStlWall2dToolPushFaceGapPieceRows(ud, row, lines);
+                }
             }
         }
         const stlMeshUuids = [];
@@ -5081,6 +5465,7 @@ function bootMasterArticleDetailsStlViewer() {
             out._IsFormwork = false;
         }
         maStlWallLineCopyAttrs(row, out);
+        maStlCurvedWallNormalizeFromServer(out);
         return out;
     }
 
@@ -6731,6 +7116,8 @@ function bootMasterArticleDetailsStlViewer() {
                 const isStraightCandidate = line.kind === 'polylineSegment' || line.kind === 'userLine';
                 const isFace = line.wallRole === 'face' || line.kind === 'wallFace';
                 if (isFace) return false;
+                /* Muro curvo: va aparte (maStlCollectCurvedFormworkWalls → CurvedWallFormwork). */
+                if (line.wallRole === 'curved') return false;
                 if (!isAxis && !isStraightCandidate) return false;
                 if (maStlDesing2WallIsSpecial(line)) return false;
 
@@ -6851,6 +7238,39 @@ function bootMasterArticleDetailsStlViewer() {
         return out;
     }
 
+    /**
+     * Muros curvos para Encofrar: van al servidor con su `_TypeMesh` 'MuroCurvo' y las columnas `_Curve*`
+     * (centro, radio exterior, porción, ángulo de inicio, modulación). Los reparte CurvedWallFormwork.
+     */
+    function maStlCollectCurvedFormworkWalls() {
+        const out = [];
+        const lines = maStlCurvedWallCollectPlanLines();
+        for (let i = 0; i < lines.length; i++) {
+            const ud = lines[i].ud;
+            maStlWallLineEnsureAttrs(ud);
+            if (maStlDesing2WallIsSpecial(ud)) continue;
+            const id = String(ud.wallId != null ? ud.wallId : ud.id);
+            out.push({
+                Id: id,
+                LineId: ud.id,
+                WallId: id,
+                WallRole: 'curved',
+                P1: { xMm: ud.p1Mm.x, yMm: ud.p1Mm.y || 0, zMm: ud.p1Mm.z },
+                P2: { xMm: ud.p2Mm.x, yMm: ud.p2Mm.y || 0, zMm: ud.p2Mm.z },
+                Attributes: Object.assign({}, ud, {
+                    _TypeMesh: 'MuroCurvo',
+                    InicioX: ud.p1Mm.x,
+                    InicioY: ud.p1Mm.z,
+                    InicioZ: ud.p1Mm.y || 0,
+                    FinX: ud.p2Mm.x,
+                    FinY: ud.p2Mm.z,
+                    FinZ: ud.p2Mm.y || 0,
+                }),
+            });
+        }
+        return out;
+    }
+
     function maStlBuildStraightWallsFromWallModelSource() {
         // Prioridad: sólidos/mallas de muro dibujados en 3D (fuente real para encofrado).
         const solidWalls = [];
@@ -6918,7 +7338,7 @@ function bootMasterArticleDetailsStlViewer() {
             });
         }
 
-        const pillarWalls = maStlCollectPillarFormworkWalls();
+        const pillarWalls = maStlCollectPillarFormworkWalls().concat(maStlCollectCurvedFormworkWalls());
         if (solidWalls.length) {
             return solidWalls.concat(pillarWalls);
         }
@@ -8819,6 +9239,7 @@ function bootMasterArticleDetailsStlViewer() {
 
     if (typeof window !== 'undefined') {
         window.maStlDesing2MergeCollinearAxisRuns = maStlWall2dToolMergeCollinearAxisRuns;
+        window.maStlDesing2PersistLinePairWalls = maStlDesing2PersistLinePairWalls;
         window.maStlDesing2ReleaseEmptySpecialWalls = maStlDesing2ReleaseEmptySpecialWalls;
         window.maStlDesing2GetStraightWallsForFormwork = maStlBuildStraightWallsForFormwork;
         window.maStlDesing2GetStraightWallsFromScene = maStlBuildStraightWallsFromScene;
@@ -9017,6 +9438,8 @@ function bootMasterArticleDetailsStlViewer() {
                 if (row.id > maxId) maxId = row.id;
             }
             maStlUserFloorLineNextSegId = Math.max(snapshot.nextSegId || 1, maxId + 1);
+            /* Varias filas de cara del mismo lado de un eje = una cara con aperturas. */
+            maStlWall2dToolMergeFacePiecesMm();
             maStlUserFloorLineNextPolylineGroupId = Math.max(
                 snapshot.nextPolylineGroupId || 1,
                 maxPolylineGroupId + 1
@@ -9250,7 +9673,7 @@ function bootMasterArticleDetailsStlViewer() {
             if (!maStlIsUserFloorPlanLineObject(line)) continue;
             const ud = line.userData && line.userData.maStlUserPlanLine;
             if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
-            if (ud.wallRole === 'axis' || ud.wallRole === 'pillar') continue;
+            if (ud.wallRole === 'axis' || ud.wallRole === 'pillar' || ud.wallRole === 'curved') continue;
             if (ud.wallRole === 'face') faces.push(line);
             else plain.push(line);
         }
@@ -9330,6 +9753,8 @@ function bootMasterArticleDetailsStlViewer() {
         if (!built.payload.Lineas.length) {
             let pillarCount = 0;
             maStlForEachPillarPlanLine(function () { pillarCount++; });
+            /* Muro curvo: se dibuja en cliente (anillo), no necesita la detección del servidor. */
+            pillarCount += maStlCurvedWallCollectPlanLines().length;
             if (pillarCount > 0) {
                 if (onSuccess) {
                     onSuccess({
@@ -10709,6 +11134,7 @@ let maStlWallApplyAllHeightMm = 0;
         maStlStampPillarsWithDefaultWallHeight();
         maStlDesing2ReleaseEmptySpecialWalls();
         maStlWall2dToolRepairAllWallConnectionsMm();
+        maStlDesing2PersistLinePairWalls('wall3d-lines-to-wall');
         maStlDesing2PersistCollinearAxisMerge();
         if (maStlDesing2WallModelCacheHit('wall3d')) {
             maStlDesing2ClearAtk60Visuals();
@@ -11709,6 +12135,12 @@ let maStlWallApplyAllHeightMm = 0;
             maStlInsertPillarToolToggleBtn.setAttribute('aria-pressed', onPillar ? 'true' : 'false');
             maStlInsertPillarToolToggleBtn.classList.toggle('active', onPillar);
         }
+        const curvedWallBtn = document.getElementById('ma-stl-tool-insert-curved-wall');
+        if (curvedWallBtn) {
+            const onCurved = maStlIsCurvedWallPlacementActive();
+            curvedWallBtn.setAttribute('aria-pressed', onCurved ? 'true' : 'false');
+            curvedWallBtn.classList.toggle('active', onCurved);
+        }
         if (maStlWall2dToolToggleBtn) {
             const onWall2d = maStlIsWall2dToolActive();
             maStlWall2dToolToggleBtn.setAttribute('aria-pressed', onWall2d ? 'true' : 'false');
@@ -12269,6 +12701,7 @@ let maStlWallApplyAllHeightMm = 0;
         }
         if (maStlIsWorkerToolActive() || maStlIsWorkerPickOpen()) maStlStopWorkerTool();
         if (btnId !== 'ma-stl-tool-pillars' && maStlIsPillarToolActive()) maStlStopPillarTool();
+        maStlStopCurvedWallPlacement();
         if (
             maStlIsLineEditToolActive() &&
             btnId !== 'ma-stl-tool-trim' &&
@@ -14171,6 +14604,7 @@ let maStlWallApplyAllHeightMm = 0;
                 true
             );
         }
+        maStlWall2dToolInheritFaceGapsMm(ud.id, tailUd.id);
         maStlWall2dToolRefactorCenterFaceOffsets(axisLine, halfT, wallGroupId);
         return true;
     }
@@ -14861,7 +15295,258 @@ let maStlWallApplyAllHeightMm = 0;
             }
         }
         maStlWall2dToolRefactorTJunctionsFromBucket(bucket);
+        maStlWall2dToolApplyFreeEndLineCutsMm();
         maStlWall2dToolSyncEndpointConnectionsMm();
+    }
+
+    /**
+     * Aperturas de cara (`faceGapsMm` en la cara: [{a,b}] en planta, mm): recortar un muro entre dos
+     * líneas que llegan a la misma cara abre sólo esa cara; el eje y la otra cara siguen enteros.
+     * En memoria la cara es una sola línea (uniones, muro 3D y encofrado no cambian) que se dibuja
+     * a tramos; al guardar (BD y deshacer) se escribe como una fila de cara por tramo y al cargar
+     * `maStlWall2dToolMergeFacePiecesMm` las vuelve a juntar.
+     */
+    function maStlWall2dToolAddFaceGapMm(faceLine, a, b) {
+        const fUd = faceLine && faceLine.userData && faceLine.userData.maStlUserPlanLine;
+        if (!fUd || !a || !b) return false;
+        const gaps = Array.isArray(fUd.faceGapsMm) ? fUd.faceGapsMm.slice() : [];
+        gaps.push({ a: { x: a.x, y: a.y || 0, z: a.z }, b: { x: b.x, y: b.y || 0, z: b.z } });
+        fUd.faceGapsMm = maStlWall2dToolNormalizeFaceGapsMm(fUd, gaps);
+        maStlApplyUserFloorLineSegmentGeometryFromMm(faceLine);
+        return true;
+    }
+
+    /** Une aperturas solapadas (proyectadas sobre la recta de la cara). */
+    function maStlWall2dToolNormalizeFaceGapsMm(fUd, gaps) {
+        const a = fUd.p1Mm;
+        const dx = fUd.p2Mm.x - a.x;
+        const dz = fUd.p2Mm.z - a.z;
+        const len = Math.hypot(dx, dz);
+        if (len < 1e-6) return gaps;
+        const ux = dx / len;
+        const uz = dz / len;
+        const iv = gaps
+            .map(function (g) {
+                const s0 = (g.a.x - a.x) * ux + (g.a.z - a.z) * uz;
+                const s1 = (g.b.x - a.x) * ux + (g.b.z - a.z) * uz;
+                return [Math.min(s0, s1), Math.max(s0, s1)];
+            })
+            .sort(function (p, q) {
+                return p[0] - q[0];
+            });
+        const merged = [];
+        for (let i = 0; i < iv.length; i++) {
+            const last = merged[merged.length - 1];
+            if (last && iv[i][0] <= last[1] + 0.5) last[1] = Math.max(last[1], iv[i][1]);
+            else merged.push(iv[i].slice());
+        }
+        const y = a.y || 0;
+        return merged.map(function (m) {
+            return {
+                a: { x: a.x + ux * m[0], y: y, z: a.z + uz * m[0] },
+                b: { x: a.x + ux * m[1], y: y, z: a.z + uz * m[1] },
+            };
+        });
+    }
+
+    /** Copia las aperturas de las caras de `fromAxisId` a las del mismo lado de `toAxisId`. */
+    function maStlWall2dToolInheritFaceGapsMm(fromAxisId, toAxisId) {
+        if (fromAxisId == null || toAxisId == null || fromAxisId === toAxisId) return;
+        for (let si = 0; si < 2; si++) {
+            const side = si === 0 ? 1 : -1;
+            const src = maStlWall2dToolFindFaceForCenterAndSide(fromAxisId, side);
+            const sUd = src && src.userData && src.userData.maStlUserPlanLine;
+            if (!sUd || !sUd.faceGapsMm || !sUd.faceGapsMm.length) continue;
+            const dst = maStlWall2dToolFindFaceForCenterAndSide(toAxisId, side);
+            const dUd = dst && dst.userData && dst.userData.maStlUserPlanLine;
+            if (!dUd) continue;
+            const gaps = (dUd.faceGapsMm || []).concat(
+                sUd.faceGapsMm.map(function (g) {
+                    return { a: Object.assign({}, g.a), b: Object.assign({}, g.b) };
+                })
+            );
+            dUd.faceGapsMm = maStlWall2dToolNormalizeFaceGapsMm(dUd, gaps);
+            maStlApplyUserFloorLineSegmentGeometryFromMm(dst);
+        }
+    }
+
+    /** Mover un muro: sus aperturas se mueven con él. */
+    function maStlWall2dToolTranslateFaceGapsMm(axisLine, dx, dz) {
+        const ud = axisLine && axisLine.userData && axisLine.userData.maStlUserPlanLine;
+        if (!ud || ud.id == null) return;
+        const faces = maStlWall2dToolFindFaceLinesForCenterId(ud.id);
+        for (let fi = 0; fi < faces.length; fi++) {
+            const fUd = faces[fi].userData && faces[fi].userData.maStlUserPlanLine;
+            if (!fUd || !fUd.faceGapsMm) continue;
+            for (let gi = 0; gi < fUd.faceGapsMm.length; gi++) {
+                const g = fUd.faceGapsMm[gi];
+                g.a.x += dx;
+                g.a.z += dz;
+                g.b.x += dx;
+                g.b.z += dz;
+            }
+        }
+    }
+
+    /**
+     * Serializa una cara con aperturas: `row` pasa a ser el primer tramo visible y se añade una
+     * fila por cada tramo siguiente (ids estables en `faceGapPieceIds`, sin `WallDbId`).
+     */
+    function maStlWall2dToolPushFaceGapPieceRows(ud, row, lines) {
+        const pcs = maStlWallFaceVisiblePiecesMm(ud.p1Mm, ud.p2Mm, ud.faceGapsMm);
+        if (pcs.length < 2) return;
+        if (!Array.isArray(ud.faceGapPieceIds)) ud.faceGapPieceIds = [];
+        while (ud.faceGapPieceIds.length < pcs.length - 1) ud.faceGapPieceIds.push(maStlUserFloorLineNextSegId++);
+        row.p1Mm = maStlDesing2ClonePlanPointMm(pcs[0].a);
+        row.p2Mm = maStlDesing2ClonePlanPointMm(pcs[0].b);
+        for (let i = 1; i < pcs.length; i++) {
+            const extra = Object.assign({}, row);
+            extra.id = ud.faceGapPieceIds[i - 1];
+            extra.p1Mm = maStlDesing2ClonePlanPointMm(pcs[i].a);
+            extra.p2Mm = maStlDesing2ClonePlanPointMm(pcs[i].b);
+            delete extra.WallDbId;
+            delete extra.wallDbId;
+            lines.push(extra);
+        }
+    }
+
+    /**
+     * Tras cargar filas (BD o deshacer): las caras de un mismo eje y lado se juntan en una sola
+     * (la de id menor) y los huecos entre tramos pasan a `faceGapsMm`.
+     */
+    function maStlWall2dToolMergeFacePiecesMm() {
+        if (!maStlUserLinesGroup) return;
+        const groups = Object.create(null);
+        const ch = maStlUserLinesGroup.children;
+        for (let i = 0; i < ch.length; i++) {
+            const ln = ch[i];
+            if (!maStlIsUserFloorPlanLineObject(ln)) continue;
+            const ud = ln.userData.maStlUserPlanLine;
+            if (!ud || ud.wallRole !== 'face' || ud.linkOffsetFromLineId == null || !ud.p1Mm || !ud.p2Mm) continue;
+            const key = ud.linkOffsetFromLineId + '|' + (ud.numberWallFaceSideSign === -1 ? -1 : 1);
+            (groups[key] || (groups[key] = [])).push(ln);
+        }
+        for (const key in groups) {
+            const list = groups[key];
+            if (list.length < 2) continue;
+            list.sort(function (l1, l2) {
+                return Number(l1.userData.maStlUserPlanLine.id) - Number(l2.userData.maStlUserPlanLine.id);
+            });
+            const main = list[0];
+            const mUd = main.userData.maStlUserPlanLine;
+            const o = { x: mUd.p1Mm.x, y: mUd.p1Mm.y, z: mUd.p1Mm.z };
+            const dx = mUd.p2Mm.x - o.x;
+            const dz = mUd.p2Mm.z - o.z;
+            const len = Math.hypot(dx, dz);
+            if (len < 1e-6) continue;
+            const ux = dx / len;
+            const uz = dz / len;
+            const iv = list.map(function (ln) {
+                const u = ln.userData.maStlUserPlanLine;
+                const s1 = (u.p1Mm.x - o.x) * ux + (u.p1Mm.z - o.z) * uz;
+                const s2 = (u.p2Mm.x - o.x) * ux + (u.p2Mm.z - o.z) * uz;
+                return [Math.min(s1, s2), Math.max(s1, s2)];
+            });
+            iv.sort(function (p, q) {
+                return p[0] - q[0];
+            });
+            const at = function (sMm) {
+                return { x: o.x + ux * sMm, y: o.y, z: o.z + uz * sMm };
+            };
+            const gaps = [];
+            let hi = iv[0][1];
+            for (let i = 1; i < iv.length; i++) {
+                if (iv[i][0] > hi + 0.5) gaps.push({ a: at(hi), b: at(iv[i][0]) });
+                hi = Math.max(hi, iv[i][1]);
+            }
+            const p1 = at(iv[0][0]);
+            const p2 = at(hi);
+            mUd.p1Mm.x = p1.x;
+            mUd.p1Mm.z = p1.z;
+            mUd.p2Mm.x = p2.x;
+            mUd.p2Mm.z = p2.z;
+            mUd.faceGapPieceIds = [];
+            for (let i = 1; i < list.length; i++) {
+                mUd.faceGapPieceIds.push(list[i].userData.maStlUserPlanLine.id);
+                maStlUserLinesGroup.remove(list[i]);
+                disposeObject3D(list[i]);
+            }
+            mUd.faceGapsMm = gaps.length ? gaps : undefined;
+            if (!gaps.length) delete mUd.faceGapsMm;
+            maStlApplyUserFloorLineSegmentGeometryFromMm(main);
+        }
+    }
+
+    /** Ángulo mínimo (°) entre muro y línea para cortar la testa a ras de la línea. */
+    const MA_STL_WALL_FREE_END_LINE_CUT_MIN_DEG = 10;
+
+    /**
+     * Testa a ras de línea: el extremo libre de un eje que cae sobre una línea simple (recortado o
+     * alargado hasta ella) corta cada cara en su cruce con esa línea, en vez de la testa recta.
+     * Con la línea perpendicular no cambia nada; sin la línea, la próxima vez que se rehagan las
+     * caras del tramo la testa vuelve a ser recta.
+     */
+    function maStlWall2dToolApplyFreeEndLineCutsMm() {
+        if (!maStlUserLinesGroup) return;
+        const ch = maStlUserLinesGroup.children;
+        const simple = [];
+        for (let i = 0; i < ch.length; i++) {
+            const ln = ch[i];
+            if (!maStlIsUserFloorPlanLineSelectable(ln)) continue;
+            const ud = ln.userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            if (ud.wallRole || ud.wallGroupId != null || ud.pillarWidthMm != null) continue;
+            simple.push(ud);
+        }
+        if (!simple.length) return;
+        const onEps = 2;
+        const minSin = Math.sin((MA_STL_WALL_FREE_END_LINE_CUT_MIN_DEG * Math.PI) / 180);
+        const axes = maStlWall2dToolCollectAllAxisLines();
+        for (let ai = 0; ai < axes.length; ai++) {
+            const axis = axes[ai];
+            const ud = axis.userData.maStlUserPlanLine;
+            if (!ud || ud.id == null || !ud.p1Mm || !ud.p2Mm) continue;
+            const lenA = Math.hypot(ud.p2Mm.x - ud.p1Mm.x, ud.p2Mm.z - ud.p1Mm.z);
+            if (lenA < 1e-6) continue;
+            const ux = (ud.p2Mm.x - ud.p1Mm.x) / lenA;
+            const uz = (ud.p2Mm.z - ud.p1Mm.z) / lenA;
+            const halfT = maStlWall2dToolAxisFaceHalfThicknessMm(axis);
+            if (!(halfT > 0)) continue;
+            const ends = [ud.p1Mm, ud.p2Mm];
+            for (let ei = 0; ei < 2; ei++) {
+                const pt = ends[ei];
+                if (maStlLineEditToolAxesTouchingPointMm(pt, axis).length) continue;
+                let cut = null;
+                for (let si = 0; si < simple.length; si++) {
+                    const s = simple[si];
+                    const lx = s.p2Mm.x - s.p1Mm.x;
+                    const lz = s.p2Mm.z - s.p1Mm.z;
+                    const ll = Math.hypot(lx, lz);
+                    if (ll < 1e-6) continue;
+                    if (Math.abs((pt.x - s.p1Mm.x) * lz - (pt.z - s.p1Mm.z) * lx) / ll > onEps) continue;
+                    if (Math.abs(ux * lz - uz * lx) / ll < minSin) continue;
+                    const band = maStlLineEditToolEdgeVsWallBandMm(ud.p1Mm, ud.p2Mm, halfT, s.p1Mm, s.p2Mm);
+                    if (!band || !band.reach) continue;
+                    cut = s;
+                    break;
+                }
+                if (!cut) continue;
+                for (let side = -1; side <= 1; side += 2) {
+                    const face = maStlWall2dToolFindFaceForCenterAndSide(ud.id, side);
+                    const fUd = face && face.userData && face.userData.maStlUserPlanLine;
+                    if (!fUd || !fUd.p1Mm || !fUd.p2Mm) continue;
+                    const hit = maStlLineEditToolIntersectXzMm(fUd.p1Mm, fUd.p2Mm, cut.p1Mm, cut.p2Mm);
+                    if (!hit) continue;
+                    const q = maStlLineEditToolPointAtMm(fUd.p1Mm, fUd.p2Mm, hit.t);
+                    if (Math.hypot(q.x - pt.x, q.z - pt.z) > halfT / minSin + 1) continue;
+                    const fp = maStlLineEditToolNearerEndMm(fUd, pt);
+                    if (Math.hypot(q.x - fp.x, q.z - fp.z) < 1e-3) continue;
+                    fp.x = q.x;
+                    fp.z = q.z;
+                    maStlApplyUserFloorLineSegmentGeometryFromMm(face);
+                }
+            }
+        }
     }
 
     /**
@@ -15090,6 +15775,15 @@ let maStlWallApplyAllHeightMm = 0;
     }
 
     /** Une los tramos colineales y, si quitó alguno, guarda los muros sin foto. */
+    /** Parejas de lineas paralelas -> muro (3D / encofrado); guarda muros si cambio algo. */
+    function maStlDesing2PersistLinePairWalls(reason) {
+        const r = maStlDesing2ConvertParallelLinePairsToWallsMm({ reason: reason || 'lines-to-wall' });
+        if (r.walls > 0) {
+            maStlDesing2SaveDesignWallsToServer({ includePhoto: false, quiet: true }).catch(function () {});
+        }
+        return r.walls;
+    }
+
     function maStlDesing2PersistCollinearAxisMerge() {
         const removed = maStlWall2dToolMergeCollinearAxisRuns();
         if (!(removed > 0)) return 0;
@@ -15316,6 +16010,7 @@ let maStlWallApplyAllHeightMm = 0;
                     }
                     maStlWallLineEnsureAttrs(keepUd);
                     maStlApplyUserFloorLineSegmentGeometryFromMm(keepLine);
+                    maStlWall2dToolInheritFaceGapsMm(dropUd.id, keepUd.id);
                     const dropFaces = maStlWall2dToolFindFaceLinesForCenterId(dropUd.id);
                     for (let fi = 0; fi < dropFaces.length; fi++) {
                         maStlDisposeUserFloorPlanLineObject(dropFaces[fi]);
@@ -15339,6 +16034,387 @@ let maStlWallApplyAllHeightMm = 0;
             maStlReapplyAllUserFloorWallAxisLineStyles();
         }
         return removed;
+    }
+
+    /* ------------------------------------------------------------------
+     * Lineas paralelas -> muro (mismo criterio que la importacion DWG / LCornerDetector).
+     * Dos lineas simples paralelas, solapadas y separadas entre MIN y MAX mm se convierten
+     * en un muro real: eje en la linea media, caras = las dos lineas, espesor = separacion.
+     * Un extremo que llega a la cara de otro muro (o de otra pareja) se prolonga hasta su eje
+     * para que el refactor de uniones genere la T / L igual que muro-muro.
+     * Se ejecuta al generar 3D, al encofrar y tras un desfase (offset) de linea.
+     * ------------------------------------------------------------------ */
+    const MA_STL_LINE_PAIR_WALL_MIN_GAP_MM = 50;
+    const MA_STL_LINE_PAIR_WALL_MAX_GAP_MM = 1200;
+    /** sin(0,5 grados): tolerancia de paralelismo. */
+    const MA_STL_LINE_PAIR_WALL_PARALLEL_SIN = 0.0087;
+    const MA_STL_LINE_PAIR_WALL_TOL_MM = 5;
+
+    function maStlLinePairWallIsCandidateLine(line) {
+        if (!line || !maStlIsUserFloorPlanLineObject(line)) return false;
+        const ud = line.userData && line.userData.maStlUserPlanLine;
+        if (!ud || !ud.p1Mm || !ud.p2Mm) return false;
+        if (ud.wallRole) return false;
+        if (ud.wallGroupId != null) return false;
+        if (ud.isSpecial === true || ud.IsSpecial === true) return false;
+        return Math.hypot(ud.p2Mm.x - ud.p1Mm.x, ud.p2Mm.z - ud.p1Mm.z) >= MA_STL_LINE_PAIR_WALL_MIN_GAP_MM;
+    }
+
+    /**
+     * Empareja segmentos {a,b} (planta XZ) paralelos, solapados y a distancia [minGap, maxGap].
+     * Cada segmento entra en una sola pareja (las mas cercanas primero); no se empareja si hay
+     * otro segmento paralelo entre los dos. Devuelve el eje (axisA->axisB) y el medio espesor.
+     */
+    function maStlLinePairWallFindPairsMm(segs, minGap, maxGap) {
+        const tol = MA_STL_LINE_PAIR_WALL_TOL_MM;
+        const info = segs.map(function (S) {
+            const dx = S.b.x - S.a.x;
+            const dz = S.b.z - S.a.z;
+            const len = Math.hypot(dx, dz);
+            return { len: len, ux: len > 1e-9 ? dx / len : 0, uz: len > 1e-9 ? dz / len : 0 };
+        });
+        const rel = function (i, j) {
+            const A = segs[i];
+            const B = segs[j];
+            const ia = info[i];
+            const ib = info[j];
+            if (!(ia.len > 1e-6) || !(ib.len > 1e-6)) return null;
+            if (Math.abs(ia.ux * ib.uz - ia.uz * ib.ux) > MA_STL_LINE_PAIR_WALL_PARALLEL_SIN) return null;
+            const d1 = -(B.a.x - A.a.x) * ia.uz + (B.a.z - A.a.z) * ia.ux;
+            const d2 = -(B.b.x - A.a.x) * ia.uz + (B.b.z - A.a.z) * ia.ux;
+            if (Math.abs(d1 - d2) > tol) return null;
+            const s1 = (B.a.x - A.a.x) * ia.ux + (B.a.z - A.a.z) * ia.uz;
+            const s2 = (B.b.x - A.a.x) * ia.ux + (B.b.z - A.a.z) * ia.uz;
+            const lo = Math.max(0, Math.min(s1, s2));
+            const hi = Math.min(ia.len, Math.max(s1, s2));
+            return { d: (d1 + d2) / 2, lo: lo, hi: hi };
+        };
+        const cands = [];
+        for (let i = 0; i < segs.length; i++) {
+            for (let j = i + 1; j < segs.length; j++) {
+                const r = rel(i, j);
+                if (!r) continue;
+                const gap = Math.abs(r.d);
+                if (gap < minGap || gap > maxGap) continue;
+                const ov = r.hi - r.lo;
+                if (ov < Math.max(100, 0.5 * Math.min(info[i].len, info[j].len))) continue;
+                cands.push({ i: i, j: j, gap: gap, d: r.d, lo: r.lo, hi: r.hi });
+            }
+        }
+        cands.sort(function (p, q) {
+            return p.gap - q.gap || (q.hi - q.lo) - (p.hi - p.lo);
+        });
+        const used = new Set();
+        const out = [];
+        for (let ci = 0; ci < cands.length; ci++) {
+            const c = cands[ci];
+            if (used.has(c.i) || used.has(c.j)) continue;
+            let between = false;
+            for (let k = 0; k < segs.length && !between; k++) {
+                if (k === c.i || k === c.j) continue;
+                const r = rel(c.i, k);
+                if (!r) continue;
+                if (Math.sign(r.d) !== Math.sign(c.d) || Math.abs(r.d) <= tol || Math.abs(r.d) >= c.gap - tol) continue;
+                if (Math.min(r.hi, c.hi) - Math.max(r.lo, c.lo) > tol) between = true;
+            }
+            if (between) continue;
+            used.add(c.i);
+            used.add(c.j);
+            const A = segs[c.i];
+            const ia = info[c.i];
+            const nx = -ia.uz;
+            const nz = ia.ux;
+            const h = c.d / 2;
+            out.push({
+                i: c.i,
+                j: c.j,
+                halfT: c.gap / 2,
+                ux: ia.ux,
+                uz: ia.uz,
+                axisA: { x: A.a.x + ia.ux * c.lo + nx * h, z: A.a.z + ia.uz * c.lo + nz * h },
+                axisB: { x: A.a.x + ia.ux * c.hi + nx * h, z: A.a.z + ia.uz * c.hi + nz * h },
+            });
+        }
+        return out;
+    }
+
+    /**
+     * Prolonga `end` en la direccion (outX,outZ) hasta el eje de un muro cuya huella toca
+     * (como mucho medio espesor/sin + tol). Devuelve { x, z, axis } o null.
+     */
+    function maStlLinePairWallExtendEndMm(end, outX, outZ, axes, tol) {
+        let best = null;
+        let bestT = Infinity;
+        for (let k = 0; k < axes.length; k++) {
+            const ax = axes[k];
+            const vx = ax.b.x - ax.a.x;
+            const vz = ax.b.z - ax.a.z;
+            const L = Math.hypot(vx, vz);
+            if (!(L > 1e-6)) continue;
+            const wx = vx / L;
+            const wz = vz / L;
+            const sin = outX * wz - outZ * wx;
+            if (Math.abs(sin) < 0.17) continue;
+            const rx = ax.a.x - end.x;
+            const rz = ax.a.z - end.z;
+            const t = (rx * wz - wx * rz) / sin;
+            const s = (rx * outZ - outX * rz) / sin;
+            if (t < -tol || t > ax.halfT / Math.abs(sin) + tol) continue;
+            if (s < -ax.halfT - tol || s > L + ax.halfT + tol) continue;
+            if (t < bestT) {
+                bestT = t;
+                best = { x: end.x + outX * t, z: end.z + outZ * t, axis: ax };
+            }
+        }
+        return best;
+    }
+
+    /** Punto dentro de la huella de un eje (rectangulo +-halfT, prolongado halfT en los extremos). */
+    function maStlLinePairWallPointInFootprintMm(p, ax, tol) {
+        const vx = ax.b.x - ax.a.x;
+        const vz = ax.b.z - ax.a.z;
+        const L = Math.hypot(vx, vz);
+        if (!(L > 1e-6)) return false;
+        const s = ((p.x - ax.a.x) * vx + (p.z - ax.a.z) * vz) / L;
+        const n = Math.abs(-(p.x - ax.a.x) * vz + (p.z - ax.a.z) * vx) / L;
+        return s >= -ax.halfT - tol && s <= L + ax.halfT + tol && n <= ax.halfT + tol;
+    }
+
+    function maStlLinePairWallSegInFootprintMm(a, b, axes, tol) {
+        const m = { x: (a.x + b.x) / 2, z: (a.z + b.z) / 2 };
+        for (let k = 0; k < axes.length; k++) {
+            const ax = axes[k];
+            if (
+                maStlLinePairWallPointInFootprintMm(a, ax, tol) &&
+                maStlLinePairWallPointInFootprintMm(b, ax, tol) &&
+                maStlLinePairWallPointInFootprintMm(m, ax, tol)
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Trozos de `seg` fuera de la proyeccion de [p, q] sobre el (para lineas mas largas que la pareja). */
+    function maStlLinePairWallLeftoverPiecesMm(seg, p, q) {
+        const dx = seg.b.x - seg.a.x;
+        const dz = seg.b.z - seg.a.z;
+        const L = Math.hypot(dx, dz);
+        if (!(L > 1e-6)) return [];
+        const ux = dx / L;
+        const uz = dz / L;
+        const sp = (p.x - seg.a.x) * ux + (p.z - seg.a.z) * uz;
+        const sq = (q.x - seg.a.x) * ux + (q.z - seg.a.z) * uz;
+        const lo = Math.max(0, Math.min(sp, sq));
+        const hi = Math.min(L, Math.max(sp, sq));
+        const at = function (s) {
+            return { x: seg.a.x + ux * s, z: seg.a.z + uz * s };
+        };
+        const out = [];
+        if (lo > MA_STL_LINE_PAIR_WALL_TOL_MM) out.push({ a: at(0), b: at(lo) });
+        if (L - hi > MA_STL_LINE_PAIR_WALL_TOL_MM) out.push({ a: at(hi), b: at(L) });
+        return out;
+    }
+
+    /**
+     * Calculo puro (harness): parejas -> ejes prolongados a los muros que tocan, lineas que se
+     * quitan (parejas + tapas dentro de la huella) y trozos sobrantes que se conservan.
+     * @param {Array<{a:{x,z},b:{x,z}}>} segs lineas simples candidatas
+     * @param {Array<{a:{x,z},b:{x,z},halfT:number,ref?:any}>} sceneAxes ejes de muro existentes
+     */
+    function maStlLinePairWallPlanMm(segs, sceneAxes, minGap, maxGap, tol) {
+        const pairs = maStlLinePairWallFindPairsMm(segs, minGap, maxGap);
+        const plan = { walls: [], removeIdx: [], keepPieces: [] };
+        if (!pairs.length) return plan;
+        const orig = pairs.map(function (p) {
+            return { a: p.axisA, b: p.axisB, halfT: p.halfT };
+        });
+        for (let k = 0; k < pairs.length; k++) {
+            const p = pairs[k];
+            const others = sceneAxes.concat(
+                orig.filter(function (_o, q) {
+                    return q !== k;
+                })
+            );
+            const hitA = maStlLinePairWallExtendEndMm(p.axisA, -p.ux, -p.uz, others, tol);
+            const hitB = maStlLinePairWallExtendEndMm(p.axisB, p.ux, p.uz, others, tol);
+            const w = {
+                a: hitA ? { x: hitA.x, z: hitA.z } : { x: p.axisA.x, z: p.axisA.z },
+                b: hitB ? { x: hitB.x, z: hitB.z } : { x: p.axisB.x, z: p.axisB.z },
+                halfT: p.halfT,
+                hitRefs: [],
+                pair: [p.i, p.j],
+            };
+            if (hitA && hitA.axis && hitA.axis.ref) w.hitRefs.push(hitA.axis.ref);
+            if (hitB && hitB.axis && hitB.axis.ref) w.hitRefs.push(hitB.axis.ref);
+            plan.walls.push(w);
+        }
+        const removed = new Set();
+        for (let k = 0; k < pairs.length; k++) {
+            removed.add(pairs[k].i);
+            removed.add(pairs[k].j);
+        }
+        for (let k = 0; k < pairs.length; k++) {
+            const p = pairs[k];
+            const idxs = [p.i, p.j];
+            for (let e = 0; e < 2; e++) {
+                const pieces = maStlLinePairWallLeftoverPiecesMm(segs[idxs[e]], p.axisA, p.axisB);
+                for (let pi = 0; pi < pieces.length; pi++) {
+                    if (maStlLinePairWallSegInFootprintMm(pieces[pi].a, pieces[pi].b, plan.walls, tol)) continue;
+                    plan.keepPieces.push({ a: pieces[pi].a, b: pieces[pi].b, src: idxs[e] });
+                }
+            }
+        }
+        for (let i = 0; i < segs.length; i++) {
+            if (removed.has(i)) continue;
+            if (maStlLinePairWallSegInFootprintMm(segs[i].a, segs[i].b, plan.walls, tol)) removed.add(i);
+        }
+        plan.removeIdx = Array.from(removed).sort(function (x, y) {
+            return x - y;
+        });
+        return plan;
+    }
+
+    /**
+     * Convierte en muros reales las parejas de lineas simples paralelas (ver arriba).
+     * @param {{ onlyLines?: Set<any>, skipUndo?: boolean, reason?: string }} [opts]
+     * @returns {{ walls: number, removed: number }}
+     */
+    function maStlDesing2ConvertParallelLinePairsToWallsMm(opts) {
+        const res = { walls: 0, removed: 0 };
+        if (!maStlDesingV2Viewer || !maStlUserLinesGroup) return res;
+        const only = opts && opts.onlyLines ? opts.onlyLines : null;
+        const lines = [];
+        const ch = maStlUserLinesGroup.children;
+        for (let i = 0; i < ch.length; i++) {
+            const ln = ch[i];
+            if (only && !only.has(ln)) continue;
+            if (maStlLinePairWallIsCandidateLine(ln)) lines.push(ln);
+        }
+        if (lines.length < 2) return res;
+        const segs = lines.map(function (ln) {
+            const ud = ln.userData.maStlUserPlanLine;
+            return { a: { x: ud.p1Mm.x, z: ud.p1Mm.z }, b: { x: ud.p2Mm.x, z: ud.p2Mm.z } };
+        });
+        const sceneAxes = [];
+        const axLines = maStlWall2dToolCollectAllAxisLines();
+        for (let i = 0; i < axLines.length; i++) {
+            const ud = axLines[i].userData && axLines[i].userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            sceneAxes.push({
+                a: { x: ud.p1Mm.x, z: ud.p1Mm.z },
+                b: { x: ud.p2Mm.x, z: ud.p2Mm.z },
+                halfT: maStlWall2dToolAxisFaceHalfThicknessMm(axLines[i]),
+                ref: ud,
+            });
+        }
+        const tol = Math.max(MA_STL_LINE_PAIR_WALL_TOL_MM, maStlUserFloorLineMergeEndpointEpsMm());
+        const plan = maStlLinePairWallPlanMm(
+            segs,
+            sceneAxes,
+            MA_STL_LINE_PAIR_WALL_MIN_GAP_MM,
+            MA_STL_LINE_PAIR_WALL_MAX_GAP_MM,
+            tol
+        );
+        if (!plan.walls.length) return res;
+        const undoBefore = opts && opts.skipUndo ? null : maStlDesing2SerializeEditSnapshot();
+        const y0 = lines[0].userData.maStlUserPlanLine.p1Mm.y || 0;
+        const keep = plan.keepPieces.map(function (pc) {
+            const ud = lines[pc.src].userData.maStlUserPlanLine;
+            return { a: pc.a, b: pc.b, gid: ud.polylineGroupId != null ? ud.polylineGroupId : null };
+        });
+        for (let r = 0; r < plan.removeIdx.length; r++) {
+            maStlDisposeUserFloorPlanLineObject(lines[plan.removeIdx[r]]);
+            res.removed++;
+        }
+        const previousWallGroupId = maStlWall2dToolActiveGroupId;
+        const previousWallResumeState = maStlWall2dToolResumeState;
+        const wallGroupId = maStlTakeDefaultWallGroupId();
+        maStlWall2dToolActiveGroupId = wallGroupId;
+        for (let w = 0; w < plan.walls.length; w++) {
+            const wl = plan.walls[w];
+            if (
+                maStlWall2dToolCommitWallSegmentMm(
+                    { x: wl.a.x, y: y0, z: wl.a.z },
+                    { x: wl.b.x, y: y0, z: wl.b.z },
+                    true,
+                    wl.halfT,
+                    true
+                )
+            ) {
+                res.walls++;
+            }
+        }
+        maStlWall2dToolActiveGroupId = previousWallGroupId;
+        maStlWall2dToolResumeState = previousWallResumeState;
+        maStlWall2dToolSplitAllAxisInteriorCrossingsMm();
+        maStlWall2dToolRefactorAllWallJunctionsMm();
+        maStlWeldAllUserFloorLineEndpointsMm();
+        maStlWall2dToolRefactorAllWallJunctionsMm();
+        maStlLinePairWallApplyHeightsAndGapsMm(plan.walls, wallGroupId, tol);
+        maStlReapplyAllUserFloorWallAxisLineStyles();
+        for (let k = 0; k < keep.length; k++) {
+            maStlCommitUserPlanLineSegmentMm(
+                { x: keep[k].a.x, y: y0, z: keep[k].a.z },
+                { x: keep[k].b.x, y: y0, z: keep[k].b.z },
+                true,
+                keep[k].gid,
+                { skipWeld: true, skipCollinearMerge: true, skipGridQuantize: true }
+            );
+        }
+        if (undoBefore) {
+            maStlDesing2PushEditSnapshotUndo('linesToWall', undoBefore, maStlDesing2SerializeEditSnapshot());
+        }
+        if (res.walls > 0) {
+            maStlSaveWallConnectionsNow({ force: true, reason: (opts && opts.reason) || 'lines-to-wall' });
+        }
+        return res;
+    }
+
+    /**
+     * Tras crear los muros: altura = la del muro al que llega (si tiene) y se quitan las
+     * aperturas de cara (faceGapsMm) que quedan dentro de la huella del muro nuevo (la union T
+     * ya abre esa cara).
+     */
+    function maStlLinePairWallApplyHeightsAndGapsMm(walls, wallGroupId, tol) {
+        if (!maStlUserLinesGroup) return;
+        const ch = maStlUserLinesGroup.children;
+        for (let w = 0; w < walls.length; w++) {
+            const wl = walls[w];
+            let h = null;
+            for (let r = 0; r < wl.hitRefs.length; r++) {
+                const v = Number(wl.hitRefs[r] && wl.hitRefs[r]._DataHeight);
+                if (Number.isFinite(v) && v > 0) {
+                    h = v;
+                    break;
+                }
+            }
+            if (h == null) continue;
+            for (let i = 0; i < ch.length; i++) {
+                const ud = ch[i].userData && ch[i].userData.maStlUserPlanLine;
+                if (!ud || ud.wallGroupId !== wallGroupId || !ud.p1Mm || !ud.p2Mm) continue;
+                if (ud.wallRole !== 'axis' && ud.wallRole !== 'face') continue;
+                const mid = { x: (ud.p1Mm.x + ud.p2Mm.x) / 2, z: (ud.p1Mm.z + ud.p2Mm.z) / 2 };
+                if (!maStlLinePairWallPointInFootprintMm(mid, wl, tol)) continue;
+                ud._DataHeight = h;
+            }
+        }
+        for (let i = 0; i < ch.length; i++) {
+            const ln = ch[i];
+            const ud = ln.userData && ln.userData.maStlUserPlanLine;
+            if (!ud || ud.wallRole !== 'face' || !Array.isArray(ud.faceGapsMm) || !ud.faceGapsMm.length) continue;
+            const kept = ud.faceGapsMm.filter(function (g) {
+                const m = { x: (g.a.x + g.b.x) / 2, z: (g.a.z + g.b.z) / 2 };
+                for (let w = 0; w < walls.length; w++) {
+                    if (maStlLinePairWallPointInFootprintMm(m, walls[w], tol)) return false;
+                }
+                return true;
+            });
+            if (kept.length === ud.faceGapsMm.length) continue;
+            if (kept.length) ud.faceGapsMm = kept;
+            else delete ud.faceGapsMm;
+            maStlApplyUserFloorLineSegmentGeometryFromMm(ln);
+        }
     }
 
     /**
@@ -17022,22 +18098,15 @@ let maStlWallApplyAllHeightMm = 0;
             maStlOffsetToolSourceGroupLines.length > 0
                 ? maStlOffsetToolSourceGroupLines.slice()
                 : maStlResolvePolylineGroupLinesForLine(sourceLine);
-        if (groupLines.length <= 1) {
-            return maStlOffsetToolCommitOneParallelCopyMm(
-                sourceLine,
-                offsetMm,
-                sideSign,
-                false,
-                maStlUserFloorLineNextPolylineGroupId++
-            );
-        }
         const undoBefore = maStlDesingV2Viewer ? maStlDesing2SerializeEditSnapshot() : null;
+        const childrenBefore = new Set(maStlUserLinesGroup ? maStlUserLinesGroup.children : []);
+        const sources = groupLines.length <= 1 ? [sourceLine] : groupLines;
         const offsetGroupId = maStlUserFloorLineNextPolylineGroupId++;
         let ok = false;
-        for (let gi = 0; gi < groupLines.length; gi++) {
+        for (let gi = 0; gi < sources.length; gi++) {
             if (
                 maStlOffsetToolCommitOneParallelCopyMm(
-                    groupLines[gi],
+                    sources[gi],
                     offsetMm,
                     sideSign,
                     true,
@@ -17046,6 +18115,24 @@ let maStlWallApplyAllHeightMm = 0;
             ) {
                 ok = true;
             }
+        }
+        /* Original + copia a <= 1,20 m: se cataloga directamente como muro (mismo paso de deshacer). */
+        if (
+            ok &&
+            maStlUserLinesGroup &&
+            offsetMm >= MA_STL_LINE_PAIR_WALL_MIN_GAP_MM &&
+            offsetMm <= MA_STL_LINE_PAIR_WALL_MAX_GAP_MM
+        ) {
+            const onlyLines = new Set(sources);
+            const ch = maStlUserLinesGroup.children;
+            for (let ci = 0; ci < ch.length; ci++) {
+                if (!childrenBefore.has(ch[ci])) onlyLines.add(ch[ci]);
+            }
+            maStlDesing2ConvertParallelLinePairsToWallsMm({
+                onlyLines: onlyLines,
+                skipUndo: true,
+                reason: 'offset-lines-to-wall',
+            });
         }
         if (ok && undoBefore) {
             maStlDesing2PushEditSnapshotUndo(
@@ -17231,8 +18318,10 @@ let maStlWallApplyAllHeightMm = 0;
                     out.push({ a: ud.p1Mm, b: ud.p2Mm, line: ln });
                     continue;
                 }
-                if (ud.wallRole === 'face') continue;
+                /* Cara huérfana (su eje ya no existe): cuenta como línea simple. */
+                if (ud.wallRole === 'face' && maStlLineEditToolWallAxisOf(ln)) continue;
             }
+            if (ud.wallRole === 'curved') continue;
             if (!maStlIsUserFloorPlanLineSelectable(ln)) continue;
             if (ud.wallRole === 'pillar') {
                 const cx = (ud.p1Mm.x + ud.p2Mm.x) * 0.5;
@@ -17255,9 +18344,57 @@ let maStlWallApplyAllHeightMm = 0;
                 for (let k = 0; k < 4; k++) out.push({ a: c[k], b: c[(k + 1) % 4], line: ln });
                 continue;
             }
+            if (ud.wallRole === 'face' && ud.faceGapsMm && ud.faceGapsMm.length) {
+                /* Cara con aperturas: sólo sus tramos visibles son límite. */
+                const pcs = maStlWallFaceVisiblePiecesMm(ud.p1Mm, ud.p2Mm, ud.faceGapsMm);
+                for (let k = 0; k < pcs.length; k++) out.push({ a: pcs[k].a, b: pcs[k].b, line: ln });
+                continue;
+            }
             out.push({ a: ud.p1Mm, b: ud.p2Mm, line: ln });
         }
+        if (!forWall) {
+            /* Testa de los extremos libres de cada muro: las caras no se cierran solas. */
+            const axes = maStlWall2dToolCollectAllAxisLines();
+            for (let ai = 0; ai < axes.length; ai++) {
+                if (axes[ai] === excludeLine) continue;
+                const caps = maStlLineEditToolWallFreeEndCapsMm(axes[ai]);
+                for (let ci = 0; ci < caps.length; ci++) out.push({ a: caps[ci].a, b: caps[ci].b, line: axes[ai] });
+            }
+        }
         return out;
+    }
+
+    /**
+     * Testas de los extremos libres (sin otro eje en el punto ni T) de un tramo de muro:
+     * segmento entre los extremos de sus dos caras.
+     * @returns {{ a: {x:number,z:number}, b: {x:number,z:number} }[]}
+     */
+    function maStlLineEditToolWallFreeEndCapsMm(axis) {
+        const out = [];
+        const ud = axis && axis.userData && axis.userData.maStlUserPlanLine;
+        if (!ud || ud.wallRole !== 'axis' || ud.id == null || !ud.p1Mm || !ud.p2Mm) return out;
+        const fPos = maStlWall2dToolFindFaceForCenterAndSide(ud.id, 1);
+        const fNeg = maStlWall2dToolFindFaceForCenterAndSide(ud.id, -1);
+        const posUd = fPos && fPos.userData && fPos.userData.maStlUserPlanLine;
+        const negUd = fNeg && fNeg.userData && fNeg.userData.maStlUserPlanLine;
+        if (!posUd || !negUd || !posUd.p1Mm || !posUd.p2Mm || !negUd.p1Mm || !negUd.p2Mm) return out;
+        const ends = [ud.p1Mm, ud.p2Mm];
+        for (let ei = 0; ei < 2; ei++) {
+            const pt = ends[ei];
+            if (maStlLineEditToolAxesTouchingPointMm(pt, axis).length) continue;
+            out.push({
+                a: maStlLineEditToolNearerEndMm(posUd, pt),
+                b: maStlLineEditToolNearerEndMm(negUd, pt),
+            });
+        }
+        return out;
+    }
+
+    /** Extremo (`p1Mm` / `p2Mm`) de `ud` más cercano a `pt` en planta. */
+    function maStlLineEditToolNearerEndMm(ud, pt) {
+        const d1 = Math.hypot(ud.p1Mm.x - pt.x, ud.p1Mm.z - pt.z);
+        const d2 = Math.hypot(ud.p2Mm.x - pt.x, ud.p2Mm.z - pt.z);
+        return d1 <= d2 ? ud.p1Mm : ud.p2Mm;
     }
 
     /**
@@ -17300,10 +18437,156 @@ let maStlWallApplyAllHeightMm = 0;
             if (hit.u < -uEps || hit.u > 1 + uEps) continue;
             ts.push(hit.t);
         }
+        if (!forWall) {
+            const cts = maStlLineEditToolCurvedWallHitParams(p1, p2, line);
+            for (let i = 0; i < cts.length; i++) ts.push(cts[i]);
+        }
         ts.sort(function (a, b) {
             return a - b;
         });
         return ts;
+    }
+
+    /**
+     * Cortes de la recta p1→p2 con los muros curvos: círculos exterior e interior dentro del
+     * barrido de la porción (desde el ángulo de inicio) y, en una porción, las dos tapas radiales.
+     * @returns {number[]} parámetros t sobre p1→p2 (sin ordenar)
+     */
+    function maStlLineEditToolCurvedWallHitParams(p1, p2, excludeLine) {
+        const ts = [];
+        if (!maStlUserLinesGroup) return ts;
+        const dx = p2.x - p1.x;
+        const dz = p2.z - p1.z;
+        const qa = dx * dx + dz * dz;
+        if (qa < 1e-12) return ts;
+        const epsMm = maStlLineEditToolEpsMm();
+        const twoPi = Math.PI * 2;
+        const ch = maStlUserLinesGroup.children;
+        for (let i = 0; i < ch.length; i++) {
+            const ln = ch[i];
+            if (ln === excludeLine || !maStlIsUserFloorPlanLineObject(ln)) continue;
+            const ud = ln.userData.maStlUserPlanLine;
+            if (!ud || ud.wallRole !== 'curved' || !ud.p1Mm || !ud.p2Mm) continue;
+            const g = maStlCurvedWallGeomMm(ud);
+            const radii = [g.rOut, g.rIn];
+            for (let ri = 0; ri < radii.length; ri++) {
+                const r = radii[ri];
+                if (!(r > 0)) continue;
+                const fx = p1.x - g.cx;
+                const fz = p1.z - g.cz;
+                const qb = 2 * (fx * dx + fz * dz);
+                const qc = fx * fx + fz * fz - r * r;
+                const disc = qb * qb - 4 * qa * qc;
+                if (disc < 0) continue;
+                const sq = Math.sqrt(disc);
+                const roots = sq < 1e-9 ? [-qb / (2 * qa)] : [(-qb - sq) / (2 * qa), (-qb + sq) / (2 * qa)];
+                for (let k = 0; k < roots.length; k++) {
+                    const t = roots[k];
+                    if (!g.full) {
+                        const ang = Math.atan2(p1.z + dz * t - g.cz, p1.x + dx * t - g.cx);
+                        const rel = (((ang - g.a0) % twoPi) + twoPi) % twoPi;
+                        const tol = epsMm / r;
+                        if (rel > g.sweep + tol && rel < twoPi - tol) continue;
+                    }
+                    ts.push(t);
+                }
+            }
+            if (!g.full) {
+                const caps = [g.a0, g.a0 + g.sweep];
+                for (let ci = 0; ci < caps.length; ci++) {
+                    const ca = Math.cos(caps[ci]);
+                    const sa = Math.sin(caps[ci]);
+                    const a = { x: g.cx + ca * g.rIn, z: g.cz + sa * g.rIn };
+                    const b = { x: g.cx + ca * g.rOut, z: g.cz + sa * g.rOut };
+                    const hit = maStlLineEditToolIntersectXzMm(p1, p2, a, b);
+                    if (!hit) continue;
+                    const uEps = epsMm / Math.max(g.rOut - g.rIn, 1e-6);
+                    if (hit.u < -uEps || hit.u > 1 + uEps) continue;
+                    ts.push(hit.t);
+                }
+            }
+        }
+        return ts;
+    }
+
+    /**
+     * Arista simple (línea o lado de pilar) a-b contra la huella de un muro (eje p1→p2 ± medio
+     * espesor). `t` = cruce con el eje (rectas infinitas); `reach` = el segmento llega al eje o a
+     * una cara; `faceTs` = parámetros sobre el eje de los cruces con las caras alcanzadas.
+     * `tolMm` (opcional): holgura en los extremos de a-b (línea que se queda corta de la cara).
+     * @returns {{ t: number, reach: boolean, faceTs: number[] }|null}
+     */
+    function maStlLineEditToolEdgeVsWallBandMm(p1, p2, halfT, a, b, tolMm) {
+        const hit = maStlLineEditToolIntersectXzMm(p1, p2, a, b);
+        if (!hit) return null;
+        const lenB = Math.hypot(b.x - a.x, b.z - a.z);
+        const lenA = Math.hypot(p2.x - p1.x, p2.z - p1.z);
+        if (lenB < 1e-6 || lenA < 1e-6) return null;
+        const uEps = Math.max(maStlLineEditToolEpsMm(), tolMm > 0 ? tolMm : 0) / lenB;
+        const axisReach = hit.u >= -uEps && hit.u <= 1 + uEps;
+        const res = { t: hit.t, reach: axisReach, axisReach: axisReach, faceTs: [], faceHits: [] };
+        if (halfT > 0) {
+            const nx = -(p2.z - p1.z) / lenA;
+            const nz = (p2.x - p1.x) / lenA;
+            for (let s = -1; s <= 1; s += 2) {
+                const q1 = { x: p1.x + nx * halfT * s, z: p1.z + nz * halfT * s };
+                const q2 = { x: p2.x + nx * halfT * s, z: p2.z + nz * halfT * s };
+                const fh = maStlLineEditToolIntersectXzMm(q1, q2, a, b);
+                if (!fh || fh.u < -uEps || fh.u > 1 + uEps) continue;
+                res.reach = true;
+                res.faceTs.push(fh.t);
+                res.faceHits.push({ side: s, t: fh.t });
+            }
+        }
+        return res;
+    }
+
+    /** Holgura (mm) con la que una línea/eje que se queda corto de la cara de un muro aún lo toca. */
+    const MA_STL_LINE_EDIT_TOOL_WALL_TOUCH_TOL_MM = 30;
+
+    function maStlLineEditToolWallTouchTolMm(halfT) {
+        const cap = halfT > 0 ? Math.min(MA_STL_LINE_EDIT_TOOL_WALL_TOUCH_TOL_MM, halfT * 0.5) : MA_STL_LINE_EDIT_TOOL_WALL_TOUCH_TOL_MM;
+        return Math.max(maStlLineEditToolEpsMm(), cap);
+    }
+
+    /**
+     * Cortes de un tramo de muro (eje p1→p2): todo lo que llega a su huella (eje ± medio espesor,
+     * con holgura `WALL_TOUCH_TOL`): ejes de otros muros (T que acaba en el eje o en la cara),
+     * líneas simples, caras huérfanas y pilares. El corte es el cruce con el eje (en una T, el eje
+     * del muro que llega). `faceTs` = cruces con las caras (para no borrar un muro tocado).
+     * @returns {{ ts: number[], faceTs: number[] }}
+     */
+    function maStlLineEditToolWallCutParams(axis, p1, p2) {
+        const halfT = maStlWall2dToolAxisFaceHalfThicknessMm(axis);
+        const epsMm = maStlLineEditToolEpsMm();
+        const tolMm = maStlLineEditToolWallTouchTolMm(halfT);
+        const edges = maStlLineEditToolCollectEdgeSegments(axis, true);
+        const tEnd = epsMm / Math.max(Math.hypot(p2.x - p1.x, p2.z - p1.z), 1e-6);
+        const ts = [];
+        const faceTs = [];
+        const hits = [];
+        for (let i = 0; i < edges.length; i++) {
+            const e = edges[i];
+            const lenB = Math.hypot(e.b.x - e.a.x, e.b.z - e.a.z);
+            if (lenB < 1e-6) continue;
+            const band = maStlLineEditToolEdgeVsWallBandMm(p1, p2, halfT, e.a, e.b, tolMm);
+            if (!band || !band.reach) continue;
+            ts.push(band.t);
+            const eUd = e.line && e.line.userData && e.line.userData.maStlUserPlanLine;
+            hits.push({
+                t: band.t,
+                isAxis: !!(eUd && eUd.wallRole === 'axis'),
+                axisReach: band.axisReach,
+                faceHits: band.faceHits,
+            });
+            /* Una línea que pasa por un extremo del eje (testa a ras) no cuenta como «esquina pisada». */
+            if (Math.abs(band.t) <= tEnd || Math.abs(band.t - 1) <= tEnd) continue;
+            for (let k = 0; k < band.faceTs.length; k++) faceTs.push(band.faceTs[k]);
+        }
+        ts.sort(function (a, b) {
+            return a - b;
+        });
+        return { ts: ts, faceTs: faceTs, hits: hits, halfT: halfT };
     }
 
     function maStlLineEditToolPointAtMm(p1, p2, t) {
@@ -17405,10 +18688,36 @@ let maStlWallApplyAllHeightMm = 0;
                 res.line = ln;
             }
         }
-        /* Prioridad: línea simple cerca → cara de muro cerca → dentro de la huella de un muro. */
-        if (!res.line) res.line = bestWallAxis || maStlLineEditToolPickWallFootprintAtClient(clientX, clientY);
+        res.line = maStlLineEditToolChoosePickTarget(res.line, bestD, bestWallAxis, bestWallD, function () {
+            return maStlLineEditToolPickWallFootprintAtClient(clientX, clientY);
+        });
         if (res.line) res.blocked = false;
         return res;
+    }
+
+    /** Distancia (px) a la que una línea simple está «bajo el cursor» y gana aunque el clic caiga en un muro. */
+    const MA_STL_LINE_EDIT_TOOL_ON_LINE_PX = 3;
+
+    /**
+     * Prioridad del pick: sin línea simple cerca → cara de muro cerca → huella de un muro.
+     * Línea simple justo bajo el cursor (≤ 3 px): gana la línea, salvo que la cara del muro también
+     * esté bajo el cursor, más cerca, y el clic caiga dentro de la huella (p. ej. el pie de una
+     * línea que llega a la cara: clic fuera del muro → la línea). Línea más lejos: gana el muro si
+     * su cara está más cerca o si el clic cae dentro de su huella.
+     * @param {Function} footprintFn () → eje del muro cuya huella contiene el clic, o null
+     */
+    function maStlLineEditToolChoosePickTarget(line, lineDSq, wallAxis, wallDSq, footprintFn) {
+        if (!line) return wallAxis || footprintFn();
+        const onSq = MA_STL_LINE_EDIT_TOOL_ON_LINE_PX * MA_STL_LINE_EDIT_TOOL_ON_LINE_PX;
+        if (lineDSq <= onSq) {
+            if (!wallAxis || wallDSq > onSq) return line;
+            const inside = footprintFn();
+            if (!inside) return line;
+            return wallDSq < lineDSq ? wallAxis : line;
+        }
+        if (wallAxis && wallDSq < lineDSq) return wallAxis;
+        const inside = footprintFn();
+        return inside || line;
     }
 
     /** Eje del tramo de muro cuya huella (eje ± medio espesor) contiene el punto del suelo. */
@@ -17476,7 +18785,21 @@ let maStlWallApplyAllHeightMm = 0;
         if (cuts.length === 0) {
             /* AutoCAD Rápido: sin aristas que la crucen, el objeto se borra. */
             maStlLineEditToolClearHoverLine();
-            return maStlCommitUserFloorLinesAndStlMeshesDelete([line], []);
+            if (ud.polylineGroupId != null) {
+                /* Tramo de polilínea: se quita y el resto se reparte en polilíneas conexas. */
+                const gid = ud.polylineGroupId;
+                const undoBeforeDel = maStlDesing2SerializeEditSnapshot();
+                maStlDeleteToolSelectedLines.delete(line);
+                if (line === maStlDeleteToolHoverLine) maStlDeleteToolHoverLine = null;
+                maStlDisposeUserFloorPlanLineObject(line);
+                maStlLineEditToolRegroupPolylineMm(gid, null);
+                maStlDesing2PushEditSnapshotUndo('trimUserFloorLine', undoBeforeDel, maStlDesing2SerializeEditSnapshot());
+                maStlLineEditToolSaveLineEdit('trim-tool-line');
+                return true;
+            }
+            const deleted = maStlCommitUserFloorLinesAndStlMeshesDelete([line], []);
+            if (deleted) maStlLineEditToolSaveLineEdit('trim-tool-line');
+            return deleted;
         }
         const tc = maStlLineEditToolClickParamOnLine(line, clientX, clientY);
         let tLo = 0;
@@ -17509,7 +18832,7 @@ let maStlWallApplyAllHeightMm = 0;
                     { x: qHi.x, y: qHi.y, z: qHi.z },
                     { x: p2.x, y: p2.y, z: p2.z },
                     true,
-                    null,
+                    ud.polylineGroupId != null ? ud.polylineGroupId : null,
                     { skipWeld: true, skipCollinearMerge: true }
                 );
                 const newLine =
@@ -17530,8 +18853,92 @@ let maStlWallApplyAllHeightMm = 0;
             }
         }
         if (!changed) return false;
+        /* Polilínea partida: la parte separada pasa a un grupo nuevo. */
+        if (ud.polylineGroupId != null) maStlLineEditToolRegroupPolylineMm(ud.polylineGroupId, line);
         maStlDesing2PushEditSnapshotUndo('trimUserFloorLine', undoBefore, maStlDesing2SerializeEditSnapshot());
+        maStlLineEditToolSaveLineEdit('trim-tool-line');
         return true;
+    }
+
+    /** WallConnections tras recortar/alargar una línea simple (como en los muros). */
+    function maStlLineEditToolSaveLineEdit(reason) {
+        maStlSaveWallConnectionsNow({ force: true, reason: reason });
+    }
+
+    /**
+     * Grupos de líneas conexas por sus extremos (tolerancia de unión de muros).
+     * @param {THREE.Line2[]} lines
+     * @returns {THREE.Line2[][]}
+     */
+    function maStlLineEditToolConnectedComponents(lines) {
+        const eps = maStlLineEditToolWallConnectEpsMm();
+        const parent = lines.map(function (_l, i) {
+            return i;
+        });
+        function find(i) {
+            while (parent[i] !== i) {
+                parent[i] = parent[parent[i]];
+                i = parent[i];
+            }
+            return i;
+        }
+        for (let i = 0; i < lines.length; i++) {
+            const a = lines[i].userData.maStlUserPlanLine;
+            for (let j = i + 1; j < lines.length; j++) {
+                const b = lines[j].userData.maStlUserPlanLine;
+                if (
+                    maStlUserFloorPlanPointNearXzMm(a.p1Mm, b.p1Mm, eps) ||
+                    maStlUserFloorPlanPointNearXzMm(a.p1Mm, b.p2Mm, eps) ||
+                    maStlUserFloorPlanPointNearXzMm(a.p2Mm, b.p1Mm, eps) ||
+                    maStlUserFloorPlanPointNearXzMm(a.p2Mm, b.p2Mm, eps)
+                ) {
+                    parent[find(i)] = find(j);
+                }
+            }
+        }
+        const byRoot = new Map();
+        for (let i = 0; i < lines.length; i++) {
+            const r = find(i);
+            if (!byRoot.has(r)) byRoot.set(r, []);
+            byRoot.get(r).push(lines[i]);
+        }
+        return Array.from(byRoot.values());
+    }
+
+    /**
+     * Polilínea `groupId` partida en trozos sueltos: el trozo con `keepLine` (o el mayor) se queda el
+     * grupo y cada uno de los demás recibe un grupo nuevo.
+     * @returns {number} tramos que cambian de grupo
+     */
+    function maStlLineEditToolRegroupPolylineMm(groupId, keepLine) {
+        if (groupId == null || !maStlUserLinesGroup) return 0;
+        const want = String(groupId);
+        const segs = [];
+        const ch = maStlUserLinesGroup.children;
+        for (let i = 0; i < ch.length; i++) {
+            const ln = ch[i];
+            if (!maStlIsUserFloorPlanLineObject(ln)) continue;
+            const ud = ln.userData.maStlUserPlanLine;
+            if (!ud || ud.polylineGroupId == null || String(ud.polylineGroupId) !== want) continue;
+            if (!ud.p1Mm || !ud.p2Mm) continue;
+            segs.push(ln);
+        }
+        const comps = maStlLineEditToolConnectedComponents(segs);
+        if (comps.length < 2) return 0;
+        let keep = 0;
+        for (let ci = 0; ci < comps.length; ci++) {
+            if (keepLine ? comps[ci].indexOf(keepLine) >= 0 : comps[ci].length > comps[keep].length) keep = ci;
+        }
+        let moved = 0;
+        for (let ci = 0; ci < comps.length; ci++) {
+            if (ci === keep) continue;
+            const gid = maStlUserFloorLineNextPolylineGroupId++;
+            for (let k = 0; k < comps[ci].length; k++) {
+                comps[ci][k].userData.maStlUserPlanLine.polylineGroupId = gid;
+                moved++;
+            }
+        }
+        return moved;
     }
 
     /** Alarga el extremo más cercano al clic hasta la primera arista que corte su prolongación. */
@@ -17566,6 +18973,7 @@ let maStlWallApplyAllHeightMm = 0;
             : maStlSetUserFloorLineP1PlanMm(line, q.x, q.y, q.z);
         if (!ok) return false;
         maStlDesing2PushEditSnapshotUndo('extendUserFloorLine', undoBefore, maStlDesing2SerializeEditSnapshot());
+        maStlLineEditToolSaveLineEdit('extend-tool-line');
         return true;
     }
 
@@ -17698,6 +19106,7 @@ let maStlWallApplyAllHeightMm = 0;
             nfUd.numberWallFaceSideSign = sideSign;
             maStlWallLineEnsureAttrs(nfUd);
         }
+        maStlWall2dToolInheritFaceGapsMm(ud.id, pUd.id);
         return piece;
     }
 
@@ -17711,6 +19120,11 @@ let maStlWallApplyAllHeightMm = 0;
             if (maStlLineEditToolLineIsLive(axes[i]) && live.indexOf(axes[i]) < 0) live.push(axes[i]);
         }
         maStlWallEditFinalize().finalizeWallAxes(live, { allowWeld: false, saveReason: saveReason });
+        /* El encofrado puesto ya no vale: se quita y se rehace al terminar el comando. */
+        if (typeof window.maStlDesing2HasFormworkPanels === 'function' && window.maStlDesing2HasFormworkPanels()) {
+            maStlDesing2ClearAtk60Visuals();
+            maStlLineEditToolReformworkPending = true;
+        }
         const undoAfter = maStlDesing2SerializeEditSnapshot();
         if (
             droppedWorkers &&
@@ -17735,6 +19149,28 @@ let maStlWallApplyAllHeightMm = 0;
         return true;
     }
 
+    /** Atributos de muro propios de cada extremo (tape, tipo de esquina, solape). */
+    const MA_STL_LINE_EDIT_TOOL_WALL_END_KEYS = {
+        p1: ['_Tape_1', '_CornerTypeP1', '_ChekSolapeIni'],
+        p2: ['_Tape_2', '_CornerTypeP2', '_ChekSolapeEnd'],
+    };
+
+    /**
+     * Quita de `ud` los atributos del extremo `end` (vuelve a los de una testa libre al asegurar
+     * atributos) y devuelve los que tenía.
+     */
+    function maStlLineEditToolTakeWallEndAttrs(ud, end) {
+        const keys = MA_STL_LINE_EDIT_TOOL_WALL_END_KEYS[end] || [];
+        const out = {};
+        for (let i = 0; i < keys.length; i++) {
+            if (Object.prototype.hasOwnProperty.call(ud, keys[i])) out[keys[i]] = ud[keys[i]];
+            delete ud[keys[i]];
+        }
+        if (end === 'p1') ud._ChekSolapeIni = false;
+        else ud._ChekSolapeEnd = false;
+        return out;
+    }
+
     /**
      * Recortar muro (modo Rápido) sobre su eje: los ejes de otros muros, líneas simples y pilares
      * cortan. Tramo intermedio → dos muros; extremo → se acorta; sin cortes → se borra el tramo.
@@ -17747,12 +19183,18 @@ let maStlWallApplyAllHeightMm = 0;
         const lenA = Math.hypot(p2.x - p1.x, p2.z - p1.z);
         if (lenA < 1e-6) return false;
         const tEps = maStlLineEditToolEpsMm() / lenA;
-        const cuts = maStlLineEditToolEdgeHitParams(axis, p1, p2, true).filter(function (t) {
+        const wallHits = maStlLineEditToolWallCutParams(axis, p1, p2);
+        const cuts = wallHits.ts.filter(function (t) {
             return t > tEps && t < 1 - tEps;
         });
         const near1 = maStlLineEditToolAxesTouchingPointMm(p1, axis);
         const near2 = maStlLineEditToolAxesTouchingPointMm(p2, axis);
         if (cuts.length === 0) {
+            /* Una línea o pilar que entra en la huella sin cortar el eje dentro del tramo (esquina
+             * pisada): no se borra el muro. */
+            for (let fi = 0; fi < wallHits.faceTs.length; fi++) {
+                if (wallHits.faceTs[fi] > tEps && wallHits.faceTs[fi] < 1 - tEps) return false;
+            }
             /* Tramo entre uniones (o muro suelto): se borra el tramo (eje + caras). */
             maStlLineEditToolClearHoverLine();
             const lines = maStlDesing2ExpandLinesWithWallGroups([axis]);
@@ -17787,6 +19229,17 @@ let maStlWallApplyAllHeightMm = 0;
                 break;
             }
         }
+        /* Entre dos líneas que sólo llegan a la misma cara (T de líneas): se abre esa cara y el
+         * muro sigue entero (eje y cara opuesta). */
+        const faceGap = maStlLineEditToolOneFaceGapMm(axis, p1, p2, wallHits, tLo, tHi, tEps);
+        if (faceGap) {
+            const undoBeforeGap = maStlDesing2SerializeEditSnapshot();
+            maStlLineEditToolClearHoverLine();
+            if (!maStlWall2dToolAddFaceGapMm(faceGap.face, faceGap.a, faceGap.b)) return false;
+            maStlWallEditFinalize().finalizeWallAxes([axis], { allowWeld: false, saveReason: 'trim-tool-wall-face' });
+            maStlDesing2PushEditSnapshotUndo('trimUserFloorWall', undoBeforeGap, maStlDesing2SerializeEditSnapshot());
+            return true;
+        }
         const halfT = maStlWall2dToolAxisFaceHalfThicknessMm(axis);
         const minMm = maStlUserFloorSegmentMinMm();
         const undoBefore = maStlDesing2SerializeEditSnapshot();
@@ -17805,15 +19258,71 @@ let maStlWallApplyAllHeightMm = 0;
             qLo.y = p1.y;
             qHi.y = p1.y;
             if (!maStlSetUserFloorLineP2PlanMm(axis, qLo.x, qLo.y, qLo.z)) return false;
+            const endAttrsP2 = maStlLineEditToolTakeWallEndAttrs(ud, 'p2');
             if (lenA * (1 - tHi) >= minMm) {
                 const piece = maStlLineEditToolAddWallPieceMm(axis, qHi, p2, halfT);
-                if (piece) touched.push(piece);
+                if (piece) {
+                    /* El trozo nuevo hereda el extremo final; su inicio es una testa libre nueva. */
+                    const pUd = piece.userData.maStlUserPlanLine;
+                    maStlLineEditToolTakeWallEndAttrs(pUd, 'p1');
+                    Object.assign(pUd, endAttrsP2);
+                    maStlWallLineEnsureAttrs(pUd);
+                    touched.push(piece);
+                }
             }
             touched = touched.concat(near2);
         }
         maStlWallLineEnsureAttrs(ud);
         maStlUserFloorLineSyncAxisDashDistances(axis);
         return maStlLineEditToolFinishWallEdit('trimUserFloorWall', 'trim-tool-wall', undoBefore, touched, null, null);
+    }
+
+    /**
+     * Tramo tLo..tHi del eje acotado por aristas que sólo llegan a una misma cara (no al eje ni a
+     * la otra cara, y no son ejes de muro): devuelve esa cara y los dos puntos de contacto sobre
+     * ella; si no, null (se parte el muro como siempre).
+     * @returns {{ face: THREE.Line2, a: object, b: object }|null}
+     */
+    function maStlLineEditToolOneFaceGapMm(axis, p1, p2, wallHits, tLo, tHi, tEps) {
+        if (!(tLo > tEps) || !(tHi < 1 - tEps) || !wallHits || !wallHits.hits) return null;
+        const halfT = wallHits.halfT;
+        if (!(halfT > 0)) return null;
+        let side = 0;
+        const faceT = { lo: null, hi: null };
+        const ends = [
+            ['lo', tLo],
+            ['hi', tHi],
+        ];
+        for (let ei = 0; ei < 2; ei++) {
+            const tCut = ends[ei][1];
+            let found = false;
+            for (let i = 0; i < wallHits.hits.length; i++) {
+                const h = wallHits.hits[i];
+                if (Math.abs(h.t - tCut) > tEps) continue;
+                found = true;
+                if (h.isAxis || h.axisReach || h.faceHits.length !== 1) return null;
+                const hs = h.faceHits[0].side;
+                if (side && hs !== side) return null;
+                side = hs;
+                const ft = h.faceHits[0].t;
+                const k = ends[ei][0];
+                /* Del lado del hueco: el contacto más interior. */
+                if (faceT[k] == null) faceT[k] = ft;
+                else faceT[k] = k === 'lo' ? Math.max(faceT[k], ft) : Math.min(faceT[k], ft);
+            }
+            if (!found) return null;
+        }
+        if (!side || faceT.lo == null || faceT.hi == null || !(faceT.hi > faceT.lo)) return null;
+        const face = maStlWall2dToolFindFaceForCenterAndSide(axis.userData.maStlUserPlanLine.id, side);
+        if (!face) return null;
+        const len = Math.hypot(p2.x - p1.x, p2.z - p1.z);
+        const nx = (-(p2.z - p1.z) / len) * side;
+        const nz = ((p2.x - p1.x) / len) * side;
+        const at = function (t) {
+            const q = maStlLineEditToolPointAtMm(p1, p2, t);
+            return { x: q.x + nx * halfT, y: q.y, z: q.z + nz * halfT };
+        };
+        return { face: face, a: at(faceT.lo), b: at(faceT.hi) };
     }
 
     /**
@@ -17830,7 +19339,7 @@ let maStlWallApplyAllHeightMm = 0;
         const tEps = maStlLineEditToolEpsMm() / lenA;
         const extendP2 = maStlLineEditToolClickParamOnLine(axis, clientX, clientY) >= 0.5;
         if (maStlLineEditToolAxesTouchingPointMm(extendP2 ? p2 : p1, axis).length) return false;
-        const ts = maStlLineEditToolEdgeHitParams(axis, p1, p2, true);
+        const ts = maStlLineEditToolWallCutParams(axis, p1, p2).ts;
         let best = null;
         for (let i = 0; i < ts.length; i++) {
             if (extendP2) {
@@ -17947,6 +19456,25 @@ let maStlWallApplyAllHeightMm = 0;
         maStlLineToolPickCursorSync();
         syncMaStlRulerAnchorPickCursor();
         maStlUnlockOrbitForRulerAnchorPick(true);
+        if (maStlLineEditToolReformworkPending) {
+            maStlLineEditToolReformworkPending = false;
+            /* Como al modificar el muro curvo: re-encofrar, salvo si se pasó a otra herramienta. */
+            setTimeout(function () {
+                if (
+                    maStlIsLineEditToolActive() ||
+                    maStlIsWall2dToolActive() ||
+                    maStlIsLineToolPlacementActive() ||
+                    maStlIsOffsetToolActive() ||
+                    maStlIsDeleteToolActive() ||
+                    maStlIsDupMoveToolActive() ||
+                    maStlIsWall3dToolActive()
+                ) {
+                    return;
+                }
+                const formBtn = document.getElementById('ma-stl-mode-formwork');
+                if (formBtn && !formBtn.disabled) formBtn.click();
+            }, 0);
+        }
     }
 
     function maStlIsDeletableStlMesh(mesh) {
@@ -20335,6 +21863,7 @@ let maStlWallApplyAllHeightMm = 0;
             const axisLine = parts.wallAxisLines[wi];
             hadWall = true;
             if (!maStlTranslateUserFloorLineSegmentPlanMm(axisLine, dx, dz)) continue;
+            maStlWall2dToolTranslateFaceGapsMm(axisLine, dx, dz);
             const ud = axisLine.userData && axisLine.userData.maStlUserPlanLine;
             if (ud && ud.p1Mm && ud.p2Mm) {
                 maStlQuantizeUserFloorPlanPointToGridMm(ud.p1Mm);
@@ -23851,10 +25380,362 @@ let maStlWallApplyAllHeightMm = 0;
         return placements;
     }
 
+    /** Grados con dos decimales (11,61°) en el formato del navegador, como las demás cotas. */
+    function maStlWallDimCurvedDegText(deg) {
+        const v = Math.round((Number(deg) || 0) * 100) / 100;
+        try {
+            return new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v) + '°';
+        } catch (_eIntl) {
+            return v.toFixed(2) + '°';
+        }
+    }
+
+    /**
+     * Cota angular del muro curvo: dos líneas radiales desde el centro, arco entre ellas con flechas
+     * y el valor en grados encima del arco. Ángulos en planta (x = cos, z = sin), de `aFrom` a `aTo`.
+     */
+    function maStlWallDimCurvedAnglePlacement(cx, cz, aFrom, aTo, arcR, rayR, deg, kindLabel) {
+        if (!(arcR > 0) || !(Math.abs(aTo - aFrom) > 1e-4)) return null;
+        const y = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM + MA_STL_USER_FLOOR_LINE_DIM_DRAW_Y_EPS_MM + 0.25;
+        const pt = function (a, r) { return { x: cx + Math.cos(a) * r, z: cz + Math.sin(a) * r }; };
+        const segs = [];
+        const rA = pt(aFrom, rayR);
+        const rB = pt(aTo, rayR);
+        segs.push([cx, cz, rA.x, rA.z], [cx, cz, rB.x, rB.z]);
+        const n = Math.max(6, Math.ceil(Math.abs(aTo - aFrom) * 180 / Math.PI / 2));
+        for (let k = 0; k < n; k++) {
+            const p = pt(aFrom + (aTo - aFrom) * k / n, arcR);
+            const q = pt(aFrom + (aTo - aFrom) * (k + 1) / n, arcR);
+            segs.push([p.x, p.z, q.x, q.z]);
+        }
+        const eA = pt(aFrom, arcR);
+        const eB = pt(aTo, arcR);
+        const arcLen = Math.abs(aTo - aFrom) * arcR;
+        const step = Math.min(Math.abs(aTo - aFrom) * 0.25, 600 / arcR) * Math.sign(aTo - aFrom);
+        const inA = pt(aFrom + step, arcR);
+        const inB = pt(aTo - step, arcR);
+        const text = maStlWallDimCurvedDegText(deg);
+        const lab = pt((aFrom + aTo) * 0.5, arcR + 260);
+        return {
+            floorY: y,
+            pA: eA,
+            pB: eB,
+            extA_end: eA,
+            extB_end: eB,
+            labelMid: lab,
+            labelMm: arcLen,
+            kind: 'curved-angle',
+            kindLabel: kindLabel || '',
+            textLiteral: text,
+            textChars: text.length,
+            curvedGuide: true,
+            segs: segs,
+            arrows: [
+                { x: eA.x, z: eA.z, refX: inA.x, refZ: inA.z, spanMm: arcLen * 0.5 },
+                { x: eB.x, z: eB.z, refX: inB.x, refZ: inB.z, spanMm: arcLen * 0.5 },
+            ],
+            side: null,
+        };
+    }
+
+    /** Eje discontinuo de trazo y punto (eje / centro) de `a` a `b` en planta. */
+    function maStlWallDimCurvedAxisPlacement(a, b) {
+        const len = Math.hypot(b.x - a.x, b.z - a.z);
+        if (!(len > 1)) return null;
+        const ux = (b.x - a.x) / len;
+        const uz = (b.z - a.z) / len;
+        const pattern = [700, 150, 120, 150];
+        const segs = [];
+        let t = 0;
+        let k = 0;
+        while (t < len) {
+            const d = pattern[k % pattern.length];
+            const t2 = Math.min(len, t + d);
+            if (k % 2 === 0) segs.push([a.x + ux * t, a.z + uz * t, a.x + ux * t2, a.z + uz * t2]);
+            t = t2;
+            k++;
+        }
+        return {
+            floorY: MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM + MA_STL_USER_FLOOR_LINE_DIM_DRAW_Y_EPS_MM + 0.25,
+            kind: 'curved-axes',
+            curvedGuide: true,
+            noReadout: true,
+            segs: segs,
+            arrows: [],
+        };
+    }
+
+    /** Radio (porción del círculo): línea desde el centro con flecha en el arco y «R 5,00». */
+    function maStlWallDimCurvedRadiusPlacement(cx, cz, ang, r, kindLabel) {
+        const ex = cx + Math.cos(ang) * r;
+        const ez = cz + Math.sin(ang) * r;
+        const text = 'R ' + maStlDesing2DimEditableMetersDisplayFromMm(r);
+        return {
+            floorY: MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM + MA_STL_USER_FLOOR_LINE_DIM_DRAW_Y_EPS_MM + 0.25,
+            pA: { x: cx, z: cz },
+            pB: { x: ex, z: ez },
+            extA_end: { x: cx, z: cz },
+            extB_end: { x: ex, z: ez },
+            labelMid: { x: cx + Math.cos(ang) * r * 0.55, z: cz + Math.sin(ang) * r * 0.55 },
+            labelMm: r,
+            kind: 'curved-diameter',
+            kindLabel: kindLabel || '',
+            textLiteral: text,
+            textChars: text.length,
+            curvedGuide: true,
+            segs: [[cx, cz, ex, ez]],
+            arrows: [{ x: ex, z: ez, refX: cx, refZ: cz, spanMm: Math.min(r, 900) }],
+            side: null,
+        };
+    }
+
+    /**
+     * Cotas del muro curvo con Acotar (13/11/2026), con los tipos de cota del recto:
+     * - «Ejes y diámetro del muro curvo»: ejes X y Z por el centro (trazo y punto); Ø exterior arriba
+     *   (como la cota total del recto) y Ø interior en diagonal; en una porción, R exterior e interior.
+     * - «Ángulo entre paneles del muro curvo»: θ entre los paneles de dos sectores contiguos (líneas
+     *   radiales por el centro de cada panel); en una porción, también el ángulo de inicio desde +X.
+     * - «Remates»: una sola cota por cara (todas las juntas de una cara son iguales), en la primera junta.
+     * - «Dimensión de Paneles»: un solo panel en planta y una sola cadena de alturas (2,70 + 1,20…).
+     * Remates y paneles solo con el encofrado pintado (como el recto); se leen de sus piezas.
+     */
+    function maStlWallDimAppendCurvedPlacements(placements) {
+        const lines = maStlCurvedWallCollectPlanLines();
+        if (!lines.length) return placements;
+        const showAxes = maStlWallDimKindEnabled('curved-axes');
+        const showAngle = maStlWallDimKindEnabled('curved-angle');
+        const showPanels = maStlWallDimKindEnabled('panels');
+        const showRemates = maStlWallDimKindEnabled('remates');
+        if (!showAxes && !showAngle && !showPanels && !showRemates) return placements;
+        const payload = maStlDesing2LastAtk60PaintPayload;
+        const elements = payload && Array.isArray(payload.elements) ? payload.elements : [];
+        const labelAxes = maStlWallDimKindLabel('curved-axes');
+        const labelAngle = maStlWallDimKindLabel('curved-angle');
+        const labelPanels = maStlWallDimKindLabel('panels');
+        const labelRemates = maStlWallDimKindLabel('remates');
+        for (let li = 0; li < lines.length; li++) {
+            const ud = lines[li].ud;
+            if (!ud || ud._CHeckDimWall === false) continue;
+            const g = maStlCurvedWallGeomMm(ud);
+            const b = maStlCurvedWallModulationMmOf(ud);
+            const mi = maStlCurvedWallModulationInfo(g.rOut, g.frac.f, b, g.t);
+            const cx = g.cx;
+            const cz = g.cz;
+
+            if (showAxes) {
+                const ext = g.rOut + 1500;
+                const ax = maStlWallDimCurvedAxisPlacement({ x: cx - ext, z: cz }, { x: cx + ext, z: cz });
+                const az = maStlWallDimCurvedAxisPlacement({ x: cx, z: cz - ext }, { x: cx, z: cz + ext });
+                if (ax) placements.push(ax);
+                if (az) placements.push(az);
+                if (g.full) {
+                    const pl = maStlWallDimBuildAlignedPlacement(
+                        { x: cx - g.rOut, z: cz },
+                        { x: cx + g.rOut, z: cz },
+                        0,
+                        1,
+                        g.rOut + 1800,
+                        g.rOut * 2,
+                        'curved-diameter'
+                    );
+                    if (pl) {
+                        pl.textLiteral = 'Ø ' + maStlDesing2DimEditableMetersDisplayFromMm(g.rOut * 2);
+                        pl.textChars = pl.textLiteral.length;
+                        pl.side = 'north';
+                        if (labelAxes) pl.kindLabel = labelAxes;
+                        placements.push(pl);
+                    }
+                    const d = Math.SQRT1_2;
+                    const pin = maStlWallDimBuildAlignedPlacement(
+                        { x: cx - d * g.rIn, z: cz - d * g.rIn },
+                        { x: cx + d * g.rIn, z: cz + d * g.rIn },
+                        -d,
+                        d,
+                        1,
+                        g.rIn * 2,
+                        'curved-diameter'
+                    );
+                    if (pin) {
+                        pin.textLiteral = 'Ø ' + maStlDesing2DimEditableMetersDisplayFromMm(g.rIn * 2);
+                        pin.textChars = pin.textLiteral.length;
+                        pin.labelMid = { x: cx + d * g.rIn * 0.55, z: cz + d * g.rIn * 0.55 };
+                        if (labelAxes) pin.kindLabel = labelAxes;
+                        placements.push(pin);
+                    }
+                } else {
+                    const ro = maStlWallDimCurvedRadiusPlacement(cx, cz, g.a0 + g.sweep * 0.6, g.rOut, labelAxes);
+                    const ri = maStlWallDimCurvedRadiusPlacement(cx, cz, g.a0 + g.sweep * 0.85, g.rIn, labelAxes);
+                    if (ro) placements.push(ro);
+                    if (ri) placements.push(ri);
+                }
+            }
+            if (!mi) continue;
+            const n = mi.panels;
+            const theta = mi.turnDeg * Math.PI / 180;
+            const mid = function (i) { return g.a0 + (i + 0.5) * theta; };
+
+            if (showAngle) {
+                if (n >= 2) {
+                    // Círculo completo: a 135° en planta (libre de ejes, Ø, panel y remates de la junta 1);
+                    // porción: a un cuarto del arco (lejos de los R).
+                    let s = Math.floor(n / 4);
+                    if (g.full) {
+                        const rel = (((Math.PI * 0.75 - g.a0) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+                        s = Math.round(rel / theta - 1);
+                    }
+                    s = Math.min(n - 2, Math.max(0, s));
+                    const pa = maStlWallDimCurvedAnglePlacement(
+                        cx, cz, mid(s), mid(s + 1), g.rOut + 700, g.rOut + 950, mi.turnDeg, labelAngle
+                    );
+                    if (pa) placements.push(pa);
+                }
+                const startDeg = g.a0Deg;
+                if (!g.full && startDeg > 0.5 && startDeg < 359.5) {
+                    const rs = Math.min(1500, g.rIn * 0.45);
+                    const ps = maStlWallDimCurvedAnglePlacement(
+                        cx, cz, 0, startDeg * Math.PI / 180, rs, rs + 250, startDeg, labelAngle
+                    );
+                    if (ps) placements.push(ps);
+                }
+            }
+
+            const key = String(ud.wallId != null ? ud.wallId : ud.id);
+            const own = [];
+            for (let ei = 0; ei < elements.length; ei++) {
+                const it = elements[ei];
+                if (it && maStlAtk60ReadPaintStr(it, 'IdWall') === key) own.push(it);
+            }
+            if (!own.length || (!showPanels && !showRemates)) continue;
+
+            // Panel en [p, p + b] sobre el eje t del sector (CurvedWallFormwork.Place).
+            const halfIn = mi.innerRemateMm * 0.5 + b * 0.5;
+            const panelP = function (i) {
+                const first = !g.full && i === 0;
+                const last = !g.full && i === n - 1;
+                if (first && !last) return -halfIn;
+                if (last && !first) return halfIn - b;
+                return -b * 0.5;
+            };
+            const facePt = function (i, dist, t) {
+                const a = mid(i);
+                return {
+                    x: cx + Math.cos(a) * dist - Math.sin(a) * t,
+                    z: cz + Math.sin(a) * dist + Math.cos(a) * t,
+                };
+            };
+            const innerDist = g.rIn * Math.cos(theta * 0.5);
+
+            if (showRemates && (g.full || n >= 2)) {
+                let outerMm = 0;
+                let innerMm = 0;
+                const rMid = (g.rOut + g.rIn) * 0.5;
+                const counts = Object.create(null);
+                for (let ri = 0; ri < own.length; ri++) {
+                    const it = own[ri];
+                    const type = maStlAtk60ReadPaintStr(it, 'ElementType');
+                    const code = maStlAtk60ReadPaintStr(it, 'ElementCode').toUpperCase();
+                    if (type !== 'Remate' && code !== 'REMATE_WOOD') continue;
+                    const w = maStlAtk60ReadPaintNum(it, 'PieceWidthMm');
+                    const x = maStlAtk60ReadPaintNum(it, 'X');
+                    const z = maStlAtk60ReadPaintNum(it, 'Z');
+                    if (!(w > 0) || !Number.isFinite(x) || !Number.isFinite(z)) continue;
+                    const face = Math.hypot(x - cx, z - cz) >= rMid ? 'o' : 'i';
+                    const k2 = face + Math.round(w * 10);
+                    counts[k2] = (counts[k2] || 0) + 1;
+                }
+                let bestO = 0;
+                let bestI = 0;
+                Object.keys(counts).forEach(function (k2) {
+                    const w = Number(k2.slice(1)) / 10;
+                    if (k2[0] === 'o' && counts[k2] > bestO) { bestO = counts[k2]; outerMm = w; }
+                    if (k2[0] === 'i' && counts[k2] > bestI) { bestI = counts[k2]; innerMm = w; }
+                });
+                const ray = g.a0 + theta;
+                const rnx = Math.cos(ray);
+                const rnz = Math.sin(ray);
+                const remateWord = maStlWallDimRemateWord();
+                const pushRemate = function (dist, valueMm, sign) {
+                    if (!(valueMm > 0)) return;
+                    const qA = facePt(0, dist, panelP(0) + b);
+                    const qB = facePt(1, dist, panelP(1));
+                    const qPl = maStlWallDimBuildAlignedPlacement(
+                        qA, qB, rnx * sign, rnz * sign, MA_STL_ATK60_REMATE_DIM_OFFSET_MM, valueMm, 'atk60-remate'
+                    );
+                    if (!qPl) return;
+                    const remateLabel = maStlDesing2DimEditableMetersDisplayFromMm(valueMm);
+                    qPl.textLiteral = remateWord ? remateLabel + ' ' + remateWord : remateLabel;
+                    qPl.leader45 = true;
+                    qPl.outsideSign = -1;
+                    qPl.textChars = String(qPl.textLiteral).length || 4;
+                    if (labelRemates) qPl.kindLabel = labelRemates;
+                    placements.push(qPl);
+                };
+                pushRemate(g.rOut, outerMm, 1);
+                pushRemate(innerDist, innerMm, -1);
+            }
+
+            if (showPanels) {
+                const ps = n >= 2 ? 1 : 0;
+                let panelMm = 0;
+                const layers = Object.create(null);
+                for (let pi = 0; pi < own.length; pi++) {
+                    const it = own[pi];
+                    if (maStlAtk60ReadPaintStr(it, 'ElementType') !== 'Panel') continue;
+                    // Solo paneles del catálogo (fuera tapes y piezas de cierre del extremo).
+                    const w = maStlWallDimMatchAtk60CatalogMm(
+                        maStlAtk60ReadPaintNum(it, 'PieceWidthMm'), MA_STL_CURVED_WALL_MODULATIONS_MM
+                    );
+                    const up = maStlAtk60ReadPaintNum(it, 'LocalUpMm');
+                    const h = maStlWallDimMatchAtk60CatalogMm(
+                        maStlAtk60ReadPaintNum(it, 'PieceHeightMm'), [300, 450, 600, 750, 900, 1200, 2400, 2700]
+                    );
+                    if (!w || !h) continue;
+                    if (w > panelMm) panelMm = w;
+                    if (Number.isFinite(up)) {
+                        const k3 = String(Math.round(up));
+                        if (!(layers[k3] > h)) layers[k3] = h;
+                    }
+                }
+                if (!(panelMm > 0)) panelMm = b;
+                const m = mid(ps);
+                const nx = Math.cos(m);
+                const nz = Math.sin(m);
+                const pA = facePt(ps, g.rOut, panelP(ps));
+                const pB = facePt(ps, g.rOut, panelP(ps) + panelMm);
+                const rPl = maStlWallDimBuildAlignedPlacement(
+                    pA, pB, nx, nz, MA_STL_ATK60_MODULE_DIM_OFFSET_MM, panelMm, 'atk60-panel'
+                );
+                if (rPl) {
+                    if (panelMm < 820) {
+                        const panelLabel = maStlWallDimPanelMetersLabel(panelMm);
+                        rPl.leader45 = true;
+                        rPl.outsideSign = 1;
+                        rPl.textChars = panelLabel.length;
+                    }
+                    if (labelPanels) rPl.kindLabel = labelPanels;
+                    placements.push(rPl);
+                }
+                const ups = Object.keys(layers).map(Number).sort(function (p, q) { return p - q; });
+                for (let hi = 0; hi < ups.length; hi++) {
+                    const h = layers[String(ups[hi])];
+                    const vPl = maStlWallDimBuildVerticalPlacement(
+                        pB.x, pB.z, g.y + ups[hi], g.y + ups[hi] + h, nx, nz, MA_STL_ATK60_HEIGHT_DIM_OFFSET_MM, h
+                    );
+                    if (vPl) {
+                        if (labelPanels) vPl.kindLabel = labelPanels;
+                        placements.push(vPl);
+                    }
+                }
+            }
+        }
+        return placements;
+    }
+
     /** Acotar: cotas de muro y, si está activa, la dimensión de paneles pegada al muro. */
     function maStlWallDimCollectAllPlacements(thicknessReps) {
         void thicknessReps;
         const placements = maStlWallDimBuildClassifiedWallPlacements();
+        maStlWallDimAppendCurvedPlacements(placements);
         const showPanels = maStlWallDimKindEnabled('panels');
         const showRemates = maStlWallDimKindEnabled('remates');
         if (!showPanels && !showRemates) {
@@ -24728,6 +26609,21 @@ let maStlWallApplyAllHeightMm = 0;
             const pB = placement.pB;
             const eA = placement.extA_end;
             const eB = placement.extB_end;
+            if (placement.curvedGuide) {
+                /* Muro curvo: ejes, ángulos y radios ya trazados (segmentos y flechas). */
+                const segs = placement.segs || [];
+                for (let si = 0; si < segs.length; si++) {
+                    const sg = segs[si];
+                    pts.push(new THREE.Vector3(sg[0], y, sg[1]), new THREE.Vector3(sg[2], y, sg[3]));
+                }
+                const arrows = placement.arrows || [];
+                for (let ai = 0; ai < arrows.length; ai++) {
+                    const ar = arrows[ai];
+                    const dw = maStlUserFloorDimComputeLengthArrowDeepWingMm(ar.spanMm, wpp);
+                    maStlUserFloorDimCadArrowTriangleAtEnd(posTri, y, ar.x, ar.z, ar.refX, ar.refZ, dw.deep, dw.wing);
+                }
+                continue;
+            }
             if (placement.kind === 'wall-id') {
                 maStlWallDimPlaceLeader45(placement, y, pts, dotPos, leaders, wpp);
                 continue;
@@ -25082,6 +26978,7 @@ let maStlWallApplyAllHeightMm = 0;
             maStlWallDimOverlayRoot.setAttribute('aria-hidden', 'false');
             for (let pi = 0; pi < placements.length; pi++) {
                 const pl = placements[pi];
+                if (pl.noReadout) continue;
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className =
@@ -25463,6 +27360,7 @@ let maStlWallApplyAllHeightMm = 0;
         maStlStopInsertEnclosureToolModesToolbar(false);
         maStlStopWorkerTool();
         maStlStopPillarTool();
+        maStlStopCurvedWallPlacement();
         maStlStopWall2dToolModesToolbar(false);
         maStlStopWallDimToolModesToolbar();
         if (maStlIsRulerAnchorPickModeActive()) {
@@ -25553,6 +27451,23 @@ let maStlWallApplyAllHeightMm = 0;
             }
             if (planExtras.pillarWidthMm != null) planUd.pillarWidthMm = planExtras.pillarWidthMm;
             if (planExtras._DataHeight != null) planUd._DataHeight = planExtras._DataHeight;
+            if (planExtras.wallRole === 'curved' && planExtras._DataWith != null) {
+                planUd._DataWith = planExtras._DataWith;
+            }
+            if (planExtras.wallRole === 'curved' && planExtras._CurveFractionNum != null) {
+                planUd._CurveFractionNum = planExtras._CurveFractionNum;
+                planUd._CurveFractionDen = planExtras._CurveFractionDen;
+            }
+            if (planExtras.wallRole === 'curved' && planExtras._CurveModulationMm != null) {
+                planUd._CurveModulationMm = planExtras._CurveModulationMm;
+            }
+            if (planExtras.wallRole === 'curved') {
+                /* Ménsulas y puntales del formulario (mismos atributos que el muro recto). */
+                for (let si = 0; si < MA_STL_CURVED_WALL_SUPPORT_FIELDS.length; si++) {
+                    const sk = MA_STL_CURVED_WALL_SUPPORT_FIELDS[si].key;
+                    if (planExtras[sk] != null) planUd[sk] = !!planExtras[sk];
+                }
+            }
         }
         maStlWallLineEnsureAttrs(planUd);
         line.userData.maStlUserPlanLine = planUd;
@@ -25660,7 +27575,7 @@ let maStlWallApplyAllHeightMm = 0;
 
     function maStlUserFloorLineEndpointHandlesVisibleForLine(line) {
         const pillarUd = line && line.userData && line.userData.maStlUserPlanLine;
-        if (pillarUd && pillarUd.wallRole === 'pillar') return false;
+        if (pillarUd && (pillarUd.wallRole === 'pillar' || pillarUd.wallRole === 'curved')) return false;
         return (
             !!line &&
             maStlIsUserFloorPlanLineSelectable(line) &&
@@ -25976,6 +27891,7 @@ let maStlWallApplyAllHeightMm = 0;
             if (!maStlIsUserFloorPlanLineObject(line)) continue;
             const ud = line.userData && line.userData.maStlUserPlanLine;
             if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            if (ud.wallRole === 'curved') continue;
             const ends = [ud.p1Mm, ud.p2Mm];
             for (let ei = 0; ei < ends.length; ei++) {
                 const ep = ends[ei];
@@ -26133,6 +28049,7 @@ let maStlWallApplyAllHeightMm = 0;
             const ud = line.userData && line.userData.maStlUserPlanLine;
             if (!ud) continue;
             if (ud.wallGroupId != null || udNew.wallGroupId != null) continue;
+            if (ud.wallRole === 'curved') continue;
             const share = maStlUserFloorPlanLinesShareEndpointMm(udNew, ud, eps);
             if (!share) continue;
             if (!maStlUserFloorPlanLinesCollinearParallelXz(udNew, ud)) continue;
@@ -26207,6 +28124,7 @@ let maStlWallApplyAllHeightMm = 0;
             const udNew = current.userData && current.userData.maStlUserPlanLine;
             if (!udNew) break;
             if (udNew.wallGroupId != null) break;
+            if (udNew.wallRole === 'curved') break;
             const partners = maStlUserFloorPlanLineCollectCollinearMergePartnersMm(udNew, current);
             if (partners.length === 0) break;
             const partner = maStlUserFloorPlanLinePickBestCollinearMergePartner(partners);
@@ -26246,6 +28164,7 @@ let maStlWallApplyAllHeightMm = 0;
                 if (!maStlIsUserFloorPlanLineObject(line)) continue;
                 const ud = line.userData && line.userData.maStlUserPlanLine;
                 if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+                if (ud.wallRole === 'curved') continue;
                 const p1Before = { x: ud.p1Mm.x, z: ud.p1Mm.z };
                 const p2Before = { x: ud.p2Mm.x, z: ud.p2Mm.z };
                 maStlWeldUserFloorPlanPointToExistingEndpointsMm(ud.p1Mm, eps, line);
@@ -28911,6 +30830,14 @@ let maStlWallApplyAllHeightMm = 0;
             const line = maStlUserLinesGroup.children[i];
             const ud = line.userData.maStlUserPlanLine;
             if (!maStlIsUserFloorPlanLineSelectable(line) || !ud || !ud.p1Mm || !ud.p2Mm) continue;
+            if (ud.wallRole === 'curved') {
+                const dCurvedSq = maStlCurvedWallScreenDistSqPx(ud, clientX, clientY);
+                if (dCurvedSq < bestD && dCurvedSq <= pickTolSq) {
+                    bestD = dCurvedSq;
+                    best = line;
+                }
+                continue;
+            }
             const sp1 = {};
             const sp2 = {};
             if (!maStlWorldMmToScreenPx(ud.p1Mm.x, ud.p1Mm.y, ud.p1Mm.z, sp1)) continue;
@@ -32807,6 +34734,1063 @@ let maStlWallApplyAllHeightMm = 0;
             });
         }
     }
+
+    /*
+     * Insertar Muro Curvo (US 13/11/2026). Paso 1: el botón abre el formulario y Aceptar guarda las
+     * medidas en `window.maCurvedWallPending` (metros). Paso 2: `maStlCurvedWallBeginPlacement` pide el
+     * punto central (clic) e inserta el muro. Sin encofrado todavía (ver desing-2-stl-viewer-funciones.md).
+     */
+    const MA_STL_CURVED_WALL_LIMITS_M = Object.freeze({
+        diameterMin: 1,
+        diameterMax: 100,
+        thicknessMin: 0.1,
+        thicknessMax: 1,
+        heightMin: 0.3,
+        heightMax: 6,
+    });
+    /** Diámetro exterior por defecto del formulario (m), hasta que se acepte otro. */
+    const MA_STL_CURVED_WALL_DEFAULT_DIAMETER_M = 10;
+    /** Porciones del selector; «custom» abre el campo 1/N o a/b. */
+    const MA_STL_CURVED_WALL_PORTION_PRESETS = ['1/1', '1/2', '1/3', '1/4'];
+
+    function maStlCurvedWallGcd(a, b) {
+        let x = Math.abs(a);
+        let y = Math.abs(b);
+        while (y) {
+            const t = y;
+            y = x % y;
+            x = t;
+        }
+        return x || 1;
+    }
+
+    /**
+     * Porción del muro: «a/b», «N» (= 1/N) o «P %» (entero, se simplifica). 1 ≤ a ≤ b ≤ 360.
+     * @returns {{num:number, den:number}|null}
+     */
+    function maStlCurvedWallParseFraction(raw) {
+        const t = String(raw == null ? '' : raw).trim().replace(/\s+/g, '');
+        if (!t) return null;
+        let num;
+        let den;
+        let m = /^(\d+)\/(\d+)$/.exec(t);
+        if (m) {
+            num = Number(m[1]);
+            den = Number(m[2]);
+        } else if ((m = /^(\d+)%$/.exec(t))) {
+            const g = maStlCurvedWallGcd(Number(m[1]), 100);
+            num = Number(m[1]) / g;
+            den = 100 / g;
+        } else if ((m = /^(\d+)$/.exec(t))) {
+            num = 1;
+            den = Number(m[1]);
+        } else {
+            return null;
+        }
+        if (!(num >= 1 && den >= 1 && num <= den && den <= MA_STL_CURVED_WALL_FRACTION_DEN_MAX)) return null;
+        return { num: num, den: den };
+    }
+
+    /** Ángulo de inicio en grados (−360…360, coma o punto); se guarda normalizado a 0…360. */
+    function maStlCurvedWallParseAngleDeg(raw) {
+        const t = String(raw == null ? '' : raw).trim().replace(',', '.').replace(/°$/, '');
+        if (!t) return 0;
+        const n = Number(t);
+        if (!Number.isFinite(n) || n < -360 || n > 360) return null;
+        return Math.round((((n % 360) + 360) % 360) * 1000) / 1000;
+    }
+
+    /** «1/4 (25 %)», «1/33 (3,03 %)», «1/1 (100 %)». */
+    function maStlCurvedWallFormatFraction(num, den) {
+        const pct = Math.round(num / den * 10000) / 100;
+        return num + '/' + den + ' (' + String(pct).replace('.', ',') + ' %)';
+    }
+
+    function maStlCurvedWallPortionValue() {
+        const sel = document.getElementById('ma-stl-curved-wall-portion');
+        const custom = document.getElementById('ma-stl-curved-wall-portion-custom');
+        if (!sel) return '1/1';
+        return sel.value === 'custom' ? (custom ? custom.value : '') : sel.value;
+    }
+
+    function maStlCurvedWallSetPortion(num, den) {
+        const sel = document.getElementById('ma-stl-curved-wall-portion');
+        const custom = document.getElementById('ma-stl-curved-wall-portion-custom');
+        const key = num + '/' + den;
+        if (sel) sel.value = MA_STL_CURVED_WALL_PORTION_PRESETS.indexOf(key) >= 0 ? key : 'custom';
+        if (custom) custom.value = sel && sel.value === 'custom' ? key : '';
+    }
+
+    /** Modulación elegida en el formulario (mm); fuera de la lista → 900 mm. */
+    function maStlCurvedWallModulationValue() {
+        const sel = document.getElementById('ma-stl-curved-wall-modulation');
+        return maStlCurvedWallModulationMmOf({ _CurveModulationMm: sel ? sel.value : null });
+    }
+
+    function maStlCurvedWallParseMeters(raw) {
+        const mm = maStlParseLengthInputValueToMm(raw);
+        return Number.isFinite(mm) ? mm / MA_STL_SCENE_MM_PER_PHYSICAL_METER : null;
+    }
+
+    /** @returns {string|null} clave del error (`diameter`, `thickness`, `thickness-radius`, `height`) o null. */
+    function maStlCurvedWallValidateMeters(diameterM, thicknessM, heightM) {
+        const lim = MA_STL_CURVED_WALL_LIMITS_M;
+        const eps = 1e-9;
+        if (!Number.isFinite(diameterM) || diameterM < lim.diameterMin - eps || diameterM > lim.diameterMax + eps) {
+            return 'diameter';
+        }
+        if (!Number.isFinite(thicknessM) || thicknessM < lim.thicknessMin - eps || thicknessM > lim.thicknessMax + eps) {
+            return 'thickness';
+        }
+        if (thicknessM >= diameterM / 2 - eps) return 'thickness-radius';
+        if (!Number.isFinite(heightM) || heightM < lim.heightMin - eps || heightM > lim.heightMax + eps) {
+            return 'height';
+        }
+        return null;
+    }
+
+    function maStlCurvedWallFormatMeters(m) {
+        return Number.isFinite(m) ? m.toFixed(2).replace('.', ',') : '—';
+    }
+
+    const maStlCurvedWallModalEl = document.getElementById('ma-stl-curved-wall-modal');
+    const maStlInsertCurvedWallToolBtn = document.getElementById('ma-stl-tool-insert-curved-wall');
+
+    function maStlCurvedWallModal() {
+        if (!maStlCurvedWallModalEl || typeof window.bootstrap === 'undefined' || !window.bootstrap.Modal) return null;
+        return window.bootstrap.Modal.getOrCreateInstance(maStlCurvedWallModalEl);
+    }
+
+    function maStlCurvedWallField(id) {
+        return /** @type {HTMLInputElement|null} */ (document.getElementById(id));
+    }
+
+    function maStlCurvedWallShowError(msg) {
+        const err = document.getElementById('ma-stl-curved-wall-error');
+        if (!err) return;
+        err.textContent = msg || '';
+        err.classList.toggle('d-none', !msg);
+    }
+
+    /** Casillas de «Ménsulas y puntales» → { _CHeckBracketInside: …, … }. */
+    function maStlCurvedWallReadSupports() {
+        const out = {};
+        for (let i = 0; i < MA_STL_CURVED_WALL_SUPPORT_FIELDS.length; i++) {
+            const fld = MA_STL_CURVED_WALL_SUPPORT_FIELDS[i];
+            const el = maStlCurvedWallField(fld.id);
+            out[fld.key] = el ? !!el.checked : fld.def;
+        }
+        return out;
+    }
+
+    /** Marca las casillas con los atributos del muro (o los del muro recto por defecto). */
+    function maStlCurvedWallWriteSupports(src) {
+        for (let i = 0; i < MA_STL_CURVED_WALL_SUPPORT_FIELDS.length; i++) {
+            const fld = MA_STL_CURVED_WALL_SUPPORT_FIELDS[i];
+            const el = maStlCurvedWallField(fld.id);
+            if (el) el.checked = src && src[fld.key] != null ? !!src[fld.key] : fld.def;
+        }
+    }
+
+    /** Pestaña del formulario: 'wall' (medidas) o 'supports' (ménsulas y puntales). */
+    function maStlCurvedWallShowTab(which) {
+        const btn = document.getElementById(which === 'supports' ? 'ma-stl-curved-wall-tab-supports' : 'ma-stl-curved-wall-tab-wall');
+        if (btn && window.bootstrap && window.bootstrap.Tab) window.bootstrap.Tab.getOrCreateInstance(btn).show();
+    }
+
+    function maStlCurvedWallPropSpacingMm() {
+        const v = typeof window.maStlDesing2PropSpacingMm === 'function' ? Number(window.maStlDesing2PropSpacingMm()) : NaN;
+        return Number.isFinite(v) && v > 0 ? v : 2400;
+    }
+
+    function maStlCurvedWallSupportLabels() {
+        return { brackets: maStlCurvedWallMsg('msgBrackets'), props: maStlCurvedWallMsg('msgProps') };
+    }
+
+    function maStlCurvedWallSyncInner() {
+        const out = document.getElementById('ma-stl-curved-wall-inner');
+        const d = maStlCurvedWallField('ma-stl-curved-wall-diameter');
+        const t = maStlCurvedWallField('ma-stl-curved-wall-thickness');
+        if (out && d && t) {
+            const dM = maStlCurvedWallParseMeters(d.value);
+            const tM = maStlCurvedWallParseMeters(t.value);
+            out.textContent = dM != null && tM != null && dM - 2 * tM > 0 ? maStlCurvedWallFormatMeters(dM - 2 * tM) : '—';
+        }
+        /* Porción: campo libre solo con «Otra»; debajo, % y grados del arco. */
+        const sel = document.getElementById('ma-stl-curved-wall-portion');
+        const custom = document.getElementById('ma-stl-curved-wall-portion-custom');
+        if (sel && custom) custom.classList.toggle('d-none', sel.value !== 'custom');
+        const info = document.getElementById('ma-stl-curved-wall-portion-info');
+        if (info) {
+            const fr = maStlCurvedWallParseFraction(maStlCurvedWallPortionValue());
+            info.textContent = fr
+                ? maStlCurvedWallFormatFraction(fr.num, fr.den) + ' · ' + String(Math.round(fr.num / fr.den * 36000) / 100).replace('.', ',') + '°'
+                : '—';
+        }
+        const start = document.getElementById('ma-stl-curved-wall-start');
+        if (start) {
+            const fr = maStlCurvedWallParseFraction(maStlCurvedWallPortionValue());
+            start.disabled = !!(fr && fr.num >= fr.den);
+        }
+        /* Modulación: paneles de la cara exterior y giro por junta (informativo). */
+        const modInfo = document.getElementById('ma-stl-curved-wall-modulation-info');
+        if (modInfo && d) {
+            const dM = maStlCurvedWallParseMeters(d.value);
+            const fr = maStlCurvedWallParseFraction(maStlCurvedWallPortionValue());
+            const mi = dM != null && fr
+                ? maStlCurvedWallModulationInfo(dM * 500, fr.num / fr.den, maStlCurvedWallModulationValue(),
+                    (maStlCurvedWallParseMeters(t ? t.value : '') || 0) * 1000)
+                : null;
+            const tpl = maStlCurvedWallModalEl ? maStlCurvedWallModalEl.dataset.msgModulationInfo : '';
+            modInfo.textContent = mi && tpl
+                ? maStlCurvedWallFillFormworkInfo(tpl, mi, maStlCurvedWallModalEl.dataset.msgRemateWarning)
+                : '—';
+        }
+        /* Ménsulas y puntales: cuántos por cara y aviso si la cara interior no cabe. */
+        const supInfo = document.getElementById('ma-stl-curved-wall-supports-info');
+        const supWarn = document.getElementById('ma-stl-curved-wall-supports-warning');
+        if (supInfo && d) {
+            const dM = maStlCurvedWallParseMeters(d.value);
+            const hEl = maStlCurvedWallField('ma-stl-curved-wall-height');
+            const hM = maStlCurvedWallParseMeters(hEl ? hEl.value : '');
+            const fr = maStlCurvedWallParseFraction(maStlCurvedWallPortionValue());
+            const si = dM != null && fr
+                ? maStlCurvedWallSupportsInfo(dM * 500, fr.num / fr.den, maStlCurvedWallModulationValue(),
+                    (maStlCurvedWallParseMeters(t ? t.value : '') || 0) * 1000, (hM || 0) * 1000,
+                    maStlCurvedWallPropSpacingMm())
+                : null;
+            const tplS = maStlCurvedWallMsg('msgSupportsInfo');
+            supInfo.textContent = si && tplS
+                ? String(tplS).replace('{0}', String(si.brackets)).replace('{1}', String(si.props))
+                : '—';
+            if (supWarn) {
+                const w = maStlCurvedWallSupportsWarning(maStlCurvedWallMsg('msgSupportsNoRoom'), si,
+                    maStlCurvedWallReadSupports(), maStlCurvedWallSupportLabels());
+                supWarn.textContent = w;
+                supWarn.classList.toggle('d-none', !w);
+            }
+        }
+    }
+
+    /**
+     * Abre el formulario. Sin línea: insertar (diámetro 10,00 m o el último aceptado; espesor y altura de
+     * Configuración). Con una línea `curved`: modificar ese muro (sus valores; Aceptar cambia el mismo muro).
+     */
+    function maStlOpenCurvedWallForm(editLine) {
+        const modal = maStlCurvedWallModal();
+        if (!modal) return;
+        maStlDesing2CancelTransientToolsEscape();
+        const editUd = editLine && editLine.userData ? editLine.userData.maStlUserPlanLine : null;
+        maStlCurvedWallEditLine = editUd && editUd.wallRole === 'curved' ? editLine : null;
+        const prev = window.maCurvedWallPending;
+        const d = maStlCurvedWallField('ma-stl-curved-wall-diameter');
+        const t = maStlCurvedWallField('ma-stl-curved-wall-thickness');
+        const h = maStlCurvedWallField('ma-stl-curved-wall-height');
+        const start = maStlCurvedWallField('ma-stl-curved-wall-start');
+        const mod = /** @type {HTMLSelectElement|null} */ (document.getElementById('ma-stl-curved-wall-modulation'));
+        const title = document.getElementById('ma-stl-curved-wall-modal-title');
+        if (title) {
+            if (!title.dataset.insertTitle) title.dataset.insertTitle = title.textContent;
+            title.textContent = maStlCurvedWallEditLine
+                ? (maStlCurvedWallMsg('msgEditTitle') || title.dataset.insertTitle)
+                : title.dataset.insertTitle;
+        }
+        if (maStlCurvedWallEditLine) {
+            maStlWallLineEnsureAttrs(editUd);
+            const g = maStlCurvedWallGeomMm(editUd);
+            if (d) d.value = maStlCurvedWallFormatMeters(g.rOut * 2 / MA_STL_SCENE_MM_PER_PHYSICAL_METER);
+            if (t) t.value = maStlCurvedWallFormatMeters(g.t / MA_STL_SCENE_MM_PER_PHYSICAL_METER);
+            if (h) h.value = maStlCurvedWallFormatMeters(g.h / MA_STL_SCENE_MM_PER_PHYSICAL_METER);
+            maStlCurvedWallSetPortion(g.frac.num, g.frac.den);
+            if (start) start.value = String(Math.round(g.a0Deg * 100) / 100).replace('.', ',');
+            if (mod) mod.value = String(maStlCurvedWallModulationMmOf(editUd));
+            maStlCurvedWallWriteSupports(editUd);
+        } else {
+            /* Espesor y altura: los de Configuración; diámetro, porción y ángulo: el último aceptado (10,00 m y 1/1 la primera vez). */
+            if (d) {
+                d.value = maStlCurvedWallFormatMeters(
+                    prev && prev.outerDiameterM ? prev.outerDiameterM : MA_STL_CURVED_WALL_DEFAULT_DIAMETER_M
+                );
+            }
+            if (t) t.value = maStlCurvedWallFormatMeters(desing2EnvWallThicknessMm / MA_STL_SCENE_MM_PER_PHYSICAL_METER);
+            if (h) h.value = maStlCurvedWallFormatMeters(desing2EnvWallHeightMm / MA_STL_SCENE_MM_PER_PHYSICAL_METER);
+            maStlCurvedWallSetPortion(
+                prev && prev.fractionNum ? prev.fractionNum : 1,
+                prev && prev.fractionDen ? prev.fractionDen : 1
+            );
+            if (start) start.value = String(prev && prev.startAngleDeg ? prev.startAngleDeg : 0).replace('.', ',');
+            if (mod) mod.value = String(maStlCurvedWallModulationMmOf({ _CurveModulationMm: prev ? prev.modulationMm : null }));
+            maStlCurvedWallWriteSupports(prev ? prev.supports : null);
+        }
+        maStlCurvedWallShowTab('wall');
+        maStlCurvedWallShowError('');
+        maStlCurvedWallSyncInner();
+        modal.show();
+    }
+
+    /*
+     * Paso 2 — colocación e inserción.
+     * Representación: UNA línea de planta por muro curvo, `wallRole: 'curved'` (`_TypeMesh: 'MuroCurvo'`),
+     * con p1/p2 = extremos del diámetro exterior (centro ± R, mismo Z). Así `_Datalong` = diámetro exterior,
+     * `_DataWith` = espesor y `_DataHeight` = altura, y se guarda/recarga/deshace como cualquier línea.
+     * Planta: la línea se dibuja como círculo exterior + guía del círculo interior y centro.
+     * Muro 3D: anillo extruido (cliente). Queda fuera de la detección de muros rectos y de Encofrar.
+     */
+    var maStlCurvedWallPlaceState = null;
+    var maStlCurvedWallGuideGroup = null;
+    var maStlCurvedWallGuideSig = null;
+    var maStlCurvedWallMeshes = [];
+    var maStlCurvedWallMeshSig = null;
+    var maStlCurvedWallCenterMat = null;
+    /** Línea `curved` que se está modificando con el formulario (doble clic); null = insertar. */
+    var maStlCurvedWallEditLine = null;
+
+    function maStlCurvedWallMsg(key) {
+        const el = document.getElementById('ma-stl-curved-wall-modal');
+        return el && el.dataset ? String(el.dataset[key] || '') : '';
+    }
+
+    function maStlCurvedWallFillMsg(text, pending) {
+        return String(text || '')
+            .replace('{0}', maStlCurvedWallFormatMeters(pending.outerDiameterM))
+            .replace('{1}', maStlCurvedWallFormatMeters(pending.thicknessM))
+            .replace('{2}', maStlCurvedWallFormatMeters(pending.heightM))
+            .replace('{3}', maStlCurvedWallFormatFraction(pending.fractionNum || 1, pending.fractionDen || 1))
+            .replace('{4}', maStlCurvedWallFormatMeters((pending.modulationMm || MA_STL_CURVED_WALL_DEFAULT_MODULATION_MM) / 1000));
+    }
+
+    function maStlIsCurvedWallPlacementActive() {
+        return !!maStlCurvedWallPlaceState;
+    }
+
+    function maStlCurvedWallCollectPlanLines() {
+        const out = [];
+        if (!maStlUserLinesGroup) return out;
+        const ch = maStlUserLinesGroup.children;
+        for (let i = 0; i < ch.length; i++) {
+            const line = ch[i];
+            if (!maStlIsUserFloorPlanLineObject(line)) continue;
+            const ud = line.userData && line.userData.maStlUserPlanLine;
+            if (!ud || ud.wallRole !== 'curved' || !ud.p1Mm || !ud.p2Mm) continue;
+            out.push({ line: line, ud: ud });
+        }
+        return out;
+    }
+
+    /** Centro, radios exterior/interior, espesor y altura (mm escena) de una línea `curved`. */
+    function maStlCurvedWallGeomMm(ud) {
+        const cx = (ud.p1Mm.x + ud.p2Mm.x) * 0.5;
+        const cz = (ud.p1Mm.z + ud.p2Mm.z) * 0.5;
+        const y = ((ud.p1Mm.y || 0) + (ud.p2Mm.y || 0)) * 0.5;
+        const rOut = Math.max(1, Math.hypot(ud.p2Mm.x - ud.p1Mm.x, ud.p2Mm.z - ud.p1Mm.z) * 0.5);
+        const t = maStlCurvedWallThicknessMmOf(ud, rOut);
+        const frac = maStlCurvedWallFractionOf(ud);
+        const a0 = Math.atan2(ud.p2Mm.z - ud.p1Mm.z, ud.p2Mm.x - ud.p1Mm.x);
+        return {
+            cx: cx,
+            cz: cz,
+            y: y,
+            rOut: rOut,
+            rIn: rOut - t,
+            t: t,
+            h: maStlWallLineResolveHeightMm(ud),
+            frac: frac,
+            full: frac.f >= 1,
+            a0: a0,
+            a0Deg: (((a0 * 180 / Math.PI) % 360) + 360) % 360,
+            sweep: Math.PI * 2 * frac.f,
+        };
+    }
+
+    function maStlCurvedWallSigOf(item) {
+        const g = maStlCurvedWallGeomMm(item.ud);
+        return [
+            item.ud.id, g.cx.toFixed(1), g.cz.toFixed(1), g.y.toFixed(1), g.rOut.toFixed(1), g.t.toFixed(1),
+            g.h.toFixed(1), g.frac.num + '/' + g.frac.den, g.a0.toFixed(5),
+        ].join(',');
+    }
+
+    /** Distancia² en px de pantalla del puntero al círculo exterior/interior (0 si cae dentro del anillo). */
+    function maStlCurvedWallScreenDistSqPx(ud, clientX, clientY) {
+        if (!ud || !ud.p1Mm || !ud.p2Mm) return Infinity;
+        const g = maStlCurvedWallGeomMm(ud);
+        const floor = maStlCurvedWallPickFloorMm(clientX, clientY, false);
+        if (floor) {
+            const d = Math.hypot(floor.x - g.cx, floor.z - g.cz);
+            if (d >= g.rIn && d <= g.rOut) {
+                if (g.full) return 0;
+                /* Sector: el ángulo del puntero cae dentro del barrido desde el inicio. */
+                const ang = Math.atan2(floor.z - g.cz, floor.x - g.cx);
+                const rel = (((ang - g.a0) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+                if (rel <= g.sweep + 1e-9) return 0;
+            }
+        }
+        /* Si no, distancia en pantalla al contorno (y al círculo interior si es completo). */
+        const outlines = [maStlCurvedWallOutlinePositionsMm(ud.p1Mm, ud.p2Mm, g.t, g.frac)];
+        if (g.full) outlines.push(maStlCurvedWallCirclePositionsMm(ud.p1Mm, ud.p2Mm, -g.t));
+        let best = Infinity;
+        const sp = {};
+        const prev = { x: 0, y: 0 };
+        for (let oi = 0; oi < outlines.length; oi++) {
+            const pos = outlines[oi];
+            const step = Math.max(1, Math.floor(pos.length / 3 / 64));
+            let havePrev = false;
+            for (let i = 0; i < pos.length / 3; i += step) {
+                if (!maStlWorldMmToScreenPx(pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2], sp)) {
+                    havePrev = false;
+                    continue;
+                }
+                if (havePrev) {
+                    const dSq = maStlSqDistPointToSegment2dPx(clientX, clientY, prev.x, prev.y, sp.x, sp.y);
+                    if (dSq < best) best = dSq;
+                }
+                prev.x = sp.x;
+                prev.y = sp.y;
+                havePrev = true;
+            }
+        }
+        return best;
+    }
+
+    /** Punto del suelo bajo el puntero; con `snap` se ajusta a la rejilla (igual que el pilar). */
+    function maStlCurvedWallPickFloorMm(clientX, clientY, snap) {
+        const canvas = renderer ? renderer.domElement : null;
+        if (!canvas) return null;
+        if (!maStlClientRayToWorkspaceFloor(
+            clientX, clientY, canvas, activeCamera(), null, maStlPillarFloorRaycaster, maStlPillarFloorPoint
+        )) {
+            return null;
+        }
+        const pt = { x: maStlPillarFloorPoint.x, y: maStlPillarFloorPoint.y, z: maStlPillarFloorPoint.z };
+        if (snap !== false) maStlQuantizeUserFloorPlanPointToGridMm(pt);
+        return pt;
+    }
+
+    function maStlCurvedWallLoopPoints(r, y) {
+        const pts = [];
+        const n = MA_STL_CURVED_WALL_PLAN_SEGMENTS;
+        for (let i = 0; i <= n; i++) {
+            const ang = (i % n) / n * Math.PI * 2;
+            pts.push(new THREE.Vector3(Math.cos(ang) * r, y, Math.sin(ang) * r));
+        }
+        return pts;
+    }
+
+    function maStlCurvedWallCrossPositions(cx, y, cz, half) {
+        return [cx - half, y, cz, cx + half, y, cz, cx, y, cz - half, cx, y, cz + half];
+    }
+
+    /** Fantasma que sigue al ratón: círculos exterior e interior y cruz en el centro. */
+    function maStlCurvedWallBuildPreview(pending) {
+        const mm = MA_STL_SCENE_MM_PER_PHYSICAL_METER;
+        const rOut = pending.outerRadiusM * mm;
+        const tMm = pending.thicknessM * mm;
+        const frac = maStlCurvedWallFractionOf({
+            _CurveFractionNum: pending.fractionNum || 1,
+            _CurveFractionDen: pending.fractionDen || 1,
+        });
+        const ang = (pending.startAngleDeg || 0) * Math.PI / 180;
+        const a = { x: -Math.cos(ang) * rOut, y: 2, z: -Math.sin(ang) * rOut };
+        const b = { x: Math.cos(ang) * rOut, y: 2, z: Math.sin(ang) * rOut };
+        const mat = new THREE.LineBasicMaterial({
+            color: MA_STL_COPY_TOOL_PREVIEW_COLOR_HEX,
+            transparent: true,
+            opacity: 0.9,
+            depthTest: false,
+        });
+        const g = new THREE.Group();
+        g.name = 'desing2-curved-wall-preview';
+        const outlines = [maStlCurvedWallOutlinePositionsMm(a, b, tMm, frac)];
+        if (frac.f >= 1) outlines.push(maStlCurvedWallCirclePositionsMm(a, b, -tMm));
+        for (let i = 0; i < outlines.length; i++) {
+            const loop = new THREE.Line(
+                new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(outlines[i], 3)),
+                mat
+            );
+            loop.frustumCulled = false;
+            loop.renderOrder = 210;
+            loop.raycast = function () { };
+            g.add(loop);
+        }
+        const cross = new THREE.LineSegments(
+            new THREE.BufferGeometry().setAttribute(
+                'position',
+                new THREE.Float32BufferAttribute(maStlCurvedWallCrossPositions(0, 2, 0, Math.min(300, (rOut - tMm) * 0.5)), 3)
+            ),
+            mat
+        );
+        cross.frustumCulled = false;
+        cross.renderOrder = 210;
+        cross.raycast = function () { };
+        g.add(cross);
+        g.visible = false;
+        g.userData.previewMaterial = mat;
+        return g;
+    }
+
+    function maStlStopCurvedWallPlacement() {
+        const st = maStlCurvedWallPlaceState;
+        if (!st) return;
+        maStlCurvedWallPlaceState = null;
+        if (st.preview) {
+            if (st.preview.parent) st.preview.parent.remove(st.preview);
+            st.preview.traverse(function (o) {
+                if (o.geometry) o.geometry.dispose();
+            });
+            if (st.preview.userData.previewMaterial) st.preview.userData.previewMaterial.dispose();
+        }
+        maStlUnlockOrbitForRulerAnchorPick(true);
+        if (renderer && renderer.domElement) renderer.domElement.style.cursor = '';
+        maStlSyncLineToolToggleBtnUi();
+        maStlLineToolPickCursorSync();
+    }
+
+    /**
+     * Modo colocación: el clic izquierdo en el plano es el CENTRO del muro (rejilla como el pilar).
+     * Escape cancela. Un solo muro por Aceptar.
+     * @param {{ outerDiameterM:number, thicknessM:number, heightM:number, outerRadiusM:number, innerRadiusM:number }} pending
+     */
+    function maStlCurvedWallBeginPlacement(pending) {
+        if (!pending || !maStlDesingV2Viewer || !renderer) return false;
+        maStlDesing2CancelTransientToolsEscape();
+        maStlStopRulerAnchorPickModesToolbar();
+        maStlTeardownPickHighlightsOnly();
+        const preview = maStlCurvedWallBuildPreview(pending);
+        scene.add(preview);
+        maStlCurvedWallPlaceState = { pending: pending, preview: preview };
+        maStlLockOrbitForRulerAnchorPick();
+        renderer.domElement.style.cursor = 'crosshair';
+        maStlSyncLineToolToggleBtnUi();
+        return true;
+    }
+
+    /** Inserta el muro curvo con centro en `center` (mm escena). Deshacer: 'createUserFloorLine'. */
+    function maStlPlaceCurvedWallAt(center, pending) {
+        if (!center || !pending) return false;
+        const rMm = pending.outerRadiusM * MA_STL_SCENE_MM_PER_PHYSICAL_METER;
+        const y = center.y || 0;
+        /* p1→p2 = diámetro exterior en la dirección del ángulo de inicio (0° = +X). */
+        const ang = (pending.startAngleDeg || 0) * Math.PI / 180;
+        const dx = Math.cos(ang) * rMm;
+        const dz = Math.sin(ang) * rMm;
+        const a = { x: center.x - dx, y: y, z: center.z - dz };
+        const b = { x: center.x + dx, y: y, z: center.z + dz };
+        maStlCommitUserPlanLineSegmentMm(a, b, false, null, {
+            wallRole: 'curved',
+            skipWeld: true,
+            skipCollinearMerge: true,
+            skipGridQuantize: true,
+            _DataWith: pending.thicknessM,
+            _DataHeight: pending.heightM,
+            _CurveFractionNum: pending.fractionNum || 1,
+            _CurveFractionDen: pending.fractionDen || 1,
+            _CurveModulationMm: pending.modulationMm || MA_STL_CURVED_WALL_DEFAULT_MODULATION_MM,
+            ...(pending.supports || {}),
+        });
+        maStlCurvedWallSyncFrame();
+        const placed = maStlCurvedWallFillMsg(maStlCurvedWallMsg('msgPlaced'), pending);
+        if (placed) maStlDesing2ShowSaveViewToast(placed);
+        document.dispatchEvent(new CustomEvent('desing2-curved-wall-placed', {
+            detail: { centerMm: { x: center.x, y: y, z: center.z }, pending: pending },
+        }));
+        return true;
+    }
+
+    function maStlCurvedWallClearGuides() {
+        if (!maStlCurvedWallGuideGroup) return;
+        for (let i = maStlCurvedWallGuideGroup.children.length - 1; i >= 0; i--) {
+            const child = maStlCurvedWallGuideGroup.children[i];
+            maStlCurvedWallGuideGroup.remove(child);
+            if (child.geometry) child.geometry.dispose();
+        }
+    }
+
+    /** Planta: círculo interior (mismo estilo que las líneas) y cruz del centro. */
+    function maStlCurvedWallRebuildGuides(items) {
+        if (!maStlCurvedWallGuideGroup) {
+            maStlCurvedWallGuideGroup = new THREE.Group();
+            maStlCurvedWallGuideGroup.name = 'desing2-curved-wall-guides';
+            scene.add(maStlCurvedWallGuideGroup);
+        }
+        if (!maStlCurvedWallCenterMat) {
+            maStlCurvedWallCenterMat = new THREE.LineBasicMaterial({ color: 0xff6600 });
+        }
+        maStlCurvedWallClearGuides();
+        const lineMat = maStlEnsureUserFloorLineMat();
+        for (let i = 0; i < items.length; i++) {
+            const ud = items[i].ud;
+            const g = maStlCurvedWallGeomMm(ud);
+            if (g.full) {
+                /* Círculo completo: la línea es el círculo exterior; el interior va aquí. En un sector
+                 * la propia línea ya dibuja el contorno cerrado. */
+                const geo = new LineGeometry();
+                geo.setPositions(maStlCurvedWallCirclePositionsMm(ud.p1Mm, ud.p2Mm, -g.t));
+                const inner = new Line2(geo, lineMat);
+                inner.renderOrder = 168;
+                inner.frustumCulled = false;
+                inner.raycast = function () { };
+                inner.userData.curvedLineId = ud.id;
+                maStlCurvedWallGuideGroup.add(inner);
+            }
+            const cross = new THREE.LineSegments(
+                new THREE.BufferGeometry().setAttribute(
+                    'position',
+                    new THREE.Float32BufferAttribute(
+                        maStlCurvedWallCrossPositions(g.cx, g.y + 2, g.cz, Math.min(250, g.rIn * 0.4)),
+                        3
+                    )
+                ),
+                maStlCurvedWallCenterMat
+            );
+            cross.frustumCulled = false;
+            cross.raycast = function () { };
+            maStlCurvedWallGuideGroup.add(cross);
+        }
+    }
+
+    function maStlCurvedWallStripMeshes() {
+        for (let i = 0; i < maStlCurvedWallMeshes.length; i++) {
+            const mesh = maStlCurvedWallMeshes[i];
+            if (mesh.parent) mesh.parent.remove(mesh);
+            if (mesh.geometry) mesh.geometry.dispose();
+            if (mesh.material && mesh.material.dispose) mesh.material.dispose();
+            const clipIdx = clipStlMeshes.indexOf(mesh);
+            if (clipIdx >= 0) clipStlMeshes.splice(clipIdx, 1);
+        }
+        maStlCurvedWallMeshes = [];
+    }
+
+    /** Muro 3D: anillo extruido (radio exterior/interior, altura), metido 6 mm como los muros rectos. */
+    function maStlCurvedWallBuildMesh(ud) {
+        const g = maStlCurvedWallGeomMm(ud);
+        const inset = Math.min(MA_STL_WALL3D_FACE_INSET_MM, g.t * 0.25);
+        const rOut = g.rOut - inset;
+        const rIn = g.rIn + inset;
+        /* Forma en (x, −z) como el pilar; tras rotateX(−90°) vuelve a (x, z) y extruye hacia arriba. */
+        const shape = new THREE.Shape();
+        if (g.full) {
+            shape.absarc(g.cx, -g.cz, rOut, 0, Math.PI * 2, false);
+            const hole = new THREE.Path();
+            hole.absarc(g.cx, -g.cz, rIn, 0, Math.PI * 2, true);
+            shape.holes.push(hole);
+        } else {
+            /* Sector anular con tapas: arco exterior, tapa final, arco interior de vuelta, tapa inicial. */
+            const n = Math.max(4, Math.ceil(MA_STL_CURVED_WALL_PLAN_SEGMENTS * g.frac.f));
+            for (let i = 0; i <= n; i++) {
+                const ang = g.a0 + g.sweep * i / n;
+                const px = g.cx + Math.cos(ang) * rOut;
+                const pz = g.cz + Math.sin(ang) * rOut;
+                if (i === 0) shape.moveTo(px, -pz);
+                else shape.lineTo(px, -pz);
+            }
+            for (let i = n; i >= 0; i--) {
+                const ang = g.a0 + g.sweep * i / n;
+                shape.lineTo(g.cx + Math.cos(ang) * rIn, -(g.cz + Math.sin(ang) * rIn));
+            }
+            shape.closePath();
+        }
+        const geo = new THREE.ExtrudeGeometry(shape, {
+            depth: g.h,
+            bevelEnabled: false,
+            curveSegments: MA_STL_CURVED_WALL_PLAN_SEGMENTS,
+        });
+        geo.rotateX(-Math.PI / 2);
+        if (g.y) geo.translate(0, g.y, 0);
+        geo.computeVertexNormals();
+        const baseMat = maStlWall3dEnsureSharedMaterial('wall');
+        const mesh = new THREE.Mesh(geo, baseMat.clone ? baseMat.clone() : baseMat);
+        mesh.userData.maStlWall3dGenerated = true;
+        mesh.userData.maStlWall3dKind = 'curved';
+        mesh.userData.curvedLineId = ud.id;
+        mesh.castShadow = false;
+        mesh.receiveShadow = false;
+        return mesh;
+    }
+
+    /**
+     * Cada fotograma (barato: solo líneas `curved`): círculo de la línea de planta, guías y anillos 3D
+     * siguen a p1/p2 tras insertar, deshacer, borrar, mover o recargar, sin tocar el flujo de los muros rectos.
+     */
+    function maStlCurvedWallSyncFrame() {
+        if (!maStlDesingV2Viewer || !maStlUserLinesGroup) return;
+        const items = maStlCurvedWallCollectPlanLines();
+        const sigs = [];
+        for (let i = 0; i < items.length; i++) {
+            const it = items[i];
+            const key = maStlCurvedWallSigOf(it);
+            sigs.push(key);
+            if (it.line.userData.maStlCurvedGeomKey !== key) {
+                maStlSetUserFloorLineGeometryMm(it.line, it.ud.p1Mm, it.ud.p2Mm);
+                it.line.userData.maStlCurvedGeomKey = key;
+            }
+        }
+        const sig = sigs.join('|');
+        if (sig !== maStlCurvedWallGuideSig) {
+            maStlCurvedWallGuideSig = sig;
+            maStlCurvedWallRebuildGuides(items);
+        }
+        if (maStlCurvedWallGuideGroup) {
+            maStlCurvedWallGuideGroup.visible = !!maStlUserLinesGroup.visible && maStlDesing2ModelMode !== 'wall3d';
+        }
+        if (maStlDesing2ModelMode !== 'wall3d' || !maStlWall3dMeshesGroup) return;
+        let meshesOk = maStlCurvedWallMeshSig === sig && maStlCurvedWallMeshes.length === items.length;
+        for (let m = 0; meshesOk && m < maStlCurvedWallMeshes.length; m++) {
+            if (maStlCurvedWallMeshes[m].parent !== maStlWall3dMeshesGroup) meshesOk = false;
+        }
+        if (meshesOk) return;
+        maStlCurvedWallStripMeshes();
+        for (let k = 0; k < items.length; k++) {
+            const mesh = maStlCurvedWallBuildMesh(items[k].ud);
+            maStlWall3dMeshesGroup.add(mesh);
+            if (clipStlMeshes.indexOf(mesh) < 0) clipStlMeshes.push(mesh);
+            maStlWall3dExpandClipBoundsForMesh(mesh);
+            maStlCurvedWallMeshes.push(mesh);
+        }
+        maStlCurvedWallMeshSig = sig;
+        /* Los límites del recorte ya incluyen el anillo: recolocar los planos (como tras los muros rectos). */
+        if (typeof updateClipPlanes === 'function') updateClipPlanes();
+    }
+
+    /**
+     * Modificar muro curvo (doble clic en Líneas o en Muro 3D / encofrado): mismo centro; cambia diámetro,
+     * espesor, altura, porción, ángulo de inicio, modulación y ménsulas/puntales. Un paso de deshacer
+     * (`editCurvedWall`). Si estaba encofrado, vuelve a encofrar (como al cambiar la separación de puntales).
+     */
+    function maStlCurvedWallApplyEdit(line, pending) {
+        const ud = line && line.userData ? line.userData.maStlUserPlanLine : null;
+        if (!ud || ud.wallRole !== 'curved' || !line.parent || !pending) return false;
+        const wasFormed = maStlDesing2ModelMode === 'wall3d'
+            && typeof window.maStlDesing2HasFormworkPanels === 'function'
+            && window.maStlDesing2HasFormworkPanels();
+        const before = maStlDesing2SerializeEditSnapshot();
+        const g = maStlCurvedWallGeomMm(ud);
+        const rMm = pending.outerRadiusM * MA_STL_SCENE_MM_PER_PHYSICAL_METER;
+        const ang = (pending.startAngleDeg || 0) * Math.PI / 180;
+        const dx = Math.cos(ang) * rMm;
+        const dz = Math.sin(ang) * rMm;
+        ud.p1Mm.x = g.cx - dx;
+        ud.p1Mm.y = g.y;
+        ud.p1Mm.z = g.cz - dz;
+        ud.p2Mm.x = g.cx + dx;
+        ud.p2Mm.y = g.y;
+        ud.p2Mm.z = g.cz + dz;
+        ud._DataWith = pending.thicknessM;
+        ud._DataHeight = pending.heightM;
+        ud._CurveFractionNum = pending.fractionNum || 1;
+        ud._CurveFractionDen = pending.fractionDen || 1;
+        ud._CurveModulationMm = pending.modulationMm || MA_STL_CURVED_WALL_DEFAULT_MODULATION_MM;
+        if (pending.supports) Object.assign(ud, pending.supports);
+        maStlWallLineEnsureAttrs(ud);
+        maStlApplyUserFloorLineSegmentGeometryFromMm(line);
+        maStlDesing2PushEditSnapshotUndo('editCurvedWall', before, maStlDesing2SerializeEditSnapshot());
+        maStlCurvedWallSyncFrame();
+        const msg = maStlCurvedWallFillMsg(maStlCurvedWallMsg('msgEdited'), pending);
+        if (msg) maStlDesing2ShowSaveViewToast(msg);
+        if (wasFormed) {
+            maStlDesing2ClearAtk60Visuals();
+            const formBtn = document.getElementById('ma-stl-mode-formwork');
+            if (formBtn && !formBtn.disabled) formBtn.click();
+        }
+        return true;
+    }
+
+    /** Margen (mm) alrededor del anillo para aceptar un clic sobre paneles/tirantes del encofrado curvo. */
+    const MA_STL_CURVED_WALL_FORMWORK_PICK_MARGIN_MM = 400;
+
+    /** Muro curvo cuyo anillo (± margen, en altura y en el barrido de la porción) contiene el punto (mm escena). */
+    function maStlCurvedWallMatchPointMm(items, p, marginMm) {
+        let best = null;
+        let bestExcess = Infinity;
+        for (let i = 0; i < items.length; i++) {
+            const g = maStlCurvedWallGeomMm(items[i].ud);
+            const d = Math.hypot(p.x - g.cx, p.z - g.cz);
+            if (d < g.rIn - marginMm || d > g.rOut + marginMm) continue;
+            if (p.y < g.y - marginMm || p.y > g.y + g.h + marginMm) continue;
+            if (!g.full) {
+                const ang = Math.atan2(p.z - g.cz, p.x - g.cx);
+                const rel = (((ang - g.a0) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+                const tol = marginMm / Math.max(d, 1);
+                if (rel > g.sweep + tol && rel < Math.PI * 2 - tol) continue;
+            }
+            const excess = Math.max(0, g.rIn - d, d - g.rOut);
+            if (excess < bestExcess) {
+                bestExcess = excess;
+                best = items[i].line;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Muro 3D / encofrado: rayo desde el puntero. Si lo primero que toca es el anillo curvo (malla
+     * `maStlWall3dKind 'curved'`) o una pieza del encofrado junto a un anillo, devuelve esa línea `curved`;
+     * si toca antes un muro recto, null (lo atiende el popup de muro recto).
+     */
+    function maStlCurvedWallPickLine3d(clientX, clientY) {
+        if (!renderer) return null;
+        const items = maStlCurvedWallCollectPlanLines();
+        if (!items.length) return null;
+        const canvas = renderer.domElement;
+        const rect = canvas.getBoundingClientRect();
+        _maStlFloorPickNdc.set(
+            ((clientX - rect.left) / Math.max(rect.width, 1)) * 2 - 1,
+            -((clientY - rect.top) / Math.max(rect.height, 1)) * 2 + 1
+        );
+        const cam = activeCamera();
+        if (!cam) return null;
+        cam.updateMatrixWorld(true);
+        orbitPivotRaycaster.setFromCamera(_maStlFloorPickNdc, cam);
+        let wallDist = Infinity;
+        let bestLine = null;
+        if (maStlWall3dMeshesGroup && maStlWall3dMeshesGroup.visible) {
+            const hits = orbitPivotRaycaster.intersectObject(maStlWall3dMeshesGroup, true);
+            for (let i = 0; i < hits.length; i++) {
+                const obj = hits[i] && hits[i].object;
+                if (!obj || !obj.isMesh || !obj.visible || !obj.userData || !obj.userData.maStlWall3dGenerated) continue;
+                if (obj.userData.maStlAtk60TFootprintGuide || obj.userData.maStlAtk60XFootprintGuide) continue;
+                wallDist = hits[i].distance;
+                if (obj.userData.maStlWall3dKind === 'curved') {
+                    for (let k = 0; k < items.length; k++) {
+                        if (String(items[k].ud.id) === String(obj.userData.curvedLineId)) bestLine = items[k].line;
+                    }
+                }
+                break;
+            }
+        }
+        if (maStlDesing2Atk60SampleGroup && maStlDesing2Atk60SampleGroup.visible) {
+            const hits = orbitPivotRaycaster.intersectObject(maStlDesing2Atk60SampleGroup, true);
+            for (let i = 0; i < hits.length; i++) {
+                const obj = hits[i] && hits[i].object;
+                if (!obj || !obj.isMesh || !obj.visible) continue;
+                if (hits[i].distance < wallDist) {
+                    const ln = maStlCurvedWallMatchPointMm(items, hits[i].point, MA_STL_CURVED_WALL_FORMWORK_PICK_MARGIN_MM);
+                    /* Pieza de otro muro delante del anillo: no es este muro curvo. */
+                    bestLine = ln;
+                }
+                break;
+            }
+        }
+        return bestLine;
+    }
+
+    /**
+     * Doble clic sobre un muro curvo → formulario «Modificar muro curvo». En Líneas: sobre el anillo en
+     * planta. En Muro 3D / encofrado: sobre la malla del anillo o sus paneles (antes se ignoraba aquí y el
+     * popup de muro recto buscaba el eje recto más cercano). Va antes que `onCanvasDblClickWallInspectGlobal`.
+     */
+    function onCanvasDblClickCurvedWallEdit(ev) {
+        if (maStlCurvedWallPlaceState || !maStlDesingV2Viewer || ev.button !== 0) return;
+        if (ev.currentTarget !== renderer.domElement) return;
+        if (maStlWorkerToolIgnoreUiTarget(ev)) return;
+        if (maStlIsDesing2FloorDrawToolActive()) return;
+        if (maStlDesing2ModelMode === 'wall3d') {
+            const hit3d = maStlCurvedWallPickLine3d(ev.clientX, ev.clientY);
+            if (!hit3d) return;
+            ev.preventDefault();
+            ev.stopPropagation();
+            ev.stopImmediatePropagation();
+            maStlOpenCurvedWallForm(hit3d);
+            return;
+        }
+        if (!maStlUserLinesGroup || !maStlUserLinesGroup.visible) return;
+        const items = maStlCurvedWallCollectPlanLines();
+        const tolSq = MA_STL_USER_FLOOR_LINE_SCREEN_PICK_PX * MA_STL_USER_FLOOR_LINE_SCREEN_PICK_PX;
+        let best = null;
+        let bestD = Infinity;
+        for (let i = 0; i < items.length; i++) {
+            const dSq = maStlCurvedWallScreenDistSqPx(items[i].ud, ev.clientX, ev.clientY);
+            if (dSq <= tolSq && dSq < bestD) {
+                bestD = dSq;
+                best = items[i].line;
+            }
+        }
+        if (!best) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+        maStlOpenCurvedWallForm(best);
+    }
+
+    function onCanvasPointerMoveCurvedWallPlacement(ev) {
+        const st = maStlCurvedWallPlaceState;
+        if (!st || !maStlDesingV2Viewer) return;
+        const p = maStlCurvedWallPickFloorMm(ev.clientX, ev.clientY, true);
+        if (!p) {
+            st.preview.visible = false;
+            return;
+        }
+        st.preview.position.set(p.x, p.y || 0, p.z);
+        st.preview.visible = true;
+        if (renderer && renderer.domElement) renderer.domElement.style.cursor = 'crosshair';
+    }
+
+    function onCanvasPointerDownCurvedWallPlacement(ev) {
+        if (!maStlCurvedWallPlaceState || !maStlDesingV2Viewer) return;
+        if (ev.button !== 0) return;
+        if (ev.currentTarget !== renderer.domElement) return;
+        if (maStlWorkerToolIgnoreUiTarget(ev)) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+    }
+
+    function onCanvasClickCurvedWallPlacement(ev) {
+        const st = maStlCurvedWallPlaceState;
+        if (!st || !maStlDesingV2Viewer) return;
+        if (ev.button !== 0) return;
+        if (ev.currentTarget !== renderer.domElement) return;
+        if (maStlWorkerToolIgnoreUiTarget(ev)) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+        const center = maStlCurvedWallPickFloorMm(ev.clientX, ev.clientY, true);
+        if (!center) return;
+        const pending = st.pending;
+        maStlStopCurvedWallPlacement();
+        maStlPlaceCurvedWallAt(center, pending);
+    }
+
+    if (maStlDesingV2Viewer) {
+        window.addEventListener('keydown', function (ev) {
+            if (!maStlCurvedWallPlaceState) return;
+            if (ev.code !== 'Escape' && ev.key !== 'Escape') return;
+            ev.preventDefault();
+            ev.stopImmediatePropagation();
+            maStlStopCurvedWallPlacement();
+            const msg = maStlCurvedWallMsg('msgCancelled');
+            if (msg) maStlDesing2ShowSaveViewToast(msg);
+        }, true);
+        const formworkBtnCurved = document.getElementById('ma-stl-mode-formwork');
+        if (formworkBtnCurved) {
+            /* Encofrar con muros curvos: aviso con el reparto de cada uno (sectores, giro y remates). */
+            formworkBtnCurved.addEventListener('click', function () {
+                const curved = maStlCurvedWallCollectPlanLines();
+                if (!curved.length) return;
+                const tpl = maStlCurvedWallMsg('msgFormworkSummary');
+                const info = maStlCurvedWallMsg('msgModulationInfo');
+                const warn = maStlCurvedWallMsg('msgRemateWarning');
+                const parts = [];
+                for (let i = 0; i < curved.length; i++) {
+                    const ud = curved[i].ud;
+                    const rOut = Math.hypot(ud.p2Mm.x - ud.p1Mm.x, ud.p2Mm.z - ud.p1Mm.z) * 0.5;
+                    const mi = maStlCurvedWallModulationInfo(rOut, maStlCurvedWallFractionOf(ud).f,
+                        maStlCurvedWallModulationMmOf(ud), maStlCurvedWallThicknessMmOf(ud, rOut));
+                    if (mi && info) {
+                        const si = maStlCurvedWallSupportsInfo(rOut, maStlCurvedWallFractionOf(ud).f,
+                            maStlCurvedWallModulationMmOf(ud), maStlCurvedWallThicknessMmOf(ud, rOut),
+                            maStlWallLineResolveHeightMm(ud), maStlCurvedWallPropSpacingMm());
+                        const noRoom = maStlCurvedWallSupportsWarning(maStlCurvedWallMsg('msgSupportsNoRoom'), si, ud,
+                            maStlCurvedWallSupportLabels());
+                        parts.push(maStlCurvedWallFillFormworkInfo(info, mi, warn) + (noRoom ? ' ' + noRoom : ''));
+                    }
+                }
+                if (tpl && parts.length) maStlDesing2ShowSaveViewToast(String(tpl).replace('{0}', parts.join(' | ')));
+            }, true);
+        }
+    }
+
+    function maStlCurvedWallAccept() {
+        const ds = maStlCurvedWallModalEl ? maStlCurvedWallModalEl.dataset : {};
+        const d = maStlCurvedWallField('ma-stl-curved-wall-diameter');
+        const t = maStlCurvedWallField('ma-stl-curved-wall-thickness');
+        const h = maStlCurvedWallField('ma-stl-curved-wall-height');
+        const startEl = maStlCurvedWallField('ma-stl-curved-wall-start');
+        const dM = maStlCurvedWallParseMeters(d ? d.value : '');
+        const tM = maStlCurvedWallParseMeters(t ? t.value : '');
+        const hM = maStlCurvedWallParseMeters(h ? h.value : '');
+        let bad = maStlCurvedWallValidateMeters(dM, tM, hM);
+        const frac = maStlCurvedWallParseFraction(maStlCurvedWallPortionValue());
+        const startDeg = maStlCurvedWallParseAngleDeg(startEl ? startEl.value : '');
+        if (!bad && !frac) bad = 'portion';
+        if (!bad && startDeg == null) bad = 'start';
+        if (bad) {
+            const msgs = {
+                diameter: ds.msgDiameter,
+                thickness: ds.msgThickness,
+                'thickness-radius': ds.msgThicknessRadius,
+                height: ds.msgHeight,
+                portion: ds.msgPortion,
+                start: ds.msgStart,
+            };
+            maStlCurvedWallShowError(msgs[bad] || bad);
+            maStlCurvedWallShowTab('wall');
+            const sel = document.getElementById('ma-stl-curved-wall-portion');
+            const custom = maStlCurvedWallField('ma-stl-curved-wall-portion-custom');
+            const focus = bad === 'diameter' ? d
+                : bad === 'height' ? h
+                    : bad === 'portion' ? (sel && sel.value === 'custom' ? custom : sel)
+                        : bad === 'start' ? startEl : t;
+            if (focus) focus.focus();
+            return false;
+        }
+        const pending = {
+            outerDiameterM: Math.round(dM * 1000) / 1000,
+            thicknessM: Math.round(tM * 1000) / 1000,
+            heightM: Math.round(hM * 1000) / 1000,
+            fractionNum: frac.num,
+            fractionDen: frac.den,
+            startAngleDeg: frac.num >= frac.den ? 0 : startDeg,
+            modulationMm: maStlCurvedWallModulationValue(),
+            supports: maStlCurvedWallReadSupports(),
+        };
+        pending.outerRadiusM = pending.outerDiameterM / 2;
+        pending.innerRadiusM = Math.round((pending.outerRadiusM - pending.thicknessM) * 1000) / 1000;
+        pending.createdAt = new Date().toISOString();
+        const editLine = maStlCurvedWallEditLine;
+        maStlCurvedWallEditLine = null;
+        maStlCurvedWallShowError('');
+        const modal = maStlCurvedWallModal();
+        if (modal) modal.hide();
+        if (editLine) {
+            maStlCurvedWallApplyEdit(editLine, pending);
+            return true;
+        }
+        window.maCurvedWallPending = pending;
+        const saved = maStlCurvedWallFillMsg(ds.msgSaved, pending);
+        if (saved) maStlDesing2ShowSaveViewToast(saved);
+        document.dispatchEvent(new CustomEvent('desing2-curved-wall-pending', { detail: pending }));
+        maStlCurvedWallBeginPlacement(pending);
+        return true;
+    }
+
+    if (maStlDesingV2Viewer && maStlInsertCurvedWallToolBtn && maStlCurvedWallModalEl) {
+        maStlInsertCurvedWallToolBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            maStlOpenCurvedWallForm(null);
+        });
+        const form = document.getElementById('ma-stl-curved-wall-form');
+        if (form) {
+            form.addEventListener('submit', function (ev) {
+                ev.preventDefault();
+                maStlCurvedWallAccept();
+            });
+            form.addEventListener('input', function () {
+                maStlCurvedWallShowError('');
+                maStlCurvedWallSyncInner();
+            });
+            form.addEventListener('change', function () {
+                maStlCurvedWallSyncInner();
+            });
+        }
+        const accept = document.getElementById('ma-stl-curved-wall-accept');
+        if (accept) {
+            accept.addEventListener('click', function (ev) {
+                ev.preventDefault();
+                maStlCurvedWallAccept();
+            });
+        }
+        maStlCurvedWallModalEl.addEventListener('shown.bs.modal', function () {
+            const d = maStlCurvedWallField('ma-stl-curved-wall-diameter');
+            if (d) {
+                d.focus();
+                d.select();
+            }
+        });
+        maStlCurvedWallModalEl.addEventListener('hidden.bs.modal', function () {
+            maStlCurvedWallEditLine = null;
+            if (maStlInsertCurvedWallToolBtn === document.activeElement) maStlInsertCurvedWallToolBtn.blur();
+        });
+    }
     if (maStlDesingV2Viewer && maStlInsertPillarToolToggleBtn) {
         maStlInsertPillarToolToggleBtn.addEventListener('click', (ev) => {
             ev.stopPropagation();
@@ -34436,6 +37420,10 @@ let maStlWallApplyAllHeightMm = 0;
     }
 
 
+    renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownCurvedWallPlacement, true);
+    renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveCurvedWallPlacement, true);
+    renderer.domElement.addEventListener('click', onCanvasClickCurvedWallPlacement, true);
+    renderer.domElement.addEventListener('dblclick', onCanvasDblClickCurvedWallEdit, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownWorkerTool, true);
     renderer.domElement.addEventListener('pointermove', onCanvasPointerMoveWorkerTool, true);
     renderer.domElement.addEventListener('pointerdown', onCanvasPointerDownPillarTool, true);
@@ -34908,6 +37896,7 @@ let maStlWallApplyAllHeightMm = 0;
         window.maStlDesing2ComputeWindowSelectionHits = maStlDesing2ComputeWindowSelectionHits;
         window.maStlDesing2WindowSelectionPointerDown = maStlDesing2WindowSelectionPointerDown;
         window.maStlDesing2MergeCollinearAxisRuns = maStlWall2dToolMergeCollinearAxisRuns;
+        window.maStlDesing2PersistLinePairWalls = maStlDesing2PersistLinePairWalls;
         window.maStlDesing2ReleaseEmptySpecialWalls = maStlDesing2ReleaseEmptySpecialWalls;
         window.maStlDesing2GetStraightWallsForFormwork = maStlBuildStraightWallsForFormwork;
         window.maStlDesing2GetStraightWallsFromScene = maStlBuildStraightWallsFromScene;
@@ -36147,6 +39136,7 @@ let maStlWallApplyAllHeightMm = 0;
     function tick() {
         requestAnimationFrame(tick);
         maStlSelectionPulseTick();
+        maStlCurvedWallSyncFrame();
         if (controls && !maStlIsRulerAnchorPickModeActive()) {
             controls.update();
         }
@@ -36493,8 +39483,9 @@ let maStlWallApplyAllHeightMm = 0;
         const w = max.x - min.x + 2 * pad;
         const fY = clipFractionFromSlider(clipInputY);
         const fX = clipFractionFromSlider(clipInputX);
-        const cutY = max.y + pad - fY * h;
-        const cutX = max.x + pad - fX * w;
+        /* Deslizador a cero = sin recorte, aunque `clipBounds` no incluya aún lo último insertado. */
+        const cutY = fY > 0 ? max.y + pad - fY * h : MA_STL_CLIP_NO_CUT_MM;
+        const cutX = fX > 0 ? max.x + pad - fX * w : MA_STL_CLIP_NO_CUT_MM;
         /* Three.js descarta si n·p + d < 0: (0,-1,0,cutY) descarta y > cutY → recorte desde arriba al subir fY. */
         clipPlaneY.setComponents(0, -1, 0, cutY);
         /* (-1,0,0,cutX) descarta x > cutX → recorte desde +X (derecha) al subir fX. */

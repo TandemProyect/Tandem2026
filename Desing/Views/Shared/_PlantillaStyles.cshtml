@@ -402,4 +402,35 @@
     }
 
     @Html.Raw(_linkUiVars + _brandTextUi + _menuUiVars)
+
+    /* ---- Fondos de color: texto e iconos en blanco (13/11/2026) --------
+       _linkUiVars (color de enlace de la plantilla, inyectado justo arriba con !important) pintaba
+       tambien el texto de los botones rellenos (.btn-primary, .btn-success, ...) y de los botones
+       DataTables; si el enlace coincide con el color de marca el texto desaparecia (p. ej. «Aceptar»
+       del popup Insertar muro curvo). Este bloque va despues para ganar. Botones claros, outline
+       (en Materio su hover es un tinte claro: texto de marca, no blanco), link y la toolbar del visor
+       siguen con el color de marca. El visor Desing_2 tiene su propia regla (.desing2-stl-view-scope
+       .btn en Views/Desing_2/Viewer.cshtml), que tambien excluye los botones de fondo de color. */
+    html :is(.btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-warning, .btn-info, .btn-dark),
+    html :is(.btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-warning, .btn-info, .btn-dark):is(:hover, :focus, :focus-visible, :active, .active, .show, :disabled, .disabled),
+    html .dt-buttons :is(.btn, .dt-button),
+    html .dt-buttons :is(.btn, .dt-button):is(:hover, :focus, :active, .active),
+    html .dt-button-collection :is(.dt-button, .dropdown-item),
+    html .dt-button-collection :is(.dt-button, .dropdown-item):is(:hover, :active, .active) {
+        --bs-btn-color: #fff;
+        --bs-btn-hover-color: #fff;
+        --bs-btn-active-color: #fff;
+        --bs-btn-disabled-color: #fff;
+        color: #fff !important;
+    }
+    html :is(.btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-warning, .btn-info, .btn-dark) :is(i, svg, .icon-base),
+    html .dt-buttons :is(.btn, .dt-button) :is(i, svg, .icon-base),
+    html .dt-button-collection :is(.dt-button, .dropdown-item) :is(i, svg, .icon-base),
+    html .nav-pills :is(.nav-link.active, .show > .nav-link) :is(i, svg, .icon-base),
+    html :is(.dropdown-item.active, .dropdown-item:active, .list-group-item.active, .page-item.active .page-link, .page-link.active) :is(i, svg, .icon-base) {
+        color: #fff !important;
+    }
+    html .dt-button-collection :is(.dropdown-header, h6, .dt-button-collection-title) {
+        color: rgba(255, 255, 255, 0.85) !important;
+    }
 </style>

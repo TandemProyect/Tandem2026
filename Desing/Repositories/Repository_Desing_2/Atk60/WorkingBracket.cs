@@ -82,6 +82,51 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         }
 
         /// <summary>
+        /// Muro curvo: una ménsula en <paramref name="alongMm"/> del sector, en las caras marcadas
+        /// (`_CHeckBracketOutside` / `_CHeckBracketInside`), igual que en el muro recto.
+        /// <paramref name="allowInside"/> false: la cara interior no cabe (anillo pequeño).
+        /// </summary>
+        internal static void PlaceAt(
+            List<Atk60ElementPaintItem> outElements,
+            Desing2FormworkWallDto wall,
+            Atk60WallPaintAnchor anchor,
+            double alongMm,
+            double formedLengthMm,
+            bool allowInside)
+        {
+            if (outElements == null || wall == null || anchor == null)
+            {
+                return;
+            }
+
+            var attrs = wall.Attributes;
+            var showOutside = Atk60FaceInsertion.FlagOn(attrs != null ? attrs._CHeckBracketOutside : null);
+            var showInside = allowInside && Atk60FaceInsertion.FlagOn(attrs != null ? attrs._CHeckBracketInside : null);
+            if (!showOutside && !showInside)
+            {
+                return;
+            }
+
+            var yawRad = NormalizeYawToRad(anchor.RotY);
+            var wallHeightMm = ResolveWallHeightMm(attrs);
+            var idWall = !string.IsNullOrWhiteSpace(wall.WallId)
+                ? wall.WallId
+                : (!string.IsNullOrWhiteSpace(wall.Id) ? wall.Id : wall.LineId);
+            AddBothFaces(
+                outElements, anchor, idWall, BracketPath, BracketCode, "blue",
+                alongMm, wallHeightMm - BracketBelowTopMm, yawRad, Math.Cos(yawRad), Math.Sin(yawRad),
+                anchor.FaceSign >= 0d ? 1d : -1d,
+                wallHeightMm, ResolveWallThicknessMm(attrs), formedLengthMm, PanelFaceMm,
+                showOutside, showInside);
+        }
+
+        /// <summary>Número de ménsulas que el muro recto pone en <paramref name="lengthMm"/>.</summary>
+        internal static int StationCount(double lengthMm)
+        {
+            return lengthMm < BracketFromBayStartMm ? 0 : BracketStations(lengthMm, null).Count;
+        }
+
+        /// <summary>
         /// Dos ménsulas por tramo de 2,40 m (a 600 y a 1 800).
         /// El resto, si llega a 1,20 m, lleva dos; si llega a 0,60 m, una.
         /// Si ese puesto es el del rigidizador, la ménsula pasa al agujero siguiente.

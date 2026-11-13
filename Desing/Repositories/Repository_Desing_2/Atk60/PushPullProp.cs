@@ -112,6 +112,75 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             }
         }
 
+        /// <summary>
+        /// Muro curvo: un puntal (superior y, si toca, inferior) en <paramref name="alongMm"/> del sector,
+        /// en las caras marcadas, igual que en el muro recto. <paramref name="allowInside"/> false: la cara
+        /// interior no cabe (anillo pequeño).
+        /// </summary>
+        internal static void PlaceAt(
+            List<Atk60ElementPaintItem> outElements,
+            Desing2FormworkWallDto wall,
+            Atk60WallPaintAnchor anchor,
+            double alongMm,
+            bool allowInside)
+        {
+            if (outElements == null || wall == null || anchor == null)
+            {
+                return;
+            }
+
+            var attrs = wall.Attributes;
+            var wallHeightMm = Atk60FaceInsertion.ResolveWallHeightMm(attrs);
+            if (wallHeightMm < MinWallHeightMm)
+            {
+                return;
+            }
+
+            var upperOutside = Atk60FaceInsertion.FlagOn(attrs != null ? attrs._CHeckPropOutside : null);
+            var upperInside = allowInside && Atk60FaceInsertion.FlagOn(attrs != null ? attrs._CHeckPropInside : null);
+            var lowerOutside = Atk60FaceInsertion.FlagOn(attrs != null ? attrs._CHeckPropOutsideInf : null);
+            var lowerInside = allowInside && Atk60FaceInsertion.FlagOn(attrs != null ? attrs._CHeckPropInsideInf : null);
+            var parts = PartsForHeight(wallHeightMm);
+            var idWall = !string.IsNullOrWhiteSpace(wall.WallId)
+                ? wall.WallId
+                : (!string.IsNullOrWhiteSpace(wall.Id) ? wall.Id : wall.LineId);
+            var yawRad = Atk60FaceInsertion.NormalizeYawToRad(anchor.RotY);
+            var ux = Math.Cos(yawRad);
+            var uz = Math.Sin(yawRad);
+            var faceSign = anchor.FaceSign >= 0d ? 1d : -1d;
+            var wallThicknessMm = Atk60FaceInsertion.ResolveWallThicknessMm(attrs);
+            var wallLengthMm = Atk60FaceInsertion.ResolveWallLengthMm(attrs);
+            for (var pi = 0; pi < parts.Count; pi++)
+            {
+                var part = parts[pi];
+                var showOutside = part.Lower ? lowerOutside : upperOutside;
+                var showInside = part.Lower ? lowerInside : upperInside;
+                if (!showOutside && !showInside)
+                {
+                    continue;
+                }
+
+                AddBothFaces(
+                    outElements, anchor, idWall,
+                    part.Path, part.Code, part.Color,
+                    alongMm, yawRad, ux, uz, faceSign,
+                    wallHeightMm, wallThicknessMm, wallLengthMm,
+                    showOutside, showInside, !part.Lower);
+            }
+        }
+
+        /// <summary>Separación máxima entre puntales del muro (`_PropSpacingMm`, 2,40 m por defecto).</summary>
+        internal static double MaxSpacingMm(AttributesList attrs)
+        {
+            return ResolveMaxSpacingMm(attrs);
+        }
+
+        /// <summary>Alojamiento del cabezal junto al canto del panel (NEVI 2.9), como en el muro recto.</summary>
+        internal static double PanelHousingMm
+        {
+            get { return HousingFromOuterFaceMm; }
+        }
+
         private static double ResolveMaxSpacingMm(AttributesList attrs)
         {
             var raw = attrs != null ? attrs._PropSpacingMm : null;

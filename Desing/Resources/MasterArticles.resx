@@ -544,6 +544,129 @@
   <data name="StlPreview_Desing2ConfigWallWidthYPlaceholder" xml:space="preserve">
     <value>p. ej. 0,30 · 300 mm</value>
   </data>
+  <data name="StlPreview_Desing2CurvedWallBracketInside" xml:space="preserve">
+    <value>Ménsulas en cara interior</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallBracketOutside" xml:space="preserve">
+    <value>Ménsulas en cara exterior</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallBrackets" xml:space="preserve">
+    <value>Ménsulas</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallCancelled" xml:space="preserve">
+    <value>Inserción del muro curvo cancelada</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallDiameterInvalid" xml:space="preserve">
+    <value>El diámetro exterior va de 1,00 a 100,00 m</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallEditTitle" xml:space="preserve">
+    <value>Modificar muro curvo</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallEdited" xml:space="preserve">
+    <value>Muro curvo modificado: Ø {0} m, espesor {1} m, altura {2} m, porción {3}, panel {4} m</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormAccept" xml:space="preserve">
+    <value>Aceptar</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormHeight" xml:space="preserve">
+    <value>Altura de muro</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormInnerDiameter" xml:space="preserve">
+    <value>Diámetro interior</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormModulation" xml:space="preserve">
+    <value>Modulación (panel)</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormOuterDiameter" xml:space="preserve">
+    <value>Diámetro Exterior</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormPortion" xml:space="preserve">
+    <value>Porción del muro</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormPortionCustom" xml:space="preserve">
+    <value>Otra (1/N o a/b)</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormPortionFull" xml:space="preserve">
+    <value>1/1 (100 %, círculo completo)</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormStartAngle" xml:space="preserve">
+    <value>Ángulo de inicio</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormStartAngleHint" xml:space="preserve">
+    <value>Dónde empieza el arco, desde el eje X y girando hacia el eje Z. Solo cuenta si la porción es menor que 1/1</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormThickness" xml:space="preserve">
+    <value>Espesor del Muro</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormTitle" xml:space="preserve">
+    <value>Insertar Muro Curvo</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormUnits" xml:space="preserve">
+    <value>Medidas en metros. Coma o punto decimal</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormworkSummary" xml:space="preserve">
+    <value>Muro curvo: {0}</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallHeightInvalid" xml:space="preserve">
+    <value>La altura de muro va de 0,30 a 6,00 m</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallModulationInfo" xml:space="preserve">
+    <value>{0} paneles por cara · giro por junta {1}° · remate exterior {2} mm, interior {3} mm</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallPlaced" xml:space="preserve">
+    <value>Muro curvo insertado: Ø {0} m, espesor {1} m, altura {2} m, porción {3}, panel {4} m</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallPortionInvalid" xml:space="preserve">
+    <value>La porción es una fracción a/b con 1 ≤ a ≤ b ≤ 360 (por ejemplo 1/2, 1/4 o 1/33), un número N (= 1/N) o un % entero</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallPropLowerInside" xml:space="preserve">
+    <value>Puntales inferiores en cara interior</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallPropLowerOutside" xml:space="preserve">
+    <value>Puntales inferiores en cara exterior</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallPropUpperInside" xml:space="preserve">
+    <value>Puntales superiores en cara interior</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallPropUpperOutside" xml:space="preserve">
+    <value>Puntales superiores en cara exterior</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallProps" xml:space="preserve">
+    <value>Puntales</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallRemateWarning" xml:space="preserve">
+    <value>Atención: un remate de {0} mm queda fuera de lo admitido (interior 50–150 mm, exterior hasta 150 mm); prueba otra modulación.</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallSaved" xml:space="preserve">
+    <value>Muro curvo Ø {0} m, espesor {1} m, altura {2} m, porción {3}, panel {4} m: haz clic en el punto central del muro curvo (Esc cancela)</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallStartAngleInvalid" xml:space="preserve">
+    <value>El ángulo de inicio va de −360 a 360°</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallSupportsHint" xml:space="preserve">
+    <value>Cara exterior: hacia fuera del anillo. Cara interior: hacia el centro. Puntales desde 2,00 m de altura.</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallSupportsInfo" xml:space="preserve">
+    <value>Por cara: {0} ménsulas y {1} puntales, como en el muro recto, perpendiculares al panel de cada sector.</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallSupportsNoRoom" xml:space="preserve">
+    <value>Atención: {0} de la cara interior no caben hacia el centro (radio interior {1} m); no se pondrán.</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallTabSupports" xml:space="preserve">
+    <value>Ménsulas y puntales</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallTabWall" xml:space="preserve">
+    <value>Muro</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallThicknessInvalid" xml:space="preserve">
+    <value>El espesor del muro va de 0,10 a 1,00 m</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallThicknessRadiusInvalid" xml:space="preserve">
+    <value>El espesor tiene que ser menor que el radio exterior (la mitad del diámetro)</value>
+  </data>
   <data name="StlPreview_Desing2DwgImportAnalyzing" xml:space="preserve">
     <value>Analizando el archivo…</value>
   </data>
@@ -1003,6 +1126,9 @@
   <data name="StlPreview_Desing2SideMenuTabEntorno" xml:space="preserve">
     <value>Entorno</value>
   </data>
+  <data name="StlPreview_Desing2ToolInsertCurvedWallAria" xml:space="preserve">
+    <value>Insertar Muro Curvo: diámetro exterior, espesor, altura y porción del muro; después clic en el punto central. Doble clic sobre un muro curvo lo modifica</value>
+  </data>
   <data name="StlPreview_Desing2ToolInsertPillarAria" xml:space="preserve">
     <value>Insertar pilar: sigue al ratón; doble clic para dejarlo; doble clic sobre él abre Modificar pilar. Sale de 0,30 × 0,30 m y 2,70 m de alto</value>
   </data>
@@ -1161,6 +1287,12 @@
   </data>
   <data name="StlPreview_DimKindAdjustable" xml:space="preserve">
     <value>Panel Regulable</value>
+  </data>
+  <data name="StlPreview_DimKindCurvedAngle" xml:space="preserve">
+    <value>Ángulo entre Paneles del Muro Curvo</value>
+  </data>
+  <data name="StlPreview_DimKindCurvedAxes" xml:space="preserve">
+    <value>Ejes y Diámetro del Muro Curvo</value>
   </data>
   <data name="StlPreview_DimKindPanels" xml:space="preserve">
     <value>Dimensión de Paneles</value>

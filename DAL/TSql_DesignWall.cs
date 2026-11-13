@@ -122,6 +122,14 @@ namespace DAL
         public Nullable<System.DateTime> AddLastDateChange { get; set; }
         public long Ntimeschanged { get; set; }
         public bool Is_Special { get; set; }
+        public Nullable<double> NumberCurveCenterX { get; set; }
+        public Nullable<double> NumberCurveCenterY { get; set; }
+        public Nullable<double> NumberCurveCenterZ { get; set; }
+        public Nullable<double> NumberCurveOuterRadius { get; set; }
+        public Nullable<int> NumberCurveFractionNum { get; set; }
+        public Nullable<int> NumberCurveFractionDen { get; set; }
+        public Nullable<double> NumberCurveStartAngle { get; set; }
+        public Nullable<int> NumberCurveModulation { get; set; }
     
         public virtual TSql_Design_V2 TSql_Design_V2 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

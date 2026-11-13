@@ -1271,6 +1271,10 @@
                 return out;
             }
 
+            /* Dos lineas simples paralelas (<= 1,20 m) -> muro real antes de encofrar. */
+            if (typeof window.maStlDesing2PersistLinePairWalls === 'function') {
+                window.maStlDesing2PersistLinePairWalls('formwork-lines-to-wall');
+            }
             if (typeof window.maStlDesing2MergeCollinearAxisRuns === 'function') {
                 const mergedAxes = window.maStlDesing2MergeCollinearAxisRuns();
                 if (mergedAxes > 0 && typeof window.maStlDesing2SaveDesignWallsToServer === 'function') {
@@ -1326,7 +1330,10 @@
             if (formPhase > 0) {
                 const picked = phaseWallIds(formPhase);
                 const segs = segsForIds(picked.axes, picked.include);
-                const pool = walls.map(cloneFormworkWall);
+                // Muro curvo: no entra en las fases (no tiene conexiones); se encofra con «Todo».
+                const pool = walls
+                    .filter(function (w) { return !(w.Attributes && w.Attributes._TypeMesh === 'MuroCurvo'); })
+                    .map(cloneFormworkWall);
                 walls = pool.filter(function (w) { return wallOnPhase(w, segs.length ? segs : phaseSegments(formPhase)); });
                 if (!walls.length) {
                     const none = btn.getAttribute('data-phase-none') || 'Esa fase no tiene muros para encofrar.';

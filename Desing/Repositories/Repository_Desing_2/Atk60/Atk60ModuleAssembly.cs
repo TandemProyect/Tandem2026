@@ -36,7 +36,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double trimStartJointMm = 0d,
             double trimEndJointMm = -1d,
             bool skipStartTie = false,
-            bool skipFreeEndTie = false)
+            bool skipFreeEndTie = false,
+            bool stackedPanelTies = false)
         {
             var outElements = new List<Atk60ElementPaintItem>();
             if (wall == null || anchor == null || moduleCount <= 0 || moduleLengthMm < 299d)
@@ -85,7 +86,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     moduleBaseAlongMm, moduleLengthMm, moduleIndex, countInWall,
                     yawRad, ux, uz, faceSign,
                     wallHeightMm, wallThicknessMm, wallLengthMm, idWall,
-                    suppressEnd);
+                    suppressEnd,
+                    stackedPanelTies);
                 PanelStiffener.Place(
                     outElements, layout.Pieces, anchor, idWall,
                     moduleBaseAlongMm, moduleLengthMm,
@@ -99,7 +101,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     yawRad, ux, uz, faceSign,
                     wallHeightMm, wallThicknessMm, wallLengthMm, idWall, tiesBeyondWall,
                     trimStartTie, trimEndTie, trimStartJointMm, trimEndJointMm,
-                    skipStartTie, skipFreeEndTie);
+                    skipStartTie, skipFreeEndTie, stackedPanelTies);
             }
 
             return outElements;

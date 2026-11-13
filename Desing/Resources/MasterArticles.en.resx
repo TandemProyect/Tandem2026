@@ -544,6 +544,129 @@
   <data name="StlPreview_Desing2ConfigWallWidthYPlaceholder" xml:space="preserve">
     <value>e.g. 0.30 · 300 mm</value>
   </data>
+  <data name="StlPreview_Desing2CurvedWallBracketInside" xml:space="preserve">
+    <value>Brackets on inner face</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallBracketOutside" xml:space="preserve">
+    <value>Brackets on outer face</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallBrackets" xml:space="preserve">
+    <value>Brackets</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallCancelled" xml:space="preserve">
+    <value>Curved wall insertion cancelled</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallDiameterInvalid" xml:space="preserve">
+    <value>The outer diameter must be between 1.00 and 100.00 m</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallEditTitle" xml:space="preserve">
+    <value>Modify curved wall</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallEdited" xml:space="preserve">
+    <value>Curved wall modified: Ø {0} m, thickness {1} m, height {2} m, portion {3}, panel {4} m</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormAccept" xml:space="preserve">
+    <value>Accept</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormHeight" xml:space="preserve">
+    <value>Wall height</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormInnerDiameter" xml:space="preserve">
+    <value>Inner diameter</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormModulation" xml:space="preserve">
+    <value>Modulation (panel)</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormOuterDiameter" xml:space="preserve">
+    <value>Outer diameter</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormPortion" xml:space="preserve">
+    <value>Wall portion</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormPortionCustom" xml:space="preserve">
+    <value>Other (1/N or a/b)</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormPortionFull" xml:space="preserve">
+    <value>1/1 (100 %, full circle)</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormStartAngle" xml:space="preserve">
+    <value>Start angle</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormStartAngleHint" xml:space="preserve">
+    <value>Where the arc starts, from the X axis turning towards the Z axis. Only used when the portion is less than 1/1</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormThickness" xml:space="preserve">
+    <value>Wall thickness</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormTitle" xml:space="preserve">
+    <value>Insert curved wall</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormUnits" xml:space="preserve">
+    <value>Values in metres. Comma or point as decimal separator</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallFormworkSummary" xml:space="preserve">
+    <value>Curved wall: {0}</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallHeightInvalid" xml:space="preserve">
+    <value>The wall height must be between 0.30 and 6.00 m</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallModulationInfo" xml:space="preserve">
+    <value>{0} panels per face · turn per joint {1}° · outer filler {2} mm, inner {3} mm</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallPlaced" xml:space="preserve">
+    <value>Curved wall inserted: Ø {0} m, thickness {1} m, height {2} m, portion {3}, panel {4} m</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallPortionInvalid" xml:space="preserve">
+    <value>The portion is a fraction a/b with 1 ≤ a ≤ b ≤ 360 (for example 1/2, 1/4 or 1/33), a number N (= 1/N) or a whole %</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallPropLowerInside" xml:space="preserve">
+    <value>Lower props on inner face</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallPropLowerOutside" xml:space="preserve">
+    <value>Lower props on outer face</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallPropUpperInside" xml:space="preserve">
+    <value>Upper props on inner face</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallPropUpperOutside" xml:space="preserve">
+    <value>Upper props on outer face</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallProps" xml:space="preserve">
+    <value>Props</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallRemateWarning" xml:space="preserve">
+    <value>Warning: a {0} mm filler is out of range (inner 50–150 mm, outer up to 150 mm); try another panel width.</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallSaved" xml:space="preserve">
+    <value>Curved wall Ø {0} m, thickness {1} m, height {2} m, portion {3}, panel {4} m: click the centre point of the curved wall (Esc cancels)</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallStartAngleInvalid" xml:space="preserve">
+    <value>The start angle must be between −360 and 360°</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallSupportsHint" xml:space="preserve">
+    <value>Outer face: away from the ring. Inner face: towards the centre. Props from 2.00 m height.</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallSupportsInfo" xml:space="preserve">
+    <value>Per face: {0} brackets and {1} props, as on a straight wall, perpendicular to each sector panel.</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallSupportsNoRoom" xml:space="preserve">
+    <value>Warning: inner-face {0} do not fit towards the centre (inner radius {1} m); they will not be placed.</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallTabSupports" xml:space="preserve">
+    <value>Brackets and props</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallTabWall" xml:space="preserve">
+    <value>Wall</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallThicknessInvalid" xml:space="preserve">
+    <value>The wall thickness must be between 0.10 and 1.00 m</value>
+  </data>
+  <data name="StlPreview_Desing2CurvedWallThicknessRadiusInvalid" xml:space="preserve">
+    <value>The thickness must be smaller than the outer radius (half the diameter)</value>
+  </data>
   <data name="StlPreview_Desing2DwgImportAnalyzing" xml:space="preserve">
     <value>Analysing the file…</value>
   </data>
@@ -1003,6 +1126,9 @@
   <data name="StlPreview_Desing2SideMenuTabEntorno" xml:space="preserve">
     <value>Environment</value>
   </data>
+  <data name="StlPreview_Desing2ToolInsertCurvedWallAria" xml:space="preserve">
+    <value>Insert curved wall: outer diameter, thickness, height and portion of the wall; then click the centre point. Double-click a curved wall to modify it</value>
+  </data>
   <data name="StlPreview_Desing2ToolInsertPillarAria" xml:space="preserve">
     <value>Insert column: it follows the pointer; double-click to place it; double-click on the column opens Modify column. It starts as a 0.30 × 0.30 m square, 2.70 m high</value>
   </data>
@@ -1161,6 +1287,12 @@
   </data>
   <data name="StlPreview_DimKindAdjustable" xml:space="preserve">
     <value>Adjustable panel</value>
+  </data>
+  <data name="StlPreview_DimKindCurvedAngle" xml:space="preserve">
+    <value>Angle between curved wall panels</value>
+  </data>
+  <data name="StlPreview_DimKindCurvedAxes" xml:space="preserve">
+    <value>Curved wall axes and diameter</value>
   </data>
   <data name="StlPreview_DimKindPanels" xml:space="preserve">
     <value>Panel size</value>

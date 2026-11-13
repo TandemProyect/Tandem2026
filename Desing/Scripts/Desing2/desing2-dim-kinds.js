@@ -10,6 +10,8 @@
         "remates",
         "adjustable-panel",
         "wall-id",
+        "curved-axes",
+        "curved-angle",
         "corner-reference-point"
     ];
 

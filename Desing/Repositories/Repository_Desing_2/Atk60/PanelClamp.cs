@@ -33,7 +33,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double wallThicknessMm,
             double wallLengthMm,
             string idWall,
-            bool suppressModuleEndJoint = false)
+            bool suppressModuleEndJoint = false,
+            bool clampStackedSeams = false)
         {
             var pieces = layout.Pieces;
             for (var pi = 0; pi < pieces.Count; pi++)
@@ -42,6 +43,14 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 var tumbado = string.Equals(piece.Orientation, "Tumbado", StringComparison.OrdinalIgnoreCase);
                 if (!tumbado)
                 {
+                    if (clampStackedSeams && piece.UpOffsetMm > 1d)
+                    {
+                        PlaceStackedSeam(
+                            outElements, piece, anchor, moduleBaseAlongMm,
+                            yawRad, ux, uz, faceSign,
+                            wallHeightMm, wallThicknessMm, wallLengthMm, idWall);
+                    }
+
                     var localJoint = piece.AlongOffsetMm + piece.PieceWidthMm;
                     if (suppressModuleEndJoint && Math.Abs(localJoint - moduleLengthMm) < 25d)
                     {
@@ -114,6 +123,38 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                         }
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Junta horizontal entre un panel de pie apilado y el de debajo (módulo estrecho, muro curvo):
+        /// grapas fijas giradas 90° en la junta, a 200 mm de cada canto (NEVI 3.1.2; el rigidizador va al
+        /// centro). Panel de menos de 0,60: una, a un cuarto del ancho.
+        /// </summary>
+        private static void PlaceStackedSeam(
+            List<Atk60ElementPaintItem> outElements,
+            Modulo270PieceLayout piece,
+            Atk60WallPaintAnchor anchor,
+            double moduleBaseAlongMm,
+            double yawRad,
+            double ux,
+            double uz,
+            double faceSign,
+            double wallHeightMm,
+            double wallThicknessMm,
+            double wallLengthMm,
+            string idWall)
+        {
+            var width = (double)piece.PieceWidthMm;
+            var locals = width >= 600d ? new[] { 200d, width - 200d } : new[] { width * 0.25d };
+            for (var i = 0; i < locals.Length; i++)
+            {
+                Atk60FaceInsertion.BothFaces(
+                    outElements, anchor, idWall, FixedPath,
+                    moduleBaseAlongMm + piece.AlongOffsetMm + locals[i], piece.UpOffsetMm,
+                    yawRad, ux, uz, faceSign,
+                    wallHeightMm, wallThicknessMm, wallLengthMm,
+                    Atk60FaceInsertion.PanelFaceMm, -Math.PI * 0.5, FixedCode, "zinc");
             }
         }
 

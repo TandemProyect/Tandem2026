@@ -449,6 +449,14 @@
           <Property Name="AddLastDateChange" Type="datetime" />
           <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
           <Property Name="Is_Special" Type="bit" Nullable="false" />
+          <Property Name="NumberCurveCenterX" Type="float" />
+          <Property Name="NumberCurveCenterY" Type="float" />
+          <Property Name="NumberCurveCenterZ" Type="float" />
+          <Property Name="NumberCurveOuterRadius" Type="float" />
+          <Property Name="NumberCurveFractionNum" Type="int" />
+          <Property Name="NumberCurveFractionDen" Type="int" />
+          <Property Name="NumberCurveStartAngle" Type="float" />
+          <Property Name="NumberCurveModulation" Type="int" />
         </EntityType>
         <EntityType Name="TSql_DesignWallArticle">
           <Key>
@@ -6118,6 +6126,14 @@
           <Property Name="AddLastDateChange" Type="DateTime" Precision="3" />
           <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
           <Property Name="Is_Special" Type="Boolean" Nullable="false" />
+          <Property Name="NumberCurveCenterX" Type="Double" />
+          <Property Name="NumberCurveCenterY" Type="Double" />
+          <Property Name="NumberCurveCenterZ" Type="Double" />
+          <Property Name="NumberCurveOuterRadius" Type="Double" />
+          <Property Name="NumberCurveFractionNum" Type="Int32" />
+          <Property Name="NumberCurveFractionDen" Type="Int32" />
+          <Property Name="NumberCurveStartAngle" Type="Double" />
+          <Property Name="NumberCurveModulation" Type="Int32" />
           <NavigationProperty Name="TSql_Design_V2" Relationship="DesingEntity.FK_TSql_DesignWall_TSql_Design_V2" FromRole="TSql_DesignWall" ToRole="TSql_Design_V2" />
           <NavigationProperty Name="TSql_DesignWallArticle" Relationship="DesingEntity.FK_TSql_DesignWallArticle_TSql_DesignWall" FromRole="TSql_DesignWall" ToRole="TSql_DesignWallArticle" />
         </EntityType>
@@ -7107,6 +7123,14 @@
           <EntitySetMapping Name="TSql_DesignWall">
             <EntityTypeMapping TypeName="DesingEntity.TSql_DesignWall">
               <MappingFragment StoreEntitySet="TSql_DesignWall">
+                <ScalarProperty Name="NumberCurveCenterX" ColumnName="NumberCurveCenterX" />
+                <ScalarProperty Name="NumberCurveCenterY" ColumnName="NumberCurveCenterY" />
+                <ScalarProperty Name="NumberCurveCenterZ" ColumnName="NumberCurveCenterZ" />
+                <ScalarProperty Name="NumberCurveOuterRadius" ColumnName="NumberCurveOuterRadius" />
+                <ScalarProperty Name="NumberCurveFractionNum" ColumnName="NumberCurveFractionNum" />
+                <ScalarProperty Name="NumberCurveFractionDen" ColumnName="NumberCurveFractionDen" />
+                <ScalarProperty Name="NumberCurveStartAngle" ColumnName="NumberCurveStartAngle" />
+                <ScalarProperty Name="NumberCurveModulation" ColumnName="NumberCurveModulation" />
                 <ScalarProperty Name="Is_Special" ColumnName="Is_Special" />
                 <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
                 <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />

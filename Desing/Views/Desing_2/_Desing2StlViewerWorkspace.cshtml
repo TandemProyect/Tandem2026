@@ -929,6 +929,168 @@
             </div>
         </div>
     </div>
+    @* Insertar / Modificar Muro Curvo (US 13/11/2026): medidas, porción del círculo, ángulo de inicio y modulación (panel). *@
+    <div class="modal fade desing2-curved-wall-modal" id="ma-stl-curved-wall-modal" tabindex="-1" aria-labelledby="ma-stl-curved-wall-modal-title" aria-hidden="true" data-bs-keyboard="true"
+         data-msg-diameter="@MasterArticles.StlPreview_Desing2CurvedWallDiameterInvalid"
+         data-msg-thickness="@MasterArticles.StlPreview_Desing2CurvedWallThicknessInvalid"
+         data-msg-thickness-radius="@MasterArticles.StlPreview_Desing2CurvedWallThicknessRadiusInvalid"
+         data-msg-height="@MasterArticles.StlPreview_Desing2CurvedWallHeightInvalid"
+         data-msg-saved="@MasterArticles.StlPreview_Desing2CurvedWallSaved"
+         data-msg-placed="@MasterArticles.StlPreview_Desing2CurvedWallPlaced"
+         data-msg-cancelled="@MasterArticles.StlPreview_Desing2CurvedWallCancelled"
+         data-msg-formwork-summary="@MasterArticles.StlPreview_Desing2CurvedWallFormworkSummary"
+         data-msg-remate-warning="@MasterArticles.StlPreview_Desing2CurvedWallRemateWarning"
+         data-msg-portion="@MasterArticles.StlPreview_Desing2CurvedWallPortionInvalid"
+         data-msg-start="@MasterArticles.StlPreview_Desing2CurvedWallStartAngleInvalid"
+         data-msg-edit-title="@MasterArticles.StlPreview_Desing2CurvedWallEditTitle"
+         data-msg-edited="@MasterArticles.StlPreview_Desing2CurvedWallEdited"
+         data-msg-modulation-info="@MasterArticles.StlPreview_Desing2CurvedWallModulationInfo"
+         data-msg-supports-info="@MasterArticles.StlPreview_Desing2CurvedWallSupportsInfo"
+         data-msg-supports-no-room="@MasterArticles.StlPreview_Desing2CurvedWallSupportsNoRoom"
+         data-msg-brackets="@MasterArticles.StlPreview_Desing2CurvedWallBrackets"
+         data-msg-props="@MasterArticles.StlPreview_Desing2CurvedWallProps">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ma-stl-curved-wall-modal-title">@MasterArticles.StlPreview_Desing2CurvedWallFormTitle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@Common.Btn_Close"></button>
+                </div>
+                <form class="modal-body" id="ma-stl-curved-wall-form" novalidate autocomplete="off">
+                    @* Dos pestañas: medidas del muro y, como en el muro recto, ménsulas y puntales. *@
+                    <ul class="nav nav-tabs mb-3" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="ma-stl-curved-wall-tab-wall" data-bs-toggle="tab" data-bs-target="#ma-stl-curved-wall-pane-wall" type="button" role="tab" aria-controls="ma-stl-curved-wall-pane-wall" aria-selected="true">@MasterArticles.StlPreview_Desing2CurvedWallTabWall</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="ma-stl-curved-wall-tab-supports" data-bs-toggle="tab" data-bs-target="#ma-stl-curved-wall-pane-supports" type="button" role="tab" aria-controls="ma-stl-curved-wall-pane-supports" aria-selected="false">@MasterArticles.StlPreview_Desing2CurvedWallTabSupports</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                    <div class="tab-pane fade show active" id="ma-stl-curved-wall-pane-wall" role="tabpanel" aria-labelledby="ma-stl-curved-wall-tab-wall">
+                    <div class="mb-3">
+                        <label class="form-label" for="ma-stl-curved-wall-diameter">@MasterArticles.StlPreview_Desing2CurvedWallFormOuterDiameter</label>
+                        <div class="input-group">
+                            <input type="text" inputmode="decimal" class="form-control" id="ma-stl-curved-wall-diameter" required />
+                            <span class="input-group-text">m</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="ma-stl-curved-wall-thickness">@MasterArticles.StlPreview_Desing2CurvedWallFormThickness</label>
+                        <div class="input-group">
+                            <input type="text" inputmode="decimal" class="form-control" id="ma-stl-curved-wall-thickness" required />
+                            <span class="input-group-text">m</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="ma-stl-curved-wall-height">@MasterArticles.StlPreview_Desing2CurvedWallFormHeight</label>
+                        <div class="input-group">
+                            <input type="text" inputmode="decimal" class="form-control" id="ma-stl-curved-wall-height" required />
+                            <span class="input-group-text">m</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="ma-stl-curved-wall-portion">@MasterArticles.StlPreview_Desing2CurvedWallFormPortion</label>
+                        <div class="input-group">
+                            <select class="form-select" id="ma-stl-curved-wall-portion">
+                                <option value="1/1">@MasterArticles.StlPreview_Desing2CurvedWallFormPortionFull</option>
+                                <option value="1/2">1/2 (50 %)</option>
+                                <option value="1/3">1/3 (33,33 %)</option>
+                                <option value="1/4">1/4 (25 %)</option>
+                                <option value="custom">@MasterArticles.StlPreview_Desing2CurvedWallFormPortionCustom</option>
+                            </select>
+                            <input type="text" class="form-control d-none" id="ma-stl-curved-wall-portion-custom" placeholder="1/33" aria-label="@MasterArticles.StlPreview_Desing2CurvedWallFormPortionCustom" />
+                        </div>
+                        <div class="form-text" id="ma-stl-curved-wall-portion-info">—</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="ma-stl-curved-wall-start">@MasterArticles.StlPreview_Desing2CurvedWallFormStartAngle</label>
+                        <div class="input-group">
+                            <input type="text" inputmode="decimal" class="form-control" id="ma-stl-curved-wall-start" />
+                            <span class="input-group-text">°</span>
+                        </div>
+                        <div class="form-text">@MasterArticles.StlPreview_Desing2CurvedWallFormStartAngleHint</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="ma-stl-curved-wall-modulation">@MasterArticles.StlPreview_Desing2CurvedWallFormModulation</label>
+                        <div class="input-group">
+                            <select class="form-select" id="ma-stl-curved-wall-modulation">
+                                <option value="300">0,30</option>
+                                <option value="450">0,45</option>
+                                <option value="600">0,60</option>
+                                <option value="750">0,75</option>
+                                <option value="900" selected>0,90</option>
+                                <option value="1050">1,05</option>
+                                <option value="1200">1,20</option>
+                            </select>
+                            <span class="input-group-text">m</span>
+                        </div>
+                        <div class="form-text" id="ma-stl-curved-wall-modulation-info">—</div>
+                    </div>
+                    <p class="small text-muted mb-1">@MasterArticles.StlPreview_Desing2CurvedWallFormInnerDiameter: <span id="ma-stl-curved-wall-inner">—</span> m</p>
+                    <p class="small text-muted mb-0">@MasterArticles.StlPreview_Desing2CurvedWallFormUnits</p>
+                    </div>
+                    <div class="tab-pane fade" id="ma-stl-curved-wall-pane-supports" role="tabpanel" aria-labelledby="ma-stl-curved-wall-tab-supports">
+                        <fieldset class="border rounded px-3 pt-1 pb-2 mb-3">
+                            <legend class="float-none w-auto px-1 mb-1 fs-6 fw-semibold">@MasterArticles.StlPreview_Desing2CurvedWallBrackets</legend>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="ma-stl-curved-wall-bracket-in" />
+                                        <label class="form-check-label" for="ma-stl-curved-wall-bracket-in">@MasterArticles.StlPreview_Desing2CurvedWallBracketInside</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="ma-stl-curved-wall-bracket-out" />
+                                        <label class="form-check-label" for="ma-stl-curved-wall-bracket-out">@MasterArticles.StlPreview_Desing2CurvedWallBracketOutside</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <fieldset class="border rounded px-3 pt-1 pb-2 mb-2">
+                            <legend class="float-none w-auto px-1 mb-1 fs-6 fw-semibold">@MasterArticles.StlPreview_Desing2CurvedWallProps</legend>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="ma-stl-curved-wall-prop-in" checked />
+                                        <label class="form-check-label" for="ma-stl-curved-wall-prop-in">@MasterArticles.StlPreview_Desing2CurvedWallPropUpperInside</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="ma-stl-curved-wall-prop-out" checked />
+                                        <label class="form-check-label" for="ma-stl-curved-wall-prop-out">@MasterArticles.StlPreview_Desing2CurvedWallPropUpperOutside</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="ma-stl-curved-wall-prop-in-inf" />
+                                        <label class="form-check-label" for="ma-stl-curved-wall-prop-in-inf">@MasterArticles.StlPreview_Desing2CurvedWallPropLowerInside</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="ma-stl-curved-wall-prop-out-inf" />
+                                        <label class="form-check-label" for="ma-stl-curved-wall-prop-out-inf">@MasterArticles.StlPreview_Desing2CurvedWallPropLowerOutside</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <div class="form-text" id="ma-stl-curved-wall-supports-info">—</div>
+                        <div class="form-text">@MasterArticles.StlPreview_Desing2CurvedWallSupportsHint</div>
+                        <div class="small text-danger mt-1 d-none" id="ma-stl-curved-wall-supports-warning"></div>
+                    </div>
+                    </div>
+                    <div class="alert alert-danger py-2 px-3 mt-3 mb-0 d-none" id="ma-stl-curved-wall-error" role="alert"></div>
+                    <button type="submit" class="d-none" tabindex="-1" aria-hidden="true"></button>
+                </form>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@MasterArticles.StlPreview_Desing2CurvedWallFormCancel</button>
+                    <button type="button" class="btn btn-primary" id="ma-stl-curved-wall-accept">@MasterArticles.StlPreview_Desing2CurvedWallFormAccept</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="modal fade" id="ma-stl-leave-save-modal" tabindex="-1" aria-labelledby="ma-stl-leave-save-modal-title" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">

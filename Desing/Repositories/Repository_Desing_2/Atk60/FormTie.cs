@@ -77,7 +77,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double trimStartJointMm = 0d,
             double trimEndJointMm = -1d,
             bool skipStartTie = false,
-            bool skipFreeEndTie = false)
+            bool skipFreeEndTie = false,
+            bool stackedPanelTies = false)
         {
             var isLast = moduleIndex >= countInWall;
             double rightmost = -1d;
@@ -142,11 +143,24 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     alongs.Add(piece.PieceWidthMm - HoleInsetMm);
                 }
 
+                // Panel apilado de módulo estrecho (muro curvo: 2,70 + 1,20 para 3,00): asoma por encima
+                // del muro y sus tirantes (350 / 850 del 1,20) quedaban por encima de la altura y se
+                // perdían. Como en la franja tumbada, el límite es el borde alto del panel.
+                var verticalLimit = wallHeightMm;
+                if (stackedPanelTies)
+                {
+                    var verticalTop = piece.UpOffsetMm + piece.PieceHeightMm;
+                    if (verticalTop > verticalLimit)
+                    {
+                        verticalLimit = verticalTop;
+                    }
+                }
+
                 PlaceRow(
                     outElements, anchor, idWall, moduleBaseAlongMm + piece.AlongOffsetMm,
                     piece.UpOffsetMm, alongs.ToArray(), heights,
                     false, yawRad, ux, uz, faceSign,
-                    wallHeightMm, wallThicknessMm, wallLengthMm, piece.PieceWidthMm, tiesBeyondWall, trimStartTie, trimEndTie, trimStartJointMm, trimEndJointMm);
+                    verticalLimit, wallThicknessMm, wallLengthMm, piece.PieceWidthMm, tiesBeyondWall, trimStartTie, trimEndTie, trimStartJointMm, trimEndJointMm);
             }
         }
 

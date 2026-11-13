@@ -40,12 +40,18 @@
         .desing2-stl-view-scope #master-article-stl-viewer-toolbar .desing2-stl-toolbar-context {
             color: #fff !important;
         }
-        /* Botones del visor fuera de la barra azul: texto/iconos fijos en el azul de marca. */
-        .desing2-stl-view-scope .btn,
-        .desing2-stl-view-scope .btn i,
-        .desing2-stl-view-scope .btn svg,
-        .desing2-stl-view-scope .btn .icon-base {
+        /* Botones del visor fuera de la barra azul: texto/iconos fijos en el azul de marca.
+           Excepto los de fondo de color (Aceptar de los modales del visor: muro curvo, DWG, boceto, mapa...):
+           ahí el azul sobre azul dejaba el botón sin texto (13/11/2026) → blanco, abajo. */
+        .desing2-stl-view-scope .btn:not(:is(.btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-warning, .btn-info, .btn-dark)),
+        .desing2-stl-view-scope .btn:not(:is(.btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-warning, .btn-info, .btn-dark)) i,
+        .desing2-stl-view-scope .btn:not(:is(.btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-warning, .btn-info, .btn-dark)) svg,
+        .desing2-stl-view-scope .btn:not(:is(.btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-warning, .btn-info, .btn-dark)) .icon-base {
             color: #186cb7 !important;
+        }
+        .desing2-stl-view-scope :is(.btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-warning, .btn-info, .btn-dark),
+        .desing2-stl-view-scope :is(.btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-warning, .btn-info, .btn-dark) :is(i, svg, .icon-base) {
+            color: #fff !important;
         }
         .desing2-stl-view-scope .btn-outline-secondary {
             border-color: rgba(24, 108, 183, 0.45) !important;
@@ -374,6 +380,8 @@
             <li><label><input type="checkbox" class="form-check-input" data-dim-kind="remates" checked="checked" /> @MasterArticles.StlPreview_DimKindRemates</label></li>
             <li><label><input type="checkbox" class="form-check-input" data-dim-kind="adjustable-panel" checked="checked" /> @MasterArticles.StlPreview_DimKindAdjustable</label></li>
             <li><label><input type="checkbox" class="form-check-input" data-dim-kind="wall-id" checked="checked" /> @MasterArticles.StlPreview_DimKindWallId</label></li>
+            <li><label><input type="checkbox" class="form-check-input" data-dim-kind="curved-axes" checked="checked" /> @MasterArticles.StlPreview_DimKindCurvedAxes</label></li>
+            <li><label><input type="checkbox" class="form-check-input" data-dim-kind="curved-angle" checked="checked" /> @MasterArticles.StlPreview_DimKindCurvedAngle</label></li>
         </ul>
         @if (string.Equals(User != null && User.Identity != null ? User.Identity.Name : "", "juan.godoy@vscad.com", StringComparison.OrdinalIgnoreCase))
         {
@@ -652,6 +660,6 @@
     <script src="@Url.Content("~/Scripts/Desing2/desing2-wall-exchange.js")?v=20261029a"></script>
     <script src="@Url.Content("~/Scripts/Desing2/desing2-dwg-import.js")?v=20261112d"></script>
     <script type="module" src="@Url.Content("~/Scripts/Desing2/desing2-phase-start.js")?v=20261030i"></script>
-    <script src="@Url.Content("~/Scripts/Desing2/desing2-dim-kinds.js")?v=20261028a"></script>
+    <script src="@Url.Content("~/Scripts/Desing2/desing2-dim-kinds.js")?v=20261113a"></script>
     <script src="@Url.Content("~/Scripts/Desing2/desing2-connection-test.js")"></script>
 }
