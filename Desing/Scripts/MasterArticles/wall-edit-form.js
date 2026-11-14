@@ -1,7 +1,20 @@
 /**
  * Formulario único «Modificar muro».
  * Lo usa el visor de Desing y la página del plugin de AutoCAD.
+ * Pestaña «Asistente IA» (fase 2: intérprete local, lista de materiales del muro): chat de wall-ai-assistant.js.
+ * Modo compacto (US 14/11/2026): en el popup flotante, al elegir la pestaña IA el formulario se ancla a la
+ * derecha del visor (450 × 800 px como máximo) con solo la conversación; el icono de la cabecera vuelve al formulario.
+ * Micrófono (14/11/2026): botón junto a la entrada del chat (wall-ai-assistant.js); se para al cambiar de pestaña,
+ * de muro (resetAi) o al cerrar.
+ * Altavoz (14/11/2026): respuestas habladas (speechSynthesis) con el mismo ciclo: la voz se corta al cambiar
+ * de pestaña, de muro o al cerrar.
+ * Saludo y avisos del micrófono también en voz alta (14/11/2026, ?v=20261114h): el saludo suena al mostrarse la pestaña IA (focus).
  */
+import {
+    mountWallAiChat, maStlWallAiUiTexts, maStlWallAiCompactBackButton, maStlWallAiCompactTitle,
+    maStlWallAiCompactArea, maStlWallAiCompactRect,
+} from './wall-ai-assistant.js?v=20261114h';
+
 export function mountWallEditForm(parent, options) {
     options = options || {};
     const floating = options.floating !== false;
@@ -47,6 +60,9 @@ export function mountWallEditForm(parent, options) {
     closeBtn.style.cursor = 'pointer';
     closeBtn.style.fontSize = '15px';
     closeBtn.style.padding = '0 4px';
+    /* Modo compacto del Asistente IA: icono «Volver al formulario» junto a cerrar (oculto en el formulario). */
+    const aiBackBtn = maStlWallAiCompactBackButton({ color: '#ffffff', onClick: function () { exitAiCompact(true); } });
+    head.appendChild(aiBackBtn);
     head.appendChild(closeBtn);
 
     const body = document.createElement('div');
@@ -81,10 +97,13 @@ export function mountWallEditForm(parent, options) {
     const tabTapes = makeTab('Configurar Tapes');
     const tabProps = makeTab('Configurar Puntales');
     const tabDim = makeTab('Acotar');
+    const tabAi = makeTab(maStlWallAiUiTexts().tab);
+    tabAi.setAttribute('data-ma-stl-wall-tab', 'ai');
     tabRow.appendChild(tabMuro);
     tabRow.appendChild(tabTapes);
     tabRow.appendChild(tabProps);
     tabRow.appendChild(tabDim);
+    tabRow.appendChild(tabAi);
     body.appendChild(messageEl);
     body.appendChild(tabRow);
 
@@ -219,26 +238,149 @@ export function mountWallEditForm(parent, options) {
     body.appendChild(propsPane);
     body.appendChild(dimPane);
 
+    /* Asistente IA: conversación del muro abierto (en memoria mientras el popup está abierto). */
+    const aiPane = document.createElement('div');
+    aiPane.style.display = 'none';
+    aiPane.style.padding = '0 0 10px';
+    body.appendChild(aiPane);
+    let lastAiModel = null;
+    const aiChat = mountWallAiChat(aiPane, {
+        height: floating ? 'min(300px, 42vh)' : '320px',
+        getContext: function () {
+            if (options.getAiContext) return options.getAiContext();
+            /* Página del plugin: contexto con los valores recibidos de AutoCAD. */
+            const m = lastAiModel || {};
+            return { kind: 'straight', wallKey: m.wallKey != null ? m.wallKey : null, lengthM: Number(m.lengthM), thicknessM: Number(m.widthM), heightM: Number(m.heightM), model: m };
+        },
+        onActions: function (actions, ctx) {
+            if (options.onAiActions) options.onAiActions(actions, ctx);
+        },
+    });
+
     function paintTab(btn, active) {
         btn.style.background = active ? '#2563eb' : '#e8eef5';
         btn.style.color = active ? '#ffffff' : '#334155';
     }
 
+    let currentTab = 'muro';
+    let aiCompact = null;
+
+    function aiCompactContext() {
+        if (options.getAiContext) {
+            try { return options.getAiContext() || {}; } catch (_e) { return {}; }
+        }
+        const m = lastAiModel || {};
+        return { kind: 'straight', wallKey: m.wallKey != null ? m.wallKey : null };
+    }
+
+    function aiCompactLayout() {
+        if (!aiCompact) return;
+        const r = maStlWallAiCompactRect(maStlWallAiCompactArea());
+        root.style.left = r.left + 'px';
+        root.style.top = r.top + 'px';
+        root.style.width = r.width + 'px';
+        root.style.height = r.height + 'px';
+    }
+
+    function onAiCompactResize() { aiCompactLayout(); }
+
+    /** Formulario → panel compacto anclado a la derecha (solo conversación + entrada). */
+    function enterAiCompact(prevTab) {
+        if (aiCompact || !floating || root.style.display === 'none') return;
+        const keep = function (el, props) {
+            const vals = {};
+            for (let i = 0; i < props.length; i++) vals[props[i]] = el.style[props[i]];
+            return { el: el, vals: vals };
+        };
+        aiCompact = {
+            tab: prevTab && prevTab !== 'ai' ? prevTab : 'muro',
+            title: title.textContent,
+            styles: [
+                keep(root, ['left', 'top', 'width', 'height', 'maxWidth', 'display', 'flexDirection']),
+                keep(head, ['cursor', 'flex']),
+                keep(body, ['flex', 'minHeight', 'display', 'flexDirection', 'overflow']),
+                keep(aiPane, ['flex', 'minHeight', 'flexDirection']),
+                keep(aiChat.root, ['flex', 'minHeight']),
+                keep(aiChat.log, ['height', 'flex', 'minHeight']),
+                keep(tabRow, ['display']),
+                keep(actions, ['display']),
+            ],
+        };
+        root.setAttribute('data-ma-stl-wall-ai-compact', '1');
+        root.style.display = 'flex';
+        root.style.flexDirection = 'column';
+        head.style.cursor = 'default';
+        head.style.flex = '0 0 auto';
+        body.style.flex = '1 1 auto';
+        body.style.minHeight = '0';
+        body.style.display = 'flex';
+        body.style.flexDirection = 'column';
+        body.style.overflow = 'hidden';
+        aiPane.style.display = 'flex';
+        aiPane.style.flexDirection = 'column';
+        aiPane.style.flex = '1 1 auto';
+        aiPane.style.minHeight = '0';
+        aiChat.root.style.flex = '1 1 auto';
+        aiChat.root.style.minHeight = '0';
+        aiChat.log.style.height = 'auto';
+        aiChat.log.style.flex = '1 1 0';
+        aiChat.log.style.minHeight = '120px';
+        tabRow.style.display = 'none';
+        actions.style.display = 'none';
+        title.textContent = maStlWallAiCompactTitle(aiCompactContext());
+        aiBackBtn.style.display = 'inline-flex';
+        aiCompactLayout();
+        window.addEventListener('resize', onAiCompactResize);
+        aiChat.focus();
+    }
+
+    /** Panel compacto → formulario con su tamaño, posición y pestaña anteriores. La conversación no se toca. */
+    function exitAiCompact(showPrev) {
+        if (!aiCompact) return;
+        const s = aiCompact;
+        aiCompact = null;
+        window.removeEventListener('resize', onAiCompactResize);
+        for (let i = 0; i < s.styles.length; i++) {
+            const it = s.styles[i];
+            Object.keys(it.vals).forEach(function (k) { it.el.style[k] = it.vals[k]; });
+        }
+        root.removeAttribute('data-ma-stl-wall-ai-compact');
+        title.textContent = s.title;
+        aiBackBtn.style.display = 'none';
+        /* Pestaña anterior (también al cerrar, para que el popup se vuelva a abrir como formulario). */
+        showTab(s.tab);
+        if (showPrev !== false) {
+            try { aiBackBtn.blur(); } catch (_e) { /* sin foco */ }
+        }
+    }
+
     function showTab(which) {
+        const prevTab = currentTab;
+        currentTab = which;
         muroPane.style.display = which === 'muro' ? 'block' : 'none';
         tapesPane.style.display = which === 'tapes' ? 'block' : 'none';
         propsPane.style.display = which === 'props' ? 'block' : 'none';
         dimPane.style.display = which === 'dim' ? 'block' : 'none';
+        aiPane.style.display = which === 'ai' ? 'block' : 'none';
         paintTab(tabMuro, which === 'muro');
         paintTab(tabTapes, which === 'tapes');
         paintTab(tabProps, which === 'props');
         paintTab(tabDim, which === 'dim');
+        paintTab(tabAi, which === 'ai');
+        /* Micrófono: se para al salir de la pestaña IA (también al volver del modo compacto al formulario). */
+        if (which !== 'ai' && aiChat.stopVoice) aiChat.stopVoice(false);
+        if (which === 'ai') {
+            if (!aiCompact) enterAiCompact(prevTab);
+            if (aiCompact) aiPane.style.display = 'flex';
+            aiChat.focus();
+        }
     }
 
     tabMuro.addEventListener('click', function () { showTab('muro'); });
     tabTapes.addEventListener('click', function () { showTab('tapes'); });
     tabProps.addEventListener('click', function () { showTab('props'); });
     tabDim.addEventListener('click', function () { showTab('dim'); });
+    tabAi.addEventListener('click', function () { showTab('ai'); });
     showTab('muro');
 
     function makeLabel(text) {
@@ -421,7 +563,8 @@ export function mountWallEditForm(parent, options) {
     if (floating) {
         let dragState = null;
         head.addEventListener('mousedown', function (ev) {
-            if (ev.button !== 0 || ev.target === closeBtn) return;
+            /* Compacto: anclado a la derecha del visor, no se arrastra. */
+            if (ev.button !== 0 || ev.target === closeBtn || aiCompact || aiBackBtn.contains(ev.target)) return;
             const rect = root.getBoundingClientRect();
             dragState = { dx: ev.clientX - rect.left, dy: ev.clientY - rect.top };
             ev.preventDefault();
@@ -441,6 +584,7 @@ export function mountWallEditForm(parent, options) {
     }
 
     function cancel() {
+        exitAiCompact(false);
         if (options.onCancel) options.onCancel();
     }
     closeBtn.addEventListener('click', cancel);
@@ -617,9 +761,32 @@ export function mountWallEditForm(parent, options) {
             tapesPane: tapesPane,
             propsPane: propsPane,
             dimPane: dimPane,
+            aiPane: aiPane,
+            aiInput: aiChat.input,
+            aiSendBtn: aiChat.sendBtn,
+            aiLog: aiChat.log,
             acceptBtn: acceptBtn,
             cancelBtn: cancelBtn,
             closeBtn: closeBtn,
+            aiBackBtn: aiBackBtn,
+        },
+        /** Chat del asistente (fase 2: `window.maStlWallAiHandleMessage`). */
+        ai: aiChat,
+        showTab: showTab,
+        /** Modo compacto del Asistente IA (popup flotante). */
+        isAiCompact: function () { return !!aiCompact; },
+        /** Vuelve al formulario; `false` = sin volver a pintar la pestaña (al cerrar el popup). */
+        exitAiCompact: exitAiCompact,
+        /** Recoloca el panel compacto y actualiza el título (otro muro, ventana redimensionada). */
+        refreshAiCompact: function () {
+            if (!aiCompact) return;
+            title.textContent = maStlWallAiCompactTitle(aiCompactContext());
+            aiCompactLayout();
+        },
+        /** Conversación del muro `wallKey`: se conserva si es el mismo muro; null = vaciar. */
+        resetAi: function (wallKey) {
+            if (wallKey == null) aiChat.reset(null);
+            else aiChat.ensureContext(wallKey);
         },
         setGroups: function (list, selected) {
             groupCatalog = Array.isArray(list) ? list : [];
@@ -725,6 +892,8 @@ export function mountWallEditForm(parent, options) {
             tapeEndSelectedId = model.tapeEnd || '';
             tapeHeadingEl.textContent = model.heading || '';
             api.showMessage('');
+            lastAiModel = model;
+            aiChat.ensureContext(model.wallKey != null ? model.wallKey : 'plugin');
             api.paint({
                 _Tape_1: model.tapeIni || '',
                 _Tape_2: model.tapeEnd || '',

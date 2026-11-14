@@ -188,6 +188,428 @@
         });
     }
 
+    /**
+     * Lista IdsJson de Encofrar ATK-60 (geometría 3D, caras de esquina, separación de puntales).
+     * Sale del clic de «Encofrar» sin cambios para que el Asistente IA calcule un muro con la misma
+     * entrada (maStlDesing2PreviewWallFormworkAtk60). Sin efectos: no toca la escena ni guarda nada.
+     */
+    function buildAtk60IdsDetailed(walls, wallConnections) {
+        function toNum(v) {
+            const n = Number(v);
+            return Number.isFinite(n) ? n : null;
+        }
+
+        function pointXmm(p) {
+            if (!p || typeof p !== 'object') return null;
+            return toNum(p.xMm != null ? p.xMm : p.x);
+        }
+
+        function pointYmm(p) {
+            if (!p || typeof p !== 'object') return null;
+            return toNum(p.yMm != null ? p.yMm : p.y);
+        }
+
+        function pointZmm(p) {
+            if (!p || typeof p !== 'object') return null;
+            return toNum(p.zMm != null ? p.zMm : p.z);
+        }
+
+        function buildWallGeom(w) {
+            const attrs = (w && w.Attributes && typeof w.Attributes === 'object') ? w.Attributes : {};
+            const p1 = w && w.P1 ? w.P1 : attrs.p1;
+            const p2 = w && w.P2 ? w.P2 : attrs.p2;
+
+            const startXmm = pointXmm(p1) != null ? pointXmm(p1) : toNum(attrs.InicioX);
+            const startYmm = pointYmm(p1) != null ? pointYmm(p1) : toNum(attrs.InicioZ);
+            const startZmm = pointZmm(p1) != null ? pointZmm(p1) : toNum(attrs.InicioY);
+
+            const endXmm = pointXmm(p2) != null ? pointXmm(p2) : toNum(attrs.FinX);
+            const endYmm = pointYmm(p2) != null ? pointYmm(p2) : toNum(attrs.FinZ);
+            const endZmm = pointZmm(p2) != null ? pointZmm(p2) : toNum(attrs.FinY);
+
+            let lengthMm = null;
+            if (startXmm != null && startZmm != null && endXmm != null && endZmm != null) {
+                const dx = endXmm - startXmm;
+                const dz = endZmm - startZmm;
+                lengthMm = Math.sqrt(dx * dx + dz * dz);
+            }
+
+            let widthMm = toNum(attrs._DataWith);
+            if (widthMm != null) widthMm = widthMm * 1000;
+            if (widthMm == null) widthMm = toNum(attrs.ThicknessMm);
+
+            let heightMm = toNum(attrs._DataHeight);
+            if (heightMm != null) heightMm = heightMm * 1000;
+            if (heightMm == null) heightMm = toNum(attrs.HeightMm);
+
+            return {
+                Id: w && w.Id != null ? String(w.Id) : null,
+                LineId: w && w.LineId != null ? String(w.LineId) : null,
+                WallId: w && w.WallId != null ? String(w.WallId) : null,
+                StartXmm: startXmm,
+                StartYmm: startYmm,
+                StartZmm: startZmm,
+                EndXmm: endXmm,
+                EndYmm: endYmm,
+                EndZmm: endZmm,
+                LengthMm: lengthMm,
+                WidthMm: widthMm,
+                HeightMm: heightMm,
+            };
+        }
+
+        const wallGeom = walls
+            .map(buildWallGeom)
+            .filter(function (g) {
+                return g
+                    && (g.Id || g.LineId || g.WallId)
+                    && g.StartXmm != null
+                    && g.StartZmm != null
+                    && g.EndXmm != null
+                    && g.EndZmm != null;
+            });
+
+        // Recorte 450 mm en nudos: Atk60WallsRepository.SolveFromIdsJson
+        // (mismo código para Desing y AutoCAD). No recortar aquí.
+        for (let i = 0; i < wallGeom.length; i++) {
+            const g = wallGeom[i];
+            g.RawStartXmm = g.StartXmm;
+            g.RawStartZmm = g.StartZmm;
+            g.RawEndXmm = g.EndXmm;
+            g.RawEndZmm = g.EndZmm;
+            g.RawLengthMm = g.LengthMm;
+            g.TrimStartMm = 0;
+            g.TrimEndMm = 0;
+        }
+
+        const wallGeomById = Object.create(null);
+        function indexGeomKey(key, geom) {
+            if (key == null) return;
+            const k = String(key).trim();
+            if (!k) return;
+            wallGeomById[k] = geom;
+        }
+        for (let i = 0; i < wallGeom.length; i++) {
+            const g = wallGeom[i];
+            indexGeomKey(g.Id, g);
+            indexGeomKey(g.LineId, g);
+            indexGeomKey(g.WallId, g);
+        }
+
+        // Lista de envío al controlador con atributos normalizados desde geometría 3D real.
+        function cornerFacesForAxis(connections, axisId) {
+            const lines = connections && Array.isArray(connections.lines) ? connections.lines : [];
+            const id = axisId == null ? '' : String(axisId);
+            const out = [];
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                if (!line || String(line.wallRole || '') !== 'face') continue;
+                if (String(line.linkOffsetFromLineId) !== id) continue;
+                const p1 = line.p1 || {};
+                const p2 = line.p2 || {};
+                const x1 = toNum(p1.xMm != null ? p1.xMm : p1.x);
+                const z1 = toNum(p1.zMm != null ? p1.zMm : p1.z);
+                const x2 = toNum(p2.xMm != null ? p2.xMm : p2.x);
+                const z2 = toNum(p2.zMm != null ? p2.zMm : p2.z);
+                if (x1 == null || z1 == null || x2 == null || z2 == null) continue;
+                let lengthMm = toNum(line.lengthMm);
+                if (lengthMm == null) {
+                    const dx = x2 - x1;
+                    const dz = z2 - z1;
+                    lengthMm = Math.sqrt((dx * dx) + (dz * dz));
+                }
+                out.push({
+                    side: Number(line.numberWallFaceSideSign) < 0 ? -1 : 1,
+                    lengthMm: lengthMm,
+                    x1: x1,
+                    z1: z1,
+                    x2: x2,
+                    z2: z2,
+                });
+            }
+            return out;
+        }
+
+        function planAxisIdNearWall(connections, startX, startZ, endX, endZ, fallbackId) {
+            const lines = connections && Array.isArray(connections.lines) ? connections.lines : [];
+            let bestId = null;
+            let best = 150 * 150;
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                if (!line || String(line.wallRole || '') !== 'axis') continue;
+                const p1 = line.p1 || {};
+                const p2 = line.p2 || {};
+                const x1 = toNum(p1.xMm != null ? p1.xMm : p1.x);
+                const z1 = toNum(p1.zMm != null ? p1.zMm : p1.z);
+                const x2 = toNum(p2.xMm != null ? p2.xMm : p2.x);
+                const z2 = toNum(p2.zMm != null ? p2.zMm : p2.z);
+                if (x1 == null || z1 == null || x2 == null || z2 == null) continue;
+                const same = ((startX - x1) * (startX - x1)) + ((startZ - z1) * (startZ - z1))
+                    + ((endX - x2) * (endX - x2)) + ((endZ - z2) * (endZ - z2));
+                const flip = ((startX - x2) * (startX - x2)) + ((startZ - z2) * (startZ - z2))
+                    + ((endX - x1) * (endX - x1)) + ((endZ - z1) * (endZ - z1));
+                const dist = same < flip ? same : flip;
+                if (dist < best) {
+                    best = dist;
+                    bestId = line.id;
+                }
+            }
+            return bestId != null ? bestId : fallbackId;
+        }
+
+        const idsDetailed = walls
+            .map(function (w) {
+                const id = w && w.LineId != null
+                    ? String(w.LineId)
+                    : (w && w.Id != null ? String(w.Id) : '');
+                if (!id) return null;
+
+                const lineId = w && w.LineId != null ? String(w.LineId) : null;
+                const wallId = w && w.WallId != null ? String(w.WallId) : null;
+                const geom = wallGeomById[id] || wallGeomById[lineId] || wallGeomById[wallId] || null;
+                const baseAttrs = (w && w.Attributes && typeof w.Attributes === 'object')
+                    ? Object.assign({}, w.Attributes)
+                    : Object.assign({}, w || {});
+
+                if (typeof window.maStlDesing2PropSpacingMm === 'function') {
+                    const propSpacingMm = Number(window.maStlDesing2PropSpacingMm());
+                    if (Number.isFinite(propSpacingMm) && propSpacingMm > 0) {
+                        baseAttrs._PropSpacingMm = propSpacingMm;
+                    }
+                }
+
+                if (geom) {
+                    // Convención del backend: InicioY/FinY corresponden a Z en planta, InicioZ/FinZ a Y vertical.
+                    baseAttrs.InicioX = geom.StartXmm;
+                    baseAttrs.InicioY = geom.StartZmm;
+                    baseAttrs.InicioZ = geom.StartYmm != null ? geom.StartYmm : 0;
+                    baseAttrs.FinX = geom.EndXmm;
+                    baseAttrs.FinY = geom.EndZmm;
+                    baseAttrs.FinZ = geom.EndYmm != null ? geom.EndYmm : 0;
+
+                    // Mantener unidades legacy esperadas por C#.
+                    if (geom.LengthMm != null) baseAttrs._Datalong = geom.LengthMm / 1000;
+                    if (geom.WidthMm != null) baseAttrs._DataWith = geom.WidthMm / 1000;
+                    if (geom.HeightMm != null) baseAttrs._DataHeight = geom.HeightMm / 1000;
+
+                    const cx = (geom.StartXmm + geom.EndXmm) * 0.5;
+                    const cy = ((geom.StartYmm != null ? geom.StartYmm : 0) + (geom.EndYmm != null ? geom.EndYmm : 0)) * 0.5;
+                    const cz = (geom.StartZmm + geom.EndZmm) * 0.5;
+                    baseAttrs._XCoordinate = cx;
+                    baseAttrs._YCoordinate = cy;
+                    baseAttrs._ZCoordinate = cz;
+
+                    baseAttrs.__Source3D = true;
+                    baseAttrs.__Geom3D = {
+                        id: geom.Id,
+                        lineId: geom.LineId,
+                        wallId: geom.WallId,
+                        startXmm: geom.StartXmm,
+                        startYmm: geom.StartYmm,
+                        startZmm: geom.StartZmm,
+                        endXmm: geom.EndXmm,
+                        endYmm: geom.EndYmm,
+                        endZmm: geom.EndZmm,
+                        lengthMm: geom.LengthMm,
+                        rawStartXmm: geom.RawStartXmm,
+                        rawStartZmm: geom.RawStartZmm,
+                        rawEndXmm: geom.RawEndXmm,
+                        rawEndZmm: geom.RawEndZmm,
+                        rawLengthMm: geom.RawLengthMm,
+                        trimStartMm: geom.TrimStartMm,
+                        trimEndMm: geom.TrimEndMm,
+                    };
+                }
+
+                if (geom) {
+                    const axisId = planAxisIdNearWall(
+                        wallConnections,
+                        geom.StartXmm,
+                        geom.StartZmm,
+                        geom.EndXmm,
+                        geom.EndZmm,
+                        lineId || id
+                    );
+                    const cornerFaces = cornerFacesForAxis(wallConnections, axisId);
+                    if (cornerFaces.length) {
+                        baseAttrs.CornerFaces = cornerFaces;
+                    }
+                }
+
+                return {
+                    Id: id,
+                    LineId: lineId,
+                    WallGroupId: w && w.WallGroupId != null ? String(w.WallGroupId) : null,
+                    Attributes: baseAttrs,
+                };
+            })
+            .filter(Boolean);
+
+        return { wallGeom: wallGeom, idsDetailed: idsDetailed };
+    }
+
+    /**
+     * Asistente IA: encofrado de UN muro sin pintar ni tocar la escena ni el último encofrado.
+     * Envía al mismo endpoint de «Encofrar» (GetWallsAtk-60, con Preview = true para que el servidor no
+     * pise el JSON de depuración) el muro y sus vecinos hasta dos uniones de distancia (L, T, X), solo
+     * como contexto de las esquinas, y se queda con las piezas cuyo IdWall es el del muro.
+     * Comprobado en el banco .NET (126 muros de los casos de regresión): mismo recuento que el cálculo
+     * de todo el diseño. El muro curvo va solo (no tiene uniones).
+     * No hace los arreglos previos de «Encofrar» (pasar parejas de líneas a muro, fusionar ejes
+     * colineales y guardarlos): si el dibujo los necesita, la vista previa puede diferir del Encofrar real.
+     * @param {Array<string|number>} keys claves del muro (como maStlWallAiFormworkAccess)
+     * @param {{p1:{x:number,z:number},p2:{x:number,z:number}}|null} axisMm eje (respaldo si no casa ninguna clave)
+     * @param {{ attrs?: object }} [opts] atributos que se cambian SOLO en esta petición (p. ej. _PanelStock)
+     * @returns {Promise<{ ok: boolean, message?: string, idWall?: string, elements?: object[], anchors?: object[],
+     *          notes?: object[]|null, contextWalls?: number }>}
+     */
+    function previewWallFormworkAtk60(keys, axisMm, opts) {
+        const options = opts && typeof opts === 'object' ? opts : {};
+        const btn = document.getElementById('ma-stl-mode-formwork');
+        const url = btn ? btn.getAttribute('data-ma-formwork-url-atk60') : '';
+        if (!url) return Promise.resolve({ ok: false, message: 'no-url' });
+        const pick = function (fn) { return typeof fn === 'function' ? (fn() || []) : []; };
+        const isSpecial = typeof window.maStlDesing2WallIsSpecial === 'function'
+            ? window.maStlDesing2WallIsSpecial
+            : function (w) {
+                const a = w && w.Attributes ? w.Attributes : w;
+                return !!(a && (a.isSpecial === true || a.IsSpecial === true || a._IsFormwork === false || a._IsFormwork === 0));
+            };
+        const norm = function (raw) {
+            if (!raw) return null;
+            const lineId = raw.LineId != null ? raw.LineId : raw.id;
+            const wallGroupId = raw.WallGroupId != null ? raw.WallGroupId : raw.wallGroupId;
+            const wallId = lineId != null ? lineId : (raw.Id != null ? raw.Id : (raw.wallId != null ? raw.wallId : wallGroupId));
+            const attrs = raw.Attributes && typeof raw.Attributes === 'object' ? raw.Attributes : Object.assign({}, raw);
+            return Object.assign({}, raw, { Id: wallId, LineId: lineId, WallGroupId: wallGroupId != null ? wallGroupId : null, Attributes: attrs });
+        };
+        const unique = function (list) {
+            const out = [];
+            const seen = Object.create(null);
+            for (let i = 0; i < list.length; i++) {
+                const w = norm(list[i]);
+                if (!w) continue;
+                const k = String(w.LineId != null ? w.LineId : w.Id);
+                if (!k || seen[k]) continue;
+                seen[k] = true;
+                out.push(w);
+            }
+            return out;
+        };
+        let walls = unique(pick(window.maStlDesing2GetStraightWallsFromWallModelSource)).filter(function (w) { return !isSpecial(w); });
+        if (!walls.length) walls = unique(pick(window.maStlDesing2GetStraightWallsFromScene)).filter(function (w) { return !isSpecial(w); });
+        if (!walls.length) return Promise.resolve({ ok: false, message: 'no-walls' });
+        const built = typeof window.maStlDesing2BuildWallConnectionsPayload === 'function'
+            ? window.maStlDesing2BuildWallConnectionsPayload()
+            : null;
+        const items = buildAtk60IdsDetailed(walls, built && built.payload ? built.payload : null).idsDetailed;
+
+        const num = function (v) { const n = Number(v); return Number.isFinite(n) ? n : null; };
+        const segOf = function (it) {
+            const a = it && it.Attributes ? it.Attributes : {};
+            const s = [num(a.InicioX), num(a.InicioY), num(a.FinX), num(a.FinY)];
+            return s.every(function (v) { return v != null; }) ? s : null;
+        };
+        const isCurved = function (it) { return !!(it && it.Attributes && it.Attributes._TypeMesh === 'MuroCurvo'); };
+        const keyList = (Array.isArray(keys) ? keys : []).filter(function (k) { return k != null && k !== ''; }).map(String);
+        let target = -1;
+        for (let k = 0; k < keyList.length && target < 0; k++) {
+            for (let i = 0; i < items.length; i++) {
+                const it = items[i];
+                const a = it.Attributes || {};
+                if ([it.Id, it.LineId, a._idObject].some(function (v) { return v != null && String(v) === keyList[k]; })) {
+                    target = i;
+                    break;
+                }
+            }
+        }
+        if (target < 0 && axisMm && axisMm.p1 && axisMm.p2) {
+            const ax = num(axisMm.p1.x), az = num(axisMm.p1.z), bx = num(axisMm.p2.x), bz = num(axisMm.p2.z);
+            let best = 25 * 25;
+            for (let i = 0; i < items.length; i++) {
+                const s = segOf(items[i]);
+                if (!s || ax == null) continue;
+                const same = Math.pow(s[0] - ax, 2) + Math.pow(s[1] - az, 2) + Math.pow(s[2] - bx, 2) + Math.pow(s[3] - bz, 2);
+                const flip = Math.pow(s[0] - bx, 2) + Math.pow(s[1] - bz, 2) + Math.pow(s[2] - ax, 2) + Math.pow(s[3] - az, 2);
+                const d = Math.min(same, flip);
+                if (d < best) { best = d; target = i; }
+            }
+        }
+        if (target < 0) return Promise.resolve({ ok: false, message: 'no-target' });
+
+        const pointSeg = function (px, pz, s) {
+            const dx = s[2] - s[0], dz = s[3] - s[1];
+            const l2 = dx * dx + dz * dz;
+            let t = l2 < 1e-9 ? 0 : ((px - s[0]) * dx + (pz - s[1]) * dz) / l2;
+            t = Math.max(0, Math.min(1, t));
+            return Math.hypot(px - s[0] - t * dx, pz - s[1] - t * dz);
+        };
+        const touch = function (s1, s2) {
+            if (!s1 || !s2) return false;
+            const tol = 10;
+            return pointSeg(s1[0], s1[1], s2) <= tol || pointSeg(s1[2], s1[3], s2) <= tol
+                || pointSeg(s2[0], s2[1], s1) <= tol || pointSeg(s2[2], s2[3], s1) <= tol;
+        };
+        const keep = [target];
+        if (!isCurved(items[target])) {
+            const segs = items.map(segOf);
+            let front = [target];
+            for (let ring = 0; ring < 2; ring++) {
+                const next = [];
+                for (let f = 0; f < front.length; f++) {
+                    for (let i = 0; i < items.length; i++) {
+                        if (keep.indexOf(i) >= 0 || next.indexOf(i) >= 0 || isCurved(items[i])) continue;
+                        if (touch(segs[front[f]], segs[i])) next.push(i);
+                    }
+                }
+                for (let i = 0; i < next.length; i++) keep.push(next[i]);
+                front = next;
+            }
+        }
+        keep.sort(function (x, y) { return x - y; });
+        const subset = keep.map(function (i) {
+            if (i !== target || !options.attrs) return items[i];
+            const attrs = Object.assign({}, items[i].Attributes || {});
+            Object.keys(options.attrs).forEach(function (k) {
+                if (options.attrs[k] == null) delete attrs[k];
+                else attrs[k] = options.attrs[k];
+            });
+            return Object.assign({}, items[i], { Attributes: attrs });
+        });
+        const t = items[target];
+        const idWall = String(t.WallId != null ? t.WallId : (t.Id != null ? t.Id : t.LineId));
+        const body = new URLSearchParams();
+        body.set('IdsJson', JSON.stringify(subset));
+        body.set('Preview', 'true');
+        return fetch(url, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'X-Requested-With': 'XMLHttpRequest' },
+            body: body.toString(),
+        }).then(function (resp) {
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            return resp.json();
+        }).then(function (resp) {
+            if (!resp || resp.Exito !== true) return { ok: false, message: (resp && resp.Mensaje) || 'error' };
+            const payload = resp.ElementsForThreeJs || {};
+            const mine = function (x) { return x && x.IdWall != null && String(x.IdWall) === idWall; };
+            return {
+                ok: true,
+                idWall: idWall,
+                elements: (Array.isArray(payload.Elements) ? payload.Elements : []).filter(mine),
+                anchors: (Array.isArray(payload.Walls) ? payload.Walls : []).filter(mine),
+                /* null: el servidor publicado aún no tiene _PanelStock (falta recompilar). */
+                notes: Array.isArray(resp.PanelStockNotes) ? resp.PanelStockNotes.filter(mine) : null,
+                serverHasPreview: resp.Preview === true,
+                contextWalls: subset.length,
+                attrs: Object.assign({}, t.Attributes || {}),
+            };
+        });
+    }
+
+    window.maStlDesing2BuildAtk60IdsDetailed = buildAtk60IdsDetailed;
+    window.maStlDesing2PreviewWallFormworkAtk60 = previewWallFormworkAtk60;
+
     function wireFormworkButton() {
         const btn = document.getElementById('ma-stl-mode-formwork');
         if (!btn) return;
@@ -1372,256 +1794,9 @@
             //         console.error('No se pudo insertar GLB ATK-60:', msg);
             //     });
 
-            function toNum(v) {
-                const n = Number(v);
-                return Number.isFinite(n) ? n : null;
-            }
-
-            function pointXmm(p) {
-                if (!p || typeof p !== 'object') return null;
-                return toNum(p.xMm != null ? p.xMm : p.x);
-            }
-
-            function pointYmm(p) {
-                if (!p || typeof p !== 'object') return null;
-                return toNum(p.yMm != null ? p.yMm : p.y);
-            }
-
-            function pointZmm(p) {
-                if (!p || typeof p !== 'object') return null;
-                return toNum(p.zMm != null ? p.zMm : p.z);
-            }
-
-            function buildWallGeom(w) {
-                const attrs = (w && w.Attributes && typeof w.Attributes === 'object') ? w.Attributes : {};
-                const p1 = w && w.P1 ? w.P1 : attrs.p1;
-                const p2 = w && w.P2 ? w.P2 : attrs.p2;
-
-                const startXmm = pointXmm(p1) != null ? pointXmm(p1) : toNum(attrs.InicioX);
-                const startYmm = pointYmm(p1) != null ? pointYmm(p1) : toNum(attrs.InicioZ);
-                const startZmm = pointZmm(p1) != null ? pointZmm(p1) : toNum(attrs.InicioY);
-
-                const endXmm = pointXmm(p2) != null ? pointXmm(p2) : toNum(attrs.FinX);
-                const endYmm = pointYmm(p2) != null ? pointYmm(p2) : toNum(attrs.FinZ);
-                const endZmm = pointZmm(p2) != null ? pointZmm(p2) : toNum(attrs.FinY);
-
-                let lengthMm = null;
-                if (startXmm != null && startZmm != null && endXmm != null && endZmm != null) {
-                    const dx = endXmm - startXmm;
-                    const dz = endZmm - startZmm;
-                    lengthMm = Math.sqrt(dx * dx + dz * dz);
-                }
-
-                let widthMm = toNum(attrs._DataWith);
-                if (widthMm != null) widthMm = widthMm * 1000;
-                if (widthMm == null) widthMm = toNum(attrs.ThicknessMm);
-
-                let heightMm = toNum(attrs._DataHeight);
-                if (heightMm != null) heightMm = heightMm * 1000;
-                if (heightMm == null) heightMm = toNum(attrs.HeightMm);
-
-                return {
-                    Id: w && w.Id != null ? String(w.Id) : null,
-                    LineId: w && w.LineId != null ? String(w.LineId) : null,
-                    WallId: w && w.WallId != null ? String(w.WallId) : null,
-                    StartXmm: startXmm,
-                    StartYmm: startYmm,
-                    StartZmm: startZmm,
-                    EndXmm: endXmm,
-                    EndYmm: endYmm,
-                    EndZmm: endZmm,
-                    LengthMm: lengthMm,
-                    WidthMm: widthMm,
-                    HeightMm: heightMm,
-                };
-            }
-
-            const wallGeom = walls
-                .map(buildWallGeom)
-                .filter(function (g) {
-                    return g
-                        && (g.Id || g.LineId || g.WallId)
-                        && g.StartXmm != null
-                        && g.StartZmm != null
-                        && g.EndXmm != null
-                        && g.EndZmm != null;
-                });
-
-            // Recorte 450 mm en nudos: Atk60WallsRepository.SolveFromIdsJson
-            // (mismo código para Desing y AutoCAD). No recortar aquí.
-            for (let i = 0; i < wallGeom.length; i++) {
-                const g = wallGeom[i];
-                g.RawStartXmm = g.StartXmm;
-                g.RawStartZmm = g.StartZmm;
-                g.RawEndXmm = g.EndXmm;
-                g.RawEndZmm = g.EndZmm;
-                g.RawLengthMm = g.LengthMm;
-                g.TrimStartMm = 0;
-                g.TrimEndMm = 0;
-            }
-
-            const wallGeomById = Object.create(null);
-            function indexGeomKey(key, geom) {
-                if (key == null) return;
-                const k = String(key).trim();
-                if (!k) return;
-                wallGeomById[k] = geom;
-            }
-            for (let i = 0; i < wallGeom.length; i++) {
-                const g = wallGeom[i];
-                indexGeomKey(g.Id, g);
-                indexGeomKey(g.LineId, g);
-                indexGeomKey(g.WallId, g);
-            }
-
-            // Lista de envío al controlador con atributos normalizados desde geometría 3D real.
-            function cornerFacesForAxis(connections, axisId) {
-                const lines = connections && Array.isArray(connections.lines) ? connections.lines : [];
-                const id = axisId == null ? '' : String(axisId);
-                const out = [];
-                for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i];
-                    if (!line || String(line.wallRole || '') !== 'face') continue;
-                    if (String(line.linkOffsetFromLineId) !== id) continue;
-                    const p1 = line.p1 || {};
-                    const p2 = line.p2 || {};
-                    const x1 = toNum(p1.xMm != null ? p1.xMm : p1.x);
-                    const z1 = toNum(p1.zMm != null ? p1.zMm : p1.z);
-                    const x2 = toNum(p2.xMm != null ? p2.xMm : p2.x);
-                    const z2 = toNum(p2.zMm != null ? p2.zMm : p2.z);
-                    if (x1 == null || z1 == null || x2 == null || z2 == null) continue;
-                    let lengthMm = toNum(line.lengthMm);
-                    if (lengthMm == null) {
-                        const dx = x2 - x1;
-                        const dz = z2 - z1;
-                        lengthMm = Math.sqrt((dx * dx) + (dz * dz));
-                    }
-                    out.push({
-                        side: Number(line.numberWallFaceSideSign) < 0 ? -1 : 1,
-                        lengthMm: lengthMm,
-                        x1: x1,
-                        z1: z1,
-                        x2: x2,
-                        z2: z2,
-                    });
-                }
-                return out;
-            }
-
-            function planAxisIdNearWall(connections, startX, startZ, endX, endZ, fallbackId) {
-                const lines = connections && Array.isArray(connections.lines) ? connections.lines : [];
-                let bestId = null;
-                let best = 150 * 150;
-                for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i];
-                    if (!line || String(line.wallRole || '') !== 'axis') continue;
-                    const p1 = line.p1 || {};
-                    const p2 = line.p2 || {};
-                    const x1 = toNum(p1.xMm != null ? p1.xMm : p1.x);
-                    const z1 = toNum(p1.zMm != null ? p1.zMm : p1.z);
-                    const x2 = toNum(p2.xMm != null ? p2.xMm : p2.x);
-                    const z2 = toNum(p2.zMm != null ? p2.zMm : p2.z);
-                    if (x1 == null || z1 == null || x2 == null || z2 == null) continue;
-                    const same = ((startX - x1) * (startX - x1)) + ((startZ - z1) * (startZ - z1))
-                        + ((endX - x2) * (endX - x2)) + ((endZ - z2) * (endZ - z2));
-                    const flip = ((startX - x2) * (startX - x2)) + ((startZ - z2) * (startZ - z2))
-                        + ((endX - x1) * (endX - x1)) + ((endZ - z1) * (endZ - z1));
-                    const dist = same < flip ? same : flip;
-                    if (dist < best) {
-                        best = dist;
-                        bestId = line.id;
-                    }
-                }
-                return bestId != null ? bestId : fallbackId;
-            }
-
-            const idsDetailed = walls
-                .map(function (w) {
-                    const id = w && w.LineId != null
-                        ? String(w.LineId)
-                        : (w && w.Id != null ? String(w.Id) : '');
-                    if (!id) return null;
-
-                    const lineId = w && w.LineId != null ? String(w.LineId) : null;
-                    const wallId = w && w.WallId != null ? String(w.WallId) : null;
-                    const geom = wallGeomById[id] || wallGeomById[lineId] || wallGeomById[wallId] || null;
-                    const baseAttrs = (w && w.Attributes && typeof w.Attributes === 'object')
-                        ? Object.assign({}, w.Attributes)
-                        : Object.assign({}, w || {});
-
-                    if (typeof window.maStlDesing2PropSpacingMm === 'function') {
-                        const propSpacingMm = Number(window.maStlDesing2PropSpacingMm());
-                        if (Number.isFinite(propSpacingMm) && propSpacingMm > 0) {
-                            baseAttrs._PropSpacingMm = propSpacingMm;
-                        }
-                    }
-
-                    if (geom) {
-                        // Convención del backend: InicioY/FinY corresponden a Z en planta, InicioZ/FinZ a Y vertical.
-                        baseAttrs.InicioX = geom.StartXmm;
-                        baseAttrs.InicioY = geom.StartZmm;
-                        baseAttrs.InicioZ = geom.StartYmm != null ? geom.StartYmm : 0;
-                        baseAttrs.FinX = geom.EndXmm;
-                        baseAttrs.FinY = geom.EndZmm;
-                        baseAttrs.FinZ = geom.EndYmm != null ? geom.EndYmm : 0;
-
-                        // Mantener unidades legacy esperadas por C#.
-                        if (geom.LengthMm != null) baseAttrs._Datalong = geom.LengthMm / 1000;
-                        if (geom.WidthMm != null) baseAttrs._DataWith = geom.WidthMm / 1000;
-                        if (geom.HeightMm != null) baseAttrs._DataHeight = geom.HeightMm / 1000;
-
-                        const cx = (geom.StartXmm + geom.EndXmm) * 0.5;
-                        const cy = ((geom.StartYmm != null ? geom.StartYmm : 0) + (geom.EndYmm != null ? geom.EndYmm : 0)) * 0.5;
-                        const cz = (geom.StartZmm + geom.EndZmm) * 0.5;
-                        baseAttrs._XCoordinate = cx;
-                        baseAttrs._YCoordinate = cy;
-                        baseAttrs._ZCoordinate = cz;
-
-                        baseAttrs.__Source3D = true;
-                        baseAttrs.__Geom3D = {
-                            id: geom.Id,
-                            lineId: geom.LineId,
-                            wallId: geom.WallId,
-                            startXmm: geom.StartXmm,
-                            startYmm: geom.StartYmm,
-                            startZmm: geom.StartZmm,
-                            endXmm: geom.EndXmm,
-                            endYmm: geom.EndYmm,
-                            endZmm: geom.EndZmm,
-                            lengthMm: geom.LengthMm,
-                            rawStartXmm: geom.RawStartXmm,
-                            rawStartZmm: geom.RawStartZmm,
-                            rawEndXmm: geom.RawEndXmm,
-                            rawEndZmm: geom.RawEndZmm,
-                            rawLengthMm: geom.RawLengthMm,
-                            trimStartMm: geom.TrimStartMm,
-                            trimEndMm: geom.TrimEndMm,
-                        };
-                    }
-
-                    if (geom) {
-                        const axisId = planAxisIdNearWall(
-                            wallConnections,
-                            geom.StartXmm,
-                            geom.StartZmm,
-                            geom.EndXmm,
-                            geom.EndZmm,
-                            lineId || id
-                        );
-                        const cornerFaces = cornerFacesForAxis(wallConnections, axisId);
-                        if (cornerFaces.length) {
-                            baseAttrs.CornerFaces = cornerFaces;
-                        }
-                    }
-
-                    return {
-                        Id: id,
-                        LineId: lineId,
-                        WallGroupId: w && w.WallGroupId != null ? String(w.WallGroupId) : null,
-                        Attributes: baseAttrs,
-                    };
-                })
-                .filter(Boolean);
+            const builtIds = buildAtk60IdsDetailed(walls, wallConnections);
+            const wallGeom = builtIds.wallGeom;
+            const idsDetailed = builtIds.idsDetailed;
 
             const geomMatchedCount = idsDetailed.reduce(function (acc, item) {
                 const attrs = item && item.Attributes ? item.Attributes : null;

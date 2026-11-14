@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Desing.Repositories.Repository_Desing_2.Atk60;
 
 namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
 {
@@ -56,6 +57,260 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
                 : BuildLayoutForNormalizedHeight(target);
 
             return RemapLayoutToModuleLength(layout, moduleLengthMm, useAdjustable750);
+        }
+
+        /// <summary>
+        /// Igual que <see cref="ResolveForModule(double,int,bool,bool)"/>, pero respetando los paneles
+        /// que hay en obra para ese muro (<see cref="Atk60PanelStock"/>). Si el módulo normal usa un ancho
+        /// que no hay (o se pasa del máximo), se arma con columnas de pie de los anchos que sí hay,
+        /// las menos posibles. Si no hay combinación exacta, se deja el módulo normal y se avisa.
+        /// Sin regla (stock null) devuelve lo mismo que ResolveForModule.
+        /// </summary>
+        internal static Modulo270Layout ResolveForModuleStock(
+            double wallHeightMm,
+            int moduleLengthMm,
+            bool useAdjustable750,
+            bool verticalPanels,
+            Atk60PanelStock stock,
+            int faces)
+        {
+            var normal = ResolveForModule(wallHeightMm, moduleLengthMm, useAdjustable750, verticalPanels);
+            if (stock == null || stock.IsEmpty || normal == null || normal.Pieces == null || normal.Pieces.Count == 0)
+            {
+                return normal;
+            }
+
+            var normalPanels = Atk60PanelStock.PanelsByWidth(normal, faces);
+            if (stock.Fits(normalPanels))
+            {
+                stock.Consume(normalPanels);
+                return normal;
+            }
+
+            var reshaped = ReshapeWithStock(normal, moduleLengthMm, stock, faces);
+            if (reshaped != null)
+            {
+                stock.Consume(Atk60PanelStock.PanelsByWidth(reshaped, faces));
+                stock.ReplacedModules++;
+                return reshaped;
+            }
+
+            var target = (int)NormalizeTargetHeightMm(wallHeightMm);
+            var perColumn = BuildNarrowModuleVerticalStack(target, 300).Pieces.Count * Math.Max(1, faces);
+            var columns = DecomposeWithStock(moduleLengthMm, stock, perColumn);
+            if (columns == null)
+            {
+                stock.Notes.Add("sin-combinacion:" + moduleLengthMm.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                stock.Consume(normalPanels);
+                return normal;
+            }
+
+            var pieces = new List<Modulo270PieceLayout>();
+            var along = 0;
+            for (var c = 0; c < columns.Count; c++)
+            {
+                var stack = BuildNarrowModuleVerticalStack(target, columns[c]);
+                for (var p = 0; p < stack.Pieces.Count; p++)
+                {
+                    var piece = stack.Pieces[p];
+                    pieces.Add(PieceVertical(
+                        ResolveVerticalGlbCode(piece.PieceHeightMm, columns[c]),
+                        columns[c], piece.PieceHeightMm, along, piece.UpOffsetMm));
+                }
+
+                along += columns[c];
+            }
+
+            var layout = Build(target, pieces.ToArray());
+            stock.Consume(Atk60PanelStock.PanelsByWidth(layout, faces));
+            stock.ReplacedModules++;
+            return layout;
+        }
+
+        /// <summary>
+        /// Misma forma que el módulo normal, cambiando solo lo que no hay: cada banda de paneles de pie
+        /// se reparte otra vez en columnas de los anchos que hay, y cada panel tumbado de un ancho que no
+        /// hay se cambia por tumbados de los anchos que hay que suman lo mismo (0,90 → 0,60 + 0,30).
+        /// null si alguna banda no tiene combinación exacta.
+        /// </summary>
+        private static Modulo270Layout ReshapeWithStock(Modulo270Layout normal, int moduleLengthMm, Atk60PanelStock stock, int faces)
+        {
+            var perPiece = Math.Max(1, faces);
+            var taken = new Dictionary<int, int>();
+            var probe = new Atk60PanelStock();
+            foreach (var w in stock.ExcludedMm)
+            {
+                probe.ExcludedMm.Add(w);
+            }
+
+            Action syncProbe = () =>
+            {
+                probe.MaxPanels.Clear();
+                foreach (var kv in stock.MaxPanels)
+                {
+                    int t;
+                    taken.TryGetValue(kv.Key, out t);
+                    probe.MaxPanels[kv.Key] = Math.Max(0, stock.Remaining(kv.Key) - t);
+                }
+            };
+
+            var pieces = new List<Modulo270PieceLayout>();
+            var bands = new List<string>();
+            for (var i = 0; i < normal.Pieces.Count; i++)
+            {
+                var piece = normal.Pieces[i];
+                if (piece == null)
+                {
+                    continue;
+                }
+
+                var tumbado = string.Equals(piece.Orientation, "Tumbado", StringComparison.OrdinalIgnoreCase);
+                if (tumbado)
+                {
+                    syncProbe();
+                    var rows = DecomposeWithStock(piece.PieceHeightMm, probe, perPiece);
+                    if (rows == null)
+                    {
+                        return null;
+                    }
+
+                    var up = piece.UpOffsetMm;
+                    for (var r = 0; r < rows.Count; r++)
+                    {
+                        pieces.Add(PieceTumbado(ResolveVerticalGlbCode(piece.PieceWidthMm, rows[r]), rows[r], piece.PieceWidthMm, up));
+                        up += rows[r];
+                        int t;
+                        taken.TryGetValue(rows[r], out t);
+                        taken[rows[r]] = t + perPiece;
+                    }
+
+                    continue;
+                }
+
+                var key = piece.UpOffsetMm.ToString() + ":" + piece.PieceHeightMm.ToString();
+                if (bands.Contains(key))
+                {
+                    continue;
+                }
+
+                bands.Add(key);
+                var span = 0;
+                for (var j = 0; j < normal.Pieces.Count; j++)
+                {
+                    var other = normal.Pieces[j];
+                    if (other != null
+                        && !string.Equals(other.Orientation, "Tumbado", StringComparison.OrdinalIgnoreCase)
+                        && other.UpOffsetMm == piece.UpOffsetMm
+                        && other.PieceHeightMm == piece.PieceHeightMm)
+                    {
+                        span += other.PieceWidthMm;
+                    }
+                }
+
+                syncProbe();
+                var columns = DecomposeWithStock(span, probe, perPiece);
+                if (columns == null)
+                {
+                    return null;
+                }
+
+                var along = 0;
+                for (var c = 0; c < columns.Count; c++)
+                {
+                    pieces.Add(PieceVertical(
+                        ResolveVerticalGlbCode(piece.PieceHeightMm, columns[c]),
+                        columns[c], piece.PieceHeightMm, along, piece.UpOffsetMm));
+                    along += columns[c];
+                    int t;
+                    taken.TryGetValue(columns[c], out t);
+                    taken[columns[c]] = t + perPiece;
+                }
+            }
+
+            return pieces.Count == 0 ? null : Build(normal.CatalogHeightMm, pieces.ToArray());
+        }
+
+        /// <summary>
+        /// Anchos de columna que suman el módulo exacto con los paneles que hay: primero las menos
+        /// columnas y, a igualdad, los paneles más anchos. null si no hay combinación.
+        /// </summary>
+        private static List<int> DecomposeWithStock(int lengthMm, Atk60PanelStock stock, int panelsPerColumn)
+        {
+            if (lengthMm < 300)
+            {
+                return null;
+            }
+
+            var widths = new List<int>();
+            for (var i = 0; i < Atk60PanelStock.Widths.Length; i++)
+            {
+                if (stock.Allows(Atk60PanelStock.Widths[i]))
+                {
+                    widths.Add(Atk60PanelStock.Widths[i]);
+                }
+            }
+
+            if (widths.Count == 0)
+            {
+                return null;
+            }
+
+            var maxColumns = lengthMm / 300;
+            for (var n = 1; n <= maxColumns; n++)
+            {
+                var pick = new List<int>();
+                if (PickColumns(lengthMm, n, 0, widths, stock, panelsPerColumn, new Dictionary<int, int>(), pick))
+                {
+                    return pick;
+                }
+            }
+
+            return null;
+        }
+
+        private static bool PickColumns(
+            int remainingMm,
+            int columnsLeft,
+            int fromIndex,
+            List<int> widths,
+            Atk60PanelStock stock,
+            int panelsPerColumn,
+            Dictionary<int, int> used,
+            List<int> pick)
+        {
+            if (columnsLeft == 0)
+            {
+                return remainingMm == 0;
+            }
+
+            for (var i = fromIndex; i < widths.Count; i++)
+            {
+                var w = widths[i];
+                if (w > remainingMm)
+                {
+                    continue;
+                }
+
+                int n;
+                used.TryGetValue(w, out n);
+                var remaining = stock.Remaining(w);
+                if (remaining != int.MaxValue && (n + 1) * panelsPerColumn > remaining)
+                {
+                    continue;
+                }
+
+                used[w] = n + 1;
+                pick.Add(w);
+                if (PickColumns(remainingMm - w, columnsLeft - 1, i, widths, stock, panelsPerColumn, used, pick))
+                {
+                    return true;
+                }
+
+                pick.RemoveAt(pick.Count - 1);
+                used[w] = n;
+            }
+
+            return false;
         }
 
         private static bool IsTumbadoWhenVerticalOff(int moduleLengthMm)
@@ -463,6 +718,30 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
             }
 
             return columns;
+        }
+
+        /// <summary>
+        /// Panel igual que <paramref name="source"/> (misma altura, banda y orientación) pero de otro ancho,
+        /// desplazado <paramref name="offsetMm"/> desde su inicio: a lo largo del muro si es de pie, hacia
+        /// arriba si es tumbado. Lo usa <c>Atk60PanelReplace</c> para partir un panel (0,90 → 0,60 + 0,30).
+        /// </summary>
+        internal static Modulo270PieceLayout ResizePanelPiece(Modulo270PieceLayout source, int panelWidthMm, int offsetMm)
+        {
+            if (source == null)
+            {
+                return null;
+            }
+
+            if (string.Equals(source.Orientation, "Tumbado", StringComparison.OrdinalIgnoreCase))
+            {
+                return PieceTumbado(
+                    ResolveVerticalGlbCode(source.PieceWidthMm, panelWidthMm),
+                    panelWidthMm, source.PieceWidthMm, source.UpOffsetMm + offsetMm);
+            }
+
+            return PieceVertical(
+                ResolveVerticalGlbCode(source.PieceHeightMm, panelWidthMm),
+                panelWidthMm, source.PieceHeightMm, source.AlongOffsetMm + offsetMm, source.UpOffsetMm);
         }
 
         private static string ResolveVerticalGlbCode(int heightMm, int widthMm)

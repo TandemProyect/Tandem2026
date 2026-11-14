@@ -65,7 +65,8 @@ namespace Desing.Repositories.RepositoryAtk60
                 IdsJson = idsJson,
                 Walls = curved.Count == 0 ? walls : walls.Concat(curved).ToList(),
                 Modulos = modulos,
-                ElementsForThreeJs = elements
+                ElementsForThreeJs = elements,
+                PanelStockNotes = Atk60PanelStock.CollectNotes(allWalls)
             };
         }
 

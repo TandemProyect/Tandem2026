@@ -1480,7 +1480,11 @@ namespace Desing.Controllers
                 var elementsForThreeJs = solved.ElementsForThreeJs;
                 try
                 {
-                    SaveAtk60RequestDebugToTemp(jsonRaw, walls, modulos, elementsForThreeJs, buildStamp);
+                    // Vista previa del Asistente IA (un muro): no pisa el JSON de depuración del último Encofrar.
+                    if (idsRequest == null || !idsRequest.Preview)
+                    {
+                        SaveAtk60RequestDebugToTemp(jsonRaw, walls, modulos, elementsForThreeJs, buildStamp);
+                    }
                 }
                 catch
                 {
@@ -1501,7 +1505,9 @@ namespace Desing.Controllers
                         ? elementsForThreeJs.Elements.Count
                         : 0,
                     ElementsForThreeJs = elementsForThreeJs,
-                    Walls = walls
+                    Walls = walls,
+                    Preview = idsRequest != null && idsRequest.Preview,
+                    PanelStockNotes = solved.PanelStockNotes
                 });
                 result.MaxJsonLength = int.MaxValue;
                 return result;

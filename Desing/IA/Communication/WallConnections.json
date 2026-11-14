@@ -1,5 +1,5 @@
 {
-  "generatedAtUtc": "2026-11-13T21:21:34.256Z",
+  "generatedAtUtc": "2026-11-14T07:26:28.392Z",
   "pageUrl": "https://localhost:44384/Desing_2/Viewer?offerId=10002&designId=40019",
   "schema": "WallConnections.v1",
   "source": "Desing_2",
@@ -235,7 +235,7 @@
       },
       "lengthMm": 14850,
       "wallGroupId": 1,
-      "wallId": "13",
+      "wallId": "19",
       "wallRole": "axis",
       "_idObject": 19,
       "_TypeMesh": "Wall",
@@ -253,6 +253,7 @@
       "_XCoordinate": 15325,
       "_YCoordinate": 0,
       "_ZCoordinate": -250,
+      "_Tape_0": null,
       "_Tape_1": "Tipo 1",
       "_Tape_2": "Tipo 1",
       "_Idconnection_1": "T:13-19-22",
@@ -265,6 +266,8 @@
       "_CHeckPropOutside": true,
       "_CHeckPropInsideInf": false,
       "_CHeckPropOutsideInf": false,
+      "WallDbId": 30657,
+      "wallDbId": 30657,
       "IsSpecial": false,
       "isSpecial": false
     },
@@ -291,7 +294,7 @@
       },
       "lengthMm": 14850,
       "wallGroupId": 1,
-      "wallId": "13",
+      "wallId": "20",
       "wallRole": "face",
       "linkOffsetFromLineId": 19,
       "numberOffsetMm": 300,
@@ -312,6 +315,7 @@
       "_XCoordinate": 15325,
       "_YCoordinate": 0,
       "_ZCoordinate": 50,
+      "_Tape_0": null,
       "_Tape_1": "Tipo 1",
       "_Tape_2": "Tipo 1",
       "_Idconnection_1": "T:13-19-22",
@@ -324,6 +328,8 @@
       "_CHeckPropOutside": true,
       "_CHeckPropInsideInf": false,
       "_CHeckPropOutsideInf": false,
+      "WallDbId": 30658,
+      "wallDbId": 30658,
       "IsSpecial": false,
       "isSpecial": false
     },
@@ -350,7 +356,7 @@
       },
       "lengthMm": 14700,
       "wallGroupId": 1,
-      "wallId": "13",
+      "wallId": "21",
       "wallRole": "face",
       "linkOffsetFromLineId": 19,
       "numberOffsetMm": 300,
@@ -371,6 +377,7 @@
       "_XCoordinate": 15400,
       "_YCoordinate": 0,
       "_ZCoordinate": -550,
+      "_Tape_0": null,
       "_Tape_1": "Tipo 1",
       "_Tape_2": "Tipo 1",
       "_Idconnection_1": "T:13-19-22",
@@ -383,6 +390,8 @@
       "_CHeckPropOutside": true,
       "_CHeckPropInsideInf": false,
       "_CHeckPropOutsideInf": false,
+      "WallDbId": 30659,
+      "wallDbId": 30659,
       "IsSpecial": false,
       "isSpecial": false
     },
@@ -409,7 +418,7 @@
       },
       "lengthMm": 7250,
       "wallGroupId": 1,
-      "wallId": 1,
+      "wallId": "22",
       "wallRole": "axis",
       "_idObject": 22,
       "_TypeMesh": "Wall",
@@ -427,6 +436,7 @@
       "_XCoordinate": 7900,
       "_YCoordinate": 0,
       "_ZCoordinate": -3875,
+      "_Tape_0": null,
       "_Tape_1": "Tipo 1",
       "_Tape_2": "Tipo 1",
       "_Idconnection_1": null,
@@ -439,6 +449,8 @@
       "_CHeckPropOutside": true,
       "_CHeckPropInsideInf": false,
       "_CHeckPropOutsideInf": false,
+      "WallDbId": 30660,
+      "wallDbId": 30660,
       "IsSpecial": false,
       "isSpecial": false
     },
@@ -465,7 +477,7 @@
       },
       "lengthMm": 6950,
       "wallGroupId": 1,
-      "wallId": 1,
+      "wallId": "23",
       "wallRole": "face",
       "linkOffsetFromLineId": 22,
       "numberOffsetMm": 150,
@@ -486,6 +498,7 @@
       "_XCoordinate": 7750,
       "_YCoordinate": 0,
       "_ZCoordinate": -4025,
+      "_Tape_0": null,
       "_Tape_1": "Tipo 1",
       "_Tape_2": "Tipo 1",
       "_Idconnection_1": null,
@@ -498,6 +511,8 @@
       "_CHeckPropOutside": true,
       "_CHeckPropInsideInf": false,
       "_CHeckPropOutsideInf": false,
+      "WallDbId": 30655,
+      "wallDbId": 30655,
       "IsSpecial": false,
       "isSpecial": false
     },
@@ -524,7 +539,7 @@
       },
       "lengthMm": 6950,
       "wallGroupId": 1,
-      "wallId": 1,
+      "wallId": "24",
       "wallRole": "face",
       "linkOffsetFromLineId": 22,
       "numberOffsetMm": 150,
@@ -545,6 +560,7 @@
       "_XCoordinate": 8050,
       "_YCoordinate": 0,
       "_ZCoordinate": -4025,
+      "_Tape_0": null,
       "_Tape_1": "Tipo 1",
       "_Tape_2": "Tipo 1",
       "_Idconnection_1": null,
@@ -557,6 +573,8 @@
       "_CHeckPropOutside": true,
       "_CHeckPropInsideInf": false,
       "_CHeckPropOutsideInf": false,
+      "WallDbId": 30656,
+      "wallDbId": 30656,
       "IsSpecial": false,
       "isSpecial": false
     }
@@ -578,7 +596,7 @@
         23,
         24
       ],
-      "wallId": 1
+      "wallId": "24"
     }
   ],
   "nodes": [
@@ -1669,7 +1687,7 @@
   "generatedWallModel": {
     "mode": "wall3d",
     "system": "Atk-60",
-    "generatedAtUtc": "2026-11-13T21:21:34.255Z",
+    "generatedAtUtc": "2026-11-14T07:26:28.389Z",
     "counts": {
       "generatedMeshes": 4,
       "sourceLines": 6,

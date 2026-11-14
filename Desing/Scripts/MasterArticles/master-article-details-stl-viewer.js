@@ -8,7 +8,8 @@ import { LineMaterial } from '../Design/jsm/lines/LineMaterial.js';
 import { GLTFLoader } from '../Design/jsm/loaders/GLTFLoader.js';
 import { createDesing2WorkerTool } from './desing2-worker-tool.js?v=20261022-worker2d';
 import { createDesing2PillarTool } from './desing2-pillar-tool.js';
-import { mountWallEditForm } from './wall-edit-form.js?v=20261027a';
+import { mountWallEditForm } from './wall-edit-form.js?v=20261114h';
+import { mountWallAiChat, maStlWallAiUiTexts, maStlWallAiBootstrapCompact, maStlWallAiCompactTitle } from './wall-ai-assistant.js?v=20261114h';
 import { mountWallBulkList } from './wall-bulk-list.js?v=20261026p';
 import { mountDesignGroups } from './design-groups.js?v=20261023j';
 import { MaStlWallEditFinalize, MaStlWallStretchMath } from './ma-stl-wall-edit-finalize.js';
@@ -5174,6 +5175,11 @@ function bootMasterArticleDetailsStlViewer() {
         'wallDbId',
         'IsSpecial',
         'isSpecial',
+        /* Paneles que hay en obra (Asistente IA): { excludeMm:[900], maxMm:{ '900': 3 } }. Solo en sesión: no hay columna en BD. */
+        '_PanelStock',
+        /* Paneles concretos cambiados por otros (Asistente IA): [{ alongMm, upMm, pieceWidthMm, pieceHeightMm, orientation,
+           useMm:[600,300] }]. Solo en sesión (no hay columna en BD); «Encofrar» lo manda y el servidor lo respeta. */
+        '_PanelReplace',
     ];
 
     function maStlWallLineCopyAttrs(fromObj, toObj) {
@@ -7368,6 +7374,13 @@ function bootMasterArticleDetailsStlViewer() {
     const maStlDesing2Atk60ElementTemplatePromises = Object.create(null);
     let maStlDesing2Atk60WoodRemateMaterial = null;
     let maStlDesing2Atk60SampleGroup = null;
+    /* Encofrado temporal del Asistente IA (ver maStlWallAiShowTempFormwork). */
+    let maStlWallAiTempGroup = null;
+    let maStlWallAiTempInfo = null;
+    let maStlWallAiTempToken = 0;
+    /* Paneles resaltados por el Asistente IA: [{ mesh, material }] para devolver el material de antes. */
+    let maStlWallAiHighlightList = [];
+    let maStlWallAiHighlightMaterial = null;
 
     function maStlDesing2WorkerDeckMeshes() {
         const meshes = [];
@@ -7574,12 +7587,15 @@ function bootMasterArticleDetailsStlViewer() {
         maStlDesing2ManualArticleGroup.visible = maStlDesing2SpecialWallArticlesVisible();
     }
 
-    function maStlDesing2FormworkCountRows() {
-        const items = maStlDesing2LastAtk60PaintPayload && maStlDesing2LastAtk60PaintPayload.elements;
+    /** Piezas del último encofrado agrupadas por código. `filter(item)` opcional (p. ej. un muro, Asistente IA). */
+    function maStlDesing2FormworkCountRows(filter, list) {
+        const items = Array.isArray(list) ? list : (maStlDesing2LastAtk60PaintPayload && maStlDesing2LastAtk60PaintPayload.elements);
         if (!Array.isArray(items)) return [];
+        const keep = typeof filter === 'function' ? filter : null;
         const map = Object.create(null);
         for (let i = 0; i < items.length; i++) {
             const item = items[i] || {};
+            if (keep && !keep(item)) continue;
             let code = maStlDesing2Atk60CodeName(item.ElementCode);
             if (!code || /_PHENOLIC$/i.test(code) || /^MARK_/i.test(code)) continue;
             code = code.replace(/_FRAME$/i, '');
@@ -7605,7 +7621,305 @@ function bootMasterArticleDetailsStlViewer() {
         }));
     }
 
-    window.maStlDesing2FormworkCountRows = maStlDesing2FormworkCountRows;
+    window.maStlDesing2FormworkCountRows = function () { return maStlDesing2FormworkCountRows(); };
+
+    /**
+     * Acceso del Asistente IA (wall-ai-assistant.js) al último encofrado: mismas piezas y mismo
+     * endpoint (PreviewMaterialCount) que el popup «Cantidad de material», filtrables por IdWall.
+     * @param {Array<string|number>} idWallKeys claves candidatas del muro (en orden de preferencia)
+     * @param {{p1:{x:number,z:number},p2:{x:number,z:number}}|null} axisMm eje recto (respaldo geométrico)
+     */
+    function maStlWallAiFormworkAccess(idWallKeys, axisMm) {
+        const shell = document.getElementById('ma-stl-viewer-shell');
+        const keys = [];
+        (Array.isArray(idWallKeys) ? idWallKeys : []).forEach(function (k) {
+            if (k == null || k === '') return;
+            const s = String(k);
+            if (keys.indexOf(s) < 0) keys.push(s);
+        });
+        return {
+            idWallKeys: keys,
+            axisMm: axisMm || null,
+            previewUrl: shell ? (shell.getAttribute('data-ma-stl-material-count-preview-url') || '') : '',
+            hasAny: function () {
+                const items = maStlDesing2LastAtk60PaintPayload && maStlDesing2LastAtk60PaintPayload.elements;
+                return Array.isArray(items) && items.length > 0;
+            },
+            elements: function () {
+                const items = maStlDesing2LastAtk60PaintPayload && maStlDesing2LastAtk60PaintPayload.elements;
+                return Array.isArray(items) ? items : [];
+            },
+            anchors: function () {
+                const walls = maStlDesing2LastAtk60PaintPayload && maStlDesing2LastAtk60PaintPayload.walls;
+                return Array.isArray(walls) ? walls : [];
+            },
+            countRows: function (filter, list) { return maStlDesing2FormworkCountRows(filter, list); },
+            isEdited: function (id) { return !!maStlDesing2FormworkEditedKeys[String(id)]; },
+            /* Encofrado de SOLO este muro, sin pintar (vecinos como contexto de esquinas). opts.attrs cambia
+               atributos solo en esa petición (p. ej. { _PanelStock: {...} }). Ver maStlDesing2PreviewWallFormworkAtk60. */
+            previewWall: function (opts) {
+                if (typeof window === 'undefined' || typeof window.maStlDesing2PreviewWallFormworkAtk60 !== 'function') {
+                    return Promise.resolve({ ok: false, message: 'no-preview' });
+                }
+                return window.maStlDesing2PreviewWallFormworkAtk60(keys, axisMm || null, opts || {});
+            },
+            /* Cambia en la escena SOLO las piezas de ese IdWall y guarda los atributos en el muro. Devuelve lo
+               necesario para deshacer (piezas y atributos de antes). */
+            applyWall: function (idWall, items, attrs) {
+                return maStlWallAiApplyWallFormwork(keys, idWall, items, attrs);
+            },
+            wallAttr: function (key) {
+                const uds = maStlWallAiWallUds(keys);
+                for (let i = 0; i < uds.length; i++) {
+                    if (Object.prototype.hasOwnProperty.call(uds[i], key)) return uds[i][key];
+                }
+                return undefined;
+            },
+            /* Dibuja en el visor SOLO las piezas de este muro de una vista previa (temporal, no se guarda). */
+            showTempWall: function (previewRes) {
+                const r = previewRes || {};
+                return maStlWallAiShowTempFormwork(r.idWall, r.elements);
+            },
+            clearTempWall: function () { return maStlWallAiClearTempFormwork(); },
+            tempWallInfo: function () { return maStlWallAiTempInfo ? Object.assign({}, maStlWallAiTempInfo) : null; },
+            /* Resalta paneles de este muro ([{ code, alongMm, upMm }]); clearHighlight lo quita. Solo pantalla. */
+            highlightPanels: function (idWall, list) { return maStlWallAiHighlightPanels(idWall, list); },
+            clearHighlight: function () { return maStlWallAiClearPanelHighlight(); },
+            /* Mismo botón «Encofrar» de la barra (calcula todo el diseño); resuelve con desing2-formwork-settled. */
+            runFormwork: function () {
+                const btn = document.getElementById('ma-stl-mode-formwork');
+                if (!btn || btn.disabled) return null;
+                return new Promise(function (resolve) {
+                    const onSettled = function (ev) {
+                        document.removeEventListener('desing2-formwork-settled', onSettled);
+                        resolve(ev && ev.detail ? ev.detail : { ok: true });
+                    };
+                    document.addEventListener('desing2-formwork-settled', onSettled);
+                    btn.click();
+                });
+            },
+        };
+    }
+
+    /** userData del muro (eje en planta y sólidos 3D con el mismo _idObject) para las claves del Asistente IA. */
+    function maStlWallAiWallUds(keys) {
+        const out = [];
+        const want = Object.create(null);
+        (Array.isArray(keys) ? keys : []).forEach(function (k) { if (k != null && k !== '') want[String(k)] = true; });
+        const add = function (ud) { if (ud && typeof ud === 'object' && out.indexOf(ud) < 0) out.push(ud); };
+        Object.keys(want).forEach(function (k) {
+            maStlDesing2FindAxisLinesByWallKey(k).forEach(function (line) {
+                add(line && line.userData ? line.userData.maStlUserPlanLine : null);
+            });
+        });
+        if (scene) {
+            scene.traverse(function (obj) {
+                const ud = obj && obj.userData;
+                if (!ud || String(ud._TypeMesh || '').toLowerCase() !== 'wall') return;
+                const id = ud._idObject != null ? String(ud._idObject) : '';
+                if (id && want[id]) add(ud);
+            });
+        }
+        return out;
+    }
+
+    /*
+     * Asistente IA · encofrado TEMPORAL de un muro (14/11/2026): al pedir el recuento de un muro sin piezas en la
+     * escena se dibujan SOLO las piezas de ese IdWall que devuelve la vista previa (mismo cálculo que el recuento:
+     * vecinos como contexto de las esquinas, Preview=true, el servidor no guarda nada). Se pintan con el mismo
+     * pintor que «Encofrar» (maStlDesing2RenderAtk60Elements) y se pasan a un grupo propio fuera del grupo ATK-60:
+     *  - no cuentan como encofrado (HasFormworkPanels, botón «Cantidad de material», re-encofrar al editar),
+     *  - no se guardan (maStlDesing2CollectPersistArticles solo recorre el grupo ATK-60),
+     *  - no se pueden seleccionar ni editar (sin marcas maStlAtk60Element y sin raycast).
+     * No cambia `_IsFormwork` de ningún muro (ni en memoria ni en BD).
+     * Se quitan con un recuento nuevo, al cambiar de muro o cerrar el formulario (reset del chat), con «Encofrar»
+     * (pintar anclas con clearPrevious), al limpiar el encofrado (cambio de modo) y antes de aplicar cambios de la IA.
+     */
+
+    /**
+     * Asistente IA · resaltar paneles (14/11/2026): «¿cambio este?» pinta en naranja los paneles de un muro
+     * (encofrado de la escena o el temporal del recuento) que casan por IdWall, código y posición en el muro
+     * (LocalAlongMm / LocalUpMm del servidor, ±2 mm). Solo cambia el material en pantalla; no toca piezas,
+     * atributos ni nada que se guarde. Se quita con maStlWallAiClearPanelHighlight (al aplicar, cancelar,
+     * cambiar de muro o cerrar el formulario).
+     * @param {string|number} idWall
+     * @param {Array<{ code: string, alongMm: number, upMm?: number }>} list
+     */
+    function maStlWallAiHighlightPanels(idWall, list) {
+        maStlWallAiClearPanelHighlight();
+        const id = String(idWall);
+        const want = (Array.isArray(list) ? list : []).filter(function (it) {
+            return it && Number.isFinite(Number(it.alongMm));
+        });
+        if (!want.length) return { ok: false, matched: 0 };
+        const bare = function (c) { return String(c || '').replace(/^PANEL_/i, '').toUpperCase(); };
+        if (!maStlWallAiHighlightMaterial && typeof THREE !== 'undefined' && THREE.MeshStandardMaterial) {
+            maStlWallAiHighlightMaterial = new THREE.MeshStandardMaterial({
+                color: 0xff7a00, emissive: 0xff5a00, emissiveIntensity: 0.55, roughness: 0.55, metalness: 0.05,
+            });
+            maStlWallAiHighlightMaterial.userData = { maStlWallAiHighlight: true };
+        }
+        let matched = 0;
+        const visit = function (group) {
+            if (!group || !Array.isArray(group.children)) return;
+            for (let i = 0; i < group.children.length; i++) {
+                const root = group.children[i];
+                const ud = root && root.userData;
+                if (!ud || String(ud.maStlAtk60SampleWallId) !== id) continue;
+                const code = bare(ud.maStlAtk60ElementCode || ud.maStlWallAiTempCode);
+                const along = Number(ud.maStlAtk60LocalAlongMm);
+                const up = Number(ud.maStlAtk60LocalUpMm);
+                const hit = want.some(function (it) {
+                    return bare(it.code) === code
+                        && Math.abs(Number(it.alongMm) - along) <= 2
+                        && (!Number.isFinite(Number(it.upMm)) || !Number.isFinite(up) || Math.abs(Number(it.upMm) - up) <= 2);
+                });
+                if (!hit) continue;
+                matched++;
+                if (typeof root.traverse !== 'function') continue;
+                root.traverse(function (o) {
+                    if (!o || !o.isMesh || !maStlWallAiHighlightMaterial) return;
+                    maStlWallAiHighlightList.push({ mesh: o, material: o.material });
+                    o.material = maStlWallAiHighlightMaterial;
+                });
+            }
+        };
+        visit(maStlDesing2Atk60SampleGroup);
+        visit(maStlWallAiTempGroup);
+        return { ok: matched > 0, matched: matched };
+    }
+
+    function maStlWallAiClearPanelHighlight() {
+        const n = maStlWallAiHighlightList.length;
+        for (let i = 0; i < n; i++) {
+            const h = maStlWallAiHighlightList[i];
+            if (h && h.mesh && h.mesh.material === maStlWallAiHighlightMaterial) h.mesh.material = h.material;
+        }
+        maStlWallAiHighlightList = [];
+        return n > 0;
+    }
+
+    function maStlWallAiClearTempFormwork() {
+        maStlWallAiClearPanelHighlight();
+        maStlWallAiTempToken++;
+        const had = !!(maStlWallAiTempGroup && maStlWallAiTempGroup.children.length);
+        if (maStlWallAiTempGroup) {
+            for (let i = maStlWallAiTempGroup.children.length - 1; i >= 0; i--) {
+                maStlWallAiTempGroup.remove(maStlWallAiTempGroup.children[i]);
+            }
+        }
+        maStlWallAiTempInfo = null;
+        return had;
+    }
+
+    function maStlWallAiSyncTempVisibility() {
+        if (!maStlWallAiTempGroup) return;
+        maStlWallAiTempGroup.visible = !!(maStlDesing2Atk60SampleGroup ? maStlDesing2Atk60SampleGroup.visible : maStlDesing2SpecialWallArticlesVisible());
+    }
+
+    async function maStlWallAiShowTempFormwork(idWall, items) {
+        maStlWallAiClearTempFormwork();
+        const token = maStlWallAiTempToken;
+        const list = (Array.isArray(items) ? items : []).filter(function (e) {
+            return e && String(e.ElementCode || '').toUpperCase().indexOf('MARK_') !== 0;
+        });
+        if (!scene || !list.length) return { ok: false, inserted: 0, visible: false };
+        const sample = maStlDesing2EnsureAtk60SampleGroup();
+        if (!maStlWallAiTempGroup) {
+            maStlWallAiTempGroup = new THREE.Group();
+            maStlWallAiTempGroup.name = 'maStlWallAiTempFormwork';
+            maStlWallAiTempGroup.renderOrder = 140;
+            scene.add(maStlWallAiTempGroup);
+        }
+        const before = new Set(sample.children);
+        const payloadBefore = maStlDesing2LastAtk60PaintPayload;
+        const elementsBefore = payloadBefore.elements;
+        const run = maStlDesing2RenderAtk60Elements(list, { clearPrevious: false });
+        /* El pintor deja sus piezas como «último encofrado»: se devuelve el de antes (no es un Encofrar). */
+        const mine = maStlDesing2LastAtk60PaintPayload.elements;
+        let res = null;
+        try { res = await run; } finally {
+            if (maStlDesing2LastAtk60PaintPayload === payloadBefore && payloadBefore.elements === mine) {
+                payloadBefore.elements = elementsBefore;
+            }
+            maStlDesing2SyncMaterialCountButton();
+            maStlDesing2SyncWorkerVisibility();
+        }
+        const fresh = sample.children.filter(function (c) { return !before.has(c); });
+        if (token !== maStlWallAiTempToken) {
+            fresh.forEach(function (c) { sample.remove(c); });
+            return { ok: false, inserted: 0, visible: false, cancelled: true };
+        }
+        const noRay = function () {};
+        fresh.forEach(function (c) {
+            sample.remove(c);
+            c.traverse(function (o) {
+                const ud = o.userData || {};
+                if (ud.maStlAtk60Element || ud.maStlAtk60SamplePlaced) {
+                    ud.maStlWallAiTempCode = ud.maStlAtk60ElementCode || '';
+                    delete ud.maStlAtk60Element;
+                    delete ud.maStlAtk60SamplePlaced;
+                }
+                ud.maStlWallAiTempFormwork = true;
+                o.userData = ud;
+                o.raycast = noRay;
+            });
+            maStlWallAiTempGroup.add(c);
+        });
+        maStlWallAiSyncTempVisibility();
+        maStlWallAiTempInfo = { idWall: String(idWall), count: fresh.length };
+        return {
+            ok: fresh.length > 0,
+            inserted: res && res.inserted != null ? res.inserted : fresh.length,
+            objects: fresh.length,
+            visible: !!maStlWallAiTempGroup.visible,
+        };
+    }
+
+    /**
+     * Asistente IA: pinta las piezas nuevas de UN muro (las de antes de ese IdWall se quitan; el resto del
+     * encofrado no se toca) y escribe `attrs` en el muro (null = quitar). Devuelve { previous, previousAttrs }
+     * para deshacer con la misma función.
+     */
+    async function maStlWallAiApplyWallFormwork(keys, idWall, items, attrs) {
+        maStlWallAiClearTempFormwork();
+        maStlWallAiClearPanelHighlight();
+        const id = String(idWall);
+        const uds = maStlWallAiWallUds(keys);
+        const previousAttrs = {};
+        Object.keys(attrs || {}).forEach(function (k) {
+            const holder = uds.find(function (ud) { return Object.prototype.hasOwnProperty.call(ud, k); });
+            previousAttrs[k] = holder ? holder[k] : null;
+            uds.forEach(function (ud) {
+                if (attrs[k] == null) delete ud[k];
+                else ud[k] = JSON.parse(JSON.stringify(attrs[k]));
+            });
+        });
+        const prevAll = Array.isArray(maStlDesing2LastAtk60PaintPayload.elements)
+            ? maStlDesing2LastAtk60PaintPayload.elements.slice()
+            : [];
+        const isMine = function (e) { return !!(e && e.IdWall != null && String(e.IdWall) === id); };
+        const previous = prevAll.filter(isMine);
+        const others = prevAll.filter(function (e) { return !isMine(e); });
+        const group = maStlDesing2EnsureAtk60SampleGroup();
+        let removed = 0;
+        for (let i = group.children.length - 1; i >= 0; i--) {
+            const child = group.children[i];
+            if (child && child.userData && child.userData.maStlAtk60SampleWallId === id) {
+                group.remove(child);
+                removed++;
+            }
+        }
+        const fresh = Array.isArray(items) ? items.slice() : [];
+        let inserted = 0;
+        if (fresh.length) {
+            const res = await maStlDesing2RenderAtk60Elements(fresh, { clearPrevious: false });
+            inserted = res && res.inserted != null ? res.inserted : 0;
+        }
+        maStlDesing2LastAtk60PaintPayload.elements = others.concat(fresh);
+        maStlDesing2SyncMaterialCountButton();
+        return { ok: true, idWall: id, removed: removed, inserted: inserted, previous: previous, previousAttrs: previousAttrs };
+    }
 
     function maStlDesing2CountArticleCode(raw) {
         let code = maStlDesing2Atk60CodeName(raw);
@@ -7887,6 +8201,7 @@ function bootMasterArticleDetailsStlViewer() {
         const show = maStlDesing2SpecialWallArticlesVisible();
         if (maStlDesing2Atk60SampleGroup)
             maStlDesing2Atk60SampleGroup.visible = show;
+        if (maStlWallAiTempGroup) maStlWallAiTempGroup.visible = show;
         maStlWall3dSyncCornerGuideVisibility();
         maStlDesing2SyncManualArticleVisibility();
         maStlDesing2SyncMaterialCountButton();
@@ -8532,6 +8847,8 @@ function bootMasterArticleDetailsStlViewer() {
         maStlDesing2LastAtk60PaintPayload.walls = sourceAnchors.slice();
 
         if (clearPrevious) {
+            /* «Encofrar» empieza por aquí: fuera el encofrado temporal del Asistente IA. */
+            maStlWallAiClearTempFormwork();
             for (let i = sampleGroup.children.length - 1; i >= 0; i--) {
                 sampleGroup.remove(sampleGroup.children[i]);
             }
@@ -8690,6 +9007,7 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     function maStlDesing2ClearAtk60Visuals() {
+        maStlWallAiClearTempFormwork();
         maStlDesing2ShowPouredPhases(0);
         maStlDesing2LastAtk60PaintPayload = { walls: [], elements: [] };
         maStlDesing2SyncMaterialCountButton();
@@ -9042,6 +9360,9 @@ function bootMasterArticleDetailsStlViewer() {
                         maStlAtk60SampleWallId: item.IdWall != null ? String(item.IdWall) : null,
                         maStlAtk60FaceSign: maStlDesing2ToFiniteNumber(item.FaceSign),
                         maStlAtk60StrictPose: true,
+                        /* Posición del panel en el muro (la del servidor): para resaltarlo desde el Asistente IA. */
+                        maStlAtk60LocalAlongMm: maStlDesing2ToFiniteNumber(item.LocalAlongMm),
+                        maStlAtk60LocalUpMm: maStlDesing2ToFiniteNumber(item.LocalUpMm),
                     });
                     sampleGroup.add(clone);
                     inserted++;
@@ -9256,6 +9577,8 @@ function bootMasterArticleDetailsStlViewer() {
         window.maStlDesing2RenderAtk60Elements = maStlDesing2RenderAtk60Elements;
         window.maStlDesing2WallIsSpecial = maStlDesing2WallIsSpecial;
         window.maStlDesing2RenderManualWallArticles = maStlDesing2RenderManualWallArticles;
+        window.maStlWallAiClearTempFormwork = maStlWallAiClearTempFormwork;
+        window.maStlWallAiClearPanelHighlight = maStlWallAiClearPanelHighlight;
     }
 
     function maStlBuildWallDiagnosticsPayload(reason) {
@@ -33333,7 +33656,52 @@ let maStlWallApplyAllHeightMm = 0;
     function maStlWallInspectClosePopup() {
         const root = maStlWallInspectFormState.root;
         if (!root) return;
+        /* Asistente IA compacto: al cerrar vuelve a ser el formulario (próxima apertura normal). */
+        if (maStlWallFormApi && maStlWallFormApi.exitAiCompact) maStlWallFormApi.exitAiCompact(false);
         root.style.display = 'none';
+        /* Asistente IA: la conversación vive mientras el popup está abierto. */
+        if (maStlWallFormApi && maStlWallFormApi.resetAi) maStlWallFormApi.resetAi(null);
+    }
+
+    /**
+     * Contexto del muro recto para el Asistente IA (pestaña del popup «Modificar muro»).
+     * Fase 2: el intérprete lo recibe en `maStlWallAiHandleMessage(wallCtx, text)`.
+     */
+    function maStlWallAiBuildStraightContext() {
+        const st = maStlWallInspectFormState;
+        const ud = st.selectedUd || null;
+        const axisLine = st.selectedLine || (ud ? maStlWallInspectFindLineFromUd(ud) : null);
+        const axisUd = axisLine && axisLine.userData ? axisLine.userData.maStlUserPlanLine : null;
+        const src = axisUd || ud;
+        const keys = src ? maStlDesing2WallKeyList(src) : [];
+        const meters = function (inp) {
+            const mm = inp ? maStlParseLengthInputValueToMm(inp.value) : null;
+            return mm == null ? NaN : mm / 1000;
+        };
+        const h = st.heightInput ? Number.parseFloat(String(st.heightInput.value || '').trim().replace(',', '.')) : NaN;
+        return {
+            kind: 'straight',
+            wallKey: keys.length ? keys[0] : null,
+            wallKeys: keys,
+            wallId: src && src.wallId != null ? src.wallId : null,
+            wallGroupId: src && src.wallGroupId != null ? src.wallGroupId : null,
+            lengthM: meters(st.lengthInput),
+            thicknessM: meters(st.widthInput),
+            heightM: h,
+            tapeIni: st.tapeIniSelectedId || '',
+            tapeEnd: st.tapeSelectedId || '',
+            panel750: !!(st.panel750Checkbox && st.panel750Checkbox.checked),
+            verticalPanels: !!(st.verticalPanelsCheckbox && st.verticalPanelsCheckbox.checked),
+            ud: ud,
+            axisUd: axisUd,
+            /* IdWall del encofrado = _idObject del muro 3D (id ?? wallId ?? wallGroupId del eje). */
+            formwork: maStlWallAiFormworkAccess(src ? [
+                src.id != null ? src.id : (src.wallId != null ? src.wallId : src.wallGroupId),
+                src._idObject,
+                src.wallDbId,
+                src.WallDbId,
+            ] : [], src && src.p1Mm && src.p2Mm ? { p1: src.p1Mm, p2: src.p2Mm } : null),
+        };
     }
 
     function maStlCornerTypeFromTape(raw) {
@@ -33972,6 +34340,7 @@ let maStlWallApplyAllHeightMm = 0;
             },
             onAccept: function (values) { maStlWallInspectAccept(values); },
             onCancel: function () { maStlWallInspectClosePopup(); },
+            getAiContext: function () { return maStlWallAiBuildStraightContext(); },
         });
         const r = maStlWallFormApi.refs;
         maStlWallInspectFormState.root = r.root;
@@ -34144,6 +34513,10 @@ let maStlWallApplyAllHeightMm = 0;
         maStlWallInspectFormState.selectedUd = selection.ud;
         maStlWallInspectFormState.selectedLine = selection.axisLine || null;
         maStlWallInspectFormState.selectedMode = selection.mode || null;
+        if (maStlWallFormApi && maStlWallFormApi.resetAi) {
+            const aiKeys = maStlDesing2WallKeyList(selection.ud);
+            maStlWallFormApi.resetAi(aiKeys.length ? aiKeys[0] : 'sin-id');
+        }
 
         const hRaw = Number(selection.ud._DataHeight);
         const hUse = Number.isFinite(hRaw) && hRaw > 0
@@ -34236,6 +34609,11 @@ let maStlWallApplyAllHeightMm = 0;
             maStlWallInspectPaintTapes(propUd);
         }
 
+        if (maStlWallFormApi && maStlWallFormApi.isAiCompact && maStlWallFormApi.isAiCompact()) {
+            /* Asistente IA compacto abierto: sigue anclado a la derecha con el muro nuevo. */
+            maStlWallFormApi.refreshAiCompact();
+            return true;
+        }
         root.style.display = 'block';
         const vw = window.innerWidth || document.documentElement.clientWidth || 1280;
         const vh = window.innerHeight || document.documentElement.clientHeight || 720;
@@ -34892,6 +35270,120 @@ let maStlWallApplyAllHeightMm = 0;
         }
     }
 
+    /*
+     * Asistente IA del muro curvo: tercera pestaña creada por JS (mismo chat que el muro recto).
+     * Textos: data-msg-ai-tab / data-msg-ai-placeholder del modal si existen
+     * (resx en una fase posterior); si no, los de wall-ai-assistant.js.
+     */
+    let maStlCurvedWallAiChat = null;
+    /** Modo compacto del Asistente IA en el modal del muro curvo (maStlWallAiBootstrapCompact). */
+    let maStlCurvedWallAiCompact = null;
+
+    function maStlCurvedWallAiContext() {
+        const num = function (id) {
+            const el = maStlCurvedWallField(id);
+            const v = el ? Number.parseFloat(String(el.value || '').trim().replace(',', '.')) : NaN;
+            return Number.isFinite(v) ? v : NaN;
+        };
+        const editUd = maStlCurvedWallEditLine && maStlCurvedWallEditLine.userData
+            ? maStlCurvedWallEditLine.userData.maStlUserPlanLine
+            : null;
+        const keys = editUd ? maStlDesing2WallKeyList(editUd) : [];
+        const mod = /** @type {HTMLSelectElement|null} */ (document.getElementById('ma-stl-curved-wall-modulation'));
+        return {
+            kind: editUd ? 'curved' : 'curved-new',
+            wallKey: keys.length ? keys[0] : null,
+            wallKeys: keys,
+            outerDiameterM: num('ma-stl-curved-wall-diameter'),
+            thicknessM: num('ma-stl-curved-wall-thickness'),
+            heightM: num('ma-stl-curved-wall-height'),
+            modulationMm: mod ? Number(mod.value) : NaN,
+            modulationsMm: MA_STL_CURVED_WALL_MODULATIONS_MM.slice(),
+            /* Reparto con otra modulación (mismo cálculo que el servidor), con los datos del formulario. */
+            modulationInfo: function (panelMm) {
+                const d = maStlCurvedWallField('ma-stl-curved-wall-diameter');
+                const t = maStlCurvedWallField('ma-stl-curved-wall-thickness');
+                const dM = d ? maStlCurvedWallParseMeters(d.value) : null;
+                const fr = maStlCurvedWallParseFraction(maStlCurvedWallPortionValue());
+                if (dM == null || !fr) return null;
+                const mi = maStlCurvedWallModulationInfo(dM * 500, fr.num / fr.den, Number(panelMm),
+                    (maStlCurvedWallParseMeters(t ? t.value : '') || 0) * 1000);
+                return mi ? Object.assign({ full: fr.num >= fr.den }, mi) : null;
+            },
+            /* Pone la modulación en el formulario (se guarda con «Aceptar», como si la eligiera el usuario). */
+            setModulation: function (panelMm) {
+                if (!mod) return false;
+                mod.value = String(panelMm);
+                mod.dispatchEvent(new Event('change', { bubbles: true }));
+                return Number(mod.value) === Number(panelMm);
+            },
+            supports: maStlCurvedWallReadSupports(),
+            ud: editUd,
+            /* IdWall del curvo = String(wallId ?? id) (maStlCollectCurvedFormworkWalls). */
+            formwork: editUd ? maStlWallAiFormworkAccess([
+                editUd.wallId != null ? editUd.wallId : editUd.id,
+                editUd.id,
+            ], null) : null,
+        };
+    }
+
+    function maStlCurvedWallEnsureAiTab() {
+        if (maStlCurvedWallAiChat || !maStlCurvedWallModalEl) return maStlCurvedWallAiChat;
+        const tabWall = document.getElementById('ma-stl-curved-wall-tab-wall');
+        const tabList = tabWall ? tabWall.closest('ul') : null;
+        const paneWall = document.getElementById('ma-stl-curved-wall-pane-wall');
+        const content = paneWall ? paneWall.parentElement : null;
+        if (!tabList || !content) return null;
+        const label = maStlCurvedWallMsg('msgAiTab') || maStlWallAiUiTexts().tab;
+        const li = document.createElement('li');
+        li.className = 'nav-item';
+        li.setAttribute('role', 'presentation');
+        const btn = document.createElement('button');
+        btn.className = 'nav-link';
+        btn.id = 'ma-stl-curved-wall-tab-ai';
+        btn.type = 'button';
+        btn.setAttribute('data-bs-toggle', 'tab');
+        btn.setAttribute('data-bs-target', '#ma-stl-curved-wall-pane-ai');
+        btn.setAttribute('role', 'tab');
+        btn.setAttribute('aria-controls', 'ma-stl-curved-wall-pane-ai');
+        btn.setAttribute('aria-selected', 'false');
+        btn.textContent = label;
+        li.appendChild(btn);
+        tabList.appendChild(li);
+        const pane = document.createElement('div');
+        pane.className = 'tab-pane fade';
+        pane.id = 'ma-stl-curved-wall-pane-ai';
+        pane.setAttribute('role', 'tabpanel');
+        pane.setAttribute('aria-labelledby', 'ma-stl-curved-wall-tab-ai');
+        content.appendChild(pane);
+        const texts = {};
+        if (maStlCurvedWallMsg('msgAiTab')) texts.tab = maStlCurvedWallMsg('msgAiTab');
+        if (maStlCurvedWallMsg('msgAiPlaceholder')) texts.placeholder = maStlCurvedWallMsg('msgAiPlaceholder');
+        /* Mensaje inicial: siempre el saludo por hora (sin data-msg-ai-intro). */
+        maStlCurvedWallAiChat = mountWallAiChat(pane, {
+            height: 'min(300px, 45vh)',
+            texts: texts,
+            getContext: maStlCurvedWallAiContext,
+        });
+        btn.addEventListener('shown.bs.tab', function () {
+            if (maStlCurvedWallAiChat) maStlCurvedWallAiChat.focus();
+        });
+        /* Micrófono: se para al salir de la pestaña IA (también al volver del compacto); al cerrar, reset(null). */
+        btn.addEventListener('hide.bs.tab', function () {
+            if (maStlCurvedWallAiChat && maStlCurvedWallAiChat.stopVoice) maStlCurvedWallAiChat.stopVoice(false);
+        });
+        /* Modo compacto (US 14/11/2026): la pestaña IA ancla el modal a la derecha del visor, sin backdrop. */
+        maStlCurvedWallAiCompact = maStlWallAiBootstrapCompact(maStlCurvedWallModalEl, {
+            chat: maStlCurvedWallAiChat,
+            aiTabBtn: btn,
+            getTitle: function () { return maStlWallAiCompactTitle(maStlCurvedWallAiContext()); },
+        });
+        maStlCurvedWallModalEl.addEventListener('hidden.bs.modal', function () {
+            if (maStlCurvedWallAiChat) maStlCurvedWallAiChat.reset(null);
+        });
+        return maStlCurvedWallAiChat;
+    }
+
     /** Pestaña del formulario: 'wall' (medidas) o 'supports' (ménsulas y puntales). */
     function maStlCurvedWallShowTab(which) {
         const btn = document.getElementById(which === 'supports' ? 'ma-stl-curved-wall-tab-supports' : 'ma-stl-curved-wall-tab-wall');
@@ -35022,7 +35514,17 @@ let maStlWallApplyAllHeightMm = 0;
             if (mod) mod.value = String(maStlCurvedWallModulationMmOf({ _CurveModulationMm: prev ? prev.modulationMm : null }));
             maStlCurvedWallWriteSupports(prev ? prev.supports : null);
         }
-        maStlCurvedWallShowTab('wall');
+        const aiChat = maStlCurvedWallEnsureAiTab();
+        if (aiChat) {
+            const aiKeys = editUd && maStlCurvedWallEditLine ? maStlDesing2WallKeyList(editUd) : [];
+            aiChat.ensureContext(aiKeys.length ? aiKeys[0] : 'nuevo');
+        }
+        if (maStlCurvedWallAiCompact && maStlCurvedWallAiCompact.isCompact()) {
+            /* Asistente IA compacto abierto: se queda en la conversación (del muro nuevo). */
+            maStlCurvedWallAiCompact.refreshTitle();
+        } else {
+            maStlCurvedWallShowTab('wall');
+        }
         maStlCurvedWallShowError('');
         maStlCurvedWallSyncInner();
         modal.show();
@@ -37913,6 +38415,8 @@ let maStlWallApplyAllHeightMm = 0;
         window.maStlDesing2RenderAtk60Elements = maStlDesing2RenderAtk60Elements;
         window.maStlDesing2WallIsSpecial = maStlDesing2WallIsSpecial;
         window.maStlDesing2RenderManualWallArticles = maStlDesing2RenderManualWallArticles;
+        window.maStlWallAiClearTempFormwork = maStlWallAiClearTempFormwork;
+        window.maStlWallAiClearPanelHighlight = maStlWallAiClearPanelHighlight;
     }
 
     function applySceneBackgroundAndClearColor() {

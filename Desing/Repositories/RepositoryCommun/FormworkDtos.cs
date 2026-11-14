@@ -20,6 +20,8 @@ namespace Desing.Repositories.RepositoryCommun
     public sealed class Desing2WallIdsRequest
     {
         public string IdsJson { get; set; }
+        /// <summary>Asistente IA: cálculo silencioso de un muro. No guarda el JSON de depuración.</summary>
+        public bool Preview { get; set; }
     }
 
     public sealed class Desing2FormworkWallDto
@@ -79,6 +81,8 @@ namespace Desing.Repositories.RepositoryCommun
         public List<Desing2FormworkWallDto> Walls { get; set; }
         public List<ModulosAtk60Wall> Modulos { get; set; }
         public Atk60ThreeJsPaintPayload ElementsForThreeJs { get; set; }
+        /// <summary>Muros con _PanelStock: paneles usados de cada ancho y avisos (Asistente IA).</summary>
+        public List<object> PanelStockNotes { get; set; }
     }
 
     public sealed class Atk60WallPaintAnchor

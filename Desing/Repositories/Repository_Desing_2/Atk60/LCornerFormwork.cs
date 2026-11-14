@@ -2046,7 +2046,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             bool showPrimary,
             bool showOpposite)
         {
-            var layout = Modulo270HeightPanelCatalog.ResolveForModule(through.HeightMm, width, true, true);
+            var layout = Modulo270HeightPanelCatalog.ResolveForModuleStock(
+                through.HeightMm, width, true, true, Atk60PanelStock.For(through.Wall), (showPrimary ? 1 : 0) + (showOpposite ? 1 : 0));
             if (layout == null || layout.Pieces == null)
             {
                 return;
@@ -2688,7 +2689,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             var woodInside = remateMm > 10;
             var showPrimary = exteriorPrimary;
             var showOpposite = !exteriorPrimary;
-            var layout = Modulo270HeightPanelCatalog.ResolveForModule(run.HeightMm, moduleMm, true, true);
+            var layout = Modulo270HeightPanelCatalog.ResolveForModuleStock(
+                run.HeightMm, moduleMm, true, true, Atk60PanelStock.For(run.Wall), (showPrimary ? 1 : 0) + (showOpposite ? 1 : 0));
             var usedMm = LayoutSpanMm(layout);
             if (usedMm < 1d)
             {
@@ -3114,7 +3116,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             for (var w = 0; w < widths.Count; w++)
             {
                 var width = widths[w];
-                var layout = Modulo270HeightPanelCatalog.ResolveForModule(run.HeightMm, width, true, true);
+                var layout = Modulo270HeightPanelCatalog.ResolveForModuleStock(
+                    run.HeightMm, width, true, true, Atk60PanelStock.For(run.Wall), 2);
                 if (layout != null && layout.Pieces != null && layout.Pieces.Count > 0)
                 {
                     for (var pi = 0; pi < layout.Pieces.Count; pi++)

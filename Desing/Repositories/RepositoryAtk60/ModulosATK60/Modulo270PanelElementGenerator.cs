@@ -36,7 +36,8 @@ namespace Desing.Repositories.RepositoryAtk60.ModulosATK60
             return Atk60ModuleAssembly.Build(
                 wall, anchor, moduleCount, moduleLengthMm, startAlongMm,
                 moduleIndexOffset, moduleCountInWall, suppressLastEndJoint, false, trimStartTie, trimEndTie,
-                trimStartJointMm, trimEndJointMm, skipStartTie, skipFreeEndTie);
+                trimStartJointMm, trimEndJointMm, skipStartTie, skipFreeEndTie,
+                false, true);
         }
 
         public static List<Atk60ElementPaintItem> BuildRemate(

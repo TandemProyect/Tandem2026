@@ -289,3 +289,84 @@ Paso 5, **encofrado del muro curvo** (13/11/2026, boceto del usuario; revisado a
 - **Ménsulas y puntales (13/11/2026, 12:15).** Mismos atributos, columnas y piezas que el muro recto: `_CHeckBracketInside/Outside` (`Is_CheckBracket*`), `_CHeckPropInside/Outside` (puntales superiores) y `_CHeckPropInsideInf/OutsideInf` (inferiores) en `TSql_DesignWall`, y `_PropSpacingMm` de Configuración; sin cambios en BD. Cara exterior = fuera del anillo (normal del sector); interior = hacia el centro. **Cantidad** = la del muro recto sobre el largo desarrollado de la cara exterior L = N · 2·R·tan(θ/2): ménsulas 2 por tramo de 2,40 m (resto ≥ 1,20 → 2; ≥ 0,60 → 1; `WorkingBracket.StationCount`), puntales ⌈L / separación máx.⌉ (2,40 m por defecto; `PushPullProp.MaxSpacingMm`), solo con muro de 2,00 m o más (como el recto). Como mucho uno por sector, repartidos a paso constante (sector ⌊(k + ½)·N / n⌋), sin duplicados ni huecos dobles. **Posición** en el sector (tramo recto de un panel), perpendicular al panel (radial): ménsula en el centro del panel (b/2), a altura − 300; puntal en el alojamiento a 50 mm del canto de inicio (NEVI 2.9), mismas piezas por altura (`PartsForHeight`). Sin madera de protección (solo la lleva el primer muro recto). **Cara interior**: el pie va hacia el centro; cabe si r·cos(θ/2) − 120 − vuelo > 0 y la cuerda entre vecinos es ≥ 0,40 m (vuelo ménsula 1,0 m; puntal 1,6 m del h270 o 0,6 · altura). Si no cabe, no se pone y el formulario y Encofrar avisan (`SupportsNoRoom`). Código: `CurvedWallFormwork.ResolveSupports`, `WorkingBracket.PlaceAt`, `PushPullProp.PlaceAt` (nuevos, el recto no cambia). **Ø 10 / 0,30 / 2,70 / 0,90:** L = 31 524 mm → **26 ménsulas** y **14 puntales** por cara (cada puntal: cuerpo HTipo1 + tubo H0_2270; con inferior, H0_237 + H0_203); interior cabe (pie del puntal a 2,94 m del centro). Con 1/2: 14 y 7. Ø 4 con 1,20: 8 y 6 por fuera; por dentro no caben.
 - **Límites.** Tape del extremo perpendicular al panel, no radial; elegido con el espesor real (0,30) mientras los paneles del sector extremo están a 324,1 mm (24,1 mm de diferencia en la cara interior del extremo). Tirantes perpendiculares a los dos paneles (paralelos a la bisectriz), no estrictamente radiales. Ménsulas y puntales a una por sector como mucho (con modulación pequeña y Ø grande se reparten igual) y vuelo estimado para la comprobación de la cara interior. Remate de más de 0,15 (Ø pequeño con panel ancho, p. ej. Ø 4 con 1,20: exterior 456,9 mm): `EndFiller` lo topa en 0,15 y el formulario y Encofrar avisan. Muro de menos de 0,30 en porciones: en el primer y último sector la regla del tablón de cierre también quita el tirante del canto de la junta (pendiente si se usa). Más de 90° por sector o sin sitio para un panel (1/33 de Ø 10): no se encofra. Fases: el curvo solo entra con «Todo».
 - **Verificación.** Banco .NET con el código del servidor: 74 casos de regresión (L, T, X, rectos, tapes, variantes) idénticos byte a byte; recto + curvo en la misma petición = recto solo + curvo solo. Planta y 3D renderizados desde la salida del servidor.
+
+## 9. Encofrado de un solo muro y paneles que no hay (13/11/2026, Asistente IA)
+
+### 9.1 Calcular solo un muro (PASO 1)
+
+Cuando el Asistente IA pide el material de un muro que no tiene piezas pintadas (diseño sin encofrar, o muro nuevo o modificado después del último Encofrar), ya **no se encofra todo el diseño**: se calcula **solo ese muro** y **no se pinta nada**.
+
+- **Cliente** (`desing2-stl-viewer-toolbar-wiring.js`): `window.maStlDesing2PreviewWallFormworkAtk60(keys, axisMm, { attrs })`.
+  - Arma el mismo `IdsJson` que Encofrar (`buildAtk60IdsDetailed`, extraído de `wireFormworkButton` sin cambiar su resultado).
+  - Elige el muro por `Id` / `LineId` / `_idObject` (si no, por el eje ± 25 mm).
+  - Envía ese muro y sus **vecinos a 2 saltos** (muros que se tocan, tolerancia 10 mm; los curvos nunca son vecinos).
+  - Hace POST con `Preview=true` y se queda con las piezas cuyo `IdWall` es el del muro.
+  - No toca la escena, no persiste parejas de líneas, no fusiona colineales y no guarda el diseño (los pasos previos de Encofrar).
+  - Sí llama a `maStlDesing2BuildWallConnectionsPayload()`, igual que Encofrar.
+- **Decisión: vecinos como contexto + filtro por `IdWall`, y no el muro aislado.**
+  - Un muro aislado se recortaría como extremo libre (tapes) y perdería las piezas de esquina L/T/X que le asigna el cálculo.
+  - Con vecinos de contexto, sus recortes y esquinas salen como en el diseño completo.
+  - Con 1 salto no basta: la T/X y el «tipo 2» del vecino dependen del vecino del vecino.
+- **Verificación** (bench .NET con el solver real, 74 casos de `pt51`): subconjunto de anillo 2 frente al diseño completo, recuento por muro idéntico en **126/126** muros.
+- **Limitaciones en esquinas:**
+  - Una pieza compartida cuenta en el muro al que la asignó el cálculo (igual que antes).
+  - Un vecino a más de 2 saltos que cambie la esquina (muy raro) no se ve.
+  - Si el muro editado aún no se ha guardado ni sincronizado con el modelo, se usa lo que haya en `maStlDesing2GetStraightWallsFromWallModelSource` / escena.
+- **Muro curvo:** es independiente (`CurvedWallFormwork`), así que se envía solo.
+- **Servidor** (aditivo):
+  - `Desing2FormworkIdsRequestDto.Preview` (bool): si es true, no se escribe el JSON de depuración del último Encofrar (`SaveAtk60RequestDebugToTemp`).
+  - La respuesta añade `Preview` y `PanelStockNotes`.
+  - Sin `Preview` todo sale igual que antes: regresión de 74 casos con salida byte a byte idéntica y 13 curvos idénticos.
+- **Si el muro ya tiene piezas pintadas**, el asistente usa esas piezas (como antes) y no calcula nada.
+
+### 9.2 Paneles que no hay en obra: `_PanelStock` (PASO 2)
+
+**Regla por muro** en el atributo `_PanelStock` (en `IdsJson` → `Attributes`), por ejemplo `{ "excludeMm": [900], "maxMm": { "750": 2 } }`:
+
+- `excludeMm`: anchos que no se usan.
+- `maxMm`: paneles de ese ancho como mucho en el muro, contando las dos caras.
+
+Sin el atributo, el resultado es idéntico al de antes. La clase es `Repository_Desing_2/Atk60/PanelStock.cs` (`Atk60PanelStock`, nuevo; hay que añadirlo a `Design.csproj`).
+
+**Dónde se aplica:**
+- Tramo recto: `Modulo270HeightPanelCatalog.ResolveForModule` → `ReshapeWithStock`.
+  - Mantiene la forma del módulo: filas tumbadas de 0,90 → 0,60 + 0,30; columnas verticales 2,70 / 2,40 / 1,20 con el mismo apilado.
+  - Se reparte con los anchos permitidos (de mayor a menor, con vuelta atrás). Grapas, tirantes y rigidizadores siguen el nuevo reparto (`PanelClamp.PlaceOnModule`, `PlaceLayoutUnions`).
+  - Las dos caras van enfrentadas (una llamada a `Atk60ModuleAssembly.Build` pone las dos), así que `maxMm` se consume por pares.
+- Paneles de esquina L / cara E / hueco de esquina en `LCornerFormwork`.
+- **No se aplica a:**
+  - Tapes (`ExactWidthEndTape`): el tipo de tape exige el ancho exacto, así que un 0,30 de tape se queda y el asistente lo explica.
+  - Tablones/remates.
+  - El muro curvo, que tiene un solo ancho: ahí se cambia la modulación.
+- **Sin combinación posible** (p. ej. un módulo de 0,75 solo con 0,30): se deja el módulo original y se anota `sin-combinacion:<L>` en `PanelStockNotes[].Notes`.
+  - El asistente explica el hueco que quedaría y la compensación del manual (§2, 3.2): 0–5 cm taco y grapa regulable · 5–18 cm compensador 5–18 con rigidizadores · 8–30 cm compensador 8–30 con rigidizadores 0,75 · más de 30 cm nada del manual.
+  - En Desing el remate de madera sigue topado en 0,15.
+- **Respuesta:** `PanelStockNotes[]` = `{ IdWall, ExcludedMm, MaxPanels, UsedPanels, ReplacedModules, Notes }`.
+- **Pruebas:** bench de 52 casos de stock (`/workspace/ia/p6/stock/run.txt`): cobertura igual por cara, sin huecos nuevos y el resto de muros idénticos. MIX_L150 muro 1 sin 0,90: 12 × 0,90 → 12 × 0,75 + 4 × 0,45 (143 → 171 piezas).
+- **Persistencia:** `_PanelStock` se guarda en el `userData` del muro (eje y sólido 3D) durante la sesión. `TSql_DesignWall` no tiene columna JSON libre, así que **no se guarda en BD**.
+  - **Propuesta (no creada):** `ALTER TABLE dbo.TSql_DesignWall ADD TextPanelStockJson nvarchar(max) NULL;`, más lectura y escritura en el guardado del diseño, como `NumberCurveModulation`.
+
+### 9.3 Muro curvo sin un ancho
+
+La modulación es un único ancho (`_CurveModulationMm`): 1,05 = 0,75 + 0,30 y 1,20 = 0,90 + 0,30.
+
+- Si la orden lo afecta, el asistente propone la modulación válida más cercana, con preferencia por remate exterior ≤ 0,15 e interior ≥ 0,05; en empate, la menor.
+  - Muestra paneles por cara, giro y remates de ahora y de la propuesta (`maStlCurvedWallModulationInfo`) y la diferencia de material (vista previa con `_CurveModulationMm`).
+  - Ejemplo, c3 (R 5 m, 1/4, e 0,30): 0,90 → 0,75 da 9 paneles por cara, 10,00°, remates 124,9 / 69,3 mm.
+- Al aplicar se cambia la modulación del formulario y se repinta ese muro. Se guarda con «Aceptar».
+
+### 9.4 Cambiar paneles concretos: `_PanelReplace` (14/11/2026, cambio guiado del Asistente IA)
+
+«De 13 paneles de 2,70×0,90 solo tengo 10»: el usuario elige qué paneles cambia y por qué combinación. Atributo del muro (en `IdsJson` → `Attributes`), una lista de reglas:
+
+`[ { "alongMm": 4500, "upMm": 0, "pieceWidthMm": 900, "pieceHeightMm": 2700, "orientation": "Vertical", "useMm": [600, 300] } ]`
+
+- `alongMm`, `upMm`, `pieceWidthMm`, `pieceHeightMm`, `orientation`: los del panel que devuelve el servidor (`LocalAlongMm`, `LocalUpMm`, `PieceWidthMm`, `PieceHeightMm`, `Orientation`). Casa con ±2 mm a lo largo y en altura.
+- `useMm`: anchos de los paneles nuevos en orden desde el inicio del panel (de pie: a lo largo del muro; tumbado: de abajo arriba). Tienen que ser del catálogo y sumar el ancho del panel; si no, la regla se ignora.
+- Clase `Repository_Desing_2/Atk60/PanelReplace.cs` (`Atk60PanelReplace`, nuevo; añadido a `Design.csproj`) + `Modulo270HeightPanelCatalog.ResizePanelPiece` (nuevo, mismo alto/banda/orientación con otro ancho). Enganche en `Atk60ModuleAssembly.Build` solo con `applyPanelStock` (tramo recto principal): por módulo, `moduleLayout = replace.Apply(layout, moduleBaseAlongMm)`; el panel se parte en su sitio y **grapas (`PanelClamp.PlaceOnModule`), rigidizadores, tirantes (`FormTie`) y puntales** se calculan con el módulo nuevo. Sin reglas que casen es el mismo objeto `layout` (no se copia).
+- Las dos caras van juntas (una regla cambia la pareja). No se aplica a esquinas L / cara E / hueco de esquina, tapes, tablones ni curvo: ahí la regla no casa y el panel se queda; el asistente lo detecta con una vista previa de sonda y no ofrece esos paneles.
+- Con `_PanelStock` a la vez: primero el stock rehace el módulo y después se cambian los paneles que casen (el consumo de `maxMm` se cuenta antes del cambio).
+- Sin respuesta nueva: el cliente comprueba en `ElementsForThreeJs` que el panel ya no está. Sin DTO ni controlador nuevos.
+- **Regresión**: 74 rectos + 13 curvos byte-idénticos sin el atributo (`/workspace/ia/p13/regress.sh`).
+- **Ejemplo** (L 2,35/1,50 con el muro 4 de 6,70 m: 13 × 2,70×0,90 = 6 parejas + 1 de esquina): parejas en 3,60 y 4,50 → 0,45 + 0,45: 0,90 13 → 9, 0,45 0 → 8, grapas 48 → 60 (3 por junta nueva y cara), tuercas 28 → 36, barras 0,80 14 → 18; puntales 8 → 6 (los coloca `PushPullProp` según los paneles, igual que con `_PanelStock`). La regla del panel de esquina (−900) no hace nada. Los demás muros, idénticos.
+- **Persistencia**: solo en el `userData` del muro durante la sesión (no hay columna). **Propuesta (no creada):** `ALTER TABLE dbo.TSql_DesignWall ADD TextPanelReplaceJson nvarchar(max) NULL;` (o una sola columna JSON para `_PanelStock` y `_PanelReplace`), más lectura y escritura en el guardado del diseño.

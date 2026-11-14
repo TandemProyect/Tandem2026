@@ -37,7 +37,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double trimEndJointMm = -1d,
             bool skipStartTie = false,
             bool skipFreeEndTie = false,
-            bool stackedPanelTies = false)
+            bool stackedPanelTies = false,
+            bool applyPanelStock = false)
         {
             var outElements = new List<Atk60ElementPaintItem>();
             if (wall == null || anchor == null || moduleCount <= 0 || moduleLengthMm < 299d)
@@ -67,14 +68,31 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             }
 
             var countInWall = moduleCountInWall > 0 ? moduleCountInWall : (int)moduleCount;
+            // Paneles que hay en obra (Asistente IA): cada módulo se arma con lo que queda.
+            // Sin _PanelStock en el muro, stock es null y el módulo es el de siempre.
+            var stock = applyPanelStock ? Atk60PanelStock.For(wall) : null;
+            // Paneles concretos que el usuario cambia (Asistente IA, _PanelReplace). Sin el atributo, null.
+            var replace = applyPanelStock ? Atk60PanelReplace.For(wall) : null;
             for (var i = 0; i < moduleCount; i++)
             {
+                if (stock != null)
+                {
+                    layout = Modulo270HeightPanelCatalog.ResolveForModuleStock(
+                        wallHeightMm, (int)Math.Round(moduleLengthMm), useAdjustable750, verticalPanels, stock, 2);
+                    if (layout == null || layout.Pieces == null || layout.Pieces.Count == 0)
+                    {
+                        continue;
+                    }
+                }
+
                 var moduleBaseAlongMm = startAlongMm + (i * moduleLengthMm);
                 var moduleIndex = moduleIndexOffset + i + 1;
-                for (var pi = 0; pi < layout.Pieces.Count; pi++)
+                // Copia del módulo con los paneles cambiados; sin reglas que casen es el mismo layout.
+                var moduleLayout = replace != null ? replace.Apply(layout, moduleBaseAlongMm) : layout;
+                for (var pi = 0; pi < moduleLayout.Pieces.Count; pi++)
                 {
                     PanelFormwork.Place(
-                        outElements, layout.Pieces[pi], layout, pi, anchor, idWall,
+                        outElements, moduleLayout.Pieces[pi], moduleLayout, pi, anchor, idWall,
                         moduleBaseAlongMm, moduleLengthMm, moduleIndex, countInWall,
                         yawRad, ux, uz, faceSign,
                         wallHeightMm, wallThicknessMm, wallLengthMm);
@@ -82,21 +100,21 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
 
                 var suppressEnd = suppressLastEndJoint && i == moduleCount - 1;
                 PanelClamp.PlaceOnModule(
-                    outElements, layout, anchor,
+                    outElements, moduleLayout, anchor,
                     moduleBaseAlongMm, moduleLengthMm, moduleIndex, countInWall,
                     yawRad, ux, uz, faceSign,
                     wallHeightMm, wallThicknessMm, wallLengthMm, idWall,
                     suppressEnd,
                     stackedPanelTies);
                 PanelStiffener.Place(
-                    outElements, layout.Pieces, anchor, idWall,
+                    outElements, moduleLayout.Pieces, anchor, idWall,
                     moduleBaseAlongMm, moduleLengthMm,
                     yawRad, ux, uz, faceSign,
                     wallHeightMm, wallThicknessMm, wallLengthMm,
                     Atk60FaceInsertion.FlagOn(attrs != null ? attrs._CHeckRijiOutside : null),
                     Atk60FaceInsertion.FlagOn(attrs != null ? attrs._CHeckRijiInside : null));
                 FormTie.Place(
-                    outElements, layout, anchor,
+                    outElements, moduleLayout, anchor,
                     moduleBaseAlongMm, moduleIndex, countInWall,
                     yawRad, ux, uz, faceSign,
                     wallHeightMm, wallThicknessMm, wallLengthMm, idWall, tiesBeyondWall,
