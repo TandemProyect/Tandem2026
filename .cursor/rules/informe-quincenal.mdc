@@ -1,6 +1,8 @@
 ---
-description: Informe de trabajo de Tandem. Hasta el 4 nov 2026 el abierto es el quincenal 03; desde ese día el siguiente es semanal.
-alwaysApply: true
+description: Leer cuando haya que escribir o actualizar el informe de trabajo (quincenal/semanal), anotar horas o abrir un frente en el informe. Informe de trabajo de Tandem. Hasta el 4 nov 2026 el abierto es el quincenal 03; desde ese día el siguiente es semanal.
+globs:
+  - "Desing/Report/**"
+alwaysApply: false
 ---
 
 # Informe de trabajo

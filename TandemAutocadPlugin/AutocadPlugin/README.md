@@ -4,11 +4,11 @@ Class Library (`net8.0-windows`) para AutoCAD 2026. Paletas MVC, muro 2D y gener
 
 **Handover (leer primero el de 2026-10-03):**
 
-- NETLOAD vs ATDESING, conexión, siguiente US: [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-10-03-Conexion-ATDESING-Encofrar-Manual.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-10-03-Conexion-ATDESING-Encofrar-Manual.md)
-- Sesión, home, AppData, insert/convert: [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-10-02-Autocad-Sesion-Bloquing-Autoload.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-10-02-Autocad-Sesion-Bloquing-Autoload.md)
-- Muros / paletas base: [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md)
-- Bloquing (contexto sept-29): [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-29-Autocad-Bloquing.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-29-Autocad-Bloquing.md)
-- Contrato geométrico inserción ATK-60 (el código **ya existe**): [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md)
+- NETLOAD vs ATDESING, conexión, siguiente US: [`Docs/areas/cad-autocad/historial/HANDOVER-2026-10-03-Conexion-ATDESING-Encofrar-Manual.md`](../../Docs/areas/cad-autocad/historial/HANDOVER-2026-10-03-Conexion-ATDESING-Encofrar-Manual.md)
+- Sesión, home, AppData, insert/convert: [`Docs/areas/cad-autocad/historial/HANDOVER-2026-10-02-Autocad-Sesion-Bloquing-Autoload.md`](../../Docs/areas/cad-autocad/historial/HANDOVER-2026-10-02-Autocad-Sesion-Bloquing-Autoload.md)
+- Muros / paletas base: [`Docs/areas/cad-comun/historial/HANDOVER-2026-09-Plugins-Tandem-CAD.md`](../../Docs/areas/cad-comun/historial/HANDOVER-2026-09-Plugins-Tandem-CAD.md)
+- Bloquing (contexto sept-29): [`Docs/areas/cad-autocad/historial/HANDOVER-2026-09-29-Autocad-Bloquing.md`](../../Docs/areas/cad-autocad/historial/HANDOVER-2026-09-29-Autocad-Bloquing.md)
+- Contrato geométrico inserción ATK-60 (el código **ya existe**): [`Docs/areas/cad-autocad/historial/HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md`](../../Docs/areas/cad-autocad/historial/HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md)
 
 ## Compilar
 
@@ -67,4 +67,4 @@ Otros stubs ZWCAD (`DETECTARMUROS`, …) siguen sin lógica.
 
 ## Documentación
 
-[`Docs/Proyectos/Plugins-CAD/`](../../Docs/Proyectos/Plugins-CAD/)
+[`Docs/areas/cad-comun/plugins-cad.md`](../../Docs/areas/cad-comun/plugins-cad.md)

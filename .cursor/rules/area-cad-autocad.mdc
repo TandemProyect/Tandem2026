@@ -1,0 +1,9 @@
+---
+description: Área Plugin AutoCAD — leer su INDEX antes de tocar este código
+globs:
+  - "TandemAutocadPlugin/**"
+alwaysApply: false
+---
+
+Trabajas en el área **Plugin AutoCAD**. Lee `Docs/areas/cad-autocad/INDEX.md` y solo los documentos que ese INDEX indique para tu tarea. No leas la documentación de otras áreas.
+ZWCAD tiene copias casi iguales de muchos archivos: revisa el gemelo.

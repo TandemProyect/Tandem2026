@@ -1,0 +1,12 @@
+---
+description: Área Asistentes IA — leer su INDEX antes de tocar este código
+globs:
+  - "Desing/Scripts/MasterArticles/wall-ai-assistant.js"
+  - "Desing/Scripts/MasterArticles/design-ai-assistant.js"
+  - "Desing/Scripts/MasterArticles/ai-command-catalog.js"
+  - "Desing/Controllers/Desing_2Controller.AiCommands.cs"
+  - "Desing/Scripts/TemporalScript/*TSql_Ai*.sql"
+alwaysApply: false
+---
+
+Trabajas en el área **Asistentes IA**. Lee `Docs/areas/ia-asistentes/INDEX.md` y solo los documentos que ese INDEX indique para tu tarea. No leas la documentación de otras áreas.

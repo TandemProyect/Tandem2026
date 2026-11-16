@@ -2,7 +2,7 @@
 
 Scripts de conversión y organización de iconos para el menú CUI.
 
-**Documentación:** [`Docs/Proyectos/ZwcadPlugin/Iconos/`](../../../../Docs/Proyectos/ZwcadPlugin/Iconos/)
+**Documentación:** [`Docs/areas/cad-zwcad/iconos/`](../../../../Docs/areas/cad-zwcad/iconos/)
 
 **Scripts locales:**
 - `Convertir_SVG_a_PNG.ps1` — convierte SVG a PNG 16×16 y 32×32

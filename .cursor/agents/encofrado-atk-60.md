@@ -37,7 +37,7 @@ Si una captura contradice esto, revertir el reflejo que lo empeoró antes de pro
 
 Antes de interpretar `RotationX/Y/Z` o el punto de inserción, leer:
 
-- `Docs/Proyectos/Plugins-CAD/HANDOVER-2026-10-07-Encofrar-Manual-Posicion-Visor.md` — giro al abrir y estado del visor.
-- `Docs/Proyectos/Plugins-CAD/HANDOVER-2026-10-06-Encofrar-Manual-Conexiones.md` — marcas, simétrico e inferior derecho.
+- `Docs/areas/cad-autocad/historial/HANDOVER-2026-10-07-Encofrar-Manual-Posicion-Visor.md` — giro al abrir y estado del visor.
+- `Docs/areas/cad-autocad/historial/HANDOVER-2026-10-06-Encofrar-Manual-Conexiones.md` — marcas, simétrico e inferior derecho.
 
 No reabrir el camino de plugin para arreglar el visor.

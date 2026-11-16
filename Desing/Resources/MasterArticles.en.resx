@@ -1288,6 +1288,12 @@
   <data name="StlPreview_DimKindAdjustable" xml:space="preserve">
     <value>Adjustable panel</value>
   </data>
+  <data name="StlPreview_DimKindAllWalls" xml:space="preserve">
+    <value>Whole design</value>
+  </data>
+  <data name="StlPreview_DimKindArticleId" xml:space="preserve">
+    <value>Article id</value>
+  </data>
   <data name="StlPreview_DimKindCurvedAngle" xml:space="preserve">
     <value>Angle between curved wall panels</value>
   </data>

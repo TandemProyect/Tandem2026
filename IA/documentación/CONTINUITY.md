@@ -3,7 +3,7 @@
 > **PROPÓSITO:** Este documento permite que cualquier agente IA continúe el trabajo sin pérdida de contexto.
 > **ÚLTIMA ACTUALIZACIÓN:** 2026-09-28
 >
-> **Plugins AutoCAD / BricsCAD / Revit (septiembre 2026):** continuar en [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md`](../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md). Este CONTINUITY.md no cubre ese trabajo.
+> **Plugins AutoCAD / BricsCAD / Revit (septiembre 2026):** continuar en [`Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-Plugins-Tandem-CAD.md`](../../Docs/areas/cad-comun/historial/HANDOVER-2026-09-Plugins-Tandem-CAD.md). Este CONTINUITY.md no cubre ese trabajo.
 
 ---
 

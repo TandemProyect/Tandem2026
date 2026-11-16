@@ -34,9 +34,9 @@ ZwcadPlugin/
 
 ## Documentación
 
-Toda la documentación está en [`Docs/Proyectos/ZwcadPlugin/`](../../Docs/Proyectos/ZwcadPlugin/):
+Toda la documentación está en [`Docs/areas/cad-zwcad/zwcad-plugin.md`](../../Docs/areas/cad-zwcad/zwcad-plugin.md):
 
-- [README del proyecto](../../Docs/Proyectos/ZwcadPlugin/README.md) — arquitectura, comandos, MVVM
-- [Guía técnica](../../Docs/Proyectos/ZwcadPlugin/TECHNICAL_GUIDE.md) — compilación, deploy, debugging
-- [Iconos](../../Docs/Proyectos/ZwcadPlugin/Iconos/README_ICONOS.md) — sistema de iconos del ribbon
-- [Investigación US-619](../../Docs/Proyectos/ZwcadPlugin/INVESTIGACION_ICONOS_US619.md)
+- [README del proyecto](../../Docs/areas/cad-zwcad/zwcad-plugin.md) — arquitectura, comandos, MVVM
+- [Guía técnica](../../Docs/areas/cad-zwcad/TECHNICAL_GUIDE.md) — compilación, deploy, debugging
+- [Iconos](../../Docs/areas/cad-zwcad/iconos/README_ICONOS.md) — sistema de iconos del ribbon
+- [Investigación US-619](../../Docs/areas/cad-zwcad/historial/INVESTIGACION_ICONOS_US619.md)

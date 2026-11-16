@@ -22,6 +22,153 @@
           <Property Name="AccessFailedCount" Type="int" Nullable="false" />
           <Property Name="UserName" Type="nvarchar" MaxLength="256" Nullable="false" />
         </EntityType>
+        <EntityType Name="TSql_AiCommand">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TextCode" Type="nvarchar" MaxLength="60" Nullable="false" />
+          <Property Name="TextContext" Type="nvarchar" MaxLength="20" Nullable="false" />
+          <Property Name="TextGroup" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="TextNameEs" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="TextNameEn" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="TextDescription" Type="nvarchar" MaxLength="500" />
+          <Property Name="TextHandler" Type="nvarchar" MaxLength="300" Nullable="false" />
+          <Property Name="TextAiCommandId" Type="nvarchar" MaxLength="60" />
+          <Property Name="TextParamsJson" Type="nvarchar(max)" />
+          <Property Name="Is_Destructive" Type="bit" Nullable="false" />
+          <Property Name="Is_Confirm" Type="bit" Nullable="false" />
+          <Property Name="Is_AiImplemented" Type="bit" Nullable="false" />
+          <Property Name="NumberOrder" Type="int" Nullable="false" />
+          <Property Name="TextLabel" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Is_Delete" Type="bit" Nullable="false" />
+          <Property Name="Is_Active" Type="bit" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AddDateMade" Type="datetime" Nullable="false" />
+          <Property Name="AddLastDateChange" Type="datetime" />
+          <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TSql_AiCommandPhrase">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="LinkAiCommand" Type="bigint" Nullable="false" />
+          <Property Name="TextContext" Type="nvarchar" MaxLength="20" Nullable="false" />
+          <Property Name="TextLanguageCode" Type="nvarchar" MaxLength="10" Nullable="false" />
+          <Property Name="TextPhrase" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="TextPhraseNorm" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="TextKind" Type="nvarchar" MaxLength="20" Nullable="false" />
+          <Property Name="TextConcept" Type="nvarchar" MaxLength="40" />
+          <Property Name="NumberWeight" Type="decimal" Precision="6" Scale="2" />
+          <Property Name="NumberOrder" Type="int" Nullable="false" />
+          <Property Name="TextLabel" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Is_Delete" Type="bit" Nullable="false" />
+          <Property Name="Is_Active" Type="bit" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AddDateMade" Type="datetime" Nullable="false" />
+          <Property Name="AddLastDateChange" Type="datetime" />
+          <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
+          <Property Name="LinkEnvironment" Type="bigint" />
+        </EntityType>
+        <EntityType Name="TSql_AiCommandUser">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="LinkAspNetUsers" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinkAiCommand" Type="bigint" Nullable="false" />
+          <Property Name="Is_UseDefaultPhrases" Type="bit" Nullable="false" />
+          <Property Name="NumberOrder" Type="int" />
+          <Property Name="TextLabel" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Is_Delete" Type="bit" Nullable="false" />
+          <Property Name="Is_Active" Type="bit" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AddDateMade" Type="datetime" Nullable="false" />
+          <Property Name="AddLastDateChange" Type="datetime" />
+          <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TSql_AiCommandUserPhrase">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="LinkAspNetUsers" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinkAiCommand" Type="bigint" Nullable="false" />
+          <Property Name="LinkAiCommandPhrase" Type="bigint" />
+          <Property Name="TextContext" Type="nvarchar" MaxLength="20" Nullable="false" />
+          <Property Name="TextLanguageCode" Type="nvarchar" MaxLength="10" Nullable="false" />
+          <Property Name="TextPhrase" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="TextPhraseNorm" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="Is_Exclude" Type="bit" Nullable="false" />
+          <Property Name="TextLabel" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Is_Delete" Type="bit" Nullable="false" />
+          <Property Name="Is_Active" Type="bit" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AddDateMade" Type="datetime" Nullable="false" />
+          <Property Name="AddLastDateChange" Type="datetime" />
+          <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
+          <Property Name="LinkEnvironment" Type="bigint" />
+        </EntityType>
+        <EntityType Name="TSql_AiEnvironment">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TextCode" Type="nvarchar" MaxLength="40" Nullable="false" />
+          <Property Name="TextNameEs" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="TextNameEn" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="TextDescription" Type="nvarchar" MaxLength="1000" />
+          <Property Name="Is_Default" Type="bit" Nullable="false" />
+          <Property Name="NumberOrder" Type="int" Nullable="false" />
+          <Property Name="TextLabel" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Is_Delete" Type="bit" Nullable="false" />
+          <Property Name="Is_Active" Type="bit" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AddDateMade" Type="datetime" Nullable="false" />
+          <Property Name="AddLastDateChange" Type="datetime" />
+          <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TSql_AiEnvironmentReply">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="LinkEnvironment" Type="bigint" Nullable="false" />
+          <Property Name="TextLanguageCode" Type="nvarchar" MaxLength="10" Nullable="false" />
+          <Property Name="TextMessageKey" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="TextTemplate" Type="nvarchar" MaxLength="2000" Nullable="false" />
+          <Property Name="TextLabel" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Is_Delete" Type="bit" Nullable="false" />
+          <Property Name="Is_Active" Type="bit" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AddDateMade" Type="datetime" Nullable="false" />
+          <Property Name="AddLastDateChange" Type="datetime" />
+          <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TSql_AiUserSettings">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="LinkAspNetUsers" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinkEnvironment" Type="bigint" />
+          <Property Name="TextLanguageCode" Type="nvarchar" MaxLength="10" />
+          <Property Name="TextLabel" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Is_Delete" Type="bit" Nullable="false" />
+          <Property Name="Is_Active" Type="bit" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="LinModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="AddDateMade" Type="datetime" Nullable="false" />
+          <Property Name="AddLastDateChange" Type="datetime" />
+          <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
+        </EntityType>
         <EntityType Name="TSql_App">
           <Key>
             <PropertyRef Name="IdObject" />
@@ -1004,6 +1151,306 @@
           <Property Name="Ntimeschanged" Type="bigint" Nullable="false" />
           <Property Name="TextModuleNorm" Type="nvarchar" MaxLength="100" StoreGeneratedPattern="Computed" Nullable="false" />
         </EntityType>
+        <Association Name="FK_TSql_AiCommand_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_AiCommand" Type="Self.TSql_AiCommand" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiCommand">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommand_AspNetUsers1">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="TSql_AiCommand" Type="Self.TSql_AiCommand" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiCommand">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandPhrase_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_AiCommandPhrase" Type="Self.TSql_AiCommandPhrase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandPhrase">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandPhrase_AspNetUsers1">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="TSql_AiCommandPhrase" Type="Self.TSql_AiCommandPhrase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandPhrase">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandPhrase_TSql_AiCommand">
+          <End Role="TSql_AiCommand" Type="Self.TSql_AiCommand" Multiplicity="1" />
+          <End Role="TSql_AiCommandPhrase" Type="Self.TSql_AiCommandPhrase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_AiCommand">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandPhrase">
+              <PropertyRef Name="LinkAiCommand" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandPhrase_TSql_AiEnvironment">
+          <End Role="TSql_AiEnvironment" Type="Self.TSql_AiEnvironment" Multiplicity="0..1" />
+          <End Role="TSql_AiCommandPhrase" Type="Self.TSql_AiCommandPhrase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_AiEnvironment">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandPhrase">
+              <PropertyRef Name="LinkEnvironment" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandUser_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_AiCommandUser" Type="Self.TSql_AiCommandUser" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandUser">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandUser_AspNetUsers1">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="TSql_AiCommandUser" Type="Self.TSql_AiCommandUser" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandUser">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandUser_AspNetUsers2">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_AiCommandUser" Type="Self.TSql_AiCommandUser" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandUser">
+              <PropertyRef Name="LinkAspNetUsers" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandUser_TSql_AiCommand">
+          <End Role="TSql_AiCommand" Type="Self.TSql_AiCommand" Multiplicity="1" />
+          <End Role="TSql_AiCommandUser" Type="Self.TSql_AiCommandUser" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_AiCommand">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandUser">
+              <PropertyRef Name="LinkAiCommand" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandUserPhrase_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_AiCommandUserPhrase" Type="Self.TSql_AiCommandUserPhrase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandUserPhrase">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandUserPhrase_AspNetUsers1">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="TSql_AiCommandUserPhrase" Type="Self.TSql_AiCommandUserPhrase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandUserPhrase">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandUserPhrase_AspNetUsers2">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_AiCommandUserPhrase" Type="Self.TSql_AiCommandUserPhrase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandUserPhrase">
+              <PropertyRef Name="LinkAspNetUsers" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandUserPhrase_TSql_AiCommand">
+          <End Role="TSql_AiCommand" Type="Self.TSql_AiCommand" Multiplicity="1" />
+          <End Role="TSql_AiCommandUserPhrase" Type="Self.TSql_AiCommandUserPhrase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_AiCommand">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandUserPhrase">
+              <PropertyRef Name="LinkAiCommand" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandUserPhrase_TSql_AiCommandPhrase">
+          <End Role="TSql_AiCommandPhrase" Type="Self.TSql_AiCommandPhrase" Multiplicity="0..1" />
+          <End Role="TSql_AiCommandUserPhrase" Type="Self.TSql_AiCommandUserPhrase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_AiCommandPhrase">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandUserPhrase">
+              <PropertyRef Name="LinkAiCommandPhrase" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandUserPhrase_TSql_AiEnvironment">
+          <End Role="TSql_AiEnvironment" Type="Self.TSql_AiEnvironment" Multiplicity="0..1" />
+          <End Role="TSql_AiCommandUserPhrase" Type="Self.TSql_AiCommandUserPhrase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_AiEnvironment">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandUserPhrase">
+              <PropertyRef Name="LinkEnvironment" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiEnvironment_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_AiEnvironment" Type="Self.TSql_AiEnvironment" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiEnvironment">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiEnvironment_AspNetUsers1">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="TSql_AiEnvironment" Type="Self.TSql_AiEnvironment" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiEnvironment">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiEnvironmentReply_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_AiEnvironmentReply" Type="Self.TSql_AiEnvironmentReply" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiEnvironmentReply">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiEnvironmentReply_AspNetUsers1">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="TSql_AiEnvironmentReply" Type="Self.TSql_AiEnvironmentReply" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiEnvironmentReply">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiEnvironmentReply_TSql_AiEnvironment">
+          <End Role="TSql_AiEnvironment" Type="Self.TSql_AiEnvironment" Multiplicity="1" />
+          <End Role="TSql_AiEnvironmentReply" Type="Self.TSql_AiEnvironmentReply" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_AiEnvironment">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_AiEnvironmentReply">
+              <PropertyRef Name="LinkEnvironment" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiUserSettings_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_AiUserSettings" Type="Self.TSql_AiUserSettings" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiUserSettings">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiUserSettings_AspNetUsers1">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="TSql_AiUserSettings" Type="Self.TSql_AiUserSettings" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiUserSettings">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiUserSettings_AspNetUsers2">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="TSql_AiUserSettings" Type="Self.TSql_AiUserSettings" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiUserSettings">
+              <PropertyRef Name="LinkAspNetUsers" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiUserSettings_TSql_AiEnvironment">
+          <End Role="TSql_AiEnvironment" Type="Self.TSql_AiEnvironment" Multiplicity="0..1" />
+          <End Role="TSql_AiUserSettings" Type="Self.TSql_AiUserSettings" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_AiEnvironment">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_AiUserSettings">
+              <PropertyRef Name="LinkEnvironment" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_TSql_App_AspNetUsers">
           <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
           <End Role="TSql_App" Type="Self.TSql_App" Multiplicity="*" />
@@ -2446,6 +2893,13 @@
         </Association>
         <EntityContainer Name="DesingEntityStoreContainer">
           <EntitySet Name="AspNetUsers" EntityType="Self.AspNetUsers" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_AiCommand" EntityType="Self.TSql_AiCommand" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_AiCommandPhrase" EntityType="Self.TSql_AiCommandPhrase" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_AiCommandUser" EntityType="Self.TSql_AiCommandUser" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_AiCommandUserPhrase" EntityType="Self.TSql_AiCommandUserPhrase" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_AiEnvironment" EntityType="Self.TSql_AiEnvironment" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_AiEnvironmentReply" EntityType="Self.TSql_AiEnvironmentReply" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TSql_AiUserSettings" EntityType="Self.TSql_AiUserSettings" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_App" EntityType="Self.TSql_App" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_Branch" EntityType="Self.TSql_Branch" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_Client_V2" EntityType="Self.TSql_Client_V2" Schema="dbo" store:Type="Tables" />
@@ -2489,6 +2943,106 @@
           <EntitySet Name="TSql_TemporalList" EntityType="Self.TSql_TemporalList" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_TotalListsDesing" EntityType="Self.TSql_TotalListsDesing" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TSql_UiTranslation" EntityType="Self.TSql_UiTranslation" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_TSql_AiCommand_AspNetUsers" Association="Self.FK_TSql_AiCommand_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiCommand" EntitySet="TSql_AiCommand" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommand_AspNetUsers1" Association="Self.FK_TSql_AiCommand_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiCommand" EntitySet="TSql_AiCommand" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandPhrase_AspNetUsers" Association="Self.FK_TSql_AiCommandPhrase_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiCommandPhrase" EntitySet="TSql_AiCommandPhrase" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandPhrase_AspNetUsers1" Association="Self.FK_TSql_AiCommandPhrase_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiCommandPhrase" EntitySet="TSql_AiCommandPhrase" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandPhrase_TSql_AiCommand" Association="Self.FK_TSql_AiCommandPhrase_TSql_AiCommand">
+            <End Role="TSql_AiCommand" EntitySet="TSql_AiCommand" />
+            <End Role="TSql_AiCommandPhrase" EntitySet="TSql_AiCommandPhrase" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandPhrase_TSql_AiEnvironment" Association="Self.FK_TSql_AiCommandPhrase_TSql_AiEnvironment">
+            <End Role="TSql_AiEnvironment" EntitySet="TSql_AiEnvironment" />
+            <End Role="TSql_AiCommandPhrase" EntitySet="TSql_AiCommandPhrase" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandUser_AspNetUsers" Association="Self.FK_TSql_AiCommandUser_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiCommandUser" EntitySet="TSql_AiCommandUser" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandUser_AspNetUsers1" Association="Self.FK_TSql_AiCommandUser_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiCommandUser" EntitySet="TSql_AiCommandUser" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandUser_AspNetUsers2" Association="Self.FK_TSql_AiCommandUser_AspNetUsers2">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiCommandUser" EntitySet="TSql_AiCommandUser" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandUser_TSql_AiCommand" Association="Self.FK_TSql_AiCommandUser_TSql_AiCommand">
+            <End Role="TSql_AiCommand" EntitySet="TSql_AiCommand" />
+            <End Role="TSql_AiCommandUser" EntitySet="TSql_AiCommandUser" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandUserPhrase_AspNetUsers" Association="Self.FK_TSql_AiCommandUserPhrase_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiCommandUserPhrase" EntitySet="TSql_AiCommandUserPhrase" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandUserPhrase_AspNetUsers1" Association="Self.FK_TSql_AiCommandUserPhrase_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiCommandUserPhrase" EntitySet="TSql_AiCommandUserPhrase" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandUserPhrase_AspNetUsers2" Association="Self.FK_TSql_AiCommandUserPhrase_AspNetUsers2">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiCommandUserPhrase" EntitySet="TSql_AiCommandUserPhrase" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandUserPhrase_TSql_AiCommand" Association="Self.FK_TSql_AiCommandUserPhrase_TSql_AiCommand">
+            <End Role="TSql_AiCommand" EntitySet="TSql_AiCommand" />
+            <End Role="TSql_AiCommandUserPhrase" EntitySet="TSql_AiCommandUserPhrase" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandUserPhrase_TSql_AiCommandPhrase" Association="Self.FK_TSql_AiCommandUserPhrase_TSql_AiCommandPhrase">
+            <End Role="TSql_AiCommandPhrase" EntitySet="TSql_AiCommandPhrase" />
+            <End Role="TSql_AiCommandUserPhrase" EntitySet="TSql_AiCommandUserPhrase" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandUserPhrase_TSql_AiEnvironment" Association="Self.FK_TSql_AiCommandUserPhrase_TSql_AiEnvironment">
+            <End Role="TSql_AiEnvironment" EntitySet="TSql_AiEnvironment" />
+            <End Role="TSql_AiCommandUserPhrase" EntitySet="TSql_AiCommandUserPhrase" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiEnvironment_AspNetUsers" Association="Self.FK_TSql_AiEnvironment_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiEnvironment" EntitySet="TSql_AiEnvironment" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiEnvironment_AspNetUsers1" Association="Self.FK_TSql_AiEnvironment_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiEnvironment" EntitySet="TSql_AiEnvironment" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiEnvironmentReply_AspNetUsers" Association="Self.FK_TSql_AiEnvironmentReply_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiEnvironmentReply" EntitySet="TSql_AiEnvironmentReply" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiEnvironmentReply_AspNetUsers1" Association="Self.FK_TSql_AiEnvironmentReply_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiEnvironmentReply" EntitySet="TSql_AiEnvironmentReply" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiEnvironmentReply_TSql_AiEnvironment" Association="Self.FK_TSql_AiEnvironmentReply_TSql_AiEnvironment">
+            <End Role="TSql_AiEnvironment" EntitySet="TSql_AiEnvironment" />
+            <End Role="TSql_AiEnvironmentReply" EntitySet="TSql_AiEnvironmentReply" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiUserSettings_AspNetUsers" Association="Self.FK_TSql_AiUserSettings_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiUserSettings" EntitySet="TSql_AiUserSettings" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiUserSettings_AspNetUsers1" Association="Self.FK_TSql_AiUserSettings_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiUserSettings" EntitySet="TSql_AiUserSettings" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiUserSettings_AspNetUsers2" Association="Self.FK_TSql_AiUserSettings_AspNetUsers2">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiUserSettings" EntitySet="TSql_AiUserSettings" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiUserSettings_TSql_AiEnvironment" Association="Self.FK_TSql_AiUserSettings_TSql_AiEnvironment">
+            <End Role="TSql_AiEnvironment" EntitySet="TSql_AiEnvironment" />
+            <End Role="TSql_AiUserSettings" EntitySet="TSql_AiUserSettings" />
+          </AssociationSet>
           <AssociationSet Name="FK_TSql_App_AspNetUsers" Association="Self.FK_TSql_App_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="TSql_App" EntitySet="TSql_App" />
@@ -3507,6 +4061,113 @@
             <End Role="Tsql_Master_Articles" EntitySet="Tsql_Master_Articles" />
             <End Role="TSql_DesignWallArticle" EntitySet="TSql_DesignWallArticle" />
           </AssociationSet>
+          <EntitySet Name="TSql_AiCommand" EntityType="DesingEntity.TSql_AiCommand" />
+          <EntitySet Name="TSql_AiCommandPhrase" EntityType="DesingEntity.TSql_AiCommandPhrase" />
+          <EntitySet Name="TSql_AiCommandUser" EntityType="DesingEntity.TSql_AiCommandUser" />
+          <EntitySet Name="TSql_AiCommandUserPhrase" EntityType="DesingEntity.TSql_AiCommandUserPhrase" />
+          <EntitySet Name="TSql_AiEnvironment" EntityType="DesingEntity.TSql_AiEnvironment" />
+          <EntitySet Name="TSql_AiEnvironmentReply" EntityType="DesingEntity.TSql_AiEnvironmentReply" />
+          <EntitySet Name="TSql_AiUserSettings" EntityType="DesingEntity.TSql_AiUserSettings" />
+          <AssociationSet Name="FK_TSql_AiCommand_AspNetUsers" Association="DesingEntity.FK_TSql_AiCommand_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiCommand" EntitySet="TSql_AiCommand" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommand_AspNetUsers1" Association="DesingEntity.FK_TSql_AiCommand_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiCommand" EntitySet="TSql_AiCommand" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandPhrase_AspNetUsers" Association="DesingEntity.FK_TSql_AiCommandPhrase_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiCommandPhrase" EntitySet="TSql_AiCommandPhrase" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandPhrase_AspNetUsers1" Association="DesingEntity.FK_TSql_AiCommandPhrase_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiCommandPhrase" EntitySet="TSql_AiCommandPhrase" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandPhrase_TSql_AiCommand" Association="DesingEntity.FK_TSql_AiCommandPhrase_TSql_AiCommand">
+            <End Role="TSql_AiCommand" EntitySet="TSql_AiCommand" />
+            <End Role="TSql_AiCommandPhrase" EntitySet="TSql_AiCommandPhrase" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandPhrase_TSql_AiEnvironment" Association="DesingEntity.FK_TSql_AiCommandPhrase_TSql_AiEnvironment">
+            <End Role="TSql_AiEnvironment" EntitySet="TSql_AiEnvironment" />
+            <End Role="TSql_AiCommandPhrase" EntitySet="TSql_AiCommandPhrase" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandUser_AspNetUsers" Association="DesingEntity.FK_TSql_AiCommandUser_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiCommandUser" EntitySet="TSql_AiCommandUser" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandUser_AspNetUsers1" Association="DesingEntity.FK_TSql_AiCommandUser_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiCommandUser" EntitySet="TSql_AiCommandUser" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandUser_AspNetUsers2" Association="DesingEntity.FK_TSql_AiCommandUser_AspNetUsers2">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiCommandUser" EntitySet="TSql_AiCommandUser" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandUser_TSql_AiCommand" Association="DesingEntity.FK_TSql_AiCommandUser_TSql_AiCommand">
+            <End Role="TSql_AiCommand" EntitySet="TSql_AiCommand" />
+            <End Role="TSql_AiCommandUser" EntitySet="TSql_AiCommandUser" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandUserPhrase_AspNetUsers" Association="DesingEntity.FK_TSql_AiCommandUserPhrase_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiCommandUserPhrase" EntitySet="TSql_AiCommandUserPhrase" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandUserPhrase_AspNetUsers1" Association="DesingEntity.FK_TSql_AiCommandUserPhrase_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiCommandUserPhrase" EntitySet="TSql_AiCommandUserPhrase" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandUserPhrase_AspNetUsers2" Association="DesingEntity.FK_TSql_AiCommandUserPhrase_AspNetUsers2">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiCommandUserPhrase" EntitySet="TSql_AiCommandUserPhrase" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandUserPhrase_TSql_AiCommand" Association="DesingEntity.FK_TSql_AiCommandUserPhrase_TSql_AiCommand">
+            <End Role="TSql_AiCommand" EntitySet="TSql_AiCommand" />
+            <End Role="TSql_AiCommandUserPhrase" EntitySet="TSql_AiCommandUserPhrase" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandUserPhrase_TSql_AiCommandPhrase" Association="DesingEntity.FK_TSql_AiCommandUserPhrase_TSql_AiCommandPhrase">
+            <End Role="TSql_AiCommandPhrase" EntitySet="TSql_AiCommandPhrase" />
+            <End Role="TSql_AiCommandUserPhrase" EntitySet="TSql_AiCommandUserPhrase" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiCommandUserPhrase_TSql_AiEnvironment" Association="DesingEntity.FK_TSql_AiCommandUserPhrase_TSql_AiEnvironment">
+            <End Role="TSql_AiEnvironment" EntitySet="TSql_AiEnvironment" />
+            <End Role="TSql_AiCommandUserPhrase" EntitySet="TSql_AiCommandUserPhrase" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiEnvironment_AspNetUsers" Association="DesingEntity.FK_TSql_AiEnvironment_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiEnvironment" EntitySet="TSql_AiEnvironment" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiEnvironment_AspNetUsers1" Association="DesingEntity.FK_TSql_AiEnvironment_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiEnvironment" EntitySet="TSql_AiEnvironment" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiEnvironmentReply_AspNetUsers" Association="DesingEntity.FK_TSql_AiEnvironmentReply_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiEnvironmentReply" EntitySet="TSql_AiEnvironmentReply" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiEnvironmentReply_AspNetUsers1" Association="DesingEntity.FK_TSql_AiEnvironmentReply_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiEnvironmentReply" EntitySet="TSql_AiEnvironmentReply" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiEnvironmentReply_TSql_AiEnvironment" Association="DesingEntity.FK_TSql_AiEnvironmentReply_TSql_AiEnvironment">
+            <End Role="TSql_AiEnvironment" EntitySet="TSql_AiEnvironment" />
+            <End Role="TSql_AiEnvironmentReply" EntitySet="TSql_AiEnvironmentReply" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiUserSettings_AspNetUsers" Association="DesingEntity.FK_TSql_AiUserSettings_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiUserSettings" EntitySet="TSql_AiUserSettings" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiUserSettings_AspNetUsers1" Association="DesingEntity.FK_TSql_AiUserSettings_AspNetUsers1">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiUserSettings" EntitySet="TSql_AiUserSettings" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiUserSettings_AspNetUsers2" Association="DesingEntity.FK_TSql_AiUserSettings_AspNetUsers2">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="TSql_AiUserSettings" EntitySet="TSql_AiUserSettings" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TSql_AiUserSettings_TSql_AiEnvironment" Association="DesingEntity.FK_TSql_AiUserSettings_TSql_AiEnvironment">
+            <End Role="TSql_AiEnvironment" EntitySet="TSql_AiEnvironment" />
+            <End Role="TSql_AiUserSettings" EntitySet="TSql_AiUserSettings" />
+          </AssociationSet>
           </EntityContainer>
         <EntityType Name="TSql_Countrys">
           <Key>
@@ -4083,6 +4744,23 @@
           <NavigationProperty Name="TSql_Design_V21" Relationship="DesingEntity.FK_TSql_Design_V2_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_Design_V2" />
           <NavigationProperty Name="TSql_Branch" Relationship="DesingEntity.FK_TSql_Branch_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_Branch" />
           <NavigationProperty Name="TSql_Branch1" Relationship="DesingEntity.FK_TSql_Branch_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_Branch" />
+          <NavigationProperty Name="TSql_AiCommand" Relationship="DesingEntity.FK_TSql_AiCommand_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_AiCommand" />
+          <NavigationProperty Name="TSql_AiCommand1" Relationship="DesingEntity.FK_TSql_AiCommand_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_AiCommand" />
+          <NavigationProperty Name="TSql_AiCommandPhrase" Relationship="DesingEntity.FK_TSql_AiCommandPhrase_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_AiCommandPhrase" />
+          <NavigationProperty Name="TSql_AiCommandPhrase1" Relationship="DesingEntity.FK_TSql_AiCommandPhrase_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_AiCommandPhrase" />
+          <NavigationProperty Name="TSql_AiCommandUser" Relationship="DesingEntity.FK_TSql_AiCommandUser_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_AiCommandUser" />
+          <NavigationProperty Name="TSql_AiCommandUser1" Relationship="DesingEntity.FK_TSql_AiCommandUser_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_AiCommandUser" />
+          <NavigationProperty Name="TSql_AiCommandUser2" Relationship="DesingEntity.FK_TSql_AiCommandUser_AspNetUsers2" FromRole="AspNetUsers" ToRole="TSql_AiCommandUser" />
+          <NavigationProperty Name="TSql_AiCommandUserPhrase" Relationship="DesingEntity.FK_TSql_AiCommandUserPhrase_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_AiCommandUserPhrase" />
+          <NavigationProperty Name="TSql_AiCommandUserPhrase1" Relationship="DesingEntity.FK_TSql_AiCommandUserPhrase_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_AiCommandUserPhrase" />
+          <NavigationProperty Name="TSql_AiCommandUserPhrase2" Relationship="DesingEntity.FK_TSql_AiCommandUserPhrase_AspNetUsers2" FromRole="AspNetUsers" ToRole="TSql_AiCommandUserPhrase" />
+          <NavigationProperty Name="TSql_AiEnvironment" Relationship="DesingEntity.FK_TSql_AiEnvironment_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_AiEnvironment" />
+          <NavigationProperty Name="TSql_AiEnvironment1" Relationship="DesingEntity.FK_TSql_AiEnvironment_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_AiEnvironment" />
+          <NavigationProperty Name="TSql_AiEnvironmentReply" Relationship="DesingEntity.FK_TSql_AiEnvironmentReply_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_AiEnvironmentReply" />
+          <NavigationProperty Name="TSql_AiEnvironmentReply1" Relationship="DesingEntity.FK_TSql_AiEnvironmentReply_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_AiEnvironmentReply" />
+          <NavigationProperty Name="TSql_AiUserSettings" Relationship="DesingEntity.FK_TSql_AiUserSettings_AspNetUsers" FromRole="AspNetUsers" ToRole="TSql_AiUserSettings" />
+          <NavigationProperty Name="TSql_AiUserSettings1" Relationship="DesingEntity.FK_TSql_AiUserSettings_AspNetUsers1" FromRole="AspNetUsers" ToRole="TSql_AiUserSettings" />
+          <NavigationProperty Name="TSql_AiUserSettings2" Relationship="DesingEntity.FK_TSql_AiUserSettings_AspNetUsers2" FromRole="AspNetUsers" ToRole="TSql_AiUserSettings" />
           </EntityType>
         <Association Name="FK_TSql_App_AspNetUsers">
           <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
@@ -6215,6 +6893,486 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="TSql_AiCommand">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TextCode" Type="String" Nullable="false" MaxLength="60" FixedLength="false" Unicode="true" />
+          <Property Name="TextContext" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="TextGroup" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="TextNameEs" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="TextNameEn" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="TextDescription" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="TextHandler" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="true" />
+          <Property Name="TextAiCommandId" Type="String" MaxLength="60" FixedLength="false" Unicode="true" />
+          <Property Name="TextParamsJson" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Is_Destructive" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Confirm" Type="Boolean" Nullable="false" />
+          <Property Name="Is_AiImplemented" Type="Boolean" Nullable="false" />
+          <Property Name="NumberOrder" Type="Int32" Nullable="false" />
+          <Property Name="TextLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Is_Delete" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Active" Type="Boolean" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AddLastDateChange" Type="DateTime" Precision="3" />
+          <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_AiCommand_AspNetUsers" FromRole="TSql_AiCommand" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_AiCommand_AspNetUsers1" FromRole="TSql_AiCommand" ToRole="AspNetUsers" />
+          <NavigationProperty Name="TSql_AiCommandPhrase" Relationship="DesingEntity.FK_TSql_AiCommandPhrase_TSql_AiCommand" FromRole="TSql_AiCommand" ToRole="TSql_AiCommandPhrase" />
+          <NavigationProperty Name="TSql_AiCommandUser" Relationship="DesingEntity.FK_TSql_AiCommandUser_TSql_AiCommand" FromRole="TSql_AiCommand" ToRole="TSql_AiCommandUser" />
+          <NavigationProperty Name="TSql_AiCommandUserPhrase" Relationship="DesingEntity.FK_TSql_AiCommandUserPhrase_TSql_AiCommand" FromRole="TSql_AiCommand" ToRole="TSql_AiCommandUserPhrase" />
+        </EntityType>
+        <EntityType Name="TSql_AiCommandPhrase">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="LinkAiCommand" Type="Int64" Nullable="false" />
+          <Property Name="TextContext" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="TextLanguageCode" Type="String" Nullable="false" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="TextPhrase" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="TextPhraseNorm" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="TextKind" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="TextConcept" Type="String" MaxLength="40" FixedLength="false" Unicode="true" />
+          <Property Name="NumberWeight" Type="Decimal" Precision="6" Scale="2" />
+          <Property Name="NumberOrder" Type="Int32" Nullable="false" />
+          <Property Name="TextLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Is_Delete" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Active" Type="Boolean" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AddLastDateChange" Type="DateTime" Precision="3" />
+          <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
+          <Property Name="LinkEnvironment" Type="Int64" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_AiCommandPhrase_AspNetUsers" FromRole="TSql_AiCommandPhrase" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_AiCommandPhrase_AspNetUsers1" FromRole="TSql_AiCommandPhrase" ToRole="AspNetUsers" />
+          <NavigationProperty Name="TSql_AiCommand" Relationship="DesingEntity.FK_TSql_AiCommandPhrase_TSql_AiCommand" FromRole="TSql_AiCommandPhrase" ToRole="TSql_AiCommand" />
+          <NavigationProperty Name="TSql_AiEnvironment" Relationship="DesingEntity.FK_TSql_AiCommandPhrase_TSql_AiEnvironment" FromRole="TSql_AiCommandPhrase" ToRole="TSql_AiEnvironment" />
+          <NavigationProperty Name="TSql_AiCommandUserPhrase" Relationship="DesingEntity.FK_TSql_AiCommandUserPhrase_TSql_AiCommandPhrase" FromRole="TSql_AiCommandPhrase" ToRole="TSql_AiCommandUserPhrase" />
+        </EntityType>
+        <EntityType Name="TSql_AiCommandUser">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="LinkAspNetUsers" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinkAiCommand" Type="Int64" Nullable="false" />
+          <Property Name="Is_UseDefaultPhrases" Type="Boolean" Nullable="false" />
+          <Property Name="NumberOrder" Type="Int32" />
+          <Property Name="TextLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Is_Delete" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Active" Type="Boolean" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AddLastDateChange" Type="DateTime" Precision="3" />
+          <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_AiCommandUser_AspNetUsers" FromRole="TSql_AiCommandUser" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_AiCommandUser_AspNetUsers1" FromRole="TSql_AiCommandUser" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers2" Relationship="DesingEntity.FK_TSql_AiCommandUser_AspNetUsers2" FromRole="TSql_AiCommandUser" ToRole="AspNetUsers" />
+          <NavigationProperty Name="TSql_AiCommand" Relationship="DesingEntity.FK_TSql_AiCommandUser_TSql_AiCommand" FromRole="TSql_AiCommandUser" ToRole="TSql_AiCommand" />
+        </EntityType>
+        <EntityType Name="TSql_AiCommandUserPhrase">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="LinkAspNetUsers" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinkAiCommand" Type="Int64" Nullable="false" />
+          <Property Name="LinkAiCommandPhrase" Type="Int64" />
+          <Property Name="TextContext" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="TextLanguageCode" Type="String" Nullable="false" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="TextPhrase" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="TextPhraseNorm" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="Is_Exclude" Type="Boolean" Nullable="false" />
+          <Property Name="TextLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Is_Delete" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Active" Type="Boolean" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AddLastDateChange" Type="DateTime" Precision="3" />
+          <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
+          <Property Name="LinkEnvironment" Type="Int64" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_AiCommandUserPhrase_AspNetUsers" FromRole="TSql_AiCommandUserPhrase" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_AiCommandUserPhrase_AspNetUsers1" FromRole="TSql_AiCommandUserPhrase" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers2" Relationship="DesingEntity.FK_TSql_AiCommandUserPhrase_AspNetUsers2" FromRole="TSql_AiCommandUserPhrase" ToRole="AspNetUsers" />
+          <NavigationProperty Name="TSql_AiCommand" Relationship="DesingEntity.FK_TSql_AiCommandUserPhrase_TSql_AiCommand" FromRole="TSql_AiCommandUserPhrase" ToRole="TSql_AiCommand" />
+          <NavigationProperty Name="TSql_AiCommandPhrase" Relationship="DesingEntity.FK_TSql_AiCommandUserPhrase_TSql_AiCommandPhrase" FromRole="TSql_AiCommandUserPhrase" ToRole="TSql_AiCommandPhrase" />
+          <NavigationProperty Name="TSql_AiEnvironment" Relationship="DesingEntity.FK_TSql_AiCommandUserPhrase_TSql_AiEnvironment" FromRole="TSql_AiCommandUserPhrase" ToRole="TSql_AiEnvironment" />
+        </EntityType>
+        <EntityType Name="TSql_AiEnvironment">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TextCode" Type="String" Nullable="false" MaxLength="40" FixedLength="false" Unicode="true" />
+          <Property Name="TextNameEs" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="TextNameEn" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="TextDescription" Type="String" MaxLength="1000" FixedLength="false" Unicode="true" />
+          <Property Name="Is_Default" Type="Boolean" Nullable="false" />
+          <Property Name="NumberOrder" Type="Int32" Nullable="false" />
+          <Property Name="TextLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Is_Delete" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Active" Type="Boolean" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AddLastDateChange" Type="DateTime" Precision="3" />
+          <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_AiEnvironment_AspNetUsers" FromRole="TSql_AiEnvironment" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_AiEnvironment_AspNetUsers1" FromRole="TSql_AiEnvironment" ToRole="AspNetUsers" />
+          <NavigationProperty Name="TSql_AiCommandPhrase" Relationship="DesingEntity.FK_TSql_AiCommandPhrase_TSql_AiEnvironment" FromRole="TSql_AiEnvironment" ToRole="TSql_AiCommandPhrase" />
+          <NavigationProperty Name="TSql_AiCommandUserPhrase" Relationship="DesingEntity.FK_TSql_AiCommandUserPhrase_TSql_AiEnvironment" FromRole="TSql_AiEnvironment" ToRole="TSql_AiCommandUserPhrase" />
+          <NavigationProperty Name="TSql_AiEnvironmentReply" Relationship="DesingEntity.FK_TSql_AiEnvironmentReply_TSql_AiEnvironment" FromRole="TSql_AiEnvironment" ToRole="TSql_AiEnvironmentReply" />
+          <NavigationProperty Name="TSql_AiUserSettings" Relationship="DesingEntity.FK_TSql_AiUserSettings_TSql_AiEnvironment" FromRole="TSql_AiEnvironment" ToRole="TSql_AiUserSettings" />
+        </EntityType>
+        <EntityType Name="TSql_AiEnvironmentReply">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="LinkEnvironment" Type="Int64" Nullable="false" />
+          <Property Name="TextLanguageCode" Type="String" Nullable="false" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="TextMessageKey" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="TextTemplate" Type="String" Nullable="false" MaxLength="2000" FixedLength="false" Unicode="true" />
+          <Property Name="TextLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Is_Delete" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Active" Type="Boolean" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AddLastDateChange" Type="DateTime" Precision="3" />
+          <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_AiEnvironmentReply_AspNetUsers" FromRole="TSql_AiEnvironmentReply" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_AiEnvironmentReply_AspNetUsers1" FromRole="TSql_AiEnvironmentReply" ToRole="AspNetUsers" />
+          <NavigationProperty Name="TSql_AiEnvironment" Relationship="DesingEntity.FK_TSql_AiEnvironmentReply_TSql_AiEnvironment" FromRole="TSql_AiEnvironmentReply" ToRole="TSql_AiEnvironment" />
+        </EntityType>
+        <EntityType Name="TSql_AiUserSettings">
+          <Key>
+            <PropertyRef Name="IdObject" />
+          </Key>
+          <Property Name="IdObject" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="LinkAspNetUsers" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinkEnvironment" Type="Int64" />
+          <Property Name="TextLanguageCode" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="TextLabel" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Is_Delete" Type="Boolean" Nullable="false" />
+          <Property Name="Is_Active" Type="Boolean" Nullable="false" />
+          <Property Name="LinkMadeBy" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LinModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="AddDateMade" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AddLastDateChange" Type="DateTime" Precision="3" />
+          <Property Name="Ntimeschanged" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="AspNetUsers" Relationship="DesingEntity.FK_TSql_AiUserSettings_AspNetUsers" FromRole="TSql_AiUserSettings" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="DesingEntity.FK_TSql_AiUserSettings_AspNetUsers1" FromRole="TSql_AiUserSettings" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUsers2" Relationship="DesingEntity.FK_TSql_AiUserSettings_AspNetUsers2" FromRole="TSql_AiUserSettings" ToRole="AspNetUsers" />
+          <NavigationProperty Name="TSql_AiEnvironment" Relationship="DesingEntity.FK_TSql_AiUserSettings_TSql_AiEnvironment" FromRole="TSql_AiUserSettings" ToRole="TSql_AiEnvironment" />
+        </EntityType>
+        <Association Name="FK_TSql_AiCommand_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_AiCommand" Role="TSql_AiCommand" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiCommand">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommand_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_AiCommand" Role="TSql_AiCommand" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiCommand">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandPhrase_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_AiCommandPhrase" Role="TSql_AiCommandPhrase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandPhrase">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandPhrase_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_AiCommandPhrase" Role="TSql_AiCommandPhrase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandPhrase">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandPhrase_TSql_AiCommand">
+          <End Type="DesingEntity.TSql_AiCommand" Role="TSql_AiCommand" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_AiCommandPhrase" Role="TSql_AiCommandPhrase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_AiCommand">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandPhrase">
+              <PropertyRef Name="LinkAiCommand" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandPhrase_TSql_AiEnvironment">
+          <End Type="DesingEntity.TSql_AiEnvironment" Role="TSql_AiEnvironment" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_AiCommandPhrase" Role="TSql_AiCommandPhrase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_AiEnvironment">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandPhrase">
+              <PropertyRef Name="LinkEnvironment" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandUser_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_AiCommandUser" Role="TSql_AiCommandUser" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandUser">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandUser_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_AiCommandUser" Role="TSql_AiCommandUser" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandUser">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandUser_AspNetUsers2">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_AiCommandUser" Role="TSql_AiCommandUser" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandUser">
+              <PropertyRef Name="LinkAspNetUsers" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandUser_TSql_AiCommand">
+          <End Type="DesingEntity.TSql_AiCommand" Role="TSql_AiCommand" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_AiCommandUser" Role="TSql_AiCommandUser" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_AiCommand">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandUser">
+              <PropertyRef Name="LinkAiCommand" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandUserPhrase_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_AiCommandUserPhrase" Role="TSql_AiCommandUserPhrase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandUserPhrase">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandUserPhrase_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_AiCommandUserPhrase" Role="TSql_AiCommandUserPhrase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandUserPhrase">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandUserPhrase_AspNetUsers2">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_AiCommandUserPhrase" Role="TSql_AiCommandUserPhrase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandUserPhrase">
+              <PropertyRef Name="LinkAspNetUsers" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandUserPhrase_TSql_AiCommand">
+          <End Type="DesingEntity.TSql_AiCommand" Role="TSql_AiCommand" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_AiCommandUserPhrase" Role="TSql_AiCommandUserPhrase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_AiCommand">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandUserPhrase">
+              <PropertyRef Name="LinkAiCommand" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandUserPhrase_TSql_AiCommandPhrase">
+          <End Type="DesingEntity.TSql_AiCommandPhrase" Role="TSql_AiCommandPhrase" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_AiCommandUserPhrase" Role="TSql_AiCommandUserPhrase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_AiCommandPhrase">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandUserPhrase">
+              <PropertyRef Name="LinkAiCommandPhrase" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiCommandUserPhrase_TSql_AiEnvironment">
+          <End Type="DesingEntity.TSql_AiEnvironment" Role="TSql_AiEnvironment" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_AiCommandUserPhrase" Role="TSql_AiCommandUserPhrase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_AiEnvironment">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_AiCommandUserPhrase">
+              <PropertyRef Name="LinkEnvironment" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiEnvironment_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_AiEnvironment" Role="TSql_AiEnvironment" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiEnvironment">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiEnvironment_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_AiEnvironment" Role="TSql_AiEnvironment" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiEnvironment">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiEnvironmentReply_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_AiEnvironmentReply" Role="TSql_AiEnvironmentReply" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiEnvironmentReply">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiEnvironmentReply_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_AiEnvironmentReply" Role="TSql_AiEnvironmentReply" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiEnvironmentReply">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiEnvironmentReply_TSql_AiEnvironment">
+          <End Type="DesingEntity.TSql_AiEnvironment" Role="TSql_AiEnvironment" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_AiEnvironmentReply" Role="TSql_AiEnvironmentReply" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_AiEnvironment">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_AiEnvironmentReply">
+              <PropertyRef Name="LinkEnvironment" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiUserSettings_AspNetUsers">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_AiUserSettings" Role="TSql_AiUserSettings" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiUserSettings">
+              <PropertyRef Name="LinkMadeBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiUserSettings_AspNetUsers1">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_AiUserSettings" Role="TSql_AiUserSettings" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiUserSettings">
+              <PropertyRef Name="LinModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiUserSettings_AspNetUsers2">
+          <End Type="DesingEntity.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="DesingEntity.TSql_AiUserSettings" Role="TSql_AiUserSettings" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TSql_AiUserSettings">
+              <PropertyRef Name="LinkAspNetUsers" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TSql_AiUserSettings_TSql_AiEnvironment">
+          <End Type="DesingEntity.TSql_AiEnvironment" Role="TSql_AiEnvironment" Multiplicity="0..1" />
+          <End Type="DesingEntity.TSql_AiUserSettings" Role="TSql_AiUserSettings" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TSql_AiEnvironment">
+              <PropertyRef Name="IdObject" />
+            </Principal>
+            <Dependent Role="TSql_AiUserSettings">
+              <PropertyRef Name="LinkEnvironment" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -7260,6 +8418,160 @@
                 <ScalarProperty Name="LinkDesignWall" ColumnName="LinkDesignWall" />
                 <ScalarProperty Name="LinkDesign_V2" ColumnName="LinkDesign_V2" />
                 <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_AiCommand">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_AiCommand">
+              <MappingFragment StoreEntitySet="TSql_AiCommand">
+                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
+                <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
+                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
+                <ScalarProperty Name="Is_Delete" ColumnName="Is_Delete" />
+                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
+                <ScalarProperty Name="NumberOrder" ColumnName="NumberOrder" />
+                <ScalarProperty Name="Is_AiImplemented" ColumnName="Is_AiImplemented" />
+                <ScalarProperty Name="Is_Confirm" ColumnName="Is_Confirm" />
+                <ScalarProperty Name="Is_Destructive" ColumnName="Is_Destructive" />
+                <ScalarProperty Name="TextParamsJson" ColumnName="TextParamsJson" />
+                <ScalarProperty Name="TextAiCommandId" ColumnName="TextAiCommandId" />
+                <ScalarProperty Name="TextHandler" ColumnName="TextHandler" />
+                <ScalarProperty Name="TextDescription" ColumnName="TextDescription" />
+                <ScalarProperty Name="TextNameEn" ColumnName="TextNameEn" />
+                <ScalarProperty Name="TextNameEs" ColumnName="TextNameEs" />
+                <ScalarProperty Name="TextGroup" ColumnName="TextGroup" />
+                <ScalarProperty Name="TextContext" ColumnName="TextContext" />
+                <ScalarProperty Name="TextCode" ColumnName="TextCode" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_AiCommandPhrase">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_AiCommandPhrase">
+              <MappingFragment StoreEntitySet="TSql_AiCommandPhrase">
+                <ScalarProperty Name="LinkEnvironment" ColumnName="LinkEnvironment" />
+                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
+                <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
+                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
+                <ScalarProperty Name="Is_Delete" ColumnName="Is_Delete" />
+                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
+                <ScalarProperty Name="NumberOrder" ColumnName="NumberOrder" />
+                <ScalarProperty Name="NumberWeight" ColumnName="NumberWeight" />
+                <ScalarProperty Name="TextConcept" ColumnName="TextConcept" />
+                <ScalarProperty Name="TextKind" ColumnName="TextKind" />
+                <ScalarProperty Name="TextPhraseNorm" ColumnName="TextPhraseNorm" />
+                <ScalarProperty Name="TextPhrase" ColumnName="TextPhrase" />
+                <ScalarProperty Name="TextLanguageCode" ColumnName="TextLanguageCode" />
+                <ScalarProperty Name="TextContext" ColumnName="TextContext" />
+                <ScalarProperty Name="LinkAiCommand" ColumnName="LinkAiCommand" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_AiCommandUser">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_AiCommandUser">
+              <MappingFragment StoreEntitySet="TSql_AiCommandUser">
+                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
+                <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
+                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
+                <ScalarProperty Name="Is_Delete" ColumnName="Is_Delete" />
+                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
+                <ScalarProperty Name="NumberOrder" ColumnName="NumberOrder" />
+                <ScalarProperty Name="Is_UseDefaultPhrases" ColumnName="Is_UseDefaultPhrases" />
+                <ScalarProperty Name="LinkAiCommand" ColumnName="LinkAiCommand" />
+                <ScalarProperty Name="LinkAspNetUsers" ColumnName="LinkAspNetUsers" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_AiCommandUserPhrase">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_AiCommandUserPhrase">
+              <MappingFragment StoreEntitySet="TSql_AiCommandUserPhrase">
+                <ScalarProperty Name="LinkEnvironment" ColumnName="LinkEnvironment" />
+                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
+                <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
+                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
+                <ScalarProperty Name="Is_Delete" ColumnName="Is_Delete" />
+                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
+                <ScalarProperty Name="Is_Exclude" ColumnName="Is_Exclude" />
+                <ScalarProperty Name="TextPhraseNorm" ColumnName="TextPhraseNorm" />
+                <ScalarProperty Name="TextPhrase" ColumnName="TextPhrase" />
+                <ScalarProperty Name="TextLanguageCode" ColumnName="TextLanguageCode" />
+                <ScalarProperty Name="TextContext" ColumnName="TextContext" />
+                <ScalarProperty Name="LinkAiCommandPhrase" ColumnName="LinkAiCommandPhrase" />
+                <ScalarProperty Name="LinkAiCommand" ColumnName="LinkAiCommand" />
+                <ScalarProperty Name="LinkAspNetUsers" ColumnName="LinkAspNetUsers" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_AiEnvironment">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_AiEnvironment">
+              <MappingFragment StoreEntitySet="TSql_AiEnvironment">
+                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
+                <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
+                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
+                <ScalarProperty Name="Is_Delete" ColumnName="Is_Delete" />
+                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
+                <ScalarProperty Name="NumberOrder" ColumnName="NumberOrder" />
+                <ScalarProperty Name="Is_Default" ColumnName="Is_Default" />
+                <ScalarProperty Name="TextDescription" ColumnName="TextDescription" />
+                <ScalarProperty Name="TextNameEn" ColumnName="TextNameEn" />
+                <ScalarProperty Name="TextNameEs" ColumnName="TextNameEs" />
+                <ScalarProperty Name="TextCode" ColumnName="TextCode" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_AiEnvironmentReply">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_AiEnvironmentReply">
+              <MappingFragment StoreEntitySet="TSql_AiEnvironmentReply">
+                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
+                <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
+                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
+                <ScalarProperty Name="Is_Delete" ColumnName="Is_Delete" />
+                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
+                <ScalarProperty Name="TextTemplate" ColumnName="TextTemplate" />
+                <ScalarProperty Name="TextMessageKey" ColumnName="TextMessageKey" />
+                <ScalarProperty Name="TextLanguageCode" ColumnName="TextLanguageCode" />
+                <ScalarProperty Name="LinkEnvironment" ColumnName="LinkEnvironment" />
+                <ScalarProperty Name="IdObject" ColumnName="IdObject" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TSql_AiUserSettings">
+            <EntityTypeMapping TypeName="DesingEntity.TSql_AiUserSettings">
+              <MappingFragment StoreEntitySet="TSql_AiUserSettings">
+                <ScalarProperty Name="Ntimeschanged" ColumnName="Ntimeschanged" />
+                <ScalarProperty Name="AddLastDateChange" ColumnName="AddLastDateChange" />
+                <ScalarProperty Name="AddDateMade" ColumnName="AddDateMade" />
+                <ScalarProperty Name="LinModifiedBy" ColumnName="LinModifiedBy" />
+                <ScalarProperty Name="LinkMadeBy" ColumnName="LinkMadeBy" />
+                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
+                <ScalarProperty Name="Is_Delete" ColumnName="Is_Delete" />
+                <ScalarProperty Name="TextLabel" ColumnName="TextLabel" />
+                <ScalarProperty Name="TextLanguageCode" ColumnName="TextLanguageCode" />
+                <ScalarProperty Name="LinkEnvironment" ColumnName="LinkEnvironment" />
+                <ScalarProperty Name="LinkAspNetUsers" ColumnName="LinkAspNetUsers" />
                 <ScalarProperty Name="IdObject" ColumnName="IdObject" />
               </MappingFragment>
             </EntityTypeMapping>

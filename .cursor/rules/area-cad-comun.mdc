@@ -1,0 +1,14 @@
+---
+description: Área Plugins CAD — parte común — leer su INDEX antes de tocar este código
+globs:
+  - "Desing/Controllers/DesignToolsAutocadController.cs"
+  - "Desing/Views/DesignToolsAutocad/**"
+  - "Desing/Helpers/PluginCad*.cs"
+  - "Desing/Helpers/PluginInstallLink.cs"
+  - "Desing/Services/LCornerDetector.cs"
+  - "Desing/Services/CadWall2dService.cs"
+alwaysApply: false
+---
+
+Trabajas en el área **Plugins CAD — parte común**. Lee `Docs/areas/cad-comun/INDEX.md` y solo los documentos que ese INDEX indique para tu tarea. No leas la documentación de otras áreas.
+Un cambio aquí afecta a todos los plugins.

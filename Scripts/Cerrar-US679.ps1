@@ -3,7 +3,7 @@ $org = 'VSCAD'; $project = 'tandem2026'; $usId = 679
 $auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(':' + $PAT))
 
 # 1. Subir y adjuntar doc
-$filePath = 'C:\00_Tandem2026\Docs\Proyectos\Desing\US679-Extrude-Create-Corner-Type1.md'
+$filePath = (Join-Path $PSScriptRoot '..\Docs\areas\encofrado-atk60\historial\US679-Extrude-Create-Corner-Type1.md')
 $fileName = 'US679-Extrude-Create-Corner-Type1.md'
 $uploadUrl = "https://dev.azure.com/$org/$project/_apis/wit/attachments?fileName=$fileName&api-version=7.0"
 $uploadHeaders = @{ Authorization = "Basic $auth"; 'Content-Type' = 'application/octet-stream' }

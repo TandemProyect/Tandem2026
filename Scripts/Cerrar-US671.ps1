@@ -3,7 +3,7 @@ $org = 'VSCAD'; $project = 'tandem2026'; $usId = 671
 $auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(':' + $PAT))
 
 # 1. Subir el archivo
-$filePath = 'C:\00_Tandem2026\Docs\Proyectos\Desing\US671-Locate-Termination-Points.md'
+$filePath = (Join-Path $PSScriptRoot '..\Docs\areas\encofrado-atk60\historial\US671-Locate-Termination-Points.md')
 $fileName = 'US671-Locate-Termination-Points.md'
 $uploadUrl = "https://dev.azure.com/$org/$project/_apis/wit/attachments?fileName=$fileName&api-version=7.0"
 $uploadHeaders = @{ Authorization = "Basic $auth"; 'Content-Type' = 'application/octet-stream' }

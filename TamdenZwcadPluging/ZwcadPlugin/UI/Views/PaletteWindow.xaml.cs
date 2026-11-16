@@ -32,7 +32,6 @@ namespace ZwcadPlugin.UI.Views
         public event Action<Uri> Navigated;
         public string LayoutId { get; set; }
         private bool _placing;
-        private bool _pageShown;
         private bool _hostStashed;
         private double _stashW;
         private double _stashH;
@@ -497,7 +496,6 @@ namespace ZwcadPlugin.UI.Views
 
         public void HidePageLoader()
         {
-            _pageShown = true;
             try
             {
                 AttachWeb();

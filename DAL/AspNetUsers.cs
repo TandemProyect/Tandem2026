@@ -102,6 +102,23 @@ namespace DAL
             this.TSql_Design_V21 = new HashSet<TSql_Design_V2>();
             this.TSql_Branch = new HashSet<TSql_Branch>();
             this.TSql_Branch1 = new HashSet<TSql_Branch>();
+            this.TSql_AiCommand = new HashSet<TSql_AiCommand>();
+            this.TSql_AiCommand1 = new HashSet<TSql_AiCommand>();
+            this.TSql_AiCommandPhrase = new HashSet<TSql_AiCommandPhrase>();
+            this.TSql_AiCommandPhrase1 = new HashSet<TSql_AiCommandPhrase>();
+            this.TSql_AiCommandUser = new HashSet<TSql_AiCommandUser>();
+            this.TSql_AiCommandUser1 = new HashSet<TSql_AiCommandUser>();
+            this.TSql_AiCommandUser2 = new HashSet<TSql_AiCommandUser>();
+            this.TSql_AiCommandUserPhrase = new HashSet<TSql_AiCommandUserPhrase>();
+            this.TSql_AiCommandUserPhrase1 = new HashSet<TSql_AiCommandUserPhrase>();
+            this.TSql_AiCommandUserPhrase2 = new HashSet<TSql_AiCommandUserPhrase>();
+            this.TSql_AiEnvironment = new HashSet<TSql_AiEnvironment>();
+            this.TSql_AiEnvironment1 = new HashSet<TSql_AiEnvironment>();
+            this.TSql_AiEnvironmentReply = new HashSet<TSql_AiEnvironmentReply>();
+            this.TSql_AiEnvironmentReply1 = new HashSet<TSql_AiEnvironmentReply>();
+            this.TSql_AiUserSettings = new HashSet<TSql_AiUserSettings>();
+            this.TSql_AiUserSettings1 = new HashSet<TSql_AiUserSettings>();
+            this.TSql_AiUserSettings2 = new HashSet<TSql_AiUserSettings>();
         }
     
         public string Id { get; set; }
@@ -287,5 +304,39 @@ namespace DAL
         public virtual ICollection<TSql_Branch> TSql_Branch { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TSql_Branch> TSql_Branch1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_AiCommand> TSql_AiCommand { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_AiCommand> TSql_AiCommand1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_AiCommandPhrase> TSql_AiCommandPhrase { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_AiCommandPhrase> TSql_AiCommandPhrase1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_AiCommandUser> TSql_AiCommandUser { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_AiCommandUser> TSql_AiCommandUser1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_AiCommandUser> TSql_AiCommandUser2 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_AiCommandUserPhrase> TSql_AiCommandUserPhrase { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_AiCommandUserPhrase> TSql_AiCommandUserPhrase1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_AiCommandUserPhrase> TSql_AiCommandUserPhrase2 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_AiEnvironment> TSql_AiEnvironment { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_AiEnvironment> TSql_AiEnvironment1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_AiEnvironmentReply> TSql_AiEnvironmentReply { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_AiEnvironmentReply> TSql_AiEnvironmentReply1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_AiUserSettings> TSql_AiUserSettings { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_AiUserSettings> TSql_AiUserSettings1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TSql_AiUserSettings> TSql_AiUserSettings2 { get; set; }
     }
 }

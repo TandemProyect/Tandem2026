@@ -2,7 +2,7 @@
 
 Proyecto operativo para construir y mantener la presencia de `trdesing.net` en LinkedIn.
 
-Este proyecto contiene borradores, guiones, assets, videos preparados y seguimiento de publicaciones. La documentacion estrategica esta en [`../Docs/Proyectos/LinkedIn/`](../Docs/Proyectos/LinkedIn/).
+Este proyecto contiene borradores, guiones, assets, videos preparados y seguimiento de publicaciones. La documentacion estrategica esta en [`../Docs/areas/linkedin/linkedin-proyecto.md`](../Docs/areas/linkedin/linkedin-proyecto.md).
 
 ## Vista previa
 
@@ -36,7 +36,7 @@ LinkedIn/
 2. Preparar el guion del video en `content/video-scripts/`.
 3. Grabar con datos ficticios y guardar el original en `media/raw/`.
 4. Exportar la version final a `media/exports/`.
-5. Revisar [`../Docs/Proyectos/LinkedIn/CHECKLIST-PUBLICACION.md`](../Docs/Proyectos/LinkedIn/CHECKLIST-PUBLICACION.md).
+5. Revisar [`../Docs/areas/linkedin/CHECKLIST-PUBLICACION.md`](../Docs/areas/linkedin/CHECKLIST-PUBLICACION.md).
 6. Publicar desde la pagina de LinkedIn de `trdesing.net`.
 7. Registrar resultados y aprendizajes en `tracking/publicaciones.md`.
 

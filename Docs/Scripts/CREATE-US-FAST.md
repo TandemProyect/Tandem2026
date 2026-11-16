@@ -184,7 +184,7 @@ https://dev.azure.com/VSCAD/tandem2026/_workitems/edit/<ID>
 
 ## 📞 Referencias
 
-- **Documentación completa:** `C:\00_Tandem2026\Docs\General\GESTION-PANEL-AZURE-DEVOPS.md`
+- **Documentación completa:** `C:\00_Tandem2026\Docs\areas\azure-devops\GESTION-PANEL-AZURE-DEVOPS.md`
 - **Script Edit-US:** `C:\00_Tandem2026\Scripts\Edit-US.ps1`
 - **Script Attach-Document:** `C:\00_Tandem2026\Scripts\Attach-Document.ps1`
 - **Azure DevOps REST API:** https://learn.microsoft.com/rest/api/azure/devops/wit/

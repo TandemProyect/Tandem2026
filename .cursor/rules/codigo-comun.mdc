@@ -1,0 +1,20 @@
+---
+description: Código que usan varias áreas — mirar Docs/codigo-comun.md antes de cambiarlo
+globs:
+  - "DAL/**"
+  - "Desing/Repositories/RepositoryAtk60/**"
+  - "Desing/Repositories/Repository_Desing_2/**"
+  - "Desing/Repositories/RepositoryCommun/**"
+  - "Desing/Repositories/RepositoryDesing2/**"
+  - "Desing/Controllers/DesignToolsAutocadController.cs"
+  - "Desing/Views/DesignToolsAutocad/**"
+  - "Desing/Helpers/**"
+  - "Desing/Scripts/MasterArticles/master-article-details-stl-viewer.js"
+  - "Desing/Scripts/MasterArticles/wall-edit-form.js"
+  - "Desing/Scripts/MasterArticles/wall-ai-assistant.js"
+  - "Desing/Scripts/MasterArticles/ai-command-catalog.js"
+  - "Desing/Scripts/Desing2/desing2-stl-viewer-toolbar-wiring.js"
+alwaysApply: false
+---
+
+Este archivo lo usan varias áreas. Antes de cambiar una firma, un DTO, un endpoint o un formato JSON, mira su fila en `Docs/codigo-comun.md` y prueba todas las áreas que lo usan.

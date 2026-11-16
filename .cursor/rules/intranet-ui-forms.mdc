@@ -13,14 +13,14 @@ alwaysApply: false
 Antes de crear o modificar pantallas CRUD Intranet, **leer en este orden**:
 
 1. `Desing/Docs/Intranet/README.md`
-2. `Desing/Docs/Intranet/UI-Formularios-y-Estilo.md`
-3. Si hay dirección con mapa: `Desing/Docs/Intranet/Google-Places-Direcciones.md`
-4. Tablas DataTables / layout: `Desing/docs/agente-ui-materio-datatables.md`
+2. `Docs/areas/intranet/UI-Formularios-y-Estilo.md`
+3. Si hay dirección con mapa: `Docs/areas/intranet/Google-Places-Direcciones.md`
+4. Tablas DataTables / layout: `Docs/areas/intranet/agente-ui-materio-datatables.md`
 5. Visor STL 3D (solo Master Articles): `Desing/Scripts/ThreejsDesing/README.md`
 
 ## Campo color HEX
 
-Usar **selector nativo + texto sincronizados** y validación servidor `#RGB` / `#RRGGBB` según `Desing/docs/Intranet/UI-Formularios-y-Estilo.md` §5 (subsection «Color (HEX)»). Referencia: OfferState, Plantilla.
+Usar **selector nativo + texto sincronizados** y validación servidor `#RGB` / `#RRGGBB` según `Docs/areas/intranet/UI-Formularios-y-Estilo.md` §5 (subsection «Color (HEX)»). Referencia: OfferState, Plantilla.
 
 ## Reglas obligatorias
 

@@ -71,7 +71,7 @@ namespace Desing.Repositories.RepositoryAtk60
         }
 
         // Base funcional documentada en:
-        // Docs/Proyectos/Desing/ATK60-Logica-Modulos-Wall.md
+        // Docs/areas/encofrado-atk60/ATK60-Logica-Modulos-Wall.md
         public List<ModulosAtk60Wall> GetWallsForCadSystems(List<Desing2FormworkWallDto> walls)
         {
             return GetWallsForCadSystems(walls, null);

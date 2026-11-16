@@ -1,0 +1,9 @@
+---
+description: Área Plugin ZWCAD — leer su INDEX antes de tocar este código
+globs:
+  - "TamdenZwcadPluging/**"
+alwaysApply: false
+---
+
+Trabajas en el área **Plugin ZWCAD**. Lee `Docs/areas/cad-zwcad/INDEX.md` y solo los documentos que ese INDEX indique para tu tarea. No leas la documentación de otras áreas.
+AutoCAD tiene copias casi iguales de muchos archivos: revisa el gemelo.

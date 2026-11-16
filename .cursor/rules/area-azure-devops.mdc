@@ -1,0 +1,8 @@
+---
+description: Área Azure DevOps y scripts — leer su INDEX antes de tocar este código
+globs:
+  - "Scripts/**"
+alwaysApply: false
+---
+
+Trabajas en el área **Azure DevOps y scripts**. Lee `Docs/areas/azure-devops/INDEX.md` y solo los documentos que ese INDEX indique para tu tarea. No leas la documentación de otras áreas.

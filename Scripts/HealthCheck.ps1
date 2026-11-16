@@ -27,19 +27,13 @@ Write-Host ""
 
 # 2. Verificar documentacion critica
 Write-Host "[2/5] Verificando documentacion..." -ForegroundColor Yellow
-$docFolder = Get-ChildItem -Directory -ErrorAction SilentlyContinue |
-	Where-Object { $_.Name -like 'documentaci*' -and $_.Name -ne 'Docs' } |
-	Select-Object -First 1
-$continuityDoc = if ($docFolder) {
-	Join-Path $docFolder.Name 'CONTINUITY.md'
-} else {
-	'documentacion\CONTINUITY.md'
-}
 $criticalDocs = @(
-	$continuityDoc,
+	'AGENTS.md',
 	'README.md',
 	'Docs\README.md',
-	'Docs\General\Azure-DevOps.md'
+	'Docs\COMO-TRABAJAR.md',
+	'Docs\areas\azure-devops\CONTINUITY.md',
+	'Docs\areas\azure-devops\Azure-DevOps.md'
 )
 $docsOK = $true
 foreach ($doc in $criticalDocs) {

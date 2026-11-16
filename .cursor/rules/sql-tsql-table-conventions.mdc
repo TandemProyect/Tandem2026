@@ -4,7 +4,7 @@ globs:
   - "**/*.sql"
   - "Desing/Scripts/TemporalScript/**"
   - "DAL/**"
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Convenciones para crear tablas SQL Server (`TSql_*`)

@@ -1,5 +1,5 @@
 # Entorno DEVELOP: publica Design (MVC .NET Framework 4.8) en el sitio develop de SmarterASP.
-# Trigger: push a `develo` o ejecución manual. Docs: Docs/General/Deploy-Site4Now.md (sección «Entorno develop»).
+# Trigger: push a `develo` o ejecución manual. Docs: Docs/areas/despliegue/deploy-site4now-guia.md (sección «Entorno develop»).
 
 name: Deploy Site4Now Develop
 

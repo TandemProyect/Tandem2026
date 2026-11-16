@@ -257,9 +257,9 @@ foreach ($taskType in $tasks) {
 
 | Documento | Enlace |
 |-----------|--------|
-| **Guía Completa Azure DevOps** | [Docs/General/GESTION-PANEL-AZURE-DEVOPS.md](Docs/General/GESTION-PANEL-AZURE-DEVOPS.md) |
-| **Scripts PowerShell** | [Scripts/README.md](Scripts/README.md) |
-| **Script Rápido** | [Scripts/Quick-US.ps1](Scripts/Quick-US.ps1) |
+| **Guía Completa Azure DevOps** | [Docs/General/GESTION-PANEL-AZURE-DEVOPS.md](../../Docs/areas/azure-devops/GESTION-PANEL-AZURE-DEVOPS.md) |
+| **Scripts PowerShell** | [Scripts/README.md](../../Scripts/README.md) |
+| **Script Rápido** | [Scripts/Quick-US.ps1](../../Scripts/Quick-US.ps1) |
 | **Panel Azure DevOps** | https://dev.azure.com/VSCAD/tandem2026/_boards/board/t/tandem2026%20Team/Issues |
 
 ---

@@ -38,6 +38,16 @@
             </div>
             <span class="desing2-stl-floating-toolbar__group-gap" aria-hidden="true"></span>
         }
+        @if (!isPluginCadHost)
+        {
+            @* IA (14/11/2026): primer botón de los modos, separado del resto por dos espacios (group-gap--ia). Abre/cierra el panel «Asistente IA – Diseño» (design-ai-assistant.js, enganchado desde master-article-details-stl-viewer.js; comandos de dibujo y edición de muros 2D). Si el módulo no carga, avisa «próximamente» (desing2-stl-viewer-toolbar-wiring.js). Solo en el visor web: la paleta de AutoCAD no carga ese JS. *@
+            <div class="desing2-stl-floating-toolbar__group desing2-stl-floating-toolbar__group--ia" role="group" aria-label="IA">
+                <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-mode-ia" title="Asistente IA" aria-label="Asistente IA" aria-pressed="false" data-ma-ia-soon="IA: próximamente">
+                    <i class="icon-base ri ri-robot-2-line" aria-hidden="true"></i>
+                </button>
+            </div>
+            <span class="desing2-stl-floating-toolbar__group-gap desing2-stl-floating-toolbar__group-gap--ia" aria-hidden="true"></span>
+        }
         <div class="desing2-stl-floating-toolbar__group desing2-stl-floating-toolbar__group--mode" role="group" aria-label="@MasterArticles.StlPreview_Desing2TopToolbarDrawGroupAria">
             <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn active" id="ma-stl-mode-lines" data-ma-stl-mode="lines" title="@MasterArticles.StlPreview_Desing2ToolPolylineAria" aria-label="@MasterArticles.StlPreview_Desing2ToolPolylineAria" aria-pressed="true">
                 <i class="icon-base ri ri-route-line" aria-hidden="true"></i>

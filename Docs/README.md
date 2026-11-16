@@ -1,5 +1,7 @@
 # 📚 Documentación Tandem 2026
 
+> **Agentes:** empezad por [`AGENTS.md`](../AGENTS.md) y el `INDEX.md` de vuestra área (`Docs/areas/`). Este índice es la documentación anterior.
+
 Sistema de documentación completo para el proyecto Tandem 2026.
 
 ---
@@ -15,30 +17,30 @@ La documentación está dividida en **dos niveles**:
 
 ## 📖 Documentación General
 
-**Ubicación:** [`Docs/General/`](General/)
+**Ubicación:** [`Docs/areas/general/`](areas/general/)
 
 Contiene guías y prácticas que aplican a **todos los proyectos**:
 
 | Documento | Descripción | Cuándo consultar |
 |-----------|-------------|------------------|
-| [**🎯 GESTION-PANEL-AZURE-DEVOPS**](General/GESTION-PANEL-AZURE-DEVOPS.md) ⭐ | **Guía completa de Azure DevOps** - Crear US/Tasks, scripts, troubleshooting | **LEER PRIMERO** antes de crear US o Tasks |
-| [**Code review prep 2026-10-03**](General/CODE-REVIEW-PREP-2026-10-03.md) | Arquitectura, conexión frecuente, qué no revertir, deuda conocida | Antes de un review interno |
-| [**Azure DevOps**](General/Azure-DevOps.md) | Documentación anterior (redirige a la nueva) | Referencia histórica |
-| [**Estructura del Repositorio**](General/Estructura-Repositorio.md) | Organización de carpetas y archivos | Navegar el proyecto, ubicar archivos |
-| [**Common - Código Compartido**](General/Common.md) | Usar y mantener código compartido | Crear/usar utilidades compartidas |
-| [**Convenciones de Código**](General/Convenciones.md) | Estándares de nomenclatura y estilo | Escribir código, revisiones |
-| [**Git Workflow**](General/Git-Workflow.md) | Flujo de trabajo con Git y GitHub | Hacer commits, resolver conflictos |
+| [**🎯 GESTION-PANEL-AZURE-DEVOPS**](areas/azure-devops/GESTION-PANEL-AZURE-DEVOPS.md) ⭐ | **Guía completa de Azure DevOps** - Crear US/Tasks, scripts, troubleshooting | **LEER PRIMERO** antes de crear US o Tasks |
+| [**Code review prep 2026-10-03**](areas/general/historial/CODE-REVIEW-PREP-2026-10-03.md) | Arquitectura, conexión frecuente, qué no revertir, deuda conocida | Antes de un review interno |
+| [**Azure DevOps**](areas/azure-devops/Azure-DevOps.md) | Documentación anterior (redirige a la nueva) | Referencia histórica |
+| [**Estructura del Repositorio**](areas/general/Estructura-Repositorio.md) | Organización de carpetas y archivos | Navegar el proyecto, ubicar archivos |
+| [**Common - Código Compartido**](areas/general/Common.md) | Usar y mantener código compartido | Crear/usar utilidades compartidas |
+| [**Convenciones de Código**](areas/general/Convenciones.md) | Estándares de nomenclatura y estilo | Escribir código, revisiones |
+| [**Git Workflow**](areas/general/Git-Workflow.md) | Flujo de trabajo con Git y GitHub | Hacer commits, resolver conflictos |
 
 ---
 
 ## 🔧 Documentación por Proyecto
 
-**Ubicación:** [`Docs/Proyectos/`](Proyectos/)
+**Ubicación:** [`Docs/areas/`](areas/)
 
 Contiene documentación **específica de implementación** para cada proyecto:
 
 ### **1. DAL - Data Access Layer**
-📂 [`Docs/Proyectos/DAL/`](Proyectos/DAL/)
+📂 [`Docs/areas/base-de-datos/DAL.md`](areas/base-de-datos/DAL.md)
 
 **Propósito:** Acceso a datos y repositorios
 
@@ -56,7 +58,7 @@ Contiene documentación **específica de implementación** para cada proyecto:
 ---
 
 ### **2. Desing - Business Logic Layer**
-📂 [`Docs/Proyectos/Desing/`](Proyectos/Desing/)
+📂 [`Docs/areas/general/Desing-proyecto.md`](areas/general/Desing-proyecto.md)
 
 **Propósito:** Lógica de negocio y servicios
 
@@ -74,18 +76,18 @@ Contiene documentación **específica de implementación** para cada proyecto:
 ---
 
 ### **3. Plugins Tandem CAD (AutoCAD, BricsCAD, Revit)**
-📂 [`Docs/Proyectos/Plugins-CAD/`](Proyectos/Plugins-CAD/)
+📂 [`Docs/areas/cad-comun/plugins-cad.md`](areas/cad-comun/plugins-cad.md)
 
 **Propósito:** plugins Tandem 2026 alineados con Desing_2 (paletas MVC, muro 2D, generar 3D).
 
-**Continuar aquí:** [Resumen agentes sep/oct 2026](Proyectos/Plugins-CAD/RESUMEN-2026-09-10-Trabajo-Agentes.md), y despues el handover tecnico actual [HANDOVER-2026-10-07-Encofrar-Manual-Posicion-Visor.md](Proyectos/Plugins-CAD/HANDOVER-2026-10-07-Encofrar-Manual-Posicion-Visor.md).
+**Continuar aquí:** [Resumen agentes sep/oct 2026](areas/cad-comun/RESUMEN-2026-09-10-Trabajo-Agentes.md), y despues el handover tecnico actual [HANDOVER-2026-10-07-Encofrar-Manual-Posicion-Visor.md](areas/cad-autocad/historial/HANDOVER-2026-10-07-Encofrar-Manual-Posicion-Visor.md).
 
-También: [AutocadPlugin](Proyectos/AutocadPlugin/), [BricscadPlugin](Proyectos/BricscadPlugin/), [RevitPlugin](Proyectos/RevitPlugin/).
+También: [AutocadPlugin](areas/cad-autocad/autocad-plugin.md), [BricscadPlugin](areas/cad-bricscad-revit/bricscad-plugin.md), [RevitPlugin](areas/cad-bricscad-revit/revit-plugin.md).
 
 ---
 
 ### **4. ZwcadPlugin - Plugin ZWCAD 2026**
-📂 [`Docs/Proyectos/ZwcadPlugin/`](Proyectos/ZwcadPlugin/)
+📂 [`Docs/areas/cad-zwcad/zwcad-plugin.md`](areas/cad-zwcad/zwcad-plugin.md)
 
 **Propósito:** Plugin para ZWCAD con interfaz WPF
 
@@ -102,8 +104,8 @@ También: [AutocadPlugin](Proyectos/AutocadPlugin/), [BricscadPlugin](Proyectos/
 
 **Documentación adicional:**
 - [Plugin README](../TamdenZwcadPluging/ZwcadPlugin/README.md)
-- [Guía Técnica](Proyectos/ZwcadPlugin/TECHNICAL_GUIDE.md)
-- [Sistema de Iconos](Proyectos/ZwcadPlugin/Iconos/README_ICONOS.md)
+- [Guía Técnica](areas/cad-zwcad/TECHNICAL_GUIDE.md)
+- [Sistema de Iconos](areas/cad-zwcad/iconos/README_ICONOS.md)
 
 ---
 
@@ -113,8 +115,8 @@ También: [AutocadPlugin](Proyectos/AutocadPlugin/), [BricscadPlugin](Proyectos/
 
 1. **Leer primero:**
    - [README.md principal](../README.md)
-   - [Estructura del Repositorio](General/Estructura-Repositorio.md)
-   - [Convenciones de Código](General/Convenciones.md)
+   - [Estructura del Repositorio](areas/general/Estructura-Repositorio.md)
+   - [Convenciones de Código](areas/general/Convenciones.md)
 
 2. **Configurar entorno:**
    - Clonar repositorio
@@ -122,8 +124,8 @@ También: [AutocadPlugin](Proyectos/AutocadPlugin/), [BricscadPlugin](Proyectos/
    - Compilar solución
 
 3. **Familiarizarse con:**
-   - [Git Workflow](General/Git-Workflow.md)
-   - [Azure DevOps](General/Azure-DevOps.md)
+   - [Git Workflow](areas/general/Git-Workflow.md)
+   - [Azure DevOps](areas/azure-devops/Azure-DevOps.md)
    - Documentación del proyecto en el que trabajarás
 
 ---
@@ -131,7 +133,7 @@ También: [AutocadPlugin](Proyectos/AutocadPlugin/), [BricscadPlugin](Proyectos/
 ### **Para Tareas Específicas:**
 
 #### **Crear User Story:**
-📖 [Azure DevOps → Crear User Stories](General/Azure-DevOps.md#-crear-user-stories--issues-rápidamente)
+📖 [Azure DevOps → Crear User Stories](areas/azure-devops/Azure-DevOps.md#-crear-user-stories--issues-rápidamente)
 
 ```powershell
 .\Scripts\US.ps1 "Título de la historia"
@@ -140,7 +142,7 @@ También: [AutocadPlugin](Proyectos/AutocadPlugin/), [BricscadPlugin](Proyectos/
 ---
 
 #### **Vincular Commits a User Stories:**
-📖 [Azure DevOps → Vincular Commits](General/Azure-DevOps.md#-vincular-commits-a-user-stories)
+📖 [Azure DevOps → Vincular Commits](areas/azure-devops/Azure-DevOps.md#-vincular-commits-a-user-stories)
 
 ```bash
 git commit -m "feat: Descripción del cambio AB#612"
@@ -149,7 +151,7 @@ git commit -m "feat: Descripción del cambio AB#612"
 ---
 
 #### **Agregar Código Compartido:**
-📖 [Common → Flujo de Trabajo](General/Common.md#-flujo-de-trabajo)
+📖 [Common → Flujo de Trabajo](areas/general/Common.md#-flujo-de-trabajo)
 
 1. Crear archivo en `Common/<Categoria>/`
 2. Definir namespace `Tandem2026.Common.<Categoria>`
@@ -159,7 +161,7 @@ git commit -m "feat: Descripción del cambio AB#612"
 ---
 
 #### **Crear Comando ZWCAD:**
-📖 [ZwcadPlugin → Comandos](Proyectos/ZwcadPlugin/README.md#-comandos-zwcad)
+📖 [ZwcadPlugin → Comandos](areas/cad-zwcad/zwcad-plugin.md#-comandos-zwcad)
 
 ```csharp
 [CommandMethod("TANDEM_MI_COMANDO")]
@@ -175,7 +177,7 @@ public void MiComando()
 
 ### **Documentación General:**
 ```
-Docs/General/
+Docs/areas/general/
 ├── README.md                         # Índice de docs generales
 ├── Azure-DevOps.md                   # Gestión de trabajo
 ├── Estructura-Repositorio.md         # Organización del repo
@@ -188,7 +190,7 @@ Docs/General/
 
 ### **Documentación por Proyecto:**
 ```
-Docs/Proyectos/
+Docs/areas/
 ├── DAL/
 │   └── README.md                     # Data Access Layer
 ├── Desing/

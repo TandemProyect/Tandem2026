@@ -45,7 +45,7 @@ Invoke-RestMethod -Uri $urlCRPatch -Headers $headers -Method Patch -Body ([Syste
 Write-Host "✅ Task CR #$($resCR.id) marcada Done" -ForegroundColor Green
 
 # 4. Adjuntar documentacion
-$docPath = "C:\00_Tandem2026\Docs\US\US-638-CORRECCION-PUNTO-INTERIOR-ESQUINA-L.md"
+$docPath = (Join-Path $PSScriptRoot '..\Docs\US\US-638-CORRECCION-PUNTO-INTERIOR-ESQUINA-L.md')
 $uploadUrl = "https://dev.azure.com/VSCAD/tandem2026/_apis/wit/attachments?fileName=US-638-CORRECCION-PUNTO-INTERIOR-ESQUINA-L.md&api-version=7.0"
 $headersUpload = @{ Authorization = "Basic $auth" }
 $uploadResult = Invoke-RestMethod -Uri $uploadUrl -Headers $headersUpload -Method Post -InFile $docPath -ContentType "application/octet-stream"

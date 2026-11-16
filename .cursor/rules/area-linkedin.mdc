@@ -1,0 +1,8 @@
+---
+description: Área LinkedIn — leer su INDEX antes de tocar este código
+globs:
+  - "LinkedIn/**"
+alwaysApply: false
+---
+
+Trabajas en el área **LinkedIn**. Lee `Docs/areas/linkedin/INDEX.md` y solo los documentos que ese INDEX indique para tu tarea. No leas la documentación de otras áreas.

@@ -1,0 +1,9 @@
+---
+description: Área FreeCAD — leer su INDEX antes de tocar este código
+globs:
+  - "FreeCadPluging/**"
+  - "FreeCadPluging.Tests/**"
+alwaysApply: false
+---
+
+Trabajas en el área **FreeCAD**. Lee `Docs/areas/cad-freecad/INDEX.md` y solo los documentos que ese INDEX indique para tu tarea. No leas la documentación de otras áreas.

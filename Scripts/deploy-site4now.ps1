@@ -7,7 +7,7 @@
     No sube nada ni almacena contraseñas. Tras ejecutar, sube el contenido generado con
     FileZilla / WinSCP el panel FTP.
 
-    Guía completa: Docs/General/Deploy-Site4Now.md
+    Guía completa: Docs/areas/despliegue/deploy-site4now-guia.md
 
 .NOTES
     - Requiere Visual Studio Build Tools (o VS) con carga ASP.NET / Web.MSBuild y nuget CLI en PATH (después del setup de NuGet en VS también vale).
@@ -144,7 +144,7 @@ OK — Artefactos en:
   $PublishRoot
 
 Siguientes pasos:
-  1) Credenciales FTP (Site4Now / panel): servidor, usuario, contraseña, carpeta remota correcta (ver Docs/General/Deploy-Site4Now.md).
+  1) Credenciales FTP (Site4Now / panel): servidor, usuario, contraseña, carpeta remota correcta (ver Docs/areas/despliegue/deploy-site4now-guia.md).
   2) En el servidor, mantén Web.GoogleMaps.config fuera de Git pero presente físicamente.
   3) Para despliegue automático tras push a master mira el workflow .github/workflows/deploy-site4now.yml
 

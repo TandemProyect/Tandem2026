@@ -1,0 +1,14 @@
+---
+description: Área Intranet — leer su INDEX antes de tocar este código
+globs:
+  - "Desing/Scripts/Intranet/**"
+  - "Desing/Scripts/ResourceGenerators/**"
+  - "Desing/Views/Jobside/**"
+  - "Desing/Views/ClientV2/**"
+  - "Desing/Views/TSql_Company/**"
+  - "Desing/Views/TSql_Branch/**"
+  - "Desing/Views/Home/**"
+alwaysApply: false
+---
+
+Trabajas en el área **Intranet**. Lee `Docs/areas/intranet/INDEX.md` y solo los documentos que ese INDEX indique para tu tarea. No leas la documentación de otras áreas.

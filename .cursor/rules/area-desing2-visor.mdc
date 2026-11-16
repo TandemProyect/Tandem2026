@@ -1,0 +1,12 @@
+---
+description: Área Visor Desing_2 (núcleo) — leer su INDEX antes de tocar este código
+globs:
+  - "Desing/Scripts/MasterArticles/master-article-details-stl-viewer.js"
+  - "Desing/Views/Desing_2/**"
+  - "Desing/Scripts/Desing2/desing2-stl-viewer-toolbar-wiring.js"
+  - "Desing/Controllers/Desing_2Controller.cs"
+alwaysApply: false
+---
+
+Trabajas en el área **Visor Desing_2 (núcleo)**. Lee `Docs/areas/desing2-visor/INDEX.md` y solo los documentos que ese INDEX indique para tu tarea. No leas la documentación de otras áreas.
+Si la tarea es de dibujo 2D, muros 3D, encofrado o IA, lee el INDEX de esa área en lugar de este.

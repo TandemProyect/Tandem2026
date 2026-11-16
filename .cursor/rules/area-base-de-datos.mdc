@@ -1,0 +1,10 @@
+---
+description: Área Base de datos y DAL — leer su INDEX antes de tocar este código
+globs:
+  - "DAL/**"
+  - "Desing/Scripts/TemporalScript/**"
+alwaysApply: false
+---
+
+Trabajas en el área **Base de datos y DAL**. Lee `Docs/areas/base-de-datos/INDEX.md` y solo los documentos que ese INDEX indique para tu tarea. No leas la documentación de otras áreas.
+develop y producción deben quedar idénticas.

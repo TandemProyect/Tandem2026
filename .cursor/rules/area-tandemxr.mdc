@@ -1,0 +1,11 @@
+---
+description: Área TandemXR — leer su INDEX antes de tocar este código
+globs:
+  - "TandemXR/**"
+  - "TandemXR-Unity/**"
+  - "Desing/Controllers/TandemXrApiController.cs"
+  - "Desing/Controllers/XrDeviceController.cs"
+alwaysApply: false
+---
+
+Trabajas en el área **TandemXR**. Lee `Docs/areas/tandemxr/INDEX.md` y solo los documentos que ese INDEX indique para tu tarea. No leas la documentación de otras áreas.

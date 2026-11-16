@@ -31,7 +31,7 @@ namespace Desing.Controllers
 
     [Authorize]
 
-    public class Desing_2Controller : BaseController
+    public partial class Desing_2Controller : BaseController
 
     {
 

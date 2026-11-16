@@ -1,0 +1,13 @@
+---
+description: Área Muros 3D en Desing_2 — leer su INDEX antes de tocar este código
+globs:
+  - "Desing/Scripts/MasterArticles/wall-edit-form.js"
+  - "Desing/Scripts/MasterArticles/ma-stl-wall-edit-finalize.js"
+  - "Desing/Scripts/MasterArticles/wall-bulk-list.js"
+  - "Desing/Scripts/Desing2/desing2-wall-exchange.js"
+  - "Desing/Repositories/RepositoryDesing2/**"
+alwaysApply: false
+---
+
+Trabajas en el área **Muros 3D en Desing_2**. Lee `Docs/areas/desing2-muros-3d/INDEX.md` y solo los documentos que ese INDEX indique para tu tarea. No leas la documentación de otras áreas.
+No toques `Desing/IA/Communication/WallConnections.json`.
