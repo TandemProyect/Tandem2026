@@ -107,12 +107,12 @@ namespace Desing.Controllers
                         : p.NFunctions.ToString();
 
                     var editBtn = "<a title=\"" + ttEdit + "\" href=\"" + Url.Action("Edit", new { id = p.IdObject }) +
-                                  "\" class=\"btn btn-warning btn-xs\"><span class=\"fas fa-edit\" aria-hidden=\"true\"></span></a>";
+                                  "\" data-function=\"Role.Edit\" class=\"btn btn-warning btn-xs\"><span class=\"fas fa-edit\" aria-hidden=\"true\"></span></a>";
                     var deleteBtn = p.Is_System
                         ? "<a title=\"" + ttLocked + "\" class=\"btn btn-secondary btn-xs disabled\" aria-disabled=\"true\" tabindex=\"-1\">" +
                           "<span class=\"fas fa-trash-alt\" aria-hidden=\"true\"></span></a>"
                         : "<a title=\"" + ttDelete + "\" href=\"#\" onclick=\"DeleteRole(" + p.IdObject +
-                          "); return false;\" class=\"btn btn-danger btn-xs\"><span class=\"fas fa-trash-alt\" aria-hidden=\"true\"></span></a>";
+                          "); return false;\" data-function=\"Role.DeleteRole\" class=\"btn btn-danger btn-xs\"><span class=\"fas fa-trash-alt\" aria-hidden=\"true\"></span></a>";
 
                     return new
                     {

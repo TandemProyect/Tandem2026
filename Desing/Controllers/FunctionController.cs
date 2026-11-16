@@ -106,9 +106,9 @@ namespace Desing.Controllers
                             : "<span class=\"badge bg-label-secondary\">" + lblFree + "</span>",
                         rowActions = "<div class=\"d-inline-flex align-items-center gap-2\" role=\"group\">" +
                                      "<a title=\"" + ttEdit + "\" href=\"" + Url.Action("Edit", new { id = p.IdObject }) +
-                                     "\" class=\"btn btn-warning btn-xs\"><span class=\"fas fa-edit\" aria-hidden=\"true\"></span></a>" +
+                                     "\" data-function=\"Function.Edit\" class=\"btn btn-warning btn-xs\"><span class=\"fas fa-edit\" aria-hidden=\"true\"></span></a>" +
                                      "<a title=\"" + ttDelete + "\" href=\"#\" onclick=\"DeleteFunction(" + p.IdObject +
-                                     "); return false;\" class=\"btn btn-danger btn-xs\"><span class=\"fas fa-trash-alt\" aria-hidden=\"true\"></span></a>" +
+                                     "); return false;\" data-function=\"Function.DeleteFunction\" class=\"btn btn-danger btn-xs\"><span class=\"fas fa-trash-alt\" aria-hidden=\"true\"></span></a>" +
                                      "</div>"
                     };
                 }).ToList();
