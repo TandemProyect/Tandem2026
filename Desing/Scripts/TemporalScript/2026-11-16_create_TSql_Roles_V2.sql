@@ -21,7 +21,7 @@ BEGIN
         /* ----- Negocio ----- */
         [TextLabel]           NVARCHAR(500)   NOT NULL,
         [TextCode]            NVARCHAR(100)   NULL,
-        [TextDescription]     NVARCHAR(2000)  NULL,
+        [TextDescription]     NVARCHAR(MAX)   NULL,
         /* Rol de sistema: no se puede borrar desde la intranet. */
         [Is_System]           BIT             NOT NULL
             CONSTRAINT DF_TSql_Roles_V2_Is_System       DEFAULT (0),

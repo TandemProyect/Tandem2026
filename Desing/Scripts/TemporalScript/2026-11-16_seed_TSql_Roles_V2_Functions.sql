@@ -23,7 +23,7 @@ DECLARE @User NVARCHAR(128) =
     COALESCE(@Admin, (SELECT TOP (1) u.Id FROM dbo.AspNetUsers u ORDER BY u.Id), N'system');
 
 /* ----- Roles ----- */
-DECLARE @Roles TABLE (TextCode NVARCHAR(100), TextLabel NVARCHAR(500), TextDescription NVARCHAR(2000), Is_System BIT, Is_AllFunctions BIT);
+DECLARE @Roles TABLE (TextCode NVARCHAR(100), TextLabel NVARCHAR(500), TextDescription NVARCHAR(MAX), Is_System BIT, Is_AllFunctions BIT);
 INSERT INTO @Roles VALUES
     (N'SYSADMIN',       N'Administrador de sistema', N'Todas las funciones del sistema. No se puede borrar.', 1, 1),
     (N'ADMINISTRATIVE', N'Administrativo',           N'Gestión administrativa (alta de usuarios, etc.).',     0, 0),
@@ -40,7 +40,7 @@ SELECT r.TextLabel, r.TextCode, r.TextDescription, r.Is_System, r.Is_AllFunction
                     WHERE x.Is_Delete = 0 AND (x.TextCode = r.TextCode OR x.TextLabel = r.TextLabel));
 
 /* ----- Funciones ----- */
-DECLARE @Functions TABLE (TextCode NVARCHAR(200), TextLabel NVARCHAR(500), TextModule NVARCHAR(100), TextDescription NVARCHAR(2000), Is_Active BIT);
+DECLARE @Functions TABLE (TextCode NVARCHAR(200), TextLabel NVARCHAR(500), TextModule NVARCHAR(100), TextDescription NVARCHAR(MAX), Is_Active BIT);
 INSERT INTO @Functions VALUES
     (N'Role',         N'Gestión de roles',     N'Configuración',  N'Menú «Roles» y todas sus pantallas.',                    1),
     (N'Function',     N'Gestión de funciones', N'Configuración',  N'Menú «Funciones» y todas sus pantallas.',                1),

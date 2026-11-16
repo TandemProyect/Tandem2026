@@ -26,7 +26,7 @@ BEGIN
         [TextCode]            NVARCHAR(200)   NOT NULL,
         /* Agrupación en pantalla (sustituye a TSql_RollGrupDesing). */
         [TextModule]          NVARCHAR(100)   NULL,
-        [TextDescription]     NVARCHAR(2000)  NULL,
+        [TextDescription]     NVARCHAR(MAX)   NULL,
 
         /* ----- Auditoría obligatoria ----- */
         [Is_Delete]           BIT             NOT NULL
