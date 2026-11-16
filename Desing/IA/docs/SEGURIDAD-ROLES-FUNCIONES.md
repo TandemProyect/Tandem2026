@@ -62,7 +62,7 @@ Código `IA` (`FunctionCatalog.AiCode`, script `2026-11-16_seed_TSql_Functions_I
 - No aparece la pestaña «Asistente IA» del formulario del muro (`wall-edit-form.js`) ni la del muro curvo.
 - `Desing_2/AiCommands`, `SaveAiUserSettings`, `SaveAiUnknownPhrase`, `AiUnknownPhrases` y `ResolveAiUnknownPhrase` devuelven 403 (`[RequireFunction(AiFunctionCode)]`).
 
-Desactivar la función deja la IA libre para todos.
+El mismo script crea el rol «Asistente IA» (`AI_ASSISTANT`) con esa función y se lo asigna a `juan.godoy@vscad.com`. Desactivar la función deja la IA libre para todos.
 
 ## Al añadir un comando nuevo
 
