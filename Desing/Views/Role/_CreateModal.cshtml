@@ -1,0 +1,21 @@
+@model Desing.Models.SecurityRoleFormViewModel
+@using Desing.Resources
+@* Ventana emergente de creación (se carga por AJAX desde Index). *@
+<div class="modal-header">
+    <h5 class="modal-title">@Security.Role_Page_CreateTitle</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@Common.Btn_Cancel"></button>
+</div>
+@using (Html.BeginForm("Create", "Role", FormMethod.Post, new { id = "roleCreateModalForm", role = "form", data_tandem_modal_form = "1" }))
+{
+    <div class="modal-body">
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+        <div class="row g-3">
+            @Html.Partial("_RoleFormFields", Model)
+        </div>
+    </div>
+    <div class="modal-footer tandem-form-actions">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@Common.Btn_Cancel</button>
+        <button type="submit" class="btn btn-primary">@Common.Btn_Save</button>
+    </div>
+}

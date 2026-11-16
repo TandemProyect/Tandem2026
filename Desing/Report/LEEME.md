@@ -16,9 +16,9 @@ Desde este momento, para trabajo de **Desing** realizado en **Visual Studio 2026
 
 ## Actualización operativa (nuevo semanal)
 
-- Nuevo informe activo creado por solicitud de usuario:
-  - `Desing/Report/2026/Informe Semanal 05112026-19112026.md`
-  - `Desing/Report/2026/Informe Semanal 05112026-19112026.pdf`
+- Informe activo desde el 16/11/2026 (el de 05112026-19112026 se cerró el 13/11):
+  - `Desing/Report/2026/Informe Semanal 16112026-29112026.md`
+  - `Desing/Report/2026/Informe Semanal 16112026-29112026.pdf`
 - El informe sigue la misma idea del semanal anterior: abrir tema, detallar trabajo, adjuntar imágenes y registrar horas del detalle.
 - Clasificación obligatoria por tema:
   - <span style="color:#1d4ed8"><strong>US</strong></span> (azul y negrita).

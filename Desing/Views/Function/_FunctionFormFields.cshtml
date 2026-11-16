@@ -1,0 +1,61 @@
+@model Desing.Models.SecurityFunctionFormViewModel
+@using Desing.Resources
+@{
+    var selectedRoles = new HashSet<long>(Model.SelectedRoleIds ?? new List<long>());
+}
+<div class="col-md-6">
+    <label class="form-label" for="Function_TextLabel">@Security.Function_Lbl_NameRequired</label>
+    @Html.TextBoxFor(m => m.Function.TextLabel, new { @class = "form-control", maxlength = "500", required = "required", placeholder = Security.Function_Ph_Name })
+    @Html.ValidationMessageFor(m => m.Function.TextLabel, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-6">
+    <label class="form-label" for="Function_TextCode">@Security.Function_Lbl_CodeRequired</label>
+    @Html.TextBoxFor(m => m.Function.TextCode, new { @class = "form-control", maxlength = "200", required = "required", list = "functionCatalog", autocomplete = "off", placeholder = Security.Function_Ph_Code })
+    <datalist id="functionCatalog">
+        @foreach (var c in Model.Catalog ?? new List<Desing.Models.FunctionCatalogOption>())
+        {
+            <option value="@c.Code">@c.Module</option>
+        }
+    </datalist>
+    @Html.ValidationMessageFor(m => m.Function.TextCode, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-6">
+    <label class="form-label" for="Function_TextModule">@Security.Function_Lbl_Module</label>
+    @Html.TextBoxFor(m => m.Function.TextModule, new { @class = "form-control", maxlength = "100", placeholder = Security.Function_Ph_Module })
+    @Html.ValidationMessageFor(m => m.Function.TextModule, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-6">
+    <label class="form-label">@Security.Function_Lbl_Active</label>
+    <div class="form-check mt-2">
+        @Html.CheckBoxFor(m => m.Function.Is_Active, new { @class = "form-check-input" })
+        <label class="form-check-label" for="Function_Is_Active">@Security.Function_Lbl_ActiveCheckbox</label>
+    </div>
+</div>
+<div class="col-12">
+    <label class="form-label" for="Function_TextDescription">@Security.Function_Lbl_Description</label>
+    @Html.TextAreaFor(m => m.Function.TextDescription, new { @class = "form-control", rows = "2", maxlength = "2000", placeholder = Security.Function_Ph_Description })
+</div>
+<div class="col-12">
+    <label class="form-label">@Security.Function_Lbl_Roles</label>
+    <div class="border rounded p-3">
+        @if (Model.AvailableRoles == null || Model.AvailableRoles.Count == 0)
+        {
+            <span class="text-muted">@Security.Function_Lbl_NoRoles</span>
+        }
+        else
+        {
+            <div class="row">
+                @foreach (var r in Model.AvailableRoles)
+                {
+                    var rid = "role_" + r.IdObject;
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="SelectedRoleIds" value="@r.IdObject" id="@rid" @(selectedRoles.Contains(r.IdObject) ? "checked" : "") />
+                            <label class="form-check-label" for="@rid">@r.TextLabel</label>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>

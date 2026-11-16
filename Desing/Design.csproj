@@ -262,6 +262,10 @@
     <EmbeddedResource Include="Resources\OfferState.en.resx">
       <DependentUpon>OfferState.resx</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Security.resx" />
+    <EmbeddedResource Include="Resources\Security.en.resx">
+      <DependentUpon>Security.resx</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Resources\XrDevice.resx" />
     <EmbeddedResource Include="Resources\XrDevice.en.resx">
       <DependentUpon>XrDevice.resx</DependentUpon>
@@ -303,6 +307,8 @@
     <Compile Include="Controllers\LanguageController.cs" />
     <Compile Include="Controllers\CountryController.cs" />
     <Compile Include="Controllers\OfferStateController.cs" />
+    <Compile Include="Controllers\RoleController.cs" />
+    <Compile Include="Controllers\FunctionController.cs" />
     <Compile Include="Controllers\XrDeviceController.cs" />
     <Compile Include="Controllers\UiTranslationController.cs" />
     <Compile Include="Global.asax.cs">
@@ -317,6 +323,11 @@
     <Compile Include="Helpers\IntranetFileHelper.cs" />
     <Compile Include="Helpers\ExtensionPathIcoQueries.cs" />
     <Compile Include="Helpers\IntranetAuditHelper.cs" />
+    <Compile Include="Helpers\FunctionAccessService.cs" />
+    <Compile Include="Helpers\FunctionAuthorizeFilter.cs" />
+    <Compile Include="Helpers\FunctionCatalog.cs" />
+    <Compile Include="Helpers\FunctionHtmlExtensions.cs" />
+    <Compile Include="Helpers\SecurityRepository.cs" />
     <Compile Include="Helpers\XrDeviceQueries.cs" />
     <Compile Include="Helpers\XrPushJobQueries.cs" />
     <Compile Include="Helpers\JobsideCodeHelper.cs" />
@@ -382,6 +393,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>OfferState.resx</DependentUpon>
     </Compile>
+    <Compile Include="Resources\Security.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Security.resx</DependentUpon>
+    </Compile>
     <Compile Include="Resources\XrDevice.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>XrDevice.resx</DependentUpon>
@@ -399,6 +414,7 @@
     <Compile Include="Models\TandemXr\XrDeviceEntity.cs" />
     <Compile Include="Models\TandemXr\XrPushJobEntity.cs" />
     <Compile Include="Models\IntranetViewModels.cs" />
+    <Compile Include="Models\SecurityViewModels.cs" />
     <Compile Include="Models\GooglePlacesAddressBlockModel.cs" />
     <Compile Include="ModelBinders\CultureFallbackDecimalModelBinder.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
@@ -2502,6 +2518,7 @@
     <Content Include="IA\docs\encofrado-fases-diseno-30008.md" />
     <Content Include="IA\docs\muro-json-cifrado.md" />
     <Content Include="IA\docs\agente-traducciones-modulos.md" />
+    <Content Include="IA\docs\SEGURIDAD-ROLES-FUNCIONES.md" />
     <Content Include="IA\docs\agente-ui-materio-datatables.md" />
     <Content Include="IA\docs\AGENTE-US619-INFO.md" />
     <Content Include="IA\docs\AGENTE-US619-RESUMEN.md" />
@@ -2613,6 +2630,8 @@
     <None Include="Report\LEEME.md" />
     <None Include="Report\2026\Informe Semanal 05112026-19112026.md" />
     <None Include="Report\2026\Informe Semanal 05112026-19112026.pdf" />
+    <None Include="Report\2026\Informe Semanal 16112026-29112026.md" />
+    <None Include="Report\2026\Informe Semanal 16112026-29112026.pdf" />
     <None Include="Report\2026\img\2026-11-04-esquina-regulable-bugs.png" />
     <None Include="Report\2026\img\2026-11-04-esquina-regulable-sin-herraje-visible.png" />
     <None Include="Report\2026\img\2026-11-04-esquina-regulable-sin-union-1036.png" />
@@ -3450,6 +3469,8 @@
     <Content Include="Views\Web.config" />
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
+    <Content Include="Views\Shared\AccessDenied.cshtml" />
+    <Content Include="Views\Shared\_TandemFunctions.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Shared\_LayoutMaterio.cshtml" />
     <Content Include="Views\Shared\_TdesingBootSplash.cshtml" />
@@ -3545,6 +3566,7 @@
     <Content Include="Scripts\ResourceGenerators\_gen_language_resources.js" />
     <Content Include="Scripts\ResourceGenerators\_gen_masterarticles_resources.js" />
     <Content Include="Scripts\ResourceGenerators\_gen_offerstate_resources.js" />
+    <Content Include="Scripts\ResourceGenerators\_gen_security_resources.js" />
     <Content Include="Scripts\ResourceGenerators\_gen_xrdevice_resources.js" />
     <Content Include="Scripts\ResourceGenerators\_gen_plantilla_resources.js" />
     <Content Include="Scripts\MasterArticles\infinite-grid-helper.module.js" />
@@ -3617,6 +3639,19 @@
     <Content Include="Views\OfferState\Edit.cshtml" />
     <Content Include="Views\OfferState\Details.cshtml" />
     <Content Include="Views\OfferState\_OfferStateFormFields.cshtml" />
+    <Content Include="Views\Role\Index.cshtml" />
+    <Content Include="Views\Role\Create.cshtml" />
+    <Content Include="Views\Role\Edit.cshtml" />
+    <Content Include="Views\Role\Details.cshtml" />
+    <Content Include="Views\Role\_RoleFormFields.cshtml" />
+    <Content Include="Views\Function\Index.cshtml" />
+    <Content Include="Views\Function\Create.cshtml" />
+    <Content Include="Views\Function\Edit.cshtml" />
+    <Content Include="Views\Function\Details.cshtml" />
+    <Content Include="Views\Function\_FunctionFormFields.cshtml" />
+    <Content Include="Views\Role\_CreateModal.cshtml" />
+    <Content Include="Views\Employee\_AssignRolesModal.cshtml" />
+    <Content Include="Views\Function\_CreateModal.cshtml" />
     <Content Include="Views\Shared\_GooglePlacesAddressBlock.cshtml" />
     <Content Include="Views\Shared\_IntranetAuditSection.cshtml" />
     <Content Include="Views\Shared\_GooglePlacesAddressScripts.cshtml" />
@@ -3635,6 +3670,7 @@
     <Content Include="Scripts\Intranet\language-country-autocomplete.js" />
     <Content Include="Scripts\Intranet\plantilla-form.js" />
     <Content Include="Scripts\Intranet\offerstate-form.js" />
+    <Content Include="Scripts\Intranet\tandem-functions.js" />
     <Content Include="Views\DesignTools\_Delete.cshtml" />
     <Content Include="Views\DesignTools\_Edit.cshtml" />
     <Content Include="Uploads\Master_AC1014.dwg" />

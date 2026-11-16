@@ -32,6 +32,14 @@
         return;
     }
 
+    var visibleChildren = (Model.Children ?? new Desing.Models.SidebarMenuChildItem[0])
+        .Where(c => Html.CanUseMenu(c.Controller, c.FunctionCode))
+        .ToList();
+    if (visibleChildren.Count == 0)
+    {
+        return;
+    }
+
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
     string openClass = Model.IsOpen ? " open" : "";
     string subMenuId = Model.GroupId + "-sub";
@@ -53,7 +61,7 @@
         <i class="menu-icon-arrow ri ri-arrow-right-s-line ms-auto"></i>
     </a>
     <ul class="menu-sub js-menu-group-sub" id="@subMenuId">
-        @foreach (var child in Model.Children ?? new Desing.Models.SidebarMenuChildItem[0])
+        @foreach (var child in visibleChildren)
         {
             var controllers = (child.ActiveControllers ?? child.Controller ?? "")
                 .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
