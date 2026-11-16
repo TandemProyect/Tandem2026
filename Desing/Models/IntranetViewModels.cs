@@ -187,6 +187,8 @@ namespace Desing.Models
         public string Text { get; set; }
         /// <summary>Controladores que marcan el hijo como activo (coma separada). Por defecto usa Controller.</summary>
         public string ActiveControllers { get; set; }
+        /// <summary>Función extra que exige la línea (además de la del controlador). Ver FunctionAccessService.</summary>
+        public string FunctionCode { get; set; }
     }
 
     /// <summary>Grupo expandible del sidebar (clases propias js-menu-group / js-menu-group-toggle).</summary>

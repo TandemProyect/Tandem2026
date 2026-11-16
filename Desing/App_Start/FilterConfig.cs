@@ -10,6 +10,8 @@ namespace Desing
             // Seguridad: toda la app requiere sesion autenticada por defecto.
             // Las acciones publicas (Login, webhook, etc.) deben usar [AllowAnonymous].
             filters.Add(new AuthorizeAttribute());
+            // Roles y funciones: niega lo que tenga una función activa que el usuario no tenga.
+            filters.Add(new Desing.Helpers.FunctionAuthorizeFilter());
         }
     }
 }

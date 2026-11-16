@@ -1,0 +1,18 @@
+@using Desing.Resources
+@{
+    ViewBag.Title = Security.AccessDenied_Title;
+    var denied = ViewBag.DeniedFunction as string;
+}
+
+<div class="card mt-4">
+    <div class="card-body text-center py-5">
+        <i class="icon-base ri ri-lock-line text-danger" style="font-size:3rem" aria-hidden="true"></i>
+        <h4 class="mt-3">@Security.AccessDenied_Title</h4>
+        <p class="mb-2">@Security.AccessDenied_Message</p>
+        @if (!string.IsNullOrWhiteSpace(denied))
+        {
+            <p class="mb-4">@Security.AccessDenied_Function: <code>@denied</code></p>
+        }
+        <a class="btn btn-primary" href="@Url.Action("Index", "Home")">@Security.AccessDenied_BackHome</a>
+    </div>
+</div>

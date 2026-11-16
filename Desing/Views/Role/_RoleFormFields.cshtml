@@ -1,0 +1,114 @@
+@model Desing.Models.SecurityRoleFormViewModel
+@using Desing.Resources
+@{
+    var role = Model.Role;
+    var selectedFunctions = new HashSet<long>(Model.SelectedFunctionIds ?? new List<long>());
+    var selectedUsers = new HashSet<string>(Model.SelectedUserIds ?? new List<string>(), StringComparer.OrdinalIgnoreCase);
+    var modules = (Model.AvailableFunctions ?? new List<Desing.Models.SecurityFunctionRow>())
+        .GroupBy(f => string.IsNullOrWhiteSpace(f.TextModule) ? "—" : f.TextModule)
+        .OrderBy(g => g.Key);
+}
+<div class="col-md-6">
+    <label class="form-label" for="Role_TextLabel">@Security.Role_Lbl_NameRequired</label>
+    @Html.TextBoxFor(m => m.Role.TextLabel, new { @class = "form-control", maxlength = "500", required = "required", placeholder = Security.Role_Ph_Name })
+    @Html.ValidationMessageFor(m => m.Role.TextLabel, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-3">
+    <label class="form-label" for="Role_TextCode">@Security.Role_Lbl_Code</label>
+    @Html.TextBoxFor(m => m.Role.TextCode, new { @class = "form-control", maxlength = "100", placeholder = Security.Role_Ph_Code })
+    @Html.ValidationMessageFor(m => m.Role.TextCode, "", new { @class = "text-danger" })
+</div>
+<div class="col-md-3">
+    <label class="form-label">@Security.Role_Lbl_Active</label>
+    <div class="form-check mt-2">
+        @if (role.Is_System)
+        {
+            <input type="checkbox" class="form-check-input" id="Role_Is_Active" checked disabled />
+            @Html.Hidden("Role.Is_Active", true)
+        }
+        else
+        {
+            @Html.CheckBoxFor(m => m.Role.Is_Active, new { @class = "form-check-input" })
+        }
+        <label class="form-check-label" for="Role_Is_Active">@Security.Role_Lbl_ActiveCheckbox</label>
+    </div>
+</div>
+<div class="col-md-9">
+    <label class="form-label" for="Role_TextDescription">@Security.Role_Lbl_Description</label>
+    @Html.TextAreaFor(m => m.Role.TextDescription, new { @class = "form-control", rows = "2", maxlength = "2000", placeholder = Security.Role_Ph_Description })
+</div>
+<div class="col-md-3">
+    <label class="form-label">@Security.Role_Lbl_AllFunctions</label>
+    <div class="form-check mt-2">
+        @if (role.Is_System)
+        {
+            <input type="checkbox" class="form-check-input" id="Role_Is_AllFunctions" checked disabled />
+            @Html.Hidden("Role.Is_AllFunctions", true)
+        }
+        else
+        {
+            @Html.CheckBoxFor(m => m.Role.Is_AllFunctions, new { @class = "form-check-input" })
+        }
+        <label class="form-check-label" for="Role_Is_AllFunctions">@Security.Role_Lbl_AllFunctionsCheckbox</label>
+    </div>
+</div>
+@if (role.Is_System)
+{
+    <div class="col-12">
+        <div class="alert alert-info mb-0 py-2">@Security.Role_Lbl_SystemLocked</div>
+    </div>
+}
+
+<div class="col-lg-7">
+    <label class="form-label">@Security.Role_Lbl_Functions</label>
+    <div class="border rounded p-3" style="max-height:420px;overflow:auto">
+        @if (!modules.Any())
+        {
+            <span class="text-muted">@Security.Role_Lbl_NoFunctions</span>
+        }
+        @foreach (var module in modules)
+        {
+            <h6 class="mt-2 mb-1">@module.Key</h6>
+            foreach (var f in module.OrderBy(x => x.TextLabel))
+            {
+                var fid = "fn_" + f.IdObject;
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="SelectedFunctionIds" value="@f.IdObject" id="@fid" @(selectedFunctions.Contains(f.IdObject) ? "checked" : "") />
+                    <label class="form-check-label" for="@fid">
+                        @f.TextLabel <code class="ms-1">@f.TextCode</code>
+                        @if (!f.Is_Active)
+                        {
+                            <span class="badge bg-label-secondary ms-1">@Security.Function_State_Free</span>
+                        }
+                    </label>
+                </div>
+            }
+        }
+    </div>
+</div>
+<div class="col-lg-5">
+    <label class="form-label">@Security.Role_Lbl_Users</label>
+    <div class="border rounded p-3" style="max-height:420px;overflow:auto">
+        @if (Model.AvailableUsers == null || Model.AvailableUsers.Count == 0)
+        {
+            <span class="text-muted">@Security.Role_Lbl_NoUsers</span>
+        }
+        else
+        {
+            foreach (var u in Model.AvailableUsers)
+            {
+                var uid = "usr_" + u.Id;
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="SelectedUserIds" value="@u.Id" id="@uid" @(selectedUsers.Contains(u.Id) ? "checked" : "") />
+                    <label class="form-check-label" for="@uid">
+                        @(string.IsNullOrWhiteSpace(u.FullName) ? u.UserName : u.FullName)
+                        @if (!string.IsNullOrWhiteSpace(u.FullName))
+                        {
+                            <span class="text-muted ms-1">@u.UserName</span>
+                        }
+                    </label>
+                </div>
+            }
+        }
+    </div>
+</div>

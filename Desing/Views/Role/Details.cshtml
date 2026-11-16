@@ -1,0 +1,96 @@
+@model Desing.Models.SecurityRoleRow
+@using Desing.Resources
+@{
+    ViewBag.Title = Model.TextLabel;
+    var functions = (ViewBag.Functions as IList<Desing.Models.SecurityFunctionRow>) ?? new List<Desing.Models.SecurityFunctionRow>();
+    var users = (ViewBag.Users as IList<Desing.Models.SecurityUserOption>) ?? new List<Desing.Models.SecurityUserOption>();
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@Security.Common_Home</a> /
+            @Security.Common_Security /
+            <a href="@Url.Action("Index", "Role")">@Security.Role_Index_Breadcrumb</a> /
+        </span> @Model.TextLabel
+    </h4>
+    <a class="btn btn-warning" href="@Url.Action("Edit", "Role", new { id = Model.IdObject })">
+        <i class="icon-base ri ri-pencil-line me-1"></i> @Common.Btn_Edit
+    </a>
+</div>
+
+@if (!string.IsNullOrEmpty(TempData["ToastMessage"] as string))
+{
+    <div class="alert alert-success">@TempData["ToastMessage"]</div>
+}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">@Security.Role_Lbl_NameRequired.TrimEnd(' ', '*')</dt>
+            <dd class="col-sm-9">
+                @Model.TextLabel
+                @if (Model.Is_System)
+                {
+                    <span class="badge bg-label-info ms-1">@Security.Role_Badge_System</span>
+                }
+            </dd>
+            <dt class="col-sm-3">@Security.Role_Lbl_Code</dt>
+            <dd class="col-sm-9">@(Model.TextCode ?? "—")</dd>
+            <dt class="col-sm-3">@Security.Role_Lbl_Description</dt>
+            <dd class="col-sm-9">@(Model.TextDescription ?? "—")</dd>
+            <dt class="col-sm-3">@Security.Role_Lbl_Active</dt>
+            <dd class="col-sm-9">
+                @if (Model.Is_Active)
+                {
+                    <span class="badge bg-label-success">@Security.State_Active</span>
+                }
+                else
+                {
+                    <span class="badge bg-label-secondary">@Security.State_Inactive</span>
+                }
+            </dd>
+            <dt class="col-sm-3">@Security.Role_Lbl_Functions</dt>
+            <dd class="col-sm-9">
+                @if (Model.Is_AllFunctions)
+                {
+                    <span class="badge bg-label-primary">@Security.Role_Badge_AllFunctions</span>
+                }
+                else if (functions.Count == 0)
+                {
+                    <span>—</span>
+                }
+                else
+                {
+                    <ul class="mb-0 ps-3">
+                        @foreach (var f in functions)
+                        {
+                            <li><a href="@Url.Action("Details", "Function", new { id = f.IdObject })">@f.TextLabel</a> <code class="ms-1">@f.TextCode</code></li>
+                        }
+                    </ul>
+                }
+            </dd>
+            <dt class="col-sm-3">@Security.Role_Lbl_Users</dt>
+            <dd class="col-sm-9">
+                @if (users.Count == 0)
+                {
+                    <span>—</span>
+                }
+                else
+                {
+                    <ul class="mb-0 ps-3">
+                        @foreach (var u in users)
+                        {
+                            <li>@(string.IsNullOrWhiteSpace(u.FullName) ? u.UserName : u.FullName + " (" + u.UserName + ")")</li>
+                        }
+                    </ul>
+                }
+            </dd>
+        </dl>
+    </div>
+</div>
+
+@if (ViewBag.Audit != null)
+{
+    @Html.Partial("_IntranetAuditSection", (Desing.Models.IntranetAuditDisplayModel)ViewBag.Audit)
+}

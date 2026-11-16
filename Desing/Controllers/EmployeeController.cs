@@ -554,18 +554,19 @@ namespace Desing.Controllers
                 EmployeeID = employee?.SysObjectID ?? 0,
                 IsEdit = isEdit,
             };
+            LoadRoleOptions(Model, userSystem);
 
             return View(Model);
         }
 
         [HttpPost]
-        public ActionResult Create_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem, DeviceId, DeviceName, DeviceAllowed, IsCadDeveloper, EmployeeID, IsEdit")] EmployeeViewModel model, HttpPostedFileBase file1)
+        public ActionResult Create_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem, DeviceId, DeviceName, DeviceAllowed, IsCadDeveloper, EmployeeID, IsEdit, RoleIds")] EmployeeViewModel model, HttpPostedFileBase file1)
         {
             return SaveEmployee(model, file1, false);
         }
 
         [HttpPost]
-        public ActionResult Update_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem, DeviceId, DeviceName, DeviceAllowed, IsCadDeveloper, EmployeeID, IsEdit")] EmployeeViewModel model, HttpPostedFileBase file1)
+        public ActionResult Update_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem, DeviceId, DeviceName, DeviceAllowed, IsCadDeveloper, EmployeeID, IsEdit, RoleIds")] EmployeeViewModel model, HttpPostedFileBase file1)
         {
             return SaveEmployee(model, file1, true);
         }
@@ -704,6 +705,7 @@ namespace Desing.Controllers
                     TempData["ToastTitle"] = Employee.ToastTitle_EditEmployee;
                     TempData["ToastMessage"] = Employee.ToastMessage_EmployeeUpdated;
                 }
+                SaveUserRoles(model, userId);
                 RefreshUserChromeAfterCompanyChange(model.LinAspNetUsert);
                 Session.Clear();
                 return RedirectToAction("Index");
@@ -711,6 +713,52 @@ namespace Desing.Controllers
             catch (Exception ex)
             {
                 return Json(ex.Message);
+            }
+        }
+
+        /* ============================================================
+           Roles del usuario (TSql_UserRole). Solo quien puede usar «Role»
+           los ve y los cambia: evita que alguien se dé roles a sí mismo.
+           ============================================================ */
+
+        private void LoadRoleOptions(EmployeeViewModel model, string aspNetUserId)
+        {
+            model.CanManageRoles = false;
+            model.AvailableRoles = new List<SecurityRoleOption>();
+            model.RoleIds = new List<long>();
+            try
+            {
+                if (!FunctionAccessService.TablesExist(db)
+                    || !FunctionAccessService.Can(User.Identity.GetUserId(), "Role"))
+                {
+                    return;
+                }
+
+                model.CanManageRoles = true;
+                model.AvailableRoles = SecurityRepository.ListRoleOptions(db);
+                model.RoleIds = SecurityRepository.GetUserRoleIds(db, aspNetUserId);
+            }
+            catch
+            {
+                model.CanManageRoles = false;
+            }
+        }
+
+        /// <summary>Sin casillas marcadas, RoleIds llega null: el usuario se queda sin roles.</summary>
+        private void SaveUserRoles(EmployeeViewModel model, string currentUserId)
+        {
+            if (model == null || string.IsNullOrWhiteSpace(model.LinAspNetUsert)
+                || !FunctionAccessService.Can(currentUserId, "Role"))
+            {
+                return;
+            }
+
+            try
+            {
+                SecurityRepository.SyncUserRoles(db, model.LinAspNetUsert, model.RoleIds ?? new List<long>(), currentUserId);
+            }
+            catch
+            {
             }
         }
 

@@ -155,6 +155,37 @@
 
 
 
+@{
+    bool isRoleController = currentController.Equals("Role", StringComparison.OrdinalIgnoreCase);
+    bool isFunctionController = currentController.Equals("Function", StringComparison.OrdinalIgnoreCase);
+
+    var seguridadMenu = new SidebarMenuGroupModel
+    {
+        GroupId = "menu-seguridad",
+        Title = UiCommon("Menu.Security", "Seguridad"),
+        IconClass = "ri ri-shield-keyhole-line",
+        IsOpen = isRoleController || isFunctionController,
+        Children = new List<SidebarMenuChildItem>
+        {
+            new SidebarMenuChildItem { Controller = "Role", Text = UiCommon("Menu.Roles", "Roles") },
+            new SidebarMenuChildItem { Controller = "Function", Text = UiCommon("Menu.Functions", "Funciones") }
+        }
+    };
+
+    Func<SidebarMenuGroupModel, bool> anyChildVisible = g =>
+        (g.Children ?? new List<SidebarMenuChildItem>()).Any(c => Html.CanUseMenu(c.Controller, c.FunctionCode));
+
+    var canCompanies = Html.CanUseMenu("TSql_Company");
+    var canEmployees = Html.CanUseMenu("Employee");
+    var canArticles = Html.CanUseMenu("MasterArticles");
+    var canTemplates = Html.CanUseMenu("Plantilla");
+    var canClients = Html.CanUseMenu("ClientV2");
+    var canJobSites = Html.CanUseMenu("Jobside");
+    var canSecurity = anyChildVisible(seguridadMenu);
+    var showAdministration = canCompanies || canEmployees || canArticles || canTemplates || canClients || canJobSites || canSecurity;
+    var showConfiguration = anyChildVisible(configuracionMenu);
+}
+
 <aside id="layout-menu" class="layout-menu menu-vertical menu">
 
 
@@ -209,6 +240,8 @@
 
         @* Inicio *@
 
+        @if (Html.CanUseMenu("Home"))
+        {
         <li class="menu-item@(activeClass("Home", ""))">
 
             <a href="@Url.Action("Index", "Home")" class="menu-link">
@@ -220,11 +253,14 @@
             </a>
 
         </li>
+        }
 
 
 
         @* Diseno *@
 
+        @if (Html.CanUseMenu("DesignTools"))
+        {
         <li class="menu-item@(activeClass("DesignTools", ""))">
 
             <a href="@Url.Action("Index", "DesignTools", new { OnlyUser = true })" class="menu-link">
@@ -236,15 +272,21 @@
             </a>
 
         </li>
+        }
 
 
 
         @* Header Administracion *@
 
-        <li class="menu-header small text-uppercase"><span class="menu-header-text">@Html.Ui("Menu.Administration", "Administración", "Common")</span></li>
+        @if (showAdministration)
+        {
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">@Html.Ui("Menu.Administration", "Administración", "Common")</span></li>
+        }
 
 
 
+        @if (canCompanies)
+        {
         <li class="menu-item@(activeClass("TSql_Company", ""))">
 
             <a href="@Url.Action("Index", "TSql_Company")" class="menu-link">
@@ -256,9 +298,12 @@
             </a>
 
         </li>
+        }
 
 
 
+        @if (canEmployees)
+        {
         <li class="menu-item@(activeClass("Employee", ""))">
 
             <a href="@Url.Action("Index", "Employee")" class="menu-link">
@@ -270,9 +315,12 @@
             </a>
 
         </li>
+        }
 
 
 
+        @if (canArticles)
+        {
         <li class="menu-item@(activeClass("MasterArticles", ""))">
 
             <a href="@Url.Action("Index", "MasterArticles")" class="menu-link">
@@ -284,9 +332,12 @@
             </a>
 
         </li>
+        }
 
 
 
+        @if (canTemplates)
+        {
         <li class="menu-item@(activeClass("Plantilla", ""))">
 
             <a href="@Url.Action("Index", "Plantilla")" class="menu-link">
@@ -298,9 +349,12 @@
             </a>
 
         </li>
+        }
 
 
 
+        @if (canClients)
+        {
         <li class="menu-item@(activeClass("ClientV2", ""))">
 
             <a href="@Url.Action("Index", "ClientV2")" class="menu-link">
@@ -312,9 +366,12 @@
             </a>
 
         </li>
+        }
 
 
 
+        @if (canJobSites)
+        {
         <li class="menu-item@(activeClass("Jobside", ""))">
 
             <a href="@Url.Action("Index", "Jobside")" class="menu-link">
@@ -326,12 +383,20 @@
             </a>
 
         </li>
+        }
+
+
+
+        @Html.Partial("_SidebarMenuItemGroup", seguridadMenu)
 
 
 
         @* Header Configuracion *@
 
-        <li class="menu-header small text-uppercase"><span class="menu-header-text">@Html.Ui("Menu.ConfigurationSection", "Configuración", "Common")</span></li>
+        @if (showConfiguration)
+        {
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">@Html.Ui("Menu.ConfigurationSection", "Configuración", "Common")</span></li>
+        }
 
 
 
@@ -341,10 +406,15 @@
 
         @* Header Soporte *@
 
-        <li class="menu-header small text-uppercase"><span class="menu-header-text">@Html.Ui("Menu.Support", "Soporte", "Common")</span></li>
+        @if (Html.CanUseMenu("HelpDesing"))
+        {
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">@Html.Ui("Menu.Support", "Soporte", "Common")</span></li>
+        }
 
 
 
+        @if (Html.CanUseMenu("HelpDesing"))
+        {
         <li class="menu-item@(activeClass("HelpDesing", ""))">
 
             <a href="@Url.Action("Index", "HelpDesing")" class="menu-link">
@@ -356,6 +426,7 @@
             </a>
 
         </li>
+        }
 
         @{
             var lastDesigns = ViewBag.LastUserDesigns as System.Collections.Generic.IList<Desing.Helpers.LastUserDesignMenuItem>;

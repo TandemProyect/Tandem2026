@@ -44,6 +44,7 @@ namespace Desing.Controllers
             Tuple.Create("Country", typeof(Desing.Resources.Country)),
             Tuple.Create("OfferState", typeof(Desing.Resources.OfferState)),
             Tuple.Create("XrDevice", typeof(Desing.Resources.XrDevice)),
+            Tuple.Create("Security", typeof(Desing.Resources.Security)),
             Tuple.Create("Common", typeof(Desing.Resources.Common))
         };
 

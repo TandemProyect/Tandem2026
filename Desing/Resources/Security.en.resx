@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AccessDenied_BackHome" xml:space="preserve">
+    <value>Back to home</value>
+  </data>
+  <data name="AccessDenied_Function" xml:space="preserve">
+    <value>Required function</value>
+  </data>
+  <data name="AccessDenied_Message" xml:space="preserve">
+    <value>None of your roles has the function required to use this option.</value>
+  </data>
+  <data name="AccessDenied_Title" xml:space="preserve">
+    <value>Access denied</value>
+  </data>
+  <data name="Col_State" xml:space="preserve">
+    <value>State</value>
+  </data>
+  <data name="Common_Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Common_Security" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="Employee_Lbl_NoRoles" xml:space="preserve">
+    <value>No roles created yet.</value>
+  </data>
+  <data name="Employee_Lbl_Roles" xml:space="preserve">
+    <value>User roles</value>
+  </data>
+  <data name="Function_Col_Code" xml:space="preserve">
+    <value>Command</value>
+  </data>
+  <data name="Function_Col_Module" xml:space="preserve">
+    <value>Module</value>
+  </data>
+  <data name="Function_Col_Name" xml:space="preserve">
+    <value>Function</value>
+  </data>
+  <data name="Function_Col_Roles" xml:space="preserve">
+    <value>Roles</value>
+  </data>
+  <data name="Function_Err_NotFound" xml:space="preserve">
+    <value>Function not found.</value>
+  </data>
+  <data name="Function_Index_Breadcrumb" xml:space="preserve">
+    <value>Functions</value>
+  </data>
+  <data name="Function_Index_Create" xml:space="preserve">
+    <value>New function</value>
+  </data>
+  <data name="Function_Js_ConfirmDelete" xml:space="preserve">
+    <value>Delete this function? The command becomes free for everyone (soft delete).</value>
+  </data>
+  <data name="Function_Lbl_Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Function_Lbl_ActiveCheckbox" xml:space="preserve">
+    <value>Protect the command (only roles with this function can use it)</value>
+  </data>
+  <data name="Function_Lbl_CodeRequired" xml:space="preserve">
+    <value>Command *</value>
+  </data>
+  <data name="Function_Lbl_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Function_Lbl_Module" xml:space="preserve">
+    <value>Module</value>
+  </data>
+  <data name="Function_Lbl_NameRequired" xml:space="preserve">
+    <value>Name *</value>
+  </data>
+  <data name="Function_Lbl_NoRoles" xml:space="preserve">
+    <value>No roles created yet.</value>
+  </data>
+  <data name="Function_Lbl_Roles" xml:space="preserve">
+    <value>Roles with this function</value>
+  </data>
+  <data name="Function_List_DeleteTooltip" xml:space="preserve">
+    <value>Delete function</value>
+  </data>
+  <data name="Function_List_EditTooltip" xml:space="preserve">
+    <value>Edit function</value>
+  </data>
+  <data name="Function_List_OpenTooltip" xml:space="preserve">
+    <value>Open function</value>
+  </data>
+  <data name="Function_Page_CreateTitle" xml:space="preserve">
+    <value>Create function</value>
+  </data>
+  <data name="Function_Page_EditTitle" xml:space="preserve">
+    <value>Edit function</value>
+  </data>
+  <data name="Function_Ph_Code" xml:space="preserve">
+    <value>E.g.: TSql_Company, Employee.Create_Employee, Tool.polyline</value>
+  </data>
+  <data name="Function_Ph_Description" xml:space="preserve">
+    <value>What it allows</value>
+  </data>
+  <data name="Function_Ph_Module" xml:space="preserve">
+    <value>Filled automatically when empty</value>
+  </data>
+  <data name="Function_Ph_Name" xml:space="preserve">
+    <value>E.g.: Company management, Draw polyline</value>
+  </data>
+  <data name="Function_State_Free" xml:space="preserve">
+    <value>Free (inactive)</value>
+  </data>
+  <data name="Function_State_Protected" xml:space="preserve">
+    <value>Protected</value>
+  </data>
+  <data name="Function_Toast_CreateTitle" xml:space="preserve">
+    <value>Create function</value>
+  </data>
+  <data name="Function_Toast_Created" xml:space="preserve">
+    <value>Function &quot;{0}&quot; created successfully.</value>
+  </data>
+  <data name="Function_Toast_Deleted" xml:space="preserve">
+    <value>Function &quot;{0}&quot; deleted successfully.</value>
+  </data>
+  <data name="Function_Toast_EditTitle" xml:space="preserve">
+    <value>Edit function</value>
+  </data>
+  <data name="Function_Toast_Updated" xml:space="preserve">
+    <value>Function &quot;{0}&quot; updated successfully.</value>
+  </data>
+  <data name="Function_Val_CodeExempt" xml:space="preserve">
+    <value>This command cannot be protected (log in, log out or language).</value>
+  </data>
+  <data name="Function_Val_CodeInvalid" xml:space="preserve">
+    <value>Command only allows letters, digits, spaces and . _ -</value>
+  </data>
+  <data name="Function_Val_CodeRequired" xml:space="preserve">
+    <value>Command is required.</value>
+  </data>
+  <data name="Function_Val_CodeTooLong" xml:space="preserve">
+    <value>Command cannot exceed 200 characters.</value>
+  </data>
+  <data name="Function_Val_DuplicateCode" xml:space="preserve">
+    <value>A function for this command already exists.</value>
+  </data>
+  <data name="Function_Val_ModuleTooLong" xml:space="preserve">
+    <value>Module cannot exceed 100 characters.</value>
+  </data>
+  <data name="Function_Val_NameRequired" xml:space="preserve">
+    <value>Function name is required.</value>
+  </data>
+  <data name="Function_Val_NameTooLong" xml:space="preserve">
+    <value>Name cannot exceed 500 characters.</value>
+  </data>
+  <data name="Role_Badge_AllFunctions" xml:space="preserve">
+    <value>All functions</value>
+  </data>
+  <data name="Role_Badge_System" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="Role_Col_Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Role_Col_Functions" xml:space="preserve">
+    <value>Functions</value>
+  </data>
+  <data name="Role_Col_Name" xml:space="preserve">
+    <value>Role</value>
+  </data>
+  <data name="Role_Col_Users" xml:space="preserve">
+    <value>Users</value>
+  </data>
+  <data name="Role_Err_CannotDeleteSystem" xml:space="preserve">
+    <value>System roles cannot be deleted.</value>
+  </data>
+  <data name="Role_Err_NotFound" xml:space="preserve">
+    <value>Role not found.</value>
+  </data>
+  <data name="Role_Index_Breadcrumb" xml:space="preserve">
+    <value>Roles</value>
+  </data>
+  <data name="Role_Index_Create" xml:space="preserve">
+    <value>New role</value>
+  </data>
+  <data name="Role_Js_ConfirmDelete" xml:space="preserve">
+    <value>Delete this role? Users will lose it (soft delete).</value>
+  </data>
+  <data name="Role_Lbl_Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Role_Lbl_ActiveCheckbox" xml:space="preserve">
+    <value>Active role</value>
+  </data>
+  <data name="Role_Lbl_AllFunctions" xml:space="preserve">
+    <value>All functions</value>
+  </data>
+  <data name="Role_Lbl_AllFunctionsCheckbox" xml:space="preserve">
+    <value>Grants every function, including those created later</value>
+  </data>
+  <data name="Role_Lbl_Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Role_Lbl_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Role_Lbl_Functions" xml:space="preserve">
+    <value>Role functions</value>
+  </data>
+  <data name="Role_Lbl_NameRequired" xml:space="preserve">
+    <value>Name *</value>
+  </data>
+  <data name="Role_Lbl_NoFunctions" xml:space="preserve">
+    <value>No functions created yet.</value>
+  </data>
+  <data name="Role_Lbl_NoUsers" xml:space="preserve">
+    <value>No users.</value>
+  </data>
+  <data name="Role_Lbl_SystemLocked" xml:space="preserve">
+    <value>System role: always active and with every function.</value>
+  </data>
+  <data name="Role_Lbl_Users" xml:space="preserve">
+    <value>Users with this role</value>
+  </data>
+  <data name="Role_List_DeleteLockedTooltip" xml:space="preserve">
+    <value>System roles cannot be deleted.</value>
+  </data>
+  <data name="Role_List_DeleteTooltip" xml:space="preserve">
+    <value>Delete role</value>
+  </data>
+  <data name="Role_List_EditTooltip" xml:space="preserve">
+    <value>Edit role</value>
+  </data>
+  <data name="Role_List_OpenTooltip" xml:space="preserve">
+    <value>Open role</value>
+  </data>
+  <data name="Role_Page_CreateTitle" xml:space="preserve">
+    <value>Create role</value>
+  </data>
+  <data name="Role_Page_EditTitle" xml:space="preserve">
+    <value>Edit role</value>
+  </data>
+  <data name="Role_Ph_Code" xml:space="preserve">
+    <value>E.g.: ADMINISTRATIVE</value>
+  </data>
+  <data name="Role_Ph_Description" xml:space="preserve">
+    <value>What users with this role can do</value>
+  </data>
+  <data name="Role_Ph_Name" xml:space="preserve">
+    <value>E.g.: Administrative, Company management</value>
+  </data>
+  <data name="Role_Toast_CreateTitle" xml:space="preserve">
+    <value>Create role</value>
+  </data>
+  <data name="Role_Toast_Created" xml:space="preserve">
+    <value>Role &quot;{0}&quot; created successfully.</value>
+  </data>
+  <data name="Role_Toast_Deleted" xml:space="preserve">
+    <value>Role &quot;{0}&quot; deleted successfully.</value>
+  </data>
+  <data name="Role_Toast_EditTitle" xml:space="preserve">
+    <value>Edit role</value>
+  </data>
+  <data name="Role_Toast_Updated" xml:space="preserve">
+    <value>Role &quot;{0}&quot; updated successfully.</value>
+  </data>
+  <data name="Role_Val_CodeTooLong" xml:space="preserve">
+    <value>Code cannot exceed 100 characters.</value>
+  </data>
+  <data name="Role_Val_DuplicateCode" xml:space="preserve">
+    <value>A role with this code already exists.</value>
+  </data>
+  <data name="Role_Val_DuplicateName" xml:space="preserve">
+    <value>A role with this name already exists.</value>
+  </data>
+  <data name="Role_Val_NameRequired" xml:space="preserve">
+    <value>Role name is required.</value>
+  </data>
+  <data name="Role_Val_NameTooLong" xml:space="preserve">
+    <value>Name cannot exceed 500 characters.</value>
+  </data>
+  <data name="State_Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="State_Inactive" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+</root>
