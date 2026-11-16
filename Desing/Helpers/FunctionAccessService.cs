@@ -46,16 +46,23 @@ namespace Desing.Helpers
         {
             try
             {
+                return TablesExistOrThrow(db);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static bool TablesExistOrThrow(ConexionData db)
+        {
+            {
                 return db.Database.SqlQuery<int>(
                     @"SELECT CASE WHEN OBJECT_ID(N'dbo.TSql_Functions', N'U') IS NOT NULL
                                    AND OBJECT_ID(N'dbo.TSql_Roles_V2', N'U') IS NOT NULL
                                    AND OBJECT_ID(N'dbo.TSql_RoleFunction', N'U') IS NOT NULL
                                    AND OBJECT_ID(N'dbo.TSql_UserRole', N'U') IS NOT NULL
                               THEN 1 ELSE 0 END").FirstOrDefault() == 1;
-            }
-            catch
-            {
-                return false;
             }
         }
 
@@ -74,7 +81,7 @@ namespace Desing.Helpers
             {
                 using (var db = new ConexionData())
                 {
-                    if (!TablesExist(db))
+                    if (!TablesExistOrThrow(db))
                     {
                         codes = Empty;
                     }
