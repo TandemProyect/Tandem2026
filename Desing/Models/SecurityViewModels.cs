@@ -72,6 +72,15 @@ namespace Desing.Models
         public IList<FunctionCatalogOption> Catalog { get; set; }
     }
 
+    /// <summary>Ventana «Asignar roles» de la lista de empleados.</summary>
+    public class SecurityUserRolesViewModel
+    {
+        public string UserId { get; set; }
+        public string DisplayName { get; set; }
+        public IList<SecurityRoleOption> AvailableRoles { get; set; }
+        public IList<long> RoleIds { get; set; }
+    }
+
     public class FunctionCatalogOption
     {
         public string Code { get; set; }

@@ -25,6 +25,18 @@
   <data name="Common_Security" xml:space="preserve">
     <value>Settings</value>
   </data>
+  <data name="Employee_AssignRoles_Saved" xml:space="preserve">
+    <value>Roles for &quot;{0}&quot; saved successfully.</value>
+  </data>
+  <data name="Employee_AssignRoles_Title" xml:space="preserve">
+    <value>Assign roles</value>
+  </data>
+  <data name="Employee_AssignRoles_Tooltip" xml:space="preserve">
+    <value>Assign roles</value>
+  </data>
+  <data name="Employee_AssignRoles_UserNotFound" xml:space="preserve">
+    <value>User not found.</value>
+  </data>
   <data name="Employee_Lbl_NoRoles" xml:space="preserve">
     <value>No roles created yet.</value>
   </data>

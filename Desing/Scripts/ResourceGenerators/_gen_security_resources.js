@@ -105,7 +105,11 @@ const es = Object.fromEntries(
     Function_Err_NotFound: "Función no encontrada.",
 
     Employee_Lbl_Roles: "Roles del usuario",
-    Employee_Lbl_NoRoles: "No hay roles creados."
+    Employee_Lbl_NoRoles: "No hay roles creados.",
+    Employee_AssignRoles_Title: "Asignar roles",
+    Employee_AssignRoles_Tooltip: "Asignar roles",
+    Employee_AssignRoles_Saved: "Roles de \"{0}\" guardados correctamente.",
+    Employee_AssignRoles_UserNotFound: "Usuario no encontrado."
   })
 );
 
@@ -206,7 +210,11 @@ const en = Object.assign({}, es, {
   Function_Err_NotFound: "Function not found.",
 
   Employee_Lbl_Roles: "User roles",
-  Employee_Lbl_NoRoles: "No roles created yet."
+  Employee_Lbl_NoRoles: "No roles created yet.",
+  Employee_AssignRoles_Title: "Assign roles",
+  Employee_AssignRoles_Tooltip: "Assign roles",
+  Employee_AssignRoles_Saved: "Roles for \"{0}\" saved successfully.",
+  Employee_AssignRoles_UserNotFound: "User not found."
 });
 
 function xmlEsc(s) {
