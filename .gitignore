@@ -388,3 +388,8 @@ Desing/Web.GoogleMaps.config
 Desing/GoogleMaps.local.config
 # Desing_2 Importar DWG: ODA File Converter portable (~80 MB, binarios de terceros). Se publica con Web Deploy (Design.csproj), no va a git.
 /Desing/App_Data/Tools/ODA/
+
+# Contraseña FTP local: nunca al repo (15/11/2026)
+/_ftp_develop_pass.txt
+# IA: frases que la IA no comprende (pt119u), se generan en el servidor
+/Desing/App_Data/IA/

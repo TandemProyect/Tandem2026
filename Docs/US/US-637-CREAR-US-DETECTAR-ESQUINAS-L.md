@@ -69,7 +69,7 @@ https://dev.azure.com/VSCAD/213253e7-f177-4e2d-bdf3-410b97f6883d/_workitems/edit
 
 ### 2. Documentación Actualizada
 
-#### `Docs/General/GESTION-PANEL-AZURE-DEVOPS.md`
+#### `Docs/areas/azure-devops/GESTION-PANEL-AZURE-DEVOPS.md`
 **Cambios principales:**
 - ⚡ Agregada sección "Comandos Rápidos Más Usados" al inicio del documento
 - 📖 Nueva sección detallada sobre `Create-US-Fast.ps1` como Método 1 (recomendado)
@@ -114,7 +114,7 @@ Fix: Corregir scripts de creación de US - agregar soporte para StoryPoints y fi
 docs: Agregar Create-US-Fast.ps1 a documentación con ejemplos y comandos rápidos
 ```
 **Archivos:**
-- `Docs/General/GESTION-PANEL-AZURE-DEVOPS.md` (actualizado)
+- `Docs/areas/azure-devops/GESTION-PANEL-AZURE-DEVOPS.md` (actualizado)
 - `Docs/Scripts/CREATE-US-FAST.md` (creado)
 
 ## 🔧 Detalles Técnicos del Fix
@@ -176,7 +176,7 @@ Invoke-RestMethod -Uri $url -Headers $headers -Method Post `
 ### Archivos Clave
 - `Scripts/Create-US-Fast.ps1` - Script principal (⭐ usar este)
 - `Scripts/US.ps1` - Script alternativo con tasks automáticas
-- `Docs/General/GESTION-PANEL-AZURE-DEVOPS.md` - Guía completa
+- `Docs/areas/azure-devops/GESTION-PANEL-AZURE-DEVOPS.md` - Guía completa
 - `Docs/Scripts/CREATE-US-FAST.md` - Documentación detallada del script
 
 ## ✅ Próximos Pasos (Sugeridos)

@@ -35,7 +35,7 @@ Este directorio contiene scripts PowerShell para automatizar la gestión de User
 ## 📚 Documentación Completa
 
 **Antes de usar estos scripts, lee:**  
-[📘 Docs/General/GESTION-PANEL-AZURE-DEVOPS.md](../Docs/General/GESTION-PANEL-AZURE-DEVOPS.md)
+[📘 Docs/areas/azure-devops/GESTION-PANEL-AZURE-DEVOPS.md](../Docs/areas/azure-devops/GESTION-PANEL-AZURE-DEVOPS.md)
 
 Incluye:
 - ✅ Configuración correcta (organización, PAT, URLs)
@@ -372,7 +372,7 @@ $project = "tandem2026"
 | Recurso | URL |
 |---------|-----|
 | **Panel del Proyecto** | https://dev.azure.com/VSCAD/tandem2026/_boards/board/t/tandem2026%20Team/Issues |
-| **Documentación Completa** | [GESTION-PANEL-AZURE-DEVOPS.md](../Docs/General/GESTION-PANEL-AZURE-DEVOPS.md) |
+| **Documentación Completa** | [GESTION-PANEL-AZURE-DEVOPS.md](../Docs/areas/azure-devops/GESTION-PANEL-AZURE-DEVOPS.md) |
 | **Crear Work Item Manual** | https://dev.azure.com/VSCAD/tandem2026/_workitems/create/Issue |
 | **API REST Docs** | https://learn.microsoft.com/rest/api/azure/devops/wit/ |
 
@@ -397,7 +397,7 @@ $project = "tandem2026"
 1. **Usa `Quick-US.ps1`** como comando principal para nuevas US
 2. **Vincula commits desde el primer cambio** con `AB#<ID>`
 3. **Actualiza estados regularmente** para reflejar progreso real
-4. **Lee la documentación completa** en `Docs/General/GESTION-PANEL-AZURE-DEVOPS.md` al menos una vez
+4. **Lee la documentación completa** en `Docs/areas/azure-devops/GESTION-PANEL-AZURE-DEVOPS.md` al menos una vez
 5. **No modifiques los valores de `$org` y `$project`** en los scripts
 
 ---

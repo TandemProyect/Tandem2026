@@ -8,8 +8,9 @@ import { LineMaterial } from '../Design/jsm/lines/LineMaterial.js';
 import { GLTFLoader } from '../Design/jsm/loaders/GLTFLoader.js';
 import { createDesing2WorkerTool } from './desing2-worker-tool.js?v=20261022-worker2d';
 import { createDesing2PillarTool } from './desing2-pillar-tool.js';
-import { mountWallEditForm } from './wall-edit-form.js?v=20261114h';
-import { mountWallAiChat, maStlWallAiUiTexts, maStlWallAiBootstrapCompact, maStlWallAiCompactTitle } from './wall-ai-assistant.js?v=20261114h';
+import { mountWallEditForm } from './wall-edit-form.js?v=20261116a';
+import { mountWallAiChat, maStlWallAiUiTexts, maStlWallAiBootstrapCompact, maStlWallAiCompactTitle } from './wall-ai-assistant.js?v=20261116a';
+import { maStlDesignAiInit } from './design-ai-assistant.js?v=20261116a';
 import { mountWallBulkList } from './wall-bulk-list.js?v=20261026p';
 import { mountDesignGroups } from './design-groups.js?v=20261023j';
 import { MaStlWallEditFinalize, MaStlWallStretchMath } from './ma-stl-wall-edit-finalize.js';
@@ -1391,6 +1392,9 @@ const MA_STL_OFFSET_TOOL_PREVIEW_LINEWIDTH_PX = 2;
 const MA_STL_COPY_TOOL_PREVIEW_COLOR_HEX = 0x66bbff;
 const MA_STL_MOVE_TOOL_PREVIEW_COLOR_HEX = 0x66dd88;
 const MA_STL_STRETCH_TOOL_PREVIEW_COLOR_HEX = 0xffaa44;
+/** Girar / Simetría (14/11/2026): color de la vista previa. */
+const MA_STL_ROTATE_TOOL_PREVIEW_COLOR_HEX = 0xc58cff;
+const MA_STL_MIRROR_TOOL_PREVIEW_COLOR_HEX = 0xff7fb0;
 const MA_STL_COPY_TOOL_PREVIEW_OPACITY = 0.72;
 const MA_STL_COPY_TOOL_PREVIEW_LINEWIDTH_PX = 2;
 const MA_STL_COPY_TOOL_PREVIEW_MESH_OPACITY = 0.42;
@@ -3447,7 +3451,7 @@ function bootMasterArticleDetailsStlViewer() {
     const maStlDeleteToolHud = document.getElementById('ma-stl-delete-tool-hud');
     const maStlDeleteToolHudInstruction = document.getElementById('ma-stl-delete-tool-hud-instruction');
     let maStlCopyToolActive = false;
-    /** @type {'copy'|'move'|'stretch'} */
+    /** @type {'copy'|'move'|'stretch'|'rotate'|'mirror'} */
     let maStlCopyToolKind = 'copy';
     /** @type {null|'selecting'|'basePoint'|'displacement'} */
     let maStlCopyToolState = null;
@@ -3489,8 +3493,27 @@ function bootMasterArticleDetailsStlViewer() {
     const maStlStretchToolHudDistanceInput = document.getElementById('ma-stl-stretch-tool-hud-distance');
     const maStlStretchToolHudAngleInput = document.getElementById('ma-stl-stretch-tool-hud-angle');
     const maStlStretchToolHudDistancePreview = document.getElementById('ma-stl-stretch-tool-hud-distance-preview');
+    const maStlRotateToolToggleBtn = document.getElementById('ma-stl-tool-rotate');
+    const maStlRotateToolHud = document.getElementById('ma-stl-rotate-tool-hud');
+    const maStlRotateToolHudInstruction = document.getElementById('ma-stl-rotate-tool-hud-instruction');
+    const maStlRotateToolHudCoords = document.getElementById('ma-stl-rotate-tool-hud-coords');
+    const maStlRotateToolHudDistanceRow = document.getElementById('ma-stl-rotate-tool-hud-distance-row');
+    const maStlRotateToolHudDistanceInput = document.getElementById('ma-stl-rotate-tool-hud-distance');
+    const maStlRotateToolHudDistancePreview = document.getElementById('ma-stl-rotate-tool-hud-distance-preview');
+    const maStlRotateToolHudOption = document.getElementById('ma-stl-rotate-tool-hud-option');
+    const maStlMirrorToolToggleBtn = document.getElementById('ma-stl-tool-mirror');
+    const maStlMirrorToolHud = document.getElementById('ma-stl-mirror-tool-hud');
+    const maStlMirrorToolHudInstruction = document.getElementById('ma-stl-mirror-tool-hud-instruction');
+    const maStlMirrorToolHudCoords = document.getElementById('ma-stl-mirror-tool-hud-coords');
+    const maStlMirrorToolHudDistanceRow = document.getElementById('ma-stl-mirror-tool-hud-distance-row');
+    const maStlMirrorToolHudDistanceInput = document.getElementById('ma-stl-mirror-tool-hud-distance');
+    const maStlMirrorToolHudDistancePreview = document.getElementById('ma-stl-mirror-tool-hud-distance-preview');
+    const maStlMirrorToolHudOption = document.getElementById('ma-stl-mirror-tool-hud-option');
+    /** Girar: deja el original y gira una copia. Simetría: borra los originales (por defecto no, como AutoCAD). */
+    let maStlXformToolRotateKeepOriginal = false;
+    let maStlXformToolMirrorEraseOriginal = false;
     const maStlCopyToolPreviewLines = [];
-    /** @type {{ mesh: THREE.Mesh, baseX: number, baseZ: number, scale: number }[]} */
+    /** @type {{ mesh: THREE.Mesh, baseX: number, baseZ: number, baseQuat?: THREE.Quaternion, scale: number }[]} */
     const maStlCopyToolPreviewMeshSlots = [];
     /** @type {null|{ p1: { x: number, y: number, z: number }, p2: { x: number, y: number, z: number }, wallRole: string|null }[]} */
     let maStlCopyToolPreviewSegments = null;
@@ -3576,6 +3599,12 @@ function bootMasterArticleDetailsStlViewer() {
     const maStlInsertEnclosureToolPreviewLines = [];
     /** Herramienta cota espesor muro (barra inferior Desing_2). */
     let maStlWallDimToolActive = false;
+    /**
+     * IA del diseño (15/11/2026): Cotas pedidas hablando. null = Cotas normales (las del botón);
+     * { mode: 'ids' } = solo el ID de cada muro; { mode: 'wall', axisId } = solo las cotas de ese muro.
+     * `startedTool`: la IA encendió Cotas (al quitarlo se apagan); si no, se vuelve a las Cotas normales.
+     */
+    let maStlWallDimAiFocus = null;
     const maStlWallDimToggleBtn = document.getElementById('ma-stl-tool-wall-dim');
     const maStlWallDimOverlayRoot = document.getElementById('ma-stl-wall-dim-overlay');
     const maStlWallDimGroup = new THREE.Group();
@@ -3667,11 +3696,19 @@ function bootMasterArticleDetailsStlViewer() {
         return maStlCopyToolActive === true && maStlCopyToolKind === 'stretch';
     }
 
+    function maStlIsRotateToolActive() {
+        return maStlCopyToolActive === true && maStlCopyToolKind === 'rotate';
+    }
+
+    function maStlIsMirrorToolActive() {
+        return maStlCopyToolActive === true && maStlCopyToolKind === 'mirror';
+    }
+
     function maStlIsDupMoveToolActive() {
         return maStlCopyToolActive === true;
     }
 
-    /** @param {'copy'|'move'|'stretch'} [kind] */
+    /** @param {'copy'|'move'|'stretch'|'rotate'|'mirror'} [kind] */
     function maStlXformToolHudSpec(kind) {
         const k = kind || maStlCopyToolKind;
         if (k === 'move') {
@@ -3702,6 +3739,34 @@ function bootMasterArticleDetailsStlViewer() {
                 toggleBtn: maStlStretchToolToggleBtn,
             };
         }
+        if (k === 'rotate') {
+            return {
+                hud: maStlRotateToolHud,
+                instruction: maStlRotateToolHudInstruction,
+                coords: maStlRotateToolHudCoords,
+                distanceRow: maStlRotateToolHudDistanceRow,
+                distanceInput: maStlRotateToolHudDistanceInput,
+                angleInput: null,
+                distancePreview: maStlRotateToolHudDistancePreview,
+                instructionPrefix: 'data-ma-stl-rotate-tool-instruction-',
+                toastAttr: 'data-ma-stl-rotate-tool-distance-invalid-toast',
+                toggleBtn: maStlRotateToolToggleBtn,
+            };
+        }
+        if (k === 'mirror') {
+            return {
+                hud: maStlMirrorToolHud,
+                instruction: maStlMirrorToolHudInstruction,
+                coords: maStlMirrorToolHudCoords,
+                distanceRow: maStlMirrorToolHudDistanceRow,
+                distanceInput: maStlMirrorToolHudDistanceInput,
+                angleInput: null,
+                distancePreview: maStlMirrorToolHudDistancePreview,
+                instructionPrefix: 'data-ma-stl-mirror-tool-instruction-',
+                toastAttr: 'data-ma-stl-mirror-tool-distance-invalid-toast',
+                toggleBtn: maStlMirrorToolToggleBtn,
+            };
+        }
         return {
             hud: maStlCopyToolHud,
             instruction: maStlCopyToolHudInstruction,
@@ -3721,6 +3786,8 @@ function bootMasterArticleDetailsStlViewer() {
             maStlXformToolHudSpec('copy'),
             maStlXformToolHudSpec('move'),
             maStlXformToolHudSpec('stretch'),
+            maStlXformToolHudSpec('rotate'),
+            maStlXformToolHudSpec('mirror'),
         ];
         for (let si = 0; si < specs.length; si++) {
             const sp = specs[si];
@@ -3736,11 +3803,15 @@ function bootMasterArticleDetailsStlViewer() {
         if (maStlCopyToolHud) maStlCopyToolHud.classList.toggle('d-none', active !== 'copy');
         if (maStlMoveToolHud) maStlMoveToolHud.classList.toggle('d-none', active !== 'move');
         if (maStlStretchToolHud) maStlStretchToolHud.classList.toggle('d-none', active !== 'stretch');
+        if (maStlRotateToolHud) maStlRotateToolHud.classList.toggle('d-none', active !== 'rotate');
+        if (maStlMirrorToolHud) maStlMirrorToolHud.classList.toggle('d-none', active !== 'mirror');
     }
 
     function maStlCopyToolPreviewColorHex() {
         if (maStlCopyToolKind === 'move') return MA_STL_MOVE_TOOL_PREVIEW_COLOR_HEX;
         if (maStlCopyToolKind === 'stretch') return MA_STL_STRETCH_TOOL_PREVIEW_COLOR_HEX;
+        if (maStlCopyToolKind === 'rotate') return MA_STL_ROTATE_TOOL_PREVIEW_COLOR_HEX;
+        if (maStlCopyToolKind === 'mirror') return MA_STL_MIRROR_TOOL_PREVIEW_COLOR_HEX;
         return MA_STL_COPY_TOOL_PREVIEW_COLOR_HEX;
     }
 
@@ -5803,6 +5874,7 @@ function bootMasterArticleDetailsStlViewer() {
 
     function maStlDesing2PaintWall3dPhaseColors(byWallId) {
         if (!maStlWall3dMeshesGroup) return;
+        maStlWall3dResetSelectionTint();
         maStlWall3dMeshesGroup.traverse(function (obj) {
             if (!obj.isMesh || !obj.material || !obj.material.color) return;
             if (!obj.userData || obj.userData.maStlWall3dKind === 'pillar') return;
@@ -5819,6 +5891,7 @@ function bootMasterArticleDetailsStlViewer() {
             else obj.material.color.setHex(maStlWall3dColorForKind(obj.userData.maStlWall3dKind));
             obj.material.needsUpdate = true;
         });
+        maStlWall3dSyncSelectionTint();
     }
 
     window.maStlDesing2PaintWallPhaseColors = function (byWallId) {
@@ -9845,6 +9918,10 @@ function bootMasterArticleDetailsStlViewer() {
         }
         maStlDesing2RedoStack.push(action);
         maStlDesing2SyncUndoRedoToolbarUi();
+        /* pt114u: las Cotas encendidas (botón o IA) se recalculan con el muro deshecho / rehecho (alto en el ID incluido). */
+        if (maStlWallDimToolActive) {
+            try { maStlWallDimRefreshScanAndDraw(); } catch (_e) { /* cotas: siguiente refresco */ }
+        }
         return true;
     }
 
@@ -9860,6 +9937,10 @@ function bootMasterArticleDetailsStlViewer() {
         }
         maStlDesing2UndoStack.push(action);
         maStlDesing2SyncUndoRedoToolbarUi();
+        /* pt114u: las Cotas encendidas (botón o IA) se recalculan con el muro deshecho / rehecho (alto en el ID incluido). */
+        if (maStlWallDimToolActive) {
+            try { maStlWallDimRefreshScanAndDraw(); } catch (_e) { /* cotas: siguiente refresco */ }
+        }
         return true;
     }
 
@@ -12438,6 +12519,16 @@ let maStlWallApplyAllHeightMm = 0;
             maStlStretchToolToggleBtn.setAttribute('aria-pressed', onStretch ? 'true' : 'false');
             maStlStretchToolToggleBtn.classList.toggle('active', onStretch);
         }
+        if (maStlRotateToolToggleBtn) {
+            const onRotate = maStlIsRotateToolActive();
+            maStlRotateToolToggleBtn.setAttribute('aria-pressed', onRotate ? 'true' : 'false');
+            maStlRotateToolToggleBtn.classList.toggle('active', onRotate);
+        }
+        if (maStlMirrorToolToggleBtn) {
+            const onMirror = maStlIsMirrorToolActive();
+            maStlMirrorToolToggleBtn.setAttribute('aria-pressed', onMirror ? 'true' : 'false');
+            maStlMirrorToolToggleBtn.classList.toggle('active', onMirror);
+        }
         if (maStlInsertCornerToolToggleBtn) {
             const onInsertCorner = maStlIsInsertCornerToolActive();
             maStlInsertCornerToolToggleBtn.setAttribute('aria-pressed', onInsertCorner ? 'true' : 'false');
@@ -13073,6 +13164,14 @@ let maStlWallApplyAllHeightMm = 0;
             case 'ma-stl-tool-stretch':
                 if (maStlIsStretchToolActive()) return false;
                 maStlStartStretchToolModesToolbar();
+                return true;
+            case 'ma-stl-tool-rotate':
+                if (maStlIsRotateToolActive()) return false;
+                maStlStartRotateToolModesToolbar();
+                return true;
+            case 'ma-stl-tool-mirror':
+                if (maStlIsMirrorToolActive()) return false;
+                maStlStartMirrorToolModesToolbar();
                 return true;
             case 'ma-stl-tool-insert-corner':
                 if (maStlIsInsertCornerToolActive()) return false;
@@ -19655,12 +19754,18 @@ let maStlWallApplyAllHeightMm = 0;
      */
     function maStlLineEditToolExtendWallAtClient(axis, clientX, clientY) {
         const ud = axis.userData.maStlUserPlanLine;
+        if (Math.hypot(ud.p2Mm.x - ud.p1Mm.x, ud.p2Mm.z - ud.p1Mm.z) < 1e-6) return false;
+        return maStlLineEditToolExtendWallEnd(axis, maStlLineEditToolClickParamOnLine(axis, clientX, clientY) >= 0.5);
+    }
+
+    /** Alargar un muro por un extremo (p2 si `extendP2`) hasta el primer muro que encuentra. También lo usa la IA del diseño. */
+    function maStlLineEditToolExtendWallEnd(axis, extendP2) {
+        const ud = axis.userData.maStlUserPlanLine;
         const p1 = { x: ud.p1Mm.x, y: ud.p1Mm.y, z: ud.p1Mm.z };
         const p2 = { x: ud.p2Mm.x, y: ud.p2Mm.y, z: ud.p2Mm.z };
         const lenA = Math.hypot(p2.x - p1.x, p2.z - p1.z);
         if (lenA < 1e-6) return false;
         const tEps = maStlLineEditToolEpsMm() / lenA;
-        const extendP2 = maStlLineEditToolClickParamOnLine(axis, clientX, clientY) >= 0.5;
         if (maStlLineEditToolAxesTouchingPointMm(extendP2 ? p2 : p1, axis).length) return false;
         const ts = maStlLineEditToolWallCutParams(axis, p1, p2).ts;
         let best = null;
@@ -19852,6 +19957,86 @@ let maStlWallApplyAllHeightMm = 0;
             mat.emissiveIntensity = MA_STL_SELECTION_STYLE.meshSelectedEmissiveIntensity;
         }
         mat.needsUpdate = true;
+    }
+
+    /* pt117u · Muro seleccionado en 3D: el sólido generado lleva el mismo tinte «seleccionado» (verde flúor) que las
+     * mallas de borrar / copiar (maStlApplyStlMeshSelectedTint), mientras su muro esté seleccionado. */
+    const maStlWall3dSelTintSnapshots = new Map();
+
+    function maStlWall3dMeshAxisIdForSelection(mesh) {
+        const ud = mesh && mesh.userData;
+        if (!ud || !ud.maStlWall3dGenerated) return null;
+        if (ud.maStlWall3dKind === 'pillar' || ud.maStlWall3dKind === 'corner' || ud.maStlPhaseWallIds) return null;
+        if (ud.maStlPhaseLineId) return String(ud.maStlPhaseLineId);
+        if (ud.curvedLineId != null) return String(ud.curvedLineId);
+        if (ud.maStlWall3dKind !== 'wall' || !mesh.geometry) return null;
+        const cache = ud.maStlWall3dSelAxisCache;
+        if (cache && cache.geo === mesh.geometry) return cache.id;
+        if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+        const c = new THREE.Vector3();
+        mesh.geometry.boundingBox.getCenter(c);
+        mesh.updateMatrixWorld(true);
+        c.applyMatrix4(mesh.matrixWorld);
+        const axisUd = maStlWall3dInspectResolveAxisUdFromPoint(c);
+        const id = axisUd && axisUd.id != null ? String(axisUd.id) : null;
+        ud.maStlWall3dSelAxisCache = { geo: mesh.geometry, id: id };
+        return id;
+    }
+
+    /* Los sólidos comparten material: el muro seleccionado lleva una copia teñida y al soltarlo recupera el suyo. */
+    function maStlWall3dRestoreSelectionTint(mesh, snap) {
+        if (!mesh || !snap || !snap.material) return;
+        const tinted = mesh.material;
+        if (tinted && tinted !== snap.material) {
+            if (tinted.map !== snap.material.map) {
+                snap.material.map = tinted.map;
+                snap.material.needsUpdate = true;
+            }
+            tinted.dispose();
+        }
+        mesh.material = snap.material;
+    }
+
+    function maStlWall3dResetSelectionTint() {
+        maStlWall3dSelTintSnapshots.forEach(function (snap, mesh) { maStlWall3dRestoreSelectionTint(mesh, snap); });
+        maStlWall3dSelTintSnapshots.clear();
+    }
+
+    function maStlWall3dSyncSelectionTint() {
+        const want = new Set();
+        if (maStlWall3dMeshesGroup && maStlDesing2ModelMode === 'wall3d') {
+            const ids = maStlSelectedWallAxisIds();
+            if (ids.size) {
+                maStlWall3dMeshesGroup.traverse(function (o) {
+                    if (!o || !o.isMesh || !o.material || Array.isArray(o.material)) return;
+                    const id = maStlWall3dMeshAxisIdForSelection(o);
+                    if (id && ids.has(id)) want.add(o);
+                });
+            }
+        }
+        const hov = maStlWall3dInspectHoverMesh;
+        if (hov && (want.has(hov) || maStlWall3dSelTintSnapshots.has(hov))) maStlWall3dInspectClearHoverMesh();
+        maStlWall3dSelTintSnapshots.forEach(function (snap, mesh) {
+            if (want.has(mesh)) return;
+            maStlWall3dRestoreSelectionTint(mesh, snap);
+            maStlWall3dSelTintSnapshots.delete(mesh);
+        });
+        want.forEach(function (mesh) {
+            if (maStlWall3dSelTintSnapshots.has(mesh)) return;
+            const mat = mesh.material;
+            const snap = {
+                material: mat,
+                opacity: mat.opacity,
+                transparent: mat.transparent,
+                color: mat.color ? mat.color.clone() : new THREE.Color(0xffffff),
+            };
+            mesh.material = mat.clone();
+            maStlWall3dSelTintSnapshots.set(mesh, snap);
+            maStlApplyStlMeshSelectedTint(mesh, snap);
+            /* Sólido: el verde de selección entero (las esquinas ya son verde lima) y casi opaco. */
+            if (mesh.material.color) mesh.material.color.setHex(MA_STL_SELECTION_STYLE.selectedHex);
+            if (mesh.material.transparent && mesh.material.opacity < 0.9) mesh.material.opacity = 0.9;
+        });
     }
 
     /** Herramienta borrar: malla STL seleccionada = estilo «seleccionado» (verde flúor). */
@@ -21523,6 +21708,10 @@ let maStlWallApplyAllHeightMm = 0;
             if (distPreview) distPreview.textContent = '';
             return;
         }
+        if (maStlXformToolIsRotMir()) {
+            maStlXformToolSyncTypingPreviewUi(distPreview);
+            return;
+        }
         if (!distPreview || maStlCopyToolState !== 'displacement') {
             if (distPreview) distPreview.textContent = '';
             return;
@@ -21624,6 +21813,7 @@ let maStlWallApplyAllHeightMm = 0;
             );
         }
         maStlCopyToolSyncTypingPreviewUi();
+        maStlXformToolSyncOptionUi();
         activeHud.classList.remove('d-none');
     }
 
@@ -21758,6 +21948,7 @@ let maStlWallApplyAllHeightMm = 0;
                 mesh: clone,
                 baseX: src.position.x,
                 baseZ: src.position.z,
+                baseQuat: src.quaternion.clone(),
                 scale: scale,
             });
         }
@@ -21880,6 +22071,7 @@ let maStlWallApplyAllHeightMm = 0;
             out.z = absPt.z;
             return out;
         }
+        if (maStlXformToolIsRotMir()) return maStlXformToolComputeEndMm(raw, out);
         const polar = maStlLineToolParsePolarDistanceAngleMm(raw);
         const lenMmRaw = polar ? polar.lenMm : maStlParseLengthInputValueToMm(raw);
         if (lenMmRaw != null && Number.isFinite(lenMmRaw) && lenMmRaw > 0) {
@@ -21950,7 +22142,9 @@ let maStlWallApplyAllHeightMm = 0;
         const dy = end.y - maStlCopyToolBasePointMm.y;
         const dz = end.z - maStlCopyToolBasePointMm.z;
         if (Math.hypot(dx, dz) >= 1e-6) {
-            if (maStlIsStretchToolActive()) {
+            if (maStlXformToolIsRotMir()) {
+                maStlXformToolSyncPreviewAtEndMm(end);
+            } else if (maStlIsStretchToolActive()) {
                 maStlCopyToolSyncPreviewAtStretchDisplacement(dx, dy, dz);
                 maStlCopyToolSyncStretchSnapPreview(dx, dz);
             } else {
@@ -22047,6 +22241,28 @@ let maStlWallApplyAllHeightMm = 0;
         if (parts.plainLines.length === 0 && parts.wallAxisLines.length === 0 && meshes.length === 0) {
             return false;
         }
+        const scale = stlVertexToSceneScale || 1;
+        return maStlCopyToolCommitDuplicateMappedMm(
+            parts,
+            meshes,
+            function (p) {
+                return maStlCopyToolOffsetPlanPointMm(p, dx, dy, dz);
+            },
+            function (clone) {
+                clone.position.x += dx / scale;
+                clone.position.z += dz / scale;
+            },
+            { undoLabel: 'copyUserFloorLinesAndStlMeshes', saveReason: 'copy-tool-displacement-commit' }
+        );
+    }
+
+    /**
+     * Copias de `parts` (líneas y ejes de muro con caras nuevas, grupos nuevos) y mallas, con los puntos
+     * pasados por `mapPt` (Copiar: desplazamiento; Girar / Simetría con copia: giro o reflejo).
+     * `opts.canonicalAxis`: eje nuevo hacia +X / +Z como al dibujar (Girar / Simetría).
+     */
+    function maStlCopyToolCommitDuplicateMappedMm(parts, meshes, mapPt, placeClone, opts) {
+        const o = opts || {};
         const undoBefore = maStlDesing2SerializeEditSnapshot();
         const wallGroupMap = new Map();
         const polylineGroupMap = new Map();
@@ -22059,8 +22275,8 @@ let maStlWallApplyAllHeightMm = 0;
         for (let pi = 0; pi < parts.plainLines.length; pi++) {
             const ud = parts.plainLines[pi].userData && parts.plainLines[pi].userData.maStlUserPlanLine;
             if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
-            const a = maStlCopyToolOffsetPlanPointMm(ud.p1Mm, dx, dy, dz);
-            const b = maStlCopyToolOffsetPlanPointMm(ud.p2Mm, dx, dy, dz);
+            const a = mapPt(ud.p1Mm);
+            const b = mapPt(ud.p2Mm);
             let polyId = ud.polylineGroupId;
             if (polyId != null) {
                 if (!polylineGroupMap.has(polyId)) {
@@ -22081,8 +22297,9 @@ let maStlWallApplyAllHeightMm = 0;
             }
             const wallGroupId = wallGroupMap.get(ud.wallGroupId);
             const halfT = maStlWall2dToolAxisFaceHalfThicknessMm(src);
-            const a = maStlCopyToolOffsetPlanPointMm(ud.p1Mm, dx, dy, dz);
-            const b = maStlCopyToolOffsetPlanPointMm(ud.p2Mm, dx, dy, dz);
+            const a = mapPt(ud.p1Mm);
+            const b = mapPt(ud.p2Mm);
+            if (o.canonicalAxis) maStlWall2dToolEnsureClockwiseAxisEndsMm(a, b);
             maStlQuantizeUserFloorPlanPointToGridMm(a);
             maStlQuantizeUserFloorPlanPointToGridMm(b);
             maStlWall2dToolSnapPlanPointToNearestAxisBodyMm(a, b);
@@ -22131,20 +22348,18 @@ let maStlWallApplyAllHeightMm = 0;
             maStlReapplyAllUserFloorWallAxisLineStyles();
             maStlSaveWallConnectionsNow({
                 force: true,
-                reason: 'copy-tool-displacement-commit',
+                reason: o.saveReason || 'copy-tool-displacement-commit',
             });
         } else {
             maStlWeldAllUserFloorLineEndpointsMm();
         }
 
-        const scale = stlVertexToSceneScale || 1;
         for (let mi = 0; mi < meshes.length; mi++) {
             const mesh = meshes[mi];
             if (!mesh) continue;
             const clone = mesh.clone();
             clone.position.copy(mesh.position);
-            clone.position.x += dx / scale;
-            clone.position.z += dz / scale;
+            placeClone(clone);
             const parent = mesh.parent || currentRoot;
             if (parent) parent.add(clone);
             if (clipStlMeshes.indexOf(clone) < 0) clipStlMeshes.push(clone);
@@ -22152,7 +22367,7 @@ let maStlWallApplyAllHeightMm = 0;
         updateClipPlanes();
         syncGroundShadowToggleUi();
         maStlDesing2PushEditSnapshotUndo(
-            'copyUserFloorLinesAndStlMeshes',
+            o.undoLabel || 'copyUserFloorLinesAndStlMeshes',
             undoBefore,
             maStlDesing2SerializeEditSnapshot()
         );
@@ -22228,6 +22443,466 @@ let maStlWallApplyAllHeightMm = 0;
             maStlDesing2SerializeEditSnapshot()
         );
         return true;
+    }
+
+    /* ------------------------------------------------------------------------------------------
+     * Girar / Simetría (14/11/2026). Mismo patrón que Copiar / Desplazar: seleccionar (Intro), punto base y
+     * segundo punto. Girar: el segundo punto (o los grados escritos, + = antihorario en planta) da el ángulo
+     * medido desde +X, como ROTATE de AutoCAD. Simetría: los dos puntos son el eje (o grados escritos = eje con
+     * ese ángulo por el primer punto), como MIRROR. Respeta grupos de polilínea y muros (eje + caras, aperturas
+     * `faceGapsMm`); las uniones y esquinas se recalculan como al Desplazar. Un solo paso de Deshacer.
+     * Textos: español en el marcado y en inglés aquí (sin resx, para no tocar C#).
+     * ------------------------------------------------------------------------------------------ */
+    const MA_STL_XFORM_TOOL_TEXTS_EN = {
+        rotate: {
+            title: 'Rotate',
+            selecting: 'Rotate: select walls or lines and press Enter',
+            base: 'Rotate: base point (click or X;Z)',
+            displacement: 'Rotate: angle (click or type degrees, + = counterclockwise) and Enter',
+            placeholder: 'Angle °',
+            option: 'Keep original (copy) [C]',
+        },
+        mirror: {
+            title: 'Mirror',
+            selecting: 'Mirror: select walls or lines and press Enter',
+            base: 'Mirror: first point of the axis (click or X;Z)',
+            displacement: 'Mirror: second point of the axis (click, X;Z or angle °) and Enter',
+            placeholder: 'Point or angle',
+            option: 'Erase originals? [B]',
+        },
+    };
+
+    function maStlXformToolIsEnglishUi() {
+        const lang = String((document.documentElement && document.documentElement.getAttribute('lang')) || '').toLowerCase();
+        return lang.indexOf('en') === 0;
+    }
+
+    /** Interfaz en inglés: textos de botones y HUD de Girar / Simetría. */
+    function maStlXformToolApplyUiTexts() {
+        if (!maStlXformToolIsEnglishUi()) return;
+        const kinds = ['rotate', 'mirror'];
+        for (let i = 0; i < kinds.length; i++) {
+            const k = kinds[i];
+            const tx = MA_STL_XFORM_TOOL_TEXTS_EN[k];
+            const spec = maStlXformToolHudSpec(k);
+            if (spec.toggleBtn) {
+                spec.toggleBtn.setAttribute('title', tx.title);
+                spec.toggleBtn.setAttribute('aria-label', tx.title);
+            }
+            if (spec.hud) {
+                spec.hud.setAttribute(spec.instructionPrefix + 'selecting', tx.selecting);
+                spec.hud.setAttribute(spec.instructionPrefix + 'base', tx.base);
+                spec.hud.setAttribute(spec.instructionPrefix + 'displacement', tx.displacement);
+            }
+            if (spec.distanceInput) {
+                spec.distanceInput.setAttribute('placeholder', tx.placeholder);
+                spec.distanceInput.setAttribute('aria-label', tx.placeholder);
+            }
+            const lbl = document.getElementById('ma-stl-' + k + '-tool-hud-option-label');
+            if (lbl) lbl.textContent = tx.option;
+        }
+    }
+
+    function maStlXformToolIsRotMir() {
+        return maStlCopyToolActive === true && (maStlCopyToolKind === 'rotate' || maStlCopyToolKind === 'mirror');
+    }
+
+    /** Giro en planta: grados, + = antihorario en pantalla (arriba = −Z). */
+    function maStlXformMakeRotate(cx, cz, angleDeg) {
+        const rad = (Number(angleDeg) || 0) * Math.PI / 180;
+        return { kind: 'rotate', cx: cx, cz: cz, deg: Number(angleDeg) || 0, rad: rad, cos: Math.cos(rad), sin: Math.sin(rad) };
+    }
+
+    /** Simetría respecto a la recta a→b (en planta). */
+    function maStlXformMakeMirror(a, b) {
+        if (!a || !b) return null;
+        const dx = b.x - a.x;
+        const dz = b.z - a.z;
+        const h = Math.hypot(dx, dz);
+        if (!(h > 1e-6)) return null;
+        return { kind: 'mirror', ax: a.x, az: a.z, ux: dx / h, uz: dz / h };
+    }
+
+    function maStlXformRound(v) {
+        return Math.round(v * 1e4) / 1e4;
+    }
+
+    /** @returns {{ x: number, y: number, z: number }} */
+    function maStlXformMapPointMm(xf, p) {
+        let x;
+        let z;
+        if (xf.kind === 'rotate') {
+            const dx = p.x - xf.cx;
+            const dz = p.z - xf.cz;
+            x = xf.cx + dx * xf.cos + dz * xf.sin;
+            z = xf.cz - dx * xf.sin + dz * xf.cos;
+        } else {
+            const dx = p.x - xf.ax;
+            const dz = p.z - xf.az;
+            const t = dx * xf.ux + dz * xf.uz;
+            x = 2 * (xf.ax + xf.ux * t) - p.x;
+            z = 2 * (xf.az + xf.uz * t) - p.z;
+        }
+        return { x: maStlXformRound(x), y: p.y != null ? p.y : MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM, z: maStlXformRound(z) };
+    }
+
+    function maStlXformMapPointInPlaceMm(xf, p) {
+        if (!p) return;
+        const q = maStlXformMapPointMm(xf, p);
+        p.x = q.x;
+        p.z = q.z;
+    }
+
+    /** Ángulo (grados, 0 = +X, + antihorario en pantalla) de la recta base → punto. */
+    function maStlXformToolAngleDegFromEndMm(end) {
+        const dx = end.x - maStlCopyToolBasePointMm.x;
+        const dz = end.z - maStlCopyToolBasePointMm.z;
+        if (Math.hypot(dx, dz) < 1e-6) return null;
+        return Math.atan2(-dz, dx) * 180 / Math.PI;
+    }
+
+    function maStlXformToolFromEndMm(end) {
+        if (!end) return null;
+        if (maStlCopyToolKind === 'rotate') {
+            const deg = maStlXformToolAngleDegFromEndMm(end);
+            if (deg == null) return null;
+            return maStlXformMakeRotate(maStlCopyToolBasePointMm.x, maStlCopyToolBasePointMm.z, deg);
+        }
+        return maStlXformMakeMirror(
+            { x: maStlCopyToolBasePointMm.x, z: maStlCopyToolBasePointMm.z },
+            { x: end.x, z: end.z }
+        );
+    }
+
+    /**
+     * Segundo punto de Girar / Simetría: coordenadas X;Z, grados escritos (dirección desde el punto base)
+     * o el puntero (orto F8 en pasos de 90°).
+     */
+    function maStlXformToolComputeEndMm(raw, out) {
+        if (raw) {
+            const deg = maStlParseAngleInputValueDeg(raw);
+            if (deg == null || !Number.isFinite(deg)) return null;
+            const r = deg * Math.PI / 180;
+            out.x = maStlCopyToolBasePointMm.x + Math.cos(r) * 1000;
+            out.y = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM;
+            out.z = maStlCopyToolBasePointMm.z - Math.sin(r) * 1000;
+            return out;
+        }
+        if (!Number.isFinite(maStlCopyToolLastPointerClientXY.x) || !renderer) return null;
+        const p = maStlResolveLineToolFloorPointMm(
+            maStlCopyToolLastPointerClientXY.x,
+            maStlCopyToolLastPointerClientXY.y
+        );
+        if (!p) return null;
+        return maStlCopyToolSnapDisplacementFloorPointMm(p, out);
+    }
+
+    function maStlXformToolFormatDeg(deg) {
+        let d = Math.round(deg * 100) / 100;
+        if (Object.is(d, -0)) d = 0;
+        const s = String(d);
+        return (maStlXformToolIsEnglishUi() ? s : s.replace('.', ',')) + '\u00B0';
+    }
+
+    function maStlXformToolSyncTypingPreviewUi(distPreview) {
+        if (!distPreview) return;
+        if (maStlCopyToolState !== 'displacement') {
+            distPreview.textContent = '';
+            return;
+        }
+        const end = maStlCopyToolComputeDisplacementEndMm({ x: 0, y: 0, z: 0 });
+        const deg = end ? maStlXformToolAngleDegFromEndMm(end) : null;
+        distPreview.textContent = deg == null ? '' : '\u2248\u00A0' + maStlXformToolFormatDeg(deg);
+    }
+
+    function maStlXformToolSyncOptionUi() {
+        if (maStlRotateToolHudOption) maStlRotateToolHudOption.checked = maStlXformToolRotateKeepOriginal;
+        if (maStlMirrorToolHudOption) maStlMirrorToolHudOption.checked = maStlXformToolMirrorEraseOriginal;
+    }
+
+    function maStlXformToolToggleOption() {
+        if (maStlCopyToolKind === 'rotate') maStlXformToolRotateKeepOriginal = !maStlXformToolRotateKeepOriginal;
+        else if (maStlCopyToolKind === 'mirror') maStlXformToolMirrorEraseOriginal = !maStlXformToolMirrorEraseOriginal;
+        maStlXformToolSyncOptionUi();
+    }
+
+    /** Tecla C (Girar: copia) o B (Simetría: borrar originales) durante la herramienta. */
+    function maStlXformToolApplyOptionKey(ev) {
+        if (!maStlXformToolIsRotMir()) return false;
+        const k = String(ev.key || '').toLowerCase();
+        const want = maStlCopyToolKind === 'rotate' ? 'c' : 'b';
+        if (k !== want) return false;
+        const ae = document.activeElement;
+        const own = maStlDupMoveToolHudDistanceInput();
+        if (ae && ae !== own && maStlDesingV2AvoidKeyboardShortcutSteal(ae)) return false;
+        ev.preventDefault();
+        maStlXformToolToggleOption();
+        return true;
+    }
+
+    /** Vista previa: segmentos (ejes y líneas) y mallas STL giradas o reflejadas. */
+    function maStlXformToolSyncPreviewAtEndMm(end) {
+        const xf = maStlXformToolFromEndMm(end);
+        if (!xf || !maStlCopyToolPreviewSegments || maStlCopyToolPreviewSegments.length === 0) {
+            maStlCopyToolHidePreview();
+            return;
+        }
+        let visibleCount = 0;
+        for (let si = 0; si < maStlCopyToolPreviewSegments.length; si++) {
+            const seg = maStlCopyToolPreviewSegments[si];
+            const p1 = maStlXformMapPointMm(xf, seg.p1);
+            const p2 = maStlXformMapPointMm(xf, seg.p2);
+            const pl = maStlCopyToolEnsurePreviewLineAtIndex(si);
+            maStlCopyToolApplyPreviewLineMaterialStyle(pl.material, seg.wallRole);
+            maStlSetUserFloorLineGeometryMm(pl, p1, p2);
+            if (typeof pl.computeLineDistances === 'function') pl.computeLineDistances();
+            pl.visible = true;
+            visibleCount++;
+        }
+        for (let hi = maStlCopyToolPreviewSegments.length; hi < maStlCopyToolPreviewLines.length; hi++) {
+            maStlCopyToolPreviewLines[hi].visible = false;
+        }
+        for (let mi = 0; mi < maStlCopyToolPreviewMeshSlots.length; mi++) {
+            const slot = maStlCopyToolPreviewMeshSlots[mi];
+            if (!slot.mesh) continue;
+            if (xf.kind !== 'rotate') {
+                slot.mesh.visible = false;
+                continue;
+            }
+            const c = maStlXformMapPointMm(xf, { x: slot.baseX * slot.scale, y: 0, z: slot.baseZ * slot.scale });
+            slot.mesh.position.x = c.x / slot.scale;
+            slot.mesh.position.z = c.z / slot.scale;
+            if (slot.baseQuat) {
+                slot.mesh.quaternion.copy(slot.baseQuat);
+                slot.mesh.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), xf.rad));
+            }
+            slot.mesh.visible = true;
+        }
+        if (visibleCount === 0 && maStlCopyToolPreviewMeshSlots.length === 0) maStlCopyToolHidePreview();
+    }
+
+    /** Atributos propios de cada extremo del muro (tape, esquina, solape, conexión) al cambiar p1 ↔ p2. */
+    function maStlXformSwapWallEndAttrs(ud) {
+        if (!ud) return;
+        const pairs = [
+            ['_Tape_1', '_Tape_2'],
+            ['_CornerTypeP1', '_CornerTypeP2'],
+            ['_ChekSolapeIni', '_ChekSolapeEnd'],
+            ['_Idconnection_1', '_Idconnection_2'],
+        ];
+        for (let i = 0; i < pairs.length; i++) {
+            const a = pairs[i][0];
+            const b = pairs[i][1];
+            const hasA = Object.prototype.hasOwnProperty.call(ud, a);
+            const hasB = Object.prototype.hasOwnProperty.call(ud, b);
+            const va = ud[a];
+            const vb = ud[b];
+            if (hasB) ud[a] = vb; else delete ud[a];
+            if (hasA) ud[b] = va; else delete ud[b];
+        }
+    }
+
+    /**
+     * Muro en su sitio: eje, puntos de dibujo, aperturas de las caras. El eje queda canónico (hacia +X / +Z):
+     * si hay que darle la vuelta se cambian también los atributos de extremo. Las caras siguen en su lado
+     * físico (simetría o eje invertido → cambia el signo de lado), así las aperturas siguen en su cara.
+     */
+    function maStlXformTransformWallAxisInPlaceMm(xf, axisLine) {
+        const ud = axisLine && axisLine.userData && axisLine.userData.maStlUserPlanLine;
+        if (!ud || !ud.p1Mm || !ud.p2Mm) return false;
+        maStlXformMapPointInPlaceMm(xf, ud.p1Mm);
+        maStlXformMapPointInPlaceMm(xf, ud.p2Mm);
+        if (ud.wallDrawP1Mm) maStlXformMapPointInPlaceMm(xf, ud.wallDrawP1Mm);
+        if (ud.wallDrawP2Mm) maStlXformMapPointInPlaceMm(xf, ud.wallDrawP2Mm);
+        const faces = ud.id != null ? maStlWall2dToolFindFaceLinesForCenterId(ud.id) : [];
+        let flip = xf.kind === 'mirror';
+        if (maStlWall2dToolEnsureClockwiseAxisEndsMm(ud.p1Mm, ud.p2Mm)) {
+            flip = !flip;
+            maStlXformSwapWallEndAttrs(ud);
+            for (let fi = 0; fi < faces.length; fi++) {
+                maStlXformSwapWallEndAttrs(faces[fi].userData && faces[fi].userData.maStlUserPlanLine);
+            }
+        }
+        maStlQuantizeUserFloorPlanPointToGridMm(ud.p1Mm);
+        maStlQuantizeUserFloorPlanPointToGridMm(ud.p2Mm);
+        for (let fi = 0; fi < faces.length; fi++) {
+            const fUd = faces[fi].userData && faces[fi].userData.maStlUserPlanLine;
+            if (!fUd) continue;
+            if (fUd.p1Mm) maStlXformMapPointInPlaceMm(xf, fUd.p1Mm);
+            if (fUd.p2Mm) maStlXformMapPointInPlaceMm(xf, fUd.p2Mm);
+            if (Array.isArray(fUd.faceGapsMm)) {
+                for (let gi = 0; gi < fUd.faceGapsMm.length; gi++) {
+                    const g = fUd.faceGapsMm[gi];
+                    if (g && g.a) maStlXformMapPointInPlaceMm(xf, g.a);
+                    if (g && g.b) maStlXformMapPointInPlaceMm(xf, g.b);
+                }
+            }
+            if (flip) fUd.numberWallFaceSideSign = fUd.numberWallFaceSideSign === -1 ? 1 : -1;
+        }
+        maStlWallLineEnsureAttrs(ud);
+        maStlApplyUserFloorLineSegmentGeometryFromMm(axisLine);
+        return true;
+    }
+
+    /** Tras girar / reflejar las caras en su sitio: aperturas ordenadas en el sentido de su cara. */
+    function maStlXformNormalizeFaceGapsOfAxis(axisLine) {
+        const ud = axisLine && axisLine.userData && axisLine.userData.maStlUserPlanLine;
+        if (!ud || ud.id == null) return;
+        const faces = maStlWall2dToolFindFaceLinesForCenterId(ud.id);
+        for (let fi = 0; fi < faces.length; fi++) {
+            const fUd = faces[fi].userData && faces[fi].userData.maStlUserPlanLine;
+            if (!fUd || !Array.isArray(fUd.faceGapsMm) || !fUd.faceGapsMm.length || !fUd.p1Mm || !fUd.p2Mm) continue;
+            fUd.faceGapsMm = maStlWall2dToolNormalizeFaceGapsMm(fUd, fUd.faceGapsMm);
+            maStlApplyUserFloorLineSegmentGeometryFromMm(faces[fi]);
+        }
+    }
+
+    /**
+     * Girar / Simetría de la selección de la herramienta (líneas y mallas STL).
+     * `keepOriginal`: se deja el original y se crea la copia transformada (como Copiar: grupos nuevos).
+     * Muros curvos: se giran; en Simetría se dejan como están (su arco no se refleja). Mallas STL: solo Girar.
+     * @returns {{ ok: boolean, skippedCurved: number }}
+     */
+    function maStlXformToolCommitMm(xf, keepOriginal) {
+        const out = { ok: false, skippedCurved: 0 };
+        if (!xf) return out;
+        let lines = maStlDesing2ExpandLinesWithWallGroups(Array.from(maStlCopyToolSelectedLines));
+        if (xf.kind === 'mirror') {
+            const kept = [];
+            for (let i = 0; i < lines.length; i++) {
+                if (maStlIsCurvedWallPlanLine(lines[i])) out.skippedCurved++;
+                else kept.push(lines[i]);
+            }
+            lines = kept;
+        }
+        const meshes = xf.kind === 'rotate' ? Array.from(maStlCopyToolSelectedMeshes) : [];
+        const parts = maStlCopyToolPartitionLinesForDuplicate(lines);
+        if (parts.plainLines.length === 0 && parts.wallAxisLines.length === 0 && meshes.length === 0) return out;
+        const undoLabel = xf.kind === 'rotate' ? 'rotateUserFloorLinesAndStlMeshes' : 'mirrorUserFloorLinesAndStlMeshes';
+        const saveReason = xf.kind === 'rotate' ? 'rotate-tool-commit' : 'mirror-tool-commit';
+        if (keepOriginal) {
+            out.ok = maStlCopyToolCommitDuplicateMappedMm(
+                parts,
+                meshes,
+                function (p) { return maStlXformMapPointMm(xf, p); },
+                function (clone) { maStlXformPlaceMeshMm(xf, clone); },
+                { canonicalAxis: true, undoLabel: undoLabel, saveReason: saveReason }
+            );
+            return out;
+        }
+        const undoBefore = maStlDesing2SerializeEditSnapshot();
+        let hadWall = false;
+        for (let pi = 0; pi < parts.plainLines.length; pi++) {
+            const line = parts.plainLines[pi];
+            const ud = line.userData && line.userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            maStlXformMapPointInPlaceMm(xf, ud.p1Mm);
+            maStlXformMapPointInPlaceMm(xf, ud.p2Mm);
+            maStlQuantizeUserFloorPlanPointToGridMm(ud.p1Mm);
+            maStlQuantizeUserFloorPlanPointToGridMm(ud.p2Mm);
+            maStlApplyUserFloorLineSegmentGeometryFromMm(line);
+        }
+        for (let wi = 0; wi < parts.wallAxisLines.length; wi++) {
+            if (maStlXformTransformWallAxisInPlaceMm(xf, parts.wallAxisLines[wi])) hadWall = true;
+        }
+        if (hadWall) {
+            for (let wj = 0; wj < parts.wallAxisLines.length; wj++) {
+                maStlWall2dToolRefreshAxisFaceOffsetsNoJunction(parts.wallAxisLines[wj]);
+                maStlXformNormalizeFaceGapsOfAxis(parts.wallAxisLines[wj]);
+            }
+            maStlWall2dToolRefactorAllWallJunctionsMm();
+            maStlWall2dToolSplitAllAxisInteriorCrossingsMm();
+            maStlWall2dToolRefactorAllWallJunctionsMm();
+            maStlWeldAllUserFloorLineEndpointsMm();
+            maStlWall2dToolRefactorAllWallJunctionsMm();
+            maStlReapplyAllUserFloorWallAxisLineStyles();
+            maStlSaveWallConnectionsNow({ force: true, reason: saveReason });
+        } else {
+            maStlWeldAllUserFloorLineEndpointsMm();
+        }
+        for (let mi = 0; mi < meshes.length; mi++) {
+            if (meshes[mi]) maStlXformPlaceMeshMm(xf, meshes[mi]);
+        }
+        updateClipPlanes();
+        syncGroundShadowToggleUi();
+        maStlDesing2PushEditSnapshotUndo(undoLabel, undoBefore, maStlDesing2SerializeEditSnapshot());
+        out.ok = true;
+        return out;
+    }
+
+    /** Malla STL girada alrededor del centro de giro (eje vertical del mundo). */
+    function maStlXformPlaceMeshMm(xf, mesh) {
+        if (!mesh || xf.kind !== 'rotate') return;
+        const scale = stlVertexToSceneScale || 1;
+        const c = maStlXformMapPointMm(xf, { x: mesh.position.x * scale, y: 0, z: mesh.position.z * scale });
+        mesh.position.x = c.x / scale;
+        mesh.position.z = c.z / scale;
+        mesh.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), xf.rad));
+        mesh.updateMatrixWorld(true);
+    }
+
+    /** Segundo punto confirmado (clic, Intro o tecleado): aplica y termina el comando (como Estirar). */
+    function maStlXformToolCommitFromEndMm(end) {
+        if (maStlCopyToolKind === 'mirror') maStlQuantizeUserFloorPlanPointToGridMm(end);
+        const xf = maStlXformToolFromEndMm(end);
+        if (!xf) return false;
+        if (xf.kind === 'rotate' && Math.abs(((xf.deg % 360) + 360) % 360) < 1e-6) return false;
+        const keep = maStlCopyToolKind === 'rotate' ? maStlXformToolRotateKeepOriginal : !maStlXformToolMirrorEraseOriginal;
+        const res = maStlXformToolCommitMm(xf, keep);
+        if (res.ok && res.skippedCurved > 0) {
+            maStlDesing2ShowSaveViewToast(
+                maStlXformToolIsEnglishUi()
+                    ? 'Curved walls are not mirrored (' + res.skippedCurved + ').'
+                    : 'Los muros curvos no se reflejan (' + res.skippedCurved + ').'
+            );
+        }
+        return res.ok;
+    }
+
+    function maStlStartXformRotMirToolModesToolbar(kind) {
+        if (maStlCopyToolActive === true && maStlCopyToolKind === kind) return;
+        const spec = maStlXformToolHudSpec(kind);
+        maStlWall2dToolResumeState = null;
+        if (maStlIsWall2dToolActive()) maStlStopWall2dToolModesToolbar(false);
+        if (maStlIsLineToolPlacementActive()) maStlStopLineToolModesToolbar(false);
+        if (maStlIsOffsetToolActive()) maStlStopOffsetToolModesToolbar(false);
+        if (maStlIsLineEditToolActive()) maStlStopLineEditToolModesToolbar(false);
+        if (maStlIsDeleteToolActive()) maStlStopDeleteToolModesToolbar(false);
+        if (maStlIsDupMoveToolActive()) maStlStopCopyToolModesToolbar(false);
+        if (maStlIsInsertCornerToolActive()) maStlStopInsertCornerToolModesToolbar(false);
+        if (maStlIsInsertEnclosureToolActive()) maStlStopInsertEnclosureToolModesToolbar(false);
+        if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
+        maStlStopWallDimToolModesToolbar();
+        maStlDesing2SetLastToolbarCommandId(kind === 'rotate' ? 'ma-stl-tool-rotate' : 'ma-stl-tool-mirror');
+        maStlStopRulerAnchorPickModesToolbar();
+        maStlTeardownPickHighlightsOnly();
+        maStlDisposeUserFloorLineDimEdit(false);
+        maStlClearUserFloorLineSelection();
+        maStlHideUserFloorLineDimHud(true);
+        maStlCopyToolClearSelection();
+        maStlCopyToolClearHoverLine();
+        maStlCopyToolClearHoverMesh();
+        maStlCopyToolResetTypingState();
+        maStlCopyToolKind = kind;
+        maStlCopyToolActive = true;
+        maStlCopyToolState = 'selecting';
+        maStlXformToolRotateKeepOriginal = false;
+        maStlXformToolMirrorEraseOriginal = false;
+        maStlCopyToolLastPointerClientXY.set(Number.NaN, Number.NaN);
+        maStlLockOrbitFullyForToolSelection();
+        maStlSyncLineToolToggleBtnUi();
+        maStlLineToolPickCursorSync();
+        maStlCopyToolSyncHud();
+        maStlCopyToolWireWindowSelection();
+        if (spec.toggleBtn && document.activeElement === spec.toggleBtn) spec.toggleBtn.blur();
+    }
+
+    function maStlStartRotateToolModesToolbar() {
+        maStlStartXformRotMirToolModesToolbar('rotate');
+    }
+
+    function maStlStartMirrorToolModesToolbar() {
+        maStlStartXformRotMirToolModesToolbar('mirror');
     }
 
     /**
@@ -22525,6 +23200,14 @@ let maStlWallApplyAllHeightMm = 0;
     /** @param {{ x: number, y: number, z: number }} end @param {number} [clientX] @param {number} [clientY] */
     function maStlCopyToolTryCommitDisplacementAtEndMm(end, clientX, clientY) {
         if (!end || maStlCopyToolState !== 'displacement') return false;
+        if (maStlXformToolIsRotMir()) {
+            if (!maStlXformToolCommitFromEndMm(end)) {
+                maStlCopyToolShowDisplacementInvalidToast();
+                return false;
+            }
+            maStlStopCopyToolModesToolbar();
+            return true;
+        }
         maStlQuantizeUserFloorPlanPointToGridMm(end);
         const dx = end.x - maStlCopyToolBasePointMm.x;
         const dy = end.y - maStlCopyToolBasePointMm.y;
@@ -22644,6 +23327,7 @@ let maStlWallApplyAllHeightMm = 0;
             }
             return false;
         }
+        if (maStlXformToolApplyOptionKey(ev)) return true;
         const ae = document.activeElement;
         const distInput = maStlDupMoveToolHudDistanceInput();
         const angleInput = maStlDupMoveToolHudAngleInput();
@@ -22653,7 +23337,9 @@ let maStlWallApplyAllHeightMm = 0;
         if (maStlDesingV2AvoidKeyboardShortcutSteal(ae)) return false;
         if (
             (maStlCopyToolToggleBtn && ae === maStlCopyToolToggleBtn) ||
-            (maStlMoveToolToggleBtn && ae === maStlMoveToolToggleBtn)
+            (maStlMoveToolToggleBtn && ae === maStlMoveToolToggleBtn) ||
+            (maStlRotateToolToggleBtn && ae === maStlRotateToolToggleBtn) ||
+            (maStlMirrorToolToggleBtn && ae === maStlMirrorToolToggleBtn)
         ) {
             return true;
         }
@@ -22836,6 +23522,15 @@ let maStlWallApplyAllHeightMm = 0;
         }
         if (maStlStretchToolToggleBtn && document.activeElement === maStlStretchToolToggleBtn) {
             maStlStretchToolToggleBtn.blur();
+        }
+        const xformBlur = [
+            maStlRotateToolHudDistanceInput,
+            maStlMirrorToolHudDistanceInput,
+            maStlRotateToolToggleBtn,
+            maStlMirrorToolToggleBtn,
+        ];
+        for (let xb = 0; xb < xformBlur.length; xb++) {
+            if (xformBlur[xb] && document.activeElement === xformBlur[xb]) xformBlur[xb].blur();
         }
         maStlCopyToolSyncHud();
         maStlSyncLineToolToggleBtnUi();
@@ -25384,12 +26079,332 @@ let maStlWallApplyAllHeightMm = 0;
         return placements;
     }
 
-    function maStlWallDimKindEnabled(kindId) {
+    /** Con «acótame el muro 7» solo cuentan las cotas de ese eje; sin enfoque de la IA, todas. */
+    function maStlWallDimAiFocusKeepsAxis(axisId) {
+        const focus = maStlWallDimAiFocus;
+        if (!focus) {
+            const sc = maStlWallDimScope();
+            return sc.mode !== 'selected' || sc.axes.has(String(axisId));
+        }
+        if (focus.mode !== 'wall') return true;
+        return String(axisId) === String(focus.axisId);
+    }
+
+    /* ------------------------------------------------------------------------------------------------------------
+     * pt117u (15/11/2026) · Cotas del muro seleccionado. Por defecto (botón Cotas, «acota» de la IA, Id de Artículo)
+     * solo se acota el muro seleccionado (selección normal del visor: clic en el muro en Líneas o en el sólido en 3D,
+     * o «selecciona el muro 7» de la IA). Todo el diseño: casilla «Todo el diseño» del menú de Cotas (`all-walls`,
+     * se guarda) o «acota todo» de la IA (`maStlWallDimAllOverride`, hasta apagar Cotas). Sin muro seleccionado se ven
+     * solo los ID de los muros, para elegir uno. Las cotas siguen a la selección (maStlOnWallSelectionChanged).
+     * ------------------------------------------------------------------------------------------------------------ */
+    let maStlWallDimAllOverride = false;
+    let maStlWallSelectionSeq = 0;
+    let maStlWallSelectionLastKey = '';
+    let maStlWallSelRefreshPending = false;
+    /* Cambios de selección del usuario (clic en el visor o Esc), no los que hace el visor al rehacer líneas (deshacer,
+     * girar…): la IA mantiene su «muro actual» salvo que el usuario elija otro o lo quite. */
+    let maStlWallSelectionUserSeq = 0;
+    let maStlWallSelectionByUser = false;
+    /** Lo que sigue (hasta acabar este evento) lo hace el usuario: clic de selección en el visor o Esc. */
+    function maStlWallSelectionMarkUser() {
+        maStlWallSelectionByUser = true;
+        window.setTimeout(function () { maStlWallSelectionByUser = false; }, 0);
+    }
+    window.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Escape' || ev.key === 'Esc') maStlWallSelectionMarkUser();
+    }, true);
+
+    /** Ids de eje (texto) del muro seleccionado (cara o eje → eje). */
+    function maStlSelectedWallAxisIds() {
+        const out = new Set();
+        const sel = maStlUserFloorLineSelected;
+        if (!sel) return out;
+        const axis = maStlWall2dToolEditableAxisLineForDimension(sel);
+        const ud = axis && axis.userData && axis.userData.maStlUserPlanLine;
+        if (ud && ud.id != null) out.add(String(ud.id));
+        return out;
+    }
+
+    /** Alcance de las Cotas: 'ai' (enfoque de la IA), 'all', 'selected' (axes) o 'none' (nada seleccionado). */
+    function maStlWallDimScope() {
+        if (maStlWallDimAiFocus) return { mode: 'ai', axes: null };
         const map = window.desing2DimKinds;
+        if (maStlWallDimAllOverride || (map && typeof map === 'object' && map['all-walls'] === true)) return { mode: 'all', axes: null };
+        const axes = maStlSelectedWallAxisIds();
+        return { mode: axes.size ? 'selected' : 'none', axes: axes };
+    }
+
+    /** ¿Las cotas del encofrado del muro `wallKey` (IdWall del payload) entran en el alcance? */
+    function maStlWallDimKeepsWallKey(wallKey) {
+        const sc = maStlWallDimScope();
+        if (sc.mode !== 'selected') return sc.mode !== 'none';
+        const key = String(wallKey);
+        const axes = maStlWall2dToolCollectAllAxisLines();
+        /* El IdWall del encofrado es el id del eje (muros partidos por un tabique comparten wallId). */
+        for (let i = 0; i < axes.length; i++) {
+            const ud = axes[i] && axes[i].userData && axes[i].userData.maStlUserPlanLine;
+            if (ud && ud.id != null && String(ud.id) === key) return sc.axes.has(key);
+        }
+        let matched = false;
+        for (let i = 0; i < axes.length; i++) {
+            const ud = axes[i] && axes[i].userData && axes[i].userData.maStlUserPlanLine;
+            if (!ud || ud.id == null) continue;
+            if (String(ud.wallId != null && ud.wallId !== '' ? ud.wallId : ud.id) !== key) continue;
+            matched = true;
+            if (sc.axes.has(String(ud.id))) return true;
+        }
+        if (matched) return false;
+        const lines = maStlDesing2FindAxisLinesByWallKey(key);
+        for (let i = 0; i < lines.length; i++) {
+            const ud = lines[i] && lines[i].userData && lines[i].userData.maStlUserPlanLine;
+            if (ud && ud.id != null && sc.axes.has(String(ud.id))) return true;
+        }
+        return false;
+    }
+
+    /** Selección cambiada (clic, Esc, IA): verde en 3D, «muro actual» de la IA y Cotas que siguen al muro. */
+    function maStlOnWallSelectionChanged() {
+        maStlWall3dSyncSelectionTint();
+        const key = Array.from(maStlSelectedWallAxisIds()).join(',');
+        if (key === maStlWallSelectionLastKey) return;
+        maStlWallSelectionLastKey = key;
+        maStlWallSelectionSeq++;
+        if (maStlWallSelectionByUser) maStlWallSelectionUserSeq++;
+        const f = maStlWallDimAiFocus;
+        let refresh = false;
+        if (f && f.mode === 'wall') {
+            if (key && key.indexOf(',') < 0 && String(f.axisId) !== key) {
+                f.axisId = key;
+                refresh = true;
+            }
+        } else if (!f) {
+            refresh = maStlWallDimScope().mode !== 'all';
+        }
+        if (!refresh || !maStlWallDimToolActive || maStlWallSelRefreshPending) return;
+        maStlWallSelRefreshPending = true;
+        window.setTimeout(function () {
+            maStlWallSelRefreshPending = false;
+            if (maStlWallDimToolActive) maStlWallDimRefreshScanAndDraw();
+        }, 0);
+    }
+
+    /**
+     * Número de muro que se ve en Cotas («ID 7») y que usa la IA del diseño («el muro 7»): el wallId del eje o, si no
+     * tiene, su id. Si dos ejes comparten wallId (tramos con el mismo muro de origen), cada uno lleva su id para que el
+     * número no se repita. Mapa id del eje (texto) → número visible (texto).
+     */
+    function maStlWallVisibleIdLabels() {
+        const axes = maStlWall2dToolCollectAllAxisLines();
+        const raw = [];
+        const count = {};
+        for (let i = 0; i < axes.length; i++) {
+            const ud = axes[i] && axes[i].userData && axes[i].userData.maStlUserPlanLine;
+            if (!ud || ud.id == null) continue;
+            const v = String(ud.wallId != null && ud.wallId !== '' ? ud.wallId : ud.id);
+            raw.push([String(ud.id), v]);
+            count[v] = (count[v] || 0) + 1;
+        }
+        const out = new Map();
+        for (let i = 0; i < raw.length; i++) out.set(raw[i][0], count[raw[i][1]] > 1 ? raw[i][0] : raw[i][1]);
+        return out;
+    }
+
+    function maStlWallDimKindEnabled(kindId) {
+        const focus = maStlWallDimAiFocus;
+        if (focus && focus.mode === 'ids') return kindId === 'wall-id';
+        if (focus && focus.mode === 'wall') {
+            return kindId === 'walls-total' || kindId === 'walls-axes' || kindId === 'walls-partial' || kindId === 'wall-id';
+        }
+        if (!focus && maStlWallDimScope().mode === 'none') return kindId === 'wall-id';
+        if (kindId === 'article-id') return maStlWallDimArticleIdsOn();
+        const map = window.desing2DimKinds;
+        if (kindId === 'panels' && maStlWallDimArticleIdsOn()) return true;
         if (!map || typeof map !== 'object') return true;
         if (!Object.prototype.hasOwnProperty.call(map, kindId)) return true;
         return !!map[kindId];
     }
+
+    /* ------------------------------------------------------------------------------------------------------------
+     * «Id de Artículo» (Cotas → tipos de cota, pt116u 15/11/2026). Cada columna de paneles ATK-60 que lleva cota
+     * («0,90») recibe un ID corto y pronunciable agrupado por muro: «7.3» = muro 7 (el «ID 7» de las Cotas), 3.ª columna
+     * de paneles contando desde el inicio del muro (LocalAlongMm). Sirve para referirse a él más adelante («oculta el 7.3»,
+     * «opacidad del 7.3», «pon dos de 0,45 en el 7.3»): maStlAtk60PanelIdIndex / maStlAtk60FindPanelById devuelven las
+     * piezas del payload (cara principal y espejo) y las mallas de ese ID. Solo paneles de catálogo (300…900 mm) de
+     * muros rectos con encofrado pintado; esquinas, uniones, remates, accesorios y el encofrado temporal del Recuento
+     * no llevan ID. Las dos caras: `front` = piezas sin IsMirrored (las que llevan cota, de cualquier FaceSign) y
+     * `back` = piezas espejo (IsMirrored) cuyo centro cae en el vano de esa columna.
+     * Apagado por defecto (no estaba en las cookies antiguas). Si está activo, se ven también las cotas de panel.
+     * ------------------------------------------------------------------------------------------------------------ */
+    const MA_STL_PANEL_ID_WIDTHS_MM = [300, 450, 600, 750, 900];
+    let maStlAtk60PanelIdCache = null;
+
+    function maStlWallDimArticleIdsOn() {
+        if (maStlWallDimAiFocus) return false;
+        const map = window.desing2DimKinds;
+        return !!(map && typeof map === 'object' && map['article-id'] === true);
+    }
+
+    function maStlAtk60PanelIdWallLabel(wallKey, visibleIds) {
+        const lines = maStlDesing2FindAxisLinesByWallKey(wallKey);
+        for (let i = 0; i < lines.length; i++) {
+            const ud = lines[i] && lines[i].userData && lines[i].userData.maStlUserPlanLine;
+            if (ud && ud.id != null && visibleIds.has(String(ud.id))) return visibleIds.get(String(ud.id));
+        }
+        return String(wallKey);
+    }
+
+    /** «7.3», «7,3», «7-3», «7 3», «id 7.3», «panel 7.3» → «7.3» (null si no lo parece). */
+    function maStlAtk60PanelIdNormalize(raw) {
+        if (raw == null) return null;
+        const m = String(raw).trim().toLowerCase().match(/([a-z0-9_]+)\s*[.,\-\s/]\s*(\d+)\s*$/);
+        return m ? m[1] + '.' + Number(m[2]) : null;
+    }
+
+    /**
+     * Índice de IDs de artículo a partir del encofrado pintado (maStlDesing2LastAtk60PaintPayload). Determinista:
+     * mismo encofrado y mismos ID de muro → mismos IDs; cambia solo si se vuelve a encofrar ese muro con otra modulación.
+     * Entrada: { id, wallKey, wallLabel, n, alongMm, lenMm, front: [elementos cara principal, todas las capas],
+     * back: [elementos espejo (IsMirrored) cuyo centro cae en el vano], codes: [ElementCode…] }.
+     */
+    function maStlAtk60PanelIdIndex() {
+        const payload = maStlDesing2LastAtk60PaintPayload;
+        const elements = payload && Array.isArray(payload.elements) ? payload.elements : [];
+        const anchors = payload && Array.isArray(payload.walls) ? payload.walls : [];
+        const visibleIds = maStlWallVisibleIdLabels();
+        const sig = Array.from(visibleIds.entries()).join('|');
+        const c = maStlAtk60PanelIdCache;
+        if (c && c.elements === elements && c.count === elements.length && c.anchors === anchors && c.sig === sig) return c.index;
+        const index = { list: [], byId: new Map(), byWall: new Map(), backWithoutId: 0 };
+        const anchorIds = new Set();
+        for (let ai = 0; ai < anchors.length; ai++) {
+            const w = anchors[ai] && maStlAtk60ReadPaintStr(anchors[ai], 'IdWall');
+            if (w) anchorIds.add(w);
+        }
+        const front = new Map();
+        const back = new Map();
+        for (let ei = 0; ei < elements.length; ei++) {
+            const item = elements[ei];
+            if (!item) continue;
+            const type = maStlAtk60ReadPaintStr(item, 'ElementType');
+            const code = maStlAtk60ReadPaintStr(item, 'ElementCode').toUpperCase();
+            if (type === 'Union' || type === 'Remate' || code === 'REMATE_WOOD') continue;
+            /* Esquinas (E27004210, E24004217, E12004216…): pieza de esquina, no panel del muro → sin ID. */
+            if (/^E\d/.test(code)) continue;
+            const wallKey = maStlAtk60ReadPaintStr(item, 'IdWall');
+            if (!wallKey || !anchorIds.has(wallKey)) continue;
+            const along = maStlAtk60ReadPaintNum(item, 'LocalAlongMm');
+            if (!Number.isFinite(along)) continue;
+            const len = maStlWallDimMatchAtk60CatalogMm(maStlAtk60ReadPaintNum(item, 'PieceWidthMm'), MA_STL_PANEL_ID_WIDTHS_MM);
+            if (!len) continue;
+            const bucket = maStlAtk60ReadPaintBool(item, 'IsMirrored') ? back : front;
+            if (!bucket.has(wallKey)) bucket.set(wallKey, []);
+            bucket.get(wallKey).push({ along: along, len: len, item: item, code: code });
+        }
+        front.forEach(function (items, wallKey) {
+            /* Mismo agrupado que maStlWallDimClusterAtk60Spans → una entrada por cota de panel. */
+            items.sort(function (a, b) { return a.along - b.along; });
+            const clusters = [];
+            for (let i = 0; i < items.length; i++) {
+                const it = items[i];
+                let cl = null;
+                for (let k = 0; k < clusters.length; k++) {
+                    const q = clusters[k];
+                    if (Math.abs(q.lenMm - it.len) > 1) continue;
+                    if (it.along >= q.alongMm - 1 && it.along < q.alongMm + q.lenMm - 1) { cl = q; break; }
+                }
+                if (!cl) {
+                    cl = { alongMm: it.along, lenMm: it.len, front: [], back: [], codes: [] };
+                    clusters.push(cl);
+                }
+                cl.front.push(it.item);
+                if (cl.codes.indexOf(it.code) < 0) cl.codes.push(it.code);
+            }
+            let label = maStlAtk60PanelIdWallLabel(wallKey, visibleIds);
+            if (index.byWall.has(label)) label = String(wallKey);
+            const list = [];
+            for (let k = 0; k < clusters.length; k++) {
+                const cl = clusters[k];
+                cl.n = k + 1;
+                cl.wallKey = String(wallKey);
+                cl.wallLabel = label;
+                cl.id = label + '.' + cl.n;
+                if (index.byId.has(cl.id)) cl.id = String(wallKey) + '.' + cl.n;
+                index.byId.set(cl.id, cl);
+                index.list.push(cl);
+                list.push(cl);
+            }
+            index.byWall.set(label, list);
+        });
+        back.forEach(function (items, wallKey) {
+            const list = index.list.filter(function (e) { return e.wallKey === String(wallKey); });
+            for (let i = 0; i < items.length; i++) {
+                const it = items[i];
+                const mid = it.along + it.len * 0.5;
+                const hit = list.find(function (e) { return mid >= e.alongMm - 1 && mid <= e.alongMm + e.lenMm + 1; });
+                if (hit) {
+                    hit.back.push(it.item);
+                    if (hit.codes.indexOf(it.code) < 0) hit.codes.push(it.code);
+                } else index.backWithoutId++;
+            }
+        });
+        maStlAtk60PanelIdCache = { elements: elements, count: elements.length, anchors: anchors, sig: sig, index: index };
+        return index;
+    }
+
+    function maStlAtk60PanelIdAt(index, wallKey, alongMm, lenMm) {
+        const key = String(wallKey);
+        for (let i = 0; i < index.list.length; i++) {
+            const e = index.list[i];
+            if (e.wallKey === key && Math.abs(e.alongMm - alongMm) <= 1 && Math.abs(e.lenMm - lenMm) <= 1) return e;
+        }
+        return null;
+    }
+
+    /** Mallas del encofrado pintado (ambas caras) de una entrada del índice. */
+    function maStlAtk60PanelIdMeshes(entry) {
+        const out = [];
+        const grp = typeof maStlDesing2Atk60SampleGroup !== 'undefined' ? maStlDesing2Atk60SampleGroup : null;
+        if (!entry || !grp) return out;
+        grp.traverse(function (o) {
+            const ud = o && o.userData;
+            if (!ud || ud.maStlAtk60SampleWallId == null) return;
+            if (String(ud.maStlAtk60SampleWallId) !== entry.wallKey) return;
+            const code = String(ud.maStlAtk60ElementCode || '').toUpperCase();
+            if (entry.codes.indexOf(code) < 0) return;
+            const a = Number(ud.maStlAtk60LocalAlongMm);
+            if (!Number.isFinite(a) || a < entry.alongMm - 1 || a >= entry.alongMm + entry.lenMm - 1) return;
+            out.push(o);
+        });
+        return out;
+    }
+
+    /** Busca un ID de artículo («7.3») → { id, wall, n, widthMm, alongMm, front, back, meshes } o null. */
+    function maStlAtk60FindPanelById(raw) {
+        const id = maStlAtk60PanelIdNormalize(raw);
+        if (!id) return null;
+        const e = maStlAtk60PanelIdIndex().byId.get(id);
+        if (!e) return null;
+        return {
+            id: e.id, wall: e.wallLabel, wallKey: e.wallKey, n: e.n, widthMm: e.lenMm, alongMm: e.alongMm,
+            codes: e.codes.slice(), front: e.front.slice(), back: e.back.slice(), meshes: maStlAtk60PanelIdMeshes(e),
+        };
+    }
+
+    /** Resumen por muro: [{ wall, ids: [{ id, widthMm, layers, back }] }]. */
+    function maStlAtk60PanelIdSummary() {
+        const idx = maStlAtk60PanelIdIndex();
+        const out = [];
+        idx.byWall.forEach(function (list, wall) {
+            out.push({
+                wall: wall,
+                ids: list.map(function (e) { return { id: e.id, widthMm: e.lenMm, layers: e.front.length, back: e.back.length }; }),
+            });
+        });
+        return out;
+    }
+
+    window.maStlDesing2PanelIds = maStlAtk60PanelIdSummary;
+    window.maStlDesing2FindPanelById = maStlAtk60FindPanelById;
 
     function maStlWallDimKindLabel(kindId) {
         const input = document.querySelector(
@@ -25515,7 +26530,8 @@ let maStlWallApplyAllHeightMm = 0;
 
         for (let wi = 0; wi < axes.length; wi++) {
             const ud = axes[wi].userData && axes[wi].userData.maStlUserPlanLine;
-            if (!ud || !ud.p1Mm || !ud.p2Mm || ud._CHeckDimWall === false) continue;
+            if (!ud || !ud.p1Mm || !ud.p2Mm || (ud._CHeckDimWall === false && !maStlWallDimAiFocus)) continue;
+            if (!maStlWallDimAiFocusKeepsAxis(ud.id)) continue;
             const dir = maStlUserFloorPlanLineDirUnitXz(ud);
             if (!dir || !(dir.lenMm > minSeg)) continue;
             const ux = dir.ux;
@@ -25678,9 +26694,11 @@ let maStlWallApplyAllHeightMm = 0;
         const exterior = maStlWallDimFilterExteriorEntries(maStlWallDimCollectLineEntries());
         const centroid = maStlWallDimPlanCentroidXz(exterior);
         const reach = maStlWallDimIdLeaderMm();
+        const visibleIds = maStlWallVisibleIdLabels();
         for (let i = 0; i < axes.length; i++) {
             const ud = axes[i] && axes[i].userData && axes[i].userData.maStlUserPlanLine;
-            if (!ud || ud.id == null || !ud.p1Mm || !ud.p2Mm || ud._CHeckDimWall === false) continue;
+            if (!ud || ud.id == null || !ud.p1Mm || !ud.p2Mm || (ud._CHeckDimWall === false && !maStlWallDimAiFocus)) continue;
+            if (!maStlWallDimAiFocusKeepsAxis(ud.id)) continue;
             const dir = maStlUserFloorPlanLineDirUnitXz(ud);
             if (!dir) continue;
             const mid = { x: (ud.p1Mm.x + ud.p2Mm.x) * 0.5, z: (ud.p1Mm.z + ud.p2Mm.z) * 0.5 };
@@ -25691,7 +26709,13 @@ let maStlWallApplyAllHeightMm = 0;
             const b = { x: mid.x + dir.ux * 30, z: mid.z + dir.uz * 30 };
             const pl = maStlWallDimBuildAlignedPlacement(a, b, normal.nx, normal.nz, 1, 0, 'wall-id');
             if (!pl) continue;
-            const idText = 'ID ' + (ud.wallId != null ? ud.wallId : ud.id);
+            let idText = 'ID ' + (visibleIds.get(String(ud.id)) || (ud.wallId != null ? ud.wallId : ud.id));
+            /* «Acótame el muro 7»: en planta no hay cota vertical; la altura va junto al ID (h = 2,70 m). */
+            if (maStlWallDimAiFocus && maStlWallDimAiFocus.mode === 'wall') {
+                const hM = Number(ud._DataHeight);
+                const hMm = Number.isFinite(hM) && hM > 0 ? hM * 1000 : maStlDesing2WallDefaultHeightMm();
+                if (hMm > 0) idText += ' \u00b7 h = ' + (hMm / 1000).toFixed(2).replace('.', ',') + ' m';
+            }
             pl.leader45 = true;
             pl.leaderMinMm = reach;
             pl.outsideSign = 1;
@@ -25839,6 +26863,7 @@ let maStlWallApplyAllHeightMm = 0;
         for (let li = 0; li < lines.length; li++) {
             const ud = lines[li].ud;
             if (!ud || ud._CHeckDimWall === false) continue;
+            if (!maStlWallDimAiFocusKeepsAxis(ud.id)) continue;
             const g = maStlCurvedWallGeomMm(ud);
             const b = maStlCurvedWallModulationMmOf(ud);
             const mi = maStlCurvedWallModulationInfo(g.rOut, g.frac.f, b, g.t);
@@ -26213,6 +27238,7 @@ let maStlWallApplyAllHeightMm = 0;
         for (let wi = 0; wi < wallIds.length; wi++) {
             const wallId = wallIds[wi];
             if (!maStlWallDimPaintWallIsOn(wallId)) continue;
+            if (!maStlWallDimKeepsWallKey(wallId)) continue;
             const anchor = anchorById[wallId];
             const pack = byWall[wallId];
             if (!anchor || !pack) continue;
@@ -26279,6 +27305,7 @@ let maStlWallApplyAllHeightMm = 0;
             }
 
             let prevPanelBand = '';
+            const articleIndex = maStlWallDimKindEnabled('article-id') ? maStlAtk60PanelIdIndex() : null;
             for (let pi = 0; pi < panelList.length; pi++) {
                 const pan = panelList[pi];
                 const prev = pi > 0 ? panelList[pi - 1] : null;
@@ -26312,13 +27339,15 @@ let maStlWallApplyAllHeightMm = 0;
                     'atk60-panel'
                 );
                 if (!rPl) continue;
+                const articleEntry = articleIndex ? maStlAtk60PanelIdAt(articleIndex, wallId, pan.along, pan.len) : null;
+                if (articleEntry) rPl.articleId = articleEntry.id;
                 if (pan.len < 820) {
                     const gapBefore = prev ? pan.along - (prev.along + prev.len) : 10000;
                     const gapAfter = next ? next.along - (pan.along + pan.len) : 10000;
                     const panelLabel = maStlWallDimPanelMetersLabel(pan.len);
                     rPl.leader45 = true;
                     rPl.outsideSign = gapAfter >= gapBefore ? 1 : -1;
-                    rPl.textChars = panelLabel.length;
+                    rPl.textChars = panelLabel.length + (rPl.articleId ? rPl.articleId.length + 3 : 0);
                 }
                 out.push(rPl);
             }
@@ -26454,6 +27483,7 @@ let maStlWallApplyAllHeightMm = 0;
         for (let wi = 0; wi < wallIds.length; wi++) {
             const wallId = wallIds[wi];
             if (!maStlWallDimPaintWallIsOn(wallId)) continue;
+            if (!maStlWallDimKeepsWallKey(wallId)) continue;
             const anchor = anchorById[wallId];
             const wallMods = byWall[wallId];
             if (!anchor || !wallMods) continue;
@@ -26804,7 +27834,8 @@ let maStlWallApplyAllHeightMm = 0;
                 ? maStlWallDimPanelMetersLabel(placement.labelMm)
                 : maStlDesing2DimEditableMetersDisplayFromMm(placement ? placement.labelMm : 0);
         const px = wpp > 0 ? wpp : 6;
-        return String(shown || '').length * 7.2 * px + Math.max(48, px * 3);
+        const extra = placement && placement.articleId ? String(placement.articleId).length + 3 : 0;
+        return (String(shown || '').length + extra) * 7.2 * px + Math.max(48, px * 3);
     }
 
     function maStlWallDimLabelFits(placement, wpp) {
@@ -27328,14 +28359,28 @@ let maStlWallApplyAllHeightMm = 0;
                     : pl.kind === 'atk60-panel'
                       ? maStlWallDimPanelMetersLabel(pl.labelMm)
                       : maStlDesing2DimEditableMetersDisplayFromMm(pl.labelMm);
+                if (pl.articleId) {
+                    /* «0,90 · 7.3»: el ID de artículo va pegado a la cota del panel, en un chip pequeño y de otro color. */
+                    const tag = document.createElement('span');
+                    tag.className = 'desing2-stl-wall-dim-readout__article-id';
+                    tag.textContent = pl.articleId;
+                    tag.style.cssText =
+                        'display:inline-block;margin-left:2px;padding:0 4px;border-radius:3px;background:#4c1d95;' +
+                        'color:#fff;font-weight:800;font-size:1.05em;line-height:1.3;letter-spacing:0.02em;white-space:nowrap;';
+                    btn.appendChild(document.createTextNode(' \u00b7 '));
+                    btn.appendChild(tag);
+                    btn.setAttribute('data-ma-stl-article-id', pl.articleId);
+                    btn.title = 'Id ' + pl.articleId;
+                }
                 if (pl.editKind === 'thickness') {
                     const thickBtn = document.getElementById('ma-stl-floor-dim-readout-thickness');
                     const thickTitle = thickBtn && thickBtn.getAttribute('aria-label');
                     if (thickTitle) btn.title = thickTitle;
-                } else if (pl.kindLabel) {
+                } else if (pl.kindLabel && !pl.articleId) {
                     btn.title = pl.kindLabel;
                 }
                 const entry = {
+                    articleId: pl.articleId || null,
                     labelMm: pl.labelMm,
                     labelMid: pl.labelMid,
                     kind: pl.kind,
@@ -27431,7 +28476,7 @@ let maStlWallApplyAllHeightMm = 0;
         const count = maStlWallDimRebuildFromPlacements(maStlWallDimCollectAllPlacements(reps));
         const idLabelCount = maStlWallDimAppendAxisIdLabels();
         maStlSaveWallDiagnosticsNow('wall-dim-refresh-scan');
-        if (count === 0 && idLabelCount === 0) {
+        if (count === 0 && idLabelCount === 0 && !maStlWallDimAiFocus) {
             maStlWallDimShowNoPairsToast();
         }
         maStlSyncWallDimReadoutScreens();
@@ -27454,7 +28499,7 @@ let maStlWallApplyAllHeightMm = 0;
         const count = maStlWallDimRebuildFromPlacements(maStlWallDimCollectAllPlacements(reps));
         const idLabelCount = maStlWallDimAppendAxisIdLabels();
         maStlSaveWallDiagnosticsNow('wall-dim-refresh-picked-line');
-        if (count === 0 && idLabelCount === 0) {
+        if (count === 0 && idLabelCount === 0 && !maStlWallDimAiFocus) {
             maStlWallDimShowNoPairsToast();
         }
         maStlSyncWallDimReadoutScreens();
@@ -27631,6 +28676,8 @@ let maStlWallApplyAllHeightMm = 0;
     }
 
     function maStlStopWallDimToolModesToolbar() {
+        maStlWallDimAiFocus = null;
+        maStlWallDimAllOverride = false;
         if (!maStlIsWallDimToolActive()) return;
         maStlWallDimToolActive = false;
         maStlWallDimClearAllVisuals();
@@ -27652,9 +28699,12 @@ let maStlWallApplyAllHeightMm = 0;
         maStlStopRulerAnchorPickModesToolbar();
         maStlTeardownPickHighlightsOnly();
         maStlDisposeUserFloorLineDimEdit(false);
+        /* pt117u: la selección se mantiene (las Cotas son las del muro seleccionado). */
+        const keepSelected = maStlUserFloorLineSelected;
         maStlClearUserFloorLineSelection();
         maStlHideUserFloorLineDimHud(true);
         maStlWallDimToolActive = true;
+        if (keepSelected && keepSelected.parent) maStlSelectUserFloorLine(keepSelected);
         maStlSyncLineToolToggleBtnUi();
         maStlWall3dSyncCornerGuideVisibility();
         maStlWallDimRefreshScanAndDraw();
@@ -27941,6 +28991,7 @@ let maStlWallApplyAllHeightMm = 0;
         } else {
             maStlHideUserFloorLineDimHud();
         }
+        maStlOnWallSelectionChanged();
     }
 
     function maStlUserFloorLineSetDimAnchorFromClientPx(line, clientX, clientY) {
@@ -28136,6 +29187,7 @@ let maStlWallApplyAllHeightMm = 0;
         }
         maStlInvalidateUserFloorDimGuideGeomCache();
         maStlUpdateUserFloorLineDimHud(false);
+        maStlOnWallSelectionChanged();
     }
 
     /**
@@ -31931,6 +32983,22 @@ let maStlWallApplyAllHeightMm = 0;
             if (rawTarget && typeof rawTarget.closest === 'function') {
                 if (rawTarget.closest('button, input, select, textarea, [role="button"], label')) return;
             }
+            /* pt117u · 3D: clic en el sólido = seleccionar su muro (verde); clic fuera = quitar la selección. */
+            if (maStlWallInspectActiveMode() === 'wall3d') {
+                const cx3 = ev.clientX;
+                const cy3 = ev.clientY;
+                maStlClearUserFloorLineClickSelectTimer();
+                maStlUserFloorLineClickSelectTimerId = window.setTimeout(function () {
+                    maStlUserFloorLineClickSelectTimerId = null;
+                    if (maStlWallInspectActiveMode() !== 'wall3d') return;
+                    maStlWallSelectionMarkUser();
+                    const sel3 = maStlWallInspectResolveSelectionAtPointer(cx3, cy3);
+                    const faces3 = sel3 && sel3.ud && sel3.ud.id != null ? maStlWall2dToolFindFaceLinesForCenterId(sel3.ud.id) : [];
+                    const face3 = faces3.find(function (ln) { return maStlIsUserFloorPlanLineSelectable(ln); }) || null;
+                    if (face3) maStlSelectUserFloorLine(face3);
+                    else maStlClearUserFloorLineSelection();
+                }, MA_STL_USER_FLOOR_LINE_CLICK_SELECT_DELAY_MS);
+            }
             return;
         }
         if (!maStlDesingV2Viewer || maStlIsDesing2FloorDrawToolActive()) return;
@@ -31960,6 +33028,7 @@ let maStlWallApplyAllHeightMm = 0;
         maStlClearUserFloorLineClickSelectTimer();
         maStlUserFloorLineClickSelectTimerId = window.setTimeout(function () {
             maStlUserFloorLineClickSelectTimerId = null;
+            maStlWallSelectionMarkUser();
             if (maStlIsDesing2FloorDrawToolActive() || maStlIsRulerAnchorPickModeActive()) return;
             if (maStlIsUserFloorLineDimEditOverlayActive()) return;
             const ln = maStlPickUserFloorLineForCanvasInteraction(clientX, clientY, 0);
@@ -35002,6 +36071,28 @@ let maStlWallApplyAllHeightMm = 0;
             }
             maStlDesing2SetLastToolbarCommandId('ma-stl-tool-stretch');
             maStlDesing2ActivateToolbarCommandById('ma-stl-tool-stretch');
+        });
+    }
+    if (maStlDesingV2Viewer && maStlRotateToolToggleBtn) {
+        maStlRotateToolToggleBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            if (maStlIsRotateToolActive()) {
+                maStlStopCopyToolModesToolbar(false);
+                return;
+            }
+            maStlDesing2SetLastToolbarCommandId('ma-stl-tool-rotate');
+            maStlDesing2ActivateToolbarCommandById('ma-stl-tool-rotate');
+        });
+    }
+    if (maStlDesingV2Viewer && maStlMirrorToolToggleBtn) {
+        maStlMirrorToolToggleBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            if (maStlIsMirrorToolActive()) {
+                maStlStopCopyToolModesToolbar(false);
+                return;
+            }
+            maStlDesing2SetLastToolbarCommandId('ma-stl-tool-mirror');
+            maStlDesing2ActivateToolbarCommandById('ma-stl-tool-mirror');
         });
     }
     if (maStlDesingV2Viewer && maStlWall3dToolToggleBtn) {
@@ -38176,6 +39267,78 @@ let maStlWallApplyAllHeightMm = 0;
         });
     }
 
+    if (maStlDesingV2Viewer && maStlRotateToolHudDistanceInput) {
+        maStlRotateToolHudDistanceInput.autocomplete = 'off';
+        maStlRotateToolHudDistanceInput.addEventListener('input', function () {
+            if (!maStlIsDupMoveToolPlacementPhaseActive() || maStlCopyToolKind !== 'rotate') return;
+            maStlCopyToolDistanceTypeBuffer = String(maStlRotateToolHudDistanceInput.value || '');
+            maStlCopyToolSyncTypingPreviewUi();
+            maStlCopyToolSyncHud();
+            maStlCopyToolRefreshDisplacementRubberBand();
+        });
+        maStlRotateToolHudDistanceInput.addEventListener('keydown', (ev) => {
+            if (!(ev.key === 'Enter' || ev.code === 'Enter' || ev.key === 'NumpadEnter') || ev.shiftKey) return;
+            ev.preventDefault();
+            if (maStlCopyToolState === 'basePoint') {
+                maStlCopyToolTryCommitBasePointFromTyping();
+            } else if (maStlCopyToolState === 'displacement') {
+                maStlCopyToolTryCommitDisplacement();
+            }
+        });
+    }
+    if (maStlDesingV2Viewer && maStlRotateToolHudOption) {
+        maStlRotateToolHudOption.addEventListener('change', function () {
+            maStlXformToolRotateKeepOriginal = !!maStlRotateToolHudOption.checked;
+            const distInput = maStlDupMoveToolHudDistanceInput();
+            if (distInput && maStlIsDupMoveToolPlacementPhaseActive()) {
+                try {
+                    distInput.focus({ preventScroll: true });
+                } catch (_e) {
+                    distInput.focus();
+                }
+            }
+        });
+    }
+    if (maStlDesingV2Viewer && maStlMirrorToolHudDistanceInput) {
+        maStlMirrorToolHudDistanceInput.autocomplete = 'off';
+        maStlMirrorToolHudDistanceInput.addEventListener('input', function () {
+            if (!maStlIsDupMoveToolPlacementPhaseActive() || maStlCopyToolKind !== 'mirror') return;
+            maStlCopyToolDistanceTypeBuffer = String(maStlMirrorToolHudDistanceInput.value || '');
+            maStlCopyToolSyncTypingPreviewUi();
+            maStlCopyToolSyncHud();
+            maStlCopyToolRefreshDisplacementRubberBand();
+        });
+        maStlMirrorToolHudDistanceInput.addEventListener('keydown', (ev) => {
+            if (!(ev.key === 'Enter' || ev.code === 'Enter' || ev.key === 'NumpadEnter') || ev.shiftKey) return;
+            ev.preventDefault();
+            if (maStlCopyToolState === 'basePoint') {
+                maStlCopyToolTryCommitBasePointFromTyping();
+            } else if (maStlCopyToolState === 'displacement') {
+                maStlCopyToolTryCommitDisplacement();
+            }
+        });
+    }
+    if (maStlDesingV2Viewer && maStlMirrorToolHudOption) {
+        maStlMirrorToolHudOption.addEventListener('change', function () {
+            maStlXformToolMirrorEraseOriginal = !!maStlMirrorToolHudOption.checked;
+            const distInput = maStlDupMoveToolHudDistanceInput();
+            if (distInput && maStlIsDupMoveToolPlacementPhaseActive()) {
+                try {
+                    distInput.focus({ preventScroll: true });
+                } catch (_e) {
+                    distInput.focus();
+                }
+            }
+        });
+    }
+    if (maStlDesingV2Viewer) {
+        try {
+            maStlXformToolApplyUiTexts();
+        } catch (_e) {
+            /* textos por defecto (es) */
+        }
+    }
+
     function maStlIsDesing2ViewerShellVisibleForKeyboardShortcuts() {
         if (!viewerShell || !maStlDesingV2Viewer) return false;
         if (viewerShell.hasAttribute('hidden')) return false;
@@ -38255,7 +39418,9 @@ let maStlWallApplyAllHeightMm = 0;
                     ae === maStlMoveToolHudDistanceInput ||
                     ae === maStlMoveToolHudAngleInput ||
                     ae === maStlStretchToolHudDistanceInput ||
-                    ae === maStlStretchToolHudAngleInput);
+                    ae === maStlStretchToolHudAngleInput ||
+                    ae === maStlRotateToolHudDistanceInput ||
+                    ae === maStlMirrorToolHudDistanceInput);
             if (maStlDesingV2AvoidKeyboardShortcutSteal(ae) && !lineDistFocused && !dupMoveHudFocused) return;
             if (maStlCancelAllViewerInteractionModes()) {
                 ev.preventDefault();
@@ -38341,6 +39506,566 @@ let maStlWallApplyAllHeightMm = 0;
     maStlWireDesingV2F8OrthoKeyListener();
     maStlWireDesingV2UndoRedoKeyListener();
 
+
+    /*
+     * IA del diseño (14/11/2026): puente del visor para `design-ai-assistant.js` (botón IA de la barra de modos).
+     * Solo usa funciones reales del visor (las mismas que las herramientas Muro 2D, Desplazar, Copiar, Borrar,
+     * Alargar y el formulario «Modificar muro») y deja **un paso de Deshacer por orden** (snapshot antes/después).
+     * Medidas en mm de escena; en planta, arriba en pantalla es −Z (como la herramienta Línea).
+     */
+    /**
+     * `label` = el número que se ve en Cotas («ID 7», maStlWallVisibleIdLabels) y que dice el usuario («el muro 7»);
+     * `dbId` = IdObject de TSql_DesignWall (también vale para citarlo). Cambio 15/11/2026: antes `label` era el dbId.
+     */
+    function maStlDesignAiAxisInfo(line, visibleIds) {
+        const ud = line && line.userData && line.userData.maStlUserPlanLine;
+        if (!ud || ud.wallRole !== 'axis' || !ud.p1Mm || !ud.p2Mm) return null;
+        const dbId = ud.wallDbId != null ? ud.wallDbId : ud.WallDbId;
+        const ids = visibleIds || maStlWallVisibleIdLabels();
+        const label = ud.id != null ? (ids.get(String(ud.id)) || String(ud.id)) : '';
+        const hM = Number(ud._DataHeight);
+        return {
+            line: line,
+            id: ud.id,
+            label: label,
+            dbId: dbId != null && dbId !== '' ? String(dbId) : null,
+            wallId: ud.wallId != null ? String(ud.wallId) : null,
+            groupId: ud.wallGroupId,
+            p1: { x: ud.p1Mm.x, y: ud.p1Mm.y, z: ud.p1Mm.z },
+            p2: { x: ud.p2Mm.x, y: ud.p2Mm.y, z: ud.p2Mm.z },
+            drawP1: ud.wallDrawP1Mm ? { x: ud.wallDrawP1Mm.x, y: ud.wallDrawP1Mm.y, z: ud.wallDrawP1Mm.z } : null,
+            drawP2: ud.wallDrawP2Mm ? { x: ud.wallDrawP2Mm.x, y: ud.wallDrawP2Mm.y, z: ud.wallDrawP2Mm.z } : null,
+            lengthMm: maStlUserFloorLineLengthMm(ud),
+            thicknessMm: maStlWall2dToolAxisTotalThicknessMm(line),
+            heightMm: Number.isFinite(hM) && hM > 0 ? hM * 1000 : maStlDesing2WallDefaultHeightMm(),
+        };
+    }
+
+    function maStlDesignAiWalls() {
+        const out = [];
+        if (!maStlUserLinesGroup) return out;
+        const ch = maStlUserLinesGroup.children;
+        const ids = maStlWallVisibleIdLabels();
+        for (let i = 0; i < ch.length; i++) {
+            if (!maStlIsUserFloorPlanLineObject(ch[i])) continue;
+            const info = maStlDesignAiAxisInfo(ch[i], ids);
+            if (info) out.push(info);
+        }
+        return out;
+    }
+
+    /**
+     * Cotas pedidas por la IA (15/11/2026), con la herramienta Cotas del visor (mismas cotas, mismas etiquetas HTML
+     * que se leen igual con cualquier zoom). `focus` null = quitar lo que pidió la IA.
+     */
+    function maStlDesignAiSetCotasFocus(focus) {
+        const wasActive = maStlIsWallDimToolActive();
+        const prev = maStlWallDimAiFocus;
+        if (!focus) {
+            if (!prev) return { ok: true, changed: false, active: wasActive };
+            maStlWallDimAiFocus = null;
+            if (prev.startedTool) maStlStopWallDimToolModesToolbar();
+            else if (wasActive) maStlWallDimRefreshScanAndDraw();
+            return { ok: true, changed: true, active: maStlIsWallDimToolActive() };
+        }
+        focus.startedTool = prev ? !!prev.startedTool : !wasActive;
+        if (!wasActive) {
+            maStlWallDimAiFocus = focus;
+            maStlStartWallDimToolModesToolbar();
+            if (maStlWallDimAiFocus !== focus) {
+                maStlWallDimAiFocus = focus;
+                maStlWallDimRefreshScanAndDraw();
+            }
+        } else {
+            maStlWallDimAiFocus = focus;
+            maStlWallDimRefreshScanAndDraw();
+        }
+        return { ok: maStlIsWallDimToolActive(), changed: true, active: maStlIsWallDimToolActive() };
+    }
+
+    function maStlDesignAiCotasState() {
+        const f = maStlWallDimAiFocus;
+        return {
+            active: maStlIsWallDimToolActive(),
+            mode: f ? f.mode : (maStlIsWallDimToolActive() ? 'all' : null),
+            axisId: f && f.mode === 'wall' ? f.axisId : null,
+            labels: maStlWallDimEntries.filter(function (e) { return e && e.readoutEl && e.readoutEl.isConnected; })
+                .map(function (e) { return { kind: e.kind, text: (e.readoutEl.textContent || '').replace(/\s+/g, ' ').trim(), axisId: e.axisId != null ? e.axisId : null, articleId: e.articleId || null }; }),
+            articleIds: maStlWallDimArticleIdsOn(),
+            scope: maStlIsWallDimToolActive() ? maStlWallDimScope().mode : null,
+            selected: Array.from(maStlSelectedWallAxisIds()),
+        };
+    }
+
+    /** Cambia un tipo de cota como el usuario (checkbox del menú → cookie y redibujo); sin menú, solo el mapa. */
+    function maStlWallDimSetKind(kind, on) {
+        const input = document.querySelector('#desing2-dim-kinds input[data-dim-kind="' + kind + '"]');
+        if (input) {
+            if (input.checked !== !!on) {
+                input.checked = !!on;
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+        const map = window.desing2DimKinds && typeof window.desing2DimKinds === 'object' ? window.desing2DimKinds : {};
+        if (map[kind] !== !!on) {
+            window.desing2DimKinds = Object.assign({}, map, { [kind]: !!on });
+            if (maStlWallDimToolActive) maStlWallDimRefreshScanAndDraw();
+        }
+    }
+
+    /** «7.1–7.6, 8.1–8.4» (máx. 4 muros) para la respuesta de la IA. */
+    function maStlDesignAiArticleIdSample(idx, keep) {
+        const parts = [];
+        idx.byWall.forEach(function (list) {
+            const l = keep ? list.filter(keep) : list;
+            if (!l.length) return;
+            parts.push(l.length > 1 ? l[0].id + '–' + l[l.length - 1].id : l[0].id);
+        });
+        return parts.length > 4 ? parts.slice(0, 4).join(', ') + '…' : parts.join(', ');
+    }
+
+    /** pt117u: recuento y muestra de los IDs que se ven (muro seleccionado, todo el diseño o ninguno). */
+    function maStlDesignAiArticleIdScope(idx, res) {
+        const sc = maStlWallDimScope();
+        res.scope = sc.mode;
+        const keep = sc.mode === 'none' ? function () { return false; }
+            : sc.mode === 'selected' ? function (e) { return maStlWallDimKeepsWallKey(e.wallKey); } : null;
+        const list = keep ? idx.list.filter(keep) : idx.list;
+        res.count = list.length;
+        res.walls = new Set(list.map(function (e) { return e.wallLabel; })).size;
+        res.sample = maStlDesignAiArticleIdSample(idx, keep);
+        res.noneSelected = sc.mode === 'none';
+        return res;
+    }
+
+    function maStlDesignAiFindWall(id) {
+        if (id == null) return null;
+        const line = maStlWall2dToolFindLineByPlanId(id);
+        return line ? maStlDesignAiAxisInfo(line) : null;
+    }
+
+    /** Muro seleccionado: cara/eje marcado en el visor, o el del formulario «Modificar muro» abierto. */
+    function maStlDesignAiSelectedWall() {
+        const cands = [maStlUserFloorLineSelected];
+        const st = maStlWallInspectFormState;
+        if (st && st.root && st.root.style.display !== 'none') {
+            cands.push(st.selectedLine || (st.selectedUd ? maStlWallInspectFindLineFromUd(st.selectedUd) : null));
+        }
+        for (let i = 0; i < cands.length; i++) {
+            if (!cands[i]) continue;
+            const axis = maStlWall2dToolEditableAxisLineForDimension(cands[i]);
+            const info = axis ? maStlDesignAiAxisInfo(axis) : null;
+            if (info) return info;
+        }
+        return null;
+    }
+
+    /** Vista de líneas (2D): las órdenes editan el plano; si está el modelo 3D, se pasa a líneas. */
+    function maStlDesignAiEnsureLinesMode() {
+        const before = maStlIsWall3dToolActive() ? 'wall3d-tool' : (maStlDesing2ModelMode || 'lines');
+        if (before !== 'lines') {
+            if (maStlIsWall3dToolActive()) maStlStopWall3dToolModesToolbar(false);
+            maStlActivateDesing2ModeToolbarMode('lines');
+        }
+        return { before: before, changed: before !== 'lines' };
+    }
+
+    /** Un solo paso de Deshacer para toda la orden; `fn` hace los cambios sin deshacer propio. */
+    function maStlDesignAiWithUndo(label, fn) {
+        const before = maStlDesing2SerializeEditSnapshot();
+        const res = fn();
+        maStlDesing2PushEditSnapshotUndo(label, before, maStlDesing2SerializeEditSnapshot());
+        return res;
+    }
+
+    function maStlDesignAiNewAxisIds(beforeIds) {
+        const out = [];
+        const walls = maStlDesignAiWalls();
+        for (let i = 0; i < walls.length; i++) if (!beforeIds.has(walls[i].id)) out.push(walls[i]);
+        return out;
+    }
+
+    function maStlDesignAiAxisIdSet() {
+        const s = new Set();
+        const walls = maStlDesignAiWalls();
+        for (let i = 0; i < walls.length; i++) s.add(walls[i].id);
+        return s;
+    }
+
+    /** Altura (m) en el eje y las caras del tramo, como «Modificar muro» con «solo este muro». */
+    function maStlDesignAiWriteHeight(line, heightM) {
+        const h = maStlRoundMeters3(heightM);
+        if (!(h > 0)) return false;
+        const ud = line.userData.maStlUserPlanLine;
+        const targets = maStlWallInspectCollectTargetLines(line, ud, false);
+        if (!targets.length) targets.push(line);
+        for (let i = 0; i < targets.length; i++) {
+            const tud = targets[i].userData && targets[i].userData.maStlUserPlanLine;
+            if (!tud) continue;
+            maStlWallLineEnsureAttrs(tud);
+            tud._DataHeight = h;
+        }
+        return true;
+    }
+
+    /** Desplazar / Copiar del visor con una selección temporal (se restaura la del usuario). */
+    function maStlDesignAiWithCopySelection(lines, fn) {
+        const keepLines = Array.from(maStlCopyToolSelectedLines);
+        const keepMeshes = Array.from(maStlCopyToolSelectedMeshes);
+        maStlCopyToolSelectedLines.clear();
+        maStlCopyToolSelectedMeshes.clear();
+        for (let i = 0; i < lines.length; i++) maStlCopyToolSelectedLines.add(lines[i]);
+        try {
+            return fn();
+        } finally {
+            maStlCopyToolSelectedLines.clear();
+            for (let i = 0; i < keepLines.length; i++) {
+                if (keepLines[i] && keepLines[i].parent === maStlUserLinesGroup) maStlCopyToolSelectedLines.add(keepLines[i]);
+            }
+            for (let i = 0; i < keepMeshes.length; i++) maStlCopyToolSelectedMeshes.add(keepMeshes[i]);
+        }
+    }
+
+    const maStlDesignAiBridge = {
+        isReady: function () { return !!maStlDesingV2Viewer && !!maStlUserLinesGroup; },
+        modelMode: function () { return maStlIsWall3dToolActive() ? 'wall3d-tool' : (maStlDesing2ModelMode || 'lines'); },
+        ensureLinesMode: maStlDesignAiEnsureLinesMode,
+        /** Valores de Configuración: espesor del muro 2D (media de anchos X/Y) y altura por defecto. */
+        defaults: function () {
+            return {
+                thicknessMm: maStlWall2dToolThicknessHalfMm() * 2,
+                heightMm: maStlDesing2WallDefaultHeightMm(),
+                minThicknessMm: MA_STL_WALL_DIM_MIN_THICKNESS_MM,
+                maxThicknessMm: MA_STL_WALL_DIM_MAX_THICKNESS_MM,
+                minLengthMm: maStlUserFloorSegmentMinMm(),
+            };
+        },
+        /** Anclaje de reglas (origen de las coordenadas X;Z de la herramienta Línea). */
+        origin: function () { return { x: maStlRulerAnchorMm.x, y: maStlRulerAnchorMm.y, z: maStlRulerAnchorMm.z }; },
+        /** Punto donde seguiría la herramienta Muro 2D («continuar»), si lo hay. */
+        resumePoint: function () {
+            const r = maStlWall2dToolResumeState;
+            return r && r.pointMm ? { x: r.pointMm.x, y: r.pointMm.y, z: r.pointMm.z, groupId: r.wallGroupId } : null;
+        },
+        walls: maStlDesignAiWalls,
+        findWall: maStlDesignAiFindWall,
+        selectedWall: maStlDesignAiSelectedWall,
+        /** Muro 2D de a→b (eje + 2 caras, esquinas como la herramienta): un paso de Deshacer. */
+        drawWall: function (a, b, opts) {
+            opts = opts || {};
+            const before = maStlDesignAiAxisIdSet();
+            const halfT = Number(opts.thicknessMm) > 0 ? Number(opts.thicknessMm) / 2 : null;
+            const ok = maStlDesignAiWithUndo('createUserFloorLine', function () {
+                const prevGroup = maStlWall2dToolActiveGroupId;
+                const prevResume = maStlWall2dToolResumeState;
+                const groupId = opts.groupId != null ? opts.groupId : maStlTakeDefaultWallGroupId();
+                maStlWall2dToolActiveGroupId = groupId;
+                const pa = { x: a.x, y: a.y != null ? a.y : MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM, z: a.z };
+                const pb = { x: b.x, y: b.y != null ? b.y : MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM, z: b.z };
+                const done = maStlWall2dToolCommitWallSegmentMm(pa, pb, true, halfT);
+                const resume = maStlWall2dToolResumeState;
+                maStlWall2dToolActiveGroupId = prevGroup;
+                /* Si la herramienta Muro 2D no estaba en marcha, no se cambia su «continuar». */
+                maStlWall2dToolResumeState = maStlIsWall2dToolActive() ? resume : prevResume;
+                if (!done) return false;
+                const added = maStlDesignAiNewAxisIds(before);
+                if (Number(opts.heightM) > 0) {
+                    for (let i = 0; i < added.length; i++) maStlDesignAiWriteHeight(added[i].line, opts.heightM);
+                }
+                for (let i = 0; i < added.length; i++) maStlWallLineEnsureAttrs(added[i].line.userData.maStlUserPlanLine);
+                maStlReapplyAllUserFloorWallAxisLineStyles();
+                return { groupId: groupId };
+            });
+            if (!ok) return { ok: false };
+            maStlSaveWallConnectionsNow({ force: true, reason: 'design-ai-draw-wall' });
+            return { ok: true, groupId: ok.groupId, walls: maStlDesignAiNewAxisIds(before) };
+        },
+        /** Largo / espesor / alto como el formulario «Modificar muro» (un paso de Deshacer). */
+        setDims: function (id, dims) {
+            const line = maStlWall2dToolFindLineByPlanId(id);
+            if (!line) return { ok: false, why: 'missing' };
+            const res = { ok: true, failed: [] };
+            maStlDesignAiWithUndo('editUserFloorLineDimension', function () {
+                if (Number(dims.lengthMm) > 0 && !maStlCommitWallAxisLengthMm(line, Number(dims.lengthMm))) res.failed.push('length');
+                const again = maStlWall2dToolFindLineByPlanId(id) || line;
+                if (Number(dims.thicknessMm) > 0 && !maStlCommitWallAxisThicknessMm(again, Number(dims.thicknessMm))) res.failed.push('thickness');
+                const again2 = maStlWall2dToolFindLineByPlanId(id) || again;
+                if (Number(dims.heightM) > 0 && !maStlDesignAiWriteHeight(again2, Number(dims.heightM))) res.failed.push('height');
+            });
+            maStlSaveWallConnectionsNow({ force: true, reason: 'design-ai-edit-wall' });
+            if (maStlWallDimToolActive) maStlWallDimRefreshScanAndDraw();
+            res.wall = maStlDesignAiFindWall(id);
+            return res;
+        },
+        /** «Muéstrame los id»: Cotas con solo el ID de cada muro (on=false lo quita). */
+        showWallIds: function (on) {
+            if (on === false) {
+                const f = maStlWallDimAiFocus;
+                if (!f || f.mode !== 'ids') return { ok: true, changed: false };
+                return maStlDesignAiSetCotasFocus(null);
+            }
+            const was = !!(maStlWallDimAiFocus && maStlWallDimAiFocus.mode === 'ids' && maStlIsWallDimToolActive());
+            const r = maStlDesignAiSetCotasFocus({ mode: 'ids' });
+            r.already = was;
+            r.count = maStlDesignAiWalls().length;
+            return r;
+        },
+        wallIdsShown: function () { return !!(maStlWallDimAiFocus && maStlWallDimAiFocus.mode === 'ids' && maStlIsWallDimToolActive()); },
+        /** «Acótame el muro 7»: Cotas solo de ese muro (largo total / eje / parciales, espesor e ID). */
+        dimensionWall: function (id) {
+            const line = maStlWall2dToolFindLineByPlanId(id);
+            if (!line) return { ok: false, why: 'missing' };
+            const r = maStlDesignAiSetCotasFocus({ mode: 'wall', axisId: id });
+            r.wall = maStlDesignAiFindWall(id);
+            return r;
+        },
+        /** Cotas normales de todo el diseño (como el botón Cotas). */
+        showAllCotas: function () {
+            maStlWallDimAiFocus = null;
+            maStlWallDimAllOverride = true;
+            if (!maStlIsWallDimToolActive()) maStlStartWallDimToolModesToolbar();
+            else maStlWallDimRefreshScanAndDraw();
+            maStlWallDimAllOverride = true;
+            return { ok: maStlIsWallDimToolActive() };
+        },
+        /** Cotas como el botón: las del muro seleccionado (sin selección, los ID de los muros). */
+        showCotas: function () {
+            maStlWallDimAiFocus = null;
+            maStlWallDimAllOverride = false;
+            if (!maStlIsWallDimToolActive()) maStlStartWallDimToolModesToolbar();
+            else maStlWallDimRefreshScanAndDraw();
+            const sc = maStlWallDimScope();
+            return { ok: maStlIsWallDimToolActive(), scope: sc.mode };
+        },
+        /** Quita las cotas: las que pidió la IA o, con `all`, también las Cotas del botón. */
+        clearCotas: function (all) {
+            const had = maStlIsWallDimToolActive();
+            if (all) {
+                maStlStopWallDimToolModesToolbar();
+                return { ok: true, changed: had };
+            }
+            return maStlDesignAiSetCotasFocus(null);
+        },
+        cotasState: maStlDesignAiCotasState,
+        /**
+         * «Muéstrame los id de los paneles» / «oculta los id de artículo»: activa o quita el tipo de cota «Id de Artículo»
+         * (mismo checkbox del menú de Cotas, se guarda en su cookie) y abre Cotas si hace falta.
+         */
+        showArticleIds: function (on) {
+            const want = on !== false;
+            const was = maStlWallDimArticleIdsOn() && maStlIsWallDimToolActive();
+            const idx = maStlAtk60PanelIdIndex();
+            const res = { ok: true, already: false, changed: false, count: idx.list.length, walls: idx.byWall.size, noFormwork: !idx.list.length };
+            if (!want) {
+                if (!maStlWallDimArticleIdsOn()) return res;
+                maStlWallDimSetKind('article-id', false);
+                res.changed = true;
+                return res;
+            }
+            if (res.noFormwork) return res;
+            if (was) {
+                res.already = true;
+                maStlDesignAiArticleIdScope(idx, res);
+                return res;
+            }
+            if (maStlWallDimAiFocus) maStlWallDimAiFocus = null;
+            maStlWallDimSetKind('article-id', true);
+            if (!maStlIsWallDimToolActive()) maStlStartWallDimToolModesToolbar();
+            else maStlWallDimRefreshScanAndDraw();
+            res.changed = true;
+            res.ok = maStlIsWallDimToolActive();
+            maStlDesignAiArticleIdScope(idx, res);
+            return res;
+        },
+        articleIdsShown: function () { return maStlWallDimArticleIdsOn() && maStlIsWallDimToolActive(); },
+        /** Índice de IDs de artículo por muro y búsqueda de uno («7.3») para órdenes futuras. */
+        articleIds: maStlAtk60PanelIdSummary,
+        findArticle: maStlAtk60FindPanelById,
+        /** Desplazar (herramienta Desplazar): dx/dz en mm. */
+        moveWall: function (id, dx, dz) {
+            const line = maStlWall2dToolFindLineByPlanId(id);
+            if (!line) return { ok: false, why: 'missing' };
+            const ok = maStlDesignAiWithCopySelection([line], function () {
+                return maStlCopyToolCommitMoveMm(dx, 0, dz);
+            });
+            return { ok: !!ok, wall: maStlDesignAiFindWall(id) };
+        },
+        /** Copiar (herramienta Copiar): copia desplazada dx/dz en mm. */
+        copyWall: function (id, dx, dz) {
+            const line = maStlWall2dToolFindLineByPlanId(id);
+            if (!line) return { ok: false, why: 'missing' };
+            const before = maStlDesignAiAxisIdSet();
+            const ok = maStlDesignAiWithCopySelection([line], function () {
+                return maStlCopyToolCommitDuplicateMm(dx, 0, dz);
+            });
+            return { ok: !!ok, walls: maStlDesignAiNewAxisIds(before) };
+        },
+        /** Borrar (herramienta Borrar): el tramo con sus caras. */
+        deleteWall: function (id) {
+            const line = maStlWall2dToolFindLineByPlanId(id);
+            if (!line) return { ok: false, why: 'missing' };
+            if (maStlUserFloorLineSelected) maStlClearUserFloorLineSelection();
+            return { ok: !!maStlCommitUserFloorLinesAndStlMeshesDelete([line], []) };
+        },
+        /** Alargar (herramienta Alargar) hasta el primer muro que encuentra; end 'p1' | 'p2'. */
+        extendWall: function (id, end) {
+            const line = maStlWall2dToolFindLineByPlanId(id);
+            if (!line) return { ok: false, why: 'missing' };
+            const pending = maStlLineEditToolReformworkPending;
+            const ok = maStlLineEditToolExtendWallEnd(line, end === 'p2');
+            /* Fuera de la herramienta no hay «salir del comando» que re-encofre: se deja como estaba. */
+            maStlLineEditToolReformworkPending = pending;
+            return { ok: !!ok, wall: maStlDesignAiFindWall(id) };
+        },
+        /**
+         * Girar (herramienta Girar) el muro `id` `angleDeg` grados (+ antihorario en planta) alrededor de
+         * `center` (mm). `opts.copy`: deja el original y gira una copia. Un paso de Deshacer.
+         */
+        rotateWall: function (id, center, angleDeg, opts) {
+            const line = maStlWall2dToolFindLineByPlanId(id);
+            if (!line) return { ok: false, why: 'missing' };
+            if (!center || !Number.isFinite(Number(angleDeg))) return { ok: false, why: 'args' };
+            const before = maStlDesignAiAxisIdSet();
+            const xf = maStlXformMakeRotate(Number(center.x), Number(center.z), Number(angleDeg));
+            const res = maStlDesignAiWithCopySelection([line], function () {
+                return maStlXformToolCommitMm(xf, !!(opts && opts.copy));
+            });
+            return { ok: !!(res && res.ok), wall: maStlDesignAiFindWall(id), walls: maStlDesignAiNewAxisIds(before) };
+        },
+        /**
+         * Simetría (herramienta Simetría) del muro `id` respecto a la recta a→b (mm).
+         * `opts.keep` (por defecto true): deja el original. Un paso de Deshacer.
+         */
+        mirrorWall: function (id, a, b, opts) {
+            const line = maStlWall2dToolFindLineByPlanId(id);
+            if (!line) return { ok: false, why: 'missing' };
+            const xf = maStlXformMakeMirror(a, b);
+            if (!xf) return { ok: false, why: 'axis' };
+            const before = maStlDesignAiAxisIdSet();
+            const keep = !(opts && opts.keep === false);
+            const res = maStlDesignAiWithCopySelection([line], function () {
+                return maStlXformToolCommitMm(xf, keep);
+            });
+            return {
+                ok: !!(res && res.ok),
+                skippedCurved: res ? res.skippedCurved : 0,
+                wall: maStlDesignAiFindWall(id),
+                walls: maStlDesignAiNewAxisIds(before),
+            };
+        },
+        /** Modo de la barra (como lo pintan sus botones): 'lines' | 'wall3d' | 'formwork'; busy = calculando. */
+        modeInfo: function () {
+            const fb = document.getElementById('ma-stl-mode-formwork');
+            const formwork = !!(fb && fb.classList.contains('active'));
+            const raw = maStlIsWall3dToolActive() ? 'wall3d-tool' : (maStlDesing2ModelMode || 'lines');
+            return {
+                mode: formwork ? 'formwork' : raw === 'wall3d' ? 'wall3d' : raw === 'lines' ? 'lines' : raw,
+                raw: raw,
+                formwork: formwork,
+                busy: !!maStlDesing2WallModelBusy || !!(fb && fb.disabled),
+                walls: maStlDesignAiWalls().length,
+                pieces: maStlDesing2LastAtk60PaintPayload && Array.isArray(maStlDesing2LastAtk60PaintPayload.elements)
+                    ? maStlDesing2LastAtk60PaintPayload.elements.length : 0,
+            };
+        },
+        /**
+         * Pulsa el botón del modo (el mismo manejador que el clic del usuario: pasar parejas de líneas a muro,
+         * soltar especiales vacíos, fases de Encofrar…). Promesa con { ok, message?, count?, pieces? }.
+         */
+        setMode: function (mode) {
+            const ids = { lines: 'ma-stl-mode-lines', wall3d: 'ma-stl-mode-wall-3d', formwork: 'ma-stl-mode-formwork' };
+            const btn = ids[mode] ? document.getElementById(ids[mode]) : null;
+            if (!btn) return Promise.resolve({ ok: false, message: 'no-button' });
+            if (btn.disabled) return Promise.resolve({ ok: false, busy: true });
+            const bridge = this;
+            const piecesNow = function () { return bridge.modeInfo().pieces; };
+            if (mode === 'lines') {
+                btn.click();
+                return Promise.resolve({ ok: maStlDesing2ModelMode === 'lines' });
+            }
+            if (mode === 'wall3d') {
+                if (maStlDesing2WallModelBusy) return Promise.resolve({ ok: false, busy: true });
+                return new Promise(function (resolve) {
+                    let done = false;
+                    const finish = function (r) {
+                        if (done) return;
+                        done = true;
+                        document.removeEventListener('desing2-wall3d-ready', onReady);
+                        resolve(r);
+                    };
+                    const onReady = function (ev) {
+                        const det = ev && ev.detail ? ev.detail : {};
+                        finish({ ok: det.ok !== false, count: det.count, message: det.message || '' });
+                    };
+                    document.addEventListener('desing2-wall3d-ready', onReady);
+                    btn.click();
+                    /* Modelo en caché (o nada que pedir al servidor): no hay evento, ya está. */
+                    if (!maStlDesing2WallModelBusy) finish({ ok: maStlDesing2ModelMode === 'wall3d', cached: true });
+                });
+            }
+            return new Promise(function (resolve) {
+                let done = false;
+                let quiet = 0;
+                let timer = null;
+                const finish = function (r) {
+                    if (done) return;
+                    done = true;
+                    document.removeEventListener('desing2-formwork-settled', onSettled);
+                    if (timer) window.clearInterval(timer);
+                    resolve(r);
+                };
+                const onSettled = function (ev) {
+                    const det = ev && ev.detail ? ev.detail : {};
+                    finish({ ok: det.ok !== false, message: det.message || '', pieces: piecesNow() });
+                };
+                document.addEventListener('desing2-formwork-settled', onSettled);
+                btn.click();
+                /* Elegir fase y cerrar el diálogo sin elegir: Encofrar no avisa; tras 4 s sin nada en marcha, cancelado. */
+                timer = window.setInterval(function () {
+                    const overlay = document.getElementById('ma-stl-formwork-render-overlay');
+                    const working = btn.disabled || !!document.querySelector('.modal.show')
+                        || !!(overlay && !overlay.classList.contains('d-none'));
+                    quiet = working ? 0 : quiet + 1;
+                    if (quiet >= 4) finish({ ok: false, cancelled: true });
+                }, 1000);
+            });
+        },
+        undo: function () { return maStlDesing2Undo(); },
+        redo: function () { return maStlDesing2Redo(); },
+        canUndo: function () { return maStlDesing2UndoStack.length > 0; },
+        /** Resaltar: selecciona una cara del muro (color de selección y cotas del visor). */
+        highlight: function (id) {
+            const faces = maStlWall2dToolFindFaceLinesForCenterId(id);
+            const line = faces.length ? faces[0] : null;
+            if (!line) return false;
+            maStlSelectUserFloorLine(line);
+            return true;
+        },
+        clearHighlight: function () { if (maStlUserFloorLineSelected) maStlClearUserFloorLineSelection(); },
+        /** Cambia cuando el usuario cambia la selección (clic en el visor o Esc): la IA deja su «muro actual» y sigue al del usuario. */
+        selectionSeq: function () { return maStlWallSelectionUserSeq; },
+        /** Muro seleccionado en verde en 3D (sólidos teñidos), para pruebas. */
+        selectedTint3d: function () { return Array.from(maStlWall3dSelTintSnapshots.keys()).length; },
+        hasFormwork: function () { return typeof window.maStlDesing2HasFormworkPanels === 'function' && !!window.maStlDesing2HasFormworkPanels(); },
+        /** Cierra el asistente del muro si está en modo compacto (un solo asistente a la derecha). */
+        closeWallAi: function () {
+            let closed = false;
+            const st = maStlWallInspectFormState;
+            if (maStlWallFormApi && maStlWallFormApi.isAiCompact && maStlWallFormApi.isAiCompact()
+                && st.root && st.root.style.display !== 'none') {
+                maStlWallInspectClosePopup();
+                closed = true;
+            }
+            if (maStlCurvedWallAiCompact && maStlCurvedWallAiCompact.isCompact() && maStlCurvedWallModalEl
+                && window.bootstrap && window.bootstrap.Modal) {
+                const inst = window.bootstrap.Modal.getInstance(maStlCurvedWallModalEl);
+                if (inst) { inst.hide(); closed = true; }
+            }
+            return closed;
+        },
+        toast: function (msg) { maStlDesing2ShowSaveViewToast(msg); },
+    };
+
     if (typeof window !== 'undefined') {
         window.maStlDesing2UndoStack = maStlDesing2UndoStack;
         window.maStlDesing2RedoStack = maStlDesing2RedoStack;
@@ -38417,6 +40142,15 @@ let maStlWallApplyAllHeightMm = 0;
         window.maStlDesing2RenderManualWallArticles = maStlDesing2RenderManualWallArticles;
         window.maStlWallAiClearTempFormwork = maStlWallAiClearTempFormwork;
         window.maStlWallAiClearPanelHighlight = maStlWallAiClearPanelHighlight;
+        /* IA del diseño (14/11/2026): puente y botón IA de la barra de modos. */
+        window.maStlDesing2AiBridge = maStlDesignAiBridge;
+        if (maStlDesingV2Viewer) {
+            try {
+                maStlDesignAiInit({ bridge: maStlDesignAiBridge, button: document.getElementById('ma-stl-mode-ia') });
+            } catch (err) {
+                if (window.console && console.warn) console.warn('[Desing_2] IA del diseño no disponible', err);
+            }
+        }
     }
 
     function applySceneBackgroundAndClearColor() {

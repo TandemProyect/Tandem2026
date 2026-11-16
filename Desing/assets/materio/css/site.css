@@ -1389,19 +1389,25 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
 /* Desing_2 — barras flotantes del lienzo (superior e inferior); siempre visibles, discretas */
 .desing2-stl-view-scope {
     --desing2-stl-tool-btn: 2.4375rem;
+    /* Hueco ENTRE grupos de menú (no entre botones de un grupo) y entre la barra de modos y la de herramientas.
+       14/11/2026: antes 2 botones (≈78 px); se juntan para que la barra no se meta en el cubo de vistas. */
+    --desing2-stl-group-gap: 0.75rem;
+    /* Zona del cubo de vistas (esquina superior derecha: right 10px + cubo 90px + margen 1.5rem). La barra no entra ahí: si no cabe, pasa a otra fila. */
+    --desing2-stl-viewcube-reserve: calc(10px + 90px + 1.5rem);
 }
 
+/* 14/11/2026: sin brújula, las barras empiezan junto a la tira del panel lateral (donde estaba la brújula) y se alinean a la izquierda. */
 .desing2-stl-top-bars {
     position: absolute;
     top: 1rem;
-    left: 13rem;
-    right: 0.75rem;
+    left: calc(var(--desing2-stl-hsp-sheet-collapsed, 32px) + var(--desing2-stl-compass-gap-from-collapsed-strip, 10px));
+    right: var(--desing2-stl-viewcube-reserve, 124px);
     z-index: 10;
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start;
     align-items: flex-start;
-    column-gap: calc(var(--desing2-stl-tool-btn) * 2);
+    column-gap: var(--desing2-stl-group-gap, 0.75rem);
     row-gap: 0.4rem;
     pointer-events: none;
 }
@@ -1436,13 +1442,8 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
 
 @media (max-width: 1280px) {
     .desing2-stl-top-bars {
-        left: calc(
-            var(--desing2-stl-hsp-sheet-collapsed, 32px)
-            + var(--desing2-stl-compass-gap-from-collapsed-strip, 10px)
-            + var(--desing2-stl-compass-size, 54px)
-            + 0.75rem
-        );
-        right: 0.4rem;
+        left: calc(var(--desing2-stl-hsp-sheet-collapsed, 32px) + var(--desing2-stl-compass-gap-from-collapsed-strip, 10px));
+        right: var(--desing2-stl-viewcube-reserve, 124px);
     }
 }
 
@@ -2891,8 +2892,18 @@ html.tandem-intranet-chrome body.desing2-stl-fullpage .layout-content-navbar .co
 
 .desing2-stl-floating-toolbar__group-gap {
     display: inline-block;
-    width: calc(var(--desing2-stl-tool-btn, 2.4375rem) * 2);
+    width: var(--desing2-stl-group-gap, 0.75rem);
     flex-shrink: 0;
+}
+
+/* MAPA en la barra superior (14/11/2026): conserva el pin rojo que lo distinguía en el panel derecho. */
+.desing2-stl-view-scope .desing2-stl-top-toolbar #desing2-stl-right-panel-map-building .icon-base {
+    color: #dc3545 !important;
+}
+
+/* Botón IA: dos espacios (dos anchos de botón) hasta los modos. */
+.desing2-stl-floating-toolbar__group-gap--ia {
+    width: calc(var(--desing2-stl-tool-btn, 2.4375rem) * 2);
 }
 
 .desing2-stl-floating-toolbar__sep {

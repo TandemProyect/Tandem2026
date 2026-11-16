@@ -1,0 +1,9 @@
+---
+description: Área Despliegue — leer su INDEX antes de tocar este código
+globs:
+  - ".github/workflows/**"
+  - "Scripts/deploy-site4now.ps1"
+alwaysApply: false
+---
+
+Trabajas en el área **Despliegue**. Lee `Docs/areas/despliegue/INDEX.md` y solo los documentos que ese INDEX indique para tu tarea. No leas la documentación de otras áreas.

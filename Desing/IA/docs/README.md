@@ -1,67 +1,60 @@
-# Documentación del proyecto
+# Documentación (movida)
 
-Documentos de continuidad, handovers, guías para agentes IA y notas de trabajo.
+El 14/11/2026 la documentación se reorganizó por áreas para que cada agente lea solo lo suyo.
 
-> La documentación técnica estructurada del código está en [`Docs/`](../Docs/).
+- **Entrada para agentes:** `AGENTS.md` en la raíz del repo.
+- **Guía para trabajar:** `Docs/COMO-TRABAJAR.md`.
+- En esta carpeta quedan solo avisos de una línea en las rutas que citan el código, las reglas o la memoria.
 
----
-
-## Para agentes IA (leer primero)
-
-| Documento | Descripción |
-|-----------|-------------|
-| [**CONTINUITY.md**](CONTINUITY.md) | Contexto completo del proyecto — **leer siempre al iniciar** |
-| [**QUICKREF.md**](QUICKREF.md) | Referencia rápida de comandos y scripts |
-| [**GUIA-AGENTE-AZURE-DEVOPS.md**](GUIA-AGENTE-AZURE-DEVOPS.md) | Guía completa para agentes con Azure DevOps |
-| [**CHEATSHEET-AZURE-DEVOPS.md**](CHEATSHEET-AZURE-DEVOPS.md) | Comandos copy-paste de Azure DevOps |
-
----
-
-## Azure DevOps
-
-| Documento | Descripción |
-|-----------|-------------|
-| [DOCUMENTACION-AZURE-DEVOPS-ACTUALIZADA.md](DOCUMENTACION-AZURE-DEVOPS-ACTUALIZADA.md) | Documentación actualizada de integración |
-| [IMPLEMENTACION_COMPLETADA.md](IMPLEMENTACION_COMPLETADA.md) | Resumen de implementación completada |
-| [TEST-COMMIT-MANUAL.md](TEST-COMMIT-MANUAL.md) | Prueba manual de commits |
-
----
-
-## Handovers y notas de sesión
-
-| Documento | Descripción |
-|-----------|-------------|
-| [HANDOVER-LCornerDetector.md](HANDOVER-LCornerDetector.md) | Handover US-664 LCornerDetector |
-| [HANDOVER-US-IMG-MUROS.md](HANDOVER-US-IMG-MUROS.md) | Handover análisis de imagen / muros |
-| [HANDOVER-PLUGIN-DEVICE-AUTH.md](HANDOVER-PLUGIN-DEVICE-AUTH.md) | Handover autenticación de dispositivo |
-| [HANDOVER-DESING2-MUROS-ARRANQUE.md](HANDOVER-DESING2-MUROS-ARRANQUE.md) | Handover visor Desing 2, muros, Ortho/F8 y arranque local |
-| [HANDOVER-SESION-2026-10-23.md](HANDOVER-SESION-2026-10-23.md) | Sesión 22–23 oct 2026: direcciones, Editar en fichas, frentes abiertos del plugin y del trabajador |
-| [SECURITY-INCIDENT-RESPONSE.md](SECURITY-INCIDENT-RESPONSE.md) | Respuesta a incidente de seguridad |
-
----
-
-## ATK60 / encofrado Desing_2
-
-| Documento | Descripción |
-|-----------|-------------|
-| [ENCOFRADO-AT60-BASE.md](ENCOFRADO-AT60-BASE.md) | Catálogo AT-60, reglas negocio, bocetos L/T/+ |
-| [ENCOFRADO-AT60-IMPLEMENTACION.md](ENCOFRADO-AT60-IMPLEMENTACION.md) | **Handover código** — ciclo líneas/mallas, L/T cliente, pruebas |
-| [HANDOVER-ATK60-ESTABILIZACION-2026-07-16.md](HANDOVER-ATK60-ESTABILIZACION-2026-07-16.md) | Lógica vigente ATK60: pose estricta C#, `FaceSign`, verticales/tumbados y protocolo anti-regresiones |
-| [HANDOVER-ENCOFRADO-AT60-SESION-T-2026-07-10.md](HANDOVER-ENCOFRADO-AT60-SESION-T-2026-07-10.md) | **Sesión 2026-07-10** — rectos, recorte, guía T P-1…P-8, pendientes |
-| [HANDOVER-MUROS-T-CRUCE.md](HANDOVER-MUROS-T-CRUCE.md) | Uniones T y cruce (+), topología 2D |
-| [SISTEMA-ATK60.md](SISTEMA-ATK60.md) | Sistema ATK60 |
-| [agente-tapes-atk60.md](agente-tapes-atk60.md) | Tapes del visor Desing_2. Apartado 21 cerrado el 20 oct 2026 |
-| [agente-grapas-atk60.md](agente-grapas-atk60.md) | Base NEVI de juntas: grapa fija, regulable, rigidizador y tirante |
-| [nevi-rendimiento-puesta.md](nevi-rendimiento-puesta.md) | Metros por jornada, hormigonado y plazo para desencofrar. Base del encofrado por fases |
-| [HANDOVER-ENCOFRADO-FASES.md](HANDOVER-ENCOFRADO-FASES.md) | **Handover encofrado por fases** — reglas confirmadas, ficheros, base de datos y lo que no hay que repetir |
-| [encofrado-fases-diseno-30008.md](encofrado-fases-diseno-30008.md) | Diseño 30008: m² por muro. La lectura de 7 puestas no es el botón |
-| [muro-json-cifrado.md](muro-json-cifrado.md) | Exportar e importar muros cifrados, y cómo leer el archivo |
-| [esquina-L-atk60.md](esquina-L-atk60.md) | Esquina en L cerrada: punto verde sobre el rojo, giro y grapas |
-| [esquina-T-atk60.md](esquina-T-atk60.md) | Esquina en T, 28 oct 2026: tipo 2, tablón de 0,15 por 0,12 y visor |
-| [encofrado-atk-60.md](encofrado-atk-60.md) | Encofrado ATK-60 resumido: piezas NEVI, reglas de recto, L, T, X y tapes, y dónde está en el código. Leer primero |
-| [ATK60-Logica-Modulos-Wall.md](../../../Docs/Proyectos/Desing/ATK60-Logica-Modulos-Wall.md) | Reparto del muro. Desde el 28 oct el múltiplo de 0,15 lleva tablón, tenga las conexiones que tenga |
-| [AGENTE-US619-INFO.md](AGENTE-US619-INFO.md) | Documentación técnica US-619 |
-| [AGENTE-US619-RESUMEN.md](AGENTE-US619-RESUMEN.md) | Resumen ejecutivo US-619 |
-| [US619_RESUMEN_ICONOS.md](US619_RESUMEN_ICONOS.md) | Resumen de iconos US-619 |
-| [RESUMEN-TRABAJO-ATK60.md](RESUMEN-TRABAJO-ATK60.md) | Resumen de trabajo ATK60 |
-| [TEST-SELECCIONAR-LINEAS.md](TEST-SELECCIONAR-LINEAS.md) | Pruebas de selección de líneas |
+| Antes | Ahora |
+|-------|-------|
+| `00-resumen.md` | [`Docs/historial/concepto-inicial-2026-04/00-resumen.md`](../../../Docs/historial/concepto-inicial-2026-04/00-resumen.md) |
+| `01-requisitos-y-alcance-v1.md` | [`Docs/historial/concepto-inicial-2026-04/01-requisitos-y-alcance-v1.md`](../../../Docs/historial/concepto-inicial-2026-04/01-requisitos-y-alcance-v1.md) |
+| `02-modelo-topologico.md` | [`Docs/historial/concepto-inicial-2026-04/02-modelo-topologico.md`](../../../Docs/historial/concepto-inicial-2026-04/02-modelo-topologico.md) |
+| `03-sistemas-de-encofrado.md` | [`Docs/historial/concepto-inicial-2026-04/03-sistemas-de-encofrado.md`](../../../Docs/historial/concepto-inicial-2026-04/03-sistemas-de-encofrado.md) |
+| `04-pipeline-2d-a-3d.md` | [`Docs/historial/concepto-inicial-2026-04/04-pipeline-2d-a-3d.md`](../../../Docs/historial/concepto-inicial-2026-04/04-pipeline-2d-a-3d.md) |
+| `05-pendientes-y-preguntas.md` | [`Docs/historial/concepto-inicial-2026-04/05-pendientes-y-preguntas.md`](../../../Docs/historial/concepto-inicial-2026-04/05-pendientes-y-preguntas.md) |
+| `AGENTE-US619-INFO.md` | [`Docs/areas/cad-zwcad/historial/AGENTE-US619-INFO.md`](../../../Docs/areas/cad-zwcad/historial/AGENTE-US619-INFO.md) |
+| `AGENTE-US619-RESUMEN.md` | [`Docs/areas/cad-zwcad/historial/AGENTE-US619-RESUMEN.md`](../../../Docs/areas/cad-zwcad/historial/AGENTE-US619-RESUMEN.md) |
+| `CHEATSHEET-AZURE-DEVOPS.md` | [`Docs/areas/azure-devops/CHEATSHEET-AZURE-DEVOPS.md`](../../../Docs/areas/azure-devops/CHEATSHEET-AZURE-DEVOPS.md) |
+| `CONTINUITY.md` | [`Docs/areas/azure-devops/CONTINUITY.md`](../../../Docs/areas/azure-devops/CONTINUITY.md) |
+| `DOCUMENTACION-AZURE-DEVOPS-ACTUALIZADA.md` | [`Docs/areas/azure-devops/DOCUMENTACION-AZURE-DEVOPS-ACTUALIZADA.md`](../../../Docs/areas/azure-devops/DOCUMENTACION-AZURE-DEVOPS-ACTUALIZADA.md) |
+| `ENCOFRADO-AT60-BASE.md` | [`Docs/areas/encofrado-atk60/ENCOFRADO-AT60-BASE.md`](../../../Docs/areas/encofrado-atk60/ENCOFRADO-AT60-BASE.md) |
+| `ENCOFRADO-AT60-IMPLEMENTACION.md` | [`Docs/areas/encofrado-atk60/ENCOFRADO-AT60-IMPLEMENTACION.md`](../../../Docs/areas/encofrado-atk60/ENCOFRADO-AT60-IMPLEMENTACION.md) |
+| `GUIA-AGENTE-AZURE-DEVOPS.md` | [`Docs/areas/azure-devops/GUIA-AGENTE-AZURE-DEVOPS.md`](../../../Docs/areas/azure-devops/GUIA-AGENTE-AZURE-DEVOPS.md) |
+| `HANDOVER-ATK60-ESTABILIZACION-2026-07-16.md` | [`Docs/areas/encofrado-atk60/historial/HANDOVER-ATK60-ESTABILIZACION-2026-07-16.md`](../../../Docs/areas/encofrado-atk60/historial/HANDOVER-ATK60-ESTABILIZACION-2026-07-16.md) |
+| `HANDOVER-DESING2-MUROS-ARRANQUE.md` | [`Docs/areas/desing2-visor/historial/HANDOVER-DESING2-MUROS-ARRANQUE.md`](../../../Docs/areas/desing2-visor/historial/HANDOVER-DESING2-MUROS-ARRANQUE.md) |
+| `HANDOVER-ENCOFRADO-AT60-SESION-T-2026-07-10.md` | [`Docs/areas/encofrado-atk60/historial/HANDOVER-ENCOFRADO-AT60-SESION-T-2026-07-10.md`](../../../Docs/areas/encofrado-atk60/historial/HANDOVER-ENCOFRADO-AT60-SESION-T-2026-07-10.md) |
+| `HANDOVER-ENCOFRADO-FASES.md` | [`Docs/areas/encofrado-atk60/HANDOVER-ENCOFRADO-FASES.md`](../../../Docs/areas/encofrado-atk60/HANDOVER-ENCOFRADO-FASES.md) |
+| `HANDOVER-LCornerDetector.md` | [`Docs/areas/encofrado-atk60/historial/HANDOVER-LCornerDetector.md`](../../../Docs/areas/encofrado-atk60/historial/HANDOVER-LCornerDetector.md) |
+| `HANDOVER-MUROS-T-CRUCE.md` | [`Docs/areas/desing2-muros-3d/HANDOVER-MUROS-T-CRUCE.md`](../../../Docs/areas/desing2-muros-3d/HANDOVER-MUROS-T-CRUCE.md) |
+| `HANDOVER-PLUGIN-DEVICE-AUTH.md` | [`Docs/areas/cad-comun/HANDOVER-PLUGIN-DEVICE-AUTH.md`](../../../Docs/areas/cad-comun/HANDOVER-PLUGIN-DEVICE-AUTH.md) |
+| `HANDOVER-SESION-2026-10-23.md` | [`Docs/areas/intranet/historial/HANDOVER-SESION-2026-10-23.md`](../../../Docs/areas/intranet/historial/HANDOVER-SESION-2026-10-23.md) |
+| `HANDOVER-US-IMG-MUROS.md` | [`Docs/areas/cad-zwcad/historial/HANDOVER-US-IMG-MUROS.md`](../../../Docs/areas/cad-zwcad/historial/HANDOVER-US-IMG-MUROS.md) |
+| `IMPLEMENTACION_COMPLETADA.md` | [`Docs/areas/cad-zwcad/historial/IMPLEMENTACION_COMPLETADA.md`](../../../Docs/areas/cad-zwcad/historial/IMPLEMENTACION_COMPLETADA.md) |
+| `QUICKREF.md` | [`Docs/areas/azure-devops/QUICKREF.md`](../../../Docs/areas/azure-devops/QUICKREF.md) |
+| `RESUMEN-TRABAJO-ATK60.md` | [`Docs/areas/cad-zwcad/historial/RESUMEN-TRABAJO-ATK60.md`](../../../Docs/areas/cad-zwcad/historial/RESUMEN-TRABAJO-ATK60.md) |
+| `SECURITY-INCIDENT-RESPONSE.md` | [`Docs/areas/azure-devops/SECURITY-INCIDENT-RESPONSE.md`](../../../Docs/areas/azure-devops/SECURITY-INCIDENT-RESPONSE.md) |
+| `SISTEMA-ATK60.md` | [`Docs/areas/encofrado-atk60/historial/SISTEMA-ATK60.md`](../../../Docs/areas/encofrado-atk60/historial/SISTEMA-ATK60.md) |
+| `TEST-COMMIT-MANUAL.md` | [`Docs/areas/azure-devops/TEST-COMMIT-MANUAL.md`](../../../Docs/areas/azure-devops/TEST-COMMIT-MANUAL.md) |
+| `TEST-SELECCIONAR-LINEAS.md` | [`Docs/areas/cad-zwcad/historial/TEST-SELECCIONAR-LINEAS.md`](../../../Docs/areas/cad-zwcad/historial/TEST-SELECCIONAR-LINEAS.md) |
+| `US619_RESUMEN_ICONOS.md` | [`Docs/areas/cad-zwcad/historial/US619_RESUMEN_ICONOS.md`](../../../Docs/areas/cad-zwcad/historial/US619_RESUMEN_ICONOS.md) |
+| `agente-foto-diseno-y-menu.md` | [`Docs/areas/intranet/agente-foto-diseno-y-menu.md`](../../../Docs/areas/intranet/agente-foto-diseno-y-menu.md) |
+| `agente-grapas-atk60.md` | [`Docs/areas/encofrado-atk60/agente-grapas-atk60.md`](../../../Docs/areas/encofrado-atk60/agente-grapas-atk60.md) |
+| `agente-tapes-atk60.md` | [`Docs/areas/encofrado-atk60/agente-tapes-atk60.md`](../../../Docs/areas/encofrado-atk60/agente-tapes-atk60.md) |
+| `agente-traducciones-modulos.md` | [`Docs/areas/intranet/agente-traducciones-modulos.md`](../../../Docs/areas/intranet/agente-traducciones-modulos.md) |
+| `agente-ui-materio-datatables.md` | [`Docs/areas/intranet/agente-ui-materio-datatables.md`](../../../Docs/areas/intranet/agente-ui-materio-datatables.md) |
+| `articulos-desing2-sin-bloque-autocad.md` | [`Docs/areas/cad-autocad/articulos-desing2-sin-bloque-autocad.md`](../../../Docs/areas/cad-autocad/articulos-desing2-sin-bloque-autocad.md) |
+| `base-de-datos-alineacion.md` | [`Docs/areas/base-de-datos/base-de-datos-alineacion.md`](../../../Docs/areas/base-de-datos/base-de-datos-alineacion.md) |
+| `deploy-site4now.md` | [`Docs/areas/despliegue/deploy-site4now.md`](../../../Docs/areas/despliegue/deploy-site4now.md) |
+| `desing-2-orbit-pivot.md` | [`Docs/areas/desing2-visor/desing-2-orbit-pivot.md`](../../../Docs/areas/desing2-visor/desing-2-orbit-pivot.md) |
+| `encofrado-atk-60.md` | [`Docs/areas/encofrado-atk60/encofrado-atk-60.md`](../../../Docs/areas/encofrado-atk60/encofrado-atk-60.md) |
+| `encofrado-fases-diseno-30008.md` | [`Docs/areas/encofrado-atk60/encofrado-fases-diseno-30008.md`](../../../Docs/areas/encofrado-atk60/encofrado-fases-diseno-30008.md) |
+| `esquina-L-atk60.md` | [`Docs/areas/encofrado-atk60/esquina-L-atk60.md`](../../../Docs/areas/encofrado-atk60/esquina-L-atk60.md) |
+| `esquina-T-atk60.md` | [`Docs/areas/encofrado-atk60/esquina-T-atk60.md`](../../../Docs/areas/encofrado-atk60/esquina-T-atk60.md) |
+| `ia-comandos-catalogo.md` | [`Docs/areas/ia-asistentes/ia-comandos-catalogo.md`](../../../Docs/areas/ia-asistentes/ia-comandos-catalogo.md) |
+| `ia-desing.md` | [`Docs/areas/ia-asistentes/ia-desing.md`](../../../Docs/areas/ia-asistentes/ia-desing.md) |
+| `muro-json-cifrado.md` | [`Docs/areas/desing2-muros-3d/muro-json-cifrado.md`](../../../Docs/areas/desing2-muros-3d/muro-json-cifrado.md) |
+| `nevi-rendimiento-puesta.md` | [`Docs/areas/encofrado-atk60/nevi-rendimiento-puesta.md`](../../../Docs/areas/encofrado-atk60/nevi-rendimiento-puesta.md) |
+| `tapes-tipos.md` | [`Docs/areas/encofrado-atk60/tapes-tipos.md`](../../../Docs/areas/encofrado-atk60/tapes-tipos.md) |
+| `desing-2-stl-viewer-funciones.md` | partido en 4: ver [`desing-2-stl-viewer-funciones.md`](desing-2-stl-viewer-funciones.md) |

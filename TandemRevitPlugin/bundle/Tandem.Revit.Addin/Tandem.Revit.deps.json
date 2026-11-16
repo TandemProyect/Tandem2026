@@ -23,17 +23,20 @@
           "runtimes/win-arm64/native/WebView2Loader.dll": {
             "rid": "win-arm64",
             "assetType": "native",
-            "fileVersion": "1.0.2849.39"
+            "fileVersion": "1.0.2849.39",
+            "localPath": "runtimes/win-arm64/native/WebView2Loader.dll"
           },
           "runtimes/win-x64/native/WebView2Loader.dll": {
             "rid": "win-x64",
             "assetType": "native",
-            "fileVersion": "1.0.2849.39"
+            "fileVersion": "1.0.2849.39",
+            "localPath": "runtimes/win-x64/native/WebView2Loader.dll"
           },
           "runtimes/win-x86/native/WebView2Loader.dll": {
             "rid": "win-x86",
             "assetType": "native",
-            "fileVersion": "1.0.2849.39"
+            "fileVersion": "1.0.2849.39",
+            "localPath": "runtimes/win-x86/native/WebView2Loader.dll"
           }
         }
       },
@@ -41,7 +44,8 @@
         "runtime": {
           "lib/net6.0/Newtonsoft.Json.dll": {
             "assemblyVersion": "13.0.0.0",
-            "fileVersion": "13.0.3.27908"
+            "fileVersion": "13.0.3.27908",
+            "localPath": "Newtonsoft.Json.dll"
           }
         }
       },

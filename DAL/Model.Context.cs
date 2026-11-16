@@ -69,5 +69,12 @@ namespace DAL
         public virtual DbSet<TSql_Branch> TSql_Branch { get; set; }
         public virtual DbSet<TSql_DesignWall> TSql_DesignWall { get; set; }
         public virtual DbSet<TSql_DesignWallArticle> TSql_DesignWallArticle { get; set; }
+        public virtual DbSet<TSql_AiCommand> TSql_AiCommand { get; set; }
+        public virtual DbSet<TSql_AiCommandPhrase> TSql_AiCommandPhrase { get; set; }
+        public virtual DbSet<TSql_AiCommandUser> TSql_AiCommandUser { get; set; }
+        public virtual DbSet<TSql_AiCommandUserPhrase> TSql_AiCommandUserPhrase { get; set; }
+        public virtual DbSet<TSql_AiEnvironment> TSql_AiEnvironment { get; set; }
+        public virtual DbSet<TSql_AiEnvironmentReply> TSql_AiEnvironmentReply { get; set; }
+        public virtual DbSet<TSql_AiUserSettings> TSql_AiUserSettings { get; set; }
     }
 }

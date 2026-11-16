@@ -3,6 +3,7 @@
     var COOKIE_BASE = "ma_stl_desing2_dim_kinds";
     var COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
     var KINDS = [
+        "all-walls",
         "walls-total",
         "walls-partial",
         "walls-axes",
@@ -10,6 +11,7 @@
         "remates",
         "adjustable-panel",
         "wall-id",
+        "article-id",
         "curved-axes",
         "curved-angle",
         "corner-reference-point"

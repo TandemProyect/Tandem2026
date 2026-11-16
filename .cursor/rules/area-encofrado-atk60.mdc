@@ -1,0 +1,13 @@
+---
+description: Área Encofrado ATK-60 — leer su INDEX antes de tocar este código
+globs:
+  - "Desing/Repositories/RepositoryAtk60/**"
+  - "Desing/Repositories/Repository_Desing_2/**"
+  - "Desing/Repositories/RepositoryCommun/**"
+  - "Desing/Scripts/MasterArticles/ma-stl-atk60-formwork.js"
+  - "Desing/Scripts/Desing2/desing2-phase-*.js"
+alwaysApply: false
+---
+
+Trabajas en el área **Encofrado ATK-60**. Lee `Docs/areas/encofrado-atk60/INDEX.md` y solo los documentos que ese INDEX indique para tu tarea. No leas la documentación de otras áreas.
+El motor lo usan también los plugins CAD: debe pasar la regresión 74+13.

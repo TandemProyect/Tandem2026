@@ -6,17 +6,9 @@ Sistema de gestión de proyectos integrado con ZWCAD 2026.
 
 ## 🤖 PARA AGENTES IA / FUTUROS CHATS
 
-**👉 SI ERES UN AGENTE IA CONTINUANDO ESTE PROYECTO:**
-**LEE PRIMERO → [`documentación/CONTINUITY.md`](documentación/CONTINUITY.md) ← LEE PRIMERO**
+**Lee [`AGENTS.md`](AGENTS.md) y el `INDEX.md` de tu área. No leas este README ni toda la documentación.**
 
-Este documento contiene:
-- ✅ Todo el contexto de sesiones anteriores
-- ✅ Qué funciona y qué no
-- ✅ Scripts disponibles y cómo usarlos
-- ✅ Limitaciones conocidas y soluciones
-- ✅ Próximos pasos sugeridos
-
-**NO pierdas tiempo re-investigando cosas ya resueltas.**
+Guía para trabajar con agentes: [`Docs/COMO-TRABAJAR.md`](Docs/COMO-TRABAJAR.md). Código común: [`Docs/codigo-comun.md`](Docs/codigo-comun.md).
 
 ---
 
@@ -101,11 +93,11 @@ Tandem-2026/
 
 | Documento | Descripción |
 |-----------|-------------|
-| [**Azure DevOps**](Docs/General/Azure-DevOps.md) | Crear User Stories, vincular commits, gestionar board |
-| [**Estructura del Repositorio**](Docs/General/Estructura-Repositorio.md) | Organización de carpetas y archivos |
-| [**Common - Código Compartido**](Docs/General/Common.md) | Usar y mantener código compartido |
-| [**Convenciones de Código**](Docs/General/Convenciones.md) | Estándares de codificación |
-| [**Git Workflow**](Docs/General/Git-Workflow.md) | Flujo de trabajo con Git y GitHub |
+| [**Azure DevOps**](Docs/areas/azure-devops/Azure-DevOps.md) | Crear User Stories, vincular commits, gestionar board |
+| [**Estructura del Repositorio**](Docs/areas/general/Estructura-Repositorio.md) | Organización de carpetas y archivos |
+| [**Common - Código Compartido**](Docs/areas/general/Common.md) | Usar y mantener código compartido |
+| [**Convenciones de Código**](Docs/areas/general/Convenciones.md) | Estándares de codificación |
+| [**Git Workflow**](Docs/areas/general/Git-Workflow.md) | Flujo de trabajo con Git y GitHub |
 
 ---
 
@@ -113,16 +105,16 @@ Tandem-2026/
 
 | Proyecto | Documentación |
 |----------|---------------|
-| **DAL** | [Docs/Proyectos/DAL/](Docs/Proyectos/DAL/) |
-| **Desing** | [Docs/Proyectos/Desing/](Docs/Proyectos/Desing/) |
-| **ZwcadPlugin** | [Docs/Proyectos/ZwcadPlugin/](Docs/Proyectos/ZwcadPlugin/) |
-| **LinkedIn / trdesing.net** | [Docs/Proyectos/LinkedIn/](Docs/Proyectos/LinkedIn/) |
+| **DAL** | [Docs/areas/base-de-datos/DAL.md](Docs/areas/base-de-datos/DAL.md) |
+| **Desing** | [Docs/areas/general/Desing-proyecto.md](Docs/areas/general/Desing-proyecto.md) |
+| **ZwcadPlugin** | [Docs/areas/cad-zwcad/zwcad-plugin.md](Docs/areas/cad-zwcad/zwcad-plugin.md) |
+| **LinkedIn / trdesing.net** | [Docs/areas/linkedin/linkedin-proyecto.md](Docs/areas/linkedin/linkedin-proyecto.md) |
 
 **También disponible:**
 - [ZwcadPlugin README](TamdenZwcadPluging/ZwcadPlugin/README.md)
-- [ZwcadPlugin — Documentación](Docs/Proyectos/ZwcadPlugin/README.md)
-- [ZwcadPlugin Guía Técnica](Docs/Proyectos/ZwcadPlugin/TECHNICAL_GUIDE.md)
-- [Sistema de Iconos](Docs/Proyectos/ZwcadPlugin/Iconos/README_ICONOS.md)
+- [ZwcadPlugin — Documentación](Docs/areas/cad-zwcad/zwcad-plugin.md)
+- [ZwcadPlugin Guía Técnica](Docs/areas/cad-zwcad/TECHNICAL_GUIDE.md)
+- [Sistema de Iconos](Docs/areas/cad-zwcad/iconos/README_ICONOS.md)
 
 ---
 
@@ -135,7 +127,7 @@ Tandem-2026/
 - Utils, Models, Interfaces
 - Constants, Extensions
 
-**📖 [Ver documentación completa](Docs/General/Common.md)**
+**📖 [Ver documentación completa](Docs/areas/general/Common.md)**
 
 ---
 
@@ -147,7 +139,7 @@ Tandem-2026/
 - Entity Framework
 - Modelos de entidad
 
-**📖 [Ver documentación completa](Docs/Proyectos/DAL/)**
+**📖 [Ver documentación completa](Docs/areas/base-de-datos/DAL.md)**
 
 ---
 
@@ -159,7 +151,7 @@ Tandem-2026/
 - Validadores
 - DTOs y procesadores
 
-**📖 [Ver documentación completa](Docs/Proyectos/Desing/)**
+**📖 [Ver documentación completa](Docs/areas/general/Desing-proyecto.md)**
 
 ---
 
@@ -172,7 +164,7 @@ Tandem-2026/
 - Ribbon y menús CUI
 - Integración con ZWCAD API
 
-**📖 [Ver documentación completa](Docs/Proyectos/ZwcadPlugin/)**
+**📖 [Ver documentación completa](Docs/areas/cad-zwcad/zwcad-plugin.md)**
 
 ---
 
@@ -186,7 +178,7 @@ Tandem-2026/
 - Checklist de privacidad antes de publicar videos
 - Carpeta operativa en [`LinkedIn/`](LinkedIn/) para posts, guiones, assets y seguimiento
 
-**📖 [Ver documentación completa](Docs/Proyectos/LinkedIn/)**
+**📖 [Ver documentación completa](Docs/areas/linkedin/linkedin-proyecto.md)**
 
 ---
 
@@ -198,7 +190,7 @@ Tandem-2026/
 | `TANDEM_CREAR_PROYECTO` | Crear nuevo proyecto |
 | `TANDEM_LISTAR_PROYECTOS` | Listar proyectos existentes |
 
-**📖 [Ver todos los comandos](Docs/Proyectos/ZwcadPlugin/)**
+**📖 [Ver todos los comandos](Docs/areas/cad-zwcad/zwcad-plugin.md)**
 
 ---
 
@@ -216,7 +208,7 @@ Tandem-2026/
 .\Scripts\Edit-US.ps1 <ID> -Titulo "Nuevo título" -Prioridad 1
 ```
 
-**📖 [Ver guía completa de Azure DevOps](Docs/General/Azure-DevOps.md)**
+**📖 [Ver guía completa de Azure DevOps](Docs/areas/azure-devops/Azure-DevOps.md)**
 
 ---
 
@@ -269,7 +261,7 @@ git checkout -b feature/nueva-funcionalidad
 git commit -m "feat: Implementar nueva funcionalidad AB#625"
 ```
 
-**📖 [Ver guía completa de Git](Docs/General/Git-Workflow.md)**
+**📖 [Ver guía completa de Git](Docs/areas/general/Git-Workflow.md)**
 
 ---
 
@@ -296,7 +288,7 @@ git push origin master
 
 El commit aparecerá automáticamente en Azure DevOps → User Story #625 → Development
 
-**📖 [Ver guía de vinculación Azure/GitHub](Docs/General/Azure-DevOps.md)**
+**📖 [Ver guía de vinculación Azure/GitHub](Docs/areas/azure-devops/Azure-DevOps.md)**
 
 ---
 
@@ -314,7 +306,7 @@ El commit aparecerá automáticamente en Azure DevOps → User Story #625 → De
 - Nombre archivo = Nombre tipo
 - Namespace: `Tandem2026.<Proyecto>.<Categoria>`
 
-**📖 [Ver convenciones completas](Docs/General/Convenciones.md)**
+**📖 [Ver convenciones completas](Docs/areas/general/Convenciones.md)**
 
 ---
 
@@ -374,15 +366,15 @@ nuget restore Design.sln
 **Solución:**
 - Verificar formato: `AB#<ID>`
 - Verificar integración GitHub ↔ Azure Boards
-- Ver [Guía de Azure DevOps](Docs/General/Azure-DevOps.md)
+- Ver [Guía de Azure DevOps](Docs/areas/azure-devops/Azure-DevOps.md)
 
 ---
 
 ## 📞 Soporte
 
 **Documentación:**
-- [Docs/General/](Docs/General/) - Documentación común
-- [Docs/Proyectos/](Docs/Proyectos/) - Documentación específica
+- [Docs/areas/general/](Docs/areas/general/) - Documentación común
+- [Docs/areas/](Docs/areas/) - Documentación específica
 
 **Azure DevOps:**
 - Crear Issue: https://dev.azure.com/VSCAD/tandem2026/_workitems/create/Issue

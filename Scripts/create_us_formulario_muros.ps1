@@ -94,8 +94,8 @@ Alternativa mas simple si el flujo polling es complejo: dialog WPF/WinForms en e
 - Cancelar formulario -> no se dibuja nada.
 
 Documentacion:
-- Anadir Docs/Proyectos/Desing/US-XXX-Formulario-Configuracion-Muros.md con flujo y screenshots.
-- Actualizar Docs/General/Arquitectura-Cliente-Servidor.md mencionando que el formulario es server-side (compartible con futuros clientes).'
+- Anadir Docs/areas/desing2-muros-3d/US-XXX-Formulario-Configuracion-Muros.md con flujo y screenshots.
+- Actualizar Docs/areas/general/Arquitectura-Cliente-Servidor.md mencionando que el formulario es server-side (compartible con futuros clientes).'
     }
 )
 

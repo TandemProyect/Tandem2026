@@ -31,7 +31,7 @@ foreach ($title in @(
 }
 
 # 3. Adjuntar documentación
-$filePath = 'C:\00_Tandem2026\Docs\Proyectos\Desing\NEXT-Atributos-Objeto-Extruido.md'
+$filePath = (Join-Path $PSScriptRoot '..\Docs\areas\encofrado-atk60\historial\NEXT-Atributos-Objeto-Extruido.md')
 $fileName = 'NEXT-Atributos-Objeto-Extruido.md'
 $uploadUrl = "https://dev.azure.com/$org/$project/_apis/wit/attachments?fileName=$fileName&api-version=7.0"
 $uploadHeaders = @{ Authorization = "Basic $auth"; 'Content-Type' = 'application/octet-stream' }

@@ -58,4 +58,4 @@ Quest: tienda Meta más adelante. Tablet: Play Store más adelante. Prototipo = 
 | `TandemXrBootstrap` | Arranque + sondeo pendientes |
 | `Editor/TandemXrProjectSetup` | Menú Setup escena |
 
-Docs: `Docs/Proyectos/TandemXR/`
+Docs: `Docs/areas/tandemxr/tandemxr-proyecto.md`

@@ -1,0 +1,9 @@
+---
+description: Área Plugins BricsCAD y Revit — leer su INDEX antes de tocar este código
+globs:
+  - "TandemBricscadPlugin/**"
+  - "TandemRevitPlugin/**"
+alwaysApply: false
+---
+
+Trabajas en el área **Plugins BricsCAD y Revit**. Lee `Docs/areas/cad-bricscad-revit/INDEX.md` y solo los documentos que ese INDEX indique para tu tarea. No leas la documentación de otras áreas.

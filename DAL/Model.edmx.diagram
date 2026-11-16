@@ -169,6 +169,38 @@
         <AssociationConnector Association="DesingEntity.FK_TSql_DesignWallArticle_TSql_Design_V2" />
         <AssociationConnector Association="DesingEntity.FK_TSql_DesignWallArticle_TSql_DesignWall" />
         <AssociationConnector Association="DesingEntity.FK_TSql_DesignWallArticle_Tsql_Master_Articles" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_AiCommand" Width="1.5" PointX="42.25" PointY="1" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_AiCommandPhrase" Width="1.5" PointX="42.25" PointY="8.5" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_AiCommandUser" Width="1.5" PointX="45.25" PointY="1" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_AiCommandUserPhrase" Width="1.5" PointX="45.25" PointY="6.5" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_AiEnvironment" Width="1.5" PointX="39.25" PointY="1" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_AiEnvironmentReply" Width="1.5" PointX="39.25" PointY="7.5" />
+        <EntityTypeShape EntityType="DesingEntity.TSql_AiUserSettings" Width="1.5" PointX="39.25" PointY="13" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiCommand_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiCommand_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiCommandPhrase_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiCommandPhrase_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiCommandPhrase_TSql_AiCommand" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiCommandPhrase_TSql_AiEnvironment" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiCommandUser_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiCommandUser_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiCommandUser_AspNetUsers2" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiCommandUser_TSql_AiCommand" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiCommandUserPhrase_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiCommandUserPhrase_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiCommandUserPhrase_AspNetUsers2" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiCommandUserPhrase_TSql_AiCommand" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiCommandUserPhrase_TSql_AiCommandPhrase" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiCommandUserPhrase_TSql_AiEnvironment" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiEnvironment_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiEnvironment_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiEnvironmentReply_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiEnvironmentReply_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiEnvironmentReply_TSql_AiEnvironment" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiUserSettings_AspNetUsers" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiUserSettings_AspNetUsers1" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiUserSettings_AspNetUsers2" />
+        <AssociationConnector Association="DesingEntity.FK_TSql_AiUserSettings_TSql_AiEnvironment" />
         </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

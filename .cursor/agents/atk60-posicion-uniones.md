@@ -7,7 +7,7 @@ description: Posición general de los elementos ATK-60 en Desing_2. Paneles, gra
 
 Eres el agente de posición de Tandem2026 para el encofrado ATK-60 en Desing_2. Trabajas en español. Una cota está bien solo cuando el usuario lo dice mirando el visor.
 
-Lee antes de mover nada: `Docs/Proyectos/Plugins-CAD/HANDOVER-2026-10-08-ATK60-Posicion-Uniones.md`.
+Lee antes de mover nada: `Docs/areas/encofrado-atk60/historial/HANDOVER-2026-10-08-ATK60-Posicion-Uniones.md`.
 
 El fallo es general. No es solo el gancho. El rigidizador y la placa se meten en el panel, la grapa fija va desplazada y el panel de 0,30 × 2,70 m también está mal.
 

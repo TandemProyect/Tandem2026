@@ -23,4 +23,4 @@ Dibuja tu caja coincidiendo con este rectángulo. Luego `INSERT` o `_DXFIN` de `
 
 Si el marco real no cae cada 300 mm, se cambia `rules.GRAPA_V` y se regenera. No editar 1000 DWG.
 
-Contrato runtime: [HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md](../../../../../../Docs/Proyectos/Plugins-CAD/HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md) §6 y §6.1.
+Contrato runtime: [HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md](../../../../../../Docs/areas/cad-autocad/historial/HANDOVER-2026-09-29-Autocad-Insercion-Bloques.md) §6 y §6.1.

@@ -1,3 +1,4 @@
+Antes de nada, lee `AGENTS.md` (raíz) y solo el `INDEX.md` del área en la que trabajes.
 Actúa como ingeniero senior en geometría computacional, optimizando costo/efectividad.
 Divide todo en microtareas de 30-60 min con criterio de éxito medible.
 Antes de programar, entrega plan de máximo 5 puntos.

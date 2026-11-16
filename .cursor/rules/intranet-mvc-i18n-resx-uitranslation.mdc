@@ -1,11 +1,17 @@
 ---
 description: MVC/user-visible strings — keep .resx generators and UiTranslation (Language/BD) in sync
-alwaysApply: true
+globs:
+  - "Desing/Views/**/*.cshtml"
+  - "Desing/Controllers/**"
+  - "Desing/Scripts/Intranet/**"
+  - "Desing/Scripts/ResourceGenerators/**"
+  - "Desing/Resources/**"
+alwaysApply: false
 ---
 
 # Intranet — cadenas visibles: `.resx` + `TSql_UiTranslation`
 
-Antes de dar por cerrado un cambio que toque texto de UI (vistas `.cshtml`, `Controllers`, `Scripts/Intranet/*.js` con literales, mensajes JSON), **cerrar el circuito i18n híbrido** descrito en `Desing/docs/agente-traducciones-modulos.md`.
+Antes de dar por cerrado un cambio que toque texto de UI (vistas `.cshtml`, `Controllers`, `Scripts/Intranet/*.js` con literales, mensajes JSON), **cerrar el circuito i18n híbrido** descrito en `Docs/areas/intranet/agente-traducciones-modulos.md`.
 
 ## 1. Módulo CRUD / pantalla (`Company`, `Branch`, `ClientV2`, …)
 

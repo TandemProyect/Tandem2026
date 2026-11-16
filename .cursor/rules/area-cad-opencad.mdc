@@ -1,0 +1,10 @@
+---
+description: Área OpenCADStudio — leer su INDEX antes de tocar este código
+globs:
+  - "OpenCadStudioPluging/**"
+  - "OpenCadStudioPluging.Tests/**"
+  - "TandemOpenCadStudioPlugin/**"
+alwaysApply: false
+---
+
+Trabajas en el área **OpenCADStudio**. Lee `Docs/areas/cad-opencad/INDEX.md` y solo los documentos que ese INDEX indique para tu tarea. No leas la documentación de otras áreas.

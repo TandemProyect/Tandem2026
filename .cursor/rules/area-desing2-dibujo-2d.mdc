@@ -1,0 +1,11 @@
+---
+description: Área Dibujo 2D en Desing_2 — leer su INDEX antes de tocar este código
+globs:
+  - "Desing/Scripts/Desing2/desing2-dwg-import.js"
+  - "Desing/Services/Desing2DwgConverter.cs"
+  - "Desing/Services/Desing2DxfImportParser.cs"
+  - "Desing/Views/Desing_2/_Desing2TopToolBar.cshtml"
+alwaysApply: false
+---
+
+Trabajas en el área **Dibujo 2D en Desing_2**. Lee `Docs/areas/desing2-dibujo-2d/INDEX.md` y solo los documentos que ese INDEX indique para tu tarea. No leas la documentación de otras áreas.

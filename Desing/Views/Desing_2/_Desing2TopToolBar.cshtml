@@ -13,7 +13,7 @@
 
             <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-polyline" data-ma-stl-tool="polyline" title="@MasterArticles.StlPreview_Desing2ToolPolylineAria" aria-label="@MasterArticles.StlPreview_Desing2ToolPolylineAria">
 
-                <i class="icon-base ri ri-route-line" aria-hidden="true"></i>
+                <i class="icon-base ri ri-edit-2-line" aria-hidden="true"></i>
 
             </button>
 
@@ -77,6 +77,18 @@
             <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-move" data-ma-stl-tool="move" title="@MasterArticles.StlPreview_Desing2TopToolDesplazarAria" aria-label="@MasterArticles.StlPreview_Desing2TopToolDesplazarAria">
 
                 <i class="icon-base ri ri-drag-move-2-line" aria-hidden="true"></i>
+
+            </button>
+
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-rotate" data-ma-stl-tool="rotate" title="Girar" aria-label="Girar">
+
+                <i class="icon-base ri ri-anticlockwise-2-line" aria-hidden="true"></i>
+
+            </button>
+
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-mirror" data-ma-stl-tool="mirror" title="Simetr&iacute;a" aria-label="Simetr&iacute;a">
+
+                <i class="icon-base ri ri-flip-horizontal-2-line" aria-hidden="true"></i>
 
             </button>
 
@@ -146,6 +158,19 @@
             <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-tool-dwg-import" title="@MasterArticles.StlPreview_Desing2DwgImportAria" aria-label="@MasterArticles.StlPreview_Desing2DwgImportAria" aria-haspopup="dialog" aria-controls="ma-stl-dwg-import-modal">
 
                 <i class="icon-base ri ri-file-upload-line" aria-hidden="true"></i>
+
+            </button>
+
+            @* Importar edificio del mapa e importar boceto desde imagen (14/11/2026: venían del panel flotante derecho). Se conservan los id: el visor engancha el boceto por id (maStlImageSketchToolToggleBtn) y marca .active/aria-pressed. *@
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn desing2-stl-top-toolbar__mapbuilding-btn" id="desing2-stl-right-panel-map-building" title="@MasterArticles.StlPreview_Desing2RightMenuMapBuildingAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuMapBuildingAria" aria-pressed="false">
+
+                <i class="icon-base ri ri-map-pin-line" aria-hidden="true"></i>
+
+            </button>
+
+            <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="desing2-stl-right-panel-image-sketch" title="@MasterArticles.StlPreview_Desing2RightMenuImageSketchAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuImageSketchAria" aria-pressed="false">
+
+                <i class="icon-base ri ri-image-add-line" aria-hidden="true"></i>
 
             </button>
 

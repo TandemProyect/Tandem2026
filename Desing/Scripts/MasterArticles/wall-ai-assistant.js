@@ -13,7 +13,15 @@
  * Próximas órdenes: «no tengo paneles de 0,90, sustitúyelos» · «solo tengo 3 paneles de 0,90 del 19».
  * Voz (14/11/2026): micrófono (dictado) y altavoz (respuestas habladas con speechSynthesis; `speech` en la
  * respuesta = texto a leer en vez de `reply`).
+ * Catálogo de la BD (pt107u, ai-command-catalog.js): al mostrarse el chat del muro se carga `Desing_2/AiCommands`
+ * (contexto 'wall'): palabras efectivas del usuario por intención, frases largas (gana la más larga), sí/no comunes,
+ * plantillas del entorno de conversación (claves `wall.*`) y «modo coloquial» / «ponte serio»… Sin servidor: como antes.
  */
+import {
+    maStlAiCatalogLoad, maStlAiCatalogOnChange, maStlAiCatalogGet, maStlAiCatalogReplies, maStlAiCatalogReply, maStlAiCatalogPhrases,
+    maStlAiCatalogLongest, maStlAiCatalogEnv, maStlAiCatalogEnvLabel, maStlAiCatalogSaveEnv, maStlAiCatalogEnvTarget, maStlAiCatalogFmt,
+    maStlAiCatalogUserRules, maStlAiLogUnknownPhrase,
+} from './ai-command-catalog.js?v=20261116a';
 
 /** Textos por defecto (es). El curvo puede sobrescribir tab/placeholder con data-msg-ai-* en su modal. */
 export const MA_STL_WALL_AI_TEXT = {
@@ -27,6 +35,9 @@ export const MA_STL_WALL_AI_TEXT = {
     you: 'Tú',
     assistant: 'Asistente',
     error: 'No he podido procesar el mensaje: {0}',
+    envChanged: 'Entorno de conversación: {0}.',
+    envAlready: 'El entorno {0} ya está activo.',
+    envFail: 'No he podido cambiar el entorno de conversación. Inténtalo más tarde.',
     help: 'No he entendido «{0}». De momento sé hacer esto:\n• Lista de materiales del encofrado de este muro: «dame el material de encofrado de este muro», «lista de materiales», «despiece», «¿qué necesito para encofrar este muro?».\n• Paneles que no tienes: «no tengo paneles de 0,90, sustitúyelos» o «solo tengo 3 paneles de 0,90». Te enseño el antes y el después y lo aplico solo si me dices que sí.\n• «ayuda»: muestra esta lista.',
     helpShort: 'Puedo darte la lista de materiales del encofrado de este muro («dame el material de encofrado de este muro», «despiece») y cambiar paneles que no tengas («no tengo paneles de 0,90, sustitúyelos», «solo tengo 3 paneles de 0,90»).',
     replaceSoon: 'Dime qué paneles no tienes, por ejemplo «no tengo paneles de 0,90» o «solo tengo 3 paneles de 0,90».',
@@ -207,6 +218,9 @@ export const MA_STL_WALL_AI_TEXT_EN = {
     you: 'You',
     assistant: 'Assistant',
     error: 'I could not process the message: {0}',
+    envChanged: 'Conversation environment: {0}.',
+    envAlready: 'The {0} environment is already active.',
+    envFail: 'The conversation environment could not be changed. Please try again later.',
     help: 'I did not understand “{0}”. For now I can do this:\n• Formwork bill of materials for this wall: “give me the formwork material for this wall”, “materials list”, “BOM”, “what do I need to form this wall?”.\n• Panels you don\'t have: “I don\'t have 0.90 panels, replace them” or “I only have 3 panels of 0.90”. I show you the before and after and apply it only if you say yes.\n• “help”: shows this list.',
     helpShort: 'I can give you the formwork bill of materials for this wall (“give me the formwork material for this wall”, “BOM”) and change panels you don\'t have (“I don\'t have 0.90 panels, replace them”, “I only have 3 panels of 0.90”).',
     replaceSoon: 'Tell me which panels you don\'t have, e.g. “I don\'t have 0.90 panels” or “I only have 3 panels of 0.90”.',
@@ -377,8 +391,23 @@ export const MA_STL_WALL_AI_TEXT_EN = {
 
 /** Textos del idioma pedido ('en' → inglés; cualquier otro → español). */
 export function maStlWallAiTexts(lang) {
-    return lang === 'en' ? MA_STL_WALL_AI_TEXT_EN : MA_STL_WALL_AI_TEXT;
+    const base = lang === 'en' ? MA_STL_WALL_AI_TEXT_EN : MA_STL_WALL_AI_TEXT;
+    /* Plantillas del entorno de conversación (catálogo de la BD, claves `wall.*`); sin catálogo, el mismo objeto JS. */
+    const L = lang === 'en' ? 'en' : 'es';
+    const r = maStlAiCatalogReplies(L);
+    const keys = Object.keys(r).filter(function (k) { return k.indexOf('wall.') === 0 && typeof r[k] === 'string' && r[k]; });
+    if (!keys.length) return base;
+    const memo = WALL_TEXT_MERGED[L];
+    if (memo && memo.src === r && memo.base === base) return memo.out;
+    const out = Object.assign({}, base);
+    keys.forEach(function (k) {
+        const jk = k.slice(5);
+        if (base[jk] === undefined || typeof base[jk] === 'string') out[jk] = r[k];
+    });
+    WALL_TEXT_MERGED[L] = { src: r, base: base, out: out };
+    return out;
 }
+const WALL_TEXT_MERGED = {};
 
 function readCookie(name) {
     if (typeof document === 'undefined' || !document.cookie) return '';
@@ -700,6 +729,97 @@ export const MA_STL_WALL_AI_VOCAB = {
 
 export const MA_STL_WALL_AI_SCORE = { high: 2, mid: 1, margin: 0.6 };
 
+/* ------------------------- Catálogo de la BD (pt107u) ------------------------- */
+
+/** Vocabulario efectivo por intención (catálogo) y frases; null = vocabulario JS. */
+let WALL_CAT = null;
+/** Sí / no comunes del catálogo (contextos cargados) sumados a las listas JS. */
+let WALL_YN = null;
+
+function wallPhraseMatch(a, b) {
+    return a.length <= 3 || b.length <= 3 ? (a === b ? 1 : 0) : maStlWallAiWordMatch(a, b);
+}
+
+/**
+ * Aplica el catálogo del contexto 'wall' (o lo quita con null). Por intención (aiId: materials / replace / help /
+ * thanks): conceptos JS − palabras excluidas por el usuario (o sin ellos si sustituyó las de por defecto) + palabras
+ * nuevas del catálogo agrupadas por peso.
+ * Frases de varias palabras con peso: suman a su intención (gana la más larga).
+ */
+export function maStlWallAiApplyCatalog(data) {
+    WALL_CAT = null;
+    if (data && Array.isArray(data.commands)) {
+        const words = {};
+        const phrases = [];
+        const all = [];
+        maStlAiCatalogPhrases(data, maStlWallAiNormalize).forEach(function (ph) {
+            const intent = ph.aiId && MA_STL_WALL_AI_VOCAB[ph.aiId] ? ph.aiId : null;
+            if (ph.kind === 'keyword') all.push(ph);
+            if (ph.kind === 'keyword' && ph.toks.length >= 2) {
+                if (intent) phrases.push(ph);
+                return;
+            }
+            if (!intent || ph.weight == null || ph.toks.length !== 1 || ph.kind === 'example') return;
+            const m = words[intent] || (words[intent] = {});
+            if (!(ph.toks[0] in m)) m[ph.toks[0]] = ph.weight;
+        });
+        const rules = maStlAiCatalogUserRules(data, maStlWallAiNormalize, function (c) { return [c.aiId]; });
+        const vocab = {};
+        Object.keys(words).forEach(function (intent) {
+            const m = words[intent];
+            const ex = rules.excluded[intent] || [];
+            const seen = {};
+            const list = MA_STL_WALL_AI_VOCAB[intent].map(function (c) {
+                const ws = c.words.filter(function (w) {
+                    if (w in m) seen[w] = 1;
+                    return rules.replaced[intent] ? (w in m) : ex.indexOf(w) < 0;
+                });
+                return { w: c.w, words: ws };
+            }).filter(function (c) { return c.words.length; });
+            const byW = {};
+            Object.keys(m).forEach(function (w) {
+                if (seen[w] || ex.indexOf(w) >= 0) return;
+                const k = String(m[w]);
+                (byW[k] || (byW[k] = { w: Number(m[w]), words: [] })).words.push(w);
+            });
+            Object.keys(byW).forEach(function (k) { list.push(byW[k]); });
+            vocab[intent] = list;
+        });
+        WALL_CAT = { vocab: vocab, phrases: phrases, all: all };
+    }
+    rebuildYesNo();
+    return WALL_CAT ? { intents: Object.keys(WALL_CAT.vocab).length, phrases: WALL_CAT.phrases.length } : null;
+}
+
+function rebuildYesNo() {
+    const yes = MA_STL_WALL_AI_YES.slice();
+    const no = MA_STL_WALL_AI_NO.slice();
+    const phrases = [];
+    let any = false;
+    ['design', 'wall'].forEach(function (ctx) {
+        const d = maStlAiCatalogGet(ctx);
+        if (!d) return;
+        any = true;
+        maStlAiCatalogPhrases(d, maStlWallAiNormalize, ['keyword']).forEach(function (ph) {
+            if (ph.code !== 'COMMON_YES' && ph.code !== 'COMMON_NO') return;
+            if (ph.toks.length >= 2) { phrases.push(ph); return; }
+            const list = ph.code === 'COMMON_YES' ? yes : no;
+            if (list.indexOf(ph.toks[0]) < 0) list.push(ph.toks[0]);
+        });
+    });
+    WALL_YN = any ? { yes: yes, no: no, phrases: phrases } : null;
+}
+
+/** Conceptos efectivos de una intención (pruebas). */
+export function maStlWallAiVocabOf(intent) {
+    return WALL_CAT && WALL_CAT.vocab[intent] ? WALL_CAT.vocab[intent] : MA_STL_WALL_AI_VOCAB[intent];
+}
+
+maStlAiCatalogOnChange(function (ctx, data) {
+    if (ctx === 'wall') maStlWallAiApplyCatalog(data);
+    else rebuildYesNo();
+});
+
 /**
  * Analiza el mensaje: idioma, puntuación por intención y confianza.
  * @param {string} text
@@ -714,7 +834,7 @@ export function maStlWallAiAnalyze(text, fallbackLang) {
     Object.keys(MA_STL_WALL_AI_VOCAB).forEach(function (intent) {
         let sum = 0;
         hits[intent] = [];
-        const concepts = MA_STL_WALL_AI_VOCAB[intent];
+        const concepts = maStlWallAiVocabOf(intent);
         /* Cada palabra cuenta solo para su mejor concepto (evita «pesa» = peso + pieza). */
         const best = concepts.map(function () { return { q: 0, tok: '' }; });
         for (let i = 0; i < tokens.length; i++) {
@@ -739,6 +859,15 @@ export function maStlWallAiAnalyze(text, fallbackLang) {
         });
         scores[intent] = Math.round(sum * 100) / 100;
     });
+    /* Frase del catálogo (gana la más larga): suma su peso a su intención. */
+    if (WALL_CAT && WALL_CAT.phrases.length) {
+        const m = maStlAiCatalogLongest(tokens, WALL_CAT.phrases, wallPhraseMatch);
+        const it = m && m.item;
+        if (it && it.aiId && Object.prototype.hasOwnProperty.call(scores, it.aiId)) {
+            scores[it.aiId] = Math.round((scores[it.aiId] + (it.weight != null ? it.weight : 3) * m.q) * 100) / 100;
+            hits[it.aiId].push('«' + it.toks.join(' ') + '»');
+        }
+    }
     const order = Object.keys(scores).sort(function (a, b) { return scores[b] - scores[a]; });
     const top = order[0];
     const score = scores[top] || 0;
@@ -747,6 +876,18 @@ export function maStlWallAiAnalyze(text, fallbackLang) {
     if (score >= MA_STL_WALL_AI_SCORE.high && score - second >= MA_STL_WALL_AI_SCORE.margin) confidence = 'high';
     else if (score >= MA_STL_WALL_AI_SCORE.mid) confidence = 'medium';
     return { intent: confidence === 'low' ? null : top, score: score, confidence: confidence, scores: scores, tokens: tokens, hits: hits, lang: lang };
+}
+
+/** Cambia el entorno de conversación y responde con la voz del entorno nuevo (o «ya activo» / «no se ha podido»). */
+export function maStlWallAiEnvReply(code, lang) {
+    const L = lang === 'en' ? 'en' : 'es';
+    const tpl = function (k) { return maStlAiCatalogReply('wall.' + k, L) || maStlAiCatalogReply('design.' + k, L) || maStlWallAiTexts(L)[k]; };
+    const cur = maStlAiCatalogEnv();
+    if (cur && cur.code === code) return Promise.resolve({ reply: maStlAiCatalogFmt(tpl('envAlready'), maStlAiCatalogEnvLabel(code, L)), actions: [] });
+    return maStlAiCatalogSaveEnv(code, { lang: L }).then(function (r) {
+        if (!r || !r.ok) return { reply: tpl('envFail'), actions: [] };
+        return { reply: maStlAiCatalogFmt(tpl('envChanged'), maStlAiCatalogEnvLabel(code, L)), actions: [] };
+    });
 }
 
 /** Intención reconocida (confianza alta o media) o null. */
@@ -766,8 +907,13 @@ export function maStlWallAiYesNo(text, lang) {
     const has = function (list) {
         return toks.some(function (t) { return list.some(function (w) { return maStlWallAiWordMatch(t, w) >= 0.95; }); });
     };
-    if (has(MA_STL_WALL_AI_NO)) return 'no';
-    if (has(MA_STL_WALL_AI_YES)) return 'yes';
+    /* Catálogo: frases de varias palabras («de acuerdo», «ni hablar», «go ahead») y palabras del usuario. */
+    if (WALL_YN && WALL_YN.phrases.length) {
+        const m = maStlAiCatalogLongest(toks, WALL_YN.phrases, wallPhraseMatch);
+        if (m && m.len >= 2) return m.item.code === 'COMMON_NO' ? 'no' : 'yes';
+    }
+    if (has(WALL_YN ? WALL_YN.no : MA_STL_WALL_AI_NO)) return 'no';
+    if (has(WALL_YN ? WALL_YN.yes : MA_STL_WALL_AI_YES)) return 'yes';
     return null;
 }
 
@@ -2289,6 +2435,7 @@ function swapNotUnderstood(st, text, res) {
     if (maStlWallAiIsSwapOrder(o)) return null;
     const a = maStlWallAiAnalyze(text, st.T.lang);
     if (a.intent === 'materials' && a.confidence === 'high') return null;
+    wallLogUnknown(st.ctx, text, st.T.lang, 'cambio de paneles', st.T.swapNotUnderstood);
     return Object.assign({}, res, { reply: st.T.swapNotUnderstood });
 }
 
@@ -2534,6 +2681,9 @@ export function maStlWallAiHandleMessage(wallCtx, text, history) {
     const T = maStlWallAiTexts(a.lang);
     const tag = function (res) { if (res && !res.lang) res.lang = T.lang; return res; };
     const done = function (res) { return Promise.resolve(res).then(tag); };
+    /* Entorno de conversación (pt107u): «modo coloquial», «ponte serio», «technical mode»… (se guarda en BD). */
+    const envCode = maStlAiCatalogEnvTarget(maStlWallAiNormalize(text), WALL_CAT ? WALL_CAT.all : null, wallPhraseMatch);
+    if (envCode) return done(maStlWallAiEnvReply(envCode, T.lang));
     /* Respuesta corta («sí», «vale», «yes», «no») a un «¿Querías decir…?» / «Did you mean…?» pendiente. */
     if (prev && prev.confirm) {
         const yn = maStlWallAiYesNo(text, a.lang);
@@ -2589,7 +2739,25 @@ export function maStlWallAiHandleMessage(wallCtx, text, history) {
     if (a.intent === 'replace') return done({ reply: T.replaceSoon, actions: [] });
     if (a.intent === 'help') return done({ reply: T.helpShort, actions: [] });
     if (a.intent === 'thanks') return done({ reply: T.thanks, actions: [] });
+    wallLogUnknown(wallCtx, text, T.lang, 'chat', fmt(T.help, String(text || '').trim()).split('\n')[0]);
     return done({ reply: fmt(T.help, String(text || '').trim()), actions: [] });
+}
+
+/**
+ * «No he entendido…» de la IA del muro (pt119u): guarda la frase en el servidor (App_Data/IA/frases-no-comprendidas.json)
+ * con el muro y el paso. Sin esperar y sin avisar si falla. Las pruebas pueden cambiar el envío con
+ * `window.__maStlAiLogUnknown`.
+ */
+function wallLogUnknown(wallCtx, text, lang, fase, reply) {
+    try {
+        const w = typeof window !== 'undefined' ? window : null;
+        const fn = (w && typeof w.__maStlAiLogUnknown === 'function') ? w.__maStlAiLogUnknown : maStlAiLogUnknownPhrase;
+        const c = wallCtx || {};
+        Promise.resolve(fn({
+            frase: String(text || ''), asistente: 'wall', idioma: lang,
+            contexto: { tipoMuro: c.kind || null, muro: c.wallId != null ? String(c.wallId) : null, fase: fase, respuesta: reply },
+        })).catch(function () { return false; });
+    } catch (_e) { /* nunca molesta al usuario */ }
 }
 
 if (typeof window !== 'undefined' && typeof window.maStlWallAiHandleMessage !== 'function') {
@@ -2939,10 +3107,17 @@ function ensureVoiceStyle() {
  * Monta el chat dentro de `container`.
  * @param {HTMLElement} container
  * @param {{ getContext?: () => object, texts?: object, height?: string,
- *           onActions?: (actions: Array<object>, ctx: object) => void }} [options]
+ *           onActions?: (actions: Array<object>, ctx: object) => void,
+ *           handler?: (ctx: object, text: string, history: Array<object>) => object|Promise<object>,
+ *           owner?: string }} [options]
+ * `handler` (14/11/2026, IA del diseño): intérprete propio de este chat; sin él, el del muro
+ * (`window.maStlWallAiHandleMessage` o `maStlWallAiHandleMessage`). `owner` ('wall' por defecto, 'design'):
+ * al mostrarse el chat (`focus`) se avisa con el evento `ma-stl-ai-chat-shown` ({ owner }) para que solo
+ * haya un asistente abierto a la vez; `reset` solo limpia el encofrado provisional y el resaltado del muro si es 'wall'.
  */
 export function mountWallAiChat(container, options) {
     options = options || {};
+    const owner = options.owner || 'wall';
     const T = Object.assign({}, maStlWallAiUiTexts(), options.texts || {});
     let history = [];
     let busy = false;
@@ -3856,9 +4031,11 @@ export function mountWallAiChat(container, options) {
         input.value = '';
         autoGrow();
         setBusy(true);
-        const handler = typeof window !== 'undefined' && typeof window.maStlWallAiHandleMessage === 'function'
-            ? window.maStlWallAiHandleMessage
-            : maStlWallAiHandleMessage;
+        const handler = typeof options.handler === 'function'
+            ? options.handler
+            : (typeof window !== 'undefined' && typeof window.maStlWallAiHandleMessage === 'function'
+                ? window.maStlWallAiHandleMessage
+                : maStlWallAiHandleMessage);
         Promise.resolve()
             .then(function () { return handler(ctx, text, history.slice()); })
             .then(function (res) {
@@ -3904,11 +4081,11 @@ export function mountWallAiChat(container, options) {
         reset: function (key) {
             stopVoice(false);
             /* Encofrado provisional del recuento: se quita al cambiar de muro o cerrar el formulario. */
-            if (typeof window !== 'undefined' && typeof window.maStlWallAiClearTempFormwork === 'function') {
+            if (owner === 'wall' && typeof window !== 'undefined' && typeof window.maStlWallAiClearTempFormwork === 'function') {
                 try { window.maStlWallAiClearTempFormwork(); } catch (_e) { /* visor no disponible */ }
             }
             /* Paneles resaltados por el cambio guiado: fuera al cambiar de muro o cerrar. */
-            if (typeof window !== 'undefined' && typeof window.maStlWallAiClearPanelHighlight === 'function') {
+            if (owner === 'wall' && typeof window !== 'undefined' && typeof window.maStlWallAiClearPanelHighlight === 'function') {
                 try { window.maStlWallAiClearPanelHighlight(); } catch (_e) { /* visor no disponible */ }
             }
             ctxKey = key != null ? String(key) : null;
@@ -3937,7 +4114,16 @@ export function mountWallAiChat(container, options) {
             try { input.focus({ preventScroll: true }); } catch (_e) { input.focus(); }
             /* Al mostrarse la pestaña IA: saludo hablado (una vez por conversación). */
             speakGreeting();
+            /* Vocabulario y entorno del usuario (BD) para el chat del muro; el de diseño lo carga su panel. */
+            if (owner !== 'design') {
+                try { maStlAiCatalogLoad('wall', maStlWallAiUiLang()); } catch (_e) { /* sin catálogo: vocabulario JS */ }
+            }
+            /* Un solo asistente abierto: el otro (muro / diseño) se cierra al oír este aviso. */
+            if (typeof document !== 'undefined' && typeof CustomEvent === 'function') {
+                try { document.dispatchEvent(new CustomEvent('ma-stl-ai-chat-shown', { detail: { owner: owner } })); } catch (_e) { /* sin DOM */ }
+            }
         },
+        owner: owner,
         send: send,
         /** Micrófono: botón, ¿escuchando?, y parar (cancela lo dictado salvo `keepText`). */
         micBtn: micBtn,

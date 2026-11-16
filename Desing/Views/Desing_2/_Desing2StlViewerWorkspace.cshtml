@@ -78,7 +78,7 @@
    data-ma-stl-source-units: vértices STL → m → mm escena (×1000; reglas/rejilla en mm).
     Persistencia vista: #ma-stl-save-viewer-state → servidor + cookie por diseño; restauración tras primer refit. *@
 @* Opcional desarrollo en #ma-stl-viewer-shell: data-ma-stl-dev-auto-load="true", data-ma-stl-dev-default-stl="~/Files/.../3120270090P.stl" (URL resuelta con @Url.Content), data-ma-stl-dev-default-label="..." *@
-<div id="ma-stl-viewer-shell" class="desing2-stl-view-scope border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" data-ma-text-color1="@HttpUtility.HtmlAttributeEncode(textColor1Hex)" data-ma-text-color2="@HttpUtility.HtmlAttributeEncode(textColor2Hex)" data-ma-stl-show-rulers-toggle="true" data-ma-stl-desing2-persist-view="true" data-ma-stl-source-units="@HttpUtility.HtmlAttributeEncode(stlSrcUnits)" data-ma-stl-wall3d-api-url="@Url.Action("ProcesarLineasZwcad", "DesignToolsAutocad")" data-ma-stl-image-sketch-api-url="@Url.Action("DetectarEsquinasImagen", "DesignToolsAutocad")" data-ma-stl-map-building-search-url="@Url.Action("BuscarDireccionOsm", "DesignToolsAutocad")" data-ma-stl-map-building-buildings-url="@Url.Action("BuscarEdificiosOsm", "DesignToolsAutocad")" data-ma-stl-map-building-import-url="@Url.Action("ImportarEdificioOsm", "DesignToolsAutocad")" data-ma-stl-map-building-catastro-url="@Url.Action("ConsultarCatastroPorCoordenadas", "DesignToolsAutocad")" data-ma-stl-wall-connections-api-url="@Url.Action("SaveWallConnections", "Desing_2")" data-ma-stl-wall-diagnostics-api-url="@Url.Action("SaveWallDiagnostics", "Desing_2")" data-ma-stl-save-design-walls-api-url="@Url.Action("SaveDesignWalls", "Desing_2")" data-ma-stl-save-design-photo-api-url="@Url.Action("SaveDesignPhoto", "Desing_2")" data-ma-stl-load-design-walls-api-url="@Url.Action("GetDesignWalls", "Desing_2")" data-ma-stl-material-count-url="@Url.Action("ListDesignMaterialCount", "Desing_2")" data-ma-stl-material-count-preview-url="@Url.Action("PreviewMaterialCount", "Desing_2")" data-ma-stl-material-count-clear-url="@Url.Action("ClearDesignMaterialCount", "Desing_2")" data-ma-stl-design-id="@(Model.DesignId.HasValue ? Model.DesignId.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" data-ma-stl-prop-spacing-mm="@Model.PropSpacingMm.ToString(System.Globalization.CultureInfo.InvariantCulture)" data-ma-stl-save-prop-spacing-api-url="@Url.Action("SavePropSpacing", "Desing_2")" data-ma-stl-wall3d-mat-wall="@Url.Content("~/Content/DesignTools/Material/concrete.png")" data-ma-stl-escape-cancel-toast="@MasterArticles.StlPreview_EscapeCancelToolsToast" data-ma-stl-user-floor-line-dim-edit-aria="@MasterArticles.StlPreview_UserFloorLineDimEditAria" data-ma-stl-user-floor-line-dim-edit-x-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaXAria" data-ma-stl-user-floor-line-dim-edit-z-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaZAria" data-ma-stl-user-floor-line-dim-edit-thickness-aria="@MasterArticles.StlPreview_UserFloorLineDimEditThicknessAria" data-ma-stl-user-floor-line-drag-handle-aria="@MasterArticles.StlPreview_UserFloorLineDragHandleAria" data-ma-stl-user-floor-line-p1-handle-aria="@MasterArticles.StlPreview_UserFloorLineP1HandleAria" data-ma-stl-user-floor-line-p2-handle-aria="@MasterArticles.StlPreview_UserFloorLineP2HandleAria">
+<div id="ma-stl-viewer-shell" class="desing2-stl-view-scope border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" data-ma-text-color1="@HttpUtility.HtmlAttributeEncode(textColor1Hex)" data-ma-text-color2="@HttpUtility.HtmlAttributeEncode(textColor2Hex)" data-ma-stl-show-rulers-toggle="true" data-ma-stl-desing2-persist-view="true" data-ma-stl-source-units="@HttpUtility.HtmlAttributeEncode(stlSrcUnits)" data-ma-stl-wall3d-api-url="@Url.Action("ProcesarLineasZwcad", "DesignToolsAutocad")" data-ma-stl-image-sketch-api-url="@Url.Action("DetectarEsquinasImagen", "DesignToolsAutocad")" data-ma-stl-map-building-search-url="@Url.Action("BuscarDireccionOsm", "DesignToolsAutocad")" data-ma-stl-map-building-buildings-url="@Url.Action("BuscarEdificiosOsm", "DesignToolsAutocad")" data-ma-stl-map-building-import-url="@Url.Action("ImportarEdificioOsm", "DesignToolsAutocad")" data-ma-stl-map-building-catastro-url="@Url.Action("ConsultarCatastroPorCoordenadas", "DesignToolsAutocad")" data-ma-stl-wall-connections-api-url="@Url.Action("SaveWallConnections", "Desing_2")" data-ma-stl-wall-diagnostics-api-url="@Url.Action("SaveWallDiagnostics", "Desing_2")" data-ma-stl-save-design-walls-api-url="@Url.Action("SaveDesignWalls", "Desing_2")" data-ma-stl-save-design-photo-api-url="@Url.Action("SaveDesignPhoto", "Desing_2")" data-ma-stl-load-design-walls-api-url="@Url.Action("GetDesignWalls", "Desing_2")" data-ma-stl-material-count-url="@Url.Action("ListDesignMaterialCount", "Desing_2")" data-ma-stl-material-count-preview-url="@Url.Action("PreviewMaterialCount", "Desing_2")" data-ma-stl-material-count-clear-url="@Url.Action("ClearDesignMaterialCount", "Desing_2")" data-ma-stl-ai-commands-url="@Url.Action("AiCommands", "Desing_2")" data-ma-stl-ai-settings-url="@Url.Action("SaveAiUserSettings", "Desing_2")" data-ma-stl-design-id="@(Model.DesignId.HasValue ? Model.DesignId.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" data-ma-stl-prop-spacing-mm="@Model.PropSpacingMm.ToString(System.Globalization.CultureInfo.InvariantCulture)" data-ma-stl-save-prop-spacing-api-url="@Url.Action("SavePropSpacing", "Desing_2")" data-ma-stl-wall3d-mat-wall="@Url.Content("~/Content/DesignTools/Material/concrete.png")" data-ma-stl-escape-cancel-toast="@MasterArticles.StlPreview_EscapeCancelToolsToast" data-ma-stl-user-floor-line-dim-edit-aria="@MasterArticles.StlPreview_UserFloorLineDimEditAria" data-ma-stl-user-floor-line-dim-edit-x-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaXAria" data-ma-stl-user-floor-line-dim-edit-z-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaZAria" data-ma-stl-user-floor-line-dim-edit-thickness-aria="@MasterArticles.StlPreview_UserFloorLineDimEditThicknessAria" data-ma-stl-user-floor-line-drag-handle-aria="@MasterArticles.StlPreview_UserFloorLineDragHandleAria" data-ma-stl-user-floor-line-p1-handle-aria="@MasterArticles.StlPreview_UserFloorLineP1HandleAria" data-ma-stl-user-floor-line-p2-handle-aria="@MasterArticles.StlPreview_UserFloorLineP2HandleAria">
     <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap px-2 py-2 border-bottom desing2-stl-actions-toolbar" id="master-article-stl-viewer-toolbar">
         <div class="d-flex align-items-center gap-2 min-w-0 flex-grow-1 desing2-stl-toolbar-leading">
             <span class="app-brand-logo demo flex-shrink-0">
@@ -620,17 +620,8 @@
             <div class="desing2-stl-hover-right-panel__hover-zone">
                 <div class="desing2-stl-hover-right-panel__sheet border border-end-0 rounded-start shadow-sm">
                     <div class="desing2-stl-hover-right-panel__toolbar d-flex justify-content-between align-items-start px-2 py-1 border-bottom border-light">
-                        @* Orden: MAPA 3D primero · boceto · mapeo hormigón. Sin muro.jpg aquí (encofrado 3D = barra superior). *@
+                        @* Orden: mapeo hormigón · prueba de conexión. MAPA y boceto desde imagen pasaron el 14/11/2026 a la barra superior, junto a Importar DWG (_Desing2TopToolBar.cshtml, mismos id). *@
                         <div class="desing2-stl-hover-right-panel__tools d-flex align-items-center gap-1 flex-wrap">
-                            <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-right-panel__mapbuilding-btn rounded flex-shrink-0" id="desing2-stl-right-panel-map-building" title="@MasterArticles.StlPreview_Desing2RightMenuMapBuildingAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuMapBuildingAria" aria-pressed="false">
-                                <span class="desing2-stl-right-panel__mapbuilding-inner">
-                                    <i class="icon-base ri ri-map-pin-2-fill desing2-stl-right-panel__map-icon" aria-hidden="true"></i>
-                                    <span class="desing2-stl-right-panel__mapbuilding-label">Mapa</span>
-                                </span>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-right-panel__imagesketch-btn rounded flex-shrink-0" id="desing2-stl-right-panel-image-sketch" title="@MasterArticles.StlPreview_Desing2RightMenuImageSketchAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuImageSketchAria" aria-pressed="false">
-                                <img class="desing2-stl-right-panel__wall-icon" src="@Url.Content("~/Content/DesignTools/MenuIcon/images.jpg")" alt="" aria-hidden="true" />
-                            </button>
                             <button type="button" class="btn btn-sm btn-text-secondary waves-effect p-1 desing2-stl-right-panel__wallmap-btn rounded flex-shrink-0" id="desing2-stl-right-panel-wall-map" title="@MasterArticles.StlPreview_Desing2RightMenuWallMapAria" aria-label="@MasterArticles.StlPreview_Desing2RightMenuWallMapAria" aria-pressed="false"
                                     data-ma-stl-wall3d-map-no-walls="@MasterArticles.StlPreview_Wall3dMapNoWalls"
                                     data-ma-stl-wall3d-map-processing="@MasterArticles.StlPreview_Wall3dMapProcessing"
@@ -841,6 +832,54 @@
                 </div>
             </div>
         </div>
+        <div id="ma-stl-rotate-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
+             data-ma-stl-rotate-tool-instruction-selecting="Girar: selecciona muros o líneas y pulsa Intro"
+             data-ma-stl-rotate-tool-instruction-base="Girar: punto base (clic o X;Z)"
+             data-ma-stl-rotate-tool-instruction-displacement="Girar: ángulo (clic o escribe grados, + = antihorario) e Intro"
+             data-ma-stl-rotate-tool-distance-invalid-toast="@MasterArticles.StlPreview_LineToolDistanceInvalidToast"
+             data-ma-stl-line-tool-distance-preview-prefix="@MasterArticles.StlPreview_LineToolDistancePreviewApprox">
+            <div id="ma-stl-rotate-tool-hud-instruction" class="ma-stl-line-tool-hud__instruction small fw-semibold text-body mb-1"></div>
+            <div id="ma-stl-rotate-tool-hud-coords" class="ma-stl-line-tool-hud__coords"
+                 data-ma-stl-line-tool-coords-template="@MasterArticles.StlPreview_RulerAnchorGridCoordsHud"></div>
+            <div id="ma-stl-rotate-tool-hud-distance-row" class="ma-stl-line-tool-hud__distance-row d-none mt-1">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <input id="ma-stl-rotate-tool-hud-distance" type="text" maxlength="48" tabindex="0" autocomplete="off"
+                           inputmode="text"
+                           aria-label="Ángulo °"
+                           placeholder="Ángulo °"
+                           class="form-control form-control-sm ma-stl-line-tool-hud__distance-field" />
+                    <span id="ma-stl-rotate-tool-hud-distance-preview" class="small text-muted fw-semibold text-nowrap ma-stl-line-tool-hud__distance-preview" aria-hidden="true"></span>
+                </div>
+            </div>
+            <div class="form-check form-check-inline small mt-1 mb-0">
+                <input class="form-check-input" type="checkbox" id="ma-stl-rotate-tool-hud-option" />
+                <label class="form-check-label" for="ma-stl-rotate-tool-hud-option" id="ma-stl-rotate-tool-hud-option-label">Mantener original (copia) [C]</label>
+            </div>
+        </div>
+        <div id="ma-stl-mirror-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
+             data-ma-stl-mirror-tool-instruction-selecting="Simetría: selecciona muros o líneas y pulsa Intro"
+             data-ma-stl-mirror-tool-instruction-base="Simetría: primer punto del eje (clic o X;Z)"
+             data-ma-stl-mirror-tool-instruction-displacement="Simetría: segundo punto del eje (clic, X;Z o ángulo °) e Intro"
+             data-ma-stl-mirror-tool-distance-invalid-toast="@MasterArticles.StlPreview_LineToolDistanceInvalidToast"
+             data-ma-stl-line-tool-distance-preview-prefix="@MasterArticles.StlPreview_LineToolDistancePreviewApprox">
+            <div id="ma-stl-mirror-tool-hud-instruction" class="ma-stl-line-tool-hud__instruction small fw-semibold text-body mb-1"></div>
+            <div id="ma-stl-mirror-tool-hud-coords" class="ma-stl-line-tool-hud__coords"
+                 data-ma-stl-line-tool-coords-template="@MasterArticles.StlPreview_RulerAnchorGridCoordsHud"></div>
+            <div id="ma-stl-mirror-tool-hud-distance-row" class="ma-stl-line-tool-hud__distance-row d-none mt-1">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <input id="ma-stl-mirror-tool-hud-distance" type="text" maxlength="48" tabindex="0" autocomplete="off"
+                           inputmode="text"
+                           aria-label="Punto o ángulo"
+                           placeholder="Punto o ángulo"
+                           class="form-control form-control-sm ma-stl-line-tool-hud__distance-field" />
+                    <span id="ma-stl-mirror-tool-hud-distance-preview" class="small text-muted fw-semibold text-nowrap ma-stl-line-tool-hud__distance-preview" aria-hidden="true"></span>
+                </div>
+            </div>
+            <div class="form-check form-check-inline small mt-1 mb-0">
+                <input class="form-check-input" type="checkbox" id="ma-stl-mirror-tool-hud-option" />
+                <label class="form-check-label" for="ma-stl-mirror-tool-hud-option" id="ma-stl-mirror-tool-hud-option-label">¿Borrar originales? [B]</label>
+            </div>
+        </div>
         <div id="ma-stl-trim-tool-hud" class="ma-stl-line-tool-hud d-none" aria-live="polite" aria-atomic="true"
              data-ma-stl-trim-tool-instruction="@MasterArticles.StlPreview_TrimToolInstruction"
              data-ma-stl-trim-tool-no-change-toast="@MasterArticles.StlPreview_TrimToolNoChangeToast"
@@ -888,7 +927,7 @@
             <div id="ma-stl-insert-enclosure-tool-hud-coords" class="ma-stl-line-tool-hud__coords"
                  data-ma-stl-line-tool-coords-template="@MasterArticles.StlPreview_RulerAnchorGridCoordsHud"></div>
         </div>
-        @Html.Partial("_Desing2CompassOverlay")
+        @* Brújula (rosa de los vientos) quitada 14/11/2026: no se usaba. El parcial _Desing2CompassOverlay.cshtml sigue en el proyecto; el visor comprueba que exista #ma-stl-compass-dial antes de girarlo. *@
         <div class="ma-stl-clip-controls d-none" id="ma-stl-clip-controls" aria-hidden="true">
             <div class="ma-stl-clip-y-wrap" title="@MasterArticles.StlPreview_ClipYTitle">
                 <span class="ma-stl-clip-label">Y</span>

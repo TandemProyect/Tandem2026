@@ -1,6 +1,8 @@
 ---
-description: No hay informe trimestral. Las horas van en el informe abierto.
-alwaysApply: true
+description: Leer cuando se hable de informe trimestral u horas. No hay informe trimestral. Las horas van en el informe abierto.
+globs:
+  - "Desing/Report/**"
+alwaysApply: false
 ---
 
 # Horas

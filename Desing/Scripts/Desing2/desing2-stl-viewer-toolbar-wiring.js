@@ -1965,11 +1965,33 @@
         syncVisibility();
     }
 
+    /** Botón IA de la barra de modos (14/11/2026): aún sin función; solo avisa «próximamente». */
+    function wireIaButton() {
+        const btn = document.getElementById('ma-stl-mode-ia');
+        if (!btn) return;
+        btn.addEventListener('click', function (ev) {
+            ev.preventDefault();
+            /* IA del diseño (14/11/2026): si design-ai-assistant.js ya ha enganchado el botón (visor Desing_2), él abre/cierra
+               el panel «Asistente IA – Diseño»; el aviso «próximamente» queda solo si el módulo no ha cargado. */
+            if (btn.getAttribute('data-ma-design-ai') === '1') return;
+            const msg = btn.getAttribute('data-ma-ia-soon') || 'IA: próximamente';
+            if (typeof window.maStlDesing2ShowSaveViewToast === 'function') {
+                window.maStlDesing2ShowSaveViewToast(msg, false);
+            }
+            try {
+                btn.blur();
+            } catch (_ex) {
+                /* ignore */
+            }
+        });
+    }
+
     wireHoverLockPanel('#desing2-stl-hover-side-panel', 'desing2-stl-side-panel-collapse', '.desing2-stl-hover-side-panel__hover-zone');
     wireHoverLockPanel('#desing2-stl-hover-right-panel', 'desing2-stl-right-panel-collapse', '.desing2-stl-hover-right-panel__hover-zone');
     wireRulersFlyout();
     wireModeSystemDropdown();
     wireFormworkButton();
     wireFormworkVisibilityByMode();
+    wireIaButton();
     wireInitialStlBoot();
 })();

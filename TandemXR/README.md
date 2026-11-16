@@ -59,7 +59,7 @@ TandemXR/
 
 ## Documentación
 
-Ver `Docs/Proyectos/TandemXR/README.md` en el repositorio raíz.
+Ver `Docs/areas/tandemxr/tandemxr-proyecto.md` en el repositorio raíz.
 
 ## Build producción
 
