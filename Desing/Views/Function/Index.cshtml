@@ -24,7 +24,7 @@
             @Security.Common_Security /
         </span> @Security.Function_Index_Breadcrumb
     </h4>
-    <a class="btn btn-primary text-white" href="@Url.Action("Create", "Function")">
+    <a class="btn btn-primary text-white" href="@Url.Action("Create", "Function")" id="btnCreateFunction">
         <i class="icon-base ri ri-add-line me-1"></i> @Security.Function_Index_Create
     </a>
 </div>
@@ -49,6 +49,12 @@
                 </tr>
             </thead>
         </table>
+    </div>
+</div>
+
+<div class="modal fade" id="createModalFunction" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content"></div>
     </div>
 </div>
 
@@ -130,6 +136,48 @@
                 }
             }));
         });
+
+        /* Crear en ventana emergente: GET del formulario parcial y POST por AJAX. */
+        (function () {
+            var $modal = $('#createModalFunction');
+            var modal = null;
+            function getModal() {
+                if (!modal) { modal = bootstrap.Modal.getOrCreateInstance($modal[0]); }
+                return modal;
+            }
+            $('#btnCreateFunction').on('click', function (e) {
+                e.preventDefault();
+                $.get(this.href, function (html) {
+                    $modal.find('.modal-content').html(html);
+                    getModal().show();
+                }).fail(function (xhr) {
+                    var msg = xhr.responseJSON && xhr.responseJSON.Message;
+                    if (msg) { alert(msg); } else { window.location.href = $('#btnCreateFunction').attr('href'); }
+                });
+            });
+            $modal.on('submit', 'form[data-tandem-modal-form]', function (e) {
+                e.preventDefault();
+                var $form = $(this);
+                var $btn = $form.find('button[type="submit"]').prop('disabled', true);
+                $.ajax({ url: $form.attr('action'), type: 'POST', data: $form.serialize() })
+                    .done(function (res) {
+                        if (res && res.IsOk) {
+                            getModal().hide();
+                            $('#ListFunctions').DataTable().ajax.reload(null, false);
+                            if (res.Message) { alert(res.Message); }
+                        } else if (typeof res === 'string') {
+                            $modal.find('.modal-content').html(res);
+                        } else if (res && res.Message) {
+                            alert(res.Message);
+                        }
+                    })
+                    .fail(function (xhr) {
+                        var msg = xhr.responseJSON && xhr.responseJSON.Message;
+                        alert(msg || xhr.statusText);
+                    })
+                    .always(function () { $btn.prop('disabled', false); });
+            });
+        })();
 
         window.DeleteFunction = function (id) {
             if (!confirm(secDt.confirmDelete)) return;

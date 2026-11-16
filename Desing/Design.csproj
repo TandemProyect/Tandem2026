@@ -3649,6 +3649,8 @@
     <Content Include="Views\Function\Edit.cshtml" />
     <Content Include="Views\Function\Details.cshtml" />
     <Content Include="Views\Function\_FunctionFormFields.cshtml" />
+    <Content Include="Views\Role\_CreateModal.cshtml" />
+    <Content Include="Views\Function\_CreateModal.cshtml" />
     <Content Include="Views\Shared\_GooglePlacesAddressBlock.cshtml" />
     <Content Include="Views\Shared\_IntranetAuditSection.cshtml" />
     <Content Include="Views\Shared\_GooglePlacesAddressScripts.cshtml" />

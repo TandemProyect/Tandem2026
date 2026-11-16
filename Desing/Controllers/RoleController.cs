@@ -139,7 +139,8 @@ namespace Desing.Controllers
 
         public ActionResult Create()
         {
-            return View(BuildForm(new SecurityRoleRow { Is_Active = true }, new List<long>(), new List<string>()));
+            var vm = BuildForm(new SecurityRoleRow { Is_Active = true }, new List<long>(), new List<string>());
+            return Request.IsAjaxRequest() ? (ActionResult)PartialView("_CreateModal", vm) : View(vm);
         }
 
         [HttpPost]
@@ -150,7 +151,8 @@ namespace Desing.Controllers
             Validate(posted, null);
             if (!ModelState.IsValid)
             {
-                return View(BuildForm(posted, vm?.SelectedFunctionIds, vm?.SelectedUserIds));
+                var form = BuildForm(posted, vm?.SelectedFunctionIds, vm?.SelectedUserIds);
+                return Request.IsAjaxRequest() ? (ActionResult)PartialView("_CreateModal", form) : View(form);
             }
 
             var userId = IntranetAuditHelper.ResolveCurrentUserId(User);
@@ -160,6 +162,11 @@ namespace Desing.Controllers
 
             TempData["ToastType"] = "Act";
             TempData["ToastTitle"] = Security.Role_Toast_CreateTitle;
+            if (Request.IsAjaxRequest())
+            {
+                return Json(new { IsOk = true, Id = id, Message = string.Format(Security.Role_Toast_Created, posted.TextLabel) });
+            }
+
             TempData["ToastMessage"] = string.Format(Security.Role_Toast_Created, posted.TextLabel);
             return RedirectToAction("Details", new { id });
         }
