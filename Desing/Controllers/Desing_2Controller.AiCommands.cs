@@ -22,6 +22,9 @@ namespace Desing.Controllers
     /// </summary>
     public partial class Desing_2Controller
     {
+        /// <summary>Función «IA»: si está activa, solo la usan los roles que la tengan (botones y endpoints de la IA).</summary>
+        private const string AiFunctionCode = FunctionCatalog.AiCode;
+
         private static readonly Regex AiLangRegex = new Regex("^[a-z]{2,3}(-[a-z0-9]{2,8}){0,2}$", RegexOptions.CultureInvariant);
         private static readonly Regex AiEnvCodeRegex = new Regex("^[A-Z][A-Z0-9_]{1,39}$", RegexOptions.CultureInvariant);
 
@@ -39,6 +42,7 @@ namespace Desing.Controllers
         /// coinciden con la versión: { ok, notModified, version }. Faltan tablas: { ok:false, missing:true }.
         /// </summary>
         [HttpGet]
+        [RequireFunction(AiFunctionCode)]
         public ActionResult AiCommands(string context, string lang, string env, string v)
         {
             try
@@ -151,6 +155,7 @@ namespace Desing.Controllers
         /// Guarda el entorno de conversación del usuario (una fila por usuario en dbo.TSql_AiUserSettings).
         /// </summary>
         [HttpPost]
+        [RequireFunction(AiFunctionCode)]
         public ActionResult SaveAiUserSettings()
         {
             try

@@ -99,11 +99,14 @@ export function mountWallEditForm(parent, options) {
     const tabDim = makeTab('Acotar');
     const tabAi = makeTab(maStlWallAiUiTexts().tab);
     tabAi.setAttribute('data-ma-stl-wall-tab', 'ai');
+    /* Roles (16/11/2026): sin la función «IA» la pestaña no se pinta (tandem-functions.js). */
+    tabAi.setAttribute('data-function', 'IA');
+    const aiAllowed = !window.TandemFunctions || window.TandemFunctions.can('IA');
     tabRow.appendChild(tabMuro);
     tabRow.appendChild(tabTapes);
     tabRow.appendChild(tabProps);
     tabRow.appendChild(tabDim);
-    tabRow.appendChild(tabAi);
+    if (aiAllowed) tabRow.appendChild(tabAi);
     body.appendChild(messageEl);
     body.appendChild(tabRow);
 
@@ -355,6 +358,7 @@ export function mountWallEditForm(parent, options) {
     }
 
     function showTab(which) {
+        if (which === 'ai' && !aiAllowed) which = 'muro';
         const prevTab = currentTab;
         currentTab = which;
         muroPane.style.display = which === 'muro' ? 'block' : 'none';

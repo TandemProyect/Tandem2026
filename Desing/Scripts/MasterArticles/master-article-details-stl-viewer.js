@@ -8,7 +8,7 @@ import { LineMaterial } from '../Design/jsm/lines/LineMaterial.js';
 import { GLTFLoader } from '../Design/jsm/loaders/GLTFLoader.js';
 import { createDesing2WorkerTool } from './desing2-worker-tool.js?v=20261022-worker2d';
 import { createDesing2PillarTool } from './desing2-pillar-tool.js';
-import { mountWallEditForm } from './wall-edit-form.js?v=20261116a';
+import { mountWallEditForm } from './wall-edit-form.js?v=20261116b';
 import { mountWallAiChat, maStlWallAiUiTexts, maStlWallAiBootstrapCompact, maStlWallAiCompactTitle } from './wall-ai-assistant.js?v=20261116a';
 import { maStlDesignAiInit } from './design-ai-assistant.js?v=20261116a';
 import { mountWallBulkList } from './wall-bulk-list.js?v=20261026p';
@@ -36420,6 +36420,8 @@ let maStlWallApplyAllHeightMm = 0;
 
     function maStlCurvedWallEnsureAiTab() {
         if (maStlCurvedWallAiChat || !maStlCurvedWallModalEl) return maStlCurvedWallAiChat;
+        /* Roles (16/11/2026): sin la función «IA» no se crea la pestaña «Asistente IA». */
+        if (window.TandemFunctions && !window.TandemFunctions.can('IA')) return null;
         const tabWall = document.getElementById('ma-stl-curved-wall-tab-wall');
         const tabList = tabWall ? tabWall.closest('ul') : null;
         const paneWall = document.getElementById('ma-stl-curved-wall-pane-wall');
@@ -36432,6 +36434,7 @@ let maStlWallApplyAllHeightMm = 0;
         const btn = document.createElement('button');
         btn.className = 'nav-link';
         btn.id = 'ma-stl-curved-wall-tab-ai';
+        btn.setAttribute('data-function', 'IA');
         btn.type = 'button';
         btn.setAttribute('data-bs-toggle', 'tab');
         btn.setAttribute('data-bs-target', '#ma-stl-curved-wall-pane-ai');
@@ -40144,7 +40147,7 @@ let maStlWallApplyAllHeightMm = 0;
         window.maStlWallAiClearPanelHighlight = maStlWallAiClearPanelHighlight;
         /* IA del diseño (14/11/2026): puente y botón IA de la barra de modos. */
         window.maStlDesing2AiBridge = maStlDesignAiBridge;
-        if (maStlDesingV2Viewer) {
+        if (maStlDesingV2Viewer && (!window.TandemFunctions || window.TandemFunctions.can('IA'))) {
             try {
                 maStlDesignAiInit({ bridge: maStlDesignAiBridge, button: document.getElementById('ma-stl-mode-ia') });
             } catch (err) {

@@ -55,6 +55,15 @@ Mientras no se ejecuten, la aplicación funciona como antes (todo libre).
 - **Configuración › Roles y funciones › Funciones** (`FunctionController`): el campo «Comando» sugiere todas las claves conocidas (`Helpers/FunctionCatalog.cs`, por reflexión + comandos JS de Desing_2).
 - **Empleados › Asignar roles** (`Employee/AssignRoles/{userId}`, botón de escudo en la lista y en la ficha): único sitio donde se dan o quitan roles. Dos tablas: asignados a la izquierda, disponibles a la derecha; se arrastra el rol de una a otra (o se usa la flecha) y se guarda al momento (`AddUserRole` / `RemoveUserRole`). Solo para quien pueda usar `Role`; nadie se puede quitar a sí mismo el acceso a `Role`.
 
+## Función «IA»
+
+Código `IA` (`FunctionCatalog.AiCode`, script `2026-11-16_seed_TSql_Functions_IA.sql`, activa). Sin ella:
+- No se pinta el botón IA de la barra de modos de Desing_2 (`_Desing2ModeToolBar.cshtml`, `Html.CanUse`) ni se monta el panel «Asistente IA – Diseño».
+- No aparece la pestaña «Asistente IA» del formulario del muro (`wall-edit-form.js`) ni la del muro curvo.
+- `Desing_2/AiCommands`, `SaveAiUserSettings`, `SaveAiUnknownPhrase`, `AiUnknownPhrases` y `ResolveAiUnknownPhrase` devuelven 403 (`[RequireFunction(AiFunctionCode)]`).
+
+Desactivar la función deja la IA libre para todos.
+
 ## Al añadir un comando nuevo
 
 No hay que hacer nada para que funcione: queda libre. Para poder protegerlo:

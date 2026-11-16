@@ -16,6 +16,9 @@ namespace Desing.Helpers
     {
         public const string JsModule = "Desing_2 (comandos)";
 
+        /// <summary>Asistentes IA del visor: botón IA, pestañas «Asistente IA» y endpoints <c>Desing_2/Ai*</c>.</summary>
+        public const string AiCode = "IA";
+
         public sealed class Entry
         {
             public string Code { get; set; }
@@ -85,8 +88,17 @@ namespace Desing.Helpers
                     .OrderBy(n => n);
 
                 list.AddRange(actions.Select(a => new Entry { Code = name + "." + a, Module = name }));
+
+                var required = type.GetCustomAttributes<RequireFunctionAttribute>(true)
+                    .Concat(type.GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                        .SelectMany(m => m.GetCustomAttributes<RequireFunctionAttribute>(true)))
+                    .Select(a => a.Code)
+                    .Where(c => !string.IsNullOrWhiteSpace(c))
+                    .Distinct(StringComparer.OrdinalIgnoreCase);
+                list.AddRange(required.Select(c => new Entry { Code = c, Module = name }));
             }
 
+            list.Add(new Entry { Code = AiCode, Module = JsModule });
             list.AddRange(JsTools.Select(t => new Entry { Code = "Tool." + t, Module = JsModule }));
             list.AddRange(JsModes.Select(t => new Entry { Code = "Mode." + t, Module = JsModule }));
             list.AddRange(JsSystems.Select(t => new Entry { Code = "System." + t, Module = JsModule }));

@@ -38,11 +38,11 @@
             </div>
             <span class="desing2-stl-floating-toolbar__group-gap" aria-hidden="true"></span>
         }
-        @if (!isPluginCadHost)
+        @if (!isPluginCadHost && Html.CanUse(Desing.Helpers.FunctionCatalog.AiCode))
         {
             @* IA (14/11/2026): primer botón de los modos, separado del resto por dos espacios (group-gap--ia). Abre/cierra el panel «Asistente IA – Diseño» (design-ai-assistant.js, enganchado desde master-article-details-stl-viewer.js; comandos de dibujo y edición de muros 2D). Si el módulo no carga, avisa «próximamente» (desing2-stl-viewer-toolbar-wiring.js). Solo en el visor web: la paleta de AutoCAD no carga ese JS. *@
             <div class="desing2-stl-floating-toolbar__group desing2-stl-floating-toolbar__group--ia" role="group" aria-label="IA">
-                <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-mode-ia" title="Asistente IA" aria-label="Asistente IA" aria-pressed="false" data-ma-ia-soon="IA: próximamente">
+                <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-mode-ia" data-function="IA" title="Asistente IA" aria-label="Asistente IA" aria-pressed="false" data-ma-ia-soon="IA: próximamente">
                     <i class="icon-base ri ri-robot-2-line" aria-hidden="true"></i>
                 </button>
             </div>

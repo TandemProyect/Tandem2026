@@ -35,6 +35,7 @@ namespace Desing.Controllers
         /// Devuelve { ok, id, veces, nueva }. Nunca lanza: si falla, { ok:false, message } (el visor no lo enseña).
         /// </summary>
         [HttpPost]
+        [RequireFunction(AiFunctionCode)]
         public ActionResult SaveAiUnknownPhrase()
         {
             try
@@ -55,6 +56,7 @@ namespace Desing.Controllers
         /// Devuelve { ok, archivo, total, pendientes, items[] } con las más vistas primero.
         /// </summary>
         [HttpGet]
+        [RequireFunction(AiFunctionCode)]
         public ActionResult AiUnknownPhrases(string estado)
         {
             try
@@ -72,6 +74,7 @@ namespace Desing.Controllers
         /// Marca la entrada (por defecto «resuelta») con <c>fechaResuelta</c>. Devuelve { ok, item }.
         /// </summary>
         [HttpPost]
+        [RequireFunction(AiFunctionCode)]
         public ActionResult ResolveAiUnknownPhrase()
         {
             try
