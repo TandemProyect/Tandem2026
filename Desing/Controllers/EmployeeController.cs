@@ -757,7 +757,11 @@ namespace Desing.Controllers
 
             try
             {
-                SecurityRepository.SyncUserRoles(db, model.LinAspNetUsert, model.RoleIds ?? new List<long>(), currentUserId);
+                // El formulario solo muestra roles activos: conservar los inactivos que ya tenga.
+                var activeIds = new HashSet<long>(SecurityRepository.ListRoleOptions(db).Select(r => r.IdObject));
+                var wanted = (model.RoleIds ?? new List<long>()).Where(activeIds.Contains)
+                    .Concat(SecurityRepository.GetUserRoleIds(db, model.LinAspNetUsert).Where(id => !activeIds.Contains(id)));
+                SecurityRepository.SyncUserRoles(db, model.LinAspNetUsert, wanted, currentUserId);
             }
             catch
             {
