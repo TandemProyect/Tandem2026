@@ -560,12 +560,14 @@ namespace Desing.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem, DeviceId, DeviceName, DeviceAllowed, IsCadDeveloper, EmployeeID, IsEdit, RoleIds")] EmployeeViewModel model, HttpPostedFileBase file1)
         {
             return SaveEmployee(model, file1, false);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Update_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem, DeviceId, DeviceName, DeviceAllowed, IsCadDeveloper, EmployeeID, IsEdit, RoleIds")] EmployeeViewModel model, HttpPostedFileBase file1)
         {
             return SaveEmployee(model, file1, true);
