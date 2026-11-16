@@ -43,6 +43,45 @@
   <data name="Employee_Lbl_Roles" xml:space="preserve">
     <value>Roles del usuario</value>
   </data>
+  <data name="Employee_UserRoles_Added" xml:space="preserve">
+    <value>Rol &quot;{0}&quot; asignado a {1}.</value>
+  </data>
+  <data name="Employee_UserRoles_Assigned" xml:space="preserve">
+    <value>Roles asignados</value>
+  </data>
+  <data name="Employee_UserRoles_Available" xml:space="preserve">
+    <value>Roles disponibles</value>
+  </data>
+  <data name="Employee_UserRoles_BtnAssign" xml:space="preserve">
+    <value>Asignar</value>
+  </data>
+  <data name="Employee_UserRoles_BtnRemove" xml:space="preserve">
+    <value>Quitar</value>
+  </data>
+  <data name="Employee_UserRoles_DropHere" xml:space="preserve">
+    <value>Suelta aquí el rol</value>
+  </data>
+  <data name="Employee_UserRoles_EditEmployee" xml:space="preserve">
+    <value>Ficha del empleado</value>
+  </data>
+  <data name="Employee_UserRoles_EmptyAssigned" xml:space="preserve">
+    <value>El usuario no tiene roles asignados.</value>
+  </data>
+  <data name="Employee_UserRoles_EmptyAvailable" xml:space="preserve">
+    <value>No quedan roles por asignar.</value>
+  </data>
+  <data name="Employee_UserRoles_Hint" xml:space="preserve">
+    <value>Arrastra un rol de una tabla a la otra para asignarlo o quitarlo. Se guarda en el momento.</value>
+  </data>
+  <data name="Employee_UserRoles_Removed" xml:space="preserve">
+    <value>Rol &quot;{0}&quot; quitado a {1}.</value>
+  </data>
+  <data name="Employee_UserRoles_RoleNotFound" xml:space="preserve">
+    <value>Rol no encontrado o inactivo.</value>
+  </data>
+  <data name="Employee_UserRoles_SelfLockout" xml:space="preserve">
+    <value>No puedes quitarte este rol: perderías el acceso a la gestión de roles.</value>
+  </data>
   <data name="Function_Col_Code" xml:space="preserve">
     <value>Comando</value>
   </data>

@@ -77,32 +77,6 @@
                         </div>
                         <small class="text-muted">@Employee.Lbl_CadDeveloperHint</small>
                     </div>
-                    @if (Model.CanManageRoles)
-                    {
-                        var selectedRoles = new HashSet<long>(Model.RoleIds ?? new List<long>());
-                        <div class="col-12 mt-2">
-                            <label class="form-label">@Security.Employee_Lbl_Roles</label>
-                            @if (Model.AvailableRoles == null || Model.AvailableRoles.Count == 0)
-                            {
-                                <div class="text-muted">@Security.Employee_Lbl_NoRoles</div>
-                            }
-                            else
-                            {
-                                <div class="row">
-                                    @foreach (var r in Model.AvailableRoles)
-                                    {
-                                        var rid = "emp_role_" + r.IdObject;
-                                        <div class="col-md-6">
-                                            <div class="form-check mt-2">
-                                                <input class="form-check-input" type="checkbox" name="RoleIds" value="@r.IdObject" id="@rid" @(selectedRoles.Contains(r.IdObject) ? "checked" : "") />
-                                                <label class="form-check-label" for="@rid" title="@r.TextDescription">@r.TextLabel</label>
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                            }
-                        </div>
-                    }
                 </div>
             </div>
             <div class="col-lg-5">
@@ -117,6 +91,12 @@
             </div>
 
             <div class="col-12 border-top pt-3 mt-2 d-flex justify-content-end gap-2">
+                @if (Model.IsEdit && Model.CanManageRoles)
+                {
+                    <a href="@Url.Action("AssignRoles", "Employee", new { id = Model.LinAspNetUsert })" class="btn btn-outline-secondary me-auto" data-function="Role">
+                        <span class="fas fa-user-shield me-1" aria-hidden="true"></span>@Security.Employee_AssignRoles_Title
+                    </a>
+                }
                 <a href="@Url.Action("Index", "Employee")" class="btn btn-outline-secondary">@Employee.Btn_Exit</a>
                 <button type="submit" id="SubmitEditBtn" class="btn btn-primary">@(Model.IsEdit ? Employee.Btn_SaveChanges : Employee.Btn_SaveEmployee)</button>
             </div>

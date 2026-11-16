@@ -43,6 +43,45 @@
   <data name="Employee_Lbl_Roles" xml:space="preserve">
     <value>User roles</value>
   </data>
+  <data name="Employee_UserRoles_Added" xml:space="preserve">
+    <value>Role &quot;{0}&quot; assigned to {1}.</value>
+  </data>
+  <data name="Employee_UserRoles_Assigned" xml:space="preserve">
+    <value>Assigned roles</value>
+  </data>
+  <data name="Employee_UserRoles_Available" xml:space="preserve">
+    <value>Available roles</value>
+  </data>
+  <data name="Employee_UserRoles_BtnAssign" xml:space="preserve">
+    <value>Assign</value>
+  </data>
+  <data name="Employee_UserRoles_BtnRemove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="Employee_UserRoles_DropHere" xml:space="preserve">
+    <value>Drop the role here</value>
+  </data>
+  <data name="Employee_UserRoles_EditEmployee" xml:space="preserve">
+    <value>Employee record</value>
+  </data>
+  <data name="Employee_UserRoles_EmptyAssigned" xml:space="preserve">
+    <value>The user has no roles assigned.</value>
+  </data>
+  <data name="Employee_UserRoles_EmptyAvailable" xml:space="preserve">
+    <value>No roles left to assign.</value>
+  </data>
+  <data name="Employee_UserRoles_Hint" xml:space="preserve">
+    <value>Drag a role from one table to the other to assign or remove it. Changes are saved immediately.</value>
+  </data>
+  <data name="Employee_UserRoles_Removed" xml:space="preserve">
+    <value>Role &quot;{0}&quot; removed from {1}.</value>
+  </data>
+  <data name="Employee_UserRoles_RoleNotFound" xml:space="preserve">
+    <value>Role not found or inactive.</value>
+  </data>
+  <data name="Employee_UserRoles_SelfLockout" xml:space="preserve">
+    <value>You cannot remove this role from yourself: you would lose access to role management.</value>
+  </data>
   <data name="Function_Col_Code" xml:space="preserve">
     <value>Command</value>
   </data>

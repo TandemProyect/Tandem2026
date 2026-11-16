@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
@@ -66,9 +66,7 @@ namespace Desing.Models
         public long EmployeeID { get; set; }
         public bool IsEdit { get; set; }
 
-        /// <summary>Roles del usuario (TSql_UserRole). Solo se muestran y guardan si puede usar «Role».</summary>
-        public System.Collections.Generic.IList<long> RoleIds { get; set; }
-        public System.Collections.Generic.IList<SecurityRoleOption> AvailableRoles { get; set; }
+        /// <summary>Muestra el botón «Asignar roles» si puede usar «Role».</summary>
         public bool CanManageRoles { get; set; }
     }
     public class EmployeeUserModel

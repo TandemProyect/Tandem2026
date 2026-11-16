@@ -230,23 +230,6 @@ SELECT f.IdObject, f.TextLabel, f.TextCode, f.TextModule, f.TextDescription, f.I
             FunctionAccessService.InvalidateAll();
         }
 
-        public static void SyncRoleUsers(ConexionData db, long roleId, IEnumerable<string> userIds, string currentUserId)
-        {
-            var wanted = new HashSet<string>((userIds ?? Enumerable.Empty<string>()).Where(u => !string.IsNullOrWhiteSpace(u)), StringComparer.OrdinalIgnoreCase);
-            var current = new HashSet<string>(GetRoleUserIds(db, roleId), StringComparer.OrdinalIgnoreCase);
-            foreach (var id in current.Where(c => !wanted.Contains(c)))
-            {
-                db.Database.ExecuteSqlCommand(
-                    "UPDATE dbo.TSql_UserRole SET " + Audit.Replace("@p1", "@p2") + " WHERE LinkRoles_V2 = @p0 AND LinkAspNetUsers = @p1 AND Is_Delete = 0",
-                    roleId, id, currentUserId);
-            }
-            foreach (var id in wanted.Where(w => !current.Contains(w)))
-            {
-                InsertUserRole(db, id, roleId, currentUserId);
-            }
-            FunctionAccessService.InvalidateAll();
-        }
-
         public static void SyncUserRoles(ConexionData db, string userId, IEnumerable<long> roleIds, string currentUserId)
         {
             if (string.IsNullOrWhiteSpace(userId) || !FunctionAccessService.TablesExist(db))
@@ -267,6 +250,34 @@ SELECT f.IdObject, f.TextLabel, f.TextCode, f.TextModule, f.TextDescription, f.I
                 InsertUserRole(db, userId, id, currentUserId);
             }
             FunctionAccessService.InvalidateAll();
+        }
+
+        /// <summary>Asigna un rol activo al usuario; si ya lo tiene no hace nada.</summary>
+        public static bool AddUserRole(ConexionData db, string userId, long roleId, string currentUserId)
+        {
+            if (string.IsNullOrWhiteSpace(userId) || GetUserRoleIds(db, userId).Contains(roleId))
+            {
+                return false;
+            }
+
+            InsertUserRole(db, userId, roleId, currentUserId);
+            FunctionAccessService.InvalidateAll();
+            return true;
+        }
+
+        /// <summary>Quita el rol al usuario (borrado lógico de la fila de <c>TSql_UserRole</c>).</summary>
+        public static bool RemoveUserRole(ConexionData db, string userId, long roleId, string currentUserId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return false;
+            }
+
+            var n = db.Database.ExecuteSqlCommand(
+                "UPDATE dbo.TSql_UserRole SET " + Audit.Replace("@p1", "@p2") + " WHERE LinkAspNetUsers = @p0 AND LinkRoles_V2 = @p1 AND Is_Delete = 0",
+                userId, roleId, currentUserId);
+            FunctionAccessService.InvalidateAll();
+            return n > 0;
         }
 
         private static void InsertRoleFunction(ConexionData db, long roleId, long functionId, string userId)

@@ -109,7 +109,20 @@ const es = Object.fromEntries(
     Employee_AssignRoles_Title: "Asignar roles",
     Employee_AssignRoles_Tooltip: "Asignar roles",
     Employee_AssignRoles_Saved: "Roles de \"{0}\" guardados correctamente.",
-    Employee_AssignRoles_UserNotFound: "Usuario no encontrado."
+    Employee_AssignRoles_UserNotFound: "Usuario no encontrado.",
+    Employee_UserRoles_Assigned: "Roles asignados",
+    Employee_UserRoles_Available: "Roles disponibles",
+    Employee_UserRoles_Hint: "Arrastra un rol de una tabla a la otra para asignarlo o quitarlo. Se guarda en el momento.",
+    Employee_UserRoles_DropHere: "Suelta aquí el rol",
+    Employee_UserRoles_BtnAssign: "Asignar",
+    Employee_UserRoles_BtnRemove: "Quitar",
+    Employee_UserRoles_EmptyAssigned: "El usuario no tiene roles asignados.",
+    Employee_UserRoles_EmptyAvailable: "No quedan roles por asignar.",
+    Employee_UserRoles_Added: "Rol \"{0}\" asignado a {1}.",
+    Employee_UserRoles_Removed: "Rol \"{0}\" quitado a {1}.",
+    Employee_UserRoles_RoleNotFound: "Rol no encontrado o inactivo.",
+    Employee_UserRoles_SelfLockout: "No puedes quitarte este rol: perderías el acceso a la gestión de roles.",
+    Employee_UserRoles_EditEmployee: "Ficha del empleado"
   })
 );
 
@@ -214,7 +227,20 @@ const en = Object.assign({}, es, {
   Employee_AssignRoles_Title: "Assign roles",
   Employee_AssignRoles_Tooltip: "Assign roles",
   Employee_AssignRoles_Saved: "Roles for \"{0}\" saved successfully.",
-  Employee_AssignRoles_UserNotFound: "User not found."
+  Employee_AssignRoles_UserNotFound: "User not found.",
+  Employee_UserRoles_Assigned: "Assigned roles",
+  Employee_UserRoles_Available: "Available roles",
+  Employee_UserRoles_Hint: "Drag a role from one table to the other to assign or remove it. Changes are saved immediately.",
+  Employee_UserRoles_DropHere: "Drop the role here",
+  Employee_UserRoles_BtnAssign: "Assign",
+  Employee_UserRoles_BtnRemove: "Remove",
+  Employee_UserRoles_EmptyAssigned: "The user has no roles assigned.",
+  Employee_UserRoles_EmptyAvailable: "No roles left to assign.",
+  Employee_UserRoles_Added: "Role \"{0}\" assigned to {1}.",
+  Employee_UserRoles_Removed: "Role \"{0}\" removed from {1}.",
+  Employee_UserRoles_RoleNotFound: "Role not found or inactive.",
+  Employee_UserRoles_SelfLockout: "You cannot remove this role from yourself: you would lose access to role management.",
+  Employee_UserRoles_EditEmployee: "Employee record"
 });
 
 function xmlEsc(s) {

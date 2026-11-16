@@ -139,7 +139,7 @@ namespace Desing.Controllers
 
         public ActionResult Create()
         {
-            var vm = BuildForm(new SecurityRoleRow { Is_Active = true }, new List<long>(), new List<string>());
+            var vm = BuildForm(new SecurityRoleRow { Is_Active = true }, new List<long>());
             return Request.IsAjaxRequest() ? (ActionResult)PartialView("_CreateModal", vm) : View(vm);
         }
 
@@ -151,14 +151,13 @@ namespace Desing.Controllers
             Validate(posted, null);
             if (!ModelState.IsValid)
             {
-                var form = BuildForm(posted, vm?.SelectedFunctionIds, vm?.SelectedUserIds);
+                var form = BuildForm(posted, vm?.SelectedFunctionIds);
                 return Request.IsAjaxRequest() ? (ActionResult)PartialView("_CreateModal", form) : View(form);
             }
 
             var userId = IntranetAuditHelper.ResolveCurrentUserId(User);
             var id = SecurityRepository.InsertRole(db, posted, userId);
             SecurityRepository.SyncRoleFunctions(db, id, vm.SelectedFunctionIds, userId);
-            SecurityRepository.SyncRoleUsers(db, id, vm.SelectedUserIds, userId);
 
             TempData["ToastType"] = "Act";
             TempData["ToastTitle"] = Security.Role_Toast_CreateTitle;
@@ -179,7 +178,7 @@ namespace Desing.Controllers
                 return NotFoundToIndex();
             }
 
-            return View(BuildForm(role, SecurityRepository.GetRoleFunctionIds(db, id), SecurityRepository.GetRoleUserIds(db, id)));
+            return View(BuildForm(role, SecurityRepository.GetRoleFunctionIds(db, id)));
         }
 
         [HttpPost]
@@ -198,13 +197,12 @@ namespace Desing.Controllers
             Validate(posted, existing.IdObject);
             if (!ModelState.IsValid)
             {
-                return View(BuildForm(posted, vm.SelectedFunctionIds, vm.SelectedUserIds));
+                return View(BuildForm(posted, vm.SelectedFunctionIds));
             }
 
             var userId = IntranetAuditHelper.ResolveCurrentUserId(User);
             SecurityRepository.UpdateRole(db, posted, userId);
             SecurityRepository.SyncRoleFunctions(db, existing.IdObject, vm.SelectedFunctionIds, userId);
-            SecurityRepository.SyncRoleUsers(db, existing.IdObject, vm.SelectedUserIds, userId);
 
             TempData["ToastType"] = "Act";
             TempData["ToastTitle"] = Security.Role_Toast_EditTitle;
@@ -239,15 +237,13 @@ namespace Desing.Controllers
             return RedirectToAction("Index");
         }
 
-        private SecurityRoleFormViewModel BuildForm(SecurityRoleRow role, IList<long> functionIds, IList<string> userIds)
+        private SecurityRoleFormViewModel BuildForm(SecurityRoleRow role, IList<long> functionIds)
         {
             return new SecurityRoleFormViewModel
             {
                 Role = role,
                 AvailableFunctions = SecurityRepository.ListFunctions(db),
-                SelectedFunctionIds = functionIds ?? new List<long>(),
-                AvailableUsers = SecurityRepository.ListUsers(db),
-                SelectedUserIds = userIds ?? new List<string>()
+                SelectedFunctionIds = functionIds ?? new List<long>()
             };
         }
 

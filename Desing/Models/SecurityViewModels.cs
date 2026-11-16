@@ -60,8 +60,6 @@ namespace Desing.Models
         public SecurityRoleRow Role { get; set; }
         public IList<SecurityFunctionRow> AvailableFunctions { get; set; }
         public IList<long> SelectedFunctionIds { get; set; }
-        public IList<SecurityUserOption> AvailableUsers { get; set; }
-        public IList<string> SelectedUserIds { get; set; }
     }
 
     public class SecurityFunctionFormViewModel
@@ -72,13 +70,11 @@ namespace Desing.Models
         public IList<FunctionCatalogOption> Catalog { get; set; }
     }
 
-    /// <summary>Ventana «Asignar roles» de la lista de empleados.</summary>
+    /// <summary>Vista «Roles del usuario»: asignados a la izquierda, disponibles a la derecha.</summary>
     public class SecurityUserRolesViewModel
     {
         public string UserId { get; set; }
         public string DisplayName { get; set; }
-        public IList<SecurityRoleOption> AvailableRoles { get; set; }
-        public IList<long> RoleIds { get; set; }
     }
 
     public class FunctionCatalogOption

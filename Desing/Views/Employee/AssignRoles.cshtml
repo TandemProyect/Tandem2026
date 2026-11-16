@@ -1,0 +1,226 @@
+@model Desing.Models.SecurityUserRolesViewModel
+@using Newtonsoft.Json
+@using Desing.Resources
+@{
+    ViewBag.Title = Security.Employee_AssignRoles_Title;
+    var ui = JsonConvert.SerializeObject(new
+    {
+        userId = Model.UserId,
+        dataUrl = Url.Action("UserRolesData", "Employee"),
+        addUrl = Url.Action("AddUserRole", "Employee"),
+        removeUrl = Url.Action("RemoveUserRole", "Employee"),
+        btnAssign = Security.Employee_UserRoles_BtnAssign,
+        btnRemove = Security.Employee_UserRoles_BtnRemove,
+        emptyAssigned = Security.Employee_UserRoles_EmptyAssigned,
+        emptyAvailable = Security.Employee_UserRoles_EmptyAvailable,
+        stateActive = Security.State_Active,
+        stateInactive = Security.State_Inactive,
+        badgeSystem = Security.Role_Badge_System
+    });
+    long? employeeId = ViewBag.EmployeeId as long?;
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@Employee.Common_Home</a> /
+            <a href="@Url.Action("Index", "Employee")">@Employee.Index_Breadcrumb</a> /
+        </span> @Security.Employee_AssignRoles_Title
+        <small class="text-muted ms-2">@Model.DisplayName</small>
+    </h4>
+    <div class="d-flex gap-2">
+        @if (employeeId.HasValue)
+        {
+            <a class="btn btn-outline-secondary" href="@Url.Action("Edit_Employee", "Employee", new { Id = employeeId.Value })">@Security.Employee_UserRoles_EditEmployee</a>
+        }
+        <a class="btn btn-outline-secondary" href="@Url.Action("Index", "Employee")">@Employee.Btn_Exit</a>
+    </div>
+</div>
+
+<div id="rolesMsg" class="alert alert-success py-2" style="display:none;" role="status"></div>
+
+<p class="text-muted mb-3"><span class="fas fa-arrows-alt-h me-1" aria-hidden="true"></span>@Security.Employee_UserRoles_Hint</p>
+
+<div class="row g-4 tandem-user-roles">
+    <div class="col-lg-6">
+        <div class="card h-100 tandem-role-drop" data-target="assigned">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h5 class="mb-0"><span class="fas fa-user-shield me-2" aria-hidden="true"></span>@Security.Employee_UserRoles_Assigned</h5>
+                <span class="badge bg-label-primary" id="countAssigned">0</span>
+            </div>
+            <div class="card-body" style="padding:5px">
+                <table id="ListAssignedRoles" class="table table-hover" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>@Security.Role_Col_Name</th>
+                            <th>@Security.Role_Col_Code</th>
+                            <th>@Security.Col_State</th>
+                            <th class="text-end text-nowrap" style="width:1%;"></th>
+                        </tr>
+                    </thead>
+                </table>
+                <div class="tandem-role-drop-hint">@Security.Employee_UserRoles_DropHere</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100 tandem-role-drop" data-target="available">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h5 class="mb-0"><span class="fas fa-list me-2" aria-hidden="true"></span>@Security.Employee_UserRoles_Available</h5>
+                <span class="badge bg-label-secondary" id="countAvailable">0</span>
+            </div>
+            <div class="card-body" style="padding:5px">
+                <table id="ListAvailableRoles" class="table table-hover" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th class="text-nowrap" style="width:1%;"></th>
+                            <th>@Security.Role_Col_Name</th>
+                            <th>@Security.Role_Col_Code</th>
+                        </tr>
+                    </thead>
+                </table>
+                <div class="tandem-role-drop-hint">@Security.Employee_UserRoles_DropHere</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div style="display:none;">@Html.AntiForgeryToken()</div>
+
+<style>
+    .tandem-user-roles tr[draggable="true"] { cursor: grab; }
+    .tandem-user-roles tr.tandem-dragging { opacity: .5; }
+    .tandem-role-drop-hint { display: none; margin: 8px; padding: 14px; border: 2px dashed #8c57ff; border-radius: 6px; text-align: center; color: #8c57ff; }
+    .tandem-role-drop.tandem-drop-ready .tandem-role-drop-hint { display: block; }
+    .tandem-role-drop.tandem-drop-over { outline: 2px solid #8c57ff; background: rgba(140, 87, 255, .06); }
+</style>
+
+@section scripts
+{
+    <script type="text/javascript">
+        (function ($) {
+            var ui = @Html.Raw(ui);
+            var dragging = null;
+
+            function esc(s) { return $('<div>').text(s == null ? '' : s).html(); }
+
+            function nameCell(r) {
+                var h = '<span class="fw-medium">' + esc(r.TextLabel) + '</span>';
+                if (r.Is_System) { h += ' <span class="badge bg-label-info ms-1">' + esc(ui.badgeSystem) + '</span>'; }
+                if (r.TextDescription) { h += '<div class="small text-muted">' + esc(r.TextDescription) + '</div>'; }
+                return h;
+            }
+
+            function baseOpts(emptyText) {
+                return {
+                    data: [],
+                    dom: 'frt',
+                    paging: false,
+                    info: false,
+                    stateSave: false,
+                    order: [],
+                    language: { emptyTable: emptyText, zeroRecords: emptyText },
+                    createdRow: function (tr, r) {
+                        $(tr).attr('draggable', 'true').attr('data-role-id', r.IdObject);
+                    }
+                };
+            }
+
+            var dtAssigned = $('#ListAssignedRoles').DataTable($.extend(baseOpts(ui.emptyAssigned), {
+                columns: [
+                    { data: 'TextLabel', render: function (d, t, r) { return t === 'display' ? nameCell(r) : d; } },
+                    { data: 'TextCode', render: function (d, t) { return t === 'display' && d ? '<code>' + esc(d) + '</code>' : d; } },
+                    {
+                        data: 'Is_Active', searchable: false,
+                        render: function (d) {
+                            return d ? '<span class="badge bg-label-success">' + esc(ui.stateActive) + '</span>'
+                                     : '<span class="badge bg-label-secondary">' + esc(ui.stateInactive) + '</span>';
+                        }
+                    },
+                    {
+                        data: null, orderable: false, searchable: false, className: 'text-end text-nowrap',
+                        render: function (d, t, r) {
+                            return '<button type="button" class="btn btn-outline-danger btn-xs js-role-remove" data-role-id="' + r.IdObject +
+                                '" title="' + esc(ui.btnRemove) + '"><span class="fas fa-arrow-right" aria-hidden="true"></span></button>';
+                        }
+                    }
+                ]
+            }));
+
+            var dtAvailable = $('#ListAvailableRoles').DataTable($.extend(baseOpts(ui.emptyAvailable), {
+                columns: [
+                    {
+                        data: null, orderable: false, searchable: false, className: 'text-nowrap',
+                        render: function (d, t, r) {
+                            return '<button type="button" class="btn btn-outline-primary btn-xs js-role-add" data-role-id="' + r.IdObject +
+                                '" title="' + esc(ui.btnAssign) + '"><span class="fas fa-arrow-left" aria-hidden="true"></span></button>';
+                        }
+                    },
+                    { data: 'TextLabel', render: function (d, t, r) { return t === 'display' ? nameCell(r) : d; } },
+                    { data: 'TextCode', render: function (d, t) { return t === 'display' && d ? '<code>' + esc(d) + '</code>' : d; } }
+                ]
+            }));
+
+            function load() {
+                $.ajax({ url: ui.dataUrl, data: { userId: ui.userId }, cache: false })
+                    .done(function (res) {
+                        if (!res || !res.IsOk) { if (res && res.Message) { alert(res.Message); } return; }
+                        dtAssigned.clear().rows.add(res.Assigned || []).draw();
+                        dtAvailable.clear().rows.add(res.Available || []).draw();
+                        $('#countAssigned').text((res.Assigned || []).length);
+                        $('#countAvailable').text((res.Available || []).length);
+                    })
+                    .fail(function (xhr) { alert((xhr.responseJSON && xhr.responseJSON.Message) || xhr.statusText); });
+            }
+
+            function change(url, roleId) {
+                $.post(url, {
+                    userId: ui.userId,
+                    roleId: roleId,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                }).done(function (res) {
+                    if (res && !res.IsOk && res.Message) { alert(res.Message); }
+                    else if (res && res.Message) { $('#rolesMsg').text(res.Message).stop(true, true).show().delay(2500).fadeOut(); }
+                }).fail(function (xhr) {
+                    alert((xhr.responseJSON && xhr.responseJSON.Message) || xhr.statusText);
+                }).always(load);
+            }
+
+            $('#ListAvailableRoles').on('click', '.js-role-add', function () { change(ui.addUrl, $(this).data('role-id')); });
+            $('#ListAssignedRoles').on('click', '.js-role-remove', function () { change(ui.removeUrl, $(this).data('role-id')); });
+
+            /* Arrastrar y soltar: de disponibles a asignados asigna, de asignados a disponibles quita. */
+            $('.tandem-user-roles').on('dragstart', 'tr[draggable="true"]', function (e) {
+                var from = $(this).closest('.tandem-role-drop').data('target');
+                dragging = { roleId: $(this).data('role-id'), from: from };
+                $(this).addClass('tandem-dragging');
+                var dt = e.originalEvent.dataTransfer;
+                dt.effectAllowed = 'move';
+                dt.setData('text/plain', String(dragging.roleId));
+                $('.tandem-role-drop').filter(function () { return $(this).data('target') !== from; }).addClass('tandem-drop-ready');
+            }).on('dragend', 'tr[draggable="true"]', function () {
+                dragging = null;
+                $(this).removeClass('tandem-dragging');
+                $('.tandem-role-drop').removeClass('tandem-drop-ready tandem-drop-over');
+            });
+
+            $('.tandem-role-drop').on('dragover', function (e) {
+                if (!dragging || dragging.from === $(this).data('target')) { return; }
+                e.preventDefault();
+                e.originalEvent.dataTransfer.dropEffect = 'move';
+                $(this).addClass('tandem-drop-over');
+            }).on('dragleave', function (e) {
+                if (!this.contains(e.originalEvent.relatedTarget)) { $(this).removeClass('tandem-drop-over'); }
+            }).on('drop', function (e) {
+                e.preventDefault();
+                var to = $(this).data('target');
+                var d = dragging;
+                $('.tandem-role-drop').removeClass('tandem-drop-ready tandem-drop-over');
+                if (!d || d.from === to) { return; }
+                change(to === 'assigned' ? ui.addUrl : ui.removeUrl, d.roleId);
+            });
+
+            load();
+        })(jQuery);
+    </script>
+}

@@ -60,13 +60,6 @@
     </div>
 </div>
 
-<!-- Ventana «Asignar roles» (contenido por AJAX: Employee/AssignRoles) -->
-<div class="modal fade" id="EmployeeAssignRolesModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content"></div>
-    </div>
-</div>
-
 <!-- Modal de confirmación de envío de correo -->
 <div class="modal fade" id="EmployeeSendMailModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -186,37 +179,6 @@
                     });
                 }
             }));
-        });
-
-        window.AssignEmployeeRoles = function (userId) {
-            var $modal = $('#EmployeeAssignRolesModal');
-            $.get('@Url.Action("AssignRoles", "Employee")', { id: userId }, function (res) {
-                if (res && typeof res === 'object') {
-                    if (res.Message) { alert(res.Message); }
-                    return;
-                }
-                $modal.find('.modal-content').html(res);
-                bootstrap.Modal.getOrCreateInstance($modal[0]).show();
-            }).fail(function (xhr) {
-                alert((xhr.responseJSON && xhr.responseJSON.Message) || xhr.statusText);
-            });
-        };
-
-        $('#EmployeeAssignRolesModal').on('submit', '#assignRolesForm', function (e) {
-            e.preventDefault();
-            var $form = $(this);
-            var $btn = $form.find('button[type="submit"]').prop('disabled', true);
-            $.ajax({ url: $form.attr('action'), type: 'POST', data: $form.serialize() })
-                .done(function (res) {
-                    if (res && res.IsOk) {
-                        bootstrap.Modal.getOrCreateInstance($('#EmployeeAssignRolesModal')[0]).hide();
-                    }
-                    if (res && res.Message) { alert(res.Message); }
-                })
-                .fail(function (xhr) {
-                    alert((xhr.responseJSON && xhr.responseJSON.Message) || xhr.statusText);
-                })
-                .always(function () { $btn.prop('disabled', false); });
         });
 
         window.DeleteEmployee = function (id) {

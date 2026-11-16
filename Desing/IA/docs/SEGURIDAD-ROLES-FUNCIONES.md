@@ -51,9 +51,9 @@ Mientras no se ejecuten, la aplicación funciona como antes (todo libre).
 
 ## Pantallas
 
-- **Configuración › Roles y funciones › Roles** (`RoleController`): nombre, código, funciones (agrupadas por módulo) y usuarios.
+- **Configuración › Roles y funciones › Roles** (`RoleController`): nombre, código y funciones (agrupadas por módulo). Los usuarios no se asignan aquí.
 - **Configuración › Roles y funciones › Funciones** (`FunctionController`): el campo «Comando» sugiere todas las claves conocidas (`Helpers/FunctionCatalog.cs`, por reflexión + comandos JS de Desing_2).
-- **Empleados › ficha:** casillas de roles, solo para quien pueda usar `Role` (nadie se da roles a sí mismo).
+- **Empleados › Asignar roles** (`Employee/AssignRoles/{userId}`, botón de escudo en la lista y en la ficha): único sitio donde se dan o quitan roles. Dos tablas: asignados a la izquierda, disponibles a la derecha; se arrastra el rol de una a otra (o se usa la flecha) y se guarda al momento (`AddUserRole` / `RemoveUserRole`). Solo para quien pueda usar `Role`; nadie se puede quitar a sí mismo el acceso a `Role`.
 
 ## Al añadir un comando nuevo
 

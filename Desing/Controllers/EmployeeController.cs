@@ -146,8 +146,9 @@ namespace Desing.Controllers
                         : "";
 
                     var rolesBtn = canAssignRoles && !string.IsNullOrEmpty(p.userId)
-                        ? "<a title=\"" + ttRoles + "\" href=\"#\" onclick=\"AssignEmployeeRoles('" + HttpUtility.JavaScriptStringEncode(p.userId) +
-                          "'); return false;\" data-function=\"Role\" class=\"btn btn-secondary btn-xs\"><span class=\"fas fa-user-shield\" aria-hidden=\"true\"></span></a>"
+                        ? "<a title=\"" + ttRoles + "\" href=\"" +
+                          HttpUtility.HtmlAttributeEncode(Url.Action("AssignRoles", "Employee", new { id = p.userId })) +
+                          "\" data-function=\"Role\" class=\"btn btn-secondary btn-xs\"><span class=\"fas fa-user-shield\" aria-hidden=\"true\"></span></a>"
                         : "";
 
                     var rowActions =
@@ -570,14 +571,14 @@ namespace Desing.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem, DeviceId, DeviceName, DeviceAllowed, IsCadDeveloper, EmployeeID, IsEdit, RoleIds")] EmployeeViewModel model, HttpPostedFileBase file1)
+        public ActionResult Create_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem, DeviceId, DeviceName, DeviceAllowed, IsCadDeveloper, EmployeeID, IsEdit")] EmployeeViewModel model, HttpPostedFileBase file1)
         {
             return SaveEmployee(model, file1, false);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Update_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem, DeviceId, DeviceName, DeviceAllowed, IsCadDeveloper, EmployeeID, IsEdit, RoleIds")] EmployeeViewModel model, HttpPostedFileBase file1)
+        public ActionResult Update_Employee([Bind(Include = "AttName, AttSurname, AttPhoto,AttPhotoMenu, LinCompany, LinBusiness, LinAspNetUsert, AttPassAspNetUsert, userSystem, DeviceId, DeviceName, DeviceAllowed, IsCadDeveloper, EmployeeID, IsEdit")] EmployeeViewModel model, HttpPostedFileBase file1)
         {
             return SaveEmployee(model, file1, true);
         }
@@ -716,7 +717,6 @@ namespace Desing.Controllers
                     TempData["ToastTitle"] = Employee.ToastTitle_EditEmployee;
                     TempData["ToastMessage"] = Employee.ToastMessage_EmployeeUpdated;
                 }
-                SaveUserRoles(model, userId);
                 RefreshUserChromeAfterCompanyChange(model.LinAspNetUsert);
                 Session.Clear();
                 return RedirectToAction("Index");
@@ -734,20 +734,11 @@ namespace Desing.Controllers
 
         private void LoadRoleOptions(EmployeeViewModel model, string aspNetUserId)
         {
-            model.CanManageRoles = false;
-            model.AvailableRoles = new List<SecurityRoleOption>();
-            model.RoleIds = new List<long>();
             try
             {
-                if (!FunctionAccessService.TablesExist(db)
-                    || !FunctionAccessService.Can(User.Identity.GetUserId(), "Role"))
-                {
-                    return;
-                }
-
-                model.CanManageRoles = true;
-                model.AvailableRoles = SecurityRepository.ListRoleOptions(db);
-                model.RoleIds = SecurityRepository.GetUserRoleIds(db, aspNetUserId);
+                model.CanManageRoles = !string.IsNullOrWhiteSpace(aspNetUserId)
+                    && FunctionAccessService.TablesExist(db)
+                    && FunctionAccessService.Can(User.Identity.GetUserId(), "Role");
             }
             catch
             {
@@ -755,35 +746,8 @@ namespace Desing.Controllers
             }
         }
 
-        /// <summary>Sin casillas marcadas, RoleIds llega null: el usuario se queda sin roles.</summary>
-        private void SaveUserRoles(EmployeeViewModel model, string currentUserId)
-        {
-            if (model == null || string.IsNullOrWhiteSpace(model.LinAspNetUsert)
-                || !FunctionAccessService.Can(currentUserId, "Role"))
-            {
-                return;
-            }
-
-            try
-            {
-                SyncActiveUserRoles(model.LinAspNetUsert, model.RoleIds, currentUserId);
-            }
-            catch
-            {
-            }
-        }
-
-        /// <summary>Los formularios solo muestran roles activos: se conservan los inactivos que ya tenga.</summary>
-        private void SyncActiveUserRoles(string aspNetUserId, IEnumerable<long> postedRoleIds, string currentUserId)
-        {
-            var activeIds = new HashSet<long>(SecurityRepository.ListRoleOptions(db).Select(r => r.IdObject));
-            var wanted = (postedRoleIds ?? new List<long>()).Where(activeIds.Contains)
-                .Concat(SecurityRepository.GetUserRoleIds(db, aspNetUserId).Where(id => !activeIds.Contains(id)))
-                .ToList();
-            SecurityRepository.SyncUserRoles(db, aspNetUserId, wanted, currentUserId);
-        }
-
-        /* Ventana «Asignar roles» desde la lista de empleados. */
+        /* Vista «Roles del usuario»: asignados a la izquierda, disponibles a la derecha;
+           se asignan o quitan arrastrando y se guarda en el momento. */
 
         [RequireFunction("Role")]
         public ActionResult AssignRoles(string id)
@@ -791,25 +755,56 @@ namespace Desing.Controllers
             var user = string.IsNullOrWhiteSpace(id) ? null : db.AspNetUsers.FirstOrDefault(u => u.Id == id);
             if (user == null || !FunctionAccessService.TablesExist(db))
             {
-                return Json(new { IsOk = false, Message = Security.Employee_AssignRoles_UserNotFound }, JsonRequestBehavior.AllowGet);
+                TempData["ToastType"] = "Error";
+                TempData["ToastTitle"] = Security.Employee_AssignRoles_Title;
+                TempData["ToastMessage"] = Security.Employee_AssignRoles_UserNotFound;
+                return RedirectToAction("Index");
             }
 
             var employee = db.TSql_Employee.FirstOrDefault(e => e.LinAspNetUsert == id && !e.AttIsDeleted);
             var fullName = employee != null ? ((employee.AttName ?? "") + " " + (employee.AttSurname ?? "")).Trim() : "";
-            var vm = new SecurityUserRolesViewModel
+            ViewBag.EmployeeId = employee?.SysObjectID;
+            return View(new SecurityUserRolesViewModel
             {
                 UserId = user.Id,
-                DisplayName = string.IsNullOrEmpty(fullName) ? user.UserName : fullName + " (" + user.UserName + ")",
-                AvailableRoles = SecurityRepository.ListRoleOptions(db),
-                RoleIds = SecurityRepository.GetUserRoleIds(db, user.Id)
-            };
-            return PartialView("_AssignRolesModal", vm);
+                DisplayName = string.IsNullOrEmpty(fullName) ? user.UserName : fullName + " (" + user.UserName + ")"
+            });
+        }
+
+        [OutputCache(Duration = 0, NoStore = true)]
+        [RequireFunction("Role")]
+        public JsonResult UserRolesData(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId) || !FunctionAccessService.TablesExist(db)
+                || !db.AspNetUsers.Any(u => u.Id == userId))
+            {
+                return Json(new { IsOk = false, Message = Security.Employee_AssignRoles_UserNotFound }, JsonRequestBehavior.AllowGet);
+            }
+
+            var assignedIds = new HashSet<long>(SecurityRepository.GetUserRoleIds(db, userId));
+            var rows = SecurityRepository.ListRoles(db).Select(r => new
+            {
+                r.IdObject,
+                TextLabel = r.TextLabel ?? "",
+                TextCode = r.TextCode ?? "",
+                TextDescription = r.TextDescription ?? "",
+                r.Is_Active,
+                r.Is_System,
+                Assigned = assignedIds.Contains(r.IdObject)
+            }).ToList();
+
+            return Json(new
+            {
+                IsOk = true,
+                Assigned = rows.Where(r => r.Assigned),
+                Available = rows.Where(r => !r.Assigned && r.Is_Active)
+            }, JsonRequestBehavior.AllowGet);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         [RequireFunction("Role")]
-        public JsonResult AssignRoles(string userId, List<long> roleIds)
+        public JsonResult AddUserRole(string userId, long roleId)
         {
             var user = string.IsNullOrWhiteSpace(userId) ? null : db.AspNetUsers.FirstOrDefault(u => u.Id == userId);
             if (user == null || !FunctionAccessService.TablesExist(db))
@@ -817,8 +812,45 @@ namespace Desing.Controllers
                 return Json(new { IsOk = false, Message = Security.Employee_AssignRoles_UserNotFound });
             }
 
-            SyncActiveUserRoles(user.Id, roleIds, IntranetAuditHelper.ResolveCurrentUserId(User));
-            return Json(new { IsOk = true, Message = string.Format(Security.Employee_AssignRoles_Saved, user.UserName) });
+            var role = SecurityRepository.GetRole(db, roleId);
+            if (role == null || !role.Is_Active)
+            {
+                return Json(new { IsOk = false, Message = Security.Employee_UserRoles_RoleNotFound });
+            }
+
+            SecurityRepository.AddUserRole(db, user.Id, role.IdObject, IntranetAuditHelper.ResolveCurrentUserId(User));
+            return Json(new { IsOk = true, Message = string.Format(Security.Employee_UserRoles_Added, role.TextLabel, user.UserName) });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequireFunction("Role")]
+        public JsonResult RemoveUserRole(string userId, long roleId)
+        {
+            var user = string.IsNullOrWhiteSpace(userId) ? null : db.AspNetUsers.FirstOrDefault(u => u.Id == userId);
+            if (user == null || !FunctionAccessService.TablesExist(db))
+            {
+                return Json(new { IsOk = false, Message = Security.Employee_AssignRoles_UserNotFound });
+            }
+
+            var role = SecurityRepository.GetRole(db, roleId);
+            if (role == null)
+            {
+                return Json(new { IsOk = false, Message = Security.Employee_UserRoles_RoleNotFound });
+            }
+
+            var currentUserId = IntranetAuditHelper.ResolveCurrentUserId(User);
+            SecurityRepository.RemoveUserRole(db, user.Id, role.IdObject, currentUserId);
+
+            /* Nadie se puede quitar a sí mismo el acceso a la gestión de roles. */
+            if (string.Equals(user.Id, User.Identity.GetUserId(), StringComparison.Ordinal)
+                && !FunctionAccessService.Can(user.Id, "Role"))
+            {
+                SecurityRepository.AddUserRole(db, user.Id, role.IdObject, currentUserId);
+                return Json(new { IsOk = false, Message = Security.Employee_UserRoles_SelfLockout });
+            }
+
+            return Json(new { IsOk = true, Message = string.Format(Security.Employee_UserRoles_Removed, role.TextLabel, user.UserName) });
         }
 
         /// <summary>

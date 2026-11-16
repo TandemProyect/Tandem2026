@@ -3,7 +3,6 @@
 @{
     var role = Model.Role;
     var selectedFunctions = new HashSet<long>(Model.SelectedFunctionIds ?? new List<long>());
-    var selectedUsers = new HashSet<string>(Model.SelectedUserIds ?? new List<string>(), StringComparer.OrdinalIgnoreCase);
     var modules = (Model.AvailableFunctions ?? new List<Desing.Models.SecurityFunctionRow>())
         .GroupBy(f => string.IsNullOrWhiteSpace(f.TextModule) ? "—" : f.TextModule)
         .OrderBy(g => g.Key);
@@ -59,7 +58,7 @@
     </div>
 }
 
-<div class="col-lg-7">
+<div class="col-12">
     <label class="form-label">@Security.Role_Lbl_Functions</label>
     <div class="border rounded p-3" style="max-height:420px;overflow:auto">
         @if (!modules.Any())
@@ -79,32 +78,6 @@
                         @if (!f.Is_Active)
                         {
                             <span class="badge bg-label-secondary ms-1">@Security.Function_State_Free</span>
-                        }
-                    </label>
-                </div>
-            }
-        }
-    </div>
-</div>
-<div class="col-lg-5">
-    <label class="form-label">@Security.Role_Lbl_Users</label>
-    <div class="border rounded p-3" style="max-height:420px;overflow:auto">
-        @if (Model.AvailableUsers == null || Model.AvailableUsers.Count == 0)
-        {
-            <span class="text-muted">@Security.Role_Lbl_NoUsers</span>
-        }
-        else
-        {
-            foreach (var u in Model.AvailableUsers)
-            {
-                var uid = "usr_" + u.Id;
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="SelectedUserIds" value="@u.Id" id="@uid" @(selectedUsers.Contains(u.Id) ? "checked" : "") />
-                    <label class="form-check-label" for="@uid">
-                        @(string.IsNullOrWhiteSpace(u.FullName) ? u.UserName : u.FullName)
-                        @if (!string.IsNullOrWhiteSpace(u.FullName))
-                        {
-                            <span class="text-muted ms-1">@u.UserName</span>
                         }
                     </label>
                 </div>
