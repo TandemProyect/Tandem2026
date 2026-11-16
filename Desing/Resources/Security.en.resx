@@ -23,7 +23,7 @@
     <value>Home</value>
   </data>
   <data name="Common_Security" xml:space="preserve">
-    <value>Security</value>
+    <value>Settings</value>
   </data>
   <data name="Employee_Lbl_NoRoles" xml:space="preserve">
     <value>No roles created yet.</value>

@@ -42,8 +42,8 @@ SELECT r.TextLabel, r.TextCode, r.TextDescription, r.Is_System, r.Is_AllFunction
 /* ----- Funciones ----- */
 DECLARE @Functions TABLE (TextCode NVARCHAR(200), TextLabel NVARCHAR(500), TextModule NVARCHAR(100), TextDescription NVARCHAR(2000), Is_Active BIT);
 INSERT INTO @Functions VALUES
-    (N'Role',         N'Gestión de roles',     N'Seguridad',      N'Menú «Roles» y todas sus pantallas.',                    1),
-    (N'Function',     N'Gestión de funciones', N'Seguridad',      N'Menú «Funciones» y todas sus pantallas.',                1),
+    (N'Role',         N'Gestión de roles',     N'Configuración',  N'Menú «Roles» y todas sus pantallas.',                    1),
+    (N'Function',     N'Gestión de funciones', N'Configuración',  N'Menú «Funciones» y todas sus pantallas.',                1),
     (N'TSql_Company', N'Gestión de empresas',  N'Administración', N'Menú «Empresas» y todas sus pantallas.',                 0),
     (N'Employee',     N'Gestión de usuarios',  N'Administración', N'Menú «Empleados»: alta, edición y baja de usuarios.',    0);
 

@@ -10,7 +10,7 @@ const path = require("path");
 const es = Object.fromEntries(
   Object.entries({
     Common_Home: "Inicio",
-    Common_Security: "Seguridad",
+    Common_Security: "Configuración",
     State_Active: "Activo",
     State_Inactive: "Inactivo",
     Col_State: "Estado",
@@ -111,7 +111,7 @@ const es = Object.fromEntries(
 
 const en = Object.assign({}, es, {
   Common_Home: "Home",
-  Common_Security: "Security",
+  Common_Security: "Settings",
   State_Active: "Active",
   State_Inactive: "Inactive",
   Col_State: "State",

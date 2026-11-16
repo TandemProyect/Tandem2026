@@ -23,7 +23,7 @@
     <value>Inicio</value>
   </data>
   <data name="Common_Security" xml:space="preserve">
-    <value>Seguridad</value>
+    <value>Configuración</value>
   </data>
   <data name="Employee_Lbl_NoRoles" xml:space="preserve">
     <value>No hay roles creados.</value>

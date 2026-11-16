@@ -18,7 +18,7 @@ Scripts (`Desing/Scripts/TemporalScript/`, idempotentes, en este orden):
 3. `2026-11-16_create_TSql_RoleFunction.sql`
 4. `2026-11-16_create_TSql_UserRole.sql`
 5. `2026-11-16_seed_TSql_Roles_V2_Functions.sql` — roles base, funciones `Role` y `Function` activas, `TSql_Company` y `Employee` inactivas, `juan.godoy@vscad.com` como «Administrador de sistema».
-6. `2026-11-16_seed_TSql_UiTranslation_Common_menu_Security.sql` — textos del menú «Seguridad».
+6. `2026-11-16_seed_TSql_UiTranslation_Common_menu_Security.sql` — textos del menú «Roles y funciones».
 
 Mientras no se ejecuten, la aplicación funciona como antes (todo libre).
 
@@ -51,8 +51,8 @@ Mientras no se ejecuten, la aplicación funciona como antes (todo libre).
 
 ## Pantallas
 
-- **Seguridad › Roles** (`RoleController`): nombre, código, funciones (agrupadas por módulo) y usuarios.
-- **Seguridad › Funciones** (`FunctionController`): el campo «Comando» sugiere todas las claves conocidas (`Helpers/FunctionCatalog.cs`, por reflexión + comandos JS de Desing_2).
+- **Configuración › Roles y funciones › Roles** (`RoleController`): nombre, código, funciones (agrupadas por módulo) y usuarios.
+- **Configuración › Roles y funciones › Funciones** (`FunctionController`): el campo «Comando» sugiere todas las claves conocidas (`Helpers/FunctionCatalog.cs`, por reflexión + comandos JS de Desing_2).
 - **Empleados › ficha:** casillas de roles, solo para quien pueda usar `Role` (nadie se da roles a sí mismo).
 
 ## Al añadir un comando nuevo

@@ -162,13 +162,13 @@
     var seguridadMenu = new SidebarMenuGroupModel
     {
         GroupId = "menu-seguridad",
-        Title = UiCommon("Menu.Security", "Seguridad"),
+        Title = UiCommon("Menu.RolesAndFunctions", "Roles y funciones"),
         IconClass = "ri ri-shield-keyhole-line",
         IsOpen = isRoleController || isFunctionController,
         Children = new List<SidebarMenuChildItem>
         {
-            new SidebarMenuChildItem { Controller = "Role", Text = UiCommon("Menu.Roles", "Roles") },
-            new SidebarMenuChildItem { Controller = "Function", Text = UiCommon("Menu.Functions", "Funciones") }
+            new SidebarMenuChildItem { Controller = "Function", Text = UiCommon("Menu.Functions", "Funciones") },
+            new SidebarMenuChildItem { Controller = "Role", Text = UiCommon("Menu.Roles", "Roles") }
         }
     };
 
@@ -182,8 +182,8 @@
     var canClients = Html.CanUseMenu("ClientV2");
     var canJobSites = Html.CanUseMenu("Jobside");
     var canSecurity = anyChildVisible(seguridadMenu);
-    var showAdministration = canCompanies || canEmployees || canArticles || canTemplates || canClients || canJobSites || canSecurity;
-    var showConfiguration = anyChildVisible(configuracionMenu);
+    var showAdministration = canCompanies || canEmployees || canArticles || canTemplates || canClients || canJobSites;
+    var showConfiguration = anyChildVisible(configuracionMenu) || canSecurity;
 }
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu">
@@ -387,10 +387,6 @@
 
 
 
-        @Html.Partial("_SidebarMenuItemGroup", seguridadMenu)
-
-
-
         @* Header Configuracion *@
 
         @if (showConfiguration)
@@ -401,6 +397,8 @@
 
 
         @Html.Partial("_SidebarMenuItemGroup", configuracionMenu)
+
+        @Html.Partial("_SidebarMenuItemGroup", seguridadMenu)
 
 
 

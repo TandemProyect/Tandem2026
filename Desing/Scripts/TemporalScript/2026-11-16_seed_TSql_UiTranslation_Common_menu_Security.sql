@@ -1,5 +1,5 @@
 /* =============================================================================
-   Semilla: menú «Seguridad» (Roles / Funciones) (TextModule = Common).
+   Semilla: menú Configuración › «Roles y funciones» (Funciones / Roles) (TextModule = Common).
    Idioma: solo TSql_Language.Is_Default = 1.
    ============================================================================= */
 SET NOCOUNT ON;
@@ -21,13 +21,13 @@ DECLARE @User NVARCHAR(128) =
 
 IF @Lang IS NULL OR @User IS NULL OR OBJECT_ID(N'dbo.TSql_UiTranslation', N'U') IS NULL
 BEGIN
-    PRINT N'Aviso: semilla Menu.Security omitida.';
+    PRINT N'Aviso: semilla Menu.RolesAndFunctions omitida.';
 END
 ELSE
 BEGIN
     DECLARE @Keys TABLE (TextResourceKey NVARCHAR(200), TextValue NVARCHAR(500));
     INSERT INTO @Keys VALUES
-        (N'Menu.Security',  N'Seguridad'),
+        (N'Menu.RolesAndFunctions', N'Roles y funciones'),
         (N'Menu.Roles',     N'Roles'),
         (N'Menu.Functions', N'Funciones');
 
@@ -50,5 +50,5 @@ BEGIN
 END
 GO
 
-PRINT N'OK — menú Seguridad sembrado (o ya existía).';
+PRINT N'OK — menú Roles y funciones sembrado (o ya existía).';
 GO
