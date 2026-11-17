@@ -34,4 +34,3 @@ Usa código común: lee [`Docs/codigo-comun.md`](../../codigo-comun.md) antes de
 - Tono por defecto: Ejecutivo.
 - Tablas `TSql_Ai*` iguales en develop y producción.
 - Sube `?v=` en todos los imports y en `WallForm.cshtml`.
-- Botones, pestañas y endpoints de la IA están protegidos con la función `IA`. Si añades uno, sigue `Docs/areas/seguridad/recetas.md` (C, D, E).

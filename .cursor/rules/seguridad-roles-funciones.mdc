@@ -1,0 +1,18 @@
+---
+description: Roles y funciones — cómo proteger comandos, menú y botones
+globs:
+  - Desing/Controllers/*Controller.cs
+  - Desing/Views/**/*
+  - Desing/Scripts/**/*.js
+alwaysApply: false
+---
+
+# Roles y funciones
+
+Leer `Desing/IA/docs/SEGURIDAD-ROLES-FUNCIONES.md`.
+
+- Un comando sin función activa en `TSql_Functions` es libre para todos. No añadir comprobaciones de rol a mano (`IsInRole`, listas de usuarios, flags en `TSql_Employee`).
+- Claves automáticas: `Controlador` y `Controlador.Accion` (filtro global `FunctionAuthorizeFilter`). Clave extra: `[RequireFunction("…")]`.
+- Menú: toda línea nueva del sidebar va dentro de `Html.CanUseMenu("Controlador")` (o como hijo de `SidebarMenuGroupModel`, que ya filtra).
+- Botones JS nuevos: `data-function="Modulo.Comando"`; rutas sin botón (atajos): `TandemFunctions.can('…')`.
+- Cambios en roles/funciones solo por `Helpers/SecurityRepository.cs` (invalida la caché).

@@ -29,7 +29,6 @@ Helpers compartidos (`IntranetAuditHelper`, `LanguageUiHelper`…): [`Docs/codig
 ## Reglas del área
 
 - Reglas de Cursor: `intranet-ui-forms.mdc`, `intranet-paneles-datatables.mdc`, `intranet-mvc-i18n-resx-uitranslation.mdc`.
-- Menús y botones que dependen de derechos: `Docs/areas/seguridad/INDEX.md`.
 
 ## Historial (no leer salvo que haga falta)
 

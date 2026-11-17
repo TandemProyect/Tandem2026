@@ -22,7 +22,6 @@ Revisado el 14/11/2026 con las referencias de los `.csproj`, los `using` y los `
 | `Services/CadWall2dService` | `DesignToolsAutocadController` (`PluginWall2dStep`): OpenCAD y plugins | Muro 2D paso a paso |
 | `Helpers/PluginCadAtk60PanelStlHelper` | `Desing_2Controller`, `DesignToolsAutocadController`, `DesignWallArticleRepository` | Paneles STL en visor y plugin |
 | `Helpers/PluginCadDeviceHelper`, `PluginInstallLink` | Plugins (autorización de equipo), `Desing_2`, `Employee`, `Account`, `Base`, `Plantilla` | Login de plugin; `Docs/areas/cad-comun/` |
-| Derechos: `Helpers/FunctionAuthorizeFilter` (filtro global), `FunctionAccessService`, `FunctionHtmlExtensions`, `Scripts/Intranet/tandem-functions.js` | Todos los controladores, menú lateral, layouts Materio y paletas de los plugins | Usuario con y sin la función: menú, URL directa (403) y AJAX; `Docs/areas/seguridad/` |
 | `Helpers/IntranetAuditHelper` | Casi todos los controladores | Altas y cambios con auditoría |
 | `Helpers/ApplicationStlUrlHelper`, `DesignGroupHelper`, `JobsideCodeHelper`, `OfferNumberHelper` | Intranet (Home, Jobside), `Desing_2`, plugins, TandemXR | Obra/oferta en intranet y plugin |
 | `Helpers/LanguageUiHelper`, `DbBackedResourceManager` | Intranet y layout | Traducciones: `Docs/areas/intranet/` |
