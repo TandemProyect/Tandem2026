@@ -23,6 +23,7 @@ Lee **solo** este archivo y el `INDEX.md` de tu área. No leas «toda la documen
 | Encofrado ATK-60 | `Docs/areas/encofrado-atk60/INDEX.md` | `Desing/Repositories/RepositoryAtk60/`, `Repository_Desing_2/Atk60/` |
 | Asistentes IA (muro y diseño) | `Docs/areas/ia-asistentes/INDEX.md` | `wall-ai-assistant.js`, `design-ai-assistant.js` |
 | Base de datos y DAL | `Docs/areas/base-de-datos/INDEX.md` | `DAL/`, `Desing/Scripts/TemporalScript/` |
+| Derechos: roles, funciones, quién ve menús, botones y comandos | `Docs/areas/seguridad/INDEX.md` | `Helpers/Function*.cs`, `SecurityRepository.cs`, `tandem-functions.js` |
 | Intranet: CRUD, Materio, traducciones | `Docs/areas/intranet/INDEX.md` | controladores y vistas de la intranet |
 | Plugins CAD, parte común (API, sesión, paleta) | `Docs/areas/cad-comun/INDEX.md` | `DesignToolsAutocadController.cs` |
 | ZWCAD | `Docs/areas/cad-zwcad/INDEX.md` | `TamdenZwcadPluging/` |

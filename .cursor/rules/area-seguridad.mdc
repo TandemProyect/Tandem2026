@@ -1,0 +1,26 @@
+---
+description: Área Derechos (roles y funciones) — leer su INDEX antes de tocar este código
+globs:
+  - "Desing/Helpers/Function*.cs"
+  - "Desing/Helpers/SecurityRepository.cs"
+  - "Desing/Controllers/RoleController.cs"
+  - "Desing/Controllers/FunctionController.cs"
+  - "Desing/Views/Role/**"
+  - "Desing/Views/Function/**"
+  - "Desing/Views/Employee/AssignRoles.cshtml"
+  - "Desing/Views/Shared/_TandemFunctions.cshtml"
+  - "Desing/Views/Shared/AccessDenied.cshtml"
+  - "Desing/Scripts/Intranet/tandem-functions.js"
+  - "Desing/Models/SecurityViewModels.cs"
+  - "Desing/Scripts/TemporalScript/*TSql_Roles_V2*.sql"
+  - "Desing/Scripts/TemporalScript/*TSql_Functions*.sql"
+  - "Desing/Scripts/TemporalScript/*TSql_RoleFunction*.sql"
+  - "Desing/Scripts/TemporalScript/*TSql_UserRole*.sql"
+alwaysApply: false
+---
+
+Trabajas en el área **Derechos**. Lee `Docs/areas/seguridad/INDEX.md` y solo la ficha que indique para tu tarea. No leas otras áreas.
+
+- Sin función activa en `TSql_Functions`, el comando es libre. No compruebes roles a mano.
+- Protege siempre en el servidor (`Controlador`, `Controlador.Accion`, `[RequireFunction]`). Ocultar en la vista o en JS no basta.
+- Escribe en las tablas de roles solo con `SecurityRepository` o con una semilla idempotente.
