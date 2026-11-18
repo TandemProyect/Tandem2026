@@ -45,6 +45,8 @@ namespace Desing.Controllers
             Tuple.Create("OfferState", typeof(Desing.Resources.OfferState)),
             Tuple.Create("XrDevice", typeof(Desing.Resources.XrDevice)),
             Tuple.Create("Security", typeof(Desing.Resources.Security)),
+            Tuple.Create("DevelopAgent", typeof(Desing.Resources.DevelopAgent)),
+            Tuple.Create("DevelopAi", typeof(Desing.Resources.DevelopAi)),
             Tuple.Create("Common", typeof(Desing.Resources.Common))
         };
 

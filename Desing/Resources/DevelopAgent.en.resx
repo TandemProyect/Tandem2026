@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Btn_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Btn_Copy" xml:space="preserve">
+    <value>Copy command</value>
+  </data>
+  <data name="Col_Command" xml:space="preserve">
+    <value>Command</value>
+  </data>
+  <data name="Col_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Col_Name" xml:space="preserve">
+    <value>Document</value>
+  </data>
+  <data name="Common_Develop" xml:space="preserve">
+    <value>Develop</value>
+  </data>
+  <data name="Common_Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Index_Breadcrumb" xml:space="preserve">
+    <value>Agents</value>
+  </data>
+  <data name="Index_Intro" xml:space="preserve">
+    <value>Documents for agents. Copy the command and give it to the agent; click a row to see the full description.</value>
+  </data>
+  <data name="Lbl_Path" xml:space="preserve">
+    <value>Path</value>
+  </data>
+  <data name="List_OpenTooltip" xml:space="preserve">
+    <value>Show the full information</value>
+  </data>
+  <data name="Modal_Title" xml:space="preserve">
+    <value>Agent document</value>
+  </data>
+  <data name="Msg_Copied" xml:space="preserve">
+    <value>Command copied.</value>
+  </data>
+  <data name="Msg_NoTable" xml:space="preserve">
+    <value>Table TSql_DevelodAgentDocument is missing: run 2026-11-17_create_TSql_DevelodAgentDocument.sql and its seed.</value>
+  </data>
+</root>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Badge_Pending" xml:space="preserve">
+    <value>Pendiente de IA</value>
+  </data>
+  <data name="Btn_Close" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="Btn_Copy" xml:space="preserve">
+    <value>Copiar órdenes</value>
+  </data>
+  <data name="Btn_Language" xml:space="preserve">
+    <value>Idioma</value>
+  </data>
+  <data name="Col_Function" xml:space="preserve">
+    <value>Función</value>
+  </data>
+  <data name="Col_Meaning" xml:space="preserve">
+    <value>Significado</value>
+  </data>
+  <data name="Col_Orders" xml:space="preserve">
+    <value>Órdenes</value>
+  </data>
+  <data name="Common_Develop" xml:space="preserve">
+    <value>Develop</value>
+  </data>
+  <data name="Common_Home" xml:space="preserve">
+    <value>Inicio</value>
+  </data>
+  <data name="Index_Breadcrumb" xml:space="preserve">
+    <value>IA</value>
+  </data>
+  <data name="Index_Intro" xml:space="preserve">
+    <value>Funciones de la IA, las órdenes que entiende y qué significan. Elige el idioma para ver las órdenes de ese idioma.</value>
+  </data>
+  <data name="Lbl_Code" xml:space="preserve">
+    <value>Código</value>
+  </data>
+  <data name="Lbl_Group" xml:space="preserve">
+    <value>Grupo</value>
+  </data>
+  <data name="Lbl_Handler" xml:space="preserve">
+    <value>Handler</value>
+  </data>
+  <data name="Lbl_State" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Modal_Title" xml:space="preserve">
+    <value>Función IA</value>
+  </data>
+  <data name="Msg_Copied" xml:space="preserve">
+    <value>Órdenes copiadas.</value>
+  </data>
+  <data name="Msg_NoOrders" xml:space="preserve">
+    <value>No hay órdenes en este idioma.</value>
+  </data>
+  <data name="Msg_NoTable" xml:space="preserve">
+    <value>Falta la tabla TSql_AiCommand: ejecuta las semillas 2026-11-14_seed_TSql_AiCommand.sql.</value>
+  </data>
+  <data name="State_Pending" xml:space="preserve">
+    <value>Pendiente: la IA dice cuál es y que se use el botón.</value>
+  </data>
+  <data name="State_Ready" xml:space="preserve">
+    <value>La IA la ejecuta.</value>
+  </data>
+</root>

@@ -103,7 +103,7 @@ namespace Desing.Controllers
 
                 var phrases = db.Database.SqlQuery<AiPhraseRow>(
                     "SELECT p.IdObject, p.LinkAiCommand, p.TextLanguageCode, p.TextPhrase, p.TextPhraseNorm, p.TextKind, p.TextConcept, " +
-                    "p.NumberWeight, p.LinkEnvironment, p.NumberOrder " +
+                    "p.NumberWeight, p.LinkEnvironment, p.NumberOrder, p.TextLabel " +
                     "FROM dbo.TSql_AiCommandPhrase p INNER JOIN dbo.TSql_AiCommand c ON c.IdObject = p.LinkAiCommand " +
                     "WHERE p.Is_Delete = 0 AND p.Is_Active = 1 AND c.Is_Delete = 0 AND c.Is_Active = 1 AND c.TextContext IN (@p0, N'common') " +
                     "AND (p.LinkEnvironment IS NULL OR p.LinkEnvironment = @p1) " +
@@ -118,7 +118,7 @@ namespace Desing.Controllers
                         "SELECT LinkAiCommand, Is_UseDefaultPhrases, NumberOrder, Is_Active FROM dbo.TSql_AiCommandUser " +
                         "WHERE LinkAspNetUsers = @p0 AND Is_Delete = 0", userId).ToList();
                     userPhrases = db.Database.SqlQuery<AiUserPhraseRow>(
-                        "SELECT IdObject, LinkAiCommand, LinkAiCommandPhrase, TextLanguageCode, TextPhrase, TextPhraseNorm, Is_Exclude, LinkEnvironment " +
+                        "SELECT IdObject, LinkAiCommand, LinkAiCommandPhrase, TextLanguageCode, TextPhrase, TextPhraseNorm, Is_Exclude, LinkEnvironment, TextLabel " +
                         "FROM dbo.TSql_AiCommandUserPhrase WHERE LinkAspNetUsers = @p0 AND Is_Delete = 0 AND Is_Active = 1 " +
                         "AND (LinkEnvironment IS NULL OR LinkEnvironment = @p1) " +
                         "AND (CHARINDEX(N'-', TextLanguageCode) = 0 OR TextLanguageCode = @p2) ORDER BY IdObject",
@@ -273,15 +273,25 @@ namespace Desing.Controllers
                         if (excludedIds.Contains(dp.IdObject)) continue;
                         if (excludedNorms.Contains((dp.TextLanguageCode ?? "") + "|" + (dp.TextPhraseNorm ?? ""))) continue;
                         if (!seen.Add(dp.TextLanguageCode + "|" + dp.TextKind + "|" + dp.TextPhraseNorm)) continue;
-                        arr.Add(AiPhraseJson(dp.TextPhrase, dp.TextPhraseNorm, dp.TextKind, dp.TextConcept, dp.NumberWeight, dp.TextLanguageCode,
+                        var kind = dp.TextKind;
+                        var concept = dp.TextConcept;
+                        /* TextKind sigue siendo keyword (el check de la tabla no admite otro). TextLabel marca el margen. */
+                        if (string.Equals(dp.TextLabel, "learned", StringComparison.Ordinal))
+                        {
+                            kind = "learned";
+                            concept = null;
+                        }
+                        arr.Add(AiPhraseJson(dp.TextPhrase, dp.TextPhraseNorm, kind, concept, dp.NumberWeight, dp.TextLanguageCode,
                             dp.LinkEnvironment.HasValue, false));
                     }
                 }
                 foreach (var up in mine.Where(m => !m.Is_Exclude))
                 {
-                    if (!seen.Add(up.TextLanguageCode + "|keyword|" + up.TextPhraseNorm)) continue;
-                    arr.Add(AiPhraseJson(up.TextPhrase, up.TextPhraseNorm, "keyword", mainConcept, mainWeight, up.TextLanguageCode,
-                        up.LinkEnvironment.HasValue, true));
+                    var learned = string.Equals(up.TextLabel, "learned", StringComparison.Ordinal);
+                    if (!seen.Add(up.TextLanguageCode + "|" + (learned ? "learned" : "keyword") + "|" + up.TextPhraseNorm)) continue;
+                    arr.Add(learned
+                        ? AiPhraseJson(up.TextPhrase, up.TextPhraseNorm, "learned", null, null, up.TextLanguageCode, up.LinkEnvironment.HasValue, true)
+                        : AiPhraseJson(up.TextPhrase, up.TextPhraseNorm, "keyword", mainConcept, mainWeight, up.TextLanguageCode, up.LinkEnvironment.HasValue, true));
                 }
 
                 var cmdJson = new JObject
@@ -457,6 +467,17 @@ namespace Desing.Controllers
         public decimal? NumberWeight { get; set; }
         public long? LinkEnvironment { get; set; }
         public int NumberOrder { get; set; }
+        public string TextLabel { get; set; }
+    }
+
+    public sealed class AiLearnCommandRow
+    {
+        public long IdObject { get; set; }
+        public string TextCode { get; set; }
+        public string TextContext { get; set; }
+        public string TextHandler { get; set; }
+        public string TextAiCommandId { get; set; }
+        public bool Is_AiImplemented { get; set; }
     }
 
     public sealed class AiCommandUserRow
@@ -477,6 +498,7 @@ namespace Desing.Controllers
         public string TextPhraseNorm { get; set; }
         public bool Is_Exclude { get; set; }
         public long? LinkEnvironment { get; set; }
+        public string TextLabel { get; set; }
     }
 
     public sealed class AiReplyRow

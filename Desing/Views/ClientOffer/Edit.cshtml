@@ -1,0 +1,141 @@
+@model Desing.Helpers.ClientOfferRow
+@using Desing.Resources
+@{
+    ViewBag.Title = ClientOffer.Page_Edit;
+}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@ClientOffer.Common_Home</a> /
+            <a href="@Url.Action("Index", "ClientOffer")">@ClientOffer.Index_Breadcrumb</a> /
+        </span> @ClientOffer.Page_Edit
+    </h4>
+    <div class="d-flex gap-2">
+        <button type="button" id="btnGeneratePdf" class="btn btn-outline-primary">@ClientOffer.Btn_GeneratePdf</button>
+        <a class="btn btn-outline-primary" href="@Url.Action("Print", "ClientOffer", new { id = Model.IdObject })" target="_blank">@ClientOffer.Btn_Print</a>
+    </div>
+</div>
+<div class="card mb-4">
+    <div class="card-body">
+        @using (Html.BeginForm("Edit", "ClientOffer", FormMethod.Post, new { enctype = "multipart/form-data", @class = "row g-3", role = "form" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+            @Html.Partial("_OfferFormFields", Model)
+            <div class="col-12">
+                <label class="form-label" for="HeaderBody">@ClientOffer.Lbl_Header</label>
+                @Html.TextAreaFor(m => m.HeaderBody, new { @class = "form-control", rows = "6" })
+            </div>
+            <div class="col-12">
+                <label class="form-label" for="TextBody">@ClientOffer.Lbl_Body</label>
+                @Html.TextAreaFor(m => m.TextBody, new { @class = "form-control", rows = "12" })
+            </div>
+            <div class="col-12 border-top pt-3 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
+                <a href="@Url.Action("Index", "ClientOffer")" class="btn btn-outline-secondary">@Common.Btn_Cancel</a>
+                <button type="submit" class="btn btn-outline-primary" name="rebuild" value="1">@ClientOffer.Btn_Rebuild</button>
+                <button type="submit" class="btn btn-primary">@Common.Btn_Save</button>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="mb-3">@ClientOffer.Lbl_Assistant</h5>
+        <div id="offerAiMessages" class="border rounded p-3 mb-3" style="max-height:260px;overflow:auto;background:#fafafa;"></div>
+        <label class="form-label" for="offerAiPrompt">@ClientOffer.Lbl_AssistantPrompt</label>
+        <textarea id="offerAiPrompt" class="form-control" rows="3"></textarea>
+        <div class="d-flex justify-content-end gap-2 mt-3">
+            <button type="button" id="btnAskOfferAi" class="btn btn-outline-primary">@ClientOffer.Btn_AskAssistant</button>
+            <button type="button" id="btnApplyOfferAi" class="btn btn-primary">@ClientOffer.Btn_ApplyAssistant</button>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+<script type="text/javascript">
+    (function () {
+        var offerId = @Model.IdObject;
+        var suggestion = null;
+        var $messages = $('#offerAiMessages');
+        var ttEmpty = '@Html.Raw(HttpUtility.JavaScriptStringEncode(ClientOffer.Msg_AssistantEmpty))';
+        var ttError = '@Html.Raw(HttpUtility.JavaScriptStringEncode(ClientOffer.Msg_AssistantError))';
+        var ttApplied = '@Html.Raw(HttpUtility.JavaScriptStringEncode(ClientOffer.Msg_AssistantApplied))';
+
+        function renderMessages(items) {
+            if (!items || !items.length) {
+                $messages.html('<div class="text-muted">—</div>');
+                return;
+            }
+
+            var html = '';
+            for (var i = 0; i < items.length; i++) {
+                var it = items[i] || {};
+                var role = (it.role || '').toLowerCase() === 'assistant' ? 'IA' : 'Tú';
+                var badge = role === 'IA' ? 'bg-label-info' : 'bg-label-primary';
+                html += '<div class="mb-2"><span class="badge ' + badge + '">' + role + '</span> '
+                    + '<span class="text-muted small">' + (it.date || '') + '</span><div style="white-space:pre-wrap;">'
+                    + $('<div/>').text(it.text || '').html() + '</div></div>';
+            }
+
+            $messages.html(html);
+            $messages.scrollTop($messages[0].scrollHeight);
+        }
+
+        function refreshMessages() {
+            $.post('@Url.Action("ListAssistantMessages", "ClientOffer")', { offerId: offerId }, function (res) {
+                if (res && res.IsOk) {
+                    renderMessages(res.Data);
+                }
+            });
+        }
+
+        $('#btnAskOfferAi').on('click', function () {
+            var prompt = ($('#offerAiPrompt').val() || '').trim();
+            if (!prompt) {
+                alert(ttEmpty);
+                return;
+            }
+
+            $.post('@Url.Action("AskAssistant", "ClientOffer")',
+                { offerId: offerId, prompt: prompt, __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val() },
+                function (res) {
+                    if (!res || !res.IsOk || !res.Response) {
+                        alert((res && res.Message) || ttError);
+                        return;
+                    }
+
+                    suggestion = res.Response;
+                    refreshMessages();
+                });
+        });
+
+        $('#btnApplyOfferAi').on('click', function () {
+            if (!suggestion) {
+                alert(ttEmpty);
+                return;
+            }
+
+            if (suggestion.subject) { $('#TextSubject').val(suggestion.subject); }
+            if (suggestion.header) { $('#HeaderBody').val(suggestion.header); }
+            if (suggestion.body) { $('#TextBody').val(suggestion.body); }
+            alert(ttApplied);
+        });
+
+        $('#btnGeneratePdf').on('click', function () {
+            $.post('@Url.Action("GeneratePdf", "ClientOffer")',
+                { id: offerId, __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val() },
+                function (res) {
+                    if (!res || !res.IsOk || !res.Url) {
+                        alert(ttError);
+                        return;
+                    }
+
+                    window.open(res.Url, '_blank');
+                });
+        });
+
+        refreshMessages();
+    })();
+</script>
+}

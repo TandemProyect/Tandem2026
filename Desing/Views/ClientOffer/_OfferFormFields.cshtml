@@ -1,0 +1,107 @@
+@model Desing.Helpers.ClientOfferRow
+@using Desing.Helpers
+@using Desing.Resources
+@{
+    var systems = ViewBag.Systems as System.Collections.Generic.IList<ClientOfferLookup> ?? new System.Collections.Generic.List<ClientOfferLookup>();
+    var companies = ViewBag.Companies as System.Collections.Generic.IList<ClientOfferLookup> ?? new System.Collections.Generic.List<ClientOfferLookup>();
+    var designs = ViewBag.Designs as System.Collections.Generic.IList<ClientOfferLookup> ?? new System.Collections.Generic.List<ClientOfferLookup>();
+    var offers = ViewBag.Offers as System.Collections.Generic.IList<ClientOfferLookup> ?? new System.Collections.Generic.List<ClientOfferLookup>();
+    var jobs = ViewBag.Jobsides as System.Collections.Generic.IList<ClientOfferLookup> ?? new System.Collections.Generic.List<ClientOfferLookup>();
+    var clients = ViewBag.Clients as System.Collections.Generic.IList<ClientOfferLookup> ?? new System.Collections.Generic.List<ClientOfferLookup>();
+    var plantillas = ViewBag.Plantillas as System.Collections.Generic.IList<ClientOfferLookup> ?? new System.Collections.Generic.List<ClientOfferLookup>();
+}
+@Html.HiddenFor(m => m.IdObject)
+<div class="col-md-4">
+    <label class="form-label" for="LinkSystem">@ClientOffer.Lbl_System</label>
+    <select class="form-select" id="LinkSystem" name="LinkSystem" required="required">
+        <option value="">@ClientOffer.Ph_System</option>
+        @foreach (var item in systems)
+        {
+            <option value="@item.Id" @(Model.LinkSystem == item.Id ? "selected" : null)>@item.TextLabel</option>
+        }
+    </select>
+    @Html.ValidationMessage("LinkSystem", "", new { @class = "text-danger" })
+</div>
+<div class="col-md-4">
+    <label class="form-label" for="LinkCompany">@ClientOffer.Lbl_Company</label>
+    <select class="form-select" id="LinkCompany" name="LinkCompany" required="required">
+        <option value="">@ClientOffer.Ph_Optional</option>
+        @foreach (var item in companies)
+        {
+            <option value="@item.Id" @(Model.LinkCompany == item.Id ? "selected" : null)>@item.TextLabel</option>
+        }
+    </select>
+    @Html.ValidationMessage("LinkCompany", "", new { @class = "text-danger" })
+</div>
+<div class="col-md-4">
+    <label class="form-label" for="LinkPlantilla">@ClientOffer.Lbl_Plantilla</label>
+    <select class="form-select" id="LinkPlantilla" name="LinkPlantilla">
+        <option value="">@ClientOffer.Ph_Optional</option>
+        @foreach (var item in plantillas)
+        {
+            <option value="@item.Id" @(Model.LinkPlantilla == item.Id ? "selected" : null)>@item.TextLabel</option>
+        }
+    </select>
+</div>
+<div class="col-md-6">
+    <label class="form-label" for="LinkDesign">@ClientOffer.Lbl_Design</label>
+    <select class="form-select" id="LinkDesign" name="LinkDesign">
+        <option value="">@ClientOffer.Ph_Optional</option>
+        @foreach (var item in designs)
+        {
+            <option value="@item.Id" @(Model.LinkDesign == item.Id ? "selected" : null)>@item.TextLabel</option>
+        }
+    </select>
+</div>
+<div class="col-md-6">
+    <label class="form-label" for="LinkOffers">@ClientOffer.Lbl_Offer</label>
+    <select class="form-select" id="LinkOffers" name="LinkOffers">
+        <option value="">@ClientOffer.Ph_Optional</option>
+        @foreach (var item in offers)
+        {
+            <option value="@item.Id" @(Model.LinkOffers == item.Id ? "selected" : null)>@item.TextLabel</option>
+        }
+    </select>
+</div>
+<div class="col-md-6">
+    <label class="form-label" for="LinkJobside">@ClientOffer.Lbl_Jobside</label>
+    <select class="form-select" id="LinkJobside" name="LinkJobside">
+        <option value="">@ClientOffer.Ph_Optional</option>
+        @foreach (var item in jobs)
+        {
+            <option value="@item.Id" @(Model.LinkJobside == item.Id ? "selected" : null)>@item.TextLabel</option>
+        }
+    </select>
+</div>
+<div class="col-md-6">
+    <label class="form-label" for="LinkClient_V2">@ClientOffer.Lbl_Client</label>
+    <select class="form-select" id="LinkClient_V2" name="LinkClient_V2">
+        <option value="">@ClientOffer.Ph_Optional</option>
+        @foreach (var item in clients)
+        {
+            <option value="@item.Id" @(Model.LinkClient_V2 == item.Id ? "selected" : null)>@item.TextLabel</option>
+        }
+    </select>
+</div>
+<div class="col-md-8">
+    <label class="form-label" for="TextSubject">@ClientOffer.Lbl_Subject</label>
+    @Html.TextBoxFor(m => m.TextSubject, new { @class = "form-control", maxlength = "500" })
+    @Html.ValidationMessage("TextSubject", "", new { @class = "text-danger" })
+</div>
+<div class="col-md-4">
+    <label class="form-label" for="logoFile">@ClientOffer.Lbl_Logo</label>
+    <input type="file" class="form-control" id="logoFile" name="logoFile" accept=".png,.jpg,.jpeg,.gif,.svg" />
+    @if (!string.IsNullOrEmpty(Model.TextLogo))
+    {
+        <img src="@Model.TextLogo" alt="" style="max-height:48px;margin-top:8px" />
+    }
+    @Html.ValidationMessage("TextLogo", "", new { @class = "text-danger" })
+</div>
+<div class="col-12">
+    <label class="form-label" for="TextClientAddress">@ClientOffer.Lbl_Address</label>
+    @Html.TextBoxFor(m => m.TextClientAddress, new { @class = "form-control", maxlength = "1000" })
+</div>
+<div class="col-12">
+    <label class="form-label" for="TextRecuento">@ClientOffer.Lbl_Recuento</label>
+    @Html.TextAreaFor(m => m.TextRecuento, new { @class = "form-control", rows = "4" })
+</div>

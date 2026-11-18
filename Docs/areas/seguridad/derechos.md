@@ -55,26 +55,28 @@ El cliente se carga en `_LayoutMaterio`, `_LayoutMaterioBlank`, `_LayoutAutocadP
 - **… › Roles** (`RoleController`, clave `Role`): nombre, código y funciones agrupadas por `TextModule`. Aquí no se asignan usuarios.
 - **Empleados › escudo › Asignar roles** (`Employee/AssignRoles/{userId}`, `[RequireFunction("Role")]`): tabla de asignados a la izquierda y de disponibles a la derecha. Se arrastra o se usa la flecha, y `AddUserRole` / `RemoveUserRole` lo guardan al momento. `RemoveUserRole` deshace el cambio si el usuario se quita a sí mismo el acceso a `Role`.
 
-## 6. Estado (17/11/2026)
+## 6. Estado (18/11/2026)
 
 | Función | Activa | Protege |
 |---------|--------|---------|
 | `Role` | sí | Roles y Asignar roles |
 | `Function` | sí | Funciones |
 | `IA` | sí | Botón IA de `_Desing2ModeToolBar.cshtml`, pestaña «Asistente IA» de `wall-edit-form.js` y del muro curvo (`master-article-details-stl-viewer.js`), endpoints `Desing_2/AiCommands`, `SaveAiUserSettings`, `SaveAiUnknownPhrase`, `AiUnknownPhrases`, `ResolveAiUnknownPhrase` |
+| `DevelopAgent` | sí | Menú Develop › Agentes y `DevelopAgentController` |
 | `TSql_Company` | no | Empresas (se activa en Funciones) |
 | `Employee` | no | Empleados |
 
 | Rol | Funciones |
 |-----|-----------|
 | `SYSADMIN` Administrador de sistema | todas (`Is_AllFunctions`, `Is_System`) |
-| `ADMINISTRATIVE` Administrativo | `Employee` |
-| `SECTION_HEAD` Jefe de Sección, `DESIGNER` Proyectista | ninguna |
+| `ADMINISTRATIVE` Administrativo | `Employee`, `IA` |
+| `SECTION_HEAD` Jefe de Sección, `DESIGNER` Proyectista | `IA` |
 | `AI_ASSISTANT` Asistente IA | `IA` |
+| `DEVELOP` Develop | todas (`Is_AllFunctions`); también `DevelopAgent` y `DevelopAi` |
 
-`juan.godoy@vscad.com` tiene `SYSADMIN` y `AI_ASSISTANT`.
+`juan.godoy@vscad.com` tiene los seis roles en develop local y en producción.
 
-Scripts en `Desing/Scripts/TemporalScript/`, todos idempotentes y en este orden: `2026-11-16_create_TSql_Roles_V2`, `_create_TSql_Functions`, `_create_TSql_RoleFunction`, `_create_TSql_UserRole`, `_seed_TSql_Roles_V2_Functions`, `_seed_TSql_UiTranslation_Common_menu_Security`, `_seed_TSql_Functions_IA`. Ejecutados en producción y en el SQL Express local; develop no es accesible desde fuera.
+Scripts en `Desing/Scripts/TemporalScript/`, todos idempotentes y en este orden: `2026-11-16_create_TSql_Roles_V2`, `_create_TSql_Functions`, `_create_TSql_RoleFunction`, `_create_TSql_UserRole`, `_seed_TSql_Roles_V2_Functions`, `_seed_TSql_UiTranslation_Common_menu_Security`, `_seed_TSql_Functions_IA`, `2026-11-17_seed_TSql_Functions_DevelopAgent`, `2026-11-18_seed_TSql_Functions_DevelopAi`, `2026-11-18_sync_rights_and_defaults`. Ejecutados en producción y en el SQL Express local; develop no es accesible desde fuera.
 
 **Pendiente:**
 - «Update Model from Database» en `DAL/Model.edmx` con las 4 tablas.

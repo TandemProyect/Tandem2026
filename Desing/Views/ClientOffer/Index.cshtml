@@ -1,0 +1,86 @@
+@using Newtonsoft.Json
+@using Desing.Resources
+@using System.Globalization
+@{
+    ViewBag.Title = ClientOffer.Index_Breadcrumb;
+    var ci = CultureInfo.CurrentUICulture?.TwoLetterISOLanguageName ?? "es";
+    var dt = JsonConvert.SerializeObject(new
+    {
+        culture = ci,
+        rowsSuffix = Common.Dt_Rows_N,
+        allRows = Common.Dt_Rows_All,
+        sectionRecords = Common.Dt_Section_Records,
+        sectionExport = Common.Dt_Section_Export,
+        sectionCols = Common.Dt_Section_ColumnsVisible,
+        ariaMenu = Common.Dt_MenuAria,
+        confirmDelete = ClientOffer.Js_ConfirmDelete
+    });
+}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@ClientOffer.Common_Home</a> /
+            @ClientOffer.Common_Settings /
+        </span> @ClientOffer.Index_Breadcrumb
+    </h4>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" href="@Url.Action("Texts", "ClientOffer")">@ClientOffer.Index_Texts</a>
+        <a class="btn btn-primary text-white" href="@Url.Action("Create", "ClientOffer")">@ClientOffer.Index_Create</a>
+    </div>
+</div>
+@if (ViewBag.TableMissing == true)
+{
+    <div class="alert alert-warning">@ClientOffer.Msg_NoTable</div>
+}
+<div class="card mb-4">
+    <div class="card-body" style="padding:5px">
+        <table id="ListClientOffers" class="table table-hover" style="width:100%">
+            <thead>
+                <tr>
+                    <th>@ClientOffer.Lbl_Subject</th>
+                    <th>@ClientOffer.Col_System</th>
+                    <th>@ClientOffer.Col_Client</th>
+                    <th>@ClientOffer.Col_State</th>
+                    <th></th>
+                    <th>ID</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+@section scripts {
+    <script type="text/javascript">
+        var clientOfferDt = @Html.Raw(dt);
+        $(document).ready(function () {
+            $('#ListClientOffers').DataTable(TandemDataTablesList.applyListDefaults({
+                lengthMenu: [[10, 25, 50, -1], ['10 ' + clientOfferDt.rowsSuffix, '25 ' + clientOfferDt.rowsSuffix, '50 ' + clientOfferDt.rowsSuffix, clientOfferDt.allRows]],
+                buttons: [{
+                    extend: 'collection',
+                    text: "<i class='fas fa-bars'></i>",
+                    attr: { 'aria-label': clientOfferDt.ariaMenu },
+                    className: 'custom-html-collection',
+                    buttons: ['<h5>' + clientOfferDt.sectionRecords + '</h5>', 'pageLength', '<h5>' + clientOfferDt.sectionExport + '</h5>', 'print', 'copy', 'pdf', 'csv', 'excel', '<h5 class="not-top-heading">' + clientOfferDt.sectionCols + '</h5>', 'colvis']
+                }],
+                serverSide: true,
+                processing: true,
+                ajax: { url: '@Url.Action("ListDocuments", "ClientOffer")', type: 'POST' },
+                order: [[0, 'asc']],
+                columns: [
+                    { data: 'TextLabel', name: 'TextLabel' },
+                    { data: 'Extra', name: 'Extra' },
+                    { data: 'Third', name: 'Third' },
+                    { data: 'activeBadge', name: 'activeBadge', orderable: true, searchable: false },
+                    { data: 'rowActions', orderable: false, searchable: false, className: 'text-end' },
+                    { data: 'IdObject', visible: false }
+                ]
+            }));
+        });
+        window.DeleteClientOffer = function (id) {
+            if (!confirm(clientOfferDt.confirmDelete)) return;
+            $.post('@Url.Action("Delete", "ClientOffer")', { id: id, __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() }, function (res) {
+                if (res && res.IsOk) { $('#ListClientOffers').DataTable().ajax.reload(null, false); }
+            });
+        };
+    </script>
+    <div style="display:none;">@Html.AntiForgeryToken()</div>
+}

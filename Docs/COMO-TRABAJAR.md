@@ -14,6 +14,8 @@ Ejemplos:
 - «Lee AGENTS.md y trabaja en **encofrado ATK-60**: la T de 0,15 sale desplazada.»
 - «Lee AGENTS.md y trabaja en **plugin ZWCAD**: el icono no aparece.»
 
+Los comandos de cada área están en la intranet, en **Develop › Agentes** (tabla `TSql_DevelodAgentDocument`, solo rol «Develop»). Pulsa un registro para ver la explicación y copiar el comando.
+
 No le digas «lee toda la documentación». Con `AGENTS.md` (unos 60 renglones) sabe las reglas y qué `INDEX.md` abrir. El `INDEX.md` le dice qué ficha abrir para cada tarea.
 
 En Cursor, además, las reglas de `.cursor/rules/area-*.mdc` se cargan solas cuando el agente abre archivos de esa carpeta. Si trabajas en `TamdenZwcadPluging/`, no le llega nada del visor ni de OpenCAD.
@@ -26,7 +28,8 @@ Si la tarea cruza áreas, nómbralas: «trabaja en **encofrado ATK-60** y **plug
 2. Escribe la ficha en `Docs/areas/<area>/<tema>.md`. Un tema por ficha.
 3. Añade una línea en la tabla «Si vas a…» del `INDEX.md` del área.
 4. Si el tema usa código común, enlázalo en la sección «Código común» del INDEX y, si es código nuevo compartido, añádelo a `Docs/codigo-comun.md`.
-5. Opcional: si el área tiene carpetas de código nuevas, añádelas a los `globs` de su `.cursor/rules/area-<area>.mdc`.
+5. Si creas, renombras o quitas un área o una ficha que se pida por comando, cambia la lista de `Desing/Scripts/TemporalScript/2026-11-17_seed_TSql_DevelodAgentDocument.sql` y vuelve a ejecutarla en las dos bases (clave `TextCode`).
+6. Opcional: si el área tiene carpetas de código nuevas, añádelas a los `globs` de su `.cursor/rules/area-<area>.mdc`.
 
 Los handovers de sesión van a `Docs/areas/<area>/historial/AAAA-MM-DD-<tema>.md`. Cuando algo del handover queda como regla, pásalo a la ficha y deja el handover en historial.
 

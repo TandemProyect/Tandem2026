@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Col_Client" xml:space="preserve"><value>Cliente</value></data>
+  <data name="Col_Company" xml:space="preserve"><value>Empresa</value></data>
+  <data name="Col_Name" xml:space="preserve"><value>Nombre</value></data>
+  <data name="Col_State" xml:space="preserve"><value>Estado</value></data>
+  <data name="Col_System" xml:space="preserve"><value>Sistema</value></data>
+  <data name="Common_Home" xml:space="preserve"><value>Inicio</value></data>
+  <data name="Common_Settings" xml:space="preserve"><value>Configuración</value></data>
+  <data name="Err_BrandDuplicate" xml:space="preserve"><value>Ya hay un texto general para esa empresa y ese sistema.</value></data>
+  <data name="Err_CompanyRequired" xml:space="preserve"><value>Hay que indicar la empresa.</value></data>
+  <data name="Err_LabelRequired" xml:space="preserve"><value>El nombre es obligatorio.</value></data>
+  <data name="Err_LogoFormat" xml:space="preserve"><value>El logo debe ser png, jpg, gif o svg.</value></data>
+  <data name="Err_LogoSize" xml:space="preserve"><value>El logo supera 2 MB.</value></data>
+  <data name="Err_SubjectRequired" xml:space="preserve"><value>El asunto es obligatorio.</value></data>
+  <data name="Err_SystemRequired" xml:space="preserve"><value>Hay que indicar el sistema de la oferta.</value></data>
+  <data name="Index_Breadcrumb" xml:space="preserve"><value>Oferta cliente</value></data>
+  <data name="Index_Create" xml:space="preserve"><value>Nueva oferta</value></data>
+  <data name="Index_Texts" xml:space="preserve"><value>Textos y logo</value></data>
+  <data name="Js_ConfirmDelete" xml:space="preserve"><value>¿Eliminar este registro?</value></data>
+  <data name="Lbl_Active" xml:space="preserve"><value>Activo</value></data>
+  <data name="Lbl_Address" xml:space="preserve"><value>Dirección del cliente</value></data>
+  <data name="Lbl_AllSystems" xml:space="preserve"><value>Todos los sistemas</value></data>
+  <data name="Lbl_Body" xml:space="preserve"><value>Texto</value></data>
+  <data name="Lbl_BodyTemplate" xml:space="preserve"><value>Texto general ({Empresa} {Cliente} {Diseno} {Oferta} {Obra} {Plantilla} {Sistema} {Recuento})</value></data>
+  <data name="Lbl_Client" xml:space="preserve"><value>Cliente</value></data>
+  <data name="Lbl_Company" xml:space="preserve"><value>Empresa</value></data>
+  <data name="Lbl_CompanyName" xml:space="preserve"><value>Nombre de empresa en el encabezado</value></data>
+  <data name="Lbl_Design" xml:space="preserve"><value>Diseño</value></data>
+  <data name="Lbl_Header" xml:space="preserve"><value>Encabezado</value></data>
+  <data name="Lbl_HeaderTemplate" xml:space="preserve"><value>Encabezado ({Empresa} {DireccionEmpresa} {Cliente} {DireccionCliente} {Asunto})</value></data>
+  <data name="Lbl_Inactive" xml:space="preserve"><value>Inactivo</value></data>
+  <data name="Lbl_Jobside" xml:space="preserve"><value>Obra</value></data>
+  <data name="Lbl_Logo" xml:space="preserve"><value>Logo</value></data>
+  <data name="Lbl_Name" xml:space="preserve"><value>Nombre</value></data>
+  <data name="Lbl_Offer" xml:space="preserve"><value>Oferta</value></data>
+  <data name="Lbl_Plantilla" xml:space="preserve"><value>Plantilla</value></data>
+  <data name="Lbl_Recuento" xml:space="preserve"><value>Recuento</value></data>
+  <data name="Lbl_Subject" xml:space="preserve"><value>Asunto</value></data>
+  <data name="Lbl_SubjectTemplate" xml:space="preserve"><value>Asunto ({Sistema} {Obra} {Cliente})</value></data>
+  <data name="Lbl_System" xml:space="preserve"><value>Sistema</value></data>
+  <data name="List_DeleteTooltip" xml:space="preserve"><value>Eliminar</value></data>
+  <data name="List_EditTooltip" xml:space="preserve"><value>Editar</value></data>
+  <data name="Msg_NoTable" xml:space="preserve"><value>Faltan las tablas de oferta al cliente en develop.</value></data>
+  <data name="Page_Create" xml:space="preserve"><value>Nueva oferta</value></data>
+  <data name="Page_CreateText" xml:space="preserve"><value>Nuevo texto general</value></data>
+  <data name="Page_Edit" xml:space="preserve"><value>Editar oferta</value></data>
+  <data name="Page_EditText" xml:space="preserve"><value>Editar texto general</value></data>
+  <data name="Page_Print" xml:space="preserve"><value>Vista para PDF</value></data>
+  <data name="Ph_Optional" xml:space="preserve"><value>(sin asignar)</value></data>
+  <data name="Ph_System" xml:space="preserve"><value>Elige el sistema</value></data>
+  <data name="Btn_Print" xml:space="preserve"><value>Vista PDF</value></data>
+  <data name="Btn_GeneratePdf" xml:space="preserve"><value>Generar PDF servidor</value></data>
+  <data name="Btn_Rebuild" xml:space="preserve"><value>Regenerar desde textos generales</value></data>
+  <data name="Btn_AskAssistant" xml:space="preserve"><value>Preguntar IA</value></data>
+  <data name="Btn_ApplyAssistant" xml:space="preserve"><value>Aplicar propuesta IA</value></data>
+  <data name="Lbl_Assistant" xml:space="preserve"><value>Asistente IA de oferta</value></data>
+  <data name="Lbl_AssistantPrompt" xml:space="preserve"><value>Qué quieres cambiar en la oferta</value></data>
+  <data name="Msg_AssistantEmpty" xml:space="preserve"><value>Escribe una instrucción para la IA.</value></data>
+  <data name="Msg_AssistantApplied" xml:space="preserve"><value>Propuesta aplicada. Revisa y guarda.</value></data>
+  <data name="Msg_AssistantError" xml:space="preserve"><value>No se pudo generar la propuesta IA.</value></data>
+  <data name="Texts_Breadcrumb" xml:space="preserve"><value>Textos y logo</value></data>
+</root>

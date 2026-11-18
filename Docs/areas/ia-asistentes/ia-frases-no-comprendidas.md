@@ -1,6 +1,6 @@
 # Frases que la IA no comprende (§16.15)
 
-Desde el 16/11/2026 (pt119u), imports `?v=20261116a`.
+Desde el 16/11/2026 (pt119u). La revisión en el visor está en `design-ai-assistant.js?v=20261118b`.
 
 Cuando un asistente contesta «No he entendido…», la frase se guarda en el servidor para revisarla después. El usuario no ve nada y, si falla, no sale ningún error.
 
@@ -48,19 +48,22 @@ UTF-8 sin BOM, indentado, escrito con candado (`lock`) y archivo temporal. Cada 
 | Método | URL | Cuerpo / parámetros | Respuesta |
 |--------|-----|---------------------|-----------|
 | POST | `Desing_2/SaveAiUnknownPhrase` | `{ frase, asistente, idioma?, contexto? }` | `{ ok, id, veces, nueva }` |
-| GET | `Desing_2/AiUnknownPhrases?estado=pendiente` | `estado` vacío = todas | `{ ok, archivo, total, pendientes, items[] }` (más vistas primero) |
-| POST | `Desing_2/ResolveAiUnknownPhrase` | `{ id, comandoAsignado?, estado?: "resuelta" \| "descartada" \| "pendiente", nota? }` | `{ ok, item }` (añade `fechaResuelta`, `resueltaPor`) |
+| GET | `Desing_2/AiUnknownPhrases?estado=pendiente` | `estado` vacío = todas | `{ ok, archivo, total, pendientes, programmer, items[] }` (más vistas primero). Sin DevelopAi solo ve las suyas. |
+| POST | `Desing_2/ResolveAiUnknownPhrase` | `{ id, comandoAsignado?, estado?: "resuelta" \| "descartada" \| "pendiente", nota? }` | `{ ok, item }` (añade `fechaResuelta`, `resueltaPor`). Sin DevelopAi solo las suyas. |
+| POST | `Desing_2/LearnAiUnknownPhrase` | `{ id, code, phrase?, lang?, otherPhrase?, scope?: "default"\|"user", estado?: "descartada" }` | `{ ok, scope, code }` o `{ ok:false, reason }`. No crea comandos. |
 
 Nunca lanzan: si algo falla, `{ ok: false, message }`.
 
-## Revisión con Juan Andrés (en el chat)
+## Revisión en el visor («analiza el .json»)
 
-1. Él dice «abre el .json». El agente lee el archivo (en local `Desing\App_Data\IA\frases-no-comprendidas.json`; en el servidor, `GET Desing_2/AiUnknownPhrases?estado=pendiente` con su sesión).
-2. Se analizan una a una las `pendiente`: qué quería decir y a qué comando va (`TSql_AiCommand.TextCode`), o si se descarta.
-3. Las comprendidas se añaden como frases (`TSql_AiCommandPhrase`) en las **dos** BD (develop y producción, idénticas) con un script idempotente en `Desing/Scripts/TemporalScript/` (patrón RESEED), y, si hace falta, al vocabulario JS (`MA_STL_DESIGN_AI_WORDS` en `design-ai-assistant.js` o las listas de `ai-command-catalog.js`). Se sube `?v=`.
-4. Se marcan con `POST Desing_2/ResolveAiUnknownPhrase` `{ id, comandoAsignado: "WALL_IDS" }`, o editando el JSON a mano (`estado: "resuelta"`, `comandoAsignado`).
+En el asistente de diseño, «analiza el .json» o «analyze the json» lee las pendientes y las pregunta una a una. No crea comandos: asigna la frase a uno que ya existe (`TSql_AiCommand.TextCode`).
 
-La IA del visor **no** tiene orden «abre el .json»: la revisión se hace en el chat.
+1. El programador (función `DevelopAi` sembrada y concedida) guarda la frase como defecto para todos (`TSql_AiCommandPhrase`, `TextKind = keyword`, `TextConcept` NULL, `TextLabel = learned`). Un usuario normal guarda la misma frase solo para él (`TSql_AiCommandUserPhrase`). El servidor impone el alcance; el cliente no puede elevarlo.
+2. Pregunta el otro idioma y solo guarda lo que se escribe. «no» / «igual» no inventa la traducción.
+3. La frase entra en el catálogo con margen 0,8 (una letra cambiada en palabras de 4 o más; dos letras no). La próxima vez ejecuta ese comando o su botón/tecla. Empalme y no implementados se rechazan (`reason: unavailable`). Si la frase ya activa otro comando, `reason: conflict` y no se escribe.
+4. Al guardar, la entrada pasa a `resuelta`. «descarta» la marca `descartada`. «siguiente» la deja pendiente.
+
+La escritura cae en la base a la que está conectado el visor. No copia a producción: eso solo si Juan Andrés lo pide, con script idempotente en las dos bases. El archivo JSON sigue en el servidor (`App_Data`), no en git.
 
 ## Pruebas
 

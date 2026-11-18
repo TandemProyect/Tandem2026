@@ -23,7 +23,7 @@
 | IA del diseño: cotas por voz (ID de los muros, acotar, longitud / espesor / altura) (§16.12) e ID de los paneles (§16.13); cotas del muro seleccionado, «acota todo» y «selecciona el muro 7» en verde en 2D y 3D (§16.14) | [`ia-del-diseno-cotas-por-voz.md`](ia-del-diseno-cotas-por-voz.md) |
 | Comandos y frases por defecto | [`ia-comandos-catalogo.md`](ia-comandos-catalogo.md) |
 | Pantallas de la IA en el visor | [`ia-en-el-visor.md`](ia-en-el-visor.md) |
-| Frases que la IA no comprende: JSON en `App_Data/IA`, endpoints y revisión «abre el .json» (§16.15) | [`ia-frases-no-comprendidas.md`](ia-frases-no-comprendidas.md) |
+| Frases que la IA no comprende: JSON en `App_Data/IA`, endpoints y revisión «analiza el .json» (§16.15) | [`ia-frases-no-comprendidas.md`](ia-frases-no-comprendidas.md) |
 
 ## Código común
 

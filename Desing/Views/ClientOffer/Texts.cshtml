@@ -1,0 +1,83 @@
+@using Newtonsoft.Json
+@using Desing.Resources
+@using System.Globalization
+@{
+    ViewBag.Title = ClientOffer.Texts_Breadcrumb;
+    var ci = CultureInfo.CurrentUICulture?.TwoLetterISOLanguageName ?? "es";
+    var dt = JsonConvert.SerializeObject(new
+    {
+        culture = ci,
+        rowsSuffix = Common.Dt_Rows_N,
+        allRows = Common.Dt_Rows_All,
+        sectionRecords = Common.Dt_Section_Records,
+        sectionExport = Common.Dt_Section_Export,
+        sectionCols = Common.Dt_Section_ColumnsVisible,
+        ariaMenu = Common.Dt_MenuAria,
+        confirmDelete = ClientOffer.Js_ConfirmDelete
+    });
+}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@ClientOffer.Common_Home</a> /
+            <a href="@Url.Action("Index", "ClientOffer")">@ClientOffer.Index_Breadcrumb</a> /
+        </span> @ClientOffer.Texts_Breadcrumb
+    </h4>
+    <a class="btn btn-primary text-white" href="@Url.Action("CreateText", "ClientOffer")">@ClientOffer.Page_CreateText</a>
+</div>
+@if (ViewBag.TableMissing == true)
+{
+    <div class="alert alert-warning">@ClientOffer.Msg_NoTable</div>
+}
+<div class="card mb-4">
+    <div class="card-body" style="padding:5px">
+        <table id="ListClientOfferTexts" class="table table-hover" style="width:100%">
+            <thead>
+                <tr>
+                    <th>@ClientOffer.Col_Name</th>
+                    <th>@ClientOffer.Col_System</th>
+                    <th>@ClientOffer.Col_Company</th>
+                    <th>@ClientOffer.Col_State</th>
+                    <th></th>
+                    <th>ID</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+@section scripts {
+    <script type="text/javascript">
+        var clientOfferTextDt = @Html.Raw(dt);
+        $(document).ready(function () {
+            $('#ListClientOfferTexts').DataTable(TandemDataTablesList.applyListDefaults({
+                lengthMenu: [[10, 25, 50, -1], ['10 ' + clientOfferTextDt.rowsSuffix, '25 ' + clientOfferTextDt.rowsSuffix, '50 ' + clientOfferTextDt.rowsSuffix, clientOfferTextDt.allRows]],
+                buttons: [{
+                    extend: 'collection',
+                    text: "<i class='fas fa-bars'></i>",
+                    attr: { 'aria-label': clientOfferTextDt.ariaMenu },
+                    className: 'custom-html-collection',
+                    buttons: ['<h5>' + clientOfferTextDt.sectionRecords + '</h5>', 'pageLength', '<h5>' + clientOfferTextDt.sectionExport + '</h5>', 'print', 'copy', 'pdf', 'csv', 'excel', '<h5 class="not-top-heading">' + clientOfferTextDt.sectionCols + '</h5>', 'colvis']
+                }],
+                serverSide: true,
+                processing: true,
+                ajax: { url: '@Url.Action("ListTexts", "ClientOffer")', type: 'POST' },
+                order: [[0, 'asc']],
+                columns: [
+                    { data: 'TextLabel', name: 'TextLabel' },
+                    { data: 'Extra', name: 'Extra' },
+                    { data: 'Third', name: 'Third' },
+                    { data: 'activeBadge', name: 'activeBadge', orderable: true, searchable: false },
+                    { data: 'rowActions', orderable: false, searchable: false, className: 'text-end' },
+                    { data: 'IdObject', visible: false }
+                ]
+            }));
+        });
+        window.DeleteClientOfferText = function (id) {
+            if (!confirm(clientOfferTextDt.confirmDelete)) return;
+            $.post('@Url.Action("DeleteText", "ClientOffer")', { id: id, __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() }, function (res) {
+                if (res && res.IsOk) { $('#ListClientOfferTexts').DataTable().ajax.reload(null, false); }
+            });
+        };
+    </script>
+    <div style="display:none;">@Html.AntiForgeryToken()</div>
+}

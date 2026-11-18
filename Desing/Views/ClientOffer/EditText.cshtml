@@ -1,0 +1,27 @@
+@model Desing.Helpers.ClientOfferBrandRow
+@using Desing.Resources
+@{
+    ViewBag.Title = ClientOffer.Page_EditText;
+}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@ClientOffer.Common_Home</a> /
+            <a href="@Url.Action("Texts", "ClientOffer")">@ClientOffer.Texts_Breadcrumb</a> /
+        </span> @ClientOffer.Page_EditText
+    </h4>
+</div>
+<div class="card mb-4">
+    <div class="card-body">
+        @using (Html.BeginForm("EditText", "ClientOffer", FormMethod.Post, new { enctype = "multipart/form-data", @class = "row g-3", role = "form" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+            @Html.Partial("_BrandFormFields", Model)
+            <div class="col-12 border-top pt-3 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
+                <a href="@Url.Action("Texts", "ClientOffer")" class="btn btn-outline-secondary">@Common.Btn_Cancel</a>
+                <button type="submit" class="btn btn-primary">@Common.Btn_Save</button>
+            </div>
+        }
+    </div>
+</div>

@@ -2,6 +2,8 @@ using Desing.Helpers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -16,14 +18,15 @@ namespace Desing.Controllers
     /// «No he entendido…», el visor manda la frase aquí sin esperar respuesta y se guarda en
     /// <c>~/App_Data/IA/frases-no-comprendidas.json</c> (UTF-8, indentado, fuera de git y que el FTP no borra).
     /// La misma frase normalizada del mismo asistente no se repite: suma <c>veces</c> y cambia <c>ultimaFecha</c>.
-    /// Revisión en el chat: «abre el .json» → se analizan una a una → las comprendidas pasan al catálogo
-    /// (TSql_AiCommandPhrase en las dos BD + ai-command-catalog.js) y se marcan «resuelta».
+    /// Revisión en el visor: «analiza el .json». El programador (función DevelopAi) guarda la frase como
+    /// defecto para todos (es y en, sin concepto). Un usuario normal la guarda solo para él. No se inventan comandos.
     /// </summary>
     public partial class Desing_2Controller
     {
         internal const string AiUnknownRelPath = "~/App_Data/IA/frases-no-comprendidas.json";
         private static readonly object AiUnknownLock = new object();
         private static readonly Regex AiAssistantRegex = new Regex("^[a-z][a-z0-9_-]{0,19}$", RegexOptions.CultureInvariant);
+        private static readonly Regex AiLearnCodeRegex = new Regex("^[A-Z][A-Z0-9_]{1,59}$", RegexOptions.CultureInvariant);
 
         private string AiUnknownFilePath()
         {
@@ -61,7 +64,23 @@ namespace Desing.Controllers
         {
             try
             {
-                return AiJson(AiUnknownList(AiUnknownFilePath(), estado));
+                var result = AiUnknownList(AiUnknownFilePath(), estado);
+                var programmer = AiIsProgrammer();
+                var user = AiUnknownUserName();
+                if (!programmer)
+                {
+                    var items = result["items"] as JArray ?? new JArray();
+                    var mine = new JArray();
+                    foreach (var e in items.OfType<JObject>())
+                    {
+                        if (AiSameUser((string)e["usuario"], user)) mine.Add(e);
+                    }
+                    result["items"] = mine;
+                    result["total"] = mine.Count;
+                    result["pendientes"] = mine.OfType<JObject>().Count(e => string.Equals((string)e["estado"], "pendiente", StringComparison.Ordinal));
+                }
+                result["programmer"] = programmer;
+                return AiJson(result);
             }
             catch (Exception ex)
             {
@@ -80,7 +99,8 @@ namespace Desing.Controllers
             try
             {
                 var obj = AiReadJsonBody();
-                return AiJson(AiUnknownResolve(AiUnknownFilePath(), obj, AiUnknownNow(), AiUnknownUserName()));
+                var only = AiIsProgrammer() ? null : AiUnknownUserName();
+                return AiJson(AiUnknownResolve(AiUnknownFilePath(), obj, AiUnknownNow(), AiUnknownUserName(), only));
             }
             catch (Exception ex)
             {
@@ -279,7 +299,239 @@ namespace Desing.Controllers
             };
         }
 
-        internal static JObject AiUnknownResolve(string path, JObject body, DateTimeOffset now, string user)
+        /// <summary>
+        /// POST Desing_2/LearnAiUnknownPhrase — cuerpo { id, code, phrase, lang?, otherPhrase?, scope?: "default"|"user", estado?: "descartada" }.
+        /// Programador (DevelopAi activa y concedida): frase por defecto para todos, sin concepto. Si no, solo la suya.
+        /// No crea comandos. Rechaza empalme / no implementado, frase ajena y frase ya asignada a otro comando.
+        /// </summary>
+        [HttpPost]
+        [RequireFunction(AiFunctionCode)]
+        public ActionResult LearnAiUnknownPhrase()
+        {
+            try
+            {
+                if (!AiCatalogTablesReady())
+                {
+                    return AiJson(new JObject { ["ok"] = false, ["reason"] = "missing", ["message"] = "Faltan las tablas TSql_Ai*." });
+                }
+                var body = AiReadJsonBody();
+                var programmer = AiIsProgrammer();
+                var userName = AiUnknownUserName();
+                var userId = IntranetAuditHelper.ResolveCurrentUserId(User);
+                if (string.IsNullOrWhiteSpace(userId) || userId == "system")
+                {
+                    return AiJson(new JObject { ["ok"] = false, ["reason"] = "forbidden", ["message"] = "Usuario no identificado." });
+                }
+                var id = (long?)body["id"];
+                if (!id.HasValue) return AiJson(new JObject { ["ok"] = false, ["reason"] = "missing", ["message"] = "Falta el id." });
+                var item = AiUnknownFind(AiUnknownFilePath(), id.Value);
+                if (item == null) return AiJson(new JObject { ["ok"] = false, ["reason"] = "missing", ["message"] = "No existe la entrada " + id.Value + "." });
+                if (!programmer && !AiSameUser((string)item["usuario"], userName))
+                {
+                    return AiJson(new JObject { ["ok"] = false, ["reason"] = "forbidden", ["message"] = "Esa frase no es tuya." });
+                }
+                var estado = AiClip((string)body["estado"], 20).ToLowerInvariant();
+                if (estado == "descartada")
+                {
+                    body["estado"] = "descartada";
+                    return AiJson(AiUnknownResolve(AiUnknownFilePath(), body, AiUnknownNow(), userName, programmer ? null : userName));
+                }
+                var asistente = AiClip((string)item["asistente"], 20).ToLowerInvariant();
+                if (asistente.Length > 0 && asistente != "design")
+                {
+                    return AiJson(new JObject { ["ok"] = false, ["reason"] = "wall", ["message"] = "Esa frase es de otro asistente." });
+                }
+                var code = AiClip((string)body["code"], 60).ToUpperInvariant();
+                if (!AiLearnCodeRegex.IsMatch(code))
+                {
+                    return AiJson(new JObject { ["ok"] = false, ["reason"] = "unknown", ["message"] = "Comando no válido." });
+                }
+                var cmd = db.Database.SqlQuery<AiLearnCommandRow>(
+                    "SELECT TOP 1 IdObject, TextCode, TextContext, TextHandler, TextAiCommandId, Is_AiImplemented " +
+                    "FROM dbo.TSql_AiCommand WHERE Is_Delete = 0 AND Is_Active = 1 AND TextCode = @p0", code).FirstOrDefault();
+                var why = AiLearnReject(cmd);
+                if (why != null)
+                {
+                    return AiJson(new JObject { ["ok"] = false, ["reason"] = why, ["message"] = why == "unavailable" ? "Ese comando no está en el visor." : "Ese comando no es del diseño." });
+                }
+                var scope = programmer ? "default" : "user";
+                var phrases = AiLearnPhrases(body, item);
+                if (phrases.Count == 0)
+                {
+                    return AiJson(new JObject { ["ok"] = false, ["reason"] = "empty", ["message"] = "Frase vacía." });
+                }
+                JObject saved;
+                using (var tx = db.Database.BeginTransaction())
+                {
+                    saved = scope == "default"
+                        ? AiInsertDefaultPhrases(cmd, phrases, userId)
+                        : AiInsertUserPhrases(cmd, phrases, userId);
+                    if (saved["ok"] != null && !(bool)saved["ok"])
+                    {
+                        tx.Rollback();
+                        return AiJson(saved);
+                    }
+                    tx.Commit();
+                }
+                body["estado"] = "resuelta";
+                body["comandoAsignado"] = cmd.TextCode;
+                var resolved = AiUnknownResolve(AiUnknownFilePath(), body, AiUnknownNow(), userName, programmer ? null : userName);
+                saved["scope"] = scope;
+                saved["code"] = cmd.TextCode;
+                saved["resolved"] = resolved["ok"];
+                return AiJson(saved);
+            }
+            catch (Exception ex)
+            {
+                return AiJson(new JObject { ["ok"] = false, ["reason"] = "fail", ["message"] = ex.Message });
+            }
+        }
+
+        /// <summary>DevelopAi tiene que existir y estar concedida. Si no está sembrada, nadie escribe frases para todos.</summary>
+        private bool AiIsProgrammer()
+        {
+            var userId = IntranetAuditHelper.ResolveCurrentUserId(User);
+            if (string.IsNullOrWhiteSpace(userId) || userId == "system") return false;
+            var protectedCodes = FunctionAccessService.GetProtectedCodes();
+            if (protectedCodes == null || !protectedCodes.Contains("DevelopAi")) return false;
+            return FunctionAccessService.Can(userId, "DevelopAi");
+        }
+
+        internal static bool AiSameUser(string stored, string current)
+        {
+            stored = (stored ?? "").Trim();
+            current = (current ?? "").Trim();
+            return stored.Length > 0 && current.Length > 0 && string.Equals(stored, current, StringComparison.OrdinalIgnoreCase);
+        }
+
+        internal static JObject AiUnknownFind(string path, long id)
+        {
+            lock (AiUnknownLock)
+            {
+                var hit = AiUnknownRead(path).OfType<JObject>().FirstOrDefault(e => ((long?)e["id"] ?? -1L) == id);
+                return hit == null ? null : (JObject)hit.DeepClone();
+            }
+        }
+
+        /// <summary>null si se puede aprender; si no, unavailable | unknown.</summary>
+        internal static string AiLearnReject(AiLearnCommandRow cmd)
+        {
+            if (cmd == null || !string.Equals(cmd.TextContext, "design", StringComparison.OrdinalIgnoreCase)) return "unknown";
+            if (cmd.TextCode.StartsWith("ENV_", StringComparison.Ordinal) || cmd.TextCode.StartsWith("COMMON_", StringComparison.Ordinal)) return "unknown";
+            var handler = cmd.TextHandler ?? "";
+            var aiId = cmd.TextAiCommandId ?? "";
+            if (!cmd.Is_AiImplemented || aiId.Equals("notAvailable", StringComparison.OrdinalIgnoreCase) || handler.IndexOf("notAvailable", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return "unavailable";
+            }
+            return null;
+        }
+
+        /// <summary>Misma clave que maStlWallAiNormalize: minúsculas, sin tildes (ñ→n), sin signos.</summary>
+        internal static string AiPhraseNorm(string text)
+        {
+            var s = (text ?? "").ToLowerInvariant().Normalize(NormalizationForm.FormD);
+            var sb = new StringBuilder(s.Length);
+            foreach (var ch in s)
+            {
+                if (CharUnicodeInfo.GetUnicodeCategory(ch) == UnicodeCategory.NonSpacingMark) continue;
+                sb.Append(ch);
+            }
+            return Regex.Replace(sb.ToString(), "[^a-z0-9]+", " ").Trim();
+        }
+
+        private static List<AiLearnPhrase> AiLearnPhrases(JObject body, JObject item)
+        {
+            var list = new List<AiLearnPhrase>();
+            var phrase = AiClip((string)body["phrase"], 200);
+            if (phrase.Length == 0) phrase = AiClip((string)item["frase"], 200);
+            var lang = AiBaseLang(AiNormalizeLang((string)body["lang"]) ?? AiNormalizeLang((string)item["idioma"]) ?? "es");
+            if (lang != "es" && lang != "en") lang = "es";
+            AddLearnPhrase(list, lang, phrase);
+            var other = AiClip((string)body["otherPhrase"], 200);
+            var otherLang = lang == "en" ? "es" : "en";
+            AddLearnPhrase(list, otherLang, other);
+            return list;
+        }
+
+        private static void AddLearnPhrase(List<AiLearnPhrase> list, string lang, string phrase)
+        {
+            var norm = AiPhraseNorm(phrase);
+            if (norm.Length == 0 || norm.Length > 200) return;
+            if (list.Any(p => p.Lang == lang && p.Norm == norm)) return;
+            list.Add(new AiLearnPhrase { Lang = lang, Phrase = AiClip(phrase, 200), Norm = norm });
+        }
+
+        private JObject AiInsertDefaultPhrases(AiLearnCommandRow cmd, List<AiLearnPhrase> phrases, string userId)
+        {
+            foreach (var ph in phrases)
+            {
+                var owners = db.Database.SqlQuery<string>(
+                    "SELECT c.TextCode FROM dbo.TSql_AiCommandPhrase p INNER JOIN dbo.TSql_AiCommand c ON c.IdObject = p.LinkAiCommand " +
+                    "WHERE p.Is_Delete = 0 AND p.TextContext = @p0 AND p.TextLanguageCode = @p1 AND p.TextPhraseNorm = @p2",
+                    cmd.TextContext, ph.Lang, ph.Norm).ToList();
+                if (owners.Any(c => !string.Equals(c, cmd.TextCode, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return new JObject { ["ok"] = false, ["reason"] = "conflict", ["command"] = owners.First(c => !string.Equals(c, cmd.TextCode, StringComparison.OrdinalIgnoreCase)), ["message"] = "Esa frase ya está asignada." };
+                }
+                if (owners.Count > 0) continue;
+                db.Database.ExecuteSqlCommand(
+                    "INSERT INTO dbo.TSql_AiCommandPhrase (LinkAiCommand, TextContext, TextLanguageCode, TextPhrase, TextPhraseNorm, TextKind, TextConcept, NumberWeight, NumberOrder, TextLabel, Is_Delete, Is_Active, LinkMadeBy, LinModifiedBy, AddDateMade, AddLastDateChange, Ntimeschanged, LinkEnvironment) " +
+                    "VALUES (@cmd, @ctx, @lang, @phrase, @norm, N'keyword', NULL, NULL, 9000, N'learned', 0, 1, @user, NULL, GETDATE(), NULL, 0, NULL)",
+                    new SqlParameter("@cmd", cmd.IdObject),
+                    new SqlParameter("@ctx", cmd.TextContext),
+                    new SqlParameter("@lang", ph.Lang),
+                    new SqlParameter("@phrase", ph.Phrase),
+                    new SqlParameter("@norm", ph.Norm),
+                    new SqlParameter("@user", AiClip(userId, 128)));
+            }
+            return new JObject { ["ok"] = true, ["scope"] = "default" };
+        }
+
+        private JObject AiInsertUserPhrases(AiLearnCommandRow cmd, List<AiLearnPhrase> phrases, string userId)
+        {
+            foreach (var ph in phrases)
+            {
+                var owners = db.Database.SqlQuery<string>(
+                    "SELECT c.TextCode FROM dbo.TSql_AiCommandUserPhrase p INNER JOIN dbo.TSql_AiCommand c ON c.IdObject = p.LinkAiCommand " +
+                    "WHERE p.Is_Delete = 0 AND p.Is_Exclude = 0 AND p.LinkAspNetUsers = @p0 AND p.TextContext = @p1 AND p.TextLanguageCode = @p2 AND p.TextPhraseNorm = @p3",
+                    userId, cmd.TextContext, ph.Lang, ph.Norm).ToList();
+                if (owners.Any(c => !string.Equals(c, cmd.TextCode, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return new JObject { ["ok"] = false, ["reason"] = "conflict", ["command"] = owners.First(c => !string.Equals(c, cmd.TextCode, StringComparison.OrdinalIgnoreCase)), ["message"] = "Esa frase ya está asignada." };
+                }
+                if (owners.Count > 0)
+                {
+                    db.Database.ExecuteSqlCommand(
+                        "UPDATE dbo.TSql_AiCommandUserPhrase SET TextLabel = N'learned', LinModifiedBy = @user, AddLastDateChange = GETDATE(), Ntimeschanged = Ntimeschanged + 1 " +
+                        "WHERE Is_Delete = 0 AND Is_Exclude = 0 AND LinkAspNetUsers = @user AND TextContext = @ctx AND TextLanguageCode = @lang AND TextPhraseNorm = @norm",
+                        new SqlParameter("@user", AiClip(userId, 128)),
+                        new SqlParameter("@ctx", cmd.TextContext),
+                        new SqlParameter("@lang", ph.Lang),
+                        new SqlParameter("@norm", ph.Norm));
+                    continue;
+                }
+                db.Database.ExecuteSqlCommand(
+                    "INSERT INTO dbo.TSql_AiCommandUserPhrase (LinkAspNetUsers, LinkAiCommand, LinkAiCommandPhrase, TextContext, TextLanguageCode, TextPhrase, TextPhraseNorm, Is_Exclude, TextLabel, Is_Delete, Is_Active, LinkMadeBy, LinModifiedBy, AddDateMade, AddLastDateChange, Ntimeschanged, LinkEnvironment) " +
+                    "VALUES (@user, @cmd, NULL, @ctx, @lang, @phrase, @norm, 0, N'learned', 0, 1, @user, NULL, GETDATE(), NULL, 0, NULL)",
+                    new SqlParameter("@user", AiClip(userId, 128)),
+                    new SqlParameter("@cmd", cmd.IdObject),
+                    new SqlParameter("@ctx", cmd.TextContext),
+                    new SqlParameter("@lang", ph.Lang),
+                    new SqlParameter("@phrase", ph.Phrase),
+                    new SqlParameter("@norm", ph.Norm));
+            }
+            return new JObject { ["ok"] = true, ["scope"] = "user" };
+        }
+
+        private sealed class AiLearnPhrase
+        {
+            public string Lang { get; set; }
+            public string Phrase { get; set; }
+            public string Norm { get; set; }
+        }
+
+        internal static JObject AiUnknownResolve(string path, JObject body, DateTimeOffset now, string user, string onlyUser)
         {
             var id = (long?)body["id"];
             if (!id.HasValue) return new JObject { ["ok"] = false, ["message"] = "Falta el id." };
@@ -294,6 +546,10 @@ namespace Desing.Controllers
                 var items = AiUnknownRead(path);
                 var hit = items.OfType<JObject>().FirstOrDefault(e => ((long?)e["id"] ?? -1L) == id.Value);
                 if (hit == null) return new JObject { ["ok"] = false, ["message"] = "No existe la entrada " + id.Value + "." };
+                if (!string.IsNullOrEmpty(onlyUser) && !AiSameUser((string)hit["usuario"], onlyUser))
+                {
+                    return new JObject { ["ok"] = false, ["reason"] = "forbidden", ["message"] = "Esa frase no es tuya." };
+                }
                 hit["estado"] = estado;
                 if (body["comandoAsignado"] != null) hit["comandoAsignado"] = AiClip((string)body["comandoAsignado"], 60);
                 if (body["nota"] != null) hit["nota"] = AiClip((string)body["nota"], 500);

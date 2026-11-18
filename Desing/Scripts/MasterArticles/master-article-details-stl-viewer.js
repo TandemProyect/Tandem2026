@@ -10,7 +10,7 @@ import { createDesing2WorkerTool } from './desing2-worker-tool.js?v=20261022-wor
 import { createDesing2PillarTool } from './desing2-pillar-tool.js';
 import { mountWallEditForm } from './wall-edit-form.js?v=20261116b';
 import { mountWallAiChat, maStlWallAiUiTexts, maStlWallAiBootstrapCompact, maStlWallAiCompactTitle } from './wall-ai-assistant.js?v=20261116a';
-import { maStlDesignAiInit } from './design-ai-assistant.js?v=20261116a';
+import { maStlDesignAiInit } from './design-ai-assistant.js?v=20261118c';
 import { mountWallBulkList } from './wall-bulk-list.js?v=20261026p';
 import { mountDesignGroups } from './design-groups.js?v=20261023j';
 import { MaStlWallEditFinalize, MaStlWallStretchMath } from './ma-stl-wall-edit-finalize.js';

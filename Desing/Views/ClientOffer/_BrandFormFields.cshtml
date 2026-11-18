@@ -1,0 +1,77 @@
+@model Desing.Helpers.ClientOfferBrandRow
+@using Desing.Helpers
+@using Desing.Resources
+@{
+    var systems = ViewBag.Systems as System.Collections.Generic.IList<ClientOfferLookup> ?? new System.Collections.Generic.List<ClientOfferLookup>();
+    var companies = ViewBag.Companies as System.Collections.Generic.IList<ClientOfferLookup> ?? new System.Collections.Generic.List<ClientOfferLookup>();
+    var plantillas = ViewBag.Plantillas as System.Collections.Generic.IList<ClientOfferLookup> ?? new System.Collections.Generic.List<ClientOfferLookup>();
+}
+@Html.HiddenFor(m => m.IdObject)
+<div class="col-md-6">
+    <label class="form-label" for="TextLabel">@ClientOffer.Lbl_Name</label>
+    @Html.TextBoxFor(m => m.TextLabel, new { @class = "form-control", maxlength = "500", required = "required" })
+    @Html.ValidationMessage("TextLabel", "", new { @class = "text-danger" })
+</div>
+<div class="col-md-6">
+    <label class="form-label" for="LinkCompany">@ClientOffer.Lbl_Company</label>
+    <select class="form-select" id="LinkCompany" name="LinkCompany" required="required">
+        <option value="">@ClientOffer.Ph_Optional</option>
+        @foreach (var item in companies)
+        {
+            <option value="@item.Id" @(Model.LinkCompany == item.Id ? "selected" : null)>@item.TextLabel</option>
+        }
+    </select>
+    @Html.ValidationMessage("LinkCompany", "", new { @class = "text-danger" })
+</div>
+<div class="col-md-4">
+    <label class="form-label" for="LinkSystem">@ClientOffer.Lbl_System</label>
+    <select class="form-select" id="LinkSystem" name="LinkSystem">
+        <option value="">@ClientOffer.Lbl_AllSystems</option>
+        @foreach (var item in systems)
+        {
+            <option value="@item.Id" @(Model.LinkSystem == item.Id ? "selected" : null)>@item.TextLabel</option>
+        }
+    </select>
+</div>
+<div class="col-md-4">
+    <label class="form-label" for="LinkPlantilla">@ClientOffer.Lbl_Plantilla</label>
+    <select class="form-select" id="LinkPlantilla" name="LinkPlantilla">
+        <option value="">@ClientOffer.Ph_Optional</option>
+        @foreach (var item in plantillas)
+        {
+            <option value="@item.Id" @(Model.LinkPlantilla == item.Id ? "selected" : null)>@item.TextLabel</option>
+        }
+    </select>
+</div>
+<div class="col-md-4">
+    <label class="form-label" for="logoFile">@ClientOffer.Lbl_Logo</label>
+    <input type="file" class="form-control" id="logoFile" name="logoFile" accept=".png,.jpg,.jpeg,.gif,.svg" />
+    @if (!string.IsNullOrEmpty(Model.TextLogo))
+    {
+        <img src="@Model.TextLogo" alt="" style="max-height:48px;margin-top:8px" />
+    }
+    @Html.ValidationMessage("TextLogo", "", new { @class = "text-danger" })
+</div>
+<div class="col-md-8">
+    <label class="form-label" for="TextCompanyName">@ClientOffer.Lbl_CompanyName</label>
+    @Html.TextBoxFor(m => m.TextCompanyName, new { @class = "form-control", maxlength = "500" })
+</div>
+<div class="col-md-4">
+    <label class="form-label">@ClientOffer.Lbl_Active</label>
+    <div class="form-check mt-2">
+        @Html.CheckBoxFor(m => m.Is_Active, new { @class = "form-check-input" })
+        <label class="form-check-label" for="Is_Active">@ClientOffer.Lbl_Active</label>
+    </div>
+</div>
+<div class="col-12">
+    <label class="form-label" for="TextSubjectTemplate">@ClientOffer.Lbl_SubjectTemplate</label>
+    @Html.TextBoxFor(m => m.TextSubjectTemplate, new { @class = "form-control", maxlength = "500" })
+</div>
+<div class="col-12">
+    <label class="form-label" for="TextHeaderTemplate">@ClientOffer.Lbl_HeaderTemplate</label>
+    @Html.TextAreaFor(m => m.TextHeaderTemplate, new { @class = "form-control", rows = "6" })
+</div>
+<div class="col-12">
+    <label class="form-label" for="TextBodyTemplate">@ClientOffer.Lbl_BodyTemplate</label>
+    @Html.TextAreaFor(m => m.TextBodyTemplate, new { @class = "form-control", rows = "10" })
+</div>

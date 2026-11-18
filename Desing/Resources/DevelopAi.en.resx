@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Badge_Pending" xml:space="preserve">
+    <value>AI pending</value>
+  </data>
+  <data name="Btn_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Btn_Copy" xml:space="preserve">
+    <value>Copy orders</value>
+  </data>
+  <data name="Btn_Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Col_Function" xml:space="preserve">
+    <value>Function</value>
+  </data>
+  <data name="Col_Meaning" xml:space="preserve">
+    <value>Meaning</value>
+  </data>
+  <data name="Col_Orders" xml:space="preserve">
+    <value>Orders</value>
+  </data>
+  <data name="Common_Develop" xml:space="preserve">
+    <value>Develop</value>
+  </data>
+  <data name="Common_Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Index_Breadcrumb" xml:space="preserve">
+    <value>AI</value>
+  </data>
+  <data name="Index_Intro" xml:space="preserve">
+    <value>AI functions, the orders they understand and what they mean. Choose the language to see that language's orders.</value>
+  </data>
+  <data name="Lbl_Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Lbl_Group" xml:space="preserve">
+    <value>Group</value>
+  </data>
+  <data name="Lbl_Handler" xml:space="preserve">
+    <value>Handler</value>
+  </data>
+  <data name="Lbl_State" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Modal_Title" xml:space="preserve">
+    <value>AI function</value>
+  </data>
+  <data name="Msg_Copied" xml:space="preserve">
+    <value>Orders copied.</value>
+  </data>
+  <data name="Msg_NoOrders" xml:space="preserve">
+    <value>There are no orders in this language.</value>
+  </data>
+  <data name="Msg_NoTable" xml:space="preserve">
+    <value>Table TSql_AiCommand is missing: run the 2026-11-14_seed_TSql_AiCommand.sql seeds.</value>
+  </data>
+  <data name="State_Pending" xml:space="preserve">
+    <value>Pending: the AI names it and says to use the button.</value>
+  </data>
+  <data name="State_Ready" xml:space="preserve">
+    <value>The AI runs it.</value>
+  </data>
+</root>

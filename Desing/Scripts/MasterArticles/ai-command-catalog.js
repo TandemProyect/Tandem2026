@@ -260,7 +260,7 @@ export function maStlAiCatalogSaveEnv(code, opts) {
 
 /**
  * Frases del catálogo de un contexto, ya troceadas con `normalize` (el del intérprete):
- * [{ code, aiId, concept, kind, weight, toks, text, implemented, handler, nameEs, nameEn, lang, env, user }].
+ * [{ code, aiId, concept, kind, weight, toks, text, implemented, handler, confirm, destructive, nameEs, nameEn, lang, env, user }].
  * `kinds` filtra por tipo (por defecto todos).
  */
 export function maStlAiCatalogPhrases(data, normalize, kinds) {
@@ -276,7 +276,8 @@ export function maStlAiCatalogPhrases(data, normalize, kinds) {
             out.push({
                 code: c.code, aiId: c.aiId || null, context: c.context, concept: ph.c || null, kind: kind,
                 weight: ph.w == null ? null : Number(ph.w), toks: n.split(' '), text: ph.p,
-                implemented: !!c.implemented, handler: c.handler || '', nameEs: c.nameEs || c.code, nameEn: c.nameEn || c.code,
+                implemented: !!c.implemented, handler: c.handler || '', confirm: !!c.confirm, destructive: !!c.destructive,
+                nameEs: c.nameEs || c.code, nameEn: c.nameEn || c.code,
                 lang: ph.l || '', env: !!ph.e, user: !!ph.u, useDefaults: c.useDefaults !== false,
             });
         });

@@ -1,0 +1,311 @@
+@using Newtonsoft.Json
+@using Desing.Resources
+@using System.Globalization
+@{
+    ViewBag.Title = DevelopAi.Index_Breadcrumb;
+    var ci = CultureInfo.CurrentUICulture?.TwoLetterISOLanguageName ?? "es";
+    var languages = (ViewBag.Languages as System.Collections.Generic.IList<string>) ?? new System.Collections.Generic.List<string>();
+    var selected = (ViewBag.Language as string) ?? "es";
+    var aiDt = JsonConvert.SerializeObject(new
+    {
+        culture = ci,
+        language = selected,
+        rowsSuffix = Common.Dt_Rows_N,
+        allRows = Common.Dt_Rows_All,
+        sectionRecords = Common.Dt_Section_Records,
+        sectionExport = Common.Dt_Section_Export,
+        sectionCols = Common.Dt_Section_ColumnsVisible,
+        ariaMenu = Common.Dt_MenuAria,
+        copyTitle = DevelopAi.Btn_Copy,
+        copied = DevelopAi.Msg_Copied,
+        noOrders = DevelopAi.Msg_NoOrders,
+        stateReady = DevelopAi.State_Ready,
+        statePending = DevelopAi.State_Pending,
+        langButton = DevelopAi.Btn_Language
+    });
+}
+
+<div class="tandem-dt-list-page">
+<div class="d-flex align-items-center justify-content-between mb-2">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@DevelopAi.Common_Home</a> /
+            @DevelopAi.Common_Develop /
+        </span> @DevelopAi.Index_Breadcrumb
+    </h4>
+    @if (languages.Count > 0)
+    {
+        <div class="dropdown">
+            <button type="button" class="btn btn-outline-primary dropdown-toggle" id="aiLangBtn"
+                    data-bs-toggle="dropdown" aria-expanded="false" aria-label="@DevelopAi.Btn_Language">
+                @DevelopAi.Btn_Language: <span data-ai-lang-label>@selected</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="aiLangBtn">
+                @foreach (var code in languages)
+                {
+                    <li>
+                        <button type="button" class="dropdown-item js-ai-lang@(string.Equals(code, selected, StringComparison.OrdinalIgnoreCase) ? " active" : "")"
+                                data-lang="@code">@code</button>
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+</div>
+<p class="text-muted mb-3">@DevelopAi.Index_Intro</p>
+
+@if (ViewBag.TableMissing == true)
+{
+    <div class="alert alert-warning">@DevelopAi.Msg_NoTable</div>
+}
+
+<div class="card">
+    <div class="card-body ai-catalog-scroll" style="padding:5px">
+        <table id="ListAiCommands" class="table table-hover" cellspacing="0" style="width: 100%">
+            <thead>
+                <tr>
+                    <th>@DevelopAi.Col_Function</th>
+                    <th>@DevelopAi.Col_Orders</th>
+                    <th>@DevelopAi.Col_Meaning</th>
+                    <th>ID</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+</div>
+
+<div class="modal fade" id="aiCommandModal" tabindex="-1" aria-labelledby="aiCommandModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="aiCommandModalTitle">@DevelopAi.Modal_Title</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@DevelopAi.Btn_Close"></button>
+            </div>
+            <div class="modal-body">
+                <h5 class="mb-3" data-ai="name"></h5>
+                <div class="mb-2"><span class="fw-semibold">@DevelopAi.Lbl_Code</span> <code data-ai="code"></code></div>
+                <div class="mb-2"><span class="fw-semibold">@DevelopAi.Lbl_Group</span> <span data-ai="group"></span></div>
+                <div class="mb-2"><span class="fw-semibold">@DevelopAi.Lbl_Handler</span> <code data-ai="handler"></code></div>
+                <div class="mb-3"><span class="fw-semibold">@DevelopAi.Lbl_State</span> <span data-ai="state"></span></div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">@DevelopAi.Col_Orders</label>
+                    <div class="d-flex align-items-start gap-2">
+                        <pre class="bg-lighter rounded p-2 mb-0 flex-grow-1" style="white-space:pre-wrap;"><code data-ai="orders"></code></pre>
+                        <button type="button" class="btn btn-icon btn-outline-primary" id="aiOrdersCopy"
+                                title="@DevelopAi.Btn_Copy" aria-label="@DevelopAi.Btn_Copy">
+                            <i class="icon-base ri ri-file-copy-line"></i>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label fw-semibold">@DevelopAi.Col_Meaning</label>
+                    <p class="mb-0" style="white-space:pre-wrap;" data-ai="meaning"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@DevelopAi.Btn_Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .ai-catalog-scroll .dataTables_wrapper .dataTables_scrollBody {
+            border-bottom: 0 !important;
+            overflow-y: auto !important;
+        }
+    </style>
+}
+
+@section scripts
+{
+    <script type="text/javascript">
+        var aiDt = @Html.Raw(aiDt);
+
+        $(document).ready(function () {
+            var storageKey = 'developAiLang';
+            try {
+                var stored = sessionStorage.getItem(storageKey);
+                if (stored && $('.js-ai-lang[data-lang="' + stored + '"]').length) { aiDt.language = stored; }
+            } catch (e) { /* noop */ }
+
+            function setLangLabel(code) {
+                $('[data-ai-lang-label]').text(code);
+                $('.js-ai-lang').removeClass('active');
+                $('.js-ai-lang[data-lang="' + code + '"]').addClass('active');
+            }
+            setLangLabel(aiDt.language);
+
+            function applyScrollBodyHeight() {
+                var host = document.querySelector('.ai-catalog-scroll');
+                var body = host && host.querySelector('.dataTables_scrollBody');
+                if (!body) { return; }
+                var wrap = host.querySelector('.dataTables_wrapper');
+                var info = wrap && wrap.querySelector('.dataTables_info');
+                var pag = wrap && wrap.querySelector('.dataTables_paginate');
+                var reserveBottom = 8;
+                reserveBottom += (info && info.offsetParent !== null) ? info.getBoundingClientRect().height : 32;
+                reserveBottom += (pag && pag.offsetParent !== null) ? pag.getBoundingClientRect().height : 48;
+                var h = Math.floor(host.getBoundingClientRect().bottom - body.getBoundingClientRect().top - reserveBottom);
+                if (h < 140) { h = 140; }
+                body.style.height = h + 'px';
+                body.style.maxHeight = h + 'px';
+            }
+
+            function fitTable(api) {
+                applyScrollBodyHeight();
+                try { api.columns.adjust(); } catch (e) { /* noop */ }
+            }
+
+            var exportOpts = TandemDataTablesList.exportOptsPlainVisible;
+            var table = $('#ListAiCommands').DataTable(TandemDataTablesList.applyListDefaults({
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    ['10 ' + aiDt.rowsSuffix, '25 ' + aiDt.rowsSuffix, '50 ' + aiDt.rowsSuffix, aiDt.allRows]
+                ],
+                pageLength: 50,
+                buttons: [{
+                    extend: 'collection',
+                    text: "<i class='fas fa-bars'></i>",
+                    attr: { 'aria-label': aiDt.ariaMenu },
+                    className: 'custom-html-collection',
+                    buttons: [
+                        '<h5>' + aiDt.sectionRecords + '</h5>',
+                        'pageLength',
+                        '<h5>' + aiDt.sectionExport + '</h5>',
+                        'print',
+                        'copy',
+                        { extend: 'csv', exportOptions: exportOpts },
+                        { extend: 'excel', exportOptions: exportOpts },
+                        '<h5 class="not-top-heading">' + aiDt.sectionCols + '</h5>',
+                        'colvis'
+                    ]
+                }],
+                scrollY: 1,
+                scrollCollapse: true,
+                serverSide: true,
+                processing: true,
+                ajax: {
+                    url: '@Url.Action("ListCommands", "DevelopAi")',
+                    type: 'POST',
+                    data: function (d) { d.language = aiDt.language; }
+                },
+                order: [],
+                columns: [
+                    {
+                        data: 'TextName',
+                        name: 'TextName',
+                        render: function (data, type, row) { return type === 'export' ? (row.TextNamePlain || '') : data; }
+                    },
+                    {
+                        data: 'TextOrders',
+                        name: 'TextOrders',
+                        render: function (data, type, row) {
+                            if (type !== 'display') { return row.TextOrdersFull || ''; }
+                            var title = $('<div>').text(aiDt.copyTitle).html();
+                            return '<div class="d-flex align-items-center justify-content-between gap-2"><span>' + (data || '') + '</span>' +
+                                '<button type="button" class="btn btn-icon btn-sm btn-text-primary js-ai-copy flex-shrink-0"' +
+                                ' title="' + title + '" aria-label="' + title + '">' +
+                                '<i class="icon-base ri ri-file-copy-line"></i></button></div>';
+                        }
+                    },
+                    {
+                        data: 'TextMeaning',
+                        name: 'TextMeaning',
+                        render: function (data, type, row) { return type === 'export' ? (row.TextMeaningFull || '') : data; }
+                    },
+                    { data: 'IdObject', visible: false, searchable: false }
+                ],
+                createdRow: function (row) { $(row).css('cursor', 'pointer'); },
+                drawCallback: function (settings) {
+                    var api = new $.fn.dataTable.Api(settings);
+                    applyScrollBodyHeight();
+                    if (!settings._aiCatalogAdjusted) {
+                        settings._aiCatalogAdjusted = true;
+                        try { api.columns.adjust(); } catch (e) { /* noop */ }
+                    }
+                }
+            }));
+
+            setTimeout(function () { fitTable(table); }, 50);
+
+            var resizeTimer;
+            $(window).on('resize', function () {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function () { fitTable(table); }, 150);
+            });
+
+            $('.js-ai-lang').on('click', function () {
+                var code = $(this).data('lang');
+                if (!code || code === aiDt.language) { return; }
+                aiDt.language = code;
+                setLangLabel(code);
+                try { sessionStorage.setItem(storageKey, code); } catch (e) { /* noop */ }
+                table.ajax.reload();
+            });
+
+            var $modal = $('#aiCommandModal');
+            function showCommand(row) {
+                if (!row) { return; }
+                $modal.find('[data-ai="name"]').text(row.TextNamePlain || '');
+                $modal.find('[data-ai="code"]').text(row.TextCode || '');
+                $modal.find('[data-ai="group"]').text(row.TextGroup || '');
+                $modal.find('[data-ai="handler"]').text(row.TextHandler || '');
+                $modal.find('[data-ai="state"]').text(row.IsAiImplemented ? aiDt.stateReady : aiDt.statePending);
+                $modal.find('[data-ai="orders"]').text(row.TextOrdersFull || aiDt.noOrders);
+                $modal.find('[data-ai="meaning"]').text(row.TextMeaningFull || '');
+                bootstrap.Modal.getOrCreateInstance($modal[0]).show();
+            }
+
+            $('#ListAiCommands tbody').on('click', 'tr', function (e) {
+                if ($(e.target).closest('.js-ai-copy').length) { return; }
+                e.preventDefault();
+                showCommand(table.row(this).data());
+            });
+
+            function copyText(text) {
+                if (navigator.clipboard && window.isSecureContext) {
+                    return navigator.clipboard.writeText(text);
+                }
+                return new Promise(function (resolve, reject) {
+                    var ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.setAttribute('readonly', '');
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    $modal[0].appendChild(ta);
+                    ta.select();
+                    var ok = false;
+                    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+                    ta.remove();
+                    if (ok) { resolve(); } else { reject(); }
+                });
+            }
+
+            function copyWithFeedback($btn, text, idleClass) {
+                var $icon = $btn.find('i');
+                copyText(text).then(function () {
+                    $icon.removeClass('ri-file-copy-line').addClass('ri-check-line');
+                    $btn.attr('title', aiDt.copied).removeClass(idleClass).addClass('btn-success');
+                    setTimeout(function () {
+                        $icon.removeClass('ri-check-line').addClass('ri-file-copy-line');
+                        $btn.attr('title', $btn.attr('aria-label')).removeClass('btn-success').addClass(idleClass);
+                    }, 1500);
+                });
+            }
+
+            $('#aiOrdersCopy').on('click', function () {
+                copyWithFeedback($(this), $modal.find('[data-ai="orders"]').text(), 'btn-outline-primary');
+            });
+
+            $('#ListAiCommands tbody').on('click', '.js-ai-copy', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var row = table.row($(this).closest('tr')).data();
+                copyWithFeedback($(this), (row && row.TextOrdersFull) || '', 'btn-text-primary');
+            });
+        });
+    </script>
+}

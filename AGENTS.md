@@ -6,7 +6,7 @@ Lee **solo** este archivo y el `INDEX.md` de tu área. No leas «toda la documen
 
 - Repo `C:\Users\jag\00_Tandem2026`, rama `develo`. Sin commit, push ni stash salvo que Juan Andrés lo pida. No descartes sus cambios pendientes.
 - No toques `Desing/IA/Communication/WallConnections.json`.
-- Bases de datos: `db_a197cd_desingdevelop` y `db_a197cd_desingproducction` deben ser **idénticas** hasta enero de 2027. Todo cambio de esquema va a las dos, con script idempotente en `Desing/Scripts/TemporalScript/`. Local: `.\SQLEXPRESS` con `-E`. No uses las credenciales de `Web.config`. Tablas nuevas: `.cursor/rules/sql-tsql-table-conventions.mdc`.
+- Bases de datos: develop (local `TdesingDevelop`) y producción (`db_a197cd_desingproducction`, site4now) deben ser **idénticas** hasta enero de 2027. Todo cambio de esquema va a las dos, con script idempotente en `Desing/Scripts/TemporalScript/`. Local: `.\SQLEXPRESS`, base `TdesingDevelop`, con `-E`. Remotos solo si Juan lo pide. Registros que van a las dos: `Docs/areas/base-de-datos/sincronizar-develop-produccion.md`. Tablas nuevas: `.cursor/rules/sql-tsql-table-conventions.mdc`.
 - La lógica de negocio y la geometría viven en `Desing` (C#). El visor y los plugins CAD solo piden y pintan: `Docs/areas/general/Arquitectura-Cliente-Servidor.md`.
 - JS cambiado: `node --check` y sube `?v=` donde se importa. C#: compila con VS2022 (MSBuild 17), 0 errores.
 - ¿Tocas código que usan varias áreas? Lee antes `Docs/codigo-comun.md`.

@@ -266,6 +266,18 @@
     <EmbeddedResource Include="Resources\Security.en.resx">
       <DependentUpon>Security.resx</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Resources\ClientOffer.resx" />
+    <EmbeddedResource Include="Resources\ClientOffer.en.resx">
+      <DependentUpon>ClientOffer.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\DevelopAgent.resx" />
+    <EmbeddedResource Include="Resources\DevelopAgent.en.resx">
+      <DependentUpon>DevelopAgent.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\DevelopAi.resx" />
+    <EmbeddedResource Include="Resources\DevelopAi.en.resx">
+      <DependentUpon>DevelopAi.resx</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Resources\XrDevice.resx" />
     <EmbeddedResource Include="Resources\XrDevice.en.resx">
       <DependentUpon>XrDevice.resx</DependentUpon>
@@ -311,6 +323,9 @@
     <Compile Include="Controllers\OfferStateController.cs" />
     <Compile Include="Controllers\RoleController.cs" />
     <Compile Include="Controllers\FunctionController.cs" />
+    <Compile Include="Controllers\ClientOfferController.cs" />
+    <Compile Include="Controllers\DevelopAgentController.cs" />
+    <Compile Include="Controllers\DevelopAiController.cs" />
     <Compile Include="Controllers\XrDeviceController.cs" />
     <Compile Include="Controllers\UiTranslationController.cs" />
     <Compile Include="Global.asax.cs">
@@ -330,6 +345,12 @@
     <Compile Include="Helpers\FunctionCatalog.cs" />
     <Compile Include="Helpers\FunctionHtmlExtensions.cs" />
     <Compile Include="Helpers\SecurityRepository.cs" />
+    <Compile Include="Helpers\ClientOfferMerge.cs" />
+    <Compile Include="Helpers\ClientOfferAssistantService.cs" />
+    <Compile Include="Helpers\ClientOfferRepository.cs" />
+    <Compile Include="Helpers\ClientOfferPdfWriter.cs" />
+    <Compile Include="Helpers\DevelopAgentRepository.cs" />
+    <Compile Include="Helpers\DevelopAiRepository.cs" />
     <Compile Include="Helpers\XrDeviceQueries.cs" />
     <Compile Include="Helpers\XrPushJobQueries.cs" />
     <Compile Include="Helpers\JobsideCodeHelper.cs" />
@@ -398,6 +419,18 @@
     <Compile Include="Resources\Security.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Security.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\ClientOffer.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ClientOffer.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\DevelopAgent.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DevelopAgent.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\DevelopAi.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DevelopAi.resx</DependentUpon>
     </Compile>
     <Compile Include="Resources\XrDevice.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -3617,6 +3650,17 @@
     <Content Include="Views\Role\Details.cshtml" />
     <Content Include="Views\Role\_RoleFormFields.cshtml" />
     <Content Include="Views\Function\Index.cshtml" />
+    <Content Include="Views\ClientOffer\Index.cshtml" />
+    <Content Include="Views\ClientOffer\Texts.cshtml" />
+    <Content Include="Views\ClientOffer\Create.cshtml" />
+    <Content Include="Views\ClientOffer\Edit.cshtml" />
+    <Content Include="Views\ClientOffer\CreateText.cshtml" />
+    <Content Include="Views\ClientOffer\EditText.cshtml" />
+    <Content Include="Views\ClientOffer\Print.cshtml" />
+    <Content Include="Views\ClientOffer\_OfferFormFields.cshtml" />
+    <Content Include="Views\ClientOffer\_BrandFormFields.cshtml" />
+    <Content Include="Views\DevelopAgent\Index.cshtml" />
+    <Content Include="Views\DevelopAi\Index.cshtml" />
     <Content Include="Views\Function\Create.cshtml" />
     <Content Include="Views\Function\Edit.cshtml" />
     <Content Include="Views\Function\Details.cshtml" />

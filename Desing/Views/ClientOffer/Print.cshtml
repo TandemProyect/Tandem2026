@@ -1,0 +1,33 @@
+@model Desing.Helpers.ClientOfferRow
+@using Desing.Resources
+@{
+    Layout = null;
+    var logo = Model.TextLogo ?? "";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@ClientOffer.Page_Print</title>
+    <style>
+        body { font-family: Arial, sans-serif; color: #222; margin: 24px; }
+        img.logo { max-height: 72px; max-width: 220px; }
+        h1 { font-size: 20px; margin: 16px 0; }
+        pre { white-space: pre-wrap; font-family: Arial, sans-serif; font-size: 14px; }
+        .toolbar { margin-bottom: 16px; }
+        @@media print { .toolbar { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <button type="button" onclick="window.print()">@ClientOffer.Btn_Print</button>
+    </div>
+    @if (!string.IsNullOrEmpty(logo))
+    {
+        <img class="logo" src="@logo" alt="" />
+    }
+    <h1>@Model.TextSubject</h1>
+    <pre>@Model.HeaderBody</pre>
+    <pre>@Model.TextBody</pre>
+</body>
+</html>

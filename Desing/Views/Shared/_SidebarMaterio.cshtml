@@ -43,6 +43,8 @@
 
     bool isOfferStateController = currentController.Equals("OfferState", StringComparison.OrdinalIgnoreCase);
 
+    bool isClientOfferController = currentController.Equals("ClientOffer", StringComparison.OrdinalIgnoreCase);
+
 
 
     bool isXrDeviceController = currentController.Equals("XrDevice", StringComparison.OrdinalIgnoreCase);
@@ -98,15 +100,10 @@
             },
 
             new SidebarMenuChildItem
-
             {
-
                 Controller = "OfferState",
-
                 Text = UiCommon("Menu.OfferStates", "Estados de oferta")
-
             },
-
             new SidebarMenuChildItem
 
             {
@@ -172,6 +169,24 @@
         }
     };
 
+    bool isDevelopAgentController = currentController.Equals("DevelopAgent", StringComparison.OrdinalIgnoreCase);
+    bool isDevelopAiController = currentController.Equals("DevelopAi", StringComparison.OrdinalIgnoreCase);
+
+    var developMenu = new SidebarMenuGroupModel
+    {
+        GroupId = "menu-develop",
+        Title = UiCommon("Menu.Develop", "Develop"),
+        IconClass = "ri ri-code-s-slash-line",
+        IsOpen = isDevelopAgentController || isDevelopAiController || isClientOfferController,
+        Children = new List<SidebarMenuChildItem>
+        {
+            new SidebarMenuChildItem { Controller = "DevelopAgent", Text = UiCommon("Menu.DevelopAgents", "Agentes") },
+            new SidebarMenuChildItem { Controller = "DevelopAi", Text = UiCommon("Menu.DevelopAi", "IA") },
+            new SidebarMenuChildItem { Controller = "ClientOffer", Action = "Texts", Text = UiCommon("Menu.ClientOfferTexts", "Textos y logo de oferta") },
+            new SidebarMenuChildItem { Controller = "ClientOffer", Text = UiCommon("Menu.ClientOffer", "Oferta cliente") }
+        }
+    };
+
     Func<SidebarMenuGroupModel, bool> anyChildVisible = g =>
         (g.Children ?? new List<SidebarMenuChildItem>()).Any(c => Html.CanUseMenu(c.Controller, c.FunctionCode));
 
@@ -183,7 +198,8 @@
     var canJobSites = Html.CanUseMenu("Jobside");
     var canSecurity = anyChildVisible(seguridadMenu);
     var showAdministration = canCompanies || canEmployees || canArticles || canTemplates || canClients || canJobSites;
-    var showConfiguration = anyChildVisible(configuracionMenu) || canSecurity;
+    var canDevelop = anyChildVisible(developMenu);
+    var showConfiguration = anyChildVisible(configuracionMenu) || canSecurity || canDevelop;
 }
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu">
@@ -399,6 +415,8 @@
         @Html.Partial("_SidebarMenuItemGroup", configuracionMenu)
 
         @Html.Partial("_SidebarMenuItemGroup", seguridadMenu)
+
+        @Html.Partial("_SidebarMenuItemGroup", developMenu)
 
 
 

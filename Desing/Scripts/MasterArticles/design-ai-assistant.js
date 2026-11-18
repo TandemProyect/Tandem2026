@@ -31,8 +31,8 @@ import {
 import {
     maStlAiCatalogLoad, maStlAiCatalogOnChange, maStlAiCatalogReplies, maStlAiCatalogPhrases, maStlAiCatalogLongest,
     maStlAiCatalogEnv, maStlAiCatalogEnvLabel, maStlAiCatalogSaveEnv, maStlAiCatalogEnvTarget, maStlAiCatalogGet, maStlAiCatalogUserRules,
-    maStlAiLogUnknownPhrase,
-} from './ai-command-catalog.js?v=20261116a';
+    maStlAiCatalogUrls, maStlAiLogUnknownPhrase,
+} from './ai-command-catalog.js?v=20261118a';
 
 /* ---------------------------------- Textos ---------------------------------- */
 
@@ -144,7 +144,14 @@ export const MA_STL_DESIGN_AI_TEXT = {
         envFail: 'No he podido cambiar el entorno de conversación. Inténtalo más tarde.',
         envBadge: 'Entorno de conversación: {0}',
         pendingAi: '«{0}» aún no se puede pedir a la IA; usa el botón de la barra.',
-        proposals: { fillet: 'Empalme / chaflán', trim: 'Recortar por voz (recortar necesita el clic en el tramo)' },
+        toolDone: 'He pulsado «{0}», igual que el botón.',
+        toolMissing: 'No encuentro «{0}» en el visor.',
+        confirmTool: '¿Ejecuto «{0}»?',
+        toolNo: 'Vale, no lo hago.',
+        aiOpened: 'Asistente abierto.',
+        aiAlready: 'El asistente ya está abierto.',
+        aiClosed: 'Cierro el asistente.',
+        proposals: { fillet: 'Empalme / chaflán', trim: 'Recortar (activa la herramienta; el clic en el tramo lo haces tú)' },
         idsShown: 'Te pongo el número de cada muro en el plano ({0} muros: {1}). Para ver las medidas de uno, dime «acótame el muro {2}».',
         idsAlready: 'Los números ya están en el plano ({0} muros: {1}). Di «oculta los id» para quitarlos.',
         idsHidden: 'He quitado los números de los muros.',
@@ -161,6 +168,32 @@ export const MA_STL_DESIGN_AI_TEXT = {
         articleIdsHidden: 'He quitado los ID de los paneles.',
         articleIdsNotShown: 'Los ID de los paneles no estaban puestos.',
         articleIdsNoFormwork: 'Los ID de artículo van en las cotas de los paneles y aún no hay encofrado. Di «encofra» y te los pongo.',
+        learnEmpty: 'No hay frases pendientes de diseño.',
+        learnOtherPending: 'Hay frases de otro asistente; esta revisión es solo del diseño.',
+        learnFail: 'No he podido leer las frases pendientes.',
+        learnIntro: 'Hay {0} pendiente(s). Las pregunto una a una. {1}',
+        learnScopeAll: 'Lo que aceptes queda para todos.',
+        learnScopeUser: 'Lo que aceptes queda solo para ti.',
+        learnAsk: 'No entendí «{0}» ({1}/{2}).',
+        learnGuess: 'Se parece a «{0}». ¿Lo asigno a ese comando?',
+        learnWhich: '¿A qué comando lo asigno? Dime el nombre (por ejemplo «Cotas»), «descarta» o «siguiente».',
+        learnUnknownCmd: 'No conozco «{0}» como comando del visor. Dime otro, o «descarta».',
+        learnMany: 'Hay varios: {0}. Dime uno.',
+        learnOther: '«{0}» ejecutará «{1}». ¿Cómo se dice en {2}? Si no hay otra forma, di «no». No la invento.',
+        learnTypeOther: 'Escríbela. Si no hay otra forma, di «no».',
+        learnSaved: 'Guardado{0}. La próxima vez «{1}» ejecutará «{2}», también si cambia una letra.',
+        learnScopeSavedAll: ' para todos',
+        learnScopeSavedUser: ' solo para ti',
+        learnConflict: 'Esa frase ya pertenece a «{0}». Dime otro comando o «descarta».',
+        learnUnavailable: '«{0}» no está en el visor. Dime otro comando.',
+        learnDiscarded: 'Descartada.',
+        learnSkipped: 'La dejo pendiente.',
+        learnDone: 'No quedan más frases pendientes.',
+        learnStopped: 'Paro la revisión. Lo que no hemos mirado sigue pendiente.',
+        learnSaveFail: 'No he podido guardar la frase: {0}',
+        learnDiscardBtn: 'Descartar',
+        learnSkipBtn: 'Siguiente',
+        learnStopBtn: 'Parar',
     },
     en: {
         lang: 'en',
@@ -269,7 +302,14 @@ export const MA_STL_DESIGN_AI_TEXT = {
         envFail: 'The conversation environment could not be changed. Please try again later.',
         envBadge: 'Conversation environment: {0}',
         pendingAi: '«{0}» cannot be requested from the AI yet; use the toolbar button.',
-        proposals: { fillet: 'Fillet / chamfer', trim: 'Trim by voice (trim needs a click on the piece)' },
+        toolDone: 'I pressed «{0}», the same as the button.',
+        toolMissing: 'I cannot find «{0}» in the viewer.',
+        confirmTool: 'Shall I run «{0}»?',
+        toolNo: 'OK, I will not do it.',
+        aiOpened: 'Assistant open.',
+        aiAlready: 'The assistant is already open.',
+        aiClosed: 'Closing the assistant.',
+        proposals: { fillet: 'Fillet / chamfer', trim: 'Trim (starts the tool; you still click the piece)' },
         idsShown: 'The number of each wall is now on the plan ({0} walls: {1}). To see the sizes of one, say «dimension wall {2}».',
         idsAlready: 'The numbers are already on the plan ({0} walls: {1}). Say «hide the ids» to remove them.',
         idsHidden: 'I removed the wall numbers.',
@@ -286,6 +326,32 @@ export const MA_STL_DESIGN_AI_TEXT = {
         articleIdsHidden: 'Panel IDs removed.',
         articleIdsNotShown: 'The panel IDs were not shown.',
         articleIdsNoFormwork: 'Article IDs go on the panel dimensions and there is no formwork yet. Say «formwork» and I will show them.',
+        learnEmpty: 'There are no pending design phrases.',
+        learnOtherPending: 'There are phrases from another assistant; this review is only for design.',
+        learnFail: 'I could not read the pending phrases.',
+        learnIntro: 'There are {0} pending. I will ask them one by one. {1}',
+        learnScopeAll: 'What you accept becomes the default for everyone.',
+        learnScopeUser: 'What you accept is saved only for you.',
+        learnAsk: 'I did not understand «{0}» ({1}/{2}).',
+        learnGuess: 'It looks like «{0}». Shall I assign it to that command?',
+        learnWhich: 'Which command should it run? Tell me the name (for example «Dimensions»), «discard» or «skip».',
+        learnUnknownCmd: 'I do not know «{0}» as a viewer command. Tell me another, or «discard».',
+        learnMany: 'There are several: {0}. Tell me one.',
+        learnOther: '«{0}» will run «{1}». How is it said in {2}? If there is no other form, say «no». I will not invent it.',
+        learnTypeOther: 'Type it. If there is no other form, say «no».',
+        learnSaved: 'Saved{0}. Next time «{1}» will run «{2}», even if one letter changes.',
+        learnScopeSavedAll: ' for everyone',
+        learnScopeSavedUser: ' only for you',
+        learnConflict: 'That phrase already belongs to «{0}». Tell me another command or «discard».',
+        learnUnavailable: '«{0}» is not in the viewer. Tell me another command.',
+        learnDiscarded: 'Discarded.',
+        learnSkipped: 'I will leave it pending.',
+        learnDone: 'There are no more pending phrases.',
+        learnStopped: 'I am stopping the review. What we have not looked at stays pending.',
+        learnSaveFail: 'I could not save the phrase: {0}',
+        learnDiscardBtn: 'Discard',
+        learnSkipBtn: 'Skip',
+        learnStopBtn: 'Stop',
     },
 };
 
@@ -571,6 +637,14 @@ function phraseWordMatch(a, b) {
     return a.length <= 3 || b.length <= 3 ? (a === b ? 1 : 0) : maStlWallAiWordMatch(a, b);
 }
 
+/** Entre dos coincidencias, gana la más larga; a igualdad, la de mejor calidad. */
+function bestPhraseHit(a, b) {
+    if (!a) return b || null;
+    if (!b) return a;
+    if (a.len !== b.len) return a.len > b.len ? a : b;
+    return a.q >= b.q ? a : b;
+}
+
 /**
  * Aplica el catálogo del contexto 'design' (o lo quita con null): cada concepto = lista JS + palabras sueltas del
  * catálogo (las del usuario incluidas) − las que el usuario excluyó; si el usuario sustituyó las de por defecto de un
@@ -581,8 +655,13 @@ export function maStlDesignAiApplyCatalog(data) {
     CATALOG_PHRASES = [];
     if (!data) return { concepts: 0, phrases: 0 };
     const byC = {};
-    maStlAiCatalogPhrases(data, maStlWallAiNormalize, ['keyword', 'helper']).forEach(function (ph) {
+    maStlAiCatalogPhrases(data, maStlWallAiNormalize, ['keyword', 'helper', 'learned']).forEach(function (ph) {
         if (/^COMMON_(YES|NO)$/.test(ph.code)) return;
+        /* Frase aprendida: no entra en un concepto. Se ejecuta el comando, también con una letra cambiada. */
+        if (ph.kind === 'learned') {
+            if (ph.implemented && ph.aiId !== 'notAvailable' && !/notAvailable/i.test(ph.handler || '')) CATALOG_PHRASES.push(ph);
+            return;
+        }
         if (ph.toks.length === 1 && ph.concept && WORDS_NORM[ph.concept]) {
             const list = byC[ph.concept] || (byC[ph.concept] = []);
             if (list.indexOf(ph.toks[0]) < 0) list.push(ph.toks[0]);
@@ -616,10 +695,16 @@ function applyPhraseLayer(p, toks) {
     p.catalogCmd = null;
     if (!CATALOG_PHRASES.length) return;
     const wt = toks.filter(function (tk) { return tk.t === 'w'; });
-    const m = maStlAiCatalogLongest(wt.map(function (tk) { return tk.w; }), CATALOG_PHRASES, phraseWordMatch);
+    const words = wt.map(function (tk) { return tk.w; });
+    const learned = CATALOG_PHRASES.filter(function (ph) { return ph.kind === 'learned'; });
+    const rest = CATALOG_PHRASES.filter(function (ph) { return ph.kind !== 'learned'; });
+    const learnedHit = maStlAiCatalogLongest(words, learned, phraseWordMatch, 0.8);
+    const learnedOk = learnedHit && (learnedHit.len >= words.length || (learnedHit.len >= 2 && learnedHit.len + 3 >= words.length)) ? learnedHit : null;
+    const m = bestPhraseHit(learnedOk, maStlAiCatalogLongest(words, rest, phraseWordMatch, 0.95));
     if (!m) return;
     const it = m.item;
     p.phrase = { code: it.code, concept: it.concept, len: m.len, q: m.q, text: it.text, implemented: it.implemented,
+        handler: it.handler || '', confirm: !!it.confirm, destructive: !!it.destructive, kind: it.kind || 'keyword',
         nameEs: it.nameEs, nameEn: it.nameEn, aiId: it.aiId, start: m.start };
     if (m.len >= 2) {
         for (let j = 0; j < m.len; j++) {
@@ -1697,7 +1782,7 @@ function dimOf(p) {
 
 /** Modo pedido: 'lines' | 'wall3d' | 'formwork' | null. */
 export function maStlDesignAiModeTarget(p) {
-    if (p.phrase && p.phrase.len >= 2 && MODE_BY_CODE[p.phrase.code]) return MODE_BY_CODE[p.phrase.code];
+    if (p.phrase && MODE_BY_CODE[p.phrase.code] && (p.phrase.len >= 2 || p.phrase.kind === 'learned')) return MODE_BY_CODE[p.phrase.code];
     const t = plainText(p);
     if (q(p, 'formwork') >= 0.8 || /\ben ?cofr/.test(t)) return 'formwork';
     const dim = dimOf(p);
@@ -2006,6 +2091,13 @@ registerDesignAiCommand({
     },
     run: function (p, s, T) {
         const which = ['fillet', 'trim'].reduce(function (best, k) { return q(p, k) > q(p, best) ? k : best; }, 'fillet');
+        /* Recortar sí existe como herramienta: la voz la activa; el clic en el tramo sigue siendo del usuario. */
+        if (which === 'trim') {
+            return runCatalogCmd({
+                code: 'TOOL_TRIM', handler: 'toolbar:trim', confirm: false,
+                nameEs: T.proposals.trim, nameEn: T.proposals.trim,
+            }, s, T);
+        }
         s.proposals = (s.proposals || []).concat([which]);
         return { reply: fmt(T.notAvailable, T.proposals[which]) };
     },
@@ -2046,18 +2138,229 @@ registerDesignAiCommand({
     examples: { es: ['modo coloquial', 'ponte serio'], en: ['casual mode', 'be formal'] },
 });
 
-/* Comandos del catálogo que la IA aún no ejecuta (herramientas de la barra): se dice cuál es y cómo pedirlo. */
+/**
+ * Handler ejecutable del catálogo: solo la parte antes de «|» y solo toolbar / click / key conocidos.
+ * `ai:…` (geometría ya interpretada) y cualquier selector raro devuelven null.
+ * @returns {{ kind: 'toolbar'|'click'|'key', arg: string } | null}
+ */
+export function maStlDesignAiParseHandler(raw) {
+    const head = String(raw || '').split('|')[0].trim();
+    const i = head.indexOf(':');
+    if (i < 1) return null;
+    const kind = head.slice(0, i);
+    const arg = head.slice(i + 1).trim();
+    if (kind === 'toolbar' && /^[a-z0-9-]{1,40}$/.test(arg)) return { kind: 'toolbar', arg: arg };
+    if (kind === 'click' && /^[#\[][^\s]{1,80}$/.test(arg)) return { kind: 'click', arg: arg };
+    if (kind === 'key' && /^(Enter|Escape|Delete|F8)$/.test(arg)) return { kind: 'key', arg: arg };
+    return null;
+}
+
+/** Casos borde del parser (toolbar con nota, selector con comillas, tecla inválida, handler de geometría). */
+export function maStlDesignAiHandlerSelfCheck() {
+    const cases = [
+        ['toolbar:polyline|maStlDesing2ActivateToolbarCommandById(\'polyline\')', 'toolbar', 'polyline'],
+        ['click:[data-face="top"]', 'click', '[data-face="top"]'],
+        ['key:Enter', 'key', 'Enter'],
+        ['key:F9', null, null],
+        ['ai:notAvailable', null, null],
+        ['toolbar:../x', null, null],
+        ['click:javascript:alert(1)', null, null],
+    ];
+    const bad = [];
+    cases.forEach(function (c) {
+        const got = maStlDesignAiParseHandler(c[0]);
+        const ok = c[1] == null ? !got : !!(got && got.kind === c[1] && got.arg === c[2]);
+        if (!ok) bad.push(c[0]);
+    });
+    return bad;
+}
+
+/** Casos borde de la revisión: orden, vacío, empalme, frase ya de otro comando no se inventa, otro idioma vacío. */
+export function maStlDesignAiLearnSelfCheck() {
+    const bad = [];
+    const cmds = [
+        { code: 'WALL_DIMS', context: 'design', implemented: true, handler: 'ai:wall.dims|click:#ma-stl-tool-wall-dim', aiId: 'wall.dims', nameEs: 'Cotas', nameEn: 'Dimensions', phrases: [{ p: 'acota el muro', k: 'keyword' }] },
+        { code: 'WALL_FILLET', context: 'design', implemented: false, handler: 'ai:notAvailable', aiId: 'notAvailable', nameEs: 'Empalme', nameEn: 'Fillet', phrases: [{ p: 'empalme', k: 'keyword' }] },
+        { code: 'ENV_STREET', context: 'design', implemented: true, handler: 'ai:env', aiId: 'env', nameEs: 'Colega', nameEn: 'Street', phrases: [] },
+    ];
+    if (!maStlDesignAiIsLearnReview('Analiza el .json') || !maStlDesignAiIsLearnReview('analyze the json')) bad.push('trigger');
+    if (maStlDesignAiIsLearnReview('analiza el muro')) bad.push('trigger-false');
+    const learnable = maStlDesignAiLearnableCommands(cmds);
+    if (learnable.length !== 1 || learnable[0].code !== 'WALL_DIMS') bad.push('learnable');
+    if (maStlDesignAiPendingDesign([]).length || maStlDesignAiPendingDesign([{ id: 1, estado: 'pendiente', asistente: 'wall', frase: 'x' }]).length) bad.push('empty');
+    if (maStlDesignAiPendingDesign([{ id: 2, estado: 'pendiente', asistente: 'design', frase: 'abre cotas' }]).length !== 1) bad.push('pending');
+    if (maStlDesignAiPendingDesign([{ id: 3, estado: 'pendiente', asistente: 'design', frase: '   ' }]).length) bad.push('blank');
+    const prop = maStlDesignAiProposeLearnCommand('acota el muro', learnable);
+    if (!prop || prop.cmd.code !== 'WALL_DIMS') bad.push('propose');
+    if (maStlDesignAiProposeLearnCommand('pon un tejado verde', learnable)) bad.push('propose-none');
+    if (maStlDesignAiMatchLearnCommand('cotas', learnable).length !== 1) bad.push('match');
+    if (maStlDesignAiMatchLearnCommand('empalme', learnable).length) bad.push('fillet-learnable');
+    if (maStlDesignAiMatchLearnCommand('empalme', cmds.filter(function (c) { return c.code === 'WALL_FILLET'; })).length !== 1) bad.push('fillet-blocked');
+    if (maStlDesignAiLearnScope(true) !== 'default' || maStlDesignAiLearnScope(false) !== 'user') bad.push('scope');
+    if (maStlDesignAiOtherPhrase('no', 'es') !== '' || maStlDesignAiOtherPhrase('sí', 'es') !== null) bad.push('other-empty');
+    if (maStlDesignAiOtherPhrase('open the dimensions', 'es') !== 'open the dimensions') bad.push('other-text');
+    const one = phraseWordMatch('cotas', 'cotes');
+    const two = phraseWordMatch('cotas', 'cotxx');
+    if (!(one >= 0.8 && one < 0.95) || !(two < 0.8)) bad.push('margin');
+    if (!bestPhraseHit({ len: 2, q: 1 }, { len: 3, q: 0.8 }) || bestPhraseHit({ len: 2, q: 1 }, { len: 3, q: 0.8 }).len !== 3) bad.push('longer');
+    const prev = maStlAiCatalogGet('design');
+    try {
+        maStlDesignAiApplyCatalog({
+            commands: [{
+                code: 'WALL_DIMS', context: 'design', implemented: true, handler: 'ai:wall.dims|click:#ma-stl-tool-wall-dim',
+                aiId: 'wall.dims', nameEs: 'Cotas', nameEn: 'Dimensions', confirm: false,
+                phrases: [{ p: 'abre el formulario de cotas', k: 'learned' }, { p: 'cotas', k: 'learned' }],
+            }, {
+                code: 'WALL_FILLET', context: 'design', implemented: false, handler: 'ai:notAvailable', aiId: 'notAvailable',
+                nameEs: 'Empalme', nameEn: 'Fillet', phrases: [{ p: 'haz un empalme', k: 'learned' }],
+            }],
+        });
+        const exact = maStlDesignAiParse('abre el formulario de cotas');
+        const fuzzy = maStlDesignAiParse('abre el formulario de cotes');
+        const two = maStlDesignAiParse('abre el formulario de cotxx');
+        const stolen = maStlDesignAiParse('oculta las cotas');
+        if (!exact.catalogCmd || exact.catalogCmd.code !== 'WALL_DIMS' || exact.catalogCmd.kind !== 'learned') bad.push('apply');
+        if (!fuzzy.catalogCmd || fuzzy.catalogCmd.code !== 'WALL_DIMS') bad.push('one-letter');
+        if (two.catalogCmd) bad.push('two-letters');
+        if (stolen.catalogCmd) bad.push('short-steal');
+        if (maStlDesignAiParse('haz un empalme').catalogCmd) bad.push('fillet-catalog');
+        const best = maStlDesignAiBestCommand(exact);
+        if (!best || best.cmd.id !== 'catalog' || best.score < 1) bad.push('score');
+    } finally {
+        maStlDesignAiApplyCatalog(prev);
+    }
+    return bad;
+}
+
+/**
+ * Pulsa el botón o la tecla que ya usa el visor. No inventa geometría.
+ * @returns {{ ok: boolean, reason?: string, replyKey?: string, after?: function }}
+ */
+export function maStlDesignAiInvokeHandler(cmd, doc) {
+    doc = doc || (typeof document !== 'undefined' ? document : null);
+    if (!cmd || !doc) return { ok: false, reason: 'no-doc' };
+    const code = cmd.code || '';
+    const w = doc.defaultView || null;
+    const ai = w && w.maStlDesignAi;
+    if (code === 'AI_OPEN_DESIGN') {
+        if (ai && ai.isOpen && ai.isOpen()) return { ok: true, replyKey: 'aiAlready' };
+        if (ai && ai.open) { ai.open(); return { ok: true, replyKey: 'aiOpened' }; }
+    }
+    if (code === 'AI_CLOSE') {
+        return {
+            ok: true, replyKey: 'aiClosed', after: function () {
+                try { if (ai && ai.close) ai.close(); } catch (_e) { /* panel */ }
+                try { if (w && w.maStlWallAi && w.maStlWallAi.close) w.maStlWallAi.close(); } catch (_e2) { /* muro */ }
+            },
+        };
+    }
+    if (code === 'AI_MIC_TOGGLE' || code === 'AI_SPEAKER_TOGGLE') {
+        if (ai && ai.open && (!ai.isOpen || !ai.isOpen())) ai.open();
+        const sel = code === 'AI_MIC_TOGGLE' ? '[data-ma-stl-wall-ai-mic]' : '[data-ma-stl-wall-ai-spk]';
+        const root = doc.getElementById('ma-stl-design-ai') || doc;
+        const el = root.querySelector(sel) || doc.querySelector(sel);
+        if (!el) return { ok: false, reason: 'missing' };
+        el.click();
+        return { ok: true };
+    }
+    const act = maStlDesignAiParseHandler(cmd.handler);
+    if (!act) return { ok: false, reason: 'unsupported' };
+    if (act.kind === 'toolbar') {
+        const id = act.arg.indexOf('ma-stl-') === 0 ? act.arg : 'ma-stl-tool-' + act.arg;
+        const el = doc.getElementById(id);
+        if (!el) return { ok: false, reason: 'missing' };
+        el.click();
+        return { ok: true };
+    }
+    if (act.kind === 'click') {
+        const root = doc.getElementById('ma-stl-design-ai');
+        const el = (root && root.querySelector(act.arg)) || doc.querySelector(act.arg);
+        if (!el) return { ok: false, reason: 'missing' };
+        el.click();
+        return { ok: true };
+    }
+    const ae = doc.activeElement;
+    if (ae && ae.blur && /^(INPUT|TEXTAREA)$/.test(ae.tagName)) ae.blur();
+    if (!w || typeof w.KeyboardEvent !== 'function') return { ok: false, reason: 'no-doc' };
+    w.dispatchEvent(new w.KeyboardEvent('keydown', { key: act.arg, code: act.arg, bubbles: true, cancelable: true }));
+    return { ok: true };
+}
+
+function catalogReply(c, s, T, invoked) {
+    const name = T.lang === 'en' ? (c.nameEn || c.code) : (c.nameEs || c.code);
+    if (invoked && invoked.after) {
+        const w = typeof window !== 'undefined' ? window : null;
+        if (w && w.setTimeout) w.setTimeout(invoked.after, 400);
+    }
+    if (invoked && invoked.replyKey && T[invoked.replyKey]) return { reply: T[invoked.replyKey], lang: T.lang };
+    if (!invoked || !invoked.ok) {
+        if (invoked && invoked.reason === 'unsupported') return { reply: fmt(T.pendingAi, name), lang: T.lang };
+        return { reply: fmt(T.toolMissing, name), lang: T.lang };
+    }
+    return { reply: fmt(T.toolDone, name), lang: T.lang };
+}
+
+function runCatalogCmd(c, s, T) {
+    const name = T.lang === 'en' ? (c.nameEn || c.code) : (c.nameEs || c.code);
+    const go = function () {
+        s.pending = null;
+        return catalogReply(c, s, T, maStlDesignAiInvokeHandler(c));
+    };
+    if (c.confirm) {
+        const no = function () { s.pending = null; return { reply: T.toolNo, lang: T.lang }; };
+        s.pending = { yes: go, no: no };
+        return {
+            reply: fmt(T.confirmTool, name),
+            buttons: [
+                { label: T.yes, primary: true, run: function () { return s.pending && s.pending.yes === go ? go() : null; } },
+                { label: T.no, run: function () { return s.pending && s.pending.no === no ? no() : null; } },
+            ],
+        };
+    }
+    return go();
+}
+
+/** Parte toolbar/click/key de un handler (`ai:wall.dims|click:#…` → la parte que se puede pulsar). */
+function executableHandler(raw) {
+    const parts = String(raw || '').split('|');
+    for (let i = 0; i < parts.length; i++) {
+        if (maStlDesignAiParseHandler(parts[i])) return parts[i].trim();
+    }
+    return '';
+}
+
+/**
+ * Frase aprendida: ejecuta el comando ya registrado (aiId), el modo, o el botón/tecla del handler.
+ * No evalúa el texto del handler ni crea geometría.
+ */
+function runLearnedCmd(c, p, s, T) {
+    if (c && MODE_BY_CODE[c.code]) {
+        const mode = MA_STL_DESIGN_AI_COMMANDS.find(function (x) { return x.id === 'mode'; });
+        if (mode) return mode.run(p, s, T);
+    }
+    const id = c && c.aiId && c.aiId !== 'notAvailable' ? c.aiId : '';
+    const cmd = id ? MA_STL_DESIGN_AI_COMMANDS.find(function (x) { return x.id === id; }) : null;
+    if (cmd && cmd.id !== 'catalog' && cmd.id !== 'notAvailable' && cmd.id !== 'help') return cmd.run(p, s, T);
+    const exec = executableHandler(c && c.handler);
+    if (exec) return runCatalogCmd(Object.assign({}, c, { handler: exec, kind: 'keyword' }), s, T);
+    const name = T.lang === 'en' ? (c.nameEn || c.code) : (c.nameEs || c.code);
+    return { reply: fmt(T.pendingAi, name), lang: T.lang };
+}
+
+/* Herramientas, vistas y botones del catálogo: se pulsa el mismo control que la barra (no se inventa geometría). */
 registerDesignAiCommand({
     id: 'catalog',
     score: function (p) {
         const c = p.catalogCmd;
-        if (!c || c.implemented || /^(ENV_|COMMON_)/.test(c.code)) return 0;
-        if (c.len >= 2) return 0.97;
+        if (!c || /^(ENV_|COMMON_)/.test(c.code)) return 0;
+        if (c.kind === 'learned') return /notAvailable/i.test(c.handler || '') || c.aiId === 'notAvailable' ? 0 : 1.01;
+        if (!maStlDesignAiParseHandler(c.handler)) return 0;
+        if (c.code === 'AI_OPEN_DESIGN' || c.code === 'AI_CLOSE' || c.code === 'AI_MIC_TOGGLE' || c.code === 'AI_SPEAKER_TOGGLE') return 0.98;
+        if (c.len >= 2) return 0.98;
         return p.words.length <= 3 && !otherVerb(p, []) && q(p, 'draw') < 0.8 ? 0.9 : 0;
     },
     run: function (p, s, T) {
-        const c = p.catalogCmd;
-        return { reply: fmt(T.pendingAi, T.lang === 'en' ? c.nameEn : c.nameEs) };
+        return p.catalogCmd && p.catalogCmd.kind === 'learned' ? runLearnedCmd(p.catalogCmd, p, s, T) : runCatalogCmd(p.catalogCmd, s, T);
     },
     help: null,
     short: null,
@@ -2144,7 +2447,7 @@ function answersAsk(ans, need) {
 
 /** Sesión nueva (al abrir/cerrar el panel): último muro de la IA, pregunta pendiente, confirmación pendiente. */
 export function maStlDesignAiNewSession(bridge) {
-    return { bridge: bridge || null, lastWallId: null, ask: null, pending: null, lang: null, proposals: [] };
+    return { bridge: bridge || null, lastWallId: null, ask: null, pending: null, lang: null, proposals: [], learn: null };
 }
 
 function runCmd(cmd, p, s, T) {
@@ -2180,9 +2483,330 @@ function runCmd(cmd, p, s, T) {
     return res;
 }
 
+/* ------------------------- Revisión «analiza el .json» ------------------------- */
+
+/** «analiza el .json» / «analyze the json». No vale «analiza el muro». */
+export function maStlDesignAiIsLearnReview(text) {
+    const n = maStlWallAiNormalize(text);
+    return n === 'analiza el json' || n === 'analiza el archivo' || n === 'analiza el archivo json'
+        || n === 'analyze the json' || n === 'analyze the file' || n === 'review the json';
+}
+
+/** Comandos del diseño que se pueden ejecutar. Empalme y no implementados no entran. */
+export function maStlDesignAiLearnableCommands(commands) {
+    return (commands || []).filter(function (c) {
+        if (!c || (c.context && c.context !== 'design')) return false;
+        if (/^(ENV_|COMMON_)/.test(c.code || '')) return false;
+        if (!c.implemented) return false;
+        if (c.aiId === 'notAvailable' || /notAvailable/i.test(c.handler || '')) return false;
+        return true;
+    });
+}
+
+/** Pendientes del diseño con frase e id. Las del muro no se preguntan aquí. */
+export function maStlDesignAiPendingDesign(items) {
+    return (items || []).filter(function (e) {
+        const st = String(e && e.estado || '').toLowerCase();
+        const as = String(e && e.asistente || '').toLowerCase();
+        return st === 'pendiente' && (!as || as === 'design') && String(e && e.frase || '').trim() && e.id != null;
+    });
+}
+
+/** Programador → defecto de todos. Si no, solo el usuario. El servidor vuelve a imponerlo. */
+export function maStlDesignAiLearnScope(programmer) {
+    return programmer ? 'default' : 'user';
+}
+
+/**
+ * Otro idioma escrito por la persona. '' = no hay otra forma. null = ha dicho sí, pero aún no la ha escrito.
+ * No traduce.
+ */
+export function maStlDesignAiOtherPhrase(text, lang) {
+    const n = maStlWallAiNormalize(text);
+    const yn = maStlWallAiYesNo(text, lang);
+    if (!n) return '';
+    if (yn === 'no' || n === 'igual' || n === 'la misma' || n === 'same' || n === 'no hay') return '';
+    if (yn === 'yes' && n.split(' ').length <= 2) return null;
+    return String(text || '').trim();
+}
+
+function learnCmdName(c, lang) {
+    return lang === 'en' ? (c.nameEn || c.code) : (c.nameEs || c.code);
+}
+
+function learnBaseLang(raw) {
+    return String(raw || '').toLowerCase().indexOf('en') === 0 ? 'en' : 'es';
+}
+
+function otherLangLabel(phraseLang, uiLang) {
+    const other = phraseLang === 'en' ? 'es' : 'en';
+    if (uiLang === 'en') return other === 'en' ? 'English' : 'Spanish';
+    return other === 'en' ? 'inglés' : 'español';
+}
+
+/** Coincidencia cercana (una falta vale) para proponer un comando que ya existe. */
+export function maStlDesignAiProposeLearnCommand(phrase, commands) {
+    const words = maStlWallAiNormalize(phrase).split(' ').filter(Boolean);
+    if (!words.length) return null;
+    const phrases = [];
+    (commands || []).forEach(function (c) {
+        (c.phrases || []).forEach(function (ph) {
+            if ((ph.k || 'keyword') === 'negative') return;
+            const n = maStlWallAiNormalize(ph.p || ph.n || '');
+            if (n) phrases.push({ cmd: c, toks: n.split(' ') });
+        });
+        [c.nameEs, c.nameEn, String(c.code || '').replace(/_/g, ' ')].forEach(function (label) {
+            const n = maStlWallAiNormalize(label);
+            if (n) phrases.push({ cmd: c, toks: n.split(' ') });
+        });
+    });
+    const hit = maStlAiCatalogLongest(words, phrases, phraseWordMatch, 0.8);
+    if (!hit) return null;
+    if (hit.len < 2 && words.length > 2) return null;
+    return { cmd: hit.item.cmd, q: hit.q, len: hit.len };
+}
+
+/** El nombre o el código que dice la persona. Varios si hay empate. No inventa un comando. */
+export function maStlDesignAiMatchLearnCommand(text, commands) {
+    const words = maStlWallAiNormalize(text).split(' ').filter(Boolean);
+    if (!words.length) return [];
+    const joined = words.join(' ');
+    const compact = words.join('');
+    const hits = [];
+    (commands || []).forEach(function (c) {
+        const codeNorm = maStlWallAiNormalize(String(c.code || '').replace(/_/g, ' '));
+        if (codeNorm.replace(/ /g, '') === compact || codeNorm === joined) { hits.push(c); return; }
+        const names = [c.nameEs, c.nameEn].map(function (n) { return maStlWallAiNormalize(n); }).filter(Boolean);
+        if (names.some(function (n) { return n === joined; })) { hits.push(c); return; }
+        if (words.length <= 4 && names.some(function (n) { return n.length >= 4 && words.indexOf(n) >= 0; })) hits.push(c);
+    });
+    const uniq = [];
+    hits.forEach(function (c) { if (!uniq.some(function (x) { return x.code === c.code; })) uniq.push(c); });
+    if (uniq.length) return uniq;
+    const phrases = [];
+    (commands || []).forEach(function (c) {
+        (c.phrases || []).forEach(function (ph) {
+            const n = maStlWallAiNormalize(ph.p || '');
+            if (n) phrases.push({ cmd: c, toks: n.split(' ') });
+        });
+    });
+    const hit = maStlAiCatalogLongest(words, phrases, phraseWordMatch, 0.95);
+    if (hit && (hit.len >= words.length - 1) && (hit.len >= 2 || words.length <= 2)) return [hit.item.cmd];
+    return [];
+}
+
+function aiEndpoint(action, doc) {
+    const c = maStlAiCatalogUrls(doc).commands || '';
+    return /\/AiCommands(\?.*)?$/i.test(c) ? c.replace(/\/AiCommands(\?.*)?$/i, '/' + action) : '';
+}
+
+function aiJson(url, method, body) {
+    const f = typeof fetch === 'function' ? fetch : null;
+    if (!url || !f) return Promise.resolve(null);
+    const opt = {
+        method: method, credentials: 'same-origin',
+        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+    };
+    if (body != null) {
+        opt.headers['Content-Type'] = 'application/json; charset=utf-8';
+        opt.body = JSON.stringify(body);
+    }
+    return Promise.resolve(f(url, opt)).then(function (r) {
+        if (!r || typeof r.json !== 'function') return null;
+        return r.json().then(function (j) { return j; }, function () { return null; });
+    }, function () { return null; });
+}
+
+function learnControl(text) {
+    const n = maStlWallAiNormalize(text);
+    const words = n.split(' ').filter(Boolean);
+    if (!words.length || words.length > 3) return null;
+    if (words.length === 1 && /^(para|parar|stop|cancela|cancelar|cancel|dejalo|basta)$/.test(words[0])) return 'stop';
+    if (/^(descarta|descartar|descartala|discard)$/.test(words[0])) return 'discard';
+    if (/^(siguiente|saltar|salta|skip|pasala)$/.test(words[0])) return 'skip';
+    return null;
+}
+
+function learnButtons(s, T, withYes) {
+    const L = s.learn;
+    const mine = function (fn) {
+        return function () { return s.learn === L ? fn() : null; };
+    };
+    const btns = [];
+    if (withYes) btns.push({ label: T.yes, primary: true, run: mine(function () { return L.proposal ? beginLearnOther(s, L.proposal.cmd, T) : null; }) });
+    btns.push({ label: T.learnDiscardBtn, run: mine(function () { return discardLearn(s, T); }) });
+    btns.push({ label: T.learnSkipBtn, run: mine(function () { return skipLearn(s, T); }) });
+    btns.push({ label: T.learnStopBtn, run: mine(function () { return stopLearn(s, T); }) });
+    return btns;
+}
+
+function learnCatalogCommands() {
+    const data = maStlAiCatalogGet('design');
+    return (data && data.commands) || [];
+}
+
+function askLearnCurrent(s, T) {
+    const L = s.learn;
+    if (!L || L.i >= L.items.length) {
+        s.learn = null;
+        return { reply: T.learnDone, lang: T.lang };
+    }
+    const item = L.items[L.i];
+    L.step = 'ask';
+    L.code = null;
+    L.cmd = null;
+    L.phrase = String(item.frase || '').trim();
+    L.lang = learnBaseLang(item.idioma || T.lang);
+    const proposal = maStlDesignAiProposeLearnCommand(L.phrase, maStlDesignAiLearnableCommands(learnCatalogCommands()));
+    L.proposal = proposal;
+    const head = fmt(T.learnAsk, L.phrase, L.i + 1, L.items.length);
+    const tail = proposal ? fmt(T.learnGuess, learnCmdName(proposal.cmd, T.lang)) : T.learnWhich;
+    const intro = L.i === 0 ? fmt(T.learnIntro, L.items.length, L.programmer ? T.learnScopeAll : T.learnScopeUser) + '\n' : '';
+    return { reply: intro + head + ' ' + tail, lang: T.lang, buttons: learnButtons(s, T, !!proposal) };
+}
+
+function stopLearn(s, T) {
+    s.learn = null;
+    s.pending = null;
+    return { reply: T.learnStopped, lang: T.lang };
+}
+
+function skipLearn(s, T) {
+    if (!s.learn) return stopLearn(s, T);
+    s.learn.i += 1;
+    const next = askLearnCurrent(s, T);
+    return { reply: T.learnSkipped + '\n' + next.reply, lang: T.lang, buttons: next.buttons };
+}
+
+function beginLearnOther(s, cmd, T) {
+    const L = s.learn;
+    if (!L || !cmd) return { reply: T.learnWhich, lang: T.lang, buttons: learnButtons(s, T, false) };
+    L.cmd = cmd;
+    L.code = cmd.code;
+    L.step = 'other';
+    L.proposal = null;
+    return {
+        reply: fmt(T.learnOther, L.phrase, learnCmdName(cmd, T.lang), otherLangLabel(L.lang, T.lang)),
+        lang: T.lang,
+        buttons: [
+            { label: T.no, run: function () { return s.learn === L ? saveLearn(s, T, '') : null; } },
+            { label: T.learnSkipBtn, run: function () { return s.learn === L ? skipLearn(s, T) : null; } },
+            { label: T.learnStopBtn, run: function () { return s.learn === L ? stopLearn(s, T) : null; } },
+        ],
+    };
+}
+
+function learnFailReply(s, T, j) {
+    const L = s.learn;
+    if (L) { L.step = 'name'; L.proposal = null; }
+    if (j && j.reason === 'conflict') return { reply: fmt(T.learnConflict, j.command || ''), lang: T.lang, buttons: learnButtons(s, T, false) };
+    if (j && j.reason === 'unavailable') {
+        const name = L && L.cmd ? learnCmdName(L.cmd, T.lang) : '';
+        return { reply: fmt(T.learnUnavailable, name), lang: T.lang, buttons: learnButtons(s, T, false) };
+    }
+    return { reply: fmt(T.learnSaveFail, (j && (j.message || j.reason)) || ''), lang: T.lang, buttons: learnButtons(s, T, false) };
+}
+
+function afterLearn(s, T, head) {
+    if (!s.learn) return { reply: head, lang: T.lang };
+    s.learn.i += 1;
+    const next = askLearnCurrent(s, T);
+    return { reply: head + '\n' + next.reply, lang: T.lang, buttons: next.buttons };
+}
+
+function saveLearn(s, T, otherPhrase) {
+    const L = s.learn;
+    if (!L || !L.code) return { reply: T.learnWhich, lang: T.lang, buttons: learnButtons(s, T, false) };
+    const url = aiEndpoint('LearnAiUnknownPhrase');
+    if (!url) return { reply: fmt(T.learnSaveFail, ''), lang: T.lang };
+    const other = otherPhrase && maStlWallAiNormalize(otherPhrase) === maStlWallAiNormalize(L.phrase) ? '' : String(otherPhrase || '').slice(0, 200);
+    return aiJson(url, 'POST', {
+        id: L.items[L.i].id,
+        code: L.code,
+        phrase: String(L.phrase || '').slice(0, 200),
+        lang: L.lang,
+        otherPhrase: other,
+        scope: maStlDesignAiLearnScope(L.programmer),
+    }).then(function (j) {
+        if (!j || !j.ok) return learnFailReply(s, T, j);
+        const name = L.cmd ? learnCmdName(L.cmd, T.lang) : L.code;
+        const scope = j.scope === 'default' ? T.learnScopeSavedAll : T.learnScopeSavedUser;
+        const head = fmt(T.learnSaved, scope, L.phrase, name);
+        return maStlAiCatalogLoad('design', T.lang, { force: true }).then(function () {
+            return afterLearn(s, T, head);
+        }, function () { return afterLearn(s, T, head); });
+    });
+}
+
+function discardLearn(s, T) {
+    const L = s.learn;
+    if (!L) return stopLearn(s, T);
+    const url = aiEndpoint('LearnAiUnknownPhrase');
+    if (!url) return { reply: fmt(T.learnSaveFail, ''), lang: T.lang };
+    return aiJson(url, 'POST', { id: L.items[L.i].id, estado: 'descartada' }).then(function (j) {
+        if (!j || !j.ok) return learnFailReply(s, T, j);
+        return afterLearn(s, T, T.learnDiscarded);
+    });
+}
+
+function startLearnReview(s, T) {
+    const url = aiEndpoint('AiUnknownPhrases');
+    if (!url) return { reply: T.learnFail, lang: T.lang };
+    return aiJson(url + (url.indexOf('?') >= 0 ? '&' : '?') + 'estado=pendiente', 'GET', null).then(function (j) {
+        if (!j || !j.ok || !Array.isArray(j.items)) return { reply: T.learnFail, lang: T.lang };
+        const items = maStlDesignAiPendingDesign(j.items);
+        if (!items.length) {
+            const other = j.items.some(function (e) { return String(e && e.estado || '') === 'pendiente'; });
+            return { reply: other ? T.learnOtherPending : T.learnEmpty, lang: T.lang };
+        }
+        s.learn = { items: items, i: 0, step: 'ask', programmer: !!j.programmer, proposal: null, code: null, cmd: null, phrase: '', lang: 'es' };
+        return askLearnCurrent(s, T);
+    });
+}
+
+function answerLearnReview(s, text, T) {
+    const L = s.learn;
+    if (!L) return { reply: T.learnDone, lang: T.lang };
+    const act = learnControl(text);
+    if (act === 'stop') return stopLearn(s, T);
+    if (L.step === 'other' || L.step === 'otherWait') {
+        if (act === 'skip') return skipLearn(s, T);
+        if (act === 'discard') return discardLearn(s, T);
+        const other = maStlDesignAiOtherPhrase(text, T.lang);
+        if (other == null) {
+            L.step = 'otherWait';
+            return { reply: T.learnTypeOther, lang: T.lang, buttons: [
+                { label: T.no, run: function () { return s.learn === L ? saveLearn(s, T, '') : null; } },
+                { label: T.learnStopBtn, run: function () { return s.learn === L ? stopLearn(s, T) : null; } },
+            ] };
+        }
+        return saveLearn(s, T, other);
+    }
+    if (act === 'discard') return discardLearn(s, T);
+    if (act === 'skip') return skipLearn(s, T);
+    const yn = maStlWallAiYesNo(text, T.lang);
+    if (yn === 'yes' && L.proposal && L.step === 'ask') return beginLearnOther(s, L.proposal.cmd, T);
+    if (yn === 'no' && L.step === 'ask') {
+        L.step = 'name';
+        L.proposal = null;
+        return { reply: T.learnWhich, lang: T.lang, buttons: learnButtons(s, T, false) };
+    }
+    const all = learnCatalogCommands();
+    const learnable = maStlDesignAiLearnableCommands(all);
+    const hits = maStlDesignAiMatchLearnCommand(text, learnable);
+    if (hits.length === 1) return beginLearnOther(s, hits[0], T);
+    if (hits.length > 1) {
+        return { reply: fmt(T.learnMany, hits.map(function (c) { return learnCmdName(c, T.lang); }).join(', ')), lang: T.lang, buttons: learnButtons(s, T, false) };
+    }
+    const blocked = maStlDesignAiMatchLearnCommand(text, all.filter(function (c) { return learnable.indexOf(c) < 0; }));
+    if (blocked.length) return { reply: fmt(T.learnUnavailable, learnCmdName(blocked[0], T.lang)), lang: T.lang, buttons: learnButtons(s, T, false) };
+    return { reply: fmt(T.learnUnknownCmd, String(text || '').trim()), lang: T.lang, buttons: learnButtons(s, T, false) };
+}
+
 /**
  * Intérprete del chat de diseño: confirmación pendiente → respuesta a una pregunta → mejor comando
  * (≥ 0,8 se ejecuta; 0,65..0,8 «¿Querías decir…?») → saludo / no entendido + ayuda.
+ * «analiza el .json» revisa las frases pendientes antes que el resto.
  */
 export function maStlDesignAiHandleMessage(session, text, history) {
     const s = session;
@@ -2200,6 +2824,14 @@ export function maStlDesignAiHandleMessage(session, text, history) {
         }
         return res;
     };
+    /* «analiza el .json»: revisar frases no comprendidas antes que cualquier otra orden. */
+    if (maStlDesignAiIsLearnReview(text)) {
+        s.pending = null;
+        s.ask = null;
+        s.learn = null;
+        return tag(startLearnReview(s, T));
+    }
+    if (s.learn) return tag(answerLearnReview(s, text, T));
     const p = maStlDesignAiParse(text);
     /* «sí» / «no» a una confirmación («¿Borro el muro 4?», «¿Querías decir…?»). */
     if (s.pending) {

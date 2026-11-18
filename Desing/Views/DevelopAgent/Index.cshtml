@@ -1,0 +1,260 @@
+@using Newtonsoft.Json
+@using Desing.Resources
+@using System.Globalization
+@{
+    ViewBag.Title = DevelopAgent.Index_Breadcrumb;
+    var ci = CultureInfo.CurrentUICulture?.TwoLetterISOLanguageName ?? "es";
+    var agentDt = JsonConvert.SerializeObject(new
+    {
+        culture = ci,
+        rowsSuffix = Common.Dt_Rows_N,
+        allRows = Common.Dt_Rows_All,
+        sectionRecords = Common.Dt_Section_Records,
+        sectionExport = Common.Dt_Section_Export,
+        sectionCols = Common.Dt_Section_ColumnsVisible,
+        ariaMenu = Common.Dt_MenuAria,
+        copyTitle = DevelopAgent.Btn_Copy,
+        copied = DevelopAgent.Msg_Copied
+    });
+}
+
+<div class="tandem-dt-list-page">
+<div class="d-flex align-items-center justify-content-between mb-2">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@DevelopAgent.Common_Home</a> /
+            @DevelopAgent.Common_Develop /
+        </span> @DevelopAgent.Index_Breadcrumb
+    </h4>
+</div>
+<p class="text-muted mb-3">@DevelopAgent.Index_Intro</p>
+
+@if (ViewBag.TableMissing == true)
+{
+    <div class="alert alert-warning">@DevelopAgent.Msg_NoTable</div>
+}
+
+<div class="card">
+    <div class="card-body agent-docs-scroll" style="padding:5px">
+        <table id="ListAgentDocuments" class="table table-hover" cellspacing="0" style="width: 100%">
+            <thead>
+                <tr>
+                    <th>@DevelopAgent.Col_Name</th>
+                    <th>@DevelopAgent.Col_Command</th>
+                    <th>@DevelopAgent.Col_Description</th>
+                    <th>ID</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+</div>
+
+<div class="modal fade" id="agentDocModal" tabindex="-1" aria-labelledby="agentDocModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="agentDocModalTitle">@DevelopAgent.Modal_Title</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@DevelopAgent.Btn_Close"></button>
+            </div>
+            <div class="modal-body">
+                <h5 class="mb-3" data-agent-doc="label"></h5>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">@DevelopAgent.Col_Command</label>
+                    <div class="d-flex align-items-start gap-2">
+                        <pre class="bg-lighter rounded p-2 mb-0 flex-grow-1" style="white-space:pre-wrap;"><code data-agent-doc="command"></code></pre>
+                        <button type="button" class="btn btn-icon btn-outline-primary" id="agentDocCopy"
+                                title="@DevelopAgent.Btn_Copy" aria-label="@DevelopAgent.Btn_Copy">
+                            <i class="icon-base ri ri-file-copy-line"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">@DevelopAgent.Lbl_Path</label>
+                    <div><code data-agent-doc="path"></code></div>
+                </div>
+                <div>
+                    <label class="form-label fw-semibold">@DevelopAgent.Col_Description</label>
+                    <p class="mb-0" style="white-space:pre-wrap;" data-agent-doc="description"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@DevelopAgent.Btn_Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* Develop › Agentes: la página no se desplaza (tandem-dt-list-page en site.css); el scroll vive en la tabla. */
+        .agent-docs-scroll .dataTables_wrapper .dataTables_scrollBody {
+            border-bottom: 0 !important;
+            overflow-y: auto !important;
+        }
+    </style>
+}
+
+@section scripts
+{
+    <script type="text/javascript">
+        var agentDt = @Html.Raw(agentDt);
+
+        $(document).ready(function () {
+            function applyScrollBodyHeight() {
+                var host = document.querySelector('.agent-docs-scroll');
+                var body = host && host.querySelector('.dataTables_scrollBody');
+                if (!body) { return; }
+                var wrap = host.querySelector('.dataTables_wrapper');
+                var info = wrap && wrap.querySelector('.dataTables_info');
+                var pag = wrap && wrap.querySelector('.dataTables_paginate');
+                var reserveBottom = 8;
+                reserveBottom += (info && info.offsetParent !== null) ? info.getBoundingClientRect().height : 32;
+                reserveBottom += (pag && pag.offsetParent !== null) ? pag.getBoundingClientRect().height : 48;
+                var h = Math.floor(host.getBoundingClientRect().bottom - body.getBoundingClientRect().top - reserveBottom);
+                if (h < 140) { h = 140; }
+                body.style.height = h + 'px';
+                body.style.maxHeight = h + 'px';
+            }
+
+            function fitTable(api) {
+                applyScrollBodyHeight();
+                try { api.columns.adjust(); } catch (e) { /* noop */ }
+            }
+
+            var exportOpts = TandemDataTablesList.exportOptsPlainVisible;
+            var table = $('#ListAgentDocuments').DataTable(TandemDataTablesList.applyListDefaults({
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    ['10 ' + agentDt.rowsSuffix, '25 ' + agentDt.rowsSuffix, '50 ' + agentDt.rowsSuffix, agentDt.allRows]
+                ],
+                pageLength: 50,
+                buttons: [{
+                    extend: 'collection',
+                    text: "<i class='fas fa-bars'></i>",
+                    attr: { 'aria-label': agentDt.ariaMenu },
+                    className: 'custom-html-collection',
+                    buttons: [
+                        '<h5>' + agentDt.sectionRecords + '</h5>',
+                        'pageLength',
+                        '<h5>' + agentDt.sectionExport + '</h5>',
+                        'print',
+                        'copy',
+                        { extend: 'csv', exportOptions: exportOpts },
+                        { extend: 'excel', exportOptions: exportOpts },
+                        '<h5 class="not-top-heading">' + agentDt.sectionCols + '</h5>',
+                        'colvis'
+                    ]
+                }],
+                scrollY: 1,
+                scrollCollapse: true,
+                serverSide: true,
+                processing: true,
+                ajax: {
+                    url: '@Url.Action("ListDocuments", "DevelopAgent")',
+                    type: 'POST'
+                },
+                order: [],
+                columns: [
+                    {
+                        data: 'TextLabel',
+                        name: 'TextLabel',
+                        render: function (data, type, row) { return type === 'export' ? (row.TextLabelPlain || '') : data; }
+                    },
+                    {
+                        data: 'TextCommand',
+                        name: 'TextCommand',
+                        render: function (data, type, row) {
+                            if (type !== 'display') { return row.TextCommandPlain || ''; }
+                            var title = $('<div>').text(agentDt.copyTitle).html();
+                            return '<div class="d-flex align-items-center justify-content-between gap-2">' + data +
+                                '<button type="button" class="btn btn-icon btn-sm btn-text-primary js-agent-doc-copy flex-shrink-0"' +
+                                ' title="' + title + '" aria-label="' + title + '">' +
+                                '<i class="icon-base ri ri-file-copy-line"></i></button></div>';
+                        }
+                    },
+                    {
+                        data: 'TextDescription',
+                        name: 'TextDescription',
+                        render: function (data, type, row) { return type === 'export' ? (row.TextDescriptionFull || '') : data; }
+                    },
+                    { data: 'IdObject', visible: false, searchable: false }
+                ],
+                createdRow: function (row) { $(row).css('cursor', 'pointer'); },
+                drawCallback: function (settings) {
+                    var api = new $.fn.dataTable.Api(settings);
+                        applyScrollBodyHeight();
+                    if (!settings._agentDocsAdjusted) {
+                        settings._agentDocsAdjusted = true;
+                        try { api.columns.adjust(); } catch (e) { /* noop */ }
+                    }
+                }
+            }));
+
+            setTimeout(function () { fitTable(table); }, 50);
+
+            var resizeTimer;
+            $(window).on('resize', function () {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function () { fitTable(table); }, 150);
+            });
+
+            var $modal = $('#agentDocModal');
+            function showDoc(row) {
+                if (!row) { return; }
+                $modal.find('[data-agent-doc="label"]').text(row.TextLabelPlain || '');
+                $modal.find('[data-agent-doc="command"]').text(row.TextCommandPlain || '');
+                $modal.find('[data-agent-doc="path"]').text(row.TextPath || '');
+                $modal.find('[data-agent-doc="description"]').text(row.TextDescriptionFull || '');
+                bootstrap.Modal.getOrCreateInstance($modal[0]).show();
+            }
+
+            $('#ListAgentDocuments tbody').on('click', 'tr', function (e) {
+                e.preventDefault();
+                showDoc(table.row(this).data());
+            });
+
+            function copyText(text) {
+                if (navigator.clipboard && window.isSecureContext) {
+                    return navigator.clipboard.writeText(text);
+                }
+                return new Promise(function (resolve, reject) {
+                    var ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.setAttribute('readonly', '');
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    $modal[0].appendChild(ta);
+                    ta.select();
+                    var ok = false;
+                    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+                    ta.remove();
+                    if (ok) { resolve(); } else { reject(); }
+                });
+            }
+
+            function copyWithFeedback($btn, text, idleClass) {
+                var $icon = $btn.find('i');
+                copyText(text).then(function () {
+                    $icon.removeClass('ri-file-copy-line').addClass('ri-check-line');
+                    $btn.attr('title', agentDt.copied).removeClass(idleClass).addClass('btn-success');
+                    setTimeout(function () {
+                        $icon.removeClass('ri-check-line').addClass('ri-file-copy-line');
+                        $btn.attr('title', $btn.attr('aria-label')).removeClass('btn-success').addClass(idleClass);
+                    }, 1500);
+                });
+            }
+
+            $('#agentDocCopy').on('click', function () {
+                copyWithFeedback($(this), $modal.find('[data-agent-doc="command"]').text(), 'btn-outline-primary');
+            });
+
+            $('#ListAgentDocuments tbody').on('click', '.js-agent-doc-copy', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var row = table.row($(this).closest('tr')).data();
+                copyWithFeedback($(this), (row && row.TextCommandPlain) || '', 'btn-text-primary');
+            });
+        });
+    </script>
+}

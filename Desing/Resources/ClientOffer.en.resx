@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Col_Client" xml:space="preserve"><value>Client</value></data>
+  <data name="Col_Company" xml:space="preserve"><value>Company</value></data>
+  <data name="Col_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Col_State" xml:space="preserve"><value>Status</value></data>
+  <data name="Col_System" xml:space="preserve"><value>System</value></data>
+  <data name="Common_Home" xml:space="preserve"><value>Home</value></data>
+  <data name="Common_Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Err_BrandDuplicate" xml:space="preserve"><value>A general text already exists for that company and system.</value></data>
+  <data name="Err_CompanyRequired" xml:space="preserve"><value>Company is required.</value></data>
+  <data name="Err_LabelRequired" xml:space="preserve"><value>Name is required.</value></data>
+  <data name="Err_LogoFormat" xml:space="preserve"><value>Logo must be png, jpg, gif or svg.</value></data>
+  <data name="Err_LogoSize" xml:space="preserve"><value>Logo is larger than 2 MB.</value></data>
+  <data name="Err_SubjectRequired" xml:space="preserve"><value>Subject is required.</value></data>
+  <data name="Err_SystemRequired" xml:space="preserve"><value>The offer system is required.</value></data>
+  <data name="Index_Breadcrumb" xml:space="preserve"><value>Client offer</value></data>
+  <data name="Index_Create" xml:space="preserve"><value>New offer</value></data>
+  <data name="Index_Texts" xml:space="preserve"><value>Texts and logo</value></data>
+  <data name="Js_ConfirmDelete" xml:space="preserve"><value>Delete this record?</value></data>
+  <data name="Lbl_Active" xml:space="preserve"><value>Active</value></data>
+  <data name="Lbl_Address" xml:space="preserve"><value>Client address</value></data>
+  <data name="Lbl_AllSystems" xml:space="preserve"><value>All systems</value></data>
+  <data name="Lbl_Body" xml:space="preserve"><value>Text</value></data>
+  <data name="Lbl_BodyTemplate" xml:space="preserve"><value>General text ({Empresa} {Cliente} {Diseno} {Oferta} {Obra} {Plantilla} {Sistema} {Recuento})</value></data>
+  <data name="Lbl_Client" xml:space="preserve"><value>Client</value></data>
+  <data name="Lbl_Company" xml:space="preserve"><value>Company</value></data>
+  <data name="Lbl_CompanyName" xml:space="preserve"><value>Company name in the header</value></data>
+  <data name="Lbl_Design" xml:space="preserve"><value>Design</value></data>
+  <data name="Lbl_Header" xml:space="preserve"><value>Header</value></data>
+  <data name="Lbl_HeaderTemplate" xml:space="preserve"><value>Header ({Empresa} {DireccionEmpresa} {Cliente} {DireccionCliente} {Asunto})</value></data>
+  <data name="Lbl_Inactive" xml:space="preserve"><value>Inactive</value></data>
+  <data name="Lbl_Jobside" xml:space="preserve"><value>Jobsite</value></data>
+  <data name="Lbl_Logo" xml:space="preserve"><value>Logo</value></data>
+  <data name="Lbl_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Lbl_Offer" xml:space="preserve"><value>Offer</value></data>
+  <data name="Lbl_Plantilla" xml:space="preserve"><value>Template</value></data>
+  <data name="Lbl_Recuento" xml:space="preserve"><value>Count</value></data>
+  <data name="Lbl_Subject" xml:space="preserve"><value>Subject</value></data>
+  <data name="Lbl_SubjectTemplate" xml:space="preserve"><value>Subject ({Sistema} {Obra} {Cliente})</value></data>
+  <data name="Lbl_System" xml:space="preserve"><value>System</value></data>
+  <data name="List_DeleteTooltip" xml:space="preserve"><value>Delete</value></data>
+  <data name="List_EditTooltip" xml:space="preserve"><value>Edit</value></data>
+  <data name="Msg_NoTable" xml:space="preserve"><value>Client offer tables are missing in develop.</value></data>
+  <data name="Page_Create" xml:space="preserve"><value>New offer</value></data>
+  <data name="Page_CreateText" xml:space="preserve"><value>New general text</value></data>
+  <data name="Page_Edit" xml:space="preserve"><value>Edit offer</value></data>
+  <data name="Page_EditText" xml:space="preserve"><value>Edit general text</value></data>
+  <data name="Page_Print" xml:space="preserve"><value>PDF preview</value></data>
+  <data name="Ph_Optional" xml:space="preserve"><value>(not set)</value></data>
+  <data name="Ph_System" xml:space="preserve"><value>Choose the system</value></data>
+  <data name="Btn_Print" xml:space="preserve"><value>PDF preview</value></data>
+  <data name="Btn_GeneratePdf" xml:space="preserve"><value>Generate server PDF</value></data>
+  <data name="Btn_Rebuild" xml:space="preserve"><value>Rebuild from general texts</value></data>
+  <data name="Btn_AskAssistant" xml:space="preserve"><value>Ask AI</value></data>
+  <data name="Btn_ApplyAssistant" xml:space="preserve"><value>Apply AI proposal</value></data>
+  <data name="Lbl_Assistant" xml:space="preserve"><value>Offer AI assistant</value></data>
+  <data name="Lbl_AssistantPrompt" xml:space="preserve"><value>What should be changed in the offer</value></data>
+  <data name="Msg_AssistantEmpty" xml:space="preserve"><value>Write an instruction for AI.</value></data>
+  <data name="Msg_AssistantApplied" xml:space="preserve"><value>Proposal applied. Review and save.</value></data>
+  <data name="Msg_AssistantError" xml:space="preserve"><value>The AI proposal could not be generated.</value></data>
+  <data name="Texts_Breadcrumb" xml:space="preserve"><value>Texts and logo</value></data>
+</root>

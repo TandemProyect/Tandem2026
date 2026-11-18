@@ -97,6 +97,19 @@
                 <i class="icon-base ri ri-table-line" aria-hidden="true"></i>
                 <span class="visually-hidden">@wallListTitle</span>
             </button>
+            @if (Model.DesignId.HasValue && Html.CanUseMenu("ClientOffer"))
+            {
+                <button type="button"
+                        class="btn btn-sm btn-outline-secondary waves-effect"
+                        id="ma-stl-open-client-offer"
+                        data-ma-client-offer-url="@Url.Action("OpenFromDesign", "ClientOffer")"
+                        data-ma-client-offer-design-id="@Model.DesignId.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                        title="Oferta cliente"
+                        aria-label="Oferta cliente">
+                    <i class="icon-base ri ri-file-text-line" aria-hidden="true"></i>
+                    <span class="visually-hidden">Oferta cliente</span>
+                </button>
+            }
             <button type="button" class="btn btn-sm btn-outline-secondary waves-effect" id="ma-stl-tool-wall-dim"
                     title="@MasterArticles.StlPreview_DimToolTitle"
                     aria-label="@MasterArticles.StlPreview_DimToolAria"

@@ -175,6 +175,26 @@
             if (label) {
                 toggle.textContent = label;
             }
+
+            function wireClientOfferOpenFromDesign() {
+                const btn = document.getElementById('ma-stl-open-client-offer');
+                if (!btn) return;
+
+                btn.addEventListener('click', function () {
+                    const baseUrl = (btn.getAttribute('data-ma-client-offer-url') || '').trim();
+                    const designId = (btn.getAttribute('data-ma-client-offer-design-id') || '').trim();
+                    if (!baseUrl || !designId) return;
+
+                    const systemToggle = document.getElementById('ma-stl-mode-system-dropdown');
+                    const systemLabel = systemToggle ? (systemToggle.textContent || '').trim() : '';
+                    const separator = baseUrl.indexOf('?') >= 0 ? '&' : '?';
+                    const url = baseUrl + separator
+                        + 'designId=' + encodeURIComponent(designId)
+                        + '&systemLabel=' + encodeURIComponent(systemLabel);
+
+                    window.open(url, '_blank');
+                });
+            }
         }
 
         items.forEach(function (item) {
@@ -1990,6 +2010,7 @@
     wireHoverLockPanel('#desing2-stl-hover-right-panel', 'desing2-stl-right-panel-collapse', '.desing2-stl-hover-right-panel__hover-zone');
     wireRulersFlyout();
     wireModeSystemDropdown();
+    wireClientOfferOpenFromDesign();
     wireFormworkButton();
     wireFormworkVisibilityByMode();
     wireIaButton();
