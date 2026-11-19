@@ -311,6 +311,9 @@
     <Compile Include="Controllers\PlantillaController.cs" />
     <Compile Include="Controllers\ClientV2Controller.cs" />
     <Compile Include="Controllers\DocumentTypeController.cs" />
+    <Compile Include="Controllers\Desing_2Controller.FormworkColors.cs" />
+    <Compile Include="Controllers\FormworkPanelColorController.cs" />
+    <Compile Include="Controllers\SystemCatalogController.cs" />
     <Compile Include="Controllers\ExtensionController.cs" />
     <Compile Include="Controllers\JobsideController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -341,6 +344,8 @@
     <Compile Include="Helpers\ExtensionPathIcoQueries.cs" />
     <Compile Include="Helpers\IntranetAuditHelper.cs" />
     <Compile Include="Helpers\FunctionAccessService.cs" />
+    <Compile Include="Helpers\FormworkPanelColorRepository.cs" />
+    <Compile Include="Helpers\SystemCatalogRepository.cs" />
     <Compile Include="Helpers\FunctionAuthorizeFilter.cs" />
     <Compile Include="Helpers\FunctionCatalog.cs" />
     <Compile Include="Helpers\FunctionHtmlExtensions.cs" />
@@ -449,6 +454,8 @@
     <Compile Include="Models\TandemXr\XrDeviceEntity.cs" />
     <Compile Include="Models\TandemXr\XrPushJobEntity.cs" />
     <Compile Include="Models\IntranetViewModels.cs" />
+    <Compile Include="Models\FormworkPanelColorEditModel.cs" />
+    <Compile Include="Models\SystemCatalogEditModel.cs" />
     <Compile Include="Models\SecurityViewModels.cs" />
     <Compile Include="Models\GooglePlacesAddressBlockModel.cs" />
     <Compile Include="ModelBinders\CultureFallbackDecimalModelBinder.cs" />
@@ -3552,6 +3559,7 @@
     <Content Include="Scripts\MasterArticles\design-groups.js" />
     <Content Include="Scripts\Desing2\desing2-dim-kinds.js" />
     <Content Include="Scripts\Desing2\desing2-stl-viewer-toolbar-wiring.js" />
+    <Content Include="Scripts\Desing2\formwork-panel-color.js" />
     <Content Include="Scripts\Desing2\desing2-wall-exchange.js" />
     <Content Include="Scripts\Desing2\desing2-dwg-import.js" />
     <Content Include="Scripts\Desing2\desing2-phase-start.js" />
@@ -3611,6 +3619,14 @@
     <Content Include="Views\DocumentType\Index.cshtml" />
     <Content Include="Views\DocumentType\Create.cshtml" />
     <Content Include="Views\DocumentType\Edit.cshtml" />
+    <Content Include="Views\FormworkPanelColor\Index.cshtml" />
+    <Content Include="Views\FormworkPanelColor\Create.cshtml" />
+    <Content Include="Views\FormworkPanelColor\Edit.cshtml" />
+    <Content Include="Views\FormworkPanelColor\_Fields.cshtml" />
+    <Content Include="Views\SystemCatalog\Index.cshtml" />
+    <Content Include="Views\SystemCatalog\Create.cshtml" />
+    <Content Include="Views\SystemCatalog\Edit.cshtml" />
+    <Content Include="Views\SystemCatalog\_Fields.cshtml" />
     <Content Include="Views\DocumentType\Details.cshtml" />
     <Content Include="Views\Language\Index.cshtml" />
     <Content Include="Views\Language\Create.cshtml" />

@@ -8,7 +8,7 @@
  * dibujar muro · cambiar largo/espesor/alto · desplazar · copiar (y copia en paralelo) · borrar (con confirmación) ·
  * alargar hasta el siguiente muro · listar / señalar muros · deshacer / rehacer · ayuda.
  * Fase 2 (14/11/2026): girar (herramienta Girar) · simetría (herramienta Simetría) · modos de la barra
- * (Líneas / 3D / Encofrar, pulsando sus botones; Encofrar pide confirmación y responde al terminar).
+ * (Líneas / 3D / Encofrar / Encofrado colores, pulsando sus botones; Encofrar pide confirmación y responde al terminar).
  * Cada orden = un solo paso de Deshacer (el del visor). Nada de BD: lo guarda el flujo normal del visor.
  *
  * Cotas por voz (pt114u, 15/11/2026): «muéstrame los id de los muros» / «identifica los muros» / «numera los muros»
@@ -123,7 +123,7 @@ export const MA_STL_DESIGN_AI_TEXT = {
         mirrorFail: 'No he podido hacer la simetría del {0}.',
         axisX: 'respecto al eje X', axisY: 'respecto al eje Y', axisWall: 'respecto al {0}',
         axisVertical: 'respecto a la vertical {0}', axisHorizontal: 'respecto a la horizontal {0}', axisAngle: 'respecto a la recta a {1} {0}',
-        modeNames: { lines: 'líneas (2D)', wall3d: '3D', formwork: 'encofrar' },
+        modeNames: { lines: 'líneas (2D)', wall3d: '3D', formwork: 'encofrar', formworkColor: 'encofrado colores' },
         modeAlready: 'Ya estás en el modo {0}.',
         modeBusy: 'El visor está calculando (3D o encofrado); espera a que termine y vuelve a pedírmelo.',
         modeLinesDone: 'He pasado al modo líneas (2D), como con el botón Líneas.',
@@ -139,6 +139,13 @@ export const MA_STL_DESIGN_AI_TEXT = {
         formworkFail: 'No se ha podido encofrar: {0}',
         formworkCancelled: 'No se ha encofrado (no se eligió la fase o se canceló).',
         formworkNo: 'Vale, no encofro.',
+        confirmFormworkColor: 'Encofrado colores calcula el encofrado de todo el diseño ({0} muros) y pinta cada panel según su ancho. ¿Lo hago?',
+        formworkColorAlready: 'Ya estás en encofrado colores. ¿Lo vuelvo a calcular para todo el diseño?',
+        formworkColorRunning: 'Encofrando en colores…',
+        formworkColorDone: 'Encofrado colores terminado: {0} piezas. Cada panel lleva el color de su ancho.',
+        formworkColorFail: 'No se ha podido encofrar en colores: {0}',
+        formworkColorCancelled: 'No se ha encofrado en colores (no se eligió la fase o se canceló).',
+        formworkColorNo: 'Vale, no encofro en colores.',
         envChanged: 'Entorno de conversación: {0}.',
         envAlready: 'El entorno {0} ya está activo.',
         envFail: 'No he podido cambiar el entorno de conversación. Inténtalo más tarde.',
@@ -281,7 +288,7 @@ export const MA_STL_DESIGN_AI_TEXT = {
         mirrorFail: 'I could not mirror {0}.',
         axisX: 'about the X axis', axisY: 'about the Y axis', axisWall: 'about {0}',
         axisVertical: 'about the vertical {0}', axisHorizontal: 'about the horizontal {0}', axisAngle: 'about the line at {1} {0}',
-        modeNames: { lines: 'lines (2D)', wall3d: '3D', formwork: 'formwork' },
+        modeNames: { lines: 'lines (2D)', wall3d: '3D', formwork: 'formwork', formworkColor: 'color formwork' },
         modeAlready: 'You are already in {0} mode.',
         modeBusy: 'The viewer is busy (3D or formwork); wait until it finishes and ask me again.',
         modeLinesDone: 'I switched to lines (2D) mode, as with the Lines button.',
@@ -297,6 +304,13 @@ export const MA_STL_DESIGN_AI_TEXT = {
         formworkFail: 'The formwork could not be calculated: {0}',
         formworkCancelled: 'No formwork was calculated (no phase was chosen or it was cancelled).',
         formworkNo: 'OK, no formwork.',
+        confirmFormworkColor: 'Color formwork calculates the whole design ({0} walls) and paints each panel by its width. Shall I go ahead?',
+        formworkColorAlready: 'You are already in color formwork. Shall I calculate it again for the whole design?',
+        formworkColorRunning: 'Calculating the color formwork…',
+        formworkColorDone: 'Color formwork finished: {0} pieces. Each panel uses the color of its width.',
+        formworkColorFail: 'The color formwork could not be calculated: {0}',
+        formworkColorCancelled: 'No color formwork was calculated (no phase was chosen or it was cancelled).',
+        formworkColorNo: 'OK, no color formwork.',
         envChanged: 'Conversation environment: {0}.',
         envAlready: 'The {0} environment is already active.',
         envFail: 'The conversation environment could not be changed. Please try again later.',
@@ -606,6 +620,7 @@ export const MA_STL_DESIGN_AI_WORDS = {
     lines: ['linea', 'lineas', 'line', 'lines'],
     gen3d: ['genera', 'generar', 'generalo', 'generame', 'generate', 'modelo', 'model', 'tridimensional'],
     formwork: ['encofra', 'encofrar', 'encofralo', 'encofrado', 'encoframe', 'encofre', 'formwork'],
+    formworkColor: ['colores', 'color', 'coloreado', 'coloreados', 'coloured', 'colored', 'colours', 'colors'],
     go: ['pasa', 'pasar', 'pasame', 'vuelve', 'volver', 'switch', 'go', 'back'],
     /* Cotas por voz (pt114u). «numero(s)» y «numera» no van aquí (se parecen a «número» de «el muro número 4»). */
     ids: ['id', 'ids', 'identifica', 'identificar', 'identificalos', 'identificame', 'identificamelos', 'identificador', 'identificadores',
@@ -629,8 +644,8 @@ WORD_KEYS.forEach(function (k) { JS_WORDS_NORM[k] = WORDS_NORM[k].slice(); });
 let CATALOG_PHRASES = [];
 /** Conceptos «verbo» que una frase larga se queda (sus palabras ya no cuentan para otra orden). */
 const PHRASE_VERBS = ['draw', 'make', 'move', 'copy', 'del', 'rotate', 'mirror', 'trim', 'fillet', 'extend', 'shorten', 'change', 'undo', 'redo',
-    'list', 'show', 'mode', 'go', 'gen3d', 'lines', 'formwork', 'help', 'thanks', 'cancel', 'greet'];
-const MODE_BY_CODE = { MODE_LINES: 'lines', MODE_3D: 'wall3d', MODE_FORMWORK: 'formwork' };
+    'list', 'show', 'mode', 'go', 'gen3d', 'lines', 'formwork', 'formworkColor', 'help', 'thanks', 'cancel', 'greet'];
+const MODE_BY_CODE = { MODE_LINES: 'lines', MODE_3D: 'wall3d', MODE_FORMWORK: 'formwork', MODE_FORMWORK_COLOR: 'formworkColor' };
 
 /** Comparación palabra a palabra de las frases: cortas (≤ 3 letras) exactas; el resto, con faltas. */
 function phraseWordMatch(a, b) {
@@ -1780,10 +1795,22 @@ function dimOf(p) {
     return null;
 }
 
-/** Modo pedido: 'lines' | 'wall3d' | 'formwork' | null. */
-export function maStlDesignAiModeTarget(p) {
-    if (p.phrase && MODE_BY_CODE[p.phrase.code] && (p.phrase.len >= 2 || p.phrase.kind === 'learned')) return MODE_BY_CODE[p.phrase.code];
+/** «colores» / «color» junto a encofrar o a un cambio de modo. «encofra» a secas no entra. */
+function formworkColorAsked(p) {
     const t = plainText(p);
+    return q(p, 'formworkColor') >= 0.8 || /\bcolou?rs?\b/.test(t);
+}
+
+/** Modo pedido: 'lines' | 'wall3d' | 'formwork' | 'formworkColor' | null. */
+export function maStlDesignAiModeTarget(p) {
+    const t = plainText(p);
+    const color = formworkColorAsked(p);
+    if (p.phrase && MODE_BY_CODE[p.phrase.code] && (p.phrase.len >= 2 || p.phrase.kind === 'learned')) {
+        const coded = MODE_BY_CODE[p.phrase.code];
+        if (!(coded === 'formwork' && color)) return coded;
+    }
+    if (color && (q(p, 'formwork') >= 0.8 || q(p, 'mode') >= 0.8 || q(p, 'go') >= 0.8 || q(p, 'change') >= 0.8
+        || /\ben ?cofr/.test(t) || p.words.length <= 3)) return 'formworkColor';
     if (q(p, 'formwork') >= 0.8 || /\ben ?cofr/.test(t)) return 'formwork';
     const dim = dimOf(p);
     if (dim === '3d') return 'wall3d';
@@ -1795,7 +1822,7 @@ export function maStlDesignAiModeTarget(p) {
 
 registerDesignAiCommand({
     id: 'mode',
-    params: [{ name: 'modo', required: true, help: '«modo líneas» / «pasa a 2D» · «genera 3D» / «modo 3D» · «encofra» / «modo encofrar» (pide confirmación)' }],
+    params: [{ name: 'modo', required: true, help: '«modo líneas» / «pasa a 2D» · «genera 3D» / «modo 3D» · «encofra» / «modo encofrar» · «encofrado colores» (Encofrar pide confirmación)' }],
     score: function (p) {
         if (!maStlDesignAiModeTarget(p)) return 0;
         if (otherVerb(p, ['change', 'list', 'show'])) return 0;
@@ -1824,29 +1851,34 @@ registerDesignAiCommand({
                 return { reply: head + (fromFormwork ? '\n' + T.mode3dFromFormwork : '') };
             });
         }
-        /* Encofrar: todo el diseño, puede tardar → Sí / No antes. */
+        /* Encofrar y Encofrado colores: todo el diseño, puede tardar → Sí / No antes. */
+        const color = target === 'formworkColor';
         const run = function () {
             s.pending = null;
-            return B.setMode('formwork').then(function (r) {
+            return B.setMode(color ? 'formworkColor' : 'formwork').then(function (r) {
                 if (!r || r.busy) return { reply: T.modeBusy, lang: T.lang };
-                if (r.cancelled) return { reply: T.formworkCancelled, lang: T.lang };
-                if (!r.ok) return { reply: fmt(T.formworkFail, r.message || ''), lang: T.lang };
-                return { reply: fmt(T.formworkDone, r.pieces || 0) + (r.message ? ' ' + r.message : ''), lang: T.lang };
+                if (r.cancelled) return { reply: (color ? T.formworkColorCancelled : T.formworkCancelled), lang: T.lang };
+                if (!r.ok) return { reply: fmt(color ? T.formworkColorFail : T.formworkFail, r.message || ''), lang: T.lang };
+                const done = fmt(color ? T.formworkColorDone : T.formworkDone, r.pieces || 0);
+                return { reply: done + (r.message ? ' ' + r.message : ''), lang: T.lang };
             });
         };
-        const no = function () { s.pending = null; return { reply: T.formworkNo, lang: T.lang }; };
+        const no = function () { s.pending = null; return { reply: color ? T.formworkColorNo : T.formworkNo, lang: T.lang }; };
         s.pending = { yes: run, no: no };
+        const already = color ? !!info.color : !!info.formwork;
         return {
-            reply: info.formwork ? T.formworkAlready : fmt(T.confirmFormwork, info.walls),
+            reply: already
+                ? (color ? T.formworkColorAlready : T.formworkAlready)
+                : fmt(color ? T.confirmFormworkColor : T.confirmFormwork, info.walls),
             buttons: [
-                { label: T.yes, primary: true, pendingText: T.formworkRunning, run: function () { return s.pending && s.pending.yes === run ? run() : null; } },
+                { label: T.yes, primary: true, pendingText: color ? T.formworkColorRunning : T.formworkRunning, run: function () { return s.pending && s.pending.yes === run ? run() : null; } },
                 { label: T.no, run: function () { return s.pending && s.pending.no === no ? no() : null; } },
             ],
         };
     },
-    help: { es: 'Cambiar de modo: líneas (2D), 3D o encofrar (con los botones de la barra)', en: 'Switch mode: lines (2D), 3D or formwork (same as the toolbar buttons)' },
+    help: { es: 'Cambiar de modo: líneas (2D), 3D, encofrar o encofrado colores (con los botones de la barra)', en: 'Switch mode: lines (2D), 3D, formwork or color formwork (same as the toolbar buttons)' },
     short: { es: 'cambiar de modo', en: 'switch mode' },
-    examples: { es: ['modo líneas', 'pasa a 2D', 'genera 3D', 'encofra'], en: ['line mode', 'generate 3D', 'formwork'] },
+    examples: { es: ['modo líneas', 'pasa a 2D', 'genera 3D', 'encofra', 'encofrado colores'], en: ['line mode', 'generate 3D', 'formwork', 'color formwork'] },
 });
 
 /* ------------------------- Cotas por voz (pt114u, 15/11/2026) ------------------------- */
@@ -2372,12 +2404,12 @@ registerDesignAiCommand({
 const EN_HINTS = new Set(['draw', 'wall', 'walls', 'move', 'copy', 'delete', 'remove', 'the', 'to', 'right', 'left', 'up', 'down', 'long', 'thick',
     'high', 'tall', 'from', 'undo', 'redo', 'list', 'show', 'help', 'meters', 'meter', 'another', 'turning', 'by', 'it', 'make', 'set', 'extend',
     'next', 'yes', 'no', 'please', 'thanks', 'what', 'can', 'you', 'do', 'length', 'thickness', 'height', 'parallel', 'of', 'at', 'and', 'rotate', 'mirror',
-    'mode', 'line', 'lines', 'generate', 'formwork', 'axis', 'about', 'keep', 'keeping', 'original', 'clockwise', 'counterclockwise', 'degrees', 'switch',
+    'mode', 'line', 'lines', 'generate', 'formwork', 'color', 'colors', 'coloured', 'colored', 'axis', 'about', 'keep', 'keeping', 'original', 'clockwise', 'counterclockwise', 'degrees', 'switch',
     'dimension', 'dimensions', 'measure', 'hide', 'label', 'number', 'numbers']);
 const ES_HINTS = new Set(['dibuja', 'muro', 'muros', 'pared', 'mueve', 'copia', 'borra', 'el', 'la', 'los', 'de', 'del', 'hacia', 'derecha', 'izquierda',
     'arriba', 'abajo', 'largo', 'espesor', 'alto', 'desde', 'deshaz', 'lista', 'ayuda', 'metros', 'metro', 'otro', 'girando', 'en', 'un', 'una',
     'haz', 'ponle', 'cambia', 'alarga', 'siguiente', 'si', 'gracias', 'que', 'hasta', 'y', 'con', 'gira', 'paralelo',
-    'modo', 'linea', 'lineas', 'genera', 'encofra', 'encofrar', 'eje', 'respecto', 'sobre', 'simetria', 'grados', 'pasa', 'centro', 'inicio', 'final', 'manteniendo', 'borrando',
+    'modo', 'linea', 'lineas', 'genera', 'encofra', 'encofrar', 'colores', 'color', 'eje', 'respecto', 'sobre', 'simetria', 'grados', 'pasa', 'centro', 'inicio', 'final', 'manteniendo', 'borrando',
     'acota', 'acotame', 'cota', 'cotas', 'mide', 'longitud', 'altura', 'oculta', 'identifica', 'muestrame', 'ensename', 'cambiame', 'es']);
 
 /** Idioma del mensaje: palabras de los comandos + el detector del muro; si empata, el de la conversación. */

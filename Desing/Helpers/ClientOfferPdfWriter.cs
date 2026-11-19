@@ -29,6 +29,24 @@ namespace Desing.Helpers
 
             AddBlock(lines, offer == null ? null : offer.HeaderBody);
             lines.Add(string.Empty);
+            if (!string.IsNullOrWhiteSpace(offer == null ? null : offer.TextMaterial))
+            {
+                lines.Add("Materiales");
+                AddBlock(lines, offer.TextMaterial);
+                lines.Add(string.Empty);
+            }
+
+            if (offer != null && offer.Captures != null && offer.Captures.Count > 0)
+            {
+                lines.Add("Planos adjuntos (capturas)");
+                foreach (var capture in offer.Captures)
+                {
+                    var path = (capture == null ? null : capture.TextImagePath) ?? "";
+                    lines.Add("- " + path);
+                }
+                lines.Add(string.Empty);
+            }
+
             AddBlock(lines, offer == null ? null : offer.TextBody);
             return lines;
         }

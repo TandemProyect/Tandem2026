@@ -10,7 +10,8 @@ import { createDesing2WorkerTool } from './desing2-worker-tool.js?v=20261022-wor
 import { createDesing2PillarTool } from './desing2-pillar-tool.js';
 import { mountWallEditForm } from './wall-edit-form.js?v=20261116b';
 import { mountWallAiChat, maStlWallAiUiTexts, maStlWallAiBootstrapCompact, maStlWallAiCompactTitle } from './wall-ai-assistant.js?v=20261116a';
-import { maStlDesignAiInit } from './design-ai-assistant.js?v=20261118c';
+import { maStlDesignAiInit } from './design-ai-assistant.js?v=20261118d';
+import { formworkArticleColorHex, formworkColorModePaints, formworkKeepsFactoryRole, formworkMeshColorHex, formworkModeClickAction, formworkResolveSystemPanelColor, formworkSystemPanelColorHex, wallDimKindWithoutWall } from '../Desing2/formwork-panel-color.js?v=20261118o';
 import { mountWallBulkList } from './wall-bulk-list.js?v=20261026p';
 import { mountDesignGroups } from './design-groups.js?v=20261023j';
 import { MaStlWallEditFinalize, MaStlWallStretchMath } from './ma-stl-wall-edit-finalize.js';
@@ -8711,6 +8712,34 @@ function bootMasterArticleDetailsStlViewer() {
         return marker;
     }
 
+    function maStlDesing2Atk60MaterialTag(mesh) {
+        const mats = mesh && Array.isArray(mesh.material) ? mesh.material : [mesh && mesh.material];
+        let tag = (mesh && mesh.name ? String(mesh.name) : '').toLowerCase();
+        for (let i = 0; i < mats.length; i++) {
+            if (mats[i] && mats[i].name) tag += ' ' + String(mats[i].name).toLowerCase();
+        }
+        return tag;
+    }
+
+    function maStlDesing2Atk60CatalogPart(mesh) {
+        const tag = maStlDesing2Atk60MaterialTag(mesh);
+        if (
+            tag.indexOf('fondo') >= 0 ||
+            tag.indexOf('fenol') >= 0 ||
+            tag.indexOf('phenol') >= 0 ||
+            tag.indexOf('ply') >= 0 ||
+            tag.indexOf('tablero') >= 0
+        ) return 'phenolic';
+        if (
+            tag.indexOf('estructura') >= 0 ||
+            tag.indexOf('struct') >= 0 ||
+            tag.indexOf('frame') >= 0 ||
+            tag.indexOf('marco') >= 0 ||
+            tag.indexOf('perfil') >= 0
+        ) return 'frame';
+        return 'other';
+    }
+
     function maStlDesing2Atk60IsPhenolicMesh(mesh) {
         const nn = (mesh && mesh.name ? String(mesh.name) : '').toLowerCase();
         const mn = (mesh && mesh.material && mesh.material.name ? String(mesh.material.name) : '').toLowerCase();
@@ -8764,14 +8793,53 @@ function bootMasterArticleDetailsStlViewer() {
         if (!maStlDesing2Atk60SampleGroup) return;
         for (let i = 0; i < maStlDesing2Atk60SampleGroup.children.length; i++) {
             const child = maStlDesing2Atk60SampleGroup.children[i];
-            if (child && child.isGroup) {
-                maStlDesing2ApplyAtk60PanelColors(child);
-            }
+            if (!child || !child.isGroup) continue;
+            const ud = child.userData || {};
+            if (String(ud.maStlAtk60ElementType || '').toLowerCase() !== 'panel') continue;
+            if (String(ud.maStlAtk60ElementOrientation || '').toLowerCase() !== 'vertical') continue;
+            maStlDesing2ApplyAtk60PanelColors(child);
         }
+    }
+
+    function maStlAtk60StoredSystemPanelColor(item) {
+        const color = formworkResolveSystemPanelColor(
+            item,
+            typeof window !== 'undefined' ? window.maStlAtk60SystemPanelColor : ''
+        );
+        return formworkSystemPanelColorHex(color, item && item.ElementType, item && item.Orientation) != null
+            ? color
+            : '';
     }
 
     function maStlDesing2ApplyAtk60PanelColors(root) {
         if (!root) return;
+            const ud = root.userData || {};
+            const colorMode = window.maStlFormworkColorMode === true;
+            const paintRole = String(ud.maStlAtk60PaintRole || '').toLowerCase();
+            if (formworkKeepsFactoryRole(paintRole)) {
+                const propMat = paintRole === 'prop-inner'
+                    ? maStlDesing2GetAtk60PropInnerMaterial()
+                    : maStlDesing2GetAtk60PropMaterial();
+                root.traverse(function (obj) {
+                    if (obj && obj.isMesh) obj.material = propMat;
+                });
+                return;
+            }
+            if (colorMode && !formworkColorModePaints(ud.maStlAtk60ElementType, ud.maStlAtk60ElementOrientation)) {
+                if (String(ud.maStlAtk60ElementType || '').toLowerCase() !== 'panel') return;
+            }
+            const articleHex = formworkArticleColorHex(
+                ud.maStlAtk60ArticleColor,
+                ud.maStlAtk60ElementType,
+                colorMode,
+                ud.maStlAtk60ElementOrientation
+            );
+            const systemHex = colorMode ? null : formworkSystemPanelColorHex(
+                ud.maStlAtk60SystemPanelColor,
+                ud.maStlAtk60ElementType,
+                ud.maStlAtk60ElementOrientation
+            );
+            const frameOverrideHex = colorMode ? articleHex : systemHex;
         const meshes = [];
         root.traverse(function (obj) {
             if (obj && obj.isMesh && obj.material) meshes.push(obj);
@@ -8781,18 +8849,20 @@ function bootMasterArticleDetailsStlViewer() {
         let taggedCount = 0;
         for (let i = 0; i < meshes.length; i++) {
             const mesh = meshes[i];
-            let targetHex = null;
-            if (maStlDesing2Atk60IsPhenolicMesh(mesh)) {
-                targetHex = MA_STL_DESING2_ATK60_COLOR_PHENOLIC_HEX;
-                taggedCount++;
-            } else if (maStlDesing2Atk60IsFrameMesh(mesh)) {
-                targetHex = MA_STL_DESING2_ATK60_COLOR_FRAME_HEX;
-                taggedCount++;
-            }
+            const part = frameOverrideHex != null
+                ? maStlDesing2Atk60CatalogPart(mesh)
+                : (maStlDesing2Atk60IsPhenolicMesh(mesh)
+                    ? 'phenolic'
+                    : (maStlDesing2Atk60IsFrameMesh(mesh) ? 'frame' : 'other'));
+            const targetHex = formworkMeshColorHex(
+                part,
+                frameOverrideHex,
+                MA_STL_DESING2_ATK60_COLOR_FRAME_HEX,
+                MA_STL_DESING2_ATK60_COLOR_PHENOLIC_HEX
+            );
             if (targetHex == null) continue;
-
-            const isFrame = targetHex === MA_STL_DESING2_ATK60_COLOR_FRAME_HEX;
-            maStlDesing2ApplyAtk60MeshMaterial(mesh, targetHex, isFrame);
+            taggedCount++;
+            maStlDesing2ApplyAtk60MeshMaterial(mesh, targetHex, part === 'frame');
         }
 
         maStlDesing2SyncAtk60CastShadow(root);
@@ -8820,11 +8890,14 @@ function bootMasterArticleDetailsStlViewer() {
 
         for (let i = 0; i < meshes.length; i++) {
             const mesh = meshes[i];
-            const targetHex = i === maxAreaIdx
-                ? MA_STL_DESING2_ATK60_COLOR_FRAME_HEX
-                : MA_STL_DESING2_ATK60_COLOR_PHENOLIC_HEX;
-            const isFrame = targetHex === MA_STL_DESING2_ATK60_COLOR_FRAME_HEX;
-            maStlDesing2ApplyAtk60MeshMaterial(mesh, targetHex, isFrame);
+            const part = i === maxAreaIdx ? 'frame' : 'phenolic';
+            const targetHex = formworkMeshColorHex(
+                part,
+                frameOverrideHex,
+                MA_STL_DESING2_ATK60_COLOR_FRAME_HEX,
+                MA_STL_DESING2_ATK60_COLOR_PHENOLIC_HEX
+            );
+            maStlDesing2ApplyAtk60MeshMaterial(mesh, targetHex, part === 'frame');
         }
 
         // Los paneles ATK60 deben usar los mismos planos de corte horizontal/vertical del visor.
@@ -9305,6 +9378,7 @@ function bootMasterArticleDetailsStlViewer() {
                         maStlAtk60Element: true,
                         maStlAtk60ElementCode: elementCode,
                         maStlAtk60ElementType: elementType,
+                        maStlAtk60PaintRole: paintColor,
                         maStlAtk60ElementOrientation: item.Orientation != null ? String(item.Orientation) : '',
                         maStlAtk60SampleWallId: item.IdWall != null ? String(item.IdWall) : null,
                         maStlAtk60FaceSign: maStlDesing2ToFiniteNumber(item.FaceSign),
@@ -9317,9 +9391,15 @@ function bootMasterArticleDetailsStlViewer() {
 
                 const template = await maStlDesing2EnsureAtk60ElementTemplate(item.ImportPath);
                 const clone = template.clone(true);
+                const systemPanelColor = maStlAtk60StoredSystemPanelColor(item);
+                clone.userData = {
+                    maStlAtk60ElementType: item.ElementType != null ? String(item.ElementType) : '',
+                    maStlAtk60ElementOrientation: item.Orientation != null ? String(item.Orientation) : '',
+                    maStlAtk60SystemPanelColor: systemPanelColor,
+                };
                 maStlDesing2ApplyAtk60PanelColors(clone);
                 const paintColor = item.Color != null ? String(item.Color).toLowerCase() : '';
-                if (paintColor === 'phenolic') {
+                if (!systemPanelColor && paintColor === 'phenolic') {
                     clone.traverse(function (obj) {
                         if (obj && obj.isMesh) {
                             maStlDesing2ApplyAtk60MeshMaterial(obj, MA_STL_DESING2_ATK60_COLOR_PHENOLIC_HEX, false);
@@ -9436,7 +9516,13 @@ function bootMasterArticleDetailsStlViewer() {
                         /* Posición del panel en el muro (la del servidor): para resaltarlo desde el Asistente IA. */
                         maStlAtk60LocalAlongMm: maStlDesing2ToFiniteNumber(item.LocalAlongMm),
                         maStlAtk60LocalUpMm: maStlDesing2ToFiniteNumber(item.LocalUpMm),
+                                                maStlAtk60PieceWidthMm: maStlDesing2ToFiniteNumber(item.PieceWidthMm != null ? item.PieceWidthMm : item.pieceWidthMm),
+                                                maStlAtk60ArticleColor: item.ArticleColor != null ? item.ArticleColor : item.articleColor,
+                                                maStlAtk60SystemPanelColor: systemPanelColor,
                     });
+                                            if (window.maStlFormworkColorMode === true || systemPanelColor) {
+                                                maStlDesing2ApplyAtk60PanelColors(clone);
+                                            }
                     sampleGroup.add(clone);
                     inserted++;
                     continue;
@@ -9530,7 +9616,13 @@ function bootMasterArticleDetailsStlViewer() {
                     maStlAtk60ElementOrientation: item.Orientation != null ? String(item.Orientation) : '',
                     maStlAtk60SampleWallId: item.IdWall != null ? String(item.IdWall) : null,
                     maStlAtk60FaceSign: Number.isFinite(faceSign) ? faceSign : null,
+                                        maStlAtk60PieceWidthMm: maStlDesing2ToFiniteNumber(item.PieceWidthMm != null ? item.PieceWidthMm : item.pieceWidthMm),
+                                        maStlAtk60ArticleColor: item.ArticleColor != null ? item.ArticleColor : item.articleColor,
+                                        maStlAtk60SystemPanelColor: systemPanelColor,
                 });
+                                    if (window.maStlFormworkColorMode === true || systemPanelColor) {
+                                        maStlDesing2ApplyAtk60PanelColors(clone);
+                                    }
                 sampleGroup.add(clone);
                 inserted++;
             } catch (err) {
@@ -9548,6 +9640,14 @@ function bootMasterArticleDetailsStlViewer() {
             }
         }
 
+        for (let c = 0; c < sampleGroup.children.length; c++) {
+            const placed = sampleGroup.children[c];
+            const ud = placed && placed.userData;
+            if (!ud || !ud.maStlAtk60Element) continue;
+            if (window.maStlFormworkColorMode === true || ud.maStlAtk60SystemPanelColor) {
+                maStlDesing2ApplyAtk60PanelColors(placed);
+            }
+        }
         sampleGroup.traverse(function (obj) {
             if (obj && obj.isMesh && obj.renderOrder < 145) obj.renderOrder = 145;
         });
@@ -9632,6 +9732,11 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     if (typeof window !== 'undefined') {
+        window.maStlFormworkModeClickAction = formworkModeClickAction;
+        window.maStlDesing2RepaintFormworkColors = function () {
+            maStlFormworkEnvRefreshAtk60PanelMaterials();
+            maStlSyncDesing2ModeToolbarUi();
+        };
         window.maStlDesing2MergeCollinearAxisRuns = maStlWall2dToolMergeCollinearAxisRuns;
         window.maStlDesing2PersistLinePairWalls = maStlDesing2PersistLinePairWalls;
         window.maStlDesing2ReleaseEmptySpecialWalls = maStlDesing2ReleaseEmptySpecialWalls;
@@ -12582,10 +12687,18 @@ let maStlWallApplyAllHeightMm = 0;
             row.btn.setAttribute('aria-pressed', on ? 'true' : 'false');
             row.btn.classList.toggle('active', on);
         }
-        if (formworkBtn) {
-            formworkBtn.classList.toggle('active', formed);
-            formworkBtn.setAttribute('aria-pressed', formed ? 'true' : 'false');
+        var colorBtn = document.getElementById('ma-stl-mode-formwork-color');
+                const colorOn = formed && window.maStlFormworkColorMode === true;
+                if (formworkBtn) {
+                    formworkBtn.classList.toggle('active', formed && !colorOn);
+                    formworkBtn.setAttribute('aria-pressed', formed && !colorOn ? 'true' : 'false');
+                }
+                if (colorBtn) {
+                    colorBtn.classList.toggle('active', colorOn);
+                    colorBtn.setAttribute('aria-pressed', colorOn ? 'true' : 'false');
+                    if (colorOn) colorBtn.classList.remove('d-none');
         }
+                if (formworkBtn && (formed || colorOn)) formworkBtn.classList.remove('d-none');
     }
 
     function maStlActivateDesing2ModeToolbarMode(mode) {
@@ -26137,7 +26250,13 @@ let maStlWallApplyAllHeightMm = 0;
     /** ¿Las cotas del encofrado del muro `wallKey` (IdWall del payload) entran en el alcance? */
     function maStlWallDimKeepsWallKey(wallKey) {
         const sc = maStlWallDimScope();
-        if (sc.mode !== 'selected') return sc.mode !== 'none';
+        if (sc.mode !== 'selected') {
+            if (sc.mode !== 'none') return true;
+            const map = window.desing2DimKinds;
+            return wallDimKindWithoutWall('panels', map)
+                || wallDimKindWithoutWall('remates', map)
+                || wallDimKindWithoutWall('article-id', map);
+        }
         const key = String(wallKey);
         const axes = maStlWall2dToolCollectAllAxisLines();
         /* El IdWall del encofrado es el id del eje (muros partidos por un tabique comparten wallId). */
@@ -26215,7 +26334,10 @@ let maStlWallApplyAllHeightMm = 0;
         if (focus && focus.mode === 'wall') {
             return kindId === 'walls-total' || kindId === 'walls-axes' || kindId === 'walls-partial' || kindId === 'wall-id';
         }
-        if (!focus && maStlWallDimScope().mode === 'none') return kindId === 'wall-id';
+        if (!focus && maStlWallDimScope().mode === 'none') {
+            if (kindId === 'wall-id') return true;
+            if (!wallDimKindWithoutWall(kindId, window.desing2DimKinds)) return false;
+        }
         if (kindId === 'article-id') return maStlWallDimArticleIdsOn();
         const map = window.desing2DimKinds;
         if (kindId === 'panels' && maStlWallDimArticleIdsOn()) return true;
@@ -32974,6 +33096,45 @@ let maStlWallApplyAllHeightMm = 0;
         return ln;
     }
 
+    /** Clic en un panel de encofrado: selecciona el muro que hay detrás. */
+    function maStlSelectWallFromFormworkAtPointer(clientX, clientY) {
+        if (!renderer || !maStlDesing2Atk60SampleGroup || !maStlDesing2Atk60SampleGroup.visible) return false;
+        const canvas = renderer.domElement;
+        const rect = canvas.getBoundingClientRect();
+        const cam = activeCamera();
+        if (!cam) return false;
+        _maStlFloorPickNdc.set(
+            ((clientX - rect.left) / Math.max(rect.width, 1)) * 2 - 1,
+            -((clientY - rect.top) / Math.max(rect.height, 1)) * 2 + 1
+        );
+        cam.updateMatrixWorld(true);
+        orbitPivotRaycaster.setFromCamera(_maStlFloorPickNdc, cam);
+        const hits = orbitPivotRaycaster.intersectObject(maStlDesing2Atk60SampleGroup, true);
+        let wallId = null;
+        for (let i = 0; i < hits.length && wallId == null; i++) {
+            let obj = hits[i] && hits[i].object;
+            while (obj) {
+                const ud = obj.userData;
+                if (ud && ud.maStlAtk60SampleWallId != null && ud.maStlAtk60SampleWallId !== '') {
+                    wallId = String(ud.maStlAtk60SampleWallId);
+                    break;
+                }
+                obj = obj.parent;
+            }
+        }
+        if (!wallId) return false;
+        const lines = maStlDesing2FindAxisLinesByWallKey(wallId);
+        const axis = lines[0] || maStlWall2dToolFindLineByPlanId(wallId);
+        if (!axis) return false;
+        const axisUd = axis.userData && axis.userData.maStlUserPlanLine;
+        const faces = axisUd && axisUd.id != null ? maStlWall2dToolFindFaceLinesForCenterId(axisUd.id) : [];
+        const face = faces.find(function (ln) { return maStlIsUserFloorPlanLineSelectable(ln); }) || null;
+        const sel = face || (maStlIsUserFloorPlanLineSelectable(axis) ? axis : null);
+        if (!sel) return false;
+        maStlSelectUserFloorLine(sel, clientX, clientY);
+        return true;
+    }
+
     /** Clic simple: selecciona segmento; longitud + ΔX + ΔZ + asas P1/P2 (sin inputs). */
     function onCanvasClickUserFloorLineSelect(ev) {
         if (maStlSuppressUserFloorLineDimInteractions()) {
@@ -32996,7 +33157,7 @@ let maStlWallApplyAllHeightMm = 0;
                     const faces3 = sel3 && sel3.ud && sel3.ud.id != null ? maStlWall2dToolFindFaceLinesForCenterId(sel3.ud.id) : [];
                     const face3 = faces3.find(function (ln) { return maStlIsUserFloorPlanLineSelectable(ln); }) || null;
                     if (face3) maStlSelectUserFloorLine(face3);
-                    else maStlClearUserFloorLineSelection();
+                    else if (!maStlSelectWallFromFormworkAtPointer(cx3, cy3)) maStlClearUserFloorLineSelection();
                 }, MA_STL_USER_FLOOR_LINE_CLICK_SELECT_DELAY_MS);
             }
             return;
@@ -33033,7 +33194,7 @@ let maStlWallApplyAllHeightMm = 0;
             if (maStlIsUserFloorLineDimEditOverlayActive()) return;
             const ln = maStlPickUserFloorLineForCanvasInteraction(clientX, clientY, 0);
             if (!ln) {
-                maStlClearUserFloorLineSelection();
+                if (!maStlSelectWallFromFormworkAtPointer(clientX, clientY)) maStlClearUserFloorLineSelection();
                 return;
             }
             if (maStlHoveredUserFloorLine !== ln) {
@@ -39956,15 +40117,18 @@ let maStlWallApplyAllHeightMm = 0;
                 walls: maStlDesignAiNewAxisIds(before),
             };
         },
-        /** Modo de la barra (como lo pintan sus botones): 'lines' | 'wall3d' | 'formwork'; busy = calculando. */
+        /** Modo de la barra (como lo pintan sus botones): 'lines' | 'wall3d' | 'formwork' | 'formworkColor'; busy = calculando. */
         modeInfo: function () {
             const fb = document.getElementById('ma-stl-mode-formwork');
-            const formwork = !!(fb && fb.classList.contains('active'));
+            const cb = document.getElementById('ma-stl-mode-formwork-color');
+            const color = !!(cb && cb.classList.contains('active'));
+            const formwork = !!(fb && fb.classList.contains('active')) || color;
             const raw = maStlIsWall3dToolActive() ? 'wall3d-tool' : (maStlDesing2ModelMode || 'lines');
             return {
-                mode: formwork ? 'formwork' : raw === 'wall3d' ? 'wall3d' : raw === 'lines' ? 'lines' : raw,
+                mode: color ? 'formworkColor' : formwork ? 'formwork' : raw === 'wall3d' ? 'wall3d' : raw === 'lines' ? 'lines' : raw,
                 raw: raw,
                 formwork: formwork,
+                color: color,
                 busy: !!maStlDesing2WallModelBusy || !!(fb && fb.disabled),
                 walls: maStlDesignAiWalls().length,
                 pieces: maStlDesing2LastAtk60PaintPayload && Array.isArray(maStlDesing2LastAtk60PaintPayload.elements)
@@ -39976,10 +40140,18 @@ let maStlWallApplyAllHeightMm = 0;
          * soltar especiales vacíos, fases de Encofrar…). Promesa con { ok, message?, count?, pieces? }.
          */
         setMode: function (mode) {
-            const ids = { lines: 'ma-stl-mode-lines', wall3d: 'ma-stl-mode-wall-3d', formwork: 'ma-stl-mode-formwork' };
+            const ids = {
+                lines: 'ma-stl-mode-lines',
+                wall3d: 'ma-stl-mode-wall-3d',
+                formwork: 'ma-stl-mode-formwork',
+                formworkColor: 'ma-stl-mode-formwork-color',
+            };
             const btn = ids[mode] ? document.getElementById(ids[mode]) : null;
             if (!btn) return Promise.resolve({ ok: false, message: 'no-button' });
-            if (btn.disabled) return Promise.resolve({ ok: false, busy: true });
+            const formBtn = document.getElementById('ma-stl-mode-formwork');
+            if (btn.disabled || (mode === 'formworkColor' && formBtn && formBtn.disabled)) {
+                return Promise.resolve({ ok: false, busy: true });
+            }
             const bridge = this;
             const piecesNow = function () { return bridge.modeInfo().pieces; };
             if (mode === 'lines') {
@@ -40023,11 +40195,16 @@ let maStlWallApplyAllHeightMm = 0;
                 };
                 document.addEventListener('desing2-formwork-settled', onSettled);
                 btn.click();
-                /* Elegir fase y cerrar el diálogo sin elegir: Encofrar no avisa; tras 4 s sin nada en marcha, cancelado. */
+                /* Elegir fase y cerrar el diálogo sin elegir: Encofrar no avisa; tras 4 s sin nada en marcha, cancelado.
+                   Colores espera el catálogo antes de pulsar Encofrar: los 3 primeros segundos no cuentan como quiet. */
+                let ticks = 0;
+                const busyBtn = formBtn || btn;
                 timer = window.setInterval(function () {
+                    ticks += 1;
                     const overlay = document.getElementById('ma-stl-formwork-render-overlay');
-                    const working = btn.disabled || !!document.querySelector('.modal.show')
-                        || !!(overlay && !overlay.classList.contains('d-none'));
+                    const working = busyBtn.disabled || btn.disabled || !!document.querySelector('.modal.show')
+                        || !!(overlay && !overlay.classList.contains('d-none'))
+                        || (mode === 'formworkColor' && ticks < 3);
                     quiet = working ? 0 : quiet + 1;
                     if (quiet >= 4) finish({ ok: false, cancelled: true });
                 }, 1000);
@@ -40256,6 +40433,59 @@ let maStlWallApplyAllHeightMm = 0;
         } catch (_st) { /* ignore */ }
     }
 
+    function maStlPersistClientOfferCapture(existingDataUrl) {
+        var shell = viewerShell;
+        var mode = shell ? (shell.getAttribute('data-ma-stl-client-offer-capture-mode') || '').trim() : '';
+        var offerIdRaw = shell ? (shell.getAttribute('data-ma-stl-client-offer-id') || '').trim() : '';
+        var apiUrl = shell ? (shell.getAttribute('data-ma-stl-save-client-offer-capture-api-url') || '').trim() : '';
+        var designIdRaw = shell ? (shell.getAttribute('data-ma-stl-design-id') || '').trim() : '';
+        var offerId = Number(offerIdRaw || 0);
+        var designId = Number(designIdRaw || 0);
+        if (mode !== '1' || !apiUrl || !(offerId > 0)) {
+            return Promise.resolve({ skipped: true });
+        }
+
+        var dataUrl = existingDataUrl || maStlCaptureDesignPngDataUrl();
+        if (!dataUrl) {
+            return Promise.resolve({ failed: true, message: 'No se pudo tomar la captura del diseño' });
+        }
+
+        return fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                ClientOfferId: offerId,
+                DesignId: designId > 0 ? designId : null,
+                PngBase64: dataUrl
+            })
+        })
+            .then(function (res) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            })
+            .then(function (resp) {
+                if (!resp || resp.IsOk !== true) {
+                    return { failed: true, message: (resp && resp.Message) || 'No se pudo adjuntar la captura a la oferta' };
+                }
+
+                try {
+                    window.dispatchEvent(new CustomEvent('tandem:client-offer-capture-added', {
+                        detail: {
+                            clientOfferId: offerId,
+                            captureId: resp.CaptureId || 0,
+                            imagePath: resp.ImagePath || '',
+                            imageUrl: resp.ImageUrl || ''
+                        }
+                    }));
+                } catch (_ignore) { /* ignore */ }
+                return { ok: true };
+            })
+            .catch(function (err) {
+                return { failed: true, message: err && err.message ? err.message : 'No se pudo adjuntar la captura a la oferta' };
+            });
+    }
+
     /** Foto del lienzo. Sin SSAO ni sombras. El PNG se codifica a 1280 px de lado largo, o a 960 si el buffer sigue grande. */
     function maStlCaptureDesignPngFitBuffer(canvas, cssW, cssH, prevRatio, maxLong) {
         var longCss = Math.max(cssW, cssH);
@@ -40359,6 +40589,18 @@ let maStlWallApplyAllHeightMm = 0;
         var btn = document.getElementById('ma-stl-screenshot');
         if (!dataUrl) {
             maStlDesing2ShowSaveViewToast('No se pudo tomar la foto del diseño', true);
+            return;
+        }
+        var shell = viewerShell;
+        var captureMode = shell ? (shell.getAttribute('data-ma-stl-client-offer-capture-mode') || '').trim() : '';
+        if (captureMode === '1') {
+            maStlPersistClientOfferCapture(dataUrl).then(function (result) {
+                if (result && result.ok) {
+                    maStlDesing2ShowSaveViewToast('Captura adjuntada a la oferta.');
+                    return;
+                }
+                maStlDesing2ShowSaveViewToast((result && result.message) || 'No se pudo adjuntar la captura a la oferta', true);
+            });
             return;
         }
         var a = document.createElement('a');

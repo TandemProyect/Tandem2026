@@ -1,0 +1,27 @@
+@model Desing.Models.FormworkPanelColorEditModel
+@{
+    ViewBag.Title = "Nuevo color de panel";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">Inicio</a> / Develop /
+            <a href="@Url.Action("Index")">Colores de panel</a> /
+        </span> Nuevo
+    </h4>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        @using (Html.BeginForm("Create", "FormworkPanelColor", FormMethod.Post, new { @class = "row g-3" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.Partial("_Fields", Model)
+            <div class="col-12 border-top pt-3 d-flex justify-content-end gap-2">
+                <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        }
+    </div>
+</div>

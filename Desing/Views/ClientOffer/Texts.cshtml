@@ -45,11 +45,48 @@
         </table>
     </div>
 </div>
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">@ClientOffer.ContactStates_Title</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-2 mb-3">
+            <div class="col-md-3">
+                <label class="form-label mb-1">@ClientOffer.ContactStates_Code</label>
+                <input type="text" id="contactStateCode" class="form-control" maxlength="50" placeholder="EJ: VACACIONES" />
+            </div>
+            <div class="col-md-5">
+                <label class="form-label mb-1">@ClientOffer.ContactStates_Label</label>
+                <input type="text" id="contactStateLabel" class="form-control" maxlength="100" />
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="contactStateActive" checked />
+                    <label class="form-check-label" for="contactStateActive">@ClientOffer.Lbl_Active</label>
+                </div>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="button" id="btnAddContactState" class="btn btn-primary w-100">@ClientOffer.ContactStates_Add</button>
+            </div>
+        </div>
+        <table id="ListClientOfferContactStates" class="table table-hover" style="width:100%">
+            <thead>
+                <tr>
+                    <th>@ClientOffer.ContactStates_Code</th>
+                    <th>@ClientOffer.ContactStates_Label</th>
+                    <th>@ClientOffer.Col_State</th>
+                    <th></th>
+                    <th>ID</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
 @section scripts {
     <script type="text/javascript">
         var clientOfferTextDt = @Html.Raw(dt);
         $(document).ready(function () {
-            $('#ListClientOfferTexts').DataTable(TandemDataTablesList.applyListDefaults({
+            var templatesTable = $('#ListClientOfferTexts').DataTable(TandemDataTablesList.applyListDefaults({
                 lengthMenu: [[10, 25, 50, -1], ['10 ' + clientOfferTextDt.rowsSuffix, '25 ' + clientOfferTextDt.rowsSuffix, '50 ' + clientOfferTextDt.rowsSuffix, clientOfferTextDt.allRows]],
                 buttons: [{
                     extend: 'collection',
@@ -71,11 +108,56 @@
                     { data: 'IdObject', visible: false }
                 ]
             }));
+
+            var statesTable = $('#ListClientOfferContactStates').DataTable(TandemDataTablesList.applyListDefaults({
+                serverSide: true,
+                processing: true,
+                ajax: { url: '@Url.Action("ListContactStates", "ClientOffer")', type: 'POST' },
+                order: [[0, 'asc']],
+                columns: [
+                    { data: 'TextCode', name: 'TextCode' },
+                    { data: 'TextLabel', name: 'TextLabel' },
+                    { data: 'activeBadge', name: 'activeBadge', orderable: true, searchable: false },
+                    { data: 'rowActions', orderable: false, searchable: false, className: 'text-end' },
+                    { data: 'IdObject', visible: false }
+                ]
+            }));
+
+            $('#btnAddContactState').on('click', function () {
+                var payload = {
+                    textCode: ($('#contactStateCode').val() || '').trim().toUpperCase(),
+                    textLabel: ($('#contactStateLabel').val() || '').trim(),
+                    isActive: $('#contactStateActive').is(':checked'),
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                };
+                $.post('@Url.Action("CreateContactState", "ClientOffer")', payload, function (res) {
+                    if (!res || !res.IsOk) {
+                        alert((res && res.Message) || @Html.Raw(JsonConvert.SerializeObject(ClientOffer.Msg_ContactStateGenericError)));
+                        return;
+                    }
+
+                    $('#contactStateCode').val('');
+                    $('#contactStateLabel').val('');
+                    $('#contactStateActive').prop('checked', true);
+                    statesTable.ajax.reload(null, false);
+                });
+            });
         });
         window.DeleteClientOfferText = function (id) {
             if (!confirm(clientOfferTextDt.confirmDelete)) return;
             $.post('@Url.Action("DeleteText", "ClientOffer")', { id: id, __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() }, function (res) {
                 if (res && res.IsOk) { $('#ListClientOfferTexts').DataTable().ajax.reload(null, false); }
+            });
+        };
+        window.DeleteClientOfferContactState = function (id) {
+            if (!confirm(clientOfferTextDt.confirmDelete)) return;
+            $.post('@Url.Action("DeleteContactState", "ClientOffer")', { id: id, __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() }, function (res) {
+                if (res && res.IsOk) {
+                    $('#ListClientOfferContactStates').DataTable().ajax.reload(null, false);
+                    return;
+                }
+
+                alert((res && res.Message) || @Html.Raw(JsonConvert.SerializeObject(ClientOffer.Msg_ContactStateGenericError)));
             });
         };
     </script>

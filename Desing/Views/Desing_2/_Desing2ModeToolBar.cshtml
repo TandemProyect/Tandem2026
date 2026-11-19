@@ -45,6 +45,18 @@
                 <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-mode-ia" data-function="IA" title="Asistente IA" aria-label="Asistente IA" aria-pressed="false" data-ma-ia-soon="IA: próximamente">
                     <i class="icon-base ri ri-robot-2-line" aria-hidden="true"></i>
                 </button>
+                @if (Html.CanUseMenu("ClientOffer"))
+                {
+                    <button type="button"
+                            class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn"
+                            id="ma-stl-open-client-offer"
+                            data-ma-client-offer-url="@Url.Action("OpenFromDesign", "ClientOffer")"
+                            data-ma-client-offer-design-id=""
+                            title="Oferta cliente"
+                            aria-label="Oferta cliente">
+                        <i class="icon-base ri ri-file-text-line" aria-hidden="true"></i>
+                    </button>
+                }
             </div>
             <span class="desing2-stl-floating-toolbar__group-gap desing2-stl-floating-toolbar__group-gap--ia" aria-hidden="true"></span>
         }
@@ -58,6 +70,9 @@
             <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-mode-formwork" data-ma-stl-mode="formwork" data-ma-formwork-url-atk60="@Url.Action("GetWallsAtk-60", "Desing_2")" data-phase-load-url="@Url.Action("LoadPhasePlan", "Desing_2")" data-phase-ask="@MasterArticles.StlPreview_Desing2FormworkPhaseAsk" data-phase-label="@MasterArticles.StlPreview_Desing2FormworkPhaseLabel" data-phase-cancel="@MasterArticles.StlPreview_Desing2PhaseCancel" data-phase-none="@MasterArticles.StlPreview_Desing2FormworkPhaseNone" title="Encofrar" aria-label="Encofrar" aria-pressed="false">
                 Encofrar
             </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-mode-formwork-color" data-ma-stl-mode="formwork-color" data-ma-formwork-colors-url="@Url.Action("FormworkPanelColors", "Desing_2")" title="Encofrar en modo colores" aria-label="Encofrar en modo colores" aria-pressed="false">
+                            Colores
+                        </button>
         </div>
         <div class="dropdown desing2-stl-mode-toolbar__systems">
             <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle desing2-stl-mode-toolbar__systems-toggle" id="ma-stl-mode-system-dropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="@MasterArticles.Col_System">

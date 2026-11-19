@@ -202,6 +202,11 @@
                                     @ClientV2.Tab_Designs
                                 </button>
                             </li>
+                            <li class="nav-item text-nowrap" role="presentation">
+                                <button type="button" class="nav-link" id="client-tab-contacts" data-bs-toggle="tab" data-bs-target="#client-pane-contacts" role="tab" aria-controls="client-pane-contacts" aria-selected="false">
+                                    @ClientV2.Tab_Contacts
+                                </button>
+                            </li>
                         </ul>
                     </div>
                     <div class="tab-content tandem-jobside-tab-content pt-3" id="clientWorkspaceTabContent">
@@ -274,12 +279,57 @@
                                 </table>
                             </div>
                         </div>
+                        <div class="tab-pane fade" id="client-pane-contacts" role="tabpanel" aria-labelledby="client-tab-contacts">
+                            <p class="text-muted small mb-2">@ClientV2.Ws_ContactsTitle</p>
+                            <div class="card border-0 bg-light mb-3">
+                                <div class="card-body p-3">
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <label class="form-label mb-1">@ClientV2.Ws_ContactsLblName</label>
+                                            <input type="text" id="clientContactName" class="form-control" maxlength="500" />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label mb-1">@ClientV2.Ws_ContactsLblEmail</label>
+                                            <input type="email" id="clientContactEmail" class="form-control" maxlength="500" />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label mb-1">@ClientV2.Ws_ContactsLblPhone</label>
+                                            <input type="text" id="clientContactPhone" class="form-control" maxlength="100" />
+                                        </div>
+                                        <div class="col-md-2 d-flex align-items-end">
+                                            <div class="form-check me-2">
+                                                <input class="form-check-input" type="checkbox" id="clientContactDefault" />
+                                                <label class="form-check-label" for="clientContactDefault">@ClientV2.Ws_ContactsLblDefault</label>
+                                            </div>
+                                            <button type="button" id="btnAddClientContact" class="btn btn-primary btn-sm">@ClientV2.Ws_ContactsBtnAdd</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3 table-responsive" style="padding:5px">
+                                <table id="ClientContactsTable" class="table table-hover w-100" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>@ClientV2.Ws_ContactsColName</th>
+                                            <th>@ClientV2.Ws_ContactsColEmail</th>
+                                            <th>@ClientV2.Ws_ContactsColPhone</th>
+                                            <th>@ClientV2.Ws_ContactsColState</th>
+                                            <th>@ClientV2.Ws_ContactsColDefault</th>
+                                            <th>@ClientV2.Ws_ContactsColStatusDate</th>
+                                            <th class="text-end text-nowrap" style="width:1%;">@Jobside.Docs_Col_Actions</th>
+                                            <th>ID</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+<div style="display:none;">@Html.AntiForgeryToken()</div>
 
 @section scripts
 {
@@ -395,6 +445,70 @@
                 actionCol,
                 idCol
             ]);
+            var contactsTable = clientWsTable('#ClientContactsTable', '@Url.Action("ListClientContacts", "ClientV2", new { clientId = Model.IdObject })', @Html.Raw(JsonConvert.SerializeObject(ClientV2.Ws_ContactsEmpty)), [[0, 'asc']], [
+                textCol('textLabel', 'textLabelPlain'),
+                { data: 'textEmail', name: 'textEmail' },
+                { data: 'textPhone', name: 'textPhone' },
+                { data: 'stateLabel', name: 'stateLabel', orderable: true, searchable: true },
+                { data: 'isDefault', name: 'isDefault', orderable: true, searchable: false },
+                dateCol('addStatusDateFmt', 'addStatusDate'),
+                actionCol,
+                idCol
+            ]);
+
+            var token = $('input[name="__RequestVerificationToken"]').first().val();
+            $('#btnAddClientContact').on('click', function () {
+                var payload = {
+                    clientId: @Model.IdObject,
+                    textLabel: ($('#clientContactName').val() || '').trim(),
+                    textEmail: ($('#clientContactEmail').val() || '').trim(),
+                    textPhone: ($('#clientContactPhone').val() || '').trim(),
+                    isDefault: $('#clientContactDefault').is(':checked'),
+                    __RequestVerificationToken: token
+                };
+                $.post('@Url.Action("CreateClientContact", "ClientV2")', payload, function (res) {
+                    if (!res || !res.IsOk) {
+                        alert((res && res.Message) || @Html.Raw(JsonConvert.SerializeObject(ClientV2.Ws_ContactsErrGeneric)));
+                        return;
+                    }
+                    $('#clientContactName').val('');
+                    $('#clientContactEmail').val('');
+                    $('#clientContactPhone').val('');
+                    $('#clientContactDefault').prop('checked', false);
+                    contactsTable.ajax.reload(null, false);
+                });
+            });
+
+            $(document).on('click', '.js-contact-default', function () {
+                var id = $(this).data('id');
+                $.post('@Url.Action("SetClientContactDefault", "ClientV2")', {
+                    contactId: id,
+                    __RequestVerificationToken: token
+                }, function (res) {
+                    if (!res || !res.IsOk) {
+                        alert((res && res.Message) || @Html.Raw(JsonConvert.SerializeObject(ClientV2.Ws_ContactsErrGeneric)));
+                        return;
+                    }
+                    contactsTable.ajax.reload(null, false);
+                });
+            });
+
+            $(document).on('click', '.js-contact-state-apply', function () {
+                var id = $(this).data('id');
+                var selector = $('.js-contact-state-select[data-id="' + id + '"]');
+                var st = (selector.val() || '').toString();
+                $.post('@Url.Action("SetClientContactState", "ClientV2")', {
+                    contactId: id,
+                    stateCode: st,
+                    __RequestVerificationToken: token
+                }, function (res) {
+                    if (!res || !res.IsOk) {
+                        alert((res && res.Message) || @Html.Raw(JsonConvert.SerializeObject(ClientV2.Ws_ContactsErrGeneric)));
+                        return;
+                    }
+                    contactsTable.ajax.reload(null, false);
+                });
+            });
 
             document.querySelectorAll('#clientWorkspaceRoot button[data-bs-toggle="tab"]').forEach(function (btn) {
                 btn.addEventListener('shown.bs.tab', function () {

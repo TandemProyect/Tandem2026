@@ -16,7 +16,7 @@
     </div>
 </div>
 <div class="card mb-4">
-    <div class="card-body">
+    <div class="card-body" id="offerEditFormCardBody">
         @using (Html.BeginForm("Edit", "ClientOffer", FormMethod.Post, new { enctype = "multipart/form-data", @class = "row g-3", role = "form" }))
         {
             @Html.AntiForgeryToken()
@@ -36,6 +36,41 @@
                 <button type="submit" class="btn btn-primary">@Common.Btn_Save</button>
             </div>
         }
+    </div>
+</div>
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
+            <h5 class="mb-0">@ClientOffer.Lbl_CapturesTitle</h5>
+            @if (Model.LinkDesign.HasValue && Model.LinkDesign.Value > 0)
+            {
+                <button type="button" id="btnAttachCaptureFromDesign" class="btn btn-outline-primary">@ClientOffer.Btn_AttachCapture</button>
+            }
+        </div>
+        <div id="offerCaptureHint" class="alert alert-info d-none mb-3">
+            @ClientOffer.Msg_CaptureHint
+        </div>
+        @if (!(Model.LinkDesign.HasValue && Model.LinkDesign.Value > 0))
+        {
+            <div class="alert alert-warning mb-0">@ClientOffer.Msg_CaptureNeedDesign</div>
+        }
+        <div id="offerCaptureList" class="row g-3">
+            @if (Model.Captures != null)
+            {
+                foreach (var cap in Model.Captures)
+                {
+                    var imagePath = cap.TextImagePath ?? "";
+                    var imageUrl = imagePath.StartsWith("/") ? Url.Content("~" + imagePath) : imagePath;
+                    <div class="col-md-4" data-capture-id="@cap.IdObject">
+                        <div class="border rounded p-2 h-100 d-flex flex-column">
+                            <img src="@imageUrl" alt="" class="img-fluid rounded mb-2" />
+                            <div class="small text-muted mb-2">@cap.AddDateMade.ToString("g")</div>
+                            <button type="button" class="btn btn-sm btn-outline-danger js-delete-offer-capture mt-auto">@ClientOffer.List_DeleteTooltip</button>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
     </div>
 </div>
 
@@ -61,6 +96,7 @@
         var ttEmpty = '@Html.Raw(HttpUtility.JavaScriptStringEncode(ClientOffer.Msg_AssistantEmpty))';
         var ttError = '@Html.Raw(HttpUtility.JavaScriptStringEncode(ClientOffer.Msg_AssistantError))';
         var ttApplied = '@Html.Raw(HttpUtility.JavaScriptStringEncode(ClientOffer.Msg_AssistantApplied))';
+        var captureWindow = null;
 
         function renderMessages(items) {
             if (!items || !items.length) {
@@ -133,6 +169,34 @@
 
                     window.open(res.Url, '_blank');
                 });
+        });
+
+        $('#btnAttachCaptureFromDesign').on('click', function () {
+            var viewerUrl = '@Url.Action("Viewer", "Desing_2", new { designId = Model.LinkDesign, autoLoad = 1, clientOfferId = Model.IdObject, captureMode = 1 })';
+            $('#offerEditFormCardBody').addClass('d-none');
+            $('#offerCaptureHint').removeClass('d-none');
+            captureWindow = window.open(viewerUrl, '_blank');
+        });
+
+        $(document).on('click', '.js-delete-offer-capture', function () {
+            var $card = $(this).closest('[data-capture-id]');
+            var captureId = parseInt($card.attr('data-capture-id'), 10) || 0;
+            if (!captureId) return;
+
+            $.post('@Url.Action("DeleteCapture", "ClientOffer")',
+                { offerId: offerId, captureId: captureId, __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val() },
+                function (res) {
+                    if (!res || !res.IsOk) {
+                        alert((res && res.Message) || ttError);
+                        return;
+                    }
+
+                    $card.remove();
+                });
+        });
+
+        window.addEventListener('tandem:client-offer-capture-added', function () {
+            window.location.reload();
         });
 
         refreshMessages();

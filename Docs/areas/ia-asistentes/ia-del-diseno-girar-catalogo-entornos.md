@@ -12,7 +12,7 @@ Las herramientas **Girar** y **Simetría** de la barra 2D (ver `desing-2-stl-vie
 |---------|----------|----------|
 | **Girar** (`wall.rotate`) | Gira el muro los grados pedidos: + = antihorario en planta («a la izquierda»), − = horario («a la derecha», «menos 30»). Si no se dicen los grados, los pregunta. Con «copia» o «manteniendo el original» gira una copia | «gira el muro 4 90 grados» · «gira 45° a la izquierda» (el último o el seleccionado) · «gira el muro 2 30 grados sobre su inicio» · «… sobre su final» · «… sobre el origen» · «… sobre 2;3» · «gira el muro 4 90 grados haciendo una copia» · «gria el muor 4 noventa grados» · «rotate wall 4 90 degrees» |
 | **Simetría** (`wall.mirror`) | Refleja el muro respecto a una recta. Si no se dice si se borra el original, pregunta: «¿Borro el original?» con **Sí, bórralo** / **No, mantenlo**. Si no se dice la recta, la pregunta | «haz simetría del muro 3 respecto al eje Y» → «no, mantenlo» · «simetría del muro 3 respecto al eje X borrando el original» · «haz simetría del muro 3 respecto al muro 5 y borra el original» · «haz simetría del muro 1 vertical por su extremo» · «… horizontal por su centro» · «… a 45° por su inicio» · «mirror wall 3 about the Y axis keeping the original» |
-| **Modo** (`mode`) | Pulsa el botón del modo de la barra (los mismos manejadores: parejas de líneas → muro, soltar especiales vacíos, fases…) y dice el resultado. Si ya está en ese modo, lo dice y no pulsa nada. Si el visor está calculando, pide esperar | «modo líneas» · «modo linias» · «pasa a 2D» · «genera 3D» · «modo 3D» · «modo tres de» (dictado) · «encofra» · «modo encofrar» · «line mode» · «switch to lines mode» · «generate 3D» · «formwork» |
+| **Modo** (`mode`) | Pulsa el botón del modo de la barra (los mismos manejadores: parejas de líneas → muro, soltar especiales vacíos, fases…) y dice el resultado. Si ya está en ese modo, lo dice y no pulsa nada. Si el visor está calculando, pide esperar | «modo líneas» · «modo linias» · «pasa a 2D» · «genera 3D» · «modo 3D» · «modo tres de» (dictado) · «encofra» · «modo encofrar» · «encofrado colores» · «line mode» · «switch to lines mode» · «generate 3D» · «formwork» · «color formwork» |
 
 **Punto de giro (decisión)**: por defecto, el **centro del muro**. La respuesta lo dice y explica cómo cambiarlo («Por defecto giro sobre el centro del muro; di «sobre su inicio» o «sobre su final»…»). Inicio y final son los del propio tramo en el sentido en que se dibujó: si un cruce partió el muro, cuentan los extremos del tramo, no los del trazo entero.
 
@@ -29,6 +29,8 @@ Si el muro está sobre la recta, el reflejo sería el mismo muro: lo dice y no c
 
 **Encofrar**: calcula el encofrado de todo el diseño y puede tardar, así que antes pregunta «Encofrar calcula el encofrado de todo el diseño (N muros)… ¿Lo hago?». Con «sí», pulsa **Encofrar** (con su selector de fase, si lo hay) y, al acabar, dice las piezas, el error del servidor o que se canceló. Con «no», no pulsa nada. Si ya está encofrado, pregunta si lo vuelve a calcular.
 
+**Encofrado colores** (18/11/2026): «encofrado colores», «modo colores» o «cambia a encofrado colores» pulsa el botón **Colores** (mismo cálculo, paneles pintados por ancho). «encofra» a secas sigue siendo el encofrado normal. Pide la misma confirmación.
+
 **Puente** (nuevo en `window.maStlDesing2AiBridge`)
 
 | Función | Usa en el visor | Deshacer |
@@ -36,7 +38,7 @@ Si el muro está sobre la recta, el reflejo sería el mismo muro: lo dice y no c
 | `rotateWall(id, centro, grados, { copy })` | `maStlXformToolCommitMm` (el núcleo de la herramienta Girar) con una selección temporal | 1 paso |
 | `mirrorWall(id, a, b, { keep })` | El mismo núcleo con la recta a→b; `keep` por defecto `true` | 1 paso |
 | `modeInfo()` | Modo como lo pintan los botones: `lines` / `wall3d` / `formwork` (clase `active` de Encofrar), `busy`, número de muros y de piezas | — |
-| `setMode('lines' \| 'wall3d' \| 'formwork')` | `click()` en `#ma-stl-mode-lines` / `#ma-stl-mode-wall-3d` / `#ma-stl-mode-formwork`. Promesa que espera `desing2-wall3d-ready` o `desing2-formwork-settled`. Si se cierra el selector de fase sin elegir, no hay evento: se da por cancelado cuando el botón vuelve a estar libre y sin modal abierto | — |
+| `setMode('lines' \| 'wall3d' \| 'formwork' \| 'formworkColor')` | `click()` en `#ma-stl-mode-lines` / `#ma-stl-mode-wall-3d` / `#ma-stl-mode-formwork` / `#ma-stl-mode-formwork-color`. Promesa que espera `desing2-wall3d-ready` o `desing2-formwork-settled`. Si se cierra el selector de fase sin elegir, no hay evento: se da por cancelado cuando el botón vuelve a estar libre y sin modal abierto | — |
 
 **Pruebas (p21)**
 

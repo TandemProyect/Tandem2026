@@ -14,6 +14,7 @@
 | Ramas, commits, PR | [`Git-Workflow.md`](Git-Workflow.md) |
 | Proyecto `Desing` (capas, repositorios) | [`Desing-proyecto.md`](Desing-proyecto.md) |
 | Proyecto `Common` (plan no hecho) | [`Common.md`](Common.md) y [`../../codigo-comun.md`](../../codigo-comun.md) (lo que de verdad se comparte) |
+| Continuar trabajo de Oferta Diseño | [`Oferta-Diseño.md`](Oferta-Diseño.md) |
 
 ## Historial (no leer salvo que haga falta)
 

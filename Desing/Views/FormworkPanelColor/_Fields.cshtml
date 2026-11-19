@@ -1,0 +1,28 @@
+@model Desing.Models.FormworkPanelColorEditModel
+
+@Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+<div class="col-md-6">
+    <label class="form-label" for="LinkSystem">Sistema</label>
+    @Html.DropDownListFor(m => m.LinkSystem, (SelectList)ViewBag.Systems, "— Elige —", new { @class = "form-select" })
+</div>
+<div class="col-md-6">
+    <label class="form-label" for="NewSystemLabel">Nuevo sistema</label>
+    @Html.TextBoxFor(m => m.NewSystemLabel, new { @class = "form-control", maxlength = 200, placeholder = "Si no está en la lista, escríbelo aquí" })
+    <div class="form-text">Si rellenas esto, se crea el sistema y el color queda ligado a él.</div>
+</div>
+<div class="col-md-4">
+    <label class="form-label" for="WidthMeters">Ancho (m)</label>
+    @Html.TextBoxFor(m => m.WidthMeters, new { @class = "form-control", placeholder = "0,90" })
+    <div class="form-text">Metros. 0,90 es el panel de 900 mm.</div>
+</div>
+<div class="col-md-4">
+    <label class="form-label" for="TextColor">Color</label>
+    @Html.TextBoxFor(m => m.TextColor, new { @class = "form-control form-control-color", type = "color" })
+</div>
+<div class="col-md-4 d-flex align-items-end">
+    <div class="form-check mb-2">
+        @Html.CheckBoxFor(m => m.Is_Active, new { @class = "form-check-input" })
+        <label class="form-check-label" for="Is_Active">Activo</label>
+    </div>
+</div>

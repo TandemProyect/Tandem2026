@@ -11,10 +11,10 @@ namespace Desing.Helpers
         public const string DefaultSubject = "Oferta {Sistema} — {Obra}";
 
         public const string DefaultHeader =
-            "{Empresa}\r\n{DireccionEmpresa}\r\n\r\nCliente: {Cliente}\r\n{DireccionCliente}\r\nAsunto: {Asunto}";
+            "{Empresa}\r\n{DireccionEmpresa}\r\n\r\nDirección cliente: {DireccionCliente}\r\nContacto: {NombreContacto} ({EmailContacto})\r\nAsunto: {Asunto}";
 
         public const string DefaultBody =
-            "Diseño: {Diseno}\r\nOferta: {Oferta}\r\nObra: {Obra}\r\nCliente: {Cliente}\r\nEmpresa: {Empresa}\r\nPlantilla: {Plantilla}\r\nSistema: {Sistema}\r\n\r\nRecuento:\r\n{Recuento}";
+            "Diseño: {Diseno}\r\nOferta: {Oferta}\r\nObra: {Obra}\r\nDirección cliente: {DireccionCliente}\r\nContacto: {NombreContacto} ({EmailContacto})\r\nEmpresa: {Empresa}\r\nPlantilla: {Plantilla}\r\nSistema: {Sistema}\r\n\r\nMateriales:\r\n{Material}\r\n\r\nRecuento:\r\n{Recuento}";
 
         public static string Apply(string template, IDictionary<string, string> values)
         {

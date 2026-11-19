@@ -45,7 +45,7 @@ namespace Desing.Controllers
 
         /// </summary>
 
-        public ActionResult Viewer(string stlUrl, long? offerId, long? designId, int? autoLoad)
+        public ActionResult Viewer(string stlUrl, long? offerId, long? designId, int? autoLoad, long? clientOfferId, int? captureMode)
 
         {
 
@@ -106,9 +106,9 @@ namespace Desing.Controllers
                 InitialStatusFooter = statusFooter,
 
                 OfferId = offerId,
-
                 DesignId = designId,
-
+                ClientOfferId = clientOfferId,
+                CaptureForClientOffer = captureMode == 1 && clientOfferId.HasValue && clientOfferId.Value > 0,
                 InitialViewerStateJson = LoadInitialViewerStateJson(designId),
 
                 PropSpacingMm = ReadDesignPropSpacingMm(designId),
@@ -1478,6 +1478,8 @@ namespace Desing.Controllers
                 var walls = solved.Walls;
                 var modulos = solved.Modulos;
                 var elementsForThreeJs = solved.ElementsForThreeJs;
+                FormworkPanelColorRepository.StampArticleColors(db, solved.System, elementsForThreeJs);
+                var systemPanelColor = SystemCatalogRepository.StampPanelColor(db, solved.System, elementsForThreeJs);
                 try
                 {
                     // Vista previa del Asistente IA (un muro): no pisa el JSON de depuración del último Encofrar.
@@ -1495,6 +1497,7 @@ namespace Desing.Controllers
                 {
                     Exito = true,
                     System = solved.System,
+                    SystemPanelColor = systemPanelColor,
                     WallsCount = walls != null ? walls.Count : 0,
                     ListCount = walls != null ? walls.Count : 0,
                     IdsJsonCount = !string.IsNullOrWhiteSpace(jsonRaw) ? (walls != null ? walls.Count : 0) : 0,

@@ -18,6 +18,8 @@
   <data name="Err_LogoSize" xml:space="preserve"><value>Logo is larger than 2 MB.</value></data>
   <data name="Err_SubjectRequired" xml:space="preserve"><value>Subject is required.</value></data>
   <data name="Err_SystemRequired" xml:space="preserve"><value>The offer system is required.</value></data>
+  <data name="Err_TemplateInvalid" xml:space="preserve"><value>The selected template is not valid for this company/system.</value></data>
+  <data name="Err_TemplateRequired" xml:space="preserve"><value>An offer template must be selected.</value></data>
   <data name="Index_Breadcrumb" xml:space="preserve"><value>Client offer</value></data>
   <data name="Index_Create" xml:space="preserve"><value>New offer</value></data>
   <data name="Index_Texts" xml:space="preserve"><value>Texts and logo</value></data>
@@ -26,22 +28,26 @@
   <data name="Lbl_Address" xml:space="preserve"><value>Client address</value></data>
   <data name="Lbl_AllSystems" xml:space="preserve"><value>All systems</value></data>
   <data name="Lbl_Body" xml:space="preserve"><value>Text</value></data>
-  <data name="Lbl_BodyTemplate" xml:space="preserve"><value>General text ({Empresa} {Cliente} {Diseno} {Oferta} {Obra} {Plantilla} {Sistema} {Recuento})</value></data>
+  <data name="Lbl_BodyTemplate" xml:space="preserve"><value>General text ({Empresa} {Diseno} {Oferta} {Obra} {Plantilla} {Sistema} {Recuento} {DireccionCliente} {NombreContacto} {EmailContacto} {Material})</value></data>
   <data name="Lbl_Client" xml:space="preserve"><value>Client</value></data>
+  <data name="Lbl_Contact" xml:space="preserve"><value>Contact</value></data>
+  <data name="Lbl_ContactEmail" xml:space="preserve"><value>Contact email</value></data>
+  <data name="Lbl_ContactName" xml:space="preserve"><value>Contact name</value></data>
   <data name="Lbl_Company" xml:space="preserve"><value>Company</value></data>
   <data name="Lbl_CompanyName" xml:space="preserve"><value>Company name in the header</value></data>
   <data name="Lbl_Design" xml:space="preserve"><value>Design</value></data>
   <data name="Lbl_Header" xml:space="preserve"><value>Header</value></data>
-  <data name="Lbl_HeaderTemplate" xml:space="preserve"><value>Header ({Empresa} {DireccionEmpresa} {Cliente} {DireccionCliente} {Asunto})</value></data>
+  <data name="Lbl_HeaderTemplate" xml:space="preserve"><value>Header ({Empresa} {DireccionEmpresa} {DireccionCliente} {NombreContacto} {EmailContacto} {Asunto})</value></data>
   <data name="Lbl_Inactive" xml:space="preserve"><value>Inactive</value></data>
   <data name="Lbl_Jobside" xml:space="preserve"><value>Jobsite</value></data>
   <data name="Lbl_Logo" xml:space="preserve"><value>Logo</value></data>
   <data name="Lbl_Name" xml:space="preserve"><value>Name</value></data>
   <data name="Lbl_Offer" xml:space="preserve"><value>Offer</value></data>
+  <data name="Lbl_OfferTemplate" xml:space="preserve"><value>Offer template</value></data>
   <data name="Lbl_Plantilla" xml:space="preserve"><value>Template</value></data>
   <data name="Lbl_Recuento" xml:space="preserve"><value>Count</value></data>
   <data name="Lbl_Subject" xml:space="preserve"><value>Subject</value></data>
-  <data name="Lbl_SubjectTemplate" xml:space="preserve"><value>Subject ({Sistema} {Obra} {Cliente})</value></data>
+  <data name="Lbl_SubjectTemplate" xml:space="preserve"><value>Subject ({Sistema} {Obra})</value></data>
   <data name="Lbl_System" xml:space="preserve"><value>System</value></data>
   <data name="List_DeleteTooltip" xml:space="preserve"><value>Delete</value></data>
   <data name="List_EditTooltip" xml:space="preserve"><value>Edit</value></data>
@@ -64,4 +70,19 @@
   <data name="Msg_AssistantApplied" xml:space="preserve"><value>Proposal applied. Review and save.</value></data>
   <data name="Msg_AssistantError" xml:space="preserve"><value>The AI proposal could not be generated.</value></data>
   <data name="Texts_Breadcrumb" xml:space="preserve"><value>Texts and logo</value></data>
+  <data name="Lbl_Material" xml:space="preserve"><value>Materials (leave blank; will come from materials view)</value></data>
+  <data name="ContactStates_Title" xml:space="preserve"><value>Contact states</value></data>
+  <data name="ContactStates_Code" xml:space="preserve"><value>Code</value></data>
+  <data name="ContactStates_Label" xml:space="preserve"><value>Label</value></data>
+  <data name="ContactStates_Add" xml:space="preserve"><value>Add state</value></data>
+  <data name="Err_ContactStateCodeInvalid" xml:space="preserve"><value>Code can only contain uppercase letters, numbers, hyphen or underscore.</value></data>
+  <data name="Err_ContactStateLabelRequired" xml:space="preserve"><value>State label is required.</value></data>
+  <data name="Err_ContactStateDuplicate" xml:space="preserve"><value>A state with this code already exists.</value></data>
+  <data name="Err_ContactStateNotFound" xml:space="preserve"><value>Contact state was not found.</value></data>
+  <data name="Err_ContactStateProtected" xml:space="preserve"><value>Base states ALTA, BAJA and ENFERMO cannot be deleted.</value></data>
+  <data name="Msg_ContactStateGenericError" xml:space="preserve"><value>Contact state operation could not be completed.</value></data>
+  <data name="Lbl_CapturesTitle" xml:space="preserve"><value>Attached plans (screenshots)</value></data>
+  <data name="Btn_AttachCapture" xml:space="preserve"><value>Attach screenshot</value></data>
+  <data name="Msg_CaptureHint" xml:space="preserve"><value>Form minimized. Adjust the view in the viewer and click “Design photo” to attach the screenshot to the offer.</value></data>
+  <data name="Msg_CaptureNeedDesign" xml:space="preserve"><value>To attach screenshots you must first select a design in the offer.</value></data>
 </root>

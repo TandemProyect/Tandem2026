@@ -93,6 +93,7 @@
     .tandem-role-drop-hint { display: none; margin: 8px; padding: 14px; border: 2px dashed #8c57ff; border-radius: 6px; text-align: center; color: #8c57ff; }
     .tandem-role-drop.tandem-drop-ready .tandem-role-drop-hint { display: block; }
     .tandem-role-drop.tandem-drop-over { outline: 2px solid #8c57ff; background: rgba(140, 87, 255, .06); }
+    .tandem-user-roles .dataTables_scrollBody { overflow-y: auto !important; }
 </style>
 
 @section scripts
@@ -101,6 +102,16 @@
         (function ($) {
             var ui = @Html.Raw(ui);
             var dragging = null;
+            var exportOpts = (window.TandemDataTablesList && window.TandemDataTablesList.exportOptsPlainVisible)
+                ? window.TandemDataTablesList.exportOptsPlainVisible
+                : {
+                    columns: ':visible',
+                    format: {
+                        body: function (data) {
+                            return $('<div>').html(data == null ? '' : data).text();
+                        }
+                    }
+                };
 
             function esc(s) { return $('<div>').text(s == null ? '' : s).html(); }
 
@@ -114,12 +125,30 @@
             function baseOpts(emptyText) {
                 return {
                     data: [],
-                    dom: 'frt',
-                    paging: false,
+                    dom: 'Bfrtip',
+                    paging: true,
+                    pageLength: 10,
+                    lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'Todo']],
                     info: false,
                     stateSave: false,
+                    scrollY: '52vh',
+                    scrollCollapse: true,
                     order: [],
                     language: { emptyTable: emptyText, zeroRecords: emptyText },
+                    buttons: [{
+                        extend: 'collection',
+                        text: "<i class='fas fa-bars'></i>",
+                        attr: { 'aria-label': 'Opciones de tabla' },
+                        className: 'custom-html-collection',
+                        buttons: [
+                            '<h5>Registros</h5>',
+                            'pageLength',
+                            '<h5>Exportar</h5>',
+                            'copy',
+                            { extend: 'csv', exportOptions: exportOpts },
+                            { extend: 'excel', exportOptions: exportOpts }
+                        ]
+                    }],
                     createdRow: function (tr, r) {
                         $(tr).attr('draggable', 'true').attr('data-role-id', r.IdObject);
                     }

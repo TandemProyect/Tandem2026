@@ -310,6 +310,87 @@
   <data name="Ws_OffersTitle" xml:space="preserve">
     <value>Client offers</value>
   </data>
+  <data name="Tab_Contacts" xml:space="preserve">
+    <value>Contacts</value>
+  </data>
+  <data name="Ws_ContactsTitle" xml:space="preserve">
+    <value>Client contacts</value>
+  </data>
+  <data name="Ws_ContactsEmpty" xml:space="preserve">
+    <value>This client has no contacts.</value>
+  </data>
+  <data name="Ws_ContactsLblName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Ws_ContactsLblEmail" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Ws_ContactsLblPhone" xml:space="preserve">
+    <value>Phone</value>
+  </data>
+  <data name="Ws_ContactsLblDefault" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="Ws_ContactsBtnAdd" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Ws_ContactsColName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Ws_ContactsColEmail" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Ws_ContactsColPhone" xml:space="preserve">
+    <value>Phone</value>
+  </data>
+  <data name="Ws_ContactsColState" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Ws_ContactsColDefault" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="Ws_ContactsColStatusDate" xml:space="preserve">
+    <value>Status date</value>
+  </data>
+  <data name="Ws_ContactsErrGeneric" xml:space="preserve">
+    <value>The operation could not be completed.</value>
+  </data>
+  <data name="Ws_ContactsBtnDefault" xml:space="preserve">
+    <value>Set default</value>
+  </data>
+  <data name="Ws_ContactsBtnAlta" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Ws_ContactsBtnBaja" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  <data name="Ws_ContactsBtnEnfermo" xml:space="preserve">
+    <value>Sick leave</value>
+  </data>
+  <data name="Ws_ContactsBtnSetState" xml:space="preserve">
+    <value>Apply status</value>
+  </data>
+  <data name="Ws_ContactsDefaultYes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="Ws_ContactsDefaultNo" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Ws_ContactsErrNameRequired" xml:space="preserve">
+    <value>Contact name is required.</value>
+  </data>
+  <data name="Ws_ContactsErrCompanyMissing" xml:space="preserve">
+    <value>User company was not found.</value>
+  </data>
+  <data name="Ws_ContactsErrStateInvalid" xml:space="preserve">
+    <value>The selected status is invalid.</value>
+  </data>
+  <data name="Ws_ContactsErrNotFound" xml:space="preserve">
+    <value>Contact not found.</value>
+  </data>
+  <data name="Ws_ContactsErrStateBlocked" xml:space="preserve">
+    <value>A contact in Inactive or Sick leave cannot be default.</value>
+  </data>
   <data name="Ws_OpenTooltip" xml:space="preserve">
     <value>Open</value>
   </data>

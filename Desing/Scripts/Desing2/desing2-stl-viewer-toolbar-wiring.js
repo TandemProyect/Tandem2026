@@ -175,26 +175,6 @@
             if (label) {
                 toggle.textContent = label;
             }
-
-            function wireClientOfferOpenFromDesign() {
-                const btn = document.getElementById('ma-stl-open-client-offer');
-                if (!btn) return;
-
-                btn.addEventListener('click', function () {
-                    const baseUrl = (btn.getAttribute('data-ma-client-offer-url') || '').trim();
-                    const designId = (btn.getAttribute('data-ma-client-offer-design-id') || '').trim();
-                    if (!baseUrl || !designId) return;
-
-                    const systemToggle = document.getElementById('ma-stl-mode-system-dropdown');
-                    const systemLabel = systemToggle ? (systemToggle.textContent || '').trim() : '';
-                    const separator = baseUrl.indexOf('?') >= 0 ? '&' : '?';
-                    const url = baseUrl + separator
-                        + 'designId=' + encodeURIComponent(designId)
-                        + '&systemLabel=' + encodeURIComponent(systemLabel);
-
-                    window.open(url, '_blank');
-                });
-            }
         }
 
         items.forEach(function (item) {
@@ -206,6 +186,169 @@
                 setActiveItem(item);
             });
         });
+    }
+
+    function wireClientOfferOpenFromDesign() {
+        const btn = document.getElementById('ma-stl-open-client-offer');
+        if (!btn) return;
+        let offerPanelResizeBound = false;
+
+        function notify(msg) {
+            if (!msg) return;
+            if (typeof window.maStlDesing2ShowSaveViewToast === 'function') {
+                window.maStlDesing2ShowSaveViewToast(msg);
+                return;
+            }
+            window.alert(msg);
+        }
+
+        function currentDesignId() {
+            const shell = document.getElementById('ma-stl-viewer-shell');
+            const id = shell ? (shell.getAttribute('data-ma-stl-design-id') || '').trim() : '';
+            if (id) return id;
+            return (btn.getAttribute('data-ma-client-offer-design-id') || '').trim();
+        }
+
+        function closeOfferPanel() {
+            const root = document.getElementById('ma-stl-client-offer-panel');
+            if (root) root.style.display = 'none';
+        }
+
+        function openOfferPanel(url) {
+            let root = document.getElementById('ma-stl-client-offer-panel');
+            let frame = document.getElementById('ma-stl-client-offer-frame');
+            if (!root) {
+                root = document.createElement('div');
+                root.id = 'ma-stl-client-offer-panel';
+                root.setAttribute('role', 'dialog');
+                root.setAttribute('aria-label', 'Oferta cliente');
+                root.style.cssText =
+                    'position:fixed;z-index:2147483200;display:none;flex-direction:column;box-sizing:border-box;'
+                    + 'background:#ffffff;border:1px solid #cbd5e1;border-radius:10px;box-shadow:0 12px 32px rgba(15,23,42,0.28);overflow:hidden;';
+
+                const head = document.createElement('div');
+                head.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px 8px 14px;background:#0f172a;color:#ffffff;flex:0 0 auto;';
+
+                const title = document.createElement('div');
+                title.textContent = 'Oferta cliente';
+                title.style.cssText = 'flex:1;font-size:14px;font-weight:600;color:#ffffff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+
+                const closeBtn = document.createElement('button');
+                closeBtn.type = 'button';
+                closeBtn.title = 'Cerrar';
+                closeBtn.setAttribute('aria-label', 'Cerrar');
+                closeBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"/></svg>';
+                closeBtn.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;border:none;border-radius:6px;background:transparent;color:#ffffff;cursor:pointer;';
+                closeBtn.addEventListener('click', closeOfferPanel);
+
+                head.appendChild(title);
+                head.appendChild(closeBtn);
+                root.appendChild(head);
+
+                const body = document.createElement('div');
+                body.style.cssText = 'flex:1 1 auto;min-height:0;background:#fff;';
+
+                frame = document.createElement('iframe');
+                frame.id = 'ma-stl-client-offer-frame';
+                frame.style.cssText = 'display:block;width:100%;height:100%;border:0;background:#fff;';
+                frame.setAttribute('title', 'Formulario oferta cliente');
+
+                body.appendChild(frame);
+                root.appendChild(body);
+                (document.body || document.documentElement).appendChild(root);
+
+                root.addEventListener('keydown', function (ev) {
+                    if (ev.key === 'Escape') {
+                        ev.stopPropagation();
+                        closeOfferPanel();
+                    }
+                });
+            }
+
+            function layout() {
+                const margin = 12;
+                const width = Math.max(360, Math.min(520, window.innerWidth - (margin * 2)));
+                const height = Math.max(420, Math.min(860, window.innerHeight - (margin * 2)));
+                root.style.width = width + 'px';
+                root.style.height = height + 'px';
+                root.style.left = (window.innerWidth - width - margin) + 'px';
+                root.style.top = margin + 'px';
+            }
+
+            layout();
+            if (!offerPanelResizeBound) {
+                window.addEventListener('resize', layout);
+                offerPanelResizeBound = true;
+            }
+            frame.src = url;
+            root.style.display = 'flex';
+        }
+
+        function ensureSavedAndRendered() {
+            var savePromise = Promise.resolve(null);
+            if (typeof window.maStlDesing2SaveDesignWallsToServer === 'function') {
+                savePromise = window.maStlDesing2SaveDesignWallsToServer({
+                    includePhoto: false,
+                    quiet: true
+                });
+            }
+
+            return savePromise.then(function (saveResult) {
+                if (saveResult && saveResult.needDesign) {
+                    notify('Primero guarda el diseño para poder crear la oferta.');
+                    return false;
+                }
+
+                var bridge = window.maStlDesing2AiBridge;
+                if (!bridge || typeof bridge.setMode !== 'function') {
+                    return true;
+                }
+
+                return bridge.setMode('wall3d').then(function (renderResult) {
+                    if (renderResult && renderResult.ok === false && !renderResult.cached) {
+                        notify((renderResult.message || 'No se pudo renderizar el diseño en 3D.') + ' Se abre la oferta igualmente.');
+                    }
+                    return true;
+                });
+            }).catch(function () {
+                notify('No se pudo guardar/renderizar automáticamente. Se abre la oferta igualmente.');
+                return true;
+            });
+        }
+
+        function onClientOfferClick() {
+            const baseUrl = (btn.getAttribute('data-ma-client-offer-url') || '').trim();
+            const designId = currentDesignId();
+            if (!baseUrl || !designId) {
+                notify('Primero guarda el diseño para poder crear la oferta.');
+                return;
+            }
+
+            const run = function () {
+                btn.disabled = true;
+                ensureSavedAndRendered().then(function (ok) {
+                    if (!ok) return;
+                    const systemToggle = document.getElementById('ma-stl-mode-system-dropdown');
+                    const systemLabel = systemToggle ? (systemToggle.textContent || '').trim() : '';
+                    const separator = baseUrl.indexOf('?') >= 0 ? '&' : '?';
+                    const url = baseUrl + separator
+                        + 'designId=' + encodeURIComponent(designId)
+                        + '&systemLabel=' + encodeURIComponent(systemLabel);
+                    openOfferPanel(url);
+                }).catch(function (_err) {
+                    notify('No se pudo preparar la oferta cliente.');
+                }).then(function () {
+                    btn.disabled = false;
+                });
+            };
+
+            run();
+        }
+
+        if (btn.getAttribute('data-ma-client-offer-wired') !== '1') {
+            btn.setAttribute('data-ma-client-offer-wired', '1');
+            btn.addEventListener('click', onClientOfferClick);
+        }
     }
 
     /**
@@ -632,7 +775,36 @@
 
     function wireFormworkButton() {
         const btn = document.getElementById('ma-stl-mode-formwork');
+            const colorBtn = document.getElementById('ma-stl-mode-formwork-color');
         if (!btn) return;
+            let colorClick = false;
+            let colorModeLatched = false;
+
+        function formworkColorLatch(fromColorButton, continuing, latched) {
+            if (fromColorButton) return true;
+            if (continuing) return latched === true;
+            return false;
+        }
+
+        function formworkAlreadyPainted() {
+            if (typeof window.maStlDesing2HasFormworkPanels === 'function') {
+                return window.maStlDesing2HasFormworkPanels() === true;
+            }
+            return false;
+        }
+
+        function phaseAskIsOpen() {
+            const modal = document.getElementById('desing2FormworkPhaseModal');
+            return !!(modal && modal.classList.contains('show'));
+        }
+
+        function repaintFormworkMode(colorOn) {
+            colorModeLatched = colorOn === true;
+            window.maStlFormworkColorMode = colorModeLatched;
+            if (typeof window.maStlDesing2RepaintFormworkColors === 'function') {
+                window.maStlDesing2RepaintFormworkColors();
+            }
+        }
 
         const systemToggle = document.getElementById('ma-stl-mode-system-dropdown');
         const overlayRoot = document.getElementById('ma-stl-formwork-render-overlay');
@@ -1631,8 +1803,38 @@
             window.bootstrap.Modal.getOrCreateInstance(modal).show();
         }
 
-        btn.addEventListener('click', function () {
+        if (colorBtn) {
+                    colorBtn.addEventListener('click', function () {
+                        if (askingPhase && !phaseAskIsOpen()) askingPhase = false;
+                        if (formworkBusy || btn.disabled || askingPhase) return;
+                        const action = typeof window.maStlFormworkModeClickAction === 'function'
+                            ? window.maStlFormworkModeClickAction(formworkAlreadyPainted(), true, window.maStlFormworkColorMode === true)
+                            : 'solve';
+                        if (action === 'repaint-color') {
+                            repaintFormworkMode(true);
+                            return;
+                        }
+                        colorClick = true;
+                        window.maStlFormworkColorMode = true;
+                        btn.click();
+                    });
+                }
+
+                btn.addEventListener('click', function () {
+            if (askingPhase && !phaseAskIsOpen()) askingPhase = false;
             if (formworkBusy || btn.disabled || askingPhase) return;
+                    const fromColorButton = colorClick;
+                    colorClick = false;
+                    const colorWasOn = colorModeLatched === true || window.maStlFormworkColorMode === true;
+                    const action = typeof window.maStlFormworkModeClickAction === 'function'
+                        ? window.maStlFormworkModeClickAction(formworkAlreadyPainted(), fromColorButton, colorWasOn)
+                        : 'solve';
+                    if (action === 'repaint-color' || action === 'repaint-system') {
+                        repaintFormworkMode(action === 'repaint-color');
+                        return;
+                    }
+                    colorModeLatched = formworkColorLatch(fromColorButton, skipPhaseAsk === true, colorModeLatched);
+                    window.maStlFormworkColorMode = colorModeLatched;
             const selectedSystem = ((systemToggle && systemToggle.textContent) || '').trim();
 
             if (selectedSystem !== 'Atk-60') {
@@ -1896,6 +2098,7 @@
                         && Array.isArray(resp.ElementsForThreeJs.Elements)
                         ? resp.ElementsForThreeJs.Elements
                         : [];
+                    window.maStlAtk60SystemPanelColor = resp.SystemPanelColor || resp.systemPanelColor || '';
 
                     if (typeof renderAnchors === 'function') {
                         const result = renderAnchors(anchorWalls, { clearPrevious: true });
@@ -1932,6 +2135,7 @@
                     const wallsReturned = Array.isArray(resp.Walls) ? resp.Walls : [];
                     console.info('Muros recibidos (' + wallsReturned.length + '):', wallsReturned);
                     paintDone.then(function () {
+                        repaintFormworkMode(colorModeLatched === true || window.maStlFormworkColorMode === true);
                         if (typeof window.maStlDesing2ShowPouredPhases === 'function') {
                             window.maStlDesing2ShowPouredPhases(formPhase);
                         }
@@ -1949,6 +2153,7 @@
 
     function wireFormworkVisibilityByMode() {
         const formworkBtn = document.getElementById('ma-stl-mode-formwork');
+            const colorBtn = document.getElementById('ma-stl-mode-formwork-color');
         const wall3dBtn = document.getElementById('ma-stl-mode-wall-3d');
         const modeBar = document.getElementById('desing2-stl-mode-toolbar');
         if (!formworkBtn || !wall3dBtn || !modeBar) return;
@@ -1960,13 +2165,23 @@
         function syncVisibility() {
             const formworkOn = formworkBtn.classList.contains('active')
                 || formworkBtn.getAttribute('aria-pressed') === 'true';
-            const visible = isWall3dActive() || formworkOn;
+            const colorOn = !!(colorBtn && (
+                colorBtn.classList.contains('active')
+                || colorBtn.getAttribute('aria-pressed') === 'true'
+            ));
+            const visible = isWall3dActive() || formworkOn || colorOn;
             formworkBtn.classList.toggle('d-none', !visible);
             formworkBtn.setAttribute('aria-hidden', visible ? 'false' : 'true');
+                    if (colorBtn) {
+                        colorBtn.classList.toggle('d-none', !visible);
+                        colorBtn.setAttribute('aria-hidden', visible ? 'false' : 'true');
+                    }
             if (visible) {
                 formworkBtn.removeAttribute('tabindex');
+                        if (colorBtn) colorBtn.removeAttribute('tabindex');
             } else {
                 formworkBtn.setAttribute('tabindex', '-1');
+                        if (colorBtn) colorBtn.setAttribute('tabindex', '-1');
             }
         }
 

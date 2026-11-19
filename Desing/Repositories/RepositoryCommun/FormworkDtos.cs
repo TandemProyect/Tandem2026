@@ -121,6 +121,10 @@ namespace Desing.Repositories.RepositoryCommun
         public string Orientation { get; set; }
         public string ImportPath { get; set; }
         public string Color { get; set; }
+        /// <summary>Hex del maestro de artículos (TextColor1). Solo lo pinta el modo colores.</summary>
+        public string ArticleColor { get; set; }
+        /// <summary>Hex de TSql_System.TextPanelColor. Lo pintan los paneles al encofrar.</summary>
+        public string SystemPanelColor { get; set; }
         public double X { get; set; }
         public double Y { get; set; }
         public double Z { get; set; }

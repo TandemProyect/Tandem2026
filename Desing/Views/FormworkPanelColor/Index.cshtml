@@ -1,0 +1,58 @@
+@model IList<Desing.Helpers.FormworkPanelColorRow>
+@{
+    ViewBag.Title = "Colores de panel";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">Inicio</a> / Develop /
+        </span> Colores de panel
+    </h4>
+    <a class="btn btn-primary text-white" href="@Url.Action("Create")">
+        <i class="icon-base ri ri-add-line me-1"></i> Nuevo color
+    </a>
+</div>
+
+@if (!string.IsNullOrEmpty(TempData["ToastMessage"] as string))
+{
+    <div class="alert alert-success">@TempData["ToastMessage"]</div>
+}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Sistema</th>
+                    <th>Ancho</th>
+                    <th>Color</th>
+                    <th>Activo</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model)
+                {
+                    <tr>
+                        <td>@row.SystemLabel</td>
+                        <td>@((row.NumberWidthMm / 1000m).ToString("0.00")) m</td>
+                        <td>
+                            <span class="d-inline-block rounded border me-2" style="width:1.25rem;height:1.25rem;background:@row.TextColor"></span>
+                            @row.TextColor
+                        </td>
+                        <td>@(row.Is_Active ? "Sí" : "No")</td>
+                        <td class="text-end">
+                            <a class="btn btn-warning btn-sm" href="@Url.Action("Edit", new { id = row.IdObject })">Editar</a>
+                            @using (Html.BeginForm("Delete", "FormworkPanelColor", new { id = row.IdObject }, FormMethod.Post, new { @class = "d-inline" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Quitar este color del catálogo?');">Quitar</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

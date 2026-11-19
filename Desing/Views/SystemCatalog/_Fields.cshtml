@@ -1,0 +1,24 @@
+@model Desing.Models.SystemCatalogEditModel
+
+@Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+@Html.HiddenFor(m => m.IdObject)
+
+<div class="col-md-6">
+    <label class="form-label" for="TextLabel">Nombre</label>
+    @Html.TextBoxFor(m => m.TextLabel, new { @class = "form-control", maxlength = 500, required = "required" })
+</div>
+<div class="col-md-3">
+    <label class="form-label" for="TextPanelColor">Color de paneles</label>
+    @Html.TextBoxFor(m => m.TextPanelColor, new { @class = "form-control form-control-color", type = "color" })
+    <div class="form-text">Lo usan los paneles al encofrar en Desing_2.</div>
+</div>
+<div class="col-md-3 d-flex align-items-end">
+    <div class="form-check mb-2">
+        @Html.CheckBoxFor(m => m.AddIsActive, new { @class = "form-check-input" })
+        <label class="form-check-label" for="AddIsActive">Activo</label>
+    </div>
+</div>
+<div class="col-12">
+    <label class="form-label" for="TextDescription">Descripción</label>
+    @Html.TextAreaFor(m => m.TextDescription, new { @class = "form-control", rows = 6, maxlength = 4000 })
+</div>

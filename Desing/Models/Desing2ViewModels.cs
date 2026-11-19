@@ -53,7 +53,8 @@ namespace Desing.Models
 
 
         public long? DesignId { get; set; }
-
+        public long? ClientOfferId { get; set; }
+        public bool CaptureForClientOffer { get; set; }
         /// <summary>Distancia máxima entre puntales del diseño, en mm. Por defecto 2400.</summary>
         public double PropSpacingMm { get; set; }
 

@@ -18,6 +18,8 @@
   <data name="Err_LogoSize" xml:space="preserve"><value>El logo supera 2 MB.</value></data>
   <data name="Err_SubjectRequired" xml:space="preserve"><value>El asunto es obligatorio.</value></data>
   <data name="Err_SystemRequired" xml:space="preserve"><value>Hay que indicar el sistema de la oferta.</value></data>
+  <data name="Err_TemplateInvalid" xml:space="preserve"><value>La plantilla seleccionada no es válida para esta empresa/sistema.</value></data>
+  <data name="Err_TemplateRequired" xml:space="preserve"><value>Hay que seleccionar una plantilla de oferta.</value></data>
   <data name="Index_Breadcrumb" xml:space="preserve"><value>Oferta cliente</value></data>
   <data name="Index_Create" xml:space="preserve"><value>Nueva oferta</value></data>
   <data name="Index_Texts" xml:space="preserve"><value>Textos y logo</value></data>
@@ -26,22 +28,26 @@
   <data name="Lbl_Address" xml:space="preserve"><value>Dirección del cliente</value></data>
   <data name="Lbl_AllSystems" xml:space="preserve"><value>Todos los sistemas</value></data>
   <data name="Lbl_Body" xml:space="preserve"><value>Texto</value></data>
-  <data name="Lbl_BodyTemplate" xml:space="preserve"><value>Texto general ({Empresa} {Cliente} {Diseno} {Oferta} {Obra} {Plantilla} {Sistema} {Recuento})</value></data>
+  <data name="Lbl_BodyTemplate" xml:space="preserve"><value>Texto general ({Empresa} {Diseno} {Oferta} {Obra} {Plantilla} {Sistema} {Recuento} {DireccionCliente} {NombreContacto} {EmailContacto} {Material})</value></data>
   <data name="Lbl_Client" xml:space="preserve"><value>Cliente</value></data>
+  <data name="Lbl_Contact" xml:space="preserve"><value>Contacto</value></data>
+  <data name="Lbl_ContactEmail" xml:space="preserve"><value>Email contacto</value></data>
+  <data name="Lbl_ContactName" xml:space="preserve"><value>Nombre contacto</value></data>
   <data name="Lbl_Company" xml:space="preserve"><value>Empresa</value></data>
   <data name="Lbl_CompanyName" xml:space="preserve"><value>Nombre de empresa en el encabezado</value></data>
   <data name="Lbl_Design" xml:space="preserve"><value>Diseño</value></data>
   <data name="Lbl_Header" xml:space="preserve"><value>Encabezado</value></data>
-  <data name="Lbl_HeaderTemplate" xml:space="preserve"><value>Encabezado ({Empresa} {DireccionEmpresa} {Cliente} {DireccionCliente} {Asunto})</value></data>
+  <data name="Lbl_HeaderTemplate" xml:space="preserve"><value>Encabezado ({Empresa} {DireccionEmpresa} {DireccionCliente} {NombreContacto} {EmailContacto} {Asunto})</value></data>
   <data name="Lbl_Inactive" xml:space="preserve"><value>Inactivo</value></data>
   <data name="Lbl_Jobside" xml:space="preserve"><value>Obra</value></data>
   <data name="Lbl_Logo" xml:space="preserve"><value>Logo</value></data>
   <data name="Lbl_Name" xml:space="preserve"><value>Nombre</value></data>
   <data name="Lbl_Offer" xml:space="preserve"><value>Oferta</value></data>
+  <data name="Lbl_OfferTemplate" xml:space="preserve"><value>Plantilla de oferta</value></data>
   <data name="Lbl_Plantilla" xml:space="preserve"><value>Plantilla</value></data>
   <data name="Lbl_Recuento" xml:space="preserve"><value>Recuento</value></data>
   <data name="Lbl_Subject" xml:space="preserve"><value>Asunto</value></data>
-  <data name="Lbl_SubjectTemplate" xml:space="preserve"><value>Asunto ({Sistema} {Obra} {Cliente})</value></data>
+  <data name="Lbl_SubjectTemplate" xml:space="preserve"><value>Asunto ({Sistema} {Obra})</value></data>
   <data name="Lbl_System" xml:space="preserve"><value>Sistema</value></data>
   <data name="List_DeleteTooltip" xml:space="preserve"><value>Eliminar</value></data>
   <data name="List_EditTooltip" xml:space="preserve"><value>Editar</value></data>
@@ -64,4 +70,19 @@
   <data name="Msg_AssistantApplied" xml:space="preserve"><value>Propuesta aplicada. Revisa y guarda.</value></data>
   <data name="Msg_AssistantError" xml:space="preserve"><value>No se pudo generar la propuesta IA.</value></data>
   <data name="Texts_Breadcrumb" xml:space="preserve"><value>Textos y logo</value></data>
+  <data name="Lbl_Material" xml:space="preserve"><value>Materiales (dejar en blanco; vendrá de vista de materiales)</value></data>
+  <data name="ContactStates_Title" xml:space="preserve"><value>Estados de contacto</value></data>
+  <data name="ContactStates_Code" xml:space="preserve"><value>Código</value></data>
+  <data name="ContactStates_Label" xml:space="preserve"><value>Etiqueta</value></data>
+  <data name="ContactStates_Add" xml:space="preserve"><value>Añadir estado</value></data>
+  <data name="Err_ContactStateCodeInvalid" xml:space="preserve"><value>El código solo puede tener letras mayúsculas, números, guion o guion bajo.</value></data>
+  <data name="Err_ContactStateLabelRequired" xml:space="preserve"><value>La etiqueta del estado es obligatoria.</value></data>
+  <data name="Err_ContactStateDuplicate" xml:space="preserve"><value>Ya existe un estado con ese código.</value></data>
+  <data name="Err_ContactStateNotFound" xml:space="preserve"><value>No se encontró el estado de contacto.</value></data>
+  <data name="Err_ContactStateProtected" xml:space="preserve"><value>No se pueden eliminar los estados base ALTA, BAJA y ENFERMO.</value></data>
+  <data name="Msg_ContactStateGenericError" xml:space="preserve"><value>No se pudo completar la operación del estado de contacto.</value></data>
+  <data name="Lbl_CapturesTitle" xml:space="preserve"><value>Planos adjuntos (capturas)</value></data>
+  <data name="Btn_AttachCapture" xml:space="preserve"><value>Adjuntar captura</value></data>
+  <data name="Msg_CaptureHint" xml:space="preserve"><value>Formulario minimizado. Ajusta la vista en el visor y pulsa “Foto del diseño” para adjuntar la captura a la oferta.</value></data>
+  <data name="Msg_CaptureNeedDesign" xml:space="preserve"><value>Para adjuntar capturas primero hay que seleccionar un diseño en la oferta.</value></data>
 </root>

@@ -1733,10 +1733,13 @@ namespace Desing.Controllers
                 var walls = solved.Walls;
                 var modulos = solved.Modulos;
                 var elementsForThreeJs = solved.ElementsForThreeJs;
+                FormworkPanelColorRepository.StampArticleColors(db, solved.System, elementsForThreeJs);
+                var systemPanelColor = SystemCatalogRepository.StampPanelColor(db, solved.System, elementsForThreeJs);
                 var result = Json(new
                 {
                     Exito = true,
                     System = solved.System,
+                    SystemPanelColor = systemPanelColor,
                     WallsCount = walls != null ? walls.Count : 0,
                     ModulosCount = modulos != null ? modulos.Count : 0,
                     ElementsForThreeJsCount = elementsForThreeJs != null && elementsForThreeJs.Elements != null

@@ -254,7 +254,7 @@
     <value>Código *</value>
   </data>
   <data name="Lbl_Color1" xml:space="preserve">
-    <value>Color 1</value>
+    <value>Color renderizado</value>
   </data>
   <data name="Lbl_Color2" xml:space="preserve">
     <value>Color 2</value>

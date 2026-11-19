@@ -28,6 +28,25 @@
     }
     <h1>@Model.TextSubject</h1>
     <pre>@Model.HeaderBody</pre>
+    @if (!string.IsNullOrWhiteSpace(Model.TextMaterial))
+    {
+        <h2 style="font-size:16px;margin:16px 0 8px 0;">@ClientOffer.Lbl_Material</h2>
+        <pre>@Model.TextMaterial</pre>
+    }
+    @if (Model.Captures != null && Model.Captures.Count > 0)
+    {
+        <h2 style="font-size:16px;margin:16px 0 8px 0;">@ClientOffer.Lbl_CapturesTitle</h2>
+        for (var i = 0; i < Model.Captures.Count; i++)
+        {
+            var cap = Model.Captures[i];
+            var path = cap.TextImagePath ?? "";
+            var url = path.StartsWith("/") ? Url.Content("~" + path) : path;
+            <div style="margin-bottom:12px;">
+                <div style="font-size:12px;color:#666;">Plano @(i + 1)</div>
+                <img src="@url" alt="" style="max-width:100%;border:1px solid #ddd;" />
+            </div>
+        }
+    }
     <pre>@Model.TextBody</pre>
 </body>
 </html>

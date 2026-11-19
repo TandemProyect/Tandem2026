@@ -8,7 +8,9 @@
     var offers = ViewBag.Offers as System.Collections.Generic.IList<ClientOfferLookup> ?? new System.Collections.Generic.List<ClientOfferLookup>();
     var jobs = ViewBag.Jobsides as System.Collections.Generic.IList<ClientOfferLookup> ?? new System.Collections.Generic.List<ClientOfferLookup>();
     var clients = ViewBag.Clients as System.Collections.Generic.IList<ClientOfferLookup> ?? new System.Collections.Generic.List<ClientOfferLookup>();
+    var offerContacts = ViewBag.OfferContacts as System.Collections.Generic.IList<ClientOfferLookup> ?? new System.Collections.Generic.List<ClientOfferLookup>();
     var plantillas = ViewBag.Plantillas as System.Collections.Generic.IList<ClientOfferLookup> ?? new System.Collections.Generic.List<ClientOfferLookup>();
+    var offerTemplates = ViewBag.OfferTemplates as System.Collections.Generic.IList<ClientOfferLookup> ?? new System.Collections.Generic.List<ClientOfferLookup>();
 }
 @Html.HiddenFor(m => m.IdObject)
 <div class="col-md-4">
@@ -34,6 +36,17 @@
     @Html.ValidationMessage("LinkCompany", "", new { @class = "text-danger" })
 </div>
 <div class="col-md-4">
+    <label class="form-label" for="LinkClientOfferBrand">@ClientOffer.Lbl_OfferTemplate</label>
+    <select class="form-select" id="LinkClientOfferBrand" name="LinkClientOfferBrand" required="required">
+        <option value="">@ClientOffer.Ph_Optional</option>
+        @foreach (var item in offerTemplates)
+        {
+            <option value="@item.Id" @(Model.LinkClientOfferBrand == item.Id ? "selected" : null)>@item.TextLabel</option>
+        }
+    </select>
+    @Html.ValidationMessage("LinkClientOfferBrand", "", new { @class = "text-danger" })
+</div>
+<div class="col-md-4">
     <label class="form-label" for="LinkPlantilla">@ClientOffer.Lbl_Plantilla</label>
     <select class="form-select" id="LinkPlantilla" name="LinkPlantilla">
         <option value="">@ClientOffer.Ph_Optional</option>
@@ -43,7 +56,7 @@
         }
     </select>
 </div>
-<div class="col-md-6">
+<div class="col-md-4">
     <label class="form-label" for="LinkDesign">@ClientOffer.Lbl_Design</label>
     <select class="form-select" id="LinkDesign" name="LinkDesign">
         <option value="">@ClientOffer.Ph_Optional</option>
@@ -83,6 +96,26 @@
         }
     </select>
 </div>
+<div class="col-md-6">
+    <label class="form-label" for="LinkClientOfferContact">@ClientOffer.Lbl_Contact</label>
+    <select class="form-select" id="LinkClientOfferContact" name="LinkClientOfferContact">
+        <option value="">@ClientOffer.Ph_Optional</option>
+        @foreach (var item in offerContacts)
+        {
+            <option value="@item.Id"
+                    data-email="@item.TextExtra"
+                    @(Model.LinkClientOfferContact == item.Id ? "selected" : null)>@item.TextLabel</option>
+        }
+    </select>
+</div>
+<div class="col-md-6">
+    <label class="form-label" for="TextContactName">@ClientOffer.Lbl_ContactName</label>
+    @Html.TextBoxFor(m => m.TextContactName, new { @class = "form-control", maxlength = "500" })
+</div>
+<div class="col-md-6">
+    <label class="form-label" for="TextContactEmail">@ClientOffer.Lbl_ContactEmail</label>
+    @Html.TextBoxFor(m => m.TextContactEmail, new { @class = "form-control", maxlength = "500" })
+</div>
 <div class="col-md-8">
     <label class="form-label" for="TextSubject">@ClientOffer.Lbl_Subject</label>
     @Html.TextBoxFor(m => m.TextSubject, new { @class = "form-control", maxlength = "500" })
@@ -102,6 +135,32 @@
     @Html.TextBoxFor(m => m.TextClientAddress, new { @class = "form-control", maxlength = "1000" })
 </div>
 <div class="col-12">
+    <label class="form-label" for="TextMaterial">@ClientOffer.Lbl_Material</label>
+    @Html.TextAreaFor(m => m.TextMaterial, new { @class = "form-control", rows = "4" })
+</div>
+<div class="col-12">
     <label class="form-label" for="TextRecuento">@ClientOffer.Lbl_Recuento</label>
     @Html.TextAreaFor(m => m.TextRecuento, new { @class = "form-control", rows = "4" })
 </div>
+<script type="text/javascript">
+    (function () {
+        var contact = document.getElementById('LinkClientOfferContact');
+        var emailInput = document.getElementById('TextContactEmail');
+        var nameInput = document.getElementById('TextContactName');
+        if (!contact || !emailInput || !nameInput) {
+            return;
+        }
+
+        contact.addEventListener('change', function () {
+            var selected = contact.options[contact.selectedIndex];
+            var email = selected ? (selected.getAttribute('data-email') || '') : '';
+            var label = selected ? (selected.textContent || '').trim() : '';
+            if (!emailInput.value) {
+                emailInput.value = email;
+            }
+            if (!nameInput.value) {
+                nameInput.value = label;
+            }
+        });
+    })();
+</script>

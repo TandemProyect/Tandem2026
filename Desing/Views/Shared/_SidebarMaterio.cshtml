@@ -61,6 +61,8 @@
 
     bool isCountryController = currentController.Equals("Country", StringComparison.OrdinalIgnoreCase);
 
+    bool isSystemCatalogController = currentController.Equals("SystemCatalog", StringComparison.OrdinalIgnoreCase);
+
 
 
     var configuracionMenu = new SidebarMenuGroupModel
@@ -73,7 +75,7 @@
 
         IconClass = "ri ri-settings-3-line",
 
-        IsOpen = isDocumentTypeController || isExtensionController || isOfferStateController || isXrDeviceController || isUiTranslationController || isLanguageController || isCountryController,
+        IsOpen = isDocumentTypeController || isExtensionController || isOfferStateController || isXrDeviceController || isUiTranslationController || isLanguageController || isCountryController || isSystemCatalogController,
 
         Children = new List<SidebarMenuChildItem>
 
@@ -138,6 +140,16 @@
 
             {
 
+                Controller = "SystemCatalog",
+
+                Text = UiCommon("Menu.Systems", "Sistemas")
+
+            },
+
+            new SidebarMenuChildItem
+
+            {
+
                 Controller = "UiTranslation",
 
                 Text = UiCommon("Menu.UiTranslations", "Traducciones UI")
@@ -171,17 +183,19 @@
 
     bool isDevelopAgentController = currentController.Equals("DevelopAgent", StringComparison.OrdinalIgnoreCase);
     bool isDevelopAiController = currentController.Equals("DevelopAi", StringComparison.OrdinalIgnoreCase);
+    bool isFormworkPanelColorController = currentController.Equals("FormworkPanelColor", StringComparison.OrdinalIgnoreCase);
 
     var developMenu = new SidebarMenuGroupModel
     {
         GroupId = "menu-develop",
         Title = UiCommon("Menu.Develop", "Develop"),
         IconClass = "ri ri-code-s-slash-line",
-        IsOpen = isDevelopAgentController || isDevelopAiController || isClientOfferController,
+        IsOpen = isDevelopAgentController || isDevelopAiController || isClientOfferController || isFormworkPanelColorController,
         Children = new List<SidebarMenuChildItem>
         {
             new SidebarMenuChildItem { Controller = "DevelopAgent", Text = UiCommon("Menu.DevelopAgents", "Agentes") },
             new SidebarMenuChildItem { Controller = "DevelopAi", Text = UiCommon("Menu.DevelopAi", "IA") },
+            new SidebarMenuChildItem { Controller = "FormworkPanelColor", Text = UiCommon("Menu.FormworkPanelColor", "Colores de panel") },
             new SidebarMenuChildItem { Controller = "ClientOffer", Action = "Texts", Text = UiCommon("Menu.ClientOfferTexts", "Textos y logo de oferta") },
             new SidebarMenuChildItem { Controller = "ClientOffer", Text = UiCommon("Menu.ClientOffer", "Oferta cliente") }
         }

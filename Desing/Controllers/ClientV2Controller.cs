@@ -3,6 +3,7 @@ using DataTables.Mvc;
 using Desing.Helpers;
 using Desing.Models;
 using Desing.Resources;
+using Microsoft.AspNet.Identity;
 using System;
 using System.IO;
 using System.Linq;
@@ -742,6 +743,261 @@ namespace Desing.Controllers
             }
         }
 
+        [HttpPost]
+        public JsonResult ListClientContacts(long clientId, [ModelBinder(typeof(DataTablesBinder))] IDataTablesRequest requestModel)
+        {
+            try
+            {
+                if (!ClientExists(clientId))
+                {
+                    return Json(DataTablesMvcJson.Create(requestModel.Draw, new object[0], 0, 0), JsonRequestBehavior.AllowGet);
+                }
+
+                var rows = db.Database.SqlQuery<ClientContactListRow>(@"
+SELECT c.IdObject, c.TextLabel, c.TextEmail, c.TextPhone, c.Is_Default, c.Is_Active,
+       ISNULL(sts.TextCode, N'ALTA') AS StateCode,
+       ISNULL(sts.TextLabel, N'Alta') AS StateLabel,
+       sts.AddStatusDate
+  FROM dbo.TSql_ClientOfferContact c
+ OUTER APPLY (
+       SELECT TOP (1) stt.TextCode, stt.TextLabel, st.AddStatusDate
+         FROM dbo.TSql_ClientOfferContactState st
+         JOIN dbo.TSql_ClientOfferContactStateType stt ON stt.IdObject = st.LinkClientOfferContactStateType
+        WHERE st.LinkClientOfferContact = c.IdObject
+          AND st.Is_Delete = 0
+        ORDER BY st.AddStatusDate DESC, st.IdObject DESC
+ ) sts
+ WHERE c.Is_Delete = 0
+   AND c.LinkClient_V2 = @p0", clientId).ToList().AsQueryable();
+
+                var totalCount = rows.Count();
+                if (!string.IsNullOrEmpty(requestModel.Search.Value))
+                {
+                    var value = requestModel.Search.Value.Trim();
+                    rows = rows.Where(p =>
+                        (p.TextLabel ?? "").IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0
+                        || (p.TextEmail ?? "").IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0
+                        || (p.TextPhone ?? "").IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0
+                        || (p.StateLabel ?? "").IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0);
+                }
+
+                var filteredCount = rows.Count();
+                rows = rows.OrderBy(ClientWorkspaceOrder(requestModel, "TextLabel asc",
+                    "textLabel|textLabelPlain", "TextLabel",
+                    "textEmail", "TextEmail",
+                    "textPhone", "TextPhone",
+                    "stateLabel", "StateLabel",
+                    "isDefault", "Is_Default",
+                    "addStatusDate|addStatusDateFmt", "AddStatusDate"));
+                rows = rows.ApplyDataTablesPaging(requestModel.Start, requestModel.Length);
+
+                var tipDefault = HttpUtility.HtmlAttributeEncode(ClientV2.Ws_ContactsBtnDefault);
+                var tipApplyState = HttpUtility.HtmlAttributeEncode(ClientV2.Ws_ContactsBtnSetState);
+                var activeStates = ClientOfferRepository.ListContactStateTypes(db, onlyActive: true);
+
+                var data = rows.ToList().Select(p =>
+                {
+                    var stateBadge = BuildContactStateBadge(p.StateCode, p.StateLabel);
+                    var defaultBadge = p.Is_Default
+                        ? "<span class=\"badge bg-label-primary\">" + HttpUtility.HtmlEncode(ClientV2.Ws_ContactsDefaultYes) + "</span>"
+                        : "<span class=\"badge bg-label-secondary\">" + HttpUtility.HtmlEncode(ClientV2.Ws_ContactsDefaultNo) + "</span>";
+
+                    var btnDefault = "<button type=\"button\" class=\"btn btn-xs btn-outline-primary js-contact-default\" data-id=\"" + p.IdObject + "\" title=\"" + tipDefault + "\"><span class=\"fas fa-star\"></span></button>";
+                    var options = string.Join("", activeStates.Select(s =>
+                    {
+                        var code = (s.TextCode ?? "").Trim().ToUpperInvariant();
+                        var selected = string.Equals(code, (p.StateCode ?? "").Trim().ToUpperInvariant(), StringComparison.OrdinalIgnoreCase)
+                            ? " selected=\"selected\""
+                            : "";
+                        return "<option value=\"" + HttpUtility.HtmlAttributeEncode(code) + "\"" + selected + ">" +
+                               HttpUtility.HtmlEncode(s.TextLabel ?? code) + "</option>";
+                    }));
+                    var stateSelector = "<select class=\"form-select form-select-sm js-contact-state-select\" data-id=\"" + p.IdObject + "\" style=\"min-width:140px;\">" + options + "</select>";
+                    var btnApplyState = "<button type=\"button\" class=\"btn btn-xs btn-outline-success js-contact-state-apply\" data-id=\"" + p.IdObject + "\" title=\"" + tipApplyState + "\"><span class=\"fas fa-check\"></span></button>";
+
+                    return new
+                    {
+                        IdObject = p.IdObject,
+                        textLabel = HttpUtility.HtmlEncode(p.TextLabel ?? ""),
+                        textLabelPlain = p.TextLabel ?? "",
+                        textEmail = HttpUtility.HtmlEncode(p.TextEmail ?? ""),
+                        textPhone = HttpUtility.HtmlEncode(p.TextPhone ?? ""),
+                        stateLabel = stateBadge,
+                        isDefault = defaultBadge,
+                        addStatusDate = p.AddStatusDate,
+                        addStatusDateFmt = p.AddStatusDate.HasValue
+                            ? HttpUtility.HtmlEncode(p.AddStatusDate.Value.ToString("g"))
+                            : HttpUtility.HtmlEncode(ClientV2.Details_NoValue),
+                        rowActions = "<div class=\"d-inline-flex align-items-center gap-1\">" + btnDefault + stateSelector + btnApplyState + "</div>"
+                    };
+                }).ToList();
+
+                return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, totalCount), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(ex.Message);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult CreateClientContact(long clientId, string textLabel, string textEmail, string textPhone, bool isDefault = false)
+        {
+            if (!ClientExists(clientId))
+            {
+                return Json(new { IsOk = false, Message = ClientV2.Err_ClientNotFound });
+            }
+
+            var name = (textLabel ?? "").Trim();
+            if (name.Length == 0)
+            {
+                return Json(new { IsOk = false, Message = ClientV2.Ws_ContactsErrNameRequired });
+            }
+
+            var email = (textEmail ?? "").Trim();
+            if (email.Length > 0 && !EmailRegex.IsMatch(email))
+            {
+                return Json(new { IsOk = false, Message = ClientV2.Val_EmailFormat });
+            }
+
+            var companyId = ClientOfferRepository.UserCompanyId(db, User.Identity.GetUserId());
+            if (!companyId.HasValue || companyId.Value <= 0)
+            {
+                return Json(new { IsOk = false, Message = ClientV2.Ws_ContactsErrCompanyMissing });
+            }
+
+            var phone = (textPhone ?? "").Trim();
+            var userId = User.Identity.GetUserId() ?? "system";
+
+            using (var tx = db.Database.BeginTransaction())
+            {
+                try
+                {
+                    if (isDefault)
+                    {
+                        db.Database.ExecuteSqlCommand(@"
+UPDATE dbo.TSql_ClientOfferContact
+   SET Is_Default = 0
+ WHERE Is_Delete = 0
+   AND LinkClient_V2 = @p0", clientId);
+                    }
+
+                    var contactId = db.Database.SqlQuery<long>(@"
+INSERT INTO dbo.TSql_ClientOfferContact
+    (TextLabel, LinkCompany, LinkClient_V2, TextEmail, TextPhone, Is_Default,
+     Is_Delete, Is_Active, LinkMadeBy, LinModifiedBy, AddDateMade, AddLastDateChange, Ntimeschanged)
+OUTPUT INSERTED.IdObject
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, 0, 1, @p6, NULL, GETDATE(), NULL, 0)",
+                        name, companyId.Value, clientId,
+                        string.IsNullOrEmpty(email) ? (object)DBNull.Value : email,
+                        string.IsNullOrEmpty(phone) ? (object)DBNull.Value : phone,
+                        isDefault,
+                        userId).Single();
+
+                    InsertClientContactState(contactId, "ALTA", userId, null);
+                    tx.Commit();
+                    return Json(new { IsOk = true });
+                }
+                catch (Exception ex)
+                {
+                    tx.Rollback();
+                    return Json(new { IsOk = false, Message = ex.Message });
+                }
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult SetClientContactState(long contactId, string stateCode)
+        {
+            var code = (stateCode ?? "").Trim().ToUpperInvariant();
+            var stateType = ClientOfferRepository.GetContactStateTypeByCode(db, code, onlyActive: true);
+            if (stateType == null)
+            {
+                return Json(new { IsOk = false, Message = ClientV2.Ws_ContactsErrStateInvalid });
+            }
+
+            var contact = db.Database.SqlQuery<ClientContactScopeRow>(@"
+SELECT TOP (1) IdObject, LinkClient_V2, Is_Default
+  FROM dbo.TSql_ClientOfferContact
+ WHERE IdObject = @p0
+   AND Is_Delete = 0", contactId).FirstOrDefault();
+            if (contact == null || !contact.LinkClient_V2.HasValue)
+            {
+                return Json(new { IsOk = false, Message = ClientV2.Ws_ContactsErrNotFound });
+            }
+
+            var userId = User.Identity.GetUserId() ?? "system";
+            using (var tx = db.Database.BeginTransaction())
+            {
+                try
+                {
+                    InsertClientContactState(contactId, code, userId, null);
+                    if ((code == "BAJA" || code == "ENFERMO") && contact.Is_Default)
+                    {
+                        db.Database.ExecuteSqlCommand(@"
+UPDATE dbo.TSql_ClientOfferContact SET Is_Default = 0 WHERE IdObject = @p0", contactId);
+                    }
+
+                    tx.Commit();
+                    return Json(new { IsOk = true });
+                }
+                catch (Exception ex)
+                {
+                    tx.Rollback();
+                    return Json(new { IsOk = false, Message = ex.Message });
+                }
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult SetClientContactDefault(long contactId)
+        {
+            var contact = db.Database.SqlQuery<ClientContactScopeRow>(@"
+SELECT TOP (1) IdObject, LinkClient_V2, Is_Default
+  FROM dbo.TSql_ClientOfferContact
+ WHERE IdObject = @p0
+   AND Is_Delete = 0", contactId).FirstOrDefault();
+            if (contact == null || !contact.LinkClient_V2.HasValue)
+            {
+                return Json(new { IsOk = false, Message = ClientV2.Ws_ContactsErrNotFound });
+            }
+
+            var currentState = db.Database.SqlQuery<string>(@"
+SELECT TOP (1) stt.TextCode
+  FROM dbo.TSql_ClientOfferContactState st
+  JOIN dbo.TSql_ClientOfferContactStateType stt ON stt.IdObject = st.LinkClientOfferContactStateType
+ WHERE st.Is_Delete = 0
+   AND st.LinkClientOfferContact = @p0
+ ORDER BY st.AddStatusDate DESC, st.IdObject DESC", contactId).FirstOrDefault() ?? "ALTA";
+
+            if (currentState == "BAJA" || currentState == "ENFERMO")
+            {
+                return Json(new { IsOk = false, Message = ClientV2.Ws_ContactsErrStateBlocked });
+            }
+
+            using (var tx = db.Database.BeginTransaction())
+            {
+                try
+                {
+                    db.Database.ExecuteSqlCommand(@"
+UPDATE dbo.TSql_ClientOfferContact
+   SET Is_Default = CASE WHEN IdObject = @p0 THEN 1 ELSE 0 END
+ WHERE Is_Delete = 0
+   AND LinkClient_V2 = @p1", contactId, contact.LinkClient_V2.Value);
+                    tx.Commit();
+                    return Json(new { IsOk = true });
+                }
+                catch (Exception ex)
+                {
+                    tx.Rollback();
+                    return Json(new { IsOk = false, Message = ex.Message });
+                }
+            }
+        }
+
         public ActionResult DownloadClientDocument(long id, long clientId)
         {
             var doc = db.TSql_Document.FirstOrDefault(d => d.IdObject == id && !d.Is_Delete);
@@ -873,6 +1129,44 @@ namespace Desing.Controllers
             return string.IsNullOrEmpty(orderByString) ? fallback : orderByString;
         }
 
+        private static string BuildContactStateBadge(string stateCode, string stateLabel)
+        {
+            var code = (stateCode ?? "").Trim().ToUpperInvariant();
+            var text = HttpUtility.HtmlEncode(string.IsNullOrWhiteSpace(stateLabel) ? "—" : stateLabel);
+            switch (code)
+            {
+                case "BAJA":
+                    return "<span class=\"badge bg-label-danger\">" + text + "</span>";
+                case "ENFERMO":
+                    return "<span class=\"badge bg-label-warning\">" + text + "</span>";
+                default:
+                    return "<span class=\"badge bg-label-success\">" + text + "</span>";
+            }
+        }
+
+        private void InsertClientContactState(long contactId, string stateCode, string userId, string notes)
+        {
+            var stateTypeId = db.Database.SqlQuery<long>(@"
+SELECT TOP (1) IdObject
+  FROM dbo.TSql_ClientOfferContactStateType
+ WHERE Is_Delete = 0
+   AND TextCode = @p0", stateCode).FirstOrDefault();
+            if (stateTypeId <= 0)
+            {
+                throw new InvalidOperationException("Estado de contacto no válido.");
+            }
+
+            db.Database.ExecuteSqlCommand(@"
+INSERT INTO dbo.TSql_ClientOfferContactState
+    (LinkClientOfferContact, LinkClientOfferContactStateType, AddStatusDate, TextNotes,
+     Is_Delete, Is_Active, LinkMadeBy, LinModifiedBy, AddDateMade, AddLastDateChange, Ntimeschanged)
+VALUES (@p0, @p1, GETDATE(), @p2, 0, 1, @p3, NULL, GETDATE(), NULL, 0)",
+                contactId,
+                stateTypeId,
+                string.IsNullOrWhiteSpace(notes) ? (object)DBNull.Value : notes,
+                userId ?? "system");
+        }
+
         private static string EyeLink(string href, string tip)
         {
             return "<a class=\"btn btn-info btn-xs\" href=\"" + href + "\" title=\"" + tip + "\" aria-label=\"" + tip + "\">" +
@@ -934,6 +1228,26 @@ namespace Desing.Controllers
                 "Value",
                 "Text",
                 selected);
+        }
+
+        private class ClientContactListRow
+        {
+            public long IdObject { get; set; }
+            public string TextLabel { get; set; }
+            public string TextEmail { get; set; }
+            public string TextPhone { get; set; }
+            public bool Is_Default { get; set; }
+            public bool Is_Active { get; set; }
+            public string StateCode { get; set; }
+            public string StateLabel { get; set; }
+            public DateTime? AddStatusDate { get; set; }
+        }
+
+        private class ClientContactScopeRow
+        {
+            public long IdObject { get; set; }
+            public long? LinkClient_V2 { get; set; }
+            public bool Is_Default { get; set; }
         }
 
         protected override void Dispose(bool disposing)
