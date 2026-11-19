@@ -1,8 +1,24 @@
 @model Desing.Helpers.ClientOfferRow
+@using System
+@using System.Linq
+@using Desing.Helpers
 @using Desing.Resources
 @{
     Layout = null;
     var logo = Model.TextLogo ?? "";
+    var logos = (Model.TemplateLogos ?? new System.Collections.Generic.List<string>())
+        .Where(p => !string.IsNullOrWhiteSpace(p))
+        .ToList();
+    if (logos.Count == 0 && !string.IsNullOrWhiteSpace(logo))
+    {
+        logos.Add(logo);
+    }
+
+    var headerRaw = Model.HeaderBody ?? "";
+    var marker = ClientOfferMerge.LogosMarker;
+    var markerIndex = headerRaw.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+    var headerBeforeLogos = markerIndex >= 0 ? headerRaw.Substring(0, markerIndex) : headerRaw;
+    var headerAfterLogos = markerIndex >= 0 ? headerRaw.Substring(markerIndex + marker.Length) : "";
 }
 <!DOCTYPE html>
 <html>
@@ -22,12 +38,43 @@
     <div class="toolbar">
         <button type="button" onclick="window.print()">@ClientOffer.Btn_Print</button>
     </div>
-    @if (!string.IsNullOrEmpty(logo))
+    @if (markerIndex < 0)
     {
-        <img class="logo" src="@logo" alt="" />
+        if (logos.Count > 0)
+        {
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 16px 0;">
+                @foreach (var logoPath in logos)
+                {
+                    var logoUrl = logoPath.StartsWith("/") ? Url.Content("~" + logoPath) : logoPath;
+                    <img class="logo" src="@logoUrl" alt="" />
+                }
+            </div>
+        }
+        <h1>@Model.TextSubject</h1>
+        <pre>@headerRaw</pre>
     }
-    <h1>@Model.TextSubject</h1>
-    <pre>@Model.HeaderBody</pre>
+    else
+    {
+        <h1>@Model.TextSubject</h1>
+        if (!string.IsNullOrWhiteSpace(headerBeforeLogos))
+        {
+            <pre>@headerBeforeLogos</pre>
+        }
+        if (logos.Count > 0)
+        {
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 16px 0;">
+                @foreach (var logoPath in logos)
+                {
+                    var logoUrl = logoPath.StartsWith("/") ? Url.Content("~" + logoPath) : logoPath;
+                    <img class="logo" src="@logoUrl" alt="" />
+                }
+            </div>
+        }
+        if (!string.IsNullOrWhiteSpace(headerAfterLogos))
+        {
+            <pre>@headerAfterLogos</pre>
+        }
+    }
     @if (!string.IsNullOrWhiteSpace(Model.TextMaterial))
     {
         <h2 style="font-size:16px;margin:16px 0 8px 0;">@ClientOffer.Lbl_Material</h2>

@@ -124,6 +124,7 @@ namespace Desing.Resources
         public static string Ws_ContactsBtnBaja => ResourceManager.GetString(nameof(Ws_ContactsBtnBaja), resourceCulture);
         public static string Ws_ContactsBtnDefault => ResourceManager.GetString(nameof(Ws_ContactsBtnDefault), resourceCulture);
         public static string Ws_ContactsBtnEnfermo => ResourceManager.GetString(nameof(Ws_ContactsBtnEnfermo), resourceCulture);
+        public static string Ws_ContactsBtnDelete => ResourceManager.GetString(nameof(Ws_ContactsBtnDelete), resourceCulture);
         public static string Ws_ContactsBtnSetState => ResourceManager.GetString(nameof(Ws_ContactsBtnSetState), resourceCulture);
         public static string Ws_ContactsColDefault => ResourceManager.GetString(nameof(Ws_ContactsColDefault), resourceCulture);
         public static string Ws_ContactsColEmail => ResourceManager.GetString(nameof(Ws_ContactsColEmail), resourceCulture);
@@ -136,10 +137,14 @@ namespace Desing.Resources
         public static string Ws_ContactsErrCompanyMissing => ResourceManager.GetString(nameof(Ws_ContactsErrCompanyMissing), resourceCulture);
         public static string Ws_ContactsEmpty => ResourceManager.GetString(nameof(Ws_ContactsEmpty), resourceCulture);
         public static string Ws_ContactsErrGeneric => ResourceManager.GetString(nameof(Ws_ContactsErrGeneric), resourceCulture);
+        public static string Ws_ContactsMsgCreated => ResourceManager.GetString(nameof(Ws_ContactsMsgCreated), resourceCulture);
+        public static string Ws_ContactsMsgUpdated => ResourceManager.GetString(nameof(Ws_ContactsMsgUpdated), resourceCulture);
+        public static string Ws_ContactsMsgDeleted => ResourceManager.GetString(nameof(Ws_ContactsMsgDeleted), resourceCulture);
         public static string Ws_ContactsErrNameRequired => ResourceManager.GetString(nameof(Ws_ContactsErrNameRequired), resourceCulture);
         public static string Ws_ContactsErrNotFound => ResourceManager.GetString(nameof(Ws_ContactsErrNotFound), resourceCulture);
         public static string Ws_ContactsErrStateBlocked => ResourceManager.GetString(nameof(Ws_ContactsErrStateBlocked), resourceCulture);
         public static string Ws_ContactsErrStateInvalid => ResourceManager.GetString(nameof(Ws_ContactsErrStateInvalid), resourceCulture);
+        public static string Ws_ContactsConfirmDelete => ResourceManager.GetString(nameof(Ws_ContactsConfirmDelete), resourceCulture);
         public static string Ws_ContactsLblDefault => ResourceManager.GetString(nameof(Ws_ContactsLblDefault), resourceCulture);
         public static string Ws_ContactsLblEmail => ResourceManager.GetString(nameof(Ws_ContactsLblEmail), resourceCulture);
         public static string Ws_ContactsLblName => ResourceManager.GetString(nameof(Ws_ContactsLblName), resourceCulture);

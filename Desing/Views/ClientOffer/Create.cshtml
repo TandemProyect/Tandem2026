@@ -1,27 +1,80 @@
 @model Desing.Helpers.ClientOfferRow
+@using System.Collections.Generic
+@using Desing.Helpers
 @using Desing.Resources
 @{
     ViewBag.Title = ClientOffer.Page_Create;
+    var isPopupMode = ViewBag.PopupMode as bool? == true;
+    var offerTemplates = ViewBag.OfferTemplates as IList<ClientOfferLookup> ?? new List<ClientOfferLookup>();
+    if (isPopupMode)
+    {
+        Layout = "~/Views/Shared/_LayoutClientOfferPopup.cshtml";
+    }
 }
-<div class="d-flex align-items-center justify-content-between mb-4">
-    <h4 class="py-3 mb-0">
-        <span class="text-muted fw-light">
-            <a href="@Url.Action("Index", "Home")">@ClientOffer.Common_Home</a> /
-            <a href="@Url.Action("Index", "ClientOffer")">@ClientOffer.Index_Breadcrumb</a> /
-        </span> @ClientOffer.Page_Create
-    </h4>
-</div>
+@if (!isPopupMode)
+{
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h4 class="py-3 mb-0">
+            <span class="text-muted fw-light">
+                <a href="@Url.Action("Index", "Home")">@ClientOffer.Common_Home</a> /
+                <a href="@Url.Action("Index", "ClientOffer")">@ClientOffer.Index_Breadcrumb</a> /
+            </span> @ClientOffer.Page_Create
+        </h4>
+    </div>
+}
 <div class="card mb-4">
     <div class="card-body">
-        @using (Html.BeginForm("Create", "ClientOffer", FormMethod.Post, new { enctype = "multipart/form-data", @class = "row g-3", role = "form" }))
-        {
+        <form action="@Url.Action("Create", "ClientOffer")" method="post" enctype="multipart/form-data" class="row g-3" role="form">
             @Html.AntiForgeryToken()
+            <input type="hidden" name="popup" value="@(isPopupMode ? "true" : "false")" />
             @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
-            @Html.Partial("_OfferFormFields", Model)
-            <div class="col-12 border-top pt-3 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
-                <a href="@Url.Action("Index", "ClientOffer")" class="btn btn-outline-secondary">@Common.Btn_Cancel</a>
-                <button type="submit" class="btn btn-primary">@Common.Btn_Save</button>
-            </div>
-        }
+
+            @if (!isPopupMode)
+            {
+                @Html.Partial("_OfferFormFields", Model)
+                <div class="col-12 border-top pt-3 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
+                    <a href="@Url.Action("Index", "ClientOffer")" class="btn btn-outline-secondary">@Common.Btn_Cancel</a>
+                    <button type="submit" class="btn btn-primary">@Common.Btn_Save</button>
+                </div>
+            }
+
+            @if (isPopupMode)
+            {
+                @Html.HiddenFor(m => m.LinkDesign)
+                @Html.HiddenFor(m => m.LinkSystem)
+                @Html.HiddenFor(m => m.LinkCompany)
+                @Html.HiddenFor(m => m.LinkOffers)
+                @Html.HiddenFor(m => m.LinkJobside)
+                @Html.HiddenFor(m => m.LinkClient_V2)
+                @Html.HiddenFor(m => m.LinkPlantilla)
+                @Html.HiddenFor(m => m.TextClientAddress)
+                <div class="col-12">
+                    <h5 class="mb-1">@ClientOffer.Lbl_OfferTemplate</h5>
+                    <p class="text-muted mb-3">Elige una plantilla de tu empresa. Después se cargará el resultado para editarlo.</p>
+                    @Html.ValidationMessage("LinkClientOfferBrand", "", new { @class = "text-danger d-block mb-2" })
+                    @if (offerTemplates.Count == 0)
+                    {
+                        <div class="alert alert-warning mb-0">No hay plantillas de oferta en esta empresa. Créalas en Develop &gt; Plantilla oferta.</div>
+                    }
+                    @foreach (var template in offerTemplates)
+                    {
+                        <label class="border rounded p-3 d-flex align-items-center gap-3 mb-2 w-100" style="cursor:pointer;">
+                            <input type="radio" name="LinkClientOfferBrand" value="@template.Id" required="required" />
+                            <span>@template.TextLabel</span>
+                        </label>
+                    }
+                </div>
+                <div class="col-12 border-top pt-3 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
+                    @if (offerTemplates.Count == 0)
+                    {
+                        <button type="submit" class="btn btn-primary" disabled="disabled">Cargar plantilla</button>
+                    }
+                    else
+                    {
+                        <button type="submit" class="btn btn-primary">Cargar plantilla</button>
+                    }
+                </div>
+            }
+        </form>
     </div>
 </div>

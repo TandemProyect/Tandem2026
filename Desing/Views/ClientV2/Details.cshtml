@@ -330,6 +330,15 @@
     </div>
 </div>
 <div style="display:none;">@Html.AntiForgeryToken()</div>
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:1100;">
+    <div id="clientContactsToast" class="toast" role="status" aria-live="polite" aria-atomic="true">
+        <div id="clientContactsToastHeader" class="toast-header text-bg-success">
+            <strong class="me-auto">@ClientV2.Ws_ContactsTitle</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div id="clientContactsToastBody" class="toast-body"></div>
+    </div>
+</div>
 
 @section scripts
 {
@@ -457,6 +466,29 @@
             ]);
 
             var token = $('input[name="__RequestVerificationToken"]').first().val();
+            var ttContactsErrGeneric = @Html.Raw(JsonConvert.SerializeObject(ClientV2.Ws_ContactsErrGeneric));
+            var ttContactsMsgCreated = @Html.Raw(JsonConvert.SerializeObject(ClientV2.Ws_ContactsMsgCreated));
+            var ttContactsMsgUpdated = @Html.Raw(JsonConvert.SerializeObject(ClientV2.Ws_ContactsMsgUpdated));
+            var ttContactsMsgDeleted = @Html.Raw(JsonConvert.SerializeObject(ClientV2.Ws_ContactsMsgDeleted));
+            var contactToastEl = document.getElementById('clientContactsToast');
+            var contactToastBodyEl = document.getElementById('clientContactsToastBody');
+            var contactToastHeaderEl = document.getElementById('clientContactsToastHeader');
+            var contactToast = null;
+
+            function showContactToast(message, isError) {
+                if (!message) return;
+                if (!contactToastEl || !contactToastBodyEl || !contactToastHeaderEl || !window.bootstrap || !bootstrap.Toast) {
+                    if (isError) alert(message);
+                    return;
+                }
+
+                contactToastBodyEl.textContent = message;
+                contactToastHeaderEl.classList.toggle('text-bg-danger', !!isError);
+                contactToastHeaderEl.classList.toggle('text-bg-success', !isError);
+                contactToast = contactToast || new bootstrap.Toast(contactToastEl, { delay: isError ? 6000 : 3200 });
+                contactToast.show();
+            }
+
             $('#btnAddClientContact').on('click', function () {
                 var payload = {
                     clientId: @Model.IdObject,
@@ -468,7 +500,7 @@
                 };
                 $.post('@Url.Action("CreateClientContact", "ClientV2")', payload, function (res) {
                     if (!res || !res.IsOk) {
-                        alert((res && res.Message) || @Html.Raw(JsonConvert.SerializeObject(ClientV2.Ws_ContactsErrGeneric)));
+                        showContactToast((res && res.Message) || ttContactsErrGeneric, true);
                         return;
                     }
                     $('#clientContactName').val('');
@@ -476,6 +508,7 @@
                     $('#clientContactPhone').val('');
                     $('#clientContactDefault').prop('checked', false);
                     contactsTable.ajax.reload(null, false);
+                    showContactToast(ttContactsMsgCreated, false);
                 });
             });
 
@@ -486,10 +519,11 @@
                     __RequestVerificationToken: token
                 }, function (res) {
                     if (!res || !res.IsOk) {
-                        alert((res && res.Message) || @Html.Raw(JsonConvert.SerializeObject(ClientV2.Ws_ContactsErrGeneric)));
+                        showContactToast((res && res.Message) || ttContactsErrGeneric, true);
                         return;
                     }
                     contactsTable.ajax.reload(null, false);
+                    showContactToast(ttContactsMsgUpdated, false);
                 });
             });
 
@@ -503,10 +537,31 @@
                     __RequestVerificationToken: token
                 }, function (res) {
                     if (!res || !res.IsOk) {
-                        alert((res && res.Message) || @Html.Raw(JsonConvert.SerializeObject(ClientV2.Ws_ContactsErrGeneric)));
+                        showContactToast((res && res.Message) || ttContactsErrGeneric, true);
                         return;
                     }
                     contactsTable.ajax.reload(null, false);
+                    showContactToast(ttContactsMsgUpdated, false);
+                });
+            });
+
+            $(document).on('click', '.js-contact-delete', function () {
+                var id = $(this).data('id');
+                if (!id) return;
+                if (!confirm(@Html.Raw(JsonConvert.SerializeObject(ClientV2.Ws_ContactsConfirmDelete)))) {
+                    return;
+                }
+
+                $.post('@Url.Action("DeleteClientContact", "ClientV2")', {
+                    contactId: id,
+                    __RequestVerificationToken: token
+                }, function (res) {
+                    if (!res || !res.IsOk) {
+                        showContactToast((res && res.Message) || ttContactsErrGeneric, true);
+                        return;
+                    }
+                    contactsTable.ajax.reload(null, false);
+                    showContactToast(ttContactsMsgDeleted, false);
                 });
             });
 

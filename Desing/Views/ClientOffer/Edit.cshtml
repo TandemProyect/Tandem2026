@@ -1,91 +1,189 @@
 @model Desing.Helpers.ClientOfferRow
 @using Desing.Resources
+@using System.Web
 @{
     ViewBag.Title = ClientOffer.Page_Edit;
+    var isPopupMode = ViewBag.PopupMode as bool? == true;
+    var printUrl = Url.Action("Print", "ClientOffer", new { id = Model.IdObject });
+    if (isPopupMode)
+    {
+        Layout = "~/Views/Shared/_LayoutClientOfferPopup.cshtml";
+    }
 }
-<div class="d-flex align-items-center justify-content-between mb-4">
-    <h4 class="py-3 mb-0">
-        <span class="text-muted fw-light">
-            <a href="@Url.Action("Index", "Home")">@ClientOffer.Common_Home</a> /
-            <a href="@Url.Action("Index", "ClientOffer")">@ClientOffer.Index_Breadcrumb</a> /
-        </span> @ClientOffer.Page_Edit
-    </h4>
-    <div class="d-flex gap-2">
-        <button type="button" id="btnGeneratePdf" class="btn btn-outline-primary">@ClientOffer.Btn_GeneratePdf</button>
-        <a class="btn btn-outline-primary" href="@Url.Action("Print", "ClientOffer", new { id = Model.IdObject })" target="_blank">@ClientOffer.Btn_Print</a>
-    </div>
-</div>
-<div class="card mb-4">
-    <div class="card-body" id="offerEditFormCardBody">
-        @using (Html.BeginForm("Edit", "ClientOffer", FormMethod.Post, new { enctype = "multipart/form-data", @class = "row g-3", role = "form" }))
-        {
-            @Html.AntiForgeryToken()
-            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
-            @Html.Partial("_OfferFormFields", Model)
-            <div class="col-12">
-                <label class="form-label" for="HeaderBody">@ClientOffer.Lbl_Header</label>
-                @Html.TextAreaFor(m => m.HeaderBody, new { @class = "form-control", rows = "6" })
-            </div>
-            <div class="col-12">
-                <label class="form-label" for="TextBody">@ClientOffer.Lbl_Body</label>
-                @Html.TextAreaFor(m => m.TextBody, new { @class = "form-control", rows = "12" })
-            </div>
-            <div class="col-12 border-top pt-3 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
-                <a href="@Url.Action("Index", "ClientOffer")" class="btn btn-outline-secondary">@Common.Btn_Cancel</a>
-                <button type="submit" class="btn btn-outline-primary" name="rebuild" value="1">@ClientOffer.Btn_Rebuild</button>
-                <button type="submit" class="btn btn-primary">@Common.Btn_Save</button>
-            </div>
-        }
-    </div>
-</div>
-<div class="card mb-4">
-    <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
-            <h5 class="mb-0">@ClientOffer.Lbl_CapturesTitle</h5>
-            @if (Model.LinkDesign.HasValue && Model.LinkDesign.Value > 0)
-            {
-                <button type="button" id="btnAttachCaptureFromDesign" class="btn btn-outline-primary">@ClientOffer.Btn_AttachCapture</button>
-            }
+@if (!isPopupMode)
+{
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h4 class="py-3 mb-0">
+            <span class="text-muted fw-light">
+                <a href="@Url.Action("Index", "Home")">@ClientOffer.Common_Home</a> /
+                <a href="@Url.Action("Index", "ClientOffer")">@ClientOffer.Index_Breadcrumb</a> /
+            </span> @ClientOffer.Page_Edit
+        </h4>
+        <div class="d-flex gap-2">
+            <button type="button" id="btnGeneratePdf" class="btn btn-outline-primary">@ClientOffer.Btn_GeneratePdf</button>
+            <a class="btn btn-outline-primary" href="@Url.Action("Print", "ClientOffer", new { id = Model.IdObject })" target="_blank">@ClientOffer.Btn_Print</a>
         </div>
-        <div id="offerCaptureHint" class="alert alert-info d-none mb-3">
-            @ClientOffer.Msg_CaptureHint
-        </div>
-        @if (!(Model.LinkDesign.HasValue && Model.LinkDesign.Value > 0))
-        {
-            <div class="alert alert-warning mb-0">@ClientOffer.Msg_CaptureNeedDesign</div>
-        }
-        <div id="offerCaptureList" class="row g-3">
-            @if (Model.Captures != null)
-            {
-                foreach (var cap in Model.Captures)
-                {
-                    var imagePath = cap.TextImagePath ?? "";
-                    var imageUrl = imagePath.StartsWith("/") ? Url.Content("~" + imagePath) : imagePath;
-                    <div class="col-md-4" data-capture-id="@cap.IdObject">
-                        <div class="border rounded p-2 h-100 d-flex flex-column">
-                            <img src="@imageUrl" alt="" class="img-fluid rounded mb-2" />
-                            <div class="small text-muted mb-2">@cap.AddDateMade.ToString("g")</div>
-                            <button type="button" class="btn btn-sm btn-outline-danger js-delete-offer-capture mt-auto">@ClientOffer.List_DeleteTooltip</button>
+    </div>
+}
+@if (isPopupMode)
+{
+    @Html.AntiForgeryToken()
+    <div class="row g-3 align-items-start">
+        <div class="col-12 col-xl-9">
+            <div class="card mb-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
+                        <h5 class="mb-0">Resultado</h5>
+                        <div class="d-flex gap-2">
+                            <button type="button" id="btnGeneratePdf" class="btn btn-outline-primary btn-sm">@ClientOffer.Btn_GeneratePdf</button>
+                            <a class="btn btn-outline-primary btn-sm" href="@printUrl" target="_blank">@ClientOffer.Btn_Print</a>
+                            <button type="button" id="btnRefreshPopupPreview" class="btn btn-outline-secondary btn-sm">Actualizar vista</button>
                         </div>
                     </div>
-                }
+                    <iframe id="offerPopupPreviewFrame"
+                            src="@printUrl"
+                            title="Vista previa oferta"
+                            style="width:100%;height:calc(100vh - 88px);min-height:480px;border:1px solid #dee2e6;border-radius:8px;background:#fff;"></iframe>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-xl-3">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
+                        <h6 class="mb-0">@ClientOffer.Lbl_CapturesTitle</h6>
+                        @if (Model.LinkDesign.HasValue && Model.LinkDesign.Value > 0)
+                        {
+                            <button type="button" id="btnAttachCaptureFromDesign" class="btn btn-outline-primary btn-sm">@ClientOffer.Btn_AttachCapture</button>
+                        }
+                    </div>
+                    <div id="offerCaptureHint" class="alert alert-info d-none mb-3 py-2 px-3">
+                        @ClientOffer.Msg_CaptureHint
+                    </div>
+                    @if (!(Model.LinkDesign.HasValue && Model.LinkDesign.Value > 0))
+                    {
+                        <div class="alert alert-warning mb-2 py-2 px-3">@ClientOffer.Msg_CaptureNeedDesign</div>
+                    }
+                    <div id="offerCaptureList" class="row g-2">
+                        @if (Model.Captures != null)
+                        {
+                            foreach (var cap in Model.Captures)
+                            {
+                                var imagePath = cap.TextImagePath ?? "";
+                                var imageUrl = imagePath.StartsWith("/") ? Url.Content("~" + imagePath) : imagePath;
+                                <div class="col-12" data-capture-id="@cap.IdObject">
+                                    <div class="border rounded p-2 h-100 d-flex flex-column">
+                                        <img src="@imageUrl" alt="" class="img-fluid rounded mb-2" />
+                                        <div class="small text-muted mb-2">@cap.AddDateMade.ToString("g")</div>
+                                        <button type="button" class="btn btn-sm btn-outline-danger js-delete-offer-capture mt-auto">@ClientOffer.List_DeleteTooltip</button>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-0">
+                <div class="card-body">
+                    <h6 class="mb-2">@ClientOffer.Lbl_Assistant</h6>
+                    <div id="offerAiMessages" class="border rounded p-2 mb-2" style="max-height:220px;overflow:auto;background:#fafafa;"></div>
+                    <label class="form-label mb-1" for="offerAiPrompt">@ClientOffer.Lbl_AssistantPrompt</label>
+                    <textarea id="offerAiPrompt" class="form-control mb-2" rows="3"></textarea>
+                    <div class="d-flex gap-2 mb-2">
+                        <button type="button" id="btnOfferAiMic" class="btn btn-outline-secondary btn-sm flex-fill" title="Micrófono">🎤</button>
+                        <button type="button" id="btnOfferAiSpeaker" class="btn btn-outline-secondary btn-sm flex-fill" title="Altavoz">🔊</button>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" id="btnAskOfferAi" class="btn btn-outline-primary btn-sm flex-fill">@ClientOffer.Btn_AskAssistant</button>
+                        <button type="button" id="btnApplyOfferAi" class="btn btn-primary btn-sm flex-fill">@ClientOffer.Btn_ApplyAssistant</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card mb-4">
+        <div class="card-body" id="offerEditFormCardBody">
+            @using (Html.BeginForm("Edit", "ClientOffer", FormMethod.Post, new { enctype = "multipart/form-data", @class = "row g-3", role = "form" }))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="popup" value="false" />
+                @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+                @Html.Partial("_OfferFormFields", Model)
+                <div class="col-12">
+                    <label class="form-label" for="HeaderBody">@ClientOffer.Lbl_Header</label>
+                    @Html.TextAreaFor(m => m.HeaderBody, new { @class = "form-control", rows = "6" })
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="TextBody">@ClientOffer.Lbl_Body</label>
+                    @Html.TextAreaFor(m => m.TextBody, new { @class = "form-control", rows = "12" })
+                </div>
+                <div class="col-12 border-top pt-3 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
+                    <a href="@Url.Action("Index", "ClientOffer")" class="btn btn-outline-secondary">@Common.Btn_Cancel</a>
+                    <button type="submit" class="btn btn-outline-primary" name="rebuild" value="1">@ClientOffer.Btn_Rebuild</button>
+                    <button type="submit" class="btn btn-primary">@Common.Btn_Save</button>
+                </div>
             }
         </div>
     </div>
-</div>
-
-<div class="card mb-4">
-    <div class="card-body">
-        <h5 class="mb-3">@ClientOffer.Lbl_Assistant</h5>
-        <div id="offerAiMessages" class="border rounded p-3 mb-3" style="max-height:260px;overflow:auto;background:#fafafa;"></div>
-        <label class="form-label" for="offerAiPrompt">@ClientOffer.Lbl_AssistantPrompt</label>
-        <textarea id="offerAiPrompt" class="form-control" rows="3"></textarea>
-        <div class="d-flex justify-content-end gap-2 mt-3">
-            <button type="button" id="btnAskOfferAi" class="btn btn-outline-primary">@ClientOffer.Btn_AskAssistant</button>
-            <button type="button" id="btnApplyOfferAi" class="btn btn-primary">@ClientOffer.Btn_ApplyAssistant</button>
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
+                <h5 class="mb-0">@ClientOffer.Lbl_CapturesTitle</h5>
+                @if (Model.LinkDesign.HasValue && Model.LinkDesign.Value > 0)
+                {
+                    <button type="button" id="btnAttachCaptureFromDesign" class="btn btn-outline-primary">@ClientOffer.Btn_AttachCapture</button>
+                }
+            </div>
+            <div id="offerCaptureHint" class="alert alert-info d-none mb-3">
+                @ClientOffer.Msg_CaptureHint
+            </div>
+            @if (!(Model.LinkDesign.HasValue && Model.LinkDesign.Value > 0))
+            {
+                <div class="alert alert-warning mb-0">@ClientOffer.Msg_CaptureNeedDesign</div>
+            }
+            <div id="offerCaptureList" class="row g-3">
+                @if (Model.Captures != null)
+                {
+                    foreach (var cap in Model.Captures)
+                    {
+                        var imagePath = cap.TextImagePath ?? "";
+                        var imageUrl = imagePath.StartsWith("/") ? Url.Content("~" + imagePath) : imagePath;
+                        <div class="col-md-4" data-capture-id="@cap.IdObject">
+                            <div class="border rounded p-2 h-100 d-flex flex-column">
+                                <img src="@imageUrl" alt="" class="img-fluid rounded mb-2" />
+                                <div class="small text-muted mb-2">@cap.AddDateMade.ToString("g")</div>
+                                <button type="button" class="btn btn-sm btn-outline-danger js-delete-offer-capture mt-auto">@ClientOffer.List_DeleteTooltip</button>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
         </div>
     </div>
-</div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="mb-3">@ClientOffer.Lbl_Assistant</h5>
+            <div id="offerAiMessages" class="border rounded p-3 mb-3" style="max-height:260px;overflow:auto;background:#fafafa;"></div>
+            <label class="form-label" for="offerAiPrompt">@ClientOffer.Lbl_AssistantPrompt</label>
+            <textarea id="offerAiPrompt" class="form-control" rows="3"></textarea>
+            <div class="d-flex justify-content-between align-items-center mt-3 gap-2 flex-wrap">
+                <div class="d-flex gap-2">
+                    <button type="button" id="btnOfferAiMic" class="btn btn-outline-secondary btn-sm" title="Micrófono">🎤</button>
+                    <button type="button" id="btnOfferAiSpeaker" class="btn btn-outline-secondary btn-sm" title="Altavoz">🔊</button>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" id="btnAskOfferAi" class="btn btn-outline-primary">@ClientOffer.Btn_AskAssistant</button>
+                    <button type="button" id="btnApplyOfferAi" class="btn btn-primary">@ClientOffer.Btn_ApplyAssistant</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @section scripts{
 <script type="text/javascript">
@@ -97,6 +195,89 @@
         var ttError = '@Html.Raw(HttpUtility.JavaScriptStringEncode(ClientOffer.Msg_AssistantError))';
         var ttApplied = '@Html.Raw(HttpUtility.JavaScriptStringEncode(ClientOffer.Msg_AssistantApplied))';
         var captureWindow = null;
+        var recognition = null;
+        var micListening = false;
+        var speakerEnabled = true;
+        var $prompt = $('#offerAiPrompt');
+        var $btnMic = $('#btnOfferAiMic');
+        var $btnSpeaker = $('#btnOfferAiSpeaker');
+
+        function escapeHtml(v) {
+            return $('<div/>').text(v || '').html();
+        }
+
+        function textFromHtml(v) {
+            return $('<div/>').html(v || '').text();
+        }
+
+        function speak(text) {
+            if (!speakerEnabled || !window.speechSynthesis) return;
+            var spoken = (text || '').trim();
+            if (!spoken) return;
+            var utter = new SpeechSynthesisUtterance(spoken);
+            utter.lang = 'es-ES';
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(utter);
+        }
+
+        function updateMicUi() {
+            if (!$btnMic.length) return;
+            $btnMic.toggleClass('btn-secondary', micListening);
+            $btnMic.toggleClass('btn-outline-secondary', !micListening);
+            $btnMic.attr('title', micListening ? 'Parar micrófono' : 'Micrófono');
+        }
+
+        function updateSpeakerUi() {
+            if (!$btnSpeaker.length) return;
+            $btnSpeaker.toggleClass('btn-secondary', speakerEnabled);
+            $btnSpeaker.toggleClass('btn-outline-secondary', !speakerEnabled);
+            $btnSpeaker.attr('title', speakerEnabled ? 'Altavoz activo' : 'Altavoz apagado');
+        }
+
+        function stopMic() {
+            if (recognition && micListening) {
+                recognition.stop();
+            }
+            micListening = false;
+            updateMicUi();
+        }
+
+        function setupMic() {
+            var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) return;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'es-ES';
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            recognition.onstart = function () {
+                micListening = true;
+                updateMicUi();
+            };
+            recognition.onend = function () {
+                micListening = false;
+                updateMicUi();
+            };
+            recognition.onerror = function () {
+                micListening = false;
+                updateMicUi();
+            };
+            recognition.onresult = function (event) {
+                var finalText = '';
+                for (var i = event.resultIndex; i < event.results.length; i++) {
+                    var piece = event.results[i][0] ? event.results[i][0].transcript : '';
+                    if (!piece) continue;
+                    if (event.results[i].isFinal) {
+                        finalText += piece + ' ';
+                    }
+                }
+
+                finalText = finalText.trim();
+                if (!finalText) return;
+                var current = ($prompt.val() || '').trim();
+                $prompt.val(current ? (current + ' ' + finalText) : finalText);
+            };
+        }
 
         function renderMessages(items) {
             if (!items || !items.length) {
@@ -110,8 +291,8 @@
                 var role = (it.role || '').toLowerCase() === 'assistant' ? 'IA' : 'Tú';
                 var badge = role === 'IA' ? 'bg-label-info' : 'bg-label-primary';
                 html += '<div class="mb-2"><span class="badge ' + badge + '">' + role + '</span> '
-                    + '<span class="text-muted small">' + (it.date || '') + '</span><div style="white-space:pre-wrap;">'
-                    + $('<div/>').text(it.text || '').html() + '</div></div>';
+                    + '<span class="text-muted small">' + escapeHtml(it.date || '') + '</span><div style="white-space:pre-wrap;">'
+                    + escapeHtml(it.text || '') + '</div></div>';
             }
 
             $messages.html(html);
@@ -126,8 +307,19 @@
             });
         }
 
+        function refreshPreview() {
+            var frame = document.getElementById('offerPopupPreviewFrame');
+            if (!frame) return;
+            var base = '@Html.Raw(HttpUtility.JavaScriptStringEncode(printUrl))';
+            frame.src = base + (base.indexOf('?') >= 0 ? '&' : '?') + '_ts=' + Date.now();
+        }
+
+        $('#btnRefreshPopupPreview').on('click', function () {
+            refreshPreview();
+        });
+
         $('#btnAskOfferAi').on('click', function () {
-            var prompt = ($('#offerAiPrompt').val() || '').trim();
+            var prompt = ($prompt.val() || '').trim();
             if (!prompt) {
                 alert(ttEmpty);
                 return;
@@ -143,6 +335,7 @@
 
                     suggestion = res.Response;
                     refreshMessages();
+                    speak(textFromHtml(res.Response.answer || ''));
                 });
         });
 
@@ -156,6 +349,7 @@
             if (suggestion.header) { $('#HeaderBody').val(suggestion.header); }
             if (suggestion.body) { $('#TextBody').val(suggestion.body); }
             alert(ttApplied);
+            refreshPreview();
         });
 
         $('#btnGeneratePdf').on('click', function () {
@@ -192,13 +386,44 @@
                     }
 
                     $card.remove();
+                    refreshPreview();
                 });
+        });
+
+        $btnSpeaker.on('click', function () {
+            speakerEnabled = !speakerEnabled;
+            if (!speakerEnabled && window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+            }
+            updateSpeakerUi();
+        });
+
+        $btnMic.on('click', function () {
+            if (!recognition) {
+                alert('El micrófono no está disponible en este navegador.');
+                return;
+            }
+
+            if (micListening) {
+                stopMic();
+                return;
+            }
+
+            try {
+                recognition.start();
+            } catch (_e) {
+                micListening = false;
+                updateMicUi();
+            }
         });
 
         window.addEventListener('tandem:client-offer-capture-added', function () {
             window.location.reload();
         });
 
+        setupMic();
+        updateMicUi();
+        updateSpeakerUi();
         refreshMessages();
     })();
 </script>

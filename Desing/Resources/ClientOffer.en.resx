@@ -11,7 +11,7 @@
   <data name="Col_System" xml:space="preserve"><value>System</value></data>
   <data name="Common_Home" xml:space="preserve"><value>Home</value></data>
   <data name="Common_Settings" xml:space="preserve"><value>Settings</value></data>
-  <data name="Err_BrandDuplicate" xml:space="preserve"><value>A general text already exists for that company and system.</value></data>
+  <data name="Err_BrandDuplicate" xml:space="preserve"><value>An offer template already exists for that company and system.</value></data>
   <data name="Err_CompanyRequired" xml:space="preserve"><value>Company is required.</value></data>
   <data name="Err_LabelRequired" xml:space="preserve"><value>Name is required.</value></data>
   <data name="Err_LogoFormat" xml:space="preserve"><value>Logo must be png, jpg, gif or svg.</value></data>
@@ -20,9 +20,10 @@
   <data name="Err_SystemRequired" xml:space="preserve"><value>The offer system is required.</value></data>
   <data name="Err_TemplateInvalid" xml:space="preserve"><value>The selected template is not valid for this company/system.</value></data>
   <data name="Err_TemplateRequired" xml:space="preserve"><value>An offer template must be selected.</value></data>
+  <data name="Err_TemplateTextInvalid" xml:space="preserve"><value>Template text blocks could not be parsed. Save them again.</value></data>
   <data name="Index_Breadcrumb" xml:space="preserve"><value>Client offer</value></data>
   <data name="Index_Create" xml:space="preserve"><value>New offer</value></data>
-  <data name="Index_Texts" xml:space="preserve"><value>Texts and logo</value></data>
+  <data name="Index_Texts" xml:space="preserve"><value>Offer template</value></data>
   <data name="Js_ConfirmDelete" xml:space="preserve"><value>Delete this record?</value></data>
   <data name="Lbl_Active" xml:space="preserve"><value>Active</value></data>
   <data name="Lbl_Address" xml:space="preserve"><value>Client address</value></data>
@@ -53,9 +54,9 @@
   <data name="List_EditTooltip" xml:space="preserve"><value>Edit</value></data>
   <data name="Msg_NoTable" xml:space="preserve"><value>Client offer tables are missing in develop.</value></data>
   <data name="Page_Create" xml:space="preserve"><value>New offer</value></data>
-  <data name="Page_CreateText" xml:space="preserve"><value>New general text</value></data>
+  <data name="Page_CreateText" xml:space="preserve"><value>New offer template</value></data>
   <data name="Page_Edit" xml:space="preserve"><value>Edit offer</value></data>
-  <data name="Page_EditText" xml:space="preserve"><value>Edit general text</value></data>
+  <data name="Page_EditText" xml:space="preserve"><value>Edit offer template</value></data>
   <data name="Page_Print" xml:space="preserve"><value>PDF preview</value></data>
   <data name="Ph_Optional" xml:space="preserve"><value>(not set)</value></data>
   <data name="Ph_System" xml:space="preserve"><value>Choose the system</value></data>
@@ -69,7 +70,7 @@
   <data name="Msg_AssistantEmpty" xml:space="preserve"><value>Write an instruction for AI.</value></data>
   <data name="Msg_AssistantApplied" xml:space="preserve"><value>Proposal applied. Review and save.</value></data>
   <data name="Msg_AssistantError" xml:space="preserve"><value>The AI proposal could not be generated.</value></data>
-  <data name="Texts_Breadcrumb" xml:space="preserve"><value>Texts and logo</value></data>
+  <data name="Texts_Breadcrumb" xml:space="preserve"><value>Offer template</value></data>
   <data name="Lbl_Material" xml:space="preserve"><value>Materials (leave blank; will come from materials view)</value></data>
   <data name="ContactStates_Title" xml:space="preserve"><value>Contact states</value></data>
   <data name="ContactStates_Code" xml:space="preserve"><value>Code</value></data>

@@ -14,10 +14,25 @@ Generar y editar una oferta de cliente desde diseño, con:
 
 ## Flujo actual
 
-1. Desde visor Desing_2 se abre oferta (`OpenFromDesign`).
-2. En oferta, el usuario pulsa **Adjuntar captura**.
-3. Se abre visor en modo captura (sin UI en imagen).
-4. En visor, **Foto del diseño** adjunta la captura a la oferta (repetible N veces).
+0. En **Configuración > Plantilla oferta**, fase actual del constructor visual:
+   - izquierda: página A4 en blanco;
+   - se puede arrastrar y redimensionar el logo libremente; posición+tamaño se guardan en `TextLayoutJson`; al colocarlo en A4 desaparece del panel derecho;
+   - sección **Direcciones** opcional con 2 bloques fijos (arrastrables): **Datos del cliente** y **Datos de la empresa**; al arrastrar uno al A4 desaparece del panel derecho.
+   - sección **Texto inicial y final** con botón **Adjuntar texto** (popup editor rico: negrita, cursiva, subrayado, alineación y listas), bloques arrastrables al A4 y opción **Guardar como** para reutilizar en otras plantillas de la misma empresa.
+   - sección **Complementos** con **Recuento del diseño** (placeholder de ejemplo), arrastrable/redimensionable en A4, persistido en `TextLayoutJson` y oculto en el panel derecho cuando ya está colocado.
+1. Desde visor Desing_2 se abre oferta (`OpenFromDesign`):
+   - al pulsar, se muestra estado de carga **solo mientras el iframe no está listo**;
+   - al cargar el selector de plantillas el overlay se oculta y **no vuelve a los 2,5 s**;
+   - el overlay reaparece al pulsar **Cargar plantilla** (POST) hasta que salga el resultado;
+   - el popup de oferta es movible (arrastrable por la cabecera) sobre el visor.
+   - no cambia el modo activo del visor (si estás en encofrado, permanece en encofrado).
+2. En popup de oferta, **solo se elige una plantilla de la empresa del usuario**.
+   - sistema, empresa, diseño, oferta, obra y cliente se infieren del contexto;
+   - al elegir, se crea el borrador y se abre la edición con el resultado.
+3. El popup de edición **no usa el layout de intranet** (sin menú, navbar ni «Datos de la oferta»):
+   - izquierda: **Resultado** (vista previa);
+   - derecha (estrecho): **Adjuntar planos** e **IA** (historial, input, micrófono y altavoz).
+4. Al adjuntar plano se abre visor en modo captura (sin UI en imagen) y **Foto del diseño** lo inserta en la oferta (N veces).
 5. En edición/print/PDF aparecen las capturas en bloque de planos.
 
 ## Estructura BD (SQL Server)
@@ -26,6 +41,8 @@ Tablas de oferta:
 
 - `TSql_ClientOffer`
 - `TSql_ClientOfferBrand`
+- `TSql_ClientOfferBrandLogo` (N logos por plantilla)
+- `TSql_ClientOfferBrandText` (N textos por plantilla)
 - `TSql_ClientOfferSection`
 - `TSql_ClientOfferAiMessage`
 - `TSql_ClientOfferContact`
@@ -43,6 +60,7 @@ Reglas clave:
 ## Scripts SQL relevantes (idempotentes)
 
 - [2026-11-18_create_TSql_ClientOffer.sql](C:/Users/jag/00_Tandem2026/Desing/Scripts/TemporalScript/2026-11-18_create_TSql_ClientOffer.sql)
+- [2026-11-19_alter_TSql_ClientOfferBrand_template_builder.sql](C:/Users/jag/00_Tandem2026/Desing/Scripts/TemporalScript/2026-11-19_alter_TSql_ClientOfferBrand_template_builder.sql)
 - [2026-11-18_alter_TSql_ClientOffer_add_contacts_and_template_seed.sql](C:/Users/jag/00_Tandem2026/Desing/Scripts/TemporalScript/2026-11-18_alter_TSql_ClientOffer_add_contacts_and_template_seed.sql)
 - [2026-11-18_sync_clientoffer_contact_states_refactor.sql](C:/Users/jag/00_Tandem2026/Desing/Scripts/TemporalScript/2026-11-18_sync_clientoffer_contact_states_refactor.sql)
 - [2026-11-18_alter_TSql_ClientOffer_add_captures.sql](C:/Users/jag/00_Tandem2026/Desing/Scripts/TemporalScript/2026-11-18_alter_TSql_ClientOffer_add_captures.sql)

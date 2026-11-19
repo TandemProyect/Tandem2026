@@ -75,7 +75,7 @@
 
         IconClass = "ri ri-settings-3-line",
 
-        IsOpen = isDocumentTypeController || isExtensionController || isOfferStateController || isXrDeviceController || isUiTranslationController || isLanguageController || isCountryController || isSystemCatalogController,
+        IsOpen = isDocumentTypeController || isExtensionController || isOfferStateController || isXrDeviceController || isUiTranslationController || isLanguageController || isCountryController || isSystemCatalogController || isClientOfferController,
 
         Children = new List<SidebarMenuChildItem>
 
@@ -145,6 +145,15 @@
                 Text = UiCommon("Menu.Systems", "Sistemas")
 
             },
+            new SidebarMenuChildItem
+
+            {
+
+                Controller = "ClientOffer",
+                Action = "Texts",
+                Text = UiCommon("Menu.ClientOfferTemplate", "Plantilla oferta")
+
+            },
 
             new SidebarMenuChildItem
 
@@ -190,14 +199,12 @@
         GroupId = "menu-develop",
         Title = UiCommon("Menu.Develop", "Develop"),
         IconClass = "ri ri-code-s-slash-line",
-        IsOpen = isDevelopAgentController || isDevelopAiController || isClientOfferController || isFormworkPanelColorController,
+        IsOpen = isDevelopAgentController || isDevelopAiController || isFormworkPanelColorController,
         Children = new List<SidebarMenuChildItem>
         {
             new SidebarMenuChildItem { Controller = "DevelopAgent", Text = UiCommon("Menu.DevelopAgents", "Agentes") },
             new SidebarMenuChildItem { Controller = "DevelopAi", Text = UiCommon("Menu.DevelopAi", "IA") },
-            new SidebarMenuChildItem { Controller = "FormworkPanelColor", Text = UiCommon("Menu.FormworkPanelColor", "Colores de panel") },
-            new SidebarMenuChildItem { Controller = "ClientOffer", Action = "Texts", Text = UiCommon("Menu.ClientOfferTexts", "Textos y logo de oferta") },
-            new SidebarMenuChildItem { Controller = "ClientOffer", Text = UiCommon("Menu.ClientOffer", "Oferta cliente") }
+            new SidebarMenuChildItem { Controller = "FormworkPanelColor", Text = UiCommon("Menu.FormworkPanelColor", "Colores de panel") }
         }
     };
 

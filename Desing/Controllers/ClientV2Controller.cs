@@ -793,6 +793,7 @@ SELECT c.IdObject, c.TextLabel, c.TextEmail, c.TextPhone, c.Is_Default, c.Is_Act
 
                 var tipDefault = HttpUtility.HtmlAttributeEncode(ClientV2.Ws_ContactsBtnDefault);
                 var tipApplyState = HttpUtility.HtmlAttributeEncode(ClientV2.Ws_ContactsBtnSetState);
+                var tipDelete = HttpUtility.HtmlAttributeEncode(ClientV2.Ws_ContactsBtnDelete);
                 var activeStates = ClientOfferRepository.ListContactStateTypes(db, onlyActive: true);
 
                 var data = rows.ToList().Select(p =>
@@ -814,6 +815,7 @@ SELECT c.IdObject, c.TextLabel, c.TextEmail, c.TextPhone, c.Is_Default, c.Is_Act
                     }));
                     var stateSelector = "<select class=\"form-select form-select-sm js-contact-state-select\" data-id=\"" + p.IdObject + "\" style=\"min-width:140px;\">" + options + "</select>";
                     var btnApplyState = "<button type=\"button\" class=\"btn btn-xs btn-outline-success js-contact-state-apply\" data-id=\"" + p.IdObject + "\" title=\"" + tipApplyState + "\"><span class=\"fas fa-check\"></span></button>";
+                    var btnDelete = "<button type=\"button\" class=\"btn btn-xs btn-outline-danger js-contact-delete\" data-id=\"" + p.IdObject + "\" title=\"" + tipDelete + "\"><span class=\"fas fa-trash\"></span></button>";
 
                     return new
                     {
@@ -828,7 +830,7 @@ SELECT c.IdObject, c.TextLabel, c.TextEmail, c.TextPhone, c.Is_Default, c.Is_Act
                         addStatusDateFmt = p.AddStatusDate.HasValue
                             ? HttpUtility.HtmlEncode(p.AddStatusDate.Value.ToString("g"))
                             : HttpUtility.HtmlEncode(ClientV2.Details_NoValue),
-                        rowActions = "<div class=\"d-inline-flex align-items-center gap-1\">" + btnDefault + stateSelector + btnApplyState + "</div>"
+                        rowActions = "<div class=\"d-inline-flex align-items-center gap-1\">" + btnDefault + stateSelector + btnApplyState + btnDelete + "</div>"
                     };
                 }).ToList();
 
@@ -876,19 +878,19 @@ SELECT c.IdObject, c.TextLabel, c.TextEmail, c.TextPhone, c.Is_Default, c.Is_Act
                 {
                     if (isDefault)
                     {
-                        db.Database.ExecuteSqlCommand(@"
+                        db.Database.ExecuteSqlCommand(WithContactDmlSetOptions(@"
 UPDATE dbo.TSql_ClientOfferContact
    SET Is_Default = 0
  WHERE Is_Delete = 0
-   AND LinkClient_V2 = @p0", clientId);
+   AND LinkClient_V2 = @p0"), clientId);
                     }
 
-                    var contactId = db.Database.SqlQuery<long>(@"
+                    var contactId = db.Database.SqlQuery<long>(WithContactDmlSetOptions(@"
 INSERT INTO dbo.TSql_ClientOfferContact
     (TextLabel, LinkCompany, LinkClient_V2, TextEmail, TextPhone, Is_Default,
      Is_Delete, Is_Active, LinkMadeBy, LinModifiedBy, AddDateMade, AddLastDateChange, Ntimeschanged)
 OUTPUT INSERTED.IdObject
-VALUES (@p0, @p1, @p2, @p3, @p4, @p5, 0, 1, @p6, NULL, GETDATE(), NULL, 0)",
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, 0, 1, @p6, NULL, GETDATE(), NULL, 0)"),
                         name, companyId.Value, clientId,
                         string.IsNullOrEmpty(email) ? (object)DBNull.Value : email,
                         string.IsNullOrEmpty(phone) ? (object)DBNull.Value : phone,
@@ -936,8 +938,8 @@ SELECT TOP (1) IdObject, LinkClient_V2, Is_Default
                     InsertClientContactState(contactId, code, userId, null);
                     if ((code == "BAJA" || code == "ENFERMO") && contact.Is_Default)
                     {
-                        db.Database.ExecuteSqlCommand(@"
-UPDATE dbo.TSql_ClientOfferContact SET Is_Default = 0 WHERE IdObject = @p0", contactId);
+                        db.Database.ExecuteSqlCommand(WithContactDmlSetOptions(@"
+UPDATE dbo.TSql_ClientOfferContact SET Is_Default = 0 WHERE IdObject = @p0"), contactId);
                     }
 
                     tx.Commit();
@@ -982,11 +984,62 @@ SELECT TOP (1) stt.TextCode
             {
                 try
                 {
-                    db.Database.ExecuteSqlCommand(@"
+                    db.Database.ExecuteSqlCommand(WithContactDmlSetOptions(@"
 UPDATE dbo.TSql_ClientOfferContact
    SET Is_Default = CASE WHEN IdObject = @p0 THEN 1 ELSE 0 END
  WHERE Is_Delete = 0
-   AND LinkClient_V2 = @p1", contactId, contact.LinkClient_V2.Value);
+   AND LinkClient_V2 = @p1"), contactId, contact.LinkClient_V2.Value);
+                    tx.Commit();
+                    return Json(new { IsOk = true });
+                }
+                catch (Exception ex)
+                {
+                    tx.Rollback();
+                    return Json(new { IsOk = false, Message = ex.Message });
+                }
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult DeleteClientContact(long contactId)
+        {
+            var contact = db.Database.SqlQuery<ClientContactScopeRow>(@"
+SELECT TOP (1) IdObject, LinkClient_V2, Is_Default
+  FROM dbo.TSql_ClientOfferContact
+ WHERE IdObject = @p0
+   AND Is_Delete = 0", contactId).FirstOrDefault();
+            if (contact == null)
+            {
+                return Json(new { IsOk = false, Message = ClientV2.Ws_ContactsErrNotFound });
+            }
+
+            var userId = User.Identity.GetUserId() ?? "system";
+            using (var tx = db.Database.BeginTransaction())
+            {
+                try
+                {
+                    db.Database.ExecuteSqlCommand(WithContactDmlSetOptions(@"
+UPDATE dbo.TSql_ClientOfferContact
+   SET Is_Delete = 1,
+       Is_Active = 0,
+       Is_Default = 0,
+       LinModifiedBy = @p1,
+       AddLastDateChange = GETDATE(),
+       Ntimeschanged = Ntimeschanged + 1
+ WHERE IdObject = @p0
+   AND Is_Delete = 0"), contactId, userId);
+
+                    db.Database.ExecuteSqlCommand(WithContactDmlSetOptions(@"
+UPDATE dbo.TSql_ClientOfferContactState
+   SET Is_Delete = 1,
+       Is_Active = 0,
+       LinModifiedBy = @p1,
+       AddLastDateChange = GETDATE(),
+       Ntimeschanged = Ntimeschanged + 1
+ WHERE LinkClientOfferContact = @p0
+   AND Is_Delete = 0"), contactId, userId);
+
                     tx.Commit();
                     return Json(new { IsOk = true });
                 }
@@ -1217,6 +1270,18 @@ VALUES (@p0, @p1, GETDATE(), @p2, 0, 1, @p3, NULL, GETDATE(), NULL, 0)",
                 physicalPath = null;
                 return false;
             }
+        }
+
+        private static string WithContactDmlSetOptions(string sql)
+        {
+            return @"
+SET ANSI_NULLS ON;
+SET ANSI_WARNINGS ON;
+SET ANSI_PADDING ON;
+SET QUOTED_IDENTIFIER ON;
+SET CONCAT_NULL_YIELDS_NULL ON;
+SET NUMERIC_ROUNDABORT OFF;
+" + sql;
         }
 
         private void PopulateMethodOfPayment(long? selected)

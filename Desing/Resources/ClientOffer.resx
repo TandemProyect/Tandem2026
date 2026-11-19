@@ -11,7 +11,7 @@
   <data name="Col_System" xml:space="preserve"><value>Sistema</value></data>
   <data name="Common_Home" xml:space="preserve"><value>Inicio</value></data>
   <data name="Common_Settings" xml:space="preserve"><value>Configuración</value></data>
-  <data name="Err_BrandDuplicate" xml:space="preserve"><value>Ya hay un texto general para esa empresa y ese sistema.</value></data>
+  <data name="Err_BrandDuplicate" xml:space="preserve"><value>Ya existe una plantilla de oferta para esa empresa y sistema.</value></data>
   <data name="Err_CompanyRequired" xml:space="preserve"><value>Hay que indicar la empresa.</value></data>
   <data name="Err_LabelRequired" xml:space="preserve"><value>El nombre es obligatorio.</value></data>
   <data name="Err_LogoFormat" xml:space="preserve"><value>El logo debe ser png, jpg, gif o svg.</value></data>
@@ -20,9 +20,10 @@
   <data name="Err_SystemRequired" xml:space="preserve"><value>Hay que indicar el sistema de la oferta.</value></data>
   <data name="Err_TemplateInvalid" xml:space="preserve"><value>La plantilla seleccionada no es válida para esta empresa/sistema.</value></data>
   <data name="Err_TemplateRequired" xml:space="preserve"><value>Hay que seleccionar una plantilla de oferta.</value></data>
+  <data name="Err_TemplateTextInvalid" xml:space="preserve"><value>No se pudieron leer los textos de la plantilla. Vuelve a guardarlos.</value></data>
   <data name="Index_Breadcrumb" xml:space="preserve"><value>Oferta cliente</value></data>
   <data name="Index_Create" xml:space="preserve"><value>Nueva oferta</value></data>
-  <data name="Index_Texts" xml:space="preserve"><value>Textos y logo</value></data>
+  <data name="Index_Texts" xml:space="preserve"><value>Plantilla oferta</value></data>
   <data name="Js_ConfirmDelete" xml:space="preserve"><value>¿Eliminar este registro?</value></data>
   <data name="Lbl_Active" xml:space="preserve"><value>Activo</value></data>
   <data name="Lbl_Address" xml:space="preserve"><value>Dirección del cliente</value></data>
@@ -53,9 +54,9 @@
   <data name="List_EditTooltip" xml:space="preserve"><value>Editar</value></data>
   <data name="Msg_NoTable" xml:space="preserve"><value>Faltan las tablas de oferta al cliente en develop.</value></data>
   <data name="Page_Create" xml:space="preserve"><value>Nueva oferta</value></data>
-  <data name="Page_CreateText" xml:space="preserve"><value>Nuevo texto general</value></data>
+  <data name="Page_CreateText" xml:space="preserve"><value>Nueva plantilla oferta</value></data>
   <data name="Page_Edit" xml:space="preserve"><value>Editar oferta</value></data>
-  <data name="Page_EditText" xml:space="preserve"><value>Editar texto general</value></data>
+  <data name="Page_EditText" xml:space="preserve"><value>Editar plantilla oferta</value></data>
   <data name="Page_Print" xml:space="preserve"><value>Vista para PDF</value></data>
   <data name="Ph_Optional" xml:space="preserve"><value>(sin asignar)</value></data>
   <data name="Ph_System" xml:space="preserve"><value>Elige el sistema</value></data>
@@ -69,7 +70,7 @@
   <data name="Msg_AssistantEmpty" xml:space="preserve"><value>Escribe una instrucción para la IA.</value></data>
   <data name="Msg_AssistantApplied" xml:space="preserve"><value>Propuesta aplicada. Revisa y guarda.</value></data>
   <data name="Msg_AssistantError" xml:space="preserve"><value>No se pudo generar la propuesta IA.</value></data>
-  <data name="Texts_Breadcrumb" xml:space="preserve"><value>Textos y logo</value></data>
+  <data name="Texts_Breadcrumb" xml:space="preserve"><value>Plantilla oferta</value></data>
   <data name="Lbl_Material" xml:space="preserve"><value>Materiales (dejar en blanco; vendrá de vista de materiales)</value></data>
   <data name="ContactStates_Title" xml:space="preserve"><value>Estados de contacto</value></data>
   <data name="ContactStates_Code" xml:space="preserve"><value>Código</value></data>

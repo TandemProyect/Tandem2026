@@ -1,7 +1,9 @@
 using DAL;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web.Mvc;
 
 namespace Desing.Helpers
 {
@@ -25,9 +27,43 @@ namespace Desing.Helpers
         public string TextSubjectTemplate { get; set; }
         public string TextHeaderTemplate { get; set; }
         public string TextBodyTemplate { get; set; }
+        public string TextLayoutJson { get; set; }
+        public string KeepLogoIdsCsv { get; set; }
+        [AllowHtml]
+        public string TextBlocksJson { get; set; }
         public bool Is_Active { get; set; }
         public string CompanyLabel { get; set; }
         public string SystemLabel { get; set; }
+        public List<ClientOfferBrandLogoRow> Logos { get; set; }
+        public List<ClientOfferBrandTextRow> TextBlocks { get; set; }
+    }
+
+    public class ClientOfferBrandLogoRow
+    {
+        public long IdObject { get; set; }
+        public long LinkClientOfferBrand { get; set; }
+        public int NumberOrder { get; set; }
+        public string TextImagePath { get; set; }
+        public bool Is_Active { get; set; }
+    }
+
+    public class ClientOfferBrandTextRow
+    {
+        public long IdObject { get; set; }
+        public long LinkClientOfferBrand { get; set; }
+        public int NumberOrder { get; set; }
+        public string TextLabel { get; set; }
+        public string TextBody { get; set; }
+        public bool Is_Active { get; set; }
+    }
+
+    public class ClientOfferReusableTextRow
+    {
+        public long IdObject { get; set; }
+        public long LinkClientOfferBrand { get; set; }
+        public string BrandLabel { get; set; }
+        public string TextLabel { get; set; }
+        public string TextBody { get; set; }
     }
 
     public class ClientOfferRow
@@ -60,6 +96,7 @@ namespace Desing.Helpers
         public string HeaderBody { get; set; }
         public string TextBody { get; set; }
         public List<ClientOfferCaptureRow> Captures { get; set; }
+        public List<string> TemplateLogos { get; set; }
     }
 
     public class ClientOfferAiMessageRow
@@ -109,10 +146,12 @@ namespace Desing.Helpers
         public string Empresa { get; set; }
         public string DireccionEmpresa { get; set; }
         public string Cliente { get; set; }
+        public string ClienteCifNif { get; set; }
         public string DireccionCliente { get; set; }
         public string Diseno { get; set; }
         public string Oferta { get; set; }
         public string Obra { get; set; }
+        public string DireccionObra { get; set; }
         public string Plantilla { get; set; }
         public string Sistema { get; set; }
         public string Logo { get; set; }
@@ -132,6 +171,8 @@ namespace Desing.Helpers
             return db.Database.SqlQuery<int>(@"
 SELECT CASE WHEN OBJECT_ID(N'dbo.TSql_ClientOffer', N'U') IS NOT NULL
              AND OBJECT_ID(N'dbo.TSql_ClientOfferBrand', N'U') IS NOT NULL
+             AND OBJECT_ID(N'dbo.TSql_ClientOfferBrandLogo', N'U') IS NOT NULL
+             AND OBJECT_ID(N'dbo.TSql_ClientOfferBrandText', N'U') IS NOT NULL
              AND OBJECT_ID(N'dbo.TSql_ClientOfferSection', N'U') IS NOT NULL
              AND OBJECT_ID(N'dbo.TSql_ClientOfferAiMessage', N'U') IS NOT NULL
              AND OBJECT_ID(N'dbo.TSql_ClientOfferContact', N'U') IS NOT NULL
@@ -365,14 +406,26 @@ SELECT TOP (1) e.LinCompany
         {
             var ctx = new ClientOfferContext();
             var company = db.Database.SqlQuery<CompanySnap>(@"
-SELECT c.TextLabel, c.TextLogo, c.Loc_Formatted_Address AS Address, c.LinPlantilla, p.AttName AS PlantillaName, p.AttLogo AS PlantillaLogo
+SELECT c.TextLabel, c.TextLogo, c.Loc_Formatted_Address AS Address,
+       CAST(c.TextAddress_1 AS NVARCHAR(500)) AS TextAddress_1,
+       CAST(c.TextAddress_2 AS NVARCHAR(500)) AS TextAddress_2,
+       CAST(c.TextPostal_Code AS NVARCHAR(100)) AS TextPostal_Code,
+       CAST(c.TextTown_1 AS NVARCHAR(500)) AS TextTown_1,
+       CAST(c.TextTown_2 AS NVARCHAR(500)) AS TextTown_2,
+       c.LinPlantilla, p.AttName AS PlantillaName, p.AttLogo AS PlantillaLogo
   FROM dbo.TSql_Company c
   LEFT JOIN dbo.TSql_Plantilla p ON p.SysObjectID = c.LinPlantilla AND p.AttIsDeleted = 0
  WHERE c.SysObjectID = @p0 AND c.BitIsDeleted = 0", row.LinkCompany).FirstOrDefault();
             if (company != null)
             {
                 ctx.Empresa = company.TextLabel;
-                ctx.DireccionEmpresa = company.Address;
+                ctx.DireccionEmpresa = BuildAddress(
+                    company.Address,
+                    company.TextAddress_1,
+                    company.TextAddress_2,
+                    company.TextPostal_Code,
+                    company.TextTown_1,
+                    company.TextTown_2);
                 ctx.Logo = company.TextLogo;
                 if (!row.LinkPlantilla.HasValue || row.LinkPlantilla.Value <= 0)
                 {
@@ -426,21 +479,42 @@ SELECT o.TextLabel, o.AddOfferNumber, o.LinkJobside, o.LinkClient_V2
 
             if (row.LinkJobside.HasValue && row.LinkJobside.Value > 0)
             {
-                ctx.Obra = db.Database.SqlQuery<string>(
-                    "SELECT TextLabel FROM dbo.TSql_Jobside WHERE IdObject = @p0 AND Is_Delete = 0",
-                    row.LinkJobside.Value).FirstOrDefault();
+                var jobside = db.Database.SqlQuery<JobsideSnap>(@"
+SELECT TextLabel, Loc_Formatted_Address AS Address
+  FROM dbo.TSql_Jobside
+ WHERE IdObject = @p0 AND Is_Delete = 0", row.LinkJobside.Value).FirstOrDefault();
+                if (jobside != null)
+                {
+                    ctx.Obra = jobside.TextLabel;
+                    ctx.DireccionObra = jobside.Address;
+                }
             }
 
             if (row.LinkClient_V2.HasValue && row.LinkClient_V2.Value > 0)
             {
                 var client = db.Database.SqlQuery<ClientSnap>(@"
-SELECT TextLabel, Loc_Formatted_Address AS Address
+SELECT TextLabel, CAST(TextTaxId AS NVARCHAR(150)) AS TextTaxId,
+       Loc_Formatted_Address AS Address,
+       CAST(Loc_Street_Number AS NVARCHAR(100)) AS Loc_Street_Number,
+       CAST(Loc_Route AS NVARCHAR(500)) AS Loc_Route,
+       CAST(Loc_Subpremise AS NVARCHAR(500)) AS Loc_Subpremise,
+       CAST(Loc_Locality AS NVARCHAR(500)) AS Loc_Locality,
+       CAST(Loc_Postal_Code AS NVARCHAR(100)) AS Loc_Postal_Code,
+       CAST(Loc_Admin_Area_1 AS NVARCHAR(500)) AS Loc_Admin_Area_1
   FROM dbo.TSql_Client_V2
  WHERE IdObject = @p0 AND Is_Delete = 0", row.LinkClient_V2.Value).FirstOrDefault();
                 if (client != null)
                 {
                     ctx.Cliente = client.TextLabel;
-                    ctx.DireccionCliente = client.Address;
+                    ctx.ClienteCifNif = client.TextTaxId;
+                    ctx.DireccionCliente = BuildAddress(
+                        client.Address,
+                        client.Loc_Route,
+                        client.Loc_Street_Number,
+                        client.Loc_Subpremise,
+                        client.Loc_Postal_Code,
+                        client.Loc_Locality,
+                        client.Loc_Admin_Area_1);
                 }
             }
 
@@ -476,9 +550,9 @@ SELECT AttName, AttLogo FROM dbo.TSql_Plantilla WHERE SysObjectID = @p0 AND AttI
 
         public static ClientOfferBrandRow FindBrand(ConexionData db, long companyId, long systemId)
         {
-            return db.Database.SqlQuery<ClientOfferBrandRow>(@"
+            var row = db.Database.SqlQuery<ClientOfferBrandRow>(@"
 SELECT TOP (1) b.IdObject, b.TextLabel, b.TextCode, b.LinkCompany, b.LinkSystem, b.LinkPlantilla,
-       b.TextLogo, b.TextCompanyName, b.TextSubjectTemplate, b.TextHeaderTemplate, b.TextBodyTemplate, b.Is_Active,
+       b.TextLogo, b.TextCompanyName, b.TextSubjectTemplate, b.TextHeaderTemplate, b.TextBodyTemplate, b.TextLayoutJson, b.Is_Active,
        c.TextLabel AS CompanyLabel, s.TextLabel AS SystemLabel
   FROM dbo.TSql_ClientOfferBrand b
   LEFT JOIN dbo.TSql_Company c ON c.SysObjectID = b.LinkCompany
@@ -486,6 +560,7 @@ SELECT TOP (1) b.IdObject, b.TextLabel, b.TextCode, b.LinkCompany, b.LinkSystem,
  WHERE b.Is_Delete = 0 AND b.Is_Active = 1 AND b.LinkCompany = @p0
    AND (b.LinkSystem = @p1 OR b.LinkSystem IS NULL)
  ORDER BY CASE WHEN b.LinkSystem = @p1 THEN 0 ELSE 1 END, b.IdObject DESC", companyId, systemId).FirstOrDefault();
+            return AttachBrandAssets(db, row);
         }
 
         public static List<ClientOfferLookup> ListSelectableBrands(ConexionData db, long companyId, long? includeBrandId = null)
@@ -515,8 +590,10 @@ SELECT b.IdObject AS Id,
             {
                 { "Empresa", ctx == null ? "" : ctx.Empresa ?? "" },
                 { "DireccionEmpresa", ctx == null ? "" : ctx.DireccionEmpresa ?? "" },
-                { "Cliente", "" },
+                { "Cliente", ctx == null ? "" : ctx.Cliente ?? "" },
+                { "ClienteCifNif", ctx == null || string.IsNullOrWhiteSpace(ctx.ClienteCifNif) ? "[CIF del cliente]" : ctx.ClienteCifNif },
                 { "DireccionCliente", ctx == null ? "" : ctx.DireccionCliente ?? "" },
+                { "DireccionObra", ctx == null ? "" : ctx.DireccionObra ?? "" },
                 { "NombreContacto", "" },
                 { "EmailContacto", "" },
                 { "Asunto", subject ?? "" },
@@ -534,7 +611,7 @@ SELECT b.IdObject AS Id,
         {
             return db.Database.SqlQuery<ClientOfferBrandRow>(@"
 SELECT b.IdObject, b.TextLabel, b.TextCode, b.LinkCompany, b.LinkSystem, b.LinkPlantilla,
-       b.TextLogo, b.TextCompanyName, b.TextSubjectTemplate, b.TextHeaderTemplate, b.TextBodyTemplate, b.Is_Active,
+       b.TextLogo, b.TextCompanyName, b.TextSubjectTemplate, b.TextHeaderTemplate, b.TextBodyTemplate, b.TextLayoutJson, b.Is_Active,
        c.TextLabel AS CompanyLabel, ISNULL(s.TextLabel, N'') AS SystemLabel
   FROM dbo.TSql_ClientOfferBrand b
   LEFT JOIN dbo.TSql_Company c ON c.SysObjectID = b.LinkCompany
@@ -545,14 +622,15 @@ SELECT b.IdObject, b.TextLabel, b.TextCode, b.LinkCompany, b.LinkSystem, b.LinkP
 
         public static ClientOfferBrandRow GetBrand(ConexionData db, long id)
         {
-            return db.Database.SqlQuery<ClientOfferBrandRow>(@"
+            var row = db.Database.SqlQuery<ClientOfferBrandRow>(@"
 SELECT b.IdObject, b.TextLabel, b.TextCode, b.LinkCompany, b.LinkSystem, b.LinkPlantilla,
-       b.TextLogo, b.TextCompanyName, b.TextSubjectTemplate, b.TextHeaderTemplate, b.TextBodyTemplate, b.Is_Active,
+       b.TextLogo, b.TextCompanyName, b.TextSubjectTemplate, b.TextHeaderTemplate, b.TextBodyTemplate, b.TextLayoutJson, b.Is_Active,
        c.TextLabel AS CompanyLabel, s.TextLabel AS SystemLabel
   FROM dbo.TSql_ClientOfferBrand b
   LEFT JOIN dbo.TSql_Company c ON c.SysObjectID = b.LinkCompany
   LEFT JOIN dbo.TSql_System s ON s.IdObject = b.LinkSystem
  WHERE b.IdObject = @p0 AND b.Is_Delete = 0", id).FirstOrDefault();
+            return AttachBrandAssets(db, row);
         }
 
         public static long InsertBrand(ConexionData db, ClientOfferBrandRow row, string userId)
@@ -560,10 +638,10 @@ SELECT b.IdObject, b.TextLabel, b.TextCode, b.LinkCompany, b.LinkSystem, b.LinkP
             return db.Database.SqlQuery<long>(@"
 INSERT INTO dbo.TSql_ClientOfferBrand
     (TextLabel, TextCode, LinkCompany, LinkSystem, LinkPlantilla, TextLogo, TextCompanyName,
-     TextSubjectTemplate, TextHeaderTemplate, TextBodyTemplate,
+     TextSubjectTemplate, TextHeaderTemplate, TextBodyTemplate, TextLayoutJson,
      Is_Delete, Is_Active, LinkMadeBy, LinModifiedBy, AddDateMade, AddLastDateChange, Ntimeschanged)
 OUTPUT INSERTED.IdObject
-VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, 0, @p10, @p11, NULL, GETDATE(), NULL, 0)",
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, 0, @p11, @p12, NULL, GETDATE(), NULL, 0)",
                 Cut(row.TextLabel, 500),
                 Db(Cut(row.TextCode, 100)),
                 row.LinkCompany,
@@ -574,6 +652,7 @@ VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, 0, @p10, @p11, NULL, G
                 Db(Cut(row.TextSubjectTemplate, 500)),
                 Db(row.TextHeaderTemplate),
                 Db(row.TextBodyTemplate),
+                Db(row.TextLayoutJson),
                 row.Is_Active,
                 userId ?? "system").Single();
         }
@@ -584,9 +663,9 @@ VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, 0, @p10, @p11, NULL, G
 UPDATE dbo.TSql_ClientOfferBrand
    SET TextLabel = @p0, TextCode = @p1, LinkCompany = @p2, LinkSystem = @p3, LinkPlantilla = @p4,
        TextLogo = @p5, TextCompanyName = @p6, TextSubjectTemplate = @p7, TextHeaderTemplate = @p8,
-       TextBodyTemplate = @p9, Is_Active = @p10,
-       LinModifiedBy = @p11, AddLastDateChange = GETDATE(), Ntimeschanged = Ntimeschanged + 1
- WHERE IdObject = @p12 AND Is_Delete = 0",
+       TextBodyTemplate = @p9, TextLayoutJson = @p10, Is_Active = @p11,
+       LinModifiedBy = @p12, AddLastDateChange = GETDATE(), Ntimeschanged = Ntimeschanged + 1
+ WHERE IdObject = @p13 AND Is_Delete = 0",
                 Cut(row.TextLabel, 500),
                 Db(Cut(row.TextCode, 100)),
                 row.LinkCompany,
@@ -597,6 +676,7 @@ UPDATE dbo.TSql_ClientOfferBrand
                 Db(Cut(row.TextSubjectTemplate, 500)),
                 Db(row.TextHeaderTemplate),
                 Db(row.TextBodyTemplate),
+                Db(row.TextLayoutJson),
                 row.Is_Active,
                 userId ?? "system",
                 row.IdObject);
@@ -608,6 +688,181 @@ UPDATE dbo.TSql_ClientOfferBrand
 UPDATE dbo.TSql_ClientOfferBrand
    SET Is_Delete = 1, LinModifiedBy = @p1, AddLastDateChange = GETDATE(), Ntimeschanged = Ntimeschanged + 1
  WHERE IdObject = @p0 AND Is_Delete = 0", id, userId ?? "system");
+        }
+
+        public static void SyncBrandLogos(ConexionData db, long brandId, IList<long> keepLogoIdsInOrder, IList<string> newLogoPaths, string userId)
+        {
+            var by = userId ?? "system";
+            var keepIds = (keepLogoIdsInOrder ?? new List<long>()).Where(p => p > 0).Distinct().ToList();
+            var safeNewPaths = (newLogoPaths ?? new List<string>())
+                .Where(p => !string.IsNullOrWhiteSpace(p))
+                .Select(p => Cut(p.Trim(), 1000))
+                .ToList();
+
+            var currentRows = ListBrandLogos(db, brandId);
+            foreach (var row in currentRows)
+            {
+                if (!keepIds.Contains(row.IdObject))
+                {
+                    db.Database.ExecuteSqlCommand(@"
+UPDATE dbo.TSql_ClientOfferBrandLogo
+   SET Is_Delete = 1,
+       LinModifiedBy = @p2,
+       AddLastDateChange = GETDATE(),
+       Ntimeschanged = Ntimeschanged + 1
+ WHERE IdObject = @p0
+   AND LinkClientOfferBrand = @p1
+   AND Is_Delete = 0", row.IdObject, brandId, by);
+                }
+            }
+
+            var order = 1;
+            foreach (var keepId in keepIds)
+            {
+                db.Database.ExecuteSqlCommand(@"
+UPDATE dbo.TSql_ClientOfferBrandLogo
+   SET NumberOrder = @p2,
+       LinModifiedBy = @p3,
+       AddLastDateChange = GETDATE(),
+       Ntimeschanged = Ntimeschanged + 1
+ WHERE IdObject = @p0
+   AND LinkClientOfferBrand = @p1
+   AND Is_Delete = 0", keepId, brandId, order, by);
+                order++;
+            }
+
+            foreach (var path in safeNewPaths)
+            {
+                db.Database.ExecuteSqlCommand(@"
+INSERT INTO dbo.TSql_ClientOfferBrandLogo
+    (TextLabel, LinkClientOfferBrand, NumberOrder, TextImagePath,
+     Is_Delete, Is_Active, LinkMadeBy, LinModifiedBy, AddDateMade, AddLastDateChange, Ntimeschanged)
+VALUES (@p0, @p1, @p2, @p3, 0, 1, @p4, NULL, GETDATE(), NULL, 0)",
+                    Cut("Logo " + order, 500),
+                    brandId,
+                    order,
+                    path,
+                    by);
+                order++;
+            }
+        }
+
+        public static void SyncBrandTexts(ConexionData db, long brandId, IList<ClientOfferBrandTextRow> textRows, string userId)
+        {
+            var by = userId ?? "system";
+            var safeRows = (textRows ?? new List<ClientOfferBrandTextRow>())
+                .Where(r => r != null && !string.IsNullOrWhiteSpace(r.TextBody))
+                .ToList();
+            var keepIds = safeRows.Where(r => r.IdObject > 0).Select(r => r.IdObject).Distinct().ToList();
+
+            var currentRows = ListBrandTexts(db, brandId);
+            foreach (var current in currentRows)
+            {
+                if (!keepIds.Contains(current.IdObject))
+                {
+                    db.Database.ExecuteSqlCommand(@"
+UPDATE dbo.TSql_ClientOfferBrandText
+   SET Is_Delete = 1,
+       LinModifiedBy = @p2,
+       AddLastDateChange = GETDATE(),
+       Ntimeschanged = Ntimeschanged + 1
+ WHERE IdObject = @p0
+   AND LinkClientOfferBrand = @p1
+   AND Is_Delete = 0", current.IdObject, brandId, by);
+                }
+            }
+
+            var order = 1;
+            foreach (var row in safeRows)
+            {
+                var label = Cut((row.TextLabel ?? string.Empty).Trim(), 500);
+                if (label.Length == 0)
+                {
+                    label = Cut("Texto " + order, 500);
+                }
+
+                if (row.IdObject > 0)
+                {
+                    db.Database.ExecuteSqlCommand(@"
+UPDATE dbo.TSql_ClientOfferBrandText
+   SET TextLabel = @p2,
+       NumberOrder = @p3,
+       TextBody = @p4,
+       Is_Active = 1,
+       LinModifiedBy = @p5,
+       AddLastDateChange = GETDATE(),
+       Ntimeschanged = Ntimeschanged + 1
+ WHERE IdObject = @p0
+   AND LinkClientOfferBrand = @p1
+   AND Is_Delete = 0",
+                        row.IdObject,
+                        brandId,
+                        label,
+                        order,
+                        Db(row.TextBody),
+                        by);
+                }
+                else
+                {
+                    db.Database.ExecuteSqlCommand(@"
+INSERT INTO dbo.TSql_ClientOfferBrandText
+    (TextLabel, LinkClientOfferBrand, NumberOrder, TextBody,
+     Is_Delete, Is_Active, LinkMadeBy, LinModifiedBy, AddDateMade, AddLastDateChange, Ntimeschanged)
+VALUES (@p0, @p1, @p2, @p3, 0, 1, @p4, NULL, GETDATE(), NULL, 0)",
+                        label,
+                        brandId,
+                        order,
+                        Db(row.TextBody),
+                        by);
+                }
+
+                order++;
+            }
+        }
+
+        public static List<ClientOfferBrandLogoRow> ListBrandLogos(ConexionData db, long brandId)
+        {
+            return db.Database.SqlQuery<ClientOfferBrandLogoRow>(@"
+SELECT IdObject, LinkClientOfferBrand, NumberOrder, TextImagePath, Is_Active
+  FROM dbo.TSql_ClientOfferBrandLogo
+ WHERE LinkClientOfferBrand = @p0
+   AND Is_Delete = 0
+ ORDER BY NumberOrder, IdObject", brandId).ToList();
+        }
+
+        public static List<ClientOfferBrandTextRow> ListBrandTexts(ConexionData db, long brandId)
+        {
+            return db.Database.SqlQuery<ClientOfferBrandTextRow>(@"
+SELECT IdObject, LinkClientOfferBrand, NumberOrder, TextLabel, TextBody, Is_Active
+  FROM dbo.TSql_ClientOfferBrandText
+ WHERE LinkClientOfferBrand = @p0
+   AND Is_Delete = 0
+ ORDER BY NumberOrder, IdObject", brandId).ToList();
+        }
+
+        public static List<ClientOfferReusableTextRow> ListReusableBrandTexts(ConexionData db, long companyId, long? excludeBrandId = null)
+        {
+            if (companyId <= 0)
+            {
+                return new List<ClientOfferReusableTextRow>();
+            }
+
+            return db.Database.SqlQuery<ClientOfferReusableTextRow>(@"
+SELECT t.IdObject,
+       t.LinkClientOfferBrand,
+       b.TextLabel AS BrandLabel,
+       t.TextLabel,
+       t.TextBody
+  FROM dbo.TSql_ClientOfferBrandText t
+  INNER JOIN dbo.TSql_ClientOfferBrand b ON b.IdObject = t.LinkClientOfferBrand
+ WHERE t.Is_Delete = 0
+   AND b.Is_Delete = 0
+   AND b.LinkCompany = @p0
+   AND (@p1 IS NULL OR b.IdObject <> @p1)
+   AND ISNULL(LTRIM(RTRIM(t.TextBody)), N'') <> N''
+ ORDER BY b.TextLabel, t.TextLabel, t.IdObject",
+                companyId,
+                DbLong(excludeBrandId)).ToList();
         }
 
         public static List<ClientOfferRow> ListDocuments(ConexionData db)
@@ -650,6 +905,12 @@ SELECT TextCode, TextBody
             row.HeaderBody = sections.Where(s => s.TextCode == "ENCABEZADO").Select(s => s.TextBody).FirstOrDefault();
             row.TextBody = sections.Where(s => s.TextCode == "TEXTO").Select(s => s.TextBody).FirstOrDefault();
             row.Captures = ListCaptures(db, id);
+            if (row.LinkClientOfferBrand.HasValue && row.LinkClientOfferBrand.Value > 0)
+            {
+                var brand = GetBrand(db, row.LinkClientOfferBrand.Value);
+                row.TemplateLogos = ResolvePlacedBrandLogos(brand);
+            }
+
             return row;
         }
 
@@ -843,6 +1104,90 @@ UPDATE dbo.TSql_ClientOfferSection
             }
         }
 
+        private static ClientOfferBrandRow AttachBrandAssets(ConexionData db, ClientOfferBrandRow row)
+        {
+            if (row == null || row.IdObject <= 0)
+            {
+                return row;
+            }
+
+            row.Logos = ListBrandLogos(db, row.IdObject);
+            row.TextBlocks = ListBrandTexts(db, row.IdObject);
+            return row;
+        }
+
+        private static List<string> ResolvePlacedBrandLogos(ClientOfferBrandRow brand)
+        {
+            var result = new List<string>();
+            if (brand == null || brand.Logos == null || brand.Logos.Count == 0)
+            {
+                return result;
+            }
+
+            var logos = brand.Logos
+                .OrderBy(p => p.NumberOrder)
+                .ThenBy(p => p.IdObject)
+                .Select(p => p.TextImagePath ?? string.Empty)
+                .ToList();
+
+            var indexes = ParseLayoutLogoAssetIndexes(brand.TextLayoutJson);
+            foreach (var idx in indexes)
+            {
+                var pos = idx - 1;
+                if (pos < 0 || pos >= logos.Count)
+                {
+                    continue;
+                }
+
+                var path = logos[pos];
+                if (!string.IsNullOrWhiteSpace(path))
+                {
+                    result.Add(path);
+                }
+            }
+
+            return result;
+        }
+
+        private static List<int> ParseLayoutLogoAssetIndexes(string rawJson)
+        {
+            var result = new List<int>();
+            if (string.IsNullOrWhiteSpace(rawJson))
+            {
+                return result;
+            }
+
+            try
+            {
+                var token = JToken.Parse(rawJson);
+                var rows = token["logoPlacements"] as JArray;
+                if (rows == null)
+                {
+                    return result;
+                }
+
+                foreach (var row in rows)
+                {
+                    var idx = (int?)row["assetIndex"] ?? 0;
+                    if (idx <= 0)
+                    {
+                        idx = (int?)row["order"] ?? 0;
+                    }
+
+                    if (idx > 0)
+                    {
+                        result.Add(idx);
+                    }
+                }
+            }
+            catch
+            {
+                // Layout inválido: no rompe la carga de oferta.
+            }
+
+            return result;
+        }
+
         private static long? Positive(long? value)
         {
             return value.HasValue && value.Value > 0 ? value : null;
@@ -868,11 +1213,43 @@ UPDATE dbo.TSql_ClientOfferSection
             return value.Substring(0, max);
         }
 
+        private static string BuildAddress(params string[] parts)
+        {
+            if (parts == null || parts.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            var formatted = parts[0];
+            if (!string.IsNullOrWhiteSpace(formatted))
+            {
+                return formatted.Trim();
+            }
+
+            var values = parts
+                .Where(p => !string.IsNullOrWhiteSpace(p))
+                .Select(p => p.Trim())
+                .Distinct()
+                .ToList();
+
+            if (values.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            return string.Join(", ", values);
+        }
+
         private class CompanySnap
         {
             public string TextLabel { get; set; }
             public string TextLogo { get; set; }
             public string Address { get; set; }
+            public string TextAddress_1 { get; set; }
+            public string TextAddress_2 { get; set; }
+            public string TextPostal_Code { get; set; }
+            public string TextTown_1 { get; set; }
+            public string TextTown_2 { get; set; }
             public long? LinPlantilla { get; set; }
             public string PlantillaName { get; set; }
             public string PlantillaLogo { get; set; }
@@ -892,10 +1269,23 @@ UPDATE dbo.TSql_ClientOfferSection
             public long LinkClient_V2 { get; set; }
         }
 
-        private class ClientSnap
+        private class JobsideSnap
         {
             public string TextLabel { get; set; }
             public string Address { get; set; }
+        }
+
+        private class ClientSnap
+        {
+            public string TextLabel { get; set; }
+            public string TextTaxId { get; set; }
+            public string Address { get; set; }
+            public string Loc_Street_Number { get; set; }
+            public string Loc_Route { get; set; }
+            public string Loc_Subpremise { get; set; }
+            public string Loc_Locality { get; set; }
+            public string Loc_Postal_Code { get; set; }
+            public string Loc_Admin_Area_1 { get; set; }
         }
 
         private class PlantillaSnap

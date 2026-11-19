@@ -1,6 +1,7 @@
 @model Desing.Helpers.ClientOfferRow
 @using Desing.Helpers
 @using Desing.Resources
+@using System.Web
 @{
     var systems = ViewBag.Systems as System.Collections.Generic.IList<ClientOfferLookup> ?? new System.Collections.Generic.List<ClientOfferLookup>();
     var companies = ViewBag.Companies as System.Collections.Generic.IList<ClientOfferLookup> ?? new System.Collections.Generic.List<ClientOfferLookup>();
@@ -147,11 +148,44 @@
         var contact = document.getElementById('LinkClientOfferContact');
         var emailInput = document.getElementById('TextContactEmail');
         var nameInput = document.getElementById('TextContactName');
-        if (!contact || !emailInput || !nameInput) {
+        var client = document.getElementById('LinkClient_V2');
+        var company = document.getElementById('LinkCompany');
+        if (!contact || !emailInput || !nameInput || !client || !company) {
             return;
         }
+        var contactsUrl = '@Url.Action("ListClientContacts", "ClientOffer")';
+        var optionalLabel = '@Html.Raw(HttpUtility.JavaScriptStringEncode(ClientOffer.Ph_Optional))';
 
-        contact.addEventListener('change', function () {
+        function appendContactOption(select, id, label, email, selected) {
+            var opt = document.createElement('option');
+            opt.value = id || '';
+            opt.textContent = label || '';
+            if (email) {
+                opt.setAttribute('data-email', email);
+            }
+            if (selected) {
+                opt.selected = true;
+            }
+            select.appendChild(opt);
+        }
+
+        function refillContacts(items, keepSelectedId) {
+            var selectedId = keepSelectedId || '';
+            contact.innerHTML = '';
+            appendContactOption(contact, '', optionalLabel, '', !selectedId);
+
+            for (var i = 0; i < items.length; i++) {
+                var item = items[i] || {};
+                var id = item.id != null ? String(item.id) : '';
+                appendContactOption(contact, id, item.textLabel || '', item.textEmail || '', selectedId && id === selectedId);
+            }
+
+            if (selectedId && !contact.value) {
+                contact.value = '';
+            }
+        }
+
+        function syncContactFields() {
             var selected = contact.options[contact.selectedIndex];
             var email = selected ? (selected.getAttribute('data-email') || '') : '';
             var label = selected ? (selected.textContent || '').trim() : '';
@@ -161,6 +195,56 @@
             if (!nameInput.value) {
                 nameInput.value = label;
             }
-        });
+        }
+
+        function loadContactsForClient() {
+            var companyId = (company.value || '').trim();
+            var clientId = (client.value || '').trim();
+            var selectedContact = (contact.value || '').trim();
+
+            if (!companyId || !clientId) {
+                refillContacts([], '');
+                syncContactFields();
+                return;
+            }
+
+            var url = contactsUrl
+                + (contactsUrl.indexOf('?') >= 0 ? '&' : '?')
+                + 'companyId=' + encodeURIComponent(companyId)
+                + '&clientId=' + encodeURIComponent(clientId);
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.setRequestHeader('Accept', 'application/json');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState !== 4) {
+                    return;
+                }
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        var res = JSON.parse(xhr.responseText || '{}');
+                        var rows = (res && (res.IsOk || res.isOk) && (res.Data || res.data))
+                            ? (res.Data || res.data)
+                            : [];
+                        refillContacts(rows, selectedContact);
+                    } catch (e) {
+                        refillContacts([], '');
+                    }
+                } else {
+                    refillContacts([], '');
+                }
+                syncContactFields();
+            };
+            xhr.send();
+        }
+
+        contact.addEventListener('change', syncContactFields);
+        client.addEventListener('change', loadContactsForClient);
+        company.addEventListener('change', loadContactsForClient);
+
+        if ((client.value || '').trim() && (company.value || '').trim()) {
+            loadContactsForClient();
+        } else {
+            syncContactFields();
+        }
     })();
 </script>

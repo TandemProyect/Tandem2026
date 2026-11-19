@@ -1,12 +1,261 @@
 @model Desing.Helpers.ClientOfferBrandRow
 @using Desing.Helpers
+@using Newtonsoft.Json
+@using System.Linq
 @using Desing.Resources
 @{
-    var systems = ViewBag.Systems as System.Collections.Generic.IList<ClientOfferLookup> ?? new System.Collections.Generic.List<ClientOfferLookup>();
     var companies = ViewBag.Companies as System.Collections.Generic.IList<ClientOfferLookup> ?? new System.Collections.Generic.List<ClientOfferLookup>();
-    var plantillas = ViewBag.Plantillas as System.Collections.Generic.IList<ClientOfferLookup> ?? new System.Collections.Generic.List<ClientOfferLookup>();
+    var reusableTexts = ViewBag.TemplateReusableTexts as System.Collections.Generic.IList<ClientOfferReusableTextRow> ?? new System.Collections.Generic.List<ClientOfferReusableTextRow>();
+    var logos = Model.Logos ?? new System.Collections.Generic.List<ClientOfferBrandLogoRow>();
+    var keepLogoIdsCsv = string.IsNullOrWhiteSpace(Model.KeepLogoIdsCsv)
+        ? string.Join(",", logos.OrderBy(p => p.NumberOrder).ThenBy(p => p.IdObject).Select(p => p.IdObject).Where(p => p > 0))
+        : Model.KeepLogoIdsCsv;
+    var textBlocksJson = string.IsNullOrWhiteSpace(Model.TextBlocksJson) ? "[]" : Model.TextBlocksJson;
+    var layoutJson = string.IsNullOrWhiteSpace(Model.TextLayoutJson) ? "{\"version\":5,\"logoPlacements\":[],\"addressPlacements\":[],\"textPlacements\":[],\"complementPlacements\":[]}" : Model.TextLayoutJson;
+    var selectedCompany = companies.FirstOrDefault(p => p.Id == Model.LinkCompany);
+    var companyPreviewName = (ViewBag.TemplateCompanyNamePreview as string ?? string.Empty).Trim();
+    if (string.IsNullOrWhiteSpace(companyPreviewName))
+    {
+        companyPreviewName = selectedCompany != null && !string.IsNullOrWhiteSpace(selectedCompany.TextLabel)
+            ? selectedCompany.TextLabel
+            : "[Nombre de tu Empresa S.L.]";
+    }
+
+    var companyPreviewAddress = (ViewBag.TemplateCompanyAddressPreview as string ?? string.Empty).Trim();
+    if (string.IsNullOrWhiteSpace(companyPreviewAddress))
+    {
+        companyPreviewAddress = "[Dirección empresa]";
+    }
+
+    var reusableTextsJson = JsonConvert.SerializeObject(
+        reusableTexts
+            .Where(p => p != null && !string.IsNullOrWhiteSpace(p.TextBody))
+            .Select(p => new
+            {
+                id = p.IdObject,
+                name = p.TextLabel ?? string.Empty,
+                body = p.TextBody ?? string.Empty,
+                source = p.BrandLabel ?? string.Empty
+            }).ToList());
 }
 @Html.HiddenFor(m => m.IdObject)
+<input type="hidden" id="KeepLogoIdsCsv" name="KeepLogoIdsCsv" value="@Html.Raw(HttpUtility.HtmlAttributeEncode(keepLogoIdsCsv))" />
+<input type="hidden" id="TextBlocksJson" name="TextBlocksJson" value="@Html.Raw(HttpUtility.HtmlAttributeEncode(textBlocksJson))" />
+<input type="hidden" id="ReusableTextLibraryJson" value="@Html.Raw(HttpUtility.HtmlAttributeEncode(reusableTextsJson))" />
+<input type="hidden" id="TextLayoutJson" name="TextLayoutJson" value="@Html.Raw(HttpUtility.HtmlAttributeEncode(layoutJson))" />
+@Html.HiddenFor(m => m.TextSubjectTemplate)
+@Html.HiddenFor(m => m.LinkSystem)
+@Html.HiddenFor(m => m.LinkPlantilla)
+@Html.HiddenFor(m => m.TextCompanyName)
+@Html.HiddenFor(m => m.Is_Active)
+
+<style>
+    #logoList {
+        max-height: 320px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        align-content: flex-start;
+    }
+
+    .template-logo-palette-item {
+        width: 86px;
+        height: 86px;
+        padding: 4px;
+        cursor: grab;
+        flex: 0 0 auto;
+        background: #fff;
+    }
+
+    .template-logo-thumb {
+        width: 100%;
+        height: 100%;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: #f8f9fa;
+    }
+
+    .template-logo-thumb-img {
+        width: 100%;
+        height: 100%;
+        object-fit: fill;
+    }
+
+    .template-logo-remove {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        line-height: 1;
+        padding: 0 0.35rem;
+        z-index: 2;
+    }
+
+    .template-canvas-logo {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        pointer-events: none;
+    }
+
+    .template-canvas-resize {
+        position: absolute;
+        right: -1px;
+        bottom: -1px;
+        width: 12px;
+        height: 12px;
+        background: #0d6efd;
+        border: 1px solid #fff;
+        border-radius: 2px;
+        cursor: nwse-resize;
+    }
+
+    .template-address-item {
+        cursor: grab;
+        border-left: 4px solid #0b4f8a;
+        background: #f8fbff;
+    }
+
+    .template-address-item-title {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #0b4f8a;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .template-address-item-line {
+        font-size: 0.67rem;
+        line-height: 1.25;
+        color: #1f2937;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .template-address-canvas {
+        width: 100%;
+        height: 100%;
+        border-left: 4px solid #0b4f8a;
+        background: #f8fbff;
+        padding: 6px 8px;
+        overflow: hidden;
+    }
+
+    .template-address-canvas-title {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #0b4f8a;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .template-address-canvas-line {
+        font-size: 0.7rem;
+        line-height: 1.25;
+        color: #111827;
+    }
+
+    .template-hidden {
+        display: none !important;
+    }
+
+    #textList {
+        max-height: 260px;
+        overflow-y: auto;
+    }
+
+    .template-text-item {
+        cursor: grab;
+        background: #fff;
+        border-left: 4px solid #495057;
+    }
+
+    .template-text-title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #343a40;
+        margin-bottom: 2px;
+    }
+
+    .template-text-snippet {
+        font-size: 0.72rem;
+        color: #6c757d;
+        max-height: 54px;
+        overflow: hidden;
+    }
+
+    .template-text-canvas {
+        width: 100%;
+        height: 100%;
+        background: #fff;
+        border-left: 4px solid #495057;
+        padding: 8px 10px;
+        overflow: hidden;
+    }
+
+    .template-text-toolbar .btn {
+        padding: 0.2rem 0.5rem;
+    }
+
+    #textEditorSurface {
+        min-height: 180px;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        padding: 10px;
+        overflow-y: auto;
+        background: #fff;
+    }
+
+    .template-complement-item {
+        cursor: grab;
+        border-left: 4px solid #198754;
+        background: #f6fff9;
+    }
+
+    .template-complement-title {
+        font-size: 0.76rem;
+        font-weight: 700;
+        color: #198754;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .template-complement-line {
+        font-size: 0.68rem;
+        line-height: 1.25;
+        color: #1f2937;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .template-complement-canvas {
+        width: 100%;
+        height: 100%;
+        border-left: 4px solid #198754;
+        background: #f6fff9;
+        padding: 7px 9px;
+        overflow: hidden;
+    }
+
+    .template-complement-canvas-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #198754;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .template-complement-canvas-line {
+        font-size: 0.69rem;
+        line-height: 1.25;
+        color: #111827;
+    }
+</style>
+
 <div class="col-md-6">
     <label class="form-label" for="TextLabel">@ClientOffer.Lbl_Name</label>
     @Html.TextBoxFor(m => m.TextLabel, new { @class = "form-control", maxlength = "500", required = "required" })
@@ -23,55 +272,1269 @@
     </select>
     @Html.ValidationMessage("LinkCompany", "", new { @class = "text-danger" })
 </div>
-<div class="col-md-4">
-    <label class="form-label" for="LinkSystem">@ClientOffer.Lbl_System</label>
-    <select class="form-select" id="LinkSystem" name="LinkSystem">
-        <option value="">@ClientOffer.Lbl_AllSystems</option>
-        @foreach (var item in systems)
-        {
-            <option value="@item.Id" @(Model.LinkSystem == item.Id ? "selected" : null)>@item.TextLabel</option>
-        }
-    </select>
-</div>
-<div class="col-md-4">
-    <label class="form-label" for="LinkPlantilla">@ClientOffer.Lbl_Plantilla</label>
-    <select class="form-select" id="LinkPlantilla" name="LinkPlantilla">
-        <option value="">@ClientOffer.Ph_Optional</option>
-        @foreach (var item in plantillas)
-        {
-            <option value="@item.Id" @(Model.LinkPlantilla == item.Id ? "selected" : null)>@item.TextLabel</option>
-        }
-    </select>
-</div>
-<div class="col-md-4">
-    <label class="form-label" for="logoFile">@ClientOffer.Lbl_Logo</label>
-    <input type="file" class="form-control" id="logoFile" name="logoFile" accept=".png,.jpg,.jpeg,.gif,.svg" />
-    @if (!string.IsNullOrEmpty(Model.TextLogo))
-    {
-        <img src="@Model.TextLogo" alt="" style="max-height:48px;margin-top:8px" />
-    }
-    @Html.ValidationMessage("TextLogo", "", new { @class = "text-danger" })
-</div>
-<div class="col-md-8">
-    <label class="form-label" for="TextCompanyName">@ClientOffer.Lbl_CompanyName</label>
-    @Html.TextBoxFor(m => m.TextCompanyName, new { @class = "form-control", maxlength = "500" })
-</div>
-<div class="col-md-4">
-    <label class="form-label">@ClientOffer.Lbl_Active</label>
-    <div class="form-check mt-2">
-        @Html.CheckBoxFor(m => m.Is_Active, new { @class = "form-check-input" })
-        <label class="form-check-label" for="Is_Active">@ClientOffer.Lbl_Active</label>
+
+<div class="col-12">
+    @Html.ValidationMessage("TextLogo", "", new { @class = "text-danger d-block mb-2" })
+    <div class="row g-3">
+        <div class="col-lg-7">
+            <div class="card border">
+                <div class="card-header">
+                    <strong>Resultado (página A4 libre)</strong>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-center">
+                        <div id="templateA4Canvas"
+                             class="position-relative bg-white border shadow-sm"
+                             style="width:100%;max-width:460px;aspect-ratio:210/297;overflow:hidden;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card border mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>Logos</strong>
+                    <label class="btn btn-sm btn-outline-primary mb-0">
+                        + Adjuntar logo
+                        <input type="file" id="logoFiles" name="logoFiles" accept=".png,.jpg,.jpeg,.gif,.svg" multiple style="display:none;" />
+                    </label>
+                </div>
+                <div class="card-body">
+                    <div id="logoList" class="d-flex flex-wrap gap-2">
+                        @foreach (var logo in logos.OrderBy(p => p.NumberOrder).ThenBy(p => p.IdObject))
+                        {
+                            <div class="border rounded position-relative js-logo-item template-logo-palette-item"
+                                 data-logo-id="@logo.IdObject"
+                                 data-logo-key="id:@logo.IdObject"
+                                 data-image-path="@logo.TextImagePath"
+                                 draggable="true"
+                                 title="Arrastra al A4">
+                                <button type="button" class="btn btn-outline-danger btn-sm js-remove-logo template-logo-remove">×</button>
+                                <div class="template-logo-thumb">
+                                    <img src="@logo.TextImagePath" alt="" class="template-logo-thumb-img" />
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border mb-3">
+                <div class="card-header"><strong>Direcciones</strong></div>
+                <div class="card-body">
+                    <div id="addressList"
+                         class="d-flex flex-column gap-2"
+                         data-company-name="@Html.Raw(HttpUtility.HtmlAttributeEncode(companyPreviewName))"
+                         data-company-address="@Html.Raw(HttpUtility.HtmlAttributeEncode(companyPreviewAddress))">
+                        <div class="border rounded p-2 js-address-item template-address-item" data-address-code="CLIENT" draggable="true" title="Arrastra al A4">
+                            <div class="template-address-item-title">Datos del cliente</div>
+                            <div class="template-address-item-line">Empresa / Cliente: [Nombre del Cliente]</div>
+                            <div class="template-address-item-line">A la atención de: [Persona de contacto]</div>
+                            <div class="template-address-item-line">Dirección de obra: [Calle, número, C.P., localidad]</div>
+                            <div class="template-address-item-line">CIF / NIF: [CIF del cliente]</div>
+                        </div>
+                        <div class="border rounded p-2 js-address-item template-address-item" data-address-code="COMPANY" draggable="true" title="Arrastra al A4">
+                            <div class="template-address-item-title">Datos de la empresa</div>
+                            <div class="template-address-item-line">Empresa: @companyPreviewName</div>
+                            <div class="template-address-item-line">Dirección: @companyPreviewAddress</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card border mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>Texto inicial y final</strong>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddTextBlock">+ Adjuntar texto</button>
+                </div>
+                <div class="card-body">
+                    <div id="textList" class="d-flex flex-column gap-2"></div>
+                </div>
+            </div>
+            <div class="card border">
+                <div class="card-header"><strong>Complementos</strong></div>
+                <div class="card-body">
+                    <div id="complementList" class="d-flex flex-column gap-2">
+                        <div class="border rounded p-2 js-complement-item template-complement-item" data-complement-code="DESIGN_COUNT" draggable="true" title="Arrastra al A4">
+                            <div class="template-complement-title">Recuento del diseño</div>
+                            <div class="template-complement-line">Ejemplo:</div>
+                            <div class="template-complement-line">- Paneles: 120 uds</div>
+                            <div class="template-complement-line">- Cierres: 24 uds</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-<div class="col-12">
-    <label class="form-label" for="TextSubjectTemplate">@ClientOffer.Lbl_SubjectTemplate</label>
-    @Html.TextBoxFor(m => m.TextSubjectTemplate, new { @class = "form-control", maxlength = "500" })
+
+<div class="modal fade" id="textEditorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="textEditorModalTitle">Crear texto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2">
+                    <label class="form-label" for="textTemplateLibrary">Textos guardados (otras plantillas)</label>
+                    <div class="d-flex gap-2">
+                        <select id="textTemplateLibrary" class="form-select">
+                            <option value="">Seleccionar texto guardado...</option>
+                        </select>
+                        <button type="button" class="btn btn-outline-secondary" id="btnLoadTextTemplate">Cargar</button>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" for="textEditorTitle">Nombre</label>
+                    <input type="text" id="textEditorTitle" class="form-control" maxlength="500" placeholder="Texto inicial" />
+                </div>
+                <div class="template-text-toolbar btn-group mb-2" role="group" id="textEditorToolbar">
+                    <button type="button" class="btn btn-outline-secondary" data-cmd="bold"><strong>B</strong></button>
+                    <button type="button" class="btn btn-outline-secondary" data-cmd="italic"><em>I</em></button>
+                    <button type="button" class="btn btn-outline-secondary" data-cmd="underline"><u>U</u></button>
+                    <button type="button" class="btn btn-outline-secondary" data-cmd="justifyLeft">⟸</button>
+                    <button type="button" class="btn btn-outline-secondary" data-cmd="justifyCenter">≡</button>
+                    <button type="button" class="btn btn-outline-secondary" data-cmd="justifyRight">⟹</button>
+                    <button type="button" class="btn btn-outline-secondary" data-cmd="insertUnorderedList">• Lista</button>
+                    <button type="button" class="btn btn-outline-secondary" data-cmd="insertOrderedList">1. Lista</button>
+                </div>
+                <div id="textEditorSurface" contenteditable="true"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnSaveTextBlock">Guardar cambios</button>
+                <button type="button" class="btn btn-success" id="btnSaveAsTextBlock">Guardar como</button>
+            </div>
+        </div>
+    </div>
 </div>
-<div class="col-12">
-    <label class="form-label" for="TextHeaderTemplate">@ClientOffer.Lbl_HeaderTemplate</label>
-    @Html.TextAreaFor(m => m.TextHeaderTemplate, new { @class = "form-control", rows = "6" })
-</div>
-<div class="col-12">
-    <label class="form-label" for="TextBodyTemplate">@ClientOffer.Lbl_BodyTemplate</label>
-    @Html.TextAreaFor(m => m.TextBodyTemplate, new { @class = "form-control", rows = "10" })
-</div>
+
+<script type="text/javascript">
+    (function () {
+        var a4Canvas = document.getElementById('templateA4Canvas');
+        var layoutField = document.getElementById('TextLayoutJson');
+        var keepLogosField = document.getElementById('KeepLogoIdsCsv');
+        var textBlocksField = document.getElementById('TextBlocksJson');
+        var reusableTextLibraryField = document.getElementById('ReusableTextLibraryJson');
+        var logoList = document.getElementById('logoList');
+        var addressList = document.getElementById('addressList');
+        var textList = document.getElementById('textList');
+        var complementList = document.getElementById('complementList');
+        var logoInput = document.getElementById('logoFiles');
+        var btnAddTextBlock = document.getElementById('btnAddTextBlock');
+        var textEditorModalEl = document.getElementById('textEditorModal');
+        var textEditorModalTitle = document.getElementById('textEditorModalTitle');
+        var textTemplateLibrary = document.getElementById('textTemplateLibrary');
+        var btnLoadTextTemplate = document.getElementById('btnLoadTextTemplate');
+        var btnSaveTextBlock = document.getElementById('btnSaveTextBlock');
+        var btnSaveAsTextBlock = document.getElementById('btnSaveAsTextBlock');
+        var textEditorTitle = document.getElementById('textEditorTitle');
+        var textEditorToolbar = document.getElementById('textEditorToolbar');
+        var textEditorSurface = document.getElementById('textEditorSurface');
+        if (!a4Canvas || !layoutField || !keepLogosField || !textBlocksField || !reusableTextLibraryField || !logoList || !addressList || !textList || !complementList || !logoInput
+            || !btnAddTextBlock || !textEditorModalEl || !textEditorModalTitle || !textTemplateLibrary || !btnLoadTextTemplate
+            || !btnSaveTextBlock || !btnSaveAsTextBlock || !textEditorTitle || !textEditorToolbar || !textEditorSurface) return;
+
+        var bufferedLogoFiles = [];
+        var textBlocks = [];
+        var reusableTextLibrary = [];
+        var placementsByKey = {};
+        var dragging = null;
+        var resizing = null;
+        var draggedLogoKey = null;
+        var draggedAddressCode = null;
+        var draggedTextKey = null;
+        var draggedComplementCode = null;
+        var editingTextKey = null;
+        var defaultLogoPx = 58;
+        var minLogoSizePct = 4;
+        var addressOrder = ['CLIENT', 'COMPANY'];
+        var complementOrder = ['DESIGN_COUNT'];
+        var addressTemplates = buildAddressTemplates();
+        var textEditorModal = null;
+
+        function clamp(value, min, max) {
+            return Math.max(min, Math.min(max, value));
+        }
+
+        function escapeHtml(value) {
+            return (value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function defaultLogoSizePct() {
+            var rect = a4Canvas.getBoundingClientRect();
+            var w = rect.width > 0 ? (defaultLogoPx / rect.width) * 100 : 12.5;
+            var h = rect.height > 0 ? (defaultLogoPx / rect.height) * 100 : 8.8;
+            return {
+                widthPct: clamp(w, minLogoSizePct, 100),
+                heightPct: clamp(h, minLogoSizePct, 100)
+            };
+        }
+
+        function defaultLogoPlacement() {
+            var size = defaultLogoSizePct();
+            return {
+                xPct: 8,
+                yPct: 8,
+                widthPct: size.widthPct,
+                heightPct: size.heightPct
+            };
+        }
+
+        function buildAddressTemplates() {
+            var companyName = (addressList.getAttribute('data-company-name') || '').trim();
+            var companyAddress = (addressList.getAttribute('data-company-address') || '').trim();
+            if (!companyName) companyName = '[Nombre de tu Empresa S.L.]';
+            if (!companyAddress) companyAddress = '[Dirección empresa]';
+
+            return {
+                CLIENT: {
+                    title: 'DATOS DEL CLIENTE',
+                    lines: [
+                        'Empresa / Cliente: [Nombre del Cliente o Constructora S.A.]',
+                        'A la atención de: [Nombre de la persona de contacto]',
+                        'Dirección de obra: [Calle, Número, Polígono, C.P., Localidad]',
+                        'CIF / NIF: [CIF del cliente]'
+                    ],
+                    defaultPlacement: { xPct: 8, yPct: 60, widthPct: 80, heightPct: 22 }
+                },
+                COMPANY: {
+                    title: 'DATOS DE LA EMPRESA',
+                    lines: [
+                        'Empresa: ' + companyName,
+                        'Dirección: ' + companyAddress
+                    ],
+                    defaultPlacement: { xPct: 56, yPct: 8, widthPct: 36, heightPct: 16 }
+                }
+            };
+        }
+
+        function getAddressKey(code) {
+            return 'addr:' + code;
+        }
+
+        function getAddressCodeFromKey(key) {
+            if (!key || key.indexOf('addr:') !== 0) return '';
+            return key.substring(5).toUpperCase();
+        }
+
+        function getComplementKey(code) {
+            return 'cmp:' + code;
+        }
+
+        function getComplementCodeFromKey(key) {
+            if (!key || key.indexOf('cmp:') !== 0) return '';
+            return key.substring(4).toUpperCase();
+        }
+
+        function defaultComplementPlacement(code) {
+            if (code === 'DESIGN_COUNT') {
+                return { xPct: 10, yPct: 72, widthPct: 55, heightPct: 16 };
+            }
+            return { xPct: 10, yPct: 72, widthPct: 45, heightPct: 14 };
+        }
+
+        function renderComplementBlockHtml(code) {
+            if (code !== 'DESIGN_COUNT') {
+                return '';
+            }
+
+            return '<div class="template-complement-canvas-title">RECUENTO DEL DISEÑO</div>' +
+                '<div class="template-complement-canvas-line">[Ejemplo]</div>' +
+                '<div class="template-complement-canvas-line">- Paneles: 120 uds</div>' +
+                '<div class="template-complement-canvas-line">- Cierres: 24 uds</div>' +
+                '<div class="template-complement-canvas-line">- Esquinas: 8 uds</div>';
+        }
+
+        function getTextKey(block) {
+            if (!block) return '';
+            if (block.id && block.id > 0) return 'txt:id:' + block.id;
+            return 'txt:new:' + block.uid;
+        }
+
+        function getTextKeyByIndex(index) {
+            var assets = getTextAssets();
+            var pos = index - 1;
+            if (pos < 0 || pos >= assets.length) return '';
+            return getTextKey(assets[pos]);
+        }
+
+        function getTextAssets() {
+            return textBlocks.slice();
+        }
+
+        function textKeyToAssetIndex(key) {
+            var assets = getTextAssets();
+            for (var i = 0; i < assets.length; i++) {
+                if (getTextKey(assets[i]) === key) {
+                    return i + 1;
+                }
+            }
+            return 0;
+        }
+
+        function textAssetByIndex(index) {
+            var assets = getTextAssets();
+            var pos = index - 1;
+            return pos >= 0 && pos < assets.length ? assets[pos] : null;
+        }
+
+        function defaultTextPlacement() {
+            return { xPct: 12, yPct: 42, widthPct: 76, heightPct: 20 };
+        }
+
+        function sanitizeTextHtml(html) {
+            var value = String(html || '');
+            value = value.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '');
+            value = value.replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, '');
+            return value.trim();
+        }
+
+        function plainSnippetFromHtml(html) {
+            var div = document.createElement('div');
+            div.innerHTML = html || '';
+            var text = (div.textContent || div.innerText || '').trim();
+            if (text.length > 180) {
+                return text.substring(0, 180) + '...';
+            }
+            return text;
+        }
+
+        function syncTextBlocksField() {
+            var payload = [];
+            for (var i = 0; i < textBlocks.length; i++) {
+                var row = textBlocks[i];
+                payload.push({
+                    id: row.id || 0,
+                    name: row.name || '',
+                    body: row.body || ''
+                });
+            }
+            textBlocksField.value = JSON.stringify(payload);
+        }
+
+        function refreshTextPalette() {
+            var rows = textList.querySelectorAll('.js-text-item[data-text-key]');
+            for (var i = 0; i < rows.length; i++) {
+                var key = rows[i].getAttribute('data-text-key') || '';
+                if (!key) continue;
+                var isPlaced = !!placementsByKey[key];
+                rows[i].classList.toggle('template-hidden', isPlaced);
+            }
+        }
+
+        function renderTextPalette() {
+            textList.innerHTML = '';
+            for (var i = 0; i < textBlocks.length; i++) {
+                var block = textBlocks[i];
+                var key = getTextKey(block);
+                var node = document.createElement('div');
+                node.className = 'border rounded p-2 position-relative js-text-item template-text-item';
+                node.setAttribute('data-text-key', key);
+                node.setAttribute('draggable', 'true');
+                node.title = 'Arrastra al A4';
+                var safeTitle = escapeHtml(block.name || ('Texto ' + (i + 1)));
+                var safeSnippet = escapeHtml(plainSnippetFromHtml(block.body || ''));
+                node.innerHTML =
+                    '<button type="button" class="btn btn-outline-primary btn-sm js-edit-text template-logo-remove" style="right:34px;" title="Editar">✎</button>' +
+                    '<button type="button" class="btn btn-outline-danger btn-sm js-remove-text template-logo-remove">×</button>' +
+                    '<div class="template-text-title">' + safeTitle + '</div>' +
+                    '<div class="template-text-snippet">' + safeSnippet + '</div>';
+                textList.appendChild(node);
+            }
+            refreshTextPalette();
+        }
+
+        function loadReusableTextLibrary() {
+            reusableTextLibrary = [];
+            try {
+                var raw = JSON.parse(reusableTextLibraryField.value || '[]');
+                if (!Array.isArray(raw)) {
+                    raw = [];
+                }
+
+                for (var i = 0; i < raw.length; i++) {
+                    var row = raw[i] || {};
+                    var body = sanitizeTextHtml(row.body || '');
+                    if (!body) continue;
+                    var id = parseInt(row.id || '0', 10);
+                    reusableTextLibrary.push({
+                        id: id > 0 ? id : 0,
+                        name: (row.name || '').trim() || ('Texto guardado ' + (reusableTextLibrary.length + 1)),
+                        body: body,
+                        source: (row.source || '').trim()
+                    });
+                }
+            } catch (e) {
+                reusableTextLibrary = [];
+            }
+            refreshReusableTextLibraryOptions();
+        }
+
+        function refreshReusableTextLibraryOptions() {
+            textTemplateLibrary.innerHTML = '<option value="">Seleccionar texto guardado...</option>';
+            for (var i = 0; i < reusableTextLibrary.length; i++) {
+                var item = reusableTextLibrary[i];
+                var option = document.createElement('option');
+                option.value = String(i);
+                option.textContent = item.source
+                    ? (item.name + ' [' + item.source + ']')
+                    : item.name;
+                textTemplateLibrary.appendChild(option);
+            }
+            textTemplateLibrary.value = '';
+        }
+
+        function findTextBlockByKey(key) {
+            for (var i = 0; i < textBlocks.length; i++) {
+                if (getTextKey(textBlocks[i]) === key) {
+                    return textBlocks[i];
+                }
+            }
+            return null;
+        }
+
+        function closeTextModal() {
+            if (textEditorModal && textEditorModal.hide) {
+                textEditorModal.hide();
+            } else {
+                textEditorModalEl.classList.remove('show');
+                textEditorModalEl.style.display = 'none';
+            }
+        }
+
+        function openTextModal() {
+            if (window.bootstrap && window.bootstrap.Modal) {
+                textEditorModal = textEditorModal || new bootstrap.Modal(textEditorModalEl);
+                textEditorModal.show();
+            } else {
+                textEditorModalEl.style.display = 'block';
+                textEditorModalEl.classList.add('show');
+            }
+        }
+
+        function openTextEditorForCreate() {
+            editingTextKey = null;
+            textEditorModalTitle.textContent = 'Crear texto';
+            textEditorTitle.value = '';
+            textEditorSurface.innerHTML = '';
+            textTemplateLibrary.value = '';
+            openTextModal();
+            setTimeout(function () { textEditorTitle.focus(); }, 80);
+        }
+
+        function openTextEditorForEdit(key) {
+            var block = findTextBlockByKey(key);
+            if (!block) return;
+            editingTextKey = key;
+            textEditorModalTitle.textContent = 'Editar texto';
+            textEditorTitle.value = block.name || '';
+            textEditorSurface.innerHTML = block.body || '';
+            textTemplateLibrary.value = '';
+            openTextModal();
+            setTimeout(function () { textEditorTitle.focus(); }, 80);
+        }
+
+        function saveEditorText(saveAs) {
+            var rawTitle = (textEditorTitle.value || '').trim();
+            var htmlBody = sanitizeTextHtml(textEditorSurface.innerHTML || '');
+            if (!htmlBody) {
+                alert('Escribe el texto antes de guardar.');
+                return;
+            }
+
+            var title = rawTitle || ('Texto ' + (textBlocks.length + 1));
+            if (!saveAs && editingTextKey) {
+                var block = findTextBlockByKey(editingTextKey);
+                if (block) {
+                    block.name = title;
+                    block.body = htmlBody;
+                    syncTextBlocksField();
+                    renderTextPalette();
+                    renderCanvas();
+                    closeTextModal();
+                    return;
+                }
+            }
+
+            var newBlock = {
+                id: 0,
+                uid: 'txt_' + Date.now() + '_' + Math.floor(Math.random() * 100000),
+                name: title,
+                body: htmlBody
+            };
+            textBlocks.push(newBlock);
+            syncTextBlocksField();
+            renderTextPalette();
+            closeTextModal();
+        }
+
+        function defaultAddressPlacement(code) {
+            var tpl = addressTemplates[code];
+            if (tpl && tpl.defaultPlacement) {
+                return {
+                    xPct: tpl.defaultPlacement.xPct,
+                    yPct: tpl.defaultPlacement.yPct,
+                    widthPct: tpl.defaultPlacement.widthPct,
+                    heightPct: tpl.defaultPlacement.heightPct
+                };
+            }
+
+            return { xPct: 8, yPct: 8, widthPct: 40, heightPct: 16 };
+        }
+
+        function normalizePlacement(p, fallback) {
+            var base = fallback || defaultLogoPlacement();
+            var widthPct = Number(p.widthPct);
+            var heightPct = Number(p.heightPct);
+            var xPct = Number(p.xPct);
+            var yPct = Number(p.yPct);
+
+            if (!isFinite(widthPct) || widthPct <= 0) widthPct = base.widthPct;
+            if (!isFinite(heightPct) || heightPct <= 0) heightPct = base.heightPct;
+            widthPct = clamp(widthPct, minLogoSizePct, 100);
+            heightPct = clamp(heightPct, minLogoSizePct, 100);
+
+            if (!isFinite(xPct)) xPct = base.xPct;
+            if (!isFinite(yPct)) yPct = base.yPct;
+            xPct = clamp(xPct, 0, 100 - widthPct);
+            yPct = clamp(yPct, 0, 100 - heightPct);
+
+            return {
+                xPct: xPct,
+                yPct: yPct,
+                widthPct: widthPct,
+                heightPct: heightPct
+            };
+        }
+
+        function getLogoAssets() {
+            var assets = [];
+            var existing = logoList.querySelectorAll('.js-logo-item[data-logo-id]');
+            for (var i = 0; i < existing.length; i++) {
+                var id = parseInt(existing[i].getAttribute('data-logo-id') || '0', 10);
+                if (id <= 0) continue;
+                assets.push({
+                    key: 'id:' + id,
+                    imagePath: existing[i].getAttribute('data-image-path') || ''
+                });
+            }
+
+            for (var j = 0; j < bufferedLogoFiles.length; j++) {
+                assets.push({
+                    key: 'new:' + bufferedLogoFiles[j].uid,
+                    imagePath: bufferedLogoFiles[j].preview
+                });
+            }
+
+            return assets;
+        }
+
+        function keyToAssetIndex(key) {
+            var assets = getLogoAssets();
+            for (var i = 0; i < assets.length; i++) {
+                if (assets[i].key === key) {
+                    return i + 1;
+                }
+            }
+            return 0;
+        }
+
+        function assetByIndex(index) {
+            var assets = getLogoAssets();
+            var pos = index - 1;
+            return pos >= 0 && pos < assets.length ? assets[pos] : null;
+        }
+
+        function syncKeepIds() {
+            var ids = [];
+            var existing = logoList.querySelectorAll('.js-logo-item[data-logo-id]');
+            for (var i = 0; i < existing.length; i++) {
+                var id = parseInt(existing[i].getAttribute('data-logo-id') || '0', 10);
+                if (id > 0) ids.push(id);
+            }
+            keepLogosField.value = ids.join(',');
+        }
+
+        function syncLogoInputFiles() {
+            if (typeof DataTransfer === 'undefined') return;
+            var dt = new DataTransfer();
+            for (var i = 0; i < bufferedLogoFiles.length; i++) {
+                dt.items.add(bufferedLogoFiles[i].file);
+            }
+            logoInput.files = dt.files;
+        }
+
+        function syncLayoutField() {
+            var logoRows = [];
+            var addressRows = [];
+            var textRows = [];
+            var complementRows = [];
+            for (var key in placementsByKey) {
+                if (!placementsByKey.hasOwnProperty(key)) continue;
+                var addressCode = getAddressCodeFromKey(key);
+                if (addressCode) {
+                    var addressNormalized = normalizePlacement(placementsByKey[key], defaultAddressPlacement(addressCode));
+                    addressRows.push({
+                        code: addressCode,
+                        xPct: Number(addressNormalized.xPct.toFixed(3)),
+                        yPct: Number(addressNormalized.yPct.toFixed(3)),
+                        widthPct: Number(addressNormalized.widthPct.toFixed(3)),
+                        heightPct: Number(addressNormalized.heightPct.toFixed(3))
+                    });
+                    continue;
+                }
+
+                var complementCode = getComplementCodeFromKey(key);
+                if (complementCode) {
+                    var complementNormalized = normalizePlacement(placementsByKey[key], defaultComplementPlacement(complementCode));
+                    complementRows.push({
+                        code: complementCode,
+                        xPct: Number(complementNormalized.xPct.toFixed(3)),
+                        yPct: Number(complementNormalized.yPct.toFixed(3)),
+                        widthPct: Number(complementNormalized.widthPct.toFixed(3)),
+                        heightPct: Number(complementNormalized.heightPct.toFixed(3))
+                    });
+                    continue;
+                }
+
+                var textIndex = textKeyToAssetIndex(key);
+                if (textIndex > 0) {
+                    var textNormalized = normalizePlacement(placementsByKey[key], defaultTextPlacement());
+                    textRows.push({
+                        textIndex: textIndex,
+                        xPct: Number(textNormalized.xPct.toFixed(3)),
+                        yPct: Number(textNormalized.yPct.toFixed(3)),
+                        widthPct: Number(textNormalized.widthPct.toFixed(3)),
+                        heightPct: Number(textNormalized.heightPct.toFixed(3))
+                    });
+                    continue;
+                }
+
+                var idx = keyToAssetIndex(key);
+                if (idx <= 0) continue;
+                var logoNormalized = normalizePlacement(placementsByKey[key], defaultLogoPlacement());
+                logoRows.push({
+                    assetIndex: idx,
+                    xPct: Number(logoNormalized.xPct.toFixed(3)),
+                    yPct: Number(logoNormalized.yPct.toFixed(3)),
+                    widthPct: Number(logoNormalized.widthPct.toFixed(3)),
+                    heightPct: Number(logoNormalized.heightPct.toFixed(3))
+                });
+            }
+            logoRows.sort(function (a, b) { return a.assetIndex - b.assetIndex; });
+            addressRows.sort(function (a, b) {
+                return addressOrder.indexOf(a.code) - addressOrder.indexOf(b.code);
+            });
+            textRows.sort(function (a, b) { return a.textIndex - b.textIndex; });
+            complementRows.sort(function (a, b) {
+                return complementOrder.indexOf(a.code) - complementOrder.indexOf(b.code);
+            });
+
+            layoutField.value = JSON.stringify({
+                version: 5,
+                logoPlacements: logoRows,
+                addressPlacements: addressRows,
+                textPlacements: textRows,
+                complementPlacements: complementRows
+            });
+        }
+
+        function renderAddressBlockHtml(code) {
+            var tpl = addressTemplates[code];
+            if (!tpl) return '';
+
+            var html = '<div class="template-address-canvas-title">' + escapeHtml(tpl.title) + '</div>';
+            for (var i = 0; i < tpl.lines.length; i++) {
+                html += '<div class="template-address-canvas-line">' + escapeHtml(tpl.lines[i]) + '</div>';
+            }
+            return html;
+        }
+
+        function refreshLogoPalette() {
+            var rows = logoList.querySelectorAll('.js-logo-item[data-logo-key]');
+            for (var i = 0; i < rows.length; i++) {
+                var key = rows[i].getAttribute('data-logo-key') || '';
+                if (!key) continue;
+                var isPlaced = !!placementsByKey[key];
+                rows[i].classList.toggle('template-hidden', isPlaced);
+            }
+        }
+
+        function refreshAddressPalette() {
+            var rows = addressList.querySelectorAll('.js-address-item[data-address-code]');
+            for (var i = 0; i < rows.length; i++) {
+                var code = (rows[i].getAttribute('data-address-code') || '').trim().toUpperCase();
+                if (!code) continue;
+                var key = getAddressKey(code);
+                var isPlaced = !!placementsByKey[key];
+                rows[i].classList.toggle('template-hidden', isPlaced);
+            }
+        }
+
+        function refreshComplementPalette() {
+            var rows = complementList.querySelectorAll('.js-complement-item[data-complement-code]');
+            for (var i = 0; i < rows.length; i++) {
+                var code = (rows[i].getAttribute('data-complement-code') || '').trim().toUpperCase();
+                if (!code) continue;
+                var key = getComplementKey(code);
+                var isPlaced = !!placementsByKey[key];
+                rows[i].classList.toggle('template-hidden', isPlaced);
+            }
+        }
+
+        function renderCanvas() {
+            a4Canvas.innerHTML = '';
+            var entries = [];
+            for (var key in placementsByKey) {
+                if (!placementsByKey.hasOwnProperty(key)) continue;
+                var idx = keyToAssetIndex(key);
+                if (idx <= 0) continue;
+                entries.push({ key: key, idx: idx, pos: placementsByKey[key] });
+            }
+            entries.sort(function (a, b) { return a.idx - b.idx; });
+
+            for (var i = 0; i < entries.length; i++) {
+                var row = entries[i];
+                var asset = assetByIndex(row.idx);
+                if (!asset) continue;
+                var el = document.createElement('div');
+                el.className = 'position-absolute border rounded bg-white d-flex align-items-center justify-content-center';
+                el.setAttribute('data-canvas-key', row.key);
+                var normalized = normalizePlacement(row.pos, defaultLogoPlacement());
+                placementsByKey[row.key] = normalized;
+                el.style.left = normalized.xPct + '%';
+                el.style.top = normalized.yPct + '%';
+                el.style.width = normalized.widthPct + '%';
+                el.style.height = normalized.heightPct + '%';
+                el.style.cursor = 'move';
+                el.style.userSelect = 'none';
+                el.style.zIndex = (20 + i).toString();
+                el.innerHTML = '<button type="button" class="btn btn-outline-secondary btn-sm js-return-logo template-logo-remove" title="Quitar y devolver a la derecha">↩</button><img alt="" class="template-canvas-logo" /><span class="template-canvas-resize" title="Redimensionar"></span>';
+                el.querySelector('img').src = asset.imagePath;
+                a4Canvas.appendChild(el);
+            }
+
+            for (var j = 0; j < addressOrder.length; j++) {
+                var code = addressOrder[j];
+                var addressKey = getAddressKey(code);
+                if (!placementsByKey[addressKey]) continue;
+                var addressPlacement = normalizePlacement(placementsByKey[addressKey], defaultAddressPlacement(code));
+                placementsByKey[addressKey] = addressPlacement;
+
+                var addressNode = document.createElement('div');
+                addressNode.className = 'position-absolute border rounded bg-white';
+                addressNode.setAttribute('data-canvas-key', addressKey);
+                addressNode.style.left = addressPlacement.xPct + '%';
+                addressNode.style.top = addressPlacement.yPct + '%';
+                addressNode.style.width = addressPlacement.widthPct + '%';
+                addressNode.style.height = addressPlacement.heightPct + '%';
+                addressNode.style.cursor = 'move';
+                addressNode.style.userSelect = 'none';
+                addressNode.style.zIndex = (200 + j).toString();
+                addressNode.innerHTML = '<button type="button" class="btn btn-outline-secondary btn-sm js-return-address template-logo-remove" title="Quitar y devolver a la derecha">↩</button><div class="template-address-canvas">' + renderAddressBlockHtml(code) + '</div><span class="template-canvas-resize" title="Redimensionar"></span>';
+                a4Canvas.appendChild(addressNode);
+            }
+
+            var textAssets = getTextAssets();
+            for (var t = 0; t < textAssets.length; t++) {
+                var textKey = getTextKey(textAssets[t]);
+                if (!placementsByKey[textKey]) continue;
+                var textPlacement = normalizePlacement(placementsByKey[textKey], defaultTextPlacement());
+                placementsByKey[textKey] = textPlacement;
+
+                var textNode = document.createElement('div');
+                textNode.className = 'position-absolute border rounded bg-white';
+                textNode.setAttribute('data-canvas-key', textKey);
+                textNode.style.left = textPlacement.xPct + '%';
+                textNode.style.top = textPlacement.yPct + '%';
+                textNode.style.width = textPlacement.widthPct + '%';
+                textNode.style.height = textPlacement.heightPct + '%';
+                textNode.style.cursor = 'move';
+                textNode.style.userSelect = 'none';
+                textNode.style.zIndex = (300 + t).toString();
+                textNode.innerHTML = '<button type="button" class="btn btn-outline-secondary btn-sm js-return-text template-logo-remove" title="Quitar y devolver a la derecha">↩</button><div class="template-text-canvas">' + (textAssets[t].body || '') + '</div><span class="template-canvas-resize" title="Redimensionar"></span>';
+                a4Canvas.appendChild(textNode);
+            }
+
+            for (var c = 0; c < complementOrder.length; c++) {
+                var complementCode = complementOrder[c];
+                var complementKey = getComplementKey(complementCode);
+                if (!placementsByKey[complementKey]) continue;
+                var complementPlacement = normalizePlacement(placementsByKey[complementKey], defaultComplementPlacement(complementCode));
+                placementsByKey[complementKey] = complementPlacement;
+
+                var complementNode = document.createElement('div');
+                complementNode.className = 'position-absolute border rounded bg-white';
+                complementNode.setAttribute('data-canvas-key', complementKey);
+                complementNode.style.left = complementPlacement.xPct + '%';
+                complementNode.style.top = complementPlacement.yPct + '%';
+                complementNode.style.width = complementPlacement.widthPct + '%';
+                complementNode.style.height = complementPlacement.heightPct + '%';
+                complementNode.style.cursor = 'move';
+                complementNode.style.userSelect = 'none';
+                complementNode.style.zIndex = (400 + c).toString();
+                complementNode.innerHTML = '<button type="button" class="btn btn-outline-secondary btn-sm js-return-complement template-logo-remove" title="Quitar y devolver a la derecha">↩</button><div class="template-complement-canvas">' + renderComplementBlockHtml(complementCode) + '</div><span class="template-canvas-resize" title="Redimensionar"></span>';
+                a4Canvas.appendChild(complementNode);
+            }
+
+            refreshLogoPalette();
+            refreshAddressPalette();
+            refreshTextPalette();
+            refreshComplementPalette();
+            syncLayoutField();
+        }
+
+        function removePlacementKey(key) {
+            if (!key) return;
+            delete placementsByKey[key];
+            renderCanvas();
+        }
+
+        function loadTextBlocks() {
+            textBlocks = [];
+            try {
+                var raw = JSON.parse(textBlocksField.value || '[]');
+                if (!Array.isArray(raw)) {
+                    raw = [];
+                }
+
+                for (var i = 0; i < raw.length; i++) {
+                    var row = raw[i] || {};
+                    var body = sanitizeTextHtml(row.body || '');
+                    if (!body) continue;
+                    var id = parseInt(row.id || '0', 10);
+                    textBlocks.push({
+                        id: id > 0 ? id : 0,
+                        uid: 'txt_' + Date.now() + '_' + i + '_' + Math.floor(Math.random() * 100000),
+                        name: (row.name || '').trim() || ('Texto ' + (textBlocks.length + 1)),
+                        body: body
+                    });
+                }
+            } catch (e) {
+                textBlocks = [];
+            }
+            syncTextBlocksField();
+            renderTextPalette();
+        }
+
+        function loadSavedPlacements() {
+            try {
+                var raw = JSON.parse(layoutField.value || '{}');
+                var rows = raw && Array.isArray(raw.logoPlacements)
+                    ? raw.logoPlacements
+                    : (raw && Array.isArray(raw.logoPositions) ? raw.logoPositions : []);
+                for (var i = 0; i < rows.length; i++) {
+                    var idx = parseInt(rows[i].assetIndex || rows[i].order || '0', 10);
+                    if (idx <= 0) continue;
+                    var asset = assetByIndex(idx);
+                    if (!asset) continue;
+                    placementsByKey[asset.key] = normalizePlacement({
+                        xPct: Number(rows[i].xPct) || 0,
+                        yPct: Number(rows[i].yPct) || 0,
+                        widthPct: Number(rows[i].widthPct) || 0,
+                        heightPct: Number(rows[i].heightPct) || 0
+                    }, defaultLogoPlacement());
+                }
+
+                var addressRows = raw && Array.isArray(raw.addressPlacements) ? raw.addressPlacements : [];
+                for (var j = 0; j < addressRows.length; j++) {
+                    var code = String(addressRows[j].code || '').trim().toUpperCase();
+                    if (!code || addressOrder.indexOf(code) < 0) continue;
+                    placementsByKey[getAddressKey(code)] = normalizePlacement({
+                        xPct: Number(addressRows[j].xPct) || 0,
+                        yPct: Number(addressRows[j].yPct) || 0,
+                        widthPct: Number(addressRows[j].widthPct) || 0,
+                        heightPct: Number(addressRows[j].heightPct) || 0
+                    }, defaultAddressPlacement(code));
+                }
+
+                var textRows = raw && Array.isArray(raw.textPlacements) ? raw.textPlacements : [];
+                for (var k = 0; k < textRows.length; k++) {
+                    var textIndex = parseInt(textRows[k].textIndex || textRows[k].assetIndex || '0', 10);
+                    if (textIndex <= 0) continue;
+                    var key = getTextKeyByIndex(textIndex);
+                    if (!key) continue;
+                    placementsByKey[key] = normalizePlacement({
+                        xPct: Number(textRows[k].xPct) || 0,
+                        yPct: Number(textRows[k].yPct) || 0,
+                        widthPct: Number(textRows[k].widthPct) || 0,
+                        heightPct: Number(textRows[k].heightPct) || 0
+                    }, defaultTextPlacement());
+                }
+
+                var complementRows = raw && Array.isArray(raw.complementPlacements) ? raw.complementPlacements : [];
+                for (var m = 0; m < complementRows.length; m++) {
+                    var code = String(complementRows[m].code || '').trim().toUpperCase();
+                    if (!code || complementOrder.indexOf(code) < 0) continue;
+                    placementsByKey[getComplementKey(code)] = normalizePlacement({
+                        xPct: Number(complementRows[m].xPct) || 0,
+                        yPct: Number(complementRows[m].yPct) || 0,
+                        widthPct: Number(complementRows[m].widthPct) || 0,
+                        heightPct: Number(complementRows[m].heightPct) || 0
+                    }, defaultComplementPlacement(code));
+                }
+            } catch (e) {
+                placementsByKey = {};
+            }
+        }
+
+        a4Canvas.addEventListener('dragover', function (e) {
+            if (!draggedLogoKey && !draggedAddressCode && !draggedTextKey && !draggedComplementCode) return;
+            e.preventDefault();
+            a4Canvas.style.outline = '2px dashed #0d6efd';
+            e.dataTransfer.dropEffect = 'move';
+        });
+
+        a4Canvas.addEventListener('dragleave', function () {
+            a4Canvas.style.outline = '';
+        });
+
+        a4Canvas.addEventListener('drop', function (e) {
+            if (!draggedLogoKey && !draggedAddressCode && !draggedTextKey && !draggedComplementCode) return;
+            e.preventDefault();
+            var rect = a4Canvas.getBoundingClientRect();
+            var xPct = ((e.clientX - rect.left) / rect.width) * 100;
+            var yPct = ((e.clientY - rect.top) / rect.height) * 100;
+            var targetKey = draggedLogoKey
+                || (draggedAddressCode ? getAddressKey(draggedAddressCode) : '')
+                || draggedTextKey
+                || (draggedComplementCode ? getComplementKey(draggedComplementCode) : '');
+            var fallback = draggedLogoKey
+                ? defaultLogoPlacement()
+                : (draggedAddressCode
+                    ? defaultAddressPlacement(draggedAddressCode)
+                    : (draggedTextKey ? defaultTextPlacement() : defaultComplementPlacement(draggedComplementCode)));
+            var current = placementsByKey[targetKey] || fallback;
+            placementsByKey[targetKey] = normalizePlacement({
+                xPct: xPct,
+                yPct: yPct,
+                widthPct: current.widthPct,
+                heightPct: current.heightPct
+            }, fallback);
+            a4Canvas.style.outline = '';
+            draggedLogoKey = null;
+            draggedAddressCode = null;
+            draggedTextKey = null;
+            draggedComplementCode = null;
+            renderCanvas();
+        });
+
+        a4Canvas.addEventListener('mousedown', function (e) {
+            var node = e.target.closest('[data-canvas-key]');
+            if (!node) return;
+            if (e.target.closest('.js-return-address') || e.target.closest('.js-return-logo') || e.target.closest('.js-return-text') || e.target.closest('.js-return-complement')) {
+                return;
+            }
+            if (e.target.closest('.template-canvas-resize')) {
+                var resizeKey = node.getAttribute('data-canvas-key') || '';
+                if (!resizeKey || !placementsByKey[resizeKey]) return;
+                var resizeCodeOnDown = getAddressCodeFromKey(resizeKey);
+                var resizeFallbackOnDown = resizeCodeOnDown ? defaultAddressPlacement(resizeCodeOnDown) : defaultLogoPlacement();
+                var resizeCurrent = normalizePlacement(placementsByKey[resizeKey], resizeFallbackOnDown);
+                resizing = {
+                    key: resizeKey,
+                    node: node,
+                    startX: e.clientX,
+                    startY: e.clientY,
+                    startWidthPct: resizeCurrent.widthPct,
+                    startHeightPct: resizeCurrent.heightPct
+                };
+                e.preventDefault();
+                return;
+            }
+
+            var key = node.getAttribute('data-canvas-key') || '';
+            if (!key || !placementsByKey[key]) return;
+            var addressCode = getAddressCodeFromKey(key);
+            var textIndex = textKeyToAssetIndex(key);
+            var complementCode = getComplementCodeFromKey(key);
+            var dragFallback = addressCode
+                ? defaultAddressPlacement(addressCode)
+                : (textIndex > 0
+                    ? defaultTextPlacement()
+                    : (complementCode ? defaultComplementPlacement(complementCode) : defaultLogoPlacement()));
+            var rect = a4Canvas.getBoundingClientRect();
+            var xPct = ((e.clientX - rect.left) / rect.width) * 100;
+            var yPct = ((e.clientY - rect.top) / rect.height) * 100;
+            var current = normalizePlacement(placementsByKey[key], dragFallback);
+            dragging = {
+                key: key,
+                node: node,
+                offsetX: xPct - current.xPct,
+                offsetY: yPct - current.yPct,
+                widthPct: current.widthPct,
+                heightPct: current.heightPct
+            };
+            e.preventDefault();
+        });
+
+        a4Canvas.addEventListener('click', function (e) {
+            var returnBtn = e.target.closest('.js-return-address') || e.target.closest('.js-return-logo') || e.target.closest('.js-return-text') || e.target.closest('.js-return-complement');
+            if (!returnBtn) return;
+            var node = returnBtn.closest('[data-canvas-key]');
+            if (!node) return;
+            var key = node.getAttribute('data-canvas-key') || '';
+            if (!getAddressCodeFromKey(key) && keyToAssetIndex(key) <= 0 && textKeyToAssetIndex(key) <= 0 && !getComplementCodeFromKey(key)) return;
+            removePlacementKey(key);
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        document.addEventListener('mousemove', function (e) {
+            if (resizing) {
+                var resizeRect = a4Canvas.getBoundingClientRect();
+                var resizeCode = getAddressCodeFromKey(resizing.key);
+                var resizeTextIndex = textKeyToAssetIndex(resizing.key);
+                var resizeFallback = resizeCode
+                    ? defaultAddressPlacement(resizeCode)
+                    : (resizeTextIndex > 0 ? defaultTextPlacement() : defaultLogoPlacement());
+                var currentPlacement = normalizePlacement(placementsByKey[resizing.key] || resizeFallback, resizeFallback);
+                var nextWidth = resizing.startWidthPct + (((e.clientX - resizing.startX) / resizeRect.width) * 100);
+                var nextHeight = resizing.startHeightPct + (((e.clientY - resizing.startY) / resizeRect.height) * 100);
+                nextWidth = clamp(nextWidth, minLogoSizePct, 100 - currentPlacement.xPct);
+                nextHeight = clamp(nextHeight, minLogoSizePct, 100 - currentPlacement.yPct);
+                placementsByKey[resizing.key] = normalizePlacement({
+                    xPct: currentPlacement.xPct,
+                    yPct: currentPlacement.yPct,
+                    widthPct: nextWidth,
+                    heightPct: nextHeight
+                }, resizeFallback);
+                resizing.node.style.width = placementsByKey[resizing.key].widthPct + '%';
+                resizing.node.style.height = placementsByKey[resizing.key].heightPct + '%';
+                syncLayoutField();
+                return;
+            }
+
+            if (!dragging) return;
+            var rect = a4Canvas.getBoundingClientRect();
+            var xPct = ((e.clientX - rect.left) / rect.width) * 100;
+            var yPct = ((e.clientY - rect.top) / rect.height) * 100;
+            var nextX = clamp(xPct - dragging.offsetX, 0, 100 - dragging.widthPct);
+            var nextY = clamp(yPct - dragging.offsetY, 0, 100 - dragging.heightPct);
+            var moveCode = getAddressCodeFromKey(dragging.key);
+            var moveTextIndex = textKeyToAssetIndex(dragging.key);
+            var moveFallback = moveCode
+                ? defaultAddressPlacement(moveCode)
+                : (moveTextIndex > 0 ? defaultTextPlacement() : defaultLogoPlacement());
+            placementsByKey[dragging.key] = normalizePlacement({
+                xPct: nextX,
+                yPct: nextY,
+                widthPct: dragging.widthPct,
+                heightPct: dragging.heightPct
+            }, moveFallback);
+            dragging.node.style.left = nextX + '%';
+            dragging.node.style.top = nextY + '%';
+            syncLayoutField();
+        });
+
+        document.addEventListener('mouseup', function () {
+            if (resizing) {
+                resizing = null;
+                syncLayoutField();
+                return;
+            }
+            if (!dragging) return;
+            dragging = null;
+            syncLayoutField();
+        });
+
+        logoInput.addEventListener('change', function () {
+            if (!logoInput.files || !logoInput.files.length) return;
+            for (var i = 0; i < logoInput.files.length; i++) {
+                var file = logoInput.files[i];
+                var uid = Date.now() + '_' + i + '_' + Math.floor(Math.random() * 100000);
+                var preview = URL.createObjectURL(file);
+                bufferedLogoFiles.push({ uid: uid, file: file, preview: preview });
+
+                var card = document.createElement('div');
+                card.setAttribute('data-new-logo-index', uid);
+                card.setAttribute('data-logo-key', 'new:' + uid);
+                card.setAttribute('data-image-path', preview);
+                card.setAttribute('draggable', 'true');
+                card.className = 'border rounded position-relative js-logo-item template-logo-palette-item';
+                card.title = 'Arrastra al A4';
+                card.innerHTML =
+                    '<button type="button" class="btn btn-outline-danger btn-sm js-remove-new-logo template-logo-remove">×</button>' +
+                    '<div class="template-logo-thumb">' +
+                        '<img alt="" class="template-logo-thumb-img" />' +
+                    '</div>';
+                card.querySelector('img').src = preview;
+                logoList.appendChild(card);
+            }
+            syncLogoInputFiles();
+            syncLayoutField();
+        });
+
+        logoList.addEventListener('dragstart', function (e) {
+            var card = e.target.closest('.js-logo-item[data-logo-key]');
+            if (!card) return;
+            draggedLogoKey = card.getAttribute('data-logo-key') || null;
+            draggedAddressCode = null;
+            draggedTextKey = null;
+            draggedComplementCode = null;
+            if (draggedLogoKey && e.dataTransfer) {
+                e.dataTransfer.setData('text/plain', draggedLogoKey);
+            }
+        });
+
+        logoList.addEventListener('dragend', function () {
+            draggedLogoKey = null;
+            a4Canvas.style.outline = '';
+        });
+
+        addressList.addEventListener('dragstart', function (e) {
+            var card = e.target.closest('.js-address-item[data-address-code]');
+            if (!card) return;
+            draggedAddressCode = (card.getAttribute('data-address-code') || '').trim().toUpperCase();
+            draggedLogoKey = null;
+            draggedTextKey = null;
+            draggedComplementCode = null;
+            if (draggedAddressCode && e.dataTransfer) {
+                e.dataTransfer.setData('text/plain', 'address:' + draggedAddressCode);
+            }
+        });
+
+        addressList.addEventListener('dragend', function () {
+            draggedAddressCode = null;
+            a4Canvas.style.outline = '';
+        });
+
+        textList.addEventListener('dragstart', function (e) {
+            var card = e.target.closest('.js-text-item[data-text-key]');
+            if (!card) return;
+            draggedTextKey = card.getAttribute('data-text-key') || null;
+            draggedLogoKey = null;
+            draggedAddressCode = null;
+            draggedComplementCode = null;
+            if (draggedTextKey && e.dataTransfer) {
+                e.dataTransfer.setData('text/plain', draggedTextKey);
+            }
+        });
+
+        textList.addEventListener('dragend', function () {
+            draggedTextKey = null;
+            a4Canvas.style.outline = '';
+        });
+
+        complementList.addEventListener('dragstart', function (e) {
+            var card = e.target.closest('.js-complement-item[data-complement-code]');
+            if (!card) return;
+            draggedComplementCode = (card.getAttribute('data-complement-code') || '').trim().toUpperCase();
+            draggedLogoKey = null;
+            draggedAddressCode = null;
+            draggedTextKey = null;
+            if (draggedComplementCode && e.dataTransfer) {
+                e.dataTransfer.setData('text/plain', 'complement:' + draggedComplementCode);
+            }
+        });
+
+        complementList.addEventListener('dragend', function () {
+            draggedComplementCode = null;
+            a4Canvas.style.outline = '';
+        });
+
+        logoList.addEventListener('click', function (e) {
+            var card = e.target.closest('.js-logo-item');
+            if (!card) return;
+
+            if (e.target.closest('.js-remove-logo')) {
+                var existingId = parseInt(card.getAttribute('data-logo-id') || '0', 10);
+                if (existingId > 0) {
+                    var existingKey = card.getAttribute('data-logo-key') || ('id:' + existingId);
+                    removePlacementKey(existingKey);
+                    card.remove();
+                    syncKeepIds();
+                    syncLayoutField();
+                }
+                return;
+            }
+
+            if (e.target.closest('.js-remove-new-logo')) {
+                var removeUid = card.getAttribute('data-new-logo-index') || '';
+                if (!removeUid) return;
+                var newKey = card.getAttribute('data-logo-key') || ('new:' + removeUid);
+                removePlacementKey(newKey);
+                bufferedLogoFiles = bufferedLogoFiles.filter(function (x) {
+                    if (x.uid === removeUid) {
+                        URL.revokeObjectURL(x.preview);
+                        return false;
+                    }
+                    return true;
+                });
+                card.remove();
+                syncLogoInputFiles();
+                syncLayoutField();
+            }
+        });
+
+        textList.addEventListener('click', function (e) {
+            var card = e.target.closest('.js-text-item');
+            if (!card) return;
+            var key = card.getAttribute('data-text-key') || '';
+            if (!key) return;
+
+            if (e.target.closest('.js-edit-text')) {
+                openTextEditorForEdit(key);
+                return;
+            }
+
+            if (e.target.closest('.js-remove-text')) {
+                textBlocks = textBlocks.filter(function (row) { return getTextKey(row) !== key; });
+                delete placementsByKey[key];
+                syncTextBlocksField();
+                renderTextPalette();
+                renderCanvas();
+            }
+        });
+
+        textEditorToolbar.addEventListener('click', function (e) {
+            var cmdBtn = e.target.closest('[data-cmd]');
+            if (!cmdBtn) return;
+            var cmd = cmdBtn.getAttribute('data-cmd') || '';
+            if (!cmd) return;
+            textEditorSurface.focus();
+            try {
+                document.execCommand(cmd, false, null);
+            } catch (err) { }
+            e.preventDefault();
+        });
+
+        btnAddTextBlock.addEventListener('click', function () {
+            openTextEditorForCreate();
+        });
+
+        btnLoadTextTemplate.addEventListener('click', function () {
+            var idx = parseInt(textTemplateLibrary.value || '-1', 10);
+            if (isNaN(idx) || idx < 0 || idx >= reusableTextLibrary.length) {
+                return;
+            }
+            var template = reusableTextLibrary[idx];
+            editingTextKey = null;
+            textEditorModalTitle.textContent = 'Crear texto';
+            textEditorTitle.value = template.name || '';
+            textEditorSurface.innerHTML = template.body || '';
+            textEditorSurface.focus();
+        });
+
+        btnSaveTextBlock.addEventListener('click', function () {
+            saveEditorText(false);
+        });
+
+        btnSaveAsTextBlock.addEventListener('click', function () {
+            saveEditorText(true);
+        });
+
+        syncKeepIds();
+        loadReusableTextLibrary();
+        loadTextBlocks();
+        loadSavedPlacements();
+        renderCanvas();
+    })();
+</script>

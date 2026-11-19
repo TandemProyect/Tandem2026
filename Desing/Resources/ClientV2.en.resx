@@ -355,6 +355,15 @@
   <data name="Ws_ContactsErrGeneric" xml:space="preserve">
     <value>The operation could not be completed.</value>
   </data>
+  <data name="Ws_ContactsMsgCreated" xml:space="preserve">
+    <value>Contact created.</value>
+  </data>
+  <data name="Ws_ContactsMsgUpdated" xml:space="preserve">
+    <value>Contact updated.</value>
+  </data>
+  <data name="Ws_ContactsMsgDeleted" xml:space="preserve">
+    <value>Contact deleted.</value>
+  </data>
   <data name="Ws_ContactsBtnDefault" xml:space="preserve">
     <value>Set default</value>
   </data>
@@ -369,6 +378,9 @@
   </data>
   <data name="Ws_ContactsBtnSetState" xml:space="preserve">
     <value>Apply status</value>
+  </data>
+  <data name="Ws_ContactsBtnDelete" xml:space="preserve">
+    <value>Delete contact</value>
   </data>
   <data name="Ws_ContactsDefaultYes" xml:space="preserve">
     <value>Yes</value>
@@ -390,6 +402,9 @@
   </data>
   <data name="Ws_ContactsErrStateBlocked" xml:space="preserve">
     <value>A contact in Inactive or Sick leave cannot be default.</value>
+  </data>
+  <data name="Ws_ContactsConfirmDelete" xml:space="preserve">
+    <value>Delete this contact?</value>
   </data>
   <data name="Ws_OpenTooltip" xml:space="preserve">
     <value>Open</value>

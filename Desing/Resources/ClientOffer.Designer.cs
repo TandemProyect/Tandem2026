@@ -56,6 +56,7 @@ namespace Desing.Resources
         public static string Err_SystemRequired => ResourceManager.GetString(nameof(Err_SystemRequired), resourceCulture);
         public static string Err_TemplateInvalid => ResourceManager.GetString(nameof(Err_TemplateInvalid), resourceCulture);
         public static string Err_TemplateRequired => ResourceManager.GetString(nameof(Err_TemplateRequired), resourceCulture);
+        public static string Err_TemplateTextInvalid => ResourceManager.GetString(nameof(Err_TemplateTextInvalid), resourceCulture);
         public static string Index_Breadcrumb => ResourceManager.GetString(nameof(Index_Breadcrumb), resourceCulture);
         public static string Index_Create => ResourceManager.GetString(nameof(Index_Create), resourceCulture);
         public static string Index_Texts => ResourceManager.GetString(nameof(Index_Texts), resourceCulture);

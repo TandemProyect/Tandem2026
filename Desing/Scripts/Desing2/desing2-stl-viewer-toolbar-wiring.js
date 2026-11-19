@@ -192,6 +192,10 @@
         const btn = document.getElementById('ma-stl-open-client-offer');
         if (!btn) return;
         let offerPanelResizeBound = false;
+        let offerPanelDragBound = false;
+        let offerPanelDragState = null;
+        let offerPanelMoved = false;
+        let offerPanelLoadToken = 0;
 
         function notify(msg) {
             if (!msg) return;
@@ -211,10 +215,15 @@
 
         function closeOfferPanel() {
             const root = document.getElementById('ma-stl-client-offer-panel');
+            const frame = document.getElementById('ma-stl-client-offer-frame');
+            const loading = document.getElementById('ma-stl-client-offer-loading');
+            offerPanelLoadToken++;
+            if (frame) frame.src = 'about:blank';
+            if (loading) loading.style.display = 'none';
             if (root) root.style.display = 'none';
         }
 
-        function openOfferPanel(url) {
+        function openOfferPanel(url, loadingMessage) {
             let root = document.getElementById('ma-stl-client-offer-panel');
             let frame = document.getElementById('ma-stl-client-offer-frame');
             if (!root) {
@@ -227,7 +236,7 @@
                     + 'background:#ffffff;border:1px solid #cbd5e1;border-radius:10px;box-shadow:0 12px 32px rgba(15,23,42,0.28);overflow:hidden;';
 
                 const head = document.createElement('div');
-                head.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px 8px 14px;background:#0f172a;color:#ffffff;flex:0 0 auto;';
+                head.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px 8px 14px;background:#0f172a;color:#ffffff;flex:0 0 auto;cursor:move;user-select:none;';
 
                 const title = document.createElement('div');
                 title.textContent = 'Oferta cliente';
@@ -246,7 +255,7 @@
                 root.appendChild(head);
 
                 const body = document.createElement('div');
-                body.style.cssText = 'flex:1 1 auto;min-height:0;background:#fff;';
+                body.style.cssText = 'position:relative;flex:1 1 auto;min-height:0;background:#fff;';
 
                 frame = document.createElement('iframe');
                 frame.id = 'ma-stl-client-offer-frame';
@@ -254,6 +263,23 @@
                 frame.setAttribute('title', 'Formulario oferta cliente');
 
                 body.appendChild(frame);
+
+                const loading = document.createElement('div');
+                loading.id = 'ma-stl-client-offer-loading';
+                loading.style.cssText = 'position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:rgba(255,255,255,0.95);color:#0f172a;text-align:center;padding:16px;z-index:2;';
+
+                const loadingTitle = document.createElement('div');
+                loadingTitle.style.cssText = 'font-size:14px;font-weight:700;';
+                loadingTitle.textContent = 'Generando oferta';
+
+                const loadingText = document.createElement('div');
+                loadingText.id = 'ma-stl-client-offer-loading-text';
+                loadingText.style.cssText = 'font-size:13px;color:#334155;';
+                loadingText.textContent = 'Preparando datos del diseño...';
+
+                loading.appendChild(loadingTitle);
+                loading.appendChild(loadingText);
+                body.appendChild(loading);
                 root.appendChild(body);
                 (document.body || document.documentElement).appendChild(root);
 
@@ -263,16 +289,42 @@
                         closeOfferPanel();
                     }
                 });
+
+                head.addEventListener('mousedown', function (ev) {
+                    if (ev.button !== 0) return;
+                    if (ev.target === closeBtn || closeBtn.contains(ev.target)) return;
+                    const rect = root.getBoundingClientRect();
+                    offerPanelDragState = {
+                        dx: ev.clientX - rect.left,
+                        dy: ev.clientY - rect.top
+                    };
+                    ev.preventDefault();
+                });
+            }
+
+            function setPanelPosition(left, top) {
+                const margin = 8;
+                const width = root.offsetWidth || parseFloat(root.style.width) || 760;
+                const height = root.offsetHeight || parseFloat(root.style.height) || 560;
+                const maxLeft = Math.max(margin, window.innerWidth - width - margin);
+                const maxTop = Math.max(margin, window.innerHeight - height - margin);
+                const nextLeft = Math.max(margin, Math.min(maxLeft, left));
+                const nextTop = Math.max(margin, Math.min(maxTop, top));
+                root.style.left = nextLeft + 'px';
+                root.style.top = nextTop + 'px';
             }
 
             function layout() {
                 const margin = 12;
-                const width = Math.max(360, Math.min(520, window.innerWidth - (margin * 2)));
-                const height = Math.max(420, Math.min(860, window.innerHeight - (margin * 2)));
+                const width = Math.max(760, Math.min(1320, window.innerWidth - (margin * 2)));
+                const height = Math.max(560, Math.min(920, window.innerHeight - (margin * 2)));
                 root.style.width = width + 'px';
                 root.style.height = height + 'px';
-                root.style.left = (window.innerWidth - width - margin) + 'px';
-                root.style.top = margin + 'px';
+                if (!offerPanelMoved) {
+                    setPanelPosition(window.innerWidth - width - margin, margin);
+                } else {
+                    setPanelPosition(parseFloat(root.style.left) || margin, parseFloat(root.style.top) || margin);
+                }
             }
 
             layout();
@@ -280,11 +332,71 @@
                 window.addEventListener('resize', layout);
                 offerPanelResizeBound = true;
             }
-            frame.src = url;
+            if (!offerPanelDragBound) {
+                window.addEventListener('mousemove', function (ev) {
+                    if (!offerPanelDragState || root.style.display === 'none') return;
+                    offerPanelMoved = true;
+                    setPanelPosition(ev.clientX - offerPanelDragState.dx, ev.clientY - offerPanelDragState.dy);
+                });
+                window.addEventListener('mouseup', function () {
+                    offerPanelDragState = null;
+                });
+                offerPanelDragBound = true;
+            }
+
             root.style.display = 'flex';
+            const loading = document.getElementById('ma-stl-client-offer-loading');
+            const loadingText = document.getElementById('ma-stl-client-offer-loading-text');
+            const setLoading = function (visible, message) {
+                if (!loading) return;
+                if (loadingText && message) loadingText.textContent = message;
+                loading.style.display = visible ? 'flex' : 'none';
+            };
+
+            if (!url) {
+                setLoading(true, loadingMessage || 'Preparando datos del diseño...');
+                frame.src = 'about:blank';
+                return;
+            }
+
+            offerPanelLoadToken++;
+            const token = offerPanelLoadToken;
+            let iframeReady = false;
+            setLoading(true, loadingMessage || 'Cargando editor de oferta...');
+            window.setTimeout(function () {
+                if (offerPanelLoadToken !== token || iframeReady) return;
+                setLoading(true, 'Estamos preparando la oferta, puede tardar unos segundos...');
+            }, 2500);
+
+            function bindIframeNavigationOverlay() {
+                try {
+                    const doc = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
+                    if (!doc) return;
+                    const forms = doc.getElementsByTagName('form');
+                    for (let i = 0; i < forms.length; i++) {
+                        forms[i].addEventListener('submit', function () {
+                            if (offerPanelLoadToken !== token) return;
+                            iframeReady = false;
+                            setLoading(true, 'Generando oferta...');
+                        });
+                    }
+                } catch (_err) { }
+            }
+
+            frame.onload = function () {
+                if (offerPanelLoadToken !== token) return;
+                iframeReady = true;
+                setLoading(false);
+                bindIframeNavigationOverlay();
+            };
+            frame.onerror = function () {
+                if (offerPanelLoadToken !== token) return;
+                setLoading(true, 'No se pudo cargar la oferta. Cierra y vuelve a intentar.');
+            };
+            frame.src = url;
         }
 
-        function ensureSavedAndRendered() {
+        function ensureSavedBeforeOffer() {
             var savePromise = Promise.resolve(null);
             if (typeof window.maStlDesing2SaveDesignWallsToServer === 'function') {
                 savePromise = window.maStlDesing2SaveDesignWallsToServer({
@@ -298,20 +410,9 @@
                     notify('Primero guarda el diseño para poder crear la oferta.');
                     return false;
                 }
-
-                var bridge = window.maStlDesing2AiBridge;
-                if (!bridge || typeof bridge.setMode !== 'function') {
-                    return true;
-                }
-
-                return bridge.setMode('wall3d').then(function (renderResult) {
-                    if (renderResult && renderResult.ok === false && !renderResult.cached) {
-                        notify((renderResult.message || 'No se pudo renderizar el diseño en 3D.') + ' Se abre la oferta igualmente.');
-                    }
-                    return true;
-                });
+                return true;
             }).catch(function () {
-                notify('No se pudo guardar/renderizar automáticamente. Se abre la oferta igualmente.');
+                notify('No se pudo guardar automáticamente. Se abre la oferta igualmente.');
                 return true;
             });
         }
@@ -326,16 +427,22 @@
 
             const run = function () {
                 btn.disabled = true;
-                ensureSavedAndRendered().then(function (ok) {
-                    if (!ok) return;
+                openOfferPanel('', 'Preparando datos del diseño...');
+                ensureSavedBeforeOffer().then(function (ok) {
+                    if (!ok) {
+                        closeOfferPanel();
+                        return;
+                    }
                     const systemToggle = document.getElementById('ma-stl-mode-system-dropdown');
                     const systemLabel = systemToggle ? (systemToggle.textContent || '').trim() : '';
                     const separator = baseUrl.indexOf('?') >= 0 ? '&' : '?';
                     const url = baseUrl + separator
                         + 'designId=' + encodeURIComponent(designId)
-                        + '&systemLabel=' + encodeURIComponent(systemLabel);
-                    openOfferPanel(url);
+                        + '&systemLabel=' + encodeURIComponent(systemLabel)
+                        + '&popup=true';
+                    openOfferPanel(url, 'Cargando editor de oferta...');
                 }).catch(function (_err) {
+                    closeOfferPanel();
                     notify('No se pudo preparar la oferta cliente.');
                 }).then(function () {
                     btn.disabled = false;

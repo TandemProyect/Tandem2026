@@ -27,6 +27,21 @@ namespace Desing.Helpers
                 string.Empty
             };
 
+            var logos = (offer == null ? null : offer.TemplateLogos) ?? new List<string>();
+            if (logos.Count == 0 && !string.IsNullOrWhiteSpace(offer == null ? null : offer.TextLogo))
+            {
+                logos = new List<string> { offer.TextLogo };
+            }
+            if (logos.Count > 0)
+            {
+                lines.Add("Logos:");
+                foreach (var logoPath in logos.Where(p => !string.IsNullOrWhiteSpace(p)))
+                {
+                    lines.Add("- " + logoPath);
+                }
+                lines.Add(string.Empty);
+            }
+
             AddBlock(lines, offer == null ? null : offer.HeaderBody);
             lines.Add(string.Empty);
             if (!string.IsNullOrWhiteSpace(offer == null ? null : offer.TextMaterial))

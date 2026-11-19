@@ -28827,6 +28827,11 @@ let maStlWallApplyAllHeightMm = 0;
         maStlHideUserFloorLineDimHud(true);
         maStlWallDimToolActive = true;
         if (keepSelected && keepSelected.parent) maStlSelectUserFloorLine(keepSelected);
+        /* Si no hay muro seleccionado, en producción la expectativa es acotar (no solo IDs):
+           mostramos todo el diseño en esta sesión de Cotas. */
+        if (!maStlWallDimAiFocus && maStlWallDimScope().mode === 'none') {
+            maStlWallDimAllOverride = true;
+        }
         maStlSyncLineToolToggleBtnUi();
         maStlWall3dSyncCornerGuideVisibility();
         maStlWallDimRefreshScanAndDraw();

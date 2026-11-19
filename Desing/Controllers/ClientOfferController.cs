@@ -23,6 +23,9 @@ namespace Desing.Controllers
     public class ClientOfferController : BaseController
     {
         private static readonly string[] AllowedLogoExtensions = { ".png", ".jpg", ".jpeg", ".gif", ".svg" };
+        private static readonly string[] AllowedTemplateSectionCodes = { "LOGOS", "ADDRESSES", "TEXTS", "COMPLEMENTS" };
+        private static readonly string[] DefaultTemplateSectionOrder = { "LOGOS", "ADDRESSES", "TEXTS", "COMPLEMENTS" };
+        private const string DefaultTemplateLayoutJson = "{\"version\":5,\"logoPlacements\":[],\"addressPlacements\":[],\"textPlacements\":[],\"complementPlacements\":[]}";
         private const long MaxLogoBytes = 2 * 1024 * 1024;
         private static readonly Regex ContactStateCodeRegex = new Regex("^[A-Z0-9_-]+$", RegexOptions.Compiled);
 
@@ -38,7 +41,7 @@ namespace Desing.Controllers
             return View();
         }
 
-        public ActionResult Create(long? designId, long? systemId)
+        public ActionResult Create(long? designId, long? systemId, bool popup = false)
         {
             if (!ClientOfferRepository.TablesExist(db))
             {
@@ -56,26 +59,13 @@ namespace Desing.Controllers
                 row.LinkSystem = systemId.Value;
             }
 
-            var companyId = ClientOfferRepository.UserCompanyId(db, User.Identity.GetUserId());
-            if (companyId.HasValue)
-            {
-                row.LinkCompany = companyId.Value;
-            }
-
-            if (row.LinkCompany > 0)
-            {
-                var ctx = ClientOfferRepository.LoadContext(db, row);
-                if (string.IsNullOrWhiteSpace(row.TextClientAddress))
-                {
-                    row.TextClientAddress = ctx.DireccionCliente;
-                }
-            }
-
+            HydrateFromDesign(row);
             FillLookups(row.LinkCompany, row.LinkClientOfferBrand, row.LinkClient_V2);
+            ViewBag.PopupMode = popup;
             return View(row);
         }
 
-        public ActionResult OpenFromDesign(long designId, long? systemId, string systemLabel)
+        public ActionResult OpenFromDesign(long designId, long? systemId, string systemLabel, bool popup = false)
         {
             if (!systemId.HasValue || systemId.Value <= 0)
             {
@@ -86,12 +76,12 @@ namespace Desing.Controllers
                 }
             }
 
-            return RedirectToAction("Create", new { designId = designId, systemId = systemId });
+            return RedirectToAction("Create", new { designId = designId, systemId = systemId, popup = popup });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(ClientOfferRow model, HttpPostedFileBase logoFile)
+        public ActionResult Create(ClientOfferRow model, HttpPostedFileBase logoFile, bool popup = false)
         {
             if (!ClientOfferRepository.TablesExist(db))
             {
@@ -105,14 +95,25 @@ namespace Desing.Controllers
                 ModelState.AddModelError("TextLogo", logoError);
             }
 
-            if (model.LinkSystem <= 0)
+            HydrateFromDesign(model);
+            ApplyContact(model);
+
+            if (!model.LinkClientOfferBrand.HasValue || model.LinkClientOfferBrand.Value <= 0)
             {
-                ModelState.AddModelError("LinkSystem", ClientOffer.Err_SystemRequired);
+                ModelState.AddModelError("LinkClientOfferBrand", ClientOffer.Err_TemplateRequired);
             }
+
+            var brand = ResolveBrand(model);
+            EnsureOfferSystem(model, brand);
 
             if (model.LinkCompany <= 0)
             {
                 ModelState.AddModelError("LinkCompany", ClientOffer.Err_CompanyRequired);
+            }
+
+            if (model.LinkSystem <= 0)
+            {
+                ModelState.AddModelError("LinkSystem", ClientOffer.Err_SystemRequired);
             }
 
             var ctx = model.LinkCompany > 0
@@ -121,13 +122,6 @@ namespace Desing.Controllers
             if (string.IsNullOrWhiteSpace(model.TextClientAddress))
             {
                 model.TextClientAddress = ctx.DireccionCliente;
-            }
-            ApplyContact(model);
-
-            var brand = ResolveBrand(model);
-            if (!model.LinkClientOfferBrand.HasValue || model.LinkClientOfferBrand.Value <= 0)
-            {
-                ModelState.AddModelError("LinkClientOfferBrand", ClientOffer.Err_TemplateRequired);
             }
 
             var tokens = ClientOfferRepository.Tokens(ctx, model.TextSubject, model.TextRecuento);
@@ -152,6 +146,7 @@ namespace Desing.Controllers
             if (!ModelState.IsValid)
             {
                 FillLookups(model.LinkCompany, model.LinkClientOfferBrand, model.LinkClient_V2);
+                ViewBag.PopupMode = popup;
                 return View(model);
             }
 
@@ -191,17 +186,18 @@ namespace Desing.Controllers
             try
             {
                 var id = ClientOfferRepository.InsertDocument(db, model, header, body, User.Identity.GetUserId());
-                return RedirectToAction("Edit", new { id });
+                return RedirectToAction("Edit", new { id, popup = popup });
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError("", ex.Message);
                 FillLookups(model.LinkCompany, model.LinkClientOfferBrand, model.LinkClient_V2);
+                ViewBag.PopupMode = popup;
                 return View(model);
             }
         }
 
-        public ActionResult Edit(long id)
+        public ActionResult Edit(long id, bool popup = false)
         {
             var row = ClientOfferRepository.GetDocument(db, id);
             if (row == null)
@@ -210,6 +206,7 @@ namespace Desing.Controllers
             }
 
             FillLookups(row.LinkCompany, row.LinkClientOfferBrand, row.LinkClient_V2);
+            ViewBag.PopupMode = popup;
             return View(row);
         }
 
@@ -223,6 +220,32 @@ namespace Desing.Controllers
                 date = m.AddDateMade.ToString("yyyy-MM-dd HH:mm")
             }).ToList();
             return Json(new { IsOk = true, Data = data });
+        }
+
+        [HttpGet]
+        public JsonResult ListClientContacts(long companyId, long clientId)
+        {
+            if (companyId <= 0 || clientId <= 0)
+            {
+                return Json(new { IsOk = true, Data = new object[0] }, JsonRequestBehavior.AllowGet);
+            }
+
+            var userCompanyId = ClientOfferRepository.UserCompanyId(db, User.Identity.GetUserId());
+            if (userCompanyId.HasValue && userCompanyId.Value > 0)
+            {
+                companyId = userCompanyId.Value;
+            }
+
+            var contacts = ClientOfferRepository.ListOfferContacts(db, companyId, clientId)
+                .Select(c => new
+                {
+                    id = c.Id,
+                    textLabel = c.TextLabel ?? string.Empty,
+                    textEmail = c.TextExtra ?? string.Empty
+                })
+                .ToList();
+
+            return Json(new { IsOk = true, Data = contacts }, JsonRequestBehavior.AllowGet);
         }
 
         [HttpPost]
@@ -270,7 +293,7 @@ namespace Desing.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(ClientOfferRow model, HttpPostedFileBase logoFile, string rebuild)
+        public ActionResult Edit(ClientOfferRow model, HttpPostedFileBase logoFile, string rebuild, bool popup = false)
         {
             var current = ClientOfferRepository.GetDocument(db, model.IdObject);
             if (current == null)
@@ -362,11 +385,12 @@ namespace Desing.Controllers
             if (!ModelState.IsValid)
             {
                 FillLookups(model.LinkCompany, model.LinkClientOfferBrand, model.LinkClient_V2);
+                ViewBag.PopupMode = popup;
                 return View(model);
             }
 
             ClientOfferRepository.UpdateDocument(db, model, User.Identity.GetUserId());
-            return RedirectToAction("Edit", new { id = model.IdObject });
+            return RedirectToAction("Edit", new { id = model.IdObject, popup = popup });
         }
 
         public ActionResult Print(long id)
@@ -499,7 +523,10 @@ namespace Desing.Controllers
                 Is_Active = true,
                 TextSubjectTemplate = ClientOfferMerge.DefaultSubject,
                 TextHeaderTemplate = ClientOfferMerge.DefaultHeader,
-                TextBodyTemplate = ClientOfferMerge.DefaultBody
+                TextBodyTemplate = ClientOfferMerge.DefaultBody,
+                TextLayoutJson = DefaultTemplateLayoutJson,
+                Logos = new List<ClientOfferBrandLogoRow>(),
+                TextBlocks = new List<ClientOfferBrandTextRow>()
             };
             var companyId = ClientOfferRepository.UserCompanyId(db, User.Identity.GetUserId());
             if (companyId.HasValue)
@@ -507,15 +534,18 @@ namespace Desing.Controllers
                 row.LinkCompany = companyId.Value;
             }
 
+            row.KeepLogoIdsCsv = string.Empty;
+            row.TextBlocksJson = "[]";
+
             FillLookups(row.LinkCompany);
             return View(row);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult CreateText(ClientOfferBrandRow model, HttpPostedFileBase logoFile)
+        public ActionResult CreateText(ClientOfferBrandRow model, IEnumerable<HttpPostedFileBase> logoFiles)
         {
-            return SaveText(model, logoFile, isCreate: true);
+            return SaveText(model, logoFiles, isCreate: true);
         }
 
         public ActionResult EditText(long id)
@@ -526,15 +556,29 @@ namespace Desing.Controllers
                 return HttpNotFound();
             }
 
+            row.Logos = row.Logos ?? new List<ClientOfferBrandLogoRow>();
+            row.TextBlocks = row.TextBlocks ?? new List<ClientOfferBrandTextRow>();
+            if (string.IsNullOrWhiteSpace(row.TextLayoutJson))
+            {
+                row.TextLayoutJson = DefaultTemplateLayoutJson;
+            }
+            row.KeepLogoIdsCsv = string.Join(",", row.Logos.Select(p => p.IdObject).Where(p => p > 0));
+            row.TextBlocksJson = JsonConvert.SerializeObject(row.TextBlocks.Select(p => new
+            {
+                id = p.IdObject,
+                name = p.TextLabel ?? string.Empty,
+                body = p.TextBody ?? string.Empty
+            }).ToList());
+
             FillLookups(row.LinkCompany);
             return View(row);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult EditText(ClientOfferBrandRow model, HttpPostedFileBase logoFile)
+        public ActionResult EditText(ClientOfferBrandRow model, IEnumerable<HttpPostedFileBase> logoFiles)
         {
-            return SaveText(model, logoFile, isCreate: false);
+            return SaveText(model, logoFiles, isCreate: false);
         }
 
         [HttpPost]
@@ -573,8 +617,8 @@ namespace Desing.Controllers
             {
                 IdObject = p.IdObject,
                 TextLabel = p.TextLabel,
-                Extra = string.IsNullOrEmpty(p.SystemLabel) ? ClientOffer.Lbl_AllSystems : p.SystemLabel,
-                Third = p.CompanyLabel,
+                Extra = p.CompanyLabel,
+                Third = "",
                 Is_Active = p.Is_Active
             }).AsQueryable(), "EditText");
         }
@@ -681,11 +725,11 @@ namespace Desing.Controllers
             return Json(new { IsOk = true });
         }
 
-        private ActionResult SaveText(ClientOfferBrandRow model, HttpPostedFileBase logoFile, bool isCreate)
+        private ActionResult SaveText(ClientOfferBrandRow model, IEnumerable<HttpPostedFileBase> logoFiles, bool isCreate)
         {
             string logoError;
-            var savedLogo = TrySaveLogo(logoFile, out logoError);
-            if (logoError != null)
+            var savedLogos = TrySaveLogos(logoFiles, out logoError);
+            if (!string.IsNullOrWhiteSpace(logoError))
             {
                 ModelState.AddModelError("TextLogo", logoError);
             }
@@ -700,40 +744,80 @@ namespace Desing.Controllers
                 ModelState.AddModelError("TextLabel", ClientOffer.Err_LabelRequired);
             }
 
+            model.LinkSystem = null;
+            model.LinkPlantilla = null;
+            model.TextCompanyName = null;
+            model.Is_Active = true;
+
+            var keepLogoIds = ParseKeepLogoIds(model.KeepLogoIdsCsv);
+            var textBlocks = ParseTemplateTextBlocks(model.TextBlocksJson);
+            var sectionOrder = ParseTemplateSectionOrder(model.TextLayoutJson);
+            BuildTemplateFields(model, textBlocks, sectionOrder);
+
+            ClientOfferBrandRow current = null;
             if (!isCreate)
             {
-                var current = ClientOfferRepository.GetBrand(db, model.IdObject);
+                current = ClientOfferRepository.GetBrand(db, model.IdObject);
                 if (current == null)
                 {
                     return HttpNotFound();
                 }
-
-                if (string.IsNullOrEmpty(savedLogo))
-                {
-                    model.TextLogo = current.TextLogo;
-                }
-            }
-
-            if (!string.IsNullOrEmpty(savedLogo))
-            {
-                model.TextLogo = savedLogo;
             }
 
             if (!ModelState.IsValid)
             {
+                model.Logos = current == null ? new List<ClientOfferBrandLogoRow>() : current.Logos ?? new List<ClientOfferBrandLogoRow>();
+                model.TextBlocks = textBlocks;
                 FillLookups(model.LinkCompany);
                 return View(isCreate ? "CreateText" : "EditText", model);
             }
 
             try
             {
-                if (isCreate)
+                using (var tx = db.Database.BeginTransaction())
                 {
-                    ClientOfferRepository.InsertBrand(db, model, User.Identity.GetUserId());
-                }
-                else
-                {
-                    ClientOfferRepository.UpdateBrand(db, model, User.Identity.GetUserId());
+                    long brandId;
+                    if (isCreate)
+                    {
+                        brandId = ClientOfferRepository.InsertBrand(db, model, User.Identity.GetUserId());
+                        model.IdObject = brandId;
+                    }
+                    else
+                    {
+                        brandId = model.IdObject;
+                    }
+
+                    if (current == null)
+                    {
+                        current = ClientOfferRepository.GetBrand(db, brandId);
+                    }
+
+                    var currentLogos = current == null
+                        ? new List<ClientOfferBrandLogoRow>()
+                        : (current.Logos ?? new List<ClientOfferBrandLogoRow>());
+                    var keptLogoRows = currentLogos
+                        .Where(p => keepLogoIds.Contains(p.IdObject))
+                        .OrderBy(p => p.NumberOrder)
+                        .ThenBy(p => p.IdObject)
+                        .ToList();
+                    var persistedLogoPaths = keptLogoRows.Select(p => p.TextImagePath).Where(p => !string.IsNullOrWhiteSpace(p)).ToList();
+                    persistedLogoPaths.AddRange(savedLogos);
+                    var placedLogoIndexes = ExtractPlacedLogoAssetIndexes(model.TextLayoutJson);
+                    model.TextLogo = ResolvePlacedPrimaryLogo(persistedLogoPaths, placedLogoIndexes);
+
+                    if (isCreate)
+                    {
+                        ClientOfferRepository.UpdateBrand(db, model, User.Identity.GetUserId());
+                    }
+                    else
+                    {
+                        ClientOfferRepository.UpdateBrand(db, model, User.Identity.GetUserId());
+                    }
+
+                    ClientOfferRepository.SyncBrandLogos(db, brandId, keepLogoIds, savedLogos, User.Identity.GetUserId());
+                    ClientOfferRepository.SyncBrandTexts(db, brandId, textBlocks, User.Identity.GetUserId());
+
+                    tx.Commit();
                 }
 
                 return RedirectToAction("Texts");
@@ -744,6 +828,8 @@ namespace Desing.Controllers
                 ModelState.AddModelError("", sql != null && (sql.Number == 2601 || sql.Number == 2627)
                     ? ClientOffer.Err_BrandDuplicate
                     : ex.Message);
+                model.Logos = current == null ? new List<ClientOfferBrandLogoRow>() : current.Logos ?? new List<ClientOfferBrandLogoRow>();
+                model.TextBlocks = textBlocks;
                 FillLookups(model.LinkCompany);
                 return View(isCreate ? "CreateText" : "EditText", model);
             }
@@ -806,9 +892,54 @@ namespace Desing.Controllers
             return Json(DataTablesMvcJson.Create(requestModel.Draw, data, filteredCount, totalCount));
         }
 
+        private void HydrateFromDesign(ClientOfferRow row)
+        {
+            if (row == null)
+            {
+                return;
+            }
+
+            var companyId = ClientOfferRepository.UserCompanyId(db, User.Identity.GetUserId());
+            if (row.LinkCompany <= 0 && companyId.HasValue)
+            {
+                row.LinkCompany = companyId.Value;
+            }
+
+            if (row.LinkCompany <= 0)
+            {
+                return;
+            }
+
+            var ctx = ClientOfferRepository.LoadContext(db, row);
+            if (string.IsNullOrWhiteSpace(row.TextClientAddress) && ctx != null)
+            {
+                row.TextClientAddress = ctx.DireccionCliente;
+            }
+        }
+
+        private void EnsureOfferSystem(ClientOfferRow row, ClientOfferBrandRow brand)
+        {
+            if (row == null || row.LinkSystem > 0)
+            {
+                return;
+            }
+
+            if (brand != null && brand.LinkSystem.HasValue && brand.LinkSystem.Value > 0)
+            {
+                row.LinkSystem = brand.LinkSystem.Value;
+                return;
+            }
+
+            var first = ClientOfferRepository.ListSystems(db).FirstOrDefault();
+            if (first != null)
+            {
+                row.LinkSystem = first.Id;
+            }
+        }
+
         private ClientOfferBrandRow ResolveBrand(ClientOfferRow row)
         {
-            if (row == null || row.LinkCompany <= 0 || row.LinkSystem <= 0)
+            if (row == null || row.LinkCompany <= 0)
             {
                 return null;
             }
@@ -822,10 +953,9 @@ namespace Desing.Controllers
                     return null;
                 }
 
-                if (selected.LinkSystem.HasValue && selected.LinkSystem.Value > 0 && selected.LinkSystem.Value != row.LinkSystem)
+                if (row.LinkSystem <= 0 && selected.LinkSystem.HasValue && selected.LinkSystem.Value > 0)
                 {
-                    ModelState.AddModelError("LinkClientOfferBrand", ClientOffer.Err_TemplateInvalid);
-                    return null;
+                    row.LinkSystem = selected.LinkSystem.Value;
                 }
 
                 return selected;
@@ -845,7 +975,24 @@ namespace Desing.Controllers
             ViewBag.Offers = ClientOfferRepository.ListOffers(db);
             ViewBag.Jobsides = ClientOfferRepository.ListJobsides(db);
             ViewBag.Clients = ClientOfferRepository.ListClients(db);
+            ViewBag.TemplateReusableTexts = ClientOfferRepository.ListReusableBrandTexts(db, companyId);
             ViewBag.CompanyId = companyId;
+
+            var companyPreviewName = string.Empty;
+            var companyPreviewAddress = string.Empty;
+            if (companyId > 0)
+            {
+                var previewRow = new ClientOfferRow { LinkCompany = companyId };
+                var ctx = ClientOfferRepository.LoadContext(db, previewRow);
+                if (ctx != null)
+                {
+                    companyPreviewName = ctx.Empresa ?? string.Empty;
+                    companyPreviewAddress = ctx.DireccionEmpresa ?? string.Empty;
+                }
+            }
+
+            ViewBag.TemplateCompanyNamePreview = companyPreviewName;
+            ViewBag.TemplateCompanyAddressPreview = companyPreviewAddress;
         }
 
         private void ApplyContact(ClientOfferRow model)
@@ -898,6 +1045,249 @@ namespace Desing.Controllers
             {
                 model.TextContactEmail = "contacto@pendiente.local";
             }
+        }
+
+        private static List<int> ExtractPlacedLogoAssetIndexes(string rawJson)
+        {
+            var result = new List<int>();
+            if (string.IsNullOrWhiteSpace(rawJson))
+            {
+                return result;
+            }
+
+            try
+            {
+                var token = JToken.Parse(rawJson);
+                var placements = token["logoPlacements"] as JArray;
+                if (placements == null)
+                {
+                    return result;
+                }
+
+                foreach (var row in placements)
+                {
+                    var idx = (int?)row["assetIndex"] ?? 0;
+                    if (idx <= 0)
+                    {
+                        idx = (int?)row["order"] ?? 0;
+                    }
+
+                    if (idx > 0 && !result.Contains(idx))
+                    {
+                        result.Add(idx);
+                    }
+                }
+            }
+            catch
+            {
+                // Layout inválido: sin logos posicionados.
+            }
+
+            return result;
+        }
+
+        private static string ResolvePlacedPrimaryLogo(IList<string> orderedLogoPaths, IList<int> placedLogoIndexes)
+        {
+            if (orderedLogoPaths == null || orderedLogoPaths.Count == 0 || placedLogoIndexes == null || placedLogoIndexes.Count == 0)
+            {
+                return null;
+            }
+
+            foreach (var index in placedLogoIndexes)
+            {
+                var pos = index - 1;
+                if (pos >= 0 && pos < orderedLogoPaths.Count)
+                {
+                    var path = orderedLogoPaths[pos];
+                    if (!string.IsNullOrWhiteSpace(path))
+                    {
+                        return path;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private static List<long> ParseKeepLogoIds(string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                return new List<long>();
+            }
+
+            return raw
+                .Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(p =>
+                {
+                    long id;
+                    return long.TryParse(p.Trim(), out id) ? id : 0;
+                })
+                .Where(p => p > 0)
+                .Distinct()
+                .ToList();
+        }
+
+        private List<ClientOfferBrandTextRow> ParseTemplateTextBlocks(string rawJson)
+        {
+            if (string.IsNullOrWhiteSpace(rawJson))
+            {
+                return new List<ClientOfferBrandTextRow>();
+            }
+
+            try
+            {
+                var items = JsonConvert.DeserializeObject<List<TemplateTextDraft>>(rawJson) ?? new List<TemplateTextDraft>();
+                var result = new List<ClientOfferBrandTextRow>();
+                var order = 1;
+                foreach (var item in items)
+                {
+                    if (item == null || string.IsNullOrWhiteSpace(item.Body))
+                    {
+                        continue;
+                    }
+
+                    result.Add(new ClientOfferBrandTextRow
+                    {
+                        IdObject = item.Id > 0 ? item.Id : 0,
+                        NumberOrder = order,
+                        TextLabel = item.Name,
+                        TextBody = item.Body,
+                        Is_Active = true
+                    });
+                    order++;
+                }
+
+                return result;
+            }
+            catch
+            {
+                ModelState.AddModelError("TextBlocksJson", ClientOffer.Err_TemplateTextInvalid);
+                return new List<ClientOfferBrandTextRow>();
+            }
+        }
+
+        private static List<string> ParseTemplateSectionOrder(string rawJson)
+        {
+            var codes = new List<string>();
+            if (!string.IsNullOrWhiteSpace(rawJson))
+            {
+                try
+                {
+                    var token = JToken.Parse(rawJson);
+                    if (token.Type == JTokenType.Array)
+                    {
+                        foreach (var entry in token.Children())
+                        {
+                            string code;
+                            if (entry.Type == JTokenType.Object)
+                            {
+                                code = ((string)entry["code"] ?? string.Empty).Trim().ToUpperInvariant();
+                            }
+                            else
+                            {
+                                code = ((string)entry ?? string.Empty).Trim().ToUpperInvariant();
+                            }
+
+                            if (Array.IndexOf(AllowedTemplateSectionCodes, code) >= 0 && !codes.Contains(code))
+                            {
+                                codes.Add(code);
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // Si no parsea, cae al orden por defecto.
+                }
+            }
+
+            foreach (var code in DefaultTemplateSectionOrder)
+            {
+                if (!codes.Contains(code))
+                {
+                    codes.Add(code);
+                }
+            }
+
+            return codes;
+        }
+
+        private static void BuildTemplateFields(ClientOfferBrandRow model, IList<ClientOfferBrandTextRow> textBlocks, IList<string> sectionOrder)
+        {
+            var headerParts = new List<string>();
+            var bodyParts = new List<string>();
+            var target = headerParts;
+            var textsBlock = string.Join("\r\n\r\n",
+                (textBlocks ?? new List<ClientOfferBrandTextRow>())
+                    .Where(p => p != null && !string.IsNullOrWhiteSpace(p.TextBody))
+                    .OrderBy(p => p.NumberOrder)
+                    .Select(p => p.TextBody.Trim()));
+
+            foreach (var section in sectionOrder ?? DefaultTemplateSectionOrder.ToList())
+            {
+                switch (section)
+                {
+                    case "COMPLEMENTS":
+                        target = bodyParts;
+                        break;
+                    case "LOGOS":
+                        target.Add(ClientOfferMerge.LogosMarker);
+                        break;
+                    case "ADDRESSES":
+                        target.Add(ClientOfferMerge.DefaultAddressesBlock);
+                        break;
+                    case "TEXTS":
+                        if (!string.IsNullOrWhiteSpace(textsBlock))
+                        {
+                            target.Add(textsBlock);
+                        }
+                        break;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(model.TextLayoutJson))
+            {
+                model.TextLayoutJson = DefaultTemplateLayoutJson;
+            }
+            model.TextSubjectTemplate = string.IsNullOrWhiteSpace(model.TextSubjectTemplate)
+                ? ClientOfferMerge.DefaultSubject
+                : model.TextSubjectTemplate.Trim();
+            model.TextHeaderTemplate = headerParts.Count == 0
+                ? ClientOfferMerge.DefaultHeader
+                : string.Join("\r\n\r\n", headerParts.Where(p => !string.IsNullOrWhiteSpace(p)));
+            model.TextBodyTemplate = bodyParts.Count == 0
+                ? ClientOfferMerge.DefaultBody
+                : string.Join("\r\n\r\n", bodyParts.Where(p => !string.IsNullOrWhiteSpace(p)));
+        }
+
+        private List<string> TrySaveLogos(IEnumerable<HttpPostedFileBase> logoFiles, out string error)
+        {
+            error = null;
+            var saved = new List<string>();
+            if (logoFiles == null)
+            {
+                return saved;
+            }
+
+            foreach (var logoFile in logoFiles)
+            {
+                var file = logoFile;
+                string localError;
+                var savedLogo = TrySaveLogo(file, out localError);
+                if (!string.IsNullOrWhiteSpace(localError))
+                {
+                    error = localError;
+                    return new List<string>();
+                }
+
+                if (!string.IsNullOrWhiteSpace(savedLogo))
+                {
+                    saved.Add(savedLogo);
+                }
+            }
+
+            return saved;
         }
 
         private string TrySaveLogo(HttpPostedFileBase logoFile, out string error)
@@ -971,6 +1361,13 @@ namespace Desing.Controllers
             public string TextCode { get; set; }
             public string TextLabel { get; set; }
             public bool Is_Active { get; set; }
+        }
+
+        private class TemplateTextDraft
+        {
+            public long Id { get; set; }
+            public string Name { get; set; }
+            public string Body { get; set; }
         }
     }
 }
