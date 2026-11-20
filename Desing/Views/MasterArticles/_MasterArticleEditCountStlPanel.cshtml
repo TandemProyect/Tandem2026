@@ -1,0 +1,67 @@
+@model Desing.Models.MasterArticleEditCountStlModel
+@using System.Web
+@using Desing.Resources
+@{
+    var panel = Model ?? new Desing.Models.MasterArticleEditCountStlModel();
+    var title = string.IsNullOrWhiteSpace(panel.Label) ? MasterArticles.StlPreview_LoadStlTooltip : panel.Label;
+}
+<section id="desing2-article-stl" class="desing2-article-stl plugin-blocks ma-edit-count-stl h-100" aria-hidden="false" data-missing="@HttpUtility.HtmlAttributeEncode(MasterArticles.StlPreview_NoStlInViewerTooltip)">
+    <div class="desing2-article-stl__head">
+        <span class="desing2-article-stl__title" id="desing2-article-stl-title">@title</span>
+    </div>
+    <div class="plugin-blocks__tools" id="plugin-blocks-tools">
+        <button type="button" class="plugin-blocks__tool" id="plugin-blocks-tool-expand" title="@MasterArticles.StlPreview_FullscreenTitle" data-tool="expand">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+        </button>
+        <button type="button" class="plugin-blocks__tool" id="plugin-blocks-tool-zoomin" title="@Common.PluginCad_BlocksZoomIn" data-tool="zoomin">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M14.5 14.5L20 20M7 10h6M10 7v6"/></svg>
+        </button>
+        <button type="button" class="plugin-blocks__tool" id="plugin-blocks-tool-zoomout" title="@Common.PluginCad_BlocksZoomOut" data-tool="zoomout">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M14.5 14.5L20 20M7 10h6"/></svg>
+        </button>
+        <button type="button" class="plugin-blocks__tool" id="plugin-blocks-tool-fit" title="@Common.PluginCad_BlocksZoomFit" data-tool="fit">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4M8 8h8v8H8z"/></svg>
+        </button>
+        <button type="button" class="plugin-blocks__tool" id="plugin-blocks-tool-dark" title="@MasterArticles.StlPreview_DarkBgTitle" data-tool="dark">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M15 4.5A8 8 0 1 0 19.5 15 6.5 6.5 0 0 1 15 4.5z"/></svg>
+        </button>
+        <button type="button" class="plugin-blocks__tool" id="plugin-blocks-tool-clip" title="@MasterArticles.StlPreview_ClipToggleTitle" data-tool="clip">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="7" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="6" cy="17" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M8 8l12 9M8 16l12-9"/></svg>
+        </button>
+        <button type="button" class="plugin-blocks__tool is-on" id="plugin-blocks-tool-axes" title="@MasterArticles.StlPreview_XyzAxesToggleTitle" data-tool="axes">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M12 4v16M4 12h16"/></svg>
+        </button>
+    </div>
+    <div class="plugin-blocks__viewer">
+        <div class="plugin-blocks__viewer-host" id="plugin-blocks-viewer" data-article-preview="1"></div>
+        <div class="plugin-blocks__vc" id="plugin-blocks-vc">
+            <div class="plugin-blocks__vc-scene">
+                <div class="plugin-blocks__vc-cube" id="plugin-blocks-vc-cube">
+                    <div class="plugin-blocks__vc-face plugin-blocks__vc-face--front" data-face="front">FRONT</div>
+                    <div class="plugin-blocks__vc-face plugin-blocks__vc-face--back" data-face="back">BACK</div>
+                    <div class="plugin-blocks__vc-face plugin-blocks__vc-face--top" data-face="top">TOP</div>
+                    <div class="plugin-blocks__vc-face plugin-blocks__vc-face--bottom" data-face="bottom">BOTT.</div>
+                    <div class="plugin-blocks__vc-face plugin-blocks__vc-face--right" data-face="right">RIGHT</div>
+                    <div class="plugin-blocks__vc-face plugin-blocks__vc-face--left" data-face="left">LEFT</div>
+                </div>
+            </div>
+            <div class="plugin-blocks__vc-cams" role="group" aria-label="@MasterArticles.StlPreview_CameraModeAria">
+                <button type="button" id="plugin-blocks-cam-ortho" class="is-on" title="@MasterArticles.StlPreview_CameraOrthoTitle" data-cam="ortho">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>
+                </button>
+                <button type="button" id="plugin-blocks-cam-iso" title="@MasterArticles.StlPreview_CameraIsoTitle" data-cam="iso">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M12 3l9 5v8l-9 5-9-5V8zM12 13l9-5M12 13v8M12 13L3 8"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="plugin-blocks__clip" id="plugin-blocks-clip">
+            <div class="plugin-blocks__clip-y" title="@MasterArticles.StlPreview_ClipYTitle">
+                <input type="range" id="plugin-blocks-clip-y" min="0" max="1000" value="1000" step="1" aria-label="@MasterArticles.StlPreview_ClipYAria" />
+            </div>
+            <div class="plugin-blocks__clip-x" title="@MasterArticles.StlPreview_ClipXTitle">
+                <input type="range" id="plugin-blocks-clip-x" min="0" max="1000" value="1000" step="1" aria-label="@MasterArticles.StlPreview_ClipXAria" />
+            </div>
+        </div>
+    </div>
+    <div class="desing2-article-stl__status" id="desing2-article-stl-status">@MasterArticles.StlPreview_StatusInitial</div>
+</section>

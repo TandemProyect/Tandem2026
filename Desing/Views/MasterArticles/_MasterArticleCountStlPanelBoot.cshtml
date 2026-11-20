@@ -1,0 +1,83 @@
+@model Desing.Models.MasterArticleEditCountStlModel
+@using System.Collections.Generic
+@using Desing.Resources
+@{
+    var editStl = Model ?? new Desing.Models.MasterArticleEditCountStlModel();
+    var previewImports = new Dictionary<string, string>
+    {
+        { "three", Url.Content("~/Scripts/Design/build/three.module.js") },
+        { "@masterarticles/OrbitControls", Url.Content("~/Scripts/Design/jsm/controls/OrbitControls.js") },
+        { "@masterarticles/STLLoader", Url.Content("~/Scripts/Design/jsm/loaders/STLLoader.js") }
+    };
+    var previewImportMap = new Dictionary<string, object> { { "imports", previewImports } };
+    var cadBlockPreviewUrl = Url.Content("~/Scripts/DesignToolsAutocad/plugin-cad-block-preview.js") + "?v=" + System.IO.File.GetLastWriteTimeUtc(Server.MapPath("~/Scripts/DesignToolsAutocad/plugin-cad-block-preview.js")).Ticks;
+    var editStlBoot = new
+    {
+        url = editStl.StlUrl ?? string.Empty,
+        url2 = editStl.StlUrl2 ?? string.Empty,
+        label = editStl.Label ?? string.Empty,
+        color1 = editStl.Color1 ?? string.Empty,
+        color2 = editStl.Color2 ?? string.Empty,
+        isPanel = editStl.IsPanel,
+        systemPanelColors = editStl.SystemPanelColors ?? new Dictionary<string, string>(),
+        missing = MasterArticles.StlPreview_NoStlInViewerTooltip
+    };
+}
+<script type="importmap">
+@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(previewImportMap))
+</script>
+<script type="module" src="@cadBlockPreviewUrl"></script>
+<script>
+    (function () {
+        var boot = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(editStlBoot));
+        function colorValue(id) {
+            var el = document.getElementById(id);
+            return el ? String(el.value || '').trim() : '';
+        }
+        function frameColor() {
+            if (boot.isPanel) {
+                var sel = document.getElementById('LinkSystem');
+                var id = sel ? String(sel.value || '') : '';
+                var map = boot.systemPanelColors || {};
+                if (id && map[id]) return map[id];
+                return boot.color1 || colorValue('ma_TextColor1');
+            }
+            return colorValue('ma_TextColor1') || boot.color1;
+        }
+        function phenolicColor() {
+            return colorValue('ma_TextColor2') || boot.color2;
+        }
+        function applyColors() {
+            if (!window.TandemCadBlockPreview || typeof window.TandemCadBlockPreview.setColors !== 'function') return;
+            window.TandemCadBlockPreview.setColors(frameColor(), phenolicColor());
+        }
+        var waitTries = 0;
+        function showStl() {
+            if (!window.TandemCadBlockPreview || typeof window.TandemCadBlockPreview.loadStl !== 'function') {
+                waitTries += 1;
+                if (waitTries < 80) window.setTimeout(showStl, 40);
+                return;
+            }
+            var host = document.getElementById('plugin-blocks-viewer');
+            var statusEl = document.getElementById('desing2-article-stl-status');
+            var box = document.getElementById('desing2-article-stl');
+            var missing = (box && box.getAttribute('data-missing')) || boot.missing || '';
+            applyColors();
+            window.requestAnimationFrame(function () {
+                window.TandemCadBlockPreview.loadStl(host, boot.url, missing, boot.url2);
+                if (statusEl) {
+                    statusEl.textContent = boot.url
+                        ? (boot.label ? ('Viendo: ' + boot.label) : 'Modelo cargado.')
+                        : missing;
+                }
+            });
+        }
+        showStl();
+        ['ma_TextColor1', 'ma_TextColor2', 'ma_picker_TextColor1', 'ma_picker_TextColor2', 'LinkSystem'].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('input', applyColors);
+            el.addEventListener('change', applyColors);
+        });
+    })();
+</script>

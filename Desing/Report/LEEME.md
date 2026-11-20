@@ -1,6 +1,6 @@
 # Informes de trabajo
 
-Cuando el usuario pida el **informe** (quincenal hasta el 03, semanal desde el 04), o cuando un agente tenga que anotar trabajo de producto, seguir esta carpeta y la regla `.cursor/rules/informe-quincenal.mdc`.
+Cuando el usuario pida el **informe** (quincenal hasta el 03, semanal desde el 04), o cuando un agente tenga que anotar trabajo de producto, seguir esta carpeta, la ficha [`Docs/areas/general/Generar-Informe-Develop.md`](../../Docs/areas/general/Generar-Informe-Develop.md) y la regla `.cursor/rules/informe-quincenal.mdc`.
 
 ## Norma vigente desde 2026-11-04 (Proyecto Desing)
 

@@ -1756,14 +1756,10 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 string anglePath;
                 string angleCode;
                 PieceOf(band, out panelPath, out panelCode, out anglePath, out angleCode);
-                var facePath = panelPath.Replace(".stl", "_F.stl");
                 var tipY = band >= 2000 ? -300d : -294d;
-                AddStoodPiece(
+                AddInteriorCornerPanel(
                     outElements, owner, panelPath, panelCode,
-                    x, z, up, yaw, false, 0d, tipY, LegMm, band);
-                AddStoodPiece(
-                    outElements, owner, facePath, panelCode,
-                    x, z, up, yaw, false, 0d, tipY, LegMm, band);
+                    x, z, up, yaw, 0d, tipY, band);
                 up += band;
             }
         }
@@ -2390,22 +2386,18 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 string anglePath;
                 string angleCode;
                 PieceOf(band, out panelPath, out panelCode, out anglePath, out angleCode);
-                var facePath = panelPath.Replace(".stl", "_F.stl");
                 // Inserción en el extremo de la pata que marcaste, no en la esquina opuesta.
                 // 2,40 y 2,70: (0, 300). El de 1,20 llega a Y 294.
                 var tipX = 0d;
                 var tipY = band >= 2000 ? -300d : -294d;
-                AddStoodPiece(
+                AddInteriorCornerPanel(
                     outElements, owner, panelPath, panelCode,
-                    panelX, panelZ, up, yaw, false, tipX, tipY, LegMm, band);
-                AddStoodPiece(
-                    outElements, owner, facePath, panelCode,
-                    panelX, panelZ, up, yaw, false, tipX, tipY, LegMm, band);
+                    panelX, panelZ, up, yaw, tipX, tipY, band);
                 if (!suppressAngularAndCornerUnions)
                 {
                     AddStoodPiece(
                         outElements, owner, anglePath, angleCode,
-                        angleX, angleZ, up, angleYaw, false, 0d, 0d, 120d, band);
+                        angleX, angleZ, up, angleYaw, false, 0d, 0d, 120d, band, "frame-corner");
                 }
                 up += band;
             }
@@ -3592,6 +3584,32 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         }
 
         /// <summary>
+        /// Marco de esquina interior + piel fenólica. La piel no entra en recuento
+        /// (<c>_PHENOLIC</c> / <c>_F.stl</c>): si no, cada L salía duplicada.
+        /// </summary>
+        private static void AddInteriorCornerPanel(
+            List<Atk60ElementPaintItem> outElements,
+            Run owner,
+            string panelPath,
+            string panelCode,
+            double x,
+            double z,
+            double upMm,
+            double yaw,
+            double insertOffsetX,
+            double insertOffsetY,
+            int heightMm)
+        {
+            AddStoodPiece(
+                outElements, owner, panelPath, panelCode,
+                x, z, upMm, yaw, false, insertOffsetX, insertOffsetY, LegMm, heightMm, "frame-corner");
+            var facePath = panelPath.Replace(".stl", "_F.stl");
+            AddStoodPiece(
+                outElements, owner, facePath, panelCode + "_PHENOLIC",
+                x, z, upMm, yaw, false, insertOffsetX, insertOffsetY, LegMm, heightMm, "phenolic");
+        }
+
+        /// <summary>
         /// El STL trae la altura en Z y las patas en X/Y, ya en milímetros.
         /// RotX = -90° lo pone de pie. El giro de planta va en RotZ: con RotY se tumba.
         /// En el panel, el desplazamiento en planta son los dos espesores.
@@ -3609,7 +3627,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double insertOffsetX,
             double insertOffsetY,
             double legMm,
-            int heightMm)
+            int heightMm,
+            string color)
         {
             outElements.Add(new Atk60ElementPaintItem
             {
@@ -3618,7 +3637,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 ElementCode = code,
                 Orientation = mirror ? "LCornerMirror" : "LCorner",
                 ImportPath = path,
-                Color = "frame-corner",
+                Color = string.IsNullOrWhiteSpace(color) ? "frame-corner" : color,
                 X = x,
                 Y = run.Anchor.Y + upMm,
                 Z = z,

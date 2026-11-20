@@ -1,12 +1,17 @@
 @model Desing.Models.MasterArticleDetailsViewModel
-@using System.Linq
+@using Desing.Models
 @using Desing.Resources
 @{
     var a = Model.Article;
-    var hasStlPreview = Model.AttachmentSlots != null && Model.AttachmentSlots.Any(s => s.StlPreviewExists);
+    var countStl = Model.CountStl ?? new MasterArticleEditCountStlModel();
     ViewBag.Title = MasterArticles.Page_DetailsTitle;
 }
-@Html.Partial("_MasterArticleStlPreviewStyles")
+
+@section Styles
+{
+    @Html.Partial("_MasterArticleCountStlPanelStyles")
+}
+
 <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
     <h4 class="py-3 mb-0">
         <span class="text-muted fw-light"><a href="@Url.Action("Index", "Home")">@MasterArticles.Common_Home</a> / <a href="@Url.Action("Index", "MasterArticles")">@MasterArticles.Index_Breadcrumb</a> /</span> @MasterArticles.Page_DetailsTitle
@@ -19,9 +24,9 @@
     </div>
 </div>
 
-<div class="row g-3">
-    <div class="col-lg-6">
-        <div class="card h-100">
+<div class="row g-3 align-items-stretch mb-4">
+    <div class="col-lg-7">
+        <div class="card mb-3">
             <div class="card-header"><strong>@MasterArticles.Details_Section_Identification</strong></div>
             <div class="card-body">
                 <dl class="row mb-0 small">
@@ -34,9 +39,7 @@
                 </dl>
             </div>
         </div>
-    </div>
-    <div class="col-lg-6">
-        <div class="card h-100">
+        <div class="card">
             <div class="card-header"><strong>@MasterArticles.Details_Section_Measurements</strong></div>
             <div class="card-body">
                 <dl class="row mb-0 small">
@@ -52,24 +55,16 @@
             </div>
         </div>
     </div>
-    @Html.Partial("_MasterArticleStlPreviewSection", new Desing.Models.MasterArticleStlPreviewSectionModel { AttachmentSlots = Model.AttachmentSlots ?? new System.Collections.Generic.List<Desing.Models.MasterArticleAttachmentSlot>(), TextColor1Hex = Model.StlPreviewTextColor1Hex, TextColor2Hex = Model.StlPreviewTextColor2Hex })
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-body p-2 h-100">
+                @Html.Partial("_MasterArticleEditCountStlPanel", countStl)
+            </div>
+        </div>
+    </div>
 </div>
 
 @section scripts
 {
-    @if (hasStlPreview)
-    {
-        var masterArticleImports = new System.Collections.Generic.Dictionary<string, string>
-        {
-            { "three", Url.Content("~/Scripts/Design/build/three.module.js") },
-            { "@masterarticles/OrbitControls", Url.Content("~/Scripts/Design/jsm/controls/OrbitControls.js") },
-            { "@masterarticles/STLLoader", Url.Content("~/Scripts/Design/jsm/loaders/STLLoader.js") },
-            { "@masterarticles/InfiniteGridHelper", Url.Content("~/Scripts/MasterArticles/infinite-grid-helper.module.js") }
-        };
-        var masterArticleImportMap = new System.Collections.Generic.Dictionary<string, object> { { "imports", masterArticleImports } };
-        <script type="importmap">
-@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(masterArticleImportMap))
-        </script>
-        <script type="module" src="@Url.Content("~/Scripts/MasterArticles/master-article-details-stl-viewer.js")"></script>
-    }
+    @Html.Partial("_MasterArticleCountStlPanelBoot", countStl)
 }

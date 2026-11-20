@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -205,7 +206,7 @@ namespace Desing.Controllers
                 return RedirectToAction("Index");
             }
             PopulateLinkSystem(article.LinkSystem);
-            PopulateMasterArticleStlPreviewViewData(article, article.IdObject);
+            PopulateMasterArticleEditCountStl(article);
             return View(article);
         }
 
@@ -222,16 +223,16 @@ namespace Desing.Controllers
             }
 
             ViewBag.Title = MasterArticles.Page_DetailsTitle;
-            var slots = BuildMasterArticleAttachmentSlots(row.article).ToList();
-            EnrichAttachmentSlotsWithStlPreview(slots, row.article.IdObject);
+            var countStl = ResolveMasterArticleEditCountStl(row.article);
             var vm = new MasterArticleDetailsViewModel
             {
                 Article = row.article,
                 CompanyTextLabel = row.CompanyText,
                 SystemTextLabel = row.SystemText,
-                AttachmentSlots = slots,
-                StlPreviewTextColor1Hex = NormalizeMasterArticleHexColor(row.article.TextColor1, 200),
-                StlPreviewTextColor2Hex = NormalizeMasterArticleHexColor(row.article.TextColor2, 10)
+                AttachmentSlots = new List<MasterArticleAttachmentSlot>(),
+                StlPreviewTextColor1Hex = countStl.Color1,
+                StlPreviewTextColor2Hex = countStl.Color2,
+                CountStl = countStl
             };
             return View(vm);
         }
@@ -291,7 +292,7 @@ namespace Desing.Controllers
             if (!ModelState.IsValid)
             {
                 PopulateLinkSystem(model.LinkSystem);
-                PopulateMasterArticleStlPreviewViewData(model, model.IdObject);
+                PopulateMasterArticleEditCountStl(model);
                 return View(model);
             }
 
@@ -319,7 +320,7 @@ namespace Desing.Controllers
             if (!ModelState.IsValid)
             {
                 PopulateLinkSystem(model.LinkSystem);
-                PopulateMasterArticleStlPreviewViewData(article, article.IdObject);
+                PopulateMasterArticleEditCountStl(article);
                 return View(article);
             }
 
@@ -953,6 +954,294 @@ namespace Desing.Controllers
                 TextColor1Hex = NormalizeMasterArticleHexColor(sourceForSlots.TextColor1, 200),
                 TextColor2Hex = NormalizeMasterArticleHexColor(sourceForSlots.TextColor2, 10)
             };
+        }
+
+        private void PopulateMasterArticleEditCountStl(DAL.Tsql_Master_Articles article)
+        {
+            ViewData["MasterArticleEditCountStl"] = ResolveMasterArticleEditCountStl(article);
+        }
+
+        private string ReadSystemPanelColor(long systemId)
+        {
+            if (systemId <= 0)
+            {
+                return null;
+            }
+
+            var row = SystemCatalogRepository.Get(db, systemId);
+            return FormworkPanelColorRepository.NormalizeColor(row == null ? null : row.TextPanelColor);
+        }
+
+        private Dictionary<string, string> ReadSystemPanelColorMap()
+        {
+            var map = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var row in SystemCatalogRepository.List(db))
+            {
+                var hex = FormworkPanelColorRepository.NormalizeColor(row == null ? null : row.TextPanelColor);
+                if (row == null || string.IsNullOrWhiteSpace(hex))
+                {
+                    continue;
+                }
+
+                map[row.IdObject.ToString(CultureInfo.InvariantCulture)] = hex;
+            }
+
+            return map;
+        }
+
+        /// <summary>
+        /// Misma cadena que el recuento Desing_2: panel ATK-60, STL del bloque, o fichero en ATK60.
+        /// </summary>
+        private MasterArticleEditCountStlModel ResolveMasterArticleEditCountStl(DAL.Tsql_Master_Articles article)
+        {
+            var info = new MasterArticleEditCountStlModel
+            {
+                Color1 = NormalizeMasterArticleHexColor(article == null ? null : article.TextColor1, 200),
+                Color2 = NormalizeMasterArticleHexColor(article == null ? null : article.TextColor2, 10),
+                Label = article == null ? null : article.TextLabel,
+                SystemPanelColors = ReadSystemPanelColorMap()
+            };
+
+            if (IsMasterArticleAdjustableClampCode(article == null ? null : article.TextCode)
+                || IsMasterArticleAdjustableClampCode(article == null ? null : article.AddAtenkoCode))
+            {
+                info.StlUrl = PublicStlIfExists("~/Content/DesignTools/Stl/ATK60/10000221.stl");
+                info.StlUrl2 = PublicStlIfExists("~/Content/DesignTools/Stl/ATK60/10000221-2.stl");
+                return info;
+            }
+
+            if (article != null)
+            {
+                string frame;
+                string phenolic;
+                if (PluginCadAtk60PanelStlHelper.TryResolve(article, out frame, out phenolic))
+                {
+                    info.IsPanel = true;
+                    info.StlUrl = PublicStlIfExists(frame);
+                    info.StlUrl2 = PublicStlIfExists(phenolic);
+                    var systemColor = ReadSystemPanelColor(article.LinkSystem);
+                    if (!string.IsNullOrWhiteSpace(systemColor))
+                    {
+                        info.Color1 = systemColor;
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(info.StlUrl))
+                {
+                    var candidates = new[]
+                    {
+                        article.LinkBlockDwgPlantStl,
+                        article.LinkBlockDwgVerticalElevationStl,
+                        article.LinkBlockDwgHorizontalElevationStl
+                    };
+                    for (var i = 0; i < candidates.Length && string.IsNullOrWhiteSpace(info.StlUrl); i++)
+                    {
+                        info.StlUrl = PublicStlIfExists(candidates[i]);
+                    }
+
+                    if (string.IsNullOrWhiteSpace(info.StlUrl))
+                    {
+                        var dwg = FirstNonEmptyBlockPath(article.LinkBlockDwg3D, article.LinkBlockDwgXr);
+                        if (!string.IsNullOrWhiteSpace(dwg))
+                        {
+                            var sibling = Path.ChangeExtension(dwg.Trim().Replace('\\', '/'), ".stl");
+                            info.StlUrl = PublicStlIfExists(sibling);
+                        }
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(info.StlUrl))
+                    {
+                        info.StlUrl2 = PublicStlIfExists(Stem2StlVirtual(info.StlUrl));
+                        if (string.IsNullOrWhiteSpace(info.StlUrl2))
+                        {
+                            info.StlUrl2 = PublicStlIfExists(PhenolicStlVirtual(info.StlUrl));
+                        }
+                    }
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(info.StlUrl) && article != null)
+            {
+                var names = new[] { article.TextCode, article.AddAtenkoCode, article.TextStlNumber };
+                for (var i = 0; i < names.Length && string.IsNullOrWhiteSpace(info.StlUrl); i++)
+                {
+                    var name = CountArticleStlFileName(names[i]);
+                    if (name == null)
+                    {
+                        continue;
+                    }
+
+                    info.StlUrl = PublicStlIfExists("~/Content/DesignTools/Stl/ATK60/" + name + ".stl");
+                    if (!string.IsNullOrWhiteSpace(info.StlUrl))
+                    {
+                        info.StlUrl2 = PublicStlIfExists("~/Content/DesignTools/Stl/ATK60/" + name + "_F.stl");
+                    }
+                }
+            }
+
+            return info;
+        }
+
+        private static bool IsMasterArticleAdjustableClampCode(string code)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                return false;
+            }
+
+            var key = code.Trim();
+            return string.Equals(key, "10000221", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(key, "10000221B", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(key, "1120100040", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string FirstNonEmptyBlockPath(params string[] values)
+        {
+            if (values == null)
+            {
+                return null;
+            }
+
+            for (var i = 0; i < values.Length; i++)
+            {
+                if (!string.IsNullOrWhiteSpace(values[i]))
+                {
+                    return values[i].Trim();
+                }
+            }
+
+            return null;
+        }
+
+        private static string CountArticleStlFileName(string code)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                return null;
+            }
+
+            var name = code.Trim();
+            if (name.StartsWith("PANEL_", StringComparison.OrdinalIgnoreCase))
+            {
+                name = name.Substring(6);
+            }
+
+            if (name.EndsWith("_FRAME", StringComparison.OrdinalIgnoreCase))
+            {
+                name = name.Substring(0, name.Length - 6);
+            }
+
+            return Regex.IsMatch(name, "^[A-Za-z0-9._-]+$") ? name : null;
+        }
+
+        private static string CountArticleStlPathOnly(string publicUrl)
+        {
+            if (string.IsNullOrWhiteSpace(publicUrl))
+            {
+                return null;
+            }
+
+            var path = publicUrl.Trim().Replace('\\', '/');
+            var q = path.IndexOf('?');
+            if (q >= 0)
+            {
+                path = path.Substring(0, q);
+            }
+
+            return path.EndsWith(".stl", StringComparison.OrdinalIgnoreCase) ? path : null;
+        }
+
+        private static string Stem2StlVirtual(string publicUrl)
+        {
+            var path = CountArticleStlPathOnly(publicUrl);
+            if (path == null || path.Length < 5)
+            {
+                return null;
+            }
+
+            return path.Substring(0, path.Length - 4) + "2.stl";
+        }
+
+        private static string PhenolicStlVirtual(string publicUrl)
+        {
+            var path = CountArticleStlPathOnly(publicUrl);
+            if (path == null || path.Length < 5)
+            {
+                return null;
+            }
+
+            if (path.EndsWith("P.stl", StringComparison.OrdinalIgnoreCase))
+            {
+                return path.Substring(0, path.Length - 5) + "P2.stl";
+            }
+
+            return path.Substring(0, path.Length - 4) + "_F.stl";
+        }
+
+        private static string ToAppRelativeStlPath(string virtualPath)
+        {
+            if (string.IsNullOrWhiteSpace(virtualPath))
+            {
+                return null;
+            }
+
+            var t = virtualPath.Trim().Replace('\\', '/');
+            var q = t.IndexOf('?');
+            if (q >= 0)
+            {
+                t = t.Substring(0, q);
+            }
+
+            if (t.StartsWith("http", StringComparison.OrdinalIgnoreCase) || t.StartsWith("//", StringComparison.Ordinal))
+            {
+                return null;
+            }
+
+            while (t.StartsWith("../", StringComparison.Ordinal))
+            {
+                t = t.Substring(3);
+            }
+
+            if (t.StartsWith("./", StringComparison.Ordinal))
+            {
+                t = t.Substring(2);
+            }
+
+            if (t.StartsWith("~/", StringComparison.Ordinal))
+            {
+                return t;
+            }
+
+            if (t.StartsWith("/", StringComparison.Ordinal))
+            {
+                return "~" + t;
+            }
+
+            return "~/" + t.TrimStart('/');
+        }
+
+        private string PublicStlIfExists(string virtualPath)
+        {
+            var appRel = ToAppRelativeStlPath(virtualPath);
+            if (string.IsNullOrWhiteSpace(appRel) || !appRel.EndsWith(".stl", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            try
+            {
+                var physical = Server.MapPath(appRel);
+                if (string.IsNullOrWhiteSpace(physical) || !System.IO.File.Exists(physical))
+                {
+                    return null;
+                }
+
+                return Url.Content(appRel);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private string ArticleLinkCellHtml(string storedPath)

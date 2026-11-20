@@ -12,7 +12,23 @@ namespace Desing.Models
         public string TextColor1Hex { get; set; }
         /// <summary>Color 2 (<c>TextColor2</c>) en hex para la segunda malla (<c>{{base}}2.stl</c>) en el visor.</summary>
         public string TextColor2Hex { get; set; }
+        /// <summary>False en Editar: oculta la tabla de adjuntos y auto-carga el STL en el visor.</summary>
+        public bool ShowAttachmentGrid { get; set; } = true;
         public bool HasStlPreview => AttachmentSlots != null && AttachmentSlots.Any(s => s.StlPreviewExists);
+    }
+
+    /// <summary>Panel STL de Editar: mismas URLs y colores que el recuento Desing_2.</summary>
+    public class MasterArticleEditCountStlModel
+    {
+        public string StlUrl { get; set; }
+        public string StlUrl2 { get; set; }
+        public string Color1 { get; set; }
+        public string Color2 { get; set; }
+        public string Label { get; set; }
+        /// <summary>True si el artículo es panel ATK-60: el visor usa el color de paneles del sistema.</summary>
+        public bool IsPanel { get; set; }
+        /// <summary>IdObject de sistema → TextPanelColor, para cambiar el visor al elegir Sistema.</summary>
+        public System.Collections.Generic.Dictionary<string, string> SystemPanelColors { get; set; }
     }
 
     public class MasterArticleDetailsViewModel
@@ -25,6 +41,8 @@ namespace Desing.Models
         public string StlPreviewTextColor1Hex { get; set; }
         /// <summary>Hex normalizado para <see cref="MasterArticleStlPreviewSectionModel.TextColor2Hex"/> en Detalles (TextColor2, longitud máx. 10 al guardar).</summary>
         public string StlPreviewTextColor2Hex { get; set; }
+        /// <summary>Mismo panel STL que Editar (recuento Desing_2).</summary>
+        public MasterArticleEditCountStlModel CountStl { get; set; }
     }
 
     public class MasterArticleAttachmentSlot

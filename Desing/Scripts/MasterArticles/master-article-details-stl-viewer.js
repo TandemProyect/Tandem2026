@@ -6848,6 +6848,8 @@ function bootMasterArticleDetailsStlViewer() {
                 seen[obj.uuid] = true;
                 let code = maStlDesing2Atk60CodeName(ud.maStlAtk60ElementCode);
                 if (!code || /_PHENOLIC$/i.test(code)) return;
+                const importPath = ud.maStlAtk60ImportPath != null ? String(ud.maStlAtk60ImportPath) : '';
+                if (/_F\.stl$/i.test(importPath)) return;
                 code = code.replace(/_FRAME$/i, '');
                 if (!code) return;
                 const tumbado = String(ud.maStlAtk60ElementOrientation || '').toLowerCase().indexOf('tumbado') >= 0;
@@ -7672,6 +7674,8 @@ function bootMasterArticleDetailsStlViewer() {
             if (keep && !keep(item)) continue;
             let code = maStlDesing2Atk60CodeName(item.ElementCode);
             if (!code || /_PHENOLIC$/i.test(code) || /^MARK_/i.test(code)) continue;
+            const importPath = item.ImportPath != null ? String(item.ImportPath) : '';
+            if (/_F\.stl$/i.test(importPath)) continue;
             code = code.replace(/_FRAME$/i, '');
             if (!code) continue;
             map[code] = (map[code] || 0) + 1;
@@ -8793,8 +8797,9 @@ function bootMasterArticleDetailsStlViewer() {
         if (!maStlDesing2Atk60SampleGroup) return;
         for (let i = 0; i < maStlDesing2Atk60SampleGroup.children.length; i++) {
             const child = maStlDesing2Atk60SampleGroup.children[i];
-            if (!child || !child.isGroup) continue;
+            if (!child) continue;
             const ud = child.userData || {};
+            if (!ud.maStlAtk60Element) continue;
             if (String(ud.maStlAtk60ElementType || '').toLowerCase() !== 'panel') continue;
             if (String(ud.maStlAtk60ElementOrientation || '').toLowerCase() !== 'vertical') continue;
             maStlDesing2ApplyAtk60PanelColors(child);
@@ -9443,8 +9448,9 @@ function bootMasterArticleDetailsStlViewer() {
                 const box = new THREE.Box3().setFromObject(clone);
                 const size = new THREE.Vector3();
                 box.getSize(size);
+                const nativeCode = String(elementCode || '').replace(/_PHENOLIC$/i, '').replace(/_FRAME$/i, '');
                 const keepNativePillarPanel = useStrictPose
-                    && /^(27104219|24104224|12104120|27304205|24304244|12304211|27454206|24454243|12454212|27604207|24604242|12604213|27754219|24754224|12754120|27904209|24904240|12904215|1920811|10443020|E27004210|E24004217|E12004216|27000000|24000000|12000000)$/.test(elementCode);
+                    && /^(27104219|24104224|12104120|27304205|24304244|12304211|27454206|24454243|12454212|27604207|24604242|12604213|27754219|24754224|12754120|27904209|24904240|12904215|1920811|10443020|E27004210|E24004217|E12004216|27000000|24000000|12000000)$/.test(nativeCode);
                 if (!keepNativePillarPanel && size.y > 1e-6 && size.x > 1e-6 && size.z > 1e-6) {
                     if (isTumbado) {
                         // Tras Rz(-90) el canto corto está en Y y el largo en X.
@@ -9508,6 +9514,7 @@ function bootMasterArticleDetailsStlViewer() {
                         maStlAtk60SamplePlaced: true,
                         maStlAtk60Element: true,
                         maStlAtk60ElementCode: item.ElementCode != null ? String(item.ElementCode) : '',
+                        maStlAtk60ImportPath: item.ImportPath != null ? String(item.ImportPath) : '',
                         maStlAtk60ElementType: item.ElementType != null ? String(item.ElementType) : '',
                         maStlAtk60ElementOrientation: item.Orientation != null ? String(item.Orientation) : '',
                         maStlAtk60SampleWallId: item.IdWall != null ? String(item.IdWall) : null,
@@ -9612,6 +9619,7 @@ function bootMasterArticleDetailsStlViewer() {
                     maStlAtk60SamplePlaced: true,
                     maStlAtk60Element: true,
                     maStlAtk60ElementCode: item.ElementCode != null ? String(item.ElementCode) : '',
+                    maStlAtk60ImportPath: item.ImportPath != null ? String(item.ImportPath) : '',
                     maStlAtk60ElementType: item.ElementType != null ? String(item.ElementType) : '',
                     maStlAtk60ElementOrientation: item.Orientation != null ? String(item.Orientation) : '',
                     maStlAtk60SampleWallId: item.IdWall != null ? String(item.IdWall) : null,

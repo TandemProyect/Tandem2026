@@ -11,13 +11,28 @@
     var slotsGrid = Model.AttachmentSlots != null ? Model.AttachmentSlots.ToList() : new System.Collections.Generic.List<Desing.Models.MasterArticleAttachmentSlot>();
     var rowLabels = new[] { MasterArticles.StlPreview_RowLabel3D, MasterArticles.StlPreview_RowLabelMockup, MasterArticles.StlPreview_RowLabelStl };
     var hasStlPreview = Model.HasStlPreview;
+    var showAttachmentGrid = Model.ShowAttachmentGrid;
     var textColor1Hex = string.IsNullOrWhiteSpace(Model.TextColor1Hex) ? "#000000" : Model.TextColor1Hex.Trim();
     var textColor2Hex = string.IsNullOrWhiteSpace(Model.TextColor2Hex) ? "#000000" : Model.TextColor2Hex.Trim();
+    string autoStlUrl = string.Empty;
+    string autoStlLabel = string.Empty;
+    if (!showAttachmentGrid && hasStlPreview)
+    {
+        var plant = slotsGrid.FirstOrDefault(s => s.SlotKey == "LinkBlockDwgPlantStl" && s.StlPreviewExists);
+        var pick = plant ?? slotsGrid.FirstOrDefault(s => s.StlPreviewExists);
+        if (pick != null && !string.IsNullOrWhiteSpace(pick.StlPreviewVirtualPath))
+        {
+            autoStlUrl = System.Web.HttpUtility.HtmlAttributeEncode(FileHref(pick.StlPreviewVirtualPath));
+            autoStlLabel = System.Web.HttpUtility.HtmlAttributeEncode(pick.Label ?? string.Empty);
+        }
+    }
 }
-<div class="col-12">
-    <div class="card">
-        <div class="card-body">
-            <div class="row g-3 align-items-stretch">
+<div class="@(showAttachmentGrid ? "col-12" : "h-100")">
+    <div class="card h-100">
+        <div class="card-body@(showAttachmentGrid ? "" : " p-2")">
+            <div class="row g-3 align-items-stretch h-100">
+                @if (showAttachmentGrid)
+                {
                 <div class="col-lg-7">
                     <div class="table-responsive">
                         <table class="table table-bordered align-middle mb-0 small">
@@ -80,9 +95,10 @@
                         </table>
                     </div>
                 </div>
-                <div class="col-lg-5">
+                }
+                <div class="@(showAttachmentGrid ? "col-lg-5" : "col-12")">
                         @* Opcional desarrollo en #ma-stl-viewer-shell: data-ma-stl-dev-auto-load="true", data-ma-stl-dev-default-stl="~/Files/.../archivo.stl" (URL resuelta), data-ma-stl-dev-default-label="..." *@
-                        <div id="ma-stl-viewer-shell" class="border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" style="min-height: 420px;" data-ma-text-color1="@System.Web.HttpUtility.HtmlAttributeEncode(textColor1Hex)" data-ma-text-color2="@System.Web.HttpUtility.HtmlAttributeEncode(textColor2Hex)">
+                        <div id="ma-stl-viewer-shell" class="border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" style="min-height: @(showAttachmentGrid ? "420px" : "520px");" data-ma-text-color1="@System.Web.HttpUtility.HtmlAttributeEncode(textColor1Hex)" data-ma-text-color2="@System.Web.HttpUtility.HtmlAttributeEncode(textColor2Hex)" data-ma-stl-dev-auto-load="@(string.IsNullOrEmpty(autoStlUrl) ? "false" : "true")" data-ma-stl-dev-default-stl="@autoStlUrl" data-ma-stl-dev-default-label="@autoStlLabel">
                         <div class="@(hasStlPreview ? "d-flex" : "d-none") align-items-center justify-content-between flex-wrap gap-2 px-2 py-2 border-bottom bg-light" id="master-article-stl-viewer-toolbar">
                             <div class="d-flex align-items-center flex-wrap gap-2">
                                 <span class="small text-muted mb-0">@MasterArticles.StlPreview_CameraLabel</span>

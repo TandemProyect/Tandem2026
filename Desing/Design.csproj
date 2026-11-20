@@ -365,6 +365,7 @@
     <Compile Include="Helpers\DesignGroupHelper.cs" />
     <Compile Include="Helpers\OfferDesignWorkspaceHelper.cs" />
     <Compile Include="Helpers\DesignMaterialCountUi.cs" />
+    <Compile Include="Helpers\Atk60MaterialCountCodeMap.cs" />
     <Compile Include="Helpers\LastUserDesignMenuHelper.cs" />
     <Compile Include="Helpers\OfferDisplayHelper.cs" />
     <Compile Include="Helpers\LanguageUiHelper.cs" />

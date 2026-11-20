@@ -68,7 +68,9 @@ INSERT INTO @Docs VALUES
 (430, N'area.general', N'General', N'Lee AGENTS.md y trabaja en general: <lo que quieres>.', N'Docs/areas/general/INDEX.md',
  N'Arquitectura cliente-servidor, convenciones de código, estructura del repo, flujo de Git y el proyecto Desing en conjunto.'),
 (500, N'informe', N'Informe de trabajo', N'Lee AGENTS.md y actualiza el informe de trabajo con <lo hecho>.', N'Desing/Report/LEEME.md',
- N'Solo cuando se pide: dónde está el informe abierto, cómo anotar horas y cómo abrir un frente.');
+ N'Solo cuando se pide: dónde está el informe abierto, cómo anotar horas y cómo abrir un frente.'),
+(510, N'informe.generar-develop', N'Generar Informe Develop', N'Lee AGENTS.md y genera el informe Develop: <rango o últimas dos semanas>.', N'Docs/areas/general/Generar-Informe-Develop.md',
+ N'Cómo generar el informe semanal US/BUG y el PDF: fichero abierto, fuentes (chats, no git), convención US azul / BUG rojo, Chrome headless y semilla en Agentes.');
 
 UPDATE t
    SET t.TextLabel = d.TextLabel, t.TextCommand = d.TextCommand, t.TextPath = d.TextPath,

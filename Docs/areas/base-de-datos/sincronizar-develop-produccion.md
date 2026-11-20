@@ -26,7 +26,7 @@ sqlcmd -S 'NUCBOXG5\SQLEXPRESS' -E -d <base> -I -f 65001 -b -i "<ruta absoluta>.
 | **Esquema** (tablas, columnas, índices, FK) | sí | sí, siempre el mismo script |
 | **Usuarios del sistema `*@tediseng.net`** (`AspNetUsers` + `TSql_Employee` + `TSql_UserRole`) | sí | sí |
 | **Derechos:** `TSql_Functions`, `TSql_Roles_V2`, `TSql_RoleFunction` | sí | sí |
-| **Catálogos:** `TSql_UiTranslation`, `TSql_Language`, `TSql_Countrys`, `TSql_OfferState`, `TSql_Extension`, `TSql_DocumentType`, `TSql_Plantilla`, `TSql_AiCommand*`, `TSql_AiEnvironment*`, `TSql_FormworkPanelColor` | sí | sí |
+| **Catálogos:** `TSql_UiTranslation`, `TSql_Language`, `TSql_Countrys`, `TSql_OfferState`, `TSql_Extension`, `TSql_DocumentType`, `TSql_Plantilla`, `TSql_AiCommand*`, `TSql_AiEnvironment*`, `TSql_FormworkPanelColor`, `TSql_DevelodAgentDocument` | sí | sí |
 | **Empresas** con usuarios del sistema (`TSql_Company`) | sí | sí |
 | **Negocio y pruebas:** diseños, ofertas, obras, clientes, artículos de prueba, usuarios de prueba | sí | **no** |
 | **Oferta al cliente** (`TSql_ClientOffer`, `TSql_ClientOfferBrand`, `TSql_ClientOfferBrandLogo`, `TSql_ClientOfferBrandText`, `TSql_ClientOfferSection`, `TSql_ClientOfferAiMessage`, `TSql_ClientOfferContact`, `TSql_ClientOfferContactStateType`, `TSql_ClientOfferContactState`, `TSql_ClientOfferCapture`): el esquema irá a producción cuando Juan lo pida; las filas son negocio y no se copian | sí | esquema pendiente |

@@ -5,10 +5,9 @@
 @using Desing.Resources
 @{
     ViewBag.Title = MasterArticles.Page_EditTitle;
-    var stlSection = ViewData["MasterArticleStlPreview"] as MasterArticleStlPreviewSectionModel
-        ?? new MasterArticleStlPreviewSectionModel { AttachmentSlots = new List<MasterArticleAttachmentSlot>() };
+    var editStl = ViewData["MasterArticleEditCountStl"] as MasterArticleEditCountStlModel
+        ?? new MasterArticleEditCountStlModel();
 
-    /** Valor válido #rrggbb para atributo value del color (misma idea que Plantilla/Edit). */
     Func<string, string> maHexForPicker = raw =>
     {
         if (string.IsNullOrWhiteSpace(raw)) return "#000000";
@@ -25,7 +24,7 @@
 
 @section Styles
 {
-    @Html.Partial("_MasterArticleStlPreviewStyles")
+    @Html.Partial("_MasterArticleCountStlPanelStyles")
 }
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="py-3 mb-0">
@@ -33,9 +32,11 @@
     </h4>
 </div>
 
-<div class="card mb-4">
-    <div class="card-body">
-        @using (Html.BeginForm("Edit", "MasterArticles", FormMethod.Post, new { @class = "row g-3", enctype = "multipart/form-data" }))
+<div class="row g-3 align-items-stretch mb-4">
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-body">
+        @using (Html.BeginForm("Edit", "MasterArticles", FormMethod.Post, new { @class = "row g-3" }))
         {
             @Html.AntiForgeryToken()
             @Html.HiddenFor(m => m.IdObject)
@@ -116,36 +117,29 @@
                 @Html.TextBoxFor(m => m.TextStlNumber, new { @class = "form-control", maxlength = "200" })
             </div>
 
-            <div class="col-12"><hr class="my-1 text-muted" /></div>
-            <div class="col-12">
-                <h6 class="mb-1 text-muted">@MasterArticles.Lbl_StlFilesSection</h6>
-                <p class="text-muted small mb-0">@MasterArticles.Lbl_StlFilesHelp</p>
-            </div>
-            @Html.Partial("_MasterArticleBlockStlFilesForm", Model)
+            @Html.HiddenFor(m => m.LinkBlockDwg3D)
+            @Html.HiddenFor(m => m.LinkBlockDwg3DRef)
+            @Html.HiddenFor(m => m.LinkBlockDwgXr)
+            @Html.HiddenFor(m => m.LinkBlockDwgPlantStl)
+            @Html.HiddenFor(m => m.LinkBlockDwgVerticalElevationStl)
+            @Html.HiddenFor(m => m.LinkBlockDwgHorizontalElevationStl)
 
-            <div class="col-12">
-                <div class="row g-2 align-items-end">
-                    <div class="col-md-6">
-                        <label class="form-label">@MasterArticles.Lbl_Color1</label>
-                        <div class="d-flex align-items-center gap-2">
-                            <input type="color" id="ma_picker_TextColor1" value="@maHexForPicker(Model.TextColor1)" class="form-control form-control-color p-1" style="width:3.25rem;height:2.5rem" title="@MasterArticles.Lbl_Color1" />
-                            @Html.TextBox("TextColor1", maHexForPicker(Model.TextColor1), new { @class = "form-control", id = "ma_TextColor1", maxlength = "200", autocomplete = "off", spellcheck = "false" })
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">@MasterArticles.Lbl_Color2</label>
-                        <div class="d-flex align-items-center gap-2">
-                            <input type="color" id="ma_picker_TextColor2" value="@maHexForPicker(Model.TextColor2)" class="form-control form-control-color p-1" style="width:3.25rem;height:2.5rem" title="@MasterArticles.Lbl_Color2" />
-                            @Html.TextBox("TextColor2", maHexForPicker(Model.TextColor2), new { @class = "form-control", id = "ma_TextColor2", maxlength = "10", autocomplete = "off", spellcheck = "false" })
-                        </div>
-                        <small class="text-muted d-block mt-1">@MasterArticles.Lbl_Color2Hint</small>
-                    </div>
+            <div class="col-12"><hr class="my-1 text-muted" /></div>
+            <div class="col-md-6">
+                <label class="form-label">@MasterArticles.Lbl_Color1</label>
+                <div class="d-flex align-items-center gap-2">
+                    <input type="color" id="ma_picker_TextColor1" value="@maHexForPicker(Model.TextColor1)" class="form-control form-control-color p-1" style="width:3.25rem;height:2.5rem" title="@MasterArticles.Lbl_Color1" />
+                    @Html.TextBox("TextColor1", maHexForPicker(Model.TextColor1), new { @class = "form-control", id = "ma_TextColor1", maxlength = "200", autocomplete = "off", spellcheck = "false" })
                 </div>
             </div>
-
-            @Html.Partial("_MasterArticleBlockFilesForm", Model)
-
-            @Html.Partial("_MasterArticleStlPreviewSection", stlSection)
+            <div class="col-md-6">
+                <label class="form-label">@MasterArticles.Lbl_Color2</label>
+                <div class="d-flex align-items-center gap-2">
+                    <input type="color" id="ma_picker_TextColor2" value="@maHexForPicker(Model.TextColor2)" class="form-control form-control-color p-1" style="width:3.25rem;height:2.5rem" title="@MasterArticles.Lbl_Color2" />
+                    @Html.TextBox("TextColor2", maHexForPicker(Model.TextColor2), new { @class = "form-control", id = "ma_TextColor2", maxlength = "10", autocomplete = "off", spellcheck = "false" })
+                </div>
+                <small class="text-muted d-block mt-1">@MasterArticles.Lbl_Color2Hint</small>
+            </div>
 
             <div class="col-12 d-flex justify-content-end gap-2 tandem-form-actions mt-3">
                 <a href="@Url.Action("Index", "MasterArticles")" class="btn btn-outline-secondary">@MasterArticles.Btn_Cancel</a>
@@ -154,6 +148,15 @@
                 </button>
             </div>
         }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-body p-2 h-100">
+                @Html.Partial("_MasterArticleEditCountStlPanel", editStl)
+            </div>
+        </div>
     </div>
 </div>
 
@@ -162,7 +165,6 @@
     @Scripts.Render("~/bundles/jqueryval")
     <script type="text/javascript">
         /// <reference path="../../Scripts/types/jquery-global.d.ts" />
-        /* Igual que Plantilla/Edit (syncHexPair + input/change) + ruta nativa por si el color no dispara bien con jQuery en Chromium. */
         (function () {
             /**
              * @@param {string} v
@@ -229,19 +231,5 @@
             });
         }
     </script>
-    @if (stlSection.HasStlPreview)
-    {
-        var masterArticleImports = new System.Collections.Generic.Dictionary<string, string>
-        {
-            { "three", Url.Content("~/Scripts/Design/build/three.module.js") },
-            { "@masterarticles/OrbitControls", Url.Content("~/Scripts/Design/jsm/controls/OrbitControls.js") },
-            { "@masterarticles/STLLoader", Url.Content("~/Scripts/Design/jsm/loaders/STLLoader.js") },
-            { "@masterarticles/InfiniteGridHelper", Url.Content("~/Scripts/MasterArticles/infinite-grid-helper.module.js") }
-        };
-        var masterArticleImportMap = new System.Collections.Generic.Dictionary<string, object> { { "imports", masterArticleImports } };
-        <script type="importmap">
-@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(masterArticleImportMap))
-        </script>
-        <script type="module" src="@Url.Content("~/Scripts/MasterArticles/master-article-details-stl-viewer.js")"></script>
-    }
+    @Html.Partial("_MasterArticleCountStlPanelBoot", editStl)
 }

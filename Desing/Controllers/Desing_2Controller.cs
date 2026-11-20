@@ -1161,6 +1161,11 @@ namespace Desing.Controllers
                 return "";
             }
 
+            if (code.StartsWith("PANEL_", StringComparison.OrdinalIgnoreCase) && code.Length > 6)
+            {
+                code = code.Substring(6).Trim();
+            }
+
             if (code.EndsWith("_FRAME", StringComparison.OrdinalIgnoreCase))
             {
                 code = code.Substring(0, code.Length - 6).Trim();
@@ -1176,7 +1181,13 @@ namespace Desing.Controllers
                 return;
             }
 
-            var code = NormalizeMaterialCountCode(rawCode);
+            var sceneNormalized = NormalizeMaterialCountCode(rawCode);
+            if (sceneNormalized.Length == 0)
+            {
+                return;
+            }
+
+            var code = Atk60MaterialCountCodeMap.ToMasterTextCode(sceneNormalized);
             if (code.Length == 0)
             {
                 return;
@@ -1189,7 +1200,7 @@ namespace Desing.Controllers
                 group = new MaterialCountGroup
                 {
                     Code = code,
-                    SceneCode = string.IsNullOrWhiteSpace(scene) ? code : scene
+                    SceneCode = string.IsNullOrWhiteSpace(scene) ? sceneNormalized : scene
                 };
                 groups[code] = group;
             }
