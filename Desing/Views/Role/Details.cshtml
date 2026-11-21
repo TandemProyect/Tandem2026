@@ -14,9 +14,14 @@
             <a href="@Url.Action("Index", "Role")">@Security.Role_Index_Breadcrumb</a> /
         </span> @Model.TextLabel
     </h4>
-    <a class="btn btn-warning" href="@Url.Action("Edit", "Role", new { id = Model.IdObject })">
-        <i class="icon-base ri ri-pencil-line me-1"></i> @Common.Btn_Edit
-    </a>
+    <div class="d-flex gap-2">
+        <a class="btn btn-secondary" href="@Url.Action("AssignFunctions", "Role", new { id = Model.IdObject })">
+            <span class="fas fa-tasks me-1" aria-hidden="true"></span> @Security.Role_AssignFunctions_Title
+        </a>
+        <a class="btn btn-warning" href="@Url.Action("Edit", "Role", new { id = Model.IdObject })">
+            <i class="icon-base ri ri-pencil-line me-1"></i> @Common.Btn_Edit
+        </a>
+    </div>
 </div>
 
 @if (!string.IsNullOrEmpty(TempData["ToastMessage"] as string))

@@ -62,6 +62,7 @@ El cliente se carga en `_LayoutMaterio`, `_LayoutMaterioBlank`, `_LayoutAutocadP
 | `Role` | sí | Roles y Asignar roles |
 | `Function` | sí | Funciones |
 | `IA` | sí | Botón IA de `_Desing2ModeToolBar.cshtml`, pestaña «Asistente IA» de `wall-edit-form.js` y del muro curvo (`master-article-details-stl-viewer.js`), endpoints `Desing_2/AiCommands`, `SaveAiUserSettings`, `SaveAiUnknownPhrase`, `AiUnknownPhrases`, `ResolveAiUnknownPhrase` |
+| `IA.TraduccionSimultanea` | sí | Botón «Traducción simultánea» del chat IA (`wall-ai-assistant.js`) |
 | `DevelopAgent` | sí | Menú Develop › Agentes y `DevelopAgentController` |
 | `TSql_Company` | no | Empresas (se activa en Funciones) |
 | `Employee` | no | Empleados |
@@ -69,14 +70,14 @@ El cliente se carga en `_LayoutMaterio`, `_LayoutMaterioBlank`, `_LayoutAutocadP
 | Rol | Funciones |
 |-----|-----------|
 | `SYSADMIN` Administrador de sistema | todas (`Is_AllFunctions`, `Is_System`) |
-| `ADMINISTRATIVE` Administrativo | `Employee`, `IA` |
-| `SECTION_HEAD` Jefe de Sección, `DESIGNER` Proyectista | `IA` |
-| `AI_ASSISTANT` Asistente IA | `IA` |
+| `ADMINISTRATIVE` Administrativo | `Employee`, `IA`, `IA.TraduccionSimultanea` |
+| `SECTION_HEAD` Jefe de Sección, `DESIGNER` Proyectista | `IA`, `IA.TraduccionSimultanea` |
+| `AI_ASSISTANT` Asistente IA | `IA`, `IA.TraduccionSimultanea` |
 | `DEVELOP` Develop | todas (`Is_AllFunctions`); también `DevelopAgent` y `DevelopAi` |
 
 `juan.godoy@vscad.com` tiene los seis roles en develop local y en producción.
 
-Scripts en `Desing/Scripts/TemporalScript/`, todos idempotentes y en este orden: `2026-11-16_create_TSql_Roles_V2`, `_create_TSql_Functions`, `_create_TSql_RoleFunction`, `_create_TSql_UserRole`, `_seed_TSql_Roles_V2_Functions`, `_seed_TSql_UiTranslation_Common_menu_Security`, `_seed_TSql_Functions_IA`, `2026-11-17_seed_TSql_Functions_DevelopAgent`, `2026-11-18_seed_TSql_Functions_DevelopAi`, `2026-11-18_sync_rights_and_defaults`. Ejecutados en producción y en el SQL Express local; develop no es accesible desde fuera.
+Scripts en `Desing/Scripts/TemporalScript/`, todos idempotentes y en este orden: `2026-11-16_create_TSql_Roles_V2`, `_create_TSql_Functions`, `_create_TSql_RoleFunction`, `_create_TSql_UserRole`, `_seed_TSql_Roles_V2_Functions`, `_seed_TSql_UiTranslation_Common_menu_Security`, `_seed_TSql_Functions_IA`, `2026-11-17_seed_TSql_Functions_DevelopAgent`, `2026-11-18_seed_TSql_Functions_DevelopAi`, `2026-11-18_sync_rights_and_defaults`, `2026-11-20_seed_TSql_Functions_IA_TraduccionSimultanea`. Ejecutados en producción y en el SQL Express local; develop no es accesible desde fuera.
 
 **Pendiente:**
 - «Update Model from Database» en `DAL/Model.edmx` con las 4 tablas.

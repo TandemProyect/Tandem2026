@@ -8,10 +8,12 @@ import { LineMaterial } from '../Design/jsm/lines/LineMaterial.js';
 import { GLTFLoader } from '../Design/jsm/loaders/GLTFLoader.js';
 import { createDesing2WorkerTool } from './desing2-worker-tool.js?v=20261022-worker2d';
 import { createDesing2PillarTool } from './desing2-pillar-tool.js';
-import { mountWallEditForm } from './wall-edit-form.js?v=20261116b';
-import { mountWallAiChat, maStlWallAiUiTexts, maStlWallAiBootstrapCompact, maStlWallAiCompactTitle } from './wall-ai-assistant.js?v=20261116a';
-import { maStlDesignAiInit } from './design-ai-assistant.js?v=20261118d';
-import { formworkArticleColorHex, formworkColorModePaints, formworkKeepsFactoryRole, formworkMeshColorHex, formworkModeClickAction, formworkResolveSystemPanelColor, formworkSystemPanelColorHex, wallDimKindWithoutWall } from '../Desing2/formwork-panel-color.js?v=20261118o';
+import { mountWallEditForm } from './wall-edit-form.js?v=20261120g';
+import { mountWallAiChat, maStlWallAiUiTexts, maStlWallAiBootstrapCompact, maStlWallAiCompactTitle } from './wall-ai-assistant.js?v=20261120g';
+import { maStlDesignAiInit } from './design-ai-assistant.js?v=20261120g';
+import { formworkArticleColorHex, formworkColorModePaints, formworkKeepsFactoryRole, formworkMeshColorHex, formworkModeClickAction, formworkResolveSystemPanelColor, formworkSystemPanelColorHex, wallDimKindWithoutWall } from '../Desing2/formwork-panel-color.js?v=20261120a';
+import { buildDesignWallFaces } from '../Desing2/desing2-wall-faces.js?v=20261120c';
+import { assignCorrelativeWallCornerIds } from '../Desing2/desing2-wall-corner-ids.js?v=20261120a';
 import { mountWallBulkList } from './wall-bulk-list.js?v=20261026p';
 import { mountDesignGroups } from './design-groups.js?v=20261023j';
 import { MaStlWallEditFinalize, MaStlWallStretchMath } from './ma-stl-wall-edit-finalize.js';
@@ -3535,6 +3537,13 @@ function bootMasterArticleDetailsStlViewer() {
     const maStlWall3dMeshesGroup = new THREE.Group();
     maStlWall3dMeshesGroup.name = 'maStlWall3dMeshes';
     maStlWall3dMeshesGroup.renderOrder = 120;
+    const maStlWallFacesGroup = new THREE.Group();
+    maStlWallFacesGroup.name = 'maStlWallFaces';
+    maStlWallFacesGroup.renderOrder = 125;
+    maStlWallFacesGroup.visible = false;
+    let maStlWallFacesOverlaySig = '';
+    let maStlWallFacesCache = [];
+    let maStlWallFacesLastInputs = [];
     let maStlDesing2WallModelBusy = false;
     let maStlDesing2LastWallModelDetection = null;
     /** @type {{ wall: THREE.MeshStandardMaterial|null, corner: THREE.MeshStandardMaterial|null }} */
@@ -10948,6 +10957,157 @@ let maStlWallApplyAllHeightMm = 0;
         return !!input.checked;
     }
 
+    function maStlWall3dDevelopFacesOn() {
+        if (!maStlWall3dCornerGuidesForJuan()) return false;
+        const input = document.querySelector('#desing2-dim-kinds input[data-dim-kind="faces"]');
+        return !!(input && input.checked);
+    }
+
+    function maStlWall3dDevelopFaceIdsOn() {
+        const map = window.desing2DimKinds;
+        if (map && typeof map === 'object' && Object.prototype.hasOwnProperty.call(map, 'face-id')) {
+            return map['face-id'] === true;
+        }
+        const input = document.querySelector('#desing2-dim-kinds input[data-dim-kind="face-id"]');
+        return !!(input && input.checked);
+    }
+
+    function maStlWallFacesCollectAxisInputs() {
+        const axes = maStlWall2dToolCollectAllAxisLines();
+        const out = [];
+        for (let i = 0; i < axes.length; i++) {
+            const ud = axes[i] && axes[i].userData && axes[i].userData.maStlUserPlanLine;
+            if (!ud || !ud.p1Mm || !ud.p2Mm) continue;
+            out.push({
+                id: ud.id,
+                wallId: ud.wallId != null ? ud.wallId : ud.id,
+                p1: { x: ud.p1Mm.x, z: ud.p1Mm.z },
+                p2: { x: ud.p2Mm.x, z: ud.p2Mm.z },
+                thicknessMm: maStlWall2dModelAxisThicknessMm(ud),
+                heightMm: maStlWallLineResolveHeightMm(ud),
+            });
+        }
+        return out;
+    }
+
+    function maStlWallFacesSignature(inputs) {
+        const parts = [];
+        for (let i = 0; i < inputs.length; i++) {
+            const a = inputs[i];
+            parts.push(
+                [
+                    a.id,
+                    Math.round(a.p1.x),
+                    Math.round(a.p1.z),
+                    Math.round(a.p2.x),
+                    Math.round(a.p2.z),
+                    Math.round(a.thicknessMm || 0),
+                    Math.round(a.heightMm || 0),
+                ].join(',')
+            );
+        }
+        return parts.join('|');
+    }
+
+    function maStlWallFacesEnsureCache() {
+        const inputs = maStlWallFacesCollectAxisInputs();
+        const sig = maStlWallFacesSignature(inputs);
+        if (sig === maStlWallFacesOverlaySig) return false;
+        maStlWallFacesOverlaySig = sig;
+        maStlWallFacesLastInputs = inputs;
+        maStlWallFacesCache = buildDesignWallFaces(inputs);
+        return true;
+    }
+
+    function maStlWallFacesHeightMm(axisId) {
+        for (let i = 0; i < maStlWallFacesLastInputs.length; i++) {
+            if (String(maStlWallFacesLastInputs[i].id) === String(axisId)) {
+                const h = maStlWallFacesLastInputs[i].heightMm;
+                if (Number.isFinite(h) && h > 0) return h;
+            }
+        }
+        return MA_STL_WALL3D_DEFAULT_HEIGHT_MM;
+    }
+
+    function maStlWallFacesMakeQuad(p1, p2, y0, y1) {
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute(
+            'position',
+            new THREE.BufferAttribute(
+                new Float32Array([
+                    p1.x, y0, p1.z,
+                    p2.x, y0, p2.z,
+                    p2.x, y1, p2.z,
+                    p1.x, y0, p1.z,
+                    p2.x, y1, p2.z,
+                    p1.x, y1, p1.z,
+                ]),
+                3
+            )
+        );
+        return geo;
+    }
+
+    function maStlWallFacesRebuildOverlay() {
+        if (!maStlWallFacesGroup) return;
+        const dirty = maStlWallFacesEnsureCache();
+        const show = maStlWall3dDevelopFacesOn();
+        if (!show) {
+            maStlWallFacesGroup.visible = false;
+            if (dirty) maStlStripOverlayMeshes(maStlWallFacesGroup);
+            return;
+        }
+        if (!dirty && maStlWallFacesGroup.children.length) {
+            maStlWallFacesGroup.visible = true;
+            return;
+        }
+        maStlStripOverlayMeshes(maStlWallFacesGroup);
+        const y0 = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM;
+        for (let i = 0; i < maStlWallFacesCache.length; i++) {
+            const face = maStlWallFacesCache[i];
+            if (!face || !face.p1 || !face.p2) continue;
+            const y1 = y0 + maStlWallFacesHeightMm(face.axisId);
+            const mat = new THREE.MeshBasicMaterial({
+                color: face.color,
+                transparent: false,
+                depthTest: true,
+                depthWrite: true,
+                side: THREE.DoubleSide,
+                polygonOffset: true,
+                polygonOffsetFactor: -2,
+                polygonOffsetUnits: -2,
+            });
+            const mesh = new THREE.Mesh(maStlWallFacesMakeQuad(face.p1, face.p2, y0, y1), mat);
+            mesh.renderOrder = 200;
+            mesh.frustumCulled = false;
+            mesh.userData.maStlWallFaceId = face.id;
+            const lineGeo = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(face.p1.x, y0, face.p1.z),
+                new THREE.Vector3(face.p2.x, y0, face.p2.z),
+                new THREE.Vector3(face.p2.x, y1, face.p2.z),
+                new THREE.Vector3(face.p1.x, y1, face.p1.z),
+                new THREE.Vector3(face.p1.x, y0, face.p1.z),
+            ]);
+            const line = new THREE.Line(
+                lineGeo,
+                new THREE.LineBasicMaterial({
+                    color: face.color,
+                    depthTest: true,
+                    depthWrite: false,
+                })
+            );
+            line.renderOrder = 201;
+            line.frustumCulled = false;
+            const g = new THREE.Group();
+            g.userData.maStlWallFaceId = face.id;
+            g.add(mesh);
+            g.add(line);
+            maStlWallFacesGroup.add(g);
+        }
+        maStlDisableRaycastOnOverlay(maStlWallFacesGroup);
+        maStlWallFacesGroup.visible = true;
+    }
+
     /** Líneas 1 y 3 en el canto exterior. La 2 y la 4 cruzan por dentro. */
     function maStlWall3dAddLCornerReferencePoint(footprint, topY) {
         const input = document.querySelector('#desing2-dim-kinds input[data-dim-kind="corner-reference-point"]');
@@ -11253,7 +11413,7 @@ let maStlWallApplyAllHeightMm = 0;
         const linesOn = wallOn && !maStlDesing2FormworkViewOn();
         const referencePointOn = maStlWall3dCornerReferencePointOn() &&
             !maStlWallDimToolActive && maStlDesing2ModelMode === 'wall3d';
-        const hideWall = maStlWall3dHideWallOn();
+        const hideWall = maStlWall3dHideWallOn() || maStlWall3dDevelopFacesOn();
         function apply(obj) {
             const ud = obj && obj.userData;
             if (!ud) return;
@@ -11268,6 +11428,7 @@ let maStlWallApplyAllHeightMm = 0;
         }
         if (maStlWall3dMeshesGroup) maStlWall3dMeshesGroup.traverse(apply);
         if (maStlDesing2Atk60SampleGroup) maStlDesing2Atk60SampleGroup.traverse(apply);
+        maStlWallFacesRebuildOverlay();
     }
 
     window.desing2SyncCornerGuides = maStlWall3dSyncCornerGuideVisibility;
@@ -17246,6 +17407,7 @@ let maStlWallApplyAllHeightMm = 0;
             fUd.p2Mm.z = ends.p2.z;
             maStlApplyUserFloorLineSegmentGeometryFromMm(faceLine);
         }
+        maStlWallFacesRebuildOverlay();
     }
 
     /** Muros cuyo eje comparte vértice o unión T con `seedAxisLine` (red conectada en planta). */
@@ -25972,7 +26134,10 @@ let maStlWallApplyAllHeightMm = 0;
                 pl.kind === 'atk60-panel' ||
                 pl.kind === 'atk60-remate' ||
                 pl.kind === 'atk60-height' ||
-                pl.kind === 'wall-id'
+                pl.kind === 'wall-id' ||
+                pl.kind === 'face-id' ||
+                pl.kind === 'wall-length' ||
+                pl.kind === 'face-length'
             ) {
                 atk60.push(pl);
             }
@@ -26316,24 +26481,79 @@ let maStlWallApplyAllHeightMm = 0;
     }
 
     /**
-     * Número de muro que se ve en Cotas («ID 7») y que usa la IA del diseño («el muro 7»): el wallId del eje o, si no
-     * tiene, su id. Si dos ejes comparten wallId (tramos con el mismo muro de origen), cada uno lleva su id para que el
-     * número no se repita. Mapa id del eje (texto) → número visible (texto).
+     * Número de muro que se ve en Cotas (W-n) y que usa la IA («el muro 7»): serie correlativa con las esquinas (S-n).
+     * Mapa id del eje (texto) → número visible (texto).
      */
     function maStlWallVisibleIdLabels() {
+        const assigned = maStlWallCornerCorrelativeIds();
+        const out = new Map();
+        assigned.wallById.forEach(function (n, axisId) {
+            out.set(String(axisId), String(n));
+        });
+        return out;
+    }
+
+    function maStlWallDimCollectCornerNodes() {
+        const bucket = maStlAtk60BuildJunctionBucket();
+        const nodes = [];
+        for (const key in bucket) {
+            const junction = bucket[key];
+            if (!junction || !junction.axes || junction.axes.length < 2) continue;
+            const vertex = junction.vertexMm;
+            const axisUds = [];
+            for (let i = 0; i < junction.axes.length; i++) {
+                const ud = junction.axes[i] && junction.axes[i].axisUd;
+                if (ud && ud.id != null) axisUds.push(ud);
+            }
+            if (axisUds.length < 2) continue;
+            let x = vertex && vertex.x;
+            let z = vertex && vertex.z;
+            if (axisUds.length === 2) {
+                const l = maStlAtk60BuildLJunctionFootprint(junction);
+                if (!l) continue;
+                const pt = l.footprint && l.footprint.points && l.footprint.points[0];
+                if (pt) {
+                    x = pt.x;
+                    z = pt.z;
+                }
+            } else {
+                const d0 = maStlWall2dModelDirIntoAxisFromVertexMm(axisUds[0], vertex);
+                const d1 = maStlWall2dModelDirIntoAxisFromVertexMm(axisUds[1], vertex);
+                if (!d0 || !d1) continue;
+            }
+            if (!Number.isFinite(x) || !Number.isFinite(z)) continue;
+            const axisIds = [];
+            for (let a = 0; a < axisUds.length; a++) axisIds.push(axisUds[a].id);
+            nodes.push({
+                id: key,
+                x: x,
+                z: z,
+                vertex: vertex,
+                axisIds: axisIds,
+                axisUds: axisUds,
+            });
+        }
+        return nodes;
+    }
+
+    function maStlWallDimCollectWallNodes() {
         const axes = maStlWall2dToolCollectAllAxisLines();
-        const raw = [];
-        const count = {};
+        const nodes = [];
         for (let i = 0; i < axes.length; i++) {
             const ud = axes[i] && axes[i].userData && axes[i].userData.maStlUserPlanLine;
-            if (!ud || ud.id == null) continue;
-            const v = String(ud.wallId != null && ud.wallId !== '' ? ud.wallId : ud.id);
-            raw.push([String(ud.id), v]);
-            count[v] = (count[v] || 0) + 1;
+            if (!ud || ud.id == null || !ud.p1Mm || !ud.p2Mm) continue;
+            nodes.push({
+                id: ud.id,
+                x: (ud.p1Mm.x + ud.p2Mm.x) * 0.5,
+                z: (ud.p1Mm.z + ud.p2Mm.z) * 0.5,
+                ud: ud,
+            });
         }
-        const out = new Map();
-        for (let i = 0; i < raw.length; i++) out.set(raw[i][0], count[raw[i][1]] > 1 ? raw[i][0] : raw[i][1]);
-        return out;
+        return nodes;
+    }
+
+    function maStlWallCornerCorrelativeIds() {
+        return assignCorrelativeWallCornerIds(maStlWallDimCollectWallNodes(), maStlWallDimCollectCornerNodes());
     }
 
     function maStlWallDimKindEnabled(kindId) {
@@ -26347,6 +26567,7 @@ let maStlWallApplyAllHeightMm = 0;
             if (!wallDimKindWithoutWall(kindId, window.desing2DimKinds)) return false;
         }
         if (kindId === 'article-id') return maStlWallDimArticleIdsOn();
+        if (kindId === 'face-id') return maStlWall3dDevelopFaceIdsOn();
         const map = window.desing2DimKinds;
         if (kindId === 'panels' && maStlWallDimArticleIdsOn()) return true;
         if (!map || typeof map !== 'object') return true;
@@ -26816,43 +27037,193 @@ let maStlWallApplyAllHeightMm = 0;
         return Math.ceil((outer + 900) * Math.SQRT2);
     }
 
-    /** Id de muro: punto en el centro del eje y línea a 45° que pasa los elementos. */
+    function maStlWallDimCssHex(colorNum) {
+        const n = Number(colorNum);
+        if (!Number.isFinite(n)) return '';
+        return '#' + ('000000' + (n & 0xffffff).toString(16)).slice(-6);
+    }
+
+    function maStlWallDimAppendLengthAlong(placements, p1, p2, nx, nz, meta) {
+        const len = Math.hypot(p2.x - p1.x, p2.z - p1.z);
+        if (!(len > 1) || !placements) return;
+        const offsetMm = meta.offsetMm > 0 ? meta.offsetMm : 320;
+        const pl = maStlWallDimBuildAlignedPlacement(p1, p2, nx, nz, offsetMm, len, meta.kind);
+        if (!pl) return;
+        const text = maStlDesing2DimEditableMetersDisplayFromMm(len);
+        pl.textLiteral = text;
+        pl.textChars = text.length;
+        if (meta.axisId != null) pl.axisId = meta.axisId;
+        if (meta.faceId != null) pl.faceId = meta.faceId;
+        if (meta.editKind) pl.editKind = meta.editKind;
+        if (meta.editDeltaMm != null) pl.editDeltaMm = meta.editDeltaMm;
+        placements.push(pl);
+    }
+
+    function maStlWallDimCornerKeepsNode(node) {
+        if (!node || !node.axisIds || !node.axisIds.length) return false;
+        let any = false;
+        let anyDim = false;
+        for (let i = 0; i < node.axisIds.length; i++) {
+            const id = node.axisIds[i];
+            if (maStlWallDimAiFocusKeepsAxis(id)) any = true;
+            const uds = node.axisUds || [];
+            for (let u = 0; u < uds.length; u++) {
+                if (uds[u] && String(uds[u].id) === String(id) && uds[u]._CHeckDimWall !== false) anyDim = true;
+            }
+        }
+        if (!any) return false;
+        if (maStlWallDimAiFocus) return true;
+        return anyDim || node.axisUds.every(function (ud) { return !ud; });
+    }
+
+    /** Id de muro W-n y esquina S-n: misma serie, punto en el centro y línea a 45°. */
     function maStlWallDimAppendWallIdPlacements(placements) {
         if (!maStlWallDimKindEnabled('wall-id')) return placements;
-        const axes = maStlWall2dToolCollectAllAxisLines();
-        if (!axes.length) return placements;
+        const wallNodes = maStlWallDimCollectWallNodes();
+        const cornerNodes = maStlWallDimCollectCornerNodes();
+        if (!wallNodes.length && !cornerNodes.length) return placements;
+        const assigned = assignCorrelativeWallCornerIds(wallNodes, cornerNodes);
         const exterior = maStlWallDimFilterExteriorEntries(maStlWallDimCollectLineEntries());
         const centroid = maStlWallDimPlanCentroidXz(exterior);
         const reach = maStlWallDimIdLeaderMm();
-        const visibleIds = maStlWallVisibleIdLabels();
-        for (let i = 0; i < axes.length; i++) {
-            const ud = axes[i] && axes[i].userData && axes[i].userData.maStlUserPlanLine;
-            if (!ud || ud.id == null || !ud.p1Mm || !ud.p2Mm || (ud._CHeckDimWall === false && !maStlWallDimAiFocus)) continue;
-            if (!maStlWallDimAiFocusKeepsAxis(ud.id)) continue;
-            const dir = maStlUserFloorPlanLineDirUnitXz(ud);
-            if (!dir) continue;
-            const mid = { x: (ud.p1Mm.x + ud.p2Mm.x) * 0.5, z: (ud.p1Mm.z + ud.p2Mm.z) * 0.5 };
-            const normal = centroid
-                ? maStlWallDimOutwardNormalXz(dir, mid, centroid)
-                : { nx: -dir.uz, nz: dir.ux };
-            const a = { x: mid.x - dir.ux * 30, z: mid.z - dir.uz * 30 };
-            const b = { x: mid.x + dir.ux * 30, z: mid.z + dir.uz * 30 };
-            const pl = maStlWallDimBuildAlignedPlacement(a, b, normal.nx, normal.nz, 1, 0, 'wall-id');
-            if (!pl) continue;
-            let idText = 'ID ' + (visibleIds.get(String(ud.id)) || (ud.wallId != null ? ud.wallId : ud.id));
-            /* «Acótame el muro 7»: en planta no hay cota vertical; la altura va junto al ID (h = 2,70 m). */
-            if (maStlWallDimAiFocus && maStlWallDimAiFocus.mode === 'wall') {
-                const hM = Number(ud._DataHeight);
-                const hMm = Number.isFinite(hM) && hM > 0 ? hM * 1000 : maStlDesing2WallDefaultHeightMm();
-                if (hMm > 0) idText += ' \u00b7 h = ' + (hMm / 1000).toFixed(2).replace('.', ',') + ' m';
+        const wallByKey = new Map();
+        for (let i = 0; i < wallNodes.length; i++) {
+            wallByKey.set(String(wallNodes[i].id), wallNodes[i]);
+        }
+        const cornerByKey = new Map();
+        for (let i = 0; i < cornerNodes.length; i++) {
+            cornerByKey.set(String(cornerNodes[i].id), cornerNodes[i]);
+        }
+        for (let i = 0; i < assigned.list.length; i++) {
+            const item = assigned.list[i];
+            if (item.type === 'wall') {
+                const node = wallByKey.get(String(item.id));
+                const ud = node && node.ud;
+                if (!ud || !ud.p1Mm || !ud.p2Mm || (ud._CHeckDimWall === false && !maStlWallDimAiFocus)) continue;
+                if (!maStlWallDimAiFocusKeepsAxis(ud.id)) continue;
+                const dir = maStlUserFloorPlanLineDirUnitXz(ud);
+                if (!dir) continue;
+                const mid = { x: node.x, z: node.z };
+                const normal = centroid
+                    ? maStlWallDimOutwardNormalXz(dir, mid, centroid)
+                    : { nx: -dir.uz, nz: dir.ux };
+                const a = { x: mid.x - dir.ux * 30, z: mid.z - dir.uz * 30 };
+                const b = { x: mid.x + dir.ux * 30, z: mid.z + dir.uz * 30 };
+                const pl = maStlWallDimBuildAlignedPlacement(a, b, normal.nx, normal.nz, 1, 0, 'wall-id');
+                if (!pl) continue;
+                let idText = item.text;
+                if (maStlWallDimAiFocus && maStlWallDimAiFocus.mode === 'wall') {
+                    const hM = Number(ud._DataHeight);
+                    const hMm = Number.isFinite(hM) && hM > 0 ? hM * 1000 : maStlDesing2WallDefaultHeightMm();
+                    if (hMm > 0) idText += ' \u00b7 h = ' + (hMm / 1000).toFixed(2).replace('.', ',') + ' m';
+                }
+                pl.leader45 = true;
+                pl.leaderMinMm = reach;
+                pl.outsideSign = 1;
+                pl.textLiteral = idText;
+                pl.textChars = idText.length;
+                pl.axisId = ud.id;
+                pl.legendColor = 0x171717;
+                placements.push(pl);
+                if (!maStlWallDimKindEnabled('walls-axes')) {
+                    maStlWallDimAppendLengthAlong(placements, ud.p1Mm, ud.p2Mm, normal.nx, normal.nz, {
+                        kind: 'wall-length',
+                        axisId: ud.id,
+                        offsetMm: MA_STL_WALL_DIM_BASE_OFFSET_MM,
+                        editKind: 'length',
+                        editDeltaMm: 0,
+                    });
+                }
+                continue;
             }
+            const corner = cornerByKey.get(String(item.id));
+            if (!corner || !maStlWallDimCornerKeepsNode(corner)) continue;
+            const mid = { x: corner.x, z: corner.z };
+            let nx = 0;
+            let nz = -1;
+            if (centroid) {
+                nx = mid.x - centroid.x;
+                nz = mid.z - centroid.z;
+                const nl = Math.hypot(nx, nz);
+                if (nl > 1e-6) {
+                    nx /= nl;
+                    nz /= nl;
+                } else {
+                    nx = 0;
+                    nz = -1;
+                }
+            }
+            const tx = -nz;
+            const tz = nx;
+            const a = { x: mid.x - tx * 30, z: mid.z - tz * 30 };
+            const b = { x: mid.x + tx * 30, z: mid.z + tz * 30 };
+            const pl = maStlWallDimBuildAlignedPlacement(a, b, nx, nz, 1, 0, 'wall-id');
+            if (!pl) continue;
             pl.leader45 = true;
             pl.leaderMinMm = reach;
             pl.outsideSign = 1;
+            pl.textLiteral = item.text;
+            pl.textChars = item.text.length;
+            pl.axisId = corner.axisIds && corner.axisIds[0];
+            pl.legendColor = MA_STL_WALL_MODEL_COLOR_CORNER;
+            placements.push(pl);
+        }
+        return placements;
+    }
+
+    /** Id de cara: punto en el centro del tramo de piel y línea a 45° (F-n). */
+    function maStlWallDimAppendFaceIdPlacements(placements) {
+        if (!maStlWallDimKindEnabled('face-id')) return placements;
+        maStlWallFacesEnsureCache();
+        const faces = maStlWallFacesCache;
+        if (!faces.length) return placements;
+        const exterior = maStlWallDimFilterExteriorEntries(maStlWallDimCollectLineEntries());
+        const centroid = maStlWallDimPlanCentroidXz(exterior);
+        const reach = maStlWallDimIdLeaderMm();
+        const axes = maStlWall2dToolCollectAllAxisLines();
+        const axisById = new Map();
+        for (let i = 0; i < axes.length; i++) {
+            const ud = axes[i] && axes[i].userData && axes[i].userData.maStlUserPlanLine;
+            if (ud && ud.id != null) axisById.set(String(ud.id), ud);
+        }
+        for (let i = 0; i < faces.length; i++) {
+            const face = faces[i];
+            if (!face || !face.p1 || !face.p2) continue;
+            const ud = axisById.get(String(face.axisId));
+            if (ud && ud._CHeckDimWall === false && !maStlWallDimAiFocus) continue;
+            if (face.axisId != null && !maStlWallDimAiFocusKeepsAxis(face.axisId)) continue;
+            const dx = face.p2.x - face.p1.x;
+            const dz = face.p2.z - face.p1.z;
+            const len = Math.hypot(dx, dz);
+            if (!(len > 1)) continue;
+            const ux = dx / len;
+            const uz = dz / len;
+            const mid = { x: (face.p1.x + face.p2.x) * 0.5, z: (face.p1.z + face.p2.z) * 0.5 };
+            let normal = centroid
+                ? maStlWallDimOutwardNormalXz({ ux: ux, uz: uz }, mid, centroid)
+                : { nx: -uz, nz: ux };
+            const interior = face.side === 'interior';
+            if (interior) normal = { nx: -normal.nx, nz: -normal.nz };
+            const a = { x: mid.x - ux * 30, z: mid.z - uz * 30 };
+            const b = { x: mid.x + ux * 30, z: mid.z + uz * 30 };
+            const pl = maStlWallDimBuildAlignedPlacement(a, b, normal.nx, normal.nz, 1, 0, 'face-id');
+            if (!pl) continue;
+            const idText = face.idText || ('F-' + face.id);
+            pl.leader45 = true;
+            pl.leaderMinMm = interior ? Math.min(reach, 650) : reach;
+            pl.outsideSign = 1;
+            pl.keepLeaderSide = interior;
             pl.textLiteral = idText;
             pl.textChars = idText.length;
-            pl.axisId = ud.id;
+            pl.axisId = face.axisId;
+            pl.faceId = face.id;
+            pl.legendColor = face.color;
             placements.push(pl);
+            maStlWallDimAppendLengthAlong(placements, face.p1, face.p2, normal.nx, normal.nz, {
+                kind: 'face-length',
+                axisId: face.axisId,
+                faceId: face.id,
+            });
         }
         return placements;
     }
@@ -27217,7 +27588,7 @@ let maStlWallApplyAllHeightMm = 0;
         const showPanels = maStlWallDimKindEnabled('panels');
         const showRemates = maStlWallDimKindEnabled('remates');
         if (!showPanels && !showRemates) {
-            return maStlWallDimAppendWallIdPlacements(placements);
+            return maStlWallDimAppendFaceIdPlacements(maStlWallDimAppendWallIdPlacements(placements));
         }
         const panels = maStlWallDimCollectAtk60ModulePlacements();
         const labelPanels = maStlWallDimKindLabel('panels');
@@ -27239,7 +27610,7 @@ let maStlWallApplyAllHeightMm = 0;
                 if (heights[h]) placements.push(heights[h]);
             }
         }
-        return maStlWallDimAppendWallIdPlacements(placements);
+        return maStlWallDimAppendFaceIdPlacements(maStlWallDimAppendWallIdPlacements(placements));
     }
 
     function maStlAtk60ReadPaintValue(obj, pascalName) {
@@ -27994,7 +28365,7 @@ let maStlWallApplyAllHeightMm = 0;
         const chars = placement.textChars > 0 ? placement.textChars : 4;
         const textHalf = Math.max(180, chars * 7.2 * (wpp > 0 ? wpp : 6) * 0.5);
         const sign0 = placement.outsideSign < 0 ? -1 : 1;
-        const sides = [sign0, -sign0];
+        const sides = placement.keepLeaderSide ? [sign0] : [sign0, -sign0];
         const baseLen = placement.leaderMinMm > 0 ? placement.leaderMinMm : 1100;
         const lengths = [baseLen, baseLen + 550, baseLen + 1100, baseLen + 1650];
         const distPointSeg = function (p, a, b) {
@@ -28108,7 +28479,7 @@ let maStlWallApplyAllHeightMm = 0;
                 }
                 continue;
             }
-            if (placement.kind === 'wall-id') {
+            if (placement.kind === 'wall-id' || placement.kind === 'face-id') {
                 maStlWallDimPlaceLeader45(placement, y, pts, dotPos, leaders, wpp);
                 continue;
             }
@@ -28469,12 +28840,22 @@ let maStlWallApplyAllHeightMm = 0;
                     'desing2-stl-floor-dim-readout desing2-stl-wall-dim-readout desing2-stl-floor-dim-readout--compact';
                 const constructionReadout =
                     (pl.kind && String(pl.kind).indexOf('wall-') === 0) ||
+                    pl.kind === 'face-id' ||
+                    pl.kind === 'face-length' ||
                     pl.kind === 'atk60-panel' ||
                     pl.kind === 'atk60-module' ||
                     pl.kind === 'atk60-height' ||
                     pl.kind === 'atk60-remate';
                 if (constructionReadout) {
                     btn.className += ' desing2-stl-wall-dim-readout--construction';
+                }
+                if (pl.kind === 'wall-id' || pl.kind === 'face-id') {
+                    btn.className += ' desing2-stl-wall-dim-readout--legend';
+                    const hex = maStlWallDimCssHex(pl.legendColor);
+                    if (hex) {
+                        btn.style.color = hex;
+                        btn.style.borderColor = hex;
+                    }
                 } else if (pl.kind === 'thickness') {
                     btn.className += ' desing2-stl-wall-dim-readout--thickness';
                 } else if (pl.kind === 'atk60-panel') {
@@ -28601,6 +28982,7 @@ let maStlWallApplyAllHeightMm = 0;
     }
 
     function maStlWallDimRefreshScanAndDraw() {
+        maStlWallFacesRebuildOverlay();
         const pairs = maStlWallDimDetectWallPairsMm();
         const reps = maStlWallDimSelectRepresentativePairs(pairs);
         const count = maStlWallDimRebuildFromPlacements(maStlWallDimCollectAllPlacements(reps));
@@ -36036,7 +36418,9 @@ let maStlWallApplyAllHeightMm = 0;
         scene.add(maStlUserFloorLineDimHudGroup);
         scene.add(maStlWallDimGroup);
         scene.add(maStlWall3dMeshesGroup);
+        scene.add(maStlWallFacesGroup);
         maStlDisableRaycastOnOverlay(maStlUserLinesGroup);
+        maStlDisableRaycastOnOverlay(maStlWallFacesGroup);
     }
     rebuildMaStlUcsOverlayDecor(lastMaxDim);
 

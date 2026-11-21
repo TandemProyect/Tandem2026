@@ -35,13 +35,15 @@ export const MA_STL_WALL_AI_TEXT = {
     you: 'Tú',
     assistant: 'Asistente',
     error: 'No he podido procesar el mensaje: {0}',
+    notUnderstood: 'No te he entendido.',
     envChanged: 'Entorno de conversación: {0}.',
     envAlready: 'El entorno {0} ya está activo.',
     envFail: 'No he podido cambiar el entorno de conversación. Inténtalo más tarde.',
-    help: 'No he entendido «{0}». De momento sé hacer esto:\n• Lista de materiales del encofrado de este muro: «dame el material de encofrado de este muro», «lista de materiales», «despiece», «¿qué necesito para encofrar este muro?».\n• Paneles que no tienes: «no tengo paneles de 0,90, sustitúyelos» o «solo tengo 3 paneles de 0,90». Te enseño el antes y el después y lo aplico solo si me dices que sí.\n• «ayuda»: muestra esta lista.',
+    help: 'No he entendido «{0}». De momento sé hacer esto:\n• Lista de materiales del encofrado de este muro: «dame el material de encofrado de este muro», «lista de materiales», «despiece», «¿qué necesito para encofrar este muro?».\n• Paneles que no tienes: «no tengo paneles de 0,90, sustitúyelos» o «solo tengo 3 paneles de 0,90». Te enseño el antes y el después y lo aplico.\n• «ayuda»: muestra esta lista.',
     helpShort: 'Puedo darte la lista de materiales del encofrado de este muro («dame el material de encofrado de este muro», «despiece») y cambiar paneles que no tengas («no tengo paneles de 0,90, sustitúyelos», «solo tengo 3 paneles de 0,90»).',
     replaceSoon: 'Dime qué paneles no tienes, por ejemplo «no tengo paneles de 0,90» o «solo tengo 3 paneles de 0,90».',
     thanks: '¡De nada! Si necesitas el material de otro muro, ábrelo y pídemelo.',
+    done: 'Hecho.',
     matTitle: 'Material de encofrado del {0}',
     matSummary: '{0} referencias · {1} piezas{2}. Según el último encofrado calculado.',
     matWeight: ' · {0} kg',
@@ -193,7 +195,7 @@ export const MA_STL_WALL_AI_TEXT = {
     micErrAudio: 'No encuentro ningún micrófono.',
     micErrOther: 'No he podido usar el micrófono ({0}).',
     micListening: 'Escuchando… habla ahora',
-    micPaused: 'Te estoy contestando… (micrófono en pausa)',
+    micPaused: 'Escuchando «Stop» para interrumpir…',
     spk: 'Respuestas habladas: activadas (pulsa para silenciar)',
     spkOff: 'Respuestas habladas: desactivadas (pulsa para que te conteste en voz alta)',
     spkUnsupported: 'Este navegador no puede leer en voz alta (usa Chrome o Edge)',
@@ -202,6 +204,8 @@ export const MA_STL_WALL_AI_TEXT = {
     speakScreen: 'Te dejo el detalle en pantalla.',
     matSpeech: 'Este muro lleva {0} piezas de {1} referencias; te dejo la lista en pantalla.',
     swapSpeakConfirm: 'Te dejo el resumen y la tabla en pantalla. ¿Lo hago?',
+    tr: 'Traducción simultánea: activada (pulsa para apagar)',
+    trOff: 'Traducción simultánea: desactivada (pulsa para traducir al inglés)',
     morning: 'Buenos días',
     afternoon: 'Buenas tardes',
     night: 'Buenas noches',
@@ -218,13 +222,15 @@ export const MA_STL_WALL_AI_TEXT_EN = {
     you: 'You',
     assistant: 'Assistant',
     error: 'I could not process the message: {0}',
+    notUnderstood: 'I did not understand.',
     envChanged: 'Conversation environment: {0}.',
     envAlready: 'The {0} environment is already active.',
     envFail: 'The conversation environment could not be changed. Please try again later.',
-    help: 'I did not understand “{0}”. For now I can do this:\n• Formwork bill of materials for this wall: “give me the formwork material for this wall”, “materials list”, “BOM”, “what do I need to form this wall?”.\n• Panels you don\'t have: “I don\'t have 0.90 panels, replace them” or “I only have 3 panels of 0.90”. I show you the before and after and apply it only if you say yes.\n• “help”: shows this list.',
+    help: 'I did not understand “{0}”. For now I can do this:\n• Formwork bill of materials for this wall: “give me the formwork material for this wall”, “materials list”, “BOM”, “what do I need to form this wall?”.\n• Panels you don\'t have: “I don\'t have 0.90 panels, replace them” or “I only have 3 panels of 0.90”. I show you the before and after and apply it.\n• “help”: shows this list.',
     helpShort: 'I can give you the formwork bill of materials for this wall (“give me the formwork material for this wall”, “BOM”) and change panels you don\'t have (“I don\'t have 0.90 panels, replace them”, “I only have 3 panels of 0.90”).',
     replaceSoon: 'Tell me which panels you don\'t have, e.g. “I don\'t have 0.90 panels” or “I only have 3 panels of 0.90”.',
     thanks: 'You\'re welcome! If you need the material for another wall, open it and ask me.',
+    done: 'Done.',
     matTitle: 'Formwork material for {0}',
     matSummary: '{0} items · {1} pieces{2}. Based on the last formwork calculation.',
     matWeight: ' · {0} kg',
@@ -375,7 +381,7 @@ export const MA_STL_WALL_AI_TEXT_EN = {
     micErrAudio: 'No microphone found.',
     micErrOther: 'I could not use the microphone ({0}).',
     micListening: 'Listening… speak now',
-    micPaused: 'Answering… (microphone paused)',
+    micPaused: 'Listening for “Stop” to interrupt…',
     spk: 'Spoken answers: on (click to mute)',
     spkOff: 'Spoken answers: off (click to hear the answers)',
     spkUnsupported: 'This browser cannot read aloud (use Chrome or Edge)',
@@ -384,6 +390,8 @@ export const MA_STL_WALL_AI_TEXT_EN = {
     speakScreen: 'The details are on screen.',
     matSpeech: 'This wall takes {0} pieces of {1} items; the list is on screen.',
     swapSpeakConfirm: 'The summary and the table are on screen. Shall I do it?',
+    tr: 'Simultaneous translation: on (click to turn off)',
+    trOff: 'Simultaneous translation: off (click to translate into English)',
     morning: 'Good morning',
     afternoon: 'Good afternoon',
     night: 'Good evening',
@@ -502,6 +510,12 @@ export function maStlWallAiNormalize(text, opts) {
     s = s.replace(/[^a-z0-9ñ\s]/g, ' ').replace(/\s+/g, ' ').trim();
     if (opts.collapse) s = s.replace(/([a-zñ])\1+/g, '$1');
     return s;
+}
+
+/** Frases cortas que interrumpen la locución, sin convertirse en una orden del asistente. */
+export function maStlWallAiIsSpeechStopCommand(text) {
+    const normalized = maStlWallAiNormalize(text);
+    return /^(stop|para|vale|dejalo)( (ya|por favor|please))?$/.test(normalized);
 }
 
 /** Abreviaturas y formas de chat habituales (español) → palabra completa (puede devolver varias). */
@@ -1688,6 +1702,20 @@ function confirmButtons(applyFn, T) {
     };
 }
 
+/** Aplica el cambio ya calculado (tabla ANTES/DESPUÉS) sin pedir Sí/No. */
+function applyNow(applyFn, T, extra) {
+    extra = extra || {};
+    return Promise.resolve().then(applyFn).then(function (r) {
+        r = r || { reply: '', actions: [] };
+        if (extra.table) r.table = extra.table;
+        if (extra.data) r.data = extra.data;
+        if (r.ok === false) return r;
+        r.reply = T.done;
+        r.speech = T.done;
+        return r;
+    });
+}
+
 /** «Deshacer» de un solo uso. */
 function onceButton(label, fn, T) {
     let used = false;
@@ -1781,27 +1809,17 @@ export function maStlWallAiStockReply(ctx, order, T, opts) {
                     if (!it.exclude && it.max != null && left <= it.max) lines.push(fmt(T.stockMaxUsed, left, fmtWidth(it.mm, T.lang), it.max));
                 });
                 if (pair[1].catalogError) lines.push(fmt(T.matNoCatalog, pair[1].catalogError));
-                lines.push(T.stockConfirm);
                 const apply = function () {
                     return Promise.resolve(fw.applyWall(after.idWall, after.elements, { _PanelStock: next })).then(function (applied) {
                         return {
-                            reply: fmt(T.stockApplied, fmtNum(after.elements.length, 0, T.lang)),
+                            reply: T.done,
+                            speech: T.done,
                             actions: [],
                             buttons: [undoButton(fw, after.idWall, applied, '_PanelStock', T)],
                         };
                     });
                 };
-                const cb = confirmButtons(apply, T);
-                return {
-                    reply: lines.join('\n'),
-                    actions: [],
-                    table: table,
-                    confirm: 'stock',
-                    apply: cb.apply,
-                    cancel: cb.cancel,
-                    data: { stock: next, before: before, after: after },
-                    buttons: cb.buttons,
-                };
+                return applyNow(apply, T, { table: table, data: { stock: next, before: before, after: after } });
             });
         });
     });
@@ -1870,15 +1888,16 @@ function curvedStockReply(ctx, order, T) {
     let before0 = null;
     const finish = function (table, after, beforeFromScene) {
         if (table && !beforeFromScene) lines.push(T.stockBeforePreview);
-        lines.push(fmt(T.curvedConfirm, fmtWidth(pick, T.lang)));
         const apply = function () {
             const okForm = typeof ctx.setModulation === 'function' ? ctx.setModulation(pick) : false;
             const paint = canPreview && after && after.ok
                 ? Promise.resolve(fw.applyWall(after.idWall, after.elements, {}))
                 : Promise.resolve(null);
             return paint.then(function (applied) {
+                if (!okForm) return { reply: T.curvedFormMissing, actions: [], ok: false };
                 const res = {
-                    reply: fmt(T.curvedApplied, fmtWidth(pick, T.lang), applied ? T.curvedRepainted : '') + (okForm ? '' : '\n' + T.curvedFormMissing),
+                    reply: T.done,
+                    speech: T.done,
                     actions: [],
                 };
                 res.buttons = [onceButton(T.stockUndo, function () {
@@ -1889,17 +1908,7 @@ function curvedStockReply(ctx, order, T) {
                 return res;
             });
         };
-        const cb = confirmButtons(apply, T);
-        return {
-            reply: lines.join('\n'),
-            actions: [],
-            table: table || undefined,
-            confirm: 'stock',
-            apply: cb.apply,
-            cancel: cb.cancel,
-            data: { modulationMm: pick, before: before0, after: after },
-            buttons: cb.buttons,
-        };
+        return applyNow(apply, T, { table: table || undefined, data: { modulationMm: pick, before: before0, after: after } });
     };
     if (!canPreview) return Promise.resolve(finish(null, null, false));
     return fw.previewWall({ attrs: { _CurveModulationMm: pick } }).then(function (after) {
@@ -2630,44 +2639,25 @@ function swapReview(st) {
                 table.weightBefore > 0 ? fmt(T.stockWeight, fmtNum(table.weightBefore, 1, lang), fmtNum(table.weightAfter, 1, lang)) : ''));
             if (!st.fromScene) lines.push(T.stockBeforePreview);
             if (pair[1].catalogError) lines.push(fmt(T.matNoCatalog, pair[1].catalogError));
-            lines.push(T.swapConfirm);
-            const speech = [fmt(T.swapReviewCount, st.size, st.total, nAfter, uses)];
-            if (done.length < st.picks.length) speech.push(fmt(T.swapReviewPartial, st.picks.length - done.length));
-            speech.push(T.swapSpeakConfirm);
             const apply = function () {
                 return Promise.resolve(fw.applyWall(after.idWall, after.elements, { _PanelReplace: rules })).then(function (applied) {
                     if (typeof fw.clearHighlight === 'function') fw.clearHighlight();
                     return {
-                        reply: fmt(T.swapApplied, done.length * 2, fmtNum(after.elements.length, 0, lang)),
+                        reply: T.done,
+                        speech: T.done,
                         actions: [],
                         buttons: [undoButton(fw, after.idWall, applied, '_PanelReplace', T)],
                     };
                 });
             };
-            const cb = confirmButtons(apply, T);
-            const cancel = function () {
-                const r = cb.cancel();
-                if (typeof fw.clearHighlight === 'function' && r && r.reply === T.stockCancelled) fw.clearHighlight();
-                return r;
-            };
-            return {
-                reply: lines.join('\n'),
-                speech: speech.join('\n'),
-                actions: [],
-                table: table,
-                confirm: 'stock',
-                apply: cb.apply,
-                cancel: cancel,
-                data: { rules: rules, before: st.before, after: after, picks: st.picks },
-                buttons: [cb.buttons[0], { label: T.no, run: cancel }],
-            };
+            return applyNow(apply, T, { table: table, data: { rules: rules, before: st.before, after: after, picks: st.picks } });
         });
     });
 }
 
 /**
- * Intérprete local (fase 2, tolerante a faltas): analiza con `maStlWallAiAnalyze`; confianza media en
- * «material» → pregunta «¿Querías decir…?» con botones Sí/No (también vale contestar «sí»/«vale»/«no»).
+ * Intérprete local (fase 2, tolerante a faltas): analiza con `maStlWallAiAnalyze`; «materials» se ejecuta
+ * también con confianza media (sin «¿Querías decir…?»). Éxito: «Hecho.» / «Done.».
  * @param {object} wallCtx contexto del muro (ver getAiContext de cada popup; `formwork` lo aporta el visor)
  * @param {string} text mensaje del usuario
  * @returns {Promise<{ reply: string, actions: Array<object>, table?: object, buttons?: Array<object> }>}
@@ -2724,23 +2714,12 @@ export function maStlWallAiHandleMessage(wallCtx, text, history) {
         if (!order.items.length) return done({ reply: T.stockAskWidth, actions: [] });
         return done(maStlWallAiStockReply(wallCtx, order, T, { text: text }));
     }
-    if (a.intent === 'materials' && a.confidence === 'medium') {
-        return done({
-            reply: T.confirmMaterials,
-            actions: [],
-            confirm: 'materials',
-            buttons: [
-                { label: T.yes, primary: true, run: function () { return Promise.resolve(maStlWallAiMaterialsReply(wallCtx, T)).then(tag); } },
-                { label: T.no, run: function () { return tag({ reply: T.helpShort, actions: [] }); } },
-            ],
-        });
-    }
     if (a.intent === 'materials') return done(maStlWallAiMaterialsReply(wallCtx, T));
     if (a.intent === 'replace') return done({ reply: T.replaceSoon, actions: [] });
     if (a.intent === 'help') return done({ reply: T.helpShort, actions: [] });
     if (a.intent === 'thanks') return done({ reply: T.thanks, actions: [] });
-    wallLogUnknown(wallCtx, text, T.lang, 'chat', fmt(T.help, String(text || '').trim()).split('\n')[0]);
-    return done({ reply: fmt(T.help, String(text || '').trim()), actions: [] });
+    wallLogUnknown(wallCtx, text, T.lang, 'chat', T.notUnderstood);
+    return done({ reply: T.notUnderstood, speech: T.notUnderstood, actions: [] });
 }
 
 /**
@@ -2869,6 +2848,168 @@ export function maStlWallAiSetSpeakPref(on, storage) {
         const st = storage || (typeof localStorage !== 'undefined' ? localStorage : null);
         if (st) st.setItem(MA_STL_WALL_AI_SPEAK_KEY, on ? '1' : '0');
     } catch (_e) { /* modo privado: solo esta sesión */ }
+}
+
+/** Clave de localStorage del botón de traducción simultánea ('1' encendido · '0' apagado; sin valor = apagado). */
+export const MA_STL_WALL_AI_TRANSLATE_KEY = 'maStlWallAi.translate';
+/** Función de derechos que muestra u oculta el botón (receta E). */
+export const MA_STL_WALL_AI_TRANSLATE_FUNCTION = 'IA.TraduccionSimultanea';
+/** Volumen de la traducción hablada de la respuesta respecto al volumen actual. */
+export const MA_STL_WALL_AI_TRANSLATE_VOLUME = 1;
+/** La voz original de la IA queda más baja para que destaque la traducción inglesa. */
+export const MA_STL_WALL_AI_SPEECH_VOLUME = 0.7;
+/** Con traducción encendida, la voz española va un poco más rápida; la inglesa se queda en 1. */
+export const MA_STL_WALL_AI_ES_RATE_WHEN_TRANSLATE = 1.15;
+
+/**
+ * Ritmo de voz: español un poco acelerado solo si la traducción simultánea está encendida.
+ * @param {string} lang 'es' | 'en' | etiqueta BCP-47
+ * @param {boolean} translateOn
+ * @returns {number}
+ */
+export function maStlWallAiSpeechRate(lang, translateOn) {
+    const tag = String(lang || 'es').toLowerCase();
+    const es = tag.indexOf('en') !== 0;
+    if (es && translateOn) return MA_STL_WALL_AI_ES_RATE_WHEN_TRANSLATE;
+    return 1;
+}
+
+/** Atenúa solo la voz española original cuando la traducción simultánea está activa. */
+export function maStlWallAiSpeechVolume(lang, translateOn, baseVolume) {
+    const tag = String(lang || 'es').toLowerCase();
+    const base = Number.isFinite(baseVolume) ? baseVolume : 1;
+    const factor = translateOn && tag.indexOf('en') !== 0 ? MA_STL_WALL_AI_SPEECH_VOLUME : 1;
+    return Math.max(0, Math.min(1, base * factor));
+}
+
+/** ¿Se pinta el botón de traducción simultánea? Sin TandemFunctions (u omisión de la función en BD) es libre. */
+export function maStlWallAiCanShowSimultaneousTranslation(tf) {
+    const api = tf || (typeof window !== 'undefined' ? window.TandemFunctions : null);
+    return !api || typeof api.can !== 'function' || api.can(MA_STL_WALL_AI_TRANSLATE_FUNCTION);
+}
+
+/** ¿Traducción simultánea encendida? Por defecto no; se recuerda en localStorage. */
+export function maStlWallAiTranslatePref(storage) {
+    try {
+        const st = storage || (typeof localStorage !== 'undefined' ? localStorage : null);
+        return !!(st && st.getItem(MA_STL_WALL_AI_TRANSLATE_KEY) === '1');
+    } catch (_e) {
+        return false;
+    }
+}
+
+export function maStlWallAiSetTranslatePref(on, storage) {
+    try {
+        const st = storage || (typeof localStorage !== 'undefined' ? localStorage : null);
+        if (st) st.setItem(MA_STL_WALL_AI_TRANSLATE_KEY, on ? '1' : '0');
+    } catch (_e) { /* modo privado: solo esta sesión */ }
+}
+
+const MA_STL_WALL_AI_TR_WORDS = {
+    a: 'to', al: 'to the', acota: 'dimension', acotame: 'dimension', acotar: 'dimension',
+    altura: 'height', alto: 'height', anchos: 'widths', aplicar: 'apply',
+    cambia: 'change', cambialos: 'change them', cambiar: 'change',
+    cara: 'face', caras: 'faces',
+    de: 'of', del: 'of the', dame: 'give me', despiece: 'take-off',
+    dibuja: 'draw', dibujar: 'draw',
+    el: 'the', en: 'in', encofrado: 'formwork', encofrar: 'formwork', esta: 'this', este: 'this',
+    espesor: 'thickness',
+    gira: 'rotate', girar: 'rotate',
+    hacia: 'towards',
+    hecho: 'done',
+    la: 'the', las: 'the', lista: 'list', los: 'the', longitud: 'length', largo: 'length',
+    material: 'material', materiales: 'materials',
+    metro: 'metre', metros: 'metres',
+    muro: 'wall', muros: 'walls',
+    no: 'not',
+    panel: 'panel', paneles: 'panels',
+    pieza: 'piece', piezas: 'pieces',
+    recuento: 'take-off',
+    selecciona: 'select', seleccionar: 'select',
+    si: 'yes', simetria: 'mirror', solo: 'only',
+    sustituye: 'replace', sustituyelos: 'replace them',
+    tengo: 'i have',
+    un: 'a', una: 'a',
+    y: 'and',
+};
+
+/**
+ * Traducción local palabra a palabra (sin red). Frases ya en inglés se dejan igual.
+ * @returns {string}
+ */
+export function maStlWallAiOfflineTranslateToEn(text, opts) {
+    const raw = String(text == null ? '' : text).trim();
+    if (!raw) return '';
+    const det = maStlWallAiDetectLanguage(raw, 'es');
+    if ((!opts || opts.sourceLanguage !== 'es') && det && det.lang === 'en' && det.decided) return raw;
+    return raw.replace(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+|\d+(?:[.,]\d+)?|[^\s]/g, function (tok) {
+        if (/^\d/.test(tok) || !/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/.test(tok)) return tok;
+        const key = maStlWallAiNormalize(tok);
+        const en = MA_STL_WALL_AI_TR_WORDS[key];
+        if (!en) return tok;
+        if (tok === tok.toUpperCase() && tok.length > 1) return en.toUpperCase();
+        if (tok.charAt(0) === tok.charAt(0).toUpperCase()) return en.charAt(0).toUpperCase() + en.slice(1);
+        return en;
+    }).replace(/\s+/g, ' ').trim();
+}
+
+function maStlWallAiTranslatorApi(win) {
+    const w = win || (typeof window !== 'undefined' ? window : null);
+    if (!w) return null;
+    if (w.Translator && typeof w.Translator.create === 'function') return w.Translator;
+    if (w.translation && typeof w.translation.createTranslator === 'function') {
+        return { create: function (opts) { return w.translation.createTranslator(opts); } };
+    }
+    return null;
+}
+
+/**
+ * Traduce `text` al inglés: gancho de prueba, Translator del navegador (on-device) o glosario local.
+ * @returns {Promise<string>}
+ */
+export function maStlWallAiTranslateToEn(text, opts) {
+    const raw = String(text == null ? '' : text).trim();
+    if (!raw) return Promise.resolve('');
+    const sourceLanguage = opts && opts.sourceLanguage;
+    if (sourceLanguage === 'en') return Promise.resolve(raw);
+    const det = maStlWallAiDetectLanguage(raw, 'es');
+    if (sourceLanguage !== 'es' && det && det.lang === 'en' && det.decided) return Promise.resolve(raw);
+    const w = (opts && opts.window) || (typeof window !== 'undefined' ? window : null);
+    if (w && typeof w.maStlWallAiTranslateToEnImpl === 'function') {
+        return Promise.resolve(w.maStlWallAiTranslateToEnImpl(raw)).then(function (s) {
+            return String(s == null ? '' : s).trim() || maStlWallAiOfflineTranslateToEn(raw, opts);
+        });
+    }
+    const Ctor = maStlWallAiTranslatorApi(w);
+    if (Ctor) {
+        return Promise.resolve()
+            .then(function () { return Ctor.create({ sourceLanguage: sourceLanguage || 'es', targetLanguage: 'en' }); })
+            .then(function (tr) { return tr && typeof tr.translate === 'function' ? tr.translate(raw) : ''; })
+            .then(function (s) { return String(s == null ? '' : s).trim() || maStlWallAiOfflineTranslateToEn(raw, opts); })
+            .catch(function () { return maStlWallAiOfflineTranslateToEn(raw, opts); });
+    }
+    return Promise.resolve(maStlWallAiOfflineTranslateToEn(raw, opts));
+}
+
+/** Devuelve el inglés que debe leerse tras la respuesta original, sin descartar respuestas cortas en español. */
+export function maStlWallAiTranslationSpeechText(source, translated, lang) {
+    const src = String(source == null ? '' : source).trim();
+    const en = String(translated == null ? '' : translated).trim();
+    if (!src || !en || en === src) return '';
+    const language = String(lang || '').toLowerCase();
+    if (language) return language.indexOf('en') === 0 ? '' : en;
+    return maStlWallAiDetectLanguage(src, 'es').lang === 'en' ? '' : en;
+}
+
+/** Inglés que se lee de la orden azul del usuario (dictada o escrita). */
+export function maStlWallAiUserTranslationSpeechText(source, translated, sourceLanguage) {
+    const src = String(source == null ? '' : source).trim();
+    const en = String(translated == null ? '' : translated).trim();
+    if (!src || !en || en === src) return '';
+    const language = String(sourceLanguage || '').toLowerCase();
+    if (language.indexOf('en') === 0) return '';
+    if (language.indexOf('es') === 0) return en;
+    return maStlWallAiDetectLanguage(src, 'es').lang === 'en' ? '' : en;
 }
 
 /* Voces preferidas (Windows/Edge/Chrome); el resto puntúa por idioma exacto y calidad. */
@@ -3081,6 +3222,8 @@ const MA_STL_WALL_AI_ICON = {
     /* Remix Icon (Apache 2.0): ri-volume-up-line y ri-volume-mute-line. */
     spk: 'M6.60282 10.0001L10 7.22056V16.7796L6.60282 14.0001H3V10.0001H6.60282ZM2 16.0001H5.88889L11.1834 20.3319C11.2727 20.405 11.3846 20.4449 11.5 20.4449C11.7761 20.4449 12 20.2211 12 19.9449V4.05519C12 3.93977 11.9601 3.8279 11.887 3.73857C11.7121 3.52485 11.3971 3.49335 11.1834 3.66821L5.88889 8.00007H2C1.44772 8.00007 1 8.44778 1 9.00007V15.0001C1 15.5524 1.44772 16.0001 2 16.0001ZM23 12C23 15.292 21.5539 18.2463 19.2622 20.2622L17.8445 18.8444C19.7758 17.1937 21 14.7398 21 12C21 9.26016 19.7758 6.80629 17.8445 5.15557L19.2622 3.73779C21.5539 5.75368 23 8.70795 23 12ZM18 12C18 10.0883 17.106 8.38548 15.7133 7.28673L14.2842 8.71584C15.3213 9.43855 16 10.64 16 12C16 13.36 15.3213 14.5614 14.2842 15.2841L15.7133 16.7132C17.106 15.6145 18 13.9116 18 12Z',
     spkMute: 'M10 7.22056L6.60282 10.0001H3V14.0001H6.60282L10 16.7796V7.22056ZM5.88889 16.0001H2C1.44772 16.0001 1 15.5524 1 15.0001V9.00007C1 8.44778 1.44772 8.00007 2 8.00007H5.88889L11.1834 3.66821C11.3971 3.49335 11.7121 3.52485 11.887 3.73857C11.9601 3.8279 12 3.93977 12 4.05519V19.9449C12 20.2211 11.7761 20.4449 11.5 20.4449C11.3846 20.4449 11.2727 20.405 11.1834 20.3319L5.88889 16.0001ZM20.4142 12.0001L23.9497 15.5356L22.5355 16.9498L19 13.4143L15.4645 16.9498L14.0503 15.5356L17.5858 12.0001L14.0503 8.46454L15.4645 7.05032L19 10.5859L22.5355 7.05032L23.9497 8.46454L20.4142 12.0001Z',
+    /* Remix Icon (Apache 2.0): ri-translate. */
+    tr: 'M18.5 10l4.4 11h-2.155l-1.201-3h-5.09l-1.199 3h-2.154L16.5 10h2zM10 2v2h6v2h-1.968a18.222 18.222 0 01-3.62 6.301 14.864 14.864 0 001.654 1.098l-1.02 1.746a16.84 16.84 0 01-2.49-1.584A16.921 16.921 0 015.632 16L4.246 14.66a14.708 14.708 0 013.047-4.064A18.015 18.015 0 013 6h2a16.041 16.041 0 004.122 4.807A16.049 16.049 0 0013.122 6H10V4h6V2h-6zm7.5 10.92L16.344 16h2.313l-1.156-3.08z',
 };
 
 function voiceIcon(name) {
@@ -3229,6 +3372,26 @@ export function mountWallAiChat(container, options) {
     spkBtn.style.transition = 'none';
     spkWrap.appendChild(spkBtn);
     inputRow.appendChild(spkWrap);
+    const showTr = maStlWallAiCanShowSimultaneousTranslation();
+    const trWrap = document.createElement('span');
+    trWrap.style.display = showTr ? 'inline-flex' : 'none';
+    trWrap.style.flex = '0 0 auto';
+    const trBtn = document.createElement('button');
+    trBtn.type = 'button';
+    trBtn.className = 'btn btn-sm ma-stl-wall-ai__trbtn';
+    trBtn.setAttribute('data-ma-stl-wall-ai-tr', '1');
+    trBtn.setAttribute('data-function', MA_STL_WALL_AI_TRANSLATE_FUNCTION);
+    trBtn.style.display = 'inline-flex';
+    trBtn.style.alignItems = 'center';
+    trBtn.style.justifyContent = 'center';
+    trBtn.style.width = '38px';
+    trBtn.style.height = '38px';
+    trBtn.style.padding = '0';
+    trBtn.style.borderRadius = '8px';
+    trBtn.style.cursor = 'pointer';
+    trBtn.style.transition = 'none';
+    trWrap.appendChild(trBtn);
+    if (showTr) inputRow.appendChild(trWrap);
     inputRow.appendChild(sendBtn);
     let rec = null;
     let voiceBase = '';
@@ -3464,9 +3627,9 @@ export function mountWallAiChat(container, options) {
     }
 
     function voiceScheduleRestart(ms) {
-        if (!voiceOn || speaking) return;
+        if (!voiceOn) return;
         if (voiceTimer) clearTimeout(voiceTimer);
-        voiceTimer = setTimeout(function () { voiceTimer = null; if (voiceOn && !rec && !speaking) voiceListenOnce(); }, ms);
+        voiceTimer = setTimeout(function () { voiceTimer = null; if (voiceOn && !rec) voiceListenOnce(); }, ms);
     }
 
     function voiceListenOnce() {
@@ -3477,7 +3640,7 @@ export function mountWallAiChat(container, options) {
         const now = Date.now();
         voiceRestarts = voiceRestarts.filter(function (t) { return now - t < 4000; });
         voiceRestarts.push(now);
-        if (voiceRestarts.length > 6) { voiceGiveUp(VT.micErrOther.replace('{0}', 'restart')); return; }
+        if (voiceRestarts.length > 6 && !speaking) { voiceGiveUp(VT.micErrOther.replace('{0}', 'restart')); return; }
         let r;
         try { r = new SpeechCtor(); } catch (e) {
             voiceGiveUp(maStlWallAiVoiceErrorText(e && e.name ? e.name : 'error', VT));
@@ -3490,8 +3653,7 @@ export function mountWallAiChat(container, options) {
         r.continuous = true;
         r.maxAlternatives = 1;
         r.onresult = function (ev) {
-            /* Mientras la IA habla no se toma nada como orden (no se escucha a sí misma). */
-            if (rec !== r || !voiceOn || speaking) return;
+            if (rec !== r || !voiceOn) return;
             const list = ev && ev.results ? ev.results : [];
             let part = '';
             const finals = [];
@@ -3501,6 +3663,10 @@ export function mountWallAiChat(container, options) {
                 if (one && one.isFinal) {
                     if (i >= sentUpTo) { finals.push(t); sentUpTo = i + 1; }
                 } else if (i >= sentUpTo) part += t;
+            }
+            if (speaking) {
+                if (finals.some(maStlWallAiIsSpeechStopCommand)) voiceStopSpeech();
+                return;
             }
             if (finals.length || part.trim()) { voiceNetFails = 0; voiceRestarts = []; }
             finals.forEach(function (t) {
@@ -3533,7 +3699,7 @@ export function mountWallAiChat(container, options) {
             rec = null;
             if (!voiceOn) return;
             /* Fin de una sesión de Chrome (silencio, ~60 s, error leve): seguir escuchando. */
-            if (!busy) {
+            if (!busy && !speaking) {
                 input.value = voiceBase;
                 autoGrow();
             }
@@ -3561,12 +3727,17 @@ export function mountWallAiChat(container, options) {
     }
 
     /*
-     * Respuestas habladas. Mientras habla, el reconocimiento se para (no se oye a sí mismo) y vuelve al terminar;
-     * pulsar el micro/Alt, enviar o pulsar un botón corta la voz. También se corta al cambiar de pestaña o de muro,
+     * Respuestas habladas. Mientras habla, el reconocimiento solo atiende órdenes de interrupción y descarta el
+     * audio del asistente; al terminar vuelve al dictado normal. También se corta al cambiar de pestaña o de muro,
      * cerrar el formulario u ocultar la página. Sin voz del idioma (o sin API) el icono queda deshabilitado.
      */
     let speakOn = maStlWallAiSpeakPref();
+    let translateOn = showTr && maStlWallAiTranslatePref();
     let speaking = false;
+    let speakBaseVolume = 1;
+    let pendingEn = null;
+    let enWaitToken = 0;
+    let enWaitReady = true;
     /* Saludo hablado: una vez por conversación, al mostrarse la pestaña (focus). */
     let greetText = '';
     let greeted = false;
@@ -3615,13 +3786,26 @@ export function mountWallAiChat(container, options) {
         spkWrap.title = av.ok ? '' : tip;
     }
 
-    /** Pausa el reconocimiento mientras habla (sin perder el modo continuo). */
+    function paintTr() {
+        if (!showTr) return;
+        const on = !!translateOn;
+        trBtn.innerHTML = voiceIcon('tr');
+        trBtn.classList.toggle('ma-stl-wall-ai__trbtn--on', on);
+        trBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        trBtn.style.background = on ? '#4d4d4d' : '#ffffff';
+        trBtn.style.color = on ? '#ffffff' : '#2563eb';
+        trBtn.style.border = '1px solid ' + (on ? '#4d4d4d' : '#cbd5e1');
+        const tip = on ? T.tr : T.trOff;
+        trBtn.title = tip;
+        trBtn.setAttribute('aria-label', tip);
+        trWrap.title = tip;
+    }
+
+    /** Durante la locución mantiene el reconocimiento activo solo para poder interrumpirla. */
     function voicePauseForSpeech() {
         if (!voiceOn) return;
         if (voiceTimer) { clearTimeout(voiceTimer); voiceTimer = null; }
-        const r = rec;
-        rec = null;
-        if (r) { try { r.abort(); } catch (_e) { /* ya parado */ } }
+        if (!rec) voiceListenOnce();
         if (!busy) {
             input.value = voiceBase;
             autoGrow();
@@ -3639,6 +3823,9 @@ export function mountWallAiChat(container, options) {
     /** Corta la voz (si hablaba) y reanuda el micrófono si estaba en modo continuo. */
     function speakCancel() {
         speakToken++;
+        pendingEn = null;
+        enWaitToken = 0;
+        enWaitReady = true;
         if (speakTimer) { clearTimeout(speakTimer); speakTimer = null; }
         const was = speaking;
         speaking = false;
@@ -3649,8 +3836,61 @@ export function mountWallAiChat(container, options) {
         }
     }
 
+    function voiceStopSpeech() {
+        const r = rec;
+        rec = null;
+        if (r) { try { r.abort(); } catch (_e) { /* ya parado */ } }
+        voiceQueue = [];
+        voiceBase = '';
+        input.value = '';
+        autoGrow();
+        speakCancel();
+    }
+
     function speakVisible() {
         return root.isConnected && root.getClientRects().length > 0;
+    }
+
+    /** Tras la respuesta original: lee la traducción inglesa al máximo volumen disponible. */
+    function speakEnglishAfter(text, token, done) {
+        const en = String(text == null ? '' : text).trim();
+        const vol = maStlWallAiSpeechVolume('en', true, speakBaseVolume * MA_STL_WALL_AI_TRANSLATE_VOLUME);
+        const chunks = maStlWallAiSpeechChunks(maStlWallAiSpeakable(en, 'en'));
+        const av = speakAvailable('en-US');
+        if (!en || !chunks.length || !av.ok || !av.voice) { done(); return; }
+        speakLast = { tag: 'en-US', voice: av.voice.name, chunks: chunks.slice(), volume: vol, translated: true };
+        let i = 0;
+        let tail = 0;
+        const nextEn = function () {
+            if (token !== speakToken) return;
+            if (speakTimer) { clearTimeout(speakTimer); speakTimer = null; }
+            if (!speakVisible()) { speakCancel(); return; }
+            if (i >= chunks.length) {
+                if (synth.speaking && tail++ < 40) { speakTimer = setTimeout(nextEn, 250); return; }
+                done();
+                return;
+            }
+            const piece = chunks[i++];
+            const u = new window.SpeechSynthesisUtterance(piece);
+            u.lang = av.voice.lang || 'en-US';
+            u.voice = av.voice;
+            u.rate = 1;
+            u.pitch = 1;
+            u.volume = vol;
+            let fired = false;
+            const step = function () { if (fired) return; fired = true; nextEn(); };
+            u.onend = step;
+            u.onerror = function (ev) {
+                if (ev && ev.error === 'not-allowed') { speakBlocked++; i = chunks.length; }
+                step();
+            };
+            speakTimer = setTimeout(step, 4000 + piece.length * 110);
+            try {
+                if (synth.paused) synth.resume();
+                synth.speak(u);
+            } catch (_e) { step(); }
+        };
+        nextEn();
     }
 
     /** Lee en voz alta una respuesta ({ reply, speech?, table?, lang? }) por trozos (fallo de Chrome con frases largas). */
@@ -3673,6 +3913,17 @@ export function mountWallAiChat(container, options) {
         let tail = 0;
         const finish = function () {
             if (token !== speakToken) return;
+            if (token === enWaitToken && !enWaitReady) {
+                speakTimer = setTimeout(finish, 100);
+                return;
+            }
+            if (pendingEn && pendingEn.token === token) {
+                const enJob = pendingEn;
+                pendingEn = null;
+                enWaitToken = 0;
+                speakEnglishAfter(enJob.text, token, finish);
+                return;
+            }
             speaking = false;
             speakTimer = null;
             paintSpk();
@@ -3692,9 +3943,9 @@ export function mountWallAiChat(container, options) {
             const u = new window.SpeechSynthesisUtterance(text);
             u.lang = av.voice.lang || tag;
             u.voice = av.voice;
-            u.rate = 1;
+            u.rate = maStlWallAiSpeechRate(tag, translateOn);
             u.pitch = 1;
-            u.volume = 1;
+            u.volume = maStlWallAiSpeechVolume(tag, translateOn, speakBaseVolume);
             let fired = false;
             const done = function () { if (fired) return; fired = true; next(); };
             u.onend = done;
@@ -3739,6 +3990,7 @@ export function mountWallAiChat(container, options) {
     }
     if (typeof window !== 'undefined') window.addEventListener('pagehide', function () { speakCancel(); });
     paintSpk();
+    paintTr();
 
     spkBtn.addEventListener('click', function (ev) {
         ev.preventDefault();
@@ -3747,6 +3999,15 @@ export function mountWallAiChat(container, options) {
         if (!speakOn) speakCancel();
         paintSpk();
     });
+    if (showTr) {
+        trBtn.addEventListener('click', function (ev) {
+            ev.preventDefault();
+            if (!maStlWallAiCanShowSimultaneousTranslation()) return;
+            translateOn = !translateOn;
+            maStlWallAiSetTranslatePref(translateOn);
+            paintTr();
+        });
+    }
 
     /** Micro/Alt: si la IA está hablando, primero se corta la voz (y el micro queda escuchando). */
     function micToggle() {
@@ -3946,6 +4207,48 @@ export function mountWallAiChat(container, options) {
         return bar;
     }
 
+    function fillEn(box, en, entry) {
+        const t = String(en == null ? '' : en).trim();
+        if (!box || !t) return;
+        if (entry) entry.en = t;
+        let tr = box.querySelector('.ma-stl-wall-ai__tr');
+        if (!tr) {
+            tr = document.createElement('div');
+            tr.className = 'ma-stl-wall-ai__tr';
+            tr.style.marginTop = '6px';
+            tr.style.paddingTop = '6px';
+            tr.style.fontSize = '12px';
+            tr.style.lineHeight = '1.35';
+            tr.style.opacity = '0.92';
+            tr.style.fontStyle = 'italic';
+            tr.style.whiteSpace = 'pre-wrap';
+            box.appendChild(tr);
+        }
+        const assistant = box.className.indexOf('msg--assistant') >= 0;
+        tr.style.borderTop = '1px solid ' + (assistant ? '#e2e8f0' : 'rgba(255,255,255,.35)');
+        tr.textContent = t;
+    }
+
+    function armReplyTranslation(res, box, entry) {
+        if (!translateOn || !showTr || !res || res.pending) return;
+        const src = maStlWallAiSpeechText(res, (res.lang === 'en' || speakTag(res.lang) === 'en-US') ? 'en' : 'es');
+        const tok = speakToken;
+        enWaitToken = tok;
+        enWaitReady = false;
+        maStlWallAiTranslateToEn(src).then(function (en) {
+            if (tok !== speakToken) return;
+            const same = !en || en === src;
+            if (en && !same) fillEn(box, en, entry);
+            const speechText = maStlWallAiTranslationSpeechText(src, en, res.lang);
+            pendingEn = speechText ? { token: tok, text: speechText } : null;
+            enWaitReady = true;
+        }, function () {
+            if (tok !== speakToken) return;
+            pendingEn = null;
+            enWaitReady = true;
+        });
+    }
+
     function bubble(role, text, extra) {
         const hasTable = !!(extra && extra.table && Array.isArray(extra.table.rows) && extra.table.rows.length);
         const row = document.createElement('div');
@@ -3982,6 +4285,7 @@ export function mountWallAiChat(container, options) {
         b.appendChild(body);
         if (hasTable) b.appendChild(renderTable(extra.table));
         if (extra && Array.isArray(extra.buttons) && extra.buttons.length) b.appendChild(renderButtons(extra.buttons));
+        if (extra && extra.en) fillEn(b, extra.en, extra);
         row.appendChild(b);
         log.appendChild(row);
         /* Con tabla, que se vea el principio de la respuesta (título y resumen); si no, al final. */
@@ -3996,7 +4300,13 @@ export function mountWallAiChat(container, options) {
         history.push(entry);
         bubble('assistant', entry.text, entry);
         /* En voz alta (si el altavoz está encendido); «Calculando…» y similares no. */
-        speakRes(res);
+        const spoke = speakRes(res);
+        const box = log.lastChild && log.lastChild.firstChild;
+        armReplyTranslation(res, box, entry);
+        if (!spoke) {
+            enWaitReady = true;
+            pendingEn = null;
+        }
     }
 
     function render() {
@@ -4021,40 +4331,74 @@ export function mountWallAiChat(container, options) {
         /* Enviar a mano mientras escucha: manda lo escrito y el micrófono sigue (modo continuo). */
         if (fromVoice !== true && voiceOn) voiceBase = '';
         const text = String(input.value || '').trim();
+        if (speaking && maStlWallAiIsSpeechStopCommand(text)) {
+            voiceStopSpeech();
+            return;
+        }
         if (!text || busy) return;
         /* Un mensaje nuevo corta lo que estuviera diciendo. */
         speakCancel();
         const ctx = options.getContext ? options.getContext() : null;
-        history.push({ role: 'user', text: text });
-        bubble('user', text);
+        const userEntry = { role: 'user', text: text };
+        history.push(userEntry);
+        bubble('user', text, userEntry);
         paintSpk();
+        paintTr();
         input.value = '';
         autoGrow();
         setBusy(true);
+        const sourceLanguage = fromVoice === true && voiceVT
+            ? (String(voiceVT.lang || '').toLowerCase().indexOf('en') === 0 ? 'en' : 'es')
+            : (String(T.lang || 'es').toLowerCase().indexOf('en') === 0 ? 'en' : 'es');
         const handler = typeof options.handler === 'function'
             ? options.handler
             : (typeof window !== 'undefined' && typeof window.maStlWallAiHandleMessage === 'function'
                 ? window.maStlWallAiHandleMessage
                 : maStlWallAiHandleMessage);
-        Promise.resolve()
-            .then(function () { return handler(ctx, text, history.slice()); })
-            .then(function (res) {
-                if (res) pushAssistant(res);
-                const acts = res && Array.isArray(res.actions) ? res.actions : [];
-                if (acts.length && options.onActions) options.onActions(acts, ctx);
-            })
-            .catch(function (err) {
-                const msg = T.error.replace('{0}', err && err.message ? err.message : String(err));
-                history.push({ role: 'assistant', text: msg });
-                bubble('assistant', msg);
-                speakRes({ reply: msg });
-            })
-            .then(function () {
-                setBusy(false);
-                try { input.focus({ preventScroll: true }); } catch (_e) { input.focus(); }
-                /* Órdenes dictadas mientras la IA contestaba: van en orden. */
-                if (voiceOn && voiceQueue.length) voiceSubmit(voiceQueue.shift());
+        const runHandler = function () {
+            Promise.resolve()
+                .then(function () { return handler(ctx, text, history.slice()); })
+                .then(function (res) {
+                    if (res) pushAssistant(res);
+                    const acts = res && Array.isArray(res.actions) ? res.actions : [];
+                    if (acts.length && options.onActions) options.onActions(acts, ctx);
+                })
+                .catch(function (err) {
+                    const msg = T.error.replace('{0}', err && err.message ? err.message : String(err));
+                    history.push({ role: 'assistant', text: msg });
+                    bubble('assistant', msg);
+                    speakRes({ reply: msg });
+                })
+                .then(function () {
+                    setBusy(false);
+                    try { input.focus({ preventScroll: true }); } catch (_e) { input.focus(); }
+                    /* Órdenes dictadas mientras la IA contestaba: van en orden. */
+                    if (voiceOn && voiceQueue.length) voiceSubmit(voiceQueue.shift());
+                });
+        };
+        if (!(translateOn && showTr)) {
+            runHandler();
+            return;
+        }
+        const userBox = log.lastChild && log.lastChild.firstChild;
+        maStlWallAiTranslateToEn(text, { sourceLanguage: sourceLanguage }).then(function (en) {
+            if (en) fillEn(userBox, en, userEntry);
+            const speech = maStlWallAiUserTranslationSpeechText(text, en, sourceLanguage);
+            if (!speakOn || !synth || !speech) {
+                runHandler();
+                return;
+            }
+            const token = ++speakToken;
+            speaking = true;
+            voicePauseForSpeech();
+            paintSpk();
+            speakEnglishAfter(speech, token, function () {
+                if (token !== speakToken) return;
+                speaking = false;
+                paintSpk();
+                runHandler();
             });
+        }, function () { runHandler(); });
     }
 
     sendBtn.addEventListener('click', function () { send(); });
@@ -4097,7 +4441,9 @@ export function mountWallAiChat(container, options) {
             render();
             /* Otro chat (recto/curvo) puede haber cambiado el altavoz. */
             speakOn = maStlWallAiSpeakPref();
+            translateOn = showTr && maStlWallAiTranslatePref();
             paintSpk();
+            paintTr();
         },
         /** Mantiene la conversación si es el mismo muro; si no, la reinicia. */
         ensureContext: function (key) {
@@ -4109,7 +4455,9 @@ export function mountWallAiChat(container, options) {
         pushAssistant: pushAssistant,
         focus: function () {
             speakOn = maStlWallAiSpeakPref();
+            translateOn = showTr && maStlWallAiTranslatePref();
             paintSpk();
+            paintTr();
             log.scrollTop = log.scrollHeight;
             try { input.focus({ preventScroll: true }); } catch (_e) { input.focus(); }
             /* Al mostrarse la pestaña IA: saludo hablado (una vez por conversación). */
@@ -4147,6 +4495,8 @@ export function mountWallAiChat(container, options) {
         stopSpeaking: speakCancel,
         speak: speakRes,
         speakInfo: function () { return speakLast; },
+        translateBtn: showTr ? trBtn : null,
+        isTranslateOn: function () { return !!translateOn; },
         /** Veces que el navegador ha bloqueado la voz (autoplay) (pruebas). */
         speakBlockedCount: function () { return speakBlocked; },
     };

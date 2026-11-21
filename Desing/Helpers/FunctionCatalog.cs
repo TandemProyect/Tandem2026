@@ -19,6 +19,9 @@ namespace Desing.Helpers
         /// <summary>Asistentes IA del visor: botón IA, pestañas «Asistente IA» y endpoints <c>Desing_2/Ai*</c>.</summary>
         public const string AiCode = "IA";
 
+        /// <summary>Botón «Traducción simultánea» del chat IA (JS). Si la función está activa, solo la ven los roles que la tengan.</summary>
+        public const string AiSimultaneousTranslationCode = "IA.TraduccionSimultanea";
+
         public sealed class Entry
         {
             public string Code { get; set; }
@@ -99,6 +102,7 @@ namespace Desing.Helpers
             }
 
             list.Add(new Entry { Code = AiCode, Module = JsModule });
+            list.Add(new Entry { Code = AiSimultaneousTranslationCode, Module = JsModule });
             list.AddRange(JsTools.Select(t => new Entry { Code = "Tool." + t, Module = JsModule }));
             list.AddRange(JsModes.Select(t => new Entry { Code = "Mode." + t, Module = JsModule }));
             list.AddRange(JsSystems.Select(t => new Entry { Code = "System." + t, Module = JsModule }));

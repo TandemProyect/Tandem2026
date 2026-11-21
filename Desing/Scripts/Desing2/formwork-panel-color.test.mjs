@@ -70,5 +70,8 @@ assertEqual('sin muro el id sigue', wallDimKindWithoutWall('wall-id', { panels: 
 assertEqual('sin muro los paneles marcados se acotan', wallDimKindWithoutWall('panels', { panels: true }), true);
 assertEqual('sin muro los paneles apagados no', wallDimKindWithoutWall('panels', { panels: false }), false);
 assertEqual('sin muro la longitud no', wallDimKindWithoutWall('walls-total', { 'walls-total': true }), false);
+assertEqual('sin muro el face-id marcado se acota', wallDimKindWithoutWall('face-id', { 'face-id': true }), true);
+assertEqual('sin muro el face-id apagado no', wallDimKindWithoutWall('face-id', { 'face-id': false }), false);
+assertEqual('sin muro el face-id ausente no', wallDimKindWithoutWall('face-id', { panels: true }), false);
 
-console.log('OK formwork-panel-color 46 casos');
+console.log('OK formwork-panel-color 49 casos');

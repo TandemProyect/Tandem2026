@@ -155,7 +155,8 @@
                  data-ma-count-stl="@HttpUtility.HtmlAttributeEncode(MasterArticles.StlPreview_LoadStlTooltip)"
                  data-ma-count-stl-missing="@HttpUtility.HtmlAttributeEncode(MasterArticles.StlPreview_NoStlInViewerTooltip)"
                  data-ma-count-excel="@HttpUtility.HtmlAttributeEncode(MasterArticles.StlPreview_MaterialCountExportExcel)"
-                 data-ma-count-pdf="@HttpUtility.HtmlAttributeEncode(MasterArticles.StlPreview_MaterialCountExportPdf)">
+                 data-ma-count-pdf="@HttpUtility.HtmlAttributeEncode(MasterArticles.StlPreview_MaterialCountExportPdf)"
+                 data-colors-url="@Url.Action("FormworkPanelColors", "Desing_2")">
             <div class="desing2-material-count__head">
                 <span class="desing2-material-count__title">@MasterArticles.StlPreview_MaterialCountTitle</span>
                 <button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" id="desing2-material-count-save" title="@MasterArticles.StlPreview_MaterialCountSave" aria-label="@MasterArticles.StlPreview_MaterialCountSave">
@@ -1382,6 +1383,48 @@
     var summaryEl = panel.querySelector('.desing2-material-count__summary');
     var materialCountRows = [];
     var materialSceneRows = [];
+    var panelColorCatalog = {};
+
+    function currentFormworkSystem() {
+        var toggle = document.getElementById('ma-stl-mode-system-dropdown');
+        var text = toggle ? String(toggle.textContent || '').trim() : '';
+        return text || 'Atk-60';
+    }
+
+    function paintCountPanelName(name, code) {
+        var api = window.TandemMaterialCountPanelName;
+        if (!api || typeof api.materialCountColorPanelNameHtml !== 'function') {
+            return String(name == null ? '' : name)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+        return api.materialCountColorPanelNameHtml(name, code, panelColorCatalog);
+    }
+
+    function loadPanelColorCatalog(done) {
+        var api = window.TandemMaterialCountPanelName;
+        if (api && api.cached && typeof api.cached === 'object') {
+            panelColorCatalog = api.cached;
+            done();
+            return;
+        }
+        var url = panel.getAttribute('data-colors-url') || '';
+        var colorBtn = document.getElementById('ma-stl-mode-formwork-color');
+        if (!url && colorBtn) url = colorBtn.getAttribute('data-ma-formwork-colors-url') || '';
+        if (!url) {
+            done();
+            return;
+        }
+        fetch(url + '?system=' + encodeURIComponent(currentFormworkSystem()), { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                panelColorCatalog = api && typeof api.catalogFromServerPayload === 'function'
+                    ? api.catalogFromServerPayload(data)
+                    : {};
+                if (api) api.cached = panelColorCatalog;
+                done();
+            })
+            .catch(function () { done(); });
+    }
 
     function setStatus(text) {
         if (!statusEl) return;
@@ -1452,7 +1495,7 @@
             html += '<tr>'
                 + '<td>' + (i + 1) + '</td>'
                 + '<td>' + escHtml(row.code) + '</td>'
-                + '<td>' + escHtml(row.name) + '</td>'
+                + '<td>' + paintCountPanelName(row.name, row.code) + '</td>'
                 + '<td class="text-end">' + formatMaterialNumber(qty, 0) + '</td>'
                 + '<td class="text-end">' + formatMaterialNumber(unitWeight, 2) + '</td>'
                 + '<td class="text-end">' + formatMaterialNumber(totalWeight, 2) + '</td>'
@@ -2067,6 +2110,7 @@
             return;
         }
         setCountLoading(true);
+        loadPanelColorCatalog(function () {
         loadScripts(function () {
             var sceneRows = typeof window.maStlDesing2FormworkCountRows === 'function'
                 ? (window.maStlDesing2FormworkCountRows() || [])
@@ -2146,7 +2190,14 @@
                     ],
                     columns: [
                         { data: 'code', defaultContent: '' },
-                        { data: 'name', defaultContent: '' },
+                        {
+                            data: 'name',
+                            defaultContent: '',
+                            render: function (value, type, row) {
+                                if (type !== 'display') return value == null ? '' : String(value);
+                                return paintCountPanelName(value, row && row.code);
+                            }
+                        },
                         { data: 'qty', className: 'text-end', defaultContent: '' },
                         {
                             data: null,
@@ -2197,6 +2248,7 @@
                 setStatus(countMsg.error);
                 buildTable([]);
             });
+        });
         });
     }
 

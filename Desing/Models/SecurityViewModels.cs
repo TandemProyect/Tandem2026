@@ -77,6 +77,15 @@ namespace Desing.Models
         public string DisplayName { get; set; }
     }
 
+    /// <summary>Vista «Funciones del rol»: asignadas a la izquierda, disponibles a la derecha.</summary>
+    public class SecurityRoleFunctionsViewModel
+    {
+        public long RoleId { get; set; }
+        public string DisplayName { get; set; }
+        public bool Is_System { get; set; }
+        public bool Is_AllFunctions { get; set; }
+    }
+
     public class FunctionCatalogOption
     {
         public string Code { get; set; }

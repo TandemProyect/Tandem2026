@@ -33,6 +33,7 @@ Un comando está protegido solo si hay una función **activa** con su clave en `
 - Escribe en las tablas de roles solo con `SecurityRepository` (invalida la caché) o con un script de semilla idempotente.
 - Borrado lógico (`Is_Delete = 1`), nunca `DELETE`.
 - Los roles se asignan solo desde **Empleados › Asignar roles**, no desde el formulario del rol.
+- Las funciones de un rol se asignan solo desde **Roles › Asignar funciones** (dos tablas, arrastrar), no con checkboxes en editar.
 - Textos visibles nuevos: `Desing/Scripts/ResourceGenerators/_gen_security_resources.js` (es + en) y regenera `Security.resx`.
 
 ## Código común

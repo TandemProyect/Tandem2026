@@ -1,4 +1,4 @@
-# Generar Informe Develop
+﻿# Generar Informe Develop
 
 Solo cómo hacer el informe US/BUG y el PDF. Nada más.
 
@@ -24,28 +24,39 @@ Nombre: `Informe Semanal DDMMAAAA-DDMMAAAA.md` junto al PDF.
 1. Chats de Cursor y de Visual Studio Code (Copilot).
 2. `LEEME.md` y el informe **abierto**.
 3. Documentación de área solo si el chat la citó.
+4. Imágenes: solo las que el agente **recibió** (p. ej. `vscode-chat-images`). Si no están, no inventar.
 
 **No** uses el historial de git como relato. **No** reescribas un informe cerrado; resúmelo si piden dos semanas.
 
-Horas: Europe/Madrid. Tres relojes (persona, Cursor, Copilot). No inventar. No sumar persona + agente.
+Horas: Europe/Madrid. Reloj Copilot del tramo. No inventar. No sumar persona + agente.
 
-## Convención US / BUG
+## Estructura fija (desde 20/11/2026)
 
-Cada tema:
+Informe **interno** (Juan Andrés y quien fiscaliza). Tres partes, en este orden:
 
-- Tipo: <span style="color:#1d4ed8"><strong>US</strong></span> o <span style="color:#b91c1c"><strong>BUG</strong></span> (HTML, no solo markdown).
-- Estado, detalle técnico, imágenes si existen (`Desing/Report/2026/img/`), horas del detalle.
+### Parte 1. Apartados y subapartados
 
-Bugs de un frente van como sublista del **US** padre.
+Solo titulares. Cada **subapartado**:
+
+- Icono y categoría: 🟦 <span style="color:#1d4ed8"><strong>US</strong></span> o 🟥 <span style="color:#b91c1c"><strong>BUG</strong></span>
+- Esfuerzo total (reloj Copilot del tramo; hijos: «incluido» si van en el padre)
+- Estado
+
+### Parte 2. Detalle
+
+Por cada apartado de la parte 1: qué se hizo y qué se solucionó. Pegar las imágenes recibidas. Bugs del frente van aquí, no se reabre un apartado nuevo.
+
+### Parte 3. Resumen
+
+Solo apartados (número, nombre, tipo, estado). **Sin** subapartados ni detalle.
 
 ## Qué hacer (pasos)
 
 1. Leer `Desing/Report/LEEME.md` y abrir el informe **abierto**.
 2. Recoger trabajo desde la última actualización (chats, no git).
-3. Si piden dos semanas: añadir un apartado «Semana anterior» con tabla US/BUG del MD cerrado (sin copiar páginas).
-4. Actualizar el `.md` abierto. No cerrar el periodo antes del día de corte.
-5. Generar HTML A4 (estilo `informe-quincenal-01.html`: Segoe UI, US azul `#1d4ed8`, BUG rojo `#b91c1c`, sin membrete).
-6. PDF con Chrome headless:
+3. Actualizar el `.md` en las tres partes. No cerrar el periodo antes del día de corte.
+4. Generar HTML A4 (Segoe UI, US azul `#1d4ed8`, BUG rojo `#b91c1c`, sin membrete).
+5. PDF con Chrome headless:
 
 ```powershell
 & "C:\Program Files\Google\Chrome\Application\chrome.exe" `
@@ -54,14 +65,11 @@ Bugs de un frente van como sublista del **US** padre.
   "file:///C:/Users/jag/.cursor/projects/c-00-Tandem2026/agent-tools/informe.html"
 ```
 
-7. Borrar el HTML de `Report/` si se creó ahí. No commit, push ni stash.
+6. Borrar el HTML de `Report/` si se creó ahí. No commit, push ni stash.
 
-## Contenido del PDF
+## Catálogo Agentes (BD)
 
-- Portada: periodo, fichero, fecha, fuentes.
-- Temas numerados US/BUG.
-- Tabla resumen (n.º, tema, tipo, estado).
-- Tabla de horas por frente.
+Fila `TSql_DevelodAgentDocument` con `TextCode = informe.generar-develop`. Script: `Desing/Scripts/TemporalScript/2026-11-20_seed_TSql_DevelodAgentDocument_informe_tres_partes.sql`. Catálogo: develop y producción.
 
 ## No hacer
 
@@ -69,3 +77,4 @@ Bugs de un frente van como sublista del **US** padre.
 - No reescribir el 05/11–19/11 (cerrado).
 - No citar git como fuente.
 - No dejar HTML en `Desing/Report/`.
+- No mezclar las tres partes.

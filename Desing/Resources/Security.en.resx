@@ -202,6 +202,57 @@
   <data name="Function_Val_NameTooLong" xml:space="preserve">
     <value>Name cannot exceed 500 characters.</value>
   </data>
+  <data name="Role_AssignFunctions_Added" xml:space="preserve">
+    <value>Function &quot;{0}&quot; assigned to role {1}.</value>
+  </data>
+  <data name="Role_AssignFunctions_AllFunctionsHint" xml:space="preserve">
+    <value>This role has “all functions”. The list below is used if you turn that option off.</value>
+  </data>
+  <data name="Role_AssignFunctions_Assigned" xml:space="preserve">
+    <value>Assigned functions</value>
+  </data>
+  <data name="Role_AssignFunctions_Available" xml:space="preserve">
+    <value>Available functions</value>
+  </data>
+  <data name="Role_AssignFunctions_BtnAssign" xml:space="preserve">
+    <value>Assign</value>
+  </data>
+  <data name="Role_AssignFunctions_BtnRemove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="Role_AssignFunctions_DropHere" xml:space="preserve">
+    <value>Drop the function here</value>
+  </data>
+  <data name="Role_AssignFunctions_EmptyAssigned" xml:space="preserve">
+    <value>The role has no functions assigned.</value>
+  </data>
+  <data name="Role_AssignFunctions_EmptyAvailable" xml:space="preserve">
+    <value>No functions left to assign.</value>
+  </data>
+  <data name="Role_AssignFunctions_FromEditHint" xml:space="preserve">
+    <value>Functions are assigned by dragging, not in this form.</value>
+  </data>
+  <data name="Role_AssignFunctions_FunctionNotFound" xml:space="preserve">
+    <value>Function not found or inactive.</value>
+  </data>
+  <data name="Role_AssignFunctions_Hint" xml:space="preserve">
+    <value>Drag a function from one table to the other to assign or remove it. Changes are saved immediately.</value>
+  </data>
+  <data name="Role_AssignFunctions_Removed" xml:space="preserve">
+    <value>Function &quot;{0}&quot; removed from role {1}.</value>
+  </data>
+  <data name="Role_AssignFunctions_SelfLockout" xml:space="preserve">
+    <value>You cannot remove this function: you would lose access to role management.</value>
+  </data>
+  <data name="Role_AssignFunctions_SystemLocked" xml:space="preserve">
+    <value>System role: functions cannot be changed.</value>
+  </data>
+  <data name="Role_AssignFunctions_Title" xml:space="preserve">
+    <value>Assign functions</value>
+  </data>
+  <data name="Role_AssignFunctions_Tooltip" xml:space="preserve">
+    <value>Assign functions</value>
+  </data>
   <data name="Role_Badge_AllFunctions" xml:space="preserve">
     <value>All functions</value>
   </data>

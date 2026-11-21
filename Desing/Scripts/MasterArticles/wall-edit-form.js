@@ -13,7 +13,7 @@
 import {
     mountWallAiChat, maStlWallAiUiTexts, maStlWallAiCompactBackButton, maStlWallAiCompactTitle,
     maStlWallAiCompactArea, maStlWallAiCompactRect,
-} from './wall-ai-assistant.js?v=20261116a';
+} from './wall-ai-assistant.js?v=20261120g';
 
 export function mountWallEditForm(parent, options) {
     options = options || {};

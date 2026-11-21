@@ -7,7 +7,9 @@ alwaysApply: false
 
 # Informe de trabajo
 
-Seguir siempre `Desing/Report/LEEME.md`.
+Seguir siempre `Desing/Report/LEEME.md` y `Docs/areas/general/Generar-Informe-Develop.md`.
+
+Desde 20/11/2026 el informe interno tiene **tres partes**: (1) apartados y subapartados con 🟦 US / 🟥 BUG y esfuerzo; (2) detalle con imágenes recibidas; (3) resumen solo de apartados.
 
 ## Informe abierto ahora (23 oct 2026)
 

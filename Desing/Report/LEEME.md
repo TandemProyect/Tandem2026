@@ -19,7 +19,11 @@ Desde este momento, para trabajo de **Desing** realizado en **Visual Studio 2026
 - Informe activo desde el 16/11/2026 (el de 05112026-19112026 se cerró el 13/11):
   - `Desing/Report/2026/Informe Semanal 16112026-29112026.md`
   - `Desing/Report/2026/Informe Semanal 16112026-29112026.pdf`
-- El informe sigue la misma idea del semanal anterior: abrir tema, detallar trabajo, adjuntar imágenes y registrar horas del detalle.
+- **Norma desde 20/11/2026:** informe **interno** (Juan Andrés + quien fiscaliza). Tres partes fijas:
+  1. **Apartados y subapartados** — titulares. En cada subapartado: icono 🟦 US / 🟥 BUG, esfuerzo total y estado.
+  2. **Detalle** — qué se hizo y qué se solucionó, con las imágenes que el agente recibió.
+  3. **Resumen** — solo apartados (sin subapartados ni detalle).
+- Catálogo Agentes (develop y producción): `TSql_DevelodAgentDocument` `TextCode = informe.generar-develop`. Script `Desing/Scripts/TemporalScript/2026-11-20_seed_TSql_DevelodAgentDocument_informe_tres_partes.sql`.
 - Clasificación obligatoria por tema:
   - <span style="color:#1d4ed8"><strong>US</strong></span> (azul y negrita).
   - <span style="color:#b91c1c"><strong>BUG</strong></span> (rojo y negrita).

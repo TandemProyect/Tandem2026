@@ -202,6 +202,57 @@
   <data name="Function_Val_NameTooLong" xml:space="preserve">
     <value>El nombre no puede superar 500 caracteres.</value>
   </data>
+  <data name="Role_AssignFunctions_Added" xml:space="preserve">
+    <value>Función &quot;{0}&quot; asignada al rol {1}.</value>
+  </data>
+  <data name="Role_AssignFunctions_AllFunctionsHint" xml:space="preserve">
+    <value>Este rol tiene «todas las funciones». La lista de abajo se usa si desmarcas esa opción.</value>
+  </data>
+  <data name="Role_AssignFunctions_Assigned" xml:space="preserve">
+    <value>Funciones asignadas</value>
+  </data>
+  <data name="Role_AssignFunctions_Available" xml:space="preserve">
+    <value>Funciones disponibles</value>
+  </data>
+  <data name="Role_AssignFunctions_BtnAssign" xml:space="preserve">
+    <value>Asignar</value>
+  </data>
+  <data name="Role_AssignFunctions_BtnRemove" xml:space="preserve">
+    <value>Quitar</value>
+  </data>
+  <data name="Role_AssignFunctions_DropHere" xml:space="preserve">
+    <value>Suelta aquí la función</value>
+  </data>
+  <data name="Role_AssignFunctions_EmptyAssigned" xml:space="preserve">
+    <value>El rol no tiene funciones asignadas.</value>
+  </data>
+  <data name="Role_AssignFunctions_EmptyAvailable" xml:space="preserve">
+    <value>No quedan funciones por asignar.</value>
+  </data>
+  <data name="Role_AssignFunctions_FromEditHint" xml:space="preserve">
+    <value>Las funciones se asignan arrastrando, no en este formulario.</value>
+  </data>
+  <data name="Role_AssignFunctions_FunctionNotFound" xml:space="preserve">
+    <value>Función no encontrada o inactiva.</value>
+  </data>
+  <data name="Role_AssignFunctions_Hint" xml:space="preserve">
+    <value>Arrastra una función de una tabla a la otra para asignarla o quitarla. Se guarda en el momento.</value>
+  </data>
+  <data name="Role_AssignFunctions_Removed" xml:space="preserve">
+    <value>Función &quot;{0}&quot; quitada del rol {1}.</value>
+  </data>
+  <data name="Role_AssignFunctions_SelfLockout" xml:space="preserve">
+    <value>No puedes quitar esta función: perderías el acceso a la gestión de roles.</value>
+  </data>
+  <data name="Role_AssignFunctions_SystemLocked" xml:space="preserve">
+    <value>Rol de sistema: las funciones no se pueden cambiar.</value>
+  </data>
+  <data name="Role_AssignFunctions_Title" xml:space="preserve">
+    <value>Asignar funciones</value>
+  </data>
+  <data name="Role_AssignFunctions_Tooltip" xml:space="preserve">
+    <value>Asignar funciones</value>
+  </data>
   <data name="Role_Badge_AllFunctions" xml:space="preserve">
     <value>Todas las funciones</value>
   </data>

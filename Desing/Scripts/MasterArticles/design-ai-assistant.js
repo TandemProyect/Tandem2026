@@ -5,10 +5,10 @@
  * sin backdrop), pero con otro intérprete: un REGISTRO DE COMANDOS de diseño (contexto 'design').
  *
  * Primeros comandos (solo 2D, solo funciones reales del visor a través de `window.maStlDesing2AiBridge`):
- * dibujar muro · cambiar largo/espesor/alto · desplazar · copiar (y copia en paralelo) · borrar (con confirmación) ·
- * alargar hasta el siguiente muro · listar / señalar muros · deshacer / rehacer · ayuda.
+ * dibujar muro · cambiar largo/espesor/alto · desplazar · copiar (y copia en paralelo) · borrar ·
+ * alargar hasta el siguiente muro · listar / señalar muros · deshacer / rehacer («atras» / «alante») · ayuda.
  * Fase 2 (14/11/2026): girar (herramienta Girar) · simetría (herramienta Simetría) · modos de la barra
- * (Líneas / 3D / Encofrar / Encofrado colores, pulsando sus botones; Encofrar pide confirmación y responde al terminar).
+ * (Líneas / 3D / Encofrar / Encofrado colores, pulsando sus botones; Encofrar se lanza sin Sí/No).
  * Cada orden = un solo paso de Deshacer (el del visor). Nada de BD: lo guarda el flujo normal del visor.
  *
  * Cotas por voz (pt114u, 15/11/2026): «muéstrame los id de los muros» / «identifica los muros» / «numera los muros»
@@ -27,7 +27,7 @@
 import {
     mountWallAiChat, maStlWallAiNormalize, maStlWallAiWordMatch, maStlWallAiDetectLanguage, maStlWallAiUiLang,
     maStlWallAiParseNumberWords, maStlWallAiParseMeasure, maStlWallAiYesNo, maStlWallAiCompactArea, maStlWallAiCompactRect,
-} from './wall-ai-assistant.js?v=20261116a';
+} from './wall-ai-assistant.js?v=20261120g';
 import {
     maStlAiCatalogLoad, maStlAiCatalogOnChange, maStlAiCatalogReplies, maStlAiCatalogPhrases, maStlAiCatalogLongest,
     maStlAiCatalogEnv, maStlAiCatalogEnvLabel, maStlAiCatalogSaveEnv, maStlAiCatalogEnvTarget, maStlAiCatalogGet, maStlAiCatalogUserRules,
@@ -95,11 +95,12 @@ export const MA_STL_DESIGN_AI_TEXT = {
         wallDims: 'largo {0}, espesor {1}, alto {2}',
         notAvailable: '«{0}» todavía no existe en el visor, así que no lo puedo hacer. Lo dejo apuntado como propuesta. Escribe «ayuda» para ver lo que sí sé hacer.',
         didYouMean: '¿Querías decir «{0}»?',
-        notUnderstood: 'No he entendido «{0}».',
+        notUnderstood: 'No te he entendido.',
         helpHead: 'Puedo trabajar sobre el plano 2D y cambiar de modo:',
-        helpTail: 'Cada orden se deshace de una en una («deshaz»). Cada muro tiene su número; «lista los muros» te los enseña.',
+        helpTail: 'Cada orden se deshace de una en una («atras» / «deshaz»). Cada muro tiene su número; «lista los muros» te los enseña.',
         helpSpeech: 'Te dejo los ejemplos en pantalla.',
         thanks: 'De nada.',
+        done: 'Hecho.',
         cancelled: 'Vale, lo dejo.',
         cols: { wall: 'Muro', length: 'Largo', thickness: 'Espesor', height: 'Alto' },
         copy: 'Copiar', copied2: 'Copiado', copyFail2: 'No se pudo copiar',
@@ -260,11 +261,12 @@ export const MA_STL_DESIGN_AI_TEXT = {
         wallDims: 'length {0}, thickness {1}, height {2}',
         notAvailable: '«{0}» does not exist in the viewer yet, so I cannot do it. I have noted it as a proposal. Type «help» to see what I can do.',
         didYouMean: 'Did you mean «{0}»?',
-        notUnderstood: 'I did not understand «{0}».',
+        notUnderstood: 'I did not understand.',
         helpHead: 'I can work on the 2D plan and switch modes:',
-        helpTail: 'Every order can be undone one by one («undo»). Each wall has a number; «list the walls» shows them.',
+        helpTail: 'Every order can be undone one by one («undo» / «back»). Each wall has a number; «list the walls» shows them.',
         helpSpeech: 'The examples are on screen.',
         thanks: 'You\'re welcome.',
+        done: 'Done.',
         cancelled: 'OK, I will leave it.',
         cols: { wall: 'Wall', length: 'Length', thickness: 'Thickness', height: 'Height' },
         copy: 'Copy', copied2: 'Copied', copyFail2: 'Could not copy',
@@ -394,6 +396,9 @@ function texts(lang) {
 
 /** Textos efectivos (pruebas y otras partes del visor). */
 export function maStlDesignAiTexts(lang) { return texts(lang); }
+
+/** Respuesta corta de éxito («Hecho.» / «Done.»). */
+export function maStlDesignAiDoneReply(lang) { return doneRes(texts(lang === 'en' ? 'en' : 'es')); }
 
 function fmt(tpl) {
     let out = String(tpl == null ? '' : tpl);
@@ -577,8 +582,8 @@ export const MA_STL_DESIGN_AI_WORDS = {
     extend: ['alarga', 'alargar', 'alargalo', 'prolonga', 'prolongar', 'prolongalo', 'extiende', 'extender', 'extiendelo', 'estira', 'estirar', 'extend', 'lengthen', 'stretch'],
     shorten: ['acorta', 'acortar', 'acortalo', 'reduce', 'shorten'],
     change: ['cambia', 'cambiar', 'cambiale', 'cambialo', 'cambiame', 'cambiamelo', 'modifica', 'modificar', 'modificalo', 'ajusta', 'ajustar', 'ponle', 'dale', 'dejale', 'dejalo', 'change', 'modify', 'set', 'adjust', 'resize'],
-    undo: ['deshaz', 'deshacer', 'deshazlo', 'undo', 'revierte', 'revert'],
-    redo: ['rehaz', 'rehacer', 'redo'],
+    undo: ['deshaz', 'deshacer', 'deshazlo', 'undo', 'revierte', 'revert', 'atras'],
+    redo: ['rehaz', 'rehacer', 'redo', 'alante', 'adelante'],
     list: ['lista', 'listar', 'listado', 'enumera', 'cuantos', 'cuales', 'list', 'many'],
     show: ['selecciona', 'seleccionar', 'seleccionalo', 'marca', 'marcame', 'resalta', 'señala', 'senala', 'muestra', 'muestrame', 'enseña', 'ensename', 'donde',
         'select', 'highlight', 'show', 'where', 'find'],
@@ -969,9 +974,9 @@ function dirLabel(deg, T) {
 
 /**
  * Comandos de la IA del diseño. Cada uno:
- * { id, score(p) → 0..1 (≥ 0,8 se ejecuta; 0,65..0,8 «¿Querías decir…?»), run(p, s, T) → respuesta del chat,
+ * { id, score(p) → 0..1 (≥ 0,65 se ejecuta), run(p, s, T) → respuesta del chat,
  *   edits (true si cambia el plano: se pasa antes a la vista de líneas), params [{ name, required, help }],
- *   examples { es: [...], en: [...] }, help { es, en } (línea de «ayuda»), short { es, en } (para «¿Querías decir…?») }.
+ *   examples { es: [...], en: [...] }, help { es, en } (línea de «ayuda»), short { es, en } }.
  */
 export const MA_STL_DESIGN_AI_COMMANDS = [];
 
@@ -1002,7 +1007,7 @@ export function maStlDesignAiBestCommand(p) {
 /* Calidad de un concepto (0 si no está) y verbos que «mandan» en la frase. */
 function q(p, c) { return p.q[c] || 0; }
 function anyOf(p, list) { return Math.max.apply(null, list.map(function (c) { return q(p, c); })); }
-const EDIT_VERBS = ['move', 'copy', 'del', 'rotate', 'mirror', 'trim', 'fillet', 'extend', 'shorten', 'change', 'undo', 'redo', 'list', 'show',
+const EDIT_VERBS = ['move', 'copy', 'del', 'rotate', 'mirror', 'trim', 'fillet', 'extend', 'shorten', 'change', 'list', 'show',
     'ids', 'dims', 'hide'];
 function otherVerb(p, except) {
     return EDIT_VERBS.filter(function (v) { return except.indexOf(v) < 0; }).some(function (v) { return q(p, v) >= 0.8; });
@@ -1055,12 +1060,16 @@ function undoButton(s, T) {
     return { label: T.undo, run: function () { return undoReply(s, T); } };
 }
 
+function doneRes(T) {
+    return { reply: T.done, speech: T.done, lang: T.lang, ok: true };
+}
+
 function undoReply(s, T) {
     const B = bridgeOf(s);
     if (!B.canUndo()) return { reply: T.nothingUndo, lang: T.lang };
     B.undo();
     B.clearHighlight();
-    return { reply: T.undone, lang: T.lang };
+    return doneRes(T);
 }
 
 function wallMissingReply(r, T) {
@@ -1068,10 +1077,19 @@ function wallMissingReply(r, T) {
     return null;
 }
 
-/** Pide un dato y deja la orden a medias (la respuesta siguiente se mezcla con ella). */
-function ask(s, cmd, p, need, text) {
+/** Falta un dato: no explica; deja la orden a medias por si el siguiente mensaje lo completa. */
+function ask(s, cmd, p, need) {
     s.ask = { cmd: cmd, p: p, need: need };
-    return { reply: text };
+    const T = texts(s && s.lang ? s.lang : 'es');
+    return { reply: T.notUnderstood, speech: T.notUnderstood };
+}
+
+/** Orden clara: coincidencia ≥ 0,65, y las frases largas solo si el comando encaja casi seguro. */
+export function maStlDesignAiCommandIsClear(p, best) {
+    if (!best || !(best.score >= 0.65)) return false;
+    const n = p && Array.isArray(p.words) ? p.words.length : 0;
+    if (n >= 10 && best.score < 0.95) return false;
+    return true;
 }
 
 function afterChange(s, w) {
@@ -1239,7 +1257,7 @@ registerDesignAiCommand({
             reply = fmt.apply(null, [T.drawnMerged, wallName(w, T)].concat(fmtArgs).concat([maStlDesignAiFmtM(w ? w.lengthMm : lengthMm, T.lang)]));
         }
         afterChange(s, w);
-        return { reply: reply + (note ? '\n' + note : ''), buttons: [undoButton(s, T)] };
+        return doneRes(T);
     },
     help: { es: 'Dibujar un muro (largo, dirección, espesor, alto, desde dónde)', en: 'Draw a wall (length, direction, thickness, height, start)' },
     short: { es: 'dibujar un muro', en: 'draw a wall' },
@@ -1325,7 +1343,7 @@ registerDesignAiCommand({
             if (cs && cs.mode === 'wall' && String(cs.axisId) !== String(now.id) && B.dimensionWall) B.dimensionWall(now.id);
         } catch (_e) { /* sin cotas */ }
         afterChange(s, now);
-        return { reply: fmt(T.edited, wallName(now, T), dimsText(now, T)), buttons: [undoButton(s, T)] };
+        return doneRes(T);
     },
     help: { es: 'Cambiar largo, espesor o alto de un muro', en: 'Change a wall\'s length, thickness or height' },
     short: { es: 'cambiar las medidas del muro', en: 'change the wall sizes' },
@@ -1367,7 +1385,7 @@ registerDesignAiCommand({
         const res = B.moveWall(w.id, v.x * mv.d, v.z * mv.d);
         if (!res || !res.ok) return { reply: fmt(T.moveFail, wallName(w, T)) };
         afterChange(s, res.wall || w);
-        return { reply: fmt(T.moved, wallName(w, T), maStlDesignAiFmtM(mv.d, T.lang), dirLabel(mv.deg, T)), buttons: [undoButton(s, T)] };
+        return doneRes(T);
     },
     help: { es: 'Desplazar un muro', en: 'Move a wall' },
     short: { es: 'mover el muro', en: 'move the wall' },
@@ -1422,8 +1440,7 @@ registerDesignAiCommand({
         if (!res || !res.ok) return { reply: fmt(T.copyFail, wallName(w, T)) };
         const c = res.walls && res.walls.length ? res.walls[0] : null;
         afterChange(s, c || w);
-        const tpl = parallel ? T.copiedParallel : T.copied;
-        return { reply: fmt(tpl, wallName(w, T), maStlDesignAiFmtM(mv.d, T.lang), dirLabel(deg, T), c ? wallName(c, T) : '?'), buttons: [undoButton(s, T)] };
+        return doneRes(T);
     },
     help: { es: 'Copiar un muro (desplazado o en paralelo)', en: 'Copy a wall (moved or parallel)' },
     short: { es: 'copiar el muro', en: 'copy the wall' },
@@ -1433,7 +1450,7 @@ registerDesignAiCommand({
 registerDesignAiCommand({
     id: 'wall.delete',
     edits: true,
-    params: [{ name: 'muro', required: true, help: 'el seleccionado, «el muro 4» o el último de la IA (siempre pide confirmación)' }],
+    params: [{ name: 'muro', required: true, help: 'el seleccionado, «el muro 4» o el último de la IA' }],
     score: function (p) {
         if (otherVerb(p, ['del'])) return 0;
         return q(p, 'del');
@@ -1445,28 +1462,12 @@ registerDesignAiCommand({
         if (!r.wall) return ask(s, this, p, 'wall', T.askWall);
         const w = r.wall;
         try { B.highlight(w.id); } catch (_e) { /* sin caras */ }
-        const yes = function () {
-            s.pending = null;
-            const res = B.deleteWall(w.id);
-            if (!res || !res.ok) return { reply: fmt(T.deleteFail, wallName(w, T)), lang: T.lang };
-            if (String(s.lastWallId) === String(w.id)) s.lastWallId = null;
-            return { reply: fmt(T.deleted, wallName(w, T)), lang: T.lang, buttons: [undoButton(s, T)] };
-        };
-        const no = function () {
-            s.pending = null;
-            B.clearHighlight();
-            return { reply: T.deleteCancel, lang: T.lang };
-        };
-        s.pending = { yes: yes, no: no };
-        return {
-            reply: fmt(T.confirmDelete, wallName(w, T), dimsText(w, T)),
-            buttons: [
-                { label: T.yes, primary: true, run: function () { return s.pending && s.pending.yes === yes ? yes() : null; } },
-                { label: T.no, run: function () { return s.pending && s.pending.no === no ? no() : null; } },
-            ],
-        };
+        const res = B.deleteWall(w.id);
+        if (!res || !res.ok) return { reply: fmt(T.deleteFail, wallName(w, T)), lang: T.lang };
+        if (String(s.lastWallId) === String(w.id)) s.lastWallId = null;
+        return doneRes(T);
     },
-    help: { es: 'Borrar un muro (pide confirmación)', en: 'Delete a wall (asks first)' },
+    help: { es: 'Borrar un muro', en: 'Delete a wall' },
     short: { es: 'borrar el muro', en: 'delete the wall' },
     examples: { es: ['borra el muro 7', 'elimina el seleccionado'], en: ['delete wall 7', 'remove the selected wall'] },
 });
@@ -1512,8 +1513,7 @@ registerDesignAiCommand({
                 }
             }
             afterChange(s, now);
-            const endName = T.extendEnd[order[i] === axisEndKey(w, false) ? 'p2' : 'p1'];
-            return { reply: fmt(T.extended, wallName(now, T), endName, maStlDesignAiFmtM(now.lengthMm, T.lang)), buttons: [undoButton(s, T)] };
+            return doneRes(T);
         }
         return { reply: fmt(T.extendFail, wallName(w, T)) };
     },
@@ -1647,18 +1647,14 @@ registerDesignAiCommand({
         const copy = keepChoiceOf(p) === true;
         const res = B.rotateWall(w.id, pv.pt, ang, { copy: copy });
         if (!res || !res.ok) return { reply: fmt(T.rotateFail, wallName(w, T)) };
-        const sense = ang > 0 ? T.ccw : T.cw;
         if (copy) {
             const c = pickTransformedWall(res.walls, w, rotateMap(pv.pt, ang));
             afterChange(s, c || w);
-            return { reply: fmt(T.rotatedCopy, wallName(w, T), fmtDeg(ang, T), sense, pv.text, c ? wallName(c, T) : '?'), buttons: [undoButton(s, T)] };
+            return doneRes(T);
         }
         const now = res.wall || w;
         afterChange(s, now);
-        return {
-            reply: fmt(T.rotated, wallName(w, T), fmtDeg(ang, T), sense, pv.text) + (pv.isDefault ? '\n' + T.pivotDefaultNote : ''),
-            buttons: [undoButton(s, T)],
-        };
+        return doneRes(T);
     },
     help: { es: 'Girar un muro (grados; sobre su centro, inicio o final; con copia)', en: 'Rotate a wall (degrees; about its centre, start or end; with copy)' },
     short: { es: 'girar el muro', en: 'rotate the wall' },
@@ -1700,7 +1696,7 @@ registerDesignAiCommand({
     params: [
         { name: 'muro', required: true, help: 'el seleccionado, «el muro 3» o el último de la IA' },
         { name: 'eje', required: true, help: '«respecto al eje X / Y» (ejes del origen), «respecto al muro 5», «vertical / horizontal por su extremo / inicio / centro», «a 45° por su centro»' },
-        { name: 'original', required: true, help: '«manteniendo el original» / «borrando el original»; si no se dice, pregunta' },
+        { name: 'original', required: false, help: '«manteniendo el original» (por defecto) / «borrando el original»' },
     ],
     score: function (p) {
         if (otherVerb(p, ['mirror', 'copy', 'del'])) return 0;
@@ -1756,22 +1752,10 @@ registerDesignAiCommand({
             const c = keep ? pickTransformedWall(res.walls, w, mirrorMap(a, b)) : null;
             const now = keep ? (c || w) : (res.wall || w);
             afterChange(s, now);
-            const tpl = keep ? T.mirroredKeep : T.mirroredMove;
-            return { reply: fmt(tpl, wallName(w, T), axisText, wallName(now, T)), lang: T.lang, buttons: [undoButton(s, T)] };
+            return doneRes(T);
         };
         const keep = keepChoiceOf(p);
-        if (keep != null) return doIt(keep);
-        try { B.highlight(w.id); } catch (_e) { /* sin caras */ }
-        const yes = function () { return doIt(false); };
-        const no = function () { return doIt(true); };
-        s.pending = { yes: yes, no: no };
-        return {
-            reply: fmt(T.askMirrorErase, wallName(w, T), axisText),
-            buttons: [
-                { label: T.eraseYes, primary: true, run: function () { return s.pending && s.pending.yes === yes ? yes() : null; } },
-                { label: T.eraseNo, run: function () { return s.pending && s.pending.no === no ? no() : null; } },
-            ],
-        };
+        return doIt(keep != null ? keep : true);
     },
     help: { es: 'Simetría de un muro (eje X/Y, otro muro o vertical/horizontal por un punto; mantener o borrar el original)', en: 'Mirror a wall (X/Y axis, another wall or vertical/horizontal through a point; keep or erase the original)' },
     short: { es: 'simetría del muro', en: 'mirror the wall' },
@@ -1822,7 +1806,7 @@ export function maStlDesignAiModeTarget(p) {
 
 registerDesignAiCommand({
     id: 'mode',
-    params: [{ name: 'modo', required: true, help: '«modo líneas» / «pasa a 2D» · «genera 3D» / «modo 3D» · «encofra» / «modo encofrar» · «encofrado colores» (Encofrar pide confirmación)' }],
+    params: [{ name: 'modo', required: true, help: '«modo líneas» / «pasa a 2D» · «genera 3D» / «modo 3D» · «encofra» / «modo encofrar» · «encofrado colores»' }],
     score: function (p) {
         if (!maStlDesignAiModeTarget(p)) return 0;
         if (otherVerb(p, ['change', 'list', 'show'])) return 0;
@@ -1838,7 +1822,7 @@ registerDesignAiCommand({
         if (target === 'lines') {
             if (info.raw === 'lines') return { reply: fmt(T.modeAlready, name) };
             return B.setMode('lines').then(function (r) {
-                return { reply: r && r.ok ? T.modeLinesDone : fmt(T.modeFail, name) };
+                return r && r.ok ? doneRes(T) : { reply: fmt(T.modeFail, name) };
             });
         }
         if (target === 'wall3d') {
@@ -1847,34 +1831,17 @@ registerDesignAiCommand({
             return B.setMode('wall3d').then(function (r) {
                 if (!r || r.busy) return { reply: T.modeBusy };
                 if (!r.ok) return { reply: fmt(T.mode3dFail, r.message || '') };
-                const head = r.count != null ? fmt(T.mode3dDone, r.count) : T.mode3dDoneCached;
-                return { reply: head + (fromFormwork ? '\n' + T.mode3dFromFormwork : '') };
+                return doneRes(T);
             });
         }
-        /* Encofrar y Encofrado colores: todo el diseño, puede tardar → Sí / No antes. */
+        /* Encofrar y Encofrado colores: todo el diseño; se lanza sin pedir Sí/No. */
         const color = target === 'formworkColor';
-        const run = function () {
-            s.pending = null;
-            return B.setMode(color ? 'formworkColor' : 'formwork').then(function (r) {
-                if (!r || r.busy) return { reply: T.modeBusy, lang: T.lang };
-                if (r.cancelled) return { reply: (color ? T.formworkColorCancelled : T.formworkCancelled), lang: T.lang };
-                if (!r.ok) return { reply: fmt(color ? T.formworkColorFail : T.formworkFail, r.message || ''), lang: T.lang };
-                const done = fmt(color ? T.formworkColorDone : T.formworkDone, r.pieces || 0);
-                return { reply: done + (r.message ? ' ' + r.message : ''), lang: T.lang };
-            });
-        };
-        const no = function () { s.pending = null; return { reply: color ? T.formworkColorNo : T.formworkNo, lang: T.lang }; };
-        s.pending = { yes: run, no: no };
-        const already = color ? !!info.color : !!info.formwork;
-        return {
-            reply: already
-                ? (color ? T.formworkColorAlready : T.formworkAlready)
-                : fmt(color ? T.confirmFormworkColor : T.confirmFormwork, info.walls),
-            buttons: [
-                { label: T.yes, primary: true, pendingText: color ? T.formworkColorRunning : T.formworkRunning, run: function () { return s.pending && s.pending.yes === run ? run() : null; } },
-                { label: T.no, run: function () { return s.pending && s.pending.no === no ? no() : null; } },
-            ],
-        };
+        return B.setMode(color ? 'formworkColor' : 'formwork').then(function (r) {
+            if (!r || r.busy) return { reply: T.modeBusy, lang: T.lang };
+            if (r.cancelled) return { reply: (color ? T.formworkColorCancelled : T.formworkCancelled), lang: T.lang };
+            if (!r.ok) return { reply: fmt(color ? T.formworkColorFail : T.formworkFail, r.message || ''), lang: T.lang };
+            return doneRes(T);
+        });
     },
     help: { es: 'Cambiar de modo: líneas (2D), 3D, encofrar o encofrado colores (con los botones de la barra)', en: 'Switch mode: lines (2D), 3D, formwork or color formwork (same as the toolbar buttons)' },
     short: { es: 'cambiar de modo', en: 'switch mode' },
@@ -1919,16 +1886,17 @@ registerDesignAiCommand({
             const st = B.cotasState ? B.cotasState() : null;
             if (st && st.mode === 'wall') {
                 const r0 = B.clearCotas(false);
-                return { reply: r0 && r0.changed ? T.dimsHidden : T.dimsNone };
+                return r0 && r0.changed ? doneRes(T) : { reply: T.dimsNone };
             }
             const r = B.showWallIds(false);
-            return { reply: r && r.changed ? T.idsHidden : T.idsNotShown };
+            return r && r.changed ? doneRes(T) : { reply: T.idsNotShown };
         }
         const walls = B.walls();
         if (!walls.length) return { reply: T.noWalls };
         const r = B.showWallIds(true);
         if (!r || !r.ok) return { reply: T.cotasFail };
-        return { reply: fmt(r.already ? T.idsAlready : T.idsShown, walls.length, wallList(walls), walls[0].label) };
+        if (r.already) return { reply: fmt(T.idsAlready, walls.length, wallList(walls), walls[0].label) };
+        return doneRes(T);
     },
     help: { es: 'Ver u ocultar el número (ID) de cada muro en el plano', en: 'Show or hide the number (ID) of each wall on the plan' },
     short: { es: 'mostrar los ID de los muros', en: 'show the wall IDs' },
@@ -1960,7 +1928,7 @@ registerDesignAiCommand({
         if (typeof B.showArticleIds !== 'function') return { reply: T.cotasFail };
         if (hideQ(p) >= 0.8) {
             const r0 = B.showArticleIds(false);
-            return { reply: r0 && r0.changed ? T.articleIdsHidden : T.articleIdsNotShown };
+            return r0 && r0.changed ? doneRes(T) : { reply: T.articleIdsNotShown };
         }
         const r = B.showArticleIds(true);
         if (!r) return { reply: T.cotasFail };
@@ -1970,9 +1938,8 @@ registerDesignAiCommand({
             const ws = B.walls();
             return { reply: fmt(T.articleIdsPick, ws.length ? ws[0].label : '1') };
         }
-        const first = (r.sample || '').split(/[–,…]/)[0].trim() || '1.1';
         if (r.already) return { reply: fmt(T.articleIdsAlready, r.count, r.sample || '—') };
-        return { reply: fmt(T.articleIdsShown, r.count, r.walls, r.sample || '—', first) };
+        return doneRes(T);
     },
     help: { es: 'Ver u ocultar el ID de cada panel junto a su cota («0,90 · 7.3»)', en: 'Show or hide the ID of each panel next to its dimension («0.90 · 7.3»)' },
     short: { es: 'mostrar los ID de los paneles', en: 'show the panel IDs' },
@@ -2003,7 +1970,7 @@ registerDesignAiCommand({
         if (hideQ(p) >= 0.8) {
             const st = B.cotasState ? B.cotasState() : { active: true };
             const r0 = B.clearCotas(true);
-            return { reply: (r0 && r0.changed) || (st && st.active) ? T.dimsHidden : T.dimsNone };
+            return (r0 && r0.changed) || (st && st.active) ? doneRes(T) : { reply: T.dimsNone };
         }
         const walls = B.walls();
         if (!walls.length) return { reply: T.noWalls };
@@ -2022,18 +1989,18 @@ registerDesignAiCommand({
             /* pt117u: lo normal es acotar el muro seleccionado; sin selección, los números de los muros para elegir. */
             const r1 = B.showCotas();
             if (!r1 || !r1.ok) return { reply: T.cotasFail };
-            return { reply: fmt(T.dimsPick, walls[0].label, wallList(walls)) };
+            return doneRes(T);
         }
         if (!w) {
             const all = B.showAllCotas ? B.showAllCotas() : { ok: false };
             if (!all || !all.ok) return { reply: T.cotasFail };
-            return { reply: fmt(T.dimsAll, walls[0].label) };
+            return doneRes(T);
         }
         const res = B.dimensionWall(w.id);
         if (!res || !res.ok) return { reply: T.cotasFail };
         const now = res.wall || w;
         afterChange(s, now);
-        return { reply: fmt(T.dimsShown, wallName(now, T), dimsText(now, T)) };
+        return doneRes(T);
     },
     help: { es: 'Acotar un muro (sus cotas en el plano; luego «longitud 4,5», «espesor 0,45» o «altura 3»)', en: 'Dimension a wall (then «length 4.5», «thickness 0.45» or «height 3»)' },
     short: { es: 'acotar el muro', en: 'dimension the wall' },
@@ -2064,7 +2031,7 @@ registerDesignAiCommand({
             if (r.missing != null) return wallMissingReply(r, T);
             if (r.wall) {
                 afterChange(s, r.wall);
-                return { reply: fmt(T.shown, wallName(r.wall, T), dimsText(r.wall, T)) };
+                return doneRes(T);
             }
         }
         const rows = walls.map(function (w) {
@@ -2096,7 +2063,7 @@ registerDesignAiCommand({
     run: function (p, s, T) { return undoReply(s, T); },
     help: { es: 'Deshacer / rehacer el último paso', en: 'Undo / redo the last step' },
     short: { es: 'deshacer', en: 'undo' },
-    examples: { es: ['deshaz', 'rehaz'], en: ['undo', 'redo'] },
+    examples: { es: ['atras', 'deshaz', 'alante'], en: ['undo', 'redo'] },
 });
 
 registerDesignAiCommand({
@@ -2107,11 +2074,11 @@ registerDesignAiCommand({
         const ok = B.redo();
         if (ok === false) return { reply: T.nothingRedo };
         B.clearHighlight();
-        return { reply: T.redone };
+        return doneRes(T);
     },
     help: null,
     short: { es: 'rehacer', en: 'redo' },
-    examples: { es: ['rehaz'], en: ['redo'] },
+    examples: { es: ['alante', 'adelante', 'rehaz'], en: ['redo'] },
 });
 
 /* Lo que el visor no tiene: no se inventa; queda como propuesta (ia-desing.md, «Propuestas»). */
@@ -2162,7 +2129,7 @@ registerDesignAiCommand({
         return maStlAiCatalogSaveEnv(code, { lang: lang }).then(function (r) {
             if (!r || !r.ok) return { reply: texts(lang).envFail };
             /* La confirmación ya sale con la voz del entorno nuevo (catálogo recargado). */
-            return { reply: fmt(texts(lang).envChanged, maStlAiCatalogEnvLabel(code, lang)) };
+            return doneRes(texts(lang));
         });
     },
     help: null,
@@ -2324,32 +2291,16 @@ function catalogReply(c, s, T, invoked) {
         const w = typeof window !== 'undefined' ? window : null;
         if (w && w.setTimeout) w.setTimeout(invoked.after, 400);
     }
-    if (invoked && invoked.replyKey && T[invoked.replyKey]) return { reply: T[invoked.replyKey], lang: T.lang };
     if (!invoked || !invoked.ok) {
         if (invoked && invoked.reason === 'unsupported') return { reply: fmt(T.pendingAi, name), lang: T.lang };
         return { reply: fmt(T.toolMissing, name), lang: T.lang };
     }
-    return { reply: fmt(T.toolDone, name), lang: T.lang };
+    return doneRes(T);
 }
 
 function runCatalogCmd(c, s, T) {
-    const name = T.lang === 'en' ? (c.nameEn || c.code) : (c.nameEs || c.code);
-    const go = function () {
-        s.pending = null;
-        return catalogReply(c, s, T, maStlDesignAiInvokeHandler(c));
-    };
-    if (c.confirm) {
-        const no = function () { s.pending = null; return { reply: T.toolNo, lang: T.lang }; };
-        s.pending = { yes: go, no: no };
-        return {
-            reply: fmt(T.confirmTool, name),
-            buttons: [
-                { label: T.yes, primary: true, run: function () { return s.pending && s.pending.yes === go ? go() : null; } },
-                { label: T.no, run: function () { return s.pending && s.pending.no === no ? no() : null; } },
-            ],
-        };
-    }
-    return go();
+    s.pending = null;
+    return catalogReply(c, s, T, maStlDesignAiInvokeHandler(c));
 }
 
 /** Parte toolbar/click/key de un handler (`ai:wall.dims|click:#…` → la parte que se puede pulsar). */
@@ -2407,7 +2358,7 @@ const EN_HINTS = new Set(['draw', 'wall', 'walls', 'move', 'copy', 'delete', 're
     'mode', 'line', 'lines', 'generate', 'formwork', 'color', 'colors', 'coloured', 'colored', 'axis', 'about', 'keep', 'keeping', 'original', 'clockwise', 'counterclockwise', 'degrees', 'switch',
     'dimension', 'dimensions', 'measure', 'hide', 'label', 'number', 'numbers']);
 const ES_HINTS = new Set(['dibuja', 'muro', 'muros', 'pared', 'mueve', 'copia', 'borra', 'el', 'la', 'los', 'de', 'del', 'hacia', 'derecha', 'izquierda',
-    'arriba', 'abajo', 'largo', 'espesor', 'alto', 'desde', 'deshaz', 'lista', 'ayuda', 'metros', 'metro', 'otro', 'girando', 'en', 'un', 'una',
+    'arriba', 'abajo', 'largo', 'espesor', 'alto', 'desde',     'deshaz', 'atras', 'alante', 'adelante', 'lista', 'ayuda', 'metros', 'metro', 'otro', 'girando', 'en', 'un', 'una',
     'haz', 'ponle', 'cambia', 'alarga', 'siguiente', 'si', 'gracias', 'que', 'hasta', 'y', 'con', 'gira', 'paralelo',
     'modo', 'linea', 'lineas', 'genera', 'encofra', 'encofrar', 'colores', 'color', 'eje', 'respecto', 'sobre', 'simetria', 'grados', 'pasa', 'centro', 'inicio', 'final', 'manteniendo', 'borrando',
     'acota', 'acotame', 'cota', 'cotas', 'mide', 'longitud', 'altura', 'oculta', 'identifica', 'muestrame', 'ensename', 'cambiame', 'es']);
@@ -2482,6 +2433,21 @@ export function maStlDesignAiNewSession(bridge) {
     return { bridge: bridge || null, lastWallId: null, ask: null, pending: null, lang: null, proposals: [], learn: null };
 }
 
+function finishCmdRes(res, cmd, s, T, pre, lostFormwork) {
+    res = res || { reply: '' };
+    res.command = cmd.id;
+    if (s.ask) return res;
+    if (res.ok) {
+        res.reply = T.done;
+        res.speech = T.done;
+        delete res.buttons;
+        return res;
+    }
+    if (pre) res.reply = pre + (res.reply || '');
+    if (lostFormwork) res.reply = (res.reply || '') + '\n' + T.formworkCleared;
+    return res;
+}
+
 function runCmd(cmd, p, s, T) {
     const B = bridgeOf(s);
     let pre = '';
@@ -2499,20 +2465,14 @@ function runCmd(cmd, p, s, T) {
     /* Órdenes que esperan al visor (modos 3D / Encofrar): la respuesta llega con la promesa. */
     if (typeof out.then === 'function') {
         return out.then(function (r) {
-            const res = r || { reply: '' };
-            if (pre) res.reply = pre + (res.reply || '');
-            res.command = cmd.id;
-            return res;
+            let lostFormwork = false;
+            try { lostFormwork = hadFormwork && B && !B.hasFormwork(); } catch (_e) { lostFormwork = false; }
+            return finishCmdRes(r, cmd, s, T, pre, lostFormwork);
         });
     }
-    const res = out;
-    if (pre) res.reply = pre + (res.reply || '');
-    /* Alargar (y lo que el visor trate igual) quita el encofrado puesto: se avisa; no se re-encofra solo. */
     let lostFormwork = false;
     try { lostFormwork = hadFormwork && !B.hasFormwork(); } catch (_e) { lostFormwork = false; }
-    if (lostFormwork) res.reply = (res.reply || '') + '\n' + T.formworkCleared;
-    res.command = cmd.id;
-    return res;
+    return finishCmdRes(out, cmd, s, T, pre, lostFormwork);
 }
 
 /* ------------------------- Revisión «analiza el .json» ------------------------- */
@@ -2836,8 +2796,8 @@ function answerLearnReview(s, text, T) {
 }
 
 /**
- * Intérprete del chat de diseño: confirmación pendiente → respuesta a una pregunta → mejor comando
- * (≥ 0,8 se ejecuta; 0,65..0,8 «¿Querías decir…?») → saludo / no entendido + ayuda.
+ * Intérprete del chat de diseño: confirmación pendiente (sí/no residual) → respuesta a una pregunta → mejor comando
+ * (≥ 0,65 se ejecuta; si no puede, dice por qué) → saludo / no entendido + ayuda.
  * «analiza el .json» revisa las frases pendientes antes que el resto.
  */
 export function maStlDesignAiHandleMessage(session, text, history) {
@@ -2887,29 +2847,13 @@ export function maStlDesignAiHandleMessage(session, text, history) {
         if (!other && best && best.cmd === a.cmd) return tag(runCmd(a.cmd, mergeAnswer(a.p, p, a.need), s, T));
         s.ask = null;
     }
-    if (best && best.score >= 0.8) return tag(runCmd(best.cmd, p, s, T));
-    if (best && best.score >= 0.65 && best.cmd.short) {
-        const cmd = best.cmd;
-        const yes = function () { s.pending = null; return tag(runCmd(cmd, p, s, T)); };
-        const no = function () { s.pending = null; return tag(MA_STL_DESIGN_AI_COMMANDS[0].run(p, s, T)); };
-        s.pending = { yes: yes, no: no };
-        return tag({
-            reply: fmt(T.didYouMean, cmd.short[lang]),
-            buttons: [
-                { label: T.yes, primary: true, run: function () { return s.pending && s.pending.yes === yes ? yes() : null; } },
-                { label: T.no, run: function () { return s.pending && s.pending.no === no ? no() : null; } },
-            ],
-        });
-    }
+    if (maStlDesignAiCommandIsClear(p, best)) return tag(runCmd(best.cmd, p, s, T));
     if (q(p, 'greet') >= 0.8 && p.words.length <= 4) {
         return tag({ reply: T.helpHead + '\n' + MA_STL_DESIGN_AI_COMMANDS.filter(function (c) { return c.help && c.examples; })
             .slice(0, 3).map(function (c) { return '\u2022 «' + c.examples[lang][0] + '»'; }).join('\n') + '\n' + T.helpTail });
     }
-    const help = MA_STL_DESIGN_AI_COMMANDS[0].run(p, s, T);
-    help.reply = fmt(T.notUnderstood, p.text) + '\n' + help.reply;
-    help.speech = fmt(T.notUnderstood, p.text) + ' ' + T.helpSpeech;
-    logUnknown(s, text, lang, fmt(T.notUnderstood, p.text));
-    return tag(help);
+    logUnknown(s, text, lang, T.notUnderstood);
+    return tag({ reply: T.notUnderstood, speech: T.notUnderstood });
 }
 
 /**

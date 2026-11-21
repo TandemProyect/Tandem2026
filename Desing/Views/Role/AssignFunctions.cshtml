@@ -1,0 +1,268 @@
+@model Desing.Models.SecurityRoleFunctionsViewModel
+@using Newtonsoft.Json
+@using Desing.Resources
+@{
+    ViewBag.Title = Security.Role_AssignFunctions_Title;
+    var ui = JsonConvert.SerializeObject(new
+    {
+        roleId = Model.RoleId,
+        dataUrl = Url.Action("RoleFunctionsData", "Role"),
+        addUrl = Url.Action("AddRoleFunction", "Role"),
+        removeUrl = Url.Action("RemoveRoleFunction", "Role"),
+        btnAssign = Security.Role_AssignFunctions_BtnAssign,
+        btnRemove = Security.Role_AssignFunctions_BtnRemove,
+        emptyAssigned = Security.Role_AssignFunctions_EmptyAssigned,
+        emptyAvailable = Security.Role_AssignFunctions_EmptyAvailable,
+        stateActive = Security.State_Active,
+        stateInactive = Security.State_Inactive,
+        stateFree = Security.Function_State_Free
+    });
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@Security.Common_Home</a> /
+            @Security.Common_Security /
+            <a href="@Url.Action("Index", "Role")">@Security.Role_Index_Breadcrumb</a> /
+        </span> @Security.Role_AssignFunctions_Title
+        <small class="text-muted ms-2">@Model.DisplayName</small>
+    </h4>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="@Url.Action("Edit", "Role", new { id = Model.RoleId })">@Common.Btn_Edit</a>
+        <a class="btn btn-outline-secondary" href="@Url.Action("Index", "Role")">@Common.Btn_Cancel</a>
+    </div>
+</div>
+
+<div id="fnMsg" class="alert alert-success py-2" style="display:none;" role="status"></div>
+
+@if (Model.Is_AllFunctions)
+{
+    <div class="alert alert-warning py-2">@Security.Role_AssignFunctions_AllFunctionsHint</div>
+}
+<p class="text-muted mb-3"><span class="fas fa-arrows-alt-h me-1" aria-hidden="true"></span>@Security.Role_AssignFunctions_Hint</p>
+
+<div class="row g-4 tandem-role-fns">
+    <div class="col-lg-6">
+        <div class="card h-100 tandem-fn-drop" data-target="assigned">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h5 class="mb-0"><span class="fas fa-check me-2" aria-hidden="true"></span>@Security.Role_AssignFunctions_Assigned</h5>
+                <span class="badge bg-label-primary" id="countAssigned">0</span>
+            </div>
+            <div class="card-body" style="padding:5px">
+                <table id="ListAssignedFns" class="table table-hover" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>@Security.Function_Col_Name</th>
+                            <th>@Security.Function_Col_Code</th>
+                            <th>@Security.Function_Col_Module</th>
+                            <th class="text-end text-nowrap" style="width:1%;"></th>
+                        </tr>
+                    </thead>
+                </table>
+                <div class="tandem-fn-drop-hint">@Security.Role_AssignFunctions_DropHere</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100 tandem-fn-drop" data-target="available">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h5 class="mb-0"><span class="fas fa-list me-2" aria-hidden="true"></span>@Security.Role_AssignFunctions_Available</h5>
+                <span class="badge bg-label-secondary" id="countAvailable">0</span>
+            </div>
+            <div class="card-body" style="padding:5px">
+                <table id="ListAvailableFns" class="table table-hover" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th class="text-nowrap" style="width:1%;"></th>
+                            <th>@Security.Function_Col_Name</th>
+                            <th>@Security.Function_Col_Code</th>
+                            <th>@Security.Function_Col_Module</th>
+                        </tr>
+                    </thead>
+                </table>
+                <div class="tandem-fn-drop-hint">@Security.Role_AssignFunctions_DropHere</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div style="display:none;">@Html.AntiForgeryToken()</div>
+
+<style>
+    .tandem-role-fns tbody tr { cursor: grab; }
+    .tandem-role-fns tr.tandem-dragging { opacity: .5; }
+    .tandem-fn-drop-hint { display: none; margin: 8px; padding: 14px; border: 2px dashed #8c57ff; border-radius: 6px; text-align: center; color: #8c57ff; }
+    .tandem-fn-drop.tandem-drop-ready .tandem-fn-drop-hint { display: block; }
+    .tandem-fn-drop.tandem-drop-over { outline: 2px solid #8c57ff; background: rgba(140, 87, 255, .06); }
+    .tandem-role-fns .dataTables_scrollBody {
+        overflow-y: scroll !important;
+        max-height: 52vh !important;
+        min-height: 52vh !important;
+    }
+    .tandem-role-fns .dataTables_wrapper { width: 100%; }
+</style>
+
+@section scripts
+{
+    <script type="text/javascript">
+        (function ($) {
+            var ui = @Html.Raw(ui);
+            var dragging = null;
+            var exportOpts = (window.TandemDataTablesList && window.TandemDataTablesList.exportOptsPlainVisible)
+                ? window.TandemDataTablesList.exportOptsPlainVisible
+                : {
+                    columns: ':visible',
+                    format: {
+                        body: function (data) {
+                            return $('<div>').html(data == null ? '' : data).text();
+                        }
+                    }
+                };
+
+            function esc(s) { return $('<div>').text(s == null ? '' : s).html(); }
+
+            function nameCell(r) {
+                var h = '<span class="fw-medium">' + esc(r.TextLabel) + '</span>';
+                if (!r.Is_Active) { h += ' <span class="badge bg-label-secondary ms-1">' + esc(ui.stateFree) + '</span>'; }
+                if (r.TextDescription) { h += '<div class="small text-muted">' + esc(r.TextDescription) + '</div>'; }
+                return h;
+            }
+
+            function baseOpts(emptyText) {
+                return {
+                    data: [],
+                    dom: 'Bfrtip',
+                    paging: true,
+                    pageLength: 10,
+                    lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'Todo']],
+                    info: false,
+                    stateSave: false,
+                    scrollY: '52vh',
+                    scrollCollapse: false,
+                    order: [],
+                    language: { emptyTable: emptyText, zeroRecords: emptyText },
+                    buttons: [{
+                        extend: 'collection',
+                        text: "<i class='fas fa-bars'></i>",
+                        attr: { 'aria-label': 'Opciones de tabla' },
+                        className: 'custom-html-collection',
+                        buttons: [
+                            '<h5>Registros</h5>',
+                            'pageLength',
+                            '<h5>Exportar</h5>',
+                            'copy',
+                            { extend: 'csv', exportOptions: exportOpts },
+                            { extend: 'excel', exportOptions: exportOpts }
+                        ]
+                    }],
+                    createdRow: function (tr, r) {
+                        $(tr).attr('draggable', 'true').attr('data-fn-id', r.IdObject);
+                    }
+                };
+            }
+
+            var dtAssigned = $('#ListAssignedFns').DataTable($.extend(baseOpts(ui.emptyAssigned), {
+                columns: [
+                    { data: 'TextLabel', render: function (d, t, r) { return t === 'display' ? nameCell(r) : d; } },
+                    { data: 'TextCode', render: function (d, t) { return t === 'display' && d ? '<code>' + esc(d) + '</code>' : d; } },
+                    { data: 'TextModule' },
+                    {
+                        data: null, orderable: false, searchable: false, className: 'text-end text-nowrap',
+                        render: function (d, t, r) {
+                            return '<button type="button" class="btn btn-outline-danger btn-xs js-fn-remove" data-fn-id="' + r.IdObject +
+                                '" title="' + esc(ui.btnRemove) + '"><span class="fas fa-arrow-right" aria-hidden="true"></span></button>';
+                        }
+                    }
+                ]
+            }));
+
+            var dtAvailable = $('#ListAvailableFns').DataTable($.extend(baseOpts(ui.emptyAvailable), {
+                columns: [
+                    {
+                        data: null, orderable: false, searchable: false, className: 'text-nowrap',
+                        render: function (d, t, r) {
+                            return '<button type="button" class="btn btn-outline-primary btn-xs js-fn-add" data-fn-id="' + r.IdObject +
+                                '" title="' + esc(ui.btnAssign) + '"><span class="fas fa-arrow-left" aria-hidden="true"></span></button>';
+                        }
+                    },
+                    { data: 'TextLabel', render: function (d, t, r) { return t === 'display' ? nameCell(r) : d; } },
+                    { data: 'TextCode', render: function (d, t) { return t === 'display' && d ? '<code>' + esc(d) + '</code>' : d; } },
+                    { data: 'TextModule' }
+                ]
+            }));
+
+            function load() {
+                $.ajax({ url: ui.dataUrl, data: { roleId: ui.roleId }, cache: false })
+                    .done(function (res) {
+                        if (!res || !res.IsOk) { if (res && res.Message) { alert(res.Message); } return; }
+                        dtAssigned.clear().rows.add(res.Assigned || []).draw();
+                        dtAvailable.clear().rows.add(res.Available || []).draw();
+                        dtAssigned.columns.adjust();
+                        dtAvailable.columns.adjust();
+                        $('#countAssigned').text((res.Assigned || []).length);
+                        $('#countAvailable').text((res.Available || []).length);
+                    })
+                    .fail(function (xhr) { alert((xhr.responseJSON && xhr.responseJSON.Message) || xhr.statusText); });
+            }
+
+            function change(url, functionId) {
+                if (!functionId) { return; }
+                $.post(url, {
+                    roleId: ui.roleId,
+                    functionId: functionId,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                }).done(function (res) {
+                    if (res && !res.IsOk && res.Message) { alert(res.Message); }
+                    else if (res && res.Message) { $('#fnMsg').text(res.Message).stop(true, true).show().delay(2500).fadeOut(); }
+                }).fail(function (xhr) {
+                    alert((xhr.responseJSON && xhr.responseJSON.Message) || xhr.statusText);
+                }).always(load);
+            }
+
+            $(document).on('click', '#ListAvailableFns_wrapper .js-fn-add', function (e) {
+                e.stopPropagation();
+                change(ui.addUrl, $(this).attr('data-fn-id'));
+            });
+            $(document).on('click', '#ListAssignedFns_wrapper .js-fn-remove', function (e) {
+                e.stopPropagation();
+                change(ui.removeUrl, $(this).attr('data-fn-id'));
+            });
+
+            $('.tandem-role-fns').on('dragstart', 'tbody tr', function (e) {
+                if ($(e.target).closest('button,a,input').length) { return; }
+                var from = $(this).closest('.tandem-fn-drop').data('target');
+                var id = $(this).attr('data-fn-id');
+                if (!id) { return; }
+                dragging = { functionId: id, from: from };
+                $(this).addClass('tandem-dragging');
+                var dt = e.originalEvent.dataTransfer;
+                dt.effectAllowed = 'move';
+                dt.setData('text/plain', String(id));
+                $('.tandem-fn-drop').filter(function () { return $(this).data('target') !== from; }).addClass('tandem-drop-ready');
+            }).on('dragend', 'tbody tr', function () {
+                dragging = null;
+                $(this).removeClass('tandem-dragging');
+                $('.tandem-fn-drop').removeClass('tandem-drop-ready tandem-drop-over');
+            });
+
+            $('.tandem-fn-drop').on('dragover', function (e) {
+                if (!dragging || dragging.from === $(this).data('target')) { return; }
+                e.preventDefault();
+                if (e.originalEvent.dataTransfer) { e.originalEvent.dataTransfer.dropEffect = 'move'; }
+                $(this).addClass('tandem-drop-over');
+            }).on('dragleave', function (e) {
+                if (!this.contains(e.originalEvent.relatedTarget)) { $(this).removeClass('tandem-drop-over'); }
+            }).on('drop', function (e) {
+                e.preventDefault();
+                var to = $(this).data('target');
+                var d = dragging;
+                $('.tandem-fn-drop').removeClass('tandem-drop-ready tandem-drop-over');
+                if (!d || d.from === to) { return; }
+                change(to === 'assigned' ? ui.addUrl : ui.removeUrl, d.functionId);
+            });
+
+            load();
+        })(jQuery);
+    </script>
+}

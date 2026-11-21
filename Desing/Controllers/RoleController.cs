@@ -2,6 +2,7 @@ using DataTables.Mvc;
 using Desing.Helpers;
 using Desing.Models;
 using Desing.Resources;
+using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -106,6 +107,10 @@ namespace Desing.Controllers
                         ? "<span class=\"badge bg-label-primary\">" + lblAll + "</span>"
                         : p.NFunctions.ToString();
 
+                    var ttFn = HttpUtility.HtmlAttributeEncode(Security.Role_AssignFunctions_Tooltip);
+                    var fnBtn = "<a title=\"" + ttFn + "\" href=\"" +
+                                Url.Action("AssignFunctions", new { id = p.IdObject }) +
+                                "\" data-function=\"Role.Edit\" class=\"btn btn-secondary btn-xs\"><span class=\"fas fa-tasks\" aria-hidden=\"true\"></span></a>";
                     var editBtn = "<a title=\"" + ttEdit + "\" href=\"" + Url.Action("Edit", new { id = p.IdObject }) +
                                   "\" data-function=\"Role.Edit\" class=\"btn btn-warning btn-xs\"><span class=\"fas fa-edit\" aria-hidden=\"true\"></span></a>";
                     var deleteBtn = p.Is_System
@@ -125,7 +130,7 @@ namespace Desing.Controllers
                         NUsers = p.NUsers,
                         Is_Active = p.Is_Active,
                         activeBadge,
-                        rowActions = "<div class=\"d-inline-flex align-items-center gap-2\" role=\"group\">" + editBtn + deleteBtn + "</div>"
+                        rowActions = "<div class=\"d-inline-flex align-items-center gap-2\" role=\"group\">" + fnBtn + editBtn + deleteBtn + "</div>"
                     };
                 }).ToList();
 
@@ -157,7 +162,6 @@ namespace Desing.Controllers
 
             var userId = IntranetAuditHelper.ResolveCurrentUserId(User);
             var id = SecurityRepository.InsertRole(db, posted, userId);
-            SecurityRepository.SyncRoleFunctions(db, id, vm.SelectedFunctionIds, userId);
 
             TempData["ToastType"] = "Act";
             TempData["ToastTitle"] = Security.Role_Toast_CreateTitle;
@@ -202,7 +206,6 @@ namespace Desing.Controllers
 
             var userId = IntranetAuditHelper.ResolveCurrentUserId(User);
             SecurityRepository.UpdateRole(db, posted, userId);
-            SecurityRepository.SyncRoleFunctions(db, existing.IdObject, vm.SelectedFunctionIds, userId);
 
             TempData["ToastType"] = "Act";
             TempData["ToastTitle"] = Security.Role_Toast_EditTitle;
@@ -227,6 +230,100 @@ namespace Desing.Controllers
 
             SecurityRepository.SoftDeleteRole(db, id, IntranetAuditHelper.ResolveCurrentUserId(User));
             return Json(new { IsOk = true, Message = string.Format(Security.Role_Toast_Deleted, role.TextLabel) });
+        }
+
+        public ActionResult AssignFunctions(long id)
+        {
+            var role = SecurityRepository.GetRole(db, id);
+            if (role == null)
+            {
+                return NotFoundToIndex();
+            }
+
+            return View(new SecurityRoleFunctionsViewModel
+            {
+                RoleId = role.IdObject,
+                DisplayName = role.TextLabel,
+                Is_System = role.Is_System,
+                Is_AllFunctions = role.Is_AllFunctions
+            });
+        }
+
+        [OutputCache(Duration = 0, NoStore = true)]
+        public JsonResult RoleFunctionsData(long roleId)
+        {
+            var role = SecurityRepository.GetRole(db, roleId);
+            if (role == null)
+            {
+                return Json(new { IsOk = false, Message = Security.Role_Err_NotFound }, JsonRequestBehavior.AllowGet);
+            }
+
+            var assignedIds = new HashSet<long>(SecurityRepository.GetRoleFunctionIds(db, roleId));
+            var rows = SecurityRepository.ListFunctions(db).Select(f => new
+            {
+                f.IdObject,
+                TextLabel = f.TextLabel ?? "",
+                TextCode = f.TextCode ?? "",
+                TextModule = f.TextModule ?? "",
+                TextDescription = f.TextDescription ?? "",
+                f.Is_Active,
+                Assigned = assignedIds.Contains(f.IdObject)
+            }).ToList();
+
+            return Json(new
+            {
+                IsOk = true,
+                Assigned = rows.Where(f => f.Assigned),
+                Available = rows.Where(f => !f.Assigned && f.Is_Active)
+            }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult AddRoleFunction(long roleId, long functionId)
+        {
+            var role = SecurityRepository.GetRole(db, roleId);
+            if (role == null)
+            {
+                return Json(new { IsOk = false, Message = Security.Role_Err_NotFound });
+            }
+
+            var fn = SecurityRepository.GetFunction(db, functionId);
+            if (fn == null || !fn.Is_Active)
+            {
+                return Json(new { IsOk = false, Message = Security.Role_AssignFunctions_FunctionNotFound });
+            }
+
+            SecurityRepository.AddRoleFunction(db, role.IdObject, fn.IdObject, IntranetAuditHelper.ResolveCurrentUserId(User));
+            return Json(new { IsOk = true, Message = string.Format(Security.Role_AssignFunctions_Added, fn.TextLabel, role.TextLabel) });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult RemoveRoleFunction(long roleId, long functionId)
+        {
+            var role = SecurityRepository.GetRole(db, roleId);
+            if (role == null)
+            {
+                return Json(new { IsOk = false, Message = Security.Role_Err_NotFound });
+            }
+
+            var fn = SecurityRepository.GetFunction(db, functionId);
+            if (fn == null)
+            {
+                return Json(new { IsOk = false, Message = Security.Role_AssignFunctions_FunctionNotFound });
+            }
+
+            var currentUserId = IntranetAuditHelper.ResolveCurrentUserId(User);
+            SecurityRepository.RemoveRoleFunction(db, role.IdObject, fn.IdObject, currentUserId);
+
+            if (!FunctionAccessService.Can(User.Identity.GetUserId(), "Role"))
+            {
+                SecurityRepository.AddRoleFunction(db, role.IdObject, fn.IdObject, currentUserId);
+                return Json(new { IsOk = false, Message = Security.Role_AssignFunctions_SelfLockout });
+            }
+
+            return Json(new { IsOk = true, Message = string.Format(Security.Role_AssignFunctions_Removed, fn.TextLabel, role.TextLabel) });
         }
 
         private ActionResult NotFoundToIndex()

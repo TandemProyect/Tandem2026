@@ -254,7 +254,7 @@
     <value>Code *</value>
   </data>
   <data name="Lbl_Color1" xml:space="preserve">
-    <value>Render color</value>
+    <value>Color 1</value>
   </data>
   <data name="Lbl_Color2" xml:space="preserve">
     <value>Color 2</value>
@@ -1275,6 +1275,12 @@
   </data>
   <data name="StlPreview_DimDevelopCornerReferencePoint" xml:space="preserve">
     <value>Corner reference point</value>
+  </data>
+  <data name="StlPreview_DimDevelopFaceId" xml:space="preserve">
+    <value>Face IDs</value>
+  </data>
+  <data name="StlPreview_DimDevelopFaces" xml:space="preserve">
+    <value>Faces</value>
   </data>
   <data name="StlPreview_DimDevelopGuides" xml:space="preserve">
     <value>Points and labels</value>

@@ -70,12 +70,12 @@ export function formworkModeClickAction(alreadyPainted, fromColorButton, colorWa
 }
 
 /**
- * Sin muro seleccionado, las cotas de longitud siguen apagadas.
- * Paneles, remates e id de artículo salen si la casilla está marcada.
+ * Sin muro seleccionado, las cotas de longitud de tramo siguen apagadas.
+ * Paneles, remates, id de artículo e ID Faces (F-n) salen si la casilla está marcada.
  */
 export function wallDimKindWithoutWall(kindId, map) {
     if (kindId === 'wall-id') return true;
-    if (kindId !== 'panels' && kindId !== 'remates' && kindId !== 'article-id') return false;
+    if (kindId !== 'panels' && kindId !== 'remates' && kindId !== 'article-id' && kindId !== 'face-id') return false;
     if (!map || typeof map !== 'object' || !Object.prototype.hasOwnProperty.call(map, kindId)) return false;
     return map[kindId] === true;
 }

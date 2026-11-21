@@ -280,6 +280,29 @@ SELECT f.IdObject, f.TextLabel, f.TextCode, f.TextModule, f.TextDescription, f.I
             return n > 0;
         }
 
+        /// <summary>Asigna una función al rol; si ya la tiene no hace nada.</summary>
+        public static bool AddRoleFunction(ConexionData db, long roleId, long functionId, string userId)
+        {
+            if (GetRoleFunctionIds(db, roleId).Contains(functionId))
+            {
+                return false;
+            }
+
+            InsertRoleFunction(db, roleId, functionId, userId);
+            FunctionAccessService.InvalidateAll();
+            return true;
+        }
+
+        /// <summary>Quita la función del rol (borrado lógico de <c>TSql_RoleFunction</c>).</summary>
+        public static bool RemoveRoleFunction(ConexionData db, long roleId, long functionId, string userId)
+        {
+            var n = db.Database.ExecuteSqlCommand(
+                "UPDATE dbo.TSql_RoleFunction SET " + Audit.Replace("@p1", "@p2") + " WHERE LinkRoles_V2 = @p0 AND LinkFunctions = @p1 AND Is_Delete = 0",
+                roleId, functionId, userId);
+            FunctionAccessService.InvalidateAll();
+            return n > 0;
+        }
+
         private static void InsertRoleFunction(ConexionData db, long roleId, long functionId, string userId)
         {
             db.Database.ExecuteSqlCommand(

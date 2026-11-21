@@ -51,7 +51,7 @@
     <link rel="stylesheet" href="@Url.Content("~/assets/materio/vendor/libs/perfect-scrollbar/perfect-scrollbar.css")" />
 
     <!-- Site CSS -->
-    <link rel="stylesheet" href="@Url.Content("~/assets/materio/css/site.css?v=20261114j")" />
+    <link rel="stylesheet" href="@Url.Content("~/assets/materio/css/site.css?v=20261120a")" />
 
     @if (!skipIntranetDataTables)
     {
@@ -296,7 +296,8 @@
     @Html.Partial("_DesignMaterialCountModal")
     @* Decimales: coma → punto al salir del campo / enviar (BD con punto) *@
     <script src="@Url.Content("~/Scripts/Intranet/decimal-input-normalize.js?v=20261112a")"></script>
-    <script src="@Url.Content("~/Scripts/Intranet/design-material-count-popup.js?v=20261023c")"></script>
+    <script type="module" src="@Url.Content("~/Scripts/Desing2/desing2-material-count-panel-name.js")?v=20261120a"></script>
+    <script src="@Url.Content("~/Scripts/Intranet/design-material-count-popup.js?v=20261120a")"></script>
     @RenderSection("scripts", required: false)
 </body>
 </html>

@@ -2651,6 +2651,9 @@
     <None Include="Report\2026\img\2026-11-04-esquina-regulable-union-cara-incorrecta-1111.png" />
     <None Include="Report\2026\img\2026-11-04-esquina-regulable-placa-giro-180-1303.png" />
     <None Include="Report\2026\img\2026-11-04-esquina-regulable-placa-sin-giro-1320.png" />
+    <None Include="Report\2026\img\2026-11-20-caras-muro-planta-8-caras.png" />
+    <None Include="Report\2026\img\2026-11-20-cara-inferior-exterior-1-2-3.png" />
+    <None Include="Report\2026\img\2026-11-20-roles-editar-checkboxes.png" />
     <None Include="Report\2026\img\2026-10-22-paneles-030-elevados.png" />
     <None Include="Report\2026\img\2026-10-22-grapa-atenko.png" />
     <None Include="Report\2026\img\2026-10-23-obra-cliente-vacio.png" />
@@ -3568,6 +3571,9 @@
     <Content Include="IA\tools\decrypt-wall-export.mjs" />
     <Content Include="Scripts\Desing2\desing2-map-building-import.js" />
     <Content Include="Scripts\Desing2\desing2-connection-test.js" />
+    <Content Include="Scripts\Desing2\desing2-material-count-panel-name.js" />
+    <Content Include="Scripts\Desing2\desing2-wall-faces.js" />
+    <Content Include="Scripts\Desing2\desing2-wall-corner-ids.js" />
     <Content Include="Scripts\ResourceGenerators\_gen_branch_resources.js" />
     <Content Include="Scripts\ResourceGenerators\_gen_clientv2_resources.js" />
     <Content Include="Scripts\ResourceGenerators\_gen_common_resources.js" />
@@ -3665,6 +3671,7 @@
     <Content Include="Views\Role\Create.cshtml" />
     <Content Include="Views\Role\Edit.cshtml" />
     <Content Include="Views\Role\Details.cshtml" />
+    <Content Include="Views\Role\AssignFunctions.cshtml" />
     <Content Include="Views\Role\_RoleFormFields.cshtml" />
     <Content Include="Views\Function\Index.cshtml" />
     <Content Include="Views\ClientOffer\Index.cshtml" />

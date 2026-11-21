@@ -12,6 +12,47 @@
   var articlesDt = null;
   var detailsDt = null;
   var lastRows = [];
+  var panelColorCatalog = {};
+
+  function paintCountPanelName(name, code) {
+    var api = window.TandemMaterialCountPanelName;
+    if (!api || typeof api.materialCountColorPanelNameHtml !== 'function') {
+      return String(name == null ? '' : name)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    return api.materialCountColorPanelNameHtml(name, code, panelColorCatalog);
+  }
+
+  function nameColumn() {
+    return {
+      data: 'name',
+      defaultContent: '',
+      render: function (value, type, row) {
+        if (type !== 'display') return value == null ? '' : String(value);
+        return paintCountPanelName(value, row && row.code);
+      }
+    };
+  }
+
+  function loadPanelColorCatalog() {
+    var api = window.TandemMaterialCountPanelName;
+    if (api && api.cached && typeof api.cached === 'object' && Object.keys(api.cached).length) {
+      panelColorCatalog = api.cached;
+      return Promise.resolve();
+    }
+    var url = attr('data-colors-url');
+    var system = attr('data-colors-system') || 'Atk-60';
+    if (!url) return Promise.resolve();
+    return fetch(url + '?system=' + encodeURIComponent(system), { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        panelColorCatalog = api && typeof api.catalogFromServerPayload === 'function'
+          ? api.catalogFromServerPayload(data)
+          : {};
+        if (api) api.cached = panelColorCatalog;
+      })
+      .catch(function () { });
+  }
 
   function num(value) {
     var n = Number(value);
@@ -110,7 +151,7 @@
       language: language(),
       columns: [
         { data: 'code', defaultContent: '' },
-        { data: 'name', defaultContent: '' },
+        nameColumn(),
         numberColumn('qty', 0)
       ],
       initComplete: function () { parkChrome(this.api(), false); showActiveSearch(); }
@@ -130,7 +171,7 @@
       columns: [
         { data: 'n', className: 'text-end', defaultContent: '' },
         { data: 'code', defaultContent: '' },
-        { data: 'name', defaultContent: '' },
+        nameColumn(),
         numberColumn('qty', 0),
         numberColumn('unitWeight', 2),
         numberColumn('totalWeight', 2),
@@ -213,7 +254,10 @@
     paint([]);
     var url = attr('data-url') + '?designId=' + encodeURIComponent(id || '');
     modal.show();
-    fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+    loadPanelColorCatalog()
+      .then(function () {
+        return fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+      })
       .then(function (res) { return res.json(); })
       .then(function (data) {
         if (!data || data.ok === false || data.Ok === false) {
