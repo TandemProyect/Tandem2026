@@ -1,0 +1,207 @@
+@model Desing.Helpers.DevelopIssueRow
+@using Desing.Helpers
+@using Desing.Resources
+@{
+    ViewBag.Title = Model.TextLabel;
+    var assessments = ViewBag.Assessments as List<DevelopIssueAssessmentRow> ?? new List<DevelopIssueAssessmentRow>();
+    var details = ViewBag.IssueDetails as List<DevelopIssueDetailRow> ?? new List<DevelopIssueDetailRow>();
+    var ok = TempData["DevelopIssueOk"] as string;
+    var error = TempData["DevelopIssueError"] as string;
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@DevelopIssue.Common_Home</a> /
+            @DevelopIssue.Common_Develop /
+            <a href="@Url.Action("Index", "DevelopIssue")">@DevelopIssue.Index_Breadcrumb</a> /
+        </span> @Model.TextLabel
+    </h4>
+    <a class="btn btn-warning" href="@Url.Action("Edit", "DevelopIssue", new { id = Model.IdObject })">
+        <i class="icon-base ri ri-pencil-line me-1"></i> @Common.Btn_Edit
+    </a>
+</div>
+
+@if (!string.IsNullOrEmpty(ok))
+{
+    <div class="alert alert-success">@ok</div>
+}
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">@DevelopIssue.Col_Name</dt>
+            <dd class="col-sm-9">@Model.TextLabel</dd>
+            <dt class="col-sm-3">@DevelopIssue.Col_Type</dt>
+            <dd class="col-sm-9"><span class="badge rounded-pill @DevelopIssueCodes.TypeBadge(Model.TextType)">@DevelopIssueCodes.TypeText(Model.TextType)</span></dd>
+            <dt class="col-sm-3">@DevelopIssue.Col_Urgency</dt>
+            <dd class="col-sm-9"><span class="badge rounded-pill @DevelopIssueCodes.UrgencyBadge(Model.TextUrgency)">@DevelopIssueCodes.UrgencyText(Model.TextUrgency)</span></dd>
+            <dt class="col-sm-3">@DevelopIssue.Col_State</dt>
+            <dd class="col-sm-9"><span class="badge rounded-pill @DevelopIssueCodes.StateBadge(Model.TextState)">@DevelopIssueCodes.StateText(Model.TextState)</span></dd>
+            <dt class="col-sm-3">@DevelopIssue.Col_Date</dt>
+            <dd class="col-sm-9">@Model.DateIssue.ToShortDateString()</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <h5 class="mb-0">@DevelopIssue.Assess_Title</h5>
+        <button type="button" class="btn btn-sm btn-outline-primary" id="developIssueAssess"
+                data-url="@Url.Action("Assess", "DevelopIssue")" data-working="@DevelopIssue.Assess_Working" data-error="@DevelopIssue.Assess_Error">
+            <i class="ri ri-sparkling-line me-1"></i><span>@DevelopIssue.Assess_Button</span>
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-danger d-none" id="developIssueAssessMsg"></div>
+        @if (assessments.Count == 0)
+        {
+            <p class="text-muted mb-0">@DevelopIssue.Assess_Empty</p>
+        }
+        @foreach (var a in assessments)
+        {
+            <div class="border rounded p-3 mb-3">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                    <span class="badge rounded-pill @DevelopIssueCodes.SizeBadge(a.TextSize)">@DevelopIssueCodes.SizeText(a.TextSize)</span>
+                    @if (a.NumberHours.HasValue)
+                    {
+                        <strong>@string.Format(DevelopIssue.Assess_Hours, a.NumberHours.Value.ToString("0.##"))</strong>
+                    }
+                    <small class="text-muted ms-auto">@DevelopIssueCodes.SourceText(a.TextSource) · @a.AddDateMade.ToString("g")</small>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(a.TextArea))
+                {
+                    <p class="mb-1"><span class="text-muted">@DevelopIssue.Assess_Area:</span> @a.TextArea</p>
+                }
+                <p class="mb-0" style="white-space:pre-wrap">@a.TextAnalysis</p>
+            </div>
+        }
+        <small class="text-muted">@DevelopIssue.Assess_Note</small>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <h5 class="card-header">@DevelopIssue.Details_Title</h5>
+    <div class="card-body">
+        @if (details.Count == 0)
+        {
+            <p class="text-muted mb-0">@DevelopIssue.Details_Empty</p>
+        }
+        @foreach (var d in details)
+        {
+            <div class="border rounded p-3 mb-3 js-issue-detail" data-detail-id="@d.IdObject">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <small class="text-muted">@string.Format(DevelopIssue.Details_By, d.TextMadeBy, d.AddDateMade.ToString("g"))</small>
+                    <button type="button" class="btn btn-sm btn-icon btn-text-danger js-issue-detail-delete" title="@DevelopIssue.List_DeleteTooltip">
+                        <i class="ri ri-delete-bin-line"></i>
+                    </button>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(d.TextObservation))
+                {
+                    <p class="mb-2" style="white-space:pre-wrap">@d.TextObservation</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(d.TextImagePath))
+                {
+                    <a class="js-issue-image-link" href="@Url.Content("~" + d.TextImagePath)" target="_blank" rel="noopener">
+                        <img src="@Url.Content("~" + d.TextImagePath)" alt="@d.TextLabel" class="img-fluid rounded border" style="max-height:320px" />
+                    </a>
+                    <div class="mt-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary js-issue-image-edit">
+                            <i class="ri ri-brush-line me-1"></i>@DevelopIssue.Btn_EditImage
+                        </button>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<div class="card mb-4">
+    <h5 class="card-header">@DevelopIssue.Details_AddTitle</h5>
+    <div class="card-body">
+        @using (Html.BeginForm("AddDetail", "DevelopIssue", new { id = Model.IdObject }, FormMethod.Post, new { @class = "row g-3", role = "form", @id = "developIssueDetailForm", enctype = "multipart/form-data" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.Partial("_DevelopIssueDetailFields")
+            <div class="col-12 border-top pt-3 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
+                <a href="@Url.Action("Index", "DevelopIssue")" class="btn btn-outline-secondary">@Common.Btn_Back</a>
+                <button type="submit" class="btn btn-primary">@DevelopIssue.Btn_AddDetail</button>
+            </div>
+        }
+    </div>
+</div>
+
+@Html.Partial("_IntranetAuditSection", (Desing.Models.IntranetAuditDisplayModel)ViewBag.Audit)
+
+<div id="devIssueEditor" class="dev-issue-editor" data-save-url="@Url.Action("SaveDetailImage", "DevelopIssue")" data-save-error="@DevelopIssue.Popup_SaveError">
+    <div class="dev-issue-editor__bar">
+        <strong class="me-2">@DevelopIssue.Editor_Title</strong>
+        <div class="btn-group btn-group-sm" role="group">
+            <button type="button" class="btn btn-light active" data-tool="pen"><i class="ri ri-pencil-line me-1"></i>@DevelopIssue.Editor_Draw</button>
+            <button type="button" class="btn btn-light" data-tool="bubble"><i class="ri ri-chat-1-line me-1"></i>@DevelopIssue.Editor_Bubble</button>
+        </div>
+        <label class="dev-issue-editor__opt">@DevelopIssue.Editor_Color <input type="color" data-opt="color" value="#dc2626" /></label>
+        <label class="dev-issue-editor__opt"><input type="checkbox" data-opt="italic" /> <em>@DevelopIssue.Editor_Italic</em></label>
+        <label class="dev-issue-editor__opt"><input type="checkbox" data-opt="shadow" /> @DevelopIssue.Editor_Shadow</label>
+        <button type="button" class="btn btn-sm btn-light" data-act="undo"><i class="ri ri-arrow-go-back-line me-1"></i>@DevelopIssue.Editor_Undo</button>
+        <span class="dev-issue-editor__msg" data-role="msg"></span>
+        <button type="button" class="btn btn-sm btn-outline-light ms-auto" data-act="cancel">@Common.Btn_Cancel</button>
+        <button type="button" class="btn btn-sm btn-primary" data-act="save">@Common.Btn_Save</button>
+    </div>
+    <div class="dev-issue-editor__hint">@DevelopIssue.Editor_BubbleHint</div>
+    <div class="dev-issue-editor__stage">
+        <div class="dev-issue-editor__wrap">
+            <canvas></canvas>
+            <textarea rows="2" placeholder="@DevelopIssue.Editor_TextPlaceholder"></textarea>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dev-issue-editor { position: fixed; inset: 0; z-index: 2147483100; display: none; flex-direction: column; background: rgba(15,23,42,.92); }
+    .dev-issue-editor.is-open { display: flex; }
+    .dev-issue-editor__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 12px; background: #0f172a; color: #f8fafc; font-size: 13px; }
+    .dev-issue-editor__opt { display: inline-flex; align-items: center; gap: 4px; margin: 0; color: #f8fafc; cursor: pointer; }
+    .dev-issue-editor__opt input[type=color] { width: 28px; height: 24px; padding: 0; border: 1px solid #64748b; background: none; }
+    .dev-issue-editor__msg { color: #fca5a5; }
+    .dev-issue-editor__hint { display: none; padding: 4px 12px; background: #1e293b; color: #cbd5e1; font-size: 12px; }
+    .dev-issue-editor[data-tool="bubble"] .dev-issue-editor__hint { display: block; }
+    .dev-issue-editor__stage { flex: 1; min-height: 0; overflow: auto; display: flex; padding: 12px; }
+    .dev-issue-editor__wrap { position: relative; margin: auto; line-height: 0; }
+    .dev-issue-editor__wrap canvas { max-width: 100%; max-height: calc(100vh - 110px); background: #fff; cursor: crosshair; touch-action: none; }
+    .dev-issue-editor__wrap textarea { position: absolute; display: none; width: 190px; padding: 4px 6px; font: 14px/1.3 Arial, sans-serif; border: 2px solid #0f172a; border-radius: 8px; resize: both; }
+</style>
+
+@section scripts {
+    <script>
+        window.developIssueI18n = {
+            confirmDeleteDetail: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(DevelopIssue.Js_ConfirmDeleteDetail)),
+            removeFile: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(DevelopIssue.Btn_RemoveFile))
+        };
+        window.developIssueUrls = {
+            deleteDetail: '@Url.Action("DeleteDetail", "DevelopIssue")',
+            issueId: @Model.IdObject
+        };
+    </script>
+    <script src="@Url.Content("~/Scripts/Intranet/develop-issue.js")"></script>
+    <script>
+        $('#developIssueAssess').on('click', function () {
+            var btn = $(this), label = btn.find('span'), text = label.text(), msg = $('#developIssueAssessMsg');
+            btn.prop('disabled', true); label.text(btn.data('working')); msg.addClass('d-none');
+            $.post(btn.data('url'), {
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val(),
+                id: window.developIssueUrls.issueId
+            }).done(function (r) {
+                if (r && r.ok) { location.reload(); return; }
+                msg.text((r && r.message) || btn.data('error')).removeClass('d-none');
+            }).fail(function () {
+                msg.text(btn.data('error')).removeClass('d-none');
+            }).always(function () { btn.prop('disabled', false); label.text(text); });
+        });
+    </script>
+    <script src="@Url.Content("~/Scripts/Intranet/develop-issue-editor.js")?v=20261123a"></script>
+}

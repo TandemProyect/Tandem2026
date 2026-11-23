@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Assess_Area" xml:space="preserve">
+    <value>Affected area</value>
+  </data>
+  <data name="Assess_Button" xml:space="preserve">
+    <value>Assess with AI</value>
+  </data>
+  <data name="Assess_Done" xml:space="preserve">
+    <value>Assessment saved.</value>
+  </data>
+  <data name="Assess_Empty" xml:space="preserve">
+    <value>There is no assessment yet.</value>
+  </data>
+  <data name="Assess_Error" xml:space="preserve">
+    <value>The AI could not assess it. Try again.</value>
+  </data>
+  <data name="Assess_Hours" xml:space="preserve">
+    <value>{0} h estimated</value>
+  </data>
+  <data name="Assess_NoKey" xml:space="preserve">
+    <value>The OpenAI key is not configured on this server.</value>
+  </data>
+  <data name="Assess_Note" xml:space="preserve">
+    <value>The AI assessment is indicative: it does not know the code.</value>
+  </data>
+  <data name="Assess_Title" xml:space="preserve">
+    <value>Assessment</value>
+  </data>
+  <data name="Assess_Working" xml:space="preserve">
+    <value>Assessing…</value>
+  </data>
+  <data name="Btn_AddDetail" xml:space="preserve">
+    <value>Add detail</value>
+  </data>
+  <data name="Btn_EditImage" xml:space="preserve">
+    <value>Edit image</value>
+  </data>
+  <data name="Btn_RemoveFile" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="Col_Date" xml:space="preserve">
+    <value>Created on</value>
+  </data>
+  <data name="Col_Details" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="Col_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Col_State" xml:space="preserve">
+    <value>State</value>
+  </data>
+  <data name="Col_Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Col_Urgency" xml:space="preserve">
+    <value>Urgency</value>
+  </data>
+  <data name="Common_Develop" xml:space="preserve">
+    <value>Develop</value>
+  </data>
+  <data name="Common_Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Details_AddTitle" xml:space="preserve">
+    <value>Add detail</value>
+  </data>
+  <data name="Details_By" xml:space="preserve">
+    <value>By {0} on {1}</value>
+  </data>
+  <data name="Details_Empty" xml:space="preserve">
+    <value>No details yet.</value>
+  </data>
+  <data name="Details_Title" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="Editor_Bubble" xml:space="preserve">
+    <value>Speech bubble</value>
+  </data>
+  <data name="Editor_BubbleHint" xml:space="preserve">
+    <value>Bubble: click what you want to point at and drag to where the text goes. Enter confirms, Shift+Enter adds a line break.</value>
+  </data>
+  <data name="Editor_Color" xml:space="preserve">
+    <value>Color</value>
+  </data>
+  <data name="Editor_Draw" xml:space="preserve">
+    <value>Draw</value>
+  </data>
+  <data name="Editor_Italic" xml:space="preserve">
+    <value>Italic</value>
+  </data>
+  <data name="Editor_Shadow" xml:space="preserve">
+    <value>Shadow</value>
+  </data>
+  <data name="Editor_TextPlaceholder" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="Editor_Title" xml:space="preserve">
+    <value>Edit image</value>
+  </data>
+  <data name="Editor_Undo" xml:space="preserve">
+    <value>Undo</value>
+  </data>
+  <data name="Err_DetailEmpty" xml:space="preserve">
+    <value>Write a note or add a screenshot.</value>
+  </data>
+  <data name="Err_ImageFormat" xml:space="preserve">
+    <value>Unsupported screenshot format (png, jpg, gif, webp).</value>
+  </data>
+  <data name="Err_ImageSize" xml:space="preserve">
+    <value>The screenshot is larger than 10 MB.</value>
+  </data>
+  <data name="Err_InvalidValue" xml:space="preserve">
+    <value>Invalid value.</value>
+  </data>
+  <data name="Err_NameRequired" xml:space="preserve">
+    <value>Name is required.</value>
+  </data>
+  <data name="Err_NotFound" xml:space="preserve">
+    <value>US or bug not found.</value>
+  </data>
+  <data name="Index_Breadcrumb" xml:space="preserve">
+    <value>US and Bugs</value>
+  </data>
+  <data name="Index_Create" xml:space="preserve">
+    <value>New US / Bug</value>
+  </data>
+  <data name="Js_ConfirmDelete" xml:space="preserve">
+    <value>Delete this US or bug?</value>
+  </data>
+  <data name="Js_ConfirmDeleteDetail" xml:space="preserve">
+    <value>Delete this detail?</value>
+  </data>
+  <data name="Lbl_Captures" xml:space="preserve">
+    <value>Screenshots</value>
+  </data>
+  <data name="Lbl_Date" xml:space="preserve">
+    <value>Created on</value>
+  </data>
+  <data name="Lbl_NameRequired" xml:space="preserve">
+    <value>Name *</value>
+  </data>
+  <data name="Lbl_Observation" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="Lbl_State" xml:space="preserve">
+    <value>State</value>
+  </data>
+  <data name="Lbl_Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Lbl_Urgency" xml:space="preserve">
+    <value>Urgency</value>
+  </data>
+  <data name="List_DeleteTooltip" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="List_EditTooltip" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="List_OpenTooltip" xml:space="preserve">
+    <value>Open the US or bug</value>
+  </data>
+  <data name="Msg_NoTable" xml:space="preserve">
+    <value>Tables TSql_DevelopIssue and TSql_DevelopIssueDetail are missing: run the 2026-11-23_create_TSql_DevelopIssue*.sql scripts.</value>
+  </data>
+  <data name="Navbar_Button" xml:space="preserve">
+    <value>US and Bugs</value>
+  </data>
+  <data name="Navbar_List" xml:space="preserve">
+    <value>Show list</value>
+  </data>
+  <data name="Navbar_New" xml:space="preserve">
+    <value>New</value>
+  </data>
+  <data name="Page_CreateTitle" xml:space="preserve">
+    <value>New US / Bug</value>
+  </data>
+  <data name="Page_EditTitle" xml:space="preserve">
+    <value>Edit US / Bug</value>
+  </data>
+  <data name="Ph_Name" xml:space="preserve">
+    <value>US or bug name</value>
+  </data>
+  <data name="Ph_Observation" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="Ph_Paste" xml:space="preserve">
+    <value>Paste a screenshot here (Ctrl+V)</value>
+  </data>
+  <data name="Popup_Attach" xml:space="preserve">
+    <value>Attach</value>
+  </data>
+  <data name="Popup_Capture" xml:space="preserve">
+    <value>Capture screen</value>
+  </data>
+  <data name="Popup_CaptureDenied" xml:space="preserve">
+    <value>Screen capture permission was not granted.</value>
+  </data>
+  <data name="Popup_CaptureHint" xml:space="preserve">
+    <value>Click one corner, then click the opposite corner. Esc cancels.</value>
+  </data>
+  <data name="Popup_CaptureUnsupported" xml:space="preserve">
+    <value>This browser cannot capture the screen. Attach the image or paste it with Ctrl+V.</value>
+  </data>
+  <data name="Popup_Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="Popup_SaveError" xml:space="preserve">
+    <value>Could not save.</value>
+  </data>
+  <data name="Popup_Title" xml:space="preserve">
+    <value>New US / Bug</value>
+  </data>
+  <data name="Popup_Uploading" xml:space="preserve">
+    <value>Uploading screenshot {0} of {1}…</value>
+  </data>
+  <data name="Size_LARGE" xml:space="preserve">
+    <value>Large</value>
+  </data>
+  <data name="Size_MEDIUM" xml:space="preserve">
+    <value>Medium</value>
+  </data>
+  <data name="Size_SMALL" xml:space="preserve">
+    <value>Small</value>
+  </data>
+  <data name="Source_AGENT" xml:space="preserve">
+    <value>Coding agent</value>
+  </data>
+  <data name="Source_AI" xml:space="preserve">
+    <value>Intranet AI</value>
+  </data>
+  <data name="State_CLOSED" xml:space="preserve">
+    <value>Closed</value>
+  </data>
+  <data name="State_IN_PROGRESS" xml:space="preserve">
+    <value>In progress</value>
+  </data>
+  <data name="State_OPEN" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="Toast_Created" xml:space="preserve">
+    <value>“{0}” created.</value>
+  </data>
+  <data name="Toast_Deleted" xml:space="preserve">
+    <value>Deleted.</value>
+  </data>
+  <data name="Toast_DetailAdded" xml:space="preserve">
+    <value>Detail added.</value>
+  </data>
+  <data name="Toast_ImageSaved" xml:space="preserve">
+    <value>Image saved.</value>
+  </data>
+  <data name="Toast_Saved" xml:space="preserve">
+    <value>“{0}” saved.</value>
+  </data>
+  <data name="Toast_Title" xml:space="preserve">
+    <value>US and Bugs</value>
+  </data>
+  <data name="Type_BUG" xml:space="preserve">
+    <value>Bug</value>
+  </data>
+  <data name="Type_US" xml:space="preserve">
+    <value>US</value>
+  </data>
+  <data name="Urgency_LOW" xml:space="preserve">
+    <value>Low</value>
+  </data>
+  <data name="Urgency_MEDIUM" xml:space="preserve">
+    <value>Medium</value>
+  </data>
+  <data name="Urgency_URGENT" xml:space="preserve">
+    <value>Urgent</value>
+  </data>
+</root>

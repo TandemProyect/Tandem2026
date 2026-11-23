@@ -274,6 +274,10 @@
     <EmbeddedResource Include="Resources\DevelopAgent.en.resx">
       <DependentUpon>DevelopAgent.resx</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Resources\DevelopIssue.resx" />
+    <EmbeddedResource Include="Resources\DevelopIssue.en.resx">
+      <DependentUpon>DevelopIssue.resx</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Resources\DevelopAi.resx" />
     <EmbeddedResource Include="Resources\DevelopAi.en.resx">
       <DependentUpon>DevelopAi.resx</DependentUpon>
@@ -328,6 +332,7 @@
     <Compile Include="Controllers\FunctionController.cs" />
     <Compile Include="Controllers\ClientOfferController.cs" />
     <Compile Include="Controllers\DevelopAgentController.cs" />
+    <Compile Include="Controllers\DevelopIssueController.cs" />
     <Compile Include="Controllers\DevelopAiController.cs" />
     <Compile Include="Controllers\XrDeviceController.cs" />
     <Compile Include="Controllers\UiTranslationController.cs" />
@@ -355,6 +360,7 @@
     <Compile Include="Helpers\ClientOfferRepository.cs" />
     <Compile Include="Helpers\ClientOfferPdfWriter.cs" />
     <Compile Include="Helpers\DevelopAgentRepository.cs" />
+    <Compile Include="Helpers\DevelopIssueRepository.cs" />
     <Compile Include="Helpers\DevelopAiRepository.cs" />
     <Compile Include="Helpers\XrDeviceQueries.cs" />
     <Compile Include="Helpers\XrPushJobQueries.cs" />
@@ -433,6 +439,10 @@
     <Compile Include="Resources\DevelopAgent.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>DevelopAgent.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\DevelopIssue.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DevelopIssue.resx</DependentUpon>
     </Compile>
     <Compile Include="Resources\DevelopAi.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -596,6 +606,7 @@
     <Compile Include="Services\Implements\EmailService.cs" />
     <Compile Include="Services\Implements\EmailServiceBase.cs" />
     <Compile Include="Services\Implements\SendGridConfig.cs" />
+    <Compile Include="Services\DevelopIssueAssessmentService.cs" />
     <Compile Include="Services\ImageAnalysisService.cs" />
     <Compile Include="Services\MasterArticleViewerDxfConverter.cs" />
     <Compile Include="Services\Desing2DwgConverter.cs" />
@@ -3684,6 +3695,12 @@
     <Content Include="Views\ClientOffer\_OfferFormFields.cshtml" />
     <Content Include="Views\ClientOffer\_BrandFormFields.cshtml" />
     <Content Include="Views\DevelopAgent\Index.cshtml" />
+    <Content Include="Views\DevelopIssue\Index.cshtml" />
+    <Content Include="Views\DevelopIssue\Create.cshtml" />
+    <Content Include="Views\DevelopIssue\Edit.cshtml" />
+    <Content Include="Views\DevelopIssue\Details.cshtml" />
+    <Content Include="Views\DevelopIssue\_DevelopIssueFormFields.cshtml" />
+    <Content Include="Views\DevelopIssue\_DevelopIssueDetailFields.cshtml" />
     <Content Include="Views\DevelopAi\Index.cshtml" />
     <Content Include="Views\Function\Create.cshtml" />
     <Content Include="Views\Function\Edit.cshtml" />
@@ -3702,6 +3719,10 @@
     <Content Include="Scripts\Intranet\design-material-count-popup.js" />
     <Content Include="Scripts\Intranet\intranet-datatables-list.js" />
     <Content Include="Scripts\Intranet\sidebar-menu.js" />
+    <Content Include="Scripts\Intranet\develop-issue.js" />
+    <Content Include="Scripts\Intranet\develop-issue-popup.js" />
+    <Content Include="Scripts\Intranet\develop-issue-editor.js" />
+    <Content Include="Views\Shared\_DevelopIssuePopup.cshtml" />
     <Content Include="Scripts\Intranet\jobside-google-places.js" />
     <Content Include="Scripts\Intranet\company-google-places.js" />
     <Content Include="Scripts\Intranet\clientv2-google-places.js" />

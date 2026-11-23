@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Assess_Area" xml:space="preserve">
+    <value>Zona afectada</value>
+  </data>
+  <data name="Assess_Button" xml:space="preserve">
+    <value>Valorar con IA</value>
+  </data>
+  <data name="Assess_Done" xml:space="preserve">
+    <value>Valoración guardada.</value>
+  </data>
+  <data name="Assess_Empty" xml:space="preserve">
+    <value>Todavía no hay ninguna valoración.</value>
+  </data>
+  <data name="Assess_Error" xml:space="preserve">
+    <value>La IA no ha podido valorar. Inténtalo de nuevo.</value>
+  </data>
+  <data name="Assess_Hours" xml:space="preserve">
+    <value>{0} h estimadas</value>
+  </data>
+  <data name="Assess_NoKey" xml:space="preserve">
+    <value>La clave de OpenAI no está configurada en este servidor.</value>
+  </data>
+  <data name="Assess_Note" xml:space="preserve">
+    <value>La valoración de la IA es orientativa: no conoce el código.</value>
+  </data>
+  <data name="Assess_Title" xml:space="preserve">
+    <value>Valoración</value>
+  </data>
+  <data name="Assess_Working" xml:space="preserve">
+    <value>Valorando…</value>
+  </data>
+  <data name="Btn_AddDetail" xml:space="preserve">
+    <value>Añadir detalle</value>
+  </data>
+  <data name="Btn_EditImage" xml:space="preserve">
+    <value>Editar imagen</value>
+  </data>
+  <data name="Btn_RemoveFile" xml:space="preserve">
+    <value>Quitar</value>
+  </data>
+  <data name="Col_Date" xml:space="preserve">
+    <value>Fecha de creación</value>
+  </data>
+  <data name="Col_Details" xml:space="preserve">
+    <value>Detalles</value>
+  </data>
+  <data name="Col_Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Col_State" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Col_Type" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="Col_Urgency" xml:space="preserve">
+    <value>Urgencia</value>
+  </data>
+  <data name="Common_Develop" xml:space="preserve">
+    <value>Develop</value>
+  </data>
+  <data name="Common_Home" xml:space="preserve">
+    <value>Inicio</value>
+  </data>
+  <data name="Details_AddTitle" xml:space="preserve">
+    <value>Añadir detalle</value>
+  </data>
+  <data name="Details_By" xml:space="preserve">
+    <value>Por {0} el {1}</value>
+  </data>
+  <data name="Details_Empty" xml:space="preserve">
+    <value>Sin detalles todavía.</value>
+  </data>
+  <data name="Details_Title" xml:space="preserve">
+    <value>Detalles</value>
+  </data>
+  <data name="Editor_Bubble" xml:space="preserve">
+    <value>Bocadillo</value>
+  </data>
+  <data name="Editor_BubbleHint" xml:space="preserve">
+    <value>Bocadillo: clic en lo que quieres señalar y arrastra hasta donde irá el texto. Intro confirma, Mayús+Intro salto de línea.</value>
+  </data>
+  <data name="Editor_Color" xml:space="preserve">
+    <value>Color</value>
+  </data>
+  <data name="Editor_Draw" xml:space="preserve">
+    <value>Dibujar</value>
+  </data>
+  <data name="Editor_Italic" xml:space="preserve">
+    <value>Itálica</value>
+  </data>
+  <data name="Editor_Shadow" xml:space="preserve">
+    <value>Sombreado</value>
+  </data>
+  <data name="Editor_TextPlaceholder" xml:space="preserve">
+    <value>Texto</value>
+  </data>
+  <data name="Editor_Title" xml:space="preserve">
+    <value>Editar imagen</value>
+  </data>
+  <data name="Editor_Undo" xml:space="preserve">
+    <value>Deshacer</value>
+  </data>
+  <data name="Err_DetailEmpty" xml:space="preserve">
+    <value>Escribe una observación o añade una captura.</value>
+  </data>
+  <data name="Err_ImageFormat" xml:space="preserve">
+    <value>Formato de captura no admitido (png, jpg, gif, webp).</value>
+  </data>
+  <data name="Err_ImageSize" xml:space="preserve">
+    <value>La captura supera 10 MB.</value>
+  </data>
+  <data name="Err_InvalidValue" xml:space="preserve">
+    <value>Valor no válido.</value>
+  </data>
+  <data name="Err_NameRequired" xml:space="preserve">
+    <value>El nombre es obligatorio.</value>
+  </data>
+  <data name="Err_NotFound" xml:space="preserve">
+    <value>No se encuentra la US o el bug.</value>
+  </data>
+  <data name="Index_Breadcrumb" xml:space="preserve">
+    <value>US y Bugs</value>
+  </data>
+  <data name="Index_Create" xml:space="preserve">
+    <value>Nueva US / Bug</value>
+  </data>
+  <data name="Js_ConfirmDelete" xml:space="preserve">
+    <value>¿Eliminar esta US o bug?</value>
+  </data>
+  <data name="Js_ConfirmDeleteDetail" xml:space="preserve">
+    <value>¿Eliminar este detalle?</value>
+  </data>
+  <data name="Lbl_Captures" xml:space="preserve">
+    <value>Capturas de pantalla</value>
+  </data>
+  <data name="Lbl_Date" xml:space="preserve">
+    <value>Fecha de creación</value>
+  </data>
+  <data name="Lbl_NameRequired" xml:space="preserve">
+    <value>Nombre *</value>
+  </data>
+  <data name="Lbl_Observation" xml:space="preserve">
+    <value>Observaciones</value>
+  </data>
+  <data name="Lbl_State" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Lbl_Type" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="Lbl_Urgency" xml:space="preserve">
+    <value>Urgencia</value>
+  </data>
+  <data name="List_DeleteTooltip" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="List_EditTooltip" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="List_OpenTooltip" xml:space="preserve">
+    <value>Ver la US o el bug</value>
+  </data>
+  <data name="Msg_NoTable" xml:space="preserve">
+    <value>Faltan las tablas TSql_DevelopIssue y TSql_DevelopIssueDetail: ejecuta los scripts 2026-11-23_create_TSql_DevelopIssue*.sql.</value>
+  </data>
+  <data name="Navbar_Button" xml:space="preserve">
+    <value>US y Bugs</value>
+  </data>
+  <data name="Navbar_List" xml:space="preserve">
+    <value>Ver lista</value>
+  </data>
+  <data name="Navbar_New" xml:space="preserve">
+    <value>Nuevo</value>
+  </data>
+  <data name="Page_CreateTitle" xml:space="preserve">
+    <value>Nueva US / Bug</value>
+  </data>
+  <data name="Page_EditTitle" xml:space="preserve">
+    <value>Editar US / Bug</value>
+  </data>
+  <data name="Ph_Name" xml:space="preserve">
+    <value>Nombre de la US o del bug</value>
+  </data>
+  <data name="Ph_Observation" xml:space="preserve">
+    <value>Observaciones</value>
+  </data>
+  <data name="Ph_Paste" xml:space="preserve">
+    <value>Pega aquí una captura (Ctrl+V)</value>
+  </data>
+  <data name="Popup_Attach" xml:space="preserve">
+    <value>Adjuntar</value>
+  </data>
+  <data name="Popup_Capture" xml:space="preserve">
+    <value>Capturar pantalla</value>
+  </data>
+  <data name="Popup_CaptureDenied" xml:space="preserve">
+    <value>No se ha concedido permiso para capturar la pantalla.</value>
+  </data>
+  <data name="Popup_CaptureHint" xml:space="preserve">
+    <value>Clic en una esquina y clic en la esquina opuesta. Esc cancela.</value>
+  </data>
+  <data name="Popup_CaptureUnsupported" xml:space="preserve">
+    <value>Este navegador no permite capturar la pantalla. Adjunta la imagen o pégala con Ctrl+V.</value>
+  </data>
+  <data name="Popup_Open" xml:space="preserve">
+    <value>Abrir</value>
+  </data>
+  <data name="Popup_SaveError" xml:space="preserve">
+    <value>No se ha podido guardar.</value>
+  </data>
+  <data name="Popup_Title" xml:space="preserve">
+    <value>Nueva US / Bug</value>
+  </data>
+  <data name="Popup_Uploading" xml:space="preserve">
+    <value>Subiendo captura {0} de {1}…</value>
+  </data>
+  <data name="Size_LARGE" xml:space="preserve">
+    <value>Grande</value>
+  </data>
+  <data name="Size_MEDIUM" xml:space="preserve">
+    <value>Mediano</value>
+  </data>
+  <data name="Size_SMALL" xml:space="preserve">
+    <value>Pequeño</value>
+  </data>
+  <data name="Source_AGENT" xml:space="preserve">
+    <value>Agente de programación</value>
+  </data>
+  <data name="Source_AI" xml:space="preserve">
+    <value>IA de la intranet</value>
+  </data>
+  <data name="State_CLOSED" xml:space="preserve">
+    <value>Cerrado</value>
+  </data>
+  <data name="State_IN_PROGRESS" xml:space="preserve">
+    <value>En proceso</value>
+  </data>
+  <data name="State_OPEN" xml:space="preserve">
+    <value>Abierto</value>
+  </data>
+  <data name="Toast_Created" xml:space="preserve">
+    <value>«{0}» creado.</value>
+  </data>
+  <data name="Toast_Deleted" xml:space="preserve">
+    <value>Eliminado.</value>
+  </data>
+  <data name="Toast_DetailAdded" xml:space="preserve">
+    <value>Detalle añadido.</value>
+  </data>
+  <data name="Toast_ImageSaved" xml:space="preserve">
+    <value>Imagen guardada.</value>
+  </data>
+  <data name="Toast_Saved" xml:space="preserve">
+    <value>«{0}» guardado.</value>
+  </data>
+  <data name="Toast_Title" xml:space="preserve">
+    <value>US y Bugs</value>
+  </data>
+  <data name="Type_BUG" xml:space="preserve">
+    <value>Bug</value>
+  </data>
+  <data name="Type_US" xml:space="preserve">
+    <value>US</value>
+  </data>
+  <data name="Urgency_LOW" xml:space="preserve">
+    <value>Bajo</value>
+  </data>
+  <data name="Urgency_MEDIUM" xml:space="preserve">
+    <value>Medio</value>
+  </data>
+  <data name="Urgency_URGENT" xml:space="preserve">
+    <value>Urgente</value>
+  </data>
+</root>

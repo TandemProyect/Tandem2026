@@ -1,0 +1,29 @@
+@model Desing.Helpers.DevelopIssueRow
+@using Desing.Resources
+@{
+    ViewBag.Title = DevelopIssue.Page_EditTitle;
+}
+
+<h4 class="py-3 mb-4">
+    <span class="text-muted fw-light">
+        <a href="@Url.Action("Index", "Home")">@DevelopIssue.Common_Home</a> /
+        @DevelopIssue.Common_Develop /
+        <a href="@Url.Action("Index", "DevelopIssue")">@DevelopIssue.Index_Breadcrumb</a> /
+    </span> @Model.TextLabel
+</h4>
+
+<div class="card mb-4">
+    <div class="card-body">
+        @using (Html.BeginForm("Edit", "DevelopIssue", FormMethod.Post, new { @class = "row g-3", role = "form", @id = "developIssueForm" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.IdObject)
+            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+            @Html.Partial("_DevelopIssueFormFields", Model)
+            <div class="col-12 border-top pt-3 d-flex justify-content-end gap-2 tandem-form-actions mt-2">
+                <a href="@Url.Action("Details", "DevelopIssue", new { id = Model.IdObject })" class="btn btn-outline-secondary">@Common.Btn_Cancel</a>
+                <button type="submit" class="btn btn-primary">@Common.Btn_Save</button>
+            </div>
+        }
+    </div>
+</div>

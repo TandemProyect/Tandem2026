@@ -1,0 +1,16 @@
+@using Desing.Resources
+@{
+    var observation = ViewBag.Observation as string;
+}
+
+<div class="col-12">
+    <label class="form-label" for="observation">@DevelopIssue.Lbl_Observation</label>
+    <textarea id="observation" name="observation" class="form-control" rows="4" placeholder="@DevelopIssue.Ph_Observation">@observation</textarea>
+</div>
+<div class="col-12">
+    <label class="form-label" for="captures">@DevelopIssue.Lbl_Captures</label>
+    <input type="file" id="captures" name="captures" class="form-control js-issue-captures" accept=".png,.jpg,.jpeg,.gif,.webp,image/*" multiple />
+    @Html.ValidationMessage("captures", "", new { @class = "text-danger small" })
+    <div class="form-text"><i class="ri ri-clipboard-line me-1"></i>@DevelopIssue.Ph_Paste</div>
+    <div class="d-flex flex-wrap gap-2 mt-2 js-issue-preview"></div>
+</div>

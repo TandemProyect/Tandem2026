@@ -47,6 +47,7 @@ namespace Desing.Controllers
             Tuple.Create("Security", typeof(Desing.Resources.Security)),
             Tuple.Create("DevelopAgent", typeof(Desing.Resources.DevelopAgent)),
             Tuple.Create("DevelopAi", typeof(Desing.Resources.DevelopAi)),
+            Tuple.Create("DevelopIssue", typeof(Desing.Resources.DevelopIssue)),
             Tuple.Create("Common", typeof(Desing.Resources.Common))
         };
 

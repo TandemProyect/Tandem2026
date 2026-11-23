@@ -1,0 +1,28 @@
+@model Desing.Helpers.DevelopIssueRow
+@using Desing.Helpers
+@using Desing.Resources
+
+<div class="col-md-8">
+    <label class="form-label" for="TextLabel">@DevelopIssue.Lbl_NameRequired</label>
+    @Html.TextBoxFor(m => m.TextLabel, new { @class = "form-control", maxlength = 500, placeholder = DevelopIssue.Ph_Name, autofocus = "autofocus" })
+    @Html.ValidationMessageFor(m => m.TextLabel, "", new { @class = "text-danger small" })
+</div>
+<div class="col-md-4">
+    <label class="form-label" for="DateIssue">@DevelopIssue.Lbl_Date</label>
+    <input type="date" id="DateIssue" name="DateIssue" class="form-control" value="@Model.DateIssue.ToString("yyyy-MM-dd")" />
+</div>
+<div class="col-md-4">
+    <label class="form-label" for="TextType">@DevelopIssue.Lbl_Type</label>
+    @Html.DropDownListFor(m => m.TextType, DevelopIssueCodes.Types.Select(c => new SelectListItem { Value = c, Text = DevelopIssueCodes.TypeText(c), Selected = c == Model.TextType }), new { @class = "form-select" })
+    @Html.ValidationMessageFor(m => m.TextType, "", new { @class = "text-danger small" })
+</div>
+<div class="col-md-4">
+    <label class="form-label" for="TextUrgency">@DevelopIssue.Lbl_Urgency</label>
+    @Html.DropDownListFor(m => m.TextUrgency, DevelopIssueCodes.Urgencies.Select(c => new SelectListItem { Value = c, Text = DevelopIssueCodes.UrgencyText(c), Selected = c == Model.TextUrgency }), new { @class = "form-select" })
+    @Html.ValidationMessageFor(m => m.TextUrgency, "", new { @class = "text-danger small" })
+</div>
+<div class="col-md-4">
+    <label class="form-label" for="TextState">@DevelopIssue.Lbl_State</label>
+    @Html.DropDownListFor(m => m.TextState, DevelopIssueCodes.States.Select(c => new SelectListItem { Value = c, Text = DevelopIssueCodes.StateText(c), Selected = c == Model.TextState }), new { @class = "form-select" })
+    @Html.ValidationMessageFor(m => m.TextState, "", new { @class = "text-danger small" })
+</div>

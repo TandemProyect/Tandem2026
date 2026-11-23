@@ -294,6 +294,11 @@
         </script>
     }
     @Html.Partial("_DesignMaterialCountModal")
+    @* Develop › US y Bugs: pop-up movible de alta con captura de pantalla (función DevelopIssue) *@
+    @if (Html.CanUseMenu("DevelopIssue"))
+    {
+        @Html.Partial("_DevelopIssuePopup")
+    }
     @* Decimales: coma → punto al salir del campo / enviar (BD con punto) *@
     <script src="@Url.Content("~/Scripts/Intranet/decimal-input-normalize.js?v=20261112a")"></script>
     <script type="module" src="@Url.Content("~/Scripts/Desing2/desing2-material-count-panel-name.js")?v=20261120a"></script>

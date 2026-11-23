@@ -19,6 +19,7 @@
 | Layout Materio, DataTables, cookies | [`agente-ui-materio-datatables.md`](agente-ui-materio-datatables.md), [`intranet-scroll-layout.md`](intranet-scroll-layout.md) |
 | Traducciones | [`agente-traducciones-modulos.md`](agente-traducciones-modulos.md) |
 | Foto del diseño y «Últimos diseños» | [`agente-foto-diseno-y-menu.md`](agente-foto-diseno-y-menu.md) |
+| US y Bugs: valorar o arreglar «la id N» (acceso del agente por token) | [`us-bugs-agente.md`](us-bugs-agente.md) |
 | Telegram: fotos al diseño (MVP) | [`TELEGRAM-MVP-FOTOS-DISENO.md`](TELEGRAM-MVP-FOTOS-DISENO.md) |
 | Login Materio | [`HANDOVER-PLANTILLA-LOGIN-MATERIO-2026-05-08.md`](historial/HANDOVER-PLANTILLA-LOGIN-MATERIO-2026-05-08.md) |
 

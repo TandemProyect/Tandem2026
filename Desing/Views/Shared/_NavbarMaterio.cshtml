@@ -17,6 +17,21 @@
 
             @Html.Action("NavbarSwitcher", "UiLanguage")
 
+            @* Develop › US y Bugs: solo con la función DevelopIssue (rol Develop) *@
+            @if (Html.CanUseMenu("DevelopIssue"))
+            {
+                <li class="nav-item dropdown me-2 me-xl-3" data-function="DevelopIssue">
+                    <a class="nav-link dropdown-toggle hide-arrow btn btn-icon btn-text-secondary rounded-pill" href="javascript:void(0);" data-bs-toggle="dropdown" title="@Desing.Resources.DevelopIssue.Navbar_Button" aria-label="@Desing.Resources.DevelopIssue.Navbar_Button">
+                        <i class="icon-base ri ri-bug-line icon-md"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end mt-3 py-2">
+                        <li><a class="dropdown-item js-develop-issue-new" href="@Url.Action("Create", "DevelopIssue")"><i class="icon-base ri ri-add-line icon-22px me-2"></i>@Desing.Resources.DevelopIssue.Navbar_New</a></li>
+                        <li><div class="dropdown-divider my-1"></div></li>
+                        <li><a class="dropdown-item" href="@Url.Action("Index", "DevelopIssue")"><i class="icon-base ri ri-list-check icon-22px me-2"></i>@Desing.Resources.DevelopIssue.Navbar_List</a></li>
+                    </ul>
+                </li>
+            }
+
             @* User dropdown *@
             <li class="nav-item navbar-dropdown dropdown-user dropdown">
                 @{

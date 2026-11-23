@@ -9,7 +9,7 @@
 - `Desing/Scripts/MasterArticles/wall-ai-assistant.js`, `design-ai-assistant.js`, `ai-command-catalog.js`
 - `Desing/Controllers/Desing_2Controller.AiCommands.cs`
 - `Desing/Controllers/Desing_2Controller.AiUnknownPhrases.cs` y `Desing/App_Data/IA/frases-no-comprendidas.json` (frases no comprendidas)
-- Tablas `TSql_Ai*` (scripts `Desing/Scripts/TemporalScript/2026-11-14_*TSql_Ai*.sql` y `2026-11-15_seed_TSql_AiCommand_cotas.sql`)
+- Tablas `TSql_Ai*` (scripts `Desing/Scripts/TemporalScript/2026-11-14_*TSql_Ai*.sql`, `2026-11-15_seed_TSql_AiCommand_cotas.sql` y `2026-11-22_seed_TSql_AiCommand_insert_wall_pillar.sql`)
 
 ## Qué leer (solo lo que necesites)
 

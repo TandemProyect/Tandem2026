@@ -1,0 +1,107 @@
+@using Desing.Helpers
+@using Desing.Resources
+@* Develop › US y Bugs: pop-up movible y estrecho de alta (develop-issue-popup.js).
+   Adjuntar, pegar (Ctrl+V) o capturar un rectángulo de la pantalla con dos clics. *@
+<style>
+    .dev-issue-pop { position: fixed; z-index: 2147483200; top: 72px; right: 16px; width: 280px; min-width: 220px; min-height: 120px; max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); resize: both; display: none; flex-direction: column; background: #fff; border: 1px solid #cbd5e1; border-radius: 10px; box-shadow: 0 12px 32px rgba(15,23,42,.28); overflow: hidden; font-size: 12px; }
+    .dev-issue-pop__head { display: flex; align-items: center; gap: 6px; padding: 4px 6px 4px 10px; background: #0f172a; color: #fff; cursor: move; user-select: none; touch-action: none; }
+    .dev-issue-pop--bug .dev-issue-pop__head { background: #dc2626; }
+    .dev-issue-pop select[data-v] { border-left-width: 4px; font-weight: 600; }
+    .dev-issue-pop select[data-v="LOW"] { border-color: #94a3b8; background-color: #f1f5f9; color: #475569; }
+    .dev-issue-pop select[data-v="MEDIUM"], .dev-issue-pop select[data-v="IN_PROGRESS"] { border-color: #f59e0b; background-color: #fef3c7; color: #92400e; }
+    .dev-issue-pop select[data-v="URGENT"] { border-color: #dc2626; background-color: #fee2e2; color: #991b1b; }
+    .dev-issue-pop select[data-v="OPEN"] { border-color: #0ea5e9; background-color: #e0f2fe; color: #075985; }
+    .dev-issue-pop select[data-v="CLOSED"] { border-color: #16a34a; background-color: #dcfce7; color: #166534; }
+    .dev-issue-pop select[data-v] option { background: #fff; color: #334155; font-weight: 400; }
+    .dev-issue-pop__title { flex: 1; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dev-issue-pop__close { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: #fff; cursor: pointer; }
+    .dev-issue-pop__body { padding: 6px 8px 8px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto minmax(min-content, 1fr); grid-auto-rows: auto; gap: 4px 6px; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+    .dev-issue-pop__body .full { grid-column: 1 / -1; }
+    .dev-issue-pop label { display: block; margin: 0 0 1px; font-size: 10px; line-height: 12px; color: #64748b; }
+    .dev-issue-pop .form-control, .dev-issue-pop .form-select { height: 24px; min-height: 24px; padding: 1px 6px; font-size: 12px; line-height: 20px; border-radius: 4px; }
+    .dev-issue-pop .form-select { padding-right: 20px; background-position: right 4px center; }
+    .dev-issue-pop textarea.form-control { flex: 1 1 auto; height: auto; min-height: 48px; resize: none; line-height: 16px; }
+    .dev-issue-pop__obs { display: flex; flex-direction: column; }
+    .dev-issue-pop .btn { padding: 2px 8px; font-size: 11px; line-height: 18px; }
+    .dev-issue-pop__thumbs { display: flex; flex-wrap: wrap; gap: 6px 4px; max-height: 112px; overflow-y: auto; padding: 4px 4px 0 0; }
+    .dev-issue-pop__thumbs:empty { display: none; }
+    .dev-issue-pop__thumb { position: relative; }
+    .dev-issue-pop__thumb img { height: 44px; max-width: 80px; border: 1px solid #cbd5e1; border-radius: 4px; display: block; }
+    .dev-issue-pop__thumb button { position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; padding: 0; border: 0; border-radius: 50%; background: #dc2626; color: #fff; font-size: 11px; line-height: 16px; cursor: pointer; }
+    .dev-issue-pop__msg { font-size: 11px; }
+    .dev-issue-pop__msg:empty { display: none; }
+    .dev-issue-shot { position: fixed; inset: 0; z-index: 2147483600; cursor: crosshair; background: rgba(15,23,42,.15); }
+    .dev-issue-shot__hint { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); padding: 4px 10px; border-radius: 6px; background: #0f172a; color: #fff; font-size: 12px; pointer-events: none; }
+    .dev-issue-shot__rect { position: fixed; border: 2px solid #2563eb; background: rgba(37,99,235,.12); pointer-events: none; display: none; }
+</style>
+
+<div id="developIssuePopup" class="dev-issue-pop" role="dialog" aria-label="@DevelopIssue.Popup_Title" data-function="DevelopIssue"
+     data-create-url="@Url.Action("Create", "DevelopIssue")"
+     data-detail-url="@Url.Action("AddDetail", "DevelopIssue")"
+     data-msg-uploading="@DevelopIssue.Popup_Uploading"
+     data-msg-hint="@DevelopIssue.Popup_CaptureHint"
+     data-msg-unsupported="@DevelopIssue.Popup_CaptureUnsupported"
+     data-msg-denied="@DevelopIssue.Popup_CaptureDenied"
+     data-msg-error="@DevelopIssue.Popup_SaveError"
+     data-msg-open="@DevelopIssue.Popup_Open"
+     data-msg-remove="@DevelopIssue.Btn_RemoveFile">
+    <div class="dev-issue-pop__head js-dev-issue-drag">
+        <i class="ri ri-bug-line"></i>
+        <div class="dev-issue-pop__title">@DevelopIssue.Popup_Title</div>
+        <button type="button" class="dev-issue-pop__close js-dev-issue-close" title="@Common.Btn_Close" aria-label="@Common.Btn_Close"><i class="ri ri-close-line"></i></button>
+    </div>
+    <form class="dev-issue-pop__body" autocomplete="off">
+        @Html.AntiForgeryToken()
+        <div class="full">
+            <label for="devIssueName">@DevelopIssue.Lbl_NameRequired</label>
+            <input type="text" id="devIssueName" name="TextLabel" class="form-control" maxlength="500" required />
+        </div>
+        <div>
+            <label for="devIssueType">@DevelopIssue.Lbl_Type</label>
+            <select id="devIssueType" name="TextType" class="form-select">
+                @foreach (var c in DevelopIssueCodes.Types)
+                {
+                    <option value="@c">@DevelopIssueCodes.TypeText(c)</option>
+                }
+            </select>
+        </div>
+        <div>
+            <label for="devIssueUrgency">@DevelopIssue.Lbl_Urgency</label>
+            <select id="devIssueUrgency" name="TextUrgency" class="form-select">
+                @foreach (var c in DevelopIssueCodes.Urgencies)
+                {
+                    <option value="@c" @(c == "MEDIUM" ? "selected" : null)>@DevelopIssueCodes.UrgencyText(c)</option>
+                }
+            </select>
+        </div>
+        <div>
+            <label for="devIssueState">@DevelopIssue.Lbl_State</label>
+            <select id="devIssueState" name="TextState" class="form-select">
+                @foreach (var c in DevelopIssueCodes.States)
+                {
+                    <option value="@c">@DevelopIssueCodes.StateText(c)</option>
+                }
+            </select>
+        </div>
+        <div>
+            <label for="devIssueDate">@DevelopIssue.Lbl_Date</label>
+            <input type="date" id="devIssueDate" name="DateIssue" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="full dev-issue-pop__obs">
+            <label for="devIssueObs">@DevelopIssue.Lbl_Observation</label>
+            <textarea id="devIssueObs" name="observation" class="form-control"></textarea>
+        </div>
+        <div class="full d-flex gap-1">
+            <button type="button" class="btn btn-outline-primary flex-fill js-dev-issue-capture"><i class="ri ri-screenshot-2-line me-1"></i>@DevelopIssue.Popup_Capture</button>
+            <button type="button" class="btn btn-outline-secondary js-dev-issue-attach" title="@DevelopIssue.Ph_Paste"><i class="ri ri-attachment-2 me-1"></i>@DevelopIssue.Popup_Attach <span class="js-dev-issue-count"></span></button>
+            <input type="file" class="d-none js-dev-issue-file" accept=".png,.jpg,.jpeg,.gif,.webp,image/*" multiple />
+        </div>
+        <div class="full dev-issue-pop__thumbs js-dev-issue-thumbs"></div>
+        <div class="full dev-issue-pop__msg js-dev-issue-msg"></div>
+        <div class="full d-flex justify-content-end gap-1">
+            <button type="button" class="btn btn-outline-secondary js-dev-issue-close">@Common.Btn_Cancel</button>
+            <button type="submit" class="btn btn-primary">@Common.Btn_Save</button>
+        </div>
+    </form>
+</div>
+<script src="@Url.Content("~/Scripts/Intranet/develop-issue-popup.js?v=20261123d")"></script>

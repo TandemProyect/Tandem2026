@@ -68,6 +68,7 @@ export const MA_STL_DESIGN_AI_TEXT = {
         tooShort: 'Ese largo es demasiado corto (mínimo {0}).',
         thickRange: 'El espesor tiene que estar entre {0} y {1}.',
         drawFail: 'No he podido dibujar el muro en ese sitio.',
+        pillarFail: 'No he podido insertar el pilar en ese sitio.',
         noWall: 'No encuentro el muro {0}. Muros del diseño: {1}.',
         noWalls: 'El diseño no tiene muros rectos todavía.',
         edited: '{0}: {1}.',
@@ -234,6 +235,7 @@ export const MA_STL_DESIGN_AI_TEXT = {
         tooShort: 'That length is too short (minimum {0}).',
         thickRange: 'Thickness must be between {0} and {1}.',
         drawFail: 'I could not draw the wall there.',
+        pillarFail: 'I could not insert the pillar there.',
         noWall: 'I cannot find wall {0}. Walls in the design: {1}.',
         noWalls: 'The design has no straight walls yet.',
         edited: '{0}: {1}.',
@@ -469,7 +471,8 @@ function articleAsNumber(raw, i) {
 /**
  * Tokens del mensaje: { t: 'w', w } palabras normalizadas (sin tildes) · { t: 'n', v, unit?, dec } números
  * (cifras «3,5» «3.5» «3'5», «3 coma 5», o en palabras «tres coma cinco», «dos setenta», «un metro veinte») ·
- * { t: 'xy', x, z } («2;3», coordenadas como la herramienta Línea).
+ * { t: 'xy', x, z } («2;3», coordenadas como la herramienta Línea) ·
+ * { t: 'xyz', x, y, z } («0,0,0» / «1.5, 2, 3»: dos comas; el decimal español «0,30» sigue siendo un número).
  */
 export function maStlDesignAiLex(text) {
     let s = String(text || '').toLowerCase();
@@ -477,11 +480,18 @@ export function maStlDesignAiLex(text) {
     s = s.replace(/[º°]/g, ' \u00b0 ').replace(/[’`´]/g, "'");
     s = s.replace(/(\d)\s+(?:coma|punto|point|dot)\s+(\d)/g, '$1.$2');
     const raw = [];
-    const re = /(-?\d+(?:[.,']\d+)?)\s*;\s*(-?\d+(?:[.,']\d+)?)|-?\d+(?:[.,']\d+)?|[a-zñ]+|\u00b0|#/g;
+    const re = /(-?\d+(?:[.'']\d+)?)\s*,\s*(-?\d+(?:[.'']\d+)?)\s*,\s*(-?\d+(?:[.'']\d+)?)|(-?\d+(?:[.,']\d+)?)\s*;\s*(-?\d+(?:[.,']\d+)?)|-?\d+(?:[.,']\d+)?|[a-zñ]+|\u00b0|#/g;
     let m;
     while ((m = re.exec(s))) {
         if (m[1] != null) {
-            raw.push({ t: 'xy', x: Number(m[1].replace(/[,']/g, '.')), z: Number(m[2].replace(/[,']/g, '.')) });
+            raw.push({
+                t: 'xyz',
+                x: Number(String(m[1]).replace(/'/g, '.')),
+                y: Number(String(m[2]).replace(/'/g, '.')),
+                z: Number(String(m[3]).replace(/'/g, '.')),
+            });
+        } else if (m[4] != null) {
+            raw.push({ t: 'xy', x: Number(m[4].replace(/[,']/g, '.')), z: Number(m[5].replace(/[,']/g, '.')) });
         } else if (/^-?\d/.test(m[0])) {
             raw.push({ t: 'n', v: Number(m[0].replace(/[,']/g, '.')), raw: m[0], digits: true, dec: /[.,']/.test(m[0]) });
         } else if (ABBR[m[0]]) {
@@ -571,6 +581,7 @@ export const MA_STL_DESIGN_AI_WORDS = {
         'agregar', 'inserta', 'insertar', 'nuevo', 'nueva', 'levanta', 'construye', 'draw', 'create', 'add', 'insert', 'new', 'build'],
     make: ['haz', 'hazme', 'hacer', 'pon', 'ponme', 'poner', 'make', 'put', 'otro', 'otra', 'another'],
     wall: ['muro', 'muros', 'pared', 'paredes', 'tabique', 'wall', 'walls'],
+    pillar: ['pilar', 'pilares', 'columna', 'columnas', 'pillar', 'pillars', 'column', 'columns'],
     move: ['mueve', 'mover', 'muevelo', 'desplaza', 'desplazar', 'desplazalo', 'traslada', 'trasladar', 'trasladalo', 'move', 'shift'],
     copy: ['copia', 'copiar', 'copialo', 'duplica', 'duplicar', 'duplicalo', 'copy', 'duplicate', 'clone'],
     parallel: ['paralelo', 'paralela', 'offset', 'equidistancia', 'equidistante', 'parallel'],
@@ -774,6 +785,10 @@ function labelOfWord(t) {
     return null;
 }
 
+function isPorTok(tk) {
+    return !!(tk && tk.t === 'w' && (tk.w === 'por' || tk.w === 'x'));
+}
+
 /**
  * Lectura del mensaje: conceptos (con su calidad), medidas con etiqueta (largo / espesor / alto), muro citado,
  * dirección, punto de inicio, extremo… Pura (sin visor): la usan los comandos y las pruebas.
@@ -782,7 +797,7 @@ export function maStlDesignAiParse(text) {
     const toks = maStlDesignAiLex(text);
     const norm = maStlWallAiNormalize(text);
     const p = { text: String(text || '').trim(), norm: norm, toks: toks, has: {}, q: {}, measures: [], wallRef: null, wallRefs: [],
-        dirDeg: null, dirFromAngle: false, straight: false, relTurn: null, start: null, end: null, xy: null, words: [] };
+        dirDeg: null, dirFromAngle: false, straight: false, relTurn: null, start: null, end: null, xy: null, xyz: null, box: null, words: [] };
     const mark = function (c, qv) { if (!(p.q[c] >= qv)) p.q[c] = qv; p.has[c] = true; };
     toks.forEach(function (tk, i) {
         tk.i = i;
@@ -822,7 +837,7 @@ export function maStlDesignAiParse(text) {
             || (a && /^(numero|number|n|no|nro|num)$/.test(a.w) && ((b && b.c && b.c.wall >= 0.8) || (b && /^(el|la|the)$/.test(b.w))));
         const verbBefore = a && /^(el|la|the)$/.test(a.w) && b && b.c && (b.c.del || b.c.move || b.c.copy || b.c.extend || b.c.show || b.c.change || b.c.rotate || b.c.mirror)
             && !(toks[i + 1] && toks[i + 1].t === 'w' && unitOf(toks[i + 1].w));
-        if ((wallBefore || verbBefore) && Number.isInteger(tk.v) && tk.v >= 0) {
+        if ((wallBefore || verbBefore) && Number.isInteger(tk.v) && tk.v >= 0 && !isPorTok(toks[i + 1])) {
             tk.ref = true;
             p.wallRefs.push(String(tk.v));
         }
@@ -848,17 +863,22 @@ export function maStlDesignAiParse(text) {
         if (!p.dirFromAngle) p.dirDeg = d;
     });
     p.straight = toks.some(function (tk, i) { return isC(i, 'straight', 0.95); }) || /\b(misma direccion|same direction)\b/.test(norm);
-    /* Punto de inicio: «desde el origen», «desde 2;3», «desde el final/inicio del muro 4». */
+    /* Punto de inicio: «desde el origen», «desde 2;3», «en 0,0,0», «desde el final/inicio del muro 4». */
     const fromIdx = toks.findIndex(function (tk, i) { return isC(i, 'from', 0.95); });
     const xy = toks.find(function (tk) { return tk.t === 'xy'; });
+    const xyz = toks.find(function (tk) { return tk.t === 'xyz'; });
     if (xy) p.xy = { x: xy.x, z: xy.z };
+    if (xyz) p.xyz = { x: xyz.x, y: xyz.y, z: xyz.z };
     if (fromIdx >= 0) {
         const after = toks.slice(fromIdx + 1, fromIdx + 6);
         const has = function (c, min) { return after.some(function (tk) { return tk.t === 'w' && tk.c && tk.c[c] >= (min || 0.8); }); };
         if (has('origin')) p.start = { kind: 'origin' };
+        else if (xyz) p.start = { kind: 'xyz', x: xyz.x, y: xyz.y, z: xyz.z };
         else if (xy) p.start = { kind: 'xy', x: xy.x, z: xy.z };
         else if (has('start')) p.start = { kind: 'wallStart' };
         else if (has('end') || has('last', 0.95) || p.wallRef || has('selected', 0.95)) p.start = { kind: 'wallEnd' };
+    } else if (xyz) {
+        p.start = { kind: 'xyz', x: xyz.x, y: xyz.y, z: xyz.z };
     } else if (xy) {
         p.start = { kind: 'xy', x: xy.x, z: xy.z };
     }
@@ -930,7 +950,27 @@ export function maStlDesignAiParse(text) {
     });
     const used = p.measures.some(function (m) { return m.label; });
     if (free.length === 1 && labs.length === 1 && !used) free[0].label = labs[0];
+    /* «10 x 0,30 x 3,12» / «0,9 x 0,9 x 5»: largo × espesor/ancho × alto (el «x» del léxico es «por»). */
+    p.box = maStlDesignAiLexBox(toks);
     return p;
+}
+
+/** Tres cifras unidas por «x»/«por». */
+export function maStlDesignAiLexBox(toks) {
+    if (!toks || !toks.length) return null;
+    for (let i = 0; i + 4 < toks.length; i++) {
+        const a = toks[i];
+        const b = toks[i + 2];
+        const c = toks[i + 4];
+        if (!(a && a.t === 'n' && !a.ref && !a.angle && b && b.t === 'n' && !b.ref && !b.angle && c && c.t === 'n' && !c.ref && !c.angle)) continue;
+        if (!isPorTok(toks[i + 1]) || !isPorTok(toks[i + 3])) continue;
+        return {
+            length: { v: a.v, unit: a.unit || null, dec: !!a.dec },
+            thickness: { v: b.v, unit: b.unit || null, dec: !!b.dec },
+            height: { v: c.v, unit: c.unit || null, dec: !!c.dec },
+        };
+    }
+    return null;
 }
 
 /**
@@ -1016,6 +1056,42 @@ function measureBy(p, label) { return p.measures.find(function (m) { return m.la
 function unlabelled(p) { return p.measures.filter(function (m) { return !m.label; }); }
 function near(a, b, tol) { return Math.hypot(a.x - b.x, a.z - b.z) <= (tol || 1); }
 function bridgeOf(s) { return s && s.bridge; }
+function clampNum(n, lo, hi) { return Math.max(lo, Math.min(hi, n)); }
+
+/** Punto de inserción en mm de escena: «0,0,0» (X, Y altura, Z planta) o «2;3». */
+function insertStartMm(p, B) {
+    const o = B && typeof B.origin === 'function' ? B.origin() : { x: 0, y: 0, z: 0 };
+    const floorY = o && o.y != null ? o.y : 0;
+    if (p.xyz) {
+        return { x: p.xyz.x * 1000, y: p.xyz.y != null ? p.xyz.y * 1000 : floorY, z: p.xyz.z * 1000 };
+    }
+    if (p.start && p.start.kind === 'xyz') {
+        return { x: p.start.x * 1000, y: p.start.y != null ? p.start.y * 1000 : floorY, z: p.start.z * 1000 };
+    }
+    if (p.start && p.start.kind === 'xy') {
+        return { x: p.start.x * 1000, y: floorY, z: p.start.z * 1000 };
+    }
+    if (p.start && p.start.kind === 'origin') return { x: o.x, y: o.y != null ? o.y : floorY, z: o.z };
+    return null;
+}
+
+function notUnderstoodRes(T) {
+    return { reply: T.notUnderstood, speech: T.notUnderstood };
+}
+
+/** Largo / espesor / alto: etiquetas, o «10 x 0,30 x 3,12», o la primera cifra suelta (largo). */
+function insertDimsMm(p) {
+    const box = p.box;
+    const lenMs = measureBy(p, 'length') || (box ? box.length : unlabelled(p)[0]);
+    const thMs = measureBy(p, 'thickness') || (box ? box.thickness : null);
+    const hMs = measureBy(p, 'height') || (box ? box.height : null);
+    return {
+        lengthMm: maStlDesignAiMeasureMm(lenMs, 'length'),
+        thicknessMm: maStlDesignAiMeasureMm(thMs, 'thickness'),
+        heightMm: maStlDesignAiMeasureMm(hMs, 'height'),
+        independent: !!(box || p.xyz || (p.start && (p.start.kind === 'xy' || p.start.kind === 'xyz' || p.start.kind === 'origin'))),
+    };
+}
 
 /**
  * Muro citado: número (etiqueta = el ID que se ve en Cotas → id del eje → dbId → wallId/grupo si es único),
@@ -1168,6 +1244,8 @@ registerDesignAiCommand({
         { name: 'inicio', required: false, help: '«desde el origen», «desde 2;3», «desde el final del muro 4» (por defecto sigue al último muro de la IA o al seleccionado)' },
     ],
     score: function (p) {
+        if (q(p, 'pillar')) return 0;
+        if (p.catalogCmd && (p.catalogCmd.aiId === 'pillar.insert' || p.catalogCmd.code === 'TOOL_PILLARS')) return 0;
         if (otherVerb(p, ['shorten'])) return 0;
         const d = q(p, 'draw');
         const m = q(p, 'make');
@@ -1183,26 +1261,22 @@ registerDesignAiCommand({
     run: function (p, s, T) {
         const B = bridgeOf(s);
         const D = B.defaults();
-        const lenMs = measureBy(p, 'length') || unlabelled(p)[0];
-        const lengthMm = maStlDesignAiMeasureMm(lenMs, 'length');
-        const thMs = measureBy(p, 'thickness');
-        const thicknessMm = thMs ? maStlDesignAiMeasureMm(thMs, 'thickness') : D.thicknessMm;
-        const hMs = measureBy(p, 'height');
-        const heightMm = hMs ? maStlDesignAiMeasureMm(hMs, 'height') : D.heightMm;
-        /* Inicio y muro del que sigue. */
+        const dims = insertDimsMm(p);
+        let lengthMm = dims.lengthMm;
+        let thicknessMm = dims.thicknessMm != null ? dims.thicknessMm : D.thicknessMm;
+        let heightMm = dims.heightMm != null ? dims.heightMm : D.heightMm;
+        /* Inicio y muro del que sigue. Con punto o «L x e x h» no se encadena ni se pregunta. */
         const walls = B.walls();
         const byId = function (id) { return walls.find(function (x) { return String(x.id) === String(id); }) || null; };
-        let a = null;
+        let a = insertStartMm(p, B);
         let prev = null;
         let fromText = '';
         const st = p.start;
-        if (st && st.kind === 'origin') {
-            a = B.origin();
-            fromText = T.fromOrigin;
-        } else if (st && st.kind === 'xy') {
-            a = { x: st.x * 1000, z: st.z * 1000 };
-            fromText = fmt(T.fromPoint, (T.lang === 'en' ? String(st.x) : String(st.x).replace('.', ',')) + ';' + (T.lang === 'en' ? String(st.z) : String(st.z).replace('.', ',')));
-        } else {
+        if (a) {
+            fromText = p.xyz || (st && st.kind === 'xyz') || (st && st.kind === 'xy')
+                ? fmt(T.fromPoint, (T.lang === 'en' ? String((p.xyz || st).x) : String((p.xyz || st).x).replace('.', ',')))
+                : T.fromOrigin;
+        } else if (!dims.independent) {
             let r = null;
             if (p.wallRef != null) {
                 r = maStlDesignAiResolveWall(p, s);
@@ -1218,22 +1292,21 @@ registerDesignAiCommand({
                 const atStart = st && st.kind === 'wallStart';
                 a = atStart ? ax.a : ax.b;
                 fromText = fmt(atStart ? T.fromStart : T.fromEnd, wallName(prev, T));
-            } else {
-                a = B.origin();
-                fromText = T.fromOrigin;
             }
         }
-        if (!(lengthMm > 0)) return ask(s, this, p, 'length', T.askLength);
-        if (lengthMm < D.minLengthMm) return { reply: fmt(T.tooShort, maStlDesignAiFmtM(D.minLengthMm, T.lang)) };
-        if (!(thicknessMm >= D.minThicknessMm && thicknessMm <= D.maxThicknessMm)) {
-            return { reply: fmt(T.thickRange, maStlDesignAiFmtM(D.minThicknessMm, T.lang), maStlDesignAiFmtM(D.maxThicknessMm, T.lang)) };
+        if (!a) {
+            a = B.origin();
+            fromText = T.fromOrigin;
         }
-        /* Dirección: absoluta, giro relativo, recto (sigue la del anterior) o pregunta si sigue a otro muro. */
+        if (!(lengthMm > 0)) return notUnderstoodRes(T);
+        if (lengthMm < D.minLengthMm) lengthMm = D.minLengthMm;
+        if (D.minThicknessMm != null && D.maxThicknessMm != null) {
+            thicknessMm = clampNum(thicknessMm, D.minThicknessMm, D.maxThicknessMm);
+        }
+        /* Dirección: absoluta, giro relativo, recto; si no se dice, 0° (derecha). */
         let deg = p.dirDeg;
-        let note = '';
         if (deg == null && prev && (p.relTurn != null || p.straight)) deg = wallAxis(prev).deg + (p.relTurn || 0);
-        if (deg == null && prev) return ask(s, this, p, 'dir', T.askDirection);
-        if (deg == null) { deg = 0; note = T.defaultDir; }
+        if (deg == null) deg = 0;
         deg = ((deg % 360) + 360) % 360;
         const v = maStlDesignAiDirVector(deg);
         const b = { x: a.x + v.x * lengthMm, z: a.z + v.z * lengthMm };
@@ -1262,9 +1335,63 @@ registerDesignAiCommand({
     help: { es: 'Dibujar un muro (largo, dirección, espesor, alto, desde dónde)', en: 'Draw a wall (length, direction, thickness, height, start)' },
     short: { es: 'dibujar un muro', en: 'draw a wall' },
     examples: {
-        es: ['dibuja un muro de 5 m hacia la derecha', 'otro de 3 metros girando a la izquierda', 'haz un muro de 4 m hacia arriba de 20 de espesor y 3 de alto',
-            'dibuja un muro de 6 m desde el origen', 'traza un muro de 2,5 desde 2;3 a 45 grados', 'dibuja un muro de 3 m desde el final del muro 4 hacia abajo'],
-        en: ['draw a 5 m wall to the right', 'another 3 meters turning left', 'draw a 4 m wall up 20 thick and 3 high', 'draw a 6 m wall from the origin'],
+        es: ['dibuja un muro de 5 m hacia la derecha', 'inserta un muro en el punto 0,0,0 con 10.03 mts de longitud 0,30 de ancho y 3,12 de altura',
+            'Inserta muro 10 x 0,30 x 3,12', 'Inserta un muro en 0,0,0 de 10 x 0,30 x 4,0 a 30 grados',
+            'dibuja un muro de 6 m desde el origen', 'traza un muro de 2,5 desde 2;3 a 45 grados'],
+        en: ['draw a 5 m wall to the right', 'insert wall 10 x 0.30 x 3.12', 'insert a wall at 0,0,0 of 10 x 0.30 x 4.0 at 30 degrees'],
+    },
+});
+
+const PILLAR_SIDE_MIN_MM = 100;
+const PILLAR_SIDE_MAX_MM = 650;
+
+registerDesignAiCommand({
+    id: 'pillar.insert',
+    edits: true,
+    params: [
+        { name: 'punto', required: false, help: '«en 0,0,0» (por defecto el origen)' },
+        { name: 'sección y alto', required: true, help: '«0,9 x 0,9 x 5» o «0,30 de ancho y 3 de alto»' },
+        { name: 'ángulo', required: false, help: '«a 30 grados» (por defecto 0)' },
+    ],
+    score: function (p) {
+        if (p.catalogCmd && (p.catalogCmd.aiId === 'pillar.insert' || p.catalogCmd.code === 'TOOL_PILLARS')) return 0.99;
+        const pil = q(p, 'pillar');
+        if (!pil) return 0;
+        if (otherVerb(p, [])) return 0;
+        const d = q(p, 'draw') || q(p, 'make');
+        if (d && pil) return Math.min(Math.max(d, pil), 1);
+        if (p.box || p.measures.length) return pil * 0.97;
+        return pil * 0.9;
+    },
+    run: function (p, s, T) {
+        const B = bridgeOf(s);
+        if (typeof B.drawPillar !== 'function') return { reply: T.pillarFail };
+        const D = B.defaults ? B.defaults() : {};
+        const dims = insertDimsMm(p);
+        const origin = B.origin ? B.origin() : { x: 0, y: 0, z: 0 };
+        const at = insertStartMm(p, B) || { x: origin.x, y: origin.y, z: origin.z };
+        let longMm = dims.lengthMm != null ? dims.lengthMm : (dims.thicknessMm != null ? dims.thicknessMm : 300);
+        let widthMm = dims.thicknessMm != null ? dims.thicknessMm : longMm;
+        let heightMm = dims.heightMm != null ? dims.heightMm : (D.heightMm || 2700);
+        if (!(longMm > 0) && !(widthMm > 0) && !(heightMm > 0)) return notUnderstoodRes(T);
+        if (!(longMm > 0)) longMm = 300;
+        if (!(widthMm > 0)) widthMm = longMm;
+        if (!(heightMm > 0)) heightMm = D.heightMm || 2700;
+        longMm = clampNum(longMm, PILLAR_SIDE_MIN_MM, PILLAR_SIDE_MAX_MM);
+        widthMm = clampNum(widthMm, PILLAR_SIDE_MIN_MM, PILLAR_SIDE_MAX_MM);
+        const deg = p.dirDeg != null ? ((p.dirDeg % 360) + 360) % 360 : 0;
+        const res = B.drawPillar({
+            x: at.x, y: at.y, z: at.z,
+            longMm: longMm, widthMm: widthMm, heightM: heightMm / 1000, angleDeg: deg,
+        });
+        if (!res || !res.ok) return { reply: T.pillarFail };
+        return doneRes(T);
+    },
+    help: { es: 'Insertar un pilar (punto, largo × ancho × alto, ángulo 0 si no se dice)', en: 'Insert a pillar (point, length × width × height, angle 0 if omitted)' },
+    short: { es: 'insertar un pilar', en: 'insert a pillar' },
+    examples: {
+        es: ['inserta un pilar en 0,0,0 de 0,9 x 0,9 x 5', 'inserta un pilar 0,30 x 0,30 x 3'],
+        en: ['insert a pillar at 0,0,0 of 0.9 x 0.9 x 5'],
     },
 });
 

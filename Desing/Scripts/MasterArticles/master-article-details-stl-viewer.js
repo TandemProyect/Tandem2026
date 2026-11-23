@@ -10,7 +10,7 @@ import { createDesing2WorkerTool } from './desing2-worker-tool.js?v=20261022-wor
 import { createDesing2PillarTool } from './desing2-pillar-tool.js';
 import { mountWallEditForm } from './wall-edit-form.js?v=20261120g';
 import { mountWallAiChat, maStlWallAiUiTexts, maStlWallAiBootstrapCompact, maStlWallAiCompactTitle } from './wall-ai-assistant.js?v=20261120g';
-import { maStlDesignAiInit } from './design-ai-assistant.js?v=20261120g';
+import { maStlDesignAiInit } from './design-ai-assistant.js?v=20261122b';
 import { formworkArticleColorHex, formworkColorModePaints, formworkKeepsFactoryRole, formworkMeshColorHex, formworkModeClickAction, formworkResolveSystemPanelColor, formworkSystemPanelColorHex, wallDimKindWithoutWall } from '../Desing2/formwork-panel-color.js?v=20261120a';
 import { buildDesignWallFaces } from '../Desing2/desing2-wall-faces.js?v=20261120c';
 import { assignCorrelativeWallCornerIds } from '../Desing2/desing2-wall-corner-ids.js?v=20261120a';
@@ -4817,17 +4817,24 @@ function bootMasterArticleDetailsStlViewer() {
         return true;
     }
 
-    function maStlPlacePillarAt(point) {
+    function maStlPlacePillarAt(point, skipUndo) {
         if (!point) return false;
         const half = (point.longMm || 300) * 0.5;
-        const a = { x: point.x - half, y: point.y || 0, z: point.z };
-        const b = { x: point.x + half, y: point.y || 0, z: point.z };
-        maStlCommitUserPlanLineSegmentMm(a, b, false, null, {
+        const deg = Number(point.angleDeg) || 0;
+        const r = deg * Math.PI / 180;
+        const ux = Math.cos(r);
+        const uz = -Math.sin(r);
+        const y = point.y || 0;
+        const a = { x: point.x - ux * half, y: y, z: point.z - uz * half };
+        const b = { x: point.x + ux * half, y: y, z: point.z + uz * half };
+        const extras = {
             wallRole: 'pillar',
             pillarWidthMm: point.widthMm || 300,
             skipWeld: true,
             skipCollinearMerge: true,
-        });
+        };
+        if (Number(point.heightM) > 0) extras._DataHeight = Number(point.heightM);
+        maStlCommitUserPlanLineSegmentMm(a, b, !!skipUndo, null, extras);
         maStlRefreshPillarGuides();
         return true;
     }
@@ -40340,6 +40347,29 @@ let maStlWallApplyAllHeightMm = 0;
             if (!ok) return { ok: false };
             maStlSaveWallConnectionsNow({ force: true, reason: 'design-ai-draw-wall' });
             return { ok: true, groupId: ok.groupId, walls: maStlDesignAiNewAxisIds(before) };
+        },
+        /** Pilar en planta (centro, largo × ancho × alto, ángulo 0 = +X). Un paso de Deshacer. */
+        drawPillar: function (opts) {
+            opts = opts || {};
+            const longMm = Number(opts.longMm) > 0 ? Number(opts.longMm) : 300;
+            const widthMm = Number(opts.widthMm) > 0 ? Number(opts.widthMm) : 300;
+            const ok = maStlDesignAiWithUndo('createPillar', function () {
+                const placed = maStlPlacePillarAt({
+                    x: opts.x,
+                    y: opts.y != null ? opts.y : MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM,
+                    z: opts.z,
+                    longMm: longMm,
+                    widthMm: widthMm,
+                    heightM: Number(opts.heightM) > 0 ? Number(opts.heightM) : null,
+                    angleDeg: opts.angleDeg,
+                }, true);
+                if (!placed) return false;
+                if (typeof maStlRefreshPillarModelIfVisible === 'function') maStlRefreshPillarModelIfVisible();
+                return true;
+            });
+            if (!ok) return { ok: false };
+            maStlSaveWallConnectionsNow({ force: true, reason: 'design-ai-draw-pillar' });
+            return { ok: true };
         },
         /** Largo / espesor / alto como el formulario «Modificar muro» (un paso de Deshacer). */
         setDims: function (id, dims) {

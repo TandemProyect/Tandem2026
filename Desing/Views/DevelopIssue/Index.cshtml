@@ -1,0 +1,96 @@
+@model List<Desing.Helpers.DevelopIssueRow>
+@using Desing.Helpers
+@using Desing.Resources
+@using Newtonsoft.Json
+@{
+    ViewBag.Title = DevelopIssue.Index_Breadcrumb;
+    var ok = TempData["DevelopIssueOk"] as string;
+    var error = TempData["DevelopIssueError"] as string;
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">
+            <a href="@Url.Action("Index", "Home")">@DevelopIssue.Common_Home</a> /
+            @DevelopIssue.Common_Develop /
+        </span> @DevelopIssue.Index_Breadcrumb
+    </h4>
+    @if (!(ViewBag.TableMissing ?? false))
+    {
+        <a class="btn btn-primary text-white" href="@Url.Action("Create", "DevelopIssue")">
+            <i class="icon-base ri ri-add-line me-1"></i> @DevelopIssue.Index_Create
+        </a>
+    }
+</div>
+
+@if (ViewBag.TableMissing ?? false)
+{
+    <div class="alert alert-warning">@DevelopIssue.Msg_NoTable</div>
+}
+@if (!string.IsNullOrEmpty(ok))
+{
+    <div class="alert alert-success">@ok</div>
+}
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+<div class="card mb-4">
+    <div class="card-body" style="padding:5px">
+        @Html.AntiForgeryToken()
+        <table id="ListDevelopIssues" class="table table-hover" cellspacing="0" style="width: 100%">
+            <thead>
+                <tr>
+                    <th>@DevelopIssue.Col_Name</th>
+                    <th>@DevelopIssue.Col_Type</th>
+                    <th>@DevelopIssue.Col_Urgency</th>
+                    <th>@DevelopIssue.Col_State</th>
+                    <th>@DevelopIssue.Col_Date</th>
+                    <th>@DevelopIssue.Col_Details</th>
+                    <th class="text-end text-nowrap" style="width:1%;"></th>
+                    <th>ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var i in Model)
+                {
+                    <tr data-issue-id="@i.IdObject">
+                        <td><a href="@Url.Action("Details", "DevelopIssue", new { id = i.IdObject })" title="@DevelopIssue.List_OpenTooltip">@i.TextLabel</a></td>
+                        <td data-order="@i.TextType"><span class="badge rounded-pill @DevelopIssueCodes.TypeBadge(i.TextType)">@DevelopIssueCodes.TypeText(i.TextType)</span></td>
+                        <td data-order="@Array.IndexOf(DevelopIssueCodes.Urgencies, i.TextUrgency)"><span class="badge rounded-pill @DevelopIssueCodes.UrgencyBadge(i.TextUrgency)">@DevelopIssueCodes.UrgencyText(i.TextUrgency)</span></td>
+                        <td data-order="@Array.IndexOf(DevelopIssueCodes.States, i.TextState)"><span class="badge rounded-pill @DevelopIssueCodes.StateBadge(i.TextState)">@DevelopIssueCodes.StateText(i.TextState)</span></td>
+                        <td data-order="@i.DateIssue.ToString("yyyyMMdd")">@i.DateIssue.ToShortDateString()</td>
+                        <td>@i.NumberDetails</td>
+                        <td class="text-end text-nowrap">
+                            <a class="btn btn-sm btn-icon btn-text-secondary" href="@Url.Action("Edit", "DevelopIssue", new { id = i.IdObject })" title="@DevelopIssue.List_EditTooltip"><i class="ri ri-pencil-line"></i></a>
+                            <button type="button" class="btn btn-sm btn-icon btn-text-danger js-issue-delete" title="@DevelopIssue.List_DeleteTooltip"><i class="ri ri-delete-bin-line"></i></button>
+                        </td>
+                        <td>@i.IdObject</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section scripts
+{
+    <script>
+        window.developIssueI18n = { confirmDelete: @Html.Raw(JsonConvert.SerializeObject(DevelopIssue.Js_ConfirmDelete)) };
+        window.developIssueUrls = { deleteIssue: '@Url.Action("Delete", "DevelopIssue")' };
+        $(function () {
+            var options = TandemDataTablesList.applyListDefaults({
+                order: [[4, 'desc']],
+                columnDefs: [
+                    { targets: 6, orderable: false, searchable: false },
+                    { targets: 7, visible: false }
+                ]
+            });
+            /* Las filas vienen en el HTML: sin esto DataTables pide JSON a la propia página. */
+            delete options.ajax;
+            $('#ListDevelopIssues').DataTable(options);
+        });
+    </script>
+    <script src="@Url.Content("~/Scripts/Intranet/develop-issue.js")"></script>
+}
