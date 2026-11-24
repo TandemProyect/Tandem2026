@@ -3541,6 +3541,10 @@ function bootMasterArticleDetailsStlViewer() {
     maStlWallFacesGroup.name = 'maStlWallFaces';
     maStlWallFacesGroup.renderOrder = 125;
     maStlWallFacesGroup.visible = false;
+    const maStlWallFaceLetterGroup = new THREE.Group();
+    maStlWallFaceLetterGroup.name = 'maStlWallFaceLetters';
+    maStlWallFaceLetterGroup.renderOrder = 126;
+    maStlWallFaceLetterGroup.visible = false;
     let maStlWallFacesOverlaySig = '';
     let maStlWallFacesCache = [];
     let maStlWallFacesLastInputs = [];
@@ -9313,6 +9317,21 @@ function bootMasterArticleDetailsStlViewer() {
                     const qBase = new THREE.Quaternion().setFromEuler(baseEuler);
                     const qYaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -wallYaw);
                     unionClone.quaternion.copy(qYaw).multiply(qBase);
+                    if (elementCode === '1920811') {
+                        // Solo el gancho: Rx(270) mundo + yaw mundo (90° cara y 180° planta).
+                        // La placa 10443020 no entra aquí: se queda con la unión genérica.
+                        const hookNx = Number.isFinite(unx) ? unx : 0;
+                        const hookNz = Number.isFinite(unz) ? unz : 1;
+                        let hookYaw = Math.atan2(-hookNx, -hookNz);
+                        if (hookYaw < 0) hookYaw += Math.PI * 2;
+                        hookYaw += Math.PI * 1.5;
+                        if (hookYaw >= Math.PI * 2) hookYaw -= Math.PI * 2;
+                        const qRx = new THREE.Quaternion().setFromAxisAngle(
+                            new THREE.Vector3(1, 0, 0), Math.PI * 1.5);
+                        const qRy = new THREE.Quaternion().setFromAxisAngle(
+                            new THREE.Vector3(0, 1, 0), hookYaw);
+                        unionClone.quaternion.copy(qRy).multiply(qRx);
+                    }
                     if (elementCode === '1850162' && seam) {
                         const qPlan = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.5);
                         unionClone.quaternion.premultiply(qPlan);
@@ -9359,7 +9378,7 @@ function bootMasterArticleDetailsStlViewer() {
                         unionClone.traverse(function (obj) {
                             if (obj && obj.isMesh) obj.material = rigidMat;
                         });
-                    } else if (elementCode === '1850162' || elementCode === '1850163' || elementCode === '1850164') {
+                    } else if (elementCode === '1850162' || elementCode === '1850163' || elementCode === '1850164' || elementCode === '1920811') {
                         const rigidMat = maStlDesing2GetAtk60RigidMaterial();
                         unionClone.traverse(function (obj) {
                             if (obj && obj.isMesh) obj.material = rigidMat;
@@ -9406,6 +9425,24 @@ function bootMasterArticleDetailsStlViewer() {
                         maStlAtk60StrictPose: true,
                     };
                     sampleGroup.add(unionClone);
+                    if (elementCode === '1920811') {
+                        const hookInsert = new THREE.Mesh(
+                            new THREE.SphereGeometry(12, 16, 12),
+                            new THREE.MeshBasicMaterial({
+                                color: 0xff0000,
+                                depthTest: false,
+                                transparent: true,
+                                opacity: 0.95,
+                            })
+                        );
+                        hookInsert.position.set(0, 0, 0);
+                        hookInsert.renderOrder = 500;
+                        hookInsert.userData = {
+                            maStlAtk60SamplePlaced: true,
+                            maStlAtk60HookInsertDebug: true,
+                        };
+                        unionClone.add(hookInsert);
+                    }
                     inserted++;
                     continue;
                 }
@@ -11062,10 +11099,12 @@ let maStlWallApplyAllHeightMm = 0;
         if (!show) {
             maStlWallFacesGroup.visible = false;
             if (dirty) maStlStripOverlayMeshes(maStlWallFacesGroup);
+            maStlWallFaceLetterRebuild();
             return;
         }
         if (!dirty && maStlWallFacesGroup.children.length) {
             maStlWallFacesGroup.visible = true;
+            maStlWallFaceLetterRebuild();
             return;
         }
         maStlStripOverlayMeshes(maStlWallFacesGroup);
@@ -11113,6 +11152,95 @@ let maStlWallApplyAllHeightMm = 0;
         }
         maStlDisableRaycastOnOverlay(maStlWallFacesGroup);
         maStlWallFacesGroup.visible = true;
+        maStlWallFaceLetterRebuild();
+    }
+
+    function maStlWallFaceLetterHex(color) {
+        const n = (Number(color) >>> 0) & 0xffffff;
+        return '#' + ('000000' + n.toString(16)).slice(-6);
+    }
+
+    function maStlWallFaceLetterFromId(id) {
+        const n = Number(id);
+        if (n >= 1 && n <= 26) return String.fromCharCode(64 + n);
+        return 'F-' + id;
+    }
+
+    function maStlWallFaceLetterAxisMid(axisId) {
+        for (let i = 0; i < maStlWallFacesLastInputs.length; i++) {
+            const a = maStlWallFacesLastInputs[i];
+            if (a && String(a.id) === String(axisId) && a.p1 && a.p2) {
+                return { x: (a.p1.x + a.p2.x) * 0.5, z: (a.p1.z + a.p2.z) * 0.5 };
+            }
+        }
+        return null;
+    }
+
+    function maStlWallFaceLetterRebuild() {
+        if (!maStlWallFaceLetterGroup) return;
+        if (scene && !maStlWallFaceLetterGroup.parent) scene.add(maStlWallFaceLetterGroup);
+        maStlWallFacesEnsureCache();
+        maStlStripOverlayMeshes(maStlWallFaceLetterGroup);
+        const on = maStlWall3dCornerReferencePointOn() && !maStlWallDimToolActive;
+        if (!on) {
+            maStlWallFaceLetterGroup.visible = false;
+            return;
+        }
+        const y0 = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM;
+        for (let i = 0; i < maStlWallFacesCache.length; i++) {
+            const face = maStlWallFacesCache[i];
+            if (!face || !face.p1 || !face.p2) continue;
+            const mx = (face.p1.x + face.p2.x) * 0.5;
+            const mz = (face.p1.z + face.p2.z) * 0.5;
+            const axisMid = maStlWallFaceLetterAxisMid(face.axisId);
+            let ox = 0;
+            let oz = 0;
+            if (axisMid) {
+                ox = mx - axisMid.x;
+                oz = mz - axisMid.z;
+                const len = Math.hypot(ox, oz) || 1;
+                ox = (ox / len) * 90;
+                oz = (oz / len) * 90;
+            }
+            const y1 = y0 + maStlWallFacesHeightMm(face.axisId) + 120;
+            const hex = maStlWallFaceLetterHex(face.color);
+            const g = new THREE.Group();
+            g.userData.maStlWall3dCornerReferencePoint = true;
+            const ball = new THREE.Mesh(
+                new THREE.SphereGeometry(70, 16, 12),
+                new THREE.MeshBasicMaterial({
+                    color: face.color,
+                    depthTest: false,
+                    depthWrite: false,
+                    toneMapped: false
+                })
+            );
+            ball.position.set(mx + ox, y1, mz + oz);
+            ball.renderOrder = 420;
+            ball.frustumCulled = false;
+            ball.userData.maStlWall3dCornerReferencePoint = true;
+            g.add(ball);
+            const sprite = maStlMakeTextSprite(maStlWallFaceLetterFromId(face.id), 220, {
+                thinFillOnly: true,
+                fillColor: hex,
+                fontPx: 64,
+                fontWeight: 800,
+                canvasPad: 10,
+                thinPillFill: '#ffffff',
+                thinPillStroke: hex
+            });
+            if (sprite) {
+                sprite.position.set(mx + ox, y1 + 140, mz + oz);
+                sprite.renderOrder = 421;
+                sprite.frustumCulled = false;
+                sprite.userData.maStlWall3dCornerReferencePoint = true;
+                g.add(sprite);
+            }
+            maStlWallFaceLetterGroup.add(g);
+        }
+        maStlDisableRaycastOnOverlay(maStlWallFaceLetterGroup);
+        maStlWallFaceLetterGroup.visible = true;
+        maStlWallFaceLetterGroup.renderOrder = 420;
     }
 
     /** Líneas 1 y 3 en el canto exterior. La 2 y la 4 cruzan por dentro. */
@@ -11436,6 +11564,7 @@ let maStlWallApplyAllHeightMm = 0;
         if (maStlWall3dMeshesGroup) maStlWall3dMeshesGroup.traverse(apply);
         if (maStlDesing2Atk60SampleGroup) maStlDesing2Atk60SampleGroup.traverse(apply);
         maStlWallFacesRebuildOverlay();
+        maStlWallFaceLetterRebuild();
     }
 
     window.desing2SyncCornerGuides = maStlWall3dSyncCornerGuideVisibility;
@@ -36426,8 +36555,10 @@ let maStlWallApplyAllHeightMm = 0;
         scene.add(maStlWallDimGroup);
         scene.add(maStlWall3dMeshesGroup);
         scene.add(maStlWallFacesGroup);
+        scene.add(maStlWallFaceLetterGroup);
         maStlDisableRaycastOnOverlay(maStlUserLinesGroup);
         maStlDisableRaycastOnOverlay(maStlWallFacesGroup);
+        maStlDisableRaycastOnOverlay(maStlWallFaceLetterGroup);
     }
     rebuildMaStlUcsOverlayDecor(lastMaxDim);
 

@@ -1014,7 +1014,8 @@ namespace Desing.Repositories.RepositoryAtk60
                     faceSides = foundSides;
                 }
 
-                var chunks = BuildAtk60AlongChunks(moduloWall);
+                var hasFaceRemate = faceSides != null && (faceSides.HasPos || faceSides.HasNeg);
+                var chunks = BuildAtk60AlongChunks(moduloWall, hasFaceRemate);
                 var skipRemate = ExactWidthEndTape.SuppressesRemate(wall)
                     && remateMm > 1d && remateMm <= Atk60StepMm;
                 var leadMm = skipRemate
@@ -1045,6 +1046,14 @@ namespace Desing.Repositories.RepositoryAtk60
                 var endJointMm = skipRemate && leadMm <= 0d ? wallRunMm - remateMm : wallRunMm;
                 var stiffenerAlongMm = new List<double>();
                 var cursorMm = leadMm - halfSolapeMm;
+                if (hasFaceRemate)
+                {
+                    var faceLead = FaceRemateLeadMm(faceSides, wallRunMm);
+                    var faceTrail = FaceRemateTrailMm(faceSides, wallRunMm);
+                    cursorMm += Atk60FaceRemateRules.ModuleCursorMm(
+                        faceLead, faceTrail, moduleSpanMm, wallRunMm);
+                }
+
                 var indexOffset = 0;
                 var paintedFaceRemate = false;
                 for (var ci = 0; ci < chunks.Count; ci++)
@@ -1052,7 +1061,7 @@ namespace Desing.Repositories.RepositoryAtk60
                     var chunk = chunks[ci];
                     if (chunk.Builder == null)
                     {
-                        if (!skipRemate)
+                        if (!skipRemate && !hasFaceRemate)
                         {
                             PaintFaceRemate(outElements, wall, anchor, remateMm, cursorMm, faceSides);
                             cursorMm += remateMm;
@@ -1073,9 +1082,11 @@ namespace Desing.Repositories.RepositoryAtk60
                         }
                     }
 
-                    var remateFollows = !skipRemate
-                        && ci + 1 < chunks.Count
-                        && chunks[ci + 1].Builder == null;
+                    var chunkEndMm = cursorMm + (chunk.Count * moduleLengthMm);
+                    var remateFollows = (!skipRemate
+                            && ci + 1 < chunks.Count
+                            && chunks[ci + 1].Builder == null)
+                        || ChunkAbutsFaceRemate(faceSides, chunkEndMm);
                     outElements.AddRange(
                         Modulo270PanelElementGenerator.Build(
                             wall,
@@ -1097,7 +1108,11 @@ namespace Desing.Repositories.RepositoryAtk60
                     indexOffset += chunk.Count;
                 }
 
-                if (!skipRemate && !paintedFaceRemate && faceSides != null)
+                if (!skipRemate && hasFaceRemate)
+                {
+                    PaintFaceRemate(outElements, wall, anchor, 0d, 0d, faceSides);
+                }
+                else if (!skipRemate && !paintedFaceRemate && faceSides != null)
                 {
                     PaintFaceRemate(outElements, wall, anchor, 0d, cursorMm, faceSides);
                 }
@@ -1544,10 +1559,10 @@ namespace Desing.Repositories.RepositoryAtk60
         }
 
         /// <summary>
-        /// Orden a lo largo del muro: modulos, remate (si hay) y el modulo de cierre.
-        /// El remate nunca es el ultimo.
+        /// Orden a lo largo del muro: módulos y, si no hay remate por cara,
+        /// remate + módulo de cierre. Con caras, el taco va en la esquina.
         /// </summary>
-        private List<Atk60AlongChunk> BuildAtk60AlongChunks(ModulosAtk60Wall moduloWall)
+        private List<Atk60AlongChunk> BuildAtk60AlongChunks(ModulosAtk60Wall moduloWall, bool omitRemate = false)
         {
             var chunks = new List<Atk60AlongChunk>();
             if (moduloWall == null)
@@ -1557,7 +1572,7 @@ namespace Desing.Repositories.RepositoryAtk60
 
             var remateMm = Math.Round(moduloWall.M_Remate * 1000d, 3);
             // Más de 0,15 no es remate. El filtro antiguo (< 0,30) pintaba el 0,27.
-            var hasRemate = remateMm > 1d && remateMm <= Atk60StepMm;
+            var hasRemate = !omitRemate && remateMm > 1d && remateMm <= Atk60StepMm;
             var closer = hasRemate ? ResolveAtk60ClosingBuilder(moduloWall) : null;
 
             for (var bi = 0; bi < _moduleBuilders.Count; bi++)

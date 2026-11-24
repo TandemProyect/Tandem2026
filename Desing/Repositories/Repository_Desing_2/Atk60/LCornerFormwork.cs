@@ -1,3 +1,4 @@
+using Desing.Repositories.RepositoryAtk60;
 using Desing.Repositories.RepositoryAtk60.ModulosATK60;
 using Desing.Repositories.RepositoryCommun;
 using System;
@@ -14,8 +15,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
     {
         private const double LegMm = 300d;
         private const double ReachMm = 450d;
-        private const double LegacyCornerHookAlongMm = 10d;
-        private const double LegacyCornerHookFaceBaseMm = 300d;
+        private const string UnionHookPath = "../../Content/DesignTools/Stl/ATK60/1920811.stl";
+        private const string UnionPlatePath = "../../Content/DesignTools/Stl/ATK60/10443020.stl";
         private const string FixedPath = "../../Content/DesignTools/Stl/ATK60/10004220.stl";
         private const string FixedCode = "10004220";
         private const string StiffPath = "../../Content/DesignTools/Stl/ATK60/1850162.stl";
@@ -106,6 +107,12 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             }
 
             if (woods.Count < 2)
+            {
+                return;
+            }
+
+            // Cada cara lleva su taco junto a la L. No fusionar ni igualar.
+            if (HasIndependentFaceRemates(woods))
             {
                 return;
             }
@@ -804,11 +811,77 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             z = -sy;
         }
 
+        private static bool HasIndependentFaceRemates(List<Atk60ElementPaintItem> woods)
+        {
+            var hasPos = false;
+            var hasNeg = false;
+            for (var i = 0; i < woods.Count; i++)
+            {
+                var item = woods[i];
+                if (item == null)
+                {
+                    continue;
+                }
+
+                var len = item.PieceWidthMm > 1d ? item.PieceWidthMm : item.ModuleLengthMm;
+                if (len <= 1d)
+                {
+                    continue;
+                }
+
+                if (item.FaceSign < 0d)
+                {
+                    hasNeg = true;
+                }
+                else
+                {
+                    hasPos = true;
+                }
+            }
+
+            return Atk60FaceRemateRules.IndependentFaces(hasPos, hasNeg);
+        }
+
         private static bool IsRemateItem(Atk60ElementPaintItem item)
         {
             var code = item.ElementCode ?? string.Empty;
             return string.Equals(item.ElementType, "Remate", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(code, "REMATE_WOOD", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// El remate por cara ya ocupa el hueco de la L (along negativo o
+        /// pasado el run). No pintar otro tablón encima del panel de esquina.
+        /// </summary>
+        private static bool HasPocketFaceWood(List<Atk60ElementPaintItem> items, Run run, bool atEnd)
+        {
+            if (items == null || run == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < items.Count; i++)
+            {
+                var item = items[i];
+                if (item == null || !SameWall(item.IdWall, run.Id) || !IsRemateItem(item) || IsTapeWood(item))
+                {
+                    continue;
+                }
+
+                if (atEnd)
+                {
+                    if (item.LocalAlongMm >= run.LengthMm - 1d)
+                    {
+                        return true;
+                    }
+                }
+                else if (item.LocalAlongMm < -1d)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -2410,6 +2483,13 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             var otherCover = !otherExit && PlaceExteriorCover(
                 outElements, other, otherAtEnd, otherInside, owner.ThicknessMm, cornerX, cornerZ,
                 otherSuppressCornerUnion, otherIsRegulated);
+            if (isUniversalCorner)
+            {
+                PlaceCornerUnionHookAndPlate(
+                    outElements, owner, ownerAtEnd, ownerInside,
+                    other, otherAtEnd, otherInside,
+                    cornerX, cornerZ, regulatedRun);
+            }
             var stepMm = Math.Abs(owner.ThicknessMm - other.ThicknessMm);
             var unequal = stepMm > 5d && stepMm <= 600d;
             if (!ownerCover && !ownerExit)
@@ -2462,6 +2542,11 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double cornerPanelZ)
         {
             if (run == null || run.Wall == null || run.Anchor == null)
+            {
+                return;
+            }
+
+            if (HasPocketFaceWood(outElements, run, atEnd))
             {
                 return;
             }
@@ -2703,7 +2788,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 }
             }
 
-            if (woodInside)
+            if (woodInside && !HasPocketFaceWood(outElements, run, atEnd))
             {
                 var woodAlong = atEnd ? run.LengthMm : -(double)remateMm;
                 outElements.AddRange(EndFiller.Build(
@@ -2780,12 +2865,6 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             {
                 PlaceUnionAlong(outElements, run, cornerAlong, showPrimary, showOpposite);
             }
-            else
-            {
-                PlaceCornerUnionHookAndPlate(
-                    outElements, run, atEnd, otherThicknessMm, cornerX, cornerZ,
-                    showPrimary, showOpposite);
-            }
             if (includeTieColumn)
             {
                 // La junta del módulo de esquina lleva tirante. Si el tramo recto ya
@@ -2843,114 +2922,110 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             }
         }
 
+        /// <summary>
+        /// Gancho 1920811 y placa 10443020 en la cara exterior del run
+        /// regulado (roja si Universal_X). Fuera del hormigón, 120 mm al marco.
+        /// Placa en el U exterior. Gancho −20 mm along y misma cara 120 mm.
+        /// Rotación no se toca.
+        /// </summary>
         private static void PlaceCornerUnionHookAndPlate(
             List<Atk60ElementPaintItem> outElements,
-            Run run,
-            bool atEnd,
-            double otherThicknessMm,
+            Run owner,
+            bool ownerAtEnd,
+            bool ownerInside,
+            Run other,
+            bool otherAtEnd,
+            bool otherInside,
             double cornerX,
             double cornerZ,
-            bool showPrimary,
-            bool showOpposite)
+            Run regulatedRun)
         {
-            if (outElements == null || run == null || run.Anchor == null)
+            if (outElements == null || owner == null || other == null
+                || owner.Anchor == null || other.Anchor == null)
             {
                 return;
             }
 
-            if (showPrimary)
+            var regulated = regulatedRun != null ? regulatedRun : owner;
+            var regulatedAtEnd = ReferenceEquals(regulated, owner) ? ownerAtEnd : otherAtEnd;
+            var regulatedInside = ReferenceEquals(regulated, owner) ? ownerInside : otherInside;
+            if (regulated.Anchor == null)
             {
-                PlaceCornerHardwareFromPillarPattern(
-                    outElements, run, atEnd, otherThicknessMm, cornerX, cornerZ,
-                    run.Anchor.NormalX, run.Anchor.NormalZ);
+                return;
             }
 
-            if (showOpposite)
+            double faceOutX;
+            double faceOutZ;
+            Atk60AdjustableCornerHardware.ExteriorNormal(
+                regulatedInside,
+                regulated.Anchor.NormalX,
+                regulated.Anchor.NormalZ,
+                out faceOutX,
+                out faceOutZ);
+            double alongX;
+            double alongZ;
+            Atk60AdjustableCornerHardware.ThroughIntoProfile(
+                regulatedAtEnd, regulated.Ux, regulated.Uz, out alongX, out alongZ);
+
+            double hookX;
+            double hookZ;
+            Atk60AdjustableCornerHardware.WorldMm(
+                cornerX, cornerZ, faceOutX, faceOutZ, alongX, alongZ,
+                Atk60AdjustableCornerHardware.HookFaceMm,
+                Atk60AdjustableCornerHardware.HookAlongMm,
+                out hookX, out hookZ);
+            double plateX;
+            double plateZ;
+            Atk60AdjustableCornerHardware.WorldMm(
+                cornerX, cornerZ, faceOutX, faceOutZ, alongX, alongZ,
+                Atk60AdjustableCornerHardware.FrameFaceMm,
+                Atk60AdjustableCornerHardware.HoleAlongMm,
+                out plateX, out plateZ);
+
+            var faceSign = regulatedInside ? -regulated.Anchor.FaceSign : regulated.Anchor.FaceSign;
+            var bands = Bands(regulated.HeightMm);
+            var up = 0d;
+            for (var i = 0; i < bands.Count; i++)
             {
-                PlaceCornerHardwareFromPillarPattern(
-                    outElements, run, atEnd, otherThicknessMm, cornerX, cornerZ,
-                    -run.Anchor.NormalX, -run.Anchor.NormalZ);
+                var band = bands[i];
+                var heights = AdjustableHookHeightsMm(band);
+                for (var h = 0; h < heights.Length; h++)
+                {
+                    var upMm = up + heights[h];
+                    var y = regulated.Anchor.Y + upMm;
+                    Atk60FaceInsertion.OneFace(
+                        outElements, regulated.Anchor, regulated.Id, UnionHookPath,
+                        hookX, y, hookZ,
+                        Atk60AdjustableCornerHardware.HookYawRad(faceOutX, faceOutZ),
+                        0d, faceOutX, faceOutZ, faceSign,
+                        regulatedInside, 0d, upMm,
+                        regulated.HeightMm, regulated.ThicknessMm, regulated.LengthMm,
+                        "1920811", "hook-corner");
+                    Atk60FaceInsertion.OneFace(
+                        outElements, regulated.Anchor, regulated.Id, UnionPlatePath,
+                        plateX, y, plateZ, 0d, 0d, faceOutX, faceOutZ, faceSign,
+                        regulatedInside, 0d, upMm,
+                        regulated.HeightMm, regulated.ThicknessMm, regulated.LengthMm,
+                        "10443020", "zinc");
+                }
+
+                up += band;
             }
         }
 
-        private static void PlaceCornerHardwareFromPillarPattern(
-            List<Atk60ElementPaintItem> outElements,
-            Run run,
-            bool atEnd,
-            double otherThicknessMm,
-            double cornerX,
-            double cornerZ,
-            double faceNormalX,
-            double faceNormalZ)
+        private static double[] AdjustableHookHeightsMm(int band)
         {
-            var firstNewItem = outElements.Count;
-            PillarFormwork.PlaceCornerHardware(
-                outElements, run.Id, run.Sx, run.Sz, run.Ex, run.Ez,
-                run.Anchor.Y, run.HeightMm, run.ThicknessMm, atEnd,
-                faceNormalX, faceNormalZ);
-
-            var hookIndex = -1;
-            for (var i = firstNewItem; i < outElements.Count; i++)
+            if (band >= 2500)
             {
-                var item = outElements[i];
-                if (item != null && item.ElementCode == "1920811")
-                {
-                    hookIndex = i;
-                    break;
-                }
+                return new[] { 550d, 1350d, 2150d };
             }
 
-            if (hookIndex < 0)
+            if (band >= 2000)
             {
-                // Sin gancho no hay con qué alinear. Antes se lanzaba una excepción
-                // y se perdía el encofrado de toda la obra.
-                return;
+                return new[] { 320d, 1350d, 2050d };
             }
 
-            var alongSign = atEnd ? 1d : -1d;
-            var alongX = run.Ux * alongSign;
-            var alongZ = run.Uz * alongSign;
-            var sideX = -run.Uz;
-            var sideZ = run.Ux;
-            if ((sideX * faceNormalX) + (sideZ * faceNormalZ) < 0d)
-            {
-                sideX = -sideX;
-                sideZ = -sideZ;
-            }
-
-            var hook = outElements[hookIndex];
-            var faceOffsetMm = LegacyCornerHookFaceBaseMm + otherThicknessMm;
-            var targetHookX = cornerX + (alongX * LegacyCornerHookAlongMm) + (sideX * faceOffsetMm);
-            var targetHookZ = cornerZ + (alongZ * LegacyCornerHookAlongMm) + (sideZ * faceOffsetMm);
-            var deltaX = targetHookX - hook.X;
-            var deltaZ = targetHookZ - hook.Z;
-
-            for (var i = firstNewItem; i < outElements.Count; i++)
-            {
-                var item = outElements[i];
-                if (item == null)
-                {
-                    continue;
-                }
-
-                var isHook = item.ElementCode == "1920811";
-                var isPlate = item.ElementCode == "10443020";
-                if (isHook || isPlate)
-                {
-                    item.X += deltaX;
-                    item.Z += deltaZ;
-
-                    if (isHook)
-                    {
-                        item.RotZ = (item.RotZ + Math.PI) % (Math.PI * 2d);
-                    }
-                }
-
-                if (item.Color == "nut")
-                {
-                    item.RotZ = (item.RotZ + Math.PI) % (Math.PI * 2d);
-                }
-            }
+            return new[] { 350d, 1150d };
         }
 
         /// <summary>

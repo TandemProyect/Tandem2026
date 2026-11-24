@@ -490,6 +490,8 @@
     <Compile Include="Repositories\Atk60\Atk60Element.cs" />
     <Compile Include="Repositories\RepositoryAtk60\Atk60WallsRepository.cs" />
     <Compile Include="Repositories\RepositoryAtk60\Atk60CornerFaceRemate.cs" />
+    <Compile Include="Repositories\RepositoryAtk60\Atk60FaceRemateRules.cs" />
+    <Compile Include="Repositories\RepositoryAtk60\Atk60AdjustableCornerHardware.cs" />
     <Compile Include="Repositories\RepositoryAtk60\ModulosATK60\ModuloAtk60ElementBuilders.cs" />
     <Compile Include="Repositories\RepositoryAtk60\ModulosATK60\Modulo270HeightPanelCatalog.cs" />
     <Compile Include="Repositories\RepositoryAtk60\ModulosATK60\Modulo270PanelElementGenerator.cs" />

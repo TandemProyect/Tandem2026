@@ -131,6 +131,8 @@ Si el sobrante pasa de 0,15, el módulo final sube un paso de 0,15. Si entre 0,1
 
 Si en el mismo muro hay otro remate y uno está en la esquina, los paneles de en medio se corren y el hueco del tramo se cierra. El tablón de la esquina y el de la otra cara se quedan, cada uno con su largo. Ninguno pasa de 0,15. No se suman: 0,12 más 0,15 no es un tablón de 0,27. Lo que pasa de 0,15 entra en el módulo, no en la madera. Los dos se acotan.
 
+En L, cada cara lleva su propio remate junto a la esquina (pack de `CornerFaces.lengthMm`, no del eje). No se suman las caras que se tocan ni se pinta el mismo taco en las dos. El tablón no va en medio del tramo. Cara interior (la más corta): el taco va en el hueco entre el panel L y el primer módulo (`along = -remate` o `run`), no en el rincón (`pts[3]`) ni encima de `E27004210`. Cara exterior: en el tramo, con lead/trail. Tope 0,15: 3,36 → 0,06; 3,21 → 0,06 (no 0,21); 0,65 → 0,05. Código: `Atk60FaceRemateRules`, `JoinCornerFaceRemates`.
+
 No volver a abrir el tope. `EndFiller` recorta a 0,15 aunque quien llame pase 0,60. El pintado solo dibuja un remate de más de 1 mm y como mucho 0,15 (`remateMm <= 150`). El filtro antiguo `remateMm < 300` es el que dejaba salir el 0,27. `PackAtk60LengthMm` no guarda un resto mayor de 0,15: si el muro es más corto que 0,30 y no hay un 2,70 que abrir, el tablón se queda en 0,15 y el resto no se pinta como madera.
 
 Código: `CountConnectedEnds` y `PackAtk60LengthMm` en `Desing/Repositories/RepositoryAtk60/Atk60WallsRepository.cs`. La suma en la esquina está en `SumRematesAtCorner` de `LCornerFormwork.cs`. La T de tipo 2 está en `Docs/areas/encofrado-atk60/esquina-T-atk60.md`.
