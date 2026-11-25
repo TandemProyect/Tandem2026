@@ -122,7 +122,7 @@ Sale al apilar paneles. Puede cerrarse solo con grapas o con grapas y rigidizado
 
 El rigidizador de 0,75 m y el de 1,6 m se atán al panel con dos fijadores y la tuerca placa fija 15, en los agujeros de las costillas. En el modelo de 3 m el atado es de cuatro, no de dos.
 
-El visor usa el corto `1850162` (0,75 m) en la junta y el largo `1850163` (1,20 m) cuando el mismo módulo junta franja de 0,30 y de 0,45. Cada barra lleva dos fijadores `1850164` y dos placas `10443020`. El atado de cuatro del modelo de 3 m no está pintado.
+El visor usa el corto `1850162` (0,75 m) en la junta y el largo `1850163` (1,20 m) cuando el mismo módulo junta franja de 0,30 y de 0,45. Cada barra lleva dos fijadores `1850164` y dos placas `10443020`. Los fijadores van a 120 mm (como la barra); la placa apoya en la barra, 80 mm más fuera (`Atk60FaceInsertion.StiffenerPlateFaceMm`, visto en visor el 25/11). El atado de cuatro del modelo de 3 m no está pintado.
 
 Los ejemplos del manual apilan así, con el rigidizador en la junta:
 

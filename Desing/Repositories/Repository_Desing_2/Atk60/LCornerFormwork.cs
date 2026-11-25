@@ -27,6 +27,10 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         private const string AdjustableCode = "10000221";
         private const string AdjustableSlidePath = "../../Content/DesignTools/Stl/ATK60/10000221-2.stl";
         private const string AdjustableSlideCode = "10000221B";
+        /// <summary>Pieza tumbada a lo largo de la cara (no cruza el espesor). La lee el visor.</summary>
+        internal const string AlongFaceOrientation = "HorizontalFace";
+        /// <summary>Fijadores 1850164 y placas del rigidizador, a cada lado de su centro.</summary>
+        private const double StiffenerHookOffsetMm = 200d;
 
         internal static void Place(
             List<Atk60ElementPaintItem> outElements,
@@ -2295,7 +2299,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     PlaceCorner(outElements, owner, ownerAtEnd, other, otherAtEnd);
                     PlaceEndClamps(outElements, a, endsA[ia], b.ThicknessMm, intoBx, intoBz);
                     PlaceEndClamps(outElements, b, endsB[ib], a.ThicknessMm, intoAx, intoAz);
-                    PlaceStiffenerIfStacked(outElements, owner, ownerAtEnd);
+                    PlaceStiffenerIfStacked(outElements, owner, ownerAtEnd, other, otherAtEnd);
                 }
             }
         }
@@ -2479,10 +2483,10 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             var otherExit = IsPhaseExit(other);
             var ownerCover = !ownerExit && PlaceExteriorCover(
                 outElements, owner, ownerAtEnd, ownerInside, other.ThicknessMm, cornerX, cornerZ,
-                ownerSuppressCornerUnion, ownerIsRegulated);
+                ownerSuppressCornerUnion, ownerIsRegulated, isUniversalCorner);
             var otherCover = !otherExit && PlaceExteriorCover(
                 outElements, other, otherAtEnd, otherInside, owner.ThicknessMm, cornerX, cornerZ,
-                otherSuppressCornerUnion, otherIsRegulated);
+                otherSuppressCornerUnion, otherIsRegulated, isUniversalCorner);
             if (isUniversalCorner)
             {
                 PlaceCornerUnionHookAndPlate(
@@ -2740,14 +2744,21 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             double cornerX,
             double cornerZ,
             bool suppressCornerSeam = false,
-            bool forceRegulated750 = false)
+            bool forceRegulated750 = false,
+            bool stackedSeamStiffeners = false)
         {
             int moduleMm;
             int remateMm;
+            var fillerMm = 0;
             if (forceRegulated750)
             {
-                moduleMm = 750;
-                remateMm = 0;
+                int coverMm;
+                int coverRemateMm;
+                ExteriorCoverMm(otherThicknessMm, out coverMm, out coverRemateMm);
+                fillerMm = Atk60AdjustableCornerHardware.FillerBeforeRegulatedMm(coverMm);
+                moduleMm = Atk60AdjustableCornerHardware.RegulatedPanelMm;
+                // Con relleno el recto acaba en el módulo de siempre: dentro lleva su remate.
+                remateMm = fillerMm > 0 ? coverRemateMm : 0;
             }
             else
             {
@@ -2766,15 +2777,23 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             var woodInside = remateMm > 10;
             var showPrimary = exteriorPrimary;
             var showOpposite = !exteriorPrimary;
+            var faces = (showPrimary ? 1 : 0) + (showOpposite ? 1 : 0);
+            if (fillerMm > 0)
+            {
+                PlaceRegulatedFiller(
+                    outElements, run, atEnd, fillerMm, yaw, faceSign, faces, showPrimary, showOpposite,
+                    stackedSeamStiffeners);
+            }
+
             var layout = Modulo270HeightPanelCatalog.ResolveForModuleStock(
-                run.HeightMm, moduleMm, true, true, Atk60PanelStock.For(run.Wall), (showPrimary ? 1 : 0) + (showOpposite ? 1 : 0));
+                run.HeightMm, moduleMm, true, true, Atk60PanelStock.For(run.Wall), faces);
             var usedMm = LayoutSpanMm(layout);
             if (usedMm < 1d)
             {
                 usedMm = moduleMm;
             }
 
-            var panelAlong = atEnd ? run.LengthMm + (moduleMm - usedMm) : -moduleMm;
+            var panelAlong = atEnd ? run.LengthMm + fillerMm + (moduleMm - usedMm) : -(double)(fillerMm + moduleMm);
             if (layout != null && layout.Pieces != null && usedMm >= 300d)
             {
                 for (var pi = 0; pi < layout.Pieces.Count; pi++)
@@ -2782,6 +2801,17 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     PanelFormwork.Place(
                         outElements, layout.Pieces[pi], layout, pi, run.Anchor, run.Id,
                         panelAlong, moduleMm, 1, 1,
+                        yaw, run.Ux, run.Uz, faceSign,
+                        run.HeightMm, run.ThicknessMm, run.LengthMm,
+                        showPrimary, showOpposite);
+                }
+
+                if (stackedSeamStiffeners)
+                {
+                    // Mismo rigidizador vertical que el muro recto, en cada junta apilada.
+                    PanelStiffener.Place(
+                        outElements, layout.Pieces, run.Anchor, run.Id,
+                        panelAlong, usedMm,
                         yaw, run.Ux, run.Uz, faceSign,
                         run.HeightMm, run.ThicknessMm, run.LengthMm,
                         showPrimary, showOpposite);
@@ -2802,7 +2832,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     outElements,
                     run,
                     atEnd,
-                    moduleMm,
+                    moduleMm + fillerMm,
                     otherThicknessMm,
                     cornerX,
                     cornerZ,
@@ -2813,6 +2843,219 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             }
             PlaceLayoutUnions(outElements, run, panelAlong, layout, showPrimary, showOpposite);
             return true;
+        }
+
+        /// <summary>
+        /// Esquina regulable con el otro muro de más de 0,45 (dibujo de Juan, 25/11).
+        /// Cara exterior: panel de relleno junto al recto (0,30 con 0,60; otro si el ancho
+        /// lo pide), luego el 0,75. Junta relleno/0,75: grapa fija y rigidizador horizontal.
+        /// </summary>
+        private static void PlaceRegulatedFiller(
+            List<Atk60ElementPaintItem> outElements,
+            Run run,
+            bool atEnd,
+            int fillerMm,
+            double yaw,
+            double faceSign,
+            int faces,
+            bool showPrimary,
+            bool showOpposite,
+            bool stackedSeamStiffeners)
+        {
+            var fillerAlong = atEnd ? run.LengthMm : -(double)fillerMm;
+            var layout = Modulo270HeightPanelCatalog.ResolveForModuleStock(
+                run.HeightMm, fillerMm, true, true, Atk60PanelStock.For(run.Wall), faces);
+            if (layout == null || layout.Pieces == null || layout.Pieces.Count == 0)
+            {
+                return;
+            }
+
+            for (var pi = 0; pi < layout.Pieces.Count; pi++)
+            {
+                PanelFormwork.Place(
+                    outElements, layout.Pieces[pi], layout, pi, run.Anchor, run.Id,
+                    fillerAlong, fillerMm, 1, 1,
+                    yaw, run.Ux, run.Uz, faceSign,
+                    run.HeightMm, run.ThicknessMm, run.LengthMm,
+                    showPrimary, showOpposite);
+            }
+
+            if (stackedSeamStiffeners)
+            {
+                PanelStiffener.Place(
+                    outElements, layout.Pieces, run.Anchor, run.Id,
+                    fillerAlong, fillerMm,
+                    yaw, run.Ux, run.Uz, faceSign,
+                    run.HeightMm, run.ThicknessMm, run.LengthMm,
+                    showPrimary, showOpposite);
+            }
+
+            PlaceLayoutUnions(outElements, run, fillerAlong, layout, showPrimary, showOpposite);
+            var jointAlong = atEnd ? run.LengthMm + fillerMm : -(double)fillerMm;
+            var levels = PanelLevels(layout, run.HeightMm);
+            PlaceJointClampsOnLevels(outElements, run, jointAlong, levels, showPrimary, showOpposite);
+            PlaceAlongFaceStiffeners(outElements, run, jointAlong, levels, showPrimary, showOpposite);
+        }
+
+        /// <summary>
+        /// Grapa fija en una junta vertical, en cada panel apilado (2,70 + 1,20 en 3,00).
+        /// </summary>
+        private static void PlaceJointClampsOnLevels(
+            List<Atk60ElementPaintItem> outElements,
+            Run run,
+            double alongMm,
+            List<PanelLevel> levels,
+            bool showPrimary,
+            bool showOpposite)
+        {
+            var clampYaw = Atk60FaceInsertion.NormalizeYawToRad(run.Anchor.RotY);
+            for (var i = 0; i < levels.Count; i++)
+            {
+                var heights = JointHeights(levels[i].HeightMm);
+                for (var hi = 0; hi < heights.Length; hi++)
+                {
+                    Atk60FaceInsertion.BothFaces(
+                        outElements, run.Anchor, run.Id, FixedPath,
+                        alongMm, levels[i].UpMm + heights[hi], clampYaw, run.Ux, run.Uz, run.Anchor.FaceSign,
+                        run.HeightMm, run.ThicknessMm, run.LengthMm,
+                        Atk60FaceInsertion.PanelFaceMm, 0d, FixedCode, "zinc",
+                        false, showPrimary, showOpposite);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Rigidizador 1850162 tumbado a lo largo de la cara, centrado en la junta, en cada
+        /// panel apilado. Dos fijadores 1850164 y dos placas 10443020 a ±200 mm; la placa
+        /// apoya en la barra. Es el conjunto del rigidizador vertical girado 90° en la cara.
+        /// </summary>
+        private static void PlaceAlongFaceStiffeners(
+            List<Atk60ElementPaintItem> outElements,
+            Run run,
+            double jointAlongMm,
+            List<PanelLevel> levels,
+            bool showPrimary,
+            bool showOpposite)
+        {
+            var yaw = Atk60FaceInsertion.NormalizeYawToRad(run.Anchor.RotY);
+            for (var i = 0; i < levels.Count; i++)
+            {
+                var heights = AlongFaceStiffenerHeightsMm(levels[i].HeightMm);
+                for (var h = 0; h < heights.Length; h++)
+                {
+                    var upMm = levels[i].UpMm + heights[h];
+                    AddStiffenerPiece(outElements, run, StiffPath, StiffCode, "blue", jointAlongMm, upMm, yaw, true, Atk60FaceInsertion.PanelFaceMm, showPrimary, showOpposite);
+                    for (var side = -1; side <= 1; side += 2)
+                    {
+                        var at = jointAlongMm + (side * StiffenerHookOffsetMm);
+                        AddStiffenerPiece(outElements, run, HookPath, HookCode, "blue", at, upMm, yaw, true, Atk60FaceInsertion.PanelFaceMm, showPrimary, showOpposite);
+                        AddStiffenerPiece(outElements, run, UnionPlatePath, "10443020", "zinc", at, upMm, yaw, true, Atk60FaceInsertion.StiffenerPlateFaceMm, showPrimary, showOpposite);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Paneles apilados del módulo, de abajo arriba (2,70 + 1,20 en 3,00).
+        /// Sin piezas, las bandas de siempre.
+        /// </summary>
+        private static List<PanelLevel> PanelLevels(Modulo270Layout layout, double heightMm)
+        {
+            var levels = new List<PanelLevel>();
+            if (layout != null && layout.Pieces != null)
+            {
+                for (var i = 0; i < layout.Pieces.Count; i++)
+                {
+                    var piece = layout.Pieces[i];
+                    if (piece == null || piece.PieceHeightMm < 300)
+                    {
+                        continue;
+                    }
+
+                    var known = false;
+                    for (var k = 0; k < levels.Count && !known; k++)
+                    {
+                        known = levels[k].UpMm == piece.UpOffsetMm;
+                    }
+
+                    if (!known)
+                    {
+                        levels.Add(new PanelLevel { UpMm = piece.UpOffsetMm, HeightMm = piece.PieceHeightMm });
+                    }
+                }
+            }
+
+            if (levels.Count == 0)
+            {
+                var bands = Bands(heightMm);
+                var up = 0;
+                for (var i = 0; i < bands.Count; i++)
+                {
+                    levels.Add(new PanelLevel { UpMm = up, HeightMm = bands[i] });
+                    up += bands[i];
+                }
+            }
+
+            levels.Sort((a, b) => a.UpMm.CompareTo(b.UpMm));
+            return levels;
+        }
+
+        /// <summary>
+        /// Manual NEVI: rigidizadores 2 / 2 / 1 (2,70 / 2,40 / 1,20). A tercios del panel,
+        /// lejos de las grapas de la junta (450 / 1 350 / 2 250; 400 / 2 000; 200 / 800).
+        /// </summary>
+        internal static double[] AlongFaceStiffenerHeightsMm(int band)
+        {
+            if (band >= 2500)
+            {
+                return new[] { 900d, 1800d };
+            }
+
+            if (band >= 2000)
+            {
+                return new[] { 800d, 1600d };
+            }
+
+            return new[] { 600d };
+        }
+
+        private static void AddStiffenerPiece(
+            List<Atk60ElementPaintItem> outElements,
+            Run run,
+            string path,
+            string code,
+            string color,
+            double alongMm,
+            double upMm,
+            double yaw,
+            bool alongFace,
+            double faceGapMm,
+            bool showPrimary,
+            bool showOpposite)
+        {
+            var first = outElements.Count;
+            Atk60FaceInsertion.BothFaces(
+                outElements, run.Anchor, run.Id, path,
+                alongMm, upMm, yaw, run.Ux, run.Uz, run.Anchor.FaceSign,
+                run.HeightMm, run.ThicknessMm, run.LengthMm,
+                faceGapMm, alongFace ? Math.PI * 0.5d : 0d, code, color,
+                false, showPrimary, showOpposite);
+            if (!alongFace)
+            {
+                return;
+            }
+
+            // «Horizontal» es el rigidizador que cruza el espesor (TapeS1): el visor lo gira en planta.
+            for (var k = first; k < outElements.Count; k++)
+            {
+                outElements[k].Orientation = AlongFaceOrientation;
+            }
+        }
+
+        private struct PanelLevel
+        {
+            public int UpMm;
+            public int HeightMm;
         }
 
         /// <summary>
@@ -2962,10 +3205,17 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 regulated.Anchor.NormalZ,
                 out faceOutX,
                 out faceOutZ);
-            // Punta del 0,75 (PlaceExteriorCover forceRegulated750) y cruce de
-            // caras exteriores, en el eje del run. El agujero se cuenta desde la punta.
+            // Punta del 0,75 (PlaceExteriorCover forceRegulated750, tras el relleno si
+            // el otro muro pasa de 0,45) y cruce de caras exteriores, en el eje del run.
+            // El agujero se cuenta desde la punta.
+            var regulatedOther = ReferenceEquals(regulated, owner) ? other : owner;
+            int coverMm;
+            int coverRemateMm;
+            ExteriorCoverMm(regulatedOther.ThicknessMm, out coverMm, out coverRemateMm);
+            var regulatedSpanMm = Atk60AdjustableCornerHardware.FillerBeforeRegulatedMm(coverMm)
+                + Atk60AdjustableCornerHardware.RegulatedPanelMm;
             var tipSign = regulatedAtEnd ? 1d : -1d;
-            var tipAlong = regulatedAtEnd ? regulated.LengthMm + 750d : -750d;
+            var tipAlong = regulatedAtEnd ? regulated.LengthMm + regulatedSpanMm : -(double)regulatedSpanMm;
             var crossingAlong = ((cornerX - regulated.Anchor.X) * regulated.Ux)
                 + ((cornerZ - regulated.Anchor.Z) * regulated.Uz);
             var tipToCrossingMm = tipSign * (tipAlong - crossingAlong);
@@ -2989,12 +3239,15 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 out plateX, out plateZ);
 
             var faceSign = regulatedInside ? -regulated.Anchor.FaceSign : regulated.Anchor.FaceSign;
-            var bands = Bands(regulated.HeightMm);
-            var up = 0d;
-            for (var i = 0; i < bands.Count; i++)
+            // Un juego por panel apilado del 0,75 (2,70 + 1,20 en 3,00), no por Bands.
+            var levels = PanelLevels(
+                Modulo270HeightPanelCatalog.ResolveForModule(
+                    regulated.HeightMm, Atk60AdjustableCornerHardware.RegulatedPanelMm),
+                regulated.HeightMm);
+            for (var i = 0; i < levels.Count; i++)
             {
-                var band = bands[i];
-                var heights = AdjustableHookHeightsMm(band);
+                var up = levels[i].UpMm;
+                var heights = AdjustableHookHeightsMm(levels[i].HeightMm);
                 for (var h = 0; h < heights.Length; h++)
                 {
                     var upMm = up + heights[h];
@@ -3014,8 +3267,6 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                         regulated.HeightMm, regulated.ThicknessMm, regulated.LengthMm,
                         "10443020", "zinc");
                 }
-
-                up += band;
             }
         }
 
@@ -3632,12 +3883,31 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             }
         }
 
-        private static void PlaceStiffenerIfStacked(List<Atk60ElementPaintItem> outElements, Run run, bool atEnd)
+        /// <summary>
+        /// Rigidizador de la junta apilada junto a la esquina, con fijadores y placas en la barra.
+        /// En la regulable solo la cara interior: la exterior la lleva <see cref="PanelStiffener"/>
+        /// sobre su panel (PlaceExteriorCover).
+        /// </summary>
+        private static void PlaceStiffenerIfStacked(
+            List<Atk60ElementPaintItem> outElements,
+            Run run,
+            bool atEnd,
+            Run other,
+            bool otherAtEnd)
         {
             var bands = Bands(run.HeightMm);
             if (bands.Count < 2)
             {
                 return;
+            }
+
+            var showPrimary = true;
+            var showOpposite = true;
+            if (IsUniversalCornerType(CornerTypeAtVertex(run, atEnd, other, otherAtEnd)))
+            {
+                var inside = ((run.NormalX * -OutX(other, otherAtEnd)) + (run.NormalZ * -OutZ(other, otherAtEnd))) > 0d;
+                showPrimary = inside;
+                showOpposite = !inside;
             }
 
             var along = atEnd ? run.LengthMm + (LegMm * 0.5d) : -LegMm * 0.5d;
@@ -3646,21 +3916,13 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             for (var i = 0; i < bands.Count - 1; i++)
             {
                 up += bands[i];
-                Atk60FaceInsertion.BothFaces(
-                    outElements, run.Anchor, run.Id, StiffPath,
-                    along, up, yaw, run.Ux, run.Uz, run.Anchor.FaceSign,
-                    run.HeightMm, run.ThicknessMm, run.LengthMm,
-                    Atk60FaceInsertion.PanelFaceMm, 0d, StiffCode, "blue");
-                Atk60FaceInsertion.BothFaces(
-                    outElements, run.Anchor, run.Id, HookPath,
-                    along, up - 200d, yaw, run.Ux, run.Uz, run.Anchor.FaceSign,
-                    run.HeightMm, run.ThicknessMm, run.LengthMm,
-                    Atk60FaceInsertion.PanelFaceMm, 0d, HookCode, "blue");
-                Atk60FaceInsertion.BothFaces(
-                    outElements, run.Anchor, run.Id, HookPath,
-                    along, up + 200d, yaw, run.Ux, run.Uz, run.Anchor.FaceSign,
-                    run.HeightMm, run.ThicknessMm, run.LengthMm,
-                    Atk60FaceInsertion.PanelFaceMm, 0d, HookCode, "blue");
+                AddStiffenerPiece(outElements, run, StiffPath, StiffCode, "blue", along, up, yaw, false, Atk60FaceInsertion.PanelFaceMm, showPrimary, showOpposite);
+                for (var side = -1; side <= 1; side += 2)
+                {
+                    var upMm = up + (side * StiffenerHookOffsetMm);
+                    AddStiffenerPiece(outElements, run, HookPath, HookCode, "blue", along, upMm, yaw, false, Atk60FaceInsertion.PanelFaceMm, showPrimary, showOpposite);
+                    AddStiffenerPiece(outElements, run, UnionPlatePath, "10443020", "zinc", along, upMm, yaw, false, Atk60FaceInsertion.StiffenerPlateFaceMm, showPrimary, showOpposite);
+                }
             }
         }
 

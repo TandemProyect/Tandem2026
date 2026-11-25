@@ -178,7 +178,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                         outElements, anchor, idWall, FollowerPlatePath,
                         alongMm, nutHeights[ni], yawRad, ux, uz, faceSign,
                         wallHeightMm, wallThicknessMm, wallLengthMm,
-                        Atk60FaceInsertion.PanelFaceMm, 0d, FollowerPlateCode, "zinc",
+                        Atk60FaceInsertion.StiffenerPlateFaceMm, 0d, FollowerPlateCode, "zinc",
                         false, showOutside, showInside);
                 }
             }

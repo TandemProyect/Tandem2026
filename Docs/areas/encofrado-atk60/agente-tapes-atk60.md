@@ -135,6 +135,7 @@ Aceptado el 21 oct, 10:37.
 
 - Módulo de 1,20, 2,40 o 2,70: dos rigidizadores, a 300 mm de cada extremo.
 - Panel solo (0,30, 0,45, 0,60, 0,75 o 0,90): uno, al centro.
+- Paneles de testa apilados de los tapes (TapeS4, TapeS5, TapeS7, TapeS11; p. ej. 2,70 + 1,20 en 3,00): un `1850162` vertical en la junta, en la cara de fuera y al centro de cada panel, con fijadores `1850164` a ±200 mm y placas `10443020` en la barra (25/11). Es aparte del «sin rigidizador» de cada tape, que se refiere al del TapeS1.
 - Modulación de mayor a menor: 2,70, si no 2,40, si no 1,20, y después 0,90, 0,75, 0,60, 0,45 y 0,30. No se parte un 2,70 en paneles pequeños.
 - El remate de madera, si queda, es el resto por debajo de 300 mm.
 

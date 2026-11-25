@@ -12,6 +12,11 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
     internal static class Atk60FaceInsertion
     {
         internal const double PanelFaceMm = 120d;
+        /// <summary>
+        /// Placa 10443020 de un rigidizador 1850162/1850163: apoya en la cara exterior
+        /// de la barra (80 mm fuera de su inserción), no en el panel. Visto en visor 25/11.
+        /// </summary>
+        internal const double StiffenerPlateFaceMm = PanelFaceMm + 80d;
 
         internal static void BothFaces(
             List<Atk60ElementPaintItem> outElements,

@@ -34,6 +34,9 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         private const string PlateCode = "10443020";
         private const string StiffenerPath = "../../Content/DesignTools/Stl/ATK60/1850162.stl";
         private const string StiffenerCode = "1850162";
+        private const string StiffenerFixerPath = "../../Content/DesignTools/Stl/ATK60/1850164.stl";
+        private const string StiffenerFixerCode = "1850164";
+        private const double StiffenerFixerOffsetMm = 200d;
         private const string HookCode = "1920811";
         private const double TapeS1SupplementMm = 300d;
         private const double TapeS1OrangeMm = 22d;
@@ -862,6 +865,63 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             AddAnglesAndClamps(
                 outElements, anchor, layout, idWall,
                 atStart, alongMm, ux, uz, widthMm, wallHeightMm, wallLengthMm);
+            AddEndSeamStiffeners(
+                outElements, anchor, layout, idWall,
+                atStart, alongMm, ux, uz, widthMm, wallHeightMm, wallLengthMm);
+        }
+
+        /// <summary>
+        /// TapeS4: rigidizador vertical en cada junta de paneles de testa apilados,
+        /// al centro del espesor.
+        /// </summary>
+        private static void AddEndSeamStiffeners(
+            List<Atk60ElementPaintItem> outElements,
+            Atk60WallPaintAnchor anchor,
+            Modulo270Layout layout,
+            string idWall,
+            bool atStart,
+            double alongMm,
+            double ux,
+            double uz,
+            int widthMm,
+            double wallHeightMm,
+            double wallLengthMm)
+        {
+            if (layout == null || layout.Pieces == null)
+            {
+                return;
+            }
+
+            var end = atStart ? -1d : 1d;
+            var outX = ux * end;
+            var outZ = uz * end;
+            var nx = anchor.NormalX;
+            var nz = anchor.NormalZ;
+            var nLen = Math.Sqrt((nx * nx) + (nz * nz));
+            if (nLen > 1e-6)
+            {
+                nx /= nLen;
+                nz /= nLen;
+            }
+
+            var wallId = !string.IsNullOrWhiteSpace(idWall) ? idWall : anchor.IdWall;
+            var seams = new List<int>();
+            for (var i = 0; i < layout.Pieces.Count; i++)
+            {
+                var piece = layout.Pieces[i];
+                if (piece == null
+                    || piece.UpOffsetMm <= 1
+                    || string.Equals(piece.Orientation, "Tumbado", StringComparison.OrdinalIgnoreCase)
+                    || seams.Contains(piece.UpOffsetMm))
+                {
+                    continue;
+                }
+
+                seams.Add(piece.UpOffsetMm);
+                AddStopSeamStiffener(
+                    outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                    widthMm * 0.5d, piece.UpOffsetMm, wallHeightMm, widthMm, wallLengthMm);
+            }
         }
 
         /// <summary>
@@ -994,6 +1054,13 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 AddStopPanel(
                     outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz, yaw,
                     0d, panelMm, FittingStopCode(panelMm, height), baseY, height, wallHeightMm);
+                if (i > 0)
+                {
+                    AddStopSeamStiffener(
+                        outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                        panelMm * 0.5d, bands[i].UpMm, wallHeightMm, thicknessMm, wallLengthMm);
+                }
+
                 AddAngle(
                     outElements, anchor, wallId, true, alongMm, ux, uz, outX, outZ, nx, nz,
                     thicknessMm, baseY, height, wallHeightMm, wallLengthMm);
@@ -1122,6 +1189,13 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     AddStopPanel(
                         outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz, yaw,
                         t, panelMm, FittingStopCode(panelMm, height), baseY, height, wallHeightMm);
+                    if (i > 0)
+                    {
+                        AddStopSeamStiffener(
+                            outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                            t + (panelMm * 0.5d), bands[i].UpMm, wallHeightMm, thicknessMm, wallLengthMm);
+                    }
+
                     t += panelMm;
                 }
 
@@ -1132,6 +1206,13 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     AddStopPanel(
                         outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz, yaw,
                         t, panelMm, FittingStopCode(panelMm, height), baseY, height, wallHeightMm);
+                    if (i > 0)
+                    {
+                        AddStopSeamStiffener(
+                            outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                            t + (panelMm * 0.5d), bands[i].UpMm, wallHeightMm, thicknessMm, wallLengthMm);
+                    }
+
                     t += panelMm;
                 }
 
@@ -1478,19 +1559,37 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 var up = bands[i].UpMm;
                 var height = bands[i].HeightMm;
                 var baseY = anchor.Y + up;
-
+                var stops = new List<double[]>();
                 if (narrow)
                 {
-                    AddStopPanel(outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz, yaw, widthMm * 0.5 - 350d, 750d, AdjustableCode(height), baseY, height, wallHeightMm);
+                    stops.Add(new[] { widthMm * 0.5 - 350d, 750d });
                 }
                 else if (widthMm <= 550)
                 {
-                    AddStopPanel(outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz, yaw, widthMm - 750d, 750d, AdjustableCode(height), baseY, height, wallHeightMm);
+                    stops.Add(new[] { widthMm - 750d, 750d });
                 }
                 else
                 {
-                    AddStopPanel(outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz, yaw, widthMm - 300d, 300d, NarrowCode(height), baseY, height, wallHeightMm);
-                    AddStopPanel(outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz, yaw, widthMm - 1050d, 750d, AdjustableCode(height), baseY, height, wallHeightMm);
+                    stops.Add(new[] { widthMm - 300d, 300d });
+                    stops.Add(new[] { widthMm - 1050d, 750d });
+                }
+
+                for (var si = 0; si < stops.Count; si++)
+                {
+                    var stopCode = stops[si][1] >= 750d ? AdjustableCode(height) : NarrowCode(height);
+                    AddStopPanel(outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz, yaw, stops[si][0], stops[si][1], stopCode, baseY, height, wallHeightMm);
+                    // Junta con el panel de debajo: rigidizador vertical en cada panel de testa.
+                    if (i > 0)
+                    {
+                        AddStopSeamStiffener(
+                            outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                            stops[si][0] + (stops[si][1] * 0.5d), up,
+                            wallHeightMm, widthMm, alongMm > 1d ? alongMm : widthMm);
+                    }
+                }
+
+                if (stops.Count > 1)
+                {
                     var seamHeights = ClampHeightsMm(height);
                     for (var hi = 0; hi < seamHeights.Length; hi++)
                     {
@@ -1637,6 +1736,80 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         {
             x = anchor.X + (ux * alongMm) - (nx * tMm) + (outX * outMm);
             z = anchor.Z + (uz * alongMm) - (nz * tMm) + (outZ * outMm);
+        }
+
+        /// <summary>
+        /// Rigidizador vertical 1850162 en la junta de dos paneles de testa apilados
+        /// (2,70 + 1,20 en 3,00), en su cara de fuera y al centro del panel
+        /// (<paramref name="centerTMm"/> desde la cara primaria). Fijadores 1850164
+        /// a ±200 mm y placas 10443020 apoyadas en la barra, como en el muro recto.
+        /// </summary>
+        private static void AddStopSeamStiffener(
+            List<Atk60ElementPaintItem> outElements,
+            Atk60WallPaintAnchor anchor,
+            string wallId,
+            double alongMm,
+            double ux,
+            double uz,
+            double outX,
+            double outZ,
+            double nx,
+            double nz,
+            double centerTMm,
+            double seamUpMm,
+            double wallHeightMm,
+            int thicknessMm,
+            double wallLengthMm)
+        {
+            AddStopFacePiece(
+                outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                centerTMm, seamUpMm, Atk60FaceInsertion.PanelFaceMm,
+                StiffenerPath, StiffenerCode, "blue", wallHeightMm, thicknessMm, wallLengthMm);
+            for (var side = -1; side <= 1; side += 2)
+            {
+                var upMm = seamUpMm + (side * StiffenerFixerOffsetMm);
+                AddStopFacePiece(
+                    outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                    centerTMm, upMm, Atk60FaceInsertion.PanelFaceMm,
+                    StiffenerFixerPath, StiffenerFixerCode, "blue", wallHeightMm, thicknessMm, wallLengthMm);
+                AddStopFacePiece(
+                    outElements, anchor, wallId, alongMm, ux, uz, outX, outZ, nx, nz,
+                    centerTMm, upMm, Atk60FaceInsertion.StiffenerPlateFaceMm,
+                    PlatePath, PlateCode, "zinc", wallHeightMm, thicknessMm, wallLengthMm);
+            }
+        }
+
+        private static void AddStopFacePiece(
+            List<Atk60ElementPaintItem> outElements,
+            Atk60WallPaintAnchor anchor,
+            string wallId,
+            double alongMm,
+            double ux,
+            double uz,
+            double outX,
+            double outZ,
+            double nx,
+            double nz,
+            double tMm,
+            double upMm,
+            double outMm,
+            string path,
+            string code,
+            string color,
+            double wallHeightMm,
+            int thicknessMm,
+            double wallLengthMm)
+        {
+            double x;
+            double z;
+            EndOffset(anchor, alongMm, ux, uz, nx, nz, outX, outZ, tMm, outMm, out x, out z);
+            Atk60FaceInsertion.OneFace(
+                outElements, anchor, wallId, path,
+                x, anchor.Y + upMm, z, 0d, 0d,
+                outX, outZ, anchor.FaceSign, false,
+                alongMm, upMm,
+                wallHeightMm, thicknessMm, wallLengthMm,
+                code, color);
         }
 
         private static List<HeightBand> HeightBands(double wallHeightMm)

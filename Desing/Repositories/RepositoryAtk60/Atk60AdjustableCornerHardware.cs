@@ -24,6 +24,25 @@ namespace Desing.Repositories.RepositoryAtk60
         public const double HolePitchMm = 50d;
         /// <summary>Gancho respecto a la placa, hacia la punta del 0,75.</summary>
         public const double HookFromHoleTowardTipMm = 80d;
+        /// <summary>Ancho del panel regulable de la esquina.</summary>
+        public const int RegulatedPanelMm = 750;
+        /// <summary>Con relleno, la punta del 0,75 pasa 150 mm el cruce de caras: unión en el 2º agujero.</summary>
+        public const int TipPastCrossingMm = 150;
+        /// <summary>Panel más estrecho del catálogo.</summary>
+        public const int MinFillerPanelMm = 300;
+
+        /// <summary>
+        /// Panel de la cara exterior entre el recto y el 0,75 (dibujo de Juan, 25/11).
+        /// <paramref name="coverModuleMm"/>: cara de fuera del recto al cruce
+        /// (espesor del otro muro + 0,30, al módulo). Otro muro de más de 0,45:
+        /// relleno = módulo − 600 (0,30 con 0,60; 0,45 con 0,75) y el 0,75 pasa el cruce 150.
+        /// Si no, 0: el 0,75 arranca en el recto, como antes.
+        /// </summary>
+        public static int FillerBeforeRegulatedMm(int coverModuleMm)
+        {
+            var filler = coverModuleMm + TipPastCrossingMm - RegulatedPanelMm;
+            return filler >= MinFillerPanelMm ? filler : 0;
+        }
 
         /// <summary>
         /// Distancia desde la punta del 0,75 al agujero de la unión.

@@ -9298,7 +9298,10 @@ function bootMasterArticleDetailsStlViewer() {
                     // junta vertical, muro en +X → "270" = rotation.x -90º.
                     // Cara de detrás → "90" = rotation.x +90º.
                     // Junta horizontal → "270M" / "90M".
-                    const seam = item.Orientation != null && String(item.Orientation).toLowerCase() === 'horizontal';
+                    // «HorizontalFace»: tumbado a lo largo de la cara (rigidizador de la esquina regulable).
+                    const unionOrient = item.Orientation != null ? String(item.Orientation).toLowerCase() : '';
+                    const alongFace = unionOrient === 'horizontalface';
+                    const seam = unionOrient === 'horizontal' || alongFace;
                     const mirrored = item && item.IsMirrored === true;
                     let unx = maStlDesing2ToFiniteNumber(item.NormalX);
                     let unz = maStlDesing2ToFiniteNumber(item.NormalZ);
@@ -9332,7 +9335,7 @@ function bootMasterArticleDetailsStlViewer() {
                             new THREE.Vector3(0, 1, 0), hookYaw);
                         unionClone.quaternion.copy(qRy).multiply(qRx);
                     }
-                    if (elementCode === '1850162' && seam) {
+                    if (elementCode === '1850162' && seam && !alongFace) {
                         const qPlan = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.5);
                         unionClone.quaternion.premultiply(qPlan);
                     }

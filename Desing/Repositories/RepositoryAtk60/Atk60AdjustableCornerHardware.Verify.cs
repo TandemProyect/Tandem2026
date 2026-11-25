@@ -26,6 +26,16 @@ namespace Desing.Repositories.RepositoryAtk60
             failed += Check("gancho cara 20 (100 hacia el muro)", Atk60AdjustableCornerHardware.HookFaceMm, 20d);
             failed += Check("gancho X como estaba (80)", Atk60AdjustableCornerHardware.HookFromHoleTowardTipMm, 80d);
 
+            // Dibujo de Juan 25/11: otro muro de más de 0,45 → relleno + 0,75 a 150 del cruce.
+            failed += Check("otro 0,60 (módulo 900) → relleno 0,30", Atk60AdjustableCornerHardware.FillerBeforeRegulatedMm(900), 300d);
+            failed += Check("otro 0,70 (módulo 1050) → relleno 0,45", Atk60AdjustableCornerHardware.FillerBeforeRegulatedMm(1050), 450d);
+            failed += Check("borde: otro 0,45 (módulo 750) → sin relleno", Atk60AdjustableCornerHardware.FillerBeforeRegulatedMm(750), 0d);
+            failed += Check("borde: otro 0,30 (módulo 600) → sin relleno", Atk60AdjustableCornerHardware.FillerBeforeRegulatedMm(600), 0d);
+            var tipPastMm = Atk60AdjustableCornerHardware.FillerBeforeRegulatedMm(900)
+                + Atk60AdjustableCornerHardware.RegulatedPanelMm - 900;
+            failed += Check("otro 0,60: punta 150 pasado el cruce", tipPastMm, 150d);
+            failed += Check("otro 0,60: unión en el 2º agujero", Atk60AdjustableCornerHardware.HoleNumber(tipPastMm), 2d);
+
             // Wall1: cruce (6250,−500), U=+X, atEnd. Placa 50 mm hacia la punta.
             double x;
             double z;

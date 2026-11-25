@@ -43,6 +43,19 @@ La resolución debe priorizar el extremo del vértice actual, con fallback a `_T
 - Universal aplica solución por cara:
   - cara regulable: panel regulable 0,75 + unión de esquina estilo pilar,
   - cara no regulable: panelización sin angular ni unión de esquina.
+- Otro muro de más de 0,45 (dibujo AutoCAD de Juan, 25/11/2026, caso 0,60): el 0,75 desde el recto no pasa el cruce.
+  En la cara regulable va primero un panel de relleno de `módulo − 600` (0,30 con módulo 0,90; 0,45 con 1,05…)
+  y después el 0,75, cuya punta queda 150 mm fuera del cruce de caras exteriores: unión en el 2º agujero.
+  Junta relleno/0,75: grapa fija y rigidizador horizontal `1850162` a lo largo de la cara (orientación
+  `HorizontalFace`, 2 / 2 / 1 barras a 900-1 800 / 800-1 600 / 600 de cada panel, fijadores a ±200 mm).
+  Dentro, el remate normal del módulo. Regla: `Atk60AdjustableCornerHardware.FillerBeforeRegulatedMm`.
+  Otro muro entre 0,30 y 0,45 (módulo 0,75) sigue sin regla: el 0,75 no pasa el cruce.
+- Altura (25/11): grapas, rigidizadores y gancho/placa de la unión van en **cada panel apilado** del
+  catálogo (`PanelLevels`: 3,00 → 2,70 + 1,20), no en `Bands()` (con 3,00 solo daba 2,70). En la
+  esquina regulable, las dos caras exteriores (0,75, relleno y módulo del muro no regulable) llevan el
+  rigidizador vertical de junta apilada de `PanelStiffener`, como el muro recto; el de la esquina
+  apilada (`PlaceStiffenerIfStacked`) queda solo en la cara interior. Todas las placas `10443020` de
+  rigidizador apoyan en la barra (`Atk60FaceInsertion.StiffenerPlateFaceMm` = 120 + 80 mm).
 
 ## 5) Regla de tirantes y unión en regulable
 
