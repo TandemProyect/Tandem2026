@@ -3,23 +3,48 @@ using System;
 namespace Desing.Repositories.RepositoryAtk60
 {
     /// <summary>
-    /// Herraje de esquina regulable (gancho 1920811 + placa 10443020)
-    /// en la cara exterior del run regulado (roja si Universal_X):
-    /// Placa en la cara exterior del U (120 mm). Gancho −20 mm along.
-    /// Cara 120 mm: bajar a 40 mm sacaba el gancho; se mete al revés.
-    /// Rotación no se toca. No pilares.
+    /// Herraje de esquina regulable (gancho 1920811 + placa 10443020).
+    /// La unión va en el agujero del 0,75 más cercano a la mitad del marco
+    /// del otro panel: cruce de caras exteriores + 60 mm hacia la punta.
+    /// Agujeros cada 50 mm desde la punta (1º a 50). Con esquina 0,30:
+    /// muro 0,30 → 2º, 0,25 → 3º, 0,20 → 4º. Rotación no se toca. No pilares.
     /// </summary>
     public static class Atk60AdjustableCornerHardware
     {
-        /// <summary>Cara de trabajo del marco (120 mm desde el fenólico). Placa.</summary>
+        /// <summary>Cara de trabajo del marco (120 mm desde el fenólico).</summary>
         public const double FrameFaceMm = 120d;
-        /// <summary>0: misma cara que la placa. Reducir faceGap sacaba el gancho.</summary>
-        public const double HookInwardMm = 0d;
-        public const double HookFaceMm = FrameFaceMm - HookInwardMm;
-        /// <summary>Mitad del ancho del marco, desde la intersección de caras (placa).</summary>
-        public const double HoleAlongMm = 60d;
-        /// <summary>Gancho −20 mm along: el +20 desplazaba más afuera del agujero.</summary>
-        public const double HookAlongMm = -20d;
+        /// <summary>
+        /// Gancho 100 mm hacia el muro respecto a la placa (pilar 90 + 10 visor).
+        /// Visor 25/11: 170 lo sacó; 70 no asomaba; 30 faltaban 10 mm.
+        /// </summary>
+        public const double HookFaceMm = FrameFaceMm - 100d;
+        /// <summary>Mitad del marco 0,12 del otro panel, desde el cruce de caras.</summary>
+        public const double FrameHalfMm = 60d;
+        /// <summary>Paso de agujeros del perfil; el 1º está a un paso de la punta.</summary>
+        public const double HolePitchMm = 50d;
+        /// <summary>Gancho respecto a la placa, hacia la punta del 0,75.</summary>
+        public const double HookFromHoleTowardTipMm = 80d;
+
+        /// <summary>
+        /// Distancia desde la punta del 0,75 al agujero de la unión.
+        /// <paramref name="tipToCrossingMm"/>: de la punta al cruce de caras exteriores.
+        /// </summary>
+        public static double HoleFromTipMm(double tipToCrossingMm)
+        {
+            var n = Math.Round((tipToCrossingMm - FrameHalfMm) / HolePitchMm, MidpointRounding.AwayFromZero);
+            if (n < 1d)
+            {
+                n = 1d;
+            }
+
+            return n * HolePitchMm;
+        }
+
+        /// <summary>Número de agujero (1 = el de la punta).</summary>
+        public static int HoleNumber(double tipToCrossingMm)
+        {
+            return (int)Math.Round(HoleFromTipMm(tipToCrossingMm) / HolePitchMm);
+        }
 
         /// <summary>
         /// Normal de la cara exterior de la L (hacia el trabajador).
@@ -36,22 +61,6 @@ namespace Desing.Repositories.RepositoryAtk60
 
             ox = nx;
             oz = nz;
-        }
-
-        /// <summary>
-        /// Del canto exterior hacia el cuerpo del 0,75 (agujero del perfil).
-        /// </summary>
-        public static void ThroughIntoProfile(bool atEnd, double ux, double uz, out double x, out double z)
-        {
-            if (atEnd)
-            {
-                x = -ux;
-                z = -uz;
-                return;
-            }
-
-            x = ux;
-            z = uz;
         }
 
         public static void WorldMm(

@@ -2925,8 +2925,8 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
         /// <summary>
         /// Gancho 1920811 y placa 10443020 en la cara exterior del run
         /// regulado (roja si Universal_X). Fuera del hormigón, 120 mm al marco.
-        /// Placa en el U exterior. Gancho −20 mm along y misma cara 120 mm.
-        /// Rotación no se toca.
+        /// Agujero del 0,75 según esquina + espesor (0,30 → 2º, 0,25 → 3º,
+        /// 0,20 → 4º). Gancho sigue a la placa. Rotación no se toca.
         /// </summary>
         private static void PlaceCornerUnionHookAndPlate(
             List<Atk60ElementPaintItem> outElements,
@@ -2962,24 +2962,30 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 regulated.Anchor.NormalZ,
                 out faceOutX,
                 out faceOutZ);
-            double alongX;
-            double alongZ;
-            Atk60AdjustableCornerHardware.ThroughIntoProfile(
-                regulatedAtEnd, regulated.Ux, regulated.Uz, out alongX, out alongZ);
+            // Punta del 0,75 (PlaceExteriorCover forceRegulated750) y cruce de
+            // caras exteriores, en el eje del run. El agujero se cuenta desde la punta.
+            var tipSign = regulatedAtEnd ? 1d : -1d;
+            var tipAlong = regulatedAtEnd ? regulated.LengthMm + 750d : -750d;
+            var crossingAlong = ((cornerX - regulated.Anchor.X) * regulated.Ux)
+                + ((cornerZ - regulated.Anchor.Z) * regulated.Uz);
+            var tipToCrossingMm = tipSign * (tipAlong - crossingAlong);
+            var holeFromTipMm = Atk60AdjustableCornerHardware.HoleFromTipMm(tipToCrossingMm);
+            var plateDelta = tipSign * (tipToCrossingMm - holeFromTipMm);
+            var hookDelta = plateDelta + (tipSign * Atk60AdjustableCornerHardware.HookFromHoleTowardTipMm);
 
             double hookX;
             double hookZ;
             Atk60AdjustableCornerHardware.WorldMm(
-                cornerX, cornerZ, faceOutX, faceOutZ, alongX, alongZ,
+                cornerX, cornerZ, faceOutX, faceOutZ, regulated.Ux, regulated.Uz,
                 Atk60AdjustableCornerHardware.HookFaceMm,
-                Atk60AdjustableCornerHardware.HookAlongMm,
+                hookDelta,
                 out hookX, out hookZ);
             double plateX;
             double plateZ;
             Atk60AdjustableCornerHardware.WorldMm(
-                cornerX, cornerZ, faceOutX, faceOutZ, alongX, alongZ,
+                cornerX, cornerZ, faceOutX, faceOutZ, regulated.Ux, regulated.Uz,
                 Atk60AdjustableCornerHardware.FrameFaceMm,
-                Atk60AdjustableCornerHardware.HoleAlongMm,
+                plateDelta,
                 out plateX, out plateZ);
 
             var faceSign = regulatedInside ? -regulated.Anchor.FaceSign : regulated.Anchor.FaceSign;

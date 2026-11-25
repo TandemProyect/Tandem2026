@@ -28580,6 +28580,9 @@ let maStlWallApplyAllHeightMm = 0;
 
     function maStlWallDimRebuildFromPlacements(placements) {
         maStlWallDimClearAllVisuals();
+        /* Antes del return: sin pares, el render veía «zoom cambiado» cada frame (toast + POST en bucle). */
+        const wpp = maStlUserFloorDimHudWorldMmPerPixel();
+        maStlWallDimLastWpp = wpp > 0 ? wpp : 0;
         if (!placements || placements.length === 0) return 0;
         maStlWallDimEnsureGuideMeshes();
         const ptsBlack = [];
@@ -28587,8 +28590,6 @@ let maStlWallApplyAllHeightMm = 0;
         const posTri = [];
         const dotPos = [];
         const leaders = [];
-        const wpp = maStlUserFloorDimHudWorldMmPerPixel();
-        maStlWallDimLastWpp = wpp > 0 ? wpp : 0;
         for (let i = 0; i < placements.length; i++) {
             const placement = placements[i];
             const pts =

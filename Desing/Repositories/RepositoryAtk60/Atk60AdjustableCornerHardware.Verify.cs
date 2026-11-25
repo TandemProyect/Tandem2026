@@ -16,56 +16,32 @@ namespace Desing.Repositories.RepositoryAtk60
             Atk60AdjustableCornerHardware.ExteriorNormal(true, 0d, 1d, out ox, out oz);
             failed += Check("exterior opuesta si primaria al hueco", oz, -1d);
 
-            double tx;
-            double tz;
-            Atk60AdjustableCornerHardware.ThroughIntoProfile(true, 1d, 0d, out tx, out tz);
-            failed += Check("along al final hacia el 0,75", tx, -1d);
-            Atk60AdjustableCornerHardware.ThroughIntoProfile(false, 1d, 0d, out tx, out tz);
-            failed += Check("along al inicio hacia el 0,75", tx, 1d);
+            // Dibujo de Juan: esquina 0,30; punta a cruce = 450 − espesor.
+            failed += Check("muro 0,30 → 2º agujero", Atk60AdjustableCornerHardware.HoleNumber(150d), 2d);
+            failed += Check("muro 0,25 → 3º agujero", Atk60AdjustableCornerHardware.HoleNumber(200d), 3d);
+            failed += Check("muro 0,20 → 4º agujero", Atk60AdjustableCornerHardware.HoleNumber(250d), 4d);
+            failed += Check("0,30 agujero a 100 de la punta", Atk60AdjustableCornerHardware.HoleFromTipMm(150d), 100d);
+            failed += Check("borde: punta pegada al cruce → 1º", Atk60AdjustableCornerHardware.HoleNumber(20d), 1d);
+            failed += Check("borde: 0,22 cae al agujero más cercano (3º)", Atk60AdjustableCornerHardware.HoleNumber(230d), 3d);
+            failed += Check("gancho cara 20 (100 hacia el muro)", Atk60AdjustableCornerHardware.HookFaceMm, 20d);
+            failed += Check("gancho X como estaba (80)", Atk60AdjustableCornerHardware.HookFromHoleTowardTipMm, 80d);
 
-            failed += Check(
-                "placa 60 mm mitad marco",
-                Atk60AdjustableCornerHardware.HoleAlongMm,
-                Atk60AdjustableCornerHardware.FrameFaceMm * 0.5d);
-            failed += Check("gancho along -20 mm", Atk60AdjustableCornerHardware.HookAlongMm, -20d);
-            failed += Check("gancho misma cara que placa", Atk60AdjustableCornerHardware.HookFaceMm, 120d);
-
+            // Wall1: cruce (6250,−500), U=+X, atEnd. Placa 50 mm hacia la punta.
             double x;
             double z;
             Atk60AdjustableCornerHardware.WorldMm(
-                6250d, -500d, 0d, 1d, -1d, 0d,
-                Atk60AdjustableCornerHardware.HookFaceMm,
-                Atk60AdjustableCornerHardware.HookAlongMm,
+                6250d, -500d, 0d, 1d, 1d, 0d,
+                Atk60AdjustableCornerHardware.FrameFaceMm, 150d - 100d,
                 out x, out z);
-            failed += Check("gancho X -20 mm along", x, 6270d);
-            failed += Check("gancho Z cara U", z, -380d);
-            failed += CheckOutsideConcrete("gancho no entra al muro", z, -500d, 1d);
-            double plateX;
-            double plateZ;
-            Atk60AdjustableCornerHardware.WorldMm(
-                6250d, -500d, 0d, 1d, -1d, 0d,
-                Atk60AdjustableCornerHardware.FrameFaceMm,
-                Atk60AdjustableCornerHardware.HoleAlongMm,
-                out plateX, out plateZ);
-            failed += Check("placa X 60 desde interseccion", plateX, 6190d);
-            failed += Check("placa Z cara U", plateZ, -380d);
-            failed += Check("gancho -20 mm along vs placa", x - plateX, 80d);
-
-            Atk60AdjustableCornerHardware.WorldMm(
-                400d, -500d, 0d, 1d, 1d, 0d,
-                Atk60AdjustableCornerHardware.HookFaceMm,
-                Atk60AdjustableCornerHardware.HookAlongMm,
-                out x, out z);
-            failed += Check("gancho inicio muro X", x, 380d);
-            failed += Check("gancho inicio muro Z cara", z, -380d);
+            failed += Check("placa 0,30 X = cruce + 50", x, 6300d);
+            failed += Check("placa Z cara U", z, -380d);
             Atk60AdjustableCornerHardware.ExteriorNormal(true, 1d, 0d, out ox, out oz);
             Atk60AdjustableCornerHardware.WorldMm(
                 0d, 0d, ox, oz, 0d, 1d,
-                Atk60AdjustableCornerHardware.HookFaceMm,
-                Atk60AdjustableCornerHardware.HookAlongMm,
+                Atk60AdjustableCornerHardware.HookFaceMm, -30d,
                 out x, out z);
-            failed += Check("borde primaria al hueco X", x, -120d);
-            failed += Check("borde primaria al hueco Z", z, -20d);
+            failed += Check("borde primaria al hueco X", x, -20d);
+            failed += Check("borde primaria al hueco Z", z, -30d);
 
             failed += Check(
                 "yaw normal roja +Z 180 planta",
