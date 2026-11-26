@@ -1121,6 +1121,84 @@ namespace Desing.Controllers
         }
 
         /// <summary>
+        /// US «Generar plano de montaje»: pone la cara (F-n) a las piezas que no la tienen y
+        /// rehace las vistas por cara del diseño (TSql_DesignAssemblyView + Element).
+        /// </summary>
+        [HttpPost]
+        public JsonResult GenerateAssemblyViews(long designId, bool force = false)
+        {
+            try
+            {
+                if (designId <= 0)
+                {
+                    return Json(new { ok = false, message = "Diseño no indicado." });
+                }
+
+                var repository = new DesignWallRepository(db);
+                if (repository.FindActiveDesign(designId) == null)
+                {
+                    return Json(new { ok = false, message = "Diseño no encontrado." });
+                }
+
+                var userId = IntranetAuditHelper.ResolveCurrentUserId(User);
+                db.Database.CommandTimeout = 60;
+                var assembly = new DesignAssemblyViewRepository(db);
+                var result = force ? null : assembly.LoadCurrent(designId);
+                if (result == null)
+                {
+                    using (var trans = db.Database.BeginTransaction())
+                    {
+                        result = assembly.Generate(designId, userId);
+                        trans.Commit();
+                    }
+                }
+
+                return Json(new
+                {
+                    ok = true,
+                    reused = result.Reused,
+                    pieces = result.Pieces,
+                    stamped = result.Stamped,
+                    withoutFace = result.WithoutFace,
+                    outside = result.Outside,
+                    elements = result.Elements,
+                    views = result.Views
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { ok = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Visor de vistas del plano de montaje: la vista activa de la cara F-n con sus piezas (posición, giro y STL).
+        /// </summary>
+        [HttpGet]
+        public JsonResult AssemblyView(long designId, int faceId)
+        {
+            try
+            {
+                if (designId <= 0 || faceId <= 0)
+                {
+                    return Json(new { ok = false, message = "Vista no indicada." }, JsonRequestBehavior.AllowGet);
+                }
+
+                var view = new DesignAssemblyViewRepository(db).LoadView(designId, faceId);
+                if (view == null)
+                {
+                    return Json(new { ok = false, message = "La vista no existe: vuelve a generar el plano de montaje." }, JsonRequestBehavior.AllowGet);
+                }
+
+                return Json(new { ok = true, view = view }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { ok = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>
         /// Borrado lógico de las piezas guardadas de un diseño, antes de rehacer el recuento.
         /// </summary>
         [HttpPost]

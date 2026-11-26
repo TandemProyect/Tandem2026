@@ -216,9 +216,101 @@ namespace Desing.Models
         public List<LineaDTO> LineasEje { get; set; }
 
         /// <summary>
+        /// Solo «importar boceto desde imagen»: muros resueltos y lo leído en la foto. Los plugins CAD lo ignoran.
+        /// </summary>
+        public BocetoImagenDTO Boceto { get; set; }
+
+        /// <summary>
         /// Mensaje descriptivo del resultado
         /// </summary>
         public string Mensaje { get; set; }
+    }
+
+    /// <summary>
+    /// Boceto desde imagen (Desing_2): muros calculados con las cotas y, en píxeles de la imagen, lo que se leyó
+    /// (contorno y cotas) para señalar sobre la foto las cotas que no cuadran.
+    /// </summary>
+    public class BocetoImagenDTO
+    {
+        public double EspesorMm { get; set; }
+
+        /// <summary>Altura leída (h). Null: el visor usa la altura por defecto.</summary>
+        public double? AlturaMm { get; set; }
+
+        /// <summary>Ejes de muro en mm (planta X/Y, Y hacia arriba); cada muro lleva el espesor E.</summary>
+        public List<BocetoMuroDTO> Muros { get; set; }
+
+        public List<string> Avisos { get; set; }
+
+        /// <summary>Cotas que no cuadran (vacío si todo cuadra).</summary>
+        public List<string> Conflictos { get; set; }
+
+        /// <summary>El boceto no trae E válido: el visor lo pide y llama a ResolverBocetoImagen (sin IA).</summary>
+        public bool FaltaEspesor { get; set; }
+
+        /// <summary>El boceto no trae h válida: el visor la pide antes de insertar.</summary>
+        public bool FaltaAltura { get; set; }
+
+        /// <summary>Qué falta y por qué, para enseñárselo al usuario.</summary>
+        public List<string> DatosQueFaltan { get; set; }
+
+        /// <summary>Marco de píxeles de <see cref="ContornoPx"/> y de las cotas (imagen girada según EXIF).</summary>
+        public int ImagenAncho { get; set; }
+
+        public int ImagenAlto { get; set; }
+
+        /// <summary>Cara exterior del muro leída en la imagen: [[x, y], …] en px.</summary>
+        public List<double[]> ContornoPx { get; set; }
+
+        public List<BocetoCotaDTO> Cotas { get; set; }
+    }
+
+    public class BocetoMuroDTO
+    {
+        public double X1 { get; set; }
+        public double Y1 { get; set; }
+        public double X2 { get; set; }
+        public double Y2 { get; set; }
+    }
+
+    public class BocetoCotaDTO
+    {
+        public double Valor { get; set; }
+
+        /// <summary>"H" (distancia horizontal) o "V".</summary>
+        public string Eje { get; set; }
+
+        /// <summary>Extremos de la línea de cota en px (null si no se leyeron).</summary>
+        public double[] P1 { get; set; }
+
+        public double[] P2 { get; set; }
+
+        /// <summary>Vértice de <see cref="BocetoImagenDTO.ContornoPx"/> al que llega cada referencia (o null).</summary>
+        public int? V1 { get; set; }
+
+        public int? V2 { get; set; }
+
+        /// <summary>"ok", "incoherente", "relacionada" (forma la suma que no cuadra) o "ignorada".</summary>
+        public string Estado { get; set; }
+    }
+
+    /// <summary>
+    /// Segundo paso del boceto, sin IA: lo ya leído (de <see cref="BocetoImagenDTO"/>) más el espesor y la altura
+    /// que escribe el usuario cuando el boceto no los trae.
+    /// </summary>
+    public class BocetoResolverRequestDTO
+    {
+        public List<double[]> ContornoPx { get; set; }
+
+        public List<BocetoCotaDTO> Cotas { get; set; }
+
+        public double? EspesorM { get; set; }
+
+        public double? AlturaM { get; set; }
+
+        public int ImagenAncho { get; set; }
+
+        public int ImagenAlto { get; set; }
     }
 
     /// <summary>

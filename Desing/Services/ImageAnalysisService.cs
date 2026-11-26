@@ -1,10 +1,14 @@
-using Desing.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.Configuration;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -12,69 +16,61 @@ using System.Threading.Tasks;
 
 namespace Desing.Services
 {
+    /// <summary>Lo leído en un boceto y el marco de píxeles en que vienen sus coordenadas.</summary>
+    public sealed class SketchImageAnalysis
+    {
+        public SketchReading Lectura { get; set; }
+
+        /// <summary>Tamaño de la imagen enviada al modelo (ya girada según EXIF): marco de las coordenadas.</summary>
+        public int ImagenAncho { get; set; }
+
+        public int ImagenAlto { get; set; }
+
+        public string Modelo { get; set; }
+    }
+
+    /// <summary>
+    /// Lee bocetos de planta con un modelo de visión de OpenAI. El modelo solo describe lo que ve (contorno exterior
+    /// del muro, cotas con sus referencias, E y h); las medidas las resuelve <see cref="SketchPlanSolver"/>.
+    /// Modelo configurable en appSettings <c>OPENAI_SKETCH_MODEL</c> (gpt-4o lee mal la geometría de los bocetos).
+    /// </summary>
     public class ImageAnalysisService
     {
-        private static readonly HttpClient _httpClient = new HttpClient();
-        private readonly string _apiKey;
+        private const string ModeloPorDefecto = "gpt-6.2-sol";
+        private const int LadoMaximoPx = 2048;
+        private const string DebugDir = @"c:\temp";
+        private const string DebugFile = @"c:\temp\boceto_gpt_debug.json";
 
-        private const string PROMPT = @"
-Analiza ÚNICAMENTE la imagen adjunta. CADA imagen es un boceto distinto: no reutilices medidas ni formas de peticiones anteriores.
+        private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(3) };
 
-FORMATO DE BOLETO (si la imagen lo sigue): una línea gruesa = perímetro EXTERIOR; cada tramo tiene UN número al lado (sin flechas ni líneas de cota); E=espesor y H=altura en un rincón.
-   ORIENTACIÓN DE LA COTA (regla clave): el número se escribe PARALELO al muro que mide.
-   - Número en horizontal → cota de tramo horizontal (E o W en recorrido).
-   - Número en vertical → cota de tramo vertical (N o S en recorrido).
-   Usa la orientación del texto para asignar cada cota al tramo correcto y al eje H/V.
+        private const string PROMPT = @"Eres un LECTOR de bocetos de planta dibujados a mano (foto de un papel). NO calcules, NO corrijas y NO cierres nada: describe solo lo que ves.
+La imagen mide {W}x{H} píxeles. Usa coordenadas de PÍXEL de esta imagen: x hacia la derecha, y hacia abajo, origen arriba a la izquierda.
 
-1) Cotas globales:
-   - espesorMuro: leer la anotación E=… de la línea de cota DEL ESPESOR (entre las dos líneas paralelas del muro). Ej: E=0,30 → 0.3. No confundir con cotas del perímetro (0,4 / 0,5).
-   - alturaMuro: H/h en metros (uniforme), o null.
+Cómo se dibuja el boceto:
+- MURO: DOBLE línea paralela (cara exterior y cara interior). La separación entre ambas es el espesor.
+- COTA: línea fina SENCILLA con marcas en los extremos (/, x, flechas o puntos) y líneas de referencia que llegan hasta el muro. Lleva un número en metros con coma decimal (7,00 = 7.0). Puede haber cotas TOTALES y cotas PARCIALES encadenadas en la misma línea.
+- ANOTACIONES: ""E=0,30"" es el espesor del muro en metros; ""h=3,00"" o ""H=3,00"" es la altura del muro en metros.
 
-2) Geometría EXTERIOR en METROS. Origen (0,0) = esquina inferior izquierda exterior.
-   Recorre el perímetro en SENTIDO HORARIO empezando por la BASE INFERIOR (primer tramo = E):
-   - Un elemento de ""recorrido"" por cada arista, con la cota de ESE tramo (5,50 → 5.5).
-   - Ignora líneas finas de cota, flechas y ticks; solo el trazo grueso exterior y los números.
-
-   ESCALONES / MUESCAS (trazo exterior, sentido horario):
-   - Borde INFERIOR: muesca hacia abajo → S, E, N (3 tramos).
-   - Borde SUPERIOR: muesca hacia abajo (dentro del recinto) → al ir en W: S, W, S o secuencia equivalente.
-   - Borde IZQUIERDO: muesca hacia dentro → E, N, W (o equivalente en orden horario).
-   - Cada escalón = 3 tramos separados (vertical + horizontal + vertical).
-
-   ""cotasEtiquetadas"" es OBLIGATORIO: lista TODAS las cotas del perímetro en orden horario desde base inferior izquierda.
-   Cada entrada: {""len"":5.0,""eje"":""H""} o ""V"" según orientación del número en la imagen. No incluyas E=0,30 en esta lista.
-
-Responde SOLO JSON (sin markdown):
+Devuelve SOLO este JSON (números con punto decimal):
 {
-  ""escala"": ""nota"",
-  ""espesorMuro"": null,
-  ""alturaMuro"": null,
-  ""recorrido"": [{""dir"":""E"",""len"":0},{""dir"":""N"",""len"":0}],
-  ""cotasEtiquetadas"": [{""len"":5.5,""eje"":""V""},{""len"":5,""eje"":""H""}],
-  ""vertices"": [[x,y],...],
-  ""lineas"": [{""inicioX"":0,""inicioY"":0,""finX"":0,""finY"":0}]
+  ""contornoExterior"": [[x,y], ...],
+  ""cotas"": [ {""valor"": 7.0, ""eje"": ""H"", ""p1"": [x,y], ""p2"": [x,y], ""v1"": 0, ""v2"": 1} ],
+  ""espesor"": 0.3,
+  ""altura"": 3.0,
+  ""textos"": [""...""]
 }
 
-Obligatorio: ""cotasEtiquetadas"" (todas las cotas del perímetro, en orden, con eje H/V).
-También ""recorrido"" con dir+len si puedes; debe CERRAR en (0,0).
-También ""cotasVisibles"": [todos los números en metros].
-No repitas el punto inicial al cerrar. No incluyas bloque ""cotas"". No simplifiques la forma.
-";
+Reglas:
+1. ""contornoExterior"": esquinas de la CARA EXTERIOR del muro (la línea más de fuera de la doble línea), una por cada esquina, incluidas las de entrantes o muescas. Empieza en la esquina superior izquierda y recorre en sentido horario. No repitas el primer punto al final. Si no ves muros, devuelve [].
+2. ""cotas"": una entrada por cada número de cota (no incluyas E ni h).
+   - ""eje"": ""H"" si la cota mide una distancia horizontal (línea de cota horizontal); ""V"" si mide una distancia vertical.
+   - ""p1"" y ""p2"": píxeles de los dos extremos de la línea de cota (donde están las marcas). Para ""H"", p1 es el extremo izquierdo; para ""V"", p1 es el extremo superior.
+   - ""v1"" y ""v2"": índice (base 0) del vértice de ""contornoExterior"" al que llega la línea de referencia de p1 y de p2; null si no llega a ninguno.
+3. ""espesor"" y ""altura"" en metros, o null si no aparecen.
+4. ""textos"": todos los textos que leas, tal cual.";
 
-        private const string RETRY_PROMPT = @"
-La geometría anterior era incorrecta (salientes al revés o tramos omitidos). Revisa la imagen.
-
-1) ""cotasEtiquetadas"": cada número en orden del perímetro con ""eje"":""H"" si el texto está horizontal, ""V"" si está vertical (paralelo al muro).
-2) ""recorrido"": cada arista del trazo GRUESO EXTERIOR, horario desde esquina inferior izquierda, primer tramo E (base).
-   La dirección E/W/N/S debe ser coherente con ""eje"" H/V de cada cota.
-   Formato: [{""dir"":""E"",""len"":0},{""dir"":""S"",""len"":0},...]
-   - Escalón en borde inferior hacia afuera: S, E/W, N (no al revés).
-   - Escalón en borde superior hacia afuera: N, E/W, S (no al revés).
-3) El recorrido debe CERRAR en (0,0): suma de dx = 0 y suma de dy = 0.
-4) espesorMuro y alturaMuro si aparecen.
-
-Responde SOLO JSON con ""cotasEtiquetadas"" obligatorio y ""recorrido"" que cierre (sin vertices ni lineas).
-";
+        private readonly string _apiKey;
+        private readonly string _modelo;
 
         public ImageAnalysisService()
         {
@@ -90,6 +86,11 @@ Responde SOLO JSON con ""cotasEtiquetadas"" obligatorio y ""recorrido"" que cier
                     "y poner su clave sk-… en OPENAI_APIKEY; (2) variable de entorno OPENAI_APIKEY antes de iniciar IIS Express; " +
                     "(3) Web.config local sin commitear. https://platform.openai.com/account/api-keys");
             }
+
+            _modelo = ConfigurationManager.AppSettings["OPENAI_SKETCH_MODEL"];
+            if (string.IsNullOrWhiteSpace(_modelo))
+                _modelo = ModeloPorDefecto;
+            _modelo = _modelo.Trim();
         }
 
         private static bool IsPlaceholderOrMissingApiKey(string key)
@@ -102,445 +103,191 @@ Responde SOLO JSON con ""cotasEtiquetadas"" obligatorio y ""recorrido"" que cier
             return false;
         }
 
-        public async Task<(List<LineaDTO> Lineas, double? EspesorMuro, double? AlturaMuro)> AnalizarImagenAsync(byte[] imagenBytes, string mimeType = "image/jpeg")
+        /// <summary>Envía el boceto al modelo de visión y devuelve lo leído (sin resolver medidas).</summary>
+        public async Task<SketchImageAnalysis> AnalizarBocetoAsync(byte[] imagenBytes)
         {
-            var content = await LlamarGptVisionAsync(imagenBytes, mimeType, PROMPT, "intento-1");
-            var resultado = ParseLineasDesdeRespuesta(content, out var info);
-
-            if (DebeReintentar(info, resultado.Lineas))
+            var jpeg = NormalizarImagen(imagenBytes, out int ancho, out int alto);
+            var prompt = PROMPT
+                .Replace("{W}", ancho.ToString(CultureInfo.InvariantCulture))
+                .Replace("{H}", alto.ToString(CultureInfo.InvariantCulture));
+            var contenido = await LlamarModeloAsync(jpeg, prompt).ConfigureAwait(false);
+            return new SketchImageAnalysis
             {
-                System.Diagnostics.Debug.WriteLine($"[ImageAnalysis] Reintento GPT: {info?.MotivoRechazo}");
-                content = await LlamarGptVisionAsync(imagenBytes, mimeType, RETRY_PROMPT, "intento-2");
-                var resultado2 = ParseLineasDesdeRespuesta(content, out info);
-                resultado = (
-                    resultado2.Lineas,
-                    resultado2.EspesorMuro ?? resultado.EspesorMuro,
-                    resultado2.AlturaMuro ?? resultado.AlturaMuro);
-            }
-
-            string motivoFinal = null;
-            bool perimetroOk = resultado.Lineas != null
-                && SketchWallBuilder.ValidarPerimetroBoceto(resultado.Lineas, out motivoFinal);
-            if (!perimetroOk)
-            {
-                throw new Exception(
-                    "No se pudo reconstruir un perímetro cerrado válido desde la imagen. " +
-                    (motivoFinal ?? info?.MotivoRechazo ?? "GPT leyó mal las cotas") +
-                    ". Revise el boceto (números paralelos al muro, E=0,30) o c:\\temp\\gpt4o_debug.json");
-            }
-
-            return resultado;
+                Lectura = SketchPlanSolver.LeerRespuestaModelo(contenido),
+                ImagenAncho = ancho,
+                ImagenAlto = alto,
+                Modelo = _modelo
+            };
         }
 
-        private async Task<string> LlamarGptVisionAsync(byte[] imagenBytes, string mimeType, string prompt, string etiqueta)
+        private async Task<string> LlamarModeloAsync(byte[] jpeg, string prompt)
         {
-            string base64 = Convert.ToBase64String(imagenBytes);
-
-            var requestBody = new
+            var mensaje = new JObject
             {
-                model = "gpt-4o",
-                max_tokens = 3000,
-                messages = new[]
+                ["role"] = "user",
+                ["content"] = new JArray
                 {
-                    new
+                    new JObject { ["type"] = "text", ["text"] = prompt },
+                    new JObject
                     {
-                        role = "user",
-                        content = new object[]
+                        ["type"] = "image_url",
+                        ["image_url"] = new JObject
                         {
-                            new { type = "text", text = prompt },
-                            new
-                            {
-                                type = "image_url",
-                                image_url = new
-                                {
-                                    url = $"data:{mimeType};base64,{base64}",
-                                    detail = "high"
-                                }
-                            }
+                            ["url"] = "data:image/jpeg;base64," + Convert.ToBase64String(jpeg),
+                            ["detail"] = "high"
                         }
                     }
                 }
             };
-
-            var json = JsonConvert.SerializeObject(requestBody);
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
-            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.SendAsync(request);
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
+            var body = new JObject
             {
-                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                {
-                    throw new InvalidOperationException(
-                        "Clave de OpenAI inválida o caducada. Revise OPENAI_APIKEY en Web.config o variable de entorno " +
-                        "(https://platform.openai.com/account/api-keys).");
-                }
-                throw new Exception($"OpenAI error {response.StatusCode}");
+                ["model"] = _modelo,
+                ["response_format"] = new JObject { ["type"] = "json_object" },
+                ["messages"] = new JArray { mensaje }
+            };
+            // gpt-4.x usa max_tokens/temperature; los modelos de razonamiento (gpt-5+, o*) max_completion_tokens.
+            if (_modelo.StartsWith("gpt-4", StringComparison.OrdinalIgnoreCase))
+            {
+                body["max_tokens"] = 3000;
+                body["temperature"] = 0;
+            }
+            else
+            {
+                body["max_completion_tokens"] = 16000;
             }
 
-            var parsed = JObject.Parse(responseBody);
-            var content = parsed["choices"]?[0]?["message"]?["content"]?.ToString();
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions")
+            {
+                Content = new StringContent(body.ToString(Formatting.None), Encoding.UTF8, "application/json")
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
 
-            System.Diagnostics.Debug.WriteLine($"[GPT-4o] {etiqueta}: {content}");
-            System.IO.File.WriteAllText(
-                @"c:\temp\gpt4o_debug.json",
-                "// " + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " UTC — " + etiqueta + "\n"
-                + (content ?? "(null)"));
+            HttpResponseMessage response;
+            try
+            {
+                response = await _httpClient.SendAsync(request).ConfigureAwait(false);
+            }
+            catch (TaskCanceledException)
+            {
+                throw new TimeoutException(
+                    "La IA no ha respondido en " + (int)_httpClient.Timeout.TotalMinutes +
+                    " minutos. Vuelve a intentarlo en un momento.");
+            }
 
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+                throw new InvalidOperationException(MensajeErrorOpenAi(response.StatusCode, responseBody));
+
+            var content = JObject.Parse(responseBody)["choices"]?[0]?["message"]?["content"]?.ToString();
+            GuardarDebug(content);
             return content;
         }
 
-        private static bool DebeReintentar(ParseInfo info, List<LineaDTO> lineas)
+        private string MensajeErrorOpenAi(HttpStatusCode status, string responseBody)
         {
-            if (info == null || lineas == null || lineas.Count < 3)
-                return true;
+            if (status == HttpStatusCode.Unauthorized)
+            {
+                return "Clave de OpenAI inválida o caducada. Revise OPENAI_APIKEY en Web.config o variable de entorno " +
+                    "(https://platform.openai.com/account/api-keys).";
+            }
 
-            return !info.PerimetroValido;
+            string code = null;
+            string detalle = null;
+            try
+            {
+                var error = JObject.Parse(responseBody)["error"];
+                code = error?["code"]?.ToString();
+                detalle = error?["message"]?.ToString();
+            }
+            catch (JsonException)
+            {
+                // Cuerpo no JSON: basta con el código HTTP.
+            }
+
+            if (string.Equals(code, "model_not_found", StringComparison.OrdinalIgnoreCase))
+            {
+                return "El modelo «" + _modelo + "» no está disponible con esta clave de OpenAI: " +
+                    "indica otro en OPENAI_SKETCH_MODEL (appSettings).";
+            }
+
+            return "OpenAI error " + (int)status + (string.IsNullOrWhiteSpace(detalle) ? "" : ": " + detalle);
         }
 
-        private sealed class ParseInfo
+        private void GuardarDebug(string content)
         {
-            public string Fuente { get; set; }
-            public bool UsoRecorrido { get; set; }
-            public bool RecorridoCierra { get; set; }
-            public bool PerimetroValido { get; set; }
-            public string MotivoRechazo { get; set; }
-            public List<double> CotasVisibles { get; set; }
+            try
+            {
+                if (!Directory.Exists(DebugDir))
+                    return;
+                File.WriteAllText(
+                    DebugFile,
+                    "// " + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) + " UTC — " +
+                    _modelo + "\n" + (content ?? "(null)"));
+            }
+            catch (IOException)
+            {
+                // Depuración opcional: nunca debe romper la importación.
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
         }
 
-        private static bool AceptarLineas(List<LineaDTO> candidatas, string fuente, out List<LineaDTO> lineas, ParseInfo info)
+        /// <summary>
+        /// Gira la foto según su EXIF (móviles), limita el lado mayor y la pasa a JPEG: el modelo y el visor
+        /// trabajan así sobre el mismo marco de píxeles.
+        /// </summary>
+        private static byte[] NormalizarImagen(byte[] bytes, out int ancho, out int alto)
         {
-            lineas = null;
-            if (candidatas == null || candidatas.Count == 0)
-                return false;
-
-            if (!SketchWallBuilder.ValidarPerimetroBoceto(candidatas, out var motivo))
+            using (var entrada = new MemoryStream(bytes))
+            using (var original = Image.FromStream(entrada, true, true))
             {
-                info.MotivoRechazo = fuente + ": " + motivo;
-                return false;
-            }
+                var giro = GiroExif(original);
+                if (giro != RotateFlipType.RotateNoneFlipNone)
+                    original.RotateFlip(giro);
 
-            lineas = candidatas;
-            info.Fuente = fuente;
-            info.PerimetroValido = true;
-            return true;
-        }
-
-        private (List<LineaDTO> Lineas, double? EspesorMuro, double? AlturaMuro) ParseLineasDesdeRespuesta(string content)
-        {
-            return ParseLineasDesdeRespuesta(content, out _);
-        }
-
-        private (List<LineaDTO> Lineas, double? EspesorMuro, double? AlturaMuro) ParseLineasDesdeRespuesta(string content, out ParseInfo info)
-        {
-            info = new ParseInfo();
-
-            if (string.IsNullOrEmpty(content))
-                throw new Exception("Respuesta vacía de OpenAI");
-
-            content = content.Trim();
-            if (content.StartsWith("```", StringComparison.Ordinal))
-            {
-                var nl = content.IndexOf('\n');
-                if (nl >= 0)
-                    content = content.Substring(nl + 1);
-                var fence = content.LastIndexOf("```", StringComparison.Ordinal);
-                if (fence >= 0)
-                    content = content.Substring(0, fence);
-                content = content.Trim();
-            }
-
-            int start = content.IndexOf('{');
-            int end = content.LastIndexOf('}');
-            if (start < 0 || end < 0)
-                throw new Exception($"No se encontró JSON en la respuesta: {content}");
-
-            var jsonStr = content.Substring(start, end - start + 1);
-            var obj = JObject.Parse(jsonStr);
-
-            double? espesorMuro = ExtractEspesorMuro(obj, content);
-            double? alturaMuro = ExtractAlturaMuro(obj, content);
-            info.CotasVisibles = ExtraerCotasVisibles(obj["cotasVisibles"]);
-
-            List<LineaDTO> lineas = null;
-
-            info.RecorridoCierra = SketchWallBuilder.RecorridoJsonCierra(obj["recorrido"]);
-            bool cotasCoherentes = SketchWallBuilder.CotasPerimetroCoherentes(
-                obj["cotasEtiquetadas"], obj["cotasVisibles"]);
-            var rechazos = new List<string>();
-            if (!cotasCoherentes)
-                rechazos.Add("cotasEtiquetadas y cotasVisibles difieren en cantidad (se intentan otras rutas)");
-
-            var dimsPerimetro = FiltrarCotasPerimetroParaImagen(obj["cotasVisibles"]);
-
-            // Probar todas las rutas; la incoherencia de cotas no bloquea el resto.
-            if (lineas == null
-                && obj["cotasEtiquetadas"] != null
-                && SketchWallBuilder.TryLineasDesdeCotasEtiquetadasJson(obj["cotasEtiquetadas"], out var desdeEtiquetas)
-                && AceptarLineas(desdeEtiquetas, "cotasEtiquetadas", out lineas, info))
-            {
-                info.UsoRecorrido = true;
-                info.RecorridoCierra = true;
-            }
-
-            if (lineas == null
-                && obj["recorrido"] != null
-                && info.RecorridoCierra
-                && SketchWallBuilder.TryLineasDesdeRecorridoJson(obj["recorrido"], out var desdeRecorrido)
-                && AceptarLineas(desdeRecorrido, "recorrido", out lineas, info))
-            {
-                info.UsoRecorrido = true;
-            }
-
-            bool recorridoCompletadoOk = false;
-            if (lineas == null
-                && obj["recorrido"] != null
-                && SketchWallBuilder.TryLineasDesdeRecorridoCompletadoJson(obj["recorrido"], out var desdeRecCompleto)
-                && AceptarLineas(desdeRecCompleto, "recorrido+cierre", out lineas, info))
-            {
-                info.UsoRecorrido = true;
-                info.RecorridoCierra = true;
-                recorridoCompletadoOk = true;
-            }
-
-            if (lineas == null && obj["recorrido"] != null && !info.RecorridoCierra && !recorridoCompletadoOk)
-            {
-                rechazos.Add("recorrido: no cierra en el origen");
-            }
-
-            if (lineas == null
-                && obj["recorrido"] != null && obj["cotasEtiquetadas"] != null
-                && SketchWallBuilder.TryLineasDesdeRecorridoConCotasEtiquetadas(
-                    obj["recorrido"], obj["cotasEtiquetadas"], out var desdeMixto)
-                && AceptarLineas(desdeMixto, "recorrido+cotasEtiquetadas", out lineas, info))
-            {
-                info.UsoRecorrido = true;
-                info.RecorridoCierra = true;
-            }
-
-            if (lineas == null
-                && obj["recorrido"] != null
-                && dimsPerimetro != null
-                && SketchWallBuilder.TryLineasDesdeRecorridoConLongitudes(
-                    obj["recorrido"], dimsPerimetro, out var desdeRecLong)
-                && AceptarLineas(desdeRecLong, "recorrido+cotasVisibles", out lineas, info))
-            {
-                info.UsoRecorrido = true;
-                info.RecorridoCierra = true;
-            }
-
-            if (lineas == null
-                && obj["cotasVisibles"] != null
-                && SketchWallBuilder.TryLineasDesdeCotasVisiblesPerimetro(obj["cotasVisibles"], out var desdeCotas)
-                && AceptarLineas(desdeCotas, "cotasVisibles", out lineas, info))
-            {
-                info.UsoRecorrido = true;
-                info.RecorridoCierra = true;
-            }
-
-            if (lineas == null || lineas.Count == 0)
-            {
-                if (!string.IsNullOrEmpty(info.MotivoRechazo))
-                    rechazos.Add(info.MotivoRechazo);
-                info.MotivoRechazo = rechazos.Count > 0
-                    ? string.Join("; ", rechazos.Distinct())
-                    : "Ninguna estrategia produjo un perímetro cerrado válido";
-                throw new Exception(
-                    "GPT no devolvió un perímetro válido. " + info.MotivoRechazo +
-                    ". Revise c:\\temp\\gpt4o_debug.json");
-            }
-
-            System.Diagnostics.Debug.WriteLine(
-                $"[ImageAnalysis] Imagen actual → {info.Fuente}, {lineas.Count} tramos (validado).");
-            return (lineas, espesorMuro, alturaMuro);
-        }
-
-        private static List<LineaDTO> ParseLineasArray(JArray lineasJson)
-        {
-            if (lineasJson == null)
-                return new List<LineaDTO>();
-
-            const double METROS_A_MM = 1000.0;
-            var lineas = new List<LineaDTO>();
-            foreach (var l in lineasJson)
-            {
-                lineas.Add(new LineaDTO
+                double escala = Math.Min(1.0, (double)LadoMaximoPx / Math.Max(original.Width, original.Height));
+                ancho = Math.Max(1, (int)Math.Round(original.Width * escala));
+                alto = Math.Max(1, (int)Math.Round(original.Height * escala));
+                using (var lienzo = new Bitmap(ancho, alto, PixelFormat.Format24bppRgb))
                 {
-                    Tipo = "Line",
-                    InicioX = (l["inicioX"]?.Value<double>() ?? 0) * METROS_A_MM,
-                    InicioY = (l["inicioY"]?.Value<double>() ?? 0) * METROS_A_MM,
-                    FinX = (l["finX"]?.Value<double>() ?? 0) * METROS_A_MM,
-                    FinY = (l["finY"]?.Value<double>() ?? 0) * METROS_A_MM,
-                    Vertices = new List<PuntoDTO>()
-                });
-            }
-            return lineas;
-        }
+                    using (var g = Graphics.FromImage(lienzo))
+                    {
+                        g.Clear(Color.White);
+                        g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        g.DrawImage(original, new Rectangle(0, 0, ancho, alto));
+                    }
 
-        private static double? ExtractEspesorMuro(JObject obj, string rawContent)
-        {
-            var token = obj["espesorMuro"];
-            if (token != null && token.Type != JTokenType.Null)
-            {
-                double? directo = token.Type == JTokenType.Float || token.Type == JTokenType.Integer
-                    ? token.Value<double>()
-                    : ParseNumeroBoceto(token.ToString());
-                if (EsEspesorRazonable(directo))
-                    return directo;
-            }
-
-            if (!string.IsNullOrEmpty(rawContent))
-            {
-                var norm = NormalizarTextoBoceto(rawContent);
-
-                var jsonMatch = System.Text.RegularExpressions.Regex.Match(
-                    norm,
-                    @"""espesorMuro""\s*:\s*([\d][\d.,]*)",
-                    System.Text.RegularExpressions.RegexOptions.CultureInvariant | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-                if (jsonMatch.Success)
-                {
-                    var parsed = ParseDecimalInvariant(jsonMatch.Groups[1].Value);
-                    if (EsEspesorRazonable(parsed))
-                        return parsed;
-                }
-
-                var eMatch = System.Text.RegularExpressions.Regex.Match(
-                    norm,
-                    @"\b[Ee]\s*[=:]\s*([\d][\d.,]*)",
-                    System.Text.RegularExpressions.RegexOptions.CultureInvariant);
-                if (eMatch.Success)
-                {
-                    var parsed = ParseNumeroBoceto(eMatch.Groups[1].Value);
-                    if (EsEspesorRazonable(parsed))
-                        return parsed;
+                    var codec = ImageCodecInfo.GetImageEncoders().First(c => c.FormatID == ImageFormat.Jpeg.Guid);
+                    using (var parametros = new EncoderParameters(1))
+                    using (var salida = new MemoryStream())
+                    {
+                        parametros.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 90L);
+                        lienzo.Save(salida, codec, parametros);
+                        return salida.ToArray();
+                    }
                 }
             }
-
-            var cotas = ExtraerCotasVisibles(obj["cotasVisibles"]);
-            foreach (var c in cotas.Where(c => EsEspesorRazonable(c)).OrderBy(v => v))
-                return c;
-
-            return null;
         }
 
-        private static double? ExtractAlturaMuro(JObject obj, string rawContent)
+        private static RotateFlipType GiroExif(Image imagen)
         {
-            var fromField = ExtractMetricValue(obj["alturaMuro"]);
-            if (fromField.HasValue && fromField.Value >= 1.5 && fromField.Value <= 6.0)
-                return fromField;
-
-            if (!string.IsNullOrEmpty(rawContent))
+            const int OrientacionExif = 0x0112;
+            if (!imagen.PropertyIdList.Contains(OrientacionExif))
+                return RotateFlipType.RotateNoneFlipNone;
+            var valor = imagen.GetPropertyItem(OrientacionExif).Value;
+            int orientacion = valor != null && valor.Length >= 2 ? BitConverter.ToUInt16(valor, 0) : 1;
+            switch (orientacion)
             {
-                var norm = NormalizarTextoBoceto(rawContent);
-                var hMatch = System.Text.RegularExpressions.Regex.Match(
-                    norm,
-                    @"\b[Hh]\s*[=:]\s*([\d][\d.,]*)",
-                    System.Text.RegularExpressions.RegexOptions.CultureInvariant);
-                if (hMatch.Success)
-                {
-                    var parsed = ParseNumeroBoceto(hMatch.Groups[1].Value);
-                    if (parsed.HasValue && parsed.Value >= 1.5 && parsed.Value <= 6.0)
-                        return parsed;
-                }
+                case 2: return RotateFlipType.RotateNoneFlipX;
+                case 3: return RotateFlipType.Rotate180FlipNone;
+                case 4: return RotateFlipType.Rotate180FlipX;
+                case 5: return RotateFlipType.Rotate90FlipX;
+                case 6: return RotateFlipType.Rotate90FlipNone;
+                case 7: return RotateFlipType.Rotate270FlipX;
+                case 8: return RotateFlipType.Rotate270FlipNone;
+                default: return RotateFlipType.RotateNoneFlipNone;
             }
-
-            return null;
-        }
-
-        private static bool EsEspesorRazonable(double? metros)
-        {
-            return metros.HasValue && metros.Value >= 0.08 && metros.Value <= 0.55;
-        }
-
-        private static string NormalizarTextoBoceto(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-                return text;
-            return text
-                .Replace('ø', '0').Replace('Ø', '0').Replace('∅', '0')
-                .Replace('º', '0').Replace('°', '0');
-        }
-
-        private static double? ParseNumeroBoceto(string fragment)
-        {
-            if (string.IsNullOrWhiteSpace(fragment))
-                return null;
-
-            fragment = NormalizarTextoBoceto(fragment.Trim());
-            var match = System.Text.RegularExpressions.Regex.Match(
-                fragment,
-                @"\d+(?:[.,]\d+)?",
-                System.Text.RegularExpressions.RegexOptions.CultureInvariant);
-            if (!match.Success)
-                return null;
-
-            return ParseDecimalInvariant(match.Value);
-        }
-
-        private static double? ParseDecimalInvariant(string value)
-        {
-            var normalized = value.Replace(',', '.');
-            if (double.TryParse(
-                normalized,
-                System.Globalization.NumberStyles.Float,
-                System.Globalization.CultureInfo.InvariantCulture,
-                out var parsed))
-            {
-                return parsed;
-            }
-
-            return null;
-        }
-
-        private static double? ExtractMetricValue(JToken token)
-        {
-            if (token == null || token.Type == JTokenType.Null)
-                return null;
-
-            if (token.Type == JTokenType.Float || token.Type == JTokenType.Integer)
-                return token.Value<double>();
-
-            var text = token.ToString();
-            if (string.IsNullOrWhiteSpace(text))
-                return null;
-
-            text = NormalizarTextoBoceto(text);
-            return ParseNumeroBoceto(text);
-        }
-
-        private static List<double> FiltrarCotasPerimetroParaImagen(JToken cotasToken)
-        {
-            var lista = ExtraerCotasVisibles(cotasToken);
-            if (lista == null || lista.Count == 0)
-                return null;
-
-            var filtrada = new List<double>();
-            foreach (var c in lista)
-            {
-                if (c >= 0.12 && c <= 0.55)
-                    continue;
-                filtrada.Add(c);
-            }
-
-            return filtrada.Count >= 4 ? filtrada : null;
-        }
-
-        private static List<double> ExtraerCotasVisibles(JToken token)
-        {
-            var lista = new List<double>();
-            if (token is JArray arr)
-            {
-                foreach (var item in arr)
-                {
-                    var v = ExtractMetricValue(item);
-                    if (v.HasValue && v.Value > 0)
-                        lista.Add(v.Value);
-                }
-            }
-            return lista;
         }
     }
 }

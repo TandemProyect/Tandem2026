@@ -3,161 +3,55 @@ using System;
 namespace Desing.Repositories.RepositoryAtk60
 {
     /// <summary>
-    /// Remate por cara: tope 0,15 m, taco en el extremo que toca la L, sin sumar caras.
+    /// Remate del tramo junto a la L. Las dos caras comparten módulos, así que el
+    /// remate del tramo es el mismo en las dos y va enfrentado, pegado a la esquina.
+    /// La cara interior lleva además el tablón de la propia L (LCornerFormwork): no se suman.
     /// </summary>
     public static class Atk60FaceRemateRules
     {
         public const int MaxMm = 150;
-
-        public static int CapMm(int remateMm)
-        {
-            if (remateMm > MaxMm)
-            {
-                return MaxMm;
-            }
-
-            if (remateMm < 0)
-            {
-                return 0;
-            }
-
-            return remateMm;
-        }
+        public const int CornerAtStart = 1;
+        public const int CornerAtEnd = 2;
 
         /// <summary>
-        /// Origen del tablón sobre el eje: el extremo de la cara que se encuentra
-        /// con la otra, hacia el tramo libre. No va en medio.
+        /// Dónde va el remate del tramo si algún extremo acaba en L. Con L en los dos
+        /// extremos va al inicio. Sin L, o con un remate fuera de tope, no aplica.
         /// </summary>
-        public static double StartAlongMm(
-            double axisLenMm,
-            double along1,
-            double along2,
-            bool meetAt1,
-            bool meetAt2,
-            double remateMm)
+        public static bool CornerRemate(
+            int cornerEnds,
+            double remateMm,
+            double runMm,
+            out double leadMm,
+            out double trailMm,
+            out double alongMm)
         {
-            double cornerAlong;
-            double freeAlong;
-            if (meetAt1 && !meetAt2)
+            leadMm = 0d;
+            trailMm = 0d;
+            alongMm = 0d;
+            if (remateMm <= 1d || remateMm > MaxMm || runMm <= remateMm)
             {
-                cornerAlong = along1;
-                freeAlong = along2;
-            }
-            else if (meetAt2 && !meetAt1)
-            {
-                cornerAlong = along2;
-                freeAlong = along1;
-            }
-            else if (along1 >= along2)
-            {
-                cornerAlong = along1;
-                freeAlong = along2;
-            }
-            else
-            {
-                cornerAlong = along2;
-                freeAlong = along1;
+                return false;
             }
 
-            var start = cornerAlong >= freeAlong - 1d
-                ? cornerAlong - remateMm
-                : cornerAlong;
-            if (start < 0d)
+            if ((cornerEnds & CornerAtStart) != 0)
             {
-                start = 0d;
+                leadMm = remateMm;
+                return true;
             }
 
-            if (axisLenMm > 1d && start + remateMm > axisLenMm + 1d)
+            if ((cornerEnds & CornerAtEnd) != 0)
             {
-                start = axisLenMm - remateMm;
-                if (start < 0d)
-                {
-                    start = 0d;
-                }
+                trailMm = remateMm;
+                alongMm = runMm - remateMm;
+                return true;
             }
 
-            return start;
+            return false;
         }
 
         public static bool IndependentFaces(bool hasPos, bool hasNeg)
         {
             return hasPos && hasNeg;
-        }
-
-        public static bool AtStart(double alongMm, double remateMm, double wallRunMm)
-        {
-            if (remateMm <= 1d)
-            {
-                return false;
-            }
-
-            if (alongMm < 50d)
-            {
-                return true;
-            }
-
-            if (wallRunMm > 1d && alongMm + remateMm >= wallRunMm - 50d)
-            {
-                return false;
-            }
-
-            return wallRunMm > 1d && alongMm <= wallRunMm * 0.5d;
-        }
-
-        public static bool AtEnd(double alongMm, double remateMm, double wallRunMm)
-        {
-            if (remateMm <= 1d || wallRunMm <= 1d)
-            {
-                return false;
-            }
-
-            return !AtStart(alongMm, remateMm, wallRunMm)
-                && alongMm + remateMm >= wallRunMm - 50d;
-        }
-
-        /// <summary>
-        /// Interior: el taco va en el hueco de la L (antes de 0 o pasado el run),
-        /// no encima del panel de esquina en pts[3]. Exterior: en el tramo.
-        /// </summary>
-        public static double PaintAlongMm(
-            bool interior,
-            double alongMm,
-            double remateMm,
-            double runMm)
-        {
-            if (remateMm <= 1d)
-            {
-                return alongMm;
-            }
-
-            var atStart = AtStart(alongMm, remateMm, runMm);
-            var atEnd = AtEnd(alongMm, remateMm, runMm);
-            if (interior)
-            {
-                if (atStart)
-                {
-                    return -remateMm;
-                }
-
-                if (atEnd)
-                {
-                    return runMm;
-                }
-
-                return alongMm;
-            }
-
-            if (atStart)
-            {
-                return 0d;
-            }
-
-            if (atEnd)
-            {
-                return runMm - remateMm;
-            }
-
-            return alongMm;
         }
 
         /// <summary>

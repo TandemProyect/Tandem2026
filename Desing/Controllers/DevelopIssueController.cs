@@ -21,6 +21,9 @@ namespace Desing.Controllers
         private const string CaptureFolder = "~/Files/DevelopIssue";
         private const int MaxCaptureBytes = 10 * 1024 * 1024;
         private static readonly string[] CaptureExtensions = { ".png", ".jpg", ".jpeg", ".gif", ".webp" };
+        private const string WallExtension = ".tnwall";
+        private const int MaxWallBytes = 20 * 1024 * 1024;
+        private const string WallHeader = "TNWALL1";
 
         public ActionResult Index()
         {
@@ -60,10 +63,11 @@ namespace Desing.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(DevelopIssueRow model, string observation, IEnumerable<HttpPostedFileBase> captures)
+        public ActionResult Create(DevelopIssueRow model, string observation, IEnumerable<HttpPostedFileBase> captures, IEnumerable<HttpPostedFileBase> walls)
         {
             ValidateIssue(model);
             var files = ValidCaptures(captures);
+            var wallFiles = ValidWalls(walls);
             var ajax = Request.IsAjaxRequest();
             if (ajax && ModelState.IsValid && !DevelopIssueRepository.TablesExist(db))
                 ModelState.AddModelError("", DevelopIssue.Msg_NoTable);
@@ -77,7 +81,7 @@ namespace Desing.Controllers
 
             var userId = IntranetAuditHelper.ResolveCurrentUserId(User);
             var id = DevelopIssueRepository.InsertIssue(db, model, userId);
-            SaveDetails(id, model.TextLabel, observation, files, userId);
+            SaveDetails(id, model.TextLabel, observation, files, wallFiles, userId);
 
             var created = string.Format(DevelopIssue.Toast_Created, model.TextLabel.Trim());
             if (ajax) return Json(new { ok = true, id, message = created, url = Url.Action("Details", new { id }) });
@@ -109,13 +113,14 @@ namespace Desing.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult AddDetail(long id, string observation, IEnumerable<HttpPostedFileBase> captures)
+        public ActionResult AddDetail(long id, string observation, IEnumerable<HttpPostedFileBase> captures, IEnumerable<HttpPostedFileBase> walls)
         {
             var issue = Load(id);
             if (issue == null) return Request.IsAjaxRequest() ? (ActionResult)Json(new { ok = false, message = DevelopIssue.Err_NotFound }) : HttpNotFound();
 
             var files = ValidCaptures(captures);
-            if (string.IsNullOrWhiteSpace(observation) && files.Count == 0 && ModelState.IsValid)
+            var wallFiles = ValidWalls(walls);
+            if (string.IsNullOrWhiteSpace(observation) && files.Count == 0 && wallFiles.Count == 0 && ModelState.IsValid)
             {
                 ModelState.AddModelError("observation", DevelopIssue.Err_DetailEmpty);
             }
@@ -129,7 +134,7 @@ namespace Desing.Controllers
                 return RedirectToAction("Details", new { id });
             }
 
-            SaveDetails(id, issue.TextLabel, observation, files, IntranetAuditHelper.ResolveCurrentUserId(User));
+            SaveDetails(id, issue.TextLabel, observation, files, wallFiles, IntranetAuditHelper.ResolveCurrentUserId(User));
             if (ajax) return Json(new { ok = true, message = DevelopIssue.Toast_DetailAdded });
             TempData["DevelopIssueOk"] = DevelopIssue.Toast_DetailAdded;
             return RedirectToAction("Details", new { id });
@@ -150,6 +155,12 @@ namespace Desing.Controllers
             var path = SaveCapture(id, image);
             var n = DevelopIssueRepository.UpdateDetailImage(db, id, detailId, path, IntranetAuditHelper.ResolveCurrentUserId(User));
             return Json(new { ok = n > 0, message = n > 0 ? DevelopIssue.Toast_ImageSaved : DevelopIssue.Err_NotFound, url = Url.Content("~" + path) });
+        }
+
+        /// <summary>Descarga el .tnwall adjunto con su nombre original (IIS no sirve esa extensión como estático).</summary>
+        public ActionResult DownloadFile(long id, long detailId)
+        {
+            return Load(id) == null ? HttpNotFound() : WallFile(id, detailId);
         }
 
         [HttpPost]
@@ -227,10 +238,21 @@ namespace Desing.Controllers
                     date = d.AddDateMade.ToString("s"),
                     by = d.TextMadeBy,
                     observation = d.TextObservation,
-                    imageUrl = string.IsNullOrWhiteSpace(d.TextImagePath) ? null : root + Url.Content("~" + d.TextImagePath)
+                    imageUrl = string.IsNullOrWhiteSpace(d.TextImagePath) ? null : root + Url.Content("~" + d.TextImagePath),
+                    fileName = string.IsNullOrWhiteSpace(d.TextFilePath) ? null : d.TextLabel,
+                    fileUrl = string.IsNullOrWhiteSpace(d.TextFilePath) ? null : root + Url.Action("AgentFile", new { id, detailId = d.IdObject })
                 }),
                 assessments = DevelopIssueRepository.ListAssessments(db, id).Select(AgentAssessmentJson)
             }, JsonRequestBehavior.AllowGet);
+        }
+
+        /// <summary>Descarga de un .tnwall adjunto para el agente.</summary>
+        [HttpGet]
+        [AllowAnonymous]
+        public ActionResult AgentFile(long id, long detailId)
+        {
+            if (!AgentAllowed() || Load(id) == null) return HttpNotFound();
+            return WallFile(id, detailId);
         }
 
         /// <summary>El agente anota su valoración, una observación y/o cambia el estado. Nunca borra.</summary>
@@ -258,7 +280,7 @@ namespace Desing.Controllers
                 }, issue.TextLabel, agentUser);
             }
             if (!string.IsNullOrWhiteSpace(observation))
-                DevelopIssueRepository.InsertDetail(db, id, issue.TextLabel, observation, null, agentUser);
+                DevelopIssueRepository.InsertDetail(db, id, issue.TextLabel, observation, null, null, agentUser);
             if (state.Length > 0 && state != issue.TextState)
                 DevelopIssueRepository.UpdateState(db, id, state, agentUser);
 
@@ -326,12 +348,46 @@ namespace Desing.Controllers
         }
 
         /// <summary>Una fila de detalle por captura; la observación va en la primera (o sola si no hay capturas).</summary>
-        private void SaveDetails(long issueId, string label, string observation, List<HttpPostedFileBase> files, string userId)
+        private ActionResult WallFile(long issueId, long detailId)
         {
-            if (files.Count == 0)
+            var detail = DevelopIssueRepository.ListDetails(db, issueId)
+                .FirstOrDefault(d => d.IdObject == detailId && !string.IsNullOrWhiteSpace(d.TextFilePath));
+            if (detail == null) return HttpNotFound();
+            var physical = Server.MapPath("~" + detail.TextFilePath);
+            if (!System.IO.File.Exists(physical)) return HttpNotFound();
+            var name = string.IsNullOrWhiteSpace(detail.TextLabel) ? Path.GetFileName(physical) : detail.TextLabel;
+            return File(physical, "application/octet-stream", name);
+        }
+
+        /// <summary>Archivos de muros de Desing_2 (.tnwall): extensión, tamaño y cabecera <c>TNWALL1</c>.</summary>
+        private List<HttpPostedFileBase> ValidWalls(IEnumerable<HttpPostedFileBase> walls)
+        {
+            var list = (walls ?? Enumerable.Empty<HttpPostedFileBase>())
+                .Where(f => f != null && f.ContentLength > 0).ToList();
+            foreach (var f in list)
+            {
+                var ext = (Path.GetExtension(f.FileName) ?? "").ToLowerInvariant();
+                if (ext != WallExtension || !HasWallHeader(f)) ModelState.AddModelError("walls", DevelopIssue.Err_WallFormat);
+                else if (f.ContentLength > MaxWallBytes) ModelState.AddModelError("walls", DevelopIssue.Err_WallSize);
+            }
+            return list;
+        }
+
+        private static bool HasWallHeader(HttpPostedFileBase f)
+        {
+            var head = new byte[WallHeader.Length];
+            var read = f.InputStream.Read(head, 0, head.Length);
+            f.InputStream.Position = 0;
+            return read == head.Length && System.Text.Encoding.ASCII.GetString(head) == WallHeader;
+        }
+
+        private void SaveDetails(long issueId, string label, string observation, List<HttpPostedFileBase> files, List<HttpPostedFileBase> walls, string userId)
+        {
+            var total = files.Count + walls.Count;
+            if (total == 0)
             {
                 if (!string.IsNullOrWhiteSpace(observation))
-                    DevelopIssueRepository.InsertDetail(db, issueId, label, observation, null, userId);
+                    DevelopIssueRepository.InsertDetail(db, issueId, label, observation, null, null, userId);
                 return;
             }
 
@@ -341,7 +397,16 @@ namespace Desing.Controllers
                 var fileLabel = Path.GetFileName(f.FileName);
                 DevelopIssueRepository.InsertDetail(
                     db, issueId, string.IsNullOrWhiteSpace(fileLabel) ? label : fileLabel,
-                    i == 0 ? observation : null, SaveCapture(issueId, f), userId);
+                    i == 0 ? observation : null, SaveCapture(issueId, f), null, userId);
+            }
+
+            for (var i = 0; i < walls.Count; i++)
+            {
+                var f = walls[i];
+                var fileLabel = Path.GetFileName(f.FileName);
+                DevelopIssueRepository.InsertDetail(
+                    db, issueId, string.IsNullOrWhiteSpace(fileLabel) ? label : fileLabel,
+                    files.Count == 0 && i == 0 ? observation : null, null, SaveCapture(issueId, f), userId);
             }
         }
 

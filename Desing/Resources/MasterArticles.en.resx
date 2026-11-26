@@ -346,6 +346,99 @@
   <data name="State_Yes" xml:space="preserve">
     <value>Yes</value>
   </data>
+  <data name="StlPreview_AssemblyPlanAria" xml:space="preserve">
+    <value>Generate the assembly plan views</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanDone" xml:space="preserve">
+    <value>Assembly plan: {0} views with {1} pieces</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanError" xml:space="preserve">
+    <value>Could not generate the assembly plan</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanNeedDesign" xml:space="preserve">
+    <value>Open a design to generate the assembly plan</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanNoPieces" xml:space="preserve">
+    <value>No formwork for these walls: run Encofrar and generate the plan again</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanNoWalls" xml:space="preserve">
+    <value>The design has no saved walls</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanOutside" xml:space="preserve">
+    <value>{0} pieces from walls that no longer exist: left out</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanSaving" xml:space="preserve">
+    <value>Saving the material count…</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanSavingWalls" xml:space="preserve">
+    <value>Saving the walls…</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanTitle" xml:space="preserve">
+    <value>Assembly plan</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanUnchanged" xml:space="preserve">
+    <value>No changes in the design: views already generated</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanWithoutFace" xml:space="preserve">
+    <value>{0} pieces without a face</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanWorking" xml:space="preserve">
+    <value>Generating assembly plan…</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsApprox" xml:space="preserve">
+    <value>{0} approximate: run formwork to see them exactly</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsAria" xml:space="preserve">
+    <value>Wall face views</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsColAngle" xml:space="preserve">
+    <value>Degrees</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsColPieces" xml:space="preserve">
+    <value>Pieces</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsColView" xml:space="preserve">
+    <value>View</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsColWall" xml:space="preserve">
+    <value>Wall</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsColorsTitle" xml:space="preserve">
+    <value>Paint in colours</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsEmpty" xml:space="preserve">
+    <value>No views</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsError" xml:space="preserve">
+    <value>Could not load the view</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsLoading" xml:space="preserve">
+    <value>Loading view…</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsOpen" xml:space="preserve">
+    <value>Open the view</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsPlanFormwork" xml:space="preserve">
+    <value>Plan</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsPlanStatus" xml:space="preserve">
+    <value>{0} views</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsPlanWalls" xml:space="preserve">
+    <value>Walls plan</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsSearch" xml:space="preserve">
+    <value>Search:</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsStatus" xml:space="preserve">
+    <value>{0} · Wall {1} · {2} pieces</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsTab" xml:space="preserve">
+    <value>Views</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsTitle" xml:space="preserve">
+    <value>Assembly plan views</value>
+  </data>
   <data name="StlPreview_CameraIso" xml:space="preserve">
     <value>Isometric</value>
   </data>
@@ -1088,7 +1181,7 @@
     <value>Hide panel until you move the pointer near the right edge again</value>
   </data>
   <data name="StlPreview_Desing2RightMenuImageSketchAria" xml:space="preserve">
-    <value>Import sketch from image — analyze and convert to plan lines</value>
+    <value>Import sketch from image — analyze and convert into walls</value>
   </data>
   <data name="StlPreview_Desing2RightMenuMapBuildingAria" xml:space="preserve">
     <value>Import building from 3D map — search address, select a building and insert walls with faces</value>
@@ -1474,6 +1567,9 @@
   <data name="StlPreview_GroupTitle" xml:space="preserve">
     <value>Groups</value>
   </data>
+  <data name="StlPreview_ImageSketchConflictTitle" xml:space="preserve">
+    <value>The sketch dimensions do not add up</value>
+  </data>
   <data name="StlPreview_ImageSketchError" xml:space="preserve">
     <value>Could not analyze image: {0}</value>
   </data>
@@ -1493,7 +1589,7 @@
     <value>Choose image…</value>
   </data>
   <data name="StlPreview_ImageSketchFormHint" xml:space="preserve">
-    <value>Attach a plan or sketch (JPG/PNG) with wall lines and E/e and H/h dimensions.</value>
+    <value>Photo of a hand-drawn sketch (JPG/PNG): walls as double lines, dimensions in metres (7,00) with their extension lines, E=0,30 (thickness) and h=3,00 (height).</value>
   </data>
   <data name="StlPreview_ImageSketchFormNoFile" xml:space="preserve">
     <value>Select an image</value>
@@ -1501,14 +1597,50 @@
   <data name="StlPreview_ImageSketchFormTitle" xml:space="preserve">
     <value>Sketch from image</value>
   </data>
+  <data name="StlPreview_ImageSketchLegendOk" xml:space="preserve">
+    <value>Dimension that adds up</value>
+  </data>
+  <data name="StlPreview_ImageSketchLegendRelated" xml:space="preserve">
+    <value>Dimensions it is compared with</value>
+  </data>
+  <data name="StlPreview_ImageSketchLegendWall" xml:space="preserve">
+    <value>Wall read (outer face)</value>
+  </data>
+  <data name="StlPreview_ImageSketchLegendWrong" xml:space="preserve">
+    <value>Dimension that does not add up</value>
+  </data>
+  <data name="StlPreview_ImageSketchLoadingRead" xml:space="preserve">
+    <value>AI is reading the sketch: walls, dimensions, E and h…</value>
+  </data>
+  <data name="StlPreview_ImageSketchLoadingSlow" xml:space="preserve">
+    <value>Taking longer than usual… {0}</value>
+  </data>
+  <data name="StlPreview_ImageSketchLoadingUpload" xml:space="preserve">
+    <value>Uploading image… {0} %</value>
+  </data>
+  <data name="StlPreview_ImageSketchParamsHeight" xml:space="preserve">
+    <value>Wall height h (m)</value>
+  </data>
+  <data name="StlPreview_ImageSketchParamsInvalidHeight" xml:space="preserve">
+    <value>Height must be between 0.50 and 12.00 m</value>
+  </data>
+  <data name="StlPreview_ImageSketchParamsInvalidThickness" xml:space="preserve">
+    <value>Thickness must be between 0.05 and 1.00 m</value>
+  </data>
+  <data name="StlPreview_ImageSketchParamsThickness" xml:space="preserve">
+    <value>Wall thickness E (m)</value>
+  </data>
+  <data name="StlPreview_ImageSketchParamsTitle" xml:space="preserve">
+    <value>Missing sketch data</value>
+  </data>
   <data name="StlPreview_ImageSketchPickInstruction" xml:space="preserve">
-    <value>Click on the floor plan to insert the sketch as lines. Esc to cancel</value>
+    <value>Click on the floor plan to place the bottom-left corner (outer face) of the sketch. Esc to cancel</value>
   </data>
   <data name="StlPreview_ImageSketchProcessing" xml:space="preserve">
     <value>Analyzing image…</value>
   </data>
   <data name="StlPreview_ImageSketchSuccess" xml:space="preserve">
-    <value>Inserted {0} line(s) from sketch</value>
+    <value>Inserted {0} wall(s) from sketch</value>
   </data>
   <data name="StlPreview_InsertCornerToolInstructionFirst" xml:space="preserve">
     <value>Click on the grid for the outer corner of the L (insertion point).</value>

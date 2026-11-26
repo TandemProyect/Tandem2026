@@ -719,7 +719,7 @@ namespace Desing.Repositories.RepositoryDesing2
             return list;
         }
 
-        private static void ResolveStlPair(
+        internal static void ResolveStlPair(
             Tsql_Master_Articles master,
             string code,
             bool tumbado,
@@ -745,6 +745,30 @@ namespace Desing.Repositories.RepositoryDesing2
                 stlUrl = ToContentUrl("~/Content/DesignTools/Stl/ATK60/" + name + (tumbado ? "T" : "") + ".stl");
                 stlPhenolicUrl = ToContentUrl("~/Content/DesignTools/Stl/ATK60/" + name + (tumbado ? "T" : "") + "_F.stl");
             }
+
+            stlUrl = ExistingStlOrNull(stlUrl);
+            stlPhenolicUrl = ExistingStlOrNull(stlPhenolicUrl);
+        }
+
+        /// <summary>Evita mandar al visor URL de STL que no existen en disco (404 en consola).</summary>
+        private static string ExistingStlOrNull(string contentUrl)
+        {
+            if (string.IsNullOrWhiteSpace(contentUrl))
+            {
+                return null;
+            }
+
+            string physical;
+            try
+            {
+                physical = System.Web.Hosting.HostingEnvironment.MapPath("~" + contentUrl);
+            }
+            catch (Exception)
+            {
+                return contentUrl;
+            }
+
+            return physical == null || System.IO.File.Exists(physical) ? contentUrl : null;
         }
 
         private static string ApplyTumbadoFile(string path, bool tumbado)

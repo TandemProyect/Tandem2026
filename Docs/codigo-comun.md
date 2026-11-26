@@ -15,10 +15,11 @@ Revisado el 14/11/2026 con las referencias de los `.csproj`, los `using` y los `
 | Código | Lo usan | Probar |
 |--------|---------|--------|
 | `DAL/` (EF6, `Model.edmx`, `ConexionData`) | Todo `Desing` | Compilar; prueba EF de todos los `DbSet`; ver `Docs/areas/base-de-datos/INDEX.md` |
-| Motor ATK-60: `Repositories/RepositoryAtk60/` (`Atk60WallsRepository`, `Atk60CornerFaceRemate`, `ModulosATK60/*`), `Repositories/Repository_Desing_2/Atk60/*` (15 archivos), `Repositories/RepositoryCommun/` (`FormworkDtos`, `FormworkJsonCommonRepository`) | `Desing_2Controller` (visor, encofrado, recuento de la IA) y `DesignToolsAutocadController` (`PluginEncofrarAtk60` de los plugins) | Regresión del solver 74+13 byte a byte; visor; encofrado manual en AutoCAD |
+| Motor ATK-60: `Repositories/RepositoryAtk60/` (`Atk60WallsRepository`, `Atk60FaceRemateRules`, `ModulosATK60/*`), `Repositories/Repository_Desing_2/Atk60/*` (15 archivos), `Repositories/RepositoryCommun/` (`FormworkDtos`, `FormworkJsonCommonRepository`) | `Desing_2Controller` (visor, encofrado, recuento de la IA) y `DesignToolsAutocadController` (`PluginEncofrarAtk60` de los plugins) | Regresión del solver 74+13 byte a byte; visor; encofrado manual en AutoCAD |
 | `Repositories/RepositoryDesing2/` (`DesignWallRepository`, `DesignWallArticleRepository`, `DesignWorkerRepository`) | `Desing_2Controller`, `DesignToolsAutocadController` (`PluginSaveDesignWalls`, `PluginSaveWallArticle`), `BaseController` | Guardar diseño en el visor y desde un plugin |
+| `Repositories/RepositoryDesing2/DesignWallFaceBuilder` (copia en C# de `Scripts/Desing2/desing2-wall-faces.js`: mismos F-n) | Visor (JS, «ID Faces») y `Desing_2Controller.GenerateAssemblyViews` (plano de montaje) | Si cambias uno, cambia el otro: `DesignWallFaceBuilder.Verify.cs` con `print` contra el JS (`Docs/areas/encofrado-atk60/plano-montaje.md`) |
 | `Repositories/Atk60/Wall/*` (114 archivos, diseño antiguo) | Solo `DesignToolsController` (Desing 1) | Desing 1 |
-| `Services/LCornerDetector`, `SketchWallBuilder`, `ImageAnalysisService`, `OsmBuildingImportService` | `DesignToolsAutocadController` (`ProcesarLineasZwcad`, `DetectarEsquinasImagen`): ZWCAD, AutoCAD, BricsCAD, Revit | Detección de muros desde un plugin |
+| `Services/LCornerDetector`, `SketchWallBuilder`, `ImageAnalysisService`, `SketchPlanSolver`, `OsmBuildingImportService` | `DesignToolsAutocadController` (`ProcesarLineasZwcad`, `DetectarEsquinasImagen`, `ResolverBocetoImagen`): ZWCAD, AutoCAD, BricsCAD, Revit y el boceto desde imagen de Desing_2 | Detección de muros desde un plugin; boceto: `dotnet test Desing.Tests\Desing.Tests.csproj` |
 | `Services/CadWall2dService` | `DesignToolsAutocadController` (`PluginWall2dStep`): OpenCAD y plugins | Muro 2D paso a paso |
 | `Helpers/PluginCadAtk60PanelStlHelper` | `Desing_2Controller`, `DesignToolsAutocadController`, `DesignWallArticleRepository` | Paneles STL en visor y plugin |
 | `Helpers/PluginCadDeviceHelper`, `PluginInstallLink` | Plugins (autorización de equipo), `Desing_2`, `Employee`, `Account`, `Base`, `Plantilla` | Login de plugin; `Docs/areas/cad-comun/` |
@@ -44,6 +45,7 @@ Revisado el 14/11/2026 con las referencias de los `.csproj`, los `using` y los `
 | `MasterArticles/wall-edit-form.js`, `wall-ai-assistant.js`, `ai-command-catalog.js` | Visor Desing_2 **y** paleta de los plugins (`Views/DesignToolsAutocad/WallForm.cshtml`) |
 | `Desing2/desing2-stl-viewer-toolbar-wiring.js` | Barra del visor, petición de encofrado, vista previa de un muro para la IA |
 | `MasterArticles/ma-stl-atk60-formwork.js` | Encofrado en el visor (pieza verde L/T) |
+| `DesignToolsAutocad/plugin-cad-block-preview.js` (`TandemCadBlockPreview`: `loadStl`, `loadScene`) | Visor del artículo del recuento en Desing_2, recuento de `MasterArticles` (`_MasterArticleCountStlPanelBoot.cshtml`), bloques de los plugins (`PluginBlocks.cshtml`) y visor de vistas del plano de montaje (`loadScene`) |
 
 Un cambio en estos archivos: `node --check`, subir `?v=` en **todos** los sitios que lo importan (incluido `WallForm.cshtml`) y probar el visor y la paleta del plugin.
 

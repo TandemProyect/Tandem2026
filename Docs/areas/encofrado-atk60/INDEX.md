@@ -25,6 +25,7 @@
 | Grapas, rigidizador, tirante | [`agente-grapas-atk60.md`](agente-grapas-atk60.md) |
 | Encofrado por fases y rendimiento | [`HANDOVER-ENCOFRADO-FASES.md`](HANDOVER-ENCOFRADO-FASES.md), [`nevi-rendimiento-puesta.md`](nevi-rendimiento-puesta.md), [`encofrado-fases-diseno-30008.md`](encofrado-fases-diseno-30008.md) |
 | Reparto del muro (múltiplos de 0,15, tablón) | [`ATK60-Logica-Modulos-Wall.md`](ATK60-Logica-Modulos-Wall.md) |
+| Plano de montaje: caras F-n, vistas por cara y sus tablas | [`plano-montaje.md`](plano-montaje.md) |
 | Esquinas regulables, recuento y guardado | [`ESQUINAS-REGULABLES-GUIA-IMPLEMENTACION.md`](ESQUINAS-REGULABLES-GUIA-IMPLEMENTACION.md), [`HANDOVER-2026-10-18-…-Recuento-Guardado.md`](historial/HANDOVER-2026-10-18-Desing2-ATK60-Recuento-Guardado.md) |
 | Posición de piezas y tirantes (con el visor) | [`HANDOVER-2026-10-08-ATK60-Posicion-Uniones.md`](historial/HANDOVER-2026-10-08-ATK60-Posicion-Uniones.md), [`HANDOVER-2026-10-09-ATK60-Tirantes.md`](historial/HANDOVER-2026-10-09-ATK60-Tirantes.md) |
 | Uniones T/+ en el modelo de muros | [`../desing2-muros-3d/HANDOVER-MUROS-T-CRUCE.md`](../desing2-muros-3d/HANDOVER-MUROS-T-CRUCE.md) |

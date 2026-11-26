@@ -3560,15 +3560,18 @@ function bootMasterArticleDetailsStlViewer() {
     let maStlWall3dConcreteMapActive = false;
     /** Desing_2 — boceto desde imagen (TANDEM_ANALIZAR_IMAGEN / DetectarEsquinasImagen). */
     let maStlImageSketchToolActive = false;
-    /** @type {null|'form'|'picking'} */
+    /** @type {null|'form'|'analyzing'|'params'|'picking'} */
     let maStlImageSketchToolState = null;
     let maStlImageSketchToolBusy = false;
     let maStlImageSketchSuppressFormCloseStop = false;
     /** @type {File|null} */
     let maStlImageSketchSelectedFile = null;
-    /** @type {Array<{ inicioX: number, inicioY: number, finX: number, finY: number }>|null} */
-    let maStlImageSketchPendingLines = null;
-    const maStlImageSketchOriginMinMm = { x: 0, y: 0 };
+    /**
+     * Muros del boceto pendientes de situar (DetectarEsquinasImagen → Datos.Boceto). Ejes en mm, planta X/Y con
+     * Y hacia arriba y origen en la esquina inferior izquierda de la cara exterior.
+     * @type {null|{ walls: Array<{x1:number,y1:number,x2:number,y2:number}>, thicknessMm: number, heightMm: number|null, avisos: string[] }}
+     */
+    let maStlImageSketchPendingSketch = null;
     const maStlImageSketchToolLastPointerClientXY = new THREE.Vector2(Number.NaN, Number.NaN);
     const maStlImageSketchToolToggleBtn = document.getElementById('desing2-stl-right-panel-image-sketch');
     const maStlImageSketchModalEl = document.getElementById('ma-stl-image-sketch-modal');
@@ -3582,6 +3585,24 @@ function bootMasterArticleDetailsStlViewer() {
     const maStlImageSketchToolHudInstruction = document.getElementById('ma-stl-image-sketch-tool-hud-instruction');
     const maStlImageSketchToolHudCoords = document.getElementById('ma-stl-image-sketch-tool-hud-coords');
     let maStlImageSketchPreviewObjectUrl = null;
+    /** Cargador del análisis (`#ma-stl-image-sketch-render-overlay`, como «Renderizando sistema» del encofrado). */
+    const maStlImageSketchRenderOverlay = document.getElementById('ma-stl-image-sketch-render-overlay');
+    /** Petición en curso: XHR para tener el progreso real de la subida y poder cancelarla. */
+    let maStlImageSketchRequest = null;
+    /** @type {null|{ startedAt: number, uploadedAt: number, uploadPct: number, predictedMs: number }} */
+    let maStlImageSketchLoading = null;
+    let maStlImageSketchLoadingTimer = null;
+    /** Lo que tardó la IA las últimas veces (media), para estimar lo que queda. */
+    const MA_STL_IMAGE_SKETCH_READ_MS_KEY = 'tandem:image-sketch-read-ms';
+    const MA_STL_IMAGE_SKETCH_DEFAULT_READ_MS = 45000;
+    /** Por encima del límite del servidor con OpenAI (3 min) y por debajo de executionTimeout (6 min). */
+    const MA_STL_IMAGE_SKETCH_TIMEOUT_MS = 300000;
+    /** Modal «Faltan datos del boceto» (E y/o h) y el boceto que espera esos datos. */
+    const maStlImageSketchParamsModalEl = document.getElementById('ma-stl-image-sketch-params-modal');
+    let maStlImageSketchParamsBoceto = null;
+    /** Mismos límites que SketchPlanSolver (EspesorMinM…AlturaMaxM); el servidor los vuelve a comprobar. */
+    const MA_STL_IMAGE_SKETCH_E_RANGE_M = [0.05, 1.0];
+    const MA_STL_IMAGE_SKETCH_H_RANGE_M = [0.5, 12.0];
     let maStlInsertCornerToolActive = false;
     /** @type {null|'picking1'|'picking2'} */
     let maStlInsertCornerToolState = null;
@@ -6905,6 +6926,11 @@ function bootMasterArticleDetailsStlViewer() {
     }
 
     let maStlDesing2ManualArticleGroup = null;
+
+    /** Plano de montaje (Scripts/Desing2/desing2-assembly-plan.js): piezas de la escena para clonarlas en el visor de vistas. */
+    window.maStlDesing2AssemblySceneGroups = function () {
+        return { formwork: maStlDesing2Atk60SampleGroup, manual: maStlDesing2ManualArticleGroup };
+    };
 
     function maStlDesing2EnsureManualArticleGroup() {
         if (maStlDesing2ManualArticleGroup) return maStlDesing2ManualArticleGroup;
@@ -11157,6 +11183,159 @@ let maStlWallApplyAllHeightMm = 0;
         maStlWallFacesGroup.visible = true;
         maStlWallFaceLetterRebuild();
     }
+
+    /* Plano de montaje (desing2-assembly-plan.js): etiqueta F-n de cada cara y la cara abierta resaltada. */
+    const maStlAssemblyFacesGroup = new THREE.Group();
+    maStlAssemblyFacesGroup.name = 'maStlAssemblyFaces';
+    maStlAssemblyFacesGroup.renderOrder = 210;
+
+    function maStlAssemblyFacesClear() {
+        for (let i = maStlAssemblyFacesGroup.children.length - 1; i >= 0; i--) {
+            const child = maStlAssemblyFacesGroup.children[i];
+            maStlAssemblyFacesGroup.remove(child);
+            child.traverse(function (o) {
+                if (o.geometry) o.geometry.dispose();
+                if (o.material) {
+                    if (o.material.map) o.material.map.dispose();
+                    o.material.dispose();
+                }
+            });
+        }
+    }
+
+    const _maStlAssemblyLabelSize = new THREE.Vector2();
+    const _maStlAssemblyLabelPos = new THREE.Vector3();
+
+    /** Mm de mundo que ocupa un píxel en el punto `at` (orto o perspectiva), como las cotas. */
+    function maStlAssemblyWorldPerPx(renderer, camera, at) {
+        renderer.getSize(_maStlAssemblyLabelSize);
+        const h = Math.max(_maStlAssemblyLabelSize.y, 1);
+        if (camera && camera.isOrthographicCamera) {
+            return (camera.top - camera.bottom) / (camera.zoom || 1) / h;
+        }
+        const dist = camera ? camera.position.distanceTo(at) : 1000;
+        const fov = camera && camera.fov ? camera.fov : 45;
+        return (2 * dist * Math.tan((fov * Math.PI / 180) / 2)) / h;
+    }
+
+    /**
+     * Etiqueta F-n a tamaño fijo en pantalla (se ve igual al alejar y acercar) y separada del muro:
+     * a `gapMm` + `gapPx` píxeles por fuera de la cara, con una línea guía hasta el centro de la cara.
+     */
+    function maStlAssemblyFaceLabel(text, hex, selected, anchor, nx, nz, labelY) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const font = 'bold 44px Arial, sans-serif';
+        ctx.font = font;
+        canvas.width = Math.ceil(ctx.measureText(text).width) + 36;
+        canvas.height = 64;
+        ctx.font = font;
+        ctx.fillStyle = maStlWallFaceLetterHex(hex);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        if (selected) {
+            ctx.lineWidth = 8;
+            ctx.strokeStyle = '#ff8c00';
+            ctx.strokeRect(4, 4, canvas.width - 8, canvas.height - 8);
+        }
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, canvas.width / 2, canvas.height / 2 + 2);
+        const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: new THREE.CanvasTexture(canvas),
+            depthTest: false,
+        }));
+        sprite.renderOrder = 213;
+        const aspect = canvas.width / canvas.height;
+        const heightPx = selected ? 28 : 20;
+        const gapMm = 600;
+        const gapPx = 34;
+        const leaderPts = new Float32Array(6);
+        const leaderGeo = new THREE.BufferGeometry();
+        leaderGeo.setAttribute('position', new THREE.BufferAttribute(leaderPts, 3));
+        const leader = new THREE.Line(leaderGeo, new THREE.LineBasicMaterial({ color: maStlWallFaceLetterHex(hex), depthTest: false }));
+        leader.renderOrder = 212;
+        leader.frustumCulled = false;
+        sprite.frustumCulled = false;
+        function place(renderer, camera) {
+            _maStlAssemblyLabelPos.set(anchor.x, labelY, anchor.z);
+            const perPx = maStlAssemblyWorldPerPx(renderer, camera, _maStlAssemblyLabelPos);
+            const out = gapMm + gapPx * perPx;
+            const h = heightPx * perPx;
+            sprite.position.set(anchor.x + nx * out, labelY, anchor.z + nz * out);
+            sprite.scale.set(h * aspect, h, 1);
+            sprite.updateMatrixWorld();
+            const back = h * 0.5;
+            leaderPts[0] = anchor.x; leaderPts[1] = labelY; leaderPts[2] = anchor.z;
+            leaderPts[3] = anchor.x + nx * Math.max(out - back, 0);
+            leaderPts[4] = labelY;
+            leaderPts[5] = anchor.z + nz * Math.max(out - back, 0);
+            leaderGeo.attributes.position.needsUpdate = true;
+            leaderGeo.computeBoundingSphere();
+        }
+        sprite.onBeforeRender = function (renderer, _scene, camera) { place(renderer, camera); };
+        const group = new THREE.Group();
+        group.add(leader);
+        group.add(sprite);
+        return group;
+    }
+
+    /** @param {boolean} on etiquetas F-n de todas las caras. @param {number|null} selectedFaceId cara abierta en el visor de vistas. */
+    function maStlDesing2AssemblyShowFaces(on, selectedFaceId) {
+        if (scene && !maStlAssemblyFacesGroup.parent) scene.add(maStlAssemblyFacesGroup);
+        maStlAssemblyFacesClear();
+        maStlAssemblyFacesGroup.visible = !!on;
+        if (!on) return 0;
+        maStlWallFacesEnsureCache();
+        const y0 = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM;
+        const selected = Number(selectedFaceId) || 0;
+        let count = 0;
+        for (let i = 0; i < maStlWallFacesCache.length; i++) {
+            const face = maStlWallFacesCache[i];
+            if (!face || !face.p1 || !face.p2) continue;
+            const mid = { x: (face.p1.x + face.p2.x) * 0.5, z: (face.p1.z + face.p2.z) * 0.5 };
+            const axisMid = maStlWallFaceLetterAxisMid(face.axisId);
+            let nx = 0;
+            let nz = 0;
+            if (axisMid) {
+                const len = Math.hypot(mid.x - axisMid.x, mid.z - axisMid.z);
+                if (len > 1e-6) {
+                    nx = (mid.x - axisMid.x) / len;
+                    nz = (mid.z - axisMid.z) / len;
+                }
+            }
+            const height = maStlWallFacesHeightMm(face.axisId);
+            const isSelected = face.id === selected;
+            if (isSelected) {
+                const off = 6;
+                const a = { x: face.p1.x + nx * off, z: face.p1.z + nz * off };
+                const b = { x: face.p2.x + nx * off, z: face.p2.z + nz * off };
+                const quad = new THREE.Mesh(
+                    maStlWallFacesMakeQuad(a, b, y0, y0 + height),
+                    new THREE.MeshBasicMaterial({ color: 0xff8c00, transparent: true, opacity: 0.4, depthWrite: false, side: THREE.DoubleSide })
+                );
+                quad.renderOrder = 211;
+                const outline = new THREE.Line(
+                    new THREE.BufferGeometry().setFromPoints([
+                        new THREE.Vector3(a.x, y0, a.z), new THREE.Vector3(b.x, y0, b.z),
+                        new THREE.Vector3(b.x, y0 + height, b.z), new THREE.Vector3(a.x, y0 + height, a.z),
+                        new THREE.Vector3(a.x, y0, a.z),
+                    ]),
+                    new THREE.LineBasicMaterial({ color: 0xff8c00, depthTest: false })
+                );
+                outline.renderOrder = 212;
+                maStlAssemblyFacesGroup.add(quad);
+                maStlAssemblyFacesGroup.add(outline);
+            }
+            const label = maStlAssemblyFaceLabel(face.idText || ('F-' + face.id), face.color, isSelected, mid, nx, nz, y0 + height + 50);
+            maStlAssemblyFacesGroup.add(label);
+            count++;
+        }
+        maStlDisableRaycastOnOverlay(maStlAssemblyFacesGroup);
+        return count;
+    }
+
+    window.maStlDesing2AssemblyShowFaces = maStlDesing2AssemblyShowFaces;
 
     function maStlWallFaceLetterHex(color) {
         const n = (Number(color) >>> 0) & 0xffffff;
@@ -24746,7 +24925,110 @@ let maStlWallApplyAllHeightMm = 0;
         if (inst) inst.hide();
     }
 
-    function maStlImageSketchShowErrorModal(message) {
+    const MA_STL_IMAGE_SKETCH_COTA_COLORS = {
+        incoherente: '#dc3545',
+        relacionada: '#fd7e14',
+        ok: '#198754',
+        ignorada: '#6c757d',
+    };
+    const MA_STL_IMAGE_SKETCH_COTA_ORDER = { ignorada: 0, ok: 1, relacionada: 2, incoherente: 3 };
+
+    function maStlImageSketchSvgEl(tag, attrs) {
+        const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+        Object.keys(attrs).forEach(function (k) {
+            el.setAttribute(k, String(attrs[k]));
+        });
+        return el;
+    }
+
+    /**
+     * Pinta sobre la foto lo que se ha leído: la cara exterior del muro (azul discontinuo) y cada cota con el color
+     * de su estado (rojo = no cuadra; naranja = las cotas con las que se compara).
+     * Las coordenadas vienen en píxeles de la imagen girada según EXIF, como la muestra el navegador.
+     */
+    function maStlImageSketchRenderErrorSketch(boceto) {
+        const wrap = document.getElementById('ma-stl-image-sketch-error-sketch');
+        const figure = document.getElementById('ma-stl-image-sketch-error-figure');
+        const img = document.getElementById('ma-stl-image-sketch-error-img');
+        const svg = document.getElementById('ma-stl-image-sketch-error-overlay');
+        const dialog = document.getElementById('ma-stl-image-sketch-error-modal-dialog');
+        if (!wrap || !figure || !img || !svg) return;
+        while (svg.firstChild) svg.removeChild(svg.firstChild);
+        const w = boceto ? Number(boceto.ImagenAncho) : 0;
+        const h = boceto ? Number(boceto.ImagenAlto) : 0;
+        const show = !!(boceto && maStlImageSketchPreviewObjectUrl && w > 0 && h > 0);
+        wrap.classList.toggle('d-none', !show);
+        if (dialog) dialog.classList.toggle('modal-lg', show);
+        if (!show) {
+            img.removeAttribute('src');
+            return;
+        }
+        img.src = maStlImageSketchPreviewObjectUrl;
+        figure.style.maxWidth = 'min(100%, ' + ((62 * w) / h).toFixed(2) + 'vh)';
+        svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+        const u = Math.max(w, h) / 100;
+        const pts = (boceto.ContornoPx || []).filter(function (p) {
+            return Array.isArray(p) && Number.isFinite(Number(p[0])) && Number.isFinite(Number(p[1]));
+        });
+        if (pts.length >= 3) {
+            svg.appendChild(
+                maStlImageSketchSvgEl('polygon', {
+                    points: pts.map(function (p) { return Number(p[0]) + ',' + Number(p[1]); }).join(' '),
+                    fill: 'rgba(13, 110, 253, 0.06)',
+                    stroke: '#0d6efd',
+                    'stroke-width': 2,
+                    'stroke-dasharray': '8 5',
+                    'vector-effect': 'non-scaling-stroke',
+                })
+            );
+        }
+        const cotas = (boceto.Cotas || []).slice().sort(function (a, b) {
+            return (MA_STL_IMAGE_SKETCH_COTA_ORDER[a && a.Estado] || 0) - (MA_STL_IMAGE_SKETCH_COTA_ORDER[b && b.Estado] || 0);
+        });
+        for (let i = 0; i < cotas.length; i++) {
+            const c = cotas[i];
+            if (!c || !Array.isArray(c.P1) || !Array.isArray(c.P2)) continue;
+            const x1 = Number(c.P1[0]);
+            const y1 = Number(c.P1[1]);
+            const x2 = Number(c.P2[0]);
+            const y2 = Number(c.P2[1]);
+            if (![x1, y1, x2, y2].every(Number.isFinite)) continue;
+            const color = MA_STL_IMAGE_SKETCH_COTA_COLORS[c.Estado] || MA_STL_IMAGE_SKETCH_COTA_COLORS.ignorada;
+            const strong = c.Estado === 'incoherente' || c.Estado === 'relacionada';
+            svg.appendChild(
+                maStlImageSketchSvgEl('line', {
+                    x1: x1,
+                    y1: y1,
+                    x2: x2,
+                    y2: y2,
+                    stroke: color,
+                    'stroke-width': strong ? 5 : 3,
+                    'stroke-opacity': strong ? 0.9 : 0.75,
+                    'stroke-linecap': 'round',
+                    'vector-effect': 'non-scaling-stroke',
+                })
+            );
+            // Lo leído va al otro lado de la línea que el número escrito a mano, para no taparlo.
+            const vertical = c.Eje === 'V';
+            const label = maStlImageSketchSvgEl('text', {
+                x: (x1 + x2) / 2 - (vertical ? 1.5 * u : 0),
+                y: (y1 + y2) / 2 + (vertical ? 0 : 3.5 * u),
+                fill: color,
+                'font-size': (strong ? 3.6 : 3) * u,
+                'font-weight': 700,
+                'text-anchor': vertical ? 'end' : 'middle',
+                'dominant-baseline': 'middle',
+                stroke: '#ffffff',
+                'stroke-width': 0.8 * u,
+                'paint-order': 'stroke',
+            });
+            label.textContent = Number(c.Valor).toFixed(2).replace('.', ',');
+            svg.appendChild(label);
+        }
+    }
+
+    /** @param {object} [boceto] Datos.Boceto de la respuesta: si llega, se muestra la foto con lo leído. */
+    function maStlImageSketchShowErrorModal(message, boceto) {
         const text = (message || '').trim();
         if (!text) return;
         const modalEl = document.getElementById('ma-stl-image-sketch-error-modal');
@@ -24755,8 +25037,21 @@ let maStlWallApplyAllHeightMm = 0;
             maStlDesing2ShowSaveViewToast(text);
             return;
         }
-        maStlImageSketchSuppressFormCloseStop = true;
-        maStlImageSketchHideModal();
+        const titleEl = document.getElementById('ma-stl-image-sketch-error-modal-title');
+        const conflict = !!(boceto && Array.isArray(boceto.Conflictos) && boceto.Conflictos.length);
+        if (titleEl) {
+            const title = titleEl.getAttribute(
+                conflict ? 'data-ma-stl-image-sketch-title-conflict' : 'data-ma-stl-image-sketch-title-default'
+            );
+            if (title) titleEl.textContent = title;
+        }
+        maStlImageSketchRenderErrorSketch(boceto || null);
+        // Mientras se analiza, el formulario ya está cerrado: ocultarlo otra vez no dispara `hidden` y el aviso
+        // quedaría pendiente (el siguiente cierre del formulario no pararía la herramienta).
+        if (maStlImageSketchModalEl && maStlImageSketchModalEl.classList.contains('show')) {
+            maStlImageSketchSuppressFormCloseStop = true;
+            maStlImageSketchHideModal();
+        }
         msgEl.textContent = text;
         window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
     }
@@ -24788,7 +25083,11 @@ let maStlWallApplyAllHeightMm = 0;
                 maStlImageSketchToolHud.getAttribute('data-ma-stl-image-sketch-pick-instruction')) ||
             '';
         if (maStlImageSketchToolHudInstruction) {
-            maStlImageSketchToolHudInstruction.textContent = maStlImageSketchToolBusy ? '' : insTpl;
+            const avisos = maStlImageSketchPendingSketch ? maStlImageSketchPendingSketch.avisos : null;
+            maStlImageSketchToolHudInstruction.style.whiteSpace = 'pre-line';
+            maStlImageSketchToolHudInstruction.textContent = maStlImageSketchToolBusy
+                ? ''
+                : insTpl + (avisos && avisos.length ? '\n' + avisos.join('\n') : '');
         }
         const coordsTpl =
             (maStlImageSketchToolHudCoords &&
@@ -24812,129 +25111,89 @@ let maStlWallApplyAllHeightMm = 0;
         maStlImageSketchToolHud.classList.remove('d-none');
     }
 
-    /** Mismo perímetro que ZWCAD DibujarResultado: PolilineasADibujar (ObjetoDB2d) antes que LineasEje. */
-    function maStlImageSketchExtractLinesFromDatos(datos) {
-        const segs = [];
-        if (!datos) return segs;
-
-        function pushSeg(ax, ay, bx, by) {
-            const inicioX = Number(ax);
-            const inicioY = Number(ay);
-            const finX = Number(bx);
-            const finY = Number(by);
-            if (
-                !Number.isFinite(inicioX) ||
-                !Number.isFinite(inicioY) ||
-                !Number.isFinite(finX) ||
-                !Number.isFinite(finY)
-            ) {
-                return;
-            }
-            segs.push({ inicioX: inicioX, inicioY: inicioY, finX: finX, finY: finY });
+    /** Muros del boceto (Datos.Boceto) con su espesor, altura y avisos; null si no hay muros válidos. */
+    function maStlImageSketchReadSketchFromDatos(datos) {
+        const b = datos ? datos.Boceto : null;
+        if (!b || !Array.isArray(b.Muros)) return null;
+        const thicknessMm = Number(b.EspesorMm);
+        if (!(thicknessMm > 0)) return null;
+        const walls = [];
+        for (let i = 0; i < b.Muros.length; i++) {
+            const m = b.Muros[i];
+            if (!m) continue;
+            const w = { x1: Number(m.X1), y1: Number(m.Y1), x2: Number(m.X2), y2: Number(m.Y2) };
+            if (![w.x1, w.y1, w.x2, w.y2].every(Number.isFinite)) continue;
+            if (Math.hypot(w.x2 - w.x1, w.y2 - w.y1) < 1) continue;
+            walls.push(w);
         }
-
-        function readVert(v) {
-            if (!v) return null;
-            return {
-                x: Number(v.X != null ? v.X : v.x),
-                y: Number(v.Y != null ? v.Y : v.y),
-            };
-        }
-
-        const polys = datos.PolilineasADibujar || datos.polilineasADibujar;
-        if (polys && polys.length) {
-            for (let pi = 0; pi < polys.length; pi++) {
-                const poly = polys[pi];
-                if (!poly || !poly.Vertices || poly.Vertices.length < 2) continue;
-                const capa = poly.Capa || poly.capa || 'ObjetoDB2d';
-                if (capa !== 'ObjetoDB2d') continue;
-                const verts = poly.Vertices;
-                const n = verts.length;
-                const cerrada = !!(poly.Cerrada || poly.cerrada);
-                const edgeCount = cerrada ? n : n - 1;
-                for (let vi = 0; vi < edgeCount; vi++) {
-                    const v0 = readVert(verts[vi]);
-                    const v1 = readVert(verts[(vi + 1) % n]);
-                    if (!v0 || !v1) continue;
-                    pushSeg(v0.x, v0.y, v1.x, v1.y);
-                }
-            }
-            if (segs.length) return segs;
-        }
-
-        const src = datos.LineasEje || datos.lineasEje;
-        if (src && src.length) {
-            for (let i = 0; i < src.length; i++) {
-                const ln = src[i];
-                if (!ln) continue;
-                pushSeg(
-                    ln.InicioX != null ? ln.InicioX : ln.inicioX,
-                    ln.InicioY != null ? ln.InicioY : ln.inicioY,
-                    ln.FinX != null ? ln.FinX : ln.finX,
-                    ln.FinY != null ? ln.FinY : ln.finY
-                );
-            }
-        }
-        return segs;
+        if (!walls.length) return null;
+        const heightMm = Number(b.AlturaMm);
+        return {
+            walls: walls,
+            thicknessMm: thicknessMm,
+            heightMm: heightMm > 0 ? heightMm : null,
+            avisos: Array.isArray(b.Avisos) ? b.Avisos.filter(Boolean).map(String) : [],
+        };
     }
 
-    function maStlImageSketchComputeOriginMinMm(segs) {
-        let minX = Infinity;
-        let minY = Infinity;
-        for (let i = 0; i < segs.length; i++) {
-            const s = segs[i];
-            minX = Math.min(minX, s.inicioX, s.finX);
-            minY = Math.min(minY, s.inicioY, s.finY);
+    /**
+     * Altura h del boceto solo en las líneas de muro creadas por la inserción: el grupo de muros es compartido
+     * (`maStlTakeDefaultWallGroupId` = grupo más bajo del diseño) y no hay que tocar la altura de los muros previos.
+     */
+    function maStlImageSketchApplyHeightToNewWallLines(linesBefore, heightM) {
+        if (!maStlUserLinesGroup) return;
+        const ch = maStlUserLinesGroup.children;
+        for (let i = 0; i < ch.length; i++) {
+            if (linesBefore.has(ch[i])) continue;
+            const ud = ch[i].userData && ch[i].userData.maStlUserPlanLine;
+            if (!ud || (ud.wallRole !== 'axis' && ud.wallRole !== 'face')) continue;
+            maStlWallLineEnsureAttrs(ud);
+            ud._DataHeight = heightM;
         }
-        if (!Number.isFinite(minX)) minX = 0;
-        if (!Number.isFinite(minY)) minY = 0;
-        return { x: minX, y: minY };
     }
 
-    /** ZWCAD/API: Y↑ → Desing_2 planta: −Z (arriba en papel). Ver maStlBuildPlanRulers. */
-    function maStlImageSketchCadYToWorldZ(cadY, originCadY, insertWorldZ) {
-        return insertWorldZ - (cadY - originCadY);
-    }
-
-    function maStlImageSketchCommitAtPointMm(insertPt) {
-        if (!maStlImageSketchPendingLines || !maStlImageSketchPendingLines.length || !insertPt) return 0;
+    /**
+     * Inserta los muros del boceto (eje + caras con espesor E y altura h) en un solo paso de deshacer.
+     * `insertPt` = esquina inferior izquierda de la cara exterior; Y del boceto (arriba en el papel) → −Z escena.
+     */
+    function maStlImageSketchCommitWallsAtPointMm(insertPt) {
+        const sk = maStlImageSketchPendingSketch;
+        if (!sk || !sk.walls.length || !insertPt || !maStlDesingV2Viewer || !maStlUserLinesGroup) return 0;
         const floorY = MA_STL_DESING2_WORKSPACE_FLOOR_Y_MM;
-        const ox = maStlImageSketchOriginMinMm.x;
-        const oy = maStlImageSketchOriginMinMm.y;
-        const dx = insertPt.x - ox;
-        const undoBefore = maStlDesingV2Viewer ? maStlDesing2SerializeEditSnapshot() : null;
+        const toPt = function (x, y) {
+            return { x: insertPt.x + x, y: floorY, z: insertPt.z - y };
+        };
+        const undoBefore = maStlDesing2SerializeEditSnapshot();
+        const linesBefore = new Set(maStlUserLinesGroup.children);
+        const previousWallGroupId = maStlWall2dToolActiveGroupId;
+        const previousWallResumeState = maStlWall2dToolResumeState;
+        maStlWall2dToolActiveGroupId = maStlTakeDefaultWallGroupId();
         let n = 0;
-        for (let i = 0; i < maStlImageSketchPendingLines.length; i++) {
-            const s = maStlImageSketchPendingLines[i];
-            const a = new THREE.Vector3(
-                s.inicioX + dx,
-                floorY,
-                maStlImageSketchCadYToWorldZ(s.inicioY, oy, insertPt.z)
-            );
-            const b = new THREE.Vector3(
-                s.finX + dx,
-                floorY,
-                maStlImageSketchCadYToWorldZ(s.finY, oy, insertPt.z)
-            );
-            if (a.distanceToSquared(b) < maStlUserFloorSegmentMinMm() * maStlUserFloorSegmentMinMm()) continue;
-            maStlCommitUserPlanLineSegmentMm(a, b, true);
-            n++;
+        for (let i = 0; i < sk.walls.length; i++) {
+            const w = sk.walls[i];
+            if (maStlWall2dToolCommitWallSegmentMm(toPt(w.x1, w.y1), toPt(w.x2, w.y2), true, sk.thicknessMm / 2, true)) {
+                n++;
+            }
         }
-        if (undoBefore && n > 0) {
-            maStlDesing2PushEditSnapshotUndo(
-                'imageSketchInsert',
-                undoBefore,
-                maStlDesing2SerializeEditSnapshot()
-            );
+        maStlWall2dToolActiveGroupId = previousWallGroupId;
+        maStlWall2dToolResumeState = previousWallResumeState;
+        if (!n) return 0;
+        maStlWall2dToolSplitAllAxisInteriorCrossingsMm();
+        maStlWall2dToolRefactorAllWallJunctionsMm();
+        maStlWeldAllUserFloorLineEndpointsMm();
+        maStlWall2dToolRefactorAllWallJunctionsMm();
+        if (sk.heightMm > 0) {
+            maStlImageSketchApplyHeightToNewWallLines(linesBefore, maStlRoundMeters3(sk.heightMm / 1000));
         }
+        maStlReapplyAllUserFloorWallAxisLineStyles();
+        maStlDesing2PushEditSnapshotUndo('imageSketchInsert', undoBefore, maStlDesing2SerializeEditSnapshot());
+        maStlSaveWallConnectionsNow({ force: true, reason: 'image-sketch-wall2d' });
         return n;
     }
 
     function maStlImageSketchResetFormFields() {
         maStlImageSketchSelectedFile = null;
-        maStlImageSketchPendingLines = null;
-        maStlImageSketchOriginMinMm.x = 0;
-        maStlImageSketchOriginMinMm.y = 0;
+        maStlImageSketchPendingSketch = null;
         if (maStlImageSketchFileInput) maStlImageSketchFileInput.value = '';
         maStlImageSketchRevokePreviewUrl();
         if (maStlImageSketchPreviewImg) maStlImageSketchPreviewImg.removeAttribute('src');
@@ -24944,6 +25203,9 @@ let maStlWallApplyAllHeightMm = 0;
     function maStlStopImageSketchToolModesToolbar(deferOrbitUnlock) {
         void deferOrbitUnlock;
         if (!maStlIsImageSketchToolActive()) return;
+        maStlImageSketchAbortRequest();
+        maStlImageSketchHideLoading();
+        maStlImageSketchCloseParamsModal();
         maStlImageSketchToolActive = false;
         maStlImageSketchToolState = null;
         maStlImageSketchToolBusy = false;
@@ -24960,7 +25222,13 @@ let maStlWallApplyAllHeightMm = 0;
     }
 
     function maStlOpenImageSketchModal() {
-        if (maStlIsImageSketchToolPlacementActive()) return;
+        if (
+            maStlIsImageSketchToolPlacementActive() ||
+            maStlImageSketchToolState === 'analyzing' ||
+            maStlImageSketchToolState === 'params'
+        ) {
+            return;
+        }
         if (!maStlIsImageSketchToolActive()) {
             maStlStartImageSketchToolModesToolbar();
         }
@@ -25020,6 +25288,329 @@ let maStlWallApplyAllHeightMm = 0;
         maStlImageSketchSyncFormUi();
     }
 
+    function maStlImageSketchLoadingText(attr, fallback) {
+        const v = maStlImageSketchRenderOverlay ? maStlImageSketchRenderOverlay.getAttribute(attr) : null;
+        return v != null && String(v).trim() !== '' ? String(v) : fallback;
+    }
+
+    function maStlImageSketchPredictedReadMs() {
+        try {
+            const v = Number(window.localStorage.getItem(MA_STL_IMAGE_SKETCH_READ_MS_KEY));
+            if (v >= 3000 && v <= MA_STL_IMAGE_SKETCH_TIMEOUT_MS) return v;
+        } catch (_e) {
+            /* Sin almacenamiento local: se usa la estimación por defecto. */
+        }
+        return MA_STL_IMAGE_SKETCH_DEFAULT_READ_MS;
+    }
+
+    function maStlImageSketchRememberReadMs(ms) {
+        if (!(ms >= 1000 && ms <= MA_STL_IMAGE_SKETCH_TIMEOUT_MS)) return;
+        let next = ms;
+        try {
+            const prev = Number(window.localStorage.getItem(MA_STL_IMAGE_SKETCH_READ_MS_KEY));
+            if (prev >= 3000 && prev <= MA_STL_IMAGE_SKETCH_TIMEOUT_MS) next = (prev + ms) / 2;
+            window.localStorage.setItem(MA_STL_IMAGE_SKETCH_READ_MS_KEY, String(Math.max(3000, Math.round(next))));
+        } catch (_e) {
+            /* Sin almacenamiento local: no se recuerda. */
+        }
+    }
+
+    function maStlImageSketchFormatClock(ms) {
+        const s = Math.max(0, Math.floor(ms / 1000));
+        const r = s % 60;
+        return Math.floor(s / 60) + ':' + (r < 10 ? '0' : '') + r;
+    }
+
+    /** Mismos textos y cortes que el tiempo restante del encofrado. */
+    function maStlImageSketchFormatEta(remainingMs) {
+        const sec = Math.max(1, Math.ceil(remainingMs / 1000));
+        if (sec < 55) {
+            return maStlWall3dFormatToast(
+                maStlImageSketchLoadingText('data-ma-stl-image-sketch-eta-seconds', 'Quedan unos {0} s'),
+                sec
+            );
+        }
+        const min = Math.max(1, Math.round(sec / 60));
+        if (min <= 1) return maStlImageSketchLoadingText('data-ma-stl-image-sketch-eta-minute', 'Queda 1 min');
+        return maStlWall3dFormatToast(
+            maStlImageSketchLoadingText('data-ma-stl-image-sketch-eta-minutes', 'Quedan unos {0} min'),
+            min
+        );
+    }
+
+    /**
+     * Fase 1: subida (progreso real del XHR, 0–10 % de la barra). Fase 2: lectura de la IA, estimada con lo que
+     * tardó otras veces; la barra se acerca al 95 % sin llegar y el reloj sigue corriendo para que se vea que vive.
+     */
+    function maStlImageSketchRefreshLoading() {
+        const st = maStlImageSketchLoading;
+        const root = maStlImageSketchRenderOverlay;
+        if (!st || !root) return;
+        const now = Date.now();
+        const clock = maStlImageSketchFormatClock(now - st.startedAt);
+        let status;
+        let eta;
+        let pct;
+        if (!st.uploadedAt) {
+            status = maStlWall3dFormatToast(
+                maStlImageSketchLoadingText('data-ma-stl-image-sketch-phase-upload', 'Subiendo la imagen… {0} %'),
+                st.uploadPct
+            );
+            eta = clock;
+            pct = Math.round(st.uploadPct * 0.1);
+        } else {
+            const readMs = now - st.uploadedAt;
+            const remainingMs = st.predictedMs - readMs;
+            status = maStlImageSketchLoadingText(
+                'data-ma-stl-image-sketch-phase-read',
+                'La IA está leyendo el boceto: muros, cotas, E y h…'
+            );
+            eta = remainingMs > 1500
+                ? maStlImageSketchFormatEta(remainingMs) + ' · ' + clock
+                : maStlWall3dFormatToast(
+                    maStlImageSketchLoadingText('data-ma-stl-image-sketch-slow', 'Está tardando más de lo normal… {0}'),
+                    clock
+                );
+            pct = 10 + Math.round(85 * (1 - Math.exp((-2 * readMs) / st.predictedMs)));
+        }
+        pct = Math.max(2, Math.min(95, pct));
+        const statusEl = document.getElementById('ma-stl-image-sketch-render-status');
+        const etaEl = document.getElementById('ma-stl-image-sketch-render-eta');
+        const barEl = document.getElementById('ma-stl-image-sketch-render-bar');
+        const progressEl = root.querySelector('.desing2-stl-render-overlay__progress');
+        if (statusEl) statusEl.textContent = status;
+        if (etaEl) etaEl.textContent = eta;
+        if (barEl) barEl.style.width = pct + '%';
+        if (progressEl) progressEl.setAttribute('aria-valuenow', String(pct));
+    }
+
+    function maStlImageSketchShowLoading() {
+        maStlImageSketchLoading = {
+            startedAt: Date.now(),
+            uploadedAt: 0,
+            uploadPct: 0,
+            predictedMs: maStlImageSketchPredictedReadMs(),
+        };
+        if (maStlImageSketchLoadingTimer) window.clearInterval(maStlImageSketchLoadingTimer);
+        maStlImageSketchLoadingTimer = null;
+        if (!maStlImageSketchRenderOverlay) return;
+        maStlImageSketchRenderOverlay.classList.remove('d-none');
+        maStlImageSketchRenderOverlay.setAttribute('aria-busy', 'true');
+        maStlImageSketchRefreshLoading();
+        maStlImageSketchLoadingTimer = window.setInterval(maStlImageSketchRefreshLoading, 250);
+    }
+
+    function maStlImageSketchHideLoading() {
+        if (maStlImageSketchLoadingTimer) window.clearInterval(maStlImageSketchLoadingTimer);
+        maStlImageSketchLoadingTimer = null;
+        maStlImageSketchLoading = null;
+        if (!maStlImageSketchRenderOverlay) return;
+        maStlImageSketchRenderOverlay.classList.add('d-none');
+        maStlImageSketchRenderOverlay.setAttribute('aria-busy', 'false');
+    }
+
+    /** Anula la petición en curso; sus manejadores la ignoran porque ya no es `maStlImageSketchRequest`. */
+    function maStlImageSketchAbortRequest() {
+        const xhr = maStlImageSketchRequest;
+        maStlImageSketchRequest = null;
+        if (!xhr) return;
+        try {
+            xhr.abort();
+        } catch (_e) {
+            /* Ya terminada. */
+        }
+    }
+
+    function maStlImageSketchHandleResponse(resp, errTpl) {
+        const boceto = resp && resp.Datos ? resp.Datos.Boceto || null : null;
+        const conflict = !!(boceto && Array.isArray(boceto.Conflictos) && boceto.Conflictos.length);
+        if (!conflict && boceto && (boceto.FaltaEspesor || boceto.FaltaAltura)) {
+            maStlImageSketchShowParamsModal(boceto);
+            return;
+        }
+        maStlImageSketchCloseParamsModal();
+        if (!resp || !resp.Exito || !resp.Datos) {
+            const msg = (resp && resp.Mensaje) || 'Error desconocido';
+            maStlImageSketchShowErrorModal(conflict ? msg : maStlWall3dFormatToast(errTpl, msg), boceto);
+            return;
+        }
+        const sketch = maStlImageSketchReadSketchFromDatos(resp.Datos);
+        if (!sketch) {
+            maStlImageSketchShowErrorModal(maStlWall3dFormatToast(errTpl, 'Sin muros detectados'));
+            return;
+        }
+        maStlImageSketchPendingSketch = sketch;
+        maStlImageSketchBeginPickPlacement();
+    }
+
+    function maStlImageSketchGetResolveApiUrl() {
+        return viewerShell ? viewerShell.getAttribute('data-ma-stl-image-sketch-resolve-api-url') || '' : '';
+    }
+
+    function maStlImageSketchFormatMeters(m) {
+        return (Math.round(m * 100) / 100).toFixed(2).replace('.', ',');
+    }
+
+    function maStlImageSketchParamsShowError(text, input) {
+        const errEl = document.getElementById('ma-stl-image-sketch-params-error');
+        if (errEl) {
+            errEl.textContent = text || '';
+            errEl.classList.toggle('d-none', !text);
+        }
+        if (input) {
+            input.classList.add('is-invalid');
+            input.focus();
+        }
+    }
+
+    /**
+     * El boceto no trae E y/o h (o no son válidos): se piden con un formulario, con los valores por defecto del
+     * entorno ya escritos. Si el modal ya está abierto (vuelve a faltar algo), solo se actualiza.
+     */
+    function maStlImageSketchShowParamsModal(boceto) {
+        const modalEl = maStlImageSketchParamsModalEl;
+        if (!modalEl || typeof window.bootstrap === 'undefined' || !window.bootstrap.Modal) {
+            maStlImageSketchShowErrorModal((boceto.DatosQueFaltan || []).join('\n') || 'Faltan datos del boceto');
+            return;
+        }
+        maStlImageSketchParamsBoceto = boceto;
+        maStlImageSketchToolState = 'params';
+        maStlImageSketchToolBusy = false;
+        const needE = !!boceto.FaltaEspesor;
+        const needH = !!boceto.FaltaAltura;
+        const rowE = document.getElementById('ma-stl-image-sketch-param-e-row');
+        const rowH = document.getElementById('ma-stl-image-sketch-param-h-row');
+        const inputE = document.getElementById('ma-stl-image-sketch-param-e');
+        const inputH = document.getElementById('ma-stl-image-sketch-param-h');
+        const reasons = document.getElementById('ma-stl-image-sketch-params-reasons');
+        const acceptBtn = document.getElementById('ma-stl-image-sketch-params-accept');
+        if (rowE) rowE.classList.toggle('d-none', !needE);
+        if (rowH) rowH.classList.toggle('d-none', !needH);
+        const defE = Number(desing2EnvWallThicknessMm) / 1000;
+        const defH = maStlDesing2WallDefaultHeightMm() / 1000;
+        if (inputE) {
+            inputE.classList.remove('is-invalid');
+            inputE.value =
+                defE >= MA_STL_IMAGE_SKETCH_E_RANGE_M[0] && defE <= MA_STL_IMAGE_SKETCH_E_RANGE_M[1]
+                    ? maStlImageSketchFormatMeters(defE)
+                    : '';
+        }
+        if (inputH) {
+            inputH.classList.remove('is-invalid');
+            inputH.value =
+                defH >= MA_STL_IMAGE_SKETCH_H_RANGE_M[0] && defH <= MA_STL_IMAGE_SKETCH_H_RANGE_M[1]
+                    ? maStlImageSketchFormatMeters(defH)
+                    : '';
+        }
+        if (reasons) reasons.textContent = (boceto.DatosQueFaltan || []).join('\n');
+        if (acceptBtn) acceptBtn.disabled = false;
+        maStlImageSketchParamsShowError('');
+        window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+
+    /** Cierra el modal de datos sin volver al formulario (el estado deja de ser `params` antes de ocultarlo). */
+    function maStlImageSketchCloseParamsModal() {
+        maStlImageSketchParamsBoceto = null;
+        if (maStlImageSketchToolState === 'params') maStlImageSketchToolState = 'form';
+        const modalEl = maStlImageSketchParamsModalEl;
+        if (!modalEl || !modalEl.classList.contains('show')) return;
+        if (typeof window.bootstrap === 'undefined' || !window.bootstrap.Modal) return;
+        window.bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+    }
+
+    function maStlImageSketchSubmitParams() {
+        const boceto = maStlImageSketchParamsBoceto;
+        if (!boceto || maStlImageSketchToolState !== 'params' || maStlImageSketchToolBusy) return;
+        const acceptBtn = document.getElementById('ma-stl-image-sketch-params-accept');
+        const inputE = document.getElementById('ma-stl-image-sketch-param-e');
+        const inputH = document.getElementById('ma-stl-image-sketch-param-h');
+        if (inputE) inputE.classList.remove('is-invalid');
+        if (inputH) inputH.classList.remove('is-invalid');
+        let eM = null;
+        let hM = null;
+        if (boceto.FaltaEspesor) {
+            eM = maStlParsePillarFormNumber(inputE ? inputE.value : '');
+            if (eM == null || eM < MA_STL_IMAGE_SKETCH_E_RANGE_M[0] || eM > MA_STL_IMAGE_SKETCH_E_RANGE_M[1]) {
+                maStlImageSketchParamsShowError(
+                    acceptBtn ? acceptBtn.getAttribute('data-ma-stl-image-sketch-invalid-thickness') : '',
+                    inputE
+                );
+                return;
+            }
+        }
+        if (boceto.FaltaAltura) {
+            hM = maStlParsePillarFormNumber(inputH ? inputH.value : '');
+            if (hM == null || hM < MA_STL_IMAGE_SKETCH_H_RANGE_M[0] || hM > MA_STL_IMAGE_SKETCH_H_RANGE_M[1]) {
+                maStlImageSketchParamsShowError(
+                    acceptBtn ? acceptBtn.getAttribute('data-ma-stl-image-sketch-invalid-height') : '',
+                    inputH
+                );
+                return;
+            }
+        }
+        maStlImageSketchParamsShowError('');
+        const errTpl =
+            (maStlImageSketchAcceptBtn &&
+                maStlImageSketchAcceptBtn.getAttribute('data-ma-stl-image-sketch-error')) ||
+            '';
+
+        if (!boceto.FaltaEspesor) {
+            // Los muros ya están calculados: solo faltaba la altura.
+            const sketch = maStlImageSketchReadSketchFromDatos({ Boceto: boceto });
+            maStlImageSketchCloseParamsModal();
+            if (!sketch) {
+                maStlImageSketchShowErrorModal(maStlWall3dFormatToast(errTpl, 'Sin muros detectados'));
+                return;
+            }
+            sketch.heightMm = Math.round(hM * 1000);
+            maStlImageSketchPendingSketch = sketch;
+            maStlImageSketchBeginPickPlacement();
+            return;
+        }
+
+        // Sin E no hay ejes: el servidor los recalcula con lo ya leído (sin volver a llamar a la IA).
+        const url = maStlImageSketchGetResolveApiUrl();
+        if (!url) return;
+        const alturaM = hM != null ? hM : Number(boceto.AlturaMm) > 0 ? Number(boceto.AlturaMm) / 1000 : null;
+        maStlImageSketchToolBusy = true;
+        if (acceptBtn) acceptBtn.disabled = true;
+        const stillWaiting = function () {
+            return maStlImageSketchToolState === 'params' && maStlImageSketchParamsBoceto === boceto;
+        };
+        fetch(url, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ContornoPx: boceto.ContornoPx || [],
+                Cotas: boceto.Cotas || [],
+                ImagenAncho: boceto.ImagenAncho || 0,
+                ImagenAlto: boceto.ImagenAlto || 0,
+                EspesorM: eM,
+                AlturaM: alturaM,
+            }),
+        })
+            .then(function (res) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            })
+            .then(function (resp) {
+                if (!stillWaiting()) return;
+                maStlImageSketchToolBusy = false;
+                if (acceptBtn) acceptBtn.disabled = false;
+                maStlImageSketchHandleResponse(resp, errTpl);
+            })
+            .catch(function (err) {
+                if (!stillWaiting()) return;
+                maStlImageSketchToolBusy = false;
+                if (acceptBtn) acceptBtn.disabled = false;
+                maStlImageSketchCloseParamsModal();
+                maStlImageSketchShowErrorModal(
+                    maStlWall3dFormatToast(errTpl, err && err.message ? err.message : err)
+                );
+            });
+    }
+
     function maStlImageSketchSubmitForm() {
         if (!maStlIsImageSketchToolActive() || maStlImageSketchToolState !== 'form') return;
         if (!maStlImageSketchSelectedFile) {
@@ -25032,60 +25623,77 @@ let maStlWallApplyAllHeightMm = 0;
         }
         const apiUrl = maStlImageSketchGetApiUrl();
         if (!apiUrl) return;
-        const processingTpl =
+        const errTpl =
             (maStlImageSketchAcceptBtn &&
-                maStlImageSketchAcceptBtn.getAttribute('data-ma-stl-image-sketch-processing')) ||
+                maStlImageSketchAcceptBtn.getAttribute('data-ma-stl-image-sketch-error')) ||
             '';
-        if (processingTpl) maStlDesing2ShowSaveViewToast(processingTpl);
-        maStlImageSketchToolBusy = true;
-        maStlImageSketchSyncFormUi();
         const fd = new FormData();
         fd.append('imagen', maStlImageSketchSelectedFile, maStlImageSketchSelectedFile.name);
-        fetch(apiUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
-            .then(function (res) {
-                if (!res.ok) throw new Error('HTTP ' + res.status);
-                return res.json();
-            })
-            .then(function (resp) {
-                maStlImageSketchToolBusy = false;
-                maStlImageSketchSyncFormUi();
-                if (!resp || !resp.Exito || !resp.Datos) {
-                    const errTpl =
-                        (maStlImageSketchAcceptBtn &&
-                            maStlImageSketchAcceptBtn.getAttribute('data-ma-stl-image-sketch-error')) ||
-                        '';
-                    const msg = (resp && resp.Mensaje) || 'Error desconocido';
-                    maStlImageSketchShowErrorModal(maStlWall3dFormatToast(errTpl, msg));
-                    return;
-                }
-                const segs = maStlImageSketchExtractLinesFromDatos(resp.Datos);
-                if (!segs.length) {
-                    const errTpl =
-                        (maStlImageSketchAcceptBtn &&
-                            maStlImageSketchAcceptBtn.getAttribute('data-ma-stl-image-sketch-error')) ||
-                        '';
-                    maStlImageSketchShowErrorModal(
-                        maStlWall3dFormatToast(errTpl, 'Sin líneas detectadas')
-                    );
-                    return;
-                }
-                maStlImageSketchPendingLines = segs;
-                const origin = maStlImageSketchComputeOriginMinMm(segs);
-                maStlImageSketchOriginMinMm.x = origin.x;
-                maStlImageSketchOriginMinMm.y = origin.y;
-                maStlImageSketchBeginPickPlacement();
-            })
-            .catch(function (err) {
-                maStlImageSketchToolBusy = false;
-                maStlImageSketchSyncFormUi();
-                const errTpl =
-                    (maStlImageSketchAcceptBtn &&
-                        maStlImageSketchAcceptBtn.getAttribute('data-ma-stl-image-sketch-error')) ||
-                    '';
-                maStlImageSketchShowErrorModal(
-                    maStlWall3dFormatToast(errTpl, err && err.message ? err.message : err)
-                );
-            });
+        maStlImageSketchToolBusy = true;
+        maStlImageSketchToolState = 'analyzing';
+        maStlImageSketchSyncFormUi();
+        // El cargador va sobre el visor y el modal lo taparía: se cierra el formulario sin parar la herramienta.
+        maStlImageSketchSuppressFormCloseStop = true;
+        maStlImageSketchHideModal();
+        maStlImageSketchShowLoading();
+
+        const xhr = new XMLHttpRequest();
+        maStlImageSketchRequest = xhr;
+        /** Devuelve false si la petición ya no cuenta (cancelada con Esc / Cancelar). */
+        const settle = function () {
+            if (maStlImageSketchRequest !== xhr) return false;
+            maStlImageSketchRequest = null;
+            maStlImageSketchHideLoading();
+            maStlImageSketchToolBusy = false;
+            maStlImageSketchToolState = 'form';
+            maStlImageSketchSyncFormUi();
+            return true;
+        };
+        const fail = function (msg) {
+            if (settle()) maStlImageSketchShowErrorModal(maStlWall3dFormatToast(errTpl, msg));
+        };
+        xhr.open('POST', apiUrl, true);
+        xhr.timeout = MA_STL_IMAGE_SKETCH_TIMEOUT_MS;
+        xhr.upload.onprogress = function (ev) {
+            const st = maStlImageSketchLoading;
+            if (!st || maStlImageSketchRequest !== xhr || !ev.lengthComputable || !(ev.total > 0)) return;
+            st.uploadPct = Math.min(100, Math.round((ev.loaded / ev.total) * 100));
+            maStlImageSketchRefreshLoading();
+        };
+        xhr.upload.onload = function () {
+            const st = maStlImageSketchLoading;
+            if (!st || maStlImageSketchRequest !== xhr) return;
+            st.uploadPct = 100;
+            st.uploadedAt = Date.now();
+            maStlImageSketchRefreshLoading();
+        };
+        xhr.onerror = function () {
+            fail('error de red');
+        };
+        xhr.ontimeout = function () {
+            fail('el servidor no ha respondido a tiempo');
+        };
+        xhr.onload = function () {
+            if (maStlImageSketchRequest !== xhr) return;
+            if (xhr.status < 200 || xhr.status >= 300) {
+                fail('HTTP ' + xhr.status);
+                return;
+            }
+            let resp = null;
+            try {
+                resp = JSON.parse(xhr.responseText);
+            } catch (_e) {
+                resp = null;
+            }
+            if (!resp) {
+                fail('respuesta no válida del servidor');
+                return;
+            }
+            const st = maStlImageSketchLoading;
+            if (st) maStlImageSketchRememberReadMs(Date.now() - (st.uploadedAt || st.startedAt));
+            if (settle()) maStlImageSketchHandleResponse(resp, errTpl);
+        };
+        xhr.send(fd);
     }
 
     function maStlUpdateImageSketchToolFloorHover(clientX, clientY) {
@@ -27853,7 +28461,12 @@ let maStlWallApplyAllHeightMm = 0;
                 if (remateLen > 15 && remateLen <= 900) {
                     if (!byWall[wallId]) byWall[wallId] = { modules: [], panels: [], remates: [] };
                     if (!byWall[wallId].remates) byWall[wallId].remates = [];
-                    byWall[wallId].remates.push({ along: along, len: remateLen });
+                    byWall[wallId].remates.push({
+                        along: along,
+                        len: remateLen,
+                        x: maStlAtk60ReadPaintNum(item, 'X'),
+                        z: maStlAtk60ReadPaintNum(item, 'Z'),
+                    });
                 }
                 continue;
             }
@@ -27992,34 +28605,86 @@ let maStlWallApplyAllHeightMm = 0;
                 out.push(rPl);
             }
 
-            const remateList = maStlWallDimClusterAtk60Spans(pack.remates || []);
-            for (let ri = 0; ri < remateList.length; ri++) {
-                const rem = remateList[ri];
-                const qA = { x: originX + ux * rem.along, z: originZ + uz * rem.along };
-                const qB = {
-                    x: originX + ux * (rem.along + rem.len),
-                    z: originZ + uz * (rem.along + rem.len),
-                };
-                const qPl = maStlWallDimBuildAlignedPlacement(
-                    qA,
-                    qB,
-                    nx,
-                    nz,
-                    MA_STL_ATK60_REMATE_DIM_OFFSET_MM,
-                    rem.len,
-                    'atk60-remate'
-                );
-                if (!qPl) continue;
-                const remateLabel = maStlDesing2DimEditableMetersDisplayFromMm(rem.len);
-                const remateWord = maStlWallDimRemateWord();
-                qPl.textLiteral = remateWord ? remateLabel + ' ' + remateWord : remateLabel;
-                qPl.leader45 = true;
-                qPl.outsideSign = rem.along + rem.len * 0.5 < spanMm * 0.5 ? -1 : 1;
-                qPl.textChars = String(qPl.textLiteral || '').length || 4;
-                out.push(qPl);
+            // Cada cara acota sus remates: la exterior por fuera y la interior por dentro.
+            const faceRemates = maStlWallDimSplitAtk60RematesByFace(
+                pack.remates || [], anchor, originX, originZ, nx, nz
+            );
+            const faceSets = [
+                { list: faceRemates.outer, sign: 1, perp: 0 },
+                { list: faceRemates.inner, sign: -1, perp: faceRemates.innerPerp },
+            ];
+            const remateWord = maStlWallDimRemateWord();
+            for (let fsi = 0; fsi < faceSets.length; fsi++) {
+                const set = faceSets[fsi];
+                const remateList = maStlWallDimClusterAtk60Spans(set.list);
+                const baseX = originX + nx * set.perp;
+                const baseZ = originZ + nz * set.perp;
+                for (let ri = 0; ri < remateList.length; ri++) {
+                    const rem = remateList[ri];
+                    const qA = { x: baseX + ux * rem.along, z: baseZ + uz * rem.along };
+                    const qB = {
+                        x: baseX + ux * (rem.along + rem.len),
+                        z: baseZ + uz * (rem.along + rem.len),
+                    };
+                    const qPl = maStlWallDimBuildAlignedPlacement(
+                        qA,
+                        qB,
+                        nx * set.sign,
+                        nz * set.sign,
+                        MA_STL_ATK60_REMATE_DIM_OFFSET_MM,
+                        rem.len,
+                        'atk60-remate'
+                    );
+                    if (!qPl) continue;
+                    const remateLabel = maStlDesing2DimEditableMetersDisplayFromMm(rem.len);
+                    qPl.textLiteral = remateWord ? remateLabel + ' ' + remateWord : remateLabel;
+                    qPl.leader45 = true;
+                    const towardNearEnd = rem.along + rem.len * 0.5 < spanMm * 0.5 ? -1 : 1;
+                    // Por dentro la directriz se aleja de la esquina: hacia ella cruzaría el otro muro.
+                    qPl.outsideSign = set.sign > 0 ? towardNearEnd : -towardNearEnd;
+                    qPl.textChars = String(qPl.textLiteral || '').length || 4;
+                    out.push(qPl);
+                }
             }
         }
         return out;
+    }
+
+    /**
+     * Tablones de remate de un muro separados por cara respecto al eje:
+     * outer = lado de la normal hacia fuera (nx, nz); inner = cara interior.
+     * innerPerp: distancia, sobre esa normal, del ancla a la cara interior.
+     */
+    function maStlWallDimSplitAtk60RematesByFace(remates, anchor, originX, originZ, nx, nz) {
+        const res = { outer: [], inner: [], innerPerp: 0 };
+        const debug = maStlAtk60ReadPaintValue(anchor, 'Debug');
+        const axisX = debug ? maStlAtk60ReadPaintNum(debug, 'StartX') : NaN;
+        const axisZ = debug ? maStlAtk60ReadPaintNum(debug, 'StartZ') : NaN;
+        let perpAxis = NaN;
+        if (Number.isFinite(axisX) && Number.isFinite(axisZ)) {
+            perpAxis = (axisX - originX) * nx + (axisZ - originZ) * nz;
+        } else {
+            // El ancla está en la cara principal: eje = ancla − normal × espesor / 2.
+            const thick = debug ? maStlAtk60ReadPaintNum(debug, 'WidthMm') : NaN;
+            const anx = maStlAtk60ReadPaintNum(anchor, 'NormalX');
+            const anz = maStlAtk60ReadPaintNum(anchor, 'NormalZ');
+            if (thick > 0 && Number.isFinite(anx) && Number.isFinite(anz)) {
+                perpAxis = -(anx * nx + anz * nz) * thick * 0.5;
+            }
+        }
+        let sum = 0;
+        for (let i = 0; i < remates.length; i++) {
+            const r = remates[i];
+            const perp = (r.x - originX) * nx + (r.z - originZ) * nz;
+            if (!Number.isFinite(perpAxis) || !Number.isFinite(perp) || perp >= perpAxis) {
+                res.outer.push(r);
+                continue;
+            }
+            res.inner.push(r);
+            sum += perp;
+        }
+        if (res.inner.length) res.innerPerp = sum / res.inner.length;
+        return res;
     }
 
     /** Une paneles del mismo módulo (mismo largo y solape) para no acotar columnas sueltas. */
@@ -34450,7 +35115,7 @@ let maStlWallApplyAllHeightMm = 0;
         }
         const pSnap = maStlApplyLineToolVertexSnapOnClickMm(ev.clientX, ev.clientY, p);
         maStlQuantizeUserFloorPlanPointToGridMm(pSnap);
-        const count = maStlImageSketchCommitAtPointMm(pSnap);
+        const count = maStlImageSketchCommitWallsAtPointMm(pSnap);
         const okTpl =
             (maStlImageSketchAcceptBtn &&
                 maStlImageSketchAcceptBtn.getAttribute('data-ma-stl-image-sketch-success')) ||
@@ -36855,6 +37520,45 @@ let maStlWallApplyAllHeightMm = 0;
             ev.stopPropagation();
             maStlStopImageSketchToolModesToolbar(false);
         });
+    }
+    const maStlImageSketchRenderCancelBtn = document.getElementById('ma-stl-image-sketch-render-cancel');
+    if (maStlImageSketchRenderCancelBtn) {
+        maStlImageSketchRenderCancelBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            maStlStopImageSketchToolModesToolbar(false);
+        });
+    }
+    if (maStlImageSketchParamsModalEl) {
+        maStlImageSketchParamsModalEl.addEventListener('shown.bs.modal', function () {
+            const first = maStlImageSketchParamsModalEl.querySelector('.mb-3:not(.d-none) input, .mb-1:not(.d-none) input');
+            if (first) {
+                first.focus();
+                first.select();
+            }
+        });
+        // Cerrado sin aceptar (Cancelar, X o Esc): de vuelta al formulario, como tras un error.
+        maStlImageSketchParamsModalEl.addEventListener('hidden.bs.modal', function () {
+            if (maStlIsImageSketchToolActive() && maStlImageSketchToolState === 'params') {
+                maStlImageSketchParamsBoceto = null;
+                maStlImageSketchToolBusy = false;
+                maStlImageSketchToolState = 'form';
+                maStlImageSketchSyncFormUi();
+                maStlImageSketchShowModal();
+            }
+        });
+        maStlImageSketchParamsModalEl.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Enter' && ev.target && ev.target.tagName === 'INPUT') {
+                ev.preventDefault();
+                maStlImageSketchSubmitParams();
+            }
+        });
+        const paramsAcceptBtn = document.getElementById('ma-stl-image-sketch-params-accept');
+        if (paramsAcceptBtn) {
+            paramsAcceptBtn.addEventListener('click', (ev) => {
+                ev.stopPropagation();
+                maStlImageSketchSubmitParams();
+            });
+        }
     }
     if (maStlDesingV2Viewer && maStlInsertCornerToolToggleBtn) {
         maStlInsertCornerToolToggleBtn.addEventListener('click', (ev) => {

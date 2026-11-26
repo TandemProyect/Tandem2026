@@ -1,6 +1,6 @@
 # Área: Dibujo 2D en Desing_2
 
-**Cubre:** polilínea, selección (ventana/cruce), borrar, recortar, alargar, girar, simetría, repetir comando, importar DWG/DXF, barra inferior (deshacer, orto, reglas), cota de muro (con «Id de Artículo»).
+**Cubre:** polilínea, selección (ventana/cruce), borrar, recortar, alargar, girar, simetría, repetir comando, importar DWG/DXF, importar boceto desde imagen, barra inferior (deshacer, orto, reglas), cota de muro (con «Id de Artículo»).
 
 **No cubre:** convertir líneas en muro 3D (→ `desing2-muros-3d`), encofrado, plugins CAD.
 

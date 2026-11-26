@@ -28,6 +28,8 @@
     .dev-issue-pop__thumb { position: relative; }
     .dev-issue-pop__thumb img { height: 44px; max-width: 80px; border: 1px solid #cbd5e1; border-radius: 4px; display: block; }
     .dev-issue-pop__thumb button { position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; padding: 0; border: 0; border-radius: 50%; background: #dc2626; color: #fff; font-size: 11px; line-height: 16px; cursor: pointer; }
+    .dev-issue-pop__thumb--file { display: flex; align-items: center; gap: 3px; height: 44px; max-width: 120px; padding: 0 6px; border: 1px solid #cbd5e1; border-radius: 4px; background: #f1f5f9; color: #334155; font-size: 10px; line-height: 12px; }
+    .dev-issue-pop__thumb--file span { overflow: hidden; word-break: break-all; max-height: 36px; }
     .dev-issue-pop__msg { font-size: 11px; }
     .dev-issue-pop__msg:empty { display: none; }
     .dev-issue-shot { position: fixed; inset: 0; z-index: 2147483600; cursor: crosshair; background: rgba(15,23,42,.15); }
@@ -43,6 +45,7 @@
      data-msg-unsupported="@DevelopIssue.Popup_CaptureUnsupported"
      data-msg-denied="@DevelopIssue.Popup_CaptureDenied"
      data-msg-error="@DevelopIssue.Popup_SaveError"
+     data-msg-wall="@DevelopIssue.Err_WallFormat"
      data-msg-open="@DevelopIssue.Popup_Open"
      data-msg-remove="@DevelopIssue.Btn_RemoveFile">
     <div class="dev-issue-pop__head js-dev-issue-drag">
@@ -91,10 +94,12 @@
             <label for="devIssueObs">@DevelopIssue.Lbl_Observation</label>
             <textarea id="devIssueObs" name="observation" class="form-control"></textarea>
         </div>
-        <div class="full d-flex gap-1">
+        <div class="full d-flex flex-wrap gap-1">
             <button type="button" class="btn btn-outline-primary flex-fill js-dev-issue-capture"><i class="ri ri-screenshot-2-line me-1"></i>@DevelopIssue.Popup_Capture</button>
             <button type="button" class="btn btn-outline-secondary js-dev-issue-attach" title="@DevelopIssue.Ph_Paste"><i class="ri ri-attachment-2 me-1"></i>@DevelopIssue.Popup_Attach <span class="js-dev-issue-count"></span></button>
             <input type="file" class="d-none js-dev-issue-file" accept=".png,.jpg,.jpeg,.gif,.webp,image/*" multiple />
+            <button type="button" class="btn btn-outline-secondary js-dev-issue-wall" title="@DevelopIssue.Popup_AttachWallTitle"><i class="ri ri-file-shield-2-line me-1"></i>@DevelopIssue.Popup_AttachWall</button>
+            <input type="file" class="d-none js-dev-issue-wall-file" accept=".tnwall" multiple />
         </div>
         <div class="full dev-issue-pop__thumbs js-dev-issue-thumbs"></div>
         <div class="full dev-issue-pop__msg js-dev-issue-msg"></div>
@@ -104,4 +109,4 @@
         </div>
     </form>
 </div>
-<script src="@Url.Content("~/Scripts/Intranet/develop-issue-popup.js?v=20261123d")"></script>
+<script src="@Url.Content("~/Scripts/Intranet/develop-issue-popup.js?v=20261126a")"></script>

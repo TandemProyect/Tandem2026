@@ -489,7 +489,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\Atk60\Atk60Element.cs" />
     <Compile Include="Repositories\RepositoryAtk60\Atk60WallsRepository.cs" />
-    <Compile Include="Repositories\RepositoryAtk60\Atk60CornerFaceRemate.cs" />
     <Compile Include="Repositories\RepositoryAtk60\Atk60FaceRemateRules.cs" />
     <Compile Include="Repositories\RepositoryAtk60\Atk60AdjustableCornerHardware.cs" />
     <Compile Include="Repositories\RepositoryAtk60\ModulosATK60\ModuloAtk60ElementBuilders.cs" />
@@ -516,6 +515,8 @@
     <Compile Include="Repositories\RepositoryDesing2\DesignWallRepository.cs" />
     <Compile Include="Repositories\RepositoryDesing2\DesignWorkerRepository.cs" />
     <Compile Include="Repositories\RepositoryDesing2\DesignWallArticleRepository.cs" />
+    <Compile Include="Repositories\RepositoryDesing2\DesignAssemblyViewRepository.cs" />
+    <Compile Include="Repositories\RepositoryDesing2\DesignWallFaceBuilder.cs" />
     <Compile Include="Repositories\Atk60\Wall\Bracket_0.cs" />
     <Compile Include="Repositories\Atk60\Wall\Bracket_180.cs" />
     <Compile Include="Repositories\Atk60\Wall\Bracket_90.cs" />
@@ -616,6 +617,7 @@
     <Compile Include="Services\LCornerDetector.cs" />
     <Compile Include="Services\CadWall2dService.cs" />
     <Compile Include="Services\SketchWallBuilder.cs" />
+    <Compile Include="Services\SketchPlanSolver.cs" />
     <Compile Include="Services\OsmBuildingImportService.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="System\Data\Common\NotificationHelper.cs" />
@@ -3579,6 +3581,9 @@
     <Content Include="Scripts\Desing2\formwork-panel-color.js" />
     <Content Include="Scripts\Desing2\desing2-wall-exchange.js" />
     <Content Include="Scripts\Desing2\desing2-dwg-import.js" />
+    <Content Include="Scripts\Desing2\desing2-assembly-plan.js" />
+    <Content Include="Scripts\Desing2\desing2-assembly-view-frame.js" />
+    <Content Include="Scripts\Desing2\desing2-assembly-view-dims.js" />
     <Content Include="Scripts\Desing2\desing2-phase-start.js" />
     <Content Include="Scripts\Desing2\desing2-phase-solve.js" />
     <Content Include="IA\tools\decrypt-wall-export.mjs" />

@@ -124,6 +124,12 @@
   <data name="Err_NotFound" xml:space="preserve">
     <value>No se encuentra la US o el bug.</value>
   </data>
+  <data name="Err_WallFormat" xml:space="preserve">
+    <value>Solo se admiten archivos .tnwall exportados desde el visor.</value>
+  </data>
+  <data name="Err_WallSize" xml:space="preserve">
+    <value>El archivo .tnwall supera 20 MB.</value>
+  </data>
   <data name="Index_Breadcrumb" xml:space="preserve">
     <value>US y Bugs</value>
   </data>
@@ -156,6 +162,9 @@
   </data>
   <data name="Lbl_Urgency" xml:space="preserve">
     <value>Urgencia</value>
+  </data>
+  <data name="Lbl_Walls" xml:space="preserve">
+    <value>Archivos de muros (.tnwall)</value>
   </data>
   <data name="List_DeleteTooltip" xml:space="preserve">
     <value>Eliminar</value>
@@ -196,6 +205,12 @@
   <data name="Popup_Attach" xml:space="preserve">
     <value>Adjuntar</value>
   </data>
+  <data name="Popup_AttachWall" xml:space="preserve">
+    <value>.tnwall</value>
+  </data>
+  <data name="Popup_AttachWallTitle" xml:space="preserve">
+    <value>Adjuntar archivos de muros (.tnwall)</value>
+  </data>
   <data name="Popup_Capture" xml:space="preserve">
     <value>Capturar pantalla</value>
   </data>
@@ -218,7 +233,7 @@
     <value>Nueva US / Bug</value>
   </data>
   <data name="Popup_Uploading" xml:space="preserve">
-    <value>Subiendo captura {0} de {1}…</value>
+    <value>Subiendo archivo {0} de {1}…</value>
   </data>
   <data name="Size_LARGE" xml:space="preserve">
     <value>Grande</value>

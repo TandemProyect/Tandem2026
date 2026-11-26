@@ -458,12 +458,17 @@
 
 
 
-            #dashNewDesignOfferTable tbody tr.dash-offer-pick-selected,
-            #dashNewClientDesignClientTable tbody tr.dash-client-pick-selected {
+            /* El color va en las celdas: Bootstrap pinta el texto y el fondo en td, no en tr. */
+            #dashNewDesignOfferTable tbody tr.dash-offer-pick-selected > *,
+            #dashNewClientDesignClientTable tbody tr.dash-client-pick-selected > * {
 
-                background-color: var(--tandem-primary) !important;
+                background-color: color-mix(in srgb, var(--tandem-primary) 20%, #fff) !important;
 
-                color: #fff !important;
+                box-shadow: none !important;
+
+                color: var(--bs-body-color) !important;
+
+                font-weight: 600;
 
             }
 

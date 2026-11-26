@@ -42,6 +42,85 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 return;
             }
 
+            var runs = RunsOf(walls, anchors);
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            var tVertices = new List<double[]>();
+            if (anchors.Count >= 2)
+            {
+                PlaceTPanels(outElements, runs, tVertices);
+                for (var a = 0; a < runs.Count; a++)
+                {
+                    for (var b = a + 1; b < runs.Count; b++)
+                    {
+                        TryPlace(outElements, runs, runs[a], runs[b], seen);
+                    }
+                }
+            }
+
+            SumRematesAtCorner(outElements, runs);
+        }
+
+        internal const int CornerAtStart = 1;
+        internal const int CornerAtEnd = 2;
+
+        /// <summary>
+        /// Extremos de cada muro que acaban en L, con el mismo criterio que <see cref="TryPlace"/>.
+        /// Bits <see cref="CornerAtStart"/> y <see cref="CornerAtEnd"/> por id de muro.
+        /// </summary>
+        internal static Dictionary<string, int> CornerEnds(
+            List<Desing2FormworkWallDto> walls,
+            List<Atk60WallPaintAnchor> anchors)
+        {
+            var result = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            if (anchors == null || anchors.Count < 2)
+            {
+                return result;
+            }
+
+            var runs = RunsOf(walls, anchors);
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            for (var a = 0; a < runs.Count; a++)
+            {
+                for (var b = a + 1; b < runs.Count; b++)
+                {
+                    var ends = new[] { true, false };
+                    for (var ia = 0; ia < ends.Length; ia++)
+                    {
+                        for (var ib = 0; ib < ends.Length; ib++)
+                        {
+                            double vx;
+                            double vz;
+                            if (!EndsFormL(runs[a], ends[ia], runs[b], ends[ib], out vx, out vz)
+                                || !seen.Add(VertexKey(vx, vz))
+                                || ThirdWallNear(runs, runs[a], runs[b], vx, vz))
+                            {
+                                continue;
+                            }
+
+                            MarkCornerEnd(result, runs[a].Id, ends[ia]);
+                            MarkCornerEnd(result, runs[b].Id, ends[ib]);
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private static void MarkCornerEnd(Dictionary<string, int> result, string id, bool atEnd)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return;
+            }
+
+            int flags;
+            result.TryGetValue(id, out flags);
+            result[id] = flags | (atEnd ? CornerAtEnd : CornerAtStart);
+        }
+
+        private static List<Run> RunsOf(List<Desing2FormworkWallDto> walls, List<Atk60WallPaintAnchor> anchors)
+        {
             var runs = new List<Run>();
             for (var i = 0; i < anchors.Count; i++)
             {
@@ -58,21 +137,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 }
             }
 
-            var seen = new HashSet<string>(StringComparer.Ordinal);
-            var tVertices = new List<double[]>();
-            if (anchors.Count >= 2)
-            {
-                PlaceTPanels(outElements, runs, tVertices);
-                for (var a = 0; a < runs.Count; a++)
-                {
-                    for (var b = a + 1; b < runs.Count; b++)
-                    {
-                        TryPlace(outElements, runs, runs[a], runs[b], seen);
-                    }
-                }
-            }
-
-            SumRematesAtCorner(outElements, runs);
+            return runs;
         }
 
         /// <summary>
@@ -851,41 +916,6 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             var code = item.ElementCode ?? string.Empty;
             return string.Equals(item.ElementType, "Remate", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(code, "REMATE_WOOD", StringComparison.OrdinalIgnoreCase);
-        }
-
-        /// <summary>
-        /// El remate por cara ya ocupa el hueco de la L (along negativo o
-        /// pasado el run). No pintar otro tablón encima del panel de esquina.
-        /// </summary>
-        private static bool HasPocketFaceWood(List<Atk60ElementPaintItem> items, Run run, bool atEnd)
-        {
-            if (items == null || run == null)
-            {
-                return false;
-            }
-
-            for (var i = 0; i < items.Count; i++)
-            {
-                var item = items[i];
-                if (item == null || !SameWall(item.IdWall, run.Id) || !IsRemateItem(item) || IsTapeWood(item))
-                {
-                    continue;
-                }
-
-                if (atEnd)
-                {
-                    if (item.LocalAlongMm >= run.LengthMm - 1d)
-                    {
-                        return true;
-                    }
-                }
-                else if (item.LocalAlongMm < -1d)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -2251,21 +2281,9 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             {
                 for (var ib = 0; ib < endsB.Length; ib++)
                 {
-                    double ax;
-                    double az;
-                    double bx;
-                    double bz;
-                    if (!EndPoint(a, endsA[ia], out ax, out az) || !EndPoint(b, endsB[ib], out bx, out bz))
-                    {
-                        continue;
-                    }
-
                     double vx;
                     double vz;
-                    if (!EndsMeet(
-                        ax, az, OutX(a, endsA[ia]), OutZ(a, endsA[ia]),
-                        bx, bz, OutX(b, endsB[ib]), OutZ(b, endsB[ib]),
-                        out vx, out vz))
+                    if (!EndsFormL(a, endsA[ia], b, endsB[ib], out vx, out vz))
                     {
                         continue;
                     }
@@ -2274,11 +2292,6 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     var intoAz = -OutZ(a, endsA[ia]);
                     var intoBx = -OutX(b, endsB[ib]);
                     var intoBz = -OutZ(b, endsB[ib]);
-                    if (Math.Abs((intoAx * intoBx) + (intoAz * intoBz)) >= 0.45d)
-                    {
-                        continue;
-                    }
-
                     var key = VertexKey(vx, vz);
                     if (!seen.Add(key))
                     {
@@ -2296,12 +2309,47 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     var otherAtEnd = ReferenceEquals(owner, a) ? endsB[ib] : endsA[ia];
                     StripTapePanelAtEnd(outElements, owner, ownerAtEnd);
                     StripTapePanelAtEnd(outElements, other, otherAtEnd);
-                    PlaceCorner(outElements, owner, ownerAtEnd, other, otherAtEnd);
-                    PlaceEndClamps(outElements, a, endsA[ia], b.ThicknessMm, intoBx, intoBz);
-                    PlaceEndClamps(outElements, b, endsB[ib], a.ThicknessMm, intoAx, intoAz);
-                    PlaceStiffenerIfStacked(outElements, owner, ownerAtEnd, other, otherAtEnd);
+                    // Muros de distinta altura: la esquina es tan alta como el más alto,
+                    // así que las piezas de esquina de los dos suben hasta ahí.
+                    var cornerHeightMm = Math.Max(owner.HeightMm, other.HeightMm);
+                    var cornerOwner = AtCornerHeight(owner, cornerHeightMm);
+                    var cornerOther = AtCornerHeight(other, cornerHeightMm);
+                    PlaceCorner(outElements, cornerOwner, ownerAtEnd, cornerOther, otherAtEnd);
+                    var cornerA = ReferenceEquals(owner, a) ? cornerOwner : cornerOther;
+                    var cornerB = ReferenceEquals(owner, a) ? cornerOther : cornerOwner;
+                    PlaceEndClamps(outElements, cornerA, endsA[ia], b.ThicknessMm, intoBx, intoBz);
+                    PlaceEndClamps(outElements, cornerB, endsB[ib], a.ThicknessMm, intoAx, intoAz);
+                    PlaceStiffenerIfStacked(outElements, cornerOwner, ownerAtEnd, cornerOther, otherAtEnd);
                 }
             }
+        }
+
+        /// <summary>
+        /// Dos extremos que forman L: sus rectas se cruzan hacia fuera y casi en ángulo recto.
+        /// </summary>
+        private static bool EndsFormL(Run a, bool atEndA, Run b, bool atEndB, out double vx, out double vz)
+        {
+            double ax;
+            double az;
+            double bx;
+            double bz;
+            vx = 0d;
+            vz = 0d;
+            if (!EndPoint(a, atEndA, out ax, out az) || !EndPoint(b, atEndB, out bx, out bz))
+            {
+                return false;
+            }
+
+            if (!EndsMeet(
+                ax, az, OutX(a, atEndA), OutZ(a, atEndA),
+                bx, bz, OutX(b, atEndB), OutZ(b, atEndB),
+                out vx, out vz))
+            {
+                return false;
+            }
+
+            var dot = (OutX(a, atEndA) * OutX(b, atEndB)) + (OutZ(a, atEndA) * OutZ(b, atEndB));
+            return Math.Abs(dot) < 0.45d;
         }
 
         /// <summary>
@@ -2550,11 +2598,6 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 return;
             }
 
-            if (HasPocketFaceWood(outElements, run, atEnd))
-            {
-                return;
-            }
-
             double faceX;
             double faceZ;
             double outX;
@@ -2630,8 +2673,104 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                     woodAlong = atEnd ? run.LengthMm + (gap - wood) : -gap;
                 }
 
-                outElements.AddRange(EndFiller.Build(
-                    run.Wall, run.Anchor, wood, woodAlong, showPrimary, showOpposite, true));
+                PlaceInteriorWood(outElements, run, atEnd, inside, wood, woodAlong);
+            }
+        }
+
+        /// <summary>
+        /// Tablón de la esquina en la cara interior. Si el remate del tramo ya está pegado
+        /// a la esquina en esa cara, es un solo tablón: se juntan los dos, con sus grapas.
+        /// Tope 0,15: si no caben juntos, quedan los dos.
+        /// </summary>
+        private static void PlaceInteriorWood(
+            List<Atk60ElementPaintItem> outElements,
+            Run run,
+            bool atEnd,
+            bool inside,
+            double woodMm,
+            double woodAlong)
+        {
+            // Cara interior: la principal si el muro tiene su cara principal dentro de la L.
+            var interiorMirrored = !inside;
+            var edge = atEnd ? run.LengthMm : 0d;
+            var abutsEdge = atEnd
+                ? Math.Abs(woodAlong - edge) <= 2d
+                : Math.Abs(woodAlong + woodMm - edge) <= 2d;
+            var runBoard = abutsEdge ? RunBoardAtEdge(outElements, run, atEnd, interiorMirrored) : null;
+            if (runBoard != null)
+            {
+                var runMm = runBoard.PieceWidthMm;
+                if (runMm + woodMm <= Atk60FaceRemateRules.MaxMm + 0.5d)
+                {
+                    var start = atEnd ? runBoard.LocalAlongMm : woodAlong;
+                    DropBoardWithClamps(outElements, run, runBoard);
+                    woodMm += runMm;
+                    woodAlong = start;
+                }
+            }
+
+            outElements.AddRange(EndFiller.Build(
+                run.Wall, run.Anchor, woodMm, woodAlong, inside, !inside, true));
+        }
+
+        /// <summary>Remate del tramo en una cara, pegado al extremo de la esquina.</summary>
+        private static Atk60ElementPaintItem RunBoardAtEdge(
+            List<Atk60ElementPaintItem> items,
+            Run run,
+            bool atEnd,
+            bool mirrored)
+        {
+            var edge = atEnd ? run.LengthMm : 0d;
+            for (var i = 0; i < items.Count; i++)
+            {
+                var item = items[i];
+                if (item == null || item.IsMirrored != mirrored || !SameWall(item.IdWall, run.Id)
+                    || !IsRemateItem(item) || IsTapeWood(item) || item.PieceWidthMm <= 1d)
+                {
+                    continue;
+                }
+
+                var touch = atEnd ? item.LocalAlongMm + item.PieceWidthMm : item.LocalAlongMm;
+                if (Math.Abs(touch - edge) <= 2d)
+                {
+                    return item;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>Quita un tablón y las grapas variables de sus dos cantos, solo en su cara.</summary>
+        private static void DropBoardWithClamps(
+            List<Atk60ElementPaintItem> items,
+            Run run,
+            Atk60ElementPaintItem board)
+        {
+            var start = board.LocalAlongMm;
+            var end = start + board.PieceWidthMm;
+            for (var i = items.Count - 1; i >= 0; i--)
+            {
+                var item = items[i];
+                if (item == null)
+                {
+                    continue;
+                }
+
+                if (ReferenceEquals(item, board))
+                {
+                    items.RemoveAt(i);
+                    continue;
+                }
+
+                if (item.IsMirrored != board.IsMirrored || !SameWall(item.IdWall, run.Id) || !IsVariableClamp(item))
+                {
+                    continue;
+                }
+
+                if (Math.Abs(item.LocalAlongMm - start) <= 2d || Math.Abs(item.LocalAlongMm - end) <= 2d)
+                {
+                    items.RemoveAt(i);
+                }
             }
         }
 
@@ -2818,11 +2957,10 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 }
             }
 
-            if (woodInside && !HasPocketFaceWood(outElements, run, atEnd))
+            if (woodInside)
             {
                 var woodAlong = atEnd ? run.LengthMm : -(double)remateMm;
-                outElements.AddRange(EndFiller.Build(
-                    run.Wall, run.Anchor, remateMm, woodAlong, !exteriorPrimary, exteriorPrimary, true));
+                PlaceInteriorWood(outElements, run, atEnd, inside, remateMm, woodAlong);
             }
 
             // Solo el canto del angular, en la cara donde está el panel.
@@ -4072,7 +4210,7 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
             {
                 bands.Add(2400);
             }
-            else if (left > 400)
+            else if (left > 1)
             {
                 bands.Add(1200);
             }
@@ -4121,6 +4259,32 @@ namespace Desing.Repositories.Repository_Desing_2.Atk60
                 ThicknessMm = thickness,
                 NormalX = anchor.NormalX,
                 NormalZ = anchor.NormalZ,
+            };
+        }
+
+        private static Run AtCornerHeight(Run run, double heightMm)
+        {
+            if (Math.Abs(run.HeightMm - heightMm) <= 1d)
+            {
+                return run;
+            }
+
+            return new Run
+            {
+                Anchor = run.Anchor,
+                Wall = run.Wall,
+                Id = run.Id,
+                Sx = run.Sx,
+                Sz = run.Sz,
+                Ex = run.Ex,
+                Ez = run.Ez,
+                Ux = run.Ux,
+                Uz = run.Uz,
+                LengthMm = run.LengthMm,
+                HeightMm = heightMm,
+                ThicknessMm = run.ThicknessMm,
+                NormalX = run.NormalX,
+                NormalZ = run.NormalZ,
             };
         }
 

@@ -16,13 +16,22 @@
     var _brandText = string.IsNullOrWhiteSpace(_brandTextRaw) ? null : _brandTextRaw.Trim();
     var _contentLinkColor = _brandText ?? _plantillaColor;
     var _menuIdleColor = _brandText ?? _plantillaColor;
+    // Color de enlace para superficies claras (menús desplegables, barra superior, botones sin fondo):
+    // si el color de enlace de la plantilla es claro (p. ej. blanco, pensado para el menú activo sobre
+    // el color de marca) no se vería sobre blanco; se usa entonces el primer color oscuro disponible.
+    var _surfaceLinkColor = _linkColor;
+    foreach (var _candidate in new[] { _linkColor, _contentLinkColor, _plantillaColor, "#4a4a4a" })
+    {
+        _surfaceLinkColor = _candidate;
+        if (!IsLightColor(_candidate)) { break; }
+    }
     var _menuUiVars =
         "#layout-menu { --bs-menu-color: " + _menuIdleColor + "; --bs-menu-hover-color: " + _menuIdleColor + "; --bs-menu-item-icon-color: " + _menuIdleColor + "; --bs-menu-active-color: " + _activeMenuColor + "; }" +
         "#layout-menu .menu-item.active > .menu-link:not(.js-menu-group-toggle) { color: var(--bs-menu-active-color) !important; }" +
         "#layout-menu .menu-item.active .menu-icon, #layout-menu .menu-item.active .menu-icon-arrow { color: var(--bs-menu-active-color) !important; }";
     var _linkUiVars = string.IsNullOrWhiteSpace(_plantillaLinkRaw)
         ? string.Empty
-        : ":is(.btn, .dt-button, .page-link, .dropdown-item, .nav-link, .list-group-item-action, .paginate_button) { color: var(--tandem-link) !important; }" +
+        : ":is(.btn, .dt-button, .page-link, .dropdown-item, .nav-link, .list-group-item-action, .paginate_button) { color: var(--tandem-surface-link) !important; }" +
           ".dt-buttons .btn, .dt-buttons .dt-button, div.dt-buttons > .btn, div.dt-buttons > .dt-button, " +
           ".dataTables_wrapper .dt-buttons .btn, .dataTables_wrapper .dt-buttons .dt-button, .dataTables_wrapper .dt-buttons .btn-secondary, " +
           ".dt-button-collection .dt-button, .dt-button-collection .dropdown-item, .dt-button-collection button.dt-button, " +
@@ -31,7 +40,10 @@
           ".dt-buttons .btn:focus, .dt-buttons .dt-button:focus, .dt-buttons .btn:active, .dt-buttons .dt-button:active, .dt-buttons .dt-button.active, " +
           ".dt-button-collection .dt-button:hover, .dt-button-collection .dropdown-item:hover, " +
           ".dt-button-collection .dt-button.active, .dt-button-collection .dropdown-item.active, .dt-button-collection .dropdown-item:active { color: var(--tandem-link) !important; }" +
-          ":is(.btn, .dt-button, .dropdown-item, .page-link, .nav-link, .list-group-item-action) :is(i, svg, .icon-base) { color: var(--tandem-link) !important; }";
+          ":is(.btn, .dt-button, .dropdown-item, .page-link, .nav-link, .list-group-item-action) :is(i, svg, .icon-base) { color: var(--tandem-surface-link) !important; }" +
+          // Sobre un fondo de color (cabeceras .bg-primary, .bg-dark...) se mantiene el color de enlace de la plantilla.
+          ":is(.bg-primary, .bg-secondary, .bg-success, .bg-danger, .bg-info, .bg-dark) :is(.btn, .nav-link, .page-link, .list-group-item-action):not(:is(.btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-warning, .btn-info, .btn-dark, .btn-light, .btn-white)):not(.dropdown-menu *), " +
+          ":is(.bg-primary, .bg-secondary, .bg-success, .bg-danger, .bg-info, .bg-dark) :is(.btn, .nav-link, .page-link, .list-group-item-action):not(:is(.btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-warning, .btn-info, .btn-dark, .btn-light, .btn-white)):not(.dropdown-menu *) :is(i, svg, .icon-base) { color: var(--tandem-link) !important; }";
     var _brandTextRootVar = _brandText == null ? string.Empty : "--tandem-brand-text: " + _brandText + ";";
     var _brandTextUi = _brandText == null ? string.Empty :
         "#desing2-stl-hover-side-panel .form-label, " +
@@ -94,6 +106,7 @@
     [data-bs-theme="dark"] {
         --tandem-primary: @_plantillaColor;
         --tandem-link: @_linkColor;
+        --tandem-surface-link: @_surfaceLinkColor;
         --tandem-content-link: @_contentLinkColor;
         --bs-primary: @_plantillaColor !important;
         --bs-primary-rgb: var(--tandem-primary-rgb, 52, 157, 125);
@@ -283,10 +296,16 @@
         border-color: var(--tandem-primary) !important;
         color: var(--tandem-primary) !important;
     }
-    table.dataTable tbody tr.selected,
-    table.dataTable tbody tr.selected td {
+    /* Fila seleccionada: tinte claro del color de marca con el texto normal. DataTables la rellena con
+       un box-shadow azul opaco y pone el texto en blanco; sin anular ese relleno el texto y los enlaces
+       quedaban del mismo color que el fondo (p. ej. al seleccionar una oferta). */
+    table.dataTable tbody tr.selected > * {
         background-color: color-mix(in srgb, var(--tandem-primary) 20%, transparent) !important;
-        color: inherit !important;
+        box-shadow: none !important;
+        color: var(--bs-body-color) !important;
+    }
+    table.dataTable tbody tr.selected a:not(.btn):not(.dropdown-item) {
+        color: var(--tandem-content-link) !important;
     }
     .dataTables_wrapper .dataTables_length select:focus,
     .dataTables_wrapper .dataTables_filter input:focus {
@@ -434,3 +453,17 @@
         color: rgba(255, 255, 255, 0.85) !important;
     }
 </style>
+@functions {
+    // Luminancia relativa WCAG de #rgb / #rrggbb; true si el color no contrasta lo bastante con blanco (< 3:1).
+    private static bool IsLightColor(string hex)
+    {
+        if (string.IsNullOrWhiteSpace(hex)) { return true; }
+        var h = hex.Trim().TrimStart('#');
+        if (h.Length == 3) { h = string.Concat(h[0], h[0], h[1], h[1], h[2], h[2]); }
+        int rgb;
+        if (h.Length != 6 || !int.TryParse(h, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out rgb)) { return false; }
+        Func<int, double> lin = c => { var v = c / 255.0; return v <= 0.03928 ? v / 12.92 : Math.Pow((v + 0.055) / 1.055, 2.4); };
+        var lum = 0.2126 * lin((rgb >> 16) & 255) + 0.7152 * lin((rgb >> 8) & 255) + 0.0722 * lin(rgb & 255);
+        return 1.05 / (lum + 0.05) < 3.0;
+    }
+}

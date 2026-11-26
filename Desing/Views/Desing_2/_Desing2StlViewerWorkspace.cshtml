@@ -66,6 +66,19 @@
     var leaveSaveYes = maStr("StlPreview_LeaveSaveYes", "Sí");
     var leaveSaveNo = maStr("StlPreview_LeaveSaveNo", "No");
     var imageSketchErrorModalTitle = maStr("StlPreview_ImageSketchErrorModalTitle", "Error al analizar la imagen");
+    var imageSketchConflictTitle = maStr("StlPreview_ImageSketchConflictTitle", "Las cotas del boceto no cuadran");
+    var imageSketchLegendWrong = maStr("StlPreview_ImageSketchLegendWrong", "Cota que no cuadra");
+    var imageSketchLegendRelated = maStr("StlPreview_ImageSketchLegendRelated", "Cotas con las que se compara");
+    var imageSketchLegendOk = maStr("StlPreview_ImageSketchLegendOk", "Cota que cuadra");
+    var imageSketchLegendWall = maStr("StlPreview_ImageSketchLegendWall", "Muro leído (cara exterior)");
+    var imageSketchLoadingUpload = maStr("StlPreview_ImageSketchLoadingUpload", "Subiendo la imagen… {0} %");
+    var imageSketchLoadingRead = maStr("StlPreview_ImageSketchLoadingRead", "La IA está leyendo el boceto: muros, cotas, E y h…");
+    var imageSketchLoadingSlow = maStr("StlPreview_ImageSketchLoadingSlow", "Está tardando más de lo normal… {0}");
+    var imageSketchParamsTitle = maStr("StlPreview_ImageSketchParamsTitle", "Faltan datos del boceto");
+    var imageSketchParamsThickness = maStr("StlPreview_ImageSketchParamsThickness", "Espesor del muro E (m)");
+    var imageSketchParamsHeight = maStr("StlPreview_ImageSketchParamsHeight", "Altura del muro h (m)");
+    var imageSketchParamsInvalidThickness = maStr("StlPreview_ImageSketchParamsInvalidThickness", "El espesor tiene que estar entre 0,05 y 1,00 m");
+    var imageSketchParamsInvalidHeight = maStr("StlPreview_ImageSketchParamsInvalidHeight", "La altura tiene que estar entre 0,50 y 12,00 m");
     var screenshotTitle = maStr("StlPreview_ScreenshotTitle", "Descargar una foto del diseño, sin menús");
     var screenshotAria = maStr("StlPreview_ScreenshotAria", "Foto del diseño");
     var wallListTitle = maStr("StlPreview_WallListTitle", "Muros");
@@ -78,7 +91,7 @@
    data-ma-stl-source-units: vértices STL → m → mm escena (×1000; reglas/rejilla en mm).
     Persistencia vista: #ma-stl-save-viewer-state → servidor + cookie por diseño; restauración tras primer refit. *@
 @* Opcional desarrollo en #ma-stl-viewer-shell: data-ma-stl-dev-auto-load="true", data-ma-stl-dev-default-stl="~/Files/.../3120270090P.stl" (URL resuelta con @Url.Content), data-ma-stl-dev-default-label="..." *@
-<div id="ma-stl-viewer-shell" class="desing2-stl-view-scope border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" data-ma-text-color1="@HttpUtility.HtmlAttributeEncode(textColor1Hex)" data-ma-text-color2="@HttpUtility.HtmlAttributeEncode(textColor2Hex)" data-ma-stl-show-rulers-toggle="true" data-ma-stl-desing2-persist-view="true" data-ma-stl-source-units="@HttpUtility.HtmlAttributeEncode(stlSrcUnits)" data-ma-stl-wall3d-api-url="@Url.Action("ProcesarLineasZwcad", "DesignToolsAutocad")" data-ma-stl-image-sketch-api-url="@Url.Action("DetectarEsquinasImagen", "DesignToolsAutocad")" data-ma-stl-map-building-search-url="@Url.Action("BuscarDireccionOsm", "DesignToolsAutocad")" data-ma-stl-map-building-buildings-url="@Url.Action("BuscarEdificiosOsm", "DesignToolsAutocad")" data-ma-stl-map-building-import-url="@Url.Action("ImportarEdificioOsm", "DesignToolsAutocad")" data-ma-stl-map-building-catastro-url="@Url.Action("ConsultarCatastroPorCoordenadas", "DesignToolsAutocad")" data-ma-stl-wall-connections-api-url="@Url.Action("SaveWallConnections", "Desing_2")" data-ma-stl-wall-diagnostics-api-url="@Url.Action("SaveWallDiagnostics", "Desing_2")" data-ma-stl-save-design-walls-api-url="@Url.Action("SaveDesignWalls", "Desing_2")" data-ma-stl-save-design-photo-api-url="@Url.Action("SaveDesignPhoto", "Desing_2")" data-ma-stl-save-client-offer-capture-api-url="@Url.Action("SaveCaptureFromViewer", "ClientOffer")" data-ma-stl-load-design-walls-api-url="@Url.Action("GetDesignWalls", "Desing_2")" data-ma-stl-material-count-url="@Url.Action("ListDesignMaterialCount", "Desing_2")" data-ma-stl-material-count-preview-url="@Url.Action("PreviewMaterialCount", "Desing_2")" data-ma-stl-material-count-clear-url="@Url.Action("ClearDesignMaterialCount", "Desing_2")" data-ma-stl-ai-commands-url="@Url.Action("AiCommands", "Desing_2")" data-ma-stl-ai-settings-url="@Url.Action("SaveAiUserSettings", "Desing_2")" data-ma-stl-design-id="@(Model.DesignId.HasValue ? Model.DesignId.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" data-ma-stl-client-offer-id="@(Model.ClientOfferId.HasValue ? Model.ClientOfferId.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" data-ma-stl-client-offer-capture-mode="@(Model.CaptureForClientOffer ? "1" : "0")" data-ma-stl-prop-spacing-mm="@Model.PropSpacingMm.ToString(System.Globalization.CultureInfo.InvariantCulture)" data-ma-stl-save-prop-spacing-api-url="@Url.Action("SavePropSpacing", "Desing_2")" data-ma-stl-wall3d-mat-wall="@Url.Content("~/Content/DesignTools/Material/concrete.png")" data-ma-stl-escape-cancel-toast="@MasterArticles.StlPreview_EscapeCancelToolsToast" data-ma-stl-user-floor-line-dim-edit-aria="@MasterArticles.StlPreview_UserFloorLineDimEditAria" data-ma-stl-user-floor-line-dim-edit-x-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaXAria" data-ma-stl-user-floor-line-dim-edit-z-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaZAria" data-ma-stl-user-floor-line-dim-edit-thickness-aria="@MasterArticles.StlPreview_UserFloorLineDimEditThicknessAria" data-ma-stl-user-floor-line-drag-handle-aria="@MasterArticles.StlPreview_UserFloorLineDragHandleAria" data-ma-stl-user-floor-line-p1-handle-aria="@MasterArticles.StlPreview_UserFloorLineP1HandleAria" data-ma-stl-user-floor-line-p2-handle-aria="@MasterArticles.StlPreview_UserFloorLineP2HandleAria">
+<div id="ma-stl-viewer-shell" class="desing2-stl-view-scope border rounded overflow-hidden bg-white h-100 d-flex flex-column border-secondary" data-ma-text-color1="@HttpUtility.HtmlAttributeEncode(textColor1Hex)" data-ma-text-color2="@HttpUtility.HtmlAttributeEncode(textColor2Hex)" data-ma-stl-show-rulers-toggle="true" data-ma-stl-desing2-persist-view="true" data-ma-stl-source-units="@HttpUtility.HtmlAttributeEncode(stlSrcUnits)" data-ma-stl-wall3d-api-url="@Url.Action("ProcesarLineasZwcad", "DesignToolsAutocad")" data-ma-stl-image-sketch-api-url="@Url.Action("DetectarEsquinasImagen", "DesignToolsAutocad")" data-ma-stl-image-sketch-resolve-api-url="@Url.Action("ResolverBocetoImagen", "DesignToolsAutocad")" data-ma-stl-map-building-search-url="@Url.Action("BuscarDireccionOsm", "DesignToolsAutocad")" data-ma-stl-map-building-buildings-url="@Url.Action("BuscarEdificiosOsm", "DesignToolsAutocad")" data-ma-stl-map-building-import-url="@Url.Action("ImportarEdificioOsm", "DesignToolsAutocad")" data-ma-stl-map-building-catastro-url="@Url.Action("ConsultarCatastroPorCoordenadas", "DesignToolsAutocad")" data-ma-stl-wall-connections-api-url="@Url.Action("SaveWallConnections", "Desing_2")" data-ma-stl-wall-diagnostics-api-url="@Url.Action("SaveWallDiagnostics", "Desing_2")" data-ma-stl-save-design-walls-api-url="@Url.Action("SaveDesignWalls", "Desing_2")" data-ma-stl-save-design-photo-api-url="@Url.Action("SaveDesignPhoto", "Desing_2")" data-ma-stl-save-client-offer-capture-api-url="@Url.Action("SaveCaptureFromViewer", "ClientOffer")" data-ma-stl-load-design-walls-api-url="@Url.Action("GetDesignWalls", "Desing_2")" data-ma-stl-material-count-url="@Url.Action("ListDesignMaterialCount", "Desing_2")" data-ma-stl-material-count-preview-url="@Url.Action("PreviewMaterialCount", "Desing_2")" data-ma-stl-material-count-clear-url="@Url.Action("ClearDesignMaterialCount", "Desing_2")" data-ma-stl-ai-commands-url="@Url.Action("AiCommands", "Desing_2")" data-ma-stl-ai-settings-url="@Url.Action("SaveAiUserSettings", "Desing_2")" data-ma-stl-design-id="@(Model.DesignId.HasValue ? Model.DesignId.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" data-ma-stl-client-offer-id="@(Model.ClientOfferId.HasValue ? Model.ClientOfferId.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" data-ma-stl-client-offer-capture-mode="@(Model.CaptureForClientOffer ? "1" : "0")" data-ma-stl-prop-spacing-mm="@Model.PropSpacingMm.ToString(System.Globalization.CultureInfo.InvariantCulture)" data-ma-stl-save-prop-spacing-api-url="@Url.Action("SavePropSpacing", "Desing_2")" data-ma-stl-wall3d-mat-wall="@Url.Content("~/Content/DesignTools/Material/concrete.png")" data-ma-stl-escape-cancel-toast="@MasterArticles.StlPreview_EscapeCancelToolsToast" data-ma-stl-user-floor-line-dim-edit-aria="@MasterArticles.StlPreview_UserFloorLineDimEditAria" data-ma-stl-user-floor-line-dim-edit-x-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaXAria" data-ma-stl-user-floor-line-dim-edit-z-aria="@MasterArticles.StlPreview_UserFloorLineDimEditDeltaZAria" data-ma-stl-user-floor-line-dim-edit-thickness-aria="@MasterArticles.StlPreview_UserFloorLineDimEditThicknessAria" data-ma-stl-user-floor-line-drag-handle-aria="@MasterArticles.StlPreview_UserFloorLineDragHandleAria" data-ma-stl-user-floor-line-p1-handle-aria="@MasterArticles.StlPreview_UserFloorLineP1HandleAria" data-ma-stl-user-floor-line-p2-handle-aria="@MasterArticles.StlPreview_UserFloorLineP2HandleAria">
     <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap px-2 py-2 border-bottom desing2-stl-actions-toolbar" id="master-article-stl-viewer-toolbar">
         <div class="d-flex align-items-center gap-2 min-w-0 flex-grow-1 desing2-stl-toolbar-leading">
             <span class="app-brand-logo demo flex-shrink-0">
@@ -261,6 +274,12 @@
                 <button type="button" class="plugin-blocks__tool is-on" id="plugin-blocks-tool-axes" title="@MasterArticles.StlPreview_XyzAxesToggleTitle" data-tool="axes">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M12 4v16M4 12h16"/></svg>
                 </button>
+                @* Solo con una vista del plano de montaje abierta (desing2-assembly-plan.js): pinta los paneles con el color del maestro. *@
+                <button type="button" class="plugin-blocks__tool" id="plugin-blocks-tool-colors" data-tool="colors" style="display:none" aria-pressed="false"
+                        title="@HttpUtility.HtmlAttributeEncode(maStr("StlPreview_AssemblyViewsColorsTitle", "Pintar en colores"))"
+                        aria-label="@HttpUtility.HtmlAttributeEncode(maStr("StlPreview_AssemblyViewsColorsTitle", "Pintar en colores"))">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M12 3a9 9 0 1 0 0 18c1.2 0 1.7-1 1.2-1.9-.5-1 0-2.1 1.2-2.1H17a4 4 0 0 0 4-4c0-5.5-4-10-9-10z"/><circle cx="7.5" cy="11.5" r="1.4" fill="currentColor"/><circle cx="10" cy="7.2" r="1.4" fill="currentColor"/><circle cx="15" cy="7.6" r="1.4" fill="currentColor"/></svg>
+                </button>
             </div>
             <div class="plugin-blocks__viewer">
                 <div class="plugin-blocks__viewer-host" id="plugin-blocks-viewer" data-article-preview="1"></div>
@@ -322,6 +341,30 @@
                 <div class="desing2-stl-render-overlay__progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="8">
                     <div id="ma-stl-formwork-render-bar" class="desing2-stl-render-overlay__progress-bar"></div>
                 </div>
+            </div>
+        </div>
+        @* Boceto desde imagen: cargador mientras se sube la foto y la IA la lee (mismo aspecto que el del encofrado).
+           Lo mueve maStlImageSketchRefreshLoading; Cancelar o Esc anulan la petición. *@
+        <div id="ma-stl-image-sketch-render-overlay"
+             class="desing2-stl-render-overlay d-none"
+             aria-live="polite"
+             aria-atomic="true"
+             aria-busy="false"
+             data-ma-stl-image-sketch-phase-upload="@HttpUtility.HtmlAttributeEncode(imageSketchLoadingUpload)"
+             data-ma-stl-image-sketch-phase-read="@HttpUtility.HtmlAttributeEncode(imageSketchLoadingRead)"
+             data-ma-stl-image-sketch-slow="@HttpUtility.HtmlAttributeEncode(imageSketchLoadingSlow)"
+             data-ma-stl-image-sketch-eta-seconds="@HttpUtility.HtmlAttributeEncode(formworkRenderingRemainingSeconds)"
+             data-ma-stl-image-sketch-eta-minute="@HttpUtility.HtmlAttributeEncode(formworkRenderingRemainingMinute)"
+             data-ma-stl-image-sketch-eta-minutes="@HttpUtility.HtmlAttributeEncode(formworkRenderingRemainingMinutes)">
+            <div class="desing2-stl-render-overlay__card desing2-stl-render-overlay__card--formwork shadow-lg">
+                <div class="spinner-border text-primary desing2-stl-render-overlay__spinner" role="status" aria-hidden="true"></div>
+                <div class="desing2-stl-render-overlay__text">@MasterArticles.StlPreview_ImageSketchProcessing</div>
+                <div id="ma-stl-image-sketch-render-status" class="desing2-stl-render-overlay__status"></div>
+                <div id="ma-stl-image-sketch-render-eta" class="desing2-stl-render-overlay__eta"></div>
+                <div class="desing2-stl-render-overlay__progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                    <div id="ma-stl-image-sketch-render-bar" class="desing2-stl-render-overlay__progress-bar"></div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="ma-stl-image-sketch-render-cancel">@MasterArticles.StlPreview_ImageSketchFormCancel</button>
             </div>
         </div>
         <div id="ma-stl-edge-rulers-overlay" class="ma-stl-edge-rulers-overlay d-none" aria-hidden="true">
@@ -1235,18 +1278,62 @@
         </div>
     </div>
     <div class="modal fade desing2-stl-image-sketch-error-modal" id="ma-stl-image-sketch-error-modal" tabindex="-1" aria-labelledby="ma-stl-image-sketch-error-modal-title" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="ma-stl-image-sketch-error-modal-dialog">
             <div class="modal-content border border-danger border-2">
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="ma-stl-image-sketch-error-modal-title">@imageSketchErrorModalTitle</h5>
+                    <h5 class="modal-title" id="ma-stl-image-sketch-error-modal-title"
+                        data-ma-stl-image-sketch-title-default="@imageSketchErrorModalTitle"
+                        data-ma-stl-image-sketch-title-conflict="@imageSketchConflictTitle">@imageSketchErrorModalTitle</h5>
                 </div>
                 <div class="modal-body">
-                    <p class="mb-0 text-danger fw-medium" id="ma-stl-image-sketch-error-modal-message"></p>
+                    <p class="mb-0 text-danger fw-medium" id="ma-stl-image-sketch-error-modal-message" style="white-space: pre-line"></p>
+                    @* Boceto con lo leído encima (SVG en píxeles de la imagen): lo rellena maStlImageSketchRenderErrorSketch. *@
+                    <div id="ma-stl-image-sketch-error-sketch" class="d-none mt-3">
+                        <div id="ma-stl-image-sketch-error-figure" class="position-relative mx-auto">
+                            <img id="ma-stl-image-sketch-error-img" class="d-block w-100 rounded border" alt="" />
+                            <svg id="ma-stl-image-sketch-error-overlay" class="position-absolute top-0 start-0 w-100 h-100" preserveAspectRatio="none" aria-hidden="true" focusable="false" style="pointer-events: none"></svg>
+                        </div>
+                        <ul class="list-inline small text-body-secondary text-center mt-2 mb-0">
+                            <li class="list-inline-item me-3"><span class="d-inline-block align-middle me-1 rounded" style="width: 1.5rem; height: 0.3rem; background: #dc3545"></span>@imageSketchLegendWrong</li>
+                            <li class="list-inline-item me-3"><span class="d-inline-block align-middle me-1 rounded" style="width: 1.5rem; height: 0.3rem; background: #fd7e14"></span>@imageSketchLegendRelated</li>
+                            <li class="list-inline-item me-3"><span class="d-inline-block align-middle me-1 rounded" style="width: 1.5rem; height: 0.3rem; background: #198754"></span>@imageSketchLegendOk</li>
+                            <li class="list-inline-item"><span class="d-inline-block align-middle me-1" style="width: 1.5rem; border-top: 2px dashed #0d6efd"></span>@imageSketchLegendWall</li>
+                        </ul>
+                    </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
                     <button type="button" class="btn btn-danger" id="ma-stl-image-sketch-error-modal-accept" data-bs-dismiss="modal">
                         @imageSketchErrorModalAccept
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* Boceto sin E y/o h: se piden aquí (maStlImageSketchShowParamsModal). Solo se ven las filas de lo que falta. *@
+    <div class="modal fade desing2-stl-image-sketch-params-modal" id="ma-stl-image-sketch-params-modal" tabindex="-1" aria-labelledby="ma-stl-image-sketch-params-modal-title" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ma-stl-image-sketch-params-modal-title">@imageSketchParamsTitle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@MasterArticles.StlPreview_ImageSketchFormCancel"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-body-secondary mb-3" id="ma-stl-image-sketch-params-reasons" style="white-space: pre-line"></p>
+                    <div class="mb-3" id="ma-stl-image-sketch-param-e-row">
+                        <label class="form-label" for="ma-stl-image-sketch-param-e">@imageSketchParamsThickness</label>
+                        <input type="text" inputmode="decimal" autocomplete="off" class="form-control" id="ma-stl-image-sketch-param-e" />
+                    </div>
+                    <div class="mb-1" id="ma-stl-image-sketch-param-h-row">
+                        <label class="form-label" for="ma-stl-image-sketch-param-h">@imageSketchParamsHeight</label>
+                        <input type="text" inputmode="decimal" autocomplete="off" class="form-control" id="ma-stl-image-sketch-param-h" />
+                    </div>
+                    <div class="text-danger small mt-2 d-none" id="ma-stl-image-sketch-params-error" role="alert"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@MasterArticles.StlPreview_ImageSketchFormCancel</button>
+                    <button type="button" class="btn btn-primary" id="ma-stl-image-sketch-params-accept"
+                            data-ma-stl-image-sketch-invalid-thickness="@imageSketchParamsInvalidThickness"
+                            data-ma-stl-image-sketch-invalid-height="@imageSketchParamsInvalidHeight">@imageSketchErrorModalAccept</button>
                 </div>
             </div>
         </div>
@@ -1274,7 +1361,6 @@
                     </button>
                     <button type="button" class="btn btn-primary" id="ma-stl-image-sketch-accept" disabled
                             data-ma-stl-image-sketch-no-file="@MasterArticles.StlPreview_ImageSketchFormNoFile"
-                            data-ma-stl-image-sketch-processing="@MasterArticles.StlPreview_ImageSketchProcessing"
                             data-ma-stl-image-sketch-error="@MasterArticles.StlPreview_ImageSketchError"
                             data-ma-stl-image-sketch-success="@MasterArticles.StlPreview_ImageSketchSuccess">
                         @MasterArticles.StlPreview_ImageSketchFormAccept
@@ -1707,8 +1793,15 @@
         return result;
     }
 
+    function hideAssemblyColorsTool() {
+        var colorsTool = document.getElementById('plugin-blocks-tool-colors');
+        if (colorsTool) colorsTool.style.display = 'none';
+        if (typeof window.maStlDesing2AssemblyShowFaces === 'function') window.maStlDesing2AssemblyShowFaces(false, null);
+    }
+
     function hideCountStl() {
         stlCode = '';
+        hideAssemblyColorsTool();
         var box = document.getElementById('desing2-article-stl');
         if (box) {
             box.classList.remove('is-viewer-max');
@@ -1728,6 +1821,7 @@
     }
 
     function openCountStl(opts) {
+        hideAssemblyColorsTool();
         restoreArticleStlBox();
         var box = document.getElementById('desing2-article-stl');
         var host = document.getElementById('plugin-blocks-viewer');
@@ -1760,6 +1854,32 @@
             hideCountStl();
         });
     }
+
+    /* Visor de vistas del plano de montaje (desing2-assembly-plan.js): usa esta misma caja y sus herramientas. */
+    window.Desing2ArticleStlBox = {
+        open: function (title, status) {
+            hideCountStl();
+            restoreArticleStlBox();
+            var box = document.getElementById('desing2-article-stl');
+            var titleEl = document.getElementById('desing2-article-stl-title');
+            if (box) {
+                box.hidden = false;
+                box.setAttribute('aria-hidden', 'false');
+            }
+            if (titleEl) titleEl.textContent = title || '';
+            window.Desing2ArticleStlBox.status(status);
+            return document.getElementById('plugin-blocks-viewer');
+        },
+        status: function (text) {
+            var statusEl = document.getElementById('desing2-article-stl-status');
+            if (statusEl) statusEl.textContent = text || '';
+        },
+        missingText: function () {
+            var box = document.getElementById('desing2-article-stl');
+            return box ? (box.getAttribute('data-missing') || '') : '';
+        },
+        hide: hideCountStl
+    };
 
     var ARTICLE_STL_RATIO = 320 / 300;
     var ARTICLE_STL_COOKIE = 'ma_stl_desing2_article_stl_box';

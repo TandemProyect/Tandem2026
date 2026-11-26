@@ -115,6 +115,12 @@
                         </button>
                     </div>
                 }
+                @if (!string.IsNullOrWhiteSpace(d.TextFilePath))
+                {
+                    <a class="btn btn-sm btn-outline-secondary" href="@Url.Action("DownloadFile", "DevelopIssue", new { id = Model.IdObject, detailId = d.IdObject })">
+                        <i class="ri ri-file-shield-2-line me-1"></i>@d.TextLabel
+                    </a>
+                }
             </div>
         }
     </div>

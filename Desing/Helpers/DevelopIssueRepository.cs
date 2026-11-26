@@ -91,6 +91,8 @@ namespace Desing.Helpers
         public string TextLabel { get; set; }
         public string TextObservation { get; set; }
         public string TextImagePath { get; set; }
+        /// <summary>Adjunto que no es imagen (.tnwall); <c>TextLabel</c> guarda su nombre original.</summary>
+        public string TextFilePath { get; set; }
         public string LinkMadeBy { get; set; }
         public string TextMadeBy { get; set; }
         public DateTime AddDateMade { get; set; }
@@ -182,7 +184,7 @@ UPDATE dbo.TSql_DevelopIssue
         public static List<DevelopIssueDetailRow> ListDetails(ConexionData db, long issueId)
         {
             return db.Database.SqlQuery<DevelopIssueDetailRow>(@"
-SELECT d.IdObject, d.LinkDevelopIssue, d.NumberOrder, d.TextLabel, d.TextObservation, d.TextImagePath,
+SELECT d.IdObject, d.LinkDevelopIssue, d.NumberOrder, d.TextLabel, d.TextObservation, d.TextImagePath, d.TextFilePath,
        d.LinkMadeBy, COALESCE(u.UserName, d.LinkMadeBy) AS TextMadeBy, d.AddDateMade
   FROM dbo.TSql_DevelopIssueDetail d
   LEFT JOIN dbo.AspNetUsers u ON u.Id = d.LinkMadeBy
@@ -190,7 +192,7 @@ SELECT d.IdObject, d.LinkDevelopIssue, d.NumberOrder, d.TextLabel, d.TextObserva
  ORDER BY d.NumberOrder, d.IdObject", issueId).ToList();
         }
 
-        public static long InsertDetail(ConexionData db, long issueId, string label, string observation, string imagePath, string userId)
+        public static long InsertDetail(ConexionData db, long issueId, string label, string observation, string imagePath, string filePath, string userId)
         {
             return db.Database.SqlQuery<long>(@"
 DECLARE @nextOrder INT = (
@@ -199,15 +201,16 @@ DECLARE @nextOrder INT = (
      WHERE LinkDevelopIssue = @p0 AND Is_Delete = 0
 );
 INSERT INTO dbo.TSql_DevelopIssueDetail
-    (TextLabel, LinkDevelopIssue, NumberOrder, TextObservation, TextImagePath,
+    (TextLabel, LinkDevelopIssue, NumberOrder, TextObservation, TextImagePath, TextFilePath,
      Is_Delete, Is_Active, LinkMadeBy, LinModifiedBy, AddDateMade, AddLastDateChange, Ntimeschanged)
 OUTPUT INSERTED.IdObject
-VALUES (@p1, @p0, @nextOrder, @p2, @p3, 0, 1, @p4, NULL, GETDATE(), NULL, 0)",
+VALUES (@p1, @p0, @nextOrder, @p2, @p3, @p5, 0, 1, @p4, NULL, GETDATE(), NULL, 0)",
                 issueId,
                 Cut(label ?? "", 500),
                 (object)Null(observation) ?? DBNull.Value,
                 (object)Null(Cut(imagePath, 1000)) ?? DBNull.Value,
-                userId ?? "system").Single();
+                userId ?? "system",
+                (object)Null(Cut(filePath, 1000)) ?? DBNull.Value).Single();
         }
 
         public static int UpdateDetailImage(ConexionData db, long issueId, long detailId, string imagePath, string userId)

@@ -267,6 +267,7 @@ function updateClipPlanes() {
 
 function applyColors() {
     if (!state || !state.meshes) return;
+    if (state.sceneMode) return;
     if (state.singleColorHex != null) {
         state.meshes.forEach(function (mesh) {
             if (mesh && mesh.material) mesh.material.color.setHex(state.singleColorHex);
@@ -326,19 +327,11 @@ function isPropOrClampStlUrl(url) {
         || /^puntal_tipo3(?:-2|-41|inf)?\.stl$/.test(file);
 }
 
-function loadStl(host, url, emptyText, phenolicUrl) {
-    dispose();
-    if (!host) return;
-    host.innerHTML = '';
-    const urls = [];
-    pushStlUrl(urls, url);
-    pushStlUrl(urls, phenolicUrl);
-    if (!urls.length) {
-        host.innerHTML = '<p class="plugin-blocks__empty">' + (emptyText || '') + '</p>';
-        return;
-    }
-    const singleColorHex = urls.some(isPropOrClampStlUrl) ? PROP_HEX : null;
-
+/**
+ * Escena, cámaras, controles, luces, ejes, bucle de dibujo y ajuste de tamaño del visor.
+ * Deja `state` listo (sin piezas). Lo usan loadStl y loadScene.
+ */
+function startViewer(host, singleColorHex) {
     const w = Math.max(host.clientWidth || 280, 120);
     const h = Math.max(host.clientHeight || 160, 120);
     const scene = new THREE.Scene();
@@ -364,10 +357,6 @@ function loadStl(host, url, emptyText, phenolicUrl) {
     scene.add(d2);
 
     const cubeEl = document.getElementById('plugin-blocks-vc-cube');
-    const loader = new STLLoader();
-    const geometryJobs = urls.map(function (stlUrl) {
-        return loadGeometry(loader, stlUrl).catch(function () { return null; });
-    });
 
     let alive = true;
     const axes = new THREE.AxesHelper(1);
@@ -378,6 +367,7 @@ function loadStl(host, url, emptyText, phenolicUrl) {
         renderer: renderer,
         ro: null,
         stop: function () { alive = false; },
+        isAlive: function () { return alive; },
         cameraIso: cameraIso,
         cameraOrtho: cameraOrtho,
         controls: controls,
@@ -389,6 +379,7 @@ function loadStl(host, url, emptyText, phenolicUrl) {
         axes: axes,
         meshes: [],
         singleColorHex: singleColorHex,
+        sceneMode: false,
         group: null,
         frameMesh: null,
         phenolicMesh: null,
@@ -399,8 +390,55 @@ function loadStl(host, url, emptyText, phenolicUrl) {
     syncCamButtons();
     syncToolButtons();
 
-    Promise.all(geometryJobs).then(function (geoms) {
+    function tick() {
         if (!alive) return;
+        requestAnimationFrame(tick);
+        controls.update();
+        const cam = activeCamera();
+        setViewCubeCssFromCamera(cubeEl, cam);
+        renderer.render(scene, cam);
+    }
+    tick();
+
+    const ro = new ResizeObserver(() => {
+        const nw = Math.max(host.clientWidth || w, 120);
+        const nh = Math.max(host.clientHeight || h, 120);
+        if (!state) return;
+        state.width = nw;
+        state.height = nh;
+        applyFrustum(state.cameraIso, nw, nh, state.dist);
+        applyFrustum(state.cameraOrtho, nw, nh, state.dist);
+        renderer.setSize(nw, nh);
+    });
+    ro.observe(host);
+    state.ro = ro;
+    return state;
+}
+
+function loadStl(host, url, emptyText, phenolicUrl) {
+    dispose();
+    if (!host) return;
+    host.innerHTML = '';
+    const urls = [];
+    pushStlUrl(urls, url);
+    pushStlUrl(urls, phenolicUrl);
+    if (!urls.length) {
+        host.innerHTML = '<p class="plugin-blocks__empty">' + (emptyText || '') + '</p>';
+        return;
+    }
+    const singleColorHex = urls.some(isPropOrClampStlUrl) ? PROP_HEX : null;
+
+    const loader = new STLLoader();
+    const geometryJobs = urls.map(function (stlUrl) {
+        return loadGeometry(loader, stlUrl).catch(function () { return null; });
+    });
+
+    const own = startViewer(host, singleColorHex);
+    const scene = own.scene;
+    const controls = own.controls;
+
+    Promise.all(geometryJobs).then(function (geoms) {
+        if (!own.isAlive()) return;
         const group = new THREE.Group();
         const hasPair = geoms.length > 1;
         const meshes = [];
@@ -430,29 +468,37 @@ function loadStl(host, url, emptyText, phenolicUrl) {
     }).catch(function () {
         host.innerHTML = '<p class="plugin-blocks__empty">' + (emptyText || '') + '</p>';
     });
+}
 
-    function tick() {
-        if (!alive) return;
-        requestAnimationFrame(tick);
-        controls.update();
-        const cam = activeCamera();
-        setViewCubeCssFromCamera(cubeEl, cam);
-        renderer.render(scene, cam);
+/**
+ * Muestra un grupo ya montado (p. ej. una cara de muro con sus piezas) con las mismas
+ * herramientas que loadStl. Respeta los colores de cada pieza; abre en la vista `face` (front).
+ */
+function loadScene(host, group, emptyText, face) {
+    dispose();
+    if (!host) return;
+    host.innerHTML = '';
+    const meshes = [];
+    if (group) {
+        group.traverse(function (obj) {
+            if (obj && obj.isMesh) meshes.push(obj);
+        });
     }
-    tick();
+    if (!meshes.length) {
+        host.innerHTML = '<p class="plugin-blocks__empty">' + (emptyText || '') + '</p>';
+        return;
+    }
 
-    const ro = new ResizeObserver(() => {
-        const nw = Math.max(host.clientWidth || w, 120);
-        const nh = Math.max(host.clientHeight || h, 120);
-        if (!state) return;
-        state.width = nw;
-        state.height = nh;
-        applyFrustum(state.cameraIso, nw, nh, state.dist);
-        applyFrustum(state.cameraOrtho, nw, nh, state.dist);
-        renderer.setSize(nw, nh);
-    });
-    ro.observe(host);
-    state.ro = ro;
+    const own = startViewer(host, null);
+    own.sceneMode = true;
+    own.scene.add(group);
+    own.group = group;
+    own.meshes = meshes;
+    frameObject(activeCamera(), own.controls, group);
+    bindControls(activeCamera());
+    lookFace(FACE_DIR[face] ? face : 'front');
+    applyAxes();
+    updateClipPlanes();
 }
 
 function bindViewerChrome() {
@@ -520,4 +566,4 @@ function bindViewerChrome() {
 
 bindViewerChrome();
 
-window.TandemCadBlockPreview = { loadStl, lookFace, setCameraMode, setColors };
+window.TandemCadBlockPreview = { loadStl, loadScene, lookFace, setCameraMode, setColors };

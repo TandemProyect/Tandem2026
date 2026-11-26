@@ -1,5 +1,6 @@
 /* Develop › US y Bugs: pop-up movible de alta (_DevelopIssuePopup.cshtml).
-   Capturas: adjuntar, pegar (Ctrl+V) o recortar la pestaña con dos clics (getDisplayMedia). */
+   Capturas: adjuntar, pegar (Ctrl+V) o recortar la pestaña con dos clics (getDisplayMedia).
+   Muros de Desing_2 (.tnwall): botón propio; viajan en el campo «walls». */
 (function (window, document) {
     'use strict';
 
@@ -11,6 +12,9 @@
     var count = pop.querySelector('.js-dev-issue-count');
     var msg = pop.querySelector('.js-dev-issue-msg');
     var fileInput = pop.querySelector('.js-dev-issue-file');
+    var wallInput = pop.querySelector('.js-dev-issue-wall-file');
+    function isWall(f) { return /\.tnwall$/i.test(f.name || ''); }
+    function field(f) { return isWall(f) ? 'walls' : 'captures'; }
     var BOX_COOKIE = 'developIssuePopupBox';
     var files = [];
     var stream = null;
@@ -108,10 +112,21 @@
         files.forEach(function (f, i) {
             var item = document.createElement('div');
             item.className = 'dev-issue-pop__thumb';
-            var img = document.createElement('img');
-            img.src = URL.createObjectURL(f);
-            img.alt = f.name;
-            img.onload = function () { URL.revokeObjectURL(img.src); };
+            var img;
+            if (isWall(f)) {
+                img = document.createElement('div');
+                img.className = 'dev-issue-pop__thumb--file';
+                img.title = f.name;
+                img.innerHTML = '<i class="ri ri-file-shield-2-line"></i>';
+                var name = document.createElement('span');
+                name.textContent = f.name;
+                img.appendChild(name);
+            } else {
+                img = document.createElement('img');
+                img.src = URL.createObjectURL(f);
+                img.alt = f.name;
+                img.onload = function () { URL.revokeObjectURL(img.src); };
+            }
             var rm = document.createElement('button');
             rm.type = 'button';
             rm.title = text('remove');
@@ -260,6 +275,15 @@
     pop.querySelector('.js-dev-issue-capture').addEventListener('click', capture);
     pop.querySelector('.js-dev-issue-attach').addEventListener('click', function () { fileInput.click(); });
     fileInput.addEventListener('change', function () { addFiles(fileInput.files); fileInput.value = ''; });
+    pop.querySelector('.js-dev-issue-wall').addEventListener('click', function () { wallInput.click(); });
+    wallInput.addEventListener('change', function () {
+        var list = Array.prototype.slice.call(wallInput.files || []);
+        var ok = list.filter(isWall);
+        say(ok.length < list.length ? text('wall') : '');
+        Array.prototype.push.apply(files, ok);
+        paintThumbs();
+        wallInput.value = '';
+    });
 
     document.addEventListener('paste', function (e) {
         if (!isOpen() || !e.clipboardData) return;
@@ -288,7 +312,7 @@
         var data = new FormData();
         data.append('__RequestVerificationToken', form.elements.__RequestVerificationToken.value);
         data.append('id', id);
-        data.append('captures', list[index], list[index].name);
+        data.append(field(list[index]), list[index], list[index].name);
         return post(pop.getAttribute('data-detail-url'), data).then(function () {
             files.splice(files.indexOf(list[index]), 1);
             return sendRest(id, list, index + 1);
@@ -309,7 +333,7 @@
             first = Promise.resolve();
         } else {
             var data = new FormData(form);
-            if (list.length) data.append('captures', list[0], list[0].name);
+            if (list.length) data.append(field(list[0]), list[0], list[0].name);
             first = post(pop.getAttribute('data-create-url'), data).then(function (r) {
                 createdId = r.id; createdUrl = r.url; createdMsg = r.message;
                 if (list.length) files.splice(files.indexOf(list[0]), 1);

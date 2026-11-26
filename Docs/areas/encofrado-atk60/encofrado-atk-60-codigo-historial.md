@@ -20,7 +20,7 @@
 |-----|-------|
 | Entrada, recortes, reparto | `RepositoryAtk60/Atk60WallsRepository.cs`: `SolveFromIdsJson`, `ApplyConnectedEndTrim`, `CornerTrimMm`, `PackAtk60LengthMm`, `BuildPanel270ElementsForThreeJs` |
 | L, T, X y tipo 2 | `Repository_Desing_2/Atk60/LCornerFormwork.cs`: `PlaceCorner`, `PlaceTPair`, `PlaceCaraE`, `PlacePlus`, `TryTipo2Step`, `ShiftWall`, `PlaceStepRemate`, `SumRematesAtCorner` |
-| Remates de cara | `RepositoryAtk60/Atk60CornerFaceRemate.cs` |
+| Remates de cara | `RepositoryAtk60/Atk60FaceRemateRules.cs` y `LCornerFormwork.CornerEnds` (`Atk60CornerFaceRemate.cs` se retiró el 25 nov 2026) |
 | Tapes | `Repository_Desing_2/Atk60/ExactWidthEndTape.cs` (`ResolveTape`), `EndFiller.cs` (tope 0,15), `FormTie.cs` |
 | Grapas y rigidizadores | `PanelClamp.cs`, `PanelStiffener.cs` |
 | Tirantes, puntales, ménsulas, pilares | `FormTie.cs`, `PushPullProp.cs`, `WorkingBracket.cs`, `PillarFormwork.cs` |

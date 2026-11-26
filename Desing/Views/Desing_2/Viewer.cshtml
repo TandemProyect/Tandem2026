@@ -546,6 +546,48 @@
     </div>
 </div>
 
+<style>
+    /* Plano de montaje: lista de vistas flotante y estrecha. No bloquea el diseño ni se cierra al elegir una cara. */
+    .desing2-assembly-views-panel { position: absolute; left: 3.25rem; top: 4.5rem; z-index: 43; width: 230px; max-width: calc(100% - 1rem); max-height: calc(100% - 5.5rem); display: flex; flex-direction: column; background: #fff; border: 1px solid #d5dbe3; border-radius: 0.7rem; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18); overflow: hidden; }
+    .desing2-assembly-views-panel[hidden] { display: none !important; }
+    .desing2-assembly-views-panel .desing2-material-count__head { cursor: grab; }
+    .desing2-assembly-views-panel .desing2-material-count__head.is-dragging { cursor: grabbing; }
+    .desing2-assembly-views-panel .desing2-assembly-views__search { padding: 0 0.7rem 0.45rem; }
+    .desing2-assembly-views-panel .desing2-assembly-views__search input { width: 100%; font-size: 0.78rem; padding: 0.15rem 0.4rem; border: 1px solid #d5dbe3; border-radius: 0.3rem; }
+    .desing2-assembly-views-panel .desing2-assembly-views__scroll { overflow-x: hidden; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
+    .desing2-assembly-views-panel table { font-size: 0.8rem; margin: 0; }
+    .desing2-assembly-views-panel td { vertical-align: middle; white-space: nowrap; padding: 0.3rem 0.7rem; }
+    .desing2-assembly-views-panel td.desing2-material-count__row-actions { width: 1%; text-align: right; }
+    .desing2-assembly-views-panel tr.is-selected td { background: #fff3e0; font-weight: 600; }
+</style>
+<section id="desing2AssemblyViewsModal" class="desing2-assembly-views-panel" hidden="hidden" aria-hidden="true" role="dialog" aria-label="@MasterArticles.StlPreview_AssemblyViewsAria"
+         data-view-url="@Url.Action("AssemblyView", "Desing_2")"
+         data-open="@MasterArticles.StlPreview_AssemblyViewsOpen"
+         data-empty="@MasterArticles.StlPreview_AssemblyViewsEmpty"
+         data-loading="@MasterArticles.StlPreview_AssemblyViewsLoading"
+         data-status="@MasterArticles.StlPreview_AssemblyViewsStatus"
+         data-approx="@MasterArticles.StlPreview_AssemblyViewsApprox"
+         data-error="@MasterArticles.StlPreview_AssemblyViewsError"
+         data-plan-formwork="@MasterArticles.StlPreview_AssemblyViewsPlanFormwork"
+         data-plan-walls="@MasterArticles.StlPreview_AssemblyViewsPlanWalls"
+         data-plan-status="@MasterArticles.StlPreview_AssemblyViewsPlanStatus">
+    @* US «Generar plano de montaje»: lista de vistas por cara (desing2-assembly-plan.js). Se mueve por la cabecera; al elegir una cara sigue abierta y la cara se ve en el visor del recuento (#desing2-article-stl). *@
+    <div class="desing2-material-count__head" id="desing2AssemblyViewsHead">
+        <span class="desing2-material-count__title">@MasterArticles.StlPreview_AssemblyViewsTitle</span>
+        <button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" id="desing2AssemblyViewsClose" aria-label="@Common.Aria_CloseModal">
+            <i class="icon-base ri ri-close-line" aria-hidden="true"></i>
+        </button>
+    </div>
+    <div class="desing2-assembly-views__search">
+        <input type="search" id="desing2AssemblyViewsSearch" placeholder="@MasterArticles.StlPreview_AssemblyViewsSearch" aria-label="@MasterArticles.StlPreview_AssemblyViewsSearch" />
+    </div>
+    <div class="desing2-assembly-views__scroll">
+        <table class="table table-sm table-hover w-100" cellspacing="0">
+            <tbody id="desing2AssemblyViewsBody"></tbody>
+        </table>
+    </div>
+</section>
+
 <div class="modal fade" id="desing2PhaseModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="true"
      aria-labelledby="desing2PhaseTitle"
      data-wall-option="@MasterArticles.StlPreview_Desing2PhaseWallOption"
@@ -663,6 +705,7 @@
     <script src="@Url.Content("~/Scripts/Desing2/desing2-stl-viewer-toolbar-wiring.js")?v=20261119h"></script>
     <script src="@Url.Content("~/Scripts/Desing2/desing2-wall-exchange.js")?v=20261029a"></script>
     <script src="@Url.Content("~/Scripts/Desing2/desing2-dwg-import.js")?v=20261112d"></script>
+    <script type="module" src="@Url.Content("~/Scripts/Desing2/desing2-assembly-plan.js")?v=20261125n"></script>
     <script type="module" src="@Url.Content("~/Scripts/Desing2/desing2-phase-start.js")?v=20261030i"></script>
     <script type="module" src="@Url.Content("~/Scripts/Desing2/desing2-material-count-panel-name.js")?v=20261120a"></script>
     <script src="@Url.Content("~/Scripts/Desing2/desing2-dim-kinds.js")?v=20261116a"></script>

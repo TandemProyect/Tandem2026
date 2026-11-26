@@ -25,7 +25,7 @@ Conexión: la cadena `IdentityConnection` de `Desing/Web.config` (no mostrar ni 
 -- Leer la ficha N
 SELECT IdObject, TextLabel, TextType, TextUrgency, TextState, DateIssue
 FROM dbo.TSql_DevelopIssue WHERE IdObject = @N AND Is_Delete = 0;
-SELECT IdObject, TextObservation, TextImagePath, AddDateMade
+SELECT IdObject, TextLabel, TextObservation, TextImagePath, TextFilePath, AddDateMade
 FROM dbo.TSql_DevelopIssueDetail WHERE LinkDevelopIssue = @N AND Is_Delete = 0 ORDER BY NumberOrder, IdObject;
 SELECT TextSource, [TextSize], NumberHours, TextArea, TextAnalysis, AddDateMade
 FROM dbo.TSql_DevelopIssueAssessment WHERE LinkDevelopIssue = @N AND Is_Delete = 0 ORDER BY IdObject DESC;
@@ -48,14 +48,17 @@ WHERE IdObject = @N AND Is_Delete = 0;
 
 Capturas: `TextImagePath` es una ruta relativa al sitio (`/Files/DevelopIssue/aaaa-mm/…`). Descargar de `https://www.tdesing.net` + ruta; las creadas en local están en `Desing/Files/DevelopIssue/`. Nunca `DELETE`.
 
+Muros (`.tnwall`): `TextFilePath` es la ruta del archivo de muros exportado desde el visor Desing_2 y `TextLabel` su nombre original. En la web se descarga con `/DevelopIssue/DownloadFile?id=N&detailId=D` (con sesión; IIS no sirve esa extensión como estático). Para leerlo: `node Desing/IA/tools/decrypt-wall-export.mjs archivo.tnwall` (ver `Docs/areas/desing2-muros-3d/muro-json-cifrado.md`).
+
 ### Vía B — HTTP con token (agente remoto sin acceso a la base: Devin)
 
-Cabecera `X-Develop-Agent-Token` con el valor de `DEVELOP_AGENT_TOKEN` (variable de entorno o `appSettings` del servidor, mínimo 32 caracteres). Sin token configurado, las tres acciones responden 404. El token nunca va al repositorio.
+Cabecera `X-Develop-Agent-Token` con el valor de `DEVELOP_AGENT_TOKEN` (variable de entorno o `appSettings` del servidor, mínimo 32 caracteres). Sin token configurado, las acciones responden 404. El token nunca va al repositorio.
 
 | Acción | Uso |
 |---|---|
 | `GET /DevelopIssue/AgentList` | US y bugs sin cerrar, con su última valoración. |
-| `GET /DevelopIssue/AgentIssue?id=N` | Ficha: datos, observaciones, `imageUrl` de cada captura y valoraciones. |
+| `GET /DevelopIssue/AgentIssue?id=N` | Ficha: datos, observaciones, `imageUrl` de cada captura, `fileUrl` y `fileName` de cada `.tnwall` y valoraciones. |
+| `GET /DevelopIssue/AgentFile?id=N&detailId=D` | Descarga un `.tnwall` adjunto (es el `fileUrl`). |
 | `POST /DevelopIssue/AgentReport` | Campos opcionales: `size`+`hours`+`area`+`analysis` (valoración), `observation` (nota en el detalle), `state`. |
 
 ```bash
@@ -68,7 +71,7 @@ curl -s -H "X-Develop-Agent-Token: $DEVELOP_AGENT_TOKEN" -X POST "$BASE/DevelopI
 
 ## Procedimiento: «valora la id N» / «arregla el bug o la US id N»
 
-1. Leer la ficha (vía A o B) y abrir todas las capturas.
+1. Leer la ficha (vía A o B), abrir todas las capturas y descifrar los `.tnwall` adjuntos.
 2. Localizar en el repositorio los archivos afectados (por áreas, según `AGENTS.md`).
 3. Valorar y anotar la valoración en la ficha (tamaño, horas, zona, análisis).
 4. Si solo se pidió valorar, parar aquí y resumir al usuario.

@@ -30,6 +30,7 @@ sqlcmd -S 'NUCBOXG5\SQLEXPRESS' -E -d <base> -I -f 65001 -b -i "<ruta absoluta>.
 | **Empresas** con usuarios del sistema (`TSql_Company`) | sí | sí |
 | **Negocio y pruebas:** diseños, ofertas, obras, clientes, artículos de prueba, usuarios de prueba | sí | **no** |
 | **Oferta al cliente** (`TSql_ClientOffer`, `TSql_ClientOfferBrand`, `TSql_ClientOfferBrandLogo`, `TSql_ClientOfferBrandText`, `TSql_ClientOfferSection`, `TSql_ClientOfferAiMessage`, `TSql_ClientOfferContact`, `TSql_ClientOfferContactStateType`, `TSql_ClientOfferContactState`, `TSql_ClientOfferCapture`): el esquema irá a producción cuando Juan lo pida; las filas son negocio y no se copian | sí | esquema pendiente |
+| **Plano de montaje** (`TSql_DesignAssemblyView`, `TSql_DesignAssemblyViewElement`, columna `TSql_DesignWallArticle.NumberFaceId`; scripts `2026-11-25_*`, aplicados en las dos el 25/11/2026): las filas son negocio y no se copian | sí | sí (esquema) |
 
 Si una tabla no está en la lista, pregunta a Juan y añádela aquí.
 

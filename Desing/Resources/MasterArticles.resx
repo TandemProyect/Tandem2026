@@ -346,6 +346,99 @@
   <data name="State_Yes" xml:space="preserve">
     <value>Sí</value>
   </data>
+  <data name="StlPreview_AssemblyPlanAria" xml:space="preserve">
+    <value>Generar las vistas del plano de montaje</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanDone" xml:space="preserve">
+    <value>Plano de montaje: {0} vistas con {1} piezas</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanError" xml:space="preserve">
+    <value>No se pudo generar el plano de montaje</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanNeedDesign" xml:space="preserve">
+    <value>Abre un diseño para generar el plano de montaje</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanNoPieces" xml:space="preserve">
+    <value>No hay encofrado de estos muros: pulsa Encofrar y vuelve a generar el plano</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanNoWalls" xml:space="preserve">
+    <value>El diseño no tiene muros guardados</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanOutside" xml:space="preserve">
+    <value>{0} piezas de muros que ya no existen: no salen</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanSaving" xml:space="preserve">
+    <value>Guardando el recuento…</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanSavingWalls" xml:space="preserve">
+    <value>Guardando los muros…</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanTitle" xml:space="preserve">
+    <value>Plano de montaje</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanUnchanged" xml:space="preserve">
+    <value>Sin cambios en el diseño: vistas ya generadas</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanWithoutFace" xml:space="preserve">
+    <value>{0} piezas sin cara</value>
+  </data>
+  <data name="StlPreview_AssemblyPlanWorking" xml:space="preserve">
+    <value>Generando plano de montaje…</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsApprox" xml:space="preserve">
+    <value>{0} aproximadas: encofra para verlas exactas</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsAria" xml:space="preserve">
+    <value>Vistas por cara de los muros</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsColAngle" xml:space="preserve">
+    <value>Grados</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsColPieces" xml:space="preserve">
+    <value>Piezas</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsColView" xml:space="preserve">
+    <value>Vista</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsColWall" xml:space="preserve">
+    <value>Muro</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsColorsTitle" xml:space="preserve">
+    <value>Pintar en colores</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsEmpty" xml:space="preserve">
+    <value>No hay vistas</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsError" xml:space="preserve">
+    <value>No se pudo cargar la vista</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsLoading" xml:space="preserve">
+    <value>Cargando vista…</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsOpen" xml:space="preserve">
+    <value>Ver la vista</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsPlanFormwork" xml:space="preserve">
+    <value>Planta</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsPlanStatus" xml:space="preserve">
+    <value>{0} vistas</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsPlanWalls" xml:space="preserve">
+    <value>Planta muros</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsSearch" xml:space="preserve">
+    <value>Buscar:</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsStatus" xml:space="preserve">
+    <value>{0} · Muro {1} · {2} piezas</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsTab" xml:space="preserve">
+    <value>Vistas</value>
+  </data>
+  <data name="StlPreview_AssemblyViewsTitle" xml:space="preserve">
+    <value>Vistas del plano de montaje</value>
+  </data>
   <data name="StlPreview_CameraIso" xml:space="preserve">
     <value>Isométrica</value>
   </data>
@@ -1088,7 +1181,7 @@
     <value>Ocultar panel hasta acercar de nuevo el puntero al borde derecho</value>
   </data>
   <data name="StlPreview_Desing2RightMenuImageSketchAria" xml:space="preserve">
-    <value>Importar boceto desde imagen — analizar y convertir a líneas de planta</value>
+    <value>Importar boceto desde imagen — analizar y convertir en muros</value>
   </data>
   <data name="StlPreview_Desing2RightMenuMapBuildingAria" xml:space="preserve">
     <value>Importar edificio desde mapa 3D — buscar dirección, seleccionar edificio e insertar muros con caras</value>
@@ -1474,6 +1567,9 @@
   <data name="StlPreview_GroupTitle" xml:space="preserve">
     <value>Grupos</value>
   </data>
+  <data name="StlPreview_ImageSketchConflictTitle" xml:space="preserve">
+    <value>Las cotas del boceto no cuadran</value>
+  </data>
   <data name="StlPreview_ImageSketchError" xml:space="preserve">
     <value>No se pudo analizar la imagen: {0}</value>
   </data>
@@ -1493,7 +1589,7 @@
     <value>Seleccionar imagen…</value>
   </data>
   <data name="StlPreview_ImageSketchFormHint" xml:space="preserve">
-    <value>Adjunte un plano o boceto (JPG/PNG) con líneas de muro y cotas E/e y H/h.</value>
+    <value>Foto de un boceto a mano (JPG/PNG): muros con doble línea, cotas en metros (7,00) con sus líneas de referencia, E=0,30 (espesor) y h=3,00 (altura).</value>
   </data>
   <data name="StlPreview_ImageSketchFormNoFile" xml:space="preserve">
     <value>Seleccione una imagen</value>
@@ -1501,14 +1597,50 @@
   <data name="StlPreview_ImageSketchFormTitle" xml:space="preserve">
     <value>Boceto desde imagen</value>
   </data>
+  <data name="StlPreview_ImageSketchLegendOk" xml:space="preserve">
+    <value>Cota que cuadra</value>
+  </data>
+  <data name="StlPreview_ImageSketchLegendRelated" xml:space="preserve">
+    <value>Cotas con las que se compara</value>
+  </data>
+  <data name="StlPreview_ImageSketchLegendWall" xml:space="preserve">
+    <value>Muro leído (cara exterior)</value>
+  </data>
+  <data name="StlPreview_ImageSketchLegendWrong" xml:space="preserve">
+    <value>Cota que no cuadra</value>
+  </data>
+  <data name="StlPreview_ImageSketchLoadingRead" xml:space="preserve">
+    <value>La IA está leyendo el boceto: muros, cotas, E y h…</value>
+  </data>
+  <data name="StlPreview_ImageSketchLoadingSlow" xml:space="preserve">
+    <value>Está tardando más de lo normal… {0}</value>
+  </data>
+  <data name="StlPreview_ImageSketchLoadingUpload" xml:space="preserve">
+    <value>Subiendo la imagen… {0} %</value>
+  </data>
+  <data name="StlPreview_ImageSketchParamsHeight" xml:space="preserve">
+    <value>Altura del muro h (m)</value>
+  </data>
+  <data name="StlPreview_ImageSketchParamsInvalidHeight" xml:space="preserve">
+    <value>La altura tiene que estar entre 0,50 y 12,00 m</value>
+  </data>
+  <data name="StlPreview_ImageSketchParamsInvalidThickness" xml:space="preserve">
+    <value>El espesor tiene que estar entre 0,05 y 1,00 m</value>
+  </data>
+  <data name="StlPreview_ImageSketchParamsThickness" xml:space="preserve">
+    <value>Espesor del muro E (m)</value>
+  </data>
+  <data name="StlPreview_ImageSketchParamsTitle" xml:space="preserve">
+    <value>Faltan datos del boceto</value>
+  </data>
   <data name="StlPreview_ImageSketchPickInstruction" xml:space="preserve">
-    <value>Clic en planta para insertar el boceto como líneas. Esc cancelar</value>
+    <value>Clic en planta para situar la esquina inferior izquierda (cara exterior) del boceto. Esc cancelar</value>
   </data>
   <data name="StlPreview_ImageSketchProcessing" xml:space="preserve">
     <value>Analizando imagen…</value>
   </data>
   <data name="StlPreview_ImageSketchSuccess" xml:space="preserve">
-    <value>Se insertaron {0} línea(s) desde el boceto</value>
+    <value>Se insertaron {0} muro(s) desde el boceto</value>
   </data>
   <data name="StlPreview_InsertCornerToolInstructionFirst" xml:space="preserve">
     <value>Clic en la rejilla para la esquina exterior de la L (punto de inserción).</value>

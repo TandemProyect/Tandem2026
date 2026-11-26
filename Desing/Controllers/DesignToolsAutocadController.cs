@@ -1928,6 +1928,11 @@ namespace Desing.Controllers
             }
         }
 
+        /// <summary>
+        /// Boceto de planta a mano (foto) → muros. El modelo de visión solo lee el dibujo; <see cref="SketchPlanSolver"/>
+        /// resuelve las medidas con las cotas. Si las cotas no cuadran no se inserta nada: <c>Exito=false</c> y
+        /// <c>Datos.Boceto</c> trae lo leído para señalarlo sobre la foto. Los plugins CAD usan <c>PolilineasADibujar</c>.
+        /// </summary>
         [HttpPost]
         [AllowAnonymous]
         public async Task<ActionResult> DetectarEsquinasImagen()
@@ -1938,63 +1943,15 @@ namespace Desing.Controllers
                     return Json(new ApiResponse<DeteccionEsquinasLDTO> { Exito = false, Mensaje = "No se recibió ninguna imagen" });
 
                 var file = Request.Files[0];
-                var imagenBytes = new byte[file.ContentLength];
-                file.InputStream.Read(imagenBytes, 0, file.ContentLength);
-
-                var imageService = new ImageAnalysisService();
-                var (lineasSimples, espesorMuro, alturaMuro) = await imageService.AnalizarImagenAsync(imagenBytes, file.ContentType);
-
-                System.Diagnostics.Debug.WriteLine($"[ImageAnalysis] {lineasSimples.Count} líneas extraídas, espesor: {espesorMuro}, altura: {alturaMuro}");
-
-                if (lineasSimples == null || lineasSimples.Count == 0)
+                byte[] imagenBytes;
+                using (var ms = new MemoryStream())
                 {
-                    return Json(new ApiResponse<DeteccionEsquinasLDTO>
-                    {
-                        Exito = false,
-                        Mensaje = "No se detectaron líneas de muro en la imagen. Asegúrate de que los muros estén dibujados con trazo claro y sin demasiado ruido.",
-                        Datos = null
-                    });
+                    file.InputStream.CopyTo(ms);
+                    imagenBytes = ms.ToArray();
                 }
 
-                if (espesorMuro == null)
-                {
-                    return Json(new ApiResponse<DeteccionEsquinasLDTO>
-                    {
-                        Exito = false,
-                        Mensaje = "Falta la cota de espesor. Añade E=0,30 en la línea de cota del espesor (entre las dos líneas del muro) y vuelve a intentarlo.",
-                        Datos = null
-                    });
-                }
-
-                // Modo boceto: preparación suave (cotas/vertices ya vienen ordenados; no fusionar ni filtrar).
-                var lineasEje = SketchWallBuilder.PrepararLineasEjeBoceto(lineasSimples);
-                if (lineasEje.Count == 0)
-                {
-                    return Json(new ApiResponse<DeteccionEsquinasLDTO>
-                    {
-                        Exito = false,
-                        Mensaje = "Tras filtrar cotas y ruido no quedaron tramos de muro. Revisa que el boceto tenga solo líneas gruesas de perímetro.",
-                        Datos = null
-                    });
-                }
-
-                // Fase 1: solo perímetro exterior en planta (espesor/altura en pasos posteriores).
-                var resultado = SketchWallBuilder.ConstruirBocetoSoloEje(lineasEje);
-                resultado.LineasEje = lineasEje;
-
-                SketchWallBuilder.ObtenerBoundsPublico(lineasEje, out _, out _, out double maxX, out double maxY);
-                resultado.Mensaje =
-                    $"Imagen analizada ({file.FileName}): {lineasEje.Count} tramos, " +
-                    $"{maxX / 1000.0:0.##}×{maxY / 1000.0:0.##} m. " +
-                    $"E={espesorMuro.Value * 1000:0} mm. " +
-                    resultado.Mensaje;
-
-                return Json(new ApiResponse<DeteccionEsquinasLDTO>
-                {
-                    Exito = true,
-                    Mensaje = resultado.Mensaje,
-                    Datos = resultado
-                });
+                var analisis = await new ImageAnalysisService().AnalizarBocetoAsync(imagenBytes);
+                return RespuestaBocetoImagen(analisis, file.FileName);
             }
             catch (Exception ex)
             {
@@ -2005,6 +1962,162 @@ namespace Desing.Controllers
                     Datos = null
                 });
             }
+        }
+
+        /// <summary>
+        /// Boceto desde imagen, segundo paso sin IA: recalcula los muros con lo ya leído (contorno y cotas en píxeles,
+        /// tal y como lo devolvió <see cref="DetectarEsquinasImagen"/>) y el espesor / la altura que ha escrito el
+        /// usuario porque el boceto no los traía. Misma respuesta que <see cref="DetectarEsquinasImagen"/>.
+        /// </summary>
+        [HttpPost]
+        [AllowAnonymous]
+        public ActionResult ResolverBocetoImagen()
+        {
+            const int MaxElementos = 500;
+            try
+            {
+                var req = ReadJsonBody<BocetoResolverRequestDTO>();
+                if (req == null || req.ContornoPx == null || req.Cotas == null
+                    || req.ContornoPx.Count > MaxElementos || req.Cotas.Count > MaxElementos)
+                {
+                    return Json(new ApiResponse<DeteccionEsquinasLDTO>
+                    {
+                        Exito = false,
+                        Mensaje = "Solicitud inválida: faltan el contorno o las cotas del boceto."
+                    });
+                }
+
+                var lectura = new SketchReading
+                {
+                    Contorno = req.ContornoPx.Select(LeerPx).ToList(),
+                    Cotas = req.Cotas
+                        .Where(c => c != null && c.Valor > 0 && (c.Eje == "H" || c.Eje == "V"))
+                        .Select(c => new SketchCotaLeida
+                        {
+                            Valor = c.Valor,
+                            Eje = c.Eje,
+                            P1 = LeerPx(c.P1),
+                            P2 = LeerPx(c.P2),
+                            V1 = c.V1,
+                            V2 = c.V2
+                        })
+                        .ToList()
+                };
+                SketchPlanSolver.AplicarEspesorYAltura(lectura, req.EspesorM, req.AlturaM);
+
+                var analisis = new SketchImageAnalysis
+                {
+                    Lectura = lectura,
+                    ImagenAncho = req.ImagenAncho,
+                    ImagenAlto = req.ImagenAlto
+                };
+                return RespuestaBocetoImagen(analisis, "boceto");
+            }
+            catch (Exception ex)
+            {
+                return Json(new ApiResponse<DeteccionEsquinasLDTO>
+                {
+                    Exito = false,
+                    Mensaje = $"Error al calcular el boceto: {ex.Message}",
+                    Datos = null
+                });
+            }
+        }
+
+        private static SketchPx LeerPx(double[] p) =>
+            p != null && p.Length >= 2 ? new SketchPx(p[0], p[1]) : null;
+
+        /// <summary>Resuelve la planta con lo leído y arma la respuesta común de los dos pasos del boceto.</summary>
+        private ActionResult RespuestaBocetoImagen(SketchImageAnalysis analisis, string nombre)
+        {
+            var plano = SketchPlanSolver.Resolver(analisis.Lectura);
+            var boceto = CrearBocetoImagenDto(analisis, plano);
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[Boceto] {nombre} ({analisis.Modelo ?? "sin IA"}): contorno {analisis.Lectura.Contorno.Count} pts, " +
+                $"{analisis.Lectura.Cotas.Count} cotas → {(plano.Ok ? "OK" : plano.Error)}");
+
+            if (!plano.Ok)
+            {
+                return Json(new ApiResponse<DeteccionEsquinasLDTO>
+                {
+                    Exito = false,
+                    Mensaje = plano.Error,
+                    Datos = new DeteccionEsquinasLDTO
+                    {
+                        Esquinas = new List<EsquinaLDTO>(),
+                        PuntosADibujar = new List<PuntoDTO>(),
+                        PolilineasADibujar = new List<PolilineaDTO>(),
+                        Boceto = boceto,
+                        Mensaje = plano.Error
+                    }
+                });
+            }
+
+            var lineasExterior = new List<LineaDTO>();
+            for (int i = 0; i < plano.Exterior.Count; i++)
+            {
+                var a = plano.Exterior[i];
+                var b = plano.Exterior[(i + 1) % plano.Exterior.Count];
+                lineasExterior.Add(new LineaDTO { Tipo = "Line", InicioX = a.X, InicioY = a.Y, FinX = b.X, FinY = b.Y });
+            }
+
+            // Mismo perímetro cerrado (ObjetoDB2d) que antes para ZWCAD/AutoCAD.
+            var resultado = SketchWallBuilder.ConstruirBocetoSoloEje(lineasExterior);
+            resultado.LineasEje = lineasExterior;
+            resultado.TotalMurosRectos = boceto.Muros.Count;
+            resultado.Boceto = boceto;
+            resultado.Mensaje =
+                $"Boceto ({nombre}): {boceto.Muros.Count} muros, " +
+                $"{SketchPlanSolver.Fmt(plano.AnchoMm / 1000.0)} × {SketchPlanSolver.Fmt(plano.FondoMm / 1000.0)} m, " +
+                $"E={SketchPlanSolver.Fmt(plano.EspesorMm / 1000.0)} m, " +
+                (plano.AlturaMm.HasValue ? $"h={SketchPlanSolver.Fmt(plano.AlturaMm.Value / 1000.0)} m." : "h por defecto.") +
+                (plano.Avisos.Count > 0 ? " " + string.Join(" ", plano.Avisos) : "");
+
+            return Json(new ApiResponse<DeteccionEsquinasLDTO>
+            {
+                Exito = true,
+                Mensaje = resultado.Mensaje,
+                Datos = resultado
+            });
+        }
+
+        private static BocetoImagenDTO CrearBocetoImagenDto(SketchImageAnalysis analisis, SketchPlanResult plano)
+        {
+            var lectura = analisis.Lectura;
+            var muros = new List<BocetoMuroDTO>();
+            for (int i = 0; i < plano.Eje.Count; i++)
+            {
+                var a = plano.Eje[i];
+                var b = plano.Eje[(i + 1) % plano.Eje.Count];
+                muros.Add(new BocetoMuroDTO { X1 = a.X, Y1 = a.Y, X2 = b.X, Y2 = b.Y });
+            }
+
+            return new BocetoImagenDTO
+            {
+                EspesorMm = plano.EspesorMm,
+                AlturaMm = plano.AlturaMm,
+                Muros = muros,
+                Avisos = plano.Avisos,
+                Conflictos = plano.Conflictos,
+                FaltaEspesor = plano.FaltaEspesor,
+                FaltaAltura = plano.FaltaAltura,
+                DatosQueFaltan = plano.DatosQueFaltan,
+                ImagenAncho = analisis.ImagenAncho,
+                ImagenAlto = analisis.ImagenAlto,
+                // Se conservan los null: V1/V2 de las cotas son índices de esta lista.
+                ContornoPx = lectura.Contorno.Select(p => p == null ? null : new[] { p.X, p.Y }).ToList(),
+                Cotas = lectura.Cotas.Select((c, i) => new BocetoCotaDTO
+                {
+                    Valor = c.Valor,
+                    Eje = c.Eje,
+                    P1 = c.P1 == null ? null : new[] { c.P1.X, c.P1.Y },
+                    P2 = c.P2 == null ? null : new[] { c.P2.X, c.P2.Y },
+                    V1 = c.V1,
+                    V2 = c.V2,
+                    Estado = i < plano.EstadoCotas.Count ? plano.EstadoCotas[i] : SketchPlanSolver.CotaIgnorada
+                }).ToList()
+            };
         }
 
         /// <summary>

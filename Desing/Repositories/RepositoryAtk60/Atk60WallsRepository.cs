@@ -969,7 +969,7 @@ namespace Desing.Repositories.RepositoryAtk60
                 .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
             var protectionWoodPending = true;
-            var faceRemates = JoinCornerFaceRemates(walls);
+            var cornerEnds = LCornerFormwork.CornerEnds(walls, anchors);
             foreach (var moduloWall in modulos)
             {
                 if (moduloWall == null || string.IsNullOrWhiteSpace(moduloWall.IdWall))
@@ -1007,23 +1007,24 @@ namespace Desing.Repositories.RepositoryAtk60
                 }
 
                 var remateMm = Math.Round(moduloWall.M_Remate * 1000d, 3);
-                FaceRemateSides faceSides = null;
-                FaceRemateSides foundSides;
-                if (faceRemates.TryGetValue(moduloWall.IdWall, out foundSides))
-                {
-                    faceSides = foundSides;
-                }
-
-                var hasFaceRemate = faceSides != null && (faceSides.HasPos || faceSides.HasNeg);
-                var chunks = BuildAtk60AlongChunks(moduloWall, hasFaceRemate);
                 var skipRemate = ExactWidthEndTape.SuppressesRemate(wall)
                     && remateMm > 1d && remateMm <= Atk60StepMm;
+                var wallRunMm = ExactWidthEndTape.RunMm(anchor, wall);
+                int wallCornerEnds;
+                cornerEnds.TryGetValue(moduloWall.IdWall, out wallCornerEnds);
+                var cornerLeadMm = 0d;
+                var cornerTrailMm = 0d;
+                var cornerRemateAlongMm = 0d;
+                // Con L, el remate del tramo va pegado a la esquina, en las dos caras.
+                var cornerRemate = !skipRemate && Atk60FaceRemateRules.CornerRemate(
+                    wallCornerEnds, remateMm, wallRunMm,
+                    out cornerLeadMm, out cornerTrailMm, out cornerRemateAlongMm);
+                var chunks = BuildAtk60AlongChunks(moduloWall, cornerRemate);
                 var leadMm = skipRemate
                     && ExactWidthEndTape.ReplacesRemate(wall, true)
                     && !ExactWidthEndTape.ReplacesRemate(wall, false)
                     ? remateMm
                     : 0d;
-                var wallRunMm = ExactWidthEndTape.RunMm(anchor, wall);
                 var bothTapes = ExactWidthEndTape.ReplacesRemate(wall, true)
                     && ExactWidthEndTape.ReplacesRemate(wall, false);
                 var moduleSpanMm = bothTapes ? 600d : 0d;
@@ -1046,26 +1047,26 @@ namespace Desing.Repositories.RepositoryAtk60
                 var endJointMm = skipRemate && leadMm <= 0d ? wallRunMm - remateMm : wallRunMm;
                 var stiffenerAlongMm = new List<double>();
                 var cursorMm = leadMm - halfSolapeMm;
-                if (hasFaceRemate)
+                if (cornerRemate)
                 {
-                    var faceLead = FaceRemateLeadMm(faceSides, wallRunMm);
-                    var faceTrail = FaceRemateTrailMm(faceSides, wallRunMm);
                     cursorMm += Atk60FaceRemateRules.ModuleCursorMm(
-                        faceLead, faceTrail, moduleSpanMm, wallRunMm);
+                        cornerLeadMm, cornerTrailMm, moduleSpanMm, wallRunMm);
+                    if (cornerLeadMm > 0d)
+                    {
+                        outElements.AddRange(EndFiller.Build(wall, anchor, remateMm, cornerRemateAlongMm));
+                    }
                 }
 
                 var indexOffset = 0;
-                var paintedFaceRemate = false;
                 for (var ci = 0; ci < chunks.Count; ci++)
                 {
                     var chunk = chunks[ci];
                     if (chunk.Builder == null)
                     {
-                        if (!skipRemate && !hasFaceRemate)
+                        if (!skipRemate)
                         {
-                            PaintFaceRemate(outElements, wall, anchor, remateMm, cursorMm, faceSides);
+                            outElements.AddRange(Modulo270PanelElementGenerator.BuildRemate(wall, anchor, remateMm, cursorMm));
                             cursorMm += remateMm;
-                            paintedFaceRemate = true;
                         }
 
                         continue;
@@ -1086,7 +1087,8 @@ namespace Desing.Repositories.RepositoryAtk60
                     var remateFollows = (!skipRemate
                             && ci + 1 < chunks.Count
                             && chunks[ci + 1].Builder == null)
-                        || ChunkAbutsFaceRemate(faceSides, chunkEndMm);
+                        || (cornerRemate && cornerTrailMm > 0d
+                            && Math.Abs(cornerRemateAlongMm - chunkEndMm) <= 2d);
                     outElements.AddRange(
                         Modulo270PanelElementGenerator.Build(
                             wall,
@@ -1108,13 +1110,9 @@ namespace Desing.Repositories.RepositoryAtk60
                     indexOffset += chunk.Count;
                 }
 
-                if (!skipRemate && hasFaceRemate)
+                if (cornerRemate && cornerTrailMm > 0d)
                 {
-                    PaintFaceRemate(outElements, wall, anchor, 0d, 0d, faceSides);
-                }
-                else if (!skipRemate && !paintedFaceRemate && faceSides != null)
-                {
-                    PaintFaceRemate(outElements, wall, anchor, 0d, cursorMm, faceSides);
+                    outElements.AddRange(EndFiller.Build(wall, anchor, remateMm, cornerRemateAlongMm));
                 }
 
                 PushPullProp.PlaceAlongWall(outElements, wall, anchor);

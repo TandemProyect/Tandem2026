@@ -1,6 +1,8 @@
 @using Desing.Resources
 @{
     var isPluginCadHost = ViewBag.PluginCadHost as bool? == true;
+    var canIa = !isPluginCadHost && Html.CanUse(Desing.Helpers.FunctionCatalog.AiCode);
+    var canAssemblyPlan = !isPluginCadHost && Html.CanUse("Desing_2.GenerateAssemblyViews");
 }
 
 @*
@@ -38,14 +40,17 @@
             </div>
             <span class="desing2-stl-floating-toolbar__group-gap" aria-hidden="true"></span>
         }
-        @if (!isPluginCadHost && Html.CanUse(Desing.Helpers.FunctionCatalog.AiCode))
+        @if (canIa || canAssemblyPlan)
         {
             @* IA (14/11/2026): primer botón de los modos, separado del resto por dos espacios (group-gap--ia). Abre/cierra el panel «Asistente IA – Diseño» (design-ai-assistant.js, enganchado desde master-article-details-stl-viewer.js; comandos de dibujo y edición de muros 2D). Si el módulo no carga, avisa «próximamente» (desing2-stl-viewer-toolbar-wiring.js). Solo en el visor web: la paleta de AutoCAD no carga ese JS. *@
             <div class="desing2-stl-floating-toolbar__group desing2-stl-floating-toolbar__group--ia" role="group" aria-label="IA">
+                @if (canIa)
+                {
                 <button type="button" class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn" id="ma-stl-mode-ia" data-function="IA" title="Asistente IA" aria-label="Asistente IA" aria-pressed="false" data-ma-ia-soon="IA: próximamente">
                     <i class="icon-base ri ri-robot-2-line" aria-hidden="true"></i>
                 </button>
-                @if (Html.CanUseMenu("ClientOffer"))
+                }
+                @if (canIa && Html.CanUseMenu("ClientOffer"))
                 {
                     <button type="button"
                             class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn"
@@ -55,6 +60,32 @@
                             title="Oferta cliente"
                             aria-label="Oferta cliente">
                         <i class="icon-base ri ri-file-text-line" aria-hidden="true"></i>
+                    </button>
+                }
+                @if (canAssemblyPlan)
+                {
+                    @* US «Generar plano de montaje»: desing2-assembly-plan.js → Desing_2/GenerateAssemblyViews. Oculto hasta Encofrar / Colores. *@
+                    <button type="button"
+                            class="btn btn-sm btn-outline-secondary waves-effect ma-stl-viewer-toolbar-btn desing2-stl-floating-toolbar__tool-btn"
+                            id="ma-stl-assembly-plan"
+                            style="display:none"
+                            title="@MasterArticles.StlPreview_AssemblyPlanAria"
+                            aria-label="@MasterArticles.StlPreview_AssemblyPlanAria"
+                            data-url="@Url.Action("GenerateAssemblyViews", "Desing_2")"
+                            data-state-url="@Url.Action("MaterialCountState", "Desing_2")"
+                            data-working="@MasterArticles.StlPreview_AssemblyPlanWorking"
+                            data-done="@MasterArticles.StlPreview_AssemblyPlanDone"
+                            data-without-face="@MasterArticles.StlPreview_AssemblyPlanWithoutFace"
+                            data-outside="@MasterArticles.StlPreview_AssemblyPlanOutside"
+                            data-no-walls="@MasterArticles.StlPreview_AssemblyPlanNoWalls"
+                            data-no-pieces="@MasterArticles.StlPreview_AssemblyPlanNoPieces"
+                            data-saving-walls="@MasterArticles.StlPreview_AssemblyPlanSavingWalls"
+                            data-saving="@MasterArticles.StlPreview_AssemblyPlanSaving"
+                            data-unchanged="@MasterArticles.StlPreview_AssemblyPlanUnchanged"
+                            data-need-design="@MasterArticles.StlPreview_AssemblyPlanNeedDesign"
+                            data-error="@MasterArticles.StlPreview_AssemblyPlanError">
+                        <i class="icon-base ri ri-draft-line" aria-hidden="true"></i>
+                        <span class="visually-hidden">@MasterArticles.StlPreview_AssemblyPlanTitle</span>
                     </button>
                 }
             </div>

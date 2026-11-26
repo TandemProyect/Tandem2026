@@ -277,6 +277,8 @@ Al pulsar **Acotar muro**, además de longitudes/espesores arquitectónicos, se 
 | **Cateto** (panel) | `atk60-panel` | cian | `leg1PanelMm` / `leg2PanelMm` (L); atravesado, luz interior, vástago, rama (T) |
 | **Remate** (taco madera) | `atk60-remate` | ámbar | Solo si `woodTacoMm ≥ 5` mm |
 
+Con encofrado pintado, las cotas de remate salen de `maStlWallDimCollectAtk60ModulePlacements`: cada cara acota sus tablones. La cara exterior, por fuera; la cara interior (la de dentro de la L), desde esa cara y hacia dentro, con la directriz alejándose de la esquina. La cara de cada tablón se decide por su X/Z respecto al eje del muro (`Debug.StartX/StartZ` del ancla): `maStlWallDimSplitAtk60RematesByFace`.
+
 **Código:** `maStlAtk60CollectJunctionDimPlacements` → `maAtk60BuildFootprintDimPlacements` en `ma-stl-atk60-formwork.js`.
 
 Las cotas se calculan desde **líneas fuente** (no requieren modo Muro 2D activo).
